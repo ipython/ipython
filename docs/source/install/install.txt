@@ -187,14 +187,22 @@ common situations where you won't have a working :mod:`readline` module:
 
 * If you are running Windows, which doesn't have a :mod:`readline` module.
 
+
 On OS X, the built-in Python doesn't not have :mod:`readline` because of
 license issues.  Starting with OS X 10.5 (Leopard), Apple's built-in Python has
 a BSD-licensed not-quite-compatible readline replacement. As of IPython 0.9,
-many of the issues related to the differences between readline and libedit have
-been resolved.  For many users, libedit may be sufficient.
+many of the issues related to the differences between readline and libedit seem
+to have been resolved.  While you may find libedit sufficient, we have
+occasional reports of bugs with it and several developers who use OS X as their
+main environment consider libedit unacceptable for productive, regular use with
+IPython.
 
-Most users on OS X will want to get the full :mod:`readline` module.  To get a
-working :mod:`readline` module, just do (with :mod:`setuptools` installed):
+Therefore, we *strongly* recommend that on OS X you get the full
+:mod:`readline` module.  We will *not* consider completion/history problems to
+be bugs for IPython if you are using libedit.
+
+To get a working :mod:`readline` module, just do (with :mod:`setuptools`
+installed):
 
 .. code-block:: bash
 
@@ -202,9 +210,9 @@ working :mod:`readline` module, just do (with :mod:`setuptools` installed):
 
 .. note::
 
-    Other Python distributions on OS X (such as fink, MacPorts and the 
-    official python.org binaries) already have readline installed so 
-    you don't have to do this step.
+    Other Python distributions on OS X (such as fink, MacPorts and the official
+    python.org binaries) already have readline installed so you likely don't
+    have to do this step.
 
 If needed, the readline egg can be build and installed from source (see the
 wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard).

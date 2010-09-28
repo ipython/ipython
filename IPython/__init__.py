@@ -40,22 +40,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 from .config.loader import Config
 from .core import release
 from .core.application import Application
-from .core.ipapp import IPythonApp
-from .core.embed import embed
+from .frontend.terminal.embed import embed
 from .core.error import TryNext
-from .core.iplib import InteractiveShell
+from .core.interactiveshell import InteractiveShell
 from .testing import test
-
-from .lib import (
-    enable_wx, disable_wx,
-    enable_gtk, disable_gtk,
-    enable_qt4, disable_qt4,
-    enable_tk, disable_tk,
-    set_inputhook, clear_inputhook,
-    current_gui, spin,
-    appstart_qt4, appstart_wx,
-    appstart_gtk, appstart_tk
-)
 
 # Release data
 __author__ = ''

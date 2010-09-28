@@ -13,13 +13,20 @@ Utilities for working with external processes.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
+# Stdlib
 import os
 import sys
 import shlex
-import subprocess
 
-from IPython.utils.terminal import set_term_title
+# Our own
+if sys.platform == 'win32':
+    from ._process_win32 import _find_cmd, system, getoutput, AvoidUNCPath
+else:
+    from ._process_posix import _find_cmd, system, getoutput
+
+from ._process_common import getoutputerror
 
 #-----------------------------------------------------------------------------
 # Code
@@ -28,39 +35,6 @@ from IPython.utils.terminal import set_term_title
 
 class FindCmdError(Exception):
     pass
-
-
-def _find_cmd(cmd):
-    """Find the full path to a command using which."""
-    return os.popen('which %s' % cmd).read().strip()
-
-
-if os.name == 'posix':
-    def _find_cmd(cmd):
-        """Find the full path to a command using which."""
-        return getoutputerror('/usr/bin/env which %s' % cmd)[0]
-
-
-if sys.platform == 'win32':
-    def _find_cmd(cmd):
-        """Find the full path to a .bat or .exe using the win32api module."""
-        try:
-            from win32api import SearchPath
-        except ImportError:
-            raise ImportError('you need to have pywin32 installed for this to work')
-        else:
-            PATH = os.environ['PATH']
-            extensions = ['.exe', '.com', '.bat', '.py']
-            path = None
-            for ext in extensions:
-                try:
-                    path = SearchPath(PATH,cmd + ext)[0]
-                except:
-                    pass
-            if path is None:
-                raise OSError("command %r not found" % cmd)
-            else:
-                return path
 
 
 def find_cmd(cmd):
@@ -77,7 +51,7 @@ def find_cmd(cmd):
     
         from IPython.utils.path import get_ipython_module_path
         from IPython.utils.process import pycmd2argv
-        argv = pycmd2argv(get_ipython_module_path('IPython.core.ipapp'))
+        argv = pycmd2argv(get_ipython_module_path('IPython.frontend.terminal.ipapp'))
 
     Parameters
     ----------
@@ -87,7 +61,7 @@ def find_cmd(cmd):
     if cmd == 'python':
         return os.path.abspath(sys.executable)
     try:
-        path = _find_cmd(cmd)
+        path = _find_cmd(cmd).rstrip()
     except OSError:
         raise FindCmdError('command could not be found: %s' % cmd)
     # which returns empty if not found
@@ -147,28 +121,6 @@ def arg_split(s, posix=False):
     return list(lex)
 
 
-def system(cmd, verbose=0, debug=0, header=''):
-    """Execute a system command, return its exit status.
-
-    Options:
-
-    - verbose (0): print the command to be executed.
-
-    - debug (0): only print, do not actually execute.
-
-    - header (''): Header to print on screen prior to the executed command (it
-    is only prepended to the command, no newlines are added).
-
-    Note: a stateful version of this function is available through the
-    SystemExec class."""
-
-    stat = 0
-    if verbose or debug: print header+cmd
-    sys.stdout.flush()
-    if not debug: stat = os.system(cmd)
-    return stat
-
-
 def abbrev_cwd():
     """ Return abbreviated version of cwd, e.g. d:mydir """
     cwd = os.getcwd().replace('\\','/')
@@ -186,182 +138,3 @@ def abbrev_cwd():
 
     return (drivepart + (
         cwd == '/' and '/' or tail))
-
-
-# This function is used by ipython in a lot of places to make system calls.
-# We need it to be slightly different under win32, due to the vagaries of
-# 'network shares'.  A win32 override is below.
-
-def shell(cmd, verbose=0, debug=0, header=''):
-    """Execute a command in the system shell, always return None.
-
-    Options:
-
-    - verbose (0): print the command to be executed.
-
-    - debug (0): only print, do not actually execute.
-
-    - header (''): Header to print on screen prior to the executed command (it
-    is only prepended to the command, no newlines are added).
-
-    Note: this is similar to system(), but it returns None so it can
-    be conveniently used in interactive loops without getting the return value
-    (typically 0) printed many times."""
-
-    stat = 0
-    if verbose or debug: print header+cmd
-    # flush stdout so we don't mangle python's buffering
-    sys.stdout.flush()
-
-    if not debug:
-        set_term_title("IPy " + cmd)
-        os.system(cmd)
-        set_term_title("IPy " + abbrev_cwd())
-
-# override shell() for win32 to deal with network shares
-if os.name in ('nt','dos'):
-
-    shell_ori = shell
-
-    def shell(cmd, verbose=0, debug=0, header=''):
-        if os.getcwd().startswith(r"\\"):
-            path = os.getcwd()
-            # change to c drive (cannot be on UNC-share when issuing os.system,
-            # as cmd.exe cannot handle UNC addresses)
-            os.chdir("c:")
-            # issue pushd to the UNC-share and then run the command
-            try:
-                shell_ori('"pushd %s&&"'%path+cmd,verbose,debug,header)
-            finally:
-                os.chdir(path)
-        else:
-            shell_ori(cmd,verbose,debug,header)
-
-    shell.__doc__ = shell_ori.__doc__
-
-    
-def getoutput(cmd, verbose=0, debug=0, header='', split=0):
-    """Dummy substitute for perl's backquotes.
-
-    Executes a command and returns the output.
-
-    Accepts the same arguments as system(), plus:
-
-    - split(0): if true, the output is returned as a list split on newlines.
-
-    Note: a stateful version of this function is available through the
-    SystemExec class.
-
-    This is pretty much deprecated and rarely used, getoutputerror may be 
-    what you need.
-
-    """
-
-    if verbose or debug: print header+cmd
-    if not debug:
-        pipe = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
-        output = pipe.read()
-        # stipping last \n is here for backwards compat.
-        if output.endswith('\n'):
-            output = output[:-1]
-        if split:
-            return output.split('\n')
-        else:
-            return output
-
-
-# for compatibility with older naming conventions
-xsys = system
-
-
-def getoutputerror(cmd, verbose=0, debug=0, header='', split=0):
-    """Return (standard output,standard error) of executing cmd in a shell.
-
-    Accepts the same arguments as system(), plus:
-
-    - split(0): if true, each of stdout/err is returned as a list split on
-    newlines.
-
-    Note: a stateful version of this function is available through the
-    SystemExec class."""
-
-    if verbose or debug: print header+cmd
-    if not cmd:
-        if split:
-            return [],[]
-        else:
-            return '',''
-    if not debug:
-        p = subprocess.Popen(cmd, shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             close_fds=True)
-        pin, pout, perr = (p.stdin, p.stdout, p.stderr)
-
-        tout = pout.read().rstrip()
-        terr = perr.read().rstrip()
-        pin.close()
-        pout.close()
-        perr.close()
-        if split:
-            return tout.split('\n'),terr.split('\n')
-        else:
-            return tout,terr
-
-
-class SystemExec:
-    """Access the system and getoutput functions through a stateful interface.
-
-    Note: here we refer to the system and getoutput functions from this
-    library, not the ones from the standard python library.
-
-    This class offers the system and getoutput functions as methods, but the
-    verbose, debug and header parameters can be set for the instance (at
-    creation time or later) so that they don't need to be specified on each
-    call.
-
-    For efficiency reasons, there's no way to override the parameters on a
-    per-call basis other than by setting instance attributes. If you need
-    local overrides, it's best to directly call system() or getoutput().
-
-    The following names are provided as alternate options:
-     - xsys: alias to system
-     - bq: alias to getoutput
-
-    An instance can then be created as:
-    >>> sysexec = SystemExec(verbose=1,debug=0,header='Calling: ')
-    """
-
-    def __init__(self, verbose=0, debug=0, header='', split=0):
-        """Specify the instance's values for verbose, debug and header."""
-        self.verbose = verbose
-        self.debug = debug
-        self.header = header
-        self.split = split
-
-    def system(self, cmd):
-        """Stateful interface to system(), with the same keyword parameters."""
-
-        system(cmd, self.verbose, self.debug, self.header)
-
-    def shell(self, cmd):
-        """Stateful interface to shell(), with the same keyword parameters."""
-
-        shell(cmd, self.verbose, self.debug, self.header)
-
-    xsys = system  # alias
-
-    def getoutput(self, cmd):
-        """Stateful interface to getoutput()."""
-
-        return getoutput(cmd, self.verbose, self.debug, self.header, self.split)
-
-    def getoutputerror(self, cmd):
-        """Stateful interface to getoutputerror()."""
-
-        return getoutputerror(cmd, self.verbose, self.debug, self.header, self.split)
-
-    bq = getoutput  # alias
-
-

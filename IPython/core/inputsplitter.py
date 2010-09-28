@@ -60,6 +60,7 @@ Authors
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -82,14 +83,14 @@ from IPython.utils.text import make_quoted_expr
 # for all intents and purposes they constitute the 'IPython syntax', so they
 # should be considered fixed.
 
-ESC_SHELL  = '!'
-ESC_SH_CAP = '!!'
-ESC_HELP   = '?'
-ESC_HELP2  = '??'
-ESC_MAGIC  = '%'
-ESC_QUOTE  = ','
-ESC_QUOTE2 = ';'
-ESC_PAREN  = '/'
+ESC_SHELL  = '!'     # Send line to underlying system shell
+ESC_SH_CAP = '!!'    # Send line to system shell and capture output
+ESC_HELP   = '?'     # Find information about object
+ESC_HELP2  = '??'    # Find extra-detailed information about object
+ESC_MAGIC  = '%'     # Call magic function
+ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
+ESC_QUOTE2 = ';'     # Quote all args as a single string, call
+ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -103,6 +104,10 @@ ESC_PAREN  = '/'
 # compiled regexps for autoindent management
 dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 ini_spaces_re = re.compile(r'^([ \t\r\f\v]+)')
+
+# regexp to match pure comment lines so we don't accidentally insert 'if 1:'
+# before pure comments
+comment_line_re = re.compile('^\s*\#')
 
 
 def num_ini_spaces(s):
@@ -160,6 +165,88 @@ def get_input_encoding():
 # Classes and functions for normal Python syntax handling
 #-----------------------------------------------------------------------------
 
+# HACK!  This implementation, written by Robert K a while ago using the
+# compiler module, is more robust than the other one below, but it expects its
+# input to be pure python (no ipython syntax).  For now we're using it as a
+# second-pass splitter after the first pass transforms the input to pure
+# python.
+
+def split_blocks(python):
+    """ Split multiple lines of code into discrete commands that can be
+    executed singly.
+
+    Parameters
+    ----------
+    python : str
+        Pure, exec'able Python code.
+
+    Returns
+    -------
+    commands : list of str
+        Separate commands that can be exec'ed independently.
+    """
+
+    import compiler
+    
+    # compiler.parse treats trailing spaces after a newline as a
+    # SyntaxError.  This is different than codeop.CommandCompiler, which
+    # will compile the trailng spaces just fine.  We simply strip any
+    # trailing whitespace off.  Passing a string with trailing whitespace
+    # to exec will fail however.  There seems to be some inconsistency in
+    # how trailing whitespace is handled, but this seems to work.
+    python_ori = python # save original in case we bail on error
+    python = python.strip()
+
+    # The compiler module does not like unicode. We need to convert
+    # it encode it:
+    if isinstance(python, unicode):
+        # Use the utf-8-sig BOM so the compiler detects this a UTF-8
+        # encode string.
+        python = '\xef\xbb\xbf' + python.encode('utf-8')
+
+    # The compiler module will parse the code into an abstract syntax tree.
+    # This has a bug with str("a\nb"), but not str("""a\nb""")!!!
+    try:
+        ast = compiler.parse(python)
+    except:
+        return [python_ori]
+
+    # Uncomment to help debug the ast tree
+    # for n in ast.node:
+    #     print n.lineno,'->',n
+
+    # Each separate command is available by iterating over ast.node. The
+    # lineno attribute is the line number (1-indexed) beginning the commands
+    # suite.
+    # lines ending with ";" yield a Discard Node that doesn't have a lineno
+    # attribute.  These nodes can and should be discarded.  But there are
+    # other situations that cause Discard nodes that shouldn't be discarded.
+    # We might eventually discover other cases where lineno is None and have
+    # to put in a more sophisticated test.
+    linenos = [x.lineno-1 for x in ast.node if x.lineno is not None]
+
+    # When we finally get the slices, we will need to slice all the way to
+    # the end even though we don't have a line number for it. Fortunately,
+    # None does the job nicely.
+    linenos.append(None)
+
+    # Same problem at the other end: sometimes the ast tree has its
+    # first complete statement not starting on line 0. In this case
+    # we might miss part of it.  This fixes ticket 266993.  Thanks Gael!
+    linenos[0] = 0
+
+    lines = python.splitlines()
+
+    # Create a list of atomic commands.
+    cmds = []
+    for i, j in zip(linenos[:-1], linenos[1:]):
+        cmd = lines[i:j]
+        if cmd:
+            cmds.append('\n'.join(cmd)+'\n')
+
+    return cmds
+
+
 class InputSplitter(object):
     """An object that can split Python source input in executable blocks.
 
@@ -203,7 +290,7 @@ class InputSplitter(object):
     # object; it will be None if the source doesn't compile to valid Python.
     code = None
     # Input mode
-    input_mode = 'append'
+    input_mode = 'line'
     
     # Private attributes
     
@@ -223,14 +310,19 @@ class InputSplitter(object):
         ----------
         input_mode : str
 
-          One of 'append', 'replace', default is 'append'.  This controls how
-          new inputs are used: in 'append' mode, they are appended to the
-          existing buffer and the whole buffer is compiled; in 'replace' mode,
-          each new input completely replaces all prior inputs.  Replace mode is
-          thus equivalent to prepending a full reset() to every push() call.
+          One of ['line', 'cell']; default is 'line'.
 
-          In practice, line-oriented clients likely want to use 'append' mode
-          while block-oriented ones will want to use 'replace'.
+       The input_mode parameter controls how new inputs are used when fed via
+       the :meth:`push` method:
+
+       - 'line': meant for line-oriented clients, inputs are appended one at a
+         time to the internal buffer and the whole buffer is compiled.
+
+       - 'cell': meant for clients that can edit multi-line 'cells' of text at
+          a time.  A cell can contain one or more blocks that can be compile in
+          'single' mode by Python.  In this mode, each new input new input
+          completely replaces all prior inputs.  Cell mode is thus equivalent
+          to prepending a full reset() to every push() call.
         """
         self._buffer = []
         self._compile = codeop.CommandCompiler()
@@ -276,14 +368,16 @@ class InputSplitter(object):
         this value is also stored as a private attribute (_is_complete), so it
         can be queried at any time.
         """
-        if self.input_mode == 'replace':
+        if self.input_mode == 'cell':
             self.reset()
         
         # If the source code has leading blanks, add 'if 1:\n' to it
         # this allows execution of indented pasted code. It is tempting
         # to add '\n' at the end of source to run commands like ' a=1'
         # directly, but this fails for more complicated scenarios
-        if not self._buffer and lines[:1] in [' ', '\t']:
+
+        if not self._buffer and lines[:1] in [' ', '\t'] and \
+           not comment_line_re.match(lines):
             lines = 'if 1:\n%s' % lines
         
         self._store(lines)
@@ -293,6 +387,10 @@ class InputSplitter(object):
         # exception is raised in compilation, we don't mislead by having
         # inconsistent code/source attributes.
         self.code, self._is_complete = None, None
+
+        # Honor termination lines properly
+        if source.rstrip().endswith('\\'):
+            return False
 
         self._update_indent(lines)
         try:
@@ -342,13 +440,31 @@ class InputSplitter(object):
         backend which might convert the invalid syntax into valid Python via
         one of the dynamic IPython mechanisms.
         """
-            
+
+        # With incomplete input, unconditionally accept more
         if not self._is_complete:
             return True
 
+        # If we already have complete input and we're flush left, the answer
+        # depends.  In line mode, we're done.  But in cell mode, we need to
+        # check how many blocks the input so far compiles into, because if
+        # there's already more than one full independent block of input, then
+        # the client has entered full 'cell' mode and is feeding lines that
+        # each is complete.  In this case we should then keep accepting.
+        # The Qt terminal-like console does precisely this, to provide the
+        # convenience of terminal-like input of single expressions, but
+        # allowing the user (with a separate keystroke) to switch to 'cell'
+        # mode and type multiple expressions in one shot.
         if self.indent_spaces==0:
-            return False
-        
+            if self.input_mode=='line':
+                return False
+            else:
+                nblocks = len(split_blocks(''.join(self._buffer)))
+                if nblocks==1:
+                    return False
+
+        # When input is complete, then termination is marked by an extra blank
+        # line at the end.
         last_line = self.source.splitlines()[-1]
         return bool(last_line and not last_line.isspace())
         
@@ -381,6 +497,7 @@ class InputSplitter(object):
         lines = lines.splitlines()[::-1]
         # Outer loop over all input
         while lines:
+            #print 'Current lines:', lines  # dbg
             # Inner loop to build each block
             while True:
                 # Safety exit from inner loop
@@ -410,8 +527,10 @@ class InputSplitter(object):
                 # dedent happens, so , we consume the line and we can break out
                 # to start a new block.
 
-                # Case 1, explicit dedent causes a break
-                if _full_dedent and not next_line.startswith(' '):
+                # Case 1, explicit dedent causes a break.
+                # Note: check that we weren't on the very last line, else we'll
+                # enter an infinite loop adding/removing the last line.
+                if  _full_dedent and lines and not next_line.startswith(' '):
                     lines.append(next_line)
                     break
                 
@@ -425,7 +544,11 @@ class InputSplitter(object):
             # Form the new block with the current source input
             blocks.append(self.source_reset())
             
-        return blocks
+        #return blocks
+        # HACK!!! Now that our input is in blocks but guaranteed to be pure
+        # python syntax, feed it back a second time through the AST-based
+        # splitter, which is more accurate than ours.
+        return split_blocks(''.join(blocks))
 
     #------------------------------------------------------------------------
     # Private interface
@@ -503,7 +626,8 @@ class InputSplitter(object):
 line_split = re.compile("""
              ^(\s*)              # any leading space
              ([,;/%]|!!?|\?\??)  # escape character or characters
-             \s*([\w\.]*)        # function/method part (mix of \w and '.')
+             \s*(%?[\w\.\*]*)    # function/method, possibly with leading %
+                                 # to correctly treat things like '?%magic'
              (\s+.*$|$)          # rest of line
              """, re.VERBOSE)
 
@@ -548,6 +672,10 @@ def split_user_input(line):
     ('', '', 'f.g(x)', '')
     >>> split_user_input('f.g (x)')
     ('', '', 'f.g', '(x)')
+    >>> split_user_input('?%hist')
+    ('', '?', '%hist', '')
+    >>> split_user_input('?x*')
+    ('', '?', 'x*', '')
     """
     match = line_split.match(line)
     if match:
@@ -630,16 +758,12 @@ _assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
 
 def transform_assign_system(line):
     """Handle the `files = !ls` syntax."""
-    # FIXME: This transforms the line to use %sc, but we've listed that magic
-    # as deprecated.  We should then implement this functionality in a
-    # standalone api that we can transform to, without going through a
-    # deprecated magic.
     m = _assign_system_re.match(line)
     if m is not None:
         cmd = m.group('cmd')
         lhs = m.group('lhs')
-        expr = make_quoted_expr("sc -l = %s" % cmd)
-        new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+        expr = make_quoted_expr(cmd)
+        new_line = '%s = get_ipython().getoutput(%s)' % (lhs, expr)
         return new_line
     return line
 
@@ -680,8 +804,10 @@ def transform_ipy_prompt(line):
 
     if not line or line.isspace():
         return line
+    #print 'LINE:  %r' % line # dbg
     m = _ipy_prompt_re.match(line)
     if m:
+        #print 'MATCH! %r -> %r' % (line, line[len(m.group(0)):]) # dbg
         return line[len(m.group(0)):]
     else:
         return line
@@ -726,6 +852,7 @@ class EscapedTransformer(object):
 
         # There may be one or two '?' at the end, move them to the front so that
         # the rest of the logic can assume escapes are at the start
+        l_ori = line_info
         line = line_info.line
         if line.endswith('?'):
             line = line[-1] + line[:-1]
@@ -733,8 +860,11 @@ class EscapedTransformer(object):
             line = line[-1] + line[:-1]
         line_info = LineInfo(line)
 
-        # From here on, simply choose which level of detail to get.
-        if line_info.esc == '?':
+        # From here on, simply choose which level of detail to get, and
+        # special-case the psearch syntax
+        if '*' in line_info.line:
+            pinfo = 'psearch'
+        elif line_info.esc == '?':
             pinfo = 'pinfo'
         elif line_info.esc == '??':
             pinfo = 'pinfo2'
@@ -828,12 +958,30 @@ class IPythonInputSplitter(InputSplitter):
         #
         # FIXME: try to find a cleaner approach for this last bit.
 
-        for line in lines_list:
-            if self._is_complete or not self._buffer or \
-               (self._buffer and self._buffer[-1].rstrip().endswith(':')):
-                for f in transforms:
-                    line = f(line)
-                
-            out = super(IPythonInputSplitter, self).push(line)
+        # If we were in 'block' mode, since we're going to pump the parent
+        # class by hand line by line, we need to temporarily switch out to
+        # 'line' mode, do a single manual reset and then feed the lines one
+        # by one.  Note that this only matters if the input has more than one
+        # line.
+        changed_input_mode = False
+        
+        if len(lines_list)>1 and self.input_mode == 'cell':
+            self.reset()
+            changed_input_mode = True
+            saved_input_mode = 'cell'
+            self.input_mode = 'line'
 
+        try:
+            push = super(IPythonInputSplitter, self).push
+            for line in lines_list:
+                if self._is_complete or not self._buffer or \
+                   (self._buffer and self._buffer[-1].rstrip().endswith(':')):
+                    for f in transforms:
+                        line = f(line)
+
+                out = push(line)
+        finally:
+            if changed_input_mode:
+                self.input_mode = saved_input_mode
+        
         return out

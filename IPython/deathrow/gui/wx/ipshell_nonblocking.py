@@ -24,7 +24,7 @@ import locale
 from thread_ex import ThreadEx
 
 from IPython.core import iplib
-from IPython.utils.io import Term
+import IPython.utils.io
 
 ##############################################################################
 class _Helper(object):

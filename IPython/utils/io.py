@@ -9,11 +9,11 @@ IO related utilities.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
 import sys
 import tempfile
 
@@ -39,13 +39,13 @@ class IOStream:
         except:
             try:
                 # print handles some unicode issues which may trip a plain
-                # write() call.  Attempt to emulate write() by using a
-                # trailing comma
-                print >> self.stream, data,
+                # write() call.  Emulate write() by using an empty end
+                # argument.
+                print(data, end='', file=self.stream)
             except:
                 # if we get here, something is seriously broken.
-                print >> sys.stderr, \
-                      'ERROR - failed to write data to stream:', self.stream
+                print('ERROR - failed to write data to stream:', self.stream,
+                      file=sys.stderr)
 
     # This class used to have a writeln method, but regular files and streams
     # in Python don't have this method. We need to keep this completely
@@ -65,21 +65,10 @@ class IOTerm:
     # In the future, having IPython channel all its I/O operations through
     # this class will make it easier to embed it into other environments which
     # are not a normal terminal (such as a GUI-based shell)
-    def __init__(self,cin=None,cout=None,cerr=None):
-        self.cin  = IOStream(cin,sys.stdin)
-        self.cout = IOStream(cout,sys.stdout)
-        self.cerr = IOStream(cerr,sys.stderr)
-
-
-# Global variable to be used for all I/O
-Term = IOTerm()
-
-
-import IPython.utils.rlineimpl as readline
-# Remake Term to use the readline i/o facilities
-if sys.platform == 'win32' and readline.have_readline:
-
-    Term = IOTerm(cout=readline._outputfile,cerr=readline._outputfile)
+    def __init__(self, cin=None, cout=None, cerr=None):
+        self.cin  = IOStream(cin, sys.stdin)
+        self.cout = IOStream(cout, sys.stdout)
+        self.cerr = IOStream(cerr, sys.stderr)
 
 
 class Tee(object):
@@ -252,7 +241,7 @@ class NLprinter:
         start = kw['start']; del kw['start']
         stop = kw['stop']; del kw['stop']
         if self.depth == 0 and 'header' in kw.keys():
-            print kw['header']
+            print(kw['header'])
 
         for idx in range(start,stop):
             elem = lst[idx]
@@ -289,4 +278,22 @@ def temp_pyfile(src, ext='.py'):
     return fname, f
 
 
+def raw_print(*args, **kw):
+    """Raw print to sys.__stdout__, otherwise identical interface to print()."""
+    
+    print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
+          file=sys.__stdout__)
+    sys.__stdout__.flush()
 
+
+def raw_print_err(*args, **kw):
+    """Raw print to sys.__stderr__, otherwise identical interface to print()."""
+    
+    print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
+          file=sys.__stderr__)
+    sys.__stderr__.flush()
+
+
+# Short aliases for quick debugging, do NOT use these in production code.
+rprint = raw_print
+rprinte = raw_print_err

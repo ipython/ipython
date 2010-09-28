@@ -21,6 +21,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import re
+import sys
 
 #-----------------------------------------------------------------------------
 # Main function
@@ -30,7 +31,7 @@ import re
 # RegExp for splitting line contents into pre-char//first word-method//rest.
 # For clarity, each group in on one line.
 
-# WARNING: update the regexp if the escapes in iplib are changed, as they
+# WARNING: update the regexp if the escapes in interactiveshell are changed, as they
 # are hardwired in.
 
 # Although it's not solely driven by the regex, note that:
@@ -55,7 +56,13 @@ def split_user_input(line, pattern=None):
     This is currently handles lines with '=' in them in a very inconsistent
     manner.
     """
-
+    # We need to ensure that the rest of this routine deals only with unicode
+    if type(line)==str:
+        codec = sys.stdin.encoding
+        if codec is None:
+            codec = 'utf-8'
+        line = line.decode(codec)
+        
     if pattern is None:
         pattern = line_split
     match = pattern.match(line)
@@ -65,15 +72,16 @@ def split_user_input(line, pattern=None):
             ifun, the_rest = line.split(None,1)
         except ValueError:
             # print "split failed for line '%s'" % line
-            ifun, the_rest = line,''
+            ifun, the_rest = line, u''
         pre = re.match('^(\s*)(.*)',line).groups()[0]
     else:
         pre,ifun,the_rest = match.groups()
 
-    # ifun has to be a valid python identifier, so it better be only pure
-    # ascii, no unicode:
+    # ifun has to be a valid python identifier, so it better encode into
+    # ascii.  We do still make it a unicode string so that we consistently
+    # return unicode, but it will be one that is guaranteed to be pure ascii
     try:
-        ifun = ifun.encode('ascii')
+        ifun = unicode(ifun.encode('ascii'))
     except UnicodeEncodeError:
         the_rest = ifun + u' ' + the_rest
         ifun = u''

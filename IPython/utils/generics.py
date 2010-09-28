@@ -33,12 +33,6 @@ from IPython.external.simplegeneric import generic
 
 
 @generic
-def result_display(result):
-    """Print the result of computation."""
-    raise TryNext
-
-
-@generic
 def inspect_object(obj):
     """Called when you do obj?"""
     raise TryNext

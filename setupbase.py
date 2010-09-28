@@ -106,9 +106,12 @@ def find_packages():
     add_package(packages, 'config', tests=True, others=['default','profile'])
     add_package(packages, 'core', tests=True)
     add_package(packages, 'deathrow', tests=True)
-    add_package(packages , 'extensions')
+    add_package(packages, 'extensions')
     add_package(packages, 'external')
     add_package(packages, 'frontend')
+    add_package(packages, 'frontend.qt')
+    add_package(packages, 'frontend.qt.console', tests=True)
+    add_package(packages, 'frontend.terminal', tests=True)    
     add_package(packages, 'kernel', config=False, tests=True, scripts=True)
     add_package(packages, 'kernel.core', config=False, tests=True)
     add_package(packages, 'lib', tests=True)
@@ -117,6 +120,8 @@ def find_packages():
     add_package(packages, 'testing', tests=True)
     add_package(packages, 'testing.plugin', tests=False)
     add_package(packages, 'utils', tests=True)
+    add_package(packages, 'zmq')
+    add_package(packages, 'zmq.pylab')
     return packages
 
 #---------------------------------------------------------------------------
@@ -255,8 +260,7 @@ def find_scripts():
                pjoin(kernel_scripts, 'ipcontroller'),
                pjoin(kernel_scripts, 'ipcluster'),
                pjoin(main_scripts, 'ipython'),
-               pjoin(main_scripts, 'ipythonx'),
-               pjoin(main_scripts, 'ipython-wx'),
+               pjoin(main_scripts, 'ipython-qtconsole'),
                pjoin(main_scripts, 'pycolor'),
                pjoin(main_scripts, 'irunner'),
                pjoin(main_scripts, 'iptest')

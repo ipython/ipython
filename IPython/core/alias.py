@@ -10,10 +10,11 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2009  The IPython Development Team
+#  Copyright (C) 2008-2010  The IPython Development Team
 #
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
+#  Distributed under the terms of the BSD License.
+#
+#  The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -41,50 +42,61 @@ from IPython.utils.warn import warn, error
 shell_line_split = re.compile(r'^(\s*)(\S*\s*)(.*$)')
 
 def default_aliases():
-    # Make some aliases automatically
-    # Prepare list of shell aliases to auto-define
+    """Return list of shell aliases to auto-define.
+    """
+    # Note: the aliases defined here should be safe to use on a kernel
+    # regardless of what frontend it is attached to.  Frontends that use a
+    # kernel in-process can define additional aliases that will only work in
+    # their case.  For example, things like 'less' or 'clear' that manipulate
+    # the terminal should NOT be declared here, as they will only work if the
+    # kernel is running inside a true terminal, and not over the network.
+    
     if os.name == 'posix':
-        default_aliases = ('mkdir mkdir', 'rmdir rmdir',
-                      'mv mv -i','rm rm -i','cp cp -i',
-                      'cat cat','less less','clear clear',
-                      # a better ls
-                      'ls ls -F',
-                      # long ls
-                      'll ls -lF')
-        # Extra ls aliases with color, which need special treatment on BSD
-        # variants
-        ls_extra = ( # color ls
-                     'lc ls -F -o --color',
-                     # ls normal files only
-                     'lf ls -F -o --color %l | grep ^-',
-                     # ls symbolic links
-                     'lk ls -F -o --color %l | grep ^l',
-                     # directories or links to directories,
-                     'ldir ls -F -o --color %l | grep /$',
-                     # things which are executable
-                     'lx ls -F -o --color %l | grep ^-..x',
-                     )
-        # The BSDs don't ship GNU ls, so they don't understand the
-        # --color switch out of the box
-        if 'bsd' in sys.platform:
-            ls_extra = ( # ls normal files only
-                         'lf ls -lF | grep ^-',
-                         # ls symbolic links
-                         'lk ls -lF | grep ^l',
-                         # directories or links to directories,
-                         'ldir ls -lF | grep /$',
-                         # things which are executable
-                         'lx ls -lF | grep ^-..x',
-                         )
-        default_aliases = default_aliases + ls_extra
-    elif os.name in ['nt','dos']:
-        default_aliases = ('ls dir /on',
-                      'ddir dir /ad /on', 'ldir dir /ad /on',
-                      'mkdir mkdir','rmdir rmdir','echo echo',
-                      'ren ren','cls cls','copy copy')
+        default_aliases = [('mkdir', 'mkdir'), ('rmdir', 'rmdir'),
+                           ('mv', 'mv -i'), ('rm', 'rm -i'), ('cp', 'cp -i'),
+                           ('cat', 'cat'),
+                           ]
+        # Useful set of ls aliases.  The GNU and BSD options are a little
+        # different, so we make aliases that provide as similar as possible
+        # behavior in ipython, by passing the right flags for each platform
+        if sys.platform.startswith('linux'):
+            ls_aliases = [('ls', 'ls -F --color'),
+                          # long ls
+                          ('ll', 'ls -F -o --color'),
+                          # ls normal files only
+                          ('lf', 'ls -F -o --color %l | grep ^-'),
+                          # ls symbolic links
+                          ('lk', 'ls -F -o --color %l | grep ^l'),
+                          # directories or links to directories,
+                          ('ldir', 'ls -F -o --color %l | grep /$'),
+                          # things which are executable
+                          ('lx', 'ls -F -o --color %l | grep ^-..x'),
+                          ]
+        else:
+            # BSD, OSX, etc.
+            ls_aliases = [('ls', 'ls -F'),
+                          # long ls
+                          ('ll', 'ls -F -l'),
+                          # ls normal files only
+                          ('lf', 'ls -F -l %l | grep ^-'),
+                          # ls symbolic links
+                          ('lk', 'ls -F -l %l | grep ^l'),
+                          # directories or links to directories,
+                          ('ldir', 'ls -F -l %l | grep /$'),
+                          # things which are executable
+                          ('lx', 'ls -F -l %l | grep ^-..x'),
+                          ]
+        default_aliases = default_aliases + ls_aliases
+    elif os.name in ['nt', 'dos']:
+        default_aliases = [('ls', 'dir /on'),
+                           ('ddir', 'dir /ad /on'), ('ldir', 'dir /ad /on'),
+                           ('mkdir', 'mkdir'), ('rmdir', 'rmdir'),
+                           ('echo', 'echo'), ('ren', 'ren'), ('copy', 'copy'),
+                           ]
     else:
-        default_aliases = ()
-    return [s.split(None,1) for s in default_aliases]
+        default_aliases = []
+        
+    return default_aliases
 
 
 class AliasError(Exception):
@@ -94,17 +106,15 @@ class AliasError(Exception):
 class InvalidAliasError(AliasError):
     pass
 
-
 #-----------------------------------------------------------------------------
 # Main AliasManager class
 #-----------------------------------------------------------------------------
-
 
 class AliasManager(Configurable):
 
     default_aliases = List(default_aliases(), config=True)
     user_aliases = List(default_value=[], config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
     def __init__(self, shell=None, config=None):
         super(AliasManager, self).__init__(shell=shell, config=config)
@@ -113,10 +123,7 @@ class AliasManager(Configurable):
         self.init_aliases()
 
     def __contains__(self, name):
-        if name in self.alias_table:
-            return True
-        else:
-            return False
+        return name in self.alias_table
 
     @property
     def aliases(self):
@@ -231,7 +238,6 @@ class AliasManager(Configurable):
         then:
         
         baz huhhahhei -> bar /tmp huhhahhei
-        
         """
         line = fn + " " + rest
         

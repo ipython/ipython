@@ -31,14 +31,14 @@ import sys
 from IPython.core import release
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.application import Application, BaseAppConfigLoader
-from IPython.core.iplib import InteractiveShell
+from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.config.loader import (
     Config,
     PyFileConfigLoader
 )
 from IPython.lib import inputhook
 from IPython.utils.path import filefind, get_ipython_dir
-from . import usage
+from IPython.core import usage
 
 #-----------------------------------------------------------------------------
 # Globals, utilities and helpers
@@ -99,10 +99,10 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             action='store_false', dest='InteractiveShell.automagic',
             help='Turn off the auto calling of magic commands.')
         paa('--autoedit-syntax',
-            action='store_true', dest='InteractiveShell.autoedit_syntax',
+            action='store_true', dest='TerminalInteractiveShell.autoedit_syntax',
             help='Turn on auto editing of files with syntax errors.')
         paa('--no-autoedit-syntax',
-            action='store_false', dest='InteractiveShell.autoedit_syntax',
+            action='store_false', dest='TerminalInteractiveShell.autoedit_syntax',
             help='Turn off auto editing of files with syntax errors.')
         paa('--banner',
             action='store_true', dest='Global.display_banner',
@@ -143,13 +143,13 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             action='store_false', dest='InteractiveShell.color_info',
             help="Disable using colors for info related things.")
         paa('--confirm-exit',
-            action='store_true', dest='InteractiveShell.confirm_exit',
+            action='store_true', dest='TerminalInteractiveShell.confirm_exit',
             help=
             """Set to confirm when you try to exit IPython with an EOF (Control-D
             in Unix, Control-Z/Enter in Windows). By typing 'exit', 'quit' or
             '%%Exit', you can force a direct exit without any confirmation.""")
         paa('--no-confirm-exit',
-            action='store_false', dest='InteractiveShell.confirm_exit',
+            action='store_false', dest='TerminalInteractiveShell.confirm_exit',
             help="Don't prompt the user when exiting.")
         paa('--deep-reload',
             action='store_true', dest='InteractiveShell.deep_reload',
@@ -167,9 +167,9 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             action='store_false', dest='InteractiveShell.deep_reload',
             help="Disable deep (recursive) reloading by default.")
         paa('--editor',
-            type=str, dest='InteractiveShell.editor',
+            type=str, dest='TerminalInteractiveShell.editor',
             help="Set the editor used by IPython (default to $EDITOR/vi/notepad).",
-            metavar='InteractiveShell.editor')
+            metavar='TerminalInteractiveShell.editor')
         paa('--log','-l', 
             action='store_true', dest='InteractiveShell.logstart',
             help="Start logging to the default log file (./ipython_log.py).")
@@ -228,7 +228,7 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             action='store_false', dest='InteractiveShell.readline_use',
             help="Disable readline for command line usage.")
         paa('--screen-length','-sl',
-            type=int, dest='InteractiveShell.screen_length',
+            type=int, dest='TerminalInteractiveShell.screen_length',
             help=
             """Number of lines of your screen, used to control printing of very
             long strings.  Strings longer than this number of lines will be sent
@@ -239,7 +239,7 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             internally). If for some reason this isn't working well (it needs
             curses support), specify it yourself. Otherwise don't change the
             default.""",
-            metavar='InteractiveShell.screen_length')
+            metavar='TerminalInteractiveShell.screen_length')
         paa('--separate-in','-si',
             type=str, dest='InteractiveShell.separate_in',
             help="Separator before input prompts.  Default '\\n'.",
@@ -256,10 +256,10 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             action='store_true', dest='Global.nosep',
             help="Eliminate all spacing between prompts.")
         paa('--term-title',
-            action='store_true', dest='InteractiveShell.term_title',
+            action='store_true', dest='TerminalInteractiveShell.term_title',
             help="Enable auto setting the terminal title.")
         paa('--no-term-title',
-            action='store_false', dest='InteractiveShell.term_title',
+            action='store_false', dest='TerminalInteractiveShell.term_title',
             help="Disable auto setting the terminal title.")
         paa('--xmode',
             type=str, dest='InteractiveShell.xmode',
@@ -476,7 +476,7 @@ class IPythonApp(Application):
         sys.path.insert(0, '')
 
         # Create an InteractiveShell instance.
-        self.shell = InteractiveShell.instance(config=self.master_config)
+        self.shell = TerminalInteractiveShell.instance(config=self.master_config)
 
     def post_construct(self):
         """Do actions after construct, but before starting the app."""

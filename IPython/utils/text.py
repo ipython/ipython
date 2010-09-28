@@ -23,7 +23,6 @@ import types
 
 from IPython.external.path import path
 
-from IPython.utils.generics import result_display
 from IPython.utils.io import nlprint
 from IPython.utils.data import flatten
 
@@ -94,14 +93,17 @@ class LSString(str):
 
     p = paths = property(get_paths)
 
+# FIXME: We need to reimplement type specific displayhook and then add this
+# back as a custom printer. This should also be moved outside utils into the
+# core.
 
-def print_lsstring(arg):
-    """ Prettier (non-repr-like) and more informative printer for LSString """
-    print "LSString (.p, .n, .l, .s available). Value:"
-    print arg
-
-
-print_lsstring = result_display.when_type(LSString)(print_lsstring)
+# def print_lsstring(arg):
+#     """ Prettier (non-repr-like) and more informative printer for LSString """
+#     print "LSString (.p, .n, .l, .s available). Value:"
+#     print arg
+# 
+# 
+# print_lsstring = result_display.when_type(LSString)(print_lsstring)
 
 
 class SList(list):
@@ -248,17 +250,20 @@ class SList(list):
         return SList([t[1] for t in dsu])
 
 
-def print_slist(arg):
-    """ Prettier (non-repr-like) and more informative printer for SList """
-    print "SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):"
-    if hasattr(arg,  'hideonce') and arg.hideonce:
-        arg.hideonce = False
-        return
+# FIXME: We need to reimplement type specific displayhook and then add this
+# back as a custom printer. This should also be moved outside utils into the
+# core.
 
-    nlprint(arg)
-
-
-print_slist = result_display.when_type(SList)(print_slist)
+# def print_slist(arg):
+#     """ Prettier (non-repr-like) and more informative printer for SList """
+#     print "SList (.p, .n, .l, .s, .grep(), .fields(), sort() available):"
+#     if hasattr(arg,  'hideonce') and arg.hideonce:
+#         arg.hideonce = False
+#         return
+# 
+#     nlprint(arg)
+# 
+# print_slist = result_display.when_type(SList)(print_slist)
 
 
 def esc_quotes(strng):
@@ -470,4 +475,25 @@ def marquee(txt='',width=78,mark='*'):
     marks = mark*nmark
     return '%s %s %s' % (marks,txt,marks)
 
+
+ini_spaces_re = re.compile(r'^(\s+)')
+
+def num_ini_spaces(strng):
+    """Return the number of initial spaces in a string"""
+
+    ini_spaces = ini_spaces_re.match(strng)
+    if ini_spaces:
+        return ini_spaces.end()
+    else:
+        return 0
+
+
+def format_screen(strng):
+    """Format a string for screen printing.
+
+    This removes some latex-type format codes."""
+    # Paragraph continue
+    par_re = re.compile(r'\\$',re.MULTILINE)
+    strng = par_re.sub('',strng)
+    return strng
 

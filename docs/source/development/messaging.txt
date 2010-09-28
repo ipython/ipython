@@ -103,8 +103,8 @@ generic structure::
       # messages in a meaningful way.
       'header' : { 'msg_id' : uuid,
                    'username' : str,
-		   'session' : uuid
-		 },
+           'session' : uuid
+         },
 
       # In a chain of messages, the header from the parent is copied so that
       # clients can track where messages come from.
@@ -130,75 +130,206 @@ Messages on the XREP/XREQ socket
 Execute
 -------
 
-The execution request contains a single string, but this may be a multiline
-string.  The kernel is responsible for splitting this into possibly more than
-one block and deciding whether to compile these in 'single' or 'exec' mode.
-We're still sorting out this policy.  The current inputsplitter is capable of
-splitting the input for blocks that can all be run as 'single', but in the long
-run it may prove cleaner to only use 'single' mode for truly single-line
-inputs, and run all multiline input in 'exec' mode.  This would preserve the
-natural behavior of single-line inputs while allowing long cells to behave more
-likea a script.  This design will be refined as we complete the implementation.
+This message type is used by frontends to ask the kernel to execute code on
+behalf of the user, in a namespace reserved to the user's variables (and thus
+separate from the kernel's own internal code and variables).
 
 Message type: ``execute_request``::
 
     content = {
         # Source code to be executed by the kernel, one or more lines.
-	'code' : str,
+    'code' : str,
 
-	# A boolean flag which, if True, signals the kernel to execute this
-	# code as quietly as possible.  This means that the kernel will compile
-	# the code with 'exec' instead of 'single' (so sys.displayhook will not
-	# fire), and will *not*:
-	#   - broadcast exceptions on the PUB socket
-	#   - do any logging
-	#   - populate any history
-	# The default is False.
-	'silent' : bool,
+    # A boolean flag which, if True, signals the kernel to execute this
+    # code as quietly as possible.  This means that the kernel will compile
+    # the code witIPython/core/tests/h 'exec' instead of 'single' (so
+    # sys.displayhook will not fire), and will *not*:
+    #   - broadcast exceptions on the PUB socket
+    #   - do any logging
+    #   - populate any history
+    #
+    # The default is False.
+    'silent' : bool,
+
+    # A list of variable names from the user's namespace to be retrieved.  What
+    # returns is a JSON string of the variable's repr(), not a python object.
+    'user_variables' : list,
+
+    # Similarly, a dict mapping names to expressions to be evaluated in the
+    # user's dict.
+    'user_expressions' : dict,
     }
 
-Upon execution, the kernel *always* sends a reply, with a status code
-indicating what happened and additional data depending on the outcome.
+The ``code`` field contains a single string (possibly multiline).  The kernel
+is responsible for splitting this into one or more independent execution blocks
+and deciding whether to compile these in 'single' or 'exec' mode (see below for
+detailed execution semantics).
 
+The ``user_`` fields deserve a detailed explanation.  In the past, IPython had
+the notion of a prompt string that allowed arbitrary code to be evaluated, and
+this was put to good use by many in creating prompts that displayed system
+status, path information, and even more esoteric uses like remote instrument
+status aqcuired over the network.  But now that IPython has a clean separation
+between the kernel and the clients, the kernel has no prompt knowledge; prompts
+are a frontend-side feature, and it should be even possible for different
+frontends to display different prompts while interacting with the same kernel.
+
+The kernel now provides the ability to retrieve data from the user's namespace
+after the execution of the main ``code``, thanks to two fields in the
+``execute_request`` message:
+
+- ``user_variables``: If only variables from the user's namespace are needed, a
+  list of variable names can be passed and a dict with these names as keys and
+  their :func:`repr()` as values will be returned.
+
+- ``user_expressions``: For more complex expressions that require function
+  evaluations, a dict can be provided with string keys and arbitrary python
+  expressions as values.  The return message will contain also a dict with the
+  same keys and the :func:`repr()` of the evaluated expressions as value.
+
+With this information, frontends can display any status information they wish
+in the form that best suits each frontend (a status line, a popup, inline for a
+terminal, etc).
+
+.. Note::
+
+   In order to obtain the current execution counter for the purposes of
+   displaying input prompts, frontends simply make an execution request with an
+   empty code string and ``silent=True``.
+
+Execution semantics
+~~~~~~~~~~~~~~~~~~~
+
+When the silent flag is false, the execution of use code consists of the
+following phases (in silent mode, only the ``code`` field is executed):
+
+1. Run the ``pre_runcode_hook``.
+
+2. Execute the ``code`` field, see below for details.
+
+3. If #2 succeeds, compute ``user_variables`` and ``user_expressions`` are
+   computed.  This ensures that any error in the latter don't harm the main
+   code execution.
+
+4. Call any method registered with :meth:`register_post_execute`.
+
+.. warning::
+
+   The API for running code before/after the main code block is likely to
+   change soon.  Both the ``pre_runcode_hook`` and the
+   :meth:`register_post_execute` are susceptible to modification, as we find a
+   consistent model for both.
+
+To understand how the ``code`` field is executed, one must know that Python
+code can be compiled in one of three modes (controlled by the ``mode`` argument
+to the :func:`compile` builtin):
+
+*single*
+  Valid for a single interactive statement (though the source can contain
+  multiple lines, such as a for loop).  When compiled in this mode, the
+  generated bytecode contains special instructions that trigger the calling of
+  :func:`sys.displayhook` for any expression in the block that returns a value.
+  This means that a single statement can actually produce multiple calls to
+  :func:`sys.displayhook`, if for example it contains a loop where each
+  iteration computes an unassigned expression would generate 10 calls::
+
+      for i in range(10):
+          i**2
+
+*exec*
+  An arbitrary amount of source code, this is how modules are compiled.
+  :func:`sys.displayhook` is *never* implicitly called.
+
+*eval*
+  A single expression that returns a value.  :func:`sys.displayhook` is *never*
+  implicitly called.
+
+
+The ``code`` field is split into individual blocks each of which is valid for
+execution in 'single' mode, and then:
+
+- If there is only a single block: it is executed in 'single' mode.
+
+- If there is more than one block:
+
+  * if the last one is a single line long, run all but the last in 'exec' mode
+    and the very last one in 'single' mode.  This makes it easy to type simple
+    expressions at the end to see computed values.
+
+  * if the last one is no more than two lines long, run all but the last in
+    'exec' mode and the very last one in 'single' mode.  This makes it easy to
+    type simple expressions at the end to see computed values.  - otherwise
+    (last one is also multiline), run all in 'exec' mode
+
+  * otherwise (last one is also multiline), run all in 'exec' mode as a single
+    unit.
+
+Any error in retrieving the ``user_variables`` or evaluating the
+``user_expressions`` will result in a simple error message in the return fields
+of the form::
+
+   [ERROR] ExceptionType: Exception message
+
+The user can simply send the same variable name or expression for evaluation to
+see a regular traceback.
+
+Errors in any registered post_execute functions are also reported similarly,
+and the failing function is removed from the post_execution set so that it does
+not continue triggering failures.
+
+Upon completion of the execution request, the kernel *always* sends a reply,
+with a status code indicating what happened and additional data depending on
+the outcome.  See :ref:`below <execution_results>` for the possible return
+codes and associated data.
+
+
+Execution counter (old prompt number)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The kernel has a single, monotonically increasing counter of all execution
+requests that are made with ``silent=False``.  This counter is used to populate
+the ``In[n]``, ``Out[n]`` and ``_n`` variables, so clients will likely want to
+display it in some form to the user, which will typically (but not necessarily)
+be done in the prompts.  The value of this counter will be returned as the
+``execution_count`` field of all ``execute_reply`` messages.
+
+.. _execution_results:
+
+Execution results
+~~~~~~~~~~~~~~~~~
+    
 Message type: ``execute_reply``::
 
     content = {
       # One of: 'ok' OR 'error' OR 'abort'
       'status' : str,
 
-      # Any additional data depends on status value
+      # The global kernel counter that increases by one with each non-silent
+      # executed request.  This will typically be used by clients to display
+      # prompt numbers to the user.  If the request was a silent one, this will
+      # be the current value of the counter in the kernel.
+      'execution_count' : int,
     }
 
 When status is 'ok', the following extra fields are present::
 
     {
-      # This has the same structure as the output of a prompt request, but is
-      # for the client to set up the *next* prompt (with identical limitations
-      # to a prompt request)
-      'next_prompt' : {
-            'prompt_string' : str,
-	    'prompt_number' : int,
-	    },
-	    
-      # The prompt number of the actual execution for this code, which may be
-      # different from the one used when the code was typed, which was the
-      # 'next_prompt' field of the *previous* request.  They will differ in the
-      # case where there is more than one client talking simultaneously to a
-      # kernel, since the numbers can go out of sync.  GUI clients can use this
-      # to correct the previously written number in-place, terminal ones may
-      # re-print a corrected one if desired.
-      'prompt_number' : int,
-
-      # The kernel will often transform the input provided to it.  This
-      # contains the transformed code, which is what was actually executed.
-      'transformed_code' : str,
-
       # The execution payload is a dict with string keys that may have been
       # produced by the code being executed.  It is retrieved by the kernel at
       # the end of the execution and sent back to the front end, which can take
       # action on it as needed.  See main text for further details.
       'payload' : dict,
-    }
+
+      # Results for the user_variables and user_expressions.
+      'user_variables' : dict,
+      'user_expressions' : dict,
+
+      # The kernel will often transform the input provided to it.  If the
+      # '---->' transform had been applied, this is filled, otherwise it's the
+      # empty string.  So transformations like magics don't appear here, only
+      # autocall ones.
+      'transformed_code' : str,
+      }
 
 .. admonition:: Execution payloads
     
@@ -236,32 +367,73 @@ When status is 'error', the following extra fields are present::
 When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
 
+Kernel attribute access
+-----------------------
 
-Prompt
-------
+.. warning::
 
-A simple request for a current prompt string.
+   This part of the messaging spec is not actually implemented in the kernel
+   yet.
+ 
+While this protocol does not specify full RPC access to arbitrary methods of
+the kernel object, the kernel does allow read (and in some cases write) access
+to certain attributes.
 
-Message type: ``prompt_request``::
+The policy for which attributes can be read is: any attribute of the kernel, or
+its sub-objects, that belongs to a :class:`Configurable` object and has been
+declared at the class-level with Traits validation, is in principle accessible
+as long as its name does not begin with a leading underscore.  The attribute
+itself will have metadata indicating whether it allows remote read and/or write
+access.  The message spec follows for attribute read and write requests.
 
-    content = {}
-
-In the reply, the prompt string comes back with the prompt number placeholder
-*unevaluated*.  The message format is:
-    
-Message type: ``prompt_reply``::
+Message type: ``getattr_request``::
 
     content = {
-      'prompt_string' : str,
-      'prompt_number' : int,
+        # The (possibly dotted) name of the attribute
+	'name' : str,
     }
 
-Clients can produce a prompt with ``prompt_string.format(prompt_number)``, but
-they should be aware that the actual prompt number for that input could change
-later, in the case where multiple clients are interacting with a single
-kernel. 
+When a ``getattr_request`` fails, there are two possible error types:
+
+- AttributeError: this type of error was raised when trying to access the
+  given name by the kernel itself.  This means that the attribute likely
+  doesn't exist.
+
+- AccessError: the attribute exists but its value is not readable remotely.
 
 
+Message type: ``getattr_reply``::
+
+    content = {
+        # One of ['ok', 'AttributeError', 'AccessError'].
+        'status' : str,
+	# If status is 'ok', a JSON object.
+	'value' : object,
+    }
+
+Message type: ``setattr_request``::
+
+    content = {
+        # The (possibly dotted) name of the attribute
+	'name' : str,
+	
+	# A JSON-encoded object, that will be validated by the Traits
+	# information in the kernel
+	'value' : object,
+    }
+
+When a ``setattr_request`` fails, there are also two possible error types with
+similar meanings  as those of the ``getattr_request`` case, but for writing.
+    
+Message type: ``setattr_reply``::
+
+    content = {
+        # One of ['ok', 'AttributeError', 'AccessError'].
+        'status' : str,
+    }
+
+
+    
 Object information
 ------------------
 
@@ -277,9 +449,9 @@ Message type: ``object_info_request``::
     content = {
         # The (possibly dotted) name of the object to be searched in all
 	# relevant namespaces
-	'name' : str,
+        'name' : str,
 
-	# The level of detail desired.  The default (0) is equivalent to typing
+    	# The level of detail desired.  The default (0) is equivalent to typing
 	# 'x?' at the prompt, 1 is equivalent to 'x??'.
 	'detail_level' : int,
     }
@@ -290,54 +462,86 @@ field names that IPython prints at the terminal.
 Message type: ``object_info_reply``::
 
     content = {
-        # Flags for magics and system aliases
-	'ismagic' : bool,
-	'isalias' : bool,
+    # The name the object was requested under
+    'name' : str,
+    
+    # Boolean flag indicating whether the named object was found or not.  If
+    # it's false, all other fields will be empty.
+    'found' : bool,
+    
+    # Flags for magics and system aliases
+    'ismagic' : bool,
+    'isalias' : bool,
 
-	# The name of the namespace where the object was found ('builtin',
-	# 'magics', 'alias', 'interactive', etc.)
-	'namespace' : str,
+    # The name of the namespace where the object was found ('builtin',
+    # 'magics', 'alias', 'interactive', etc.)
+    'namespace' : str,
 
-	# The type name will be type.__name__ for normal Python objects, but it
-	# can also be a string like 'Magic function' or 'System alias'
-	'type_name' : str,
+    # The type name will be type.__name__ for normal Python objects, but it
+    # can also be a string like 'Magic function' or 'System alias'
+    'type_name' : str,
 
-	'string_form' : str,
+    'string_form' : str,
 
-	# For objects with a __class__ attribute this will be set
-	'base_class' : str,
+    # For objects with a __class__ attribute this will be set
+    'base_class' : str,
 
-	# For objects with a __len__ attribute this will be set
-	'length' : int,
+    # For objects with a __len__ attribute this will be set
+    'length' : int,
 
-	# If the object is a function, class or method whose file we can find,
-	# we give its full path
-	'file' : str,
+    # If the object is a function, class or method whose file we can find,
+    # we give its full path
+    'file' : str,
 
-	# For pure Python callable objects, we can reconstruct the object
-	# definition line which provides its call signature
-	'definition' : str,
+    # For pure Python callable objects, we can reconstruct the object
+    # definition line which provides its call signature.  For convenience this
+    # is returned as a single 'definition' field, but below the raw parts that
+    # compose it are also returned as the argspec field.
+    'definition' : str,
 
-	# For instances, provide the constructor signature (the definition of
-	# the __init__ method):
-	'init_definition' : str,
-	
-	# Docstrings: for any object (function, method, module, package) with a
-	# docstring, we show it.  But in addition, we may provide additional
-	# docstrings.  For example, for instances we will show the constructor
-	# and class docstrings as well, if available.
-	'docstring' : str,
+    # The individual parts that together form the definition string.  Clients
+    # with rich display capabilities may use this to provide a richer and more
+    # precise representation of the definition line (e.g. by highlighting
+    # arguments based on the user's cursor position).  For non-callable
+    # objects, this field is empty.
+    'argspec' : { # The names of all the arguments
+                  args : list,
+		  # The name of the varargs (*args), if any
+                  varargs : str,
+		  # The name of the varkw (**kw), if any
+		  varkw : str,
+		  # The values (as strings) of all default arguments.  Note
+		  # that these must be matched *in reverse* with the 'args'
+		  # list above, since the first positional args have no default
+		  # value at all.
+		  defaults : list,
+		  },
 
-	# For instances, provide the constructor and class docstrings
-	'init_docstring' : str,
-	'class_docstring' : str,
+    # For instances, provide the constructor signature (the definition of
+    # the __init__ method):
+    'init_definition' : str,
+    
+    # Docstrings: for any object (function, method, module, package) with a
+    # docstring, we show it.  But in addition, we may provide additional
+    # docstrings.  For example, for instances we will show the constructor
+    # and class docstrings as well, if available.
+    'docstring' : str,
 
-	# If detail_level was 1, we also try to find the source code that
-	# defines the object, if possible.  The string 'None' will indicate
-	# that no source was found.
-	'source' : str,
+    # For instances, provide the constructor and class docstrings
+    'init_docstring' : str,
+    'class_docstring' : str,
+    
+    # If it's a callable object whose call method has a separate docstring and
+    # definition line:
+    'call_def' : str,
+    'call_docstring' : str,
+    
+    # If detail_level was 1, we also try to find the source code that
+    # defines the object, if possible.  The string 'None' will indicate
+    # that no source was found.
+    'source' : str,
     }
-
+'
     
 Complete
 --------
@@ -346,20 +550,30 @@ Message type: ``complete_request``::
 
     content = {
         # The text to be completed, such as 'a.is'
-	'text' : str,
+    'text' : str,
 
-	# The full line, such as 'print a.is'.  This allows completers to
-	# make decisions that may require information about more than just the
-	# current word.
-	'line' : str,
+    # The full line, such as 'print a.is'.  This allows completers to
+    # make decisions that may require information about more than just the
+    # current word.
+    'line' : str,
+
+    # The entire block of text where the line is.  This may be useful in the
+    # case of multiline completions where more context may be needed.  Note: if
+    # in practice this field proves unnecessary, remove it to lighten the
+    # messages.
+    
+    'block' : str,
+
+    # The position of the cursor where the user hit 'TAB' on the line.
+    'cursor_pos' : int,
     }
 
 Message type: ``complete_reply``::
 
     content = {
         # The list of all matches to the completion request, such as
-	# ['a.isalnum', 'a.isalpha'] for the above example.
-	'matches' : list
+    # ['a.isalnum', 'a.isalpha'] for the above example.
+    'matches' : list
     }
 
     
@@ -374,32 +588,95 @@ Message type: ``history_request``::
 
     content = {
     
-      # If true, also return output history in the resulting dict.
+      # If True, also return output history in the resulting dict.
       'output' : bool,
 
-      # This parameter can be one of: A number,  a pair of numbers, 'all'
+      # If True, return the raw input history, else the transformed input.
+      'raw' : bool,
+
+      # This parameter can be one of: A number,  a pair of numbers, None
       # If not given, last 40 are returned.
       #  - number n: return the last n entries.
       #  - pair n1, n2: return entries in the range(n1, n2).
-      #  - 'all': return all history
-      'range' : n or (n1, n2) or 'all',
-
-      # If a filter is given, it is  treated as a regular expression and only
-      #  matching entries are returned.  re.search() is used to find matches.
-      'filter' : str,
+      #  - None: return all history
+      'index' : n or (n1, n2) or None,
     }
 
 Message type: ``history_reply``::
 
     content = {
-      # A list of (number, input) pairs
-      'input' : list,
-      
-      # A list of (number, output) pairs
-      'output' : list,
-      }
+      # A dict with prompt numbers as keys and either (input, output) or input
+      # as the value depending on whether output was True or False,
+      # respectively.
+      'history' : dict,
+    }
 
+
+Connect
+-------
+
+When a client connects to the request/reply socket of the kernel, it can issue
+a connect request to get basic information about the kernel, such as the ports
+the other ZeroMQ sockets are listening on. This allows clients to only have
+to know about a single port (the XREQ/XREP channel) to connect to a kernel.
+
+Message type: ``connect_request``::
+
+    content = {
+    }
+
+Message type: ``connect_reply``::
+
+    content = {
+        'xrep_port' : int  # The port the XREP socket is listening on.
+        'pub_port' : int   # The port the PUB socket is listening on.
+        'req_port' : int   # The port the REQ socket is listening on.
+        'hb_port' : int    # The port the heartbeat socket is listening on.
+    }
+
+
+
+Kernel shutdown
+---------------
+
+The clients can request the kernel to shut itself down; this is used in
+multiple cases:
+
+- when the user chooses to close the client application via a menu or window
+  control.
+- when the user types 'exit' or 'quit' (or their uppercase magic equivalents).
+- when the user chooses a GUI method (like the 'Ctrl-C' shortcut in the
+  IPythonQt client) to force a kernel restart to get a clean kernel without
+  losing client-side state like history or inlined figures.
+
+The client sends a shutdown request to the kernel, and once it receives the
+reply message (which is otherwise empty), it can assume that the kernel has
+completed shutdown safely.
+
+Upon their own shutdown, client applications will typically execute a last
+minute sanity check and forcefully terminate any kernel that is still alive, to
+avoid leaving stray processes in the user's machine.
+
+For both shutdown request and reply, there is no actual content that needs to
+be sent, so the content dict is empty.
+
+Message type: ``shutdown_request``::
+
+    content = {
+    }
+
+Message type: ``shutdown_reply``::
+
+    content = {
+    }
+
+.. Note::
+
+   When the clients detect a dead kernel thanks to inactivity on the heartbeat
+   socket, they simply send a forceful process termination signal, since a dead
+   process is unlikely to respond in any useful way to messages.
     
+
 Messages on the PUB/SUB socket
 ==============================
 
@@ -410,10 +687,10 @@ Message type: ``stream``::
 
     content = {
         # The name of the stream is one of 'stdin', 'stdout', 'stderr'
-	'name' : str,
-	
-	# The data is an arbitrary string to be written to that stream
-	'data' : str,
+    'name' : str,
+    
+    # The data is an arbitrary string to be written to that stream
+    'data' : str,
     }
 
 When a kernel receives a raw_input call, it should also broadcast it on the pub
@@ -430,7 +707,7 @@ Message type: ``pyin``::
 
     content = {
         # Source code to be executed, one or more lines
-	'code' : str
+    'code' : str
     }
 
 Python outputs
@@ -450,12 +727,12 @@ Message type: ``pyout``::
 
     content = {
         # The data is typically the repr() of the object.
-	'data' : str,
-	
-	# The prompt number for this execution is also provided so that clients
-	# can display it, since IPython automatically creates variables called
-	# _N (for prompt N).
-	'prompt_number' : int,
+    'data' : str,
+    
+    # The counter for this execution is also provided so that clients can
+    # display it, since IPython automatically creates variables called _N (for
+    # prompt N).
+    'execution_count' : int,
     }
     
 Python errors
@@ -468,6 +745,19 @@ Message type: ``pyerr``::
     content = {
        # Similar content to the execute_reply messages for the 'error' case,
        # except the 'status' field is omitted.
+    }
+
+Kernel status
+-------------
+
+This message type is used by frontends to monitor the status of the kernel.
+
+Message type: ``status``::
+
+    content = {
+        # When the kernel starts to execute code, it will enter the 'busy'
+        # state and when it finishes, it will enter the 'idle' state.
+        execution_state : ('busy', 'idle')
     }
 
 Kernel crashes
@@ -498,9 +788,9 @@ Other potential message types, currently unimplemented, listed below as ideas.
 Message type: ``file``::
 
     content = {
-	'path' : 'cool.jpg',
-	'mimetype' : str,
-	'data' : str,
+    'path' : 'cool.jpg',
+    'mimetype' : str,
+    'data' : str,
     }
 
     

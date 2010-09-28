@@ -153,10 +153,6 @@ def make_exclude():
     ipjoin = lambda *paths: pjoin('IPython', *paths)
     
     exclusions = [ipjoin('external'),
-                  # Deprecated old Shell and iplib modules, skip to avoid
-                  # warnings
-                  ipjoin('Shell'),
-                  ipjoin('iplib'),
                   pjoin('IPython_doctest_plugin'),
                   ipjoin('quarantine'),
                   ipjoin('deathrow'),
@@ -254,7 +250,7 @@ class IPTester(object):
             return os.system(' '.join(self.call_args))
     else:
         def _run_cmd(self):
-            #print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
+            # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
             subp = subprocess.Popen(self.call_args)
             self.pids.append(subp.pid)
             # If this fails, the pid will be left in self.pids and cleaned up

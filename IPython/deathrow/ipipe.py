@@ -133,7 +133,7 @@ from IPython.external import simplegeneric
 from IPython.external import path
 
 try:
-    from IPython.utils.io import Term
+    import IPython.utils.io
     from IPython.utils import generics
 except ImportError:
     Term = None

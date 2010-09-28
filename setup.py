@@ -207,12 +207,12 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': [
-            'ipython = IPython.core.ipapp:launch_new_instance',
+            'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
+            'ipythonqt = IPython.frontend.qt.console.ipythonqt:main',
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.kernel.ipcontrollerapp:launch_new_instance',
             'ipengine = IPython.kernel.ipengineapp:launch_new_instance',
             'ipcluster = IPython.kernel.ipclusterapp:launch_new_instance',
-            'ipythonx = IPython.frontend.wx.ipythonx:main',
             'iptest = IPython.testing.iptest:main',
             'irunner = IPython.lib.irunner:main'
         ]

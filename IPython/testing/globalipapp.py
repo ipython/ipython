@@ -5,11 +5,11 @@ modifications IPython makes to system behavior don't send the doctest machinery
 into a fit.  This code should be considered a gross hack, but it gets the job
 done.
 """
-
 from __future__ import absolute_import
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2009  The IPython Development Team
+#  Copyright (C) 2009-2010  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -19,12 +19,16 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 
+# stdlib
 import __builtin__
-import commands
 import os
 import sys
+from types import MethodType
 
+# our own
 from . import tools
+
+from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -53,12 +57,9 @@ def _run_ns_sync(self,arg_s,runner=None):
 
     This is strictly needed for running doctests that call %run.
     """
-    #print >> sys.stderr,  'in run_ns_sync', arg_s  # dbg
-    
-    _ip = get_ipython()
+    #print('in run_ns_sync', arg_s, file=sys.stderr)  # dbg
     finder = py_file_finder(arg_s)
-    out = _ip.magic_run_ori(arg_s,runner,finder)
-    return out
+    return get_ipython().magic_run_ori(arg_s, runner, finder)
 
 
 class ipnsdict(dict):
@@ -104,6 +105,25 @@ def get_ipython():
     return start_ipython()
 
 
+# A couple of methods to override those in the running IPython to interact
+# better with doctest (doctest captures on raw stdout, so we need to direct
+# various types of output there otherwise it will miss them).
+
+def xsys(self, cmd):
+    """Replace the default system call with a capturing one for doctest.
+    """
+    # We use getoutput, but we need to strip it because pexpect captures
+    # the trailing newline differently from commands.getoutput
+    print(self.getoutput(cmd, split=False).rstrip(), end='', file=sys.stdout)
+    sys.stdout.flush()
+
+
+def _showtraceback(self, etype, evalue, stb):
+    """Print the traceback purely on stdout for doctest to capture it.
+    """
+    print(self.InteractiveTB.stb2text(stb), file=sys.stdout)
+
+
 def start_ipython():
     """Start a global IPython shell, which we need for IPython-specific syntax.
     """
@@ -113,20 +133,7 @@ def start_ipython():
     if hasattr(start_ipython, 'already_called'):
         return
     start_ipython.already_called = True
-
-    # Ok,  first time we're called, go ahead
-    from IPython.core import iplib
     
-    def xsys(cmd):
-        """Execute a command and print its output.
-
-        This is just a convenience function to replace the IPython system call
-        with one that is more doctest-friendly.
-        """
-        cmd = _ip.var_expand(cmd,depth=1)
-        sys.stdout.write(commands.getoutput(cmd))
-        sys.stdout.flush()
-
     # Store certain global objects that IPython modifies
     _displayhook = sys.displayhook
     _excepthook = sys.excepthook
@@ -136,24 +143,25 @@ def start_ipython():
     config = tools.default_config()
 
     # Create and initialize our test-friendly IPython instance.
-    shell = iplib.InteractiveShell.instance(
-        config=config, 
-        user_ns=ipnsdict(), user_global_ns={}
-    )
+    shell = TerminalInteractiveShell.instance(config=config, 
+                                              user_ns=ipnsdict(),
+                                              user_global_ns={}
+                                              )
 
     # A few more tweaks needed for playing nicely with doctests...
     
     # These traps are normally only active for interactive use, set them
     # permanently since we'll be mocking interactive sessions.
-    shell.builtin_trap.set()
+    shell.builtin_trap.activate()
 
-    # Set error printing to stdout so nose can doctest exceptions
-    shell.InteractiveTB.out_stream = 'stdout'
-    
     # Modify the IPython system call with one that uses getoutput, so that we
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
-    shell.system = xsys
+    shell.system = MethodType(xsys, shell, TerminalInteractiveShell)
+                       
+
+    shell._showtraceback = MethodType(_showtraceback, shell,
+                                      TerminalInteractiveShell)
 
     # IPython is ready, now clean up some global state...
     

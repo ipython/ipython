@@ -36,7 +36,7 @@ class ParalleMagic(Plugin):
 
     active_multiengine_client = Any()
     verbose = Bool(False, config=True)
-    shell = Instance('IPython.core.iplib.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
     def __init__(self, shell=None, config=None):
         super(ParalleMagic, self).__init__(shell=shell, config=config)

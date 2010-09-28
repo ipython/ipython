@@ -1,4 +1,4 @@
-"""Tests for the key iplib module, where the main ipython class is defined.
+"""Tests for the key interactiveshell module, where the main ipython class is defined.
 """
 #-----------------------------------------------------------------------------
 # Module imports
@@ -60,7 +60,7 @@ def test_reset():
 
 
 # Tests for reporting of exceptions in various modes, handling of SystemExit,
-# and %tb functionality.  This is really a mix of testing ultraTB and iplib.
+# and %tb functionality.  This is really a mix of testing ultraTB and interactiveshell.
 
 def doctest_tb_plain():
     """

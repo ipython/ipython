@@ -90,12 +90,12 @@ from inspect import getsourcefile, getfile, getmodule,\
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
-from IPython.utils import PyColorize
 from IPython.core import debugger, ipapi
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
+from IPython.utils import PyColorize
+from IPython.utils import io
 from IPython.utils.data import uniq_stable
-from IPython.utils.io import Term
 from IPython.utils.warn import info, error
 
 # Globals
@@ -310,22 +310,25 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
 
 #---------------------------------------------------------------------------
 # Module classes
-class TBTools:
+class TBTools(object):
     """Basic tools used by all traceback printer classes."""
 
-    #: Default output stream, can be overridden at call time.  A special value
-    #: of 'stdout' *as a string* can be given to force extraction of sys.stdout
-    #: at runtime.  This allows testing exception printing with doctests, that
-    #: swap sys.stdout just at execution time.
-    #: Warning: be VERY careful to set this to one of the Term streams, NEVER
-    #: directly to sys.stdout/err, because under win32 the Term streams come from
-    #: pyreadline and know how to handle color correctly, whie stdout/err don't.
-    out_stream = Term.cerr
+    # Number of frames to skip when reporting tracebacks
+    tb_offset = 0
 
-    def __init__(self,color_scheme = 'NoColor',call_pdb=False):
+    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None):
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
         self.call_pdb = call_pdb
+
+        # Output stream to write to.  Note that we store the original value in
+        # a private attribute and then make the public ostream a property, so
+        # that we can delay accessing io.Term.cout until runtime.  The way
+        # things are written now, the Term.cout object is dynamically managed
+        # so a reference to it should NEVER be stored statically.  This
+        # property approach confines this detail to a single location, and all
+        # subclasses can simply access self.ostream for writing.
+        self._ostream = ostream
 
         # Create color table
         self.color_scheme_table = exception_colors()
@@ -337,6 +340,25 @@ class TBTools:
             self.pdb = debugger.Pdb(self.color_scheme_table.active_scheme_name)
         else:
             self.pdb = None
+
+    def _get_ostream(self):
+        """Output stream that exceptions are written to.
+
+        Valid values are:
+        
+        - None: the default, which means that IPython will dynamically resolve
+        to io.Term.cout.  This ensures compatibility with most tools, including
+        Windows (where plain stdout doesn't recognize ANSI escapes).
+
+        - Any object with 'write' and 'flush' attributes.
+        """
+        return io.Term.cout if self._ostream is None else self._ostream
+
+    def _set_ostream(self, val):
+        assert val is None or (hasattr(val, 'write') and hasattr(val, 'flush'))
+        self._ostream = val
+        
+    ostream = property(_get_ostream, _set_ostream)
 
     def set_colors(self,*args,**kw):
         """Shorthand access to the color table scheme selector method."""
@@ -360,6 +382,28 @@ class TBTools:
             self.color_scheme_table.set_active_scheme('NoColor')
             self.Colors = self.color_scheme_table.active_colors
 
+    def stb2text(self, stb):
+        """Convert a structured traceback (a list) to a string."""
+        return '\n'.join(stb)
+
+    def text(self, etype, value, tb, tb_offset=None, context=5):
+        """Return formatted traceback.
+
+        Subclasses may override this if they add extra arguments.
+        """
+        tb_list = self.structured_traceback(etype, value, tb,
+                                            tb_offset, context)
+        return self.stb2text(tb_list)
+
+    def structured_traceback(self, etype, evalue, tb, tb_offset=None,
+                             context=5, mode=None):
+        """Return a list of traceback frames.
+
+        Must be implemented by each class.
+        """
+        raise NotImplementedError()
+
+
 #---------------------------------------------------------------------------
 class ListTB(TBTools):
     """Print traceback information from a traceback list, with optional color.
@@ -380,15 +424,17 @@ class ListTB(TBTools):
     Because they are meant to be called without a full traceback (only a
     list), instances of this class can't call the interactive pdb debugger."""
 
-    def __init__(self,color_scheme = 'NoColor'):
-        TBTools.__init__(self,color_scheme = color_scheme,call_pdb=0)
+    def __init__(self,color_scheme = 'NoColor', call_pdb=False, ostream=None):
+        TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
+                         ostream=ostream)
         
     def __call__(self, etype, value, elist):
-        Term.cout.flush()
-        Term.cerr.write(self.text(etype,value,elist))
-        Term.cerr.write('\n')
+        self.ostream.flush()
+        self.ostream.write(self.text(etype, value, elist))
+        self.ostream.write('\n')
 
-    def text(self, etype, value, elist, context=5):
+    def structured_traceback(self, etype, value, elist, tb_offset=None,
+                             context=5):
         """Return a color formatted string with the traceback info.
 
         Parameters
@@ -402,22 +448,43 @@ class ListTB(TBTools):
         elist : list
           List of frames, see class docstring for details.
 
+        tb_offset : int, optional
+          Number of frames in the traceback to skip.  If not given, the
+          instance value is used (set in constructor).
+          
+        context : int, optional
+          Number of lines of context information to print.
+
         Returns
         -------
         String with formatted exception.
         """
-
+        tb_offset = self.tb_offset if tb_offset is None else tb_offset
         Colors = self.Colors
-        out_string = []
+        out_list = []
         if elist:
-            out_string.append('Traceback %s(most recent call last)%s:' %
+
+            if tb_offset and len(elist) > tb_offset:
+                elist = elist[tb_offset:]
+            
+            out_list.append('Traceback %s(most recent call last)%s:' %
                                 (Colors.normalEm, Colors.Normal) + '\n')
-            out_string.extend(self._format_list(elist))
-        lines = self._format_exception_only(etype, value)
-        for line in lines[:-1]:
-            out_string.append(" "+line)
-        out_string.append(lines[-1])
-        return ''.join(out_string)
+            out_list.extend(self._format_list(elist))
+        # The exception info should be a single entry in the list.
+        lines = ''.join(self._format_exception_only(etype, value))
+        out_list.append(lines)
+
+        # Note: this code originally read:
+        
+        ## for line in lines[:-1]:
+        ##     out_list.append(" "+line)
+        ## out_list.append(lines[-1])
+
+        # This means it was indenting everything but the last line by a little
+        # bit.  I've disabled this for now, but if we see ugliness somewhre we
+        # can restore it.
+        
+        return out_list
 
     def _format_list(self, extracted_list):
         """Format a list of traceback entry tuples for printing.
@@ -454,6 +521,7 @@ class ListTB(TBTools):
             item = item + '%s    %s%s\n' % (Colors.line, line.strip(),
                                             Colors.Normal)
         list.append(item)
+        #from pprint import pformat; print 'LISTTB', pformat(list) # dbg
         return list
         
     def _format_exception_only(self, etype, value):
@@ -525,7 +593,18 @@ class ListTB(TBTools):
 
         return list
 
-    def show_exception_only(self, etype, value):
+    def get_exception_only(self, etype, value):
+        """Only print the exception type and message, without a traceback.
+        
+        Parameters
+        ----------
+        etype : exception type
+        value : exception value
+        """
+        return ListTB.structured_traceback(self, etype, value, [])
+
+
+    def show_exception_only(self, etype, evalue):
         """Only print the exception type and message, without a traceback.
         
         Parameters
@@ -535,10 +614,10 @@ class ListTB(TBTools):
         """
         # This method needs to use __call__ from *this* class, not the one from
         # a subclass whose signature or behavior may be different
-        Term.cout.flush()
-        ostream = sys.stdout if self.out_stream == 'stdout' else Term.cerr
-        ostream.write(ListTB.text(self, etype, value, []))
-        ostream.flush()        
+        ostream = self.ostream
+        ostream.flush()
+        ostream.write('\n'.join(self.get_exception_only(etype, evalue)))
+        ostream.flush()
 
     def _some_str(self, value):
         # Lifted from traceback.py
@@ -556,21 +635,25 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    def __init__(self,color_scheme = 'Linux',tb_offset=0,long_header=0,
-                 call_pdb = 0, include_vars=1):
+    def __init__(self,color_scheme = 'Linux', call_pdb=False, ostream=None,
+                 tb_offset=0, long_header=False, include_vars=True):
         """Specify traceback offset, headers and color scheme.
 
         Define how many frames to drop from the tracebacks. Calling it with
         tb_offset=1 allows use of this handler in interpreters which will have
         their own code at the top of the traceback (VerboseTB will first
         remove that frame before printing the traceback info)."""
-        TBTools.__init__(self,color_scheme=color_scheme,call_pdb=call_pdb)
+        TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
+                         ostream=ostream)
         self.tb_offset = tb_offset
         self.long_header = long_header
         self.include_vars = include_vars
 
-    def text(self, etype, evalue, etb, context=5):
+    def structured_traceback(self, etype, evalue, etb, tb_offset=None,
+                             context=5):
         """Return a nice text document describing the traceback."""
+
+        tb_offset = self.tb_offset if tb_offset is None else tb_offset
 
         # some locals
         try:
@@ -646,9 +729,9 @@ class VerboseTB(TBTools):
             # Try the default getinnerframes and Alex's: Alex's fixes some
             # problems, but it generates empty tracebacks for console errors
             # (5 blanks lines) where none should be returned.
-            #records = inspect.getinnerframes(etb, context)[self.tb_offset:]
+            #records = inspect.getinnerframes(etb, context)[tb_offset:]
             #print 'python records:', records # dbg
-            records = _fixed_getinnerframes(etb, context,self.tb_offset)
+            records = _fixed_getinnerframes(etb, context, tb_offset)
             #print 'alex   records:', records # dbg
         except:
 
@@ -659,7 +742,7 @@ class VerboseTB(TBTools):
             # So far, I haven't been able to find an isolated example to
             # reproduce the problem.
             inspect_error()
-            traceback.print_exc(file=Term.cerr)
+            traceback.print_exc(file=self.ostream)
             info('\nUnfortunately, your original traceback can not be constructed.\n')
             return ''
 
@@ -696,7 +779,7 @@ class VerboseTB(TBTools):
                 # able to remove this try/except when 2.4 becomes a
                 # requirement.  Bug details at http://python.org/sf/1005466
                 inspect_error()
-                traceback.print_exc(file=Term.cerr)
+                traceback.print_exc(file=self.ostream)
                 info("\nIPython's exception reporting continues...\n")
                 
             if func == '?':
@@ -717,7 +800,7 @@ class VerboseTB(TBTools):
                     # and barfs out. At some point I should dig into this one
                     # and file a bug report about it.
                     inspect_error()
-                    traceback.print_exc(file=Term.cerr)
+                    traceback.print_exc(file=self.ostream)
                     info("\nIPython's exception reporting continues...\n")
                     call = tpl_call_fail % func
 
@@ -861,8 +944,9 @@ class VerboseTB(TBTools):
         # vds: <<
                 
         # return all our info assembled as a single string
-        return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
-
+        # return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
+        return [head] + frames + [''.join(exception[0])]
+    
     def debugger(self,force=False):
         """Call up the pdb debugger if desired, always clean up the tb
         reference.
@@ -910,9 +994,11 @@ class VerboseTB(TBTools):
     def handler(self, info=None):
         (etype, evalue, etb) = info or sys.exc_info()
         self.tb = etb
-        Term.cout.flush()
-        Term.cerr.write(self.text(etype, evalue, etb))
-        Term.cerr.write('\n')
+        ostream = self.ostream
+        ostream.flush()
+        ostream.write(self.text(etype, evalue, etb))
+        ostream.write('\n')
+        ostream.flush()
 
     # Changed so an instance can just be called as VerboseTB_inst() and print
     # out the right info on its own.
@@ -928,7 +1014,7 @@ class VerboseTB(TBTools):
             print "\nKeyboardInterrupt"
 
 #----------------------------------------------------------------------------
-class FormattedTB(VerboseTB,ListTB):
+class FormattedTB(VerboseTB, ListTB):
     """Subclass ListTB but allow calling with a traceback.
 
     It can thus be used as a sys.excepthook for Python > 2.1.
@@ -940,15 +1026,22 @@ class FormattedTB(VerboseTB,ListTB):
     occurs with python programs that themselves execute other python code,
     like Python shells).  """
     
-    def __init__(self, mode = 'Plain', color_scheme='Linux',
-                 tb_offset = 0,long_header=0,call_pdb=0,include_vars=0):
+    def __init__(self, mode='Plain', color_scheme='Linux', call_pdb=False,
+                 ostream=None, 
+                 tb_offset=0, long_header=False, include_vars=False):
 
         # NEVER change the order of this list. Put new modes at the end:
         self.valid_modes = ['Plain','Context','Verbose']
         self.verbose_modes = self.valid_modes[1:3]
 
-        VerboseTB.__init__(self,color_scheme,tb_offset,long_header,
-                           call_pdb=call_pdb,include_vars=include_vars)
+        VerboseTB.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
+                           ostream=ostream, tb_offset=tb_offset,
+                           long_header=long_header, include_vars=include_vars)
+
+        # Different types of tracebacks are joined with different separators to
+        # form a single string.  They are taken from this dict
+        self._join_chars = dict(Plain='', Context='\n', Verbose='\n')
+        # set_mode also sets the tb_join_char attribute
         self.set_mode(mode)
         
     def _extract_tb(self,tb):
@@ -957,26 +1050,28 @@ class FormattedTB(VerboseTB,ListTB):
         else:
             return None
 
-    def text(self, etype, value, tb,context=5,mode=None):
-        """Return formatted traceback.
-
-        If the optional mode parameter is given, it overrides the current
-        mode."""
-
-        if mode is None:
-            mode = self.mode
+    def structured_traceback(self, etype, value, tb, tb_offset=None, context=5):
+        tb_offset = self.tb_offset if tb_offset is None else tb_offset
+        mode = self.mode
         if mode in self.verbose_modes:
-            # verbose modes need a full traceback
-            return VerboseTB.text(self,etype, value, tb,context=5)
+            # Verbose modes need a full traceback
+            return VerboseTB.structured_traceback(
+                self, etype, value, tb, tb_offset, context
+            )
         else:
             # We must check the source cache because otherwise we can print
             # out-of-date source code.
             linecache.checkcache()
             # Now we can extract and format the exception
             elist = self._extract_tb(tb)
-            if len(elist) > self.tb_offset:
-                del elist[:self.tb_offset]
-            return ListTB.text(self,etype,value,elist)
+            return ListTB.structured_traceback(
+                self, etype, value, elist, tb_offset, context
+            )
+
+    def stb2text(self, stb):
+        """Convert a structured traceback (a list) to a string."""
+        return self.tb_join_char.join(stb)
+        
 
     def set_mode(self,mode=None):
         """Switch to the desired mode.
@@ -994,6 +1089,8 @@ class FormattedTB(VerboseTB,ListTB):
             self.mode = mode
         # include variable details only in 'Verbose' mode
         self.include_vars = (self.mode == self.valid_modes[2])
+        # Set the join character for generating text tracebacks
+        self.tb_join_char = self._join_chars[mode]
 
     # some convenient shorcuts
     def plain(self):
@@ -1031,36 +1128,59 @@ class AutoFormattedTB(FormattedTB):
           per-call basis (this overrides temporarily the instance's tb_offset
           given at initialization time.  """
 
+        
         if out is None:
-            out = sys.stdout if self.out_stream=='stdout' else self.out_stream
-        Term.cout.flush()
-        if tb_offset is not None:
-            tb_offset, self.tb_offset = self.tb_offset, tb_offset
-            out.write(self.text(etype, evalue, etb))
-            out.write('\n')
-            self.tb_offset = tb_offset
-        else:
-            out.write(self.text(etype, evalue, etb))
-            out.write('\n')
+            out = self.ostream
         out.flush()
+        out.write(self.text(etype, evalue, etb, tb_offset))
+        out.write('\n')
+        out.flush()
+        # FIXME: we should remove the auto pdb behavior from here and leave
+        # that to the clients.
         try:
             self.debugger()
         except KeyboardInterrupt:
             print "\nKeyboardInterrupt"
 
-    def text(self,etype=None,value=None,tb=None,context=5,mode=None):
+    def structured_traceback(self, etype=None, value=None, tb=None,
+                             tb_offset=None, context=5):
         if etype is None:
             etype,value,tb = sys.exc_info()
         self.tb = tb
-        return FormattedTB.text(self,etype,value,tb,context=5,mode=mode)
+        return FormattedTB.structured_traceback(
+            self, etype, value, tb, tb_offset, context)
 
 #---------------------------------------------------------------------------
+
 # A simple class to preserve Nathan's original functionality.
 class ColorTB(FormattedTB):
     """Shorthand to initialize a FormattedTB in Linux colors mode."""
     def __init__(self,color_scheme='Linux',call_pdb=0):
         FormattedTB.__init__(self,color_scheme=color_scheme,
                              call_pdb=call_pdb)
+
+
+class SyntaxTB(ListTB):
+    """Extension which holds some state: the last exception value"""
+
+    def __init__(self,color_scheme = 'NoColor'):
+        ListTB.__init__(self,color_scheme)
+        self.last_syntax_error = None
+
+    def __call__(self, etype, value, elist):
+        self.last_syntax_error = value
+        ListTB.__call__(self,etype,value,elist)
+
+    def clear_err_state(self):
+        """Return the current error state and clear it"""
+        e = self.last_syntax_error
+        self.last_syntax_error = None
+        return e
+
+    def stb2text(self, stb):
+        """Convert a structured traceback (a list) to a string."""
+        return ''.join(stb)
+
 
 #----------------------------------------------------------------------------
 # module testing (minimal)

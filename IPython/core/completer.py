@@ -61,6 +61,7 @@ used, and this module (and the readline module) are silently inactive.
 #  the file COPYING, distributed as part of this software.
 #
 #*****************************************************************************
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -80,9 +81,8 @@ import sys
 from IPython.core.error import TryNext
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.utils import generics
-from IPython.utils.frame import debugx
+from IPython.utils import io
 from IPython.utils.dir2 import dir2
-import IPython.utils.rlineimpl as readline
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -107,6 +107,64 @@ def protect_filename(s):
                     for ch in s])
 
 
+def mark_dirs(matches):
+    """Mark directories in input list by appending '/' to their names."""
+    out = []
+    isdir = os.path.isdir
+    for x in matches:
+        if isdir(x):
+            out.append(x+'/')
+        else:
+            out.append(x)
+    return out
+
+
+def expand_user(path):
+    """Expand '~'-style usernames in strings.
+
+    This is similar to :func:`os.path.expanduser`, but it computes and returns
+    extra information that will be useful if the input was being used in
+    computing completions, and you wish to return the completions with the
+    original '~' instead of its expanded value.
+
+    Parameters
+    ----------
+    path : str
+      String to be expanded.  If no ~ is present, the output is the same as the
+      input.
+      
+    Returns
+    -------
+    newpath : str
+      Result of ~ expansion in the input path.
+    tilde_expand : bool
+      Whether any expansion was performed or not.
+    tilde_val : str
+      The value that ~ was replaced with.
+    """
+    # Default values
+    tilde_expand = False
+    tilde_val = ''
+    newpath = path
+    
+    if path.startswith('~'):
+        tilde_expand = True
+        rest = path[1:]
+        newpath = os.path.expanduser(path)
+        tilde_val = newpath.replace(rest, '')
+
+    return newpath, tilde_expand, tilde_val
+
+
+def compress_user(path, tilde_expand, tilde_val):
+    """Does the opposite of expand_user, with its outputs.
+    """
+    if tilde_expand:
+        return path.replace(tilde_val, '~')
+    else:
+        return path
+
+
 def single_dir_expand(matches):
     "Recursively expand match lists containing a single dir."
 
@@ -127,10 +185,61 @@ def single_dir_expand(matches):
     else:
         return matches
 
-class Bunch: pass
 
-class Completer:
-    def __init__(self,namespace=None,global_namespace=None):
+class Bunch(object): pass
+
+
+class CompletionSplitter(object):
+    """An object to split an input line in a manner similar to readline.
+
+    By having our own implementation, we can expose readline-like completion in
+    a uniform manner to all frontends.  This object only needs to be given the
+    line of text to be split and the cursor position on said line, and it
+    returns the 'word' to be completed on at the cursor after splitting the
+    entire line.
+
+    What characters are used as splitting delimiters can be controlled by
+    setting the `delims` attribute (this is a property that internally
+    automatically builds the necessary """
+
+    # Private interface
+    
+    # A string of delimiter characters.  The default value makes sense for
+    # IPython's most typical usage patterns.
+    _delims = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+
+    # The expression (a normal string) to be compiled into a regular expression
+    # for actual splitting.  We store it as an attribute mostly for ease of
+    # debugging, since this type of code can be so tricky to debug.
+    _delim_expr = None
+
+    # The regular expression that does the actual splitting
+    _delim_re = None
+
+    def __init__(self, delims=None):
+        delims = CompletionSplitter._delims if delims is None else delims
+        self.set_delims(delims)
+
+    def set_delims(self, delims):
+        """Set the delimiters for line splitting."""
+        expr = '[' + ''.join('\\'+ c for c in delims) + ']'
+        self._delim_re = re.compile(expr)
+        self._delims = delims
+        self._delim_expr = expr
+
+    def get_delims(self):
+        """Return the string of delimiter characters."""
+        return self._delims
+
+    def split_line(self, line, cursor_pos=None):
+        """Split a line of text with a cursor at the given position.
+        """
+        l = line if cursor_pos is None else line[:cursor_pos]
+        return self._delim_re.split(l)[-1]
+
+
+class Completer(object):
+    def __init__(self, namespace=None, global_namespace=None):
         """Create a new completer for the command line.
 
         Completer([namespace,global_namespace]) -> completer instance.
@@ -249,8 +358,8 @@ class Completer:
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
-    def __init__(self,shell,namespace=None,global_namespace=None,
-                 omit__names=0,alias_table=None):
+    def __init__(self, shell, namespace=None, global_namespace=None,
+                 omit__names=0, alias_table=None, use_readline=True):
         """IPCompleter() -> completer
 
         Return a completer object suitable for use by the readline library
@@ -273,17 +382,28 @@ class IPCompleter(Completer):
         to be completed explicitly starts with one or more underscores.
 
         - If alias_table is supplied, it should be a dictionary of aliases
-        to complete. """
+        to complete.
 
-        Completer.__init__(self,namespace,global_namespace)
+        use_readline : bool, optional
+          If true, use the readline library.  This completer can still function
+          without readline, though in that case callers must provide some extra
+          information on each call about the current line."""
+
+        Completer.__init__(self, namespace, global_namespace)
 
         self.magic_escape = ESC_MAGIC
-        self.readline = readline
-        delims = self.readline.get_completer_delims()
-        delims = delims.replace(self.magic_escape,'')
-        self.readline.set_completer_delims(delims)
-        self.get_line_buffer = self.readline.get_line_buffer
-        self.get_endidx = self.readline.get_endidx
+        self.splitter = CompletionSplitter()
+
+        # Readline configuration, only used by the rlcompleter method.
+        if use_readline:
+            # We store the right version of readline so that later code 
+            import IPython.utils.rlineimpl as readline
+            self.readline = readline
+        else:
+            self.readline = None
+
+        # List where completion matches will be stored
+        self.matches = []
         self.omit__names = omit__names
         self.merge_completions = shell.readline_merge_completions
         self.shell = shell.shell
@@ -311,7 +431,8 @@ class IPCompleter(Completer):
                          self.file_matches,
                          self.magic_matches,
                          self.alias_matches,
-                         self.python_func_kw_matches]
+                         self.python_func_kw_matches,
+                         ]
     
     # Code contributed by Alex Schmolck, for ipython/emacs integration
     def all_completions(self, text):
@@ -352,38 +473,37 @@ class IPCompleter(Completer):
         current (as of Python 2.3) Python readline it's possible to do
         better."""
 
-        #print 'Completer->file_matches: <%s>' % text # dbg
+        #io.rprint('Completer->file_matches: <%s>' % text) # dbg
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
         # don't want to treat as delimiters in filename matching
         # when escaped with backslash
-
         if text.startswith('!'):
             text = text[1:]
             text_prefix = '!'
         else:
             text_prefix = ''
             
-        lbuf = self.lbuf
+        text_until_cursor = self.text_until_cursor
         open_quotes = 0  # track strings with open quotes
         try:
-            lsplit = shlex.split(lbuf)[-1]
+            lsplit = shlex.split(text_until_cursor)[-1]
         except ValueError:
             # typically an unmatched ", or backslash without escaped char.
-            if lbuf.count('"')==1:
+            if text_until_cursor.count('"')==1:
                 open_quotes = 1
-                lsplit = lbuf.split('"')[-1]
-            elif lbuf.count("'")==1:
+                lsplit = text_until_cursor.split('"')[-1]
+            elif text_until_cursor.count("'")==1:
                 open_quotes = 1
-                lsplit = lbuf.split("'")[-1]
+                lsplit = text_until_cursor.split("'")[-1]
             else:
                 return []
         except IndexError:
             # tab pressed on empty line
             lsplit = ""
 
-        if lsplit != protect_filename(lsplit):
+        if not open_quotes and lsplit != protect_filename(lsplit):
             # if protectables are found, do matching on the whole escaped
             # name
             has_protectables = 1
@@ -413,12 +533,12 @@ class IPCompleter(Completer):
                 matches = [text_prefix + 
                            protect_filename(f) for f in m0]
 
-        #print 'mm',matches  # dbg
-        return single_dir_expand(matches)
+        #io.rprint('mm', matches)  # dbg
+        return mark_dirs(matches)
 
     def magic_matches(self, text):
         """Match magics"""
-        #print 'Completer->magic_matches:',text,'lb',self.lbuf # dbg
+        #print 'Completer->magic_matches:',text,'lb',self.text_until_cursor # dbg
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too
         magics = self.shell.lsmagic()
@@ -428,19 +548,19 @@ class IPCompleter(Completer):
 
     def alias_matches(self, text):
         """Match internal system aliases"""        
-        #print 'Completer->alias_matches:',text,'lb',self.lbuf # dbg
-        
-        # if we are not in the first 'item', alias matching 
+        #print 'Completer->alias_matches:',text,'lb',self.text_until_cursor # dbg
+
+        # if we are not in the first 'item', alias matching
         # doesn't make sense - unless we are starting with 'sudo' command.
-        if ' ' in self.lbuf.lstrip() and \
-               not self.lbuf.lstrip().startswith('sudo'):
+        main_text = self.text_until_cursor.lstrip()
+        if ' ' in main_text and not main_text.startswith('sudo'):
             return []
         text = os.path.expanduser(text)
         aliases =  self.alias_table.keys()
-        if text == "":
+        if text == '':
             return aliases
         else:
-            return [alias for alias in aliases if alias.startswith(text)]
+            return [a for a in aliases if a.startswith(text)]
 
     def python_matches(self,text):
         """Match attributes or global python names"""
@@ -502,7 +622,7 @@ class IPCompleter(Completer):
                 ''', re.VERBOSE | re.DOTALL)
         # 1. find the nearest identifier that comes before an unclosed
         # parenthesis e.g. for "foo (1+bar(x), pa", the candidate is "foo"
-        tokens = regexp.findall(self.get_line_buffer())
+        tokens = regexp.findall(self.line_buffer)
         tokens.reverse()
         iterTokens = iter(tokens); openPar = 0
         for token in iterTokens:
@@ -545,114 +665,178 @@ class IPCompleter(Completer):
                     argMatches.append("%s=" %namedArg)
         return argMatches
 
-    def dispatch_custom_completer(self,text):
+    def dispatch_custom_completer(self, text):
         #print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
-        line = self.full_lbuf        
+        line = self.line_buffer        
         if not line.strip():
             return None
-
+        
+        # Create a little structure to pass all the relevant information about
+        # the current completion to any custom completer.
         event = Bunch()
         event.line = line
         event.symbol = text
         cmd = line.split(None,1)[0]
         event.command = cmd
+        event.text_until_cursor = self.text_until_cursor
+        
         #print "\ncustom:{%s]\n" % event # dbg
         
         # for foo etc, try also to find completer for %foo
         if not cmd.startswith(self.magic_escape):
             try_magic = self.custom_completers.s_matches(
-              self.magic_escape + cmd)            
+                self.magic_escape + cmd)            
         else:
             try_magic = []        
         
         for c in itertools.chain(self.custom_completers.s_matches(cmd),
-                                 try_magic,
-                                 self.custom_completers.flat_matches(self.lbuf)):
+                 try_magic,
+                 self.custom_completers.flat_matches(self.text_until_cursor)):
             #print "try",c # dbg
             try:
                 res = c(event)
-                # first, try case sensitive match
-                withcase = [r for r in res if r.startswith(text)]
-                if withcase:
-                    return withcase
-                # if none, then case insensitive ones are ok too
-                text_low = text.lower()
-                return [r for r in res if r.lower().startswith(text_low)]
+                if res:
+                    # first, try case sensitive match
+                    withcase = [r for r in res if r.startswith(text)]
+                    if withcase:
+                        return withcase
+                    # if none, then case insensitive ones are ok too
+                    text_low = text.lower()
+                    return [r for r in res if r.lower().startswith(text_low)]
             except TryNext:
                 pass
             
         return None
                
-    def complete(self, text, state, line_buffer=None):
-        """Return the next possible completion for 'text'.
+    def complete(self, text=None, line_buffer=None, cursor_pos=None):
+        """Return the state-th possible completion for 'text'.
 
         This is called successively with state == 0, 1, 2, ... until it
         returns None.  The completion should begin with 'text'.
 
-        :Keywords:
-        - line_buffer: string
-        If not given, the completer attempts to obtain the current line buffer
-        via readline.  This keyword allows clients which are requesting for
-        text completions in non-readline contexts to inform the completer of
-        the entire text.
+        Note that both the text and the line_buffer are optional, but at least
+        one of them must be given.
+
+        Parameters
+        ----------
+          text : string, optional
+            Text to perform the completion on.  If not given, the line buffer
+            is split using the instance's CompletionSplitter object.
+
+          line_buffer : string, optional
+            If not given, the completer attempts to obtain the current line
+            buffer via readline.  This keyword allows clients which are
+            requesting for text completions in non-readline contexts to inform
+            the completer of the entire text.
+
+          cursor_pos : int, optional
+            Index of the cursor in the full line buffer.  Should be provided by
+            remote frontends where kernel has no access to frontend state.
         """
+        #io.rprint('\nCOMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
-        #print '\n*** COMPLETE: <%s> (%s)' % (text,state)  # dbg
+        # if the cursor position isn't given, the only sane assumption we can
+        # make is that it's at the end of the line (the common case)
+        if cursor_pos is None:
+            cursor_pos = len(line_buffer) if text is None else len(text)
 
-        # if there is only a tab on a line with only whitespace, instead
-        # of the mostly useless 'do you want to see all million
-        # completions' message, just do the right thing and give the user
-        # his tab!  Incidentally, this enables pasting of tabbed text from
-        # an editor (as long as autoindent is off).
+        # if text is either None or an empty string, rely on the line buffer
+        if not text:
+            text = self.splitter.split_line(line_buffer, cursor_pos)
 
-        # It should be noted that at least pyreadline still shows
-        # file completions - is there a way around it?
-        
-        # don't apply this on 'dumb' terminals, such as emacs buffers, so we
-        # don't interfere with their own tab-completion mechanism.
+        # If no line buffer is given, assume the input text is all there was
         if line_buffer is None:
-            self.full_lbuf = self.get_line_buffer()
-        else:
-            self.full_lbuf = line_buffer
-            
-        if not (self.dumb_terminal or self.full_lbuf.strip()):
-            self.readline.insert_text('\t')
-            return None
+            line_buffer = text
         
-        magic_escape = self.magic_escape
+        self.line_buffer = line_buffer
+        self.text_until_cursor = self.line_buffer[:cursor_pos]
+        #io.rprint('\nCOMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
-        self.lbuf = self.full_lbuf[:self.get_endidx()]
+        # Start with a clean slate of completions
+        self.matches[:] = []
+        custom_res = self.dispatch_custom_completer(text)
+        if custom_res is not None:
+            # did custom completers produce something?
+            self.matches = custom_res
+        else:
+            # Extend the list of completions with the results of each
+            # matcher, so we return results to the user from all
+            # namespaces.
+            if self.merge_completions:
+                self.matches = []
+                for matcher in self.matchers:
+                    self.matches.extend(matcher(text))
+            else:
+                for matcher in self.matchers:
+                    self.matches = matcher(text)
+                    if self.matches:
+                        break
+        # FIXME: we should extend our api to return a dict with completions for
+        # different types of objects.  The rlcomplete() method could then
+        # simply collapse the dict into a list for readline, but we'd have
+        # richer completion semantics in other evironments.
+        self.matches = sorted(set(self.matches))
+        #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
+        return text, self.matches
+
+    def rlcomplete(self, text, state):
+        """Return the state-th possible completion for 'text'.
+
+        This is called successively with state == 0, 1, 2, ... until it
+        returns None.  The completion should begin with 'text'.
+
+        Parameters
+        ----------
+          text : string
+            Text to perform the completion on.
+
+          state : int
+            Counter used by readline.
+        """
+        if state==0:
+
+            self.line_buffer = line_buffer = self.readline.get_line_buffer()
+            cursor_pos = self.readline.get_endidx()
+
+            #io.rprint("\nRLCOMPLETE: %r %r %r" %
+            #          (text, line_buffer, cursor_pos) ) # dbg
+
+            # if there is only a tab on a line with only whitespace, instead of
+            # the mostly useless 'do you want to see all million completions'
+            # message, just do the right thing and give the user his tab!
+            # Incidentally, this enables pasting of tabbed text from an editor
+            # (as long as autoindent is off).
+
+            # It should be noted that at least pyreadline still shows file
+            # completions - is there a way around it?
+
+            # don't apply this on 'dumb' terminals, such as emacs buffers, so
+            # we don't interfere with their own tab-completion mechanism.
+            if not (self.dumb_terminal or line_buffer.strip()):
+                self.readline.insert_text('\t')
+                sys.stdout.flush()
+                return None
+
+            # Note: debugging exceptions that may occur in completion is very
+            # tricky, because readline unconditionally silences them.  So if
+            # during development you suspect a bug in the completion code, turn
+            # this flag on temporarily by uncommenting the second form (don't
+            # flip the value in the first line, as the '# dbg' marker can be
+            # automatically detected and is used elsewhere).
+            DEBUG = False
+            #DEBUG = True # dbg
+            if DEBUG:
+                try:
+                    self.complete(text, line_buffer, cursor_pos)
+                except:
+                    import traceback; traceback.print_exc()
+            else:
+                # The normal production version is here
+                
+                # This method computes the self.matches array
+                self.complete(text, line_buffer, cursor_pos)
 
         try:
-            if text.startswith('~'):
-                text = os.path.expanduser(text)
-            if state == 0:
-                custom_res = self.dispatch_custom_completer(text)
-                if custom_res is not None:
-                    # did custom completers produce something?
-                    self.matches = custom_res
-                else:
-                    # Extend the list of completions with the results of each
-                    # matcher, so we return results to the user from all
-                    # namespaces.
-                    if self.merge_completions:
-                        self.matches = []
-                        for matcher in self.matchers:
-                            self.matches.extend(matcher(text))
-                    else:
-                        for matcher in self.matchers:
-                            self.matches = matcher(text)
-                            if self.matches:
-                                break
-                    self.matches = list(set(self.matches))
-            try:
-                #print "MATCH: %r" % self.matches[state] # dbg
-                return self.matches[state]
-            except IndexError:
-                return None
-        except:
-            #from IPython.core.ultratb import AutoFormattedTB; # dbg
-            #tb=AutoFormattedTB('Verbose');tb() #dbg
-            
-            # If completion fails, don't annoy the user.
+            return self.matches[state]
+        except IndexError:
             return None

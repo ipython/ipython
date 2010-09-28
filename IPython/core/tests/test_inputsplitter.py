@@ -204,7 +204,7 @@ class InputSplitterTestCase(unittest.TestCase):
 
     def test_replace_mode(self):
         isp = self.isp
-        isp.input_mode = 'replace'
+        isp.input_mode = 'cell'
         isp.push('x=1')
         self.assertEqual(isp.source, 'x=1\n')
         isp.push('x=2')
@@ -247,6 +247,13 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push('')
         self.assertFalse(isp.push_accepts_more())
 
+    def test_continuation(self):
+        isp = self.isp
+        isp.push("import os, \\")
+        self.assertTrue(isp.push_accepts_more())
+        isp.push("sys")
+        self.assertFalse(isp.push_accepts_more())
+
     def test_syntax_error(self):
         isp = self.isp
         # Syntax errors immediately produce a 'ready' block, so the invalid
@@ -278,8 +285,8 @@ class InputSplitterTestCase(unittest.TestCase):
                        [['x=1'],
                         ['y=2']],
 
-                       [['x=1'],
-                        ['# a comment'],
+                       [['x=1',
+                         '# a comment'],
                         ['y=11']],
 
                        [['if 1:',
@@ -322,11 +329,11 @@ class InputSplitterTestCase(unittest.TestCase):
         # Block splitting with invalid syntax
         all_blocks = [ [['a syntax error']],
             
-                       [['x=1'],
-                        ['a syntax error']],
+                       [['x=1',
+                         'another syntax error']],
 
                        [['for i in range(10):'
-                         '  an error']],
+                         '  yet another error']],
                        
                        ]
         for block_lines in all_blocks:
@@ -395,8 +402,8 @@ def transform_checker(tests, func):
 
 syntax = \
   dict(assign_system =
-       [('a =! ls', 'a = get_ipython().magic("sc -l = ls")'),
-        ('b = !ls', 'b = get_ipython().magic("sc -l = ls")'),
+       [('a =! ls', 'a = get_ipython().getoutput("ls")'),
+        ('b = !ls', 'b = get_ipython().getoutput("ls")'),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
         ],
@@ -411,13 +418,15 @@ syntax = \
        classic_prompt =
        [('>>> x=1', 'x=1'),
         ('x=1', 'x=1'), # normal input is unmodified
-        ('    ','    '),  # blank lines are kept intact
+        ('    ', '    '),  # blank lines are kept intact
+        ('... ', ''), # continuation prompts
         ],
 
        ipy_prompt =
        [('In [1]: x=1', 'x=1'),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
+        ('   ....: ', ''), # continuation prompts
         ],
 
        # Tests for the escape transformer to leave normal code alone
@@ -441,6 +450,9 @@ syntax = \
          ('??x2', 'get_ipython().magic("pinfo2 x2")'),
          ('x3?', 'get_ipython().magic("pinfo x3")'),
          ('x4??', 'get_ipython().magic("pinfo2 x4")'),
+         ('%hist?', 'get_ipython().magic("pinfo %hist")'),
+         ('f*?', 'get_ipython().magic("psearch f*")'),
+         ('ax.*aspe*?', 'get_ipython().magic("psearch ax.*aspe*")'),
          ],
 
        # Explicit magic calls
@@ -474,9 +486,6 @@ syntax = \
          ('/f a b', 'f(a, b)'),
          ],
 
-       # More complex multiline tests
-       ## escaped_multiline =
-       ## [()],
        )
 
 # multiline syntax examples.  Each of these should be a list of lists, with
@@ -555,8 +564,9 @@ class IPythonInputTestCase(InputSplitterTestCase):
     In addition, this runs the tests over the syntax and syntax_ml dicts that
     were tested by individual functions, as part of the OO interface.
     """
+
     def setUp(self):
-        self.isp = isp.IPythonInputSplitter()
+        self.isp = isp.IPythonInputSplitter(input_mode='line')
 
     def test_syntax(self):
         """Call all single-line syntax tests from the main object"""
@@ -569,7 +579,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 isp.push(raw)
                 out = isp.source_reset().rstrip()
                 self.assertEqual(out, out_t)
-        
+
     def test_syntax_multiline(self):
         isp = self.isp
         for example in syntax_ml.itervalues():
@@ -583,15 +593,41 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 out_t = '\n'.join(out_t_parts).rstrip()
                 self.assertEqual(out, out_t)
                 
-        
+
+class BlockIPythonInputTestCase(IPythonInputTestCase):
+
+    # Deactivate tests that don't make sense for the block mode
+    test_push3 = test_split = lambda s: None
+    
+    def setUp(self):
+        self.isp = isp.IPythonInputSplitter(input_mode='cell')
+
+    def test_syntax_multiline(self):
+        isp = self.isp
+        for example in syntax_ml.itervalues():
+            raw_parts = []
+            out_t_parts = []
+            for line_pairs in example:
+                for raw, out_t_part in line_pairs:
+                    raw_parts.append(raw)
+                    out_t_parts.append(out_t_part)
+
+                raw = '\n'.join(raw_parts)
+                out_t = '\n'.join(out_t_parts)
+
+                isp.push(raw)
+                out = isp.source_reset()
+                # Match ignoring trailing whitespace
+                self.assertEqual(out.rstrip(), out_t.rstrip())
+    
+
 #-----------------------------------------------------------------------------
-# Main - use as a script
+# Main - use as a script, mostly for developer experiments
 #-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     # A simple demo for interactive experimentation.  This code will not get
-    # picked up by any test suite.  Useful mostly for illustration and during
-    # development.
+    # picked up by any test suite.
     from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
 
     # configure here the syntax to use, prompt and whether to autoindent
