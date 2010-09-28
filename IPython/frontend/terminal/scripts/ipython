@@ -1,6 +1,0 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from IPython.frontend.terminal.ipapp import launch_new_instance
-
-launch_new_instance()
