@@ -208,7 +208,7 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['entry_points'] = {
         'console_scripts': [
             'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
-            'ipythonqt = IPython.frontend.qt.console.ipythonqt:main',
+            'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.kernel.ipcontrollerapp:launch_new_instance',
             'ipengine = IPython.kernel.ipengineapp:launch_new_instance',
