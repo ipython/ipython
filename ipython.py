@@ -14,5 +14,5 @@ sys.path.insert(0, this_dir)
 
 # Now proceed with execution
 execfile(os.path.join(
-    this_dir, 'IPython', 'frontend', 'terminal', 'scripts', 'ipython'
+    this_dir, 'IPython', 'scripts', 'ipython'
 ))
