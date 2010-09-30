@@ -62,6 +62,24 @@ def test_line_split():
          ('cd "some_file/', '', 'some_file/'),
          ]
     check_line_split(sp, t)
+    # Ensure splitting works OK with unicode by re-running the tests with
+    # all inputs turned into unicode
+    check_line_split(sp, [ map(unicode, p) for p in t] )
+
+
+def test_unicode_completions():
+    ip = get_ipython()
+    # Some strings that trigger different types of completion.  Check them both
+    # in str and unicode forms
+    s = ['ru', '%ru', 'cd /', 'floa', 'float(x)/']
+    for t in s + map(unicode, s):
+        # We don't need to check exact completion values (they may change
+        # depending on the state of the namespace, but at least no exceptions
+        # should be thrown and the return value should be a pair of text, list
+        # values.
+        text, matches = ip.complete(t)
+        nt.assert_true(isinstance(text, basestring))
+        nt.assert_true(isinstance(matches, list))
 
 
 class CompletionSplitterTestCase(unittest.TestCase):
