@@ -765,7 +765,12 @@ class IPCompleter(Completer):
             if self.merge_completions:
                 self.matches = []
                 for matcher in self.matchers:
-                    self.matches.extend(matcher(text))
+                    try:
+                        self.matches.extend(matcher(text))
+                    except:
+                        # Show the ugly traceback if the matcher causes an
+                        # exception, but do NOT crash the kernel!
+                        sys.excepthook()
             else:
                 for matcher in self.matchers:
                     self.matches = matcher(text)
