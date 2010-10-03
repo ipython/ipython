@@ -150,7 +150,8 @@ class ProcessHandler(object):
             # can set pexpect's search window to be tiny and it won't matter.
             # We only search for the 'patterns' timeout or EOF, which aren't in
             # the text itself.
-            child = pexpect.spawn(pcmd, searchwindowsize=1)
+            #child = pexpect.spawn(pcmd, searchwindowsize=1)
+            child = pexpect.spawn(pcmd)
             flush = sys.stdout.flush
             while True:
                 # res is the index of the pattern that caused the match, so we
@@ -158,10 +159,10 @@ class ProcessHandler(object):
                 res_idx = child.expect_list(patterns, self.read_timeout)
                 print(child.before[out_size:], end='')
                 flush()
-                # Update the pointer to what we've already printed
-                out_size = len(child.before)
                 if res_idx==EOF_index:
                     break
+                # Update the pointer to what we've already printed
+                out_size = len(child.before)
         except KeyboardInterrupt:
             # We need to send ^C to the process.  The ascii code for '^C' is 3
             # (the character is known as ETX for 'End of Text', see
@@ -173,6 +174,7 @@ class ProcessHandler(object):
                 out_size = len(child.before)
                 child.expect_list(patterns, self.terminate_timeout)
                 print(child.before[out_size:], end='')
+                sys.stdout.flush()
             except KeyboardInterrupt:
                 # Impatient users tend to type it multiple times
                 pass
