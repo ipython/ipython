@@ -2181,6 +2181,11 @@ class InteractiveShell(Configurable, Magic):
         
         if not blocks:
             return
+
+        # Store the 'ipython' version of the cell as well, since that's what
+        # needs to go into the translated history and get executed (the
+        # original cell may contain non-python syntax).
+        ipy_cell = ''.join(blocks)
         
         # Single-block input should behave like an interactive prompt
         if len(blocks) == 1:
@@ -2192,23 +2197,31 @@ class InteractiveShell(Configurable, Magic):
         # just feed the whole thing to runcode.
         # This seems like a reasonable usability design.
         last = blocks[-1]
+        last_nlines = len(last.splitlines())
         
         # Note: below, whenever we call runcode, we must sync history
         # ourselves, because runcode is NOT meant to manage history at all.
-        if len(last.splitlines()) < 2:
+        if last_nlines < 2:
+            # Here we consider the cell split between 'body' and 'last', store
+            # all history and execute 'body', and if successful, then proceed
+            # to execute 'last'.
+            
+            # Raw history must contain the unmodified cell
+            raw_body = '\n'.join(cell.splitlines()[:-last_nlines])+'\n'
+            self.input_hist_raw.append(raw_body)
             # Get the main body to run as a cell
-            body = ''.join(blocks[:-1])
-            self.input_hist.append(body)
-            self.input_hist_raw.append(body)
-            retcode = self.runcode(body, post_execute=False)
+            ipy_body = ''.join(blocks[:-1])
+            self.input_hist.append(ipy_body)
+            retcode = self.runcode(ipy_body, post_execute=False)
             if retcode==0:
                 # And the last expression via runlines so it produces output
                 self.runlines(last)
         else:
-            # Run the whole cell as one entity
-            self.input_hist.append(cell)
+            # Run the whole cell as one entity, storing both raw and processed
+            # input in history
             self.input_hist_raw.append(cell)
-            self.runcode(cell)
+            self.input_hist.append(ipy_cell)
+            self.runcode(ipy_cell)
 
     def runlines(self, lines, clean=False):
         """Run a string of one or more lines of source.
