@@ -214,9 +214,11 @@ which already exists. But you must first start the logging process with
             # but if the opposite is true (a macro can produce multiple inputs
             # with no output display called), then bring the output counter in
             # sync:
-            last_num = len(input_hist)-1
-            if in_num != last_num:
-                in_num = self.shell.displayhook.prompt_count = last_num
+            ## last_num = len(input_hist)-1
+            ## if in_num != last_num:
+            ##     pass # dbg
+            ##     #in_num = self.shell.execution_count = last_num
+
             new_i = '_i%s' % in_num
             if continuation:
                 self._i00 = '%s%s\n' % (self.shell.user_ns[new_i],line_mod)

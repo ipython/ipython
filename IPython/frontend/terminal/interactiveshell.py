@@ -227,6 +227,11 @@ class TerminalInteractiveShell(InteractiveShell):
             self.readline_startup_hook(self.pre_readline)
         # exit_now is set by a call to %Exit or %Quit, through the
         # ask_exit callback.
+
+        # Before showing any prompts, if the counter is at zero, we execute an
+        # empty line to ensure the user only sees prompts starting at one.
+        if self.execution_count == 0:
+            self.push_line('\n')
         
         while not self.exit_now:
             self.hooks.pre_prompt_hook()

@@ -238,8 +238,9 @@ class Kernel(Configurable):
             status = u'ok'
 
         reply_content[u'status'] = status
-        # Compute the execution counter so clients can display prompts
-        reply_content['execution_count'] = shell.displayhook.prompt_count
+        
+        # Return the execution counter so clients can display prompts
+        reply_content['execution_count'] = shell.execution_count
 
         # FIXME - fish exception info out of shell, possibly left there by
         # runlines.  We'll need to clean up this logic later.

@@ -397,6 +397,9 @@ class InteractiveShell(Configurable, Magic):
         # Indentation management
         self.indent_current_nsp = 0
 
+        # Increasing execution counter
+        self.execution_count = 0
+
     def init_environment(self):
         """Any changes we need to make to the user's environment."""
         pass
@@ -978,6 +981,9 @@ class InteractiveShell(Configurable, Magic):
         self.input_hist_raw[:] = []
         self.output_hist.clear()
 
+        # Reset counter used to index all histories
+        self.execution_count = 0
+        
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
 
@@ -2186,42 +2192,68 @@ class InteractiveShell(Configurable, Magic):
         # needs to go into the translated history and get executed (the
         # original cell may contain non-python syntax).
         ipy_cell = ''.join(blocks)
-        
-        # Single-block input should behave like an interactive prompt
-        if len(blocks) == 1:
-            self.runlines(blocks[0])
-            return
 
-        # In multi-block input, if the last block is a simple (one-two lines)
-        # expression, run it in single mode so it produces output.  Otherwise
-        # just feed the whole thing to runcode.
-        # This seems like a reasonable usability design.
-        last = blocks[-1]
-        last_nlines = len(last.splitlines())
-        
-        # Note: below, whenever we call runcode, we must sync history
-        # ourselves, because runcode is NOT meant to manage history at all.
-        if last_nlines < 2:
-            # Here we consider the cell split between 'body' and 'last', store
-            # all history and execute 'body', and if successful, then proceed
-            # to execute 'last'.
-            
-            # Raw history must contain the unmodified cell
-            raw_body = '\n'.join(cell.splitlines()[:-last_nlines])+'\n'
-            self.input_hist_raw.append(raw_body)
-            # Get the main body to run as a cell
-            ipy_body = ''.join(blocks[:-1])
-            self.input_hist.append(ipy_body)
-            retcode = self.runcode(ipy_body, post_execute=False)
-            if retcode==0:
-                # And the last expression via runlines so it produces output
-                self.runlines(last)
+        # Each cell is a *single* input, regardless of how many lines it has
+        self.execution_count += 1
+
+        # Store raw and processed history
+        self.input_hist_raw.append(cell)
+        self.input_hist.append(ipy_cell)
+
+        # All user code execution must happen with our context managers active
+        with nested(self.builtin_trap, self.display_trap):
+            # Single-block input should behave like an interactive prompt
+            if len(blocks) == 1:
+                return self.run_one_block(blocks[0])
+
+            # In multi-block input, if the last block is a simple (one-two
+            # lines) expression, run it in single mode so it produces output.
+            # Otherwise just feed the whole thing to runcode.  This seems like
+            # a reasonable usability design.
+            last = blocks[-1]
+            last_nlines = len(last.splitlines())
+
+            # Note: below, whenever we call runcode, we must sync history
+            # ourselves, because runcode is NOT meant to manage history at all.
+            if last_nlines < 2:
+                # Here we consider the cell split between 'body' and 'last',
+                # store all history and execute 'body', and if successful, then
+                # proceed to execute 'last'.
+
+                # Get the main body to run as a cell
+                ipy_body = ''.join(blocks[:-1])
+                retcode = self.runcode(ipy_body, post_execute=False)
+                if retcode==0:
+                    # And the last expression via runlines so it produces output
+                    self.run_one_block(last)
+            else:
+                # Run the whole cell as one entity, storing both raw and
+                # processed input in history
+                self.runcode(ipy_cell)
+
+    def run_one_block(self, block):
+        """Run a single interactive block.
+
+        If the block is single-line, dynamic transformations are applied to it
+        (like automagics, autocall and alias recognition).
+        """
+        if len(block.splitlines()) <= 1:
+            out = self.run_single_line(block)
         else:
-            # Run the whole cell as one entity, storing both raw and processed
-            # input in history
-            self.input_hist_raw.append(cell)
-            self.input_hist.append(ipy_cell)
-            self.runcode(ipy_cell)
+            out = self.runcode(block)
+        return out
+
+    def run_single_line(self, line):
+        """Run a single-line interactive statement.
+
+        This assumes the input has been transformed to IPython syntax by
+        applying all static transformations (those with an explicit prefix like
+        % or !), but it will further try to apply the dynamic ones.
+
+        It does not update history.
+        """
+        tline = self.prefilter_manager.prefilter_line(line)
+        return self.runsource(tline)
 
     def runlines(self, lines, clean=False):
         """Run a string of one or more lines of source.
@@ -2421,6 +2453,7 @@ class InteractiveShell(Configurable, Magic):
         more = self.runsource('\n'.join(self.buffer), self.filename)
         if not more:
             self.resetbuffer()
+            self.execution_count += 1
         return more
 
     def resetbuffer(self):
