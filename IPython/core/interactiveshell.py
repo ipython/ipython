@@ -45,6 +45,7 @@ from IPython.core.displayhook import DisplayHook
 from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
+from IPython.core.history import HistoryManager
 from IPython.core.inputlist import InputList
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
@@ -216,7 +217,8 @@ class InteractiveShell(Configurable, Magic):
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
     plugin_manager = Instance('IPython.core.plugin.PluginManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
-
+    history_manager = Instance('IPython.core.history.HistoryManager')
+    
     # Private interface
     _post_execute = set()
 
@@ -261,7 +263,6 @@ class InteractiveShell(Configurable, Magic):
         self.init_builtins()
 
         # pre_config_initialization
-        self.init_shadow_hist()
 
         # The next section should contain everything that was in ipmaker.
         self.init_logstart()
@@ -1211,61 +1212,15 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_history(self):
-        # List of input with multi-line handling.
-        self.input_hist = InputList()
-        # This one will hold the 'raw' input history, without any
-        # pre-processing.  This will allow users to retrieve the input just as
-        # it was exactly typed in by the user, with %hist -r.
-        self.input_hist_raw = InputList()
-
-        # list of visited directories
-        try:
-            self.dir_hist = [os.getcwd()]
-        except OSError:
-            self.dir_hist = []
-
-        # dict of output history
-        self.output_hist = {}
-
-        # Now the history file
-        if self.profile:
-            histfname = 'history-%s' % self.profile
-        else:
-            histfname = 'history'
-        self.histfile = os.path.join(self.ipython_dir, histfname)
-
-        # Fill the history zero entry, user counter starts at 1
-        self.input_hist.append('\n')
-        self.input_hist_raw.append('\n')
-
-    def init_shadow_hist(self):
-        try:
-            self.db = pickleshare.PickleShareDB(self.ipython_dir + "/db")
-        except exceptions.UnicodeDecodeError:
-            print "Your ipython_dir can't be decoded to unicode!"
-            print "Please set HOME environment variable to something that"
-            print r"only has ASCII characters, e.g. c:\home"
-            print "Now it is", self.ipython_dir
-            sys.exit()
-        self.shadowhist = ipcorehist.ShadowHist(self.db)
+        self.history_manager = HistoryManager(shell=self)
 
     def savehist(self):
         """Save input history to a file (via readline library)."""
-
-        try:
-            self.readline.write_history_file(self.histfile)
-        except:
-            print 'Unable to save IPython command history to file: ' + \
-                  `self.histfile`
-
+        self.history_manager.save_hist()
+        
     def reloadhist(self):
         """Reload the input history from disk file."""
-
-        try:
-            self.readline.clear_history()
-            self.readline.read_history_file(self.shell.histfile)
-        except AttributeError:
-            pass
+        self.history_manager.reload_hist()
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
@@ -1285,55 +1240,6 @@ class InteractiveShell(Configurable, Magic):
             finally:
                 readline.read_history_file(self.histfile)
         return wrapper
-
-    def get_history(self, index=None, raw=False, output=True):
-        """Get the history list.
-
-        Get the input and output history.
-
-        Parameters
-        ----------
-        index : n or (n1, n2) or None
-            If n, then the last entries. If a tuple, then all in
-            range(n1, n2). If None, then all entries. Raises IndexError if
-            the format of index is incorrect.
-        raw : bool
-            If True, return the raw input.
-        output : bool
-            If True, then return the output as well.
-
-        Returns
-        -------
-        If output is True, then return a dict of tuples, keyed by the prompt
-        numbers and with values of (input, output). If output is False, then
-        a dict, keyed by the prompt number with the values of input. Raises
-        IndexError if no history is found.
-        """
-        if raw:
-            input_hist = self.input_hist_raw
-        else:
-            input_hist = self.input_hist
-        if output:
-            output_hist = self.user_ns['Out']
-        n = len(input_hist)
-        if index is None:
-            start=0; stop=n
-        elif isinstance(index, int):
-            start=n-index; stop=n
-        elif isinstance(index, tuple) and len(index) == 2:
-            start=index[0]; stop=index[1]
-        else:
-            raise IndexError('Not a valid index for the input history: %r'
-                             % index)
-        hist = {}
-        for i in range(start, stop):
-            if output:
-                hist[i] = (input_hist[i], output_hist.get(i))
-            else:
-                hist[i] = input_hist[i]
-        if len(hist)==0:
-            raise IndexError('No history for range of indices: %r' % index)
-        return hist
 
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
@@ -2199,6 +2105,20 @@ class InteractiveShell(Configurable, Magic):
         # Store raw and processed history
         self.input_hist_raw.append(cell)
         self.input_hist.append(ipy_cell)
+
+
+        # dbg code!!!
+        def myapp(self, val):  # dbg
+            import traceback as tb
+            stack = ''.join(tb.format_stack())
+            print 'Value:', val
+            print 'Stack:\n', stack
+            list.append(self, val)
+
+        import new
+        self.input_hist.append = new.instancemethod(myapp, self.input_hist,
+                                                    list)
+        # End dbg
 
         # All user code execution must happen with our context managers active
         with nested(self.builtin_trap, self.display_trap):
