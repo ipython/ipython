@@ -107,6 +107,9 @@ And last but not least, all the kind IPython contributors who have contributed
 new code, bug reports, fixes, comments and ideas. A brief list follows, please
 let us know if we have omitted your name by accident:
 
+* Thomas Kluyver <takowl-AT-gmail.com> Port of IPython and its necessary ZeroMQ
+  infrastructure to Python3.
+
 * Evan Patterson <epatters-AT-enthought.com> Qt console frontend with ZeroMQ.
 
 * Justin Riley <justin.t.riley-AT-gmail.com> Contributions to parallel support,
