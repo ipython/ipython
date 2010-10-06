@@ -428,7 +428,7 @@ class PrefilterManager(Configurable):
         which is the case when the user goes back to a multiline history
         entry and presses enter.
         """
-        llines = lines.rstrip('\n').split('\n')
+        llines = lines.rstrip('\n').splitlines()
         # We can get multiple lines in one shot, where multiline input 'blends'
         # into one line, in cases like recalling from the readline history
         # buffer.  We need to make sure that in such cases, we correctly

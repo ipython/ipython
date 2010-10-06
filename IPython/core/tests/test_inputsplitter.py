@@ -563,6 +563,8 @@ class IPythonInputTestCase(InputSplitterTestCase):
 
     In addition, this runs the tests over the syntax and syntax_ml dicts that
     were tested by individual functions, as part of the OO interface.
+
+    It also makes some checks on the raw buffer storage.
     """
 
     def setUp(self):
@@ -577,21 +579,26 @@ class IPythonInputTestCase(InputSplitterTestCase):
                     continue
                 
                 isp.push(raw)
-                out = isp.source_reset().rstrip()
-                self.assertEqual(out, out_t)
+                out, out_raw = isp.source_raw_reset()
+                self.assertEqual(out.rstrip(), out_t)
+                self.assertEqual(out_raw.rstrip(), raw.rstrip())
 
     def test_syntax_multiline(self):
         isp = self.isp
         for example in syntax_ml.itervalues():
             out_t_parts = []
+            raw_parts = []
             for line_pairs in example:
-                for raw, out_t_part in line_pairs:
-                    isp.push(raw)
+                for lraw, out_t_part in line_pairs:
+                    isp.push(lraw)
                     out_t_parts.append(out_t_part)
+                    raw_parts.append(lraw)
 
-                out = isp.source_reset().rstrip()
+                out, out_raw = isp.source_raw_reset()
                 out_t = '\n'.join(out_t_parts).rstrip()
-                self.assertEqual(out, out_t)
+                raw = '\n'.join(raw_parts).rstrip()
+                self.assertEqual(out.rstrip(), out_t)
+                self.assertEqual(out_raw.rstrip(), raw)
                 
 
 class BlockIPythonInputTestCase(IPythonInputTestCase):
@@ -616,9 +623,10 @@ class BlockIPythonInputTestCase(IPythonInputTestCase):
                 out_t = '\n'.join(out_t_parts)
 
                 isp.push(raw)
-                out = isp.source_reset()
+                out, out_raw = isp.source_raw_reset()
                 # Match ignoring trailing whitespace
                 self.assertEqual(out.rstrip(), out_t.rstrip())
+                self.assertEqual(out_raw.rstrip(), raw.rstrip())
     
 
 #-----------------------------------------------------------------------------
@@ -652,7 +660,8 @@ if __name__ == '__main__':
             # Here we just return input so we can use it in a test suite, but a
             # real interpreter would instead send it for execution somewhere.
             #src = isp.source; raise EOFError # dbg
-            src = isp.source_reset()
+            src, raw = isp.source_raw_reset()
             print 'Input source was:\n', src
+            print 'Raw source was:\n', raw
     except EOFError:
         print 'Bye'

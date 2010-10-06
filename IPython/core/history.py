@@ -61,13 +61,12 @@ class HistoryManager(object):
             histfname = 'history'
         self.hist_file = os.path.join(shell.ipython_dir, histfname)
 
-        # Fill the history zero entry, user counter starts at 1
-        self.input_hist.append('\n')
-        self.input_hist_raw.append('\n')
-
         # Objects related to shadow history management
         self._init_shadow_hist()
     
+        # Fill the history zero entry, user counter starts at 1
+        self.store_inputs('\n', '\n')
+
         # For backwards compatibility, we must put these back in the shell
         # object, until we've removed all direct uses of the history objects in
         # the shell itself.
@@ -154,9 +153,41 @@ class HistoryManager(object):
                 hist[i] = (input_hist[i], output_hist.get(i))
             else:
                 hist[i] = input_hist[i]
-        if len(hist)==0:
+        if not hist:
             raise IndexError('No history for range of indices: %r' % index)
         return hist
+
+    def store_inputs(self, source, source_raw=None):
+        """Store source and raw input in history.
+
+        Parameters
+        ----------
+        source : str
+          Python input.
+
+        source_raw : str, optional
+          If given, this is the raw input without any IPython transformations
+          applied to it.  If not given, ``source`` is used.
+        """
+        if source_raw is None:
+            source_raw = source
+        self.input_hist.append(source)
+        self.input_hist_raw.append(source_raw)
+        self.shadow_hist.add(source)
+
+    def sync_inputs(self):
+        """Ensure raw and translated histories have same length."""
+        if len(self.input_hist) != len (self.input_hist_raw):
+            self.input_hist_raw = InputList(self.input_hist)
+
+
+    def reset(self):
+        """Clear all histories managed by this object."""
+        self.input_hist[:] = []
+        self.input_hist_raw[:] = []
+        self.output_hist.clear()
+        # The directory history can't be completely empty
+        self.dir_hist[:] = [os.getcwd()]
 
 
 def magic_history(self, parameter_s = ''):

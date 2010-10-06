@@ -218,7 +218,7 @@ class InteractiveShell(Configurable, Magic):
     plugin_manager = Instance('IPython.core.plugin.PluginManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
     history_manager = Instance('IPython.core.history.HistoryManager')
-    
+
     # Private interface
     _post_execute = set()
 
@@ -369,8 +369,9 @@ class InteractiveShell(Configurable, Magic):
         # command compiler
         self.compile = codeop.CommandCompiler()
 
-        # User input buffer
+        # User input buffers
         self.buffer = []
+        self.buffer_raw = []
 
         # Make an empty namespace, which extension writers can rely on both
         # existing and NEVER being used by ipython itself.  This gives them a
@@ -965,30 +966,25 @@ class InteractiveShell(Configurable, Magic):
         # Finally, update the real user's namespace
         self.user_ns.update(ns)
 
-
     def reset(self):
         """Clear all internal namespaces.
 
         Note that this is much more aggressive than %reset, since it clears
         fully all namespaces, as well as all input/output lists.
         """
-        for ns in self.ns_refs_table:
-            ns.clear()
-
-        self.alias_manager.clear_aliases()
-
-        # Clear input and output histories
-        self.input_hist[:] = []
-        self.input_hist_raw[:] = []
-        self.output_hist.clear()
+        # Clear histories
+        self.history_manager.reset()
 
         # Reset counter used to index all histories
         self.execution_count = 0
         
         # Restore the user namespaces to minimal usability
+        for ns in self.ns_refs_table:
+            ns.clear()
         self.init_user_ns()
 
         # Restore the default and user aliases
+        self.alias_manager.clear_aliases()
         self.alias_manager.init_aliases()
 
     def reset_selective(self, regex=None):
@@ -2103,9 +2099,7 @@ class InteractiveShell(Configurable, Magic):
         self.execution_count += 1
 
         # Store raw and processed history
-        self.input_hist_raw.append(cell)
-        self.input_hist.append(ipy_cell)
-
+        self.history_manager.store_inputs(ipy_cell, cell)
 
         # dbg code!!!
         def myapp(self, val):  # dbg
@@ -2194,7 +2188,13 @@ class InteractiveShell(Configurable, Magic):
         # interactive IPython session (via a magic, for example).
         self.resetbuffer()
         lines = lines.splitlines()
-        more = 0
+
+        # Since we will prefilter all lines, store the user's raw input too
+        # before we apply any transformations
+        self.buffer_raw[:] = [ l+'\n' for l in lines]
+        
+        more = False
+        prefilter_lines = self.prefilter_manager.prefilter_lines
         with nested(self.builtin_trap, self.display_trap):
             for line in lines:
                 # skip blank lines so we don't mess up the prompt counter, but
@@ -2202,19 +2202,13 @@ class InteractiveShell(Configurable, Magic):
                 # is true)
             
                 if line or more:
-                    # push to raw history, so hist line numbers stay in sync
-                    self.input_hist_raw.append(line + '\n')
-                    prefiltered = self.prefilter_manager.prefilter_lines(line,
-                                                                         more)
-                    more = self.push_line(prefiltered)
+                    more = self.push_line(prefilter_lines(line, more))
                     # IPython's runsource returns None if there was an error
                     # compiling the code.  This allows us to stop processing
                     # right away, so the user gets the error message at the
                     # right place.
                     if more is None:
                         break
-                else:
-                    self.input_hist_raw.append("\n")
             # final newline in case the input didn't have it, so that the code
             # actually does get executed
             if more:
@@ -2370,8 +2364,11 @@ class InteractiveShell(Configurable, Magic):
         for subline in line.splitlines():
             self._autoindent_update(subline)
         self.buffer.append(line)
-        more = self.runsource('\n'.join(self.buffer), self.filename)
+        full_source = '\n'.join(self.buffer)
+        more = self.runsource(full_source, self.filename)
         if not more:
+            self.history_manager.store_inputs('\n'.join(self.buffer_raw),
+                                              full_source)
             self.resetbuffer()
             self.execution_count += 1
         return more
@@ -2379,6 +2376,7 @@ class InteractiveShell(Configurable, Magic):
     def resetbuffer(self):
         """Reset the input buffer."""
         self.buffer[:] = []
+        self.buffer_raw[:] = []
 
     def _is_secondary_block_start(self, s):
         if not s.endswith(':'):

@@ -194,7 +194,8 @@ which already exists. But you must first start the logging process with
         # add blank lines if the input cache fell out of sync.
         if out_cache.do_full_cache and \
             out_cache.prompt_count +1 > len(input_hist):
-            input_hist.extend(['\n'] * (out_cache.prompt_count - len(input_hist)))
+            pass
+            #input_hist.extend(['\n'] * (out_cache.prompt_count - len(input_hist)))
             
         if not continuation and line_mod:
             self._iii = self._ii
@@ -203,7 +204,7 @@ which already exists. But you must first start the logging process with
             # put back the final \n of every input line
             self._i00 = line_mod+'\n'
             #print 'Logging input:<%s>' % line_mod  # dbg
-            input_hist.append(self._i00)
+            #input_hist.append(self._i00)
         #print '---[%s]' % (len(input_hist)-1,) # dbg
 
         # hackish access to top-level namespace to create _i1,_i2... dynamically
@@ -222,7 +223,7 @@ which already exists. But you must first start the logging process with
             new_i = '_i%s' % in_num
             if continuation:
                 self._i00 = '%s%s\n' % (self.shell.user_ns[new_i],line_mod)
-                input_hist[in_num] = self._i00
+                #input_hist[in_num] = self._i00
             to_main[new_i] = self._i00
         self.shell.user_ns.update(to_main)
 

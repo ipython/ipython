@@ -600,20 +600,23 @@ class InputSplitter(object):
             if line and not line.isspace():
                 self.indent_spaces, self._full_dedent = self._find_indent(line)
 
-    def _store(self, lines):
+    def _store(self, lines, buffer=None, store='source'):
         """Store one or more lines of input.
 
         If input lines are not newline-terminated, a newline is automatically
         appended."""
 
+        if buffer is None:
+            buffer = self._buffer
+            
         if lines.endswith('\n'):
-            self._buffer.append(lines)
+            buffer.append(lines)
         else:
-            self._buffer.append(lines+'\n')
-        self._set_source()
+            buffer.append(lines+'\n')
+        setattr(self, store, self._set_source(buffer))
 
-    def _set_source(self):
-        self.source = ''.join(self._buffer).encode(self.encoding)
+    def _set_source(self, buffer):
+        return ''.join(buffer).encode(self.encoding)
 
 
 #-----------------------------------------------------------------------------
@@ -933,6 +936,32 @@ transform_escaped = EscapedTransformer()
 class IPythonInputSplitter(InputSplitter):
     """An input splitter that recognizes all of IPython's special syntax."""
 
+    # String with raw, untransformed input.
+    source_raw = ''
+
+    # Private attributes
+    
+    # List with lines of raw input accumulated so far.
+    _buffer_raw = None
+
+    def __init__(self, input_mode=None):
+        InputSplitter.__init__(self, input_mode)
+        self._buffer_raw = []
+        
+    def reset(self):
+        """Reset the input buffer and associated state."""
+        InputSplitter.reset(self)
+        self._buffer_raw[:] = []
+        self.source_raw = ''
+
+    def source_raw_reset(self):
+        """Return input and raw source and perform a full reset.
+        """
+        out = self.source
+        out_r = self.source_raw
+        self.reset()
+        return out, out_r
+
     def push(self, lines):
         """Push one or more lines of IPython input.
         """
@@ -964,13 +993,18 @@ class IPythonInputSplitter(InputSplitter):
         # by one.  Note that this only matters if the input has more than one
         # line.
         changed_input_mode = False
-        
-        if len(lines_list)>1 and self.input_mode == 'cell':
+
+        if self.input_mode == 'cell':
             self.reset()
             changed_input_mode = True
             saved_input_mode = 'cell'
             self.input_mode = 'line'
 
+        # Store raw source before applying any transformations to it.  Note
+        # that this must be done *after* the reset() call that would otherwise
+        # flush the buffer.
+        self._store(lines, self._buffer_raw, 'source_raw')
+        
         try:
             push = super(IPythonInputSplitter, self).push
             for line in lines_list:
@@ -983,5 +1017,4 @@ class IPythonInputSplitter(InputSplitter):
         finally:
             if changed_input_mode:
                 self.input_mode = saved_input_mode
-        
         return out

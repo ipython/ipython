@@ -191,8 +191,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
             # if you run stuff with -c <cmd>, raw hist is not updated
             # ensure that it's in sync
-            if len(self.input_hist) != len (self.input_hist_raw):
-                self.input_hist_raw = InputList(self.input_hist)
+            self.history_manager.sync_inputs()
 
             while 1:
                 try:
@@ -218,7 +217,7 @@ class TerminalInteractiveShell(InteractiveShell):
         if display_banner:
             self.show_banner()
 
-        more = 0
+        more = False
         
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
@@ -231,7 +230,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # Before showing any prompts, if the counter is at zero, we execute an
         # empty line to ensure the user only sees prompts starting at one.
         if self.execution_count == 0:
-            self.push_line('\n')
+            self.execution_count += 1
         
         while not self.exit_now:
             self.hooks.pre_prompt_hook()
@@ -249,7 +248,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 except:
                     self.showtraceback()
             try:
-                line = self.raw_input(prompt, more)
+                line = self.raw_input(prompt)
                 if self.exit_now:
                     # quick exit on sys.std[in|out] close
                     break
@@ -266,7 +265,7 @@ class TerminalInteractiveShell(InteractiveShell):
     
                     if self.autoindent:
                         self.indent_current_nsp = 0
-                    more = 0
+                    more = False
                 except KeyboardInterrupt:
                     pass
             except EOFError:
@@ -286,18 +285,22 @@ class TerminalInteractiveShell(InteractiveShell):
                 # asynchronously by signal handlers, for example.
                 self.showtraceback()
             else:
-                more = self.push_line(line)
+                #more = self.push_line(line)
+                self.input_splitter.push(line)
+                more = self.input_splitter.push_accepts_more()
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
-
+                if not more:
+                    pass
+                
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
 
         # Turn off the exit flag, so the mainloop can be restarted if desired
         self.exit_now = False
 
-    def raw_input(self,prompt='',continue_prompt=False):
+    def raw_input(self, prompt='', continue_prompt=False):
         """Write a prompt and read a line.
 
         The returned line does not include the trailing newline.
@@ -310,8 +313,6 @@ class TerminalInteractiveShell(InteractiveShell):
           - continue_prompt(False): whether this line is the first one or a
           continuation in a sequence of inputs.
         """
-        # growl.notify("raw_input: ", "prompt = %r\ncontinue_prompt = %s" % (prompt, continue_prompt))
-
         # Code run by the user may have modified the readline completer state.
         # We must ensure that our completer is back in place.
 
@@ -329,8 +330,6 @@ class TerminalInteractiveShell(InteractiveShell):
         # Try to be reasonably smart about not re-indenting pasted input more
         # than necessary.  We do this by trimming out the auto-indent initial
         # spaces, if the user's actual input started itself with whitespace.
-        #debugx('self.buffer[-1]')
-
         if self.autoindent:
             if num_ini_spaces(line) > self.indent_current_nsp:
                 line = line[self.indent_current_nsp:]
@@ -340,22 +339,15 @@ class TerminalInteractiveShell(InteractiveShell):
         # it.
         if line.strip():
             if continue_prompt:
-                self.input_hist_raw[-1] += '%s\n' % line
                 if self.has_readline and self.readline_use:
-                    try:
-                        histlen = self.readline.get_current_history_length()
-                        if histlen > 1:
-                            newhist = self.input_hist_raw[-1].rstrip()
-                            self.readline.remove_history_item(histlen-1)
-                            self.readline.replace_history_item(histlen-2,
-                                            newhist.encode(self.stdin_encoding))
-                    except AttributeError:
-                        pass # re{move,place}_history_item are new in 2.4.                
+                    histlen = self.readline.get_current_history_length()
+                    if histlen > 1:
+                        newhist = self.input_hist_raw[-1].rstrip()
+                        self.readline.remove_history_item(histlen-1)
+                        self.readline.replace_history_item(histlen-2,
+                                        newhist.encode(self.stdin_encoding))
             else:
                 self.input_hist_raw.append('%s\n' % line)                
-            # only entries starting at first column go to shadow history
-            if line.lstrip() == line:
-                self.shadowhist.add(line.strip())
         elif not continue_prompt:
             self.input_hist_raw.append('\n')
         try:
@@ -367,6 +359,45 @@ class TerminalInteractiveShell(InteractiveShell):
             return ''
         else:
             return lineout
+
+
+    def raw_input(self, prompt=''):
+        """Write a prompt and read a line.
+
+        The returned line does not include the trailing newline.
+        When the user enters the EOF key sequence, EOFError is raised.
+
+        Optional inputs:
+
+          - prompt(''): a string to be printed to prompt the user.
+
+          - continue_prompt(False): whether this line is the first one or a
+          continuation in a sequence of inputs.
+        """
+        # Code run by the user may have modified the readline completer state.
+        # We must ensure that our completer is back in place.
+
+        if self.has_readline:
+            self.set_readline_completer()
+        
+        try:
+            line = raw_input_original(prompt).decode(self.stdin_encoding)
+        except ValueError:
+            warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
+                 " or sys.stdout.close()!\nExiting IPython!")
+            self.ask_exit()
+            return ""
+
+        # Try to be reasonably smart about not re-indenting pasted input more
+        # than necessary.  We do this by trimming out the auto-indent initial
+        # spaces, if the user's actual input started itself with whitespace.
+        if self.autoindent:
+            if num_ini_spaces(line) > self.indent_current_nsp:
+                line = line[self.indent_current_nsp:]
+                self.indent_current_nsp = 0
+        
+        return line
+
 
     # TODO: The following three methods are an early attempt to refactor
     # the main code execution logic. We don't use them, but they may be
