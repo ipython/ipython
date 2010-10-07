@@ -394,7 +394,8 @@ The keybindings themselves are:
 - ``M-d``: delete next word.
 - ``M-Backspace``: delete previous word.
 - ``C-.``: force a kernel restart (a confirmation dialog appears).
-
+- ``C-+``: increase font size.
+- ``C--``: decrease font size.
 
 The IPython pager
 =================

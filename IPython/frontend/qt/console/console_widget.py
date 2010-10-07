@@ -536,6 +536,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         font.setStyleHint(QtGui.QFont.TypeWriter)
         self._set_font(font)
 
+    def change_font_size(self, delta):
+        """Change the font size by the specified amount (in points).
+        """
+        font = self.font
+        font.setPointSize(font.pointSize() + delta)
+        self._set_font(font)
+
     def select_all(self):
         """ Selects all the text in the buffer.
         """
@@ -895,13 +902,21 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             elif key == QtCore.Qt.Key_O:
                 if self._page_control and self._page_control.isVisible():
                     self._page_control.setFocus()
-                intercept = True
+                intercepted = True
 
             elif key == QtCore.Qt.Key_Y:
                 self.paste()
                 intercepted = True
 
             elif key in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
+                intercepted = True
+
+            elif key == QtCore.Qt.Key_Plus:
+                self.change_font_size(1)
+                intercepted = True
+
+            elif key == QtCore.Qt.Key_Minus:
+                self.change_font_size(-1)
                 intercepted = True
 
         #------ Alt modifier ---------------------------------------------------
