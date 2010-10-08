@@ -50,8 +50,12 @@ class MainWindow(QtGui.QMainWindow):
         if kernel_manager and kernel_manager.channels_running:
             title = self.window().windowTitle()
             reply = QtGui.QMessageBox.question(self, title,
-                'Close console?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                'Closing console. Leave Kernel alive?', 
+                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)
             if reply == QtGui.QMessageBox.Yes:
+                self.destroy()
+                event.ignore()
+            elif reply == QtGui.QMessageBox.No:
                 kernel_manager.shutdown_kernel()
                 #kernel_manager.stop_channels()
                 event.accept()
