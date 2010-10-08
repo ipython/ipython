@@ -162,6 +162,12 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertEqual(isp.indent_spaces, 4)
         isp.push('y=2\n')
         self.assertEqual(isp.indent_spaces, 0)
+
+    def test_indent2(self):
+        # In cell mode, inputs must be fed in whole blocks, so skip this test
+        if self.isp.input_mode == 'cell': return
+
+        isp = self.isp
         isp.push('if 1:')
         self.assertEqual(isp.indent_spaces, 4)
         isp.push('    x=1')
@@ -170,7 +176,10 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push(' '*2)
         self.assertEqual(isp.indent_spaces, 4)
 
-    def test_indent2(self):
+    def test_indent3(self):
+        # In cell mode, inputs must be fed in whole blocks, so skip this test
+        if self.isp.input_mode == 'cell': return
+
         isp = self.isp
         # When a multiline statement contains parens or multiline strings, we
         # shouldn't get confused.
@@ -195,13 +204,6 @@ class InputSplitterTestCase(unittest.TestCase):
         for line in ['  x=1', '# a comment', '  y=2']:
             self.assertTrue(isp.push(line))
             
-    def test_push3(self):
-        """Test input with leading whitespace"""
-        isp = self.isp
-        isp.push('  x=1')
-        isp.push('  y=2')
-        self.assertEqual(isp.source, 'if 1:\n  x=1\n  y=2\n')
-
     def test_replace_mode(self):
         isp = self.isp
         isp.input_mode = 'cell'
@@ -216,6 +218,9 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertFalse(isp.push_accepts_more())
 
     def test_push_accepts_more2(self):
+        # In cell mode, inputs must be fed in whole blocks, so skip this test
+        if self.isp.input_mode == 'cell': return
+
         isp = self.isp
         isp.push('if 1:')
         self.assertTrue(isp.push_accepts_more())
@@ -230,6 +235,9 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertFalse(isp.push_accepts_more())
 
     def test_push_accepts_more4(self):
+        # In cell mode, inputs must be fed in whole blocks, so skip this test
+        if self.isp.input_mode == 'cell': return
+
         isp = self.isp
         # When a multiline statement contains parens or multiline strings, we
         # shouldn't get confused.

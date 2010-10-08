@@ -371,15 +371,6 @@ class InputSplitter(object):
         if self.input_mode == 'cell':
             self.reset()
         
-        # If the source code has leading blanks, add 'if 1:\n' to it
-        # this allows execution of indented pasted code. It is tempting
-        # to add '\n' at the end of source to run commands like ' a=1'
-        # directly, but this fails for more complicated scenarios
-
-        if not self._buffer and lines[:1] in [' ', '\t'] and \
-           not comment_line_re.match(lines):
-            lines = 'if 1:\n%s' % lines
-        
         self._store(lines)
         source = self.source
 
@@ -594,7 +585,7 @@ class InputSplitter(object):
             #print 'safety' # dbg
             
         return indent_spaces, full_dedent
-        
+    
     def _update_indent(self, lines):
         for line in remove_comments(lines).splitlines():
             if line and not line.isspace():

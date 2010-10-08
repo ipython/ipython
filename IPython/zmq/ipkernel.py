@@ -240,7 +240,7 @@ class Kernel(Configurable):
         reply_content[u'status'] = status
         
         # Return the execution counter so clients can display prompts
-        reply_content['execution_count'] = shell.execution_count
+        reply_content['execution_count'] = shell.execution_count -1
 
         # FIXME - fish exception info out of shell, possibly left there by
         # runlines.  We'll need to clean up this logic later.

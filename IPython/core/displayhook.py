@@ -119,10 +119,6 @@ class DisplayHook(Configurable):
     def prompt_count(self):
         return self.shell.execution_count
 
-    @prompt_count.setter
-    def _set_prompt_count(self, val):
-        raise ValueError('prompt count is read only')
-
     def _set_prompt_str(self,p_str,cache_def,no_cache_def):
         if p_str is None:
             if self.do_full_cache:

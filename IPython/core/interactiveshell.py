@@ -400,7 +400,7 @@ class InteractiveShell(Configurable, Magic):
         self.indent_current_nsp = 0
 
         # Increasing execution counter
-        self.execution_count = 0
+        self.execution_count = 1
 
     def init_environment(self):
         """Any changes we need to make to the user's environment."""
@@ -1558,7 +1558,8 @@ class InteractiveShell(Configurable, Magic):
 
     def _indent_current_str(self):
         """return the current level of indentation as a string"""
-        return self.indent_current_nsp * ' '
+        #return self.indent_current_nsp * ' '
+        return self.input_splitter.indent_spaces * ' '
 
     #-------------------------------------------------------------------------
     # Things related to text completion
@@ -2095,30 +2096,32 @@ class InteractiveShell(Configurable, Magic):
         # original cell may contain non-python syntax).
         ipy_cell = ''.join(blocks)
 
-        # Each cell is a *single* input, regardless of how many lines it has
-        self.execution_count += 1
-
         # Store raw and processed history
         self.history_manager.store_inputs(ipy_cell, cell)
 
         # dbg code!!!
-        def myapp(self, val):  # dbg
-            import traceback as tb
-            stack = ''.join(tb.format_stack())
-            print 'Value:', val
-            print 'Stack:\n', stack
-            list.append(self, val)
+        if 0:
+            def myapp(self, val):  # dbg
+                import traceback as tb
+                stack = ''.join(tb.format_stack())
+                print 'Value:', val
+                print 'Stack:\n', stack
+                list.append(self, val)
 
-        import new
-        self.input_hist.append = new.instancemethod(myapp, self.input_hist,
-                                                    list)
+            import new
+            self.input_hist.append = new.instancemethod(myapp, self.input_hist,
+                                                        list)
         # End dbg
 
         # All user code execution must happen with our context managers active
         with nested(self.builtin_trap, self.display_trap):
+
             # Single-block input should behave like an interactive prompt
             if len(blocks) == 1:
-                return self.run_one_block(blocks[0])
+                # since we return here, we need to update the execution count
+                out = self.run_one_block(blocks[0])
+                self.execution_count += 1
+                return out
 
             # In multi-block input, if the last block is a simple (one-two
             # lines) expression, run it in single mode so it produces output.
@@ -2144,6 +2147,9 @@ class InteractiveShell(Configurable, Magic):
                 # Run the whole cell as one entity, storing both raw and
                 # processed input in history
                 self.runcode(ipy_cell)
+
+        # Each cell is a *single* input, regardless of how many lines it has
+        self.execution_count += 1
 
     def run_one_block(self, block):
         """Run a single interactive block.
@@ -2214,7 +2220,7 @@ class InteractiveShell(Configurable, Magic):
             if more:
                 self.push_line('\n')
 
-    def runsource(self, source, filename='<input>', symbol='single'):
+    def runsource(self, source, filename='<ipython console>', symbol='single'):
         """Compile and run some source in the interpreter.
 
         Arguments are as for compile_command().
@@ -2247,14 +2253,6 @@ class InteractiveShell(Configurable, Magic):
         if type(source)==str:
             source = source.decode(self.stdin_encoding)
         
-        # if the source code has leading blanks, add 'if 1:\n' to it
-        # this allows execution of indented pasted code. It is tempting
-        # to add '\n' at the end of source to run commands like ' a=1'
-        # directly, but this fails for more complicated scenarios
-
-        if source[:1] in [' ', '\t']:
-            source = u'if 1:\n%s' % source
-
         try:
             code = self.compile(source,filename,symbol)
         except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
@@ -2361,8 +2359,6 @@ class InteractiveShell(Configurable, Magic):
         # push).
 
         #print 'push line: <%s>' % line  # dbg
-        for subline in line.splitlines():
-            self._autoindent_update(subline)
         self.buffer.append(line)
         full_source = '\n'.join(self.buffer)
         more = self.runsource(full_source, self.filename)
@@ -2377,6 +2373,7 @@ class InteractiveShell(Configurable, Magic):
         """Reset the input buffer."""
         self.buffer[:] = []
         self.buffer_raw[:] = []
+        self.input_splitter.reset()
 
     def _is_secondary_block_start(self, s):
         if not s.endswith(':'):
@@ -2414,24 +2411,6 @@ class InteractiveShell(Configurable, Magic):
             level = newlevel
 
         return '\n'.join(res) + '\n'
-
-    def _autoindent_update(self,line):
-        """Keep track of the indent level."""
-
-        #debugx('line')
-        #debugx('self.indent_current_nsp')
-        if self.autoindent:
-            if line:
-                inisp = num_ini_spaces(line)
-                if inisp < self.indent_current_nsp:
-                    self.indent_current_nsp = inisp
-
-                if line[-1] == ':':
-                    self.indent_current_nsp += 4
-                elif dedent_re.match(line):
-                    self.indent_current_nsp -= 4
-            else:
-                self.indent_current_nsp = 0
 
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab

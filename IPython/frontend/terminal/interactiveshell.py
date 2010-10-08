@@ -227,11 +227,6 @@ class TerminalInteractiveShell(InteractiveShell):
         # exit_now is set by a call to %Exit or %Quit, through the
         # ask_exit callback.
 
-        # Before showing any prompts, if the counter is at zero, we execute an
-        # empty line to ensure the user only sees prompts starting at one.
-        if self.execution_count == 0:
-            self.execution_count += 1
-        
         while not self.exit_now:
             self.hooks.pre_prompt_hook()
             if more:
@@ -260,11 +255,6 @@ class TerminalInteractiveShell(InteractiveShell):
                 try:
                     self.write('\nKeyboardInterrupt\n')
                     self.resetbuffer()
-                    # keep cache in sync with the prompt counter:
-                    self.displayhook.prompt_count -= 1
-    
-                    if self.autoindent:
-                        self.indent_current_nsp = 0
                     more = False
                 except KeyboardInterrupt:
                     pass
@@ -285,14 +275,14 @@ class TerminalInteractiveShell(InteractiveShell):
                 # asynchronously by signal handlers, for example.
                 self.showtraceback()
             else:
-                #more = self.push_line(line)
                 self.input_splitter.push(line)
                 more = self.input_splitter.push_accepts_more()
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
                 if not more:
-                    pass
+                    source_raw = self.input_splitter.source_raw_reset()[1]
+                    self.run_cell(source_raw)
                 
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
@@ -397,69 +387,6 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.indent_current_nsp = 0
         
         return line
-
-
-    # TODO: The following three methods are an early attempt to refactor
-    # the main code execution logic. We don't use them, but they may be
-    # helpful when we refactor the code execution logic further.
-    # def interact_prompt(self):
-    #     """ Print the prompt (in read-eval-print loop) 
-    # 
-    #     Provided for those who want to implement their own read-eval-print loop (e.g. GUIs), not 
-    #     used in standard IPython flow.
-    #     """
-    #     if self.more:
-    #         try:
-    #             prompt = self.hooks.generate_prompt(True)
-    #         except:
-    #             self.showtraceback()
-    #         if self.autoindent:
-    #             self.rl_do_indent = True
-    # 
-    #     else:
-    #         try:
-    #             prompt = self.hooks.generate_prompt(False)
-    #         except:
-    #             self.showtraceback()
-    #     self.write(prompt)
-    # 
-    # def interact_handle_input(self,line):
-    #     """ Handle the input line (in read-eval-print loop)
-    #     
-    #     Provided for those who want to implement their own read-eval-print loop (e.g. GUIs), not 
-    #     used in standard IPython flow.        
-    #     """
-    #     if line.lstrip() == line:
-    #         self.shadowhist.add(line.strip())
-    #     lineout = self.prefilter_manager.prefilter_lines(line,self.more)
-    # 
-    #     if line.strip():
-    #         if self.more:
-    #             self.input_hist_raw[-1] += '%s\n' % line
-    #         else:
-    #             self.input_hist_raw.append('%s\n' % line)                
-    # 
-    #     
-    #     self.more = self.push_line(lineout)
-    #     if (self.SyntaxTB.last_syntax_error and
-    #         self.autoedit_syntax):
-    #         self.edit_syntax_error()
-    # 
-    # def interact_with_readline(self):
-    #     """ Demo of using interact_handle_input, interact_prompt
-    #     
-    #     This is the main read-eval-print loop. If you need to implement your own (e.g. for GUI),
-    #     it should work like this.
-    #     """ 
-    #     self.readline_startup_hook(self.pre_readline)
-    #     while not self.exit_now:
-    #         self.interact_prompt()
-    #         if self.more:
-    #             self.rl_do_indent = True
-    #         else:
-    #             self.rl_do_indent = False
-    #         line = raw_input_original().decode(self.stdin_encoding)
-    #         self.interact_handle_input(line)
 
     #-------------------------------------------------------------------------
     # Methods to support auto-editing of SyntaxErrors.

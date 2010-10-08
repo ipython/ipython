@@ -180,7 +180,6 @@ class HistoryManager(object):
         if len(self.input_hist) != len (self.input_hist_raw):
             self.input_hist_raw = InputList(self.input_hist)
 
-
     def reset(self):
         """Clear all histories managed by this object."""
         self.input_hist[:] = []
