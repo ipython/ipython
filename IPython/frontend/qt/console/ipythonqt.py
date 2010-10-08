@@ -31,11 +31,12 @@ class MainWindow(QtGui.QMainWindow):
     # 'object' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, frontend):
+    def __init__(self, frontend, existing=False):
         """ Create a MainWindow for the specified FrontendWidget.
         """
         super(MainWindow, self).__init__()
         self._frontend = frontend
+        self._existing = existing
         self._frontend.exit_requested.connect(self.close)
         self.setCentralWidget(frontend)
     
@@ -50,15 +51,19 @@ class MainWindow(QtGui.QMainWindow):
         if kernel_manager and kernel_manager.channels_running:
             title = self.window().windowTitle()
             reply = QtGui.QMessageBox.question(self, title,
-                'Closing console. Leave Kernel alive?', 
+                "Closing console. Shutdown kernel as well?\n"+
+                "'Yes' will close the kernel and all connected consoles.", 
                 QtGui.QMessageBox.Yes, QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)
             if reply == QtGui.QMessageBox.Yes:
-                self.destroy()
-                event.ignore()
-            elif reply == QtGui.QMessageBox.No:
                 kernel_manager.shutdown_kernel()
                 #kernel_manager.stop_channels()
                 event.accept()
+            elif reply == QtGui.QMessageBox.No:
+                if self._existing:
+                    event.accept()
+                else:
+                    self.destroy()
+                    event.ignore()
             else:
                 event.ignore()
 
@@ -136,7 +141,7 @@ def main():
     widget.kernel_manager = kernel_manager
 
     # Create the main window.
-    window = MainWindow(widget)
+    window = MainWindow(widget, args.existing)
     window.setWindowTitle('Python' if args.pure else 'IPython')
     window.show()
 
