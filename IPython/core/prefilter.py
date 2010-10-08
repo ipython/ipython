@@ -373,10 +373,6 @@ class PrefilterManager(Configurable):
         # print "prefilter_line: ", line, continue_prompt
         # All handlers *must* return a value, even if it's blank ('').
 
-        # Lines are NOT logged here. Handlers should process the line as
-        # needed, update the cache AND log it (so that the input cache array
-        # stays synced).
-
         # save the line away in case we crash, so the post-mortem handler can
         # record it
         self.shell._last_input_line = line
@@ -792,7 +788,6 @@ class PrefilterHandler(Configurable):
             ):
             line = ''
 
-        self.shell.log(line, line, continue_prompt)
         return line
 
     def __str__(self):
@@ -811,7 +806,6 @@ class AliasHandler(PrefilterHandler):
         line_out = '%sget_ipython().system(%s)' % (line_info.pre_whitespace,
                                          make_quoted_expr(transformed))
         
-        self.shell.log(line_info.line, line_out, line_info.continue_prompt)
         return line_out
 
 
@@ -840,8 +834,6 @@ class ShellEscapeHandler(PrefilterHandler):
             cmd = line.lstrip().lstrip(ESC_SHELL)
             line_out = '%sget_ipython().system(%s)' % (line_info.pre_whitespace,
                                              make_quoted_expr(cmd))
-        # update cache/log and return
-        self.shell.log(line, line_out, line_info.continue_prompt)
         return line_out
 
 
@@ -856,7 +848,6 @@ class MagicHandler(PrefilterHandler):
         the_rest = line_info.the_rest
         cmd = '%sget_ipython().magic(%s)' % (line_info.pre_whitespace,
                                    make_quoted_expr(ifun + " " + the_rest))
-        self.shell.log(line_info.line, cmd, line_info.continue_prompt)
         return cmd
 
 
@@ -877,7 +868,6 @@ class AutoHandler(PrefilterHandler):
 
         # This should only be active for single-line input!
         if continue_prompt:
-            self.shell.log(line,line,continue_prompt)
             return line
 
         force_auto = isinstance(obj, IPyAutocall)
@@ -918,9 +908,6 @@ class AutoHandler(PrefilterHandler):
         if auto_rewrite:
             self.shell.auto_rewrite_input(newcmd)
             
-        # log what is now valid Python, not the actual user input (without the
-        # final newline)
-        self.shell.log(line,newcmd,continue_prompt)
         return newcmd
 
 
@@ -947,7 +934,6 @@ class HelpHandler(PrefilterHandler):
                 line = line[1:]
             elif line[-1]==ESC_HELP:
                 line = line[:-1]
-            self.shell.log(line, '#?'+line, line_info.continue_prompt)
             if line:
                 #print 'line:<%r>' % line  # dbg
                 self.shell.magic_pinfo(line)

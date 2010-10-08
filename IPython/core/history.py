@@ -36,6 +36,7 @@ class HistoryManager(object):
     def __init__(self, shell):
         """Create a new history manager associated with a shell instance.
         """
+        # We need a pointer back to the shell for various tasks.
         self.shell = shell
         
         # List of input with multi-line handling.
@@ -64,6 +65,13 @@ class HistoryManager(object):
         # Objects related to shadow history management
         self._init_shadow_hist()
     
+        # Variables used to store the three last inputs from the user.  On each
+        # new history update, we populate the user's namespace with these,
+        # shifted as necessary.
+        self._i00, self._i, self._ii, self._iii = '','','',''
+
+        # Object is fully initialized, we can now call methods on it.
+        
         # Fill the history zero entry, user counter starts at 1
         self.store_inputs('\n', '\n')
 
@@ -158,8 +166,9 @@ class HistoryManager(object):
         return hist
 
     def store_inputs(self, source, source_raw=None):
-        """Store source and raw input in history.
-
+        """Store source and raw input in history and create input cache
+        variables _i*.
+        
         Parameters
         ----------
         source : str
@@ -174,6 +183,20 @@ class HistoryManager(object):
         self.input_hist.append(source)
         self.input_hist_raw.append(source_raw)
         self.shadow_hist.add(source)
+
+        # update the auto _i variables
+        self._iii = self._ii
+        self._ii = self._i
+        self._i = self._i00
+        self._i00 = source_raw
+
+        # hackish access to user namespace to create _i1,_i2... dynamically
+        new_i = '_i%s' % self.shell.execution_count
+        to_main = {'_i': self._i,
+                   '_ii': self._ii,
+                   '_iii': self._iii,
+                   new_i : self._i00 }
+        self.shell.user_ns.update(to_main)
 
     def sync_inputs(self):
         """Ensure raw and translated histories have same length."""
@@ -403,7 +426,7 @@ def rep_f(self, arg):
     try:
         lines = self.extract_input_slices(args, True)
         print("lines", lines)
-        self.runlines(lines)
+        self.run_cell(lines)
     except ValueError:
         print("Not found in recent history:", args)
         

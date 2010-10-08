@@ -250,7 +250,7 @@ class DisplayHook(Configurable):
     def log_output(self, result):
         """Log the output."""
         if self.shell.logger.log_output:
-            self.shell.logger.log_write(repr(result),'output')
+            self.shell.logger.log_write(repr(result), 'output')
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""

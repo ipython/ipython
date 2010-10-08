@@ -214,14 +214,8 @@ class Kernel(Configurable):
                 # statements in that code will obviously still execute.
                 shell.runcode(code)
             else:
-                # FIXME: runlines calls the exception handler itself.
+                # FIXME: the shell calls the exception handler itself.
                 shell._reply_content = None
-
-                # For now leave this here until we're sure we can stop using it
-                #shell.runlines(code)
-
-                # Experimental: cell mode!  Test more before turning into
-                # default and removing the hacks around runlines.
                 shell.run_cell(code)
         except:
             status = u'error'

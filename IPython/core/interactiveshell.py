@@ -430,11 +430,12 @@ class InteractiveShell(Configurable, Magic):
         self.dir_stack = []
 
     def init_logger(self):
-        self.logger = Logger(self, logfname='ipython_log.py', logmode='rotate')
-        # local shortcut, this is used a LOT
-        self.log = self.logger.log
+        self.logger = Logger(self.home_dir, logfname='ipython_log.py',
+                             logmode='rotate')
 
     def init_logstart(self):
+        """Initialize logging in case it was requested at the command line.
+        """
         if self.logappend:
             self.magic_logstart(self.logappend + ' append')
         elif self.logfile:
@@ -1839,7 +1840,6 @@ class InteractiveShell(Configurable, Magic):
         # code out there that may rely on this).
         self.prefilter = self.prefilter_manager.prefilter_lines
 
-
     def auto_rewrite_input(self, cmd):
         """Print to the screen the rewritten form of the user's command.
 
@@ -2026,12 +2026,11 @@ class InteractiveShell(Configurable, Magic):
         with prepended_to_syspath(dname):
             try:
                 with open(fname) as thefile:
-                    script = thefile.read()
-                    # self.runlines currently captures all exceptions
-                    # raise in user code.  It would be nice if there were
+                    # self.run_cell currently captures all exceptions
+                    # raised in user code.  It would be nice if there were
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
-                    self.runlines(script, clean=True)
+                    self.run_cell(thefile.read())
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
@@ -2099,6 +2098,7 @@ class InteractiveShell(Configurable, Magic):
         # Store raw and processed history
         self.history_manager.store_inputs(ipy_cell, cell)
 
+        self.logger.log(ipy_cell, cell)
         # dbg code!!!
         if 0:
             def myapp(self, val):  # dbg

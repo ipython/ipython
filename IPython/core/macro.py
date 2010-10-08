@@ -20,9 +20,7 @@ class Macro(IPyAutocall):
     """
 
     def __init__(self,data):
-
-        # store the macro value, as a single string which can be evaluated by
-        # runlines()
+        # store the macro value, as a single string which can be executed
         self.value = ''.join(data).rstrip()+'\n'
         
     def __str__(self):
@@ -34,7 +32,7 @@ class Macro(IPyAutocall):
     def __call__(self,*args):
         IPython.utils.io.Term.cout.flush()
         self._ip.user_ns['_margv'] = args
-        self._ip.runlines(self.value)
+        self._ip.run_cell(self.value)
     
     def __getstate__(self):
         """ needed for safe pickling via %store """
