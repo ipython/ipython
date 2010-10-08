@@ -167,6 +167,8 @@ class Kernel(HasTraits):
         content = dict(parent['content'])
         msg = self.session.send(self.reply_socket, 'shutdown_reply',
                                 content, parent, ident)
+        msg = self.session.send(self.pub_socket, 'shutdown_reply',
+                                content, parent, ident)
         print >> sys.__stdout__, msg
         time.sleep(0.1)
         sys.exit(0)

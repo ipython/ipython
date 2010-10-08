@@ -330,7 +330,7 @@ class Kernel(Configurable):
 
     def shutdown_request(self, ident, parent):
         self.shell.exit_now = True
-        self._shutdown_message = self.session.msg(u'shutdown_reply', {}, parent)
+        self._shutdown_message = self.session.msg(u'shutdown_reply', parent['content'], parent)
         sys.exit(0)
 
     #---------------------------------------------------------------------------
@@ -428,6 +428,7 @@ class Kernel(Configurable):
         # io.rprint("Kernel at_shutdown") # dbg
         if self._shutdown_message is not None:
             self.reply_socket.send_json(self._shutdown_message)
+            self.pub_socket.send_json(self._shutdown_message)
             io.raw_print(self._shutdown_message)
             # A very short sleep to give zmq time to flush its message buffers
             # before Python truly shuts down.
