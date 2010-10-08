@@ -941,6 +941,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         #------ No modifiers ---------------------------------------------------
 
         else:
+            if shift_down:
+                anchormode=QtGui.QTextCursor.KeepAnchor
+            else:
+                anchormode=QtGui.QTextCursor.MoveAnchor
+            
             if key == QtCore.Qt.Key_Escape:
                 self._keyboard_quit()
                 intercepted = True
@@ -969,8 +974,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 line, col = cursor.blockNumber(), cursor.columnNumber()
                 if line > self._get_prompt_cursor().blockNumber() and \
                         col == len(self._continuation_prompt):
-                    self._control.moveCursor(QtGui.QTextCursor.PreviousBlock)
-                    self._control.moveCursor(QtGui.QTextCursor.EndOfBlock)
+                    self._control.moveCursor(QtGui.QTextCursor.PreviousBlock, 
+                                    mode=anchormode)
+                    self._control.moveCursor(QtGui.QTextCursor.EndOfBlock, 
+                                    mode=anchormode)
                     intercepted = True
 
                 # Regular left movement
@@ -979,10 +986,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                     
             elif key == QtCore.Qt.Key_Right:
                 original_block_number = cursor.blockNumber()
-                cursor.movePosition(QtGui.QTextCursor.Right)
+                cursor.movePosition(QtGui.QTextCursor.Right, 
+                                mode=anchormode)
                 if cursor.blockNumber() != original_block_number:
                     cursor.movePosition(QtGui.QTextCursor.Right,
-                                        n=len(self._continuation_prompt))
+                                        n=len(self._continuation_prompt),
+                                        mode=anchormode)
                 self._set_cursor(cursor)
                 intercepted = True
 
