@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Logger class for IPython's logging facilities.
+"""Logger class for IPython's logging facilities.
 """
 
 #*****************************************************************************
@@ -26,13 +24,12 @@ import time
 class Logger(object):
     """A Logfile class with different policies for file creation"""
 
-    def __init__(self,shell,logfname='Logger.log',loghead='',logmode='over'):
-
-        self._i00,self._i,self._ii,self._iii = '','','',''
+    def __init__(self, home_dir, logfname='Logger.log', loghead='',
+                 logmode='over'):
 
         # this is the full ipython instance, we need some attributes from it
         # which won't exist until later. What a mess, clean up later...
-        self.shell = shell
+        self.home_dir = home_dir
 
         self.logfname = logfname
         self.loghead = loghead
@@ -102,7 +99,7 @@ class Logger(object):
             self.logfile = open(self.logfname,'w')
 
         elif logmode == 'global':
-            self.logfname = os.path.join(self.shell.home_dir,self.logfname)
+            self.logfname = os.path.join(self.home_dir,self.logfname)
             self.logfile = open(self.logfname, 'a')
 
         elif logmode == 'over':
@@ -166,66 +163,18 @@ which already exists. But you must first start the logging process with
             print 'Timestamping   :',self.timestamp
             print 'State          :',state
 
-    def log(self,line_ori,line_mod,continuation=None):
-        """Write the line to a log and create input cache variables _i*.
+    def log(self, line_mod, line_ori):
+        """Write the sources to a log.
 
         Inputs:
-
-        - line_ori: unmodified input line from the user.  This is not
-        necessarily valid Python.
 
         - line_mod: possibly modified input, such as the transformations made
         by input prefilters or input handlers of various kinds.  This should
         always be valid Python.
 
-        - continuation: if True, indicates this is part of multi-line input."""
-
-        # update the auto _i tables
-        #print '***logging line',line_mod # dbg
-        #print '***cache_count', self.shell.displayhook.prompt_count # dbg
-        try:
-            input_hist = self.shell.user_ns['_ih']
-        except:
-            #print 'userns:',self.shell.user_ns.keys()  # dbg
-            return
-        
-        out_cache = self.shell.displayhook
-
-        # add blank lines if the input cache fell out of sync.
-        if out_cache.do_full_cache and \
-            out_cache.prompt_count +1 > len(input_hist):
-            pass
-            #input_hist.extend(['\n'] * (out_cache.prompt_count - len(input_hist)))
-            
-        if not continuation and line_mod:
-            self._iii = self._ii
-            self._ii = self._i
-            self._i = self._i00
-            # put back the final \n of every input line
-            self._i00 = line_mod+'\n'
-            #print 'Logging input:<%s>' % line_mod  # dbg
-            #input_hist.append(self._i00)
-        #print '---[%s]' % (len(input_hist)-1,) # dbg
-
-        # hackish access to top-level namespace to create _i1,_i2... dynamically
-        to_main = {'_i':self._i,'_ii':self._ii,'_iii':self._iii}
-        if self.shell.displayhook.do_full_cache:
-            in_num = self.shell.displayhook.prompt_count
-
-            # but if the opposite is true (a macro can produce multiple inputs
-            # with no output display called), then bring the output counter in
-            # sync:
-            ## last_num = len(input_hist)-1
-            ## if in_num != last_num:
-            ##     pass # dbg
-            ##     #in_num = self.shell.execution_count = last_num
-
-            new_i = '_i%s' % in_num
-            if continuation:
-                self._i00 = '%s%s\n' % (self.shell.user_ns[new_i],line_mod)
-                #input_hist[in_num] = self._i00
-            to_main[new_i] = self._i00
-        self.shell.user_ns.update(to_main)
+        - line_ori: unmodified input line from the user.  This is not
+        necessarily valid Python.
+        """
 
         # Write the log line, but decide which one according to the
         # log_raw_input flag, set when the log is started.
@@ -234,7 +183,7 @@ which already exists. But you must first start the logging process with
         else:
             self.log_write(line_mod)
 
-    def log_write(self,data,kind='input'):
+    def log_write(self, data, kind='input'):
         """Write data to the log file, if active"""
 
         #print 'data: %r' % data # dbg
@@ -244,10 +193,10 @@ which already exists. But you must first start the logging process with
                 if self.timestamp:
                     write(time.strftime('# %a, %d %b %Y %H:%M:%S\n',
                                         time.localtime()))
-                write('%s\n' % data)
+                write(data)
             elif kind=='output' and self.log_output:
                 odata = '\n'.join(['#[Out]# %s' % s
-                                   for s in data.split('\n')])
+                                   for s in data.splitlines()])
                 write('%s\n' % odata)
             self.logfile.flush()
 
