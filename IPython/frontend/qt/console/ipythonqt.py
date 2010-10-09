@@ -53,8 +53,8 @@ class MainWindow(QtGui.QMainWindow):
             title = self.window().windowTitle()
             reply = QtGui.QMessageBox.question(self, title,
                 "Close just this console, or shutdown the kernel and close "+
-                "all windows attached to it?", "Cancel",
-                'Close Console', 'Close All')
+                "all windows attached to it?", 
+                'Cancel', 'Close Console', 'Close All')
             print reply
             if reply == 2:
                 kernel_manager.shutdown_kernel()
