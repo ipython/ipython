@@ -33,6 +33,31 @@ from IPython.utils.warn import warn
 class HistoryManager(object):
     """A class to organize all history-related functionality in one place.
     """
+    # Public interface
+
+    # An instance of the IPython shell we are attached to
+    shell = None
+    # An InputList instance to hold processed history
+    input_hist = None
+    # An InputList instance to hold raw history (as typed by user)
+    input_hist_raw = None
+    # A list of directories visited during session
+    dir_hist = None
+    # A dict of output history, keyed with ints from the shell's execution count
+    output_hist = None
+    # String with path to the history file
+    hist_file = None
+    # PickleShareDB instance holding the raw data for the shadow history
+    shadow_db = None
+    # ShadowHist instance with the actual shadow history
+    shadow_hist = None
+    
+    # Private interface
+    # Variables used to store the three last inputs from the user.  On each new
+    # history update, we populate the user's namespace with these, shifted as
+    # necessary.
+    _i00, _i, _ii, _iii = '','','',''
+    
     def __init__(self, shell):
         """Create a new history manager associated with a shell instance.
         """
@@ -65,9 +90,6 @@ class HistoryManager(object):
         # Objects related to shadow history management
         self._init_shadow_hist()
     
-        # Variables used to store the three last inputs from the user.  On each
-        # new history update, we populate the user's namespace with these,
-        # shifted as necessary.
         self._i00, self._i, self._ii, self._iii = '','','',''
 
         # Object is fully initialized, we can now call methods on it.
