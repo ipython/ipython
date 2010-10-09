@@ -862,10 +862,9 @@ class EscapedTransformer(object):
 
         # From here on, simply choose which level of detail to get, and
         # special-case the psearch syntax
+        pinfo = 'pinfo' # default
         if '*' in line_info.line:
             pinfo = 'psearch'
-        elif line_info.esc == '?':
-            pinfo = 'pinfo'
         elif line_info.esc == '??':
             pinfo = 'pinfo2'
 
