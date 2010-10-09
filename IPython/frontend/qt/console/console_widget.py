@@ -498,9 +498,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             text = unicode(QtGui.QApplication.clipboard().text(mode)).rstrip()
             self._insert_plain_text_into_buffer(cursor, dedent(text))
 
-    def print_(self, printer):
+    def print_(self, printer = None):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
         """
+        if(printer is None):
+            printer = QtGui.QPrinter()
+            if(QtGui.QPrintDialog(printer).exec_() != QtGui.QDialog.Accepted):
+                return
         self._control.print_(printer)
 
     def prompt_to_top(self):
@@ -736,6 +740,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         menu.addSeparator()
         menu.addAction('Select All', self.select_all)
+
+        menu.addSeparator()
+        print_action = menu.addAction('Print', self.print_)
+        print_action.setEnabled(True)
         
         return menu
 
