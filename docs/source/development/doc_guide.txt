@@ -4,6 +4,14 @@
  Documenting IPython
 =====================
 
+When contributing code to IPython, you should strive for clarity and
+consistency, without falling prey to a style straitjacket.  Basically,
+'document everything, try to be consistent, do what makes sense.'
+
+By and large we follow existing Python practices in major projects like Python
+itself or NumPy, this document provides some additional detail for IPython.
+
+
 Standalone documentation
 ========================
 
@@ -83,9 +91,35 @@ The NumPy documentation guidelines [NumPyDocGuide]_ contain detailed
 information on this standard, and for a quick overview, the NumPy example
 docstring [NumPyExampleDocstring]_ is a useful read.
 
-In the past IPython used epydoc so currently many docstrings still use epydoc
-conventions.  We will update them as we go, but all new code should be
-documented using the NumPy standard.
+
+For user-facing APIs, we try to be fairly strict about following the above
+standards (even though they mean more verbose and detailed docstrings).
+Wherever you can reasonably expect people to do introspection with::
+
+  In [1]: some_function?
+
+the docstring should follow the NumPy style and be fairly detailed.
+
+For purely internal methods that are only likely to be read by others extending
+IPython itself we are a bit more relaxed, especially for small/short methods
+and functions whose intent is reasonably obvious.  We still expect docstrings
+to be written, but they can be simpler.  For very short functions with a
+single-line docstring you can use something like::
+
+    def add(a, b):
+       """The sum of two numbers.
+       """
+       code
+
+and for longer multiline strings::
+
+    def add(a, b):
+       """The sum of two numbers.
+
+       Here is the rest of the docs.
+       """
+       code
+
 
 Here are two additional PEPs of interest regarding documentation of code.
 While both of these were rejected, the ideas therein form much of the basis of
@@ -94,6 +128,11 @@ docutils (the machinery to process reStructuredText):
 * `Docstring Processing System Framework <http://www.python.org/peps/pep-0256.html>`_
 * `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
 
+.. note::
+
+   In the past IPython used epydoc so currently many docstrings still use
+   epydoc conventions.  We will update them as we go, but all new code should
+   be documented using the NumPy standard.
 
 .. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html
 .. [Sphinx] Sphinx. http://sphinx.pocoo.org/
