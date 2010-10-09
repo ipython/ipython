@@ -48,20 +48,24 @@ class MainWindow(QtGui.QMainWindow):
         """ Reimplemented to prompt the user and close the kernel cleanly.
         """
         kernel_manager = self._frontend.kernel_manager
+        # closeall = 
         if kernel_manager and kernel_manager.channels_running:
             title = self.window().windowTitle()
             reply = QtGui.QMessageBox.question(self, title,
-                "Closing console. Shutdown kernel as well?\n"+
-                "'Yes' will close the kernel and all connected consoles.", 
-                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)
-            if reply == QtGui.QMessageBox.Yes:
+                "Close just this console, or shutdown the kernel and close "+
+                "all windows attached to it?", "Cancel",
+                'Close Console', 'Close All')
+            print reply
+            if reply == 2:
                 kernel_manager.shutdown_kernel()
                 #kernel_manager.stop_channels()
                 event.accept()
-            elif reply == QtGui.QMessageBox.No:
+            elif reply == 1:
                 if self._existing:
+                    # I don't have the Kernel, I can shutdown
                     event.accept()
                 else:
+                    # only destroy the Window, save the Kernel
                     self.destroy()
                     event.ignore()
             else:
