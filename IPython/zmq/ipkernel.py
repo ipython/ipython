@@ -209,10 +209,10 @@ class Kernel(Configurable):
         reply_content = {}
         try:
             if silent:
-                # runcode uses 'exec' mode, so no displayhook will fire, and it
+                # run_code uses 'exec' mode, so no displayhook will fire, and it
                 # doesn't call logging or history manipulations.  Print
                 # statements in that code will obviously still execute.
-                shell.runcode(code)
+                shell.run_code(code)
             else:
                 # FIXME: the shell calls the exception handler itself.
                 shell._reply_content = None

@@ -1551,7 +1551,7 @@ Currently the magic system has the following functions:\n"""
         
         stats = None
         try:
-            self.shell.savehist()
+            self.shell.save_hist()
 
             if opts.has_key('p'):
                 stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
@@ -1670,7 +1670,7 @@ Currently the magic system has the following functions:\n"""
                 # contained therein.
                 del sys.modules[main_mod_name]
 
-            self.shell.reloadhist()
+            self.shell.reload_hist()
                 
         return stats
 

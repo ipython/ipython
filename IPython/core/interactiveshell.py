@@ -1211,13 +1211,19 @@ class InteractiveShell(Configurable, Magic):
     def init_history(self):
         self.history_manager = HistoryManager(shell=self)
 
-    def savehist(self):
+    def save_hist(self):
         """Save input history to a file (via readline library)."""
         self.history_manager.save_hist()
+
+    # For backwards compatibility
+    savehist = save_hist
         
-    def reloadhist(self):
+    def reload_hist(self):
         """Reload the input history from disk file."""
         self.history_manager.reload_hist()
+
+    # For backwards compatibility
+    reloadhist = reload_hist
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
@@ -1231,7 +1237,7 @@ class InteractiveShell(Configurable, Magic):
             return func
 
         def wrapper():
-            self.savehist()
+            self.save_hist()
             try:
                 func()
             finally:
@@ -1269,7 +1275,7 @@ class InteractiveShell(Configurable, Magic):
 
         Set a custom exception handler, which will be called if any of the
         exceptions in exc_tuple occur in the mainloop (specifically, in the
-        runcode() method.
+        run_code() method.
 
         Inputs:
 
@@ -1464,8 +1470,8 @@ class InteractiveShell(Configurable, Magic):
             self.has_readline = False
             self.readline = None
             # Set a number of methods that depend on readline to be no-op
-            self.savehist = no_op
-            self.reloadhist = no_op
+            self.save_hist = no_op
+            self.reload_hist = no_op
             self.set_readline_completer = no_op
             self.set_custom_completer = no_op
             self.set_completer_frame = no_op
@@ -1527,7 +1533,7 @@ class InteractiveShell(Configurable, Magic):
 
             # If we have readline, we want our history saved upon ipython
             # exiting. 
-            atexit.register(self.savehist)
+            atexit.register(self.save_hist)
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
@@ -2075,8 +2081,8 @@ class InteractiveShell(Configurable, Magic):
         # the main object).
         # - do any logging of input
         # - update histories (raw/translated)
-        # - then, call plain runsource (for single blocks, so displayhook is
-        # triggered) or runcode (for multiline blocks in exec mode).
+        # - then, call plain run_source (for single blocks, so displayhook is
+        # triggered) or run_code (for multiline blocks in exec mode).
         #
         # Once this is done, we'll be able to stop using runlines and we'll
         # also have a much cleaner separation of logging, input history and
@@ -2125,13 +2131,13 @@ class InteractiveShell(Configurable, Magic):
 
             # In multi-block input, if the last block is a simple (one-two
             # lines) expression, run it in single mode so it produces output.
-            # Otherwise just feed the whole thing to runcode.  This seems like
+            # Otherwise just feed the whole thing to run_code.  This seems like
             # a reasonable usability design.
             last = blocks[-1]
             last_nlines = len(last.splitlines())
 
-            # Note: below, whenever we call runcode, we must sync history
-            # ourselves, because runcode is NOT meant to manage history at all.
+            # Note: below, whenever we call run_code, we must sync history
+            # ourselves, because run_code is NOT meant to manage history at all.
             if last_nlines < 2:
                 # Here we consider the cell split between 'body' and 'last',
                 # store all history and execute 'body', and if successful, then
@@ -2139,14 +2145,14 @@ class InteractiveShell(Configurable, Magic):
 
                 # Get the main body to run as a cell
                 ipy_body = ''.join(blocks[:-1])
-                retcode = self.runcode(ipy_body, post_execute=False)
+                retcode = self.run_code(ipy_body, post_execute=False)
                 if retcode==0:
                     # And the last expression via runlines so it produces output
                     self.run_one_block(last)
             else:
                 # Run the whole cell as one entity, storing both raw and
                 # processed input in history
-                self.runcode(ipy_cell)
+                self.run_code(ipy_cell)
 
         # Each cell is a *single* input, regardless of how many lines it has
         self.execution_count += 1
@@ -2160,7 +2166,7 @@ class InteractiveShell(Configurable, Magic):
         if len(block.splitlines()) <= 1:
             out = self.run_single_line(block)
         else:
-            out = self.runcode(block)
+            out = self.run_code(block)
         return out
 
     def run_single_line(self, line):
@@ -2173,7 +2179,7 @@ class InteractiveShell(Configurable, Magic):
         It does not update history.
         """
         tline = self.prefilter_manager.prefilter_line(line)
-        return self.runsource(tline)
+        return self.run_source(tline)
 
     def runlines(self, lines, clean=False):
         """Run a string of one or more lines of source.
@@ -2192,7 +2198,7 @@ class InteractiveShell(Configurable, Magic):
 
         # We must start with a clean buffer, in case this is run from an
         # interactive IPython session (via a magic, for example).
-        self.resetbuffer()
+        self.reset_buffer()
         lines = lines.splitlines()
 
         # Since we will prefilter all lines, store the user's raw input too
@@ -2209,7 +2215,7 @@ class InteractiveShell(Configurable, Magic):
             
                 if line or more:
                     more = self.push_line(prefilter_lines(line, more))
-                    # IPython's runsource returns None if there was an error
+                    # IPython's run_source returns None if there was an error
                     # compiling the code.  This allows us to stop processing
                     # right away, so the user gets the error message at the
                     # right place.
@@ -2220,7 +2226,7 @@ class InteractiveShell(Configurable, Magic):
             if more:
                 self.push_line('\n')
 
-    def runsource(self, source, filename='<ipython console>', symbol='single'):
+    def run_source(self, source, filename='<ipython console>', symbol='single'):
         """Compile and run some source in the interpreter.
 
         Arguments are as for compile_command().
@@ -2235,7 +2241,7 @@ class InteractiveShell(Configurable, Magic):
         compile_command() returned None.  Nothing happens.
 
         3) The input is complete; compile_command() returned a code
-        object.  The code is executed by calling self.runcode() (which
+        object.  The code is executed by calling self.run_code() (which
         also handles run-time exceptions, except for SystemExit).
 
         The return value is:
@@ -2271,12 +2277,15 @@ class InteractiveShell(Configurable, Magic):
         # buffer attribute as '\n'.join(self.buffer).
         self.code_to_run = code
         # now actually execute the code object
-        if self.runcode(code) == 0:
+        if self.run_code(code) == 0:
             return False
         else:
             return None
 
-    def runcode(self, code_obj, post_execute=True):
+    # For backwards compatibility
+    runsource = run_source
+    
+    def run_code(self, code_obj, post_execute=True):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2299,14 +2308,14 @@ class InteractiveShell(Configurable, Magic):
         outflag = 1  # happens in more places, so it's easier as default
         try:
             try:
-                self.hooks.pre_runcode_hook()
+                self.hooks.pre_run_code_hook()
                 #rprint('Running code') # dbg
                 exec code_obj in self.user_global_ns, self.user_ns
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
         except SystemExit:
-            self.resetbuffer()
+            self.reset_buffer()
             self.showtraceback(exception_only=True)
             warn("To exit: use any of 'exit', 'quit', %Exit or Ctrl-D.", level=1)
         except self.custom_exceptions:
@@ -2339,18 +2348,21 @@ class InteractiveShell(Configurable, Magic):
         self.code_to_run = None
         return outflag
         
+    # For backwards compatibility
+    runcode = run_code
+    
     def push_line(self, line):
         """Push a line to the interpreter.
 
         The line should not have a trailing newline; it may have
         internal newlines.  The line is appended to a buffer and the
-        interpreter's runsource() method is called with the
+        interpreter's run_source() method is called with the
         concatenated contents of the buffer as source.  If this
         indicates that the command was executed or invalid, the buffer
         is reset; otherwise, the command is incomplete, and the buffer
         is left as it was after the line was appended.  The return
         value is 1 if more input is required, 0 if the line was dealt
-        with in some way (this is the same as runsource()).
+        with in some way (this is the same as run_source()).
         """
 
         # autoindent management should be done here, and not in the
@@ -2361,19 +2373,22 @@ class InteractiveShell(Configurable, Magic):
         #print 'push line: <%s>' % line  # dbg
         self.buffer.append(line)
         full_source = '\n'.join(self.buffer)
-        more = self.runsource(full_source, self.filename)
+        more = self.run_source(full_source, self.filename)
         if not more:
             self.history_manager.store_inputs('\n'.join(self.buffer_raw),
                                               full_source)
-            self.resetbuffer()
+            self.reset_buffer()
             self.execution_count += 1
         return more
 
-    def resetbuffer(self):
+    def reset_buffer(self):
         """Reset the input buffer."""
         self.buffer[:] = []
         self.buffer_raw[:] = []
         self.input_splitter.reset()
+
+    # For backwards compatibility
+    resetbuffer = reset_buffer
 
     def _is_secondary_block_start(self, s):
         if not s.endswith(':'):
