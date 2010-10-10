@@ -50,7 +50,6 @@ class MainWindow(QtGui.QMainWindow):
         """ Reimplemented to prompt the user and close the kernel cleanly.
         """
         kernel_manager = self._frontend.kernel_manager
-        # closeall = 
         if kernel_manager and kernel_manager.channels_running:
             title = self.window().windowTitle()
             reply = QtGui.QMessageBox.question(self, title,
