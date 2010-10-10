@@ -22,12 +22,13 @@ import __future__
 import abc
 import atexit
 import codeop
+import exceptions
+import new
 import os
 import re
 import string
 import sys
 import tempfile
-import types
 from contextlib import nested
 
 from IPython.config.configurable import Configurable
@@ -44,6 +45,7 @@ from IPython.core.displayhook import DisplayHook
 from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
+from IPython.core.history import HistoryManager
 from IPython.core.inputlist import InputList
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
@@ -101,7 +103,7 @@ def softspace(file, newvalue):
 
 def no_op(*a, **kw): pass
 
-class SpaceInInput(Exception): pass
+class SpaceInInput(exceptions.Exception): pass
 
 class Bunch: pass
 
@@ -215,6 +217,7 @@ class InteractiveShell(Configurable, Magic):
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
     plugin_manager = Instance('IPython.core.plugin.PluginManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
+    history_manager = Instance('IPython.core.history.HistoryManager')
 
     # Private interface
     _post_execute = set()
@@ -260,7 +263,6 @@ class InteractiveShell(Configurable, Magic):
         self.init_builtins()
 
         # pre_config_initialization
-        self.init_shadow_hist()
 
         # The next section should contain everything that was in ipmaker.
         self.init_logstart()
@@ -367,8 +369,9 @@ class InteractiveShell(Configurable, Magic):
         # command compiler
         self.compile = codeop.CommandCompiler()
 
-        # User input buffer
+        # User input buffers
         self.buffer = []
+        self.buffer_raw = []
 
         # Make an empty namespace, which extension writers can rely on both
         # existing and NEVER being used by ipython itself.  This gives them a
@@ -395,6 +398,9 @@ class InteractiveShell(Configurable, Magic):
 
         # Indentation management
         self.indent_current_nsp = 0
+
+        # Increasing execution counter
+        self.execution_count = 1
 
     def init_environment(self):
         """Any changes we need to make to the user's environment."""
@@ -424,11 +430,12 @@ class InteractiveShell(Configurable, Magic):
         self.dir_stack = []
 
     def init_logger(self):
-        self.logger = Logger(self, logfname='ipython_log.py', logmode='rotate')
-        # local shortcut, this is used a LOT
-        self.log = self.logger.log
+        self.logger = Logger(self.home_dir, logfname='ipython_log.py',
+                             logmode='rotate')
 
     def init_logstart(self):
+        """Initialize logging in case it was requested at the command line.
+        """
         if self.logappend:
             self.magic_logstart(self.logappend + ' append')
         elif self.logfile:
@@ -511,7 +518,7 @@ class InteractiveShell(Configurable, Magic):
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
         try:
-            for k, v in self._orig_sys_module_state.iteritems():
+            for k, v in self._orig_sys_module_state.items():
                 setattr(sys, k, v)
         except AttributeError:
             pass
@@ -549,7 +556,7 @@ class InteractiveShell(Configurable, Magic):
         # accepts it.  Probably at least check that the hook takes the number
         # of args it's supposed to.
         
-        f = types.MethodType(hook, self)
+        f = new.instancemethod(hook,self,self.__class__)
 
         # check if the hook is for strdispatcher first
         if str_key is not None:
@@ -809,11 +816,8 @@ class InteractiveShell(Configurable, Magic):
 
         # Similarly, track all namespaces where references can be held and that
         # we can safely clear (so it can NOT include builtin).  This one can be
-        # a simple list.  Note that the main execution namespaces, user_ns and
-        # user_global_ns, can NOT be listed here, as clearing them blindly
-        # causes errors in object __del__ methods.  Instead, the reset() method
-        # clears them manually and carefully.
-        self.ns_refs_table = [ self.user_ns_hidden,
+        # a simple list.
+        self.ns_refs_table = [ user_ns, user_global_ns, self.user_ns_hidden,
                                self.internal_ns, self._main_ns_cache ]
 
     def make_user_namespaces(self, user_ns=None, user_global_ns=None):
@@ -963,38 +967,25 @@ class InteractiveShell(Configurable, Magic):
         # Finally, update the real user's namespace
         self.user_ns.update(ns)
 
-
     def reset(self):
         """Clear all internal namespaces.
 
         Note that this is much more aggressive than %reset, since it clears
         fully all namespaces, as well as all input/output lists.
         """
-        self.alias_manager.clear_aliases()
+        # Clear histories
+        self.history_manager.reset()
 
-        # Clear input and output histories
-        self.input_hist[:] = []
-        self.input_hist_raw[:] = []
-        self.output_hist.clear()
-
-        # Clear namespaces holding user references
+        # Reset counter used to index all histories
+        self.execution_count = 0
+        
+        # Restore the user namespaces to minimal usability
         for ns in self.ns_refs_table:
             ns.clear()
-            
-        # The main execution namespaces must be cleared very carefully,
-        # skipping the deletion of the builtin-related keys, because doing so
-        # would cause errors in many object's __del__ methods.
-        for ns in [self.user_ns, self.user_global_ns]:
-            drop_keys = set(ns.keys())
-            drop_keys.discard('__builtin__')
-            drop_keys.discard('__builtins__')
-            for k in drop_keys:
-                del ns[k]
-
-        # Restore the user namespaces to minimal usability
         self.init_user_ns()
-        
+
         # Restore the default and user aliases
+        self.alias_manager.clear_aliases()
         self.alias_manager.init_aliases()
 
     def reset_selective(self, regex=None):
@@ -1218,61 +1209,21 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_history(self):
-        # List of input with multi-line handling.
-        self.input_hist = InputList()
-        # This one will hold the 'raw' input history, without any
-        # pre-processing.  This will allow users to retrieve the input just as
-        # it was exactly typed in by the user, with %hist -r.
-        self.input_hist_raw = InputList()
+        self.history_manager = HistoryManager(shell=self)
 
-        # list of visited directories
-        try:
-            self.dir_hist = [os.getcwd()]
-        except OSError:
-            self.dir_hist = []
-
-        # dict of output history
-        self.output_hist = {}
-
-        # Now the history file
-        if self.profile:
-            histfname = 'history-%s' % self.profile
-        else:
-            histfname = 'history'
-        self.histfile = os.path.join(self.ipython_dir, histfname)
-
-        # Fill the history zero entry, user counter starts at 1
-        self.input_hist.append('\n')
-        self.input_hist_raw.append('\n')
-
-    def init_shadow_hist(self):
-        try:
-            self.db = pickleshare.PickleShareDB(self.ipython_dir + "/db")
-        except UnicodeDecodeError:
-            print "Your ipython_dir can't be decoded to unicode!"
-            print "Please set HOME environment variable to something that"
-            print r"only has ASCII characters, e.g. c:\home"
-            print "Now it is", self.ipython_dir
-            sys.exit()
-        self.shadowhist = ipcorehist.ShadowHist(self.db)
-
-    def savehist(self):
+    def save_hist(self):
         """Save input history to a file (via readline library)."""
+        self.history_manager.save_hist()
 
-        try:
-            self.readline.write_history_file(self.histfile)
-        except:
-            print 'Unable to save IPython command history to file: ' + \
-                  `self.histfile`
-
-    def reloadhist(self):
+    # For backwards compatibility
+    savehist = save_hist
+        
+    def reload_hist(self):
         """Reload the input history from disk file."""
+        self.history_manager.reload_hist()
 
-        try:
-            self.readline.clear_history()
-            self.readline.read_history_file(self.shell.histfile)
-        except AttributeError:
-            pass
+    # For backwards compatibility
+    reloadhist = reload_hist
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
@@ -1286,61 +1237,12 @@ class InteractiveShell(Configurable, Magic):
             return func
 
         def wrapper():
-            self.savehist()
+            self.save_hist()
             try:
                 func()
             finally:
                 readline.read_history_file(self.histfile)
         return wrapper
-
-    def get_history(self, index=None, raw=False, output=True):
-        """Get the history list.
-
-        Get the input and output history.
-
-        Parameters
-        ----------
-        index : n or (n1, n2) or None
-            If n, then the last entries. If a tuple, then all in
-            range(n1, n2). If None, then all entries. Raises IndexError if
-            the format of index is incorrect.
-        raw : bool
-            If True, return the raw input.
-        output : bool
-            If True, then return the output as well.
-
-        Returns
-        -------
-        If output is True, then return a dict of tuples, keyed by the prompt
-        numbers and with values of (input, output). If output is False, then
-        a dict, keyed by the prompt number with the values of input. Raises
-        IndexError if no history is found.
-        """
-        if raw:
-            input_hist = self.input_hist_raw
-        else:
-            input_hist = self.input_hist
-        if output:
-            output_hist = self.user_ns['Out']
-        n = len(input_hist)
-        if index is None:
-            start=0; stop=n
-        elif isinstance(index, int):
-            start=n-index; stop=n
-        elif isinstance(index, tuple) and len(index) == 2:
-            start=index[0]; stop=index[1]
-        else:
-            raise IndexError('Not a valid index for the input history: %r'
-                             % index)
-        hist = {}
-        for i in range(start, stop):
-            if output:
-                hist[i] = (input_hist[i], output_hist.get(i))
-            else:
-                hist[i] = input_hist[i]
-        if len(hist)==0:
-            raise IndexError('No history for range of indices: %r' % index)
-        return hist
 
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
@@ -1373,7 +1275,7 @@ class InteractiveShell(Configurable, Magic):
 
         Set a custom exception handler, which will be called if any of the
         exceptions in exc_tuple occur in the mainloop (specifically, in the
-        runcode() method.
+        run_code() method.
 
         Inputs:
 
@@ -1413,7 +1315,7 @@ class InteractiveShell(Configurable, Magic):
 
         if handler is None: handler = dummy_handler
 
-        self.CustomTB = types.MethodType(handler, self)
+        self.CustomTB = new.instancemethod(handler,self,self.__class__)
         self.custom_exceptions = exc_tuple
 
     def excepthook(self, etype, value, tb):
@@ -1568,8 +1470,8 @@ class InteractiveShell(Configurable, Magic):
             self.has_readline = False
             self.readline = None
             # Set a number of methods that depend on readline to be no-op
-            self.savehist = no_op
-            self.reloadhist = no_op
+            self.save_hist = no_op
+            self.reload_hist = no_op
             self.set_readline_completer = no_op
             self.set_custom_completer = no_op
             self.set_completer_frame = no_op
@@ -1631,7 +1533,7 @@ class InteractiveShell(Configurable, Magic):
 
             # If we have readline, we want our history saved upon ipython
             # exiting. 
-            atexit.register(self.savehist)
+            atexit.register(self.save_hist)
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
@@ -1663,7 +1565,8 @@ class InteractiveShell(Configurable, Magic):
 
     def _indent_current_str(self):
         """return the current level of indentation as a string"""
-        return self.indent_current_nsp * ' '
+        #return self.indent_current_nsp * ' '
+        return self.input_splitter.indent_spaces * ' '
 
     #-------------------------------------------------------------------------
     # Things related to text completion
@@ -1755,7 +1658,8 @@ class InteractiveShell(Configurable, Magic):
         The position argument (defaults to 0) is the index in the completers
         list where you want the completer to be inserted."""
 
-        newcomp = types.MethodType(completer, self.Completer)
+        newcomp = new.instancemethod(completer,self.Completer,
+                                     self.Completer.__class__)
         self.Completer.matchers.insert(pos,newcomp)
 
     def set_readline_completer(self):
@@ -1826,11 +1730,12 @@ class InteractiveShell(Configurable, Magic):
             print 'Magic function. Passed parameter is between < >:'
             print '<%s>' % parameter_s
             print 'The self object is:',self
-    newcomp = types.MethodType(completer, self.Completer)
+    
         self.define_magic('foo',foo_impl)
         """
         
-        im = types.MethodType(func, self)
+        import new
+        im = new.instancemethod(func,self, self.__class__)
         old = getattr(self, "magic_" + magicname, None)
         setattr(self, "magic_" + magicname, im)
         return old
@@ -1940,7 +1845,6 @@ class InteractiveShell(Configurable, Magic):
         # for now, we should expose the main prefilter method (there's legacy
         # code out there that may rely on this).
         self.prefilter = self.prefilter_manager.prefilter_lines
-
 
     def auto_rewrite_input(self, cmd):
         """Print to the screen the rewritten form of the user's command.
@@ -2128,12 +2032,11 @@ class InteractiveShell(Configurable, Magic):
         with prepended_to_syspath(dname):
             try:
                 with open(fname) as thefile:
-                    script = thefile.read()
-                    # self.runlines currently captures all exceptions
-                    # raise in user code.  It would be nice if there were
+                    # self.run_cell currently captures all exceptions
+                    # raised in user code.  It would be nice if there were
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
-                    self.runlines(script, clean=True)
+                    self.run_cell(thefile.read())
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
@@ -2178,8 +2081,8 @@ class InteractiveShell(Configurable, Magic):
         # the main object).
         # - do any logging of input
         # - update histories (raw/translated)
-        # - then, call plain runsource (for single blocks, so displayhook is
-        # triggered) or runcode (for multiline blocks in exec mode).
+        # - then, call plain run_source (for single blocks, so displayhook is
+        # triggered) or run_code (for multiline blocks in exec mode).
         #
         # Once this is done, we'll be able to stop using runlines and we'll
         # also have a much cleaner separation of logging, input history and
@@ -2192,34 +2095,91 @@ class InteractiveShell(Configurable, Magic):
         
         if not blocks:
             return
-        
-        # Single-block input should behave like an interactive prompt
-        if len(blocks) == 1:
-            self.runlines(blocks[0])
-            return
 
-        # In multi-block input, if the last block is a simple (one-two lines)
-        # expression, run it in single mode so it produces output.  Otherwise
-        # just feed the whole thing to runcode.
-        # This seems like a reasonable usability design.
-        last = blocks[-1]
-        
-        # Note: below, whenever we call runcode, we must sync history
-        # ourselves, because runcode is NOT meant to manage history at all.
-        if len(last.splitlines()) < 2:
-            # Get the main body to run as a cell
-            body = ''.join(blocks[:-1])
-            self.input_hist.append(body)
-            self.input_hist_raw.append(body)
-            retcode = self.runcode(body, post_execute=False)
-            if retcode==0:
-                # And the last expression via runlines so it produces output
-                self.runlines(last)
+        # Store the 'ipython' version of the cell as well, since that's what
+        # needs to go into the translated history and get executed (the
+        # original cell may contain non-python syntax).
+        ipy_cell = ''.join(blocks)
+
+        # Store raw and processed history
+        self.history_manager.store_inputs(ipy_cell, cell)
+
+        self.logger.log(ipy_cell, cell)
+        # dbg code!!!
+        if 0:
+            def myapp(self, val):  # dbg
+                import traceback as tb
+                stack = ''.join(tb.format_stack())
+                print 'Value:', val
+                print 'Stack:\n', stack
+                list.append(self, val)
+
+            import new
+            self.input_hist.append = new.instancemethod(myapp, self.input_hist,
+                                                        list)
+        # End dbg
+
+        # All user code execution must happen with our context managers active
+        with nested(self.builtin_trap, self.display_trap):
+
+            # Single-block input should behave like an interactive prompt
+            if len(blocks) == 1:
+                # since we return here, we need to update the execution count
+                out = self.run_one_block(blocks[0])
+                self.execution_count += 1
+                return out
+
+            # In multi-block input, if the last block is a simple (one-two
+            # lines) expression, run it in single mode so it produces output.
+            # Otherwise just feed the whole thing to run_code.  This seems like
+            # a reasonable usability design.
+            last = blocks[-1]
+            last_nlines = len(last.splitlines())
+
+            # Note: below, whenever we call run_code, we must sync history
+            # ourselves, because run_code is NOT meant to manage history at all.
+            if last_nlines < 2:
+                # Here we consider the cell split between 'body' and 'last',
+                # store all history and execute 'body', and if successful, then
+                # proceed to execute 'last'.
+
+                # Get the main body to run as a cell
+                ipy_body = ''.join(blocks[:-1])
+                retcode = self.run_code(ipy_body, post_execute=False)
+                if retcode==0:
+                    # And the last expression via runlines so it produces output
+                    self.run_one_block(last)
+            else:
+                # Run the whole cell as one entity, storing both raw and
+                # processed input in history
+                self.run_code(ipy_cell)
+
+        # Each cell is a *single* input, regardless of how many lines it has
+        self.execution_count += 1
+
+    def run_one_block(self, block):
+        """Run a single interactive block.
+
+        If the block is single-line, dynamic transformations are applied to it
+        (like automagics, autocall and alias recognition).
+        """
+        if len(block.splitlines()) <= 1:
+            out = self.run_single_line(block)
         else:
-            # Run the whole cell as one entity
-            self.input_hist.append(cell)
-            self.input_hist_raw.append(cell)
-            self.runcode(cell)
+            out = self.run_code(block)
+        return out
+
+    def run_single_line(self, line):
+        """Run a single-line interactive statement.
+
+        This assumes the input has been transformed to IPython syntax by
+        applying all static transformations (those with an explicit prefix like
+        % or !), but it will further try to apply the dynamic ones.
+
+        It does not update history.
+        """
+        tline = self.prefilter_manager.prefilter_line(line)
+        return self.run_source(tline)
 
     def runlines(self, lines, clean=False):
         """Run a string of one or more lines of source.
@@ -2238,9 +2198,15 @@ class InteractiveShell(Configurable, Magic):
 
         # We must start with a clean buffer, in case this is run from an
         # interactive IPython session (via a magic, for example).
-        self.resetbuffer()
+        self.reset_buffer()
         lines = lines.splitlines()
-        more = 0
+
+        # Since we will prefilter all lines, store the user's raw input too
+        # before we apply any transformations
+        self.buffer_raw[:] = [ l+'\n' for l in lines]
+        
+        more = False
+        prefilter_lines = self.prefilter_manager.prefilter_lines
         with nested(self.builtin_trap, self.display_trap):
             for line in lines:
                 # skip blank lines so we don't mess up the prompt counter, but
@@ -2248,25 +2214,19 @@ class InteractiveShell(Configurable, Magic):
                 # is true)
             
                 if line or more:
-                    # push to raw history, so hist line numbers stay in sync
-                    self.input_hist_raw.append(line + '\n')
-                    prefiltered = self.prefilter_manager.prefilter_lines(line,
-                                                                         more)
-                    more = self.push_line(prefiltered)
-                    # IPython's runsource returns None if there was an error
+                    more = self.push_line(prefilter_lines(line, more))
+                    # IPython's run_source returns None if there was an error
                     # compiling the code.  This allows us to stop processing
                     # right away, so the user gets the error message at the
                     # right place.
                     if more is None:
                         break
-                else:
-                    self.input_hist_raw.append("\n")
             # final newline in case the input didn't have it, so that the code
             # actually does get executed
             if more:
                 self.push_line('\n')
 
-    def runsource(self, source, filename='<input>', symbol='single'):
+    def run_source(self, source, filename='<ipython console>', symbol='single'):
         """Compile and run some source in the interpreter.
 
         Arguments are as for compile_command().
@@ -2281,7 +2241,7 @@ class InteractiveShell(Configurable, Magic):
         compile_command() returned None.  Nothing happens.
 
         3) The input is complete; compile_command() returned a code
-        object.  The code is executed by calling self.runcode() (which
+        object.  The code is executed by calling self.run_code() (which
         also handles run-time exceptions, except for SystemExit).
 
         The return value is:
@@ -2299,14 +2259,6 @@ class InteractiveShell(Configurable, Magic):
         if type(source)==str:
             source = source.decode(self.stdin_encoding)
         
-        # if the source code has leading blanks, add 'if 1:\n' to it
-        # this allows execution of indented pasted code. It is tempting
-        # to add '\n' at the end of source to run commands like ' a=1'
-        # directly, but this fails for more complicated scenarios
-
-        if source[:1] in [' ', '\t']:
-            source = u'if 1:\n%s' % source
-
         try:
             code = self.compile(source,filename,symbol)
         except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
@@ -2325,12 +2277,15 @@ class InteractiveShell(Configurable, Magic):
         # buffer attribute as '\n'.join(self.buffer).
         self.code_to_run = code
         # now actually execute the code object
-        if self.runcode(code) == 0:
+        if self.run_code(code) == 0:
             return False
         else:
             return None
 
-    def runcode(self, code_obj, post_execute=True):
+    # For backwards compatibility
+    runsource = run_source
+    
+    def run_code(self, code_obj, post_execute=True):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2353,14 +2308,14 @@ class InteractiveShell(Configurable, Magic):
         outflag = 1  # happens in more places, so it's easier as default
         try:
             try:
-                self.hooks.pre_runcode_hook()
+                self.hooks.pre_run_code_hook()
                 #rprint('Running code') # dbg
                 exec code_obj in self.user_global_ns, self.user_ns
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
         except SystemExit:
-            self.resetbuffer()
+            self.reset_buffer()
             self.showtraceback(exception_only=True)
             warn("To exit: use any of 'exit', 'quit', %Exit or Ctrl-D.", level=1)
         except self.custom_exceptions:
@@ -2393,18 +2348,21 @@ class InteractiveShell(Configurable, Magic):
         self.code_to_run = None
         return outflag
         
+    # For backwards compatibility
+    runcode = run_code
+    
     def push_line(self, line):
         """Push a line to the interpreter.
 
         The line should not have a trailing newline; it may have
         internal newlines.  The line is appended to a buffer and the
-        interpreter's runsource() method is called with the
+        interpreter's run_source() method is called with the
         concatenated contents of the buffer as source.  If this
         indicates that the command was executed or invalid, the buffer
         is reset; otherwise, the command is incomplete, and the buffer
         is left as it was after the line was appended.  The return
         value is 1 if more input is required, 0 if the line was dealt
-        with in some way (this is the same as runsource()).
+        with in some way (this is the same as run_source()).
         """
 
         # autoindent management should be done here, and not in the
@@ -2413,17 +2371,24 @@ class InteractiveShell(Configurable, Magic):
         # push).
 
         #print 'push line: <%s>' % line  # dbg
-        for subline in line.splitlines():
-            self._autoindent_update(subline)
         self.buffer.append(line)
-        more = self.runsource('\n'.join(self.buffer), self.filename)
+        full_source = '\n'.join(self.buffer)
+        more = self.run_source(full_source, self.filename)
         if not more:
-            self.resetbuffer()
+            self.history_manager.store_inputs('\n'.join(self.buffer_raw),
+                                              full_source)
+            self.reset_buffer()
+            self.execution_count += 1
         return more
 
-    def resetbuffer(self):
+    def reset_buffer(self):
         """Reset the input buffer."""
         self.buffer[:] = []
+        self.buffer_raw[:] = []
+        self.input_splitter.reset()
+
+    # For backwards compatibility
+    resetbuffer = reset_buffer
 
     def _is_secondary_block_start(self, s):
         if not s.endswith(':'):
@@ -2461,24 +2426,6 @@ class InteractiveShell(Configurable, Magic):
             level = newlevel
 
         return '\n'.join(res) + '\n'
-
-    def _autoindent_update(self,line):
-        """Keep track of the indent level."""
-
-        #debugx('line')
-        #debugx('self.indent_current_nsp')
-        if self.autoindent:
-            if line:
-                inisp = num_ini_spaces(line)
-                if inisp < self.indent_current_nsp:
-                    self.indent_current_nsp = inisp
-
-                if line[-1] == ':':
-                    self.indent_current_nsp += 4
-                elif dedent_re.match(line):
-                    self.indent_current_nsp -= 4
-            else:
-                self.indent_current_nsp = 0
 
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab
