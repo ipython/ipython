@@ -3,6 +3,7 @@ from __future__ import print_function
 # Standard library imports
 from collections import namedtuple
 import sys
+import time
 
 # System library imports
 from pygments.lexers import PythonLexer
@@ -360,6 +361,19 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             
             self._append_plain_text(text)
             self._control.moveCursor(QtGui.QTextCursor.End)
+
+    def _handle_shutdown_reply(self, msg):
+        """ Handle shutdown signal, only if from other console.
+        """
+        if not self._hidden and not self._is_from_this_session(msg):
+            if not msg['content']['restart']:
+                sys.exit(0)
+            else:
+                # we just got notified of a restart!
+                time.sleep(0.25) # wait 1/4 sec to reset
+                                 # lest the request for a new prompt
+                                 # goes to the old kernel
+                self.reset()
 
     def _started_channels(self):
         """ Called when the KernelManager channels have started listening or 

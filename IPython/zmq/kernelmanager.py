@@ -305,7 +305,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         self._queue_request(msg)
         return msg['header']['msg_id']
 
-    def shutdown(self):
+    def shutdown(self, restart=False):
         """Request an immediate kernel shutdown.
 
         Upon receipt of the (empty) reply, client code can safely assume that
@@ -318,7 +318,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         """
         # Send quit message to kernel. Once we implement kernel-side setattr,
         # this should probably be done that way, but for now this will do.
-        msg = self.session.msg('shutdown_request', {})
+        msg = self.session.msg('shutdown_request', {'restart':restart})
         self._queue_request(msg)
         return msg['header']['msg_id']
 
@@ -743,7 +743,7 @@ class KernelManager(HasTraits):
         self.rep_address = (LOCALHOST, req)
         self.hb_address = (LOCALHOST, hb)
 
-    def shutdown_kernel(self):
+    def shutdown_kernel(self, restart=False):
         """ Attempts to the stop the kernel process cleanly. If the kernel
         cannot be stopped, it is killed, if possible.
         """
@@ -759,7 +759,7 @@ class KernelManager(HasTraits):
         # Don't send any additional kernel kill messages immediately, to give
         # the kernel a chance to properly execute shutdown actions. Wait for at
         # most 1s, checking every 0.1s.
-        self.xreq_channel.shutdown()
+        self.xreq_channel.shutdown(restart=restart)
         for i in range(10):
             if self.is_alive:
                 time.sleep(0.1)
@@ -793,7 +793,7 @@ class KernelManager(HasTraits):
                 if now:
                     self.kill_kernel()
                 else:
-                    self.shutdown_kernel()
+                    self.shutdown_kernel(restart=True)
             self.start_kernel(**self._launch_args)
 
             # FIXME: Messages get dropped in Windows due to probable ZMQ bug

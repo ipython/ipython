@@ -31,11 +31,18 @@ class MainWindow(QtGui.QMainWindow):
     # 'object' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, frontend):
+    def __init__(self, app, frontend, existing=False):
         """ Create a MainWindow for the specified FrontendWidget.
+        
+        The app is passed as an argument to allow for different
+        closing behavior depending on whether we are the Kernel's parent.
+        
+        If existing is True, then this Window does not own the Kernel.
         """
         super(MainWindow, self).__init__()
+        self._app = app
         self._frontend = frontend
+        self._existing = existing
         self._frontend.exit_requested.connect(self.close)
         self.setCentralWidget(frontend)
     
@@ -50,10 +57,17 @@ class MainWindow(QtGui.QMainWindow):
         if kernel_manager and kernel_manager.channels_running:
             title = self.window().windowTitle()
             reply = QtGui.QMessageBox.question(self, title,
-                'Close console?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            if reply == QtGui.QMessageBox.Yes:
+                "Close just this console, or shutdown the kernel and close "+
+                "all windows attached to it?", 
+                'Cancel', 'Close Console', 'Close All')
+            if reply == 2: # close All
                 kernel_manager.shutdown_kernel()
                 #kernel_manager.stop_channels()
+                event.accept()
+            elif reply == 1: # close Console
+                if not self._existing:
+                    # I have the kernel: don't quit, just close the window
+                    self._app.setQuitOnLastWindowClosed(False)
                 event.accept()
             else:
                 event.ignore()
@@ -132,7 +146,7 @@ def main():
     widget.kernel_manager = kernel_manager
 
     # Create the main window.
-    window = MainWindow(widget)
+    window = MainWindow(app, widget, args.existing)
     window.setWindowTitle('Python' if args.pure else 'IPython')
     window.show()
 

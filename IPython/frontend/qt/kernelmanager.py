@@ -105,6 +105,9 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
     # last-resort sys.excepthook.
     crash_received = QtCore.pyqtSignal(object)
 
+    # Emitted when a shutdown is noticed.
+    shutdown_reply_received = QtCore.pyqtSignal(object)
+
     #---------------------------------------------------------------------------
     # 'SubSocketChannel' interface
     #---------------------------------------------------------------------------

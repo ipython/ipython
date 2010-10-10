@@ -663,11 +663,13 @@ be sent, so the content dict is empty.
 Message type: ``shutdown_request``::
 
     content = {
+        'restart' : bool # whether the shutdown is final, or precedes a restart
     }
 
 Message type: ``shutdown_reply``::
 
     content = {
+        'restart' : bool # whether the shutdown is final, or precedes a restart
     }
 
 .. Note::
