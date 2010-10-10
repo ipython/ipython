@@ -78,7 +78,6 @@ __license__ = 'MIT'
 import string
 import sys
 from tokenize import tokenprog
-from types import StringType
 
 class ItplError(ValueError):
     def __init__(self, text, pos):
@@ -144,7 +143,7 @@ class Itpl:
         pos = 0
 
         while 1:
-            dollar = string.find(format, "$", pos)
+            dollar = format.find("$", pos)
             if dollar < 0: break
             nextchar = format[dollar+1]
 

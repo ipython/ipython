@@ -28,7 +28,7 @@ from IPython.core import inputsplitter as isp
 # Note: at the bottom, there's a slightly more complete version of this that
 # can be useful during development of code here.
 
-def mini_interactive_loop(raw_input):
+def mini_interactive_loop(input_func):
     """Minimal example of the logic of an interactive interpreter loop.
 
     This serves as an example, and it is used by the test system with a fake
@@ -43,7 +43,7 @@ def mini_interactive_loop(raw_input):
     while isp.push_accepts_more():
         indent = ' '*isp.indent_spaces
         prompt = '>>> ' + indent
-        line = indent + raw_input(prompt)
+        line = indent + input_func(prompt)
         isp.push(line)
 
     # Here we just return input so we can use it in a test suite, but a real
@@ -356,7 +356,7 @@ class InteractiveLoopTestCase(unittest.TestCase):
         # We can't check that the provided ns is identical to the test_ns,
         # because Python fills test_ns with extra keys (copyright, etc).  But
         # we can check that the given dict is *contained* in test_ns
-        for k,v in ns.items():
+        for k,v in ns.iteritems():
             self.assertEqual(test_ns[k], v)
         
     def test_simple(self):

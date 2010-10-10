@@ -59,7 +59,7 @@ class PendingDeferredManagerTest(DeferredTestCase):
             did = self.pdm.save_pending_deferred(d)
             dDict[did] = d
         # Make sure they are begin saved
-        for k in dDict.keys():
+        for k in dDict.iterkeys():
             self.assert_(self.pdm.quick_has_id(k))
         # Get the pending deferred (block=True), then callback with 'foo' and compare
         for did in dDict.keys()[0:5]:

@@ -212,7 +212,7 @@ class WinHPCTask(Configurable):
 
     def get_env_vars(self):
         env_vars = ET.Element('EnvironmentVariables')
-        for k, v in self.environment_variables.items():
+        for k, v in self.environment_variables.iteritems():
             variable = ET.SubElement(env_vars, "Variable")
             name = ET.SubElement(variable, "Name")
             name.text = k

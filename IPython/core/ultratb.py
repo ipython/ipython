@@ -712,14 +712,14 @@ class VerboseTB(TBTools):
             
             head = '%s%s%s\n%s%s%s\n%s' % (Colors.topline, '-'*75, ColorsNormal,
                                            exc, ' '*(75-len(str(etype))-len(pyver)),
-                                           pyver, string.rjust(date, 75) )
+                                           pyver, date.rjust(75) )
             head += "\nA problem occured executing Python code.  Here is the sequence of function"\
                     "\ncalls leading up to the error, with the most recent (innermost) call last."
         else:
             # Simplified header
             head = '%s%s%s\n%s%s' % (Colors.topline, '-'*75, ColorsNormal,exc,
-                                     string.rjust('Traceback (most recent call last)',
-                                                  75 - len(str(etype)) ) )
+                                     'Traceback (most recent call last)'.\
+                                                  rjust(75 - len(str(etype)) ) )
         frames = []
         # Flush cache before calling inspect.  This helps alleviate some of the
         # problems with python 2.3's inspect.py.
