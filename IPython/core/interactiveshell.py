@@ -1565,7 +1565,6 @@ class InteractiveShell(Configurable, Magic):
 
     def _indent_current_str(self):
         """return the current level of indentation as a string"""
-        #return self.indent_current_nsp * ' '
         return self.input_splitter.indent_spaces * ' '
 
     #-------------------------------------------------------------------------

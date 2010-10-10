@@ -372,7 +372,7 @@ def magic_history(self, parameter_s = ''):
             else:
                 print(inline, end='', file=outfile)
         else:
-            print(inline,end='', file=outfile)
+            print(inline, end='', file=outfile)
         if print_outputs:
             output = self.shell.output_hist.get(in_num)
             if output is not None:

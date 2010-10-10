@@ -20,7 +20,7 @@ class Macro(IPyAutocall):
     """
 
     def __init__(self,data):
-        # store the macro value, as a single string which can be executed
+        """store the macro value, as a single string which can be executed"""
         self.value = ''.join(data).rstrip()+'\n'
         
     def __str__(self):
