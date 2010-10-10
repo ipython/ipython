@@ -137,29 +137,30 @@ class ParalleMagic(Plugin):
             self._enable_autopx()
 
     def _enable_autopx(self):
-        """Enable %autopx mode by saving the original runsource and installing 
-        pxrunsource.
+        """Enable %autopx mode by saving the original run_source and installing 
+        pxrun_source.
         """
         if self.active_multiengine_client is None:
             print NO_ACTIVE_MULTIENGINE_CLIENT
             return
 
-        self._original_runsource = self.shell.runsource
-        self.shell.runsource = new.instancemethod(
-            self.pxrunsource, self.shell, self.shell.__class__
+        self._original_run_source = self.shell.run_source
+        self.shell.run_source = new.instancemethod(
+            self.pxrun_source, self.shell, self.shell.__class__
         )
         self.autopx = True
         print "%autopx enabled"
     
     def _disable_autopx(self):
-        """Disable %autopx by restoring the original InteractiveShell.runsource."""
+        """Disable %autopx by restoring the original InteractiveShell.run_source.
+        """
         if self.autopx:
-            self.shell.runsource = self._original_runsource
+            self.shell.run_source = self._original_run_source
             self.autopx = False
             print "%autopx disabled"
 
-    def pxrunsource(self, ipself, source, filename="<input>", symbol="single"):
-        """A parallel replacement for InteractiveShell.runsource."""
+    def pxrun_source(self, ipself, source, filename="<input>", symbol="single"):
+        """A parallel replacement for InteractiveShell.run_source."""
 
         try:
             code = ipself.compile(source, filename, symbol)

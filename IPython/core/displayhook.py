@@ -54,8 +54,9 @@ class DisplayHook(Configurable):
     """
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+
     # Each call to the In[] prompt raises it by 1, even the first.
-    prompt_count = Int(0)
+    #prompt_count = Int(0)
 
     def __init__(self, shell=None, cache_size=1000,
                  colors='NoColor', input_sep='\n',
@@ -113,6 +114,10 @@ class DisplayHook(Configurable):
         # these are deliberately global:
         to_user_ns = {'_':self._,'__':self.__,'___':self.___}
         self.shell.user_ns.update(to_user_ns)
+
+    @property
+    def prompt_count(self):
+        return self.shell.execution_count
 
     def _set_prompt_str(self,p_str,cache_def,no_cache_def):
         if p_str is None:
@@ -249,7 +254,7 @@ class DisplayHook(Configurable):
     def log_output(self, result):
         """Log the output."""
         if self.shell.logger.log_output:
-            self.shell.logger.log_write(repr(result),'output')
+            self.shell.logger.log_write(repr(result), 'output')
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""

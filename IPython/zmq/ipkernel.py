@@ -209,19 +209,13 @@ class Kernel(Configurable):
         reply_content = {}
         try:
             if silent:
-                # runcode uses 'exec' mode, so no displayhook will fire, and it
+                # run_code uses 'exec' mode, so no displayhook will fire, and it
                 # doesn't call logging or history manipulations.  Print
                 # statements in that code will obviously still execute.
-                shell.runcode(code)
+                shell.run_code(code)
             else:
-                # FIXME: runlines calls the exception handler itself.
+                # FIXME: the shell calls the exception handler itself.
                 shell._reply_content = None
-
-                # For now leave this here until we're sure we can stop using it
-                #shell.runlines(code)
-
-                # Experimental: cell mode!  Test more before turning into
-                # default and removing the hacks around runlines.
                 shell.run_cell(code)
         except:
             status = u'error'
@@ -238,8 +232,9 @@ class Kernel(Configurable):
             status = u'ok'
 
         reply_content[u'status'] = status
-        # Compute the execution counter so clients can display prompts
-        reply_content['execution_count'] = shell.displayhook.prompt_count
+        
+        # Return the execution counter so clients can display prompts
+        reply_content['execution_count'] = shell.execution_count -1
 
         # FIXME - fish exception info out of shell, possibly left there by
         # runlines.  We'll need to clean up this logic later.

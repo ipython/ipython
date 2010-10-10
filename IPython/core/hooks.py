@@ -53,7 +53,7 @@ import IPython.utils.io
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
            'generate_prompt', 'show_in_pager','pre_prompt_hook',
-           'pre_runcode_hook', 'clipboard_get']
+           'pre_run_code_hook', 'clipboard_get']
 
 def editor(self,filename, linenum=None):
     """Open the default editor at the given filename and linenumber.
@@ -238,7 +238,7 @@ def pre_prompt_hook(self):
     return None
 
 
-def pre_runcode_hook(self):
+def pre_run_code_hook(self):
     """ Executed before running the (prefiltered) code in IPython """
     return None
 

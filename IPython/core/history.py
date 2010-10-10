@@ -1,14 +1,238 @@
-# -*- coding: utf-8 -*-
 """ History related magics and functionality """
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2010 The IPython Development Team.
+#
+#  Distributed under the terms of the BSD License.
+#
+#  The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+from __future__ import print_function
 
 # Stdlib imports
 import fnmatch
 import os
+import sys
 
+# Our own packages
 import IPython.utils.io
+
+from IPython.core import ipapi
+from IPython.core.inputlist import InputList
+from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.io import ask_yes_no
 from IPython.utils.warn import warn
-from IPython.core import ipapi
+
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
+
+class HistoryManager(object):
+    """A class to organize all history-related functionality in one place.
+    """
+    # Public interface
+
+    # An instance of the IPython shell we are attached to
+    shell = None
+    # An InputList instance to hold processed history
+    input_hist = None
+    # An InputList instance to hold raw history (as typed by user)
+    input_hist_raw = None
+    # A list of directories visited during session
+    dir_hist = None
+    # A dict of output history, keyed with ints from the shell's execution count
+    output_hist = None
+    # String with path to the history file
+    hist_file = None
+    # PickleShareDB instance holding the raw data for the shadow history
+    shadow_db = None
+    # ShadowHist instance with the actual shadow history
+    shadow_hist = None
+    
+    # Private interface
+    # Variables used to store the three last inputs from the user.  On each new
+    # history update, we populate the user's namespace with these, shifted as
+    # necessary.
+    _i00, _i, _ii, _iii = '','','',''
+    
+    def __init__(self, shell):
+        """Create a new history manager associated with a shell instance.
+        """
+        # We need a pointer back to the shell for various tasks.
+        self.shell = shell
+        
+        # List of input with multi-line handling.
+        self.input_hist = InputList()
+        # This one will hold the 'raw' input history, without any
+        # pre-processing.  This will allow users to retrieve the input just as
+        # it was exactly typed in by the user, with %hist -r.
+        self.input_hist_raw = InputList()
+
+        # list of visited directories
+        try:
+            self.dir_hist = [os.getcwd()]
+        except OSError:
+            self.dir_hist = []
+
+        # dict of output history
+        self.output_hist = {}
+
+        # Now the history file
+        if shell.profile:
+            histfname = 'history-%s' % shell.profile
+        else:
+            histfname = 'history'
+        self.hist_file = os.path.join(shell.ipython_dir, histfname)
+
+        # Objects related to shadow history management
+        self._init_shadow_hist()
+    
+        self._i00, self._i, self._ii, self._iii = '','','',''
+
+        # Object is fully initialized, we can now call methods on it.
+        
+        # Fill the history zero entry, user counter starts at 1
+        self.store_inputs('\n', '\n')
+
+        # For backwards compatibility, we must put these back in the shell
+        # object, until we've removed all direct uses of the history objects in
+        # the shell itself.
+        shell.input_hist = self.input_hist
+        shell.input_hist_raw = self.input_hist_raw
+        shell.output_hist = self.output_hist
+        shell.dir_hist = self.dir_hist
+        shell.histfile = self.hist_file
+        shell.shadowhist = self.shadow_hist
+        shell.db = self.shadow_db
+
+    def _init_shadow_hist(self):
+        try:
+            self.shadow_db = PickleShareDB(os.path.join(
+                                           self.shell.ipython_dir, 'db'))
+        except UnicodeDecodeError:
+            print("Your ipython_dir can't be decoded to unicode!")
+            print("Please set HOME environment variable to something that")
+            print(r"only has ASCII characters, e.g. c:\home")
+            print("Now it is", self.ipython_dir)
+            sys.exit()
+        self.shadow_hist = ShadowHist(self.shadow_db)
+        
+    def save_hist(self):
+        """Save input history to a file (via readline library)."""
+
+        try:
+            self.shell.readline.write_history_file(self.hist_file)
+        except:
+            print('Unable to save IPython command history to file: ' + 
+                  `self.hist_file`)
+
+    def reload_hist(self):
+        """Reload the input history from disk file."""
+
+        try:
+            self.shell.readline.clear_history()
+            self.shell.readline.read_history_file(self.hist_file)
+        except AttributeError:
+            pass
+
+    def get_history(self, index=None, raw=False, output=True):
+        """Get the history list.
+
+        Get the input and output history.
+
+        Parameters
+        ----------
+        index : n or (n1, n2) or None
+            If n, then the last entries. If a tuple, then all in
+            range(n1, n2). If None, then all entries. Raises IndexError if
+            the format of index is incorrect.
+        raw : bool
+            If True, return the raw input.
+        output : bool
+            If True, then return the output as well.
+
+        Returns
+        -------
+        If output is True, then return a dict of tuples, keyed by the prompt
+        numbers and with values of (input, output). If output is False, then
+        a dict, keyed by the prompt number with the values of input. Raises
+        IndexError if no history is found.
+        """
+        if raw:
+            input_hist = self.input_hist_raw
+        else:
+            input_hist = self.input_hist
+        if output:
+            output_hist = self.output_hist
+        n = len(input_hist)
+        if index is None:
+            start=0; stop=n
+        elif isinstance(index, int):
+            start=n-index; stop=n
+        elif isinstance(index, tuple) and len(index) == 2:
+            start=index[0]; stop=index[1]
+        else:
+            raise IndexError('Not a valid index for the input history: %r'
+                             % index)
+        hist = {}
+        for i in range(start, stop):
+            if output:
+                hist[i] = (input_hist[i], output_hist.get(i))
+            else:
+                hist[i] = input_hist[i]
+        if not hist:
+            raise IndexError('No history for range of indices: %r' % index)
+        return hist
+
+    def store_inputs(self, source, source_raw=None):
+        """Store source and raw input in history and create input cache
+        variables _i*.
+        
+        Parameters
+        ----------
+        source : str
+          Python input.
+
+        source_raw : str, optional
+          If given, this is the raw input without any IPython transformations
+          applied to it.  If not given, ``source`` is used.
+        """
+        if source_raw is None:
+            source_raw = source
+        self.input_hist.append(source)
+        self.input_hist_raw.append(source_raw)
+        self.shadow_hist.add(source)
+
+        # update the auto _i variables
+        self._iii = self._ii
+        self._ii = self._i
+        self._i = self._i00
+        self._i00 = source_raw
+
+        # hackish access to user namespace to create _i1,_i2... dynamically
+        new_i = '_i%s' % self.shell.execution_count
+        to_main = {'_i': self._i,
+                   '_ii': self._ii,
+                   '_iii': self._iii,
+                   new_i : self._i00 }
+        self.shell.user_ns.update(to_main)
+
+    def sync_inputs(self):
+        """Ensure raw and translated histories have same length."""
+        if len(self.input_hist) != len (self.input_hist_raw):
+            self.input_hist_raw = InputList(self.input_hist)
+
+    def reset(self):
+        """Clear all histories managed by this object."""
+        self.input_hist[:] = []
+        self.input_hist_raw[:] = []
+        self.output_hist.clear()
+        # The directory history can't be completely empty
+        self.dir_hist[:] = [os.getcwd()]
+
 
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
@@ -55,7 +279,7 @@ def magic_history(self, parameter_s = ''):
     """
 
     if not self.shell.displayhook.do_full_cache:
-        print 'This feature is only available if numbered prompts are in use.'
+        print('This feature is only available if numbered prompts are in use.')
         return
     opts,args = self.parse_options(parameter_s,'gnoptsrf:',mode='list')
 
@@ -69,7 +293,7 @@ def magic_history(self, parameter_s = ''):
     else:
         if os.path.exists(outfname):
             if not ask_yes_no("File %r exists. Overwrite?" % outfname): 
-                print 'Aborting.'
+                print('Aborting.')
                 return
 
         outfile = open(outfname,'w')
@@ -103,7 +327,7 @@ def magic_history(self, parameter_s = ''):
         init, final = map(int, args)
     else:
         warn('%hist takes 0, 1 or 2 arguments separated by spaces.')
-        print >> IPython.utils.io.Term.cout, self.magic_hist.__doc__
+        print(self.magic_hist.__doc__, file=IPython.utils.io.Term.cout)
         return
     
     width = len(str(final))
@@ -117,14 +341,14 @@ def magic_history(self, parameter_s = ''):
         sh = self.shell.shadowhist.all()
         for idx, s in sh:
             if fnmatch.fnmatch(s, pattern):
-                print >> outfile, "0%d: %s" %(idx, s.expandtabs(4))
+                print("0%d: %s" %(idx, s.expandtabs(4)), file=outfile)
                 found = True
     
     if found:
-        print >> outfile, "==="
-        print >> outfile, \
-              "shadow history ends, fetch by %rep <number> (must start with 0)"
-        print >> outfile, "=== start of normal history ==="
+        print("===", file=outfile)
+        print("shadow history ends, fetch by %rep <number> (must start with 0)",
+              file=outfile)
+        print("=== start of normal history ===", file=outfile)
         
     for in_num in range(init, final):
         # Print user history with tabs expanded to 4 spaces.  The GUI clients
@@ -137,22 +361,22 @@ def magic_history(self, parameter_s = ''):
             
         multiline = int(inline.count('\n') > 1)
         if print_nums:
-            print >> outfile, \
-                  '%s:%s' % (str(in_num).ljust(width), line_sep[multiline]),
+            print('%s:%s' % (str(in_num).ljust(width), line_sep[multiline]),
+                  file=outfile)
         if pyprompts:
-            print >> outfile, '>>>',
+            print('>>>', file=outfile)
             if multiline:
                 lines = inline.splitlines()
-                print >> outfile, '\n... '.join(lines)
-                print >> outfile, '... '
+                print('\n... '.join(lines), file=outfile)
+                print('... ', file=outfile)
             else:
-                print >> outfile, inline,
+                print(inline, end='', file=outfile)
         else:
-            print >> outfile, inline,
+            print(inline,end='', file=outfile)
         if print_outputs:
             output = self.shell.output_hist.get(in_num)
             if output is not None:
-                print >> outfile, repr(output)
+                print(repr(output), file=outfile)
 
     if close_at_end:
         outfile.close()
@@ -223,10 +447,10 @@ def rep_f(self, arg):
         
     try:
         lines = self.extract_input_slices(args, True)
-        print "lines",lines
-        self.runlines(lines)
+        print("lines", lines)
+        self.run_cell(lines)
     except ValueError:
-        print "Not found in recent history:", args
+        print("Not found in recent history:", args)
         
 
 _sentinel = object()
@@ -251,11 +475,11 @@ class ShadowHist(object):
             if old is not _sentinel:
                 return
             newidx = self.inc_idx()
-            #print "new",newidx # dbg
+            #print("new", newidx) # dbg
             self.db.hset('shadowhist',ent, newidx)
         except:
             ipapi.get().showtraceback()
-            print "WARNING: disabling shadow history"
+            print("WARNING: disabling shadow history")
             self.disabled = True
     
     def all(self):
@@ -268,7 +492,6 @@ class ShadowHist(object):
         all = self.all()
         
         for k, v in all:
-            #print k,v
             if k == idx:
                 return v
 

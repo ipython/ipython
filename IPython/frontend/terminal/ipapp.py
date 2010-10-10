@@ -571,7 +571,7 @@ class IPythonApp(Application):
                     try:
                         self.log.info("Running code in user namespace: %s" %
                                       line)
-                        self.shell.runlines(line)
+                        self.shell.run_cell(line)
                     except:
                         self.log.warn("Error in executing line in user "
                                       "namespace: %s" % line)
@@ -616,7 +616,7 @@ class IPythonApp(Application):
             try:
                 self.log.info("Running code given at command line (-c): %s" %
                               line)
-                self.shell.runlines(line)
+                self.shell.run_cell(line)
             except:
                 self.log.warn("Error in executing line in user namespace: %s" %
                               line)
