@@ -810,8 +810,11 @@ class InteractiveShell(Configurable, Magic):
 
         # Similarly, track all namespaces where references can be held and that
         # we can safely clear (so it can NOT include builtin).  This one can be
-        # a simple list.
-        self.ns_refs_table = [ user_ns, user_global_ns, self.user_ns_hidden,
+        # a simple list.  Note that the main execution namespaces, user_ns and
+        # user_global_ns, can NOT be listed here, as clearing them blindly
+        # causes errors in object __del__ methods.  Instead, the reset() method
+        # clears them manually and carefully.
+        self.ns_refs_table = [ self.user_ns_hidden,
                                self.internal_ns, self._main_ns_cache ]
 
     def make_user_namespaces(self, user_ns=None, user_global_ns=None):
@@ -968,9 +971,6 @@ class InteractiveShell(Configurable, Magic):
         Note that this is much more aggressive than %reset, since it clears
         fully all namespaces, as well as all input/output lists.
         """
-        for ns in self.ns_refs_table:
-            ns.clear()
-
         self.alias_manager.clear_aliases()
 
         # Clear input and output histories
@@ -978,9 +978,22 @@ class InteractiveShell(Configurable, Magic):
         self.input_hist_raw[:] = []
         self.output_hist.clear()
 
+        # Clear namespaces holding user references
+        for ns in self.ns_refs_table:
+            ns.clear()
+            
+        # The main execution namespaces must be cleared very carefully,
+        # skipping the deletion of the __builtin__ key, because doing so would
+        # cause errors in many object's __del__ methods.
+        for ns in [self.user_ns, self.user_global_ns]:
+            drop_keys = set(ns.keys())
+            drop_keys.discard('__builtin__')
+            for k in drop_keys:
+                del ns[k]
+
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
-
+        
         # Restore the default and user aliases
         self.alias_manager.init_aliases()
 
