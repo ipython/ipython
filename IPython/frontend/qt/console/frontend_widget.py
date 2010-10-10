@@ -370,7 +370,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 sys.exit(0)
             else:
                 # we just got notified of a restart!
-                time.sleep(0.25) # wait 1/4 sec to reest
+                time.sleep(0.25) # wait 1/4 sec to reset
                                  # lest the request for a new prompt
                                  # goes to the old kernel
                 self.reset()

@@ -33,6 +33,8 @@ class MainWindow(QtGui.QMainWindow):
     
     def __init__(self, frontend, existing=False):
         """ Create a MainWindow for the specified FrontendWidget.
+        
+        If existing is True, then this Window does not own the Kernel.
         """
         super(MainWindow, self).__init__()
         self._frontend = frontend
