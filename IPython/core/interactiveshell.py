@@ -983,11 +983,12 @@ class InteractiveShell(Configurable, Magic):
             ns.clear()
             
         # The main execution namespaces must be cleared very carefully,
-        # skipping the deletion of the __builtin__ key, because doing so would
-        # cause errors in many object's __del__ methods.
+        # skipping the deletion of the builtin-related keys, because doing so
+        # would cause errors in many object's __del__ methods.
         for ns in [self.user_ns, self.user_global_ns]:
             drop_keys = set(ns.keys())
             drop_keys.discard('__builtin__')
+            drop_keys.discard('__builtins__')
             for k in drop_keys:
                 del ns[k]
 
