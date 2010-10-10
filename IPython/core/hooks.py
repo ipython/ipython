@@ -163,7 +163,11 @@ def result_display(self,arg):
     """
     
     if self.pprint:
-        out = pformat(arg)
+        try:
+            out = pformat(arg)
+        except:
+            # Work around possible bugs in pformat
+            out = repr(arg)
         if '\n' in out:
             # So that multi-line strings line up with the left column of
             # the screen, instead of having the output prompt mess up

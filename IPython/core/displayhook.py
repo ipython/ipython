@@ -193,7 +193,11 @@ class DisplayHook(Configurable):
         """
         try:
             if self.shell.pprint:
-                result_repr = pformat(result)
+                try:
+                    result_repr = pformat(result)
+                except:
+                    # Work around possible bugs in pformat
+                    result_repr = repr(result)
                 if '\n' in result_repr:
                     # So that multi-line strings line up with the left column of
                     # the screen, instead of having the output prompt mess up
