@@ -31,12 +31,13 @@ class MainWindow(QtGui.QMainWindow):
     # 'object' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, frontend, existing=False):
+    def __init__(self, app, frontend, existing=False):
         """ Create a MainWindow for the specified FrontendWidget.
         
         If existing is True, then this Window does not own the Kernel.
         """
         super(MainWindow, self).__init__()
+        self._app = app
         self._frontend = frontend
         self._existing = existing
         self._frontend.exit_requested.connect(self.close)
@@ -56,7 +57,6 @@ class MainWindow(QtGui.QMainWindow):
                 "Close just this console, or shutdown the kernel and close "+
                 "all windows attached to it?", 
                 'Cancel', 'Close Console', 'Close All')
-            print reply
             if reply == 2:
                 kernel_manager.shutdown_kernel()
                 #kernel_manager.stop_channels()
@@ -67,7 +67,8 @@ class MainWindow(QtGui.QMainWindow):
                     event.accept()
                 else:
                     # only destroy the Window, save the Kernel
-                    self.destroy()
+                    self._app.setQuitOnLastWindowClosed(False)
+                    self.deleteLater()
                     event.ignore()
             else:
                 event.ignore()
@@ -146,7 +147,7 @@ def main():
     widget.kernel_manager = kernel_manager
 
     # Create the main window.
-    window = MainWindow(widget, args.existing)
+    window = MainWindow(app, widget, args.existing)
     window.setWindowTitle('Python' if args.pure else 'IPython')
     window.show()
 
