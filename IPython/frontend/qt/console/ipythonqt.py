@@ -34,6 +34,9 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, app, frontend, existing=False):
         """ Create a MainWindow for the specified FrontendWidget.
         
+        The app is passed as an argument to allow for different
+        closing behavior depending on whether we are the Kernel's parent.
+        
         If existing is True, then this Window does not own the Kernel.
         """
         super(MainWindow, self).__init__()
@@ -57,19 +60,15 @@ class MainWindow(QtGui.QMainWindow):
                 "Close just this console, or shutdown the kernel and close "+
                 "all windows attached to it?", 
                 'Cancel', 'Close Console', 'Close All')
-            if reply == 2:
+            if reply == 2: # close All
                 kernel_manager.shutdown_kernel()
                 #kernel_manager.stop_channels()
                 event.accept()
-            elif reply == 1:
-                if self._existing:
-                    # I don't have the Kernel, I can shutdown
-                    event.accept()
-                else:
-                    # only destroy the Window, save the Kernel
+            elif reply == 1: # close Console
+                if not self._existing:
+                    # I have the kernel: don't quit, just close the window
                     self._app.setQuitOnLastWindowClosed(False)
-                    self.deleteLater()
-                    event.ignore()
+                event.accept()
             else:
                 event.ignore()
 
