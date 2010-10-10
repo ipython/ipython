@@ -3244,7 +3244,7 @@ Defaulting color scheme to 'NoColor'"""
         we have already handled that.
         """
         from IPython.lib.inputhook import enable_gui
-        opts, arg = self.parse_options(parameter_s='')
+        opts, arg = self.parse_options(parameter_s, '')
         if arg=='': arg = None
         return enable_gui(arg)
 
