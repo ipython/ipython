@@ -507,6 +507,89 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 return
         self._control.print_(printer)
 
+    def exportHtmlInline(self, parent = None):
+        self.exportHtml(parent, inline = True)
+        
+    def exportHtml(self, parent = None, inline = False):
+        """ Export the contents of the ConsoleWidget as an HTML file.
+
+        If inline == True, include images as inline PNGs.  Otherwise,
+        include them as links to external PNG files, mimicking the
+        Firefox's "Web Page, complete" behavior.
+        """
+        dialog = QtGui.QFileDialog(parent, 'Save HTML Document')
+        dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
+        dialog.setDefaultSuffix('htm')
+        dialog.setNameFilter('HTML document (*.htm)')
+        if dialog.exec_():
+            filename = str(dialog.selectedFiles()[0])
+            if(inline):
+                path = None
+            else:
+                offset = filename.rfind(".")
+                if(offset > 0):
+                    path = filename[:offset]+"_files"
+                else:
+                    path = filename+"_files"
+                import os
+                try:
+                    os.mkdir(path)
+                except OSError:
+                    # TODO: check that this is an "already exists" error
+                    pass
+
+            f = open(filename, 'w')
+            try:
+                # N.B. this is overly restrictive, but Qt's output is
+                # predictable...
+                img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
+                f.write(img_re.sub(
+                    lambda x: self.imagetag(x, path = path, format = "PNG"),
+                    str(self._control.toHtml().toUtf8())))
+            finally:
+                f.close()
+            return filename
+        return None
+
+    def exportXhtml(self, parent = None):
+        """ Export the contents of the ConsoleWidget as an XHTML file
+        with figures as inline SVG.
+        """
+        dialog = QtGui.QFileDialog(parent, 'Save XHTML Document')
+        dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
+        dialog.setDefaultSuffix('xml')
+        dialog.setNameFilter('XHTML document (*.xml)')
+        if dialog.exec_():
+            filename = str(dialog.selectedFiles()[0])
+            f = open(filename, 'w')
+            try:
+                # N.B. this is overly restrictive, but Qt's output is
+                # predictable...
+                img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
+                html = str(self._control.toHtml().toUtf8())
+                # Hack to make xhtml header -- note that we are not doing
+                # any check for valid xml
+                offset = html.find("<html>")
+                assert(offset > -1)
+                html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
+                        html[offset+6:])
+                f.write(img_re.sub(
+                    lambda x: self.imagetag(x, path = None, format = "SVG"),
+                    html))
+            finally:
+                f.close()
+            return filename
+        return None
+
+    def imagetag(self, match, path = None):
+        """ Given an re.match object matching an image name in an HTML export,
+        return an appropriate substitution string for the image tag
+        (e.g., link, embedded image, ...).  As a side effect, files may
+        be generated in the directory given by path."""
+
+        # Default case -- not enough information to generate tag
+        return ""
+
     def prompt_to_top(self):
         """ Moves the prompt to the top of the viewport.
         """
@@ -744,7 +827,15 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         menu.addSeparator()
         print_action = menu.addAction('Print', self.print_)
         print_action.setEnabled(True)
-        
+        html_action = menu.addAction('Export HTML (external PNGs)',
+                                     self.exportHtml)
+        html_action.setEnabled(True)
+        html_inline_action = menu.addAction('Export HTML (inline PNGs)',
+                                            self.exportHtmlInline)
+        html_inline_action.setEnabled(True)
+        xhtml_action = menu.addAction('Export XHTML (inline SVGs)',
+                                      self.exportXhtml)
+        xhtml_action.setEnabled(True)
         return menu
 
     def _control_key_down(self, modifiers, include_command=True):

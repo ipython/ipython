@@ -25,6 +25,9 @@ class RichIPythonWidget(IPythonWidget):
         """
         kw['kind'] = 'rich'
         super(RichIPythonWidget, self).__init__(*args, **kw)
+        # Dictionary for resolving Qt names to images when
+        # generating XHTML output
+        self._name2svg = {}
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface
@@ -68,6 +71,7 @@ class RichIPythonWidget(IPythonWidget):
                     self._append_plain_text('Received invalid plot data.')
                 else:
                     format = self._add_image(image)
+                    self._name2svg[str(format.name())] = svg
                     format.setProperty(self._svg_text_format_property, svg)
                     cursor = self._get_end_cursor()
                     cursor.insertBlock()
@@ -121,3 +125,53 @@ class RichIPythonWidget(IPythonWidget):
             filename = dialog.selectedFiles()[0]
             image = self._get_image(name)
             image.save(filename, format)
+
+    def imagetag(self, match, path = None, format = "PNG"):
+        """ Given an re.match object matching an image name in an HTML dump,
+        return an appropriate substitution string for the image tag
+        (e.g., link, embedded image, ...).  As a side effect, files may
+        be generated in the directory given by path."""
+
+        if(format == "PNG"):
+            try:
+                image = self._get_image(match.group("name"))
+            except KeyError:
+                return "<b>Couldn't find image %s</b>" % match.group("name")
+
+            if(path is not None):
+                relpath = path[path.rfind("/")+1:]
+                if(image.save("%s/qt_img%s.png" % (path,match.group("name")),
+                              "PNG")):
+                    return '<img src="%s/qt_img%s.png">' % (relpath,
+                                                            match.group("name"))
+                else:
+                    return "<b>Couldn't save image!</b>"
+            else:
+                ba = QtCore.QByteArray()
+                buffer_ = QtCore.QBuffer(ba)
+                buffer_.open(QtCore.QIODevice.WriteOnly)
+                image.save(buffer_, "PNG")
+                buffer_.close()
+                import re
+                return '<img src="data:image/png;base64,\n%s\n" />' % (
+                    re.sub(r'(.{60})',r'\1\n',str(ba.toBase64())))
+
+        elif(format == "SVG"):
+            try:
+                svg = str(self._name2svg[match.group("name")])
+            except KeyError:
+                return "<b>Couldn't find image %s</b>" % match.group("name")
+
+            # Not currently checking path, because it's tricky to find a
+            # cross-browser way to embed external SVG images (e.g., via
+            # object or embed tags).
+
+            # Chop stand-alone header from matplotlib SVG
+            offset = svg.find("<svg")
+            assert(offset > -1)
+            
+            return svg[offset:]
+
+        else:
+            return '<b>Unrecognized image format</b>'
+        
