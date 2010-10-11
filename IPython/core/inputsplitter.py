@@ -958,6 +958,10 @@ class IPythonInputSplitter(InputSplitter):
         if not lines:
             return super(IPythonInputSplitter, self).push(lines)
 
+        # We must ensure all input is pure unicode
+        if type(lines)==str:
+            lines = lines.decode(self.encoding)
+
         lines_list = lines.splitlines()
 
         transforms = [transform_escaped, transform_assign_system,

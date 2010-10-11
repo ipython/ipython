@@ -2256,10 +2256,18 @@ class InteractiveShell(Configurable, Magic):
 
         # We need to ensure that the source is unicode from here on.
         if type(source)==str:
-            source = source.decode(self.stdin_encoding)
+            usource = source.decode(self.stdin_encoding)
+        else:
+            usource = source
+
+        if 0:  # dbg
+            print 'Source:', repr(source)  # dbg
+            print 'USource:', repr(usource)  # dbg
+            print 'type:', type(source) # dbg
+            print 'encoding', self.stdin_encoding  # dbg
         
         try:
-            code = self.compile(source,filename,symbol)
+            code = self.compile(usource,filename,symbol)
         except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
             # Case 1
             self.showsyntaxerror(filename)

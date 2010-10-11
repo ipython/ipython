@@ -347,6 +347,10 @@ class InputSplitterTestCase(unittest.TestCase):
         for block_lines in all_blocks:
             self.check_split(block_lines, compile=False)
 
+    def test_unicode(self):
+        self.isp.push(u"Pérez")
+        self.isp.push(u'\xc3\xa9')
+        self.isp.push("u'\xc3\xa9'")
 
 class InteractiveLoopTestCase(unittest.TestCase):
     """Tests for an interactive loop like a python shell.
