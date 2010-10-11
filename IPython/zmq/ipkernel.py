@@ -113,8 +113,9 @@ class Kernel(Configurable):
                 return
             else:
                 raise
-        # FIXME: Bug in pyzmq/zmq?
-        # assert self.reply_socket.rcvmore(), "Missing message part."
+        # This assert will raise in versions of zeromq 2.0.7 and lesser.
+        # We now require 2.0.8 or above, so we can uncomment for safety.
+        assert self.reply_socket.rcvmore(), "Missing message part."
         msg = self.reply_socket.recv_json()
         
         # Print some info about this message and leave a '--->' marker, so it's
