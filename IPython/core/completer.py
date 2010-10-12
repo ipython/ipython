@@ -381,7 +381,7 @@ class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
     def __init__(self, shell, namespace=None, global_namespace=None,
-                 omit__names=0, alias_table=None, use_readline=True):
+                 omit__names=True, alias_table=None, use_readline=True):
         """IPCompleter() -> completer
 
         Return a completer object suitable for use by the readline library

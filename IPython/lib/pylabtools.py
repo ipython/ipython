@@ -96,15 +96,17 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
 
     # Import numpy as np/pyplot as plt are conventions we're trying to
     # somewhat standardize on.  Making them available to users by default
-    # will greatly help this. 
-    exec ("import numpy\n"
+    # will greatly help this.
+    s = ("import numpy\n"
           "import matplotlib\n"
           "from matplotlib import pylab, mlab, pyplot\n"
           "np = numpy\n"
           "plt = pyplot\n"
-          ) in user_ns
+          )
+    exec s in user_ns
 
     if shell is not None:
+        exec s in shell.user_ns_hidden
         # If using our svg payload backend, register the post-execution
         # function that will pick up the results for display.  This can only be
         # done with access to the real shell object.
@@ -117,6 +119,7 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             figsize(6.0, 4.0)
             # Add 'figsize' to pyplot and to the user's namespace
             user_ns['figsize'] = pyplot.figsize = figsize
+            shell.user_ns_hidden['figsize'] = figsize
         else:
             from IPython.zmq.pylab.backend_inline import pastefig
             from matplotlib import pyplot
@@ -124,8 +127,11 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             user_ns['pastefig'] = pyplot.pastefig = pastefig
 
     if import_all:
-        exec("from matplotlib.pylab import *\n"
-             "from numpy import *\n") in user_ns
+        s = ("from matplotlib.pylab import *\n"
+             "from numpy import *\n")
+        exec s in user_ns
+        if shell is not None:
+            exec s in shell.user_ns_hidden
 
 
 def pylab_activate(user_ns, gui=None, import_all=True):
