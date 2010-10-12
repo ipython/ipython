@@ -132,7 +132,7 @@ class RichIPythonWidget(IPythonWidget):
         (e.g., link, embedded image, ...).  As a side effect, files may
         be generated in the directory given by path."""
 
-        if(format == "PNG"):
+        if(format == "png"):
             try:
                 image = self._get_image(match.group("name"))
             except KeyError:
@@ -156,7 +156,7 @@ class RichIPythonWidget(IPythonWidget):
                 return '<img src="data:image/png;base64,\n%s\n" />' % (
                     re.sub(r'(.{60})',r'\1\n',str(ba.toBase64())))
 
-        elif(format == "SVG"):
+        elif(format == "svg"):
             try:
                 svg = str(self._name_to_svg[match.group("name")])
             except KeyError:

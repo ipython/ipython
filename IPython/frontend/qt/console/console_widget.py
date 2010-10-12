@@ -544,7 +544,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 # predictable...
                 img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
                 f.write(img_re.sub(
-                    lambda x: self.image_tag(x, path = path, format = "PNG"),
+                    lambda x: self.image_tag(x, path = path, format = "png"),
                     str(self._control.toHtml().toUtf8())))
             finally:
                 f.close()
@@ -574,7 +574,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
                         html[offset+6:])
                 f.write(img_re.sub(
-                    lambda x: self.image_tag(x, path = None, format = "SVG"),
+                    lambda x: self.image_tag(x, path = None, format = "svg"),
                     html))
             finally:
                 f.close()
