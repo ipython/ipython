@@ -2,6 +2,7 @@
 """
 
 import os
+import cgi
 import time
 import json
 import Queue
@@ -10,23 +11,39 @@ from string import Template
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
+client_death = 30 # seconds without heartbeat that client considered dead
+
 class CometManager(object):
+    """Tracks msg_id, client get requests for the Comet design pattern"""
     def __init__(self):
         self.clients = {}
         
     def register(self, client_id):
-        self.clients[client_id] = Queue.Queue()
+        self.clients[client_id] = [time.time(), Queue.Queue()]
     
-    def get(self, client_id):
-        return self.clients[client_id].get()
+    def __getitem__(self, client_id):
+        return self.clients[client_id][1]
     
     def append(self, msg):
-        for q in self.clients.values():
-            q.put(msg)
+        """Add a message to the SUB queues across all tracked clients"""
+        for i in self.clients.keys():
+            dead_for = time.time() - self.clients[i][0]
+            #Remove client if no heartbeat, otherwise add to its queue
+            if dead_for > client_death:
+                print "Removing client %s: dead for %f"%(i, dead_for)
+                del self.clients[i]
+            else:
+                self.clients[i][1].put(msg)
     
     def __contains__(self, client_id):
         return client_id in self.clients
-            
+    
+    def heartbeat(self, client_id):
+        self.clients[client_id][0] = time.time()
+    
+    def send(self, msg_type, *args):
+        return self.kernel_manager.xreq_channel.execute(*args)
+        
 manager = CometManager()
 
 class IPyHttpHandler(BaseHTTPRequestHandler):
@@ -39,7 +56,7 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             self.end_headers()
             
             #Manager.get blocks until a message is available
-            json.dump(manager.get(path), self.wfile)
+            json.dump(manager[path].get(), self.wfile)
         elif path == "notebook":
             self.send_response(200)
             self.send_header("Content-type", "text/html")
@@ -62,7 +79,23 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             self.end_headers()
     
     def do_POST(self):
-        raise NotImplementedError("POST is reserved for XREQ")
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        
+        client_id = self.path.strip("/")
+        data = cgi.FieldStorage(fp=self.rfile, 
+            headers=self.headers,
+            environ={'REQUEST_METHOD':'POST',
+                     'CONTENT_TYPE':self.headers['Content-Type'],
+                     })
+                     
+        msg_type = data["type"].value
+        if msg_type == "heartbeat":
+            manager.heartbeat(client_id)
+        elif msg_type == "execute":
+            response = manager.send("execute_request", data["code"].value)
+            self.wfile.write(response)
 
 class IPyHttpServer(ThreadingMixIn, HTTPServer):
     pass
@@ -134,10 +167,14 @@ class HttpHBSocketChannel(HBSocketChannel):
 class HttpKernelManager(KernelManager):
     """ A KernelManager that provides signals and slots.
     """
-
+    
     # Use Http-specific channel classes that emit signals.
     sub_channel_class = Type(HttpSubSocketChannel)
     xreq_channel_class = Type(HttpXReqSocketChannel)
     rep_channel_class = Type(HttpRepSocketChannel)
     hb_channel_class = Type(HttpHBSocketChannel)
-
+    
+    def __init__(self, *args, **kwargs):
+        super(HttpKernelManager, self).__init__(*args, **kwargs)
+        #Give kernel manager access to the CometManager
+        manager.kernel_manager = self

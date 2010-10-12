@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
     <head>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
@@ -8,8 +8,8 @@
         <script type="text/javascript">
             client_id = "/$client_id";
             $.ajaxSetup({
-                url:client_id,
-                dataType:"json"
+                url: client_id,
+                dataType: "json"
             })
             function comet() {
                 $.ajax({
@@ -19,18 +19,43 @@
                             msg += json.content.data
                         else if (json.msg_type == "pyin")
                             msg += json.content.code
+                        else if (json.msg_type == "pyout")
+                            msg += json.content.data
                             
                         $("#messages").append("<pre>"+msg+"</pre>")
                         comet()
                     }
                 })
             }
+            function heartbeat() {
+                $.ajax({
+                    type: "POST",
+                    data: {client_id:client_id, type:"heartbeat"},
+                    success: function() {
+                        setTimeout(heartbeat, 10000)
+                    }
+                })
+            }
+            function execute(code) {
+                $.ajax({
+                    type: "POST",
+                    data: {type:"execute", code:code}
+                })
+            }
             $(document).ready(function() {
                 comet()
+                heartbeat()
+                $("#exec").keypress(function(e) {
+                    if (e.which == 13) {
+                        execute(e.target.value)
+                        e.target.value = ""
+                    }
+                })
             })
         </script>
     </head>
     <body>
         <div id="messages"></div>
+        <input id="exec" style="width:100%" />
     </body>
 </html>
