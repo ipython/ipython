@@ -101,6 +101,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     _CompletionRequest = namedtuple('_CompletionRequest', ['id', 'pos'])
     _ExecutionRequest = namedtuple('_ExecutionRequest', ['id', 'kind'])
     _input_splitter_class = InputSplitter
+    _local_kernel = False
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -141,6 +142,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Connect signal handlers.
         document = self._control.document()
         document.contentsChange.connect(self._document_contents_change)
+        
+        # set flag for whether we are connected via localhost
+        self._local_kernel = kw.get('local_kernel', False)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
@@ -366,14 +370,32 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle shutdown signal, only if from other console.
         """
         if not self._hidden and not self._is_from_this_session(msg):
-            if not msg['content']['restart']:
-                sys.exit(0)
-            else:
-                # we just got notified of a restart!
-                time.sleep(0.25) # wait 1/4 sec to reset
-                                 # lest the request for a new prompt
-                                 # goes to the old kernel
-                self.reset()
+            if self._local_kernel:
+                if not msg['content']['restart']:
+                    sys.exit(0)
+                else:
+                    # we just got notified of a restart!
+                    time.sleep(0.25) # wait 1/4 sec to reset
+                                     # lest the request for a new prompt
+                                     # goes to the old kernel
+                    self.reset()
+            else: # remote kernel, prompt on Kernel shutdown/reset
+                title = self.window().windowTitle()
+                if not msg['content']['restart']:
+                    reply = QtGui.QMessageBox.question(self, title,
+                        "Kernel has been shutdown permanently. Close the Console?",
+                        QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
+                    if reply == QtGui.QMessageBox.Yes:
+                        sys.exit(0)
+                else:
+                    reply = QtGui.QMessageBox.question(self, title,
+                        "Kernel has been reset. Clear the Console?",
+                        QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
+                    if reply == QtGui.QMessageBox.Yes:
+                        time.sleep(0.25) # wait 1/4 sec to reset
+                                         # lest the request for a new prompt
+                                         # goes to the old kernel
+                        self.reset()
 
     def _started_channels(self):
         """ Called when the KernelManager channels have started listening or 

@@ -57,9 +57,9 @@ class MainWindow(QtGui.QMainWindow):
         if kernel_manager and kernel_manager.channels_running:
             title = self.window().windowTitle()
             reply = QtGui.QMessageBox.question(self, title,
-                "Close just this console, or shutdown the kernel and close "+
-                "all windows attached to it?", 
-                'Cancel', 'Close Console', 'Close All')
+                "You are closing this Console window."+
+                "\nWould you like to quit the Kernel and all attached Consoles as well?",
+                'Cancel', 'No, just this Console', 'Yes, quit everything')
             if reply == 2: # close All
                 kernel_manager.shutdown_kernel()
                 #kernel_manager.stop_channels()
@@ -68,6 +68,7 @@ class MainWindow(QtGui.QMainWindow):
                 if not self._existing:
                     # I have the kernel: don't quit, just close the window
                     self._app.setQuitOnLastWindowClosed(False)
+                    self.deleteLater()
                 event.accept()
             else:
                 event.ignore()
@@ -133,15 +134,16 @@ def main():
             kernel_manager.start_kernel()
     kernel_manager.start_channels()
 
+    local_kernel = (args.ip == LOCALHOST)
     # Create the widget.
     app = QtGui.QApplication([])
     if args.pure:
         kind = 'rich' if args.rich else 'plain'
-        widget = FrontendWidget(kind=kind, paging=args.paging)
+        widget = FrontendWidget(kind=kind, paging=args.paging, local_kernel=local_kernel)
     elif args.rich or args.pylab:
-        widget = RichIPythonWidget(paging=args.paging)
+        widget = RichIPythonWidget(paging=args.paging, local_kernel=local_kernel)
     else:
-        widget = IPythonWidget(paging=args.paging)
+        widget = IPythonWidget(paging=args.paging, local_kernel=local_kernel)
     widget.gui_completion = args.gui_completion
     widget.kernel_manager = kernel_manager
 
