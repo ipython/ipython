@@ -35,9 +35,9 @@ Highlights of this release:
   Brucher, who put a lot of work into it.  We also improved traceback handling
   in remote tasks, as well as providing better control for remote task IDs.
 
-- New IPython Sphinx directive.  You can use this directive to mark blocks in
-  reSructuredText documents as containig IPython syntax (including figures) and
-  the will be executed during the build::
+- New IPython Sphinx directive contributed by John Hunter.  You can use this
+  directive to mark blocks in reSructuredText documents as containig IPython
+  syntax (including figures) and the will be executed during the build::
 
   .. ipython::
 
@@ -88,6 +88,7 @@ omitted your name and we'll gladly fix this in the notes for the future):
 * David Warde-Farley
 * Fernando Perez
 * Gökhan Sever
+* John Hunter
 * Justin Riley
 * Kiorky
 * Laurent Dufrechou
