@@ -14,7 +14,8 @@ execfile(pjoin('IPython','core','release.py'))
 compile_tree()
 
 # Cleanup
-for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist')]:
+for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist'),
+          pjoin('docs','source','api','generated')]:
     if os.path.isdir(d):
         remove_tree(d)
 
@@ -22,13 +23,13 @@ for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist')]:
 c('./setup.py sdist --formats=gztar,zip')
 
 # Build eggs
-c('python2.5 ./setupegg.py bdist_egg')
 c('python2.6 ./setupegg.py bdist_egg')
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
 # bdist_wininst)
-c("python setup.py bdist_wininst")
+c("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
 
 # Change name so retarded Vista runs the installer correctly
 c("rename 's/linux-i686/win32-setup/' dist/*.exe")
+c("rename 's/linux-x86_64/win32-setup/' dist/*.exe")

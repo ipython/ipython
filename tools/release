@@ -8,32 +8,40 @@ from toollib import *
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
 ipdir = get_ipdir()
+tooldir = pjoin(ipdir,'tools')
+distdir = pjoin(ipdir,'dist')
+# Where I keep static backups of each release
+ipbackupdir = os.path.expanduser('~/ipython/backup')
+
+# Start in main IPython dir
 cd(ipdir)
 
 # Load release info
 execfile(pjoin('IPython','core','release.py'))
 
-# Where I keep static backups of each release
-ipbackupdir = os.path.expanduser('~/ipython/backup')
-
 print
-print "Releasing IPython version $version"
-print "=================================="
+print "Releasing IPython"
+print "================="
+print
+print 'Source IPython directory:', ipdir
+print
 
-# Perform local backup
+# Perform local backup, go to tools dir to run it.
+cd(tooldir)
 c('./make_tarball.py')
 c('mv ipython-*.tgz %s' % ipbackupdir)
 
 # Build release files
-#c('./mkrel.py %s' % ipdir)
-c('./build_release')
+c('./build_release %s' % ipdir)
 
 # Register with the Python Package Index (PyPI)
 print "Registering with PyPI..."
+cd(ipdir)
 c('./setup.py register')
 
 # Upload all files
-cd('dist')
+c('./setup.py sdist --formats=gztar,zip upload')
+cd(distdir)
 print "Uploading distribution files..."
 c('scp * ipython@ipython.scipy.org:www/dist/')
 
