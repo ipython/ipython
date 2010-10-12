@@ -507,10 +507,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 return
         self._control.print_(printer)
 
-    def exportHtmlInline(self, parent = None):
-        self.exportHtml(parent, inline = True)
+    def export_html_inline(self, parent = None):
+        self.export_html(parent, inline = True)
         
-    def exportHtml(self, parent = None, inline = False):
+    def export_html(self, parent = None, inline = False):
         """ Export the contents of the ConsoleWidget as an HTML file.
 
         If inline == True, include images as inline PNGs.  Otherwise,
@@ -544,14 +544,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 # predictable...
                 img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
                 f.write(img_re.sub(
-                    lambda x: self.imagetag(x, path = path, format = "PNG"),
+                    lambda x: self.image_tag(x, path = path, format = "PNG"),
                     str(self._control.toHtml().toUtf8())))
             finally:
                 f.close()
             return filename
         return None
 
-    def exportXhtml(self, parent = None):
+    def export_xhtml(self, parent = None):
         """ Export the contents of the ConsoleWidget as an XHTML file
         with figures as inline SVG.
         """
@@ -574,14 +574,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
                         html[offset+6:])
                 f.write(img_re.sub(
-                    lambda x: self.imagetag(x, path = None, format = "SVG"),
+                    lambda x: self.image_tag(x, path = None, format = "SVG"),
                     html))
             finally:
                 f.close()
             return filename
         return None
 
-    def imagetag(self, match, path = None):
+    def image_tag(self, match, path = None):
         """ Given an re.match object matching an image name in an HTML export,
         return an appropriate substitution string for the image tag
         (e.g., link, embedded image, ...).  As a side effect, files may
@@ -828,13 +828,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         print_action = menu.addAction('Print', self.print_)
         print_action.setEnabled(True)
         html_action = menu.addAction('Export HTML (external PNGs)',
-                                     self.exportHtml)
+                                     self.export_html)
         html_action.setEnabled(True)
         html_inline_action = menu.addAction('Export HTML (inline PNGs)',
-                                            self.exportHtmlInline)
+                                            self.export_html_inline)
         html_inline_action.setEnabled(True)
         xhtml_action = menu.addAction('Export XHTML (inline SVGs)',
-                                      self.exportXhtml)
+                                      self.export_xhtml)
         xhtml_action.setEnabled(True)
         return menu
 

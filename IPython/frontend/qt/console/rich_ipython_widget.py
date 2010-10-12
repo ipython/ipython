@@ -27,7 +27,7 @@ class RichIPythonWidget(IPythonWidget):
         super(RichIPythonWidget, self).__init__(*args, **kw)
         # Dictionary for resolving Qt names to images when
         # generating XHTML output
-        self._name2svg = {}
+        self._name_to_svg = {}
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface
@@ -71,7 +71,7 @@ class RichIPythonWidget(IPythonWidget):
                     self._append_plain_text('Received invalid plot data.')
                 else:
                     format = self._add_image(image)
-                    self._name2svg[str(format.name())] = svg
+                    self._name_to_svg[str(format.name())] = svg
                     format.setProperty(self._svg_text_format_property, svg)
                     cursor = self._get_end_cursor()
                     cursor.insertBlock()
@@ -126,7 +126,7 @@ class RichIPythonWidget(IPythonWidget):
             image = self._get_image(name)
             image.save(filename, format)
 
-    def imagetag(self, match, path = None, format = "PNG"):
+    def image_tag(self, match, path = None, format = "PNG"):
         """ Given an re.match object matching an image name in an HTML dump,
         return an appropriate substitution string for the image tag
         (e.g., link, embedded image, ...).  As a side effect, files may
@@ -158,7 +158,7 @@ class RichIPythonWidget(IPythonWidget):
 
         elif(format == "SVG"):
             try:
-                svg = str(self._name2svg[match.group("name")])
+                svg = str(self._name_to_svg[match.group("name")])
             except KeyError:
                 return "<b>Couldn't find image %s</b>" % match.group("name")
 
