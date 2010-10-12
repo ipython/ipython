@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
+        <title>AJAX test</title>
+        <script type="text/javascript" src="http://www/~james/js/jquery.js"></script>
+        <script type="text/javascript">
+            client_id = "/$client_id";
+            $.ajaxSetup({
+                url:client_id,
+                dataType:"json"
+            })
+            function comet() {
+                $.ajax({
+                    success: function(json, status, request) {
+                        msg = ""
+                        if (json.msg_type == "stream")
+                            msg += json.content.data
+                        else if (json.msg_type == "pyin")
+                            msg += json.content.code
+                            
+                        $("#messages").append("<pre>"+msg+"</pre>")
+                        comet()
+                    }
+                })
+            }
+            $(document).ready(function() {
+                comet()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="messages"></div>
+    </body>
+</html>

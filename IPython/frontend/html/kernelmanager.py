@@ -4,7 +4,61 @@
 from IPython.utils.traitlets import Type
 from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
     XReqSocketChannel, RepSocketChannel, HBSocketChannel
+
+import time
+import json
+import Queue
+import threading
+from string import Template
+from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+
+class CometManager(object):
+    def __init__(self):
+        self.clients = {}
+        
+    def register(self, client_id):
+        self.clients[client_id] = Queue.Queue()
+    
+    def get(self, client_id):
+        return self.clients[client_id].get()
+    
+    def append(self, msg):
+        for q in self.clients.values():
+            q.put(msg)
+    
+    def __contains__(self, item):
+        return item in self.clients
+            
+manager = CometManager()
+
+class IPyHttpHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        client_id = self.path.strip("/")
+        if self.path == "/notebook":
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            
+            client_id = str(time.time())
+            manager.register(client_id)
+            page_text = Template(open("notebook.html").read())
+            
+            self.wfile.write(page_text.safe_substitute(client_id = client_id))
+        elif client_id in manager:
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            
+            #Manager.get blocks until a message is available
+            msg = json.dumps(manager.get(client_id))
+            self.wfile.write(msg)
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+class IPyHttpServer(ThreadingMixIn, HTTPServer):
+    pass
 
 class HttpXReqSocketChannel(XReqSocketChannel):
     # Used by the first_reply signal logic to determine if a reply is the 
@@ -18,17 +72,7 @@ class HttpXReqSocketChannel(XReqSocketChannel):
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
-        # Emit the generic signal.
-        self.message_received.emit(msg)
-        
-        # Emit signals for specialized message types.
-        msg_type = msg['msg_type']
-        signal = getattr(self, msg_type, None)
-        if signal:
-            signal.emit(msg)
-
         if not self._handlers_called:
-            self.first_reply.emit()
             self._handlers_called = True
 
     #---------------------------------------------------------------------------
@@ -41,8 +85,7 @@ class HttpXReqSocketChannel(XReqSocketChannel):
         self._handlers_called = False
 
 
-class HttpSubSocketChannel(SocketChannelQObject, SubSocketChannel):
-
+class HttpSubSocketChannel(SubSocketChannel):
     #---------------------------------------------------------------------------
     # 'SubSocketChannel' interface
     #---------------------------------------------------------------------------
@@ -50,23 +93,9 @@ class HttpSubSocketChannel(SocketChannelQObject, SubSocketChannel):
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
-        
-        # Emit signals for specialized message types.
-        msg_type = msg['msg_type']
-        signal = getattr(self, msg_type + '_received', None)
-        if signal:
-            signal.emit(msg)
-        elif msg_type in ('stdout', 'stderr'):
-            self.stream_received.emit(msg)
+        manager.append(msg)
 
-    def flush(self):
-        """ Reimplemented to ensure that signals are dispatched immediately.
-        """
-        super(HttpSubSocketChannel, self).flush()
-
-
-class HttpRepSocketChannel(SocketChannelQObject, RepSocketChannel):
-
+class HttpRepSocketChannel(RepSocketChannel):
     #---------------------------------------------------------------------------
     # 'RepSocketChannel' interface
     #---------------------------------------------------------------------------
@@ -74,16 +103,10 @@ class HttpRepSocketChannel(SocketChannelQObject, RepSocketChannel):
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
-        # Emit the generic signal.
-        self.message_received.emit(msg)
-        
-        # Emit signals for specialized message types.
-        msg_type = msg['msg_type']
-        if msg_type == 'input_request':
-            self.input_requested.emit(msg)
+        pass
 
 
-class HttpHBSocketChannel(SocketChannelQObject, HBSocketChannel):
+class HttpHBSocketChannel(HBSocketChannel):
     #---------------------------------------------------------------------------
     # 'HBSocketChannel' interface
     #---------------------------------------------------------------------------
@@ -92,10 +115,10 @@ class HttpHBSocketChannel(SocketChannelQObject, HBSocketChannel):
         """ Reimplemented to emit signals instead of making callbacks.
         """
         # Emit the generic signal.
-        self.kernel_died.emit(since_last_heartbeat)
+        pass
 
 
-class HttpKernelManager(KernelManager, SuperQObject):
+class HttpKernelManager(KernelManager):
     """ A KernelManager that provides signals and slots.
     """
 
@@ -105,36 +128,3 @@ class HttpKernelManager(KernelManager, SuperQObject):
     rep_channel_class = Type(HttpRepSocketChannel)
     hb_channel_class = Type(HttpHBSocketChannel)
 
-    #---------------------------------------------------------------------------
-    # 'KernelManager' interface
-    #---------------------------------------------------------------------------
-
-    #------ Kernel process management ------------------------------------------
-
-    def start_kernel(self, *args, **kw):
-        """ Reimplemented for proper heartbeat management.
-        """
-        if self._xreq_channel is not None:
-            self._xreq_channel.reset_first_reply()
-        super(HttpKernelManager, self).start_kernel(*args, **kw)
-
-    @property
-    def xreq_channel(self):
-        """ Reimplemented for proper heartbeat management.
-        """
-        if self._xreq_channel is None:
-            self._xreq_channel = super(HttpKernelManager, self).xreq_channel
-            self._xreq_channel.first_reply.connect(self._first_reply)
-        return self._xreq_channel
-
-    #---------------------------------------------------------------------------
-    # Protected interface
-    #---------------------------------------------------------------------------
-    
-    def _first_reply(self):
-        """ Unpauses the heartbeat channel when the first reply is received on
-            the execute channel. Note that this will *not* start the heartbeat
-            channel if it is not already running!
-        """
-        if self._hb_channel is not None:
-            self._hb_channel.unpause()
