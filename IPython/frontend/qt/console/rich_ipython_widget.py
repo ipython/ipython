@@ -126,11 +126,26 @@ class RichIPythonWidget(IPythonWidget):
             image = self._get_image(name)
             image.save(filename, format)
 
-    def image_tag(self, match, path = None, format = "PNG"):
-        """ Given an re.match object matching an image name in an HTML dump,
-        return an appropriate substitution string for the image tag
-        (e.g., link, embedded image, ...).  As a side effect, files may
-        be generated in the directory given by path."""
+    def image_tag(self, match, path = None, format = "png"):
+        """ Return (X)HTML mark-up for the image-tag given by match.
+
+        Parameters
+        ----------
+        match : re.SRE_Match 
+            A match to an HTML image tag as exported by Qt, with
+            match.group("Name") containing the matched image ID.
+
+        path : string|None, optional [default None]
+            If not None, specifies a path to which supporting files
+            may be written (e.g., for linked images).
+            If None, all images are to be included inline.
+
+        format : "png"|"svg", optional [default "png"]
+            Format for returned or referenced images.
+
+        Subclasses supporting image display should override this
+        method.
+        """
 
         if(format == "png"):
             try:

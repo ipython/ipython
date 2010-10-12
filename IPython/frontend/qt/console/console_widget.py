@@ -508,14 +508,20 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._control.print_(printer)
 
     def export_html_inline(self, parent = None):
+        """ Export the contents of the ConsoleWidget as HTML with inline PNGs.
+        """
         self.export_html(parent, inline = True)
         
     def export_html(self, parent = None, inline = False):
-        """ Export the contents of the ConsoleWidget as an HTML file.
+        """ Export the contents of the ConsoleWidget as HTML.
 
-        If inline == True, include images as inline PNGs.  Otherwise,
-        include them as links to external PNG files, mimicking the
-        Firefox's "Web Page, complete" behavior.
+        Parameters:
+        -----------
+        inline : bool, optional [default True]
+
+            If True, include images as inline PNGs.  Otherwise,
+            include them as links to external PNG files, mimicking
+            Firefox's "Web Page, complete" behavior.
         """
         dialog = QtGui.QFileDialog(parent, 'Save HTML Document')
         dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
@@ -552,8 +558,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         return None
 
     def export_xhtml(self, parent = None):
-        """ Export the contents of the ConsoleWidget as an XHTML file
-        with figures as inline SVG.
+        """ Export the contents of the ConsoleWidget as XHTML with inline SVGs.
         """
         dialog = QtGui.QFileDialog(parent, 'Save XHTML Document')
         dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
@@ -581,11 +586,26 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             return filename
         return None
 
-    def image_tag(self, match, path = None):
-        """ Given an re.match object matching an image name in an HTML export,
-        return an appropriate substitution string for the image tag
-        (e.g., link, embedded image, ...).  As a side effect, files may
-        be generated in the directory given by path."""
+    def image_tag(self, match, path = None, format = "png"):
+        """ Return (X)HTML mark-up for the image-tag given by match.
+
+        Parameters
+        ----------
+        match : re.SRE_Match 
+            A match to an HTML image tag as exported by Qt, with
+            match.group("Name") containing the matched image ID.
+
+        path : string|None, optional [default None]
+            If not None, specifies a path to which supporting files
+            may be written (e.g., for linked images).
+            If None, all images are to be included inline.
+
+        format : "png"|"svg", optional [default "png"]
+            Format for returned or referenced images.
+
+        Subclasses supporting image display should override this
+        method.
+        """
 
         # Default case -- not enough information to generate tag
         return ""
