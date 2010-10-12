@@ -1,10 +1,7 @@
 """ Defines a KernelManager that provides signals and slots.
 """
-# IPython imports.
-from IPython.utils.traitlets import Type
-from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
-    XReqSocketChannel, RepSocketChannel, HBSocketChannel
 
+import os
 import time
 import json
 import Queue
@@ -27,38 +24,54 @@ class CometManager(object):
         for q in self.clients.values():
             q.put(msg)
     
-    def __contains__(self, item):
-        return item in self.clients
+    def __contains__(self, client_id):
+        return client_id in self.clients
             
 manager = CometManager()
 
 class IPyHttpHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        client_id = self.path.strip("/")
-        if self.path == "/notebook":
+        #Path is either a real path, or the client_id
+        path = self.path.strip("/")
+        if path in manager:
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            
+            #Manager.get blocks until a message is available
+            json.dump(manager.get(path), self.wfile)
+        elif path == "notebook":
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
             
+            #This is a good spot to add login mechanics
             client_id = str(time.time())
             manager.register(client_id)
             page_text = Template(open("notebook.html").read())
             
             self.wfile.write(page_text.safe_substitute(client_id = client_id))
-        elif client_id in manager:
+        elif os.path.exists(path):
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
             
-            #Manager.get blocks until a message is available
-            msg = json.dumps(manager.get(client_id))
-            self.wfile.write(msg)
+            self.wfile.write(open(path).read())
         else:
             self.send_response(404)
             self.end_headers()
+    
+    def do_POST(self):
+        raise NotImplementedError("POST is reserved for XREQ")
 
 class IPyHttpServer(ThreadingMixIn, HTTPServer):
     pass
+
+
+# IPython imports.
+from IPython.utils.traitlets import Type
+from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
+    XReqSocketChannel, RepSocketChannel, HBSocketChannel
 
 class HttpXReqSocketChannel(XReqSocketChannel):
     # Used by the first_reply signal logic to determine if a reply is the 
