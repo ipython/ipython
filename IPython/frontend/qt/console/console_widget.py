@@ -549,9 +549,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 # N.B. this is overly restrictive, but Qt's output is
                 # predictable...
                 img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
+                html = self.fix_html_encoding(
+                    str(self._control.toHtml().toUtf8()))
                 f.write(img_re.sub(
                     lambda x: self.image_tag(x, path = path, format = "png"),
-                    str(self._control.toHtml().toUtf8())))
+                    html))
             finally:
                 f.close()
             return filename
@@ -578,6 +580,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 assert(offset > -1)
                 html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
                         html[offset+6:])
+                # And now declare UTF-8 encoding
+                html = self.fix_html_encoding(html)
                 f.write(img_re.sub(
                     lambda x: self.image_tag(x, path = None, format = "svg"),
                     html))
@@ -585,6 +589,29 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 f.close()
             return filename
         return None
+
+    def fix_html_encoding(self, html):
+        """ Return html string, with a UTF-8 declaration added to <HEAD>.
+
+        Assumes that html is Qt generated and has already been UTF-8 encoded
+        and coerced to a python string.  If the expected head element is
+        not found, the given object is returned unmodified.
+
+        This patching is needed for proper rendering of some characters
+        (e.g., indented commands) when viewing exported HTML on a local
+        system (i.e., without seeing an encoding declaration in an HTTP
+        header).
+
+        C.f. http://www.w3.org/International/O-charset for details.
+        """
+        offset = html.find("<head>")
+        if(offset > -1):
+            html = (html[:offset+6]+
+                    '\n<meta http-equiv="Content-Type" '+
+                    'content="text/html; charset=utf-8" />\n'+
+                    html[offset+6:])
+
+        return html
 
     def image_tag(self, match, path = None, format = "png"):
         """ Return (X)HTML mark-up for the image-tag given by match.
