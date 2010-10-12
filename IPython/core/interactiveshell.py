@@ -2162,6 +2162,8 @@ class InteractiveShell(Configurable, Magic):
         tline = self.prefilter_manager.prefilter_line(line)
         return self.run_source(tline)
 
+    # PENDING REMOVAL: this method is slated for deletion, once our new
+    # input logic has been 100% moved to frontends and is stable.
     def runlines(self, lines, clean=False):
         """Run a string of one or more lines of source.
 
@@ -2339,7 +2341,9 @@ class InteractiveShell(Configurable, Magic):
         
     # For backwards compatibility
     runcode = run_code
-    
+
+    # PENDING REMOVAL: this method is slated for deletion, once our new
+    # input logic has been 100% moved to frontends and is stable.
     def push_line(self, line):
         """Push a line to the interpreter.
 
