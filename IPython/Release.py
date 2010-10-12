@@ -93,8 +93,8 @@ The parallel computing architecture has the following main features:
 
 * Robust error handling in parallel code.
 
-The latest development version is always available from IPython's `Launchpad 
-site <http://launchpad.net/ipython>`_.
+The latest development version is always available from IPython's `GitHub 
+site <http://github.com/ipython/ipython>`_.
 """
 
 license = 'BSD'
