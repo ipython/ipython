@@ -76,11 +76,11 @@ EXCLUDE = [pjoin('IPython', 'external'),
            pjoin('IPython', 'testing', 'tutils'),
            pjoin('IPython', 'testing', 'tools'),
            pjoin('IPython', 'testing', 'mkdoctests'),
+           pjoin('IPython', 'gui'),
            ]
 
 if not have_wx:
     EXCLUDE.append(pjoin('IPython', 'Extensions', 'igrid'))
-    EXCLUDE.append(pjoin('IPython', 'gui'))
     EXCLUDE.append(pjoin('IPython', 'frontend', 'wx'))
 
 if not have_wx_aui:

@@ -40,6 +40,7 @@ cd(ipdir)
 c('./setup.py register')
 
 # Upload all files
+c('./setup.py sdist --formats=gztar,zip upload')
 cd(distdir)
 print "Uploading distribution files..."
 c('scp * ipython@ipython.scipy.org:www/dist/')

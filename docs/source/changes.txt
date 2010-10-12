@@ -12,6 +12,102 @@
 What's new
 ==========
 
+Release 0.10.1
+==============
+
+IPython 0.10.1 was released October 11, 2010, over a year after version 0.10.
+This is mostly a bugfix release, since after version 0.10 was released, the
+development team's energy has been focused on the 0.11 series.  We have
+nonetheless tried to backport what fixes we could into 0.10.1, as it remains
+the stable series that many users have in production systems they rely on.
+
+Since the 0.11 series changes many APIs in backwards-incompatible ways, we are
+willing to continue maintaining the 0.10.x series.  We don't really have time
+to actively write new code for 0.10.x, but we are happy to accept patches and
+pull requests on the IPython `github site`_.  If sufficient contributions are
+made that improve 0.10.1, we will roll them into future releases.  For this
+purpose, we will have a branch called 0.10.2 on github, on which you can base
+your contributions.
+
+.. _github site: http://github.com/ipython
+
+For this release, we applied approximately 60 commits totaling a diff of over
+7000 lines::
+
+    (0.10.1)amirbar[dist]> git diff --oneline rel-0.10.. | wc -l
+    7296
+
+Highlights of this release:
+
+- The only significant new feature is that IPython's parallel computing
+  machinery now supports natively the Sun Grid Engine and LSF schedulers.  This
+  work was a joint contribution from Justin Riley, Satra Ghosh and Matthieu
+  Brucher, who put a lot of work into it.  We also improved traceback handling
+  in remote tasks, as well as providing better control for remote task IDs.
+
+- New IPython Sphinx directive.  You can use this directive to mark blocks in
+  reSructuredText documents as containig IPython syntax (including figures) and
+  the will be executed during the build::
+
+  .. ipython::
+
+      In [2]: plt.figure()  # ensure a fresh figure
+
+      @savefig psimple.png width=4in
+      In [3]: plt.plot([1,2,3])
+      Out[3]: [<matplotlib.lines.Line2D object at 0x9b74d8c>]
+
+- Various fixes to the standalone ipython-wx application.
+
+- We now ship internally the excellent argparse library, graciously licensed
+  under BSD terms by Steven Bethard.  Now (2010) that argparse has become part
+  of Python 2.7 this will be less of an issue, but Steven's relicensing allowed
+  us to start updating IPython to using argparse well before Python 2.7.  Many
+  thanks!
+
+- Robustness improvements so that IPython doesn't crash if the readline library
+  is absent (though obviously a lot of functionality that requires readline
+  will not be available).
+  
+- Improvements to tab completion in Emacs with Python 2.6.
+
+- Logging now supports timestamps (see ``%logstart?`` for full details).
+
+- A long-standing and quite annoying bug where parentheses would be added to
+  ``print`` statements, under Python 2.5 and 2.6, was finally fixed.
+
+- Improved handling of libreadline on Apple OSX.
+
+- Fix ``reload`` method of IPython demos, which was broken.
+
+- Fixes for the ipipe/ibrowse system on OSX.
+
+- Fixes for Zope profile.
+
+- Fix %timeit reporting when the time is longer than 1000s.
+
+- Avoid lockups with ? or ?? in SunOS, due to a bug in termios.
+  
+- The usual assortment of miscellaneous bug fixes and small improvements.
+      
+The following people contributed to this release (please let us know if we
+ommitted your name and we'll gladly fix this in the notes for the future):
+
+* Beni Cherniavsky
+* Boyd Waters.
+* David Warde-Farley
+* Fernando Perez
+* Gökhan Sever
+* Justin Riley
+* Kiorky
+* Laurent Dufrechou
+* Mark E. Smith
+* Matthieu Brucher
+* Satrajit Ghosh
+* Sebastian Busch
+* Václav Šmilauer
+    
+
 Release 0.10
 ============
 

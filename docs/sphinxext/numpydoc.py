@@ -67,8 +67,9 @@ def mangle_docstrings(app, what, name, obj, options, lines,
 
 def mangle_signature(app, what, name, obj, options, sig, retann):
     # Do not try to inspect classes that don't define `__init__`
-    if (inspect.isclass(obj) and
-        'initializes x; see ' in pydoc.getdoc(obj.__init__)):
+    init = getattr(obj, '__init__', None)
+    if (init is not None and
+        'initializes x; see ' in pydoc.getdoc(init)):
         return '', ''
 
     if not (callable(obj) or hasattr(obj, '__argspec_is_invalid_')): return
