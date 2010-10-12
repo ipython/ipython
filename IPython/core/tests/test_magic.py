@@ -161,7 +161,7 @@ def test_shist():
     tfile = tempfile.mktemp('','tmp-ipython-')
     
     db = pickleshare.PickleShareDB(tfile)
-    s = ShadowHist(db)
+    s = ShadowHist(db, get_ipython())
     s.add('hello')
     s.add('world')
     s.add('hello')

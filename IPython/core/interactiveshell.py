@@ -154,6 +154,8 @@ class InteractiveShell(Configurable, Magic):
     deep_reload = CBool(False, config=True)
     displayhook_class = Type(DisplayHook)
     exit_now = CBool(False)
+    # Monotonically increasing execution counter
+    execution_count = Int(1)
     filename = Str("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
 
@@ -370,6 +372,10 @@ class InteractiveShell(Configurable, Magic):
         self.compile = codeop.CommandCompiler()
 
         # User input buffers
+        # NOTE: these variables are slated for full removal, once we are 100%
+        # sure that the new execution logic is solid.  We will delte runlines,
+        # push_line and these buffers, as all input will be managed by the
+        # frontends via an inputsplitter instance.
         self.buffer = []
         self.buffer_raw = []
 
@@ -398,9 +404,6 @@ class InteractiveShell(Configurable, Magic):
 
         # Indentation management
         self.indent_current_nsp = 0
-
-        # Increasing execution counter
-        self.execution_count = 1
 
     def init_environment(self):
         """Any changes we need to make to the user's environment."""
@@ -2066,27 +2069,6 @@ class InteractiveShell(Configurable, Magic):
         cell : str
           A single or multiline string.
         """
-        #################################################################
-        # FIXME
-        # =====
-        # This execution logic should stop calling runlines altogether, and
-        # instead we should do what runlines does, in a controlled manner, here
-        # (runlines mutates lots of state as it goes calling sub-methods that
-        # also mutate state).  Basically we should:
-        # - apply dynamic transforms for single-line input (the ones that
-        # split_blocks won't apply since they need context).
-        # - increment the global execution counter (we need to pull that out
-        # from outputcache's control; outputcache should instead read it from
-        # the main object).
-        # - do any logging of input
-        # - update histories (raw/translated)
-        # - then, call plain run_source (for single blocks, so displayhook is
-        # triggered) or run_code (for multiline blocks in exec mode).
-        #
-        # Once this is done, we'll be able to stop using runlines and we'll
-        # also have a much cleaner separation of logging, input history and
-        # output cache management.
-        #################################################################
         
         # We need to break up the input into executable blocks that can be run
         # in 'single' mode, to provide comfortable user behavior.

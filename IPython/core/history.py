@@ -20,7 +20,6 @@ import sys
 # Our own packages
 import IPython.utils.io
 
-from IPython.core import ipapi
 from IPython.core.inputlist import InputList
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.io import ask_yes_no
@@ -118,7 +117,7 @@ class HistoryManager(object):
             print(r"only has ASCII characters, e.g. c:\home")
             print("Now it is", self.ipython_dir)
             sys.exit()
-        self.shadow_hist = ShadowHist(self.shadow_db)
+        self.shadow_hist = ShadowHist(self.shadow_db, self.shell)
         
     def save_hist(self):
         """Save input history to a file (via readline library)."""
@@ -456,11 +455,12 @@ def rep_f(self, arg):
 _sentinel = object()
 
 class ShadowHist(object):
-    def __init__(self, db):
+    def __init__(self, db, shell):
         # cmd => idx mapping
         self.curidx = 0
         self.db = db
         self.disabled = False
+        self.shell = shell
     
     def inc_idx(self):
         idx = self.db.get('shadowhist_idx', 1)
@@ -478,7 +478,7 @@ class ShadowHist(object):
             #print("new", newidx) # dbg
             self.db.hset('shadowhist',ent, newidx)
         except:
-            ipapi.get().showtraceback()
+            self.shell.showtraceback()
             print("WARNING: disabling shadow history")
             self.disabled = True
     
