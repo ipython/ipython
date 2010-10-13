@@ -144,7 +144,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         document.contentsChange.connect(self._document_contents_change)
         
         # set flag for whether we are connected via localhost
-        self._local_kernel = kw.get('local_kernel', False)
+        self._local_kernel = kw.get('local_kernel', FrontendWidget._local_kernel)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
