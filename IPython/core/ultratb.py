@@ -1090,7 +1090,7 @@ class FormattedTB(VerboseTB, ListTB):
         # include variable details only in 'Verbose' mode
         self.include_vars = (self.mode == self.valid_modes[2])
         # Set the join character for generating text tracebacks
-        self.tb_join_char = self._join_chars[mode]
+        self.tb_join_char = self._join_chars[self.mode]
 
     # some convenient shorcuts
     def plain(self):

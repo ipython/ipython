@@ -355,3 +355,10 @@ def test_cpaste():
 
     for code in tests['fail']:
         check_cpaste(code, should_fail=True)
+
+def test_xmode():
+    # Calling xmode three times should be a no-op
+    xmode = _ip.InteractiveTB.mode
+    for i in range(3):
+        _ip.magic("xmode")
+    nt.assert_equal(_ip.InteractiveTB.mode, xmode)
