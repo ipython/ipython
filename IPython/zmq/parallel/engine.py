@@ -7,6 +7,7 @@ import sys
 import time
 import traceback
 import uuid
+from pprint import pprint
 
 import zmq
 from zmq.eventloop import ioloop, zmqstream
@@ -20,7 +21,7 @@ import heartmonitor
 
 
 def printer(*msg):
-    print msg
+    pprint(msg)
 
 class Engine(object):
     """IPython engine"""
@@ -29,26 +30,23 @@ class Engine(object):
     context=None
     loop=None
     session=None
-    queue_id=None
-    control_id=None
-    heart_id=None
+    ident=None
     registrar=None
     heart=None
     kernel=None
     
-    def __init__(self, context, loop, session, registrar, client, queue_id=None, heart_id=None):
+    def __init__(self, context, loop, session, registrar, client, ident=None, heart_id=None):
         self.context = context
         self.loop = loop
         self.session = session
         self.registrar = registrar
         self.client = client
-        self.queue_id = queue_id or str(uuid.uuid4())
-        self.heart_id = heart_id or self.queue_id
+        self.ident = ident if ident else str(uuid.uuid4())
         self.registrar.on_send(printer)
         
     def register(self):
         
-        content = dict(queue=self.queue_id, heartbeat=self.heart_id)
+        content = dict(queue=self.ident, heartbeat=self.ident, control=self.ident)
         self.registrar.on_recv(self.complete_registration)
         self.session.send(self.registrar, "registration_request",content=content)
     
@@ -61,14 +59,14 @@ class Engine(object):
             queue_addr = msg.content.queue
             if queue_addr:
                 queue = self.context.socket(zmq.PAIR)
-                queue.setsockopt(zmq.IDENTITY, self.queue_id)
+                queue.setsockopt(zmq.IDENTITY, self.ident)
                 queue.connect(str(queue_addr))
                 self.queue = zmqstream.ZMQStream(queue, self.loop)
             
             control_addr = msg.content.control
             if control_addr:
                 control = self.context.socket(zmq.PAIR)
-                control.setsockopt(zmq.IDENTITY, self.queue_id)
+                control.setsockopt(zmq.IDENTITY, self.ident)
                 control.connect(str(control_addr))
                 self.control = zmqstream.ZMQStream(control, self.loop)
             
@@ -81,14 +79,14 @@ class Engine(object):
                 self.task_stream = zmqstream.ZMQStream(task, self.loop)
                 # TaskThread:
                 # mon_addr = msg.content.monitor
-                # task = taskthread.TaskThread(zmq.PAIR, zmq.PUB, self.queue_id)
+                # task = taskthread.TaskThread(zmq.PAIR, zmq.PUB, self.ident)
                 # task.connect_in(str(task_addr))
                 # task.connect_out(str(mon_addr))
                 # self.task_stream = taskthread.QueueStream(*task.queues)
                 # task.start()
             
             hbs = msg.content.heartbeat
-            self.heart = heartmonitor.Heart(*map(str, hbs), heart_id=self.heart_id)
+            self.heart = heartmonitor.Heart(*map(str, hbs), heart_id=self.ident)
             self.heart.start()
             # ioloop.DelayedCallback(self.heart.start, 1000, self.loop).start()
             # placeholder for now:

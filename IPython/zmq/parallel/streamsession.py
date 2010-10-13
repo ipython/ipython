@@ -257,7 +257,7 @@ def unpack_apply_message(bufs, g=None, copy=True):
 
 class StreamSession(object):
     """tweaked version of IPython.zmq.session.Session, for development in Parallel"""
-
+    debug=False
     def __init__(self, username=None, session=None, packer=None, unpacker=None):
         if username is None:
             username = os.environ.get('USER','username')
@@ -335,6 +335,10 @@ class StreamSession(object):
         if buffers:
             stream.send(buffers[-1], copy=False)
         omsg = Message(msg)
+        if self.debug:
+            pprint.pprint(omsg)
+            pprint.pprint(to_send)
+            pprint.pprint(buffers)
         return omsg
 
     def recv(self, socket, mode=zmq.NOBLOCK, content=True, copy=True):

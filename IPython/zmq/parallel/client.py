@@ -4,6 +4,8 @@
 import time
 import threading
 
+from pprint import pprint
+
 from functools import wraps
 
 from IPython.external.decorator import decorator
@@ -46,7 +48,9 @@ def defaultblock(f, self, *args, **kwargs):
     self.block = saveblock
     return ret
 
-
+class AbortedTask(object):
+    def __init__(self, msg_id):
+        self.msg_id = msg_id
 # @decorator
 # def checktargets(f):
 #     @wraps(f)
@@ -101,7 +105,11 @@ class Client(object):
     execution methods: apply/apply_bound/apply_to
         legacy: execute, run
     
-    control methods: queue_status, get_result
+    query methods: queue_status, get_result
+    
+    control methods: abort, kill
+    
+    
     
     """
     
@@ -109,7 +117,8 @@ class Client(object):
     _connected=False
     _engines=None
     registration_socket=None
-    controller_socket=None
+    query_socket=None
+    control_socket=None
     notification_socket=None
     queue_socket=None
     task_socket=None
@@ -117,8 +126,9 @@ class Client(object):
     outstanding=None
     results = None
     history = None
+    debug = False
     
-    def __init__(self, addr, context=None, username=None):
+    def __init__(self, addr, context=None, username=None, debug=False):
         if context is None:
             context = zmq.Context()
         self.context = context
@@ -135,6 +145,8 @@ class Client(object):
         self.outstanding=set()
         self.results = {}
         self.history = []
+        self.debug = debug
+        self.session.debug = debug
         self._connect()
         
         self._notification_handlers = {'registration_notification' : self._register_engine,
@@ -152,7 +164,7 @@ class Client(object):
     def _update_engines(self, engines):
         for k,v in engines.iteritems():
             eid = int(k)
-            self._engines[eid] = v
+            self._engines[eid] = bytes(v) # force not unicode
             self._ids.add(eid)
     
     def _build_targets(self, targets):
@@ -173,7 +185,9 @@ class Client(object):
             return
         self._connected=True
         self.session.send(self.registration_socket, 'connection_request')
-        msg = self.session.recv(self.registration_socket,mode=0)[-1]
+        idents,msg = self.session.recv(self.registration_socket,mode=0)
+        if self.debug:
+            pprint(msg)
         msg = ss.Message(msg)
         content = msg.content
         if content.status == 'ok':
@@ -189,10 +203,14 @@ class Client(object):
                 self.notification_socket = self.context.socket(zmq.SUB)
                 self.notification_socket.connect(content.notification)
                 self.notification_socket.setsockopt(zmq.SUBSCRIBE, "")
-            if content.controller:
-                self.controller_socket = self.context.socket(zmq.PAIR)
-                self.controller_socket.setsockopt(zmq.IDENTITY, self.session.session)
-                self.controller_socket.connect(content.controller)
+            if content.query:
+                self.query_socket = self.context.socket(zmq.PAIR)
+                self.query_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                self.query_socket.connect(content.query)
+            if content.control:
+                self.control_socket = self.context.socket(zmq.PAIR)
+                self.control_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                self.control_socket.connect(content.control)
             self._update_engines(dict(content.engines))
                 
         else:
@@ -226,7 +244,7 @@ class Client(object):
         self.results[msg_id] = ss.unwrap_exception(msg['content'])
     
     def _handle_apply_reply(self, msg):
-        # print msg
+        # pprint(msg)
         # msg_id = msg['msg_id']
         parent = msg['parent_header']
         msg_id = parent['msg_id']
@@ -237,14 +255,19 @@ class Client(object):
         content = msg['content']
         if content['status'] == 'ok':
             self.results[msg_id] = ss.unserialize_object(msg['buffers'])
+        elif content['status'] == 'aborted':
+            self.results[msg_id] = AbortedTask(msg_id)
+        elif content['status'] == 'resubmitted':
+            pass # handle resubmission
         else:
-            
             self.results[msg_id] = ss.unwrap_exception(content)
     
     def _flush_notifications(self):
         "flush incoming notifications of engine registrations"
         msg = self.session.recv(self.notification_socket, mode=zmq.NOBLOCK)
         while msg is not None:
+            if self.debug:
+                pprint(msg)
             msg = msg[-1]
             msg_type = msg['msg_type']
             handler = self._notification_handlers.get(msg_type, None)
@@ -258,6 +281,8 @@ class Client(object):
         "flush incoming task or queue results"
         msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
+            if self.debug:
+                pprint(msg)
             msg = msg[-1]
             msg_type = msg['msg_type']
             handler = self._queue_handlers.get(msg_type, None)
@@ -265,6 +290,14 @@ class Client(object):
                 raise Exception("Unhandled message type: %s"%msg.msg_type)
             else:
                 handler(msg)
+            msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+    
+    def _flush_control(self, sock):
+        "flush incoming control replies"
+        msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        while msg is not None:
+            if self.debug:
+                pprint(msg)
             msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
     ###### get/setitem ########
@@ -297,6 +330,8 @@ class Client(object):
             self._flush_results(self.queue_socket)
         if self.task_socket:
             self._flush_results(self.task_socket)
+        if self.control_socket:
+            self._flush_control(self.control_socket)
     
     @spinfirst
     def queue_status(self, targets=None, verbose=False):
@@ -308,25 +343,79 @@ class Client(object):
                 the engines on which to execute
                 default : all
         verbose : bool
-                whether to return 
+                whether to return lengths only, or lists of ids for each element
                 
         """
         targets = self._build_targets(targets)[1]
         content = dict(targets=targets)
-        self.session.send(self.controller_socket, "queue_request", content=content)
-        idents,msg = self.session.recv(self.controller_socket, 0)
+        self.session.send(self.query_socket, "queue_request", content=content)
+        idents,msg = self.session.recv(self.query_socket, 0)
+        if self.debug:
+            pprint(msg)
         return msg['content']
         
     @spinfirst
-    def clear(self, targets=None):
+    @defaultblock
+    def clear(self, targets=None, block=None):
         """clear the namespace in target(s)"""
-        pass
+        targets = self._build_targets(targets)[0]
+        print targets
+        for t in targets:
+            self.session.send(self.control_socket, 'clear_request', content={},ident=t)
+        error = False
+        if self.block:
+            for i in range(len(targets)):
+                idents,msg = self.session.recv(self.control_socket,0)
+                if self.debug:
+                    pprint(msg)
+                if msg['content']['status'] != 'ok':
+                    error = msg['content']
+        if error:
+            return error
+        
     
     @spinfirst
-    def abort(self, targets=None):
+    @defaultblock
+    def abort(self, msg_ids = None, targets=None, block=None):
         """abort the Queues of target(s)"""
-        pass
+        targets = self._build_targets(targets)[0]
+        print targets
+        if isinstance(msg_ids, basestring):
+            msg_ids = [msg_ids]
+        content = dict(msg_ids=msg_ids)
+        for t in targets:
+            self.session.send(self.control_socket, 'abort_request', 
+                    content=content, ident=t)
+        error = False
+        if self.block:
+            for i in range(len(targets)):
+                idents,msg = self.session.recv(self.control_socket,0)
+                if self.debug:
+                    pprint(msg)
+                if msg['content']['status'] != 'ok':
+                    error = msg['content']
+        if error:
+            return error
     
+    @spinfirst
+    @defaultblock
+    def kill(self, targets=None, block=None):
+        """Terminates one or more engine processes."""
+        targets = self._build_targets(targets)[0]
+        print targets
+        for t in targets:
+            self.session.send(self.control_socket, 'kill_request', content={},ident=t)
+        error = False
+        if self.block:
+            for i in range(len(targets)):
+                idents,msg = self.session.recv(self.control_socket,0)
+                if self.debug:
+                    pprint(msg)
+                if msg['content']['status'] != 'ok':
+                    error = msg['content']
+        if error:
+            return error
+        
     @defaultblock
     def execute(self, code, targets='all', block=None):
         """executes `code` on `targets` in blocking or nonblocking manner.
@@ -363,22 +452,6 @@ class Client(object):
         """
         result = self.apply(execute, (code,), targets=None, block=block, bound=False)
         return result
-        
-        # a = time.time()
-        # content = dict(code=code)
-        # b = time.time()
-        # msg = self.session.send(self.task_socket, 'execute_request', 
-        #         content=content)
-        # c = time.time()
-        # msg_id = msg['msg_id']
-        # self.outstanding.add(msg_id)
-        # self.history.append(msg_id)
-        # d = time.time()
-        # if block:
-        #     self.barrier(msg_id)
-        #     return self.results[msg_id]
-        # else:
-        #     return msg_id
     
     def _apply_balanced(self, f, args, kwargs, bound=True, block=None):
         """the underlying method for applying functions in a load balanced
@@ -402,7 +475,7 @@ class Client(object):
         """Then underlying method for applying functions to specific engines."""
         block = block if block is not None else self.block
         queues,targets = self._build_targets(targets)
-        
+        print queues
         bufs = ss.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)
         msg_ids = []
@@ -438,51 +511,16 @@ class Client(object):
         """
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
+        if not isinstance(args, (tuple, list)):
+            raise TypeError("args must be tuple or list, not %s"%type(args))
+        if not isinstance(kwargs, dict):
+            raise TypeError("kwargs must be dict, not %s"%type(kwargs))
         if targets is None:
             return self._apply_balanced(f,args,kwargs,bound=bound, block=block)
         else:
             return self._apply_direct(f, args, kwargs,
                         bound=bound,block=block, targets=targets)
     
-    # def apply_bound(self, f, *args, **kwargs):
-    #     """calls f(*args, **kwargs) on a remote engine. This does get
-    #     executed in an engine's namespace. The controller selects the 
-    #     target engine via 0MQ XREQ load balancing.
-    #     
-    #     if self.block is False:
-    #         returns msg_id
-    #     else:
-    #         returns actual result of f(*args, **kwargs)
-    #     """
-    #     return self._apply(f, args, kwargs, bound=True)
-    # 
-    # 
-    # def apply_to(self, targets, f, *args, **kwargs):
-    #     """calls f(*args, **kwargs) on a specific engine.
-    #     
-    #     if self.block is False:
-    #         returns msg_id
-    #     else:
-    #         returns actual result of f(*args, **kwargs)
-    #     
-    #     The target's namespace is not used here.
-    #     Use apply_bound_to() to access target's globals.
-    #     """
-    #     return self._apply_to(False, targets, f, args, kwargs)
-    # 
-    # def apply_bound_to(self, targets, f, *args, **kwargs):
-    #     """calls f(*args, **kwargs) on a specific engine.
-    #     
-    #     if self.block is False:
-    #         returns msg_id
-    #     else:
-    #         returns actual result of f(*args, **kwargs)
-    #     
-    #     This method has access to the target's globals
-    #     
-    #     """
-    #     return self._apply_to(f, args, kwargs)
-    # 
     def push(self, ns, targets=None, block=None):
         """push the contents of `ns` into the namespace on `target`"""
         if not isinstance(ns, dict):
@@ -546,9 +584,11 @@ class Client(object):
             theids.append(msg_id)
         
         content = dict(msg_ids=theids, status_only=status_only)
-        msg = self.session.send(self.controller_socket, "result_request", content=content)
-        zmq.select([self.controller_socket], [], [])
-        idents,msg = self.session.recv(self.controller_socket, zmq.NOBLOCK)
+        msg = self.session.send(self.query_socket, "result_request", content=content)
+        zmq.select([self.query_socket], [], [])
+        idents,msg = self.session.recv(self.query_socket, zmq.NOBLOCK)
+        if self.debug:
+            pprint(msg)
         
         # while True:
         #     try:

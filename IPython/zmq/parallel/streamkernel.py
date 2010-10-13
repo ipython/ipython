@@ -4,10 +4,12 @@ Kernel adapted from kernel.py to use ZMQ Streams
 """
 
 import __builtin__
+import os
 import sys
 import time
 import traceback
 from signal import SIGTERM, SIGKILL
+from pprint import pprint
 
 from code import CommandCompiler
 
@@ -17,6 +19,9 @@ from zmq.eventloop import ioloop, zmqstream
 from streamsession import StreamSession, Message, extract_header, serialize_object,\
                 unpack_apply_message
 from IPython.zmq.completer import KernelCompleter
+
+def printer(*args):
+    pprint(args)
 
 class OutStream(object):
     """A file like object that publishes the stream to a 0MQ PUB socket."""
@@ -133,6 +138,7 @@ class Kernel(object):
                                             task_stream=None, client=None):
         self.session = session
         self.control_stream = control_stream
+        self.control_socket = control_stream.socket
         self.reply_stream = reply_stream
         self.task_stream = task_stream
         self.pub_stream = pub_stream
@@ -153,6 +159,10 @@ class Kernel(object):
             self.control_handlers[msg_type] = getattr(self, msg_type)
 
     #-------------------- control handlers -----------------------------
+    def abort_queues(self):
+        for stream in (self.task_stream, self.reply_stream):
+            if stream:
+                self.abort_queue(stream)
     
     def abort_queue(self, stream):
         while True:
@@ -186,28 +196,30 @@ class Kernel(object):
             time.sleep(0.05)
     
     def abort_request(self, stream, ident, parent):
+        """abort a specifig msg by id"""
         msg_ids = parent['content'].get('msg_ids', None)
+        if isinstance(msg_ids, basestring):
+            msg_ids = [msg_ids]
         if not msg_ids:
-            self.abort_queue(self.task_stream)
-            self.abort_queue(self.reply_stream)
+            self.abort_queues()
         for mid in msg_ids:
-            self.aborted.add(mid)
+            self.aborted.add(str(mid))
         
         content = dict(status='ok')
-        self.session.send(stream, 'abort_reply', content=content, parent=parent,
+        reply_msg = self.session.send(stream, 'abort_reply', content=content, parent=parent,
                                                                     ident=ident)
+        print>>sys.__stdout__, Message(reply_msg)
     
     def kill_request(self, stream, idents, parent):
-        self.abort_queue(self.reply_stream)
-        if self.task_stream:
-            self.abort_queue(self.task_stream)
+        """kill ourselves.  This should really be handled in an external process"""
+        self.abort_queues()
         msg = self.session.send(stream, 'kill_reply', ident=idents, parent=parent, 
                 content = dict(status='ok'))
         # we can know that a message is done if we *don't* use streams, but 
         # use a socket directly with MessageTracker
-        time.sleep(1)
+        time.sleep(.5)
         os.kill(os.getpid(), SIGTERM)
-        time.sleep(.25)
+        time.sleep(1)
         os.kill(os.getpid(), SIGKILL)
     
     def dispatch_control(self, msg):
@@ -221,7 +233,7 @@ class Kernel(object):
         if handler is None:
             print >> sys.__stderr__, "UNKNOWN CONTROL MESSAGE TYPE:", msg
         else:
-            handler(stream, idents, msg)
+            handler(self.control_stream, idents, msg)
     
     def flush_control(self):
         while any(zmq.select([self.control_socket],[],[],1e-4)):
@@ -257,6 +269,16 @@ class Kernel(object):
                 return False
         
         return True
+    
+    def check_aborted(self, msg_id):
+        return msg_id in self.aborted
+    
+    def unmet_dependencies(self, stream, idents, msg):
+        reply_type = msg['msg_type'].split('_')[0] + '_reply'
+        content = dict(status='resubmitted', reason='unmet dependencies')
+        reply_msg = self.session.send(stream, reply_type, 
+                    content=content, parent=msg, ident=idents)
+        ### TODO: actually resubmit it ###
     
     #-------------------- queue handlers -----------------------------
     
@@ -297,7 +319,7 @@ class Kernel(object):
         reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, ident=ident)
         # print>>sys.__stdout__, Message(reply_msg)
         if reply_msg['content']['status'] == u'error':
-            self.abort_queue()
+            self.abort_queues()
 
     def complete_request(self, stream, ident, parent):
         matches = {'matches' : self.complete(parent),
@@ -334,7 +356,7 @@ class Kernel(object):
                 
             else:
                 working = dict()
-                suffix = prefix = ""
+                suffix = prefix = "_" # prevent keyword collisions with lambda
             f,args,kwargs = unpack_apply_message(bufs, working, copy=False)
             # if f.fun
             fname = prefix+f.func_name.strip('<>')+suffix
@@ -379,7 +401,7 @@ class Kernel(object):
         reply_msg = self.session.send(stream, u'apply_reply', reply_content, parent=parent, ident=ident,buffers=result_buf)
         # print>>sys.__stdout__, Message(reply_msg)
         if reply_msg['content']['status'] == u'error':
-            self.abort_queue()
+            self.abort_queues()
     
     def dispatch_queue(self, stream, msg):
         self.flush_control()
@@ -389,12 +411,15 @@ class Kernel(object):
         header = msg['header']
         msg_id = header['msg_id']
         dependencies = header.get('dependencies', [])
-        
         if self.check_aborted(msg_id):
-            return self.abort_reply(stream, msg)
+            self.aborted.remove(msg_id)
+            # is it safe to assume a msg_id will not be resubmitted?
+            reply_type = msg['msg_type'].split('_')[0] + '_reply'
+            reply_msg = self.session.send(stream, reply_type, 
+                        content={'status' : 'aborted'}, parent=msg, ident=idents)
+            return
         if not self.check_dependencies(dependencies):
-            return self.unmet_dependencies(stream, msg)
-        
+            return self.unmet_dependencies(stream, idents, msg)
         handler = self.queue_handlers.get(msg['msg_type'], None)
         if handler is None:
             print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", msg
@@ -405,12 +430,15 @@ class Kernel(object):
         #### stream mode:
         if self.control_stream:
             self.control_stream.on_recv(self.dispatch_control, copy=False)
+            self.control_stream.on_err(printer)
         if self.reply_stream:
             self.reply_stream.on_recv(lambda msg: 
                     self.dispatch_queue(self.reply_stream, msg), copy=False)
+            self.reply_stream.on_err(printer)
         if self.task_stream:
             self.task_stream.on_recv(lambda msg: 
                     self.dispatch_queue(self.task_stream, msg), copy=False)
+            self.task_stream.on_err(printer)
         
         #### while True mode:
         # while True:

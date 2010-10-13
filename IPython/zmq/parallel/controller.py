@@ -297,6 +297,8 @@ class Controller(object):
             self.save_task_result(idents, msg)
         elif switch == 'tracktask':
             self.save_task_destination(idents, msg)
+        elif switch in ('incontrol', 'outcontrol'):
+            pass
         else:
             logger.error("Invalid message topic: %s"%switch)
         

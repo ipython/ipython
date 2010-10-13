@@ -124,7 +124,7 @@ def setup():
     
     client_addrs = {
         'control' : "%s:%i"%(iface, ccport),
-        'controller': "%s:%i"%(iface, cport),
+        'query': "%s:%i"%(iface, cport),
         'queue': "%s:%i"%(iface, cqport),
         'task' : "%s:%i"%(iface, ctport),
         'notification': "%s:%i"%(iface, nport)

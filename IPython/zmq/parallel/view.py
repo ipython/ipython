@@ -103,7 +103,7 @@ class View(object):
         This method has access to the targets' globals
         
         """
-        return self.client.apply(f, args, kwargs, block=False, targets=self.targets, bound=True)
+        return self.client.apply(f, args, kwargs, block=True, targets=self.targets, bound=True)
     
 
 class DirectView(View):
@@ -129,12 +129,28 @@ class DirectView(View):
     def __setitem__(self,key,value):
         self.update({key:value})
     
-    def clear(self):
-        """clear the remote namespace"""
-        return self.client.clear(targets=self.targets,block=self.block)
+    def clear(self, block=False):
+        """Clear the remote namespaces on my engines."""
+        block = block if block is not None else self.block
+        return self.client.clear(targets=self.targets,block=block)
     
-    def abort(self):
-        return self.client.abort(targets=self.targets,block=self.block)
+    def kill(self, block=True):
+        """Kill my engines."""
+        block = block if block is not None else self.block
+        return self.client.kill(targets=self.targets,block=block)
+    
+    def abort(self, msg_ids=None, block=None):
+        """Abort jobs on my engines.
+        
+        Parameters
+        ----------
+        
+        msg_ids : None, str, list of strs, optional
+            if None: abort all jobs.
+            else: abort specific msg_id(s).
+        """
+        block = block if block is not None else self.block
+        return self.client.abort(msg_ids=msg_ids, targets=self.targets, block=block)
 
 class LoadBalancedView(View):
     _targets=None
