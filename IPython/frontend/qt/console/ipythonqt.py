@@ -31,18 +31,24 @@ class MainWindow(QtGui.QMainWindow):
     # 'object' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, app, frontend, existing=False):
+    def __init__(self, app, frontend, existing=False, may_close=True):
         """ Create a MainWindow for the specified FrontendWidget.
         
         The app is passed as an argument to allow for different
         closing behavior depending on whether we are the Kernel's parent.
         
-        If existing is True, then this Window does not own the Kernel.
+        If existing is True, then this Console does not own the Kernel.
+        
+        If may_close is True, then this Console is permitted to close the kernel
         """
         super(MainWindow, self).__init__()
         self._app = app
         self._frontend = frontend
         self._existing = existing
+        if not existing:
+            self._may_close = may_close
+        else:
+            self._may_close = True
         self._frontend.exit_requested.connect(self.close)
         self.setCentralWidget(frontend)
     
@@ -56,22 +62,34 @@ class MainWindow(QtGui.QMainWindow):
         kernel_manager = self._frontend.kernel_manager
         if kernel_manager and kernel_manager.channels_running:
             title = self.window().windowTitle()
-            reply = QtGui.QMessageBox.question(self, title,
-                "You are closing this Console window."+
-                "\nWould you like to quit the Kernel and all attached Consoles as well?",
-                'Cancel', 'No, just this Console', 'Yes, quit everything')
-            if reply == 2: # close All
-                kernel_manager.shutdown_kernel()
-                #kernel_manager.stop_channels()
-                event.accept()
-            elif reply == 1: # close Console
-                if not self._existing:
-                    # I have the kernel: don't quit, just close the window
-                    self._app.setQuitOnLastWindowClosed(False)
-                    self.deleteLater()
-                event.accept()
+            if self._may_close:
+                reply = QtGui.QMessageBox.question(self, title,
+                    "You are closing this Console window."+
+                    "\nWould you like to quit the Kernel and all attached Consoles as well?",
+                    'Cancel', 'No, just this Console', 'Yes, quit everything')
+                if reply == 2: # close All
+                    kernel_manager.shutdown_kernel()
+                    #kernel_manager.stop_channels()
+                    event.accept()
+                elif reply == 1: # close Console
+                    if not self._existing:
+                        # I have the kernel: don't quit, just close the window
+                        self._app.setQuitOnLastWindowClosed(False)
+                        self.deleteLater()
+                    event.accept()
+                else:
+                    event.ignore()
             else:
-                event.ignore()
+                reply = QtGui.QMessageBox.question(self, title,
+                    "Are you sure you want to close this Console?\n"+
+                    "The Kernel and other Consoles will remain active.",
+                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No
+                    )
+                if reply == QtGui.QMessageBox.Yes:
+                    event.accept()
+                else:
+                    event.ignore()
+            
 
 #-----------------------------------------------------------------------------
 # Main entry point
@@ -125,7 +143,7 @@ def main():
                                      sub_address=(args.ip, args.sub),
                                      rep_address=(args.ip, args.rep),
                                      hb_address=(args.ip, args.hb))
-    if args.ip == LOCALHOST and not args.existing:
+    if not args.existing:
         if args.pure:
             kernel_manager.start_kernel(ipython=False)
         elif args.pylab:
@@ -134,7 +152,7 @@ def main():
             kernel_manager.start_kernel()
     kernel_manager.start_channels()
 
-    local_kernel = (args.ip == LOCALHOST)
+    local_kernel = (not args.existing) or args.ip == LOCALHOST
     # Create the widget.
     app = QtGui.QApplication([])
     if args.pure:
@@ -148,7 +166,7 @@ def main():
     widget.kernel_manager = kernel_manager
 
     # Create the main window.
-    window = MainWindow(app, widget, args.existing)
+    window = MainWindow(app, widget, args.existing, may_close=local_kernel)
     window.setWindowTitle('Python' if args.pure else 'IPython')
     window.show()
 
