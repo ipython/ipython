@@ -4,6 +4,12 @@
     <head>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
         <title>AJAX test</title>
+        <style type="text/css">
+            .cblue { color: blue }
+            .cgreen { color: green }
+            .cred { color: red }
+            .cbold { font-weight:bold }
+        </style>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
         <script type="text/javascript">
             client_id = "/$client_id";
@@ -11,12 +17,34 @@
                 url: client_id,
                 dataType: "json"
             })
+            function fixConsole(txt) {
+                //Fixes escaped console commands, IE colors. Turns them into HTML
+                //Unfortunately, the "semantics" of html and console are very 
+                //different, so fancy things *will* break
+                var attrib = {"30":"cblack", "31":"cred","32":"cgreen", "34":"cblue", "01":"cbold"}
+                //Must remove first \033[0m to eliminate pairing errors
+                txt = txt.replace(/\033\[0m/, "")
+                //Phase 1: substitute <span> for html
+                var re = /\033\[([\d;]+?)m(.*?)\033\[0m/g
+                txt = txt.replace(re, "<span class='[[$1]]'>$2</span>")
+                //Phase 2: substitute class in span with correct attributes
+                re = /\[\[([\d;]+?)\]\]/
+                while (re.test(txt)) {
+                    var match = re.exec(txt)
+                    var cmds = match[1].split(";")
+                    var reps = []
+                    for (var j in cmds)
+                        reps.push(attrib[cmds[j]])
+                    txt = txt.replace( match[0], reps.join(" ") )
+                }
+                return txt
+            }
             function comet() {
                 $.ajax({
                     success: function(json, status, request) {
-                        msg = ""
+                        msg = json.msg_type+": "
                         if (json.msg_type == "stream")
-                            msg += json.content.data
+                            msg += fixConsole(json.content.data)
                         else if (json.msg_type == "pyin")
                             msg += json.content.code
                         else if (json.msg_type == "pyout")
