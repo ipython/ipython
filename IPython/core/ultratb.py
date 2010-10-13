@@ -792,16 +792,22 @@ class VerboseTB(TBTools):
                                                 varargs, varkw,
                                                 locals,formatvalue=var_repr))
                 except KeyError:
-                    # Very odd crash from inspect.formatargvalues().  The
-                    # scenario under which it appeared was a call to
-                    # view(array,scale) in NumTut.view.view(), where scale had
-                    # been defined as a scalar (it should be a tuple). Somehow
-                    # inspect messes up resolving the argument list of view()
-                    # and barfs out. At some point I should dig into this one
-                    # and file a bug report about it.
-                    inspect_error()
-                    traceback.print_exc(file=self.ostream)
-                    info("\nIPython's exception reporting continues...\n")
+                    # This happens in situations like errors inside generator
+                    # expressions, where local variables are listed in the
+                    # line, but can't be extracted from the frame.  I'm not
+                    # 100% sure this isn't actually a bug in inspect itself,
+                    # but since there's no info for us to compute with, the
+                    # best we can do is report the failure and move on.  Here
+                    # we must *not* call any traceback construction again,
+                    # because that would mess up use of %debug later on.  So we
+                    # simply report the failure and move on.  The only
+                    # limitation will be that this frame won't have locals
+                    # listed in the call signature.  Quite subtle problem...
+                    # I can't think of a good way to validate this in a unit
+                    # test, but running a script consisting of:
+                    #  dict( (k,v.strip()) for (k,v) in range(10) )
+                    # will illustrate the error, if this exception catch is
+                    # disabled.
                     call = tpl_call_fail % func
 
             # Initialize a list of names on the current line, which the
