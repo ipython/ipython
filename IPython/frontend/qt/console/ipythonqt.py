@@ -156,7 +156,7 @@ def main():
         kernel_manager.start_kernel(**kwargs)
     kernel_manager.start_channels()
 
-    local_kernel = (not args.existing) or args.ip == LOCALHOST
+    local_kernel = (not args.existing) or args.ip in LOCAL_IPS
     # Create the widget.
     app = QtGui.QApplication([])
     if args.pure:
