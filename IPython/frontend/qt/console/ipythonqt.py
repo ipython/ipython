@@ -16,10 +16,10 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 
 #-----------------------------------------------------------------------------
-# Constants
+# Network Constants
 #-----------------------------------------------------------------------------
 
-LOCALHOST = '127.0.0.1'
+from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -45,7 +45,7 @@ class MainWindow(QtGui.QMainWindow):
         self._app = app
         self._frontend = frontend
         self._existing = existing
-        if not existing:
+        if existing:
             self._may_close = may_close
         else:
             self._may_close = True
@@ -144,12 +144,16 @@ def main():
                                      rep_address=(args.ip, args.rep),
                                      hb_address=(args.ip, args.hb))
     if not args.existing:
+        # if not args.ip in LOCAL_IPS+ALL_ALIAS:
+        #     raise ValueError("Must bind a local ip, such as: %s"%LOCAL_IPS)
+        
+        kwargs = dict(ip=args.ip)
         if args.pure:
-            kernel_manager.start_kernel(ipython=False)
+            kwargs['ipython']=False
         elif args.pylab:
-            kernel_manager.start_kernel(pylab=args.pylab)
-        else:
-            kernel_manager.start_kernel()
+            kwargs['pylab']=args.pylab
+            
+        kernel_manager.start_kernel(**kwargs)
     kernel_manager.start_channels()
 
     local_kernel = (not args.existing) or args.ip == LOCALHOST

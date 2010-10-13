@@ -16,6 +16,7 @@ import zmq
 from IPython.core.ultratb import FormattedTB
 from IPython.external.argparse import ArgumentParser
 from IPython.utils import io
+from IPython.utils.localinterfaces import LOCALHOST
 from displayhook import DisplayHook
 from heartbeat import Heartbeat
 from iostream import OutStream
@@ -40,7 +41,7 @@ def make_argument_parser():
     kernel entry points.
     """
     parser = ArgumentParser()
-    parser.add_argument('--ip', type=str, default='127.0.0.1',
+    parser.add_argument('--ip', type=str, default=LOCALHOST,
                         help='set the kernel\'s IP address [default: local]')
     parser.add_argument('--xrep', type=int, metavar='PORT', default=0,
                         help='set the XREP channel port [default: random]')

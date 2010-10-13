@@ -17,6 +17,8 @@ from threading import Thread
 
 import zmq
 
+from IPython.utils.localinterfaces import LOCALHOST
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -25,7 +27,7 @@ import zmq
 class Heartbeat(Thread):
     "A simple ping-pong style heartbeat that runs in a thread."
 
-    def __init__(self, context, addr=('127.0.0.1', 0)):
+    def __init__(self, context, addr=(LOCALHOST, 0)):
         Thread.__init__(self)
         self.context = context
         self.addr = addr

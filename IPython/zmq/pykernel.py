@@ -256,12 +256,15 @@ class Kernel(HasTraits):
 # Kernel main and launch functions
 #-----------------------------------------------------------------------------
 
-def launch_kernel(xrep_port=0, pub_port=0, req_port=0, hb_port=0,
+def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                   independent=False):
     """ Launches a localhost kernel, binding to the specified ports.
 
     Parameters
     ----------
+    ip  : str, optional
+        The ip address the kernel will bind to.
+    
     xrep_port : int, optional
         The port to use for XREP channel.
 
@@ -286,9 +289,15 @@ def launch_kernel(xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         (kernel_process, xrep_port, pub_port, req_port)
     where kernel_process is a Popen object and the ports are integers.
     """
+    extra_arguments = []
+    if ip is not None:
+        extra_arguments.append('--ip')
+        if isinstance(ip, basestring):
+            extra_arguments.append(ip)
+    
     return base_launch_kernel('from IPython.zmq.pykernel import main; main()',
                               xrep_port, pub_port, req_port, hb_port,
-                              independent)
+                              independent, extra_arguments=extra_arguments)
 
 main = make_default_main(Kernel)
 

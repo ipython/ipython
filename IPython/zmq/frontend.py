@@ -17,6 +17,7 @@ import uuid
 import zmq
 import session
 import completer
+from IPython.utils.localinterfaces import LOCALHOST
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -168,7 +169,7 @@ class InteractiveClient(object):
 def main():
     # Defaults
     #ip = '192.168.2.109'
-    ip = '127.0.0.1'
+    ip = LOCALHOST
     #ip = '99.146.222.252'
     port_base = 5575
     connection = ('tcp://%s' % ip) + ':%i'
