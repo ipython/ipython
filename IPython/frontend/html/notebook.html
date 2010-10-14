@@ -5,71 +5,51 @@
         <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
         <title>AJAX test</title>
         <style type="text/css">
+        	pre, p { margin:0px; }
             .cblue { color: blue }
             .cgreen { color: green }
+            .cyellow { color: yellow }
             .cred { color: red }
             .cbold { font-weight:bold }
+            .hidden { display:none; }
+            .clear { clear:both; }
+            
+            .headers { font-size:60%; display:none;}
+            .xreq { font-style:italic }
+            
+        	#statusbar { float:right; width:20%;}
+        	#statusbar span { vertical-align:middle; }
+            #statusbar .bullet {
+            	font-size:150%;
+            	margin-left:10px;
+            	float:right;
+            }
+            .message {
+            	margin:2px;
+            	font-family:sans-serif;
+            	font-size:10pt;
+            }
+            .message .input_header {
+            	color:blue;
+            	float:left;
+            	width:80px;
+            }
+            .message .input { float:left; }
+            .message .output_header {
+            	color:red;
+            	float:left;
+            	width:80px;
+            }
+            .message .output { float:left; }
         </style>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+        <script type="text/javascript" src="js/notebook.js"></script>
         <script type="text/javascript">
             client_id = "/$client_id";
             $.ajaxSetup({
                 url: client_id,
                 dataType: "json"
             })
-            function fixConsole(txt) {
-                //Fixes escaped console commands, IE colors. Turns them into HTML
-                //Unfortunately, the "semantics" of html and console are very 
-                //different, so fancy things *will* break
-                var attrib = {"30":"cblack", "31":"cred","32":"cgreen", "34":"cblue", "01":"cbold"}
-                //Must remove first \033[0m to eliminate pairing errors
-                txt = txt.replace(/\033\[0m/, "")
-                //Phase 1: substitute <span> for html
-                var re = /\033\[([\d;]+?)m(.*?)\033\[0m/g
-                txt = txt.replace(re, "<span class='[[$1]]'>$2</span>")
-                //Phase 2: substitute class in span with correct attributes
-                re = /\[\[([\d;]+?)\]\]/
-                while (re.test(txt)) {
-                    var match = re.exec(txt)
-                    var cmds = match[1].split(";")
-                    var reps = []
-                    for (var j in cmds)
-                        reps.push(attrib[cmds[j]])
-                    txt = txt.replace( match[0], reps.join(" ") )
-                }
-                return txt
-            }
-            function comet() {
-                $.ajax({
-                    success: function(json, status, request) {
-                        msg = json.msg_type+": "
-                        if (json.msg_type == "stream")
-                            msg += fixConsole(json.content.data)
-                        else if (json.msg_type == "pyin")
-                            msg += json.content.code
-                        else if (json.msg_type == "pyout")
-                            msg += json.content.data
-                            
-                        $("#messages").append("<pre>"+msg+"</pre>")
-                        comet()
-                    }
-                })
-            }
-            function heartbeat() {
-                $.ajax({
-                    type: "POST",
-                    data: {client_id:client_id, type:"heartbeat"},
-                    success: function() {
-                        setTimeout(heartbeat, 10000)
-                    }
-                })
-            }
-            function execute(code) {
-                $.ajax({
-                    type: "POST",
-                    data: {type:"execute", code:code}
-                })
-            }
             $(document).ready(function() {
                 comet()
                 heartbeat()
@@ -79,11 +59,24 @@
                         e.target.value = ""
                     }
                 })
+                //Startup POST, set some globals
+				$.ajax({
+					type: "POST",
+					data: {type:"connect"},
+					success: function(json, status, request) {
+						username = json.parent_header.username
+						session = json.parent_header.session
+						exec_count = json.content.execution_count
+					}
+				})
+				manager = new Manager("messages")
+                statusbar = new StatusBar("statusbar")
             })
         </script>
     </head>
     <body>
         <div id="messages"></div>
         <input id="exec" style="width:100%" />
+        <div id="statusbar"></div>
     </body>
 </html>

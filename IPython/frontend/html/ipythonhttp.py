@@ -6,6 +6,7 @@
 #-----------------------------------------------------------------------------
 
 # Local imports
+import os
 from IPython.external.argparse import ArgumentParser
 from IPython.frontend.html.kernelmanager import HttpKernelManager, \
     IPyHttpServer, IPyHttpHandler
@@ -78,9 +79,9 @@ def main():
     kernel_manager.start_channels()
     
     #Start the web server
+    os.system("xdg-open http://localhost:8080/notebook")
     server = IPyHttpServer((args.ip, 8080), IPyHttpHandler)
     server.serve_forever()
-
 
 if __name__ == '__main__':
     main()

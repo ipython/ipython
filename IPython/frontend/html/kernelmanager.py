@@ -7,6 +7,7 @@ import time
 import json
 import Queue
 import threading
+import mimetypes
 from string import Template
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
@@ -17,6 +18,7 @@ class CometManager(object):
     """Tracks msg_id, client get requests for the Comet design pattern"""
     def __init__(self):
         self.clients = {}
+        self.req_queue = Queue.Queue()
         
     def register(self, client_id):
         self.clients[client_id] = [time.time(), Queue.Queue()]
@@ -42,7 +44,13 @@ class CometManager(object):
         self.clients[client_id][0] = time.time()
     
     def send(self, msg_type, *args):
-        return self.kernel_manager.xreq_channel.execute(*args)
+        if msg_type == "connect_request":
+            args = ("",)
+        self.kernel_manager.xreq_channel.execute(*args)
+        return self.req_queue.get()
+        
+    def addreq(self, msg):
+        self.req_queue.put(msg)
         
 manager = CometManager()
 
@@ -70,7 +78,8 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             self.wfile.write(page_text.safe_substitute(client_id = client_id))
         elif os.path.exists(path):
             self.send_response(200)
-            self.send_header("Content-type", "text/html")
+            mime = mimetypes.guess_type(path)[0]
+            self.send_header("Content-type", mime)
             self.end_headers()
             
             self.wfile.write(open(path).read())
@@ -95,7 +104,12 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             manager.heartbeat(client_id)
         elif msg_type == "execute":
             response = manager.send("execute_request", data["code"].value)
-            self.wfile.write(response)
+            json.dump(response, self.wfile)
+        elif msg_type == "complete":
+            pass
+        elif msg_type == "connect":
+            response = manager.send("connect_request")
+            json.dump(response, self.wfile)
 
 class IPyHttpServer(ThreadingMixIn, HTTPServer):
     pass
@@ -120,6 +134,7 @@ class HttpXReqSocketChannel(XReqSocketChannel):
         """
         if not self._handlers_called:
             self._handlers_called = True
+        manager.addreq(msg)
 
     #---------------------------------------------------------------------------
     # 'HttpXReqSocketChannel' interface
