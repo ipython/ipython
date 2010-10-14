@@ -2,23 +2,21 @@ function fixConsole(txt) {
     //Fixes escaped console commands, IE colors. Turns them into HTML
     //Unfortunately, the "semantics" of html and console are very 
     //different, so fancy things *will* break
-    var attrib = {"30":"cblack", "31":"cred","32":"cgreen", "34":"cblue", "01":"cbold"}
+    var attrib = {"30":"cblack", "31":"cred","32":"cgreen", "34":"cblue", "36":"ccyan", "01":"cbold"}
     txt = txt.replace("<","&lt;").replace(">", "&gt;")
-    //Must remove first \033[0m to eliminate pairing errors
-//    txt = txt.replace(/\033\[0m/, "")
-    //Phase 1: substitute <span> for html
-    var re = /\033\[([\d;]+?)m(.*?)\033\[0m/g
-    txt = txt.replace(re, "<span class='[[$1]]'>$2</span>")
-    //Phase 2: substitute class in span with correct attributes
-    re = /\[\[([\d;]+?)\]\]/
+    var re = /\033\[([\d;]+?)m/
+    var opened = false
     while (re.test(txt)) {
-        var match = re.exec(txt)
-        var cmds = match[1].split(";")
-        var reps = []
-        for (var j in cmds)
-            reps.push(attrib[cmds[j]])
-        txt = txt.replace( match[0], reps.join(" ") )
+        var cmds = re.exec(txt)[1].split(";")
+        var close = opened?"</span>":""
+        opened = cmds[0] == "0"?false:true
+        var rep = []
+        for (var i in cmds)
+            rep.push(attrib[cmds[i]])
+        var open = rep.length > 0?"<span class=\""+rep.join(" ")+"\">":""
+        txt = txt.replace(re, close + open)
     }
+    if (opened) txt += "</span>"
     return txt
 }
 function comet() {
