@@ -83,9 +83,9 @@ class MainWindow(QtGui.QMainWindow):
                 reply = QtGui.QMessageBox.question(self, title,
                     "Are you sure you want to close this Console?\n"+
                     "The Kernel and other Consoles will remain active.",
-                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No
+                    QtGui.QMessageBox.Cancel, QtGui.QMessageBox.Ok
                     )
-                if reply == QtGui.QMessageBox.Yes:
+                if reply == QtGui.QMessageBox.Ok:
                     event.accept()
                 else:
                     event.ignore()
