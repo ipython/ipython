@@ -95,7 +95,7 @@ def svg_from_canvas(canvas):
     """ Return a string containing the SVG representation of a FigureCanvasSvg.
     """
     string_io = StringIO()
-    canvas.print_svg(string_io)
+    canvas.print_figure(string_io, format='svg')
     return string_io.getvalue()
 
 
