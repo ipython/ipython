@@ -83,21 +83,21 @@ class HeartMonitor(object):
         logger.debug("heartbeat::new heart failure handler: %s"%handler)
         self._failure_handlers.add(handler)
     
-    def _flush(self):
-        """override IOLoop triggers"""
-        while True:
-            try:
-                msg = self.pongstream.socket.recv_multipart(zmq.NOBLOCK)
-                logger.warn("IOLoop triggered beat with incoming heartbeat waiting to be handled")
-            except zmq.ZMQError:
-                return
-            else:
-                self.handle_pong(msg)
-            # print '.'
-                
+    # def _flush(self):
+    #     """override IOLoop triggers"""
+    #     while True:
+    #         try:
+    #             msg = self.pongstream.socket.recv_multipart(zmq.NOBLOCK)
+    #             logger.warn("IOLoop triggered beat with incoming heartbeat waiting to be handled")
+    #         except zmq.ZMQError:
+    #             return
+    #         else:
+    #             self.handle_pong(msg)
+    #         # print '.'
+    #             
             
     def beat(self):
-        self._flush() 
+        self.pongstream.flush() 
         self.last_ping = self.lifetime
         
         toc = time.time()
