@@ -138,7 +138,7 @@ class Kernel(object):
                                             task_stream=None, client=None):
         self.session = session
         self.control_stream = control_stream
-        self.control_socket = control_stream.socket
+        # self.control_socket = control_stream.socket
         self.reply_stream = reply_stream
         self.task_stream = task_stream
         self.pub_stream = pub_stream
@@ -235,16 +235,16 @@ class Kernel(object):
         else:
             handler(self.control_stream, idents, msg)
     
-    def flush_control(self):
-        while any(zmq.select([self.control_socket],[],[],1e-4)):
-            try:
-                msg = self.control_socket.recv_multipart(zmq.NOBLOCK, copy=False)
-            except zmq.ZMQError, e:
-                if e.errno != zmq.EAGAIN:
-                    raise e
-                return
-            else:
-                self.dispatch_control(msg)
+    # def flush_control(self):
+    #     while any(zmq.select([self.control_socket],[],[],1e-4)):
+    #         try:
+    #             msg = self.control_socket.recv_multipart(zmq.NOBLOCK, copy=False)
+    #         except zmq.ZMQError, e:
+    #             if e.errno != zmq.EAGAIN:
+    #                 raise e
+    #             return
+    #         else:
+    #             self.dispatch_control(msg)
     
 
     #-------------------- queue helpers ------------------------------
@@ -404,7 +404,7 @@ class Kernel(object):
             self.abort_queues()
     
     def dispatch_queue(self, stream, msg):
-        self.flush_control()
+        self.control_stream.flush()
         idents,msg = self.session.feed_identities(msg, copy=False)
         msg = self.session.unpack_message(msg, content=True, copy=False)
         
