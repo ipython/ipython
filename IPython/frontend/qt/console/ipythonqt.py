@@ -7,12 +7,13 @@
 
 # Systemm library imports
 from PyQt4 import QtGui
-
+from pygments.styles import get_all_styles
 # Local imports
 from IPython.external.argparse import ArgumentParser
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 
 #-----------------------------------------------------------------------------
@@ -129,7 +130,7 @@ def main():
     kgroup.add_argument('--rep', type=int, metavar='PORT', default=0,
                         help='set the REP channel port [default random]')
     kgroup.add_argument('--hb', type=int, metavar='PORT', default=0,
-                        help='set the heartbeat port [default: random]')
+                        help='set the heartbeat port [default random]')
 
     egroup = kgroup.add_mutually_exclusive_group()
     egroup.add_argument('--pure', action='store_true', help = \
@@ -148,6 +149,14 @@ def main():
                         help='enable rich text support')
     wgroup.add_argument('--gui-completion', action='store_true',
                         help='use a GUI widget for tab completion')
+    wgroup.add_argument('--style', type=str,
+                        help='specify a pygments style by name. \
+                        Valid are: %s'%(list(get_all_styles())))
+    wgroup.add_argument('--stylesheet', type=str,
+                        help="path to a custom CSS stylesheet.")
+    wgroup.add_argument('--dark', action='store_true',
+                        help="use the dark style template instead of lightbg.\
+                        If --style is not specified, the default dark style is used.")
 
     args = parser.parse_args()
 
@@ -185,6 +194,33 @@ def main():
         widget = IPythonWidget(paging=args.paging, local_kernel=local_kernel)
     widget.gui_completion = args.gui_completion
     widget.kernel_manager = kernel_manager
+
+    # configure the style:
+    if not args.pure: # only IPythonWidget supports styles
+        if args.style:
+            # guess whether it's a dark style:
+            dark = args.dark or styles.dark_style(args.style)
+            widget.syntax_style = args.style
+            widget.style_sheet = styles.sheet_from_template(args.style, not dark)
+            widget._syntax_style_changed()
+            widget._style_sheet_changed()
+        elif args.dark:
+            # use default dark style
+            widget.set_default_style(lightbg=False)
+        else:
+            # this is redundant for now, but allows the widget's
+            # defaults to change
+            widget.set_default_style(lightbg=True)
+
+        if args.stylesheet:
+            # we got an expicit stylesheet
+            if os.path.isfile(args.stylesheet):
+                with open(args.stylesheet) as f:
+                    sheet = f.read()
+                widget.style_sheet = sheet
+                widget._style_sheet_changed()
+            else:
+                raise IOError("Stylesheet %r not found."%args.stylesheet)
 
     # Create the main window.
     window = MainWindow(app, widget, args.existing, may_close=local_kernel)
