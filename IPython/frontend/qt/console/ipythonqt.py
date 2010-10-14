@@ -104,7 +104,11 @@ def main():
     kgroup.add_argument('-e', '--existing', action='store_true',
                         help='connect to an existing kernel')
     kgroup.add_argument('--ip', type=str, default=LOCALHOST,
-                        help='set the kernel\'s IP address [default localhost]')
+                        help=\
+            "set the kernel\'s IP address [default localhost].\
+            If the IP address is something other than localhost, then \
+            Consoles on other machines will be able to connect\
+            to the Kernel, so be careful!")
     kgroup.add_argument('--xreq', type=int, metavar='PORT', default=0,
                         help='set the XREQ channel port [default random]')
     kgroup.add_argument('--sub', type=int, metavar='PORT', default=0,
