@@ -527,7 +527,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         dialog = QtGui.QFileDialog(parent, 'Save HTML Document')
         dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
         dialog.setDefaultSuffix('html')
-        dialog.setNameFilter('HTML Document (*.htm *.html)')
+        dialog.setNameFilter('HTML Document (*.htm *.html *)')
         if dialog.exec_():
             filename = str(dialog.selectedFiles()[0])
             if(inline):
@@ -568,7 +568,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         dialog = QtGui.QFileDialog(parent, 'Save XHTML Document')
         dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
         dialog.setDefaultSuffix('xml')
-        dialog.setNameFilter('XHTML document (*.xml *.xhtml)')
+        dialog.setNameFilter('XHTML document (*.xml *.xhtml *)')
         if dialog.exec_():
             filename = str(dialog.selectedFiles()[0])
             f = open(filename, 'w')
