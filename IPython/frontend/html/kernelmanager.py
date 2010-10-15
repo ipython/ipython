@@ -8,6 +8,7 @@ import json
 import Queue
 import threading
 import mimetypes
+import __main__
 from string import Template
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
@@ -54,6 +55,8 @@ class CometManager(object):
         
 manager = CometManager()
 
+basepath = os.path.split(__main__.__file__)[0]+"/"
+
 class IPyHttpHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         #Path is either a real path, or the client_id
@@ -73,7 +76,7 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             #This is a good spot to add login mechanics
             client_id = str(time.time())
             manager.register(client_id)
-            page_text = Template(open("notebook.html").read())
+            page_text = Template(open(basepath + "notebook.html").read())
             
             self.wfile.write(page_text.safe_substitute(client_id = client_id))
         elif os.path.exists(path):
@@ -82,7 +85,7 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             self.send_header("Content-type", mime)
             self.end_headers()
             
-            self.wfile.write(open(path).read())
+            self.wfile.write(open(basepath + path).read())
         else:
             self.send_response(404)
             self.end_headers()
