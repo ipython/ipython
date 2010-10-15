@@ -7,6 +7,7 @@
 # Standard library imports
 from os.path import commonprefix
 import re
+import os
 import sys
 from textwrap import dedent
 
@@ -525,8 +526,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         dialog = QtGui.QFileDialog(parent, 'Save HTML Document')
         dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
-        dialog.setDefaultSuffix('htm')
-        dialog.setNameFilter('HTML document (*.htm)')
+        dialog.setDefaultSuffix('html')
+        dialog.setNameFilter('HTML Document (*.htm *.html)')
         if dialog.exec_():
             filename = str(dialog.selectedFiles()[0])
             if(inline):
@@ -537,12 +538,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                     path = filename[:offset]+"_files"
                 else:
                     path = filename+"_files"
-                import os
-                try:
-                    os.mkdir(path)
-                except OSError:
-                    # TODO: check that this is an "already exists" error
-                    pass
+                if os.path.isfile(path):
+                    raise OSError("%s exists, but is not a dir"%path)
+                # don't mkdir unless there are images
+                # try:
+                #     os.mkdir(path)
+                # except OSError:
+                #     # TODO: check that this is an "already exists" error
+                #     pass
 
             f = open(filename, 'w')
             try:
@@ -565,7 +568,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         dialog = QtGui.QFileDialog(parent, 'Save XHTML Document')
         dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
         dialog.setDefaultSuffix('xml')
-        dialog.setNameFilter('XHTML document (*.xml)')
+        dialog.setNameFilter('XHTML document (*.xml *.xhtml)')
         if dialog.exec_():
             filename = str(dialog.selectedFiles()[0])
             f = open(filename, 'w')
@@ -870,19 +873,21 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         menu.addSeparator()
         menu.addAction('Select All', self.select_all)
-
-        menu.addSeparator()
-        print_action = menu.addAction('Print', self.print_)
-        print_action.setEnabled(True)
-        html_action = menu.addAction('Export HTML (external PNGs)',
-                                     self.export_html)
-        html_action.setEnabled(True)
-        html_inline_action = menu.addAction('Export HTML (inline PNGs)',
-                                            self.export_html_inline)
-        html_inline_action.setEnabled(True)
-        xhtml_action = menu.addAction('Export XHTML (inline SVGs)',
-                                      self.export_xhtml)
-        xhtml_action.setEnabled(True)
+        
+        if self.kind == 'rich':
+            # only the rich frontend can export html/xml
+            menu.addSeparator()
+            print_action = menu.addAction('Print', self.print_)
+            print_action.setEnabled(True)
+            html_action = menu.addAction('Export HTML (external PNGs)',
+                                         self.export_html)
+            html_action.setEnabled(True)
+            html_inline_action = menu.addAction('Export HTML (inline PNGs)',
+                                                self.export_html_inline)
+            html_inline_action.setEnabled(True)
+            xhtml_action = menu.addAction('Export XHTML (inline SVGs)',
+                                          self.export_xhtml)
+            xhtml_action.setEnabled(True)
         return menu
 
     def _control_key_down(self, modifiers, include_command=True):
