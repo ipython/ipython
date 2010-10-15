@@ -79,7 +79,7 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             page_text = Template(open(basepath + "notebook.html").read())
             
             self.wfile.write(page_text.safe_substitute(client_id = client_id))
-        elif os.path.exists(path):
+        elif os.path.exists(basepath+path):
             self.send_response(200)
             mime = mimetypes.guess_type(path)[0]
             self.send_header("Content-type", mime)
