@@ -136,7 +136,7 @@ class View(object):
         """
         return self.client.apply(f, args, kwargs, block=False, targets=self.targets, bound=True)
 
-     @spin_after
+    @spin_after
     @save_ids
     def apply_sync_bound(self, f, *args, **kwargs):
         """calls f(*args, **kwargs) bound to engine namespace(s), waiting for the result.
