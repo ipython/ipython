@@ -160,7 +160,7 @@ def serialize_object(obj, threshold=64e-6):
         clist = canSequence(obj)
         slist = map(serialize, clist)
         for s in slist:
-            if s.getDataSize() > threshold:
+            if s.typeDescriptor in ('buffer', 'ndarray') or s.getDataSize() > threshold:
                 databuffers.append(s.getData())
                 s.data = None
         return pickle.dumps(slist,-1), databuffers

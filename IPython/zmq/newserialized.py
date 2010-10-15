@@ -119,7 +119,7 @@ class SerializeIt(object):
         elif self.typeDescriptor in ('bytes', 'buffer'):
             self.data = self.obj
         elif self.typeDescriptor == 'pickle':
-            self.data = pickle.dumps(self.obj, 2)
+            self.data = pickle.dumps(self.obj, -1)
         else:
             raise SerializationError("Really wierd serialization error.")
         del self.obj
