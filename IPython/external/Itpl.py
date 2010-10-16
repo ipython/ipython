@@ -75,7 +75,6 @@ each time the instance is evaluated with str(instance).  For example:
 __author__  = 'Ka-Ping Yee <ping@lfw.org>'
 __license__ = 'MIT'
 
-import string
 import sys
 from tokenize import tokenprog
 
