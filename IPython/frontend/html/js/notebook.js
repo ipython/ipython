@@ -165,6 +165,7 @@ Manager.prototype.order = function (idx) {
 }
 
 function Message(msg_id, obj) {
+    this.msg_id = msg_id
     this.num = msg_id == -1?exec_count+1:exec_count
     this.obj = $(document.createElement("div"))
     this.obj.addClass("message")
@@ -199,9 +200,13 @@ Message.prototype.activate = function () {
     this.text.focus()
     
     var thisObj = this
-    this.text.keypress(function(e) {
+    this.text.keydown(function(e) {
         if (e.which == 13)
             thisObj.submit(e.target.value)
+        else if (e.which == 38) {
+            manager.order(-1).activate()
+            manager.ondeck.remove()
+        }
     })
 }
 Message.prototype.submit = function (code) {
@@ -210,7 +215,11 @@ Message.prototype.submit = function (code) {
     comet.stop()
     execute(code, function(json) {
         thisObj.active = false
-        manager.set(json.parent_header.msg_id)
+        if (manager.ondeck != null)
+            manager.set(json.parent_header.msg_id)
+        else 
+            //TODO: Fix ordering!
+            manager.messages[json.parent_header.msg_id] = thisObj
         comet.start()
     })
 }
@@ -226,5 +235,5 @@ Message.prototype.setOutput = function(value, header) {
         var o = "Out [<span class='cbold'>"+this.num+"</span>]:"
         this.out_head.html(o)
     }
-    this.output.append(value)
+    this.output.html(value)
 }
