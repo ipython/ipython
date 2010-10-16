@@ -22,7 +22,6 @@ import StringIO
 import inspect
 import linecache
 import os
-import string
 import sys
 import types
 from collections import namedtuple
@@ -450,7 +449,7 @@ class Inspector:
                 if not detail_level and len(ostr)>string_max:
                     ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
                     ostr = ("\n" + " " * len(str_head.expandtabs())).\
-                           join(map(string.strip,ostr.split("\n")))
+                            join(q.strip() for q in ostr.split("\n"))
                 if ostr.find('\n') > -1:
                     # Print multi-line strings starting at the next line.
                     str_sep = '\n'
@@ -675,7 +674,7 @@ class Inspector:
                 if not detail_level and len(ostr)>string_max:
                     ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
                     ostr = ("\n" + " " * len(str_head.expandtabs())).\
-                           join(map(string.strip,ostr.split("\n")))
+                            join(q.strip() for q in ostr.split("\n"))
                 if ostr.find('\n') > -1:
                     # Print multi-line strings starting at the next line.
                     str_sep = '\n'
