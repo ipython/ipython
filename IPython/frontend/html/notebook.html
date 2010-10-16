@@ -15,7 +15,7 @@
             .hidden { display:none; }
             .clear { clear:both; }
             
-            .headers { font-size:60%; display:none;}
+            .headers { font-size:60%;}
             .xreq { font-style:italic }
             
         	#statusbar { float:right; width:20%;}
@@ -24,6 +24,10 @@
             	font-size:150%;
             	margin-left:10px;
             	float:right;
+            }
+            #messages {
+            	width:80%;
+            	float:left;
             }
             .message {
             	margin:2px;
@@ -34,17 +38,22 @@
             	color:blue;
             	float:left;
             	width:80px;
+            	margin:1px;
             }
             .message .input { float:left; }
             .message .output_header {
             	color:red;
             	float:left;
             	width:80px;
+            	margin:1px;
             }
             .message .output { float:left; }
+            
             .inlinesvg { width:432pt; height:288pt; }
+            
+            pre.input input { width:100%; border:none; padding:0px;}
         </style>
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+        <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/notebook.js"></script>
         <script type="text/javascript">
             client_id = "/$client_id";
@@ -53,14 +62,9 @@
                 dataType: "json"
             })
             $(document).ready(function() {
-                comet()
+                comet = new CometGetter()
                 heartbeat()
-                $("#exec").keypress(function(e) {
-                    if (e.which == 13) {
-                        execute(e.target.value)
-                        e.target.value = ""
-                    }
-                })
+                manager = new Manager("messages")
                 //Startup POST, set some globals
 				$.ajax({
 					type: "POST",
@@ -69,16 +73,15 @@
 						username = json.parent_header.username
 						session = json.parent_header.session
 						exec_count = json.content.execution_count
+						manager.get().activate()
 					}
 				})
-				manager = new Manager("messages")
                 statusbar = new StatusBar("statusbar")
             })
         </script>
     </head>
     <body>
         <div id="messages"></div>
-        <input id="exec" style="width:100%" />
         <div id="statusbar"></div>
     </body>
 </html>

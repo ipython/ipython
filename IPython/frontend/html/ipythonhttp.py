@@ -80,7 +80,7 @@ def main():
     
     #Start the web server
 #    os.system("xdg-open http://localhost:8080/notebook")
-    server = IPyHttpServer((args.ip, 8080), IPyHttpHandler)
+    server = IPyHttpServer(("", 8080), IPyHttpHandler)
     server.serve_forever()
 
 if __name__ == '__main__':
