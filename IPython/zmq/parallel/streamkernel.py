@@ -16,9 +16,11 @@ from code import CommandCompiler
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
+from IPython.zmq.completer import KernelCompleter
+
 from streamsession import StreamSession, Message, extract_header, serialize_object,\
                 unpack_apply_message
-from IPython.zmq.completer import KernelCompleter
+from dependency import UnmetDependency
 
 def printer(*args):
     pprint(args)
@@ -155,7 +157,7 @@ class Kernel(object):
         for msg_type in ['execute_request', 'complete_request', 'apply_request']:
             self.queue_handlers[msg_type] = getattr(self, msg_type)
         
-        for msg_type in ['kill_request', 'abort_request']:
+        for msg_type in ['kill_request', 'abort_request']+self.queue_handlers.keys():
             self.control_handlers[msg_type] = getattr(self, msg_type)
 
     #-------------------- control handlers -----------------------------
@@ -273,13 +275,6 @@ class Kernel(object):
     def check_aborted(self, msg_id):
         return msg_id in self.aborted
     
-    def unmet_dependencies(self, stream, idents, msg):
-        reply_type = msg['msg_type'].split('_')[0] + '_reply'
-        content = dict(status='resubmitted', reason='unmet dependencies')
-        reply_msg = self.session.send(stream, reply_type, 
-                    content=content, parent=msg, ident=idents)
-        ### TODO: actually resubmit it ###
-    
     #-------------------- queue handlers -----------------------------
     
     def execute_request(self, stream, ident, parent):
@@ -344,6 +339,7 @@ class Kernel(object):
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.pub_stream.send(pyin_msg)
         # self.session.send(self.pub_stream, u'pyin', {u'code':code},parent=parent)
+        sub = {'dependencies_met' : True}
         try:
             # allow for not overriding displayhook
             if hasattr(sys.displayhook, 'set_parent'):
@@ -393,15 +389,19 @@ class Kernel(object):
             self.session.send(self.pub_stream, u'pyerr', exc_content, parent=parent)
             reply_content = exc_content
             result_buf = []
+            
+            if etype is UnmetDependency:
+                sub = {'dependencies_met' : False}
         else:
             reply_content = {'status' : 'ok'}
         # reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
         # self.reply_socket.send(ident, zmq.SNDMORE)
         # self.reply_socket.send_json(reply_msg)
-        reply_msg = self.session.send(stream, u'apply_reply', reply_content, parent=parent, ident=ident,buffers=result_buf)
+        reply_msg = self.session.send(stream, u'apply_reply', reply_content, 
+                    parent=parent, ident=ident,buffers=result_buf, subheader=sub)
         # print>>sys.__stdout__, Message(reply_msg)
-        if reply_msg['content']['status'] == u'error':
-            self.abort_queues()
+        # if reply_msg['content']['status'] == u'error':
+        #     self.abort_queues()
     
     def dispatch_queue(self, stream, msg):
         self.control_stream.flush()
@@ -410,7 +410,6 @@ class Kernel(object):
         
         header = msg['header']
         msg_id = header['msg_id']
-        dependencies = header.get('dependencies', [])
         if self.check_aborted(msg_id):
             self.aborted.remove(msg_id)
             # is it safe to assume a msg_id will not be resubmitted?
@@ -418,8 +417,6 @@ class Kernel(object):
             reply_msg = self.session.send(stream, reply_type, 
                         content={'status' : 'aborted'}, parent=msg, ident=idents)
             return
-        if not self.check_dependencies(dependencies):
-            return self.unmet_dependencies(stream, idents, msg)
         handler = self.queue_handlers.get(msg['msg_type'], None)
         if handler is None:
             print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", msg

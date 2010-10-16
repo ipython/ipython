@@ -230,7 +230,7 @@ def unpack_apply_message(bufs, g=None, copy=True):
     sargs = list(pickle.loads(bufs.pop(0)))
     skwargs = dict(pickle.loads(bufs.pop(0)))
     # print sargs, skwargs
-    f = cf.getFunction(g)
+    f = uncan(cf, g)
     for sa in sargs:
         if sa.data is None:
             m = bufs.pop(0)

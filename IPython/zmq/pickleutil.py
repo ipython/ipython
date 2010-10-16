@@ -19,10 +19,25 @@ from types import FunctionType
 
 # contents of codeutil should either be in here, or codeutil belongs in IPython/util
 from IPython.kernel import codeutil
+from IPython.zmq.parallel.dependency import dependent
 
 class CannedObject(object):
-    pass
+    def __init__(self, obj, keys=[]):
+        self.keys = keys
+        self.obj = obj
+        for key in keys:
+            setattr(obj, key, can(getattr(obj, key)))
+            
     
+    def getObject(self, g=None):
+        if g is None:
+            g = globals()
+        for key in self.keys:
+            setattr(self.obj, key, uncan(getattr(self.obj, key), g))
+        return self.obj
+
+        
+
 class CannedFunction(CannedObject):
     
     def __init__(self, f):
@@ -41,6 +56,9 @@ class CannedFunction(CannedObject):
 def can(obj):
     if isinstance(obj, FunctionType):
         return CannedFunction(obj)
+    elif isinstance(obj, dependent):
+        keys = ('f','df')
+        return CannedObject(obj, keys=keys)
     elif isinstance(obj,dict):
         return canDict(obj)
     elif isinstance(obj, (list,tuple)):
@@ -67,6 +85,8 @@ def canSequence(obj):
 def uncan(obj, g=None):
     if isinstance(obj, CannedFunction):
         return obj.getFunction(g)
+    elif isinstance(obj, CannedObject):
+        return obj.getObject(g)
     elif isinstance(obj,dict):
         return uncanDict(obj)
     elif isinstance(obj, (list,tuple)):
