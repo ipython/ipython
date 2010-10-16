@@ -24,7 +24,6 @@ import atexit
 import codeop
 import os
 import re
-import string
 import sys
 import tempfile
 import types
@@ -1536,8 +1535,7 @@ class InteractiveShell(Configurable, Magic):
             # Remove some chars from the delimiters list.  If we encounter
             # unicode chars, discard them.
             delims = readline.get_completer_delims().encode("ascii", "ignore")
-            delims = delims.translate(string._idmap,
-                                      self.readline_remove_delims)
+            delims = delims.translate(None, self.readline_remove_delims)
             delims = delims.replace(ESC_MAGIC, '')
             readline.set_completer_delims(delims)
             # otherwise we end up with a monster history after a while:
