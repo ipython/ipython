@@ -24,6 +24,14 @@ function CometGetter() {
     this.start()
     this.request()
 }
+CometGetter.prototype.request = function () {
+    var thisObj = this
+    $.ajax({
+        success: function (json, status, request) {
+            thisObj.complete(json, status, request)
+        }
+    })
+}
 CometGetter.prototype.complete = function(json, status, request) {
     this.request()
 //$("#messages").append("<pre class='headers'>"+json.msg_type+": "+inspect(json.header)+inspect(json.parent_header)+"</pre>")
@@ -49,14 +57,6 @@ CometGetter.prototype.process = function (json) {
         }
     }
 }
-CometGetter.prototype.request = function () {
-    var thisObj = this
-    $.ajax({
-        success: function (json, status, request) {
-            thisObj.complete(json, status, request)
-        }
-    })
-}
 CometGetter.prototype.start = function () {
     this.pause = false
 }
@@ -78,11 +78,10 @@ function execute(code, postfunc) {
         type: "POST",
         data: {type:"execute", code:code},
         success: function(json, status, request) {
-            if (typeof(postfunc) != "undefined")
-                postfunc(json)
             if (json != null) {
-//$("#messages").append("<pre class='headers'>"+json.msg_type+": "+inspect(json.header)+inspect(json.parent_header)+"</pre>")
                 exec_count = json.content.execution_count
+                if (typeof(postfunc) != "undefined")
+                    postfunc(json)
                 if (json.content.payload.length > 0 && 
                     json.content.payload[0]['format'] == "svg") {
                     var svg = document.createElement('object')
@@ -93,9 +92,9 @@ function execute(code, postfunc) {
                     manager.get(json.parent_header.msg_id).setOutput(svg)
                     manager.get(json.parent_header.msg_id).setOutput("<br />")
                 }
+                //Open a new input object
+                manager.get().activate()
             }
-            //Open a new input object
-            manager.get().activate()
         }
     })
 }
@@ -133,16 +132,31 @@ function Manager(obj) {
     this.ordering = []
     this.obj = "#"+obj
     this.ondeck = null
+    this.cursor = 0
+    var thisObj = this
+    $(document).click(function() {
+        thisObj.deactivate(thisObj.ondeck)
+    })
 }
 Manager.prototype.get = function (msg_id, sess) {
     if (typeof(msg_id) == "undefined") {
-        if (this.ondeck == null)
+        if (this.ondeck == null) {
             this.ondeck = new Message(-1, this.obj)
+            this.cursor += 1
+        }
         return this.ondeck
+    } else if (msg_id[0] == "+" || msg_id[0] == "-") {
+        var idx = parseInt(msg_id)
+        if (this.cursor + idx <= this.ordering.length &&
+            this.cursor + idx >= 0)
+            this.cursor += idx
+        return this.ordering[this.ondeck==null?this.cursor:this.cursor-1]
     } else if (typeof(this.messages[msg_id]) == "undefined") {
         if (sess != session) {
             if (this.ondeck != null)
                 this.ondeck.remove()
+            else
+                this.cursor += 1
             this.messages[msg_id] = new Message(msg_id, this.obj)
             this.ordering.push(this.messages[msg_id])
             this.get().activate()
@@ -159,17 +173,28 @@ Manager.prototype.set = function (msg_id) {
         this.ondeck = null
     }
 }
-Manager.prototype.order = function (idx) {
-    idx = idx<0?this.ordering.length+idx:idx
-    return this.ordering[idx]
+Manager.prototype.deactivate = function (current) {
+    for (var i in this.messages)
+        this.messages[i].deactivate()
+    if (this.ondeck != null) {
+        this.ondeck.deactivate()
+        if (this.ondeck != current) { 
+            this.ondeck.remove()
+            this.ondeck = null
+        }
+    }
 }
 
 function Message(msg_id, obj) {
     this.msg_id = msg_id
     this.num = msg_id == -1?exec_count+1:exec_count
+    
+    this.outer = $(document.createElement("div"))
+    this.outer.addClass("message")
+    $(obj).append(this.outer)
     this.obj = $(document.createElement("div"))
-    this.obj.addClass("message")
-    $(obj).append(this.obj)
+    this.obj.addClass("message_inside")
+    this.outer.append(this.obj)
     this.active = false
     
     this.in_head = $(document.createElement("div"))
@@ -190,9 +215,18 @@ function Message(msg_id, obj) {
     this.output.addClass("output")
     this.obj.append(this.output)
     this.obj.append("<div class='clear'></div>")
+    
+    this.code = ""
+    var thisObj = this
+    this.obj.click(function(e) {
+        thisObj.activate()
+        e.stopPropagation()
+    })
 }
 Message.prototype.activate = function () {
     this.active = true
+    manager.deactivate(this)
+    this.outer.addClass("active")
     var input = document.createElement("input")
     input.setAttribute("value", this.input.text().replace("'", "\\'"))
     this.text = $(input)
@@ -204,36 +238,41 @@ Message.prototype.activate = function () {
         if (e.which == 13)
             thisObj.submit(e.target.value)
         else if (e.which == 38) {
-            manager.order(-1).activate()
-            manager.ondeck.remove()
+            manager.get("-1").activate()
+        } else if (e.which == 40) {
+            manager.get("+1").activate()
         }
     })
 }
+Message.prototype.deactivate = function () {
+    this.outer.removeClass("active")
+    this.input.html(this.code)
+    this.active = false
+}
 Message.prototype.submit = function (code) {
-    var thisObj = this
-    this.input.html(code)
+    this.code = code
+    this.deactivate()
     comet.stop()
+    var thisObj = this
     execute(code, function(json) {
-        thisObj.active = false
-        if (manager.ondeck != null)
+        thisObj.num = exec_count
+        thisObj.in_head.html("In [<span class='cbold'>"+exec_count+"</span>]:")
+        if (manager.ondeck == thisObj)
             manager.set(json.parent_header.msg_id)
         else 
-            //TODO: Fix ordering!
             manager.messages[json.parent_header.msg_id] = thisObj
         comet.start()
     })
 }
 Message.prototype.remove = function () {
-    this.obj.remove()
+    this.outer.remove()
     manager.ondeck = null
 }
 Message.prototype.setInput = function(value) {
     this.input.html(value)
 }
 Message.prototype.setOutput = function(value, header) {
-    if (header) {
-        var o = "Out [<span class='cbold'>"+this.num+"</span>]:"
-        this.out_head.html(o)
-    }
     this.output.html(value)
+    if (header)
+        this.out_head.html("Out [<span class='cbold'>"+this.num+"</span>]:")
 }

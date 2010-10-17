@@ -5,6 +5,7 @@
         <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
         <title>AJAX test</title>
         <style type="text/css">
+        	body { font-family:sans-serif; font-size:10pt;}
         	pre, p { margin:0px; }
             .cblue { color: blue }
             .ccyan { color: teal }
@@ -18,7 +19,8 @@
             .headers { font-size:60%;}
             .xreq { font-style:italic }
             
-        	#statusbar { float:right; width:20%;}
+            #sidebar { float:right; width:20%; }
+        	#statusbar { margin:5px; }
         	#statusbar span { vertical-align:middle; }
             #statusbar .bullet {
             	font-size:150%;
@@ -29,29 +31,45 @@
             	width:80%;
             	float:left;
             }
+            .active {
+            	border-color:#090;
+            }
             .message {
+            	padding:3px;
+            	border:1px solid #CCC;
             	margin:2px;
-            	font-family:sans-serif;
-            	font-size:10pt;
+            }
+            .message:hover {
+            	border:1px solid red;
+            	cursor:pointer;
             }
             .message .input_header {
             	color:blue;
             	float:left;
-            	width:80px;
-            	margin:1px;
+            	width:10%;
             }
-            .message .input { float:left; }
+            .message .input { 
+            	float:left;
+            	width:90%;
+            }
             .message .output_header {
             	color:red;
             	float:left;
-            	width:80px;
+            	width:10%;
             	margin:1px;
             }
-            .message .output { float:left; }
+            .message .output { 
+            	float:left;
+            	width:90%;
+           	}
             
             .inlinesvg { width:432pt; height:288pt; }
             
-            pre.input input { width:100%; border:none; padding:0px;}
+            pre.input input { 
+            	width:100%; 
+            	border:none; 
+            	padding:0px;
+            }
         </style>
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/notebook.js"></script>
@@ -82,6 +100,6 @@
     </head>
     <body>
         <div id="messages"></div>
-        <div id="statusbar"></div>
+        <div id="sidebar"><div id="statusbar"></div></div>
     </body>
 </html>
