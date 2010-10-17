@@ -1,3 +1,25 @@
+$.ajaxSetup({
+    url: client_id,
+    dataType: "json"
+})
+$(document).ready(function() {
+    comet = new CometGetter()
+    heartbeat()
+    manager = new Manager("messages")
+    //Startup POST, set some globals
+    $.ajax({
+        type: "POST",
+        data: {type:"connect"},
+        success: function(json, status, request) {
+            username = json.parent_header.username
+            session = json.header.session
+            exec_count = json.content.execution_count
+            manager.get().activate()
+        }
+    })
+    statusbar = new StatusBar("statusbar")
+})
+
 function fixConsole(txt) {
     //Fixes escaped console commands, IE colors. Turns them into HTML
     //Unfortunately, the "semantics" of html and console are very 
@@ -7,12 +29,13 @@ function fixConsole(txt) {
     var re = /\033\[([\d;]+?)m/
     var opened = false
     while (re.test(txt)) {
-        var cmds = re.exec(txt)[1].split(";")
-        var close = opened?"</span>":""
-        opened = cmds[0] == "0"?false:true
+        var cmds = txt.match(re)[1].split(";")
+        opened = cmds[0] != "0"
+        var close = opened?"":"</span>"
         var rep = []
         for (var i in cmds)
-            rep.push(attrib[cmds[i]])
+            if (typeof(attrib[cmds[i]]) != "undefined")
+                rep.push(attrib[cmds[i]])
         var open = rep.length > 0?"<span class=\""+rep.join(" ")+"\">":""
         txt = txt.replace(re, close + open)
     }
@@ -20,84 +43,6 @@ function fixConsole(txt) {
     return txt
 }
 
-function CometGetter() {
-    this.start()
-    this.request()
-}
-CometGetter.prototype.request = function () {
-    var thisObj = this
-    $.ajax({
-        success: function (json, status, request) {
-            thisObj.complete(json, status, request)
-        }
-    })
-}
-CometGetter.prototype.complete = function(json, status, request) {
-    this.request()
-//$("#messages").append("<pre class='headers'>"+json.msg_type+": "+inspect(json.header)+inspect(json.parent_header)+"</pre>")
-    this.process(json)
-}
-CometGetter.prototype.process = function (json) {
-    var thisObj = this
-    if (json.msg_type == "status") {
-        statusbar.set(json.content.execution_state)
-    } else if (this.pause) {
-        setTimeout(function () { thisObj.process(json) }, 10)
-    } else {
-        var msg = manager.get(json.parent_header.msg_id, json.parent_header.session)
-        if (json.msg_type == "stream") {
-            msg.setOutput(fixConsole(json.content.data))
-        } else if (json.msg_type == "pyin") {
-            if (json.parent_header.session != session)
-                msg.setInput(fixConsole(json.content.code))
-        } else if (json.msg_type == "pyout") {
-            msg.setOutput(fixConsole(json.content.data), true)
-        } else if (json.msg_type == "pyerr") {
-            msg.setOutput(fixConsole(json.content.traceback.join("\n")))
-        }
-    }
-}
-CometGetter.prototype.start = function () {
-    this.pause = false
-}
-CometGetter.prototype.stop = function () {
-    this.pause = true
-}
-
-function heartbeat() {
-    $.ajax({
-        type: "POST",
-        data: {client_id:client_id, type:"heartbeat"},
-        success: function() {
-            setTimeout(heartbeat, 10000)
-        }
-    })
-}
-function execute(code, postfunc) {
-    $.ajax({
-        type: "POST",
-        data: {type:"execute", code:code},
-        success: function(json, status, request) {
-            if (json != null) {
-                exec_count = json.content.execution_count
-                if (typeof(postfunc) != "undefined")
-                    postfunc(json)
-                if (json.content.payload.length > 0 && 
-                    json.content.payload[0]['format'] == "svg") {
-                    var svg = document.createElement('object')
-                    svg.setAttribute('class', "inlinesvg")
-                    svg.setAttribute('type', 'image/svg+xml')
-                    svg.setAttribute('data', 'data:image/svg+xml,'+ 
-                        json.content.payload[0]['data'])              
-                    manager.get(json.parent_header.msg_id).setOutput(svg)
-                    manager.get(json.parent_header.msg_id).setOutput("<br />")
-                }
-                //Open a new input object
-                manager.get().activate()
-            }
-        }
-    })
-}
 function inspect(obj) {
     if (obj instanceof Object) {
         var str = []
@@ -111,168 +56,4 @@ function inspect(obj) {
         }
         return ""
     }
-}
-
-function StatusBar(obj) {
-    $("#"+obj).append("<span class='txt'></span>")
-    $("#"+obj).append("<span class='bullet'>&#8226;</span>")
-    this.text = $("#"+obj+" .txt")
-    this.bullet = $("#"+obj+" .bullet")
-}
-StatusBar.prototype.map = { "idle":"cgreen", "busy":"cyellow", "dead":"cred" }
-StatusBar.prototype.set = function(status) {
-    this.bullet.removeClass()
-    this.bullet.addClass("bullet "+this.map[status])
-    this.text.text(status)
-}
-
-
-function Manager(obj) {
-    this.messages = {}
-    this.ordering = []
-    this.obj = "#"+obj
-    this.ondeck = null
-    this.cursor = 0
-    var thisObj = this
-    $(document).click(function() {
-        thisObj.deactivate(thisObj.ondeck)
-    })
-}
-Manager.prototype.get = function (msg_id, sess) {
-    if (typeof(msg_id) == "undefined") {
-        if (this.ondeck == null) {
-            this.ondeck = new Message(-1, this.obj)
-            this.cursor += 1
-        }
-        return this.ondeck
-    } else if (msg_id[0] == "+" || msg_id[0] == "-") {
-        var idx = parseInt(msg_id)
-        if (this.cursor + idx <= this.ordering.length &&
-            this.cursor + idx >= 0)
-            this.cursor += idx
-        return this.ordering[this.ondeck==null?this.cursor:this.cursor-1]
-    } else if (typeof(this.messages[msg_id]) == "undefined") {
-        if (sess != session) {
-            if (this.ondeck != null)
-                this.ondeck.remove()
-            else
-                this.cursor += 1
-            this.messages[msg_id] = new Message(msg_id, this.obj)
-            this.ordering.push(this.messages[msg_id])
-            this.get().activate()
-        }
-    }
-    return this.messages[msg_id]
-}
-Manager.prototype.set = function (msg_id) {
-    if (this.ondeck == null)
-        alert("Error, nothing ondeck!")
-    else {
-        this.messages[msg_id] = this.ondeck
-        this.ordering.push(this.ondeck)
-        this.ondeck = null
-    }
-}
-Manager.prototype.deactivate = function (current) {
-    for (var i in this.messages)
-        this.messages[i].deactivate()
-    if (this.ondeck != null) {
-        this.ondeck.deactivate()
-        if (this.ondeck != current) { 
-            this.ondeck.remove()
-            this.ondeck = null
-        }
-    }
-}
-
-function Message(msg_id, obj) {
-    this.msg_id = msg_id
-    this.num = msg_id == -1?exec_count+1:exec_count
-    
-    this.outer = $(document.createElement("div"))
-    this.outer.addClass("message")
-    $(obj).append(this.outer)
-    this.obj = $(document.createElement("div"))
-    this.obj.addClass("message_inside")
-    this.outer.append(this.obj)
-    this.active = false
-    
-    this.in_head = $(document.createElement("div"))
-    this.in_head.addClass("input_header")
-    this.in_head.html("In [<span class='cbold'>"+this.num+"</span>]:")
-    this.obj.append(this.in_head)
-    
-    this.input = $(document.createElement("pre"))
-    this.input.addClass("input")
-    this.obj.append(this.input)
-    this.obj.append("<div class='clear'></div>")
-    
-    this.out_head = $(document.createElement("div"))
-    this.out_head.addClass("output_header")
-    this.obj.append(this.out_head)
-    
-    this.output = $(document.createElement("pre"))
-    this.output.addClass("output")
-    this.obj.append(this.output)
-    this.obj.append("<div class='clear'></div>")
-    
-    this.code = ""
-    var thisObj = this
-    this.obj.click(function(e) {
-        thisObj.activate()
-        e.stopPropagation()
-    })
-}
-Message.prototype.activate = function () {
-    this.active = true
-    manager.deactivate(this)
-    this.outer.addClass("active")
-    var input = document.createElement("input")
-    input.setAttribute("value", this.input.text().replace("'", "\\'"))
-    this.text = $(input)
-    this.input.html(this.text)
-    this.text.focus()
-    
-    var thisObj = this
-    this.text.keydown(function(e) {
-        if (e.which == 13)
-            thisObj.submit(e.target.value)
-        else if (e.which == 38) {
-            manager.get("-1").activate()
-        } else if (e.which == 40) {
-            manager.get("+1").activate()
-        }
-    })
-}
-Message.prototype.deactivate = function () {
-    this.outer.removeClass("active")
-    this.input.html(this.code)
-    this.active = false
-}
-Message.prototype.submit = function (code) {
-    this.code = code
-    this.deactivate()
-    comet.stop()
-    var thisObj = this
-    execute(code, function(json) {
-        thisObj.num = exec_count
-        thisObj.in_head.html("In [<span class='cbold'>"+exec_count+"</span>]:")
-        if (manager.ondeck == thisObj)
-            manager.set(json.parent_header.msg_id)
-        else 
-            manager.messages[json.parent_header.msg_id] = thisObj
-        comet.start()
-    })
-}
-Message.prototype.remove = function () {
-    this.outer.remove()
-    manager.ondeck = null
-}
-Message.prototype.setInput = function(value) {
-    this.input.html(value)
-}
-Message.prototype.setOutput = function(value, header) {
-    this.output.html(value)
-    if (header)
-        this.out_head.html("Out [<span class='cbold'>"+this.num+"</span>]:")
 }

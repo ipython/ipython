@@ -4,99 +4,15 @@
     <head>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
         <title>AJAX test</title>
-        <style type="text/css">
-        	body { font-family:sans-serif; font-size:10pt;}
-        	pre, p { margin:0px; }
-            .cblue { color: blue }
-            .ccyan { color: teal }
-            .cgreen { color: green }
-            .cyellow { color: yellow }
-            .cred { color: red }
-            .cbold { font-weight:bold }
-            .hidden { display:none; }
-            .clear { clear:both; }
-            
-            .headers { font-size:60%;}
-            .xreq { font-style:italic }
-            
-            #sidebar { float:right; width:20%; }
-        	#statusbar { margin:5px; }
-        	#statusbar span { vertical-align:middle; }
-            #statusbar .bullet {
-            	font-size:150%;
-            	margin-left:10px;
-            	float:right;
-            }
-            #messages {
-            	width:80%;
-            	float:left;
-            }
-            .active {
-            	border-color:#090;
-            }
-            .message {
-            	padding:3px;
-            	border:1px solid #CCC;
-            	margin:2px;
-            }
-            .message:hover {
-            	border:1px solid red;
-            	cursor:pointer;
-            }
-            .message .input_header {
-            	color:blue;
-            	float:left;
-            	width:10%;
-            }
-            .message .input { 
-            	float:left;
-            	width:90%;
-            }
-            .message .output_header {
-            	color:red;
-            	float:left;
-            	width:10%;
-            	margin:1px;
-            }
-            .message .output { 
-            	float:left;
-            	width:90%;
-           	}
-            
-            .inlinesvg { width:432pt; height:288pt; }
-            
-            pre.input input { 
-            	width:100%; 
-            	border:none; 
-            	padding:0px;
-            }
-        </style>
-        <script type="text/javascript" src="js/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/defaults.css" />
+        <link rel="stylesheet" type="text/css" href="css/notebook.css" />
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+        <script type="text/javascript" src="js/jquery.scrollTo-1.4.2-min.js"></script>
+        <script type="text/javascript" src="js/jquery-fieldselection.pack.js"></script>
+        <script type="text/javascript">client_id = "/$client_id";</script>
         <script type="text/javascript" src="js/notebook.js"></script>
-        <script type="text/javascript">
-            client_id = "/$client_id";
-            $.ajaxSetup({
-                url: client_id,
-                dataType: "json"
-            })
-            $(document).ready(function() {
-                comet = new CometGetter()
-                heartbeat()
-                manager = new Manager("messages")
-                //Startup POST, set some globals
-				$.ajax({
-					type: "POST",
-					data: {type:"connect"},
-					success: function(json, status, request) {
-						username = json.parent_header.username
-						session = json.parent_header.session
-						exec_count = json.content.execution_count
-						manager.get().activate()
-					}
-				})
-                statusbar = new StatusBar("statusbar")
-            })
-        </script>
+        <script type="text/javascript" src="js/communicate.js"></script>
+        <script type="text/javascript" src="js/ui.js"></script>
     </head>
     <body>
         <div id="messages"></div>

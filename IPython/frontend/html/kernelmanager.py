@@ -13,7 +13,9 @@ from string import Template
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
-client_death = 30 # seconds without heartbeat that client considered dead
+client_death = 300 # seconds without heartbeat that client considered dead
+#Base path to serve js and css files from
+basepath = os.path.split(__main__.__file__)[0]+"/" 
 
 class CometManager(object):
     """Tracks msg_id, client get requests for the Comet design pattern"""
@@ -54,8 +56,6 @@ class CometManager(object):
         self.req_queue.put(msg)
         
 manager = CometManager()
-
-basepath = os.path.split(__main__.__file__)[0]+"/"
 
 class IPyHttpHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -117,17 +117,12 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
 class IPyHttpServer(ThreadingMixIn, HTTPServer):
     pass
 
-
 # IPython imports.
 from IPython.utils.traitlets import Type
 from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
     XReqSocketChannel, RepSocketChannel, HBSocketChannel
 
 class HttpXReqSocketChannel(XReqSocketChannel):
-    # Used by the first_reply signal logic to determine if a reply is the 
-    # first.
-    _handlers_called = False
-
     #---------------------------------------------------------------------------
     # 'XReqSocketChannel' interface
     #---------------------------------------------------------------------------
@@ -135,19 +130,7 @@ class HttpXReqSocketChannel(XReqSocketChannel):
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
-        if not self._handlers_called:
-            self._handlers_called = True
         manager.addreq(msg)
-
-    #---------------------------------------------------------------------------
-    # 'HttpXReqSocketChannel' interface
-    #---------------------------------------------------------------------------
-
-    def reset_first_reply(self):
-        """ Reset the first_reply signal to fire again on the next reply.
-        """
-        self._handlers_called = False
-
 
 class HttpSubSocketChannel(SubSocketChannel):
     #---------------------------------------------------------------------------
@@ -168,7 +151,6 @@ class HttpRepSocketChannel(RepSocketChannel):
         """ Reimplemented to emit signals instead of making callbacks.
         """
         pass
-
 
 class HttpHBSocketChannel(HBSocketChannel):
     #---------------------------------------------------------------------------

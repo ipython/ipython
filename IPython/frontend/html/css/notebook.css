@@ -1,0 +1,50 @@
+#sidebar { float:right; width:20%; }
+#statusbar { margin:5px; }
+#statusbar span { vertical-align:middle; }
+#statusbar .bullet {
+	font-size:150%;
+	margin-left:10px;
+	float:right;
+}
+#messages {
+	width:80%;
+	float:left;
+}
+.active {
+	border-color:#090;
+}
+.message {
+	padding:3px;
+	border:1px solid #CCC;
+	margin:5px;
+}
+.message:hover {
+	border:1px solid red;
+	cursor:pointer;
+}
+.message .input_header {
+	color:blue;
+	float:left;
+	width:10%;
+}
+.message .input { 
+	float:left;
+	width:90%;
+}
+.message .output_header {
+	color:red;
+	float:left;
+	width:10%;
+}
+.message .output { 
+	float:left;
+	width:90%;
+}
+
+.inlinesvg { width:432pt; height:288pt; }
+
+pre.input input { 
+	width:100%; 
+	border:none; 
+	padding:0px;
+}
