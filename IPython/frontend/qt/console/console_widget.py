@@ -161,9 +161,33 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._reading_callback = None
         self._tab_width = 8
         self._text_completing_pos = 0
+        self._filename = os.path.join(os.curdir, 'ipython.html')
 
         # Set a monospaced font.
         self.reset_font()
+
+        # Configure actions.
+        action = QtGui.QAction('Print', None)
+        action.setEnabled(True)
+        action.setShortcut(QtGui.QKeySequence.Print)
+        action.triggered.connect(self.print_)
+        self.addAction(action)
+        self._print_action = action
+
+        action = QtGui.QAction('Save as HTML/XML', None)
+        action.setEnabled(self.can_export())
+        action.setShortcut(QtGui.QKeySequence.Save)
+        action.triggered.connect(self.export)
+        self.addAction(action)
+        self._export_action = action
+        
+        action = QtGui.QAction('Select All', None)
+        action.setEnabled(True)
+        action.setShortcut(QtGui.QKeySequence.SelectAll)
+        action.triggered.connect(self.select_all)
+        self.addAction(action)
+        self._select_all_action = action
+        
 
     def eventFilter(self, obj, event):
         """ Reimplemented to ensure a console-like behavior in the underlying
@@ -300,6 +324,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
             return not QtGui.QApplication.clipboard().text().isEmpty()
         return False
+
+    def can_export(self):
+        """Returns whether we can export. Currently only rich widgets
+        can export html.
+        """
+        return self.kind == "rich"
 
     def clear(self, keep_input=True):
         """ Clear the console. 
@@ -502,96 +532,111 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def print_(self, printer = None):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
         """
-        if(printer is None):
+        if (not printer):
             printer = QtGui.QPrinter()
             if(QtGui.QPrintDialog(printer).exec_() != QtGui.QDialog.Accepted):
                 return
         self._control.print_(printer)
 
-    def export_html_inline(self, parent = None):
-        """ Export the contents of the ConsoleWidget as HTML with inline PNGs.
-        """
-        self.export_html(parent, inline = True)
-        
-    def export_html(self, parent = None, inline = False):
+    def export(self, parent = None):
+        """Export HTML/XML in various modes from one Dialog."""
+        parent = parent or None # sometimes parent is False
+        dialog = QtGui.QFileDialog(parent, 'Save Console as...')
+        dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
+        filters = [
+            'HTML with inline PNGs (*.html *.htm)',
+            'HTML with external PNGs (*.html *.htm)',
+            'XHTML with inline SVGs (*.xhtml *.xml)'
+        ]
+        dialog.setNameFilters(filters)
+        if self._filename:
+            dialog.selectFile(self._filename)
+            root,ext = os.path.splitext(self._filename)
+            if ext.lower() in ('.xml', '.xhtml'):
+                dialog.selectNameFilter(filters[-1])
+        if dialog.exec_():
+            filename = str(dialog.selectedFiles()[0])
+            self._filename = filename
+            choice = str(dialog.selectedNameFilter())
+
+            if choice.startswith('XHTML'):
+                exporter = self.export_xhtml
+            else:
+                exporter = lambda filename: self.export_html(filename, 'inline' in choice)
+
+            try:
+                return exporter(filename)
+            except Exception, e:
+                title = self.window().windowTitle()
+                msg = "Error while saving to: %s\n"%filename+str(e)
+                reply = QtGui.QMessageBox.warning(self, title, msg,
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+        return None
+
+    def export_html(self, filename, inline=False):
         """ Export the contents of the ConsoleWidget as HTML.
 
         Parameters:
         -----------
+        filename : str
+            The file to be saved.
         inline : bool, optional [default True]
-
             If True, include images as inline PNGs.  Otherwise,
             include them as links to external PNG files, mimicking
-            Firefox's "Web Page, complete" behavior.
+            web browsers' "Web Page, Complete" behavior.
         """
-        dialog = QtGui.QFileDialog(parent, 'Save HTML Document')
-        dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
-        dialog.setDefaultSuffix('html')
-        dialog.setNameFilter('HTML Document (*.htm *.html *)')
-        if dialog.exec_():
-            filename = str(dialog.selectedFiles()[0])
-            if(inline):
-                path = None
-            else:
-                offset = filename.rfind(".")
-                if(offset > 0):
-                    path = filename[:offset]+"_files"
-                else:
-                    path = filename+"_files"
-                if os.path.isfile(path):
-                    raise OSError("%s exists, but is not a dir"%path)
-                # don't mkdir unless there are images
-                # try:
-                #     os.mkdir(path)
-                # except OSError:
-                #     # TODO: check that this is an "already exists" error
-                #     pass
+        if(inline):
+            path = None
+        else:
+            root,ext = os.path.splitext(filename)
+            path = root+"_files"
+            if os.path.isfile(path):
+                raise OSError("%s exists, but is not a directory."%path)
 
-            f = open(filename, 'w')
-            try:
-                # N.B. this is overly restrictive, but Qt's output is
-                # predictable...
-                img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
-                html = self.fix_html_encoding(
-                    str(self._control.toHtml().toUtf8()))
-                f.write(img_re.sub(
-                    lambda x: self.image_tag(x, path = path, format = "png"),
-                    html))
-            finally:
-                f.close()
-            return filename
-        return None
+        f = open(filename, 'w')
+        try:
+            # N.B. this is overly restrictive, but Qt's output is
+            # predictable...
+            img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
+            html = self.fix_html_encoding(
+                str(self._control.toHtml().toUtf8()))
+            f.write(img_re.sub(
+                lambda x: self.image_tag(x, path = path, format = "png"),
+                html))
+        except Exception, e:
+            f.close()
+            raise e
+        else:
+            f.close()
+        return filename
 
-    def export_xhtml(self, parent = None):
+
+    def export_xhtml(self, filename):
         """ Export the contents of the ConsoleWidget as XHTML with inline SVGs.
         """
-        dialog = QtGui.QFileDialog(parent, 'Save XHTML Document')
-        dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
-        dialog.setDefaultSuffix('xml')
-        dialog.setNameFilter('XHTML document (*.xml *.xhtml *)')
-        if dialog.exec_():
-            filename = str(dialog.selectedFiles()[0])
-            f = open(filename, 'w')
-            try:
-                # N.B. this is overly restrictive, but Qt's output is
-                # predictable...
-                img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
-                html = str(self._control.toHtml().toUtf8())
-                # Hack to make xhtml header -- note that we are not doing
-                # any check for valid xml
-                offset = html.find("<html>")
-                assert(offset > -1)
-                html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
-                        html[offset+6:])
-                # And now declare UTF-8 encoding
-                html = self.fix_html_encoding(html)
-                f.write(img_re.sub(
-                    lambda x: self.image_tag(x, path = None, format = "svg"),
-                    html))
-            finally:
-                f.close()
-            return filename
-        return None
+        f = open(filename, 'w')
+        try:
+            # N.B. this is overly restrictive, but Qt's output is
+            # predictable...
+            img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
+            html = str(self._control.toHtml().toUtf8())
+            # Hack to make xhtml header -- note that we are not doing
+            # any check for valid xml
+            offset = html.find("<html>")
+            assert(offset > -1)
+            html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
+                    html[offset+6:])
+            # And now declare UTF-8 encoding
+            html = self.fix_html_encoding(html)
+            f.write(img_re.sub(
+                lambda x: self.image_tag(x, path = None, format = "svg"),
+                html))
+        except Exception, e:
+            f.close()
+            raise e
+        else:
+            f.close()
+        return filename
 
     def fix_html_encoding(self, html):
         """ Return html string, with a UTF-8 declaration added to <HEAD>.
@@ -857,7 +902,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
     def _context_menu_make(self, pos):
         """ Creates a context menu for the given QPoint (in widget coordinates).
         """
-        menu = QtGui.QMenu()
+        menu = QtGui.QMenu(self)
 
         cut_action = menu.addAction('Cut', self.cut)
         cut_action.setEnabled(self.can_cut())
@@ -872,22 +917,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
         menu.addSeparator()
-        menu.addAction('Select All', self.select_all)
-        
-        if self.kind == 'rich':
-            # only the rich frontend can export html/xml
-            menu.addSeparator()
-            print_action = menu.addAction('Print', self.print_)
-            print_action.setEnabled(True)
-            html_action = menu.addAction('Export HTML (external PNGs)',
-                                         self.export_html)
-            html_action.setEnabled(True)
-            html_inline_action = menu.addAction('Export HTML (inline PNGs)',
-                                                self.export_html_inline)
-            html_inline_action.setEnabled(True)
-            xhtml_action = menu.addAction('Export XHTML (inline SVGs)',
-                                          self.export_xhtml)
-            xhtml_action.setEnabled(True)
+        menu.addAction(self._select_all_action)
+
+        menu.addSeparator()
+        menu.addAction(self._export_action)
+        menu.addAction(self._print_action)
+
         return menu
 
     def _control_key_down(self, modifiers, include_command=True):
