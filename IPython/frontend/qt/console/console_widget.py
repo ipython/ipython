@@ -925,7 +925,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         return menu
 
-    def _control_key_down(self, modifiers, include_command=True):
+    def _control_key_down(self, modifiers, include_command=False):
         """ Given a KeyboardModifiers flags object, return whether the Control
         key is down.
 
