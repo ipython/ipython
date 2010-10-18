@@ -50,17 +50,6 @@ class dependent(object):
             raise UnmetDependency()
         return self.f(*args, **kwargs)
 
-def evaluate_dependency(deps):
-    """Evaluate wheter dependencies are met.
-    
-    Parameters
-    ----------
-    deps : dict
-    """
-    pass
-
-def _check_dependency(flag):
-    pass
-
 
 __all__ = ['UnmetDependency', 'depend', 'evaluate_dependencies']
+
