@@ -51,6 +51,15 @@ class CometManager(object):
             args = ("",)
         self.kernel_manager.xreq_channel.execute(*args)
         return self.req_queue.get()
+    
+    def complete(self, code, pos):
+        chunk = code[:int(pos)].split()[-1]
+        self.kernel_manager.xreq_channel.complete(chunk, code, pos)
+        return self.req_queue.get()
+    
+    def inspect(self, oname):
+        self.kernel_manager.xreq_channel.object_info(oname)
+        return self.req_queue.get()
         
     def addreq(self, msg):
         self.req_queue.put(msg)
@@ -105,14 +114,16 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
         msg_type = data["type"].value
         if msg_type == "heartbeat":
             manager.heartbeat(client_id)
-        elif msg_type == "execute":
-            response = manager.send("execute_request", data["code"].value)
-            json.dump(response, self.wfile)
-        elif msg_type == "complete":
-            pass
-        elif msg_type == "connect":
-            response = manager.send("connect_request")
-            json.dump(response, self.wfile)
+        else:
+            if msg_type == "execute":
+                resp = manager.send("execute_request", data["code"].value)
+            elif msg_type == "complete":
+                resp = manager.complete(data["code"].value, data["pos"].value)
+            elif msg_type == "inspect":
+                resp = manager.inspect(data['name'].value)
+            elif msg_type == "connect":
+                resp = manager.send("connect_request")
+            json.dump(resp, self.wfile)
 
 class IPyHttpServer(ThreadingMixIn, HTTPServer):
     pass

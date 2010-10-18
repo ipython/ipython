@@ -58,13 +58,15 @@ Manager.prototype.get = function (msg_id, sess) {
     }
     return this.messages[msg_id]
 }
-Manager.prototype.set = function (msg_id) {
-    if (this.ondeck == null)
-        alert("Error, nothing ondeck!")
-    else {
+Manager.prototype.set = function (msg_id, new_id) {
+    if (typeof(new_id) == "undefined") {
+        this.ondeck.msg_id = msg_id
         this.messages[msg_id] = this.ondeck
         this.ordering.push(this.ondeck)
         this.ondeck = null
+    } else {
+        this.messages[msg_id].msg_id = new_id
+        this.messages[new_id] = this.messages[msg_id]
     }
 }
 Manager.prototype.deactivate = function (current) {
@@ -135,13 +137,17 @@ Message.prototype.remove = function () {
     this.outer.remove()
     manager.ondeck = null
 }
-Message.prototype.setInput = function(value) {
+Message.prototype.setInput = function(msg_id, value) {
     this.code = value
     this.input.html(value)
 }
-Message.prototype.setOutput = function(value, header) {
-    this.in_head.html("In [<span class='cbold'>"+this.num+"</span>]:")
-    this.output.html(value)
+Message.prototype.setOutput = function(msg_id, value, header) {
+    if (this.msg_id != msg_id) {
+        this.in_head.html("In [<span class='cbold'>"+this.num+"</span>]:")
+        this.output.html(value)
+    } else {
+        this.output.append(value)
+    }
     if (header)
         this.out_head.html("Out [<span class='cbold'>"+this.num+"</span>]:")
 }
@@ -170,22 +176,37 @@ InputArea.prototype.activate = function () {
             manager.get("+1").activate()
         } else if (e.which == 9) {
             e.preventDefault()
-            
-            tabcomplete()
+            var pos = thisObj.text.getSelection().end
+            tabcomplete(thisObj.text.get(0).value, pos, function(matches) {
+                thisObj.complete(matches)
+            })
         }
     })
     $.scrollTo(this.text)
 }
 InputArea.prototype.submit = function (code) {
     this.msg.code = code
-    comet.stop()
     var thisObj = this
     execute(code, function(json) {
         thisObj.msg.num = exec_count
         if (manager.ondeck == thisObj.msg)
             manager.set(json.parent_header.msg_id)
-        else 
-            manager.messages[json.parent_header.msg_id] = thisObj.msg
-        comet.start()
+        else
+            manager.set(thisObj.msg.msg_id, json.parent_header.msg_id)
     })
+}
+InputArea.prototype.complete = function (matches) {
+    if (matches.length == 1) 
+        this.replace(matches[0])
+    else if (matches.length > 1) {
+        //TODO:Implement me!
+    }
+}
+InputArea.prototype.replace = function (match) {
+    var pos = this.text.getSelection().end
+    var code = this.text.val()
+    var words = code.slice(0,pos).split(' ')
+    words[words.length-1] = match
+    this.msg.code = words.join(' ')+" "+code.slice(pos)
+    this.text.val(this.msg.code)
 }

@@ -40,7 +40,7 @@ function fixConsole(txt) {
         txt = txt.replace(re, close + open)
     }
     if (opened) txt += "</span>"
-    return txt
+    return txt.trim()
 }
 
 function inspect(obj) {
