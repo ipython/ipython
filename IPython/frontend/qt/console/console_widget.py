@@ -544,9 +544,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         dialog = QtGui.QFileDialog(parent, 'Save Console as...')
         dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
         filters = [
-            'HTML with inline PNGs (*.html *.htm)',
-            'HTML with external PNGs (*.html *.htm)',
-            'XHTML with inline SVGs (*.xhtml *.xml)'
+            'HTML with PNG figures (*.html *.htm)',
+            'XHTML with inline SVG figures (*.xhtml *.xml)'
         ]
         dialog.setNameFilters(filters)
         if self._filename:
@@ -562,7 +561,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             if choice.startswith('XHTML'):
                 exporter = self.export_xhtml
             else:
-                exporter = lambda filename: self.export_html(filename, 'inline' in choice)
+                exporter = self.export_html
 
             try:
                 return exporter(filename)
@@ -573,7 +572,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
         return None
 
-    def export_html(self, filename, inline=False):
+    def export_html(self, filename):
         """ Export the contents of the ConsoleWidget as HTML.
 
         Parameters:
@@ -585,7 +584,21 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             include them as links to external PNG files, mimicking
             web browsers' "Web Page, Complete" behavior.
         """
-        if(inline):
+        # N.B. this is overly restrictive, but Qt's output is
+        # predictable...
+        img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
+        html = self.fix_html_encoding(
+            str(self._control.toHtml().toUtf8()))
+        if img_re.search(html):
+            # there are images
+            title = self.window().windowTitle()
+            reply = QtGui.QMessageBox.question(self, title, "Images found."+
+                    "\nWould you like inline PNGs (single large html file) or "+
+                    "external image files?", "inline", "external")
+            inline = (reply == 0)
+        else:
+            inline = True
+        if inline:
             path = None
         else:
             root,ext = os.path.splitext(filename)
@@ -595,11 +608,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         f = open(filename, 'w')
         try:
-            # N.B. this is overly restrictive, but Qt's output is
-            # predictable...
-            img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
-            html = self.fix_html_encoding(
-                str(self._control.toHtml().toUtf8()))
             f.write(img_re.sub(
                 lambda x: self.image_tag(x, path = path, format = "png"),
                 html))
