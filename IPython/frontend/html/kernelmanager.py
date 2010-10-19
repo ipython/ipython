@@ -79,7 +79,7 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             json.dump(manager[path].get(), self.wfile)
         elif path == "notebook":
             self.send_response(200)
-            self.send_header("Content-type", "text/html")
+            self.send_header("Content-type", "application/xhtml+xml")
             self.end_headers()
             
             #This is a good spot to add login mechanics

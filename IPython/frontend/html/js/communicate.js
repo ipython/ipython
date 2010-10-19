@@ -25,21 +25,7 @@ CometGetter.prototype.process = function (json) {
     } else if (this.pause) {
         setTimeout(function () { thisObj.process(json) }, 1)
     } else {
-//$("#messages").append("<div class='headers'>"+json.msg_type+": "+json.parent_header.msg_id+"</div>")
-        var id = json.parent_header.msg_id
-        var msg = manager.get( id, json.parent_header.session)
-        if (json.msg_type == "stream") {
-            msg.setOutput(id, fixConsole(json.content.data))
-        } else if (json.msg_type == "pyin") {
-            if (json.parent_header.session != session)
-                msg.setInput(id, fixConsole(json.content.code))
-        } else if (json.msg_type == "pyout") {
-            exec_count = json.content.execution_count
-            msg.num = json.content.execution_count
-            msg.setOutput(id, fixConsole(json.content.data), true)
-        } else if (json.msg_type == "pyerr") {
-            msg.setOutput(id, fixConsole(json.content.traceback.join("\n")))
-        }
+        manager.process(json)
     }
 }
 CometGetter.prototype.start = function () {
@@ -59,7 +45,7 @@ function heartbeat() {
     })
 }
 
-function execute(code, postfunc) {
+function execute(code, msg) {
     comet.stop()
     $.ajax({
         type: "POST",
@@ -67,18 +53,7 @@ function execute(code, postfunc) {
         success: function(json, status, request) {
             comet.start()
             if (json != null) {
-                var id = json.parent_header.msg_id
-                exec_count = json.content.execution_count
-                if (typeof(postfunc) != "undefined")
-                    postfunc(json)
-                if (json.content.payload.length > 0 && 
-                    json.content.payload[0]['format'] == "svg") {
-                    var svg = $(document.createElement('div'))
-                    svg.html(json.content.payload[0]['data'])
-                    manager.get(id).setOutput(id, svg)
-                }
-                //Open a new input object
-                manager.get().activate()
+                manager.process(json, msg)
             }
         }
     })

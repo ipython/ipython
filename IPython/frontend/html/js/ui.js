@@ -28,7 +28,7 @@ function Manager(obj) {
         thisObj.deactivate(thisObj.ondeck)
     })
 }
-Manager.prototype.get = function (msg_id, sess) {
+Manager.prototype.get = function (msg_id) {
     if (typeof(msg_id) == "undefined") {
         //Handle manager.get(), to return a new message on deck
         if (this.ondeck == null) {
@@ -48,26 +48,10 @@ Manager.prototype.get = function (msg_id, sess) {
         }
         return this.ordering[this.cursor]
     } else if (typeof(this.messages[msg_id]) == "undefined") {
-        if (sess != session) {
-            if (this.ondeck != null)
-                this.ondeck.remove()
-            this.messages[msg_id] = new Message(msg_id, this.obj)
-            this.ordering.push(this.messages[msg_id])
-            this.get().activate()
-        }
+        this.messages[msg_id] = new Message(msg_id, this.obj)
+        this.ordering.push(this.messages[msg_id])
     }
     return this.messages[msg_id]
-}
-Manager.prototype.set = function (msg_id, new_id) {
-    if (typeof(new_id) == "undefined") {
-        this.ondeck.msg_id = msg_id
-        this.messages[msg_id] = this.ondeck
-        this.ordering.push(this.ondeck)
-        this.ondeck = null
-    } else {
-        this.messages[msg_id].msg_id = new_id
-        this.messages[new_id] = this.messages[msg_id]
-    }
 }
 Manager.prototype.deactivate = function (current) {
     for (var i in this.messages)
@@ -79,6 +63,51 @@ Manager.prototype.deactivate = function (current) {
             this.ondeck = null
         }
     }
+}
+Manager.prototype.process = function (json, origin) {
+    var id = json.parent_header.msg_id
+    var type = json.msg_type
+    
+    if (typeof(origin) != "undefined") {
+        if (type != "execute_reply") 
+            throw Exception("Recieved other message with an origin message??")
+        this.messages[id] = origin
+        if (origin == this.ondeck) { 
+            this.ordering.push(origin)
+            this.ondeck = null
+        }
+    }
+    
+    var msg = this.get(id)
+    
+    if (type == "stream") {
+        msg.setOutput(fixConsole(json.content.data))
+    } else if (type == "pyin") {
+        msg.setInput(json.content.code, true)
+    } else if (type == "pyout") {
+        exec_count = json.content.execution_count
+        msg.num = json.content.execution_count
+        msg.setOutput(msg.output.html() + fixConsole(json.content.data), true)
+    } else if (type == "pyerr") {
+        msg.setOutput(fixConsole(json.content.traceback.join("\n")))
+    } else if (type == "execute_reply") {
+        exec_count = json.content.execution_count
+        //If this reply has an SVG, let's add it
+        if (json.content.payload.length > 0 && 
+            json.content.payload[0]['format'] == "svg") {
+            var data = json.content.payload[0]['data']
+            //Remove the doctype from the top, otherwise no way to embed
+            data = data.split("\n").slice(4).join("\n")
+            var svg = document.createElement("div")
+            svg.innerHTML = data
+            msg.setOutput(svg)
+        }
+        //Open a new input object
+        manager.get().activate()
+    }
+    
+    if (typeof(origin) != "undefined")
+        origin.msg_id = id
 }
 
 /***********************************************************************
@@ -135,21 +164,19 @@ Message.prototype.deactivate = function () {
 }
 Message.prototype.remove = function () {
     this.outer.remove()
-    manager.ondeck = null
+    if (manager.ondeck == this)
+        manager.ondeck = null
 }
-Message.prototype.setInput = function(msg_id, value) {
+Message.prototype.setInput = function(value, header) {
     this.code = value
     this.input.html(value)
+    var head = header?"In [<span class='cbold'>"+this.num+"</span>]:":""
+    this.in_head.html(head)
 }
-Message.prototype.setOutput = function(msg_id, value, header) {
-    if (this.msg_id != msg_id) {
-        this.in_head.html("In [<span class='cbold'>"+this.num+"</span>]:")
-        this.output.html(value)
-    } else {
-        this.output.append(value)
-    }
-    if (header)
-        this.out_head.html("Out [<span class='cbold'>"+this.num+"</span>]:")
+Message.prototype.setOutput = function(value, header) {
+    this.output.html(value)
+    var head = header?"Out [<span class='cbold'>"+this.num+"</span>]:":""
+    this.out_head.html(head)
 }
 
 /***********************************************************************
@@ -186,14 +213,7 @@ InputArea.prototype.activate = function () {
 }
 InputArea.prototype.submit = function (code) {
     this.msg.code = code
-    var thisObj = this
-    execute(code, function(json) {
-        thisObj.msg.num = exec_count
-        if (manager.ondeck == thisObj.msg)
-            manager.set(json.parent_header.msg_id)
-        else
-            manager.set(thisObj.msg.msg_id, json.parent_header.msg_id)
-    })
+    execute(code, this.msg)
 }
 InputArea.prototype.complete = function (matches) {
     if (matches.length == 1) 

@@ -20,24 +20,34 @@ $(document).ready(function() {
     statusbar = new StatusBar("statusbar")
 })
 
+function xmlencode(string) {
+    return string.replace(/\&/g,'&'+'amp;').replace(/</g,'&'+'lt;')
+        .replace(/>/g,'&'+'gt;').replace(/\'/g,'&'+'apos;')
+        .replace(/\"/g,'&'+'quot;');
+}
+
+attrib = {"30":"cblack", "31":"cred","32":"cgreen", "34":"cblue", "36":"ccyan", "01":"cbold"}
 function fixConsole(txt) {
     //Fixes escaped console commands, IE colors. Turns them into HTML
     //Unfortunately, the "semantics" of html and console are very 
     //different, so fancy things *will* break
-    var attrib = {"30":"cblack", "31":"cred","32":"cgreen", "34":"cblue", "36":"ccyan", "01":"cbold"}
-    txt = txt.replace("<","&lt;").replace(">", "&gt;")
+    txt = xmlencode(txt)
     var re = /\033\[([\d;]+?)m/
     var opened = false
+    var cmds = []
+    var opener = ""
+    var closer = ""
+    
     while (re.test(txt)) {
         var cmds = txt.match(re)[1].split(";")
-        opened = cmds[0] != "0"
-        var close = opened?"":"</span>"
+        closer = opened?"</span>":""
+        opened = cmds.length > 1 || cmds[0] != 0
         var rep = []
         for (var i in cmds)
             if (typeof(attrib[cmds[i]]) != "undefined")
                 rep.push(attrib[cmds[i]])
-        var open = rep.length > 0?"<span class=\""+rep.join(" ")+"\">":""
-        txt = txt.replace(re, close + open)
+        opener = rep.length > 0?"<span class=\""+rep.join(" ")+"\">":""
+        txt = txt.replace(re, closer + opener)
     }
     if (opened) txt += "</span>"
     return txt.trim()
