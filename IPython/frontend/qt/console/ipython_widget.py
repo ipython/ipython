@@ -111,6 +111,7 @@ class IPythonWidget(FrontendWidget):
             self._payload_source_page : self._handle_payload_page,
             self._payload_source_loadpy : self._handle_payload_loadpy }
         self._previous_prompt_obj = None
+        self._keep_kernel_on_exit = None
 
         # Initialize widget styling.
         if self.style_sheet:
@@ -424,6 +425,7 @@ class IPythonWidget(FrontendWidget):
         self._edit(item['filename'], item['line_number'])
 
     def _handle_payload_exit(self, item):
+        self._keep_kernel_on_exit = item['keepkernel']
         self.exit_requested.emit()
 
     def _handle_payload_loadpy(self, item):
