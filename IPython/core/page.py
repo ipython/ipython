@@ -141,9 +141,29 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
             # unconditionally reset it every time.  It's cheaper than making
             # the checks.
             term_flags = termios.tcgetattr(sys.stdout)
+
+            # Curses modifies the stdout buffer size by default, which messes
+            # up Python's normal stdout buffering.  This would manifest itself
+            # to IPython users as delayed printing on stdout after having used
+            # the pager.
+            #
+            # We can prevent this by manually setting the NCURSES_NO_SETBUF
+            # environment variable.  For more details, see:
+            # http://bugs.python.org/issue10144
+            NCURSES_NO_SETBUF = os.environ.get('NCURSES_NO_SETBUF', None)
+            os.environ['NCURSES_NO_SETBUF'] = ''
+            
+            # Proceed with curses initialization
             scr = curses.initscr()
             screen_lines_real,screen_cols = scr.getmaxyx()
             curses.endwin()
+
+            # Restore environment
+            if NCURSES_NO_SETBUF is None:
+                del os.environ['NCURSES_NO_SETBUF']
+            else:
+                os.environ['NCURSES_NO_SETBUF'] = NCURSES_NO_SETBUF
+                
             # Restore terminal state in case endwin() didn't.
             termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
             # Now we have what we needed: the screen size in rows/columns
