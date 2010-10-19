@@ -17,6 +17,19 @@ StatusBar.prototype.set = function(status) {
     this.text.text(status)
 }
 
+function History(obj) {
+    this.obj = $(obj)
+//    gethistory(-1)
+}
+History.prototype.append = function(hist) {
+    for (var i in hist) {
+        var obj = $(document.createElement("div"))
+        obj.addClass("history_element")
+        obj.html("["+i+"]: "+hist[i])
+        this.obj.append(obj)
+    }
+}
+
 /***********************************************************************
  * Manages the messages and their ordering
  ***********************************************************************/
@@ -104,6 +117,8 @@ Manager.prototype.process = function (json, origin) {
             } else if (typeof(payload["text"]) != "undefined") {
                 msg.setOutput(fixConsole(payload["text"]))
             }
+        } else {
+            msg.setOutput("")
         }
         //Open a new input object
         manager.get().activate()
@@ -252,10 +267,13 @@ InputArea.prototype.complete = function (matches) {
         this.replace(matches[0])
     else if (matches.length > 1) {
         //TODO:Implement a multi-selector!
+        var pos = this.text.getSelection().end
+        
     }
 }
-InputArea.prototype.replace = function (match) {
-    var pos = this.text.getSelection().end
+InputArea.prototype.replace = function (match, pos) {
+    if (typeof(pos) == "undefined")
+        pos = this.text.getSelection().end
     var code = this.text.val()
     var words = code.slice(0,pos).split(' ')
     var end = code.slice(pos)

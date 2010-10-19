@@ -7,6 +7,7 @@ $(document).ready(function() {
     comet = new CometGetter()
     manager = new Manager("messages")
     statusbar = new StatusBar("statusbar")
+    kernhistory = new History("history")
     //Startup POST, set some globals
     $.ajax({
         type: "POST",

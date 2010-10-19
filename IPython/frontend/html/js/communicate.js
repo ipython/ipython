@@ -55,6 +55,7 @@ function execute(code, msg) {
             comet.start()
             if (json != null) {
                 manager.process(json, msg)
+                //gethistory(1)
             }
         }
     })
@@ -66,6 +67,15 @@ function tabcomplete(code, pos, func) {
         data: {type:"complete", code:code, pos:pos},
         success: function(json, status, request) {
             func(json.content.matches)
+        }
+    })
+}
+function gethistory(len) {
+    $.ajax({
+        type:"POST",
+        data:{type:"history", index:len},
+        success: function (json, status, request) {
+            kernhistory.append(json.content.history)
         }
     })
 }

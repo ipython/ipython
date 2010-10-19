@@ -1,5 +1,33 @@
-#sidebar { float:right; width:20%; }
-#statusbar { margin:5px; }
+#messages *,#sidebar * {
+    border-radius:3px;
+    -moz-border-radius:3px;
+}
+#sidebar { 
+    width:20%; 
+    height:100%; 
+    position:fixed;
+    right:5px;
+    background:white;
+}
+#history {
+    margin:6px;
+    padding:8px;
+    border:1px solid #CCC;
+    min-height:20px;
+}
+#history p{
+    margin:-18px 0px 0px 10px;
+    float:left;
+    background:white;
+}
+#statusbar { 
+    position:absolute;
+    bottom:6px;
+    right:0px;
+    margin:6px;
+    padding:8px;
+    border:1px solid #CCC;
+}
 #statusbar span { vertical-align:middle; }
 #statusbar .bullet {
 	font-size:150%;
@@ -10,17 +38,19 @@
 	width:80%;
 	float:left;
 }
-.active {
-	border-color:#090;
-}
 .message {
-	padding:3px;
-	border:1px solid #CCC;
-	margin:5px;
+    border:1px solid #CCC;
+    border-radius:3px;
+	padding:8px;
+	margin:6px;
+	overflow:auto;
 }
 .message:hover {
 	border:1px solid red;
 	cursor:pointer;
+}
+.active {
+	border:1px solid #090;
 }
 .message .input_header {
 	color:blue;
@@ -30,6 +60,7 @@
 .message .input { 
 	float:left;
 	width:90%;
+	margin-bottom:4px;
 }
 .message .output_header {
 	color:red;

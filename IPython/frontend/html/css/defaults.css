@@ -1,4 +1,8 @@
-body { font-family:sans-serif; font-size:10pt;}
+body { 
+    font-family:sans-serif; 
+    font-size:10pt;
+    margin:5px;
+}
 pre, p { margin:0px; }
 .cblue { color: blue }
 .ccyan { color: teal }

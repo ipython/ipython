@@ -60,6 +60,15 @@ class CometManager(object):
     def inspect(self, oname):
         self.kernel_manager.xreq_channel.object_info(oname)
         return self.req_queue.get()
+    
+    def history(self, index = None, raw = False, output=False):
+        if index == -1:
+            index = None
+        try:
+            self.kernel_manager.xreq_channel.history(index, raw, output)
+            return self.req_queue.get()
+        except:
+            return dict(msg_type="history_reply", content=dict(history=dict()))
         
     def addreq(self, msg):
         self.req_queue.put(msg)
@@ -123,6 +132,8 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
                 resp = manager.inspect(data['name'].value)
             elif msg_type == "connect":
                 resp = manager.send("connect_request")
+            elif msg_type == "history":
+                resp = manager.history(data['index'].value)
             json.dump(resp, self.wfile)
 
 class IPyHttpServer(ThreadingMixIn, HTTPServer):
