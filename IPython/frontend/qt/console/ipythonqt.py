@@ -62,16 +62,28 @@ class MainWindow(QtGui.QMainWindow):
         kernel_manager = self._frontend.kernel_manager
         if kernel_manager and kernel_manager.channels_running:
             title = self.window().windowTitle()
+            cancel = QtGui.QMessageBox.Cancel
+            okay = QtGui.QMessageBox.Ok
             if self._may_close:
-                reply = QtGui.QMessageBox.question(self, title,
-                    "You are closing this Console window."+
-                    "\nWould you like to quit the Kernel and all attached Consoles as well?",
-                    'Cancel', 'No, just this Console', 'Yes, quit everything')
-                if reply == 2: # close All
+                msg = "You are closing this Console window."
+                info = "Would you like to quit the Kernel and all attached Consoles as well?"
+                justthis = QtGui.QPushButton("No, just this Console", self)
+                justthis.setShortcut(QtGui.QKeySequence.Close)
+                closeall = QtGui.QPushButton("Yes, quit everything", self)
+                closeall.setShortcut('A')
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Question, title, msg)
+                box.setInformativeText(info)
+                box.addButton(cancel)
+                box.addButton(justthis, QtGui.QMessageBox.NoRole)
+                box.addButton(closeall, QtGui.QMessageBox.YesRole)
+                box.setDefaultButton(closeall)
+                box.setEscapeButton(cancel)
+                reply = box.exec_()
+                if reply == 1: # close All
                     kernel_manager.shutdown_kernel()
                     #kernel_manager.stop_channels()
                     event.accept()
-                elif reply == 1: # close Console
+                elif reply == 0: # close Console
                     if not self._existing:
                         # I have the kernel: don't quit, just close the window
                         self._app.setQuitOnLastWindowClosed(False)
@@ -81,11 +93,12 @@ class MainWindow(QtGui.QMainWindow):
                     event.ignore()
             else:
                 reply = QtGui.QMessageBox.question(self, title,
-                    "Are you sure you want to close this Console?\n"+
-                    "The Kernel and other Consoles will remain active.",
-                    QtGui.QMessageBox.Cancel, QtGui.QMessageBox.Ok
+                    "Are you sure you want to close this Console?"+
+                    "\nThe Kernel and other Consoles will remain active.",
+                    okay|cancel,
+                    defaultButton=okay
                     )
-                if reply == QtGui.QMessageBox.Ok:
+                if reply == okay:
                     event.accept()
                 else:
                     event.ignore()
