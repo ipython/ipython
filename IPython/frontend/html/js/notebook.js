@@ -21,12 +21,19 @@ $(document).ready(function() {
 })
 
 function xmlencode(string) {
-    return string.replace(/\&/g,'&'+'amp;').replace(/</g,'&'+'lt;')
-        .replace(/>/g,'&'+'gt;').replace(/\'/g,'&'+'apos;')
-        .replace(/\"/g,'&'+'quot;');
+    return string.replace(/\&/g,'&'+'amp;')
+        .replace(/</g,'&'+'lt;')
+        .replace(/>/g,'&'+'gt;')
+        .replace(/\'/g,'&'+'apos;')
+        .replace(/\"/g,'&'+'quot;')
+        .replace(/`/g,'&'+'#96;')
 }
 
-attrib = {"30":"cblack", "31":"cred","32":"cgreen", "34":"cblue", "36":"ccyan", "01":"cbold"}
+attrib = {
+    "30":"cblack", "31":"cred",
+    "32":"cgreen", "33":"cyellow",  
+    "34":"cblue", "36":"ccyan", 
+    "37":"cwhite", "01":"cbold"}
 function fixConsole(txt) {
     //Fixes escaped console commands, IE colors. Turns them into HTML
     //Unfortunately, the "semantics" of html and console are very 

@@ -85,14 +85,25 @@ Manager.prototype.process = function (json, origin) {
     if (type == "execute_reply") {
         exec_count = json.content.execution_count
         //If this reply has an SVG, let's add it
-        if (json.content.payload.length > 0 && 
-            json.content.payload[0]['format'] == "svg") {
-            var data = json.content.payload[0]['data']
-            //Remove the doctype from the top, otherwise no way to embed
-            data = data.split("\n").slice(4).join("\n")
-            var svg = document.createElement("div")
-            svg.innerHTML = data
-            msg.setOutput(svg)
+        if (json.content.payload.length > 0) {
+            var payload = json.content.payload[0]
+            if (typeof(payload['format']) != "undefined") {
+                var format = payload['format']
+                if (format == "svg") {
+                    var data = payload['data']
+                    //Remove the doctype from the top, otherwise no way to embed
+                    data = data.split("\n").slice(4).join("\n")
+                    var svg = document.createElement("div")
+                    svg.innerHTML = data
+                    msg.setOutput(svg)
+                } else if (format == "png") {
+                    var png = document.createElement("img")
+                    png.src = "data:image/png;"+payload['data']
+                    msg.setOutput(png)
+                }
+            } else if (typeof(payload["text"]) != "undefined") {
+                msg.setOutput(fixConsole(payload["text"]))
+            }
         }
         //Open a new input object
         manager.get().activate()
@@ -172,6 +183,7 @@ Message.prototype.activate = function () {
     manager.deactivate(this)
     this.outer.addClass("active")
     this.text = new InputArea(this)
+    $.scrollTo(this.outer)
 }
 Message.prototype.deactivate = function () {
     this.outer.removeClass("active")
@@ -224,10 +236,9 @@ InputArea.prototype.activate = function () {
                 thisObj.complete(matches)
             })
         } else {
-            this.msg.code = this.text.val()
+            thisObj.msg.code = e.target.value
         }
     })
-    $.scrollTo(this.text)
 }
 InputArea.prototype.submit = function (code) {
     this.msg.code = code
@@ -240,7 +251,7 @@ InputArea.prototype.complete = function (matches) {
     if (matches.length == 1)
         this.replace(matches[0])
     else if (matches.length > 1) {
-        //TODO:Implement me!
+        //TODO:Implement a multi-selector!
     }
 }
 InputArea.prototype.replace = function (match) {

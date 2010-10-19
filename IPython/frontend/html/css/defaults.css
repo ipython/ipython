@@ -3,7 +3,8 @@ pre, p { margin:0px; }
 .cblue { color: blue }
 .ccyan { color: teal }
 .cgreen { color: green }
-.cyellow { color: yellow }
+.cyellow { color: #990 }
+.cwhite { color: #777 }
 .cred { color: red }
 .cbold { font-weight:bold }
 .hidden { display:none; }
