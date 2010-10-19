@@ -2,10 +2,13 @@
  * Tracks the status bar on the right, will eventually be draggable
  ***********************************************************************/
 function StatusBar(obj) {
-    $("#"+obj).append("<span class='txt'></span>")
-    $("#"+obj).append("<span class='bullet'>&#8226;</span>")
-    this.text = $("#"+obj+" .txt")
-    this.bullet = $("#"+obj+" .bullet")
+    this.text = $(document.createElement("span"))
+    this.text.addClass("txt")
+    $("#"+obj).append(this.text)
+    this.bullet = $(document.createElement("span"))
+    this.bullet.addClass("bullet")
+    this.bullet.html("&#8226;")
+    $("#"+obj).append(this.bullet)
 }
 StatusBar.prototype.map = { "idle":"cgreen", "busy":"cyellow", "dead":"cred" }
 StatusBar.prototype.set = function(status) {
@@ -70,7 +73,7 @@ Manager.prototype.process = function (json, origin) {
     
     if (typeof(origin) != "undefined") {
         if (type != "execute_reply") 
-            throw Exception("Recieved other message with an origin message??")
+            throw Exception("Recieved other message with an origin??")
         this.messages[id] = origin
         if (origin == this.ondeck) { 
             this.ordering.push(origin)
@@ -79,18 +82,7 @@ Manager.prototype.process = function (json, origin) {
     }
     
     var msg = this.get(id)
-    
-    if (type == "stream") {
-        msg.setOutput(fixConsole(json.content.data))
-    } else if (type == "pyin") {
-        msg.setInput(json.content.code, true)
-    } else if (type == "pyout") {
-        exec_count = json.content.execution_count
-        msg.num = json.content.execution_count
-        msg.setOutput(msg.output.html() + fixConsole(json.content.data), true)
-    } else if (type == "pyerr") {
-        msg.setOutput(fixConsole(json.content.traceback.join("\n")))
-    } else if (type == "execute_reply") {
+    if (type == "execute_reply") {
         exec_count = json.content.execution_count
         //If this reply has an SVG, let's add it
         if (json.content.payload.length > 0 && 
@@ -104,10 +96,34 @@ Manager.prototype.process = function (json, origin) {
         }
         //Open a new input object
         manager.get().activate()
+    } else {
+        var removed = false
+        if (this.ondeck != null && this.ondeck.code == "") {
+            this.ondeck.remove()
+            removed = true
+        }
+        if (type == "stream") {
+            msg.setOutput(fixConsole(json.content.data))
+        } else if (type == "pyin") {
+            if (json.content.code == "")
+                msg.remove()
+            else
+                msg.setInput(json.content.code, true)
+        } else if (type == "pyout") {
+            exec_count = json.content.execution_count
+            msg.num = json.content.execution_count
+            msg.setOutput(msg.output.html() + fixConsole(json.content.data), true)
+        } else if (type == "pyerr") {
+            msg.setOutput(fixConsole(json.content.traceback.join("\n")))
+        }
+        if (removed) this.get().activate()
     }
     
     if (typeof(origin) != "undefined")
         origin.msg_id = id
+}
+Manager.prototype.length = function () {
+    return this.ordering.length
 }
 
 /***********************************************************************
@@ -207,16 +223,21 @@ InputArea.prototype.activate = function () {
             tabcomplete(thisObj.text.get(0).value, pos, function(matches) {
                 thisObj.complete(matches)
             })
+        } else {
+            this.msg.code = this.text.val()
         }
     })
     $.scrollTo(this.text)
 }
 InputArea.prototype.submit = function (code) {
     this.msg.code = code
-    execute(code, this.msg)
+    if (code == "")
+        this.msg.remove()
+    else 
+        execute(code, this.msg)
 }
 InputArea.prototype.complete = function (matches) {
-    if (matches.length == 1) 
+    if (matches.length == 1)
         this.replace(matches[0])
     else if (matches.length > 1) {
         //TODO:Implement me!
@@ -226,7 +247,10 @@ InputArea.prototype.replace = function (match) {
     var pos = this.text.getSelection().end
     var code = this.text.val()
     var words = code.slice(0,pos).split(' ')
+    var end = code.slice(pos)
     words[words.length-1] = match
-    this.msg.code = words.join(' ')+" "+code.slice(pos)
+    if (end.length > 0)
+        words.push(end)
+    this.msg.code = words.join(' ')
     this.text.val(this.msg.code)
 }

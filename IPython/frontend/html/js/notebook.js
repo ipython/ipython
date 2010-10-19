@@ -3,9 +3,10 @@ $.ajaxSetup({
     dataType: "json"
 })
 $(document).ready(function() {
-    comet = new CometGetter()
     heartbeat()
+    comet = new CometGetter()
     manager = new Manager("messages")
+    statusbar = new StatusBar("statusbar")
     //Startup POST, set some globals
     $.ajax({
         type: "POST",
@@ -17,7 +18,6 @@ $(document).ready(function() {
             manager.get().activate()
         }
     })
-    statusbar = new StatusBar("statusbar")
 })
 
 function xmlencode(string) {

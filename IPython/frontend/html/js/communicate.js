@@ -25,6 +25,7 @@ CometGetter.prototype.process = function (json) {
     } else if (this.pause) {
         setTimeout(function () { thisObj.process(json) }, 1)
     } else {
+        //Ignore first pyin due to connect call
         manager.process(json)
     }
 }
