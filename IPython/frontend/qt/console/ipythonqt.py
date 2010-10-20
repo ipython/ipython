@@ -68,9 +68,9 @@ class MainWindow(QtGui.QMainWindow):
                 msg = "You are closing this Console window."
                 info = "Would you like to quit the Kernel and all attached Consoles as well?"
                 justthis = QtGui.QPushButton("No, just this Console", self)
-                justthis.setShortcut(QtGui.QKeySequence.Close)
+                justthis.setShortcut('N')
                 closeall = QtGui.QPushButton("Yes, quit everything", self)
-                closeall.setShortcut('A')
+                closeall.setShortcut('Y')
                 box = QtGui.QMessageBox(QtGui.QMessageBox.Question, title, msg)
                 box.setInformativeText(info)
                 box.addButton(cancel)
