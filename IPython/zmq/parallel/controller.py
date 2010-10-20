@@ -15,15 +15,19 @@ This is the master object that handles connections from engines, clients, and
 # Imports
 #-----------------------------------------------------------------------------
 from datetime import datetime
+import logging
 
 import zmq
 from zmq.eventloop import zmqstream, ioloop
 import uuid
 
 # internal:
-from streamsession import Message, wrap_exception # default_unpacker as unpack, default_packer as pack
 from IPython.zmq.log import logger # a Logger object
+from IPython.zmq.entry_point import bind_port
 
+from streamsession import Message, wrap_exception
+from entry_point import (make_argument_parser, select_random_ports, split_ports,
+                        connect_logger)
 # from messages import json # use the same import switches
 
 #-----------------------------------------------------------------------------
@@ -359,10 +363,11 @@ class Controller(object):
         triggers unregistration"""
         logger.debug("heartbeat::handle_heart_failure(%r)"%heart)
         eid = self.hearts.get(heart, None)
+        queue = self.engines[eid].queue
         if eid is None:
             logger.info("heartbeat::ignoring heart failure %r"%heart)
         else:
-            self.unregister_engine(heart, dict(content=dict(id=eid)))
+            self.unregister_engine(heart, dict(content=dict(id=eid, queue=queue)))
     
     #----------------------- MUX Queue Traffic ------------------------------
     
@@ -642,29 +647,6 @@ class Controller(object):
             # pending
         self.session.send(self.clientele, "queue_reply", content=content, ident=client_id)
     
-    def job_status(self, client_id, msg):
-        """handle queue_status request"""
-        content = msg['content']
-        msg_ids = content['msg_ids']
-        try:
-            targets = self._validate_targets(targets)
-        except:
-            content = wrap_exception()
-            self.session.send(self.clientele, "controller_error", 
-                    content=content, ident=client_id)
-            return
-        verbose = msg.get('verbose', False)
-        content = dict()
-        for t in targets:
-            queue = self.queues[t]
-            completed = self.completed[t]
-            if not verbose:
-                queue = len(queue)
-                completed = len(completed)
-            content[str(t)] = {'queue': queue, 'completed': completed }
-            # pending
-        self.session.send(self.clientele, "queue_reply", content=content, ident=client_id)
-    
     def purge_results(self, client_id, msg):
         content = msg['content']
         msg_ids = content.get('msg_ids', [])
@@ -769,4 +751,171 @@ class Controller(object):
         return eid, msg
     
 
-        
+#--------------------
+# Entry Point
+#--------------------
+
+def main():
+    import time
+    from multiprocessing import Process
+    
+    from zmq.eventloop.zmqstream import ZMQStream
+    from zmq.devices import ProcessMonitoredQueue
+    from zmq.log import handlers
+    
+    import streamsession as session
+    import heartmonitor
+    from scheduler import launch_scheduler
+    
+    parser = make_argument_parser()
+    
+    parser.add_argument('--client', type=int, metavar='PORT', default=0,
+                        help='set the XREP port for clients [default: random]')
+    parser.add_argument('--notice', type=int, metavar='PORT', default=0,
+                        help='set the PUB socket for registration notification [default: random]')
+    parser.add_argument('--hb', type=str, metavar='PORTS',
+                        help='set the 2 ports for heartbeats [default: random]')
+    parser.add_argument('--ping', type=int, default=3000,
+                        help='set the heartbeat period in ms [default: 3000]')
+    parser.add_argument('--monitor', type=int, metavar='PORT', default=0,
+                        help='set the SUB port for queue monitoring [default: random]')
+    parser.add_argument('--mux', type=str, metavar='PORTS',
+                        help='set the XREP ports for the MUX queue [default: random]')
+    parser.add_argument('--task', type=str, metavar='PORTS',
+                        help='set the XREP/XREQ ports for the task queue [default: random]')
+    parser.add_argument('--control', type=str, metavar='PORTS',
+                        help='set the XREP ports for the control queue [default: random]')
+    parser.add_argument('--scheduler', type=str, default='pure',
+                        choices = ['pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'],
+                        help='select the task scheduler  [default: pure ZMQ]')
+    
+    args = parser.parse_args()
+    
+    if args.url:
+        args.transport,iface = args.url.split('://')
+        iface = iface.split(':')
+        args.ip = iface[0]
+        if iface[1]:
+            args.regport = iface[1]
+    
+    iface="%s://%s"%(args.transport,args.ip)+':%i'
+    
+    random_ports = 0
+    if args.hb:
+        hb = split_ports(args.hb, 2)
+    else:
+        hb = select_random_ports(2)
+    if args.mux:
+        mux = split_ports(args.mux, 2)
+    else:
+        mux = None
+        random_ports += 2
+    if args.task:
+        task = split_ports(args.task, 2)
+    else:
+        task = None
+        random_ports += 2
+    if args.control:
+        control = split_ports(args.control, 2)
+    else:
+        control = None
+        random_ports += 2
+    
+    ctx = zmq.Context()
+    loop = ioloop.IOLoop.instance()
+    
+    # setup logging
+    connect_logger(ctx, iface%args.logport, root="controller", loglevel=args.loglevel)
+    
+    # Registrar socket
+    reg = ZMQStream(ctx.socket(zmq.XREP), loop)
+    regport = bind_port(reg, args.ip, args.regport)
+    
+    ### Engine connections ###
+    
+    # heartbeat
+    hpub = ctx.socket(zmq.PUB)
+    bind_port(hpub, args.ip, hb[0])
+    hrep = ctx.socket(zmq.XREP)
+    bind_port(hrep, args.ip, hb[1])
+    
+    hmon = heartmonitor.HeartMonitor(loop, ZMQStream(hpub,loop), ZMQStream(hrep,loop),args.ping)
+    hmon.start()
+    
+    ### Client connections ###
+    # Clientele socket
+    c = ZMQStream(ctx.socket(zmq.XREP), loop)
+    cport = bind_port(c, args.ip, args.client)
+    # Notifier socket
+    n = ZMQStream(ctx.socket(zmq.PUB), loop)
+    nport = bind_port(n, args.ip, args.notice)
+    
+    thesession = session.StreamSession(username=args.ident or "controller")
+    
+    ### build and launch the queues ###
+    
+    # monitor socket
+    sub = ctx.socket(zmq.SUB)
+    sub.setsockopt(zmq.SUBSCRIBE, "")
+    monport = bind_port(sub, args.ip, args.monitor)
+    sub = ZMQStream(sub, loop)
+    
+    ports = select_random_ports(random_ports)
+    # Multiplexer Queue (in a Process)
+    if not mux:
+        mux = (ports.pop(),ports.pop())
+    q = ProcessMonitoredQueue(zmq.XREP, zmq.XREP, zmq.PUB, 'in', 'out')
+    q.bind_in(iface%mux[0])
+    q.bind_out(iface%mux[1])
+    q.connect_mon(iface%monport)
+    q.daemon=True
+    q.start()
+    
+    # Control Queue (in a Process)
+    if not control:
+        control = (ports.pop(),ports.pop())
+    q = ProcessMonitoredQueue(zmq.XREP, zmq.XREP, zmq.PUB, 'incontrol', 'outcontrol')
+    q.bind_in(iface%control[0])
+    q.bind_out(iface%control[1])
+    q.connect_mon(iface%monport)
+    q.daemon=True
+    q.start()
+    
+    # Task Queue (in a Process)
+    if not task:
+        task = (ports.pop(),ports.pop())
+    if args.scheduler == 'pure':
+        q = ProcessMonitoredQueue(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
+        q.bind_in(iface%task[0])
+        q.bind_out(iface%task[1])
+        q.connect_mon(iface%monport)
+        q.daemon=True
+        q.start()
+    else:
+        sargs = (iface%task[0],iface%task[1],iface%monport,iface%nport,args.scheduler)
+        print sargs
+        p = Process(target=launch_scheduler, args=sargs)
+        p.daemon=True
+        p.start()
+    
+    time.sleep(.25)
+    
+    # build connection dicts
+    engine_addrs = {
+        'control' : iface%control[1],
+        'queue': iface%mux[1],
+        'heartbeat': (iface%hb[0], iface%hb[1]),
+        'task' : iface%task[1],
+        'monitor' : iface%monport,
+        }
+    
+    client_addrs = {
+        'control' : iface%control[0],
+        'query': iface%cport,
+        'queue': iface%mux[0],
+        'task' : iface%task[0],
+        'notification': iface%nport
+        }
+    con = Controller(loop, thesession, sub, reg, hmon, c, n, None, engine_addrs, client_addrs)
+    loop.start()
+    

@@ -20,7 +20,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import zmq
-logport = 20201
+logport = 20202
 def main(topics, addrs):
     
     context = zmq.Context()

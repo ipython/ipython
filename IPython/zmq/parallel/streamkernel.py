@@ -191,7 +191,7 @@ class Kernel(object):
             # self.reply_socket.send(ident,zmq.SNDMORE)
             # self.reply_socket.send_json(reply_msg)
             reply_msg = self.session.send(stream, reply_type, 
-                        content={'status' : 'aborted'}, parent=msg, ident=idents)
+                        content={'status' : 'aborted'}, parent=msg, ident=idents)[0]
             print>>sys.__stdout__, Message(reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
@@ -208,8 +208,8 @@ class Kernel(object):
             self.aborted.add(str(mid))
         
         content = dict(status='ok')
-        reply_msg = self.session.send(stream, 'abort_reply', content=content, parent=parent,
-                                                                    ident=ident)
+        reply_msg = self.session.send(stream, 'abort_reply', content=content, 
+                parent=parent, ident=ident)[0]
         print>>sys.__stdout__, Message(reply_msg)
     
     def kill_request(self, stream, idents, parent):
@@ -312,7 +312,7 @@ class Kernel(object):
         # self.reply_socket.send(ident, zmq.SNDMORE)
         # self.reply_socket.send_json(reply_msg)
         reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, ident=ident)
-        # print>>sys.__stdout__, Message(reply_msg)
+        print>>sys.__stdout__, Message(reply_msg)
         if reply_msg['content']['status'] == u'error':
             self.abort_queues()
 
@@ -327,6 +327,7 @@ class Kernel(object):
         return self.completer.complete(msg.content.line, msg.content.text)
     
     def apply_request(self, stream, ident, parent):
+        print parent
         try:
             content = parent[u'content']
             bufs = parent[u'buffers']
@@ -399,7 +400,7 @@ class Kernel(object):
         # self.reply_socket.send_json(reply_msg)
         reply_msg = self.session.send(stream, u'apply_reply', reply_content, 
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
-        # print>>sys.__stdout__, Message(reply_msg)
+        print>>sys.__stdout__, Message(reply_msg)
         # if reply_msg['content']['status'] == u'error':
         #     self.abort_queues()
     

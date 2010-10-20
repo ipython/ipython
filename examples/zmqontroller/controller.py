@@ -18,7 +18,7 @@ from IPython.zmq.parallel import controller, heartmonitor, streamsession as sess
 
 def setup():
     """setup a basic controller and open client,registrar, and logging ports. Start the Queue and the heartbeat"""
-    ctx = zmq.Context(1)
+    ctx = zmq.Context()
     loop = ioloop.IOLoop.instance()
     
     # port config

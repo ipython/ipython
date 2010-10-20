@@ -16,6 +16,7 @@ from streamsession import Message, StreamSession
 from client import Client
 import streamkernel as kernel
 import heartmonitor
+from entry_point import make_argument_parser, connect_logger
 # import taskthread
 # from log import logger
 
@@ -75,6 +76,7 @@ class Engine(object):
             if task_addr:
                 # task as stream:
                 task = self.context.socket(zmq.PAIR)
+                task.setsockopt(zmq.IDENTITY, self.ident)
                 task.connect(str(task_addr))
                 self.task_stream = zmqstream.ZMQStream(task, self.loop)
                 # TaskThread:
@@ -113,16 +115,28 @@ class Engine(object):
         self.register()
         
 
-if __name__ == '__main__':
+def main():
     
+    parser = make_argument_parser()
+    
+    args = parser.parse_args()
+    
+    if args.url:
+        args.transport,iface = args.url.split('://')
+        iface = iface.split(':')
+        args.ip = iface[0]
+        if iface[1]:
+            args.regport = iface[1]
+    
+    iface="%s://%s"%(args.transport,args.ip)+':%i'
     loop = ioloop.IOLoop.instance()
     session = StreamSession()
     ctx = zmq.Context()
 
-    ip = '127.0.0.1'
-    reg_port = 10101
-    connection = ('tcp://%s' % ip) + ':%i'
-    reg_conn = connection % reg_port
+    # setup logging
+    connect_logger(ctx, iface%args.logport, root="engine", loglevel=args.loglevel)
+    
+    reg_conn = iface % args.regport
     print reg_conn
     print >>sys.__stdout__, "Starting the engine..."
     
@@ -130,12 +144,8 @@ if __name__ == '__main__':
     reg.connect(reg_conn)
     reg = zmqstream.ZMQStream(reg, loop)
     client = Client(reg_conn)
-    if len(sys.argv) > 1:
-        queue_id=sys.argv[1]
-    else:
-        queue_id = None
     
-    e = Engine(ctx, loop, session, reg, client, queue_id)
-    dc = ioloop.DelayedCallback(e.start, 500, loop)
+    e = Engine(ctx, loop, session, reg, client, args.ident)
+    dc = ioloop.DelayedCallback(e.start, 100, loop)
     dc.start()
     loop.start()

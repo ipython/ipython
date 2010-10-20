@@ -16,7 +16,7 @@ config = {
     'clientport': 10201,
     'notifierport': 10202,
     
-    'logport': 20201
+    'logport': 20202
 }
 
 
