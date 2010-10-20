@@ -22,16 +22,23 @@ StatusBar.prototype.set = function(status) {
 }
 
 function History(obj) {
-    this.obj = $(obj)
+    this.obj = $("#"+obj)
 //    gethistory(-1)
 }
 History.prototype.append = function(hist) {
     for (var i in hist) {
-        var obj = $(document.createElement("div"))
+        var obj = $(document.createElement("a"))
         obj.addClass("history_element")
+        obj.attr("href", "javascript:kernhistory.click(\""+hist[i]+"\")")
         obj.html("["+i+"]: "+hist[i])
         this.obj.append(obj)
     }
+    this.obj.scrollTo(this.obj.children().last())
+}
+History.prototype.click = function (code) {
+    var msg = manager.get()
+    msg.code = code
+    msg.activate()
 }
 
 /***********************************************************************
@@ -90,7 +97,7 @@ Manager.prototype.process = function (json, origin) {
     
     if (typeof(origin) != "undefined") {
         if (type != "execute_reply") 
-            throw Exception("Recieved other message with an origin??")
+            throw Exception("Received other message with an origin??")
         this.messages[id] = origin
         if (origin == this.ondeck) { 
             this.ordering.push(origin)
@@ -137,14 +144,19 @@ Manager.prototype.process = function (json, origin) {
         } else if (type == "pyin") {
             if (json.content.code == "")
                 msg.remove()
-            else
+            else {
+                var data = {}
+                data[msg.num] = json.content.code
                 msg.setInput(json.content.code, true)
+                kernhistory.append(data)
+            }
         } else if (type == "pyout") {
             exec_count = json.content.execution_count
             msg.num = json.content.execution_count
             msg.setOutput(msg.output.html()+fixConsole(json.content.data), true)
         } else if (type == "pyerr") {
-            msg.setOutput(fixConsole(json.content.traceback.join("\n")))
+            var data = fixConsole(json.content.traceback.join("\n"))
+            msg.setOutput(msg.output.html() + data)
         }
         if (removed) this.get().activate()
     }
@@ -201,8 +213,7 @@ Message.prototype.activate = function () {
     this.active = true
     manager.deactivate(this)
     this.outer.addClass("active")
-    var num = this.msg_id == -1?exec_count+1:exec_count
-    this.in_head.html("In [<span class='cbold'>"+num+"</span>]:")
+    this.in_head.html("In [<span class='cbold'>"+(exec_count+1)+"</span>]:")
     this.text = new InputArea(this)
     $.scrollTo(this.outer)
 }
@@ -222,9 +233,9 @@ Message.prototype.setInput = function(value, header) {
     this.input.html(value)
 }
 Message.prototype.setOutput = function(value, header) {
-    this.output.html(value)
     var head = header?"Out [<span class='cbold'>"+this.num+"</span>]:":""
     this.out_head.html(head)
+    this.output.html(value)
 }
 
 /***********************************************************************
@@ -235,9 +246,7 @@ function InputArea(msg) {
     this.activate()
 }
 InputArea.prototype.activate = function () {
-    var input = document.createElement("input")
-    input.setAttribute("value", this.msg.code)
-    this.text = $(input)
+    this.text = $(document.createElement("input")).val(this.msg.code)
     this.msg.input.html(this.text)
     this.text.focus()
     
@@ -266,14 +275,15 @@ InputArea.prototype.submit = function (code) {
     this.msg.code = code
     if (code == "")
         this.msg.remove()
-    else 
+    else {
+        this.msg.input.html(code)
         execute(code, this.msg)
+    }
 }
 InputArea.prototype.complete = function (matches) {
     if (matches.length == 1)
         this.replace(matches[0])
     else if (matches.length > 1) {
-        //TODO:Implement a multi-selector!
         var pos = this.text.getSelection().end
         this.selector = new Selector(this, matches)
         var thisObj = this
@@ -318,11 +328,11 @@ function Selector(parent, matches) {
         }
     }
     
-    this.selectors[this.cursor].active()
-    $(document.body).append(this.dialog)
     var pos = this.parent.text.offset()
     pos.top += this.parent.text.height()
     this.dialog.offset(pos)
+    $(document.body).append(this.dialog)
+    this.selectors[this.cursor].active()
     
     var thisObj = this
     this.parent.text.unbind('keydown')
@@ -388,6 +398,7 @@ Selection.prototype.active = function () {
     this.parent.deselect()
     this.parent.cursor = this.idx
     this.obj.addClass("selected")
+    $.scrollTo(this.obj)
 }
 Selection.prototype.clear = function () {
     this.obj.removeClass("selected")

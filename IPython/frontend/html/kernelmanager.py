@@ -148,11 +148,18 @@ class HttpXReqSocketChannel(XReqSocketChannel):
     #---------------------------------------------------------------------------
     # 'XReqSocketChannel' interface
     #---------------------------------------------------------------------------
-    
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
         manager.addreq(msg)
+    """
+    def namespace(self):
+        return self.execute("
+            filter(
+                lambda x: not x.startswith('_') and x not in startns, 
+                globals()
+            ) )
+    """
 
 class HttpSubSocketChannel(SubSocketChannel):
     #---------------------------------------------------------------------------
@@ -200,3 +207,7 @@ class HttpKernelManager(KernelManager):
         super(HttpKernelManager, self).__init__(*args, **kwargs)
         #Give kernel manager access to the CometManager
         manager.kernel_manager = self
+        '''
+        self.xreq_channel.execute("startns = None", silent=True)
+        self.xreq_channel.execute("startns = globals().copy()", silent=True)
+        '''

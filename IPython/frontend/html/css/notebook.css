@@ -14,16 +14,25 @@
     margin:6px;
     margin-bottom:16px;
     padding:8px;
-    padding-top:9px;
     border:1px solid #CCC;
     min-height:20px;
+    overflow:auto;
 }
 
 p.side_title{
-    margin:-21px 0px 0px 10px;
+    margin:-6px 0px -20px 20px;
     padding:2px;
     float:left;
     background:white;
+}
+
+#history {
+    height:30%;
+}
+#history a {
+    color:#888;
+    text-decoration:none;
+    display:block;
 }
 
 #statusbar { 
@@ -78,8 +87,6 @@ p.side_title{
 	width:90%;
 }
 
-.inlinesvg { width:432pt; height:288pt; }
-
 pre.input input { 
 	width:100%; 
 	border:none; 
@@ -92,13 +99,16 @@ pre.input input {
     border:1px solid black;
     border-bottom-left-radius:3px;
     border-bottom-right-radius:3px;
+    -moz-border-radius-bottomleft:3px;
+    -moz-border-radius-bottomright:3px;
+    font-size:8pt;
 }
 .completer .column {
     float:left;
-    margin-right:10px;
+    margin:0px 3px;
 }
 .selection {
-    padding:5px;
+    padding:2px;
     cursor:pointer;
 }
 .selected {
