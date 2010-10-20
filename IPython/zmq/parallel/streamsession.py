@@ -438,10 +438,11 @@ class StreamSession(object):
         return idents, msg
     
     def unpack_message(self, msg, content=True, copy=True):
-        """return a message object from the format
+        """Return a message object from the format
         sent by self.send.
         
-        parameters:
+        Parameters:
+        -----------
         
         content : bool (True)
             whether to unpack the content dict (True), 

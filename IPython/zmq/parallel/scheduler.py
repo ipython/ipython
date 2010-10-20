@@ -24,6 +24,7 @@ from IPython.external.decorator import decorator
 def logged(f,self,*args,**kwargs):
     print ("#--------------------")
     print ("%s(*%s,**%s)"%(f.func_name, args, kwargs))
+    print ("#--")
     return f(self,*args, **kwargs)
 
 #----------------------------------------------------------------------
@@ -91,7 +92,7 @@ def leastload(loads):
 # Classes
 #---------------------------------------------------------------------
 class TaskScheduler(object):
-    """Simple Python TaskScheduler object.
+    """Python TaskScheduler object.
     
     This is the simplest object that supports msg_id based
     DAG dependencies. *Only* task msg_ids are checked, not
@@ -136,6 +137,7 @@ class TaskScheduler(object):
         self.completed = {}
         self.pending = {}
         self.all_done = set()
+        self.blacklist = {}
         
         self.targets = []
         self.loads = []
@@ -221,7 +223,6 @@ class TaskScheduler(object):
             return
         
         msg = self.session.unpack_message(msg, content=False, copy=False)
-        print idents,msg
         header = msg['header']
         msg_id = header['msg_id']
         after = Dependency(header.get('after', []))
@@ -233,7 +234,6 @@ class TaskScheduler(object):
             after = Dependency([])
         
         follow = Dependency(header.get('follow', []))
-        print raw_msg
         if len(after) == 0:
             # time deps already met, try to run
             if not self.maybe_run(msg_id, raw_msg, follow):
@@ -268,9 +268,11 @@ class TaskScheduler(object):
         self.depending[msg_id] = (msg_id,msg,after,follow)
         # track the ids in both follow/after, but not those already completed
         for dep_id in after.union(follow).difference(self.all_done):
+            print dep_id
             if dep_id not in self.dependencies:
                 self.dependencies[dep_id] = set()
             self.dependencies[dep_id].add(msg_id)
+    
     @logged
     def submit_task(self, msg_id, msg, follow=None, indices=None):
         """submit a task to any of a subset of our targets"""
@@ -283,8 +285,8 @@ class TaskScheduler(object):
             idx = indices[idx]
         target = self.targets[idx]
         print target, map(str, msg[:3])
-        self.engine_stream.socket.send(target, flags=zmq.SNDMORE, copy=False)
-        self.engine_stream.socket.send_multipart(msg, copy=False)
+        self.engine_stream.send(target, flags=zmq.SNDMORE, copy=False)
+        self.engine_stream.send_multipart(msg, copy=False)
         self.add_job(idx)
         self.pending[target][msg_id] = (msg, follow)
     
@@ -305,7 +307,7 @@ class TaskScheduler(object):
             # send to monitor
             self.mon_stream.send_multipart(['outtask']+raw_msg, copy=False)
         else:
-            self.handle_unmet_dependency(self, idents, msg['parent_header'])
+            self.handle_unmet_dependency(idents, msg['parent_header'])
         
     @logged
     def handle_result_success(self, idents, parent, raw_msg):
@@ -331,7 +333,7 @@ class TaskScheduler(object):
             self.blacklist[msg_id] = set()
         self.blacklist[msg_id].add(engine)
         raw_msg,follow = self.pending[engine].pop(msg_id)
-        if not self.maybe_run(raw_msg, follow):
+        if not self.maybe_run(msg_id, raw_msg, follow):
             # resubmit failed, put it back in our dependency tree
             self.save_unmet(msg_id, raw_msg, Dependency(), follow)
         pass
@@ -350,7 +352,8 @@ class TaskScheduler(object):
                 if self.maybe_run(msg_id, raw_msg, follow):
                     self.depending.pop(job)
                     for mid in follow:
-                        self.dependencies[mid].remove(msg_id)
+                        if mid in self.dependencies:
+                            self.dependencies[mid].remove(msg_id)
     
     #----------------------------------------------------------------------
     # methods to be overridden by subclasses

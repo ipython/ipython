@@ -1,15 +1,24 @@
-#!/usr/bin/env python
 """A semi-synchronous Client for the ZMQ controller"""
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2010  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
 import time
-
 from pprint import pprint
+
+import zmq
+from zmq.eventloop import ioloop, zmqstream
 
 from IPython.external.decorator import decorator
 
 import streamsession as ss
-import zmq
-from zmq.eventloop import ioloop, zmqstream
 from remotenamespace import RemoteNamespace
 from view import DirectView
 from dependency import Dependency, depend, require
@@ -357,7 +366,6 @@ class Client(object):
     def clear(self, targets=None, block=None):
         """clear the namespace in target(s)"""
         targets = self._build_targets(targets)[0]
-        print targets
         for t in targets:
             self.session.send(self.control_socket, 'clear_request', content={},ident=t)
         error = False
@@ -377,7 +385,6 @@ class Client(object):
     def abort(self, msg_ids = None, targets=None, block=None):
         """abort the Queues of target(s)"""
         targets = self._build_targets(targets)[0]
-        print targets
         if isinstance(msg_ids, basestring):
             msg_ids = [msg_ids]
         content = dict(msg_ids=msg_ids)
@@ -400,7 +407,6 @@ class Client(object):
     def kill(self, targets=None, block=None):
         """Terminates one or more engine processes."""
         targets = self._build_targets(targets)[0]
-        print targets
         for t in targets:
             self.session.send(self.control_socket, 'kill_request', content={},ident=t)
         error = False
@@ -456,11 +462,20 @@ class Client(object):
         """the underlying method for applying functions in a load balanced
         manner."""
         block = block if block is not None else self.block
+        if isinstance(after, Dependency):
+            after = after.as_dict()
+        elif after is None:
+            after = []
+        if isinstance(follow, Dependency):
+            follow = follow.as_dict()
+        elif follow is None:
+            follow = []
+        subheader = dict(after=after, follow=follow)
         
         bufs = ss.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)
         msg = self.session.send(self.task_socket, "apply_request", 
-                content=content, buffers=bufs)
+                content=content, buffers=bufs, subheader=subheader)
         msg_id = msg['msg_id']
         self.outstanding.add(msg_id)
         self.history.append(msg_id)
@@ -477,7 +492,6 @@ class Client(object):
         block = block if block is not None else self.block
         
         queues,targets = self._build_targets(targets)
-        print queues
         bufs = ss.pack_apply_message(f,args,kwargs)
         if isinstance(after, Dependency):
             after = after.as_dict()

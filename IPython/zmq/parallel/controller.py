@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-# encoding: utf-8
-
 """The IPython Controller with 0MQ
 This is the master object that handles connections from engines, clients, and 
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2009  The IPython Development Team
+#  Copyright (C) 2010  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -216,10 +214,10 @@ class Controller(object):
             newid += 1
         return newid
     
-    
     #-----------------------------------------------------------------------------
     # message validation
     #-----------------------------------------------------------------------------
+    
     def _validate_targets(self, targets):
         """turn any valid targets argument into a list of integer ids"""
         if targets is None:
@@ -262,7 +260,7 @@ class Controller(object):
         
     
     #-----------------------------------------------------------------------------
-    # dispatch methods (1 per socket)
+    # dispatch methods (1 per stream)
     #-----------------------------------------------------------------------------
     
     def dispatch_register_request(self, msg):
@@ -463,7 +461,7 @@ class Controller(object):
             if msg_id in self.mia:
                 self.mia.remove(msg_id)
         else:
-            logger.debug("task:: unknown task %s finished"%msg_id)
+            logger.debug("task::unknown task %s finished"%msg_id)
     
     def save_task_destination(self, idents, msg):
         try:
@@ -479,7 +477,7 @@ class Controller(object):
             if queue_id == engine_uuid:
                 break
         
-        logger.info("task:: task %s arrived on %s"%(msg_id, eid))
+        logger.info("task::task %s arrived on %s"%(msg_id, eid))
         if msg_id in self.mia:
             self.mia.remove(msg_id)
         else:
