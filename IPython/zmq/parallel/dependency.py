@@ -50,6 +50,55 @@ class dependent(object):
             raise UnmetDependency()
         return self.f(*args, **kwargs)
 
+def _require(*names):
+    for name in names:
+        try:
+            __import__(name)
+        except ImportError:
+            return False
+    return True
 
-__all__ = ['UnmetDependency', 'depend', 'evaluate_dependencies']
+def require(*names):
+    return depend(_require, *names)
+
+class Dependency(set):
+    """An object for representing a set of dependencies.
+    
+    Subclassed from set()."""
+    
+    mode='all'
+    
+    def __init__(self, dependencies=[], mode='all'):
+        if isinstance(dependencies, dict):
+            # load from dict
+            dependencies = dependencies.get('dependencies', [])
+            mode = dependencies.get('mode', mode)
+        set.__init__(self, dependencies)
+        self.mode = mode.lower()
+        if self.mode not in ('any', 'all'):
+            raise NotImplementedError("Only any|all supported, not %r"%mode)
+    
+    def check(self, completed):
+        if len(self) == 0:
+            return True
+        if self.mode == 'all':
+            for dep in self:
+                if dep not in completed:
+                    return False
+            return True
+        elif self.mode == 'any':
+            for com in completed:
+                if com in self.dependencies:
+                    return True
+            return False
+    
+    def as_dict(self):
+        """Represent this dependency as a dict. For json compatibility."""
+        return dict(
+            dependencies=list(self),
+            mode=self.mode
+        )
+    
+
+__all__ = ['UnmetDependency', 'depend', 'require', 'Dependency']
 
