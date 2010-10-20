@@ -79,7 +79,8 @@ def main():
     kernel_manager.start_channels()
     
     #Start the web server
-#    os.system("xdg-open http://localhost:8080/notebook")
+    import webbrowser
+    webbrowser.open("http://localhost:8080/notebook")
     server = IPyHttpServer(("", 8080), IPyHttpHandler)
     server.serve_forever()
 

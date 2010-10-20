@@ -40,7 +40,7 @@ function fixConsole(txt) {
     //Unfortunately, the "semantics" of html and console are very 
     //different, so fancy things *will* break
     txt = xmlencode(txt)
-    var re = /\033\[([\d;]+?)m/
+    var re = /\033\[([\d;]*?)m/
     var opened = false
     var cmds = []
     var opener = ""
@@ -59,6 +59,9 @@ function fixConsole(txt) {
     }
     if (opened) txt += "</span>"
     return txt.trim()
+}
+function mod(x, y) {
+    return ((x%y)+y)%y;
 }
 
 function inspect(obj) {

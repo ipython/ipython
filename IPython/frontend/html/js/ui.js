@@ -1,3 +1,7 @@
+//Let's arbitrarily set the number of columns to 6
+//We can eventually recompute the ideal width
+columns = 6
+
 /***********************************************************************
  * Tracks the status bar on the right, will eventually be draggable
  ***********************************************************************/
@@ -129,7 +133,7 @@ Manager.prototype.process = function (json, origin) {
             removed = true
         }
         if (type == "stream") {
-            msg.setOutput(fixConsole(json.content.data))
+            msg.setOutput(msg.output.html()+fixConsole(json.content.data))
         } else if (type == "pyin") {
             if (json.content.code == "")
                 msg.remove()
@@ -138,7 +142,7 @@ Manager.prototype.process = function (json, origin) {
         } else if (type == "pyout") {
             exec_count = json.content.execution_count
             msg.num = json.content.execution_count
-            msg.setOutput(msg.output.html() + fixConsole(json.content.data), true)
+            msg.setOutput(msg.output.html()+fixConsole(json.content.data), true)
         } else if (type == "pyerr") {
             msg.setOutput(fixConsole(json.content.traceback.join("\n")))
         }
@@ -197,10 +201,13 @@ Message.prototype.activate = function () {
     this.active = true
     manager.deactivate(this)
     this.outer.addClass("active")
+    var num = this.msg_id == -1?exec_count+1:exec_count
+    this.in_head.html("In [<span class='cbold'>"+num+"</span>]:")
     this.text = new InputArea(this)
     $.scrollTo(this.outer)
 }
 Message.prototype.deactivate = function () {
+    this.in_head.html("In [<span class='cbold'>"+this.num+"</span>]:")
     this.outer.removeClass("active")
     this.input.html(this.code)
     this.active = false
@@ -213,8 +220,6 @@ Message.prototype.remove = function () {
 Message.prototype.setInput = function(value, header) {
     this.code = value
     this.input.html(value)
-    var head = header?"In [<span class='cbold'>"+this.num+"</span>]:":""
-    this.in_head.html(head)
 }
 Message.prototype.setOutput = function(value, header) {
     this.output.html(value)
@@ -237,23 +242,25 @@ InputArea.prototype.activate = function () {
     this.text.focus()
     
     var thisObj = this
-    this.text.keydown(function(e) {
-        if (e.which == 13)
-            thisObj.submit(e.target.value)
-        else if (e.which == 38) {
-            manager.get("-1").activate()
-        } else if (e.which == 40) {
-            manager.get("+1").activate()
-        } else if (e.which == 9) {
-            e.preventDefault()
-            var pos = thisObj.text.getSelection().end
-            tabcomplete(thisObj.text.get(0).value, pos, function(matches) {
-                thisObj.complete(matches)
-            })
-        } else {
-            thisObj.msg.code = e.target.value
-        }
-    })
+    this.text.keydown(function (e) {thisObj.keyfunc(e)})
+}
+InputArea.prototype.keyfunc = function (e) {
+    if (e.which == 13)
+        this.submit(e.target.value)
+    else if (e.which == 38) {
+        manager.get("-1").activate()
+    } else if (e.which == 40) {
+        manager.get("+1").activate()
+    } else if (e.which == 9) {
+        e.preventDefault()
+        var thisObj = this
+        var pos = this.text.getSelection().end
+        tabcomplete(this.text.val(), pos, 
+            function(matches) {thisObj.complete(matches)}
+        )
+    } else {
+        this.msg.code = e.target.value
+    }
 }
 InputArea.prototype.submit = function (code) {
     this.msg.code = code
@@ -268,7 +275,12 @@ InputArea.prototype.complete = function (matches) {
     else if (matches.length > 1) {
         //TODO:Implement a multi-selector!
         var pos = this.text.getSelection().end
-        
+        this.selector = new Selector(this, matches)
+        var thisObj = this
+        Selector.prototype.set = function (match) {
+            thisObj.replace(match, pos)
+            this.remove()
+        }
     }
 }
 InputArea.prototype.replace = function (match, pos) {
@@ -282,4 +294,101 @@ InputArea.prototype.replace = function (match, pos) {
         words.push(end)
     this.msg.code = words.join(' ')
     this.text.val(this.msg.code)
+}
+
+
+
+function Selector(parent, matches) {
+    this.parent = parent
+    this.dialog = $(document.createElement("div"))
+    this.dialog.addClass("completer")
+    this.selectors = []
+    this.cursor = 0
+    
+    this.pc = Math.ceil(matches.length / columns)
+    for (var i = 0; i < columns; i++) {
+        var column = $(document.createElement("div"))
+        column.addClass("column")
+        this.dialog.append(column)
+        for (var j = 0; j < this.pc && i*this.pc+j < matches.length; j++) {
+            var obj = new Selection(this, matches[i*this.pc+j], i*this.pc+j)
+            this.selectors.push(obj)
+            column.append(obj.obj)
+            obj.init()
+        }
+    }
+    
+    this.selectors[this.cursor].active()
+    $(document.body).append(this.dialog)
+    var pos = this.parent.text.offset()
+    pos.top += this.parent.text.height()
+    this.dialog.offset(pos)
+    
+    var thisObj = this
+    this.parent.text.unbind('keydown')
+    this.parent.text.keydown(function (e) {
+        var f = function () { e.preventDefault(); e.stopPropagation() }
+        if (e.which == 37) {
+            thisObj.next("-"); f()
+        } else if (e.which == 38) {
+            thisObj.next(-1); f()
+        } else if (e.which == 39) {
+            thisObj.next("+"); f()
+        } else if (e.which == 40 || e.which == 9) {
+            thisObj.next(1); f()
+        } else if (e.which == 27) {
+            thisObj.remove(); f()
+        } else if (e.which == 13) {
+            thisObj.set(thisObj.selectors[thisObj.cursor].match); f()
+        } //Perhaps implement vim keys?
+    })
+}
+Selector.prototype.deselect = function () {
+    for (var i in this.selectors)
+        this.selectors[i].clear()
+}
+Selector.prototype.next = function (n) {
+    if (n[0] == "+") {
+        this.cursor += this.pc
+    } else if (n[0] == "-") {
+        this.cursor -= this.pc
+    } else {
+        this.cursor += n
+    }
+    this.cursor = mod(this.cursor, this.selectors.length)
+    this.selectors[this.cursor].active()
+}
+Selector.prototype.remove = function () {
+    this.dialog.remove()
+    var parent = this.parent
+    this.parent.text.unbind('keydown')
+    this.parent.text.keydown(function (e) {parent.keyfunc(e)})
+    this.parent.text.focus()
+}
+
+
+function Selection(parent, match, idx) {
+    this.idx = idx
+    this.parent = parent
+    this.obj = $(document.createElement("div"))
+    this.obj.addClass("selection")
+    this.obj.html(match)
+    this.match = match
+}
+Selection.prototype.init = function () {
+    var thisObj = this
+    this.obj.mouseover(function(e) { thisObj.active(); })
+    this.obj.click(function (e) { 
+        thisObj.parent.set(thisObj.match);
+        thisObj.parent.remove()
+        e.stopPropagation() 
+    })
+}
+Selection.prototype.active = function () {
+    this.parent.deselect()
+    this.parent.cursor = this.idx
+    this.obj.addClass("selected")
+}
+Selection.prototype.clear = function () {
+    this.obj.removeClass("selected")
 }
