@@ -35,9 +35,22 @@ elif json_name:
 else:
     use_json = False
 
+def squash_unicode(obj):
+    if isinstance(obj,dict):
+        for key in obj.keys():
+            obj[key] = squash_unicode(obj[key])
+            if isinstance(key, unicode):
+                obj[squash_unicode(key)] = obj.pop(key)
+    elif isinstance(obj, list):
+        for i,v in enumerate(obj):
+            obj[i] = squash_unicode(v)
+    elif isinstance(obj, unicode):
+        obj = obj.encode('utf8')
+    return obj
+
 if use_json:
     default_packer = jsonapi.dumps
-    default_unpacker = jsonapi.loads
+    default_unpacker = lambda s: squash_unicode(jsonapi.loads(s))
 else:
     default_packer = lambda o: pickle.dumps(o,-1)
     default_unpacker = pickle.loads
@@ -300,8 +313,30 @@ class StreamSession(object):
         return msg
 
     def send(self, stream, msg_type, content=None, buffers=None, parent=None, subheader=None, ident=None):
-        """send a message via stream"""
-        msg = self.msg(msg_type, content, parent, subheader)
+        """Build and send a message via stream or socket.
+        
+        Parameters
+        ----------
+        
+        msg_type : str or Message/dict
+            Normally, msg_type will be 
+            
+            
+        
+        Returns
+        -------
+        (msg,sent) : tuple
+            msg : Message
+                the nice wrapped dict-like object containing the headers
+            
+        """
+        if isinstance(msg_type, (Message, dict)):
+            # we got a Message, not a msg_type
+            # don't build a new Message
+            msg = msg_type
+            content = msg['content']
+        else:
+            msg = self.msg(msg_type, content, parent, subheader)
         buffers = [] if buffers is None else buffers
         to_send = []
         if isinstance(ident, list):
@@ -339,8 +374,24 @@ class StreamSession(object):
             pprint.pprint(omsg)
             pprint.pprint(to_send)
             pprint.pprint(buffers)
+        # return both the msg object and the buffers
         return omsg
-
+    
+    def send_raw(self, stream, msg, flags=0, copy=True, idents=None):
+        """send a raw message via idents.
+        
+        Parameters
+        ----------
+        msg : list of sendable buffers"""
+        to_send = []
+        if isinstance(ident, str):
+            ident = [ident]
+        if ident is not None:
+            to_send.extend(ident)
+        to_send.append(DELIM)
+        to_send.extend(msg)
+        stream.send_multipart(msg, flags, copy=copy)
+    
     def recv(self, socket, mode=zmq.NOBLOCK, content=True, copy=True):
         """receives and unpacks a message
         returns [idents], msg"""
