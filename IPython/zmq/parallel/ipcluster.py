@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import sys,os
+import time
 from subprocess import Popen, PIPE
 
 from entry_point import parse_url
@@ -52,7 +53,7 @@ def launch_process(mod, args):
     blackholew = file(os.devnull, 'w')
     blackholer = file(os.devnull, 'r')
     
-    proc = Popen(arguments, stdin=blackholer, stdout=blackholew, stderr=blackholew)
+    proc = Popen(arguments, stdin=blackholer, stdout=blackholew, stderr=PIPE)
     return proc
 
 def main():
@@ -67,6 +68,13 @@ def main():
                 '--transport','--loglevel','--packer'])+['--ident']
     
     controller = launch_process('controller', controller_args)
+    for i in range(10):
+        time.sleep(.1)
+        if controller.poll() is not None:
+            print("Controller failed to launch:")
+            print (controller.stderr.read())
+            sys.exit(255)
+    
     print("Launched Controller at %s"%args.url)
     engines = [ launch_process('engine', engine_args+['engine-%i'%i]) for i in range(args.n) ]
     print("%i Engines started"%args.n)
@@ -76,9 +84,10 @@ def main():
             p.wait()
         except KeyboardInterrupt:
             pass
+    
     wait_quietly(controller)
     map(wait_quietly, engines)
-    print ("Done")
+    print ("Engines cleaned up.")
 
 if __name__ == '__main__':
     main()
