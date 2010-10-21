@@ -1,6 +1,6 @@
-//Let's arbitrarily set the number of columns to 6
+//Let's arbitrarily set the number of columns to 5
 //We can eventually recompute the ideal width
-columns = 6
+columns = 5
 
 /***********************************************************************
  * Tracks the status bar on the right, will eventually be draggable
@@ -34,7 +34,8 @@ History.prototype.append = function(hist) {
         link.attr("href", "javascript:kernhistory.click("+(this.history.length-1)+")")
         link.html(hist[i].replace(/\n/g, "<br />"))
         var obj = $(document.createElement("div")).addClass("item")
-        this.obj.append(obj.html("["+i+"]: ").append(link))
+        obj.html($(document.createElement("p")).html("["+i+"]: "))
+        this.obj.append(obj.append(link).append("<div class='clear'></div>"))
     }
     this.obj.scrollTo(this.obj.children().last())
 }
@@ -57,6 +58,8 @@ function Manager(obj) {
     $(document).click(function() {
         thisObj.deactivate(thisObj.ondeck)
     })
+    
+    this.exec_msg = null
 }
 Manager.prototype.get = function (msg_id) {
     if (typeof(msg_id) == "undefined") {
@@ -98,6 +101,8 @@ Manager.prototype.process = function (json, origin) {
     var id = json.parent_header.msg_id
     var type = json.msg_type
     
+    //execute() calls always include an originating message
+    //By this point, we know the correct ID for that message, so let's set it
     if (typeof(origin) != "undefined") {
         if (type != "execute_reply") 
             throw Exception("Received other message with an origin??")
@@ -120,46 +125,54 @@ Manager.prototype.process = function (json, origin) {
                     var data = payload['data']
                     //Remove the doctype from the top, otherwise no way to embed
                     data = data.split("\n").slice(4).join("\n")
-                    var svg = document.createElement("div")
-                    svg.innerHTML = data
-                    msg.setOutput(svg)
+                    this.exec_msg = data
                 } else if (format == "png") {
                     var png = document.createElement("img")
                     png.src = "data:image/png;"+payload['data']
-                    msg.setOutput(png)
+                    this.exec_msg = png
                 }
             } else if (typeof(payload["text"]) != "undefined") {
+                //Text payloads don't have pyout's, so dump immediately
                 msg.setOutput(fixConsole(payload["text"]))
             }
-        } else {
-            msg.setOutput("")
-        }
+        } else
+            //Execute returned nothing, we need to flush in case older message
+            msg.clearOutput()
+            
         //Open a new input object
         manager.get().activate()
+    } else if (type == "pyin") {
+        if (json.content.code == "")
+            msg.remove()
+        else {
+            var data = {}
+            data[msg.num] = json.content.code
+            msg.setInput(json.content.code, true)
+            kernhistory.append(data)
+        }
     } else {
+        var obj = $(document.createElement("div"))
+        if (this.exec_msg != null) {
+            obj.append(this.exec_msg)
+            this.exec_msg = null
+        }
+        
         var removed = false
         if (this.ondeck != null && this.ondeck.code == "") {
             this.ondeck.remove()
             removed = true
         }
         if (type == "stream") {
-            msg.setOutput(msg.output.html()+fixConsole(json.content.data))
-        } else if (type == "pyin") {
-            if (json.content.code == "")
-                msg.remove()
-            else {
-                var data = {}
-                data[msg.num] = json.content.code
-                msg.setInput(json.content.code, true)
-                kernhistory.append(data)
-            }
+            obj.append(fixConsole(json.content.data))
+            msg.setOutput(obj)
         } else if (type == "pyout") {
             exec_count = json.content.execution_count
             msg.num = json.content.execution_count
-            msg.setOutput(msg.output.html()+fixConsole(json.content.data), true)
+            obj.append(fixConsole(json.content.data))
+            msg.setOutput(obj, true)
         } else if (type == "pyerr") {
-            var data = fixConsole(json.content.traceback.join("\n"))
-            msg.setOutput(msg.output.html() + data)
+            obj.append(fixConsole(json.content.traceback.join("\n")))
+            msg.setOutput(obj)
         }
         if (removed) this.get().activate()
     }
@@ -178,42 +191,32 @@ function Message(msg_id, obj) {
     this.msg_id = msg_id
     this.num = msg_id == -1?exec_count+1:exec_count
     
-    this.outer = $(document.createElement("div"))
-    this.outer.addClass("message")
-    $(obj).append(this.outer)
-    this.obj = $(document.createElement("div"))
-    this.obj.addClass("message_inside")
-    this.outer.append(this.obj)
-    this.active = false
+    this.outer = $(document.createElement("div")).addClass("message")
+    this.obj = $(document.createElement("div")).addClass("message_inside")
+    $(obj).append(this.outer.append(this.obj))
     
-    this.in_head = $(document.createElement("div"))
-    this.in_head.addClass("input_header")
+    this.in_head = $(document.createElement("div")).addClass("input_header")
     this.in_head.html("In [<span class='cbold'>"+this.num+"</span>]:")
     this.obj.append(this.in_head)
     
-    this.input = $(document.createElement("pre"))
-    this.input.addClass("input")
-    this.obj.append(this.input)
-    this.obj.append("<div class='clear'></div>")
+    this.input = $(document.createElement("pre")).addClass("input")
+    this.obj.append(this.input).append("<div class='clear'></div>")
     
-    this.out_head = $(document.createElement("div"))
-    this.out_head.addClass("output_header")
+    this.out_head = $(document.createElement("div")).addClass("output_header")
     this.obj.append(this.out_head)
     
-    this.output = $(document.createElement("pre"))
-    this.output.addClass("output")
-    this.obj.append(this.output)
-    this.obj.append("<div class='clear'></div>")
+    this.output = $(document.createElement("pre")).addClass("output")
+    this.obj.append(this.output).append("<div class='clear'></div>")
     
     this.code = ""
     var thisObj = this
     this.obj.click(function(e) {
         thisObj.activate()
         e.stopPropagation()
+        e.preventDefault()
     })
 }
 Message.prototype.activate = function () {
-    this.active = true
     manager.deactivate(this)
     this.outer.addClass("active")
     this.in_head.html("In [<span class='cbold'>"+(exec_count+1)+"</span>]:")
@@ -224,7 +227,6 @@ Message.prototype.deactivate = function () {
     this.in_head.html("In [<span class='cbold'>"+this.num+"</span>]:")
     this.outer.removeClass("active")
     this.input.html(this.code)
-    this.active = false
 }
 Message.prototype.remove = function () {
     this.outer.remove()
@@ -236,15 +238,34 @@ Message.prototype.setInput = function(value, header) {
     this.input.html(value)
 }
 Message.prototype.setOutput = function(value, header) {
+    //Add some flair, animate the output filling
+    var obj = $(document.createElement("pre")).css(
+        {opacity:0, position:"absolute"})
+    $(document.body).append(obj.html(value))
+    var h = obj.height()
+    $(document.body).remove(obj)
+    
+    this.output.height(this.output.height())
+    this.output.html(value)
+    
+    var thisObj = this
+    this.output.animate({opacity:1, height:h}, {duration:200, complete:
+        function () { thisObj.output.attr("style", null); 
+            $.scrollTo(manager.ondeck.outer) }
+    })
+    
     var head = header?"Out [<span class='cbold'>"+this.num+"</span>]:":""
     this.out_head.html(head)
-    this.output.html(value)
+}
+Message.prototype.clearOutput = function () {
+    this.output.html("")
 }
 
 /***********************************************************************
  * Handles python input, submission, etc
  ***********************************************************************/
 function InputArea(msg) {
+    this.ilevel = 0
     this.msg = msg
     this.activate()
 }
@@ -254,6 +275,7 @@ InputArea.prototype.activate = function () {
     this.msg.input.html(this.text)
     this.lh = this.text.height()
     this.nlines = this.msg.code.split("\n").length
+    this.text.height(this.lh*this.nlines)
     this.update()
     
     var thisObj = this
@@ -270,13 +292,16 @@ InputArea.prototype.keyfunc = function (e) {
         if (e.which == 13) {
             if (e.shiftKey)
                 this.submit(e.target.value)
-            else if (e.ctrlKey)
+            else if (e.ctrlKey) {
                 this.text.val(this.text.val()+"\n")
+            }
+            this.update(1)
         } 
     } else {
         if (e.which == 13) {
             if (e.ctrlKey) {
                 this.text.val(this.text.val()+"\n")
+                this.update(1)
             } else
                 this.submit(e.target.value)
         } else if (e.which == 38) {
@@ -294,10 +319,17 @@ InputArea.prototype.keyfunc = function (e) {
     }
 }
 InputArea.prototype.update = function (nlines) {
-    this.nlines = this.msg.code.split("\n").length + (nlines?nlines:0)
-    this.text.animate({height: this.lh*(this.nlines) }, 100)
+    //Updates line height for multi-line input
+    var nnlines = this.msg.code.split("\n").length+(nlines?nlines:0)
+    if (nnlines != this.nlines)
+        this.text.animate({height: this.lh*nnlines }, 50)
+    this.nlines = nnlines
+    var code = this.text.val().slice(0,this.text.getSelection().end)
+    if (code[code.length-1] == "\n")
+        this.indent()
 }
 InputArea.prototype.submit = function (code) {
+    //Submits to the server, or removes the message if empty
     this.msg.code = code
     if (code == "")
         this.msg.remove()
@@ -307,6 +339,7 @@ InputArea.prototype.submit = function (code) {
     }
 }
 InputArea.prototype.complete = function (matches) {
+    //Callback function to enable tabcomplete
     if (matches.length == 1)
         this.replace(matches[0])
     else if (matches.length > 1) {
@@ -320,6 +353,7 @@ InputArea.prototype.complete = function (matches) {
     }
 }
 InputArea.prototype.replace = function (match, pos) {
+    //Replaces the matched word in a position, for tabcomplete
     if (typeof(pos) == "undefined")
         pos = this.text.getSelection().end
     var code = this.text.val()
@@ -331,9 +365,26 @@ InputArea.prototype.replace = function (match, pos) {
     this.msg.code = words.join(' ')
     this.text.val(this.msg.code)
 }
+InputArea.prototype.indent = function () {
+    //An attempt to make an autoindenter
+    var code = this.text.val()
+    var pos = this.text.getSelection().end
+    
+    this.ilevel += checkIndent(code, pos)
+    this.ilevel = this.ilevel < 0?0:this.ilevel
+    
+    var tabs = ""
+    for (var i = 0; i < this.ilevel; i++)
+        tabs += "    "
+    
+    this.text.val(code.slice(0,pos)+tabs+code.slice(pos))
+}
 
 
 
+/***********************************************************************
+ * Fancy tabcomplete selector 
+ ***********************************************************************/
 function Selector(parent, matches) {
     this.parent = parent
     this.dialog = $(document.createElement("div"))
@@ -359,6 +410,7 @@ function Selector(parent, matches) {
     this.dialog.offset(pos)
     $(document.body).append(this.dialog)
     this.selectors[this.cursor].active()
+    $.scrollTo(this.selectors[this.cursor].obj)
     
     var thisObj = this
     this.parent.text.unbind('keydown')
@@ -427,7 +479,6 @@ Selection.prototype.active = function () {
     this.parent.deselect()
     this.parent.cursor = this.idx
     this.obj.addClass("selected")
-//    $.scrollTo(this.obj)
 }
 Selection.prototype.clear = function () {
     this.obj.removeClass("selected")

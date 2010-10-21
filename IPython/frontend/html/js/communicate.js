@@ -48,15 +48,17 @@ function heartbeat() {
 
 function execute(code, msg) {
     comet.stop()
+    if (code == "debug" || code == "%debug") {
+        alert("REP socket not implemented yet, debug mode doesn't work")
+        throw Exception("Not implemented yet")
+    }
     $.ajax({
         type: "POST",
         data: {type:"execute", code:code},
         success: function(json, status, request) {
             comet.start()
-            if (json != null) {
+            if (json != null)
                 manager.process(json, msg)
-                //gethistory(1)
-            }
         }
     })
 }

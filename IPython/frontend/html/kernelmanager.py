@@ -63,12 +63,10 @@ class CometManager(object):
     def history(self, index = None, raw = False, output=False):
         if index == -1:
             index = None
-        try:
-            self.kernel_manager.xreq_channel.history(index, raw, output)
-            return self.req_queue.get()
-        except:
-            return dict(msg_type="history_reply", content=dict(history=dict()))
-        
+            
+        self.kernel_manager.xreq_channel.history(index, raw, output)
+        return self.req_queue.get()
+            
     def addreq(self, msg):
         self.req_queue.put(msg)
         
@@ -134,6 +132,10 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             elif msg_type == "history":
                 resp = manager.history(data['index'].value)
             json.dump(resp, self.wfile)
+    
+    def do_PUT(self):
+        '''Placeholder for future REP channel, need to figure out how it works'''
+        pass
 
 class IPyHttpServer(ThreadingMixIn, HTTPServer):
     pass
@@ -152,12 +154,9 @@ class HttpXReqSocketChannel(XReqSocketChannel):
         """
         manager.addreq(msg)
     """
-    def namespace(self):
-        return self.execute("
-            filter(
-                lambda x: not x.startswith('_') and x not in startns, 
-                globals()
-            ) )
+        Useful for filtering namespace:
+        filter( lambda x: not x.startswith('_') and x not in startns, 
+                globals())
     """
 
 class HttpSubSocketChannel(SubSocketChannel):
@@ -206,7 +205,3 @@ class HttpKernelManager(KernelManager):
         super(HttpKernelManager, self).__init__(*args, **kwargs)
         #Give kernel manager access to the CometManager
         manager.kernel_manager = self
-        '''
-        self.xreq_channel.execute("startns = None", silent=True)
-        self.xreq_channel.execute("startns = globals().copy()", silent=True)
-        '''

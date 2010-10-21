@@ -21,7 +21,7 @@
     overflow:auto;
 }
 .sidebox .title {
-    margin:-13px 0px -20px 20px;
+    margin:-15px 0px -20px 20px;
     padding:5px;
     float:left;
     background:white;
@@ -31,12 +31,18 @@
  * History box
  */
 #history {
+    overflow:auto;
     height:30%;
+}
+#history .item > p {
+    float:left;
+    margin-right:3px;
 }
 #history a {
     color:#888;
     text-decoration:none;
     display:block;
+    float:left;
 }
 /*
  * Status bar

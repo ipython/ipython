@@ -78,3 +78,15 @@ function inspect(obj) {
         return ""
     }
 }
+
+var dedentKeys = /(raise|return|break|continue|yield|pass)/g
+function checkIndent(code, pos) {
+    code = code.slice(0,pos).split("\n")
+    var last = code[code.length-1]
+    if (last[last.length-1] == ":")
+        return 1
+    else if (dedentKeys.test(last))
+        return -1
+    else
+        return 0
+}
