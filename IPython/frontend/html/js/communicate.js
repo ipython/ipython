@@ -1,4 +1,5 @@
 function CometGetter() {
+    this.queue = []
     this.start()
     this.request()
 }
@@ -16,21 +17,17 @@ CometGetter.prototype.request = function () {
 }
 CometGetter.prototype.complete = function(json, status, request) {
     this.request()
-    this.process(json)
-}
-CometGetter.prototype.process = function (json) {
-    var thisObj = this
     if (json.msg_type == "status") {
         statusbar.set(json.content.execution_state)
     } else if (this.pause) {
-        setTimeout(function () { thisObj.process(json) }, 1)
-    } else {
-        //Ignore first pyin due to connect call
-        manager.process(json)
-    }
+        this.queue.push(json)
+    } else 
+        manager.process(json, false, !this.pause)
 }
 CometGetter.prototype.start = function () {
     this.pause = false
+    while (this.queue.length > 0)
+        manager.process(this.queue.pop())
 }
 CometGetter.prototype.stop = function () {
     this.pause = true
@@ -56,9 +53,9 @@ function execute(code, msg) {
         type: "POST",
         data: {type:"execute", code:code},
         success: function(json, status, request) {
-            comet.start()
             if (json != null)
                 manager.process(json, msg)
+            comet.start()
         }
     })
 }

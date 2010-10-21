@@ -59,7 +59,7 @@ function Manager(obj) {
         thisObj.deactivate(thisObj.ondeck)
     })
     
-    this.exec_msg = null
+    this.buf_out = null
 }
 Manager.prototype.get = function (msg_id) {
     if (typeof(msg_id) == "undefined") {
@@ -97,13 +97,13 @@ Manager.prototype.deactivate = function (current) {
         }
     }
 }
-Manager.prototype.process = function (json, origin) {
+Manager.prototype.process = function (json, origin, immediate) {
     var id = json.parent_header.msg_id
     var type = json.msg_type
     
     //execute() calls always include an originating message
     //By this point, we know the correct ID for that message, so let's set it
-    if (typeof(origin) != "undefined") {
+    if (origin) {
         if (type != "execute_reply") 
             throw Exception("Received other message with an origin??")
         this.messages[id] = origin
@@ -113,32 +113,45 @@ Manager.prototype.process = function (json, origin) {
         }
     }
     
+    //comet might have some buffered calls if it's paused, let's tacle first!
+    while (comet.queue.length > 0)
+        this.process(comet.queue.pop())
+    
     var msg = this.get(id)
     if (type == "execute_reply") {
         exec_count = json.content.execution_count
+        var data = null
         //If this reply has an SVG, let's add it
         if (json.content.payload.length > 0) {
             var payload = json.content.payload[0]
             if (typeof(payload['format']) != "undefined") {
                 var format = payload['format']
                 if (format == "svg") {
-                    var data = payload['data']
+                    data = payload['data']
                     //Remove the doctype from the top, otherwise no way to embed
                     data = data.split("\n").slice(4).join("\n")
-                    this.exec_msg = data
                 } else if (format == "png") {
-                    var png = document.createElement("img")
-                    png.src = "data:image/png;"+payload['data']
-                    this.exec_msg = png
+                    data = $(document.createElement("img"))
+                    data.attr("src", "data:image/png;"+payload['data'])
                 }
             } else if (typeof(payload["text"]) != "undefined") {
-                //Text payloads don't have pyout's, so dump immediately
-                msg.setOutput(fixConsole(payload["text"]))
+                data = fixConsole(payload["text"])
             }
-        } else
-            //Execute returned nothing, we need to flush in case older message
-            msg.clearOutput()
             
+        } else
+            //Execute returned nothing, we need to flush in case of older messages
+            msg.clearOutput()
+        
+        //Flush everything to output, including possible pyout/stream from pub
+        var obj = $(document.createElement("div"))
+        var head = typeof(this.buf_out) == "object" && this.buf_out != null
+        if (this.buf_out != null) {
+            obj.html(head?this.buf_out[0]:this.buf_out)
+            obj.append("<br />")
+            this.buf_out = null
+        }
+        msg.setOutput(obj.append(data), head)
+        
         //Open a new input object
         manager.get().activate()
     } else if (type == "pyin") {
@@ -151,29 +164,29 @@ Manager.prototype.process = function (json, origin) {
             kernhistory.append(data)
         }
     } else {
-        var obj = $(document.createElement("div"))
-        if (this.exec_msg != null) {
-            obj.append(this.exec_msg)
-            this.exec_msg = null
-        }
-        
+        //If a message arrives, remove current ondeck and readd later
         var removed = false
         if (this.ondeck != null && this.ondeck.code == "") {
             this.ondeck.remove()
             removed = true
         }
+        
         if (type == "stream") {
-            obj.append(fixConsole(json.content.data))
-            msg.setOutput(obj)
+            this.buf_out = fixConsole(json.content.data)
         } else if (type == "pyout") {
             exec_count = json.content.execution_count
             msg.num = json.content.execution_count
-            obj.append(fixConsole(json.content.data))
-            msg.setOutput(obj, true)
+            this.buf_out = [fixConsole(json.content.data)]
         } else if (type == "pyerr") {
-            obj.append(fixConsole(json.content.traceback.join("\n")))
-            msg.setOutput(obj)
+            this.buf_out = fixConsole(json.content.traceback.join("\n"))
         }
+        
+        if (immediate) {
+            var head = typeof(this.buf_out) == "object"
+            msg.setOutput(head?this.buf_out[0]:this.buf_out, head )
+            this.buf_out = null
+        }
+            
         if (removed) this.get().activate()
     }
     
@@ -251,7 +264,8 @@ Message.prototype.setOutput = function(value, header) {
     var thisObj = this
     this.output.animate({opacity:1, height:h}, {duration:200, complete:
         function () { thisObj.output.attr("style", null); 
-            $.scrollTo(manager.ondeck.outer) }
+            if (manager.ondeck != null)
+               $.scrollTo(manager.ondeck.outer) }
     })
     
     var head = header?"Out [<span class='cbold'>"+this.num+"</span>]:":""
@@ -271,8 +285,8 @@ function InputArea(msg) {
 }
 InputArea.prototype.activate = function () {
     this.text = $(document.createElement("textarea")).val(this.msg.code)
-    this.text.addClass("inputText")
-    this.msg.input.html(this.text)
+    this.text.addClass("inputText").attr("rows", 1)
+    this.msg.input.html(this.text.attr("spellcheck", "false"))
     this.lh = this.text.height()
     this.nlines = this.msg.code.split("\n").length
     this.text.height(this.lh*this.nlines)
@@ -292,8 +306,9 @@ InputArea.prototype.keyfunc = function (e) {
         if (e.which == 13) {
             if (e.shiftKey)
                 this.submit(e.target.value)
-            else if (e.ctrlKey) {
-                this.text.val(this.text.val()+"\n")
+            else {
+                this.insert("\n")
+                e.preventDefault()
             }
             this.update(1)
         } 
@@ -379,7 +394,11 @@ InputArea.prototype.indent = function () {
     
     this.text.val(code.slice(0,pos)+tabs+code.slice(pos))
 }
-
+InputArea.prototype.insert = function (txt) {
+    var pos = this.text.getSelection().end
+    txt = this.text.val().slice(0,pos)+txt+this.text.val().slice(pos)
+    this.text.val(txt)
+}
 
 
 /***********************************************************************

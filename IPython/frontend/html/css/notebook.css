@@ -12,13 +12,14 @@
 
 .sidebox {
     margin:6px;
-    margin-bottom:16px;
+    margin-bottom:36px;
 }
 .sidebox .inside {
     padding:8px;
     border:1px solid #CCC;
     min-height:20px;
-    overflow:auto;
+    overflow-x:hidden;
+    overflow-y:auto;
 }
 .sidebox .title {
     margin:-15px 0px -20px 20px;
@@ -30,10 +31,11 @@
 /*
  * History box
  */
-#history {
-    overflow:auto;
-    height:30%;
+#history { height:30% }
+#history .inside {
+    height:100%;
 }
+#history .item { width:1024px; }
 #history .item > p {
     float:left;
     margin-right:3px;
@@ -97,9 +99,11 @@
 	margin-bottom:4px;
 }
 .inputText {
-    height:12pt;
+    font-size:10pt;
     width:100%; 
-	border:none; 
+    padding:0;
+	border:none;
+	outline:none;
 }
 .message .output_header {
 	color:red;
