@@ -31,14 +31,13 @@ from zmq.eventloop import ioloop
 
 # Local imports.
 from IPython.utils import io
+from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
 from session import Session
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
 #-----------------------------------------------------------------------------
-
-LOCALHOST = '127.0.0.1'
 
 class InvalidPortNumber(Exception):
     pass
@@ -724,24 +723,26 @@ class KernelManager(HasTraits):
         """
         xreq, sub, rep, hb = self.xreq_address, self.sub_address, \
             self.rep_address, self.hb_address
-        if xreq[0] != LOCALHOST or sub[0] != LOCALHOST or \
-                rep[0] != LOCALHOST or hb[0] != LOCALHOST:
-            raise RuntimeError("Can only launch a kernel on localhost."
+        if xreq[0] not in LOCAL_IPS or sub[0] not in LOCAL_IPS or \
+                rep[0] not in LOCAL_IPS or hb[0] not in LOCAL_IPS:
+            raise RuntimeError("Can only launch a kernel on a local interface. "
                                "Make sure that the '*_address' attributes are "
-                               "configured properly.")
-
+                               "configured properly. "
+                               "Currently valid addresses are: %s"%LOCAL_IPS
+                               )
+                    
         self._launch_args = kw.copy()
         if kw.pop('ipython', True):
             from ipkernel import launch_kernel
         else:
             from pykernel import launch_kernel
-        self.kernel, xrep, pub, req, hb = launch_kernel(
+        self.kernel, xrep, pub, req, _hb = launch_kernel(
             xrep_port=xreq[1], pub_port=sub[1], 
             req_port=rep[1], hb_port=hb[1], **kw)
-        self.xreq_address = (LOCALHOST, xrep)
-        self.sub_address = (LOCALHOST, pub)
-        self.rep_address = (LOCALHOST, req)
-        self.hb_address = (LOCALHOST, hb)
+        self.xreq_address = (xreq[0], xrep)
+        self.sub_address = (sub[0], pub)
+        self.rep_address = (rep[0], req)
+        self.hb_address = (hb[0], _hb)
 
     def shutdown_kernel(self, restart=False):
         """ Attempts to the stop the kernel process cleanly. If the kernel
