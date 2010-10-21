@@ -24,17 +24,17 @@ StatusBar.prototype.set = function(status) {
 function History(obj) {
     this.obj = $("#"+obj)
     this.history = []
+// History retrieval breaks the kernel still!
 //    gethistory(-1)
 }
 History.prototype.append = function(hist) {
     for (var i in hist) {
         this.history.push(hist[i])
-        var obj = $(document.createElement("a"))
-        obj.addClass("history_element")
-        obj.attr("href", "javascript:kernhistory.click("+(this.history.length-1)+")")
-        var code = hist[i].replace(/\n/g, "<br />")
-        obj.html("["+i+"]: "+code)
-        this.obj.append(obj)
+        var link = $(document.createElement("a"))
+        link.attr("href", "javascript:kernhistory.click("+(this.history.length-1)+")")
+        link.html(hist[i].replace(/\n/g, "<br />"))
+        var obj = $(document.createElement("div")).addClass("item")
+        this.obj.append(obj.html("["+i+"]: ").append(link))
     }
     this.obj.scrollTo(this.obj.children().last())
 }

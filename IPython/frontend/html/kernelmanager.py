@@ -35,7 +35,6 @@ class CometManager(object):
             dead_for = time.time() - self.clients[i][0]
             #Remove client if no heartbeat, otherwise add to its queue
             if dead_for > client_death:
-                print "Removing client %s: dead for %f"%(i, dead_for)
                 del self.clients[i]
             else:
                 self.clients[i][1].put(msg)
