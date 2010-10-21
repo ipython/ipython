@@ -2,6 +2,7 @@
 """
 
 import os
+import re
 import cgi
 import time
 import json
@@ -52,7 +53,7 @@ class CometManager(object):
         return self.req_queue.get()
     
     def complete(self, code, pos):
-        chunk = code[:int(pos)].split()[-1]
+        chunk = re.split('\s|\(', code[:int(pos)])[-1]
         self.kernel_manager.xreq_channel.complete(chunk, code, pos)
         return self.req_queue.get()
     

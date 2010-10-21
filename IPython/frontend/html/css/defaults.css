@@ -3,10 +3,7 @@ body {
     font-size:10pt;
     margin:5px;
 }
-pre, p { 
-    margin:0px; 
-    font-family:monospace;
-}
+pre, p { margin:0px; }
 .cblue { color: blue }
 .ccyan { color: teal }
 .cgreen { color: green }
