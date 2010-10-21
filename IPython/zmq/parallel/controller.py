@@ -12,6 +12,8 @@ This is the master object that handles connections from engines, clients, and
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
+
 from datetime import datetime
 import logging
 
@@ -24,8 +26,8 @@ from IPython.zmq.log import logger # a Logger object
 from IPython.zmq.entry_point import bind_port
 
 from streamsession import Message, wrap_exception
-from entry_point import (make_argument_parser, select_random_ports, split_ports,
-                        connect_logger)
+from entry_point import (make_base_argument_parser, select_random_ports, split_ports,
+                        connect_logger, parse_url)
 # from messages import json # use the same import switches
 
 #-----------------------------------------------------------------------------
@@ -267,7 +269,7 @@ class Controller(object):
         """"""
         logger.debug("registration::dispatch_register_request(%s)"%msg)
         idents,msg = self.session.feed_identities(msg)
-        print idents,msg, len(msg)
+        print (idents,msg, len(msg))
         try:
             msg = self.session.unpack_message(msg,content=True)
         except Exception, e:
@@ -470,7 +472,7 @@ class Controller(object):
             logger.error("task::invalid task tracking message")
             return
         content = msg['content']
-        print content
+        print (content)
         msg_id = content['msg_id']
         engine_uuid = content['engine_id']
         for eid,queue_id in self.keytable.iteritems():
@@ -752,20 +754,9 @@ class Controller(object):
 #--------------------
 # Entry Point
 #--------------------
-
-def main():
-    import time
-    from multiprocessing import Process
-    
-    from zmq.eventloop.zmqstream import ZMQStream
-    from zmq.devices import ProcessMonitoredQueue
-    from zmq.log import handlers
-    
-    import streamsession as session
-    import heartmonitor
-    from scheduler import launch_scheduler
-    
-    parser = make_argument_parser()
+def make_argument_parser():
+    """Make an argument parser"""
+    parser = make_base_argument_parser()
     
     parser.add_argument('--client', type=int, metavar='PORT', default=0,
                         help='set the XREP port for clients [default: random]')
@@ -787,14 +778,24 @@ def main():
                         choices = ['pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'],
                         help='select the task scheduler  [default: pure ZMQ]')
     
-    args = parser.parse_args()
+    return parser
     
-    if args.url:
-        args.transport,iface = args.url.split('://')
-        iface = iface.split(':')
-        args.ip = iface[0]
-        if iface[1]:
-            args.regport = iface[1]
+def main():
+    import time
+    from multiprocessing import Process
+    
+    from zmq.eventloop.zmqstream import ZMQStream
+    from zmq.devices import ProcessMonitoredQueue
+    from zmq.log import handlers
+    
+    import streamsession as session
+    import heartmonitor
+    from scheduler import launch_scheduler
+    
+    parser = make_argument_parser()
+    
+    args = parser.parse_args()
+    parse_url(args)
     
     iface="%s://%s"%(args.transport,args.ip)+':%i'
     
@@ -891,7 +892,7 @@ def main():
         q.start()
     else:
         sargs = (iface%task[0],iface%task[1],iface%monport,iface%nport,args.scheduler)
-        print sargs
+        print (sargs)
         p = Process(target=launch_scheduler, args=sargs)
         p.daemon=True
         p.start()
@@ -915,5 +916,8 @@ def main():
         'notification': iface%nport
         }
     con = Controller(loop, thesession, sub, reg, hmon, c, n, None, engine_addrs, client_addrs)
+    dc = ioloop.DelayedCallback(lambda : print("Controller started..."), 100, loop)
     loop.start()
-    
+
+if __name__ == '__main__':
+    main()

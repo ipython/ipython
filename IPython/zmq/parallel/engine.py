@@ -3,6 +3,7 @@
 it handles registration, etc. and launches a kernel
 connected to the Controller's queue(s).
 """
+from __future__ import print_function
 import sys
 import time
 import traceback
@@ -16,7 +17,7 @@ from streamsession import Message, StreamSession
 from client import Client
 import streamkernel as kernel
 import heartmonitor
-from entry_point import make_argument_parser, connect_logger
+from entry_point import make_base_argument_parser, connect_logger, parse_url
 # import taskthread
 # from log import logger
 
@@ -72,7 +73,7 @@ class Engine(object):
                 self.control = zmqstream.ZMQStream(control, self.loop)
             
             task_addr = msg.content.task
-            print task_addr
+            print (task_addr)
             if task_addr:
                 # task as stream:
                 task = self.context.socket(zmq.PAIR)
@@ -103,7 +104,7 @@ class Engine(object):
         
         # logger.info("engine::completed registration with id %s"%self.session.username)
         
-        print msg
+        print (msg)
     
     def unregister(self):
         self.session.send(self.registrar, "unregistration_request", content=dict(id=int(self.session.username)))
@@ -111,24 +112,20 @@ class Engine(object):
         sys.exit(0)
     
     def start(self):
-        print "registering"
+        print ("registering")
         self.register()
         
 
 def main():
     
-    parser = make_argument_parser()
+    parser = make_base_argument_parser()
     
     args = parser.parse_args()
     
-    if args.url:
-        args.transport,iface = args.url.split('://')
-        iface = iface.split(':')
-        args.ip = iface[0]
-        if iface[1]:
-            args.regport = iface[1]
+    parse_url(args)
     
     iface="%s://%s"%(args.transport,args.ip)+':%i'
+    
     loop = ioloop.IOLoop.instance()
     session = StreamSession()
     ctx = zmq.Context()
@@ -137,8 +134,8 @@ def main():
     connect_logger(ctx, iface%args.logport, root="engine", loglevel=args.loglevel)
     
     reg_conn = iface % args.regport
-    print reg_conn
-    print >>sys.__stdout__, "Starting the engine..."
+    print (reg_conn)
+    print ("Starting the engine...", file=sys.__stderr__)
     
     reg = ctx.socket(zmq.PAIR)
     reg.connect(reg_conn)

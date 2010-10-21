@@ -217,6 +217,7 @@ if 'setuptools' in sys.modules:
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontrollerz = IPython.zmq.parallel.controller:main',
             'ipenginez = IPython.zmq.parallel.engine:main',
+            'ipclusterz = IPython.zmq.parallel.ipcluster:main',
             'iptest = IPython.testing.iptest:main',
             'irunner = IPython.lib.irunner:main'
         ]

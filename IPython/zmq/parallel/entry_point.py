@@ -39,9 +39,21 @@ def select_random_ports(n):
         sock.close()
         ports[i] = port
     return ports
+
+def parse_url(args):
+    if args.url:
+        iface = args.url.split('://',1)
+        if len(args) == 2:
+            args.transport,iface = iface
+        iface = iface.split(':')
+        args.ip = iface[0]
+        if iface[1]:
+            args.regport = iface[1]
+    args.url = "%s://%s:%i"%(args.transport, args.ip,args.regport)
+    
         
 
-def make_argument_parser():
+def make_base_argument_parser():
     """ Creates an ArgumentParser for the generic arguments supported by all 
     ipcluster entry points.
     """
@@ -58,6 +70,9 @@ def make_argument_parser():
                         help='set the log level [default: DEBUG]')
     parser.add_argument('--ident', type=str,
                         help='set the ZMQ identity [default: random]')
+    parser.add_argument('--packer', type=str, default='json',
+                        choices=['json','pickle'],
+                        help='set the message format method [default: json]')
     parser.add_argument('--url', type=str,
                         help='set transport,ip,regport in one arg, e.g. tcp://127.0.0.1:10101')
 
