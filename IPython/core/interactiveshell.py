@@ -137,6 +137,38 @@ class MultipleInstanceError(Exception):
 #-----------------------------------------------------------------------------
 
 
+######## Code to be moved later if it works, meant to try to get proper
+######## tracebacks
+
+import hashlib
+import linecache
+import time
+import types
+
+def code_name(code):
+    """ Compute a (probably) unique name for code for caching.
+    """
+    hash_digest = hashlib.md5(code).hexdigest()
+    return '<code %s>' % hash_digest
+
+
+class CachingCompiler(codeop.CommandCompiler):
+        
+    def __call__(self, code, filename, symbol):
+        """ Compile some code while caching its contents such that the inspect
+        module can find it later.
+        """
+        #code += '\n'
+        name = code_name(code)
+        code_obj = codeop.CommandCompiler.__call__(self, code, name, symbol)
+        linecache.cache[name] = (len(code),
+                                 time.time(),
+                                 [line+'\n' for line in  code.splitlines()],
+                                 name) 
+        return code_obj
+
+#############
+
 class InteractiveShell(Configurable, Magic):
     """An enhanced, interactive shell for Python."""
 
@@ -369,8 +401,9 @@ class InteractiveShell(Configurable, Magic):
         self.more = False
 
         # command compiler
-        self.compile = codeop.CommandCompiler()
-
+        #self.compile = codeop.CommandCompiler()
+        self.compile = CachingCompiler()
+        
         # User input buffers
         # NOTE: these variables are slated for full removal, once we are 100%
         # sure that the new execution logic is solid.  We will delte runlines,
