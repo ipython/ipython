@@ -43,6 +43,17 @@ default_dark_style_sheet = default_dark_style_template%dict(
                 bgcolor='black', fgcolor='white', select="#555")
 default_dark_syntax_style = 'monokai'
 
+# The default monochrome
+default_bw_style_sheet = '''
+    QPlainTextEdit, QTextEdit { background-color: white;
+            color: black ;
+            selection-background-color: #cccccc}
+    .in-prompt-number { font-weight: bold; }
+    .out-prompt-number { font-weight: bold; }
+'''
+default_bw_syntax_style = 'bw'
+
+
 def hex_to_rgb(color):
     """Convert a hex color to rgb integer tuple."""
     if color.startswith('#'):
@@ -76,7 +87,8 @@ def dark_style(stylename):
     return dark_color(get_style_by_name(stylename).background_color)
 
 def get_colors(stylename):
-    """Construct the keys to be used building the base stylesheet."""
+    """Construct the keys to be used building the base stylesheet
+    from a templatee."""
     style = get_style_by_name(stylename)
     fgcolor = style.style_for_token(Token.Text)['color'] or ''
     if len(fgcolor) in (3,6):
@@ -94,9 +106,14 @@ def get_colors(stylename):
         fgcolor = fgcolor
     )
 
-def sheet_from_template(name, lightbg=True):
+def sheet_from_template(name, colors='light'):
     """Use one of the base templates, and set bg/fg/select colors."""
-    if lightbg:
+    colors = colors.lower()
+    if colors=='light':
         return default_light_style_template%get_colors(name)
-    else:
+    elif colors=='dark':
         return default_dark_style_template%get_colors(name)
+    elif colors=='nocolor':
+        return default_bw_style_sheet
+    else:
+        raise KeyError("No such color scheme: %s"%colors)

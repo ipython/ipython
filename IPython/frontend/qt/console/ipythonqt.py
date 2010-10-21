@@ -150,13 +150,13 @@ def main():
     wgroup.add_argument('--gui-completion', action='store_true',
                         help='use a GUI widget for tab completion')
     wgroup.add_argument('--style', type=str,
-                        help='specify a pygments style by name. \
-                        Valid are: %s'%(list(get_all_styles())))
+                        choices = list(get_all_styles()),
+                        help='specify a pygments style for by name.')
     wgroup.add_argument('--stylesheet', type=str,
                         help="path to a custom CSS stylesheet.")
-    wgroup.add_argument('--dark', action='store_true',
-                        help="use the dark style template instead of lightbg.\
-                        If --style is not specified, the default dark style is used.")
+    wgroup.add_argument('--colors', type=str,
+                        help="Set the color scheme (light, dark, or bw). This is guessed\
+                        based on the pygments style if not set.")
 
     args = parser.parse_args()
 
@@ -197,20 +197,32 @@ def main():
 
     # configure the style:
     if not args.pure: # only IPythonWidget supports styles
+        # parse the colors arg down to current known labels
+        if args.colors:
+            colors=args.colors.lower()
+            if colors in ('lightbg', 'light'):
+                colors='light'
+            elif colors in ('dark', 'linux'):
+                colors='dark'
+            else:
+                colors='nocolor'
+        else:
+            colors=None
+        lightbg = colors != 'linux'
+
         if args.style:
             # guess whether it's a dark style:
-            dark = args.dark or styles.dark_style(args.style)
             widget.syntax_style = args.style
-            widget.style_sheet = styles.sheet_from_template(args.style, not dark)
+            widget.style_sheet = styles.sheet_from_template(args.style, lightbg)
             widget._syntax_style_changed()
             widget._style_sheet_changed()
-        elif args.dark:
-            # use default dark style
-            widget.set_default_style(lightbg=False)
+        elif colors:
+            # use a default style
+            widget.set_default_style(colors=colors)
         else:
             # this is redundant for now, but allows the widget's
             # defaults to change
-            widget.set_default_style(lightbg=True)
+            widget.set_default_style()
 
         if args.stylesheet:
             # we got an expicit stylesheet

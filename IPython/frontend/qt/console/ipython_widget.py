@@ -25,8 +25,9 @@ from IPython.core.inputsplitter import IPythonInputSplitter, \
 from IPython.core.usage import default_gui_banner
 from IPython.utils.traitlets import Bool, Str
 from frontend_widget import FrontendWidget
-from styles import (default_light_style_sheet,  default_dark_style_sheet,
-                    default_light_syntax_style, default_dark_syntax_style)
+from styles import (default_light_style_sheet,  default_light_syntax_style,
+                    default_dark_style_sheet, default_dark_syntax_style,
+                    default_bw_style_sheet, default_bw_syntax_style)
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -329,21 +330,24 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' interface
     #---------------------------------------------------------------------------
 
-    def set_default_style(self, lightbg=True):
+    def set_default_style(self, colors='light'):
         """ Sets the widget style to the class defaults.
 
         Parameters:
         -----------
-        lightbg : bool, optional (default True)
+        colors : str, optional (default light)
             Whether to use the default IPython light background or dark
-            background style.
+            background or B&W style.
         """
-        if lightbg:
+        if colors=='light':
             self.style_sheet = default_light_style_sheet
             self.syntax_style = default_light_syntax_style
-        else:
+        elif colors=='dark':
             self.style_sheet = default_dark_style_sheet
             self.syntax_style = default_dark_syntax_style
+        elif colors=='bw':
+            self.style_sheet = default_bw_style_sheet
+            self.syntax_style = default_bw_syntax_style
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' protected interface
