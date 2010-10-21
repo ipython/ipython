@@ -535,7 +535,7 @@ class GTKKernel(Kernel):
 #-----------------------------------------------------------------------------
 
 def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
-                  independent=False, pylab=False):
+                  independent=False, pylab=False, colors=None):
     """Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -566,6 +566,9 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         string is passed, matplotlib will use the specified backend. Otherwise,
         matplotlib's default backend will be used.
 
+    colors : None or string, optional (default None)
+        If not None, specify the color scheme. One of (NoColor, LightBG, Linux)
+
     Returns
     -------
     A tuple of form:
@@ -581,6 +584,9 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         extra_arguments.append('--ip')
         if isinstance(ip, basestring):
             extra_arguments.append(ip)
+    if colors is not None:
+        extra_arguments.append('--colors')
+        extra_arguments.append(colors)
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
                               xrep_port, pub_port, req_port, hb_port, 
                               independent, extra_arguments)
@@ -595,6 +601,10 @@ def main():
 "Pre-load matplotlib and numpy for interactive use. If GUI is not \
 given, the GUI backend is matplotlib's, otherwise use one of: \
 ['tk', 'gtk', 'qt', 'wx', 'inline'].")
+    parser.add_argument('--colors',
+        type=str, dest='colors',
+        help="Set the color scheme (NoColor, Linux, and LightBG).",
+        metavar='ZMQInteractiveShell.colors')
     namespace = parser.parse_args()
 
     kernel_class = Kernel
@@ -616,6 +626,8 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
         if kernel_class is None:
             raise ValueError('GUI is not supported: %r' % gui)
         pylabtools.activate_matplotlib(backend)
+    if namespace.colors:
+        ZMQInteractiveShell.colors=namespace.colors
 
     kernel = make_kernel(namespace, kernel_class, OutStream)
 

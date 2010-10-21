@@ -155,10 +155,29 @@ def main():
     wgroup.add_argument('--stylesheet', type=str,
                         help="path to a custom CSS stylesheet.")
     wgroup.add_argument('--colors', type=str,
-                        help="Set the color scheme (light, dark, or bw). This is guessed\
+                        help="Set the color scheme (LightBG,Linux,NoColor). This is guessed\
                         based on the pygments style if not set.")
 
     args = parser.parse_args()
+
+    # parse the colors arg down to current known labels
+    if args.colors:
+        colors=args.colors.lower()
+        if colors in ('lightbg', 'light'):
+            colors='lightbg'
+        elif colors in ('dark', 'linux'):
+            colors='linux'
+        else:
+            colors='nocolor'
+    elif args.style:
+        if args.style=='bw':
+            colors='nocolor'
+        elif styles.dark_style(args.style):
+            colors='linux'
+        else:
+            colors='lightbg'
+    else:
+        colors=None
 
     # Don't let Qt or ZMQ swallow KeyboardInterupts.
     import signal
@@ -172,13 +191,15 @@ def main():
     if not args.existing:
         # if not args.ip in LOCAL_IPS+ALL_ALIAS:
         #     raise ValueError("Must bind a local ip, such as: %s"%LOCAL_IPS)
-        
+
         kwargs = dict(ip=args.ip)
         if args.pure:
             kwargs['ipython']=False
-        elif args.pylab:
-            kwargs['pylab']=args.pylab
-            
+        else:
+            kwargs['colors']=colors
+            if args.pylab:
+                kwargs['pylab']=args.pylab
+
         kernel_manager.start_kernel(**kwargs)
     kernel_manager.start_channels()
 
@@ -197,23 +218,9 @@ def main():
 
     # configure the style:
     if not args.pure: # only IPythonWidget supports styles
-        # parse the colors arg down to current known labels
-        if args.colors:
-            colors=args.colors.lower()
-            if colors in ('lightbg', 'light'):
-                colors='light'
-            elif colors in ('dark', 'linux'):
-                colors='dark'
-            else:
-                colors='nocolor'
-        else:
-            colors=None
-        lightbg = colors != 'linux'
-
         if args.style:
-            # guess whether it's a dark style:
             widget.syntax_style = args.style
-            widget.style_sheet = styles.sheet_from_template(args.style, lightbg)
+            widget.style_sheet = styles.sheet_from_template(args.style, colors)
             widget._syntax_style_changed()
             widget._style_sheet_changed()
         elif colors:

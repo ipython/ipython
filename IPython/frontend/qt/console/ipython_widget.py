@@ -330,24 +330,27 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' interface
     #---------------------------------------------------------------------------
 
-    def set_default_style(self, colors='light'):
+    def set_default_style(self, colors='lightbg'):
         """ Sets the widget style to the class defaults.
 
         Parameters:
         -----------
-        colors : str, optional (default light)
+        colors : str, optional (default lightbg)
             Whether to use the default IPython light background or dark
             background or B&W style.
         """
-        if colors=='light':
+        colors = colors.lower()
+        if colors=='lightbg':
             self.style_sheet = default_light_style_sheet
             self.syntax_style = default_light_syntax_style
-        elif colors=='dark':
+        elif colors=='linux':
             self.style_sheet = default_dark_style_sheet
             self.syntax_style = default_dark_syntax_style
-        elif colors=='bw':
+        elif colors=='nocolor':
             self.style_sheet = default_bw_style_sheet
             self.syntax_style = default_bw_syntax_style
+        else:
+            raise KeyError("No such color scheme: %s"%colors)
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' protected interface
