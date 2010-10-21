@@ -315,7 +315,7 @@ InputArea.prototype.keyfunc = function (e) {
     } else {
         if (e.which == 13) {
             if (e.ctrlKey) {
-                this.text.val(this.text.val()+"\n")
+                this.insert("\n")
                 this.update(1)
             } else
                 this.submit(e.target.value)
@@ -336,12 +336,12 @@ InputArea.prototype.keyfunc = function (e) {
 InputArea.prototype.update = function (nlines) {
     //Updates line height for multi-line input
     var nnlines = this.msg.code.split("\n").length+(nlines?nlines:0)
-    if (nnlines != this.nlines)
+    if (nnlines != this.nlines) {
         this.text.animate({height: this.lh*nnlines }, 50)
+        this.indent(this.nlines > nnlines?-1:null)
+    }
     this.nlines = nnlines
     var code = this.text.val().slice(0,this.text.getSelection().end)
-    if (code[code.length-1] == "\n")
-        this.indent()
 }
 InputArea.prototype.submit = function (code) {
     //Submits to the server, or removes the message if empty
@@ -380,24 +380,24 @@ InputArea.prototype.replace = function (match, pos) {
     this.msg.code = words.join(' ')
     this.text.val(this.msg.code)
 }
-InputArea.prototype.indent = function () {
+InputArea.prototype.indent = function (dedent) {
     //An attempt to make an autoindenter
     var code = this.text.val()
     var pos = this.text.getSelection().end
     
-    this.ilevel += checkIndent(code, pos)
+    this.ilevel += dedent?dedent:checkIndent(code, pos)
     this.ilevel = this.ilevel < 0?0:this.ilevel
     
     var tabs = ""
     for (var i = 0; i < this.ilevel; i++)
         tabs += "    "
     
-    this.text.val(code.slice(0,pos)+tabs+code.slice(pos))
+    this.insert(tabs)
 }
 InputArea.prototype.insert = function (txt) {
     var pos = this.text.getSelection().end
-    txt = this.text.val().slice(0,pos)+txt+this.text.val().slice(pos)
-    this.text.val(txt)
+    var code = this.text.val().slice(0,pos)+txt+this.text.val().slice(pos)
+    this.text.val(code).setCursor(pos+txt.length)
 }
 
 

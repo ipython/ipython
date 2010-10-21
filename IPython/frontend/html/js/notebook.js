@@ -82,7 +82,8 @@ function inspect(obj) {
 var dedentKeys = /(raise|return|break|continue|yield|pass)/g
 function checkIndent(code, pos) {
     code = code.slice(0,pos).split("\n")
-    var last = code[code.length-1]
+    //Second to last one, the last one is the newline
+    var last = code[code.length-2].trim()
     if (last[last.length-1] == ":")
         return 1
     else if (dedentKeys.test(last))
