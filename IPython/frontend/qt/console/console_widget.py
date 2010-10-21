@@ -161,7 +161,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._reading_callback = None
         self._tab_width = 8
         self._text_completing_pos = 0
-        self._filename = os.path.join(os.curdir, 'ipython.html')
+        self._filename = 'ipython.html'
+        self._png_mode=None
 
         # Set a monospaced font.
         self.reset_font()
@@ -589,15 +590,48 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
         html = self.fix_html_encoding(
             str(self._control.toHtml().toUtf8()))
-        if img_re.search(html):
+        if self._png_mode:
+            # preference saved, don't ask again
+            if img_re.search(html):
+                inline = (self._png_mode == 'inline')
+            else:
+                inline = True
+        elif img_re.search(html):
             # there are images
+            widget = QtGui.QWidget()
+            layout = QtGui.QVBoxLayout(widget)
             title = self.window().windowTitle()
-            reply = QtGui.QMessageBox.question(self, title, "Images found."+
-                    "\nWould you like inline PNGs (single large html file) or "+
-                    "external image files?", "inline", "external")
+            msg = "Exporting HTML with PNGs"
+            info = "Would you like inline PNGs (single large html file) or "+\
+            "external image files?"
+            checkbox = QtGui.QCheckBox("&Don't ask again")
+            checkbox.setShortcut('D')
+            ib = QtGui.QPushButton("&Inline", self)
+            ib.setShortcut('I')
+            eb = QtGui.QPushButton("&External", self)
+            eb.setShortcut('E')
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Question, title, msg)
+            box.setInformativeText(info)
+            box.addButton(ib,QtGui.QMessageBox.NoRole)
+            box.addButton(eb,QtGui.QMessageBox.YesRole)
+            box.setDefaultButton(ib)
+            layout.setSpacing(0)
+            layout.addWidget(box)
+            layout.addWidget(checkbox)
+            widget.setLayout(layout)
+            widget.show()
+            reply = box.exec_()
             inline = (reply == 0)
+            if checkbox.checkState():
+                # don't ask anymore, always use this choice
+                if inline:
+                    self._png_mode='inline'
+                else:
+                    self._png_mode='external'
         else:
+            # no images
             inline = True
+
         if inline:
             path = None
         else:
