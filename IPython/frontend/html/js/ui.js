@@ -23,21 +23,24 @@ StatusBar.prototype.set = function(status) {
 
 function History(obj) {
     this.obj = $("#"+obj)
+    this.history = []
 //    gethistory(-1)
 }
 History.prototype.append = function(hist) {
     for (var i in hist) {
+        this.history.push(hist[i])
         var obj = $(document.createElement("a"))
         obj.addClass("history_element")
-        obj.attr("href", "javascript:kernhistory.click(\""+hist[i]+"\")")
-        obj.html("["+i+"]: "+hist[i])
+        obj.attr("href", "javascript:kernhistory.click("+(this.history.length-1)+")")
+        var code = hist[i].replace(/\n/g, "<br />")
+        obj.html("["+i+"]: "+code)
         this.obj.append(obj)
     }
     this.obj.scrollTo(this.obj.children().last())
 }
-History.prototype.click = function (code) {
+History.prototype.click = function (id) {
     var msg = manager.get()
-    msg.code = code
+    msg.code = this.history[id]
     msg.activate()
 }
 
@@ -239,37 +242,60 @@ Message.prototype.setOutput = function(value, header) {
 }
 
 /***********************************************************************
- * Handles python input, including autocompletion, submission, etc
+ * Handles python input, submission, etc
  ***********************************************************************/
 function InputArea(msg) {
     this.msg = msg
     this.activate()
 }
 InputArea.prototype.activate = function () {
-    this.text = $(document.createElement("input")).val(this.msg.code)
+    this.text = $(document.createElement("textarea")).val(this.msg.code)
+    this.text.addClass("inputText")
     this.msg.input.html(this.text)
-    this.text.focus()
+    this.lh = this.text.height()
+    this.nlines = this.msg.code.split("\n").length
+    this.update()
     
     var thisObj = this
     this.text.keydown(function (e) {thisObj.keyfunc(e)})
+    this.text.keyup(function (e) {
+        thisObj.msg.code = e.target.value
+        thisObj.update() 
+    })
+    
+    this.text.focus()
 }
 InputArea.prototype.keyfunc = function (e) {
-    if (e.which == 13)
-        this.submit(e.target.value)
-    else if (e.which == 38) {
-        manager.get("-1").activate()
-    } else if (e.which == 40) {
-        manager.get("+1").activate()
-    } else if (e.which == 9) {
-        e.preventDefault()
-        var thisObj = this
-        var pos = this.text.getSelection().end
-        tabcomplete(this.text.val(), pos, 
-            function(matches) {thisObj.complete(matches)}
-        )
+    if (this.nlines > 1) {
+        if (e.which == 13) {
+            if (e.shiftKey)
+                this.submit(e.target.value)
+            else if (e.ctrlKey)
+                this.text.val(this.text.val()+"\n")
+        } 
     } else {
-        this.msg.code = e.target.value
+        if (e.which == 13) {
+            if (e.ctrlKey) {
+                this.text.val(this.text.val()+"\n")
+            } else
+                this.submit(e.target.value)
+        } else if (e.which == 38) {
+            manager.get("-1").activate()
+        } else if (e.which == 40) {
+            manager.get("+1").activate()
+        } else if (e.which == 9) {
+            e.preventDefault()
+            var thisObj = this
+            var pos = this.text.getSelection().end
+            tabcomplete(this.text.val(), pos, 
+                function(matches) {thisObj.complete(matches)}
+            )
+        }
     }
+}
+InputArea.prototype.update = function (nlines) {
+    this.nlines = this.msg.code.split("\n").length + (nlines?nlines:0)
+    this.text.animate({height: this.lh*(this.nlines) }, 100)
 }
 InputArea.prototype.submit = function (code) {
     this.msg.code = code
@@ -352,6 +378,9 @@ function Selector(parent, matches) {
             thisObj.set(thisObj.selectors[thisObj.cursor].match); f()
         } //Perhaps implement vim keys?
     })
+    $(document).click(function (e){
+        thisObj.remove();
+    })
 }
 Selector.prototype.deselect = function () {
     for (var i in this.selectors)
@@ -398,7 +427,7 @@ Selection.prototype.active = function () {
     this.parent.deselect()
     this.parent.cursor = this.idx
     this.obj.addClass("selected")
-    $.scrollTo(this.obj)
+//    $.scrollTo(this.obj)
 }
 Selection.prototype.clear = function () {
     this.obj.removeClass("selected")

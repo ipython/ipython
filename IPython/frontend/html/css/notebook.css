@@ -10,22 +10,26 @@
     background:white;
 }
 
-.side_box {
+.sidebox {
     margin:6px;
     margin-bottom:16px;
+}
+.sidebox .inside {
     padding:8px;
     border:1px solid #CCC;
     min-height:20px;
     overflow:auto;
 }
-
-p.side_title{
-    margin:-6px 0px -20px 20px;
-    padding:2px;
+.sidebox .title {
+    margin:-13px 0px -20px 20px;
+    padding:5px;
     float:left;
     background:white;
 }
 
+/*
+ * History box
+ */
 #history {
     height:30%;
 }
@@ -34,7 +38,9 @@ p.side_title{
     text-decoration:none;
     display:block;
 }
-
+/*
+ * Status bar
+ */
 #statusbar { 
     position:absolute;
     bottom:6px;
@@ -49,9 +55,16 @@ p.side_title{
 	margin-left:10px;
 	float:right;
 }
+
+/*
+ * Messages
+ */
 #messages {
 	width:80%;
 	float:left;
+}
+#messages .selected {
+    background:#CCC;
 }
 .message {
     border:1px solid #CCC;
@@ -77,6 +90,11 @@ p.side_title{
 	width:90%;
 	margin-bottom:4px;
 }
+.inputText {
+    height:12pt;
+    width:100%; 
+	border:none; 
+}
 .message .output_header {
 	color:red;
 	float:left;
@@ -87,12 +105,10 @@ p.side_title{
 	width:90%;
 }
 
-pre.input input { 
-	width:100%; 
-	border:none; 
-	padding:0px;
-}
 
+/*
+ * Tab completer
+ */
 .completer {
     position:absolute;
     background:white;
@@ -107,10 +123,10 @@ pre.input input {
     float:left;
     margin:0px 3px;
 }
-.selection {
+.completer .selection {
     padding:2px;
     cursor:pointer;
 }
-.selected {
+.completer .selected {
     background-color:#CCC;
 }
