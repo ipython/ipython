@@ -28,7 +28,10 @@ class CometManager(object):
         self.clients[client_id] = [time.time(), Queue.Queue()]
     
     def __getitem__(self, client_id):
-        return self.clients[client_id][1]
+    	if client_id in self.clients:
+	        return self.clients[client_id][1]
+	    else:
+	    	return None
     
     def append(self, msg):
         """Add a message to the SUB queues across all tracked clients"""
