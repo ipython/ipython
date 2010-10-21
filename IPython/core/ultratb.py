@@ -244,11 +244,6 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
         start =  max(maybeStart, 0)
         end   = start + context
         lines = linecache.getlines(file)[start:end]
-        # pad with empty lines if necessary
-        if maybeStart < 0:
-            lines = (['\n'] * -maybeStart) + lines
-        if len(lines) < context:
-            lines += ['\n'] * (context - len(lines))
         buf = list(records[i])
         buf[LNUM_POS] = lnum
         buf[INDEX_POS] = lnum - 1 - start
@@ -279,7 +274,15 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
     _line_format = _parser.format2
 
     for line in lines:
-        new_line, err = _line_format(line,'str',scheme)
+        # FIXME: we need to ensure the source is a pure string at this point,
+        # else the coloring code makes a  royal mess.  This is in need of a
+        # serious refactoring, so that all of the ultratb and PyColorize code
+        # is unicode-safe.  So for now this is rather an ugly hack, but
+        # necessary to at least have readable tracebacks. Improvements welcome!
+        if type(line)==unicode:
+            line = line.encode('utf-8', 'replace')
+            
+        new_line, err = _line_format(line, 'str', scheme)
         if not err: line = new_line
         
         if i == lnum:
@@ -636,7 +639,8 @@ class VerboseTB(TBTools):
     would appear in the traceback)."""
 
     def __init__(self,color_scheme = 'Linux', call_pdb=False, ostream=None,
-                 tb_offset=0, long_header=False, include_vars=True):
+                 tb_offset=0, long_header=False, include_vars=True,
+                 check_cache=None):
         """Specify traceback offset, headers and color scheme.
 
         Define how many frames to drop from the tracebacks. Calling it with
@@ -648,6 +652,14 @@ class VerboseTB(TBTools):
         self.tb_offset = tb_offset
         self.long_header = long_header
         self.include_vars = include_vars
+        # By default we use linecache.checkcache, but the user can provide a
+        # different check_cache implementation.  This is used by the IPython
+        # kernel to provide tracebacks for interactive code that is cached,
+        # by a compiler instance that flushes the linecache but preserves its
+        # own code cache.
+        if check_cache is None:
+            check_cache = linecache.checkcache
+        self.check_cache = check_cache
 
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,
                              context=5):
@@ -723,7 +735,7 @@ class VerboseTB(TBTools):
         frames = []
         # Flush cache before calling inspect.  This helps alleviate some of the
         # problems with python 2.3's inspect.py.
-        linecache.checkcache()
+        ##self.check_cache()
         # Drop topmost frames if requested
         try:
             # Try the default getinnerframes and Alex's: Alex's fixes some
@@ -1034,7 +1046,8 @@ class FormattedTB(VerboseTB, ListTB):
     
     def __init__(self, mode='Plain', color_scheme='Linux', call_pdb=False,
                  ostream=None, 
-                 tb_offset=0, long_header=False, include_vars=False):
+                 tb_offset=0, long_header=False, include_vars=False,
+                 check_cache=None):
 
         # NEVER change the order of this list. Put new modes at the end:
         self.valid_modes = ['Plain','Context','Verbose']
@@ -1042,7 +1055,8 @@ class FormattedTB(VerboseTB, ListTB):
 
         VerboseTB.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
                            ostream=ostream, tb_offset=tb_offset,
-                           long_header=long_header, include_vars=include_vars)
+                           long_header=long_header, include_vars=include_vars,
+                           check_cache=check_cache)
 
         # Different types of tracebacks are joined with different separators to
         # form a single string.  They are taken from this dict
@@ -1067,7 +1081,7 @@ class FormattedTB(VerboseTB, ListTB):
         else:
             # We must check the source cache because otherwise we can print
             # out-of-date source code.
-            linecache.checkcache()
+            self.check_cache()
             # Now we can extract and format the exception
             elist = self._extract_tb(tb)
             return ListTB.structured_traceback(

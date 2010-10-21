@@ -92,8 +92,6 @@ ZeroDivisionError                         Traceback (most recent call last)
      30         mode = 'div'
      31 
 ---> 32     bar(mode)
-     33 
-     34 
 <BLANKLINE>
 ... in bar(mode)
      14     "bar"
@@ -128,8 +126,6 @@ ZeroDivisionError                         Traceback (most recent call last)
 ---> 32     bar(mode)
         global bar = <function bar at ...>
         global mode = 'div'
-     33 
-     34 
 <BLANKLINE>
 ... in bar(mode='div')
      14     "bar"
@@ -186,8 +182,6 @@ SystemExit                                Traceback (most recent call last)
      30         mode = 'div'
      31 
 ---> 32     bar(mode)
-     33 
-     34 
 <BLANKLINE>
 ...bar(mode)
      20         except:
@@ -218,8 +212,6 @@ SystemExit                                Traceback (most recent call last)
 ---> 32     bar(mode)
         global bar = <function bar at ...>
         global mode = 'exit'
-     33 
-     34 
 <BLANKLINE>
 ... in bar(mode='exit')
      20         except:
