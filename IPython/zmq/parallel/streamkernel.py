@@ -3,6 +3,7 @@
 Kernel adapted from kernel.py to use ZMQ Streams
 """
 
+from __future__ import print_function
 import __builtin__
 import os
 import sys
@@ -183,8 +184,8 @@ class Kernel(object):
                 
                 # assert self.reply_socketly_socket.rcvmore(), "Unexpected missing message part."
                 # msg = self.reply_socket.recv_json()
-            print>>sys.__stdout__, "Aborting:"
-            print>>sys.__stdout__, Message(msg)
+            print ("Aborting:", file=sys.__stdout__)
+            print (Message(msg), file=sys.__stdout__)
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             # reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
@@ -192,7 +193,7 @@ class Kernel(object):
             # self.reply_socket.send_json(reply_msg)
             reply_msg = self.session.send(stream, reply_type, 
                         content={'status' : 'aborted'}, parent=msg, ident=idents)[0]
-            print>>sys.__stdout__, Message(reply_msg)
+            print(Message(reply_msg), file=sys.__stdout__)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.05)
@@ -210,7 +211,7 @@ class Kernel(object):
         content = dict(status='ok')
         reply_msg = self.session.send(stream, 'abort_reply', content=content, 
                 parent=parent, ident=ident)[0]
-        print>>sys.__stdout__, Message(reply_msg)
+        print(Message(reply_msg), file=sys.__stdout__)
     
     def kill_request(self, stream, idents, parent):
         """kill ourselves.  This should really be handled in an external process"""
@@ -233,7 +234,7 @@ class Kernel(object):
         
         handler = self.control_handlers.get(msg['msg_type'], None)
         if handler is None:
-            print >> sys.__stderr__, "UNKNOWN CONTROL MESSAGE TYPE:", msg
+            print ("UNKNOWN CONTROL MESSAGE TYPE:", msg, file=sys.__stderr__)
         else:
             handler(self.control_stream, idents, msg)
     
@@ -281,8 +282,8 @@ class Kernel(object):
         try:
             code = parent[u'content'][u'code']
         except:
-            print>>sys.__stderr__, "Got bad msg: "
-            print>>sys.__stderr__, Message(parent)
+            print("Got bad msg: ", file=sys.__stderr__)
+            print(Message(parent), file=sys.__stderr__)
             return
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.pub_stream.send(pyin_msg)
@@ -312,7 +313,7 @@ class Kernel(object):
         # self.reply_socket.send(ident, zmq.SNDMORE)
         # self.reply_socket.send_json(reply_msg)
         reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, ident=ident)
-        print>>sys.__stdout__, Message(reply_msg)
+        print(Message(reply_msg), file=sys.__stdout__)
         if reply_msg['content']['status'] == u'error':
             self.abort_queues()
 
@@ -327,15 +328,15 @@ class Kernel(object):
         return self.completer.complete(msg.content.line, msg.content.text)
     
     def apply_request(self, stream, ident, parent):
-        print parent
+        print (parent)
         try:
             content = parent[u'content']
             bufs = parent[u'buffers']
             msg_id = parent['header']['msg_id']
             bound = content.get('bound', False)
         except:
-            print>>sys.__stderr__, "Got bad msg: "
-            print>>sys.__stderr__, Message(parent)
+            print("Got bad msg: ", file=sys.__stderr__)
+            print(Message(parent), file=sys.__stderr__)
             return
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.pub_stream.send(pyin_msg)
@@ -400,7 +401,7 @@ class Kernel(object):
         # self.reply_socket.send_json(reply_msg)
         reply_msg = self.session.send(stream, u'apply_reply', reply_content, 
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
-        print>>sys.__stdout__, Message(reply_msg)
+        print(Message(reply_msg), file=sys.__stdout__)
         # if reply_msg['content']['status'] == u'error':
         #     self.abort_queues()
     
@@ -420,7 +421,7 @@ class Kernel(object):
             return
         handler = self.queue_handlers.get(msg['msg_type'], None)
         if handler is None:
-            print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", msg
+            print ("UNKNOWN MESSAGE TYPE:", msg, file=sys.__stderr__)
         else:
             handler(stream, idents, msg)
     
@@ -471,7 +472,7 @@ def main():
     rep_conn = connection % port_base
     pub_conn = connection % (port_base+1)
 
-    print >>sys.__stdout__, "Starting the kernel..."
+    print("Starting the kernel...", file=sys.__stdout__)
     # print >>sys.__stdout__, "XREQ Channel:", rep_conn
     # print >>sys.__stdout__, "PUB Channel:", pub_conn
 
@@ -499,7 +500,7 @@ def main():
     kernel.user_ns['sleep'] = time.sleep
     kernel.user_ns['s'] = 'Test string'
     
-    print >>sys.__stdout__, "Use Ctrl-\\ (NOT Ctrl-C!) to terminate."
+    print ("Use Ctrl-\\ (NOT Ctrl-C!) to terminate.", file=sys.__stdout__)
     kernel.start()
     loop.start()
 

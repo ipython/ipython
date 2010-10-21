@@ -4,6 +4,7 @@ A multi-heart Heartbeat system using PUB and XREP sockets. pings are sent out on
 and hearts are tracked based on their XREQ identities.
 """
 
+from __future__ import print_function
 import time
 import uuid
 
@@ -130,7 +131,7 @@ class HeartMonitor(object):
                 try:
                     handler(heart)
                 except Exception, e:
-                    print e
+                    print (e)
                     logger.error("heartbeat::Bad Handler! %s"%handler)
                     pass
         else:

@@ -413,7 +413,7 @@ class StreamSession(object):
         try:
             return idents, self.unpack_message(msg, content=content, copy=copy)
         except Exception, e:
-            print idents, msg
+            print (idents, msg)
             # TODO: handle it
             raise e
     

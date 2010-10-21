@@ -10,6 +10,8 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import time
 from pprint import pprint
 
@@ -245,7 +247,7 @@ class Client(object):
         parent = msg['parent_header']
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
-            print "got unknown result: %s"%msg_id
+            print("got unknown result: %s"%msg_id)
         else:
             self.outstanding.remove(msg_id)
         self.results[msg_id] = ss.unwrap_exception(msg['content'])
@@ -256,7 +258,7 @@ class Client(object):
         parent = msg['parent_header']
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
-            print "got unknown result: %s"%msg_id
+            print ("got unknown result: %s"%msg_id)
         else:
             self.outstanding.remove(msg_id)
         content = msg['content']

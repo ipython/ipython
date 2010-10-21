@@ -2,6 +2,7 @@
 # Imports
 #----------------------------------------------------------------------
 
+from __future__ import print_function
 from random import randint,random
 
 try:
@@ -268,7 +269,7 @@ class TaskScheduler(object):
         self.depending[msg_id] = (msg_id,msg,after,follow)
         # track the ids in both follow/after, but not those already completed
         for dep_id in after.union(follow).difference(self.all_done):
-            print dep_id
+            print (dep_id)
             if dep_id not in self.dependencies:
                 self.dependencies[dep_id] = set()
             self.dependencies[dep_id].add(msg_id)
@@ -284,7 +285,7 @@ class TaskScheduler(object):
         if indices:
             idx = indices[idx]
         target = self.targets[idx]
-        print target, map(str, msg[:3])
+        print (target, map(str, msg[:3]))
         self.engine_stream.send(target, flags=zmq.SNDMORE, copy=False)
         self.engine_stream.send_multipart(msg, copy=False)
         self.add_job(idx)
@@ -316,7 +317,7 @@ class TaskScheduler(object):
         client = idents[1]
         # swap_ids for XREP-XREP mirror
         raw_msg[:2] = [client,engine]
-        print map(str, raw_msg[:4])
+        print (map(str, raw_msg[:4]))
         self.client_stream.send_multipart(raw_msg, copy=False)
         # now, update our data structures
         msg_id = parent['msg_id']

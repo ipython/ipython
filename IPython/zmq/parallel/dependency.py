@@ -14,7 +14,6 @@ class UnmetDependency(Exception):
 class depend2(object):
     """dependency decorator"""
     def __init__(self, f, *args, **kwargs):
-        print "Inside __init__()"
         self.dependency = (f,args,kwargs)
     
     def __call__(self, f, *args, **kwargs):
@@ -24,7 +23,6 @@ class depend2(object):
 class depend(object):
     """Dependency decorator, for use with tasks."""
     def __init__(self, f, *args, **kwargs):
-        print "Inside __init__()"
         self.f = f
         self.args = args
         self.kwargs = kwargs
