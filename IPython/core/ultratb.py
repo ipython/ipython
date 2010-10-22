@@ -77,7 +77,6 @@ import linecache
 import os
 import pydoc
 import re
-import string
 import sys
 import time
 import tokenize
@@ -719,7 +718,7 @@ class VerboseTB(TBTools):
 
         if self.long_header:
             # Header with the exception type, python version, and date
-            pyver = 'Python ' + string.split(sys.version)[0] + ': ' + sys.executable
+            pyver = 'Python ' + sys.version.split()[0] + ': ' + sys.executable
             date = time.ctime(time.time())
             
             head = '%s%s%s\n%s%s%s\n%s' % (Colors.topline, '-'*75, ColorsNormal,
