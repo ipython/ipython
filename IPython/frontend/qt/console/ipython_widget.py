@@ -25,32 +25,13 @@ from IPython.core.inputsplitter import IPythonInputSplitter, \
 from IPython.core.usage import default_gui_banner
 from IPython.utils.traitlets import Bool, Str
 from frontend_widget import FrontendWidget
+from styles import (default_light_style_sheet,  default_light_syntax_style,
+                    default_dark_style_sheet, default_dark_syntax_style,
+                    default_bw_style_sheet, default_bw_syntax_style)
 
 #-----------------------------------------------------------------------------
 # Constants
 #-----------------------------------------------------------------------------
-
-# The default light style sheet: black text on a white background.
-default_light_style_sheet = '''
-    .error { color: red; }
-    .in-prompt { color: navy; }
-    .in-prompt-number { font-weight: bold; }
-    .out-prompt { color: darkred; }
-    .out-prompt-number { font-weight: bold; }
-'''
-default_light_syntax_style = 'default'
-
-# The default dark style sheet: white text on a black background.
-default_dark_style_sheet = '''
-    QPlainTextEdit, QTextEdit { background-color: black; color: white }
-    QFrame { border: 1px solid grey; }
-    .error { color: red; }
-    .in-prompt { color: lime; }
-    .in-prompt-number { color: lime; font-weight: bold; }
-    .out-prompt { color: red; }
-    .out-prompt-number { color: red; font-weight: bold; }
-'''
-default_dark_syntax_style = 'monokai'
 
 # Default strings to build and display input and output prompts (and separators
 # in between)
@@ -349,21 +330,27 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' interface
     #---------------------------------------------------------------------------
 
-    def set_default_style(self, lightbg=True):
+    def set_default_style(self, colors='lightbg'):
         """ Sets the widget style to the class defaults.
 
         Parameters:
         -----------
-        lightbg : bool, optional (default True)
+        colors : str, optional (default lightbg)
             Whether to use the default IPython light background or dark
-            background style.
+            background or B&W style.
         """
-        if lightbg:
+        colors = colors.lower()
+        if colors=='lightbg':
             self.style_sheet = default_light_style_sheet
             self.syntax_style = default_light_syntax_style
-        else:
+        elif colors=='linux':
             self.style_sheet = default_dark_style_sheet
             self.syntax_style = default_dark_syntax_style
+        elif colors=='nocolor':
+            self.style_sheet = default_bw_style_sheet
+            self.syntax_style = default_bw_syntax_style
+        else:
+            raise KeyError("No such color scheme: %s"%colors)
 
     #---------------------------------------------------------------------------
     # 'IPythonWidget' protected interface

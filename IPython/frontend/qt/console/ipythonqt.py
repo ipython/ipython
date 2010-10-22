@@ -7,12 +7,13 @@
 
 # Systemm library imports
 from PyQt4 import QtGui
-
+from pygments.styles import get_all_styles
 # Local imports
 from IPython.external.argparse import ArgumentParser
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 
 #-----------------------------------------------------------------------------
@@ -129,7 +130,7 @@ def main():
     kgroup.add_argument('--rep', type=int, metavar='PORT', default=0,
                         help='set the REP channel port [default random]')
     kgroup.add_argument('--hb', type=int, metavar='PORT', default=0,
-                        help='set the heartbeat port [default: random]')
+                        help='set the heartbeat port [default random]')
 
     egroup = kgroup.add_mutually_exclusive_group()
     egroup.add_argument('--pure', action='store_true', help = \
@@ -148,8 +149,35 @@ def main():
                         help='enable rich text support')
     wgroup.add_argument('--gui-completion', action='store_true',
                         help='use a GUI widget for tab completion')
+    wgroup.add_argument('--style', type=str,
+                        choices = list(get_all_styles()),
+                        help='specify a pygments style for by name.')
+    wgroup.add_argument('--stylesheet', type=str,
+                        help="path to a custom CSS stylesheet.")
+    wgroup.add_argument('--colors', type=str,
+                        help="Set the color scheme (LightBG,Linux,NoColor). This is guessed\
+                        based on the pygments style if not set.")
 
     args = parser.parse_args()
+
+    # parse the colors arg down to current known labels
+    if args.colors:
+        colors=args.colors.lower()
+        if colors in ('lightbg', 'light'):
+            colors='lightbg'
+        elif colors in ('dark', 'linux'):
+            colors='linux'
+        else:
+            colors='nocolor'
+    elif args.style:
+        if args.style=='bw':
+            colors='nocolor'
+        elif styles.dark_style(args.style):
+            colors='linux'
+        else:
+            colors='lightbg'
+    else:
+        colors=None
 
     # Don't let Qt or ZMQ swallow KeyboardInterupts.
     import signal
@@ -163,13 +191,15 @@ def main():
     if not args.existing:
         # if not args.ip in LOCAL_IPS+ALL_ALIAS:
         #     raise ValueError("Must bind a local ip, such as: %s"%LOCAL_IPS)
-        
+
         kwargs = dict(ip=args.ip)
         if args.pure:
             kwargs['ipython']=False
-        elif args.pylab:
-            kwargs['pylab']=args.pylab
-            
+        else:
+            kwargs['colors']=colors
+            if args.pylab:
+                kwargs['pylab']=args.pylab
+
         kernel_manager.start_kernel(**kwargs)
     kernel_manager.start_channels()
 
@@ -185,6 +215,31 @@ def main():
         widget = IPythonWidget(paging=args.paging, local_kernel=local_kernel)
     widget.gui_completion = args.gui_completion
     widget.kernel_manager = kernel_manager
+
+    # configure the style:
+    if not args.pure: # only IPythonWidget supports styles
+        if args.style:
+            widget.syntax_style = args.style
+            widget.style_sheet = styles.sheet_from_template(args.style, colors)
+            widget._syntax_style_changed()
+            widget._style_sheet_changed()
+        elif colors:
+            # use a default style
+            widget.set_default_style(colors=colors)
+        else:
+            # this is redundant for now, but allows the widget's
+            # defaults to change
+            widget.set_default_style()
+
+        if args.stylesheet:
+            # we got an expicit stylesheet
+            if os.path.isfile(args.stylesheet):
+                with open(args.stylesheet) as f:
+                    sheet = f.read()
+                widget.style_sheet = sheet
+                widget._style_sheet_changed()
+            else:
+                raise IOError("Stylesheet %r not found."%args.stylesheet)
 
     # Create the main window.
     window = MainWindow(app, widget, args.existing, may_close=local_kernel)
