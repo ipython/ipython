@@ -95,7 +95,7 @@ __all__ = ['Completer','IPCompleter']
 if sys.platform == 'win32':
     PROTECTABLES = ' '
 else:
-    PROTECTABLES = ' ()'
+    PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
 #-----------------------------------------------------------------------------
 # Main functions and classes
