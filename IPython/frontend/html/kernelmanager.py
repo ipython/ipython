@@ -9,14 +9,13 @@ import json
 import Queue
 import threading
 import mimetypes
-import __main__
 from string import Template
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 client_death = 300 # seconds without heartbeat that client considered dead
 #Base path to serve js and css files from
-basepath = os.path.split(__main__.__file__)[0]+"/" 
+basepath = os.path.split(__file__)[0]+"/" 
 
 class CometManager(object):
     """Tracks msg_id, client get requests for the Comet design pattern"""
