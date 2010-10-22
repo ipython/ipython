@@ -88,12 +88,13 @@ def doctest_reset_del():
 
     In [2]: class A(object):
        ...:     def __del__(self):
-       ...:         str("Hi")
+       ...:         print str("Hi")
        ...: 
 
     In [3]: a = A()
 
     In [4]: get_ipython().reset()
+    Hi
 
     In [5]: 1+1
     Out[5]: 2
