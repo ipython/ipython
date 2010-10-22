@@ -1,4 +1,6 @@
 # System library imports
+import os
+import re
 from PyQt4 import QtCore, QtGui
 
 # Local imports
@@ -154,7 +156,9 @@ class RichIPythonWidget(IPythonWidget):
                 return "<b>Couldn't find image %s</b>" % match.group("name")
 
             if(path is not None):
-                relpath = path[path.rfind("/")+1:]
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                relpath = os.path.basename(path)
                 if(image.save("%s/qt_img%s.png" % (path,match.group("name")),
                               "PNG")):
                     return '<img src="%s/qt_img%s.png">' % (relpath,
@@ -167,7 +171,6 @@ class RichIPythonWidget(IPythonWidget):
                 buffer_.open(QtCore.QIODevice.WriteOnly)
                 image.save(buffer_, "PNG")
                 buffer_.close()
-                import re
                 return '<img src="data:image/png;base64,\n%s\n" />' % (
                     re.sub(r'(.{60})',r'\1\n',str(ba.toBase64())))
 
