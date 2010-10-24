@@ -32,6 +32,9 @@ from IPython.utils.traitlets import Instance
 class __BuiltinUndefined(object): pass
 BuiltinUndefined = __BuiltinUndefined()
 
+class __HideBuiltin(object): pass
+HideBuiltin = __HideBuiltin()
+
 
 class BuiltinTrap(Configurable):
 
@@ -44,9 +47,10 @@ class BuiltinTrap(Configurable):
         # Only turn off the trap when the outermost call to __exit__ is made.
         self._nested_level = 0
         self.shell = shell
-        # builtins we always add
-        self.auto_builtins = {'exit': Quitter(self.shell, 'exit'),
-                              'quit': Quitter(self.shell, 'quit'),
+        # builtins we always add - if set to HideBuiltin, they will just
+        # be removed instead of being replaced by something else
+        self.auto_builtins = {'exit': HideBuiltin,
+                              'quit': HideBuiltin,
                               'get_ipython': self.shell.get_ipython,
                               }
         # Recursive reload function
@@ -78,7 +82,10 @@ class BuiltinTrap(Configurable):
         bdict = __builtin__.__dict__
         orig = bdict.get(key, BuiltinUndefined)
         self._orig_builtins[key] = orig
-        bdict[key] = value
+        if value is HideBuiltin:
+            del bdict[key]
+        else:
+            bdict[key] = value
 
     def remove_builtin(self, key):
         """Remove an added builtin and re-set the original."""

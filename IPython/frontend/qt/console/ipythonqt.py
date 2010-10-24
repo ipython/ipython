@@ -58,12 +58,16 @@ class MainWindow(QtGui.QMainWindow):
     #---------------------------------------------------------------------------
     
     def closeEvent(self, event):
-        """ Reimplemented to prompt the user and close the kernel cleanly.
+        """ Reimplemented to prompt the user and close the kernel cleanly, or 
+        close without prompt only if the exit magic is used.
         """
-        keepkernel = self._frontend._keep_kernel_on_exit
+        keepkernel = None #Use the prompt by default
+        if hasattr(self._frontend,'_keep_kernel_on_exit'): #set by exit magic
+            keepkernel = self._frontend._keep_kernel_on_exit
+        
         kernel_manager = self._frontend.kernel_manager
         
-        if keepkernel is None:
+        if keepkernel is None: #show prompt
             if kernel_manager and kernel_manager.channels_running:
                 title = self.window().windowTitle()
                 cancel = QtGui.QMessageBox.Cancel
@@ -106,13 +110,13 @@ class MainWindow(QtGui.QMainWindow):
                         event.accept()
                     else:
                         event.ignore()
-        elif keepkernel: #close console but leave kernel running
+        elif keepkernel: #close console but leave kernel running (no prompt)
             if kernel_manager and kernel_manager.channels_running:
                 if not self._existing:
                     # I have the kernel: don't quit, just close the window
                     self._app.setQuitOnLastWindowClosed(False)
                 event.accept()
-        else: #close console and kernel
+        else: #close console and kernel (no prompt)
             if kernel_manager and kernel_manager.channels_running:
                 kernel_manager.shutdown_kernel()
                 event.accept()
