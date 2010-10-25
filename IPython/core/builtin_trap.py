@@ -21,7 +21,6 @@ Authors:
 import __builtin__
 
 from IPython.config.configurable import Configurable
-from IPython.core.quitter import Quitter
 
 from IPython.utils.traitlets import Instance
 
