@@ -101,6 +101,27 @@ else:
 # Main functions and classes
 #-----------------------------------------------------------------------------
 
+def has_open_quotes(s):
+    """Return whether a string has open quotes.
+
+    This simply counts whether the number of quote characters of either type in
+    the string is odd.
+
+    Returns
+    -------
+    If there is an open quote, the quote character is returned.  Else, return
+    False.
+    """
+    # We check " first, then ', so complex cases with nested quotes will get
+    # the " to take precedence.
+    if s.count('"') % 2:
+        return '"'
+    elif s.count("'") % 2:
+        return "'"
+    else:
+        return False
+
+
 def protect_filename(s):
     """Escape a string to protect certain characters."""
     
@@ -485,39 +506,41 @@ class IPCompleter(Completer):
             text_prefix = '!'
         else:
             text_prefix = ''
-            
+
         text_until_cursor = self.text_until_cursor
-        open_quotes = 0  # track strings with open quotes
-        try:
-            # arg_split ~ shlex.split, but with unicode bugs fixed by us
-            lsplit = arg_split(text_until_cursor)[-1]
-        except ValueError:
-            # typically an unmatched ", or backslash without escaped char.
-            if text_until_cursor.count('"')==1:
-                open_quotes = 1
-                lsplit = text_until_cursor.split('"')[-1]
-            elif text_until_cursor.count("'")==1:
-                open_quotes = 1
-                lsplit = text_until_cursor.split("'")[-1]
-            else:
-                return []
-        except IndexError:
-            # tab pressed on empty line
-            lsplit = ""
+        # track strings with open quotes
+        open_quotes = has_open_quotes(text_until_cursor)
+
+        if '(' in text_until_cursor or '[' in text_until_cursor:
+            lsplit = text
+        else:
+            try:
+                # arg_split ~ shlex.split, but with unicode bugs fixed by us
+                lsplit = arg_split(text_until_cursor)[-1]
+            except ValueError:
+                # typically an unmatched ", or backslash without escaped char.
+                if open_quotes:
+                    lsplit = text_until_cursor.split(open_quotes)[-1]
+                else:
+                    return []
+            except IndexError:
+                # tab pressed on empty line
+                lsplit = ""
 
         if not open_quotes and lsplit != protect_filename(lsplit):
-            # if protectables are found, do matching on the whole escaped
-            # name
-            has_protectables = 1
+            # if protectables are found, do matching on the whole escaped name
+            has_protectables = True
             text0,text = text,lsplit
         else:
-            has_protectables = 0
+            has_protectables = False
             text = os.path.expanduser(text)
 
         if text == "":
             return [text_prefix + protect_filename(f) for f in self.glob("*")]
 
+        # Compute the matches from the filesystem
         m0 = self.clean_glob(text.replace('\\',''))
+
         if has_protectables:
             # If we had protectables, we need to revert our changes to the
             # beginning of filename so that we don't double-write the part
@@ -711,7 +734,7 @@ class IPCompleter(Completer):
         return None
                
     def complete(self, text=None, line_buffer=None, cursor_pos=None):
-        """Return the state-th possible completion for 'text'.
+        """Find completions for the given text and line context.
 
         This is called successively with state == 0, 1, 2, ... until it
         returns None.  The completion should begin with 'text'.
@@ -734,6 +757,14 @@ class IPCompleter(Completer):
           cursor_pos : int, optional
             Index of the cursor in the full line buffer.  Should be provided by
             remote frontends where kernel has no access to frontend state.
+
+        Returns
+        -------
+        text : str
+          Text that was actually used in the completion.
+          
+        matches : list
+          A list of completion matches.
         """
         #io.rprint('\nCOMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
@@ -772,7 +803,7 @@ class IPCompleter(Completer):
                     except:
                         # Show the ugly traceback if the matcher causes an
                         # exception, but do NOT crash the kernel!
-                        sys.excepthook()
+                        sys.excepthook(*sys.exc_info())
             else:
                 for matcher in self.matchers:
                     self.matches = matcher(text)
