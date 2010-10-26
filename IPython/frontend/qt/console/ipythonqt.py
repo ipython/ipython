@@ -58,8 +58,11 @@ class MainWindow(QtGui.QMainWindow):
     #---------------------------------------------------------------------------
     
     def closeEvent(self, event):
-        """ Reimplemented to prompt the user and close the kernel cleanly, or 
-        close without prompt only if the exit magic is used.
+        """ Close the window and the kernel (if necessary).
+        
+        This will prompt the user if they are finished with the kernel, and if
+        so, closes the kernel cleanly. Alternatively, if the exit magic is used,
+        it closes without prompt.
         """
         keepkernel = None #Use the prompt by default
         if hasattr(self._frontend,'_keep_kernel_on_exit'): #set by exit magic
