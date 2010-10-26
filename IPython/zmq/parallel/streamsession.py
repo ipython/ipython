@@ -8,6 +8,7 @@ import sys
 import traceback
 import pprint
 import uuid
+from datetime import datetime
 
 import zmq
 from zmq.utils import jsonapi
@@ -111,6 +112,7 @@ class Message(object):
 
 
 def msg_header(msg_id, msg_type, username, session):
+    date=datetime.now().isoformat()
     return locals()
     # return {
     #     'msg_id' : msg_id,
@@ -140,7 +142,7 @@ def extract_header(msg_or_header):
     return h
 
 def rekey(dikt):
-    """rekey a dict that has been forced to use str keys where there should be
+    """Rekey a dict that has been forced to use str keys where there should be
     ints by json.  This belongs in the jsonutil added by fperez."""
     for k in dikt.iterkeys():
         if isinstance(k, str):
@@ -162,11 +164,22 @@ def rekey(dikt):
     return dikt
 
 def serialize_object(obj, threshold=64e-6):
-    """serialize an object into a list of sendable buffers.
+    """Serialize an object into a list of sendable buffers.
     
-    Returns: (pmd, bufs)
-        where pmd is the pickled metadata wrapper, and bufs
-        is a list of data buffers"""
+    Parameters
+    ----------
+    
+    obj : object
+        The object to be serialized
+    threshold : float
+        The threshold for not double-pickling the content.
+        
+    
+    Returns
+    -------
+    ('pmd', [bufs]) :
+        where pmd is the pickled metadata wrapper,
+        bufs is a list of data buffers"""
     # threshold is 100 B
     databuffers = []
     if isinstance(obj, (list, tuple)):
@@ -318,6 +331,8 @@ class StreamSession(object):
         Parameters
         ----------
         
+        stream : zmq.Socket or ZMQStream
+            the socket-like object used to send the data
         msg_type : str or Message/dict
             Normally, msg_type will be 
             
@@ -347,10 +362,7 @@ class StreamSession(object):
         to_send.append(DELIM)
         to_send.append(self.pack(msg['header']))
         to_send.append(self.pack(msg['parent_header']))
-        # if parent is None:
-        #     to_send.append(self.none)
-        # else:
-        #     to_send.append(self.pack(dict(parent)))
+        
         if content is None:
             content = self.none
         elif isinstance(content, dict):
@@ -374,11 +386,10 @@ class StreamSession(object):
             pprint.pprint(omsg)
             pprint.pprint(to_send)
             pprint.pprint(buffers)
-        # return both the msg object and the buffers
         return omsg
     
     def send_raw(self, stream, msg, flags=0, copy=True, idents=None):
-        """send a raw message via idents.
+        """Send a raw message via idents.
         
         Parameters
         ----------
@@ -399,7 +410,7 @@ class StreamSession(object):
             socket = socket.socket
         try:
             msg = socket.recv_multipart(mode)
-        except zmq.ZMQError, e:
+        except zmq.ZMQError as e:
             if e.errno == zmq.EAGAIN:
                 # We can convert EAGAIN to None as we know in this case
                 # recv_json won't return None.
@@ -412,7 +423,7 @@ class StreamSession(object):
         idents, msg = self.feed_identities(msg, copy)
         try:
             return idents, self.unpack_message(msg, content=content, copy=copy)
-        except Exception, e:
+        except Exception as e:
             print (idents, msg)
             # TODO: handle it
             raise e

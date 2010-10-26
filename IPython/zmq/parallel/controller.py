@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """The IPython Controller with 0MQ
-This is the master object that handles connections from engines, clients, and 
+This is the master object that handles connections from engines and clients,
+and monitors traffic through the various queues.
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
@@ -28,11 +29,13 @@ from IPython.zmq.entry_point import bind_port
 from streamsession import Message, wrap_exception
 from entry_point import (make_base_argument_parser, select_random_ports, split_ports,
                         connect_logger, parse_url)
-# from messages import json # use the same import switches
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
+
+def _passer(*args, **kwargs):
+    return
 
 class ReverseDict(dict):
     """simple double-keyed subset of dict methods."""
@@ -93,16 +96,18 @@ class Controller(object):
     loop: zmq IOLoop instance
     session: StreamSession object
     <removed> context: zmq context for creating new connections (?)
+    queue: ZMQStream for monitoring the command queue (SUB)
     registrar: ZMQStream for engine registration requests (XREP)
+    heartbeat: HeartMonitor object checking the pulse of the engines
     clientele: ZMQStream for client connections (XREP)
                 not used for jobs, only query/control commands
-    queue: ZMQStream for monitoring the command queue (SUB)
-    heartbeat: HeartMonitor object checking the pulse of the engines
-    db_stream: connection to db for out of memory logging of commands
+    notifier: ZMQStream for broadcasting engine registration changes (PUB)
+    db: connection to db for out of memory logging of commands
                 NotImplemented
-    queue_addr: zmq connection address of the XREP socket for the queue
-    hb_addr: zmq connection address of the PUB socket for heartbeats
-    task_addr: zmq connection address of the XREQ socket for task queue
+    engine_addrs: dict of zmq connection information for engines to connect
+                to the queues.
+    client_addrs: dict of zmq connection information for engines to connect
+                to the queues.
     """
     # internal data structures:
     ids=None # engine IDs
@@ -165,13 +170,15 @@ class Controller(object):
         self.notifier = notifier
         self.db = db
         
+        # validate connection dicts:
         self.client_addrs = client_addrs
         assert isinstance(client_addrs['queue'], str)
+        assert isinstance(client_addrs['control'], str)
         # self.hb_addrs = hb_addrs
         self.engine_addrs = engine_addrs
         assert isinstance(engine_addrs['queue'], str)
+        assert isinstance(client_addrs['control'], str)
         assert len(engine_addrs['heartbeat']) == 2
-        
         
         # register our callbacks
         self.registrar.on_recv(self.dispatch_register_request)
@@ -182,19 +189,25 @@ class Controller(object):
             heartbeat.add_heart_failure_handler(self.handle_heart_failure)
             heartbeat.add_new_heart_handler(self.handle_new_heart)
         
-        if self.db is not None:
-            self.db.on_recv(self.dispatch_db)
-            
+        self.queue_handlers = { 'in' : self.save_queue_request,
+                                'out': self.save_queue_result,
+                                'intask': self.save_task_request,
+                                'outtask': self.save_task_result,
+                                'tracktask': self.save_task_destination,
+                                'incontrol': _passer,
+                                'outcontrol': _passer,
+        }
+        
         self.client_handlers = {'queue_request': self.queue_status,
                                 'result_request': self.get_results,
                                 'purge_request': self.purge_results,
+                                'load_request': self.check_load,
                                 'resubmit_request': self.resubmit_task,
                                 }
         
         self.registrar_handlers = {'registration_request' : self.register_engine,
                                 'unregistration_request' : self.unregister_engine,
                                 'connection_request': self.connection_request,
-        
         }
         # 
         # this is the stuff that will move to DB:
@@ -272,7 +285,7 @@ class Controller(object):
         print (idents,msg, len(msg))
         try:
             msg = self.session.unpack_message(msg,content=True)
-        except Exception, e:
+        except Exception as e:
             logger.error("registration::got bad registration message: %s"%msg)
             raise e
             return
@@ -291,18 +304,9 @@ class Controller(object):
         logger.debug("queue traffic: %s"%msg[:2])
         switch = msg[0]
         idents, msg = self.session.feed_identities(msg[1:])
-        if switch == 'in':
-            self.save_queue_request(idents, msg)
-        elif switch == 'out':
-            self.save_queue_result(idents, msg)
-        elif switch == 'intask':
-            self.save_task_request(idents, msg)
-        elif switch == 'outtask':
-            self.save_task_result(idents, msg)
-        elif switch == 'tracktask':
-            self.save_task_destination(idents, msg)
-        elif switch in ('incontrol', 'outcontrol'):
-            pass
+        handler = self.queue_handlers.get(switch, None)
+        if handler is not None:
+            handler(idents, msg)
         else:
             logger.error("Invalid message topic: %s"%switch)
         
@@ -392,7 +396,7 @@ class Controller(object):
                     received=None,
                     engine=(eid, queue_id))
         self.pending[msg_id] = ( msg, info )
-        self.queues[eid][0].append(msg_id)
+        self.queues[eid].append(msg_id)
     
     def save_queue_result(self, idents, msg):
         client_id, queue_id = idents[:2]
@@ -417,7 +421,7 @@ class Controller(object):
         self.results[msg_id] = msg
         if msg_id in self.pending:
             self.pending.pop(msg_id)
-            self.queues[eid][0].remove(msg_id)
+            self.queues[eid].remove(msg_id)
             self.completed[eid].append(msg_id)
         else:
             logger.debug("queue:: unknown msg finished %s"%msg_id)
@@ -425,6 +429,7 @@ class Controller(object):
     #--------------------- Task Queue Traffic ------------------------------
     
     def save_task_request(self, idents, msg):
+        """Save the submission of a task."""
         client_id = idents[0]
         
         try:
@@ -437,13 +442,17 @@ class Controller(object):
         header = msg['header']
         msg_id = header['msg_id']
         self.mia.add(msg_id)
-        self.pending[msg_id] = msg
+        info = dict(submit=datetime.now(),
+                    received=None,
+                    engine=None)
+        self.pending[msg_id] = (msg, info)
         if not self.tasks.has_key(client_id):
             self.tasks[client_id] = []
         self.tasks[client_id].append(msg_id)
     
     def save_task_result(self, idents, msg):
-        client_id = idents[0]
+        """save the result of a completed task."""
+        client_id, engine_uuid = idents[:2]
         try:
             msg = self.session.unpack_message(msg, content=False)
         except:
@@ -452,16 +461,19 @@ class Controller(object):
             return
         
         parent = msg['parent_header']
+        eid = self.by_ident[engine_uuid]
         if not parent:
             # print msg
             # logger.warn("")
             return
         msg_id = parent['msg_id']
         self.results[msg_id] = msg
-        if msg_id in self.pending:
+        if msg_id in self.pending and msg_id in self.tasks[eid]:
             self.pending.pop(msg_id)
             if msg_id in self.mia:
                 self.mia.remove(msg_id)
+            self.completed[eid].append(msg_id)
+            self.tasks[eid].remove(msg_id)
         else:
             logger.debug("task::unknown task %s finished"%msg_id)
     
@@ -475,16 +487,16 @@ class Controller(object):
         print (content)
         msg_id = content['msg_id']
         engine_uuid = content['engine_id']
-        for eid,queue_id in self.keytable.iteritems():
-            if queue_id == engine_uuid:
-                break
+        eid = self.by_ident[engine_uuid]
         
         logger.info("task::task %s arrived on %s"%(msg_id, eid))
         if msg_id in self.mia:
             self.mia.remove(msg_id)
         else:
             logger.debug("task::task %s not listed as MIA?!"%(msg_id))
-        self.tasks[engine_uuid].append(msg_id)
+        
+        self.tasks[eid].append(msg_id)
+        self.pending[msg_id][1].update(received=datetime.now(),engine=(eid,engine_uuid))
     
     def mia_task_request(self, idents, msg):
         client_id = idents[0]
@@ -493,10 +505,12 @@ class Controller(object):
         
         
             
-    #-------------------- Registration -----------------------------
+    #-------------------------------------------------------------------------
+    # Registration requests
+    #-------------------------------------------------------------------------
         
     def connection_request(self, client_id, msg):
-        """reply with connection addresses for clients"""
+        """Reply with connection addresses for clients."""
         logger.info("client::client %s connected"%client_id)
         content = dict(status='ok')
         content.update(self.client_addrs)
@@ -507,7 +521,7 @@ class Controller(object):
         self.session.send(self.registrar, 'connection_reply', content, parent=msg, ident=client_id)
     
     def register_engine(self, reg, msg):
-        """register an engine"""
+        """Register a new engine."""
         content = msg['content']
         try:
             queue = content['queue']
@@ -556,6 +570,7 @@ class Controller(object):
         return eid
     
     def unregister_engine(self, ident, msg):
+        """Unregister an engine that explicitly requested to leave."""
         try:
             eid = msg['content']['id']
         except:
@@ -569,7 +584,7 @@ class Controller(object):
         self.hearts.pop(ec.heartbeat)
         self.by_ident.pop(ec.queue)
         self.completed.pop(eid)
-        for msg_id in self.queues.pop(eid)[0]:
+        for msg_id in self.queues.pop(eid):
             msg = self.pending.pop(msg_id)
             ############## TODO: HANDLE IT ################
         
@@ -577,6 +592,8 @@ class Controller(object):
             self.session.send(self.notifier, "unregistration_notification", content=content)
     
     def finish_registration(self, heart):
+        """Second half of engine registration, called after our HeartMonitor
+        has received a beat from the Engine's Heart."""
         try: 
             (eid,queue,reg,purge) = self.incoming_registrations.pop(heart)
         except KeyError:
@@ -590,7 +607,8 @@ class Controller(object):
         self.keytable[eid] = queue
         self.engines[eid] = EngineConnector(eid, queue, reg, control, heart)
         self.by_ident[queue] = eid
-        self.queues[eid] = ([],[])
+        self.queues[eid] = list()
+        self.tasks[eid] = list()
         self.completed[eid] = list()
         self.hearts[heart] = eid
         content = dict(id=eid, queue=self.engines[eid].queue)
@@ -604,7 +622,9 @@ class Controller(object):
         else:
             pass
             
-    #------------------- Client Requests -------------------------------
+    #-------------------------------------------------------------------------
+    # Client Requests
+    #-------------------------------------------------------------------------
     
     def check_load(self, client_id, msg):
         content = msg['content']
@@ -620,12 +640,17 @@ class Controller(object):
         content = dict(status='ok')
         # loads = {}
         for t in targets:
-            content[str(t)] = len(self.queues[t])
+            content[bytes(t)] = len(self.queues[t])+len(self.tasks[t])
         self.session.send(self.clientele, "load_reply", content=content, ident=client_id)
             
     
     def queue_status(self, client_id, msg):
-        """handle queue_status request"""
+        """Return the Queue status of one or more targets.
+        if verbose: return the msg_ids
+        else: return len of each type.
+        keys: queue (pending MUX jobs)
+            tasks (pending Task jobs)
+            completed (finished jobs from both queues)"""
         content = msg['content']
         targets = content['targets']
         try:
@@ -635,19 +660,23 @@ class Controller(object):
             self.session.send(self.clientele, "controller_error", 
                     content=content, ident=client_id)
             return
-        verbose = msg.get('verbose', False)
-        content = dict()
+        verbose = content.get('verbose', False)
+        content = dict(status='ok')
         for t in targets:
             queue = self.queues[t]
             completed = self.completed[t]
+            tasks = self.tasks[t]
             if not verbose:
                 queue = len(queue)
                 completed = len(completed)
-            content[str(t)] = {'queue': queue, 'completed': completed }
+                tasks = len(tasks)
+            content[bytes(t)] = {'queue': queue, 'completed': completed , 'tasks': tasks}
             # pending
         self.session.send(self.clientele, "queue_reply", content=content, ident=client_id)
     
     def purge_results(self, client_id, msg):
+        """Purge results from memory. This method is more valuable before we move
+        to a DB based message storage mechanism."""
         content = msg['content']
         msg_ids = content.get('msg_ids', [])
         reply = dict(status='ok')
@@ -675,37 +704,11 @@ class Controller(object):
         self.sesison.send(self.clientele, 'purge_reply', content=reply, ident=client_id)
     
     def resubmit_task(self, client_id, msg, buffers):
-        content = msg['content']
-        header = msg['header']
-        
-        
-        msg_ids = content.get('msg_ids', [])
-        reply = dict(status='ok')
-        if msg_ids == 'all':
-            self.results = {}
-        else:
-            for msg_id in msg_ids:
-                if msg_id in self.results:
-                    self.results.pop(msg_id)
-                else:
-                    if msg_id in self.pending:
-                        reply = dict(status='error', reason="msg pending: %r"%msg_id)
-                    else:
-                        reply = dict(status='error', reason="No such msg: %r"%msg_id)
-                    break
-            eids = content.get('engine_ids', [])
-            for eid in eids:
-                if eid not in self.engines:
-                    reply = dict(status='error', reason="No such engine: %i"%eid)
-                    break
-                msg_ids = self.completed.pop(eid)
-                for msg_id in msg_ids:
-                    self.results.pop(msg_id)
-        
-        self.sesison.send(self.clientele, 'purge_reply', content=reply, ident=client_id)
+        """Resubmit a task."""
+        raise NotImplementedError
     
     def get_results(self, client_id, msg):
-        """get the result of 1 or more messages"""
+        """Get the result of 1 or more messages."""
         content = msg['content']
         msg_ids = set(content['msg_ids'])
         statusonly = content.get('status_only', False)
@@ -727,33 +730,12 @@ class Controller(object):
                 break
         self.session.send(self.clientele, "result_reply", content=content, 
                                             parent=msg, ident=client_id)
-    
 
 
-############ OLD METHODS for Python Relay Controller ###################
-    def _validate_engine_msg(self, msg):
-        """validates and unpacks headers of a message. Returns False if invalid,
-        (ident, message)"""
-        ident = msg[0]
-        try:
-            msg = self.session.unpack_message(msg[1:], content=False)
-        except:
-            logger.error("engine.%s::Invalid Message %s"%(ident, msg))
-            return False
-        
-        try:
-            eid = msg.header.username
-            assert self.engines.has_key(eid)
-        except:
-            logger.error("engine::Invalid Engine ID %s"%(ident))
-            return False
-        
-        return eid, msg
-    
-
-#--------------------
+#-------------------------------------------------------------------------
 # Entry Point
-#--------------------
+#-------------------------------------------------------------------------
+
 def make_argument_parser():
     """Make an argument parser"""
     parser = make_base_argument_parser()

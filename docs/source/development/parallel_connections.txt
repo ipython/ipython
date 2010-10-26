@@ -4,18 +4,22 @@
 Connection Diagrams of The IPython ZMQ Cluster
 ==============================================
 
-This is a quick summary and illustration of the connections involved in the ZeroMQ based IPython cluster for parallel computing.
+This is a quick summary and illustration of the connections involved in the ZeroMQ based
+IPython cluster for parallel computing.
 
 All Connections
 ===============
 
 The Parallel Computing code is currently under development in Min RK's IPython fork_ on GitHub.
 
-.. _fork: http://github.com/minrk/ipython
+.. _fork: http://github.com/minrk/ipython/tree/newparallel
 
-The IPython cluster consists of a Controller and one or more clients and engines. The goal of the Controller is to manage and monitor the connections and communications between the clients and the engines.
+The IPython cluster consists of a Controller and one or more clients and engines. The goal
+of the Controller is to manage and monitor the connections and communications between the
+clients and the engines.
 
-It is important for security/practicality reasons that all connections be inbound to the controller process. The arrows in the figures indicate the direction of the connection.
+It is important for security/practicality reasons that all connections be inbound to the
+controller process. The arrows in the figures indicate the direction of the connection.
 
 
 .. figure:: figs/allconnections.png
@@ -25,8 +29,9 @@ It is important for security/practicality reasons that all connections be inboun
    
    All the connections involved in connecting one client to one engine.
 
-The Controller consists of two ZMQ Devices - both MonitoredQueues, one for Tasks (load balanced, engine agnostic), one for Multiplexing (explicit targets), a Python device for monitoring (the Heartbeat Monitor).
-
+The Controller consists of two ZMQ Devices - both MonitoredQueues, one for Tasks (load
+balanced, engine agnostic), one for Multiplexing (explicit targets), a Python device for
+monitoring (the Heartbeat Monitor).
 
 
 Registration
@@ -39,7 +44,10 @@ Registration
    
    Engines and Clients only need to know where the Registrar ``XREP`` is located to start connecting.
 
-Once a controller is launched, the only information needed for connecting clients and/or engines to the controller is the IP/port of the ``XREP`` socket called the Registrar.  This socket handles connections from both clients and engines, and replies with the remaining information necessary to establish the remaining connections.
+Once a controller is launched, the only information needed for connecting clients and/or
+engines to the controller is the IP/port of the ``XREP`` socket called the Registrar. This
+socket handles connections from both clients and engines, and replies with the remaining
+information necessary to establish the remaining connections.
 
 Heartbeat
 ---------
@@ -51,25 +59,43 @@ Heartbeat
    
    The heartbeat sockets.
 
-The heartbeat process has been described elsewhere.  To summarize: the controller publishes a distinct message periodically via a ``PUB`` socket.  Each engine has a ``zmq.FORWARDER`` device with a ``SUB`` socket for input, and ``XREQ`` socket for output. The ``SUB`` socket is connected to the ``PUB`` socket labeled *HB(ping)*, and the ``XREQ`` is connected to the ``XREP`` labeled *HB(pong)*. This results in the same message being relayed back to the Heartbeat Monitor with the addition of the ``XREQ`` prefix.  The Heartbeat Monitor receives all the replies via an ``XREP`` socket, and identifies which hearts are still beating by the ``zmq.IDENTITY`` prefix of the ``XREQ`` sockets.
+The heartbeat process has been described elsewhere. To summarize: the controller publishes
+a distinct message periodically via a ``PUB`` socket. Each engine has a ``zmq.FORWARDER``
+device with a ``SUB`` socket for input, and ``XREQ`` socket for output. The ``SUB`` socket
+is connected to the ``PUB`` socket labeled *HB(ping)*, and the ``XREQ`` is connected to
+the ``XREP`` labeled *HB(pong)*. This results in the same message being relayed back to
+the Heartbeat Monitor with the addition of the ``XREQ`` prefix. The Heartbeat Monitor
+receives all the replies via an ``XREP`` socket, and identifies which hearts are still
+beating by the ``zmq.IDENTITY`` prefix of the ``XREQ`` sockets.
 
 Queues
 ------
 
 .. figure:: figs/queuefade.png
-   :width: 432px
-   :alt: IPython Queue connections
-   :align: center
-   
-   Load balanced Task queue on the left, explicitly multiplexed queue on the right.
-   
-The controller has two MonitoredQueue devices. These devices are primarily for relaying messages between clients and engines, but the controller needs to see those messages for its own purposes.  Since no Python code may exist between the two sockets in a queue, all messages sent through these queues (both directions) are also sent via a ``PUB`` socket to a monitor, which allows the Controller to monitor queue traffic without interfering with it.
+    :width: 432px
+    :alt: IPython Queue connections
+    :align: center
 
-For tasks, the engine need not be specified. Messages sent to the ``XREP`` socket from the client side are assigned to an engine via ZMQ's ``XREQ`` round-robin load balancing. Engine replies are directed to specific clients via the IDENTITY of the client, which is received as a prefix at the Engine.
+ Load balanced Task queue on the left, explicitly multiplexed queue on the right.
 
-For Multiplexing, ``XREP`` is used for both in and output sockets in the device. Clients must specify the destination by the ``zmq.IDENTITY`` of the ``PAIR`` socket connected to the downstream end of the device.
+The controller has two MonitoredQueue devices. These devices are primarily for relaying
+messages between clients and engines, but the controller needs to see those messages for
+its own purposes. Since no Python code may exist between the two sockets in a queue, all
+messages sent through these queues (both directions) are also sent via a ``PUB`` socket to
+a monitor, which allows the Controller to monitor queue traffic without interfering with
+it.
 
-At the Kernel level, both of these PAIR sockets are treated in the same way as the ``REP`` socket in the serial version (except using ZMQStreams instead of explicit sockets).
+For tasks, the engine need not be specified. Messages sent to the ``XREP`` socket from the
+client side are assigned to an engine via ZMQ's ``XREQ`` round-robin load balancing.
+Engine replies are directed to specific clients via the IDENTITY of the client, which is
+received as a prefix at the Engine.
+
+For Multiplexing, ``XREP`` is used for both in and output sockets in the device. Clients
+must specify the destination by the ``zmq.IDENTITY`` of the ``PAIR`` socket connected to
+the downstream end of the device.
+
+At the Kernel level, both of these PAIR sockets are treated in the same way as the ``REP``
+socket in the serial version (except using ZMQStreams instead of explicit sockets).
    
 Client connections
 ------------------
@@ -81,7 +107,8 @@ Client connections
    
    Clients connect to an ``XREP`` socket to query the controller
    
-The controller listens on an ``XREP`` socket for queries from clients as to queue status, and control instructions. Clients can connect to this via a PAIR socket or ``XREQ``.
+The controller listens on an ``XREP`` socket for queries from clients as to queue status,
+and control instructions. Clients can connect to this via a PAIR socket or ``XREQ``.
 
 .. figure:: figs/notiffade.png
    :width: 432px
@@ -90,5 +117,8 @@ The controller listens on an ``XREP`` socket for queries from clients as to queu
    
    Engine registration events are published via a ``PUB`` socket.
 
-The controller publishes all registration/unregistration events via a ``PUB`` socket. This allows  clients to stay up to date with what engines are available by subscribing to the feed with a ``SUB`` socket. Other processes could selectively subscribe to just registration or unregistration events.
+The controller publishes all registration/unregistration events via a ``PUB`` socket. This
+allows clients to stay up to date with what engines are available by subscribing to the
+feed with a ``SUB`` socket. Other processes could selectively subscribe to just
+registration or unregistration events.
 

@@ -69,11 +69,11 @@ New features
   :mod:`~IPython.external.argparse` to parse command line options for
   :command:`ipython`.
 
-* New top level :func:`~IPython.core.embed.embed` function that can be called
+* New top level :func:`~IPython.frontend.terminal.embed.embed` function that can be called
   to embed IPython at any place in user's code. One the first call it will
-  create an :class:`~IPython.core.embed.InteractiveShellEmbed` instance and
+  create an :class:`~IPython.frontend.terminal.embed.InteractiveShellEmbed` instance and
   call it. In later calls, it just calls the previously created
-  :class:`~IPython.core.embed.InteractiveShellEmbed`.
+  :class:`~IPython.frontend.terminal.embed.InteractiveShellEmbed`.
 
 * Created a component system (:mod:`IPython.core.component`) that is based on
   :mod:`IPython.utils.traitlets`. Components are arranged into a runtime

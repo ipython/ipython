@@ -125,7 +125,7 @@ class RawInput(object):
         while True:
             try:
                 reply = self.socket.recv_json(zmq.NOBLOCK)
-            except zmq.ZMQError, e:
+            except zmq.ZMQError as e:
                 if e.errno == zmq.EAGAIN:
                     pass
                 else:
@@ -171,7 +171,7 @@ class Kernel(object):
         while True:
             try:
                 msg = self.session.recv(stream, zmq.NOBLOCK,content=True)
-            except zmq.ZMQError, e:
+            except zmq.ZMQError as e:
                 if e.errno == zmq.EAGAIN:
                     break
                 else:
@@ -237,17 +237,6 @@ class Kernel(object):
             print ("UNKNOWN CONTROL MESSAGE TYPE:", msg, file=sys.__stderr__)
         else:
             handler(self.control_stream, idents, msg)
-    
-    # def flush_control(self):
-    #     while any(zmq.select([self.control_socket],[],[],1e-4)):
-    #         try:
-    #             msg = self.control_socket.recv_multipart(zmq.NOBLOCK, copy=False)
-    #         except zmq.ZMQError, e:
-    #             if e.errno != zmq.EAGAIN:
-    #                 raise e
-    #             return
-    #         else:
-    #             self.dispatch_control(msg)
     
 
     #-------------------- queue helpers ------------------------------

@@ -130,7 +130,7 @@ class HeartMonitor(object):
             for handler in self._failure_handlers:
                 try:
                     handler(heart)
-                except Exception, e:
+                except Exception as e:
                     print (e)
                     logger.error("heartbeat::Bad Handler! %s"%handler)
                     pass

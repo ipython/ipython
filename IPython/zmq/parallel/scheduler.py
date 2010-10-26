@@ -1,3 +1,10 @@
+"""The Python scheduler for rich scheduling.
+
+The Pure ZMQ scheduler does not allow routing schemes other than LRU,
+nor does it check msg_id DAG dependencies. For those, a slightly slower
+Python Scheduler exists.
+"""
+
 #----------------------------------------------------------------------
 # Imports
 #----------------------------------------------------------------------
@@ -40,7 +47,7 @@ def plainrandom(loads):
 def lru(loads):
     """Always pick the front of the line.
     
-    The content of loads is ignored.
+    The content of `loads` is ignored.
     
     Assumes LRU ordering of loads, with oldest first.
     """
@@ -151,10 +158,12 @@ class TaskScheduler(object):
         self.notifier_stream.on_recv(self.dispatch_notification)
     
     def resume_receiving(self):
-        """resume accepting jobs"""
+        """Resume accepting jobs."""
         self.client_stream.on_recv(self.dispatch_submission, copy=False)
     
     def stop_receiving(self):
+        """Stop accepting jobs while there are no engines.
+        Leave them in the ZMQ queue."""
         self.client_stream.on_recv(None)
     
     #-----------------------------------------------------------------------
@@ -176,7 +185,7 @@ class TaskScheduler(object):
                 logger.error("task::Invalid notification msg: %s"%msg)
     @logged
     def _register_engine(self, uid):
-        """new engine became available"""
+        """New engine with ident `uid` became available."""
         # head of the line:
         self.targets.insert(0,uid)
         self.loads.insert(0,0)
@@ -187,10 +196,12 @@ class TaskScheduler(object):
             self.resume_receiving()
 
     def _unregister_engine(self, uid):
-        """existing engine became unavailable"""
-        # handle any potentially finished tasks:
+        """Existing engine with ident `uid` became unavailable."""
         if len(self.targets) == 1:
+            # this was our only engine
             self.stop_receiving()
+        
+        # handle any potentially finished tasks:
         self.engine_stream.flush()
         
         self.completed.pop(uid)
@@ -203,7 +214,7 @@ class TaskScheduler(object):
         self.handle_stranded_tasks(lost)
     
     def handle_stranded_tasks(self, lost):
-        """deal with jobs resident in an engine that died."""
+        """Deal with jobs resident in an engine that died."""
         # TODO: resubmit the tasks?
         for msg_id in lost:
             pass
@@ -214,26 +225,29 @@ class TaskScheduler(object):
     #-----------------------------------------------------------------------
     @logged
     def dispatch_submission(self, raw_msg):
-        """dispatch job submission"""
+        """Dispatch job submission to appropriate handlers."""
         # ensure targets up to date:
         self.notifier_stream.flush()
         try:
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
-        except Exception, e:
+        except Exception as e:
             logger.error("task::Invaid msg: %s"%msg)
             return
         
         msg = self.session.unpack_message(msg, content=False, copy=False)
         header = msg['header']
         msg_id = header['msg_id']
+        
+        # time dependencies
         after = Dependency(header.get('after', []))
         if after.mode == 'all':
             after.difference_update(self.all_done)
         if after.check(self.all_done):
-            # recast as empty set, if we are already met, 
-            # to prevent 
+            # recast as empty set, if `after` already met,
+            # to prevent unnecessary set comparisons
             after = Dependency([])
         
+        # location dependencies
         follow = Dependency(header.get('follow', []))
         if len(after) == 0:
             # time deps already met, try to run
@@ -244,6 +258,7 @@ class TaskScheduler(object):
             self.save_unmet(msg_id, raw_msg, after, follow)
         # send to monitor
         self.mon_stream.send_multipart(['intask']+raw_msg, copy=False)
+    
     @logged
     def maybe_run(self, msg_id, raw_msg, follow=None):
         """check location dependencies, and run if they are met."""
@@ -276,7 +291,7 @@ class TaskScheduler(object):
     
     @logged
     def submit_task(self, msg_id, msg, follow=None, indices=None):
-        """submit a task to any of a subset of our targets"""
+        """Submit a task to any of a subset of our targets."""
         if indices:
             loads = [self.loads[i] for i in indices]
         else:
@@ -290,6 +305,8 @@ class TaskScheduler(object):
         self.engine_stream.send_multipart(msg, copy=False)
         self.add_job(idx)
         self.pending[target][msg_id] = (msg, follow)
+        content = dict(msg_id=msg_id, engine_id=target)
+        self.session.send(self.mon_stream, 'task_destination', content=content, ident='tracktask')
     
     #-----------------------------------------------------------------------
     # Result Handling
@@ -298,7 +315,7 @@ class TaskScheduler(object):
     def dispatch_result(self, raw_msg):
         try:
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
-        except Exception, e:
+        except Exception as e:
             logger.error("task::Invaid result: %s"%msg)
             return
         msg = self.session.unpack_message(msg, content=False, copy=False)
