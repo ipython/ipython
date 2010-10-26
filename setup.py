@@ -21,14 +21,14 @@ import sys
 
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version[0:3] < '2.5':
+if sys.version[0:3] < '2.6':
     error = """\
-ERROR: 'IPython requires Python Version 2.5 or above.'
+ERROR: 'IPython requires Python Version 2.6 or above.'
 Exiting."""
     print >> sys.stderr, error
     sys.exit(1)
 
-# At least we're on Python 2.5 or newer, move on.
+# At least we're on the python version we need, move on.
 
 #-------------------------------------------------------------------------------
 # Imports

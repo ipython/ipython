@@ -24,6 +24,7 @@ import sys
 # Setup everything
 #-----------------------------------------------------------------------------
 
+# Don't forget to also update setup.py when this changes!
 if sys.version[0:3] < '2.6':
     raise ImportError('Python Version 2.6 or above is required for IPython.')
 
