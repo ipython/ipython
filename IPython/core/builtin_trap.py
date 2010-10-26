@@ -80,10 +80,12 @@ class BuiltinTrap(Configurable):
         """Add a builtin and save the original."""
         bdict = __builtin__.__dict__
         orig = bdict.get(key, BuiltinUndefined)
-        self._orig_builtins[key] = orig
         if value is HideBuiltin:
-            del bdict[key]
+            if orig is not BuiltinUndefined: #same as 'key in bdict'
+                self._orig_builtins[key] = orig
+                del bdict[key]
         else:
+            self._orig_builtins[key] = orig
             bdict[key] = value
 
     def remove_builtin(self, key):
