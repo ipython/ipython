@@ -1152,7 +1152,8 @@ class IPShellMatplotlibQt4(IPShellQt4):
 def check_gtk(mode):
     try:
         import gtk
-    except ImportError:
+    except (ImportError, RuntimeError):
+        # GTK not present, or can't be started (no X11, happens in console)
         return mode
     if hasattr(gtk,'set_interactive'):
         gtk.set_interactive(False)
@@ -1243,7 +1244,8 @@ def _select_shell(argv):
             th_mode = 'tkthread'
 
         # New versions of pygtk don't need the brittle threaded support.
-        th_mode = check_gtk(th_mode)
+        if th_mode == 'gthread':
+            th_mode = check_gtk(th_mode)
         return th_shell[th_mode]
 
 
