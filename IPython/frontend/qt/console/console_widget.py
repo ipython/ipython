@@ -170,7 +170,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         # Configure actions.
         action = QtGui.QAction('Print', None)
         action.setEnabled(True)
-        action.setShortcut(QtGui.QKeySequence.Print)
+        printkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
+        if printkey.matches("Ctrl+P") and sys.platform != 'darwin':
+            # only override if there is a collision
+            # Qt ctrl = cmd on OSX, so the match gets a false positive on darwin
+            printkey = "Ctrl+Shift+P"
+        action.setShortcut(printkey)
         action.triggered.connect(self.print_)
         self.addAction(action)
         self._print_action = action
