@@ -778,7 +778,7 @@ class IPShellGTK(IPThread):
         ## # the user that he has a better option as well.
         ## # XXX TODO better support when set_interactive is released
         ## try:
-        ##     gtk.set_interactive(False)
+        gtk.set_interactive(False)
         ##     print "Your PyGtk has set_interactive(), so you can use the"
         ##     print "more stable single-threaded Gtk mode."
         ##     print "See https://bugs.launchpad.net/ipython/+bug/270856"
