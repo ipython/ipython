@@ -546,8 +546,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Process a reply for an execution request that resulted in an error.
         """
         content = msg['content']
-        traceback = ''.join(content['traceback'])
-        self._append_plain_text(traceback)
+        # If a SystemExit is passed along, this means exit() was called - also
+        # all the ipython %exit magic syntax of '-k' to be used to keep
+        # the kernel running
+        if content['ename']=='SystemExit':
+            keepkernel = content['evalue']=='-k' or content['evalue']=='True'
+            self._keep_kernel_on_exit = keepkernel
+            self.exit_requested.emit()
+        else:
+            traceback = ''.join(content['traceback'])
+            self._append_plain_text(traceback)
 
     def _process_execute_ok(self, msg):
         """ Process a reply for a successful execution equest.

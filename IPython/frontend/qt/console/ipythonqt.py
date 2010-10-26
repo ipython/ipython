@@ -58,52 +58,71 @@ class MainWindow(QtGui.QMainWindow):
     #---------------------------------------------------------------------------
     
     def closeEvent(self, event):
-        """ Reimplemented to prompt the user and close the kernel cleanly.
+        """ Close the window and the kernel (if necessary).
+        
+        This will prompt the user if they are finished with the kernel, and if
+        so, closes the kernel cleanly. Alternatively, if the exit magic is used,
+        it closes without prompt.
         """
+        keepkernel = None #Use the prompt by default
+        if hasattr(self._frontend,'_keep_kernel_on_exit'): #set by exit magic
+            keepkernel = self._frontend._keep_kernel_on_exit
+        
         kernel_manager = self._frontend.kernel_manager
-        if kernel_manager and kernel_manager.channels_running:
-            title = self.window().windowTitle()
-            cancel = QtGui.QMessageBox.Cancel
-            okay = QtGui.QMessageBox.Ok
-            if self._may_close:
-                msg = "You are closing this Console window."
-                info = "Would you like to quit the Kernel and all attached Consoles as well?"
-                justthis = QtGui.QPushButton("&No, just this Console", self)
-                justthis.setShortcut('N')
-                closeall = QtGui.QPushButton("&Yes, quit everything", self)
-                closeall.setShortcut('Y')
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Question, title, msg)
-                box.setInformativeText(info)
-                box.addButton(cancel)
-                box.addButton(justthis, QtGui.QMessageBox.NoRole)
-                box.addButton(closeall, QtGui.QMessageBox.YesRole)
-                box.setDefaultButton(closeall)
-                box.setEscapeButton(cancel)
-                reply = box.exec_()
-                if reply == 1: # close All
-                    kernel_manager.shutdown_kernel()
-                    #kernel_manager.stop_channels()
-                    event.accept()
-                elif reply == 0: # close Console
-                    if not self._existing:
-                        # I have the kernel: don't quit, just close the window
-                        self._app.setQuitOnLastWindowClosed(False)
-                        self.deleteLater()
-                    event.accept()
+        
+        if keepkernel is None: #show prompt
+            if kernel_manager and kernel_manager.channels_running:
+                title = self.window().windowTitle()
+                cancel = QtGui.QMessageBox.Cancel
+                okay = QtGui.QMessageBox.Ok
+                if self._may_close:
+                    msg = "You are closing this Console window."
+                    info = "Would you like to quit the Kernel and all attached Consoles as well?"
+                    justthis = QtGui.QPushButton("&No, just this Console", self)
+                    justthis.setShortcut('N')
+                    closeall = QtGui.QPushButton("&Yes, quit everything", self)
+                    closeall.setShortcut('Y')
+                    box = QtGui.QMessageBox(QtGui.QMessageBox.Question, title, msg)
+                    box.setInformativeText(info)
+                    box.addButton(cancel)
+                    box.addButton(justthis, QtGui.QMessageBox.NoRole)
+                    box.addButton(closeall, QtGui.QMessageBox.YesRole)
+                    box.setDefaultButton(closeall)
+                    box.setEscapeButton(cancel)
+                    reply = box.exec_()
+                    if reply == 1: # close All
+                        kernel_manager.shutdown_kernel()
+                        #kernel_manager.stop_channels()
+                        event.accept()
+                    elif reply == 0: # close Console
+                        if not self._existing:
+                            # Have kernel: don't quit, just close the window
+                            self._app.setQuitOnLastWindowClosed(False)
+                            self.deleteLater()
+                        event.accept()
+                    else:
+                        event.ignore()
                 else:
-                    event.ignore()
-            else:
-                reply = QtGui.QMessageBox.question(self, title,
-                    "Are you sure you want to close this Console?"+
-                    "\nThe Kernel and other Consoles will remain active.",
-                    okay|cancel,
-                    defaultButton=okay
-                    )
-                if reply == okay:
-                    event.accept()
-                else:
-                    event.ignore()
-            
+                    reply = QtGui.QMessageBox.question(self, title,
+                        "Are you sure you want to close this Console?"+
+                        "\nThe Kernel and other Consoles will remain active.",
+                        okay|cancel,
+                        defaultButton=okay
+                        )
+                    if reply == okay:
+                        event.accept()
+                    else:
+                        event.ignore()
+        elif keepkernel: #close console but leave kernel running (no prompt)
+            if kernel_manager and kernel_manager.channels_running:
+                if not self._existing:
+                    # I have the kernel: don't quit, just close the window
+                    self._app.setQuitOnLastWindowClosed(False)
+                event.accept()
+        else: #close console and kernel (no prompt)
+            if kernel_manager and kernel_manager.channels_running:
+                kernel_manager.shutdown_kernel()
+                event.accept()
 
 #-----------------------------------------------------------------------------
 # Main entry point

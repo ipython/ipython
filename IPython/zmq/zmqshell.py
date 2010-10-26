@@ -78,6 +78,7 @@ class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
 
     displayhook_class = Type(ZMQDisplayHook)
+    keepkernel_on_exit = None
 
     def init_environment(self):
         """Configure the user's environment.
@@ -111,6 +112,7 @@ class ZMQInteractiveShell(InteractiveShell):
         payload = dict(
             source='IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
             exit=True,
+            keepkernel=self.keepkernel_on_exit,
             )
         self.payload_manager.write_payload(payload)
 
@@ -563,5 +565,16 @@ class ZMQInteractiveShell(InteractiveShell):
             text=content
         )
         self.payload_manager.write_payload(payload)
+        
+    def magic_Exit(self, parameter_s=''):
+        """Exit IPython. If the -k option is provided, the kernel will be left
+        running. Otherwise, it will shutdown without prompting.
+        """
+        opts,args = self.parse_options(parameter_s,'k')
+        self.shell.keepkernel_on_exit = opts.has_key('k')
+        self.shell.ask_exit()
+
+    # Add aliases as magics so all common forms work: exit, quit, Exit, Quit.
+    magic_exit = magic_quit = magic_Quit = magic_Exit
 
 InteractiveShellABC.register(ZMQInteractiveShell)
