@@ -110,3 +110,14 @@ A simple example::
         def __init__(self, y):
             self.y = y
             self.z = []
+
+	    
+New files
+=========
+
+When starting a new file for IPython, you can use the following template as a
+starting point that has a few common things pre-written for you.  The template
+is included in the documentation sources as
+:file:`docs/sources/development/template.py`:
+
+.. literalinclude:: template.py
