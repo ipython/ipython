@@ -1,5 +1,4 @@
 # encoding: utf-8
-
 """
 This module defines the things that are used in setup.py for building IPython
 
@@ -9,8 +8,7 @@ This includes:
     * Functions for finding things like packages, package data, etc.
     * A function for checking dependencies.
 """
-
-__docformat__ = "restructuredtext en"
+from __future__ import print_function
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
@@ -22,9 +20,11 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
+import os
+import sys
 
-import os, sys
-
+from ConfigParser import ConfigParser
+from distutils.command.build_py import build_py
 from glob import glob
 
 from setupext import install_data_ext
@@ -38,7 +38,7 @@ isfile = os.path.isfile
 pjoin = os.path.join
 
 def oscmd(s):
-    print ">", s
+    print(">", s)
     os.system(s)
 
 # A little utility we'll need below, since glob() does NOT allow you to do
@@ -214,10 +214,10 @@ def find_data_files():
                    ] + manual_files + example_files
                  
     ## import pprint  # dbg
-    ## print '*'*80
-    ## print 'data files'
+    ## print('*'*80)
+    ## print('data files')
     ## pprint.pprint(data_files)
-    ## print '*'*80
+    ## print('*'*80)
     
     return data_files
 
@@ -271,8 +271,10 @@ def find_scripts():
     # post-install scripts MUST reside in the scripts/ dir, otherwise distutils
     # doesn't find them.
     if 'bdist_wininst' in sys.argv:
-        if len(sys.argv) > 2 and ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
-            print >> sys.stderr,"ERROR: bdist_wininst must be run alone. Exiting."
+        if len(sys.argv) > 2 and \
+               ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
+            print("ERROR: bdist_wininst must be run alone. Exiting.",
+                  file=sys.stderr)
             sys.exit(1)
         scripts.append(pjoin('scripts','ipython_win_post_install.py'))
     
@@ -288,7 +290,7 @@ def check_for_dependencies():
     This function should NOT be called if running under setuptools!
     """
     from setupext.setupext import (
-        print_line, print_raw, print_status, print_message,
+        print_line, print_raw, print_status,
         check_for_zopeinterface, check_for_twisted,
         check_for_foolscap, check_for_pyopenssl,
         check_for_sphinx, check_for_pygments,
@@ -312,3 +314,61 @@ def check_for_dependencies():
     check_for_pygments()
     check_for_nose()
     check_for_pexpect()
+
+
+def record_commit_info(pkg_dir, build_cmd=build_py):
+    """ Return extended build command class for recording commit
+
+    The extended command tries to run git to find the current commit, getting
+    the empty string if it fails.  It then writes the commit hash into a file
+    in the `pkg_dir` path, named ``.git_commit_info.ini``.
+
+    In due course this information can be used by the package after it is
+    installed, to tell you what commit it was installed from if known.
+
+    To make use of this system, you need a package with a .git_commit_info.ini
+    file - e.g. ``myproject/.git_commit_info.ini`` - that might well look like
+    this::
+
+        # This is an ini file that may contain information about the code state
+        [commit hash]
+        # The line below may contain a valid hash if it has been substituted
+        # during 'git archive'
+        archive_subst_hash=$Format:%h$
+        # This line may be modified by the install process
+        install_hash=
+
+    The .git_commit_info file above is also designed to be used with git
+    substitution - so you probably also want a ``.gitattributes`` file in the
+    root directory of your working tree that contains something like this::
+
+       myproject/.git_commit_info.ini export-subst
+
+    That will cause the ``.git_commit_info.ini`` file to get filled in by ``git
+    archive`` - useful in case someone makes such an archive - for example with
+    via the github 'download source' button.
+
+    Although all the above will work as is, you might consider having something
+    like a ``get_info()`` function in your package to display the commit
+    information at the terminal.  See the ``pkg_info.py`` module in the nipy
+    package for an example.
+    """
+    class MyBuildPy(build_cmd):
+        ''' Subclass to write commit data into installation tree '''
+        def run(self):
+            build_py.run(self)
+            import subprocess
+            proc = subprocess.Popen('git rev-parse --short HEAD',
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    shell=True)
+            repo_commit, _ = proc.communicate()
+            # We write the installation commit even if it's empty
+            cfg_parser = ConfigParser()
+            cfg_parser.read(pjoin(pkg_dir, '.git_commit_info.ini'))
+            cfg_parser.set('commit hash', 'install_hash', repo_commit)
+            out_pth = pjoin(self.build_lib, pkg_dir, '.git_commit_info.ini')
+            out_file = open(out_pth, 'wt')
+            cfg_parser.write(out_file)
+            out_file.close()
+    return MyBuildPy
