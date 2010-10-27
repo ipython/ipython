@@ -21,8 +21,8 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.external.decorator import decorator
 
 import streamsession as ss
-from remotenamespace import RemoteNamespace
-from view import DirectView
+# from remotenamespace import RemoteNamespace
+from view import DirectView, LoadBalancedView
 from dependency import Dependency, depend, require
 
 def _push(ns):
@@ -31,8 +31,13 @@ def _push(ns):
 def _pull(keys):
     g = globals()
     if isinstance(keys, (list,tuple, set)):
+        for key in keys:
+            if not g.has_key(key):
+                raise NameError("name '%s' is not defined"%key)
         return map(g.get, keys)
     else:
+        if not g.has_key(keys):
+            raise NameError("name '%s' is not defined"%keys)
         return g.get(keys)
 
 def _clear():
@@ -62,10 +67,35 @@ def defaultblock(f, self, *args, **kwargs):
     self.block = saveblock
     return ret
 
+def remote(client, block=None, targets=None):
+    """Turn a function into a remote function.
+    
+    This method can be used for map:
+    
+    >>> @remote(client,block=True)
+        def func(a)
+    """
+    def remote_function(f):
+        return RemoteFunction(client, f, block, targets)
+    return remote_function
+
 #--------------------------------------------------------------------------
 # Classes
 #--------------------------------------------------------------------------
 
+class RemoteFunction(object):
+    """Turn an existing function into a remote function"""
+    
+    def __init__(self, client, f, block=None, targets=None):
+        self.client = client
+        self.func = f
+        self.block=block
+        self.targets=targets
+    
+    def __call__(self, *args, **kwargs):
+        return self.client.apply(self.func, args=args, kwargs=kwargs,
+                block=self.block, targets=self.targets)
+    
 
 class AbortedTask(object):
     """A basic wrapper object describing an aborted task."""
@@ -84,7 +114,7 @@ class Client(object):
     Parameters
     ----------
     
-    addr : bytes; zmq url, e.g. 'tcp://127.0.0.1:10101
+    addr : bytes; zmq url, e.g. 'tcp://127.0.0.1:10101'
         The address of the controller's registration socket.
     
     
@@ -281,7 +311,8 @@ class Client(object):
         elif content['status'] == 'aborted':
             self.results[msg_id] = AbortedTask(msg_id)
         elif content['status'] == 'resubmitted':
-            pass # handle resubmission
+            # TODO: handle resubmission
+            pass
         else:
             self.results[msg_id] = ss.unwrap_exception(content)
     
@@ -318,7 +349,9 @@ class Client(object):
     
     def _flush_control(self, sock):
         """Flush replies from the control channel waiting
-        in the ZMQ queue."""
+        in the ZMQ queue.
+        
+        Currently: ignore them."""
         msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
@@ -330,7 +363,10 @@ class Client(object):
     #--------------------------------------------------------------------------
     
     def __getitem__(self, key):
-        """Dict access returns DirectView multiplexer objects."""
+        """Dict access returns DirectView multiplexer objects or,
+        if key is None, a LoadBalancedView."""
+        if key is None:
+            return LoadBalancedView(self)
         if isinstance(key, int):
             if key not in self.ids:
                 raise IndexError("No such engine: %i"%key)
@@ -412,7 +448,7 @@ class Client(object):
         """Clear the namespace in target(s)."""
         targets = self._build_targets(targets)[0]
         for t in targets:
-            self.session.send(self._control_socket, 'clear_request', content={},ident=t)
+            self.session.send(self._control_socket, 'clear_request', content={}, ident=t)
         error = False
         if self.block:
             for i in range(len(targets)):
@@ -420,7 +456,7 @@ class Client(object):
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
-                    error = msg['content']
+                    error = ss.unwrap_exception(msg['content'])
         if error:
             return error
         
@@ -443,7 +479,7 @@ class Client(object):
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
-                    error = msg['content']
+                    error = ss.unwrap_exception(msg['content'])
         if error:
             return error
     
@@ -461,7 +497,7 @@ class Client(object):
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
-                    error = msg['content']
+                    error = ss.unwrap_exception(msg['content'])
         if error:
             return error
     
@@ -719,7 +755,7 @@ class Client(object):
                 local_results[msg_id] = self.results[msg_id]
                 theids.remove(msg_id)
         
-        if msg_ids: # some not locally cached
+        if theids: # some not locally cached
             content = dict(msg_ids=theids, status_only=status_only)
             msg = self.session.send(self._query_socket, "result_request", content=content)
             zmq.select([self._query_socket], [], [])

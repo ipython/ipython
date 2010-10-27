@@ -42,13 +42,15 @@ class View(object):
     _targets = None
     _ntargets = None
     block=None
+    bound=None
     history=None
     
-    def __init__(self, client, targets):
+    def __init__(self, client, targets=None):
         self.client = client
         self._targets = targets
-        self._ntargets = 1 if isinstance(targets, int) else len(targets)
+        self._ntargets = 1 if isinstance(targets, (int,type(None))) else len(targets)
         self.block = client.block
+        self.bound=True
         self.history = []
         self.outstanding = set()
         self.results = {}
@@ -84,7 +86,7 @@ class View(object):
         else:
             returns actual result of f(*args, **kwargs)
         """
-        return self.client.apply(f, args, kwargs, block=self.block, targets=self.targets, bound=False)
+        return self.client.apply(f, args, kwargs, block=self.block, targets=self.targets, bound=self.bound)
 
     @save_ids
     def apply_async(self, f, *args, **kwargs):
@@ -147,40 +149,6 @@ class View(object):
         
         """
         return self.client.apply(f, args, kwargs, block=True, targets=self.targets, bound=True)
-
-
-class DirectView(View):
-    """Direct Multiplexer View"""
-    
-    def update(self, ns):
-        """update remote namespace with dict `ns`"""
-        return self.client.push(ns, targets=self.targets, block=self.block)
-    
-    def get(self, key_s):
-        """get object(s) by `key_s` from remote namespace
-        will return one object if it is a key.
-        It also takes a list of keys, and will return a list of objects."""
-        # block = block if block is not None else self.block
-        return self.client.pull(key_s, block=self.block, targets=self.targets)
-    
-    push = update
-    pull = get
-    
-    def __getitem__(self, key):
-        return self.get(key)
-    
-    def __setitem__(self,key,value):
-        self.update({key:value})
-    
-    def clear(self, block=False):
-        """Clear the remote namespaces on my engines."""
-        block = block if block is not None else self.block
-        return self.client.clear(targets=self.targets,block=block)
-    
-    def kill(self, block=True):
-        """Kill my engines."""
-        block = block if block is not None else self.block
-        return self.client.kill(targets=self.targets,block=block)
     
     def abort(self, msg_ids=None, block=None):
         """Abort jobs on my engines.
@@ -195,6 +163,58 @@ class DirectView(View):
         block = block if block is not None else self.block
         return self.client.abort(msg_ids=msg_ids, targets=self.targets, block=block)
 
+    def queue_status(self, verbose=False):
+        """Fetch the Queue status of my engines"""
+        return self.client.queue_status(targets=self.targets, verbose=verbose)
+    
+    def purge_results(self, msg_ids=[],targets=[]):
+        """Instruct the controller to forget specific results."""
+        if targets is None or targets == 'all':
+            targets = self.targets
+        return self.client.purge_results(msg_ids=msg_ids, targets=targets)
+
+
+class DirectView(View):
+    """Direct Multiplexer View"""
+    
+    def update(self, ns):
+        """update remote namespace with dict `ns`"""
+        return self.client.push(ns, targets=self.targets, block=self.block)
+    
+    push = update
+    
+    def get(self, key_s):
+        """get object(s) by `key_s` from remote namespace
+        will return one object if it is a key.
+        It also takes a list of keys, and will return a list of objects."""
+        # block = block if block is not None else self.block
+        return self.client.pull(key_s, block=True, targets=self.targets)
+    
+    def pull(self, key_s, block=True):
+        """get object(s) by `key_s` from remote namespace
+        will return one object if it is a key.
+        It also takes a list of keys, and will return a list of objects."""
+        block = block if block is not None else self.block
+        return self.client.pull(key_s, block=block, targets=self.targets)
+    
+    def __getitem__(self, key):
+        return self.get(key)
+    
+    def __setitem__(self,key, value):
+        self.update({key:value})
+    
+    def clear(self, block=False):
+        """Clear the remote namespaces on my engines."""
+        block = block if block is not None else self.block
+        return self.client.clear(targets=self.targets, block=block)
+    
+    def kill(self, block=True):
+        """Kill my engines."""
+        block = block if block is not None else self.block
+        return self.client.kill(targets=self.targets, block=block)
+    
 class LoadBalancedView(View):
-    _targets=None
+    def __repr__(self):
+        return "<%s %s>"%(self.__class__.__name__, self.client._addr)
+    
     
