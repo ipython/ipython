@@ -452,7 +452,7 @@ class Controller(object):
     
     def save_task_result(self, idents, msg):
         """save the result of a completed task."""
-        client_id, engine_uuid = idents[:2]
+        client_id = idents[0]
         try:
             msg = self.session.unpack_message(msg, content=False)
         except:
@@ -461,19 +461,24 @@ class Controller(object):
             return
         
         parent = msg['parent_header']
-        eid = self.by_ident[engine_uuid]
         if not parent:
             # print msg
-            # logger.warn("")
+            logger.warn("Task %r had no parent!"%msg)
             return
         msg_id = parent['msg_id']
         self.results[msg_id] = msg
-        if msg_id in self.pending and msg_id in self.tasks[eid]:
+        
+        header = msg['header']
+        engine_uuid = header.get('engine', None)
+        eid = self.by_ident.get(engine_uuid, None)
+        
+        if msg_id in self.pending:
             self.pending.pop(msg_id)
             if msg_id in self.mia:
                 self.mia.remove(msg_id)
-            self.completed[eid].append(msg_id)
-            self.tasks[eid].remove(msg_id)
+            if eid is not None and msg_id in self.tasks[eid]:
+                self.completed[eid].append(msg_id)
+                self.tasks[eid].remove(msg_id)
         else:
             logger.debug("task::unknown task %s finished"%msg_id)
     
@@ -539,16 +544,28 @@ class Controller(object):
         content.update(self.engine_addrs)
         # check if requesting available IDs:
         if queue in self.by_ident:
-            content = {'status': 'error', 'reason': "queue_id %r in use"%queue}
+            try:
+                raise KeyError("queue_id %r in use"%queue)
+            except:
+                content = wrap_exception()
         elif heart in self.hearts: # need to check unique hearts?
-            content = {'status': 'error', 'reason': "heart_id %r in use"%heart}
+            try:
+                raise KeyError("heart_id %r in use"%heart)
+            except:
+                content = wrap_exception()
         else:
             for h, pack in self.incoming_registrations.iteritems():
                 if heart == h:
-                    content = {'status': 'error', 'reason': "heart_id %r in use"%heart}
+                    try:
+                        raise KeyError("heart_id %r in use"%heart)
+                    except:
+                        content = wrap_exception()
                     break
                 elif queue == pack[1]:
-                    content = {'status': 'error', 'reason': "queue_id %r in use"%queue}
+                    try:
+                        raise KeyError("queue_id %r in use"%queue)
+                    except:
+                        content = wrap_exception()
                     break
         
         msg = self.session.send(self.registrar, "registration_reply", 
@@ -566,7 +583,7 @@ class Controller(object):
                 dc.start()
                 self.incoming_registrations[heart] = (eid,queue,reg,dc)
         else:
-            logger.error("registration::registration %i failed: %s"%(eid, content['reason']))
+            logger.error("registration::registration %i failed: %s"%(eid, content['evalue']))
         return eid
     
     def unregister_engine(self, ident, msg):
@@ -688,14 +705,23 @@ class Controller(object):
                     self.results.pop(msg_id)
                 else:
                     if msg_id in self.pending:
-                        reply = dict(status='error', reason="msg pending: %r"%msg_id)
+                        try:
+                            raise IndexError("msg pending: %r"%msg_id)
+                        except:
+                            reply = wrap_exception()
                     else:
-                        reply = dict(status='error', reason="No such msg: %r"%msg_id)
+                        try:
+                            raise IndexError("No such msg: %r"%msg_id)
+                        except:
+                            reply = wrap_exception()
                     break
             eids = content.get('engine_ids', [])
             for eid in eids:
                 if eid not in self.engines:
-                    reply = dict(status='error', reason="No such engine: %i"%eid)
+                    try:
+                        raise IndexError("No such engine: %i"%eid)
+                    except:
+                        reply = wrap_exception()
                     break
                 msg_ids = self.completed.pop(eid)
                 for msg_id in msg_ids:
@@ -725,8 +751,10 @@ class Controller(object):
                 if not statusonly:
                     content[msg_id] = self.results[msg_id]['content']
             else:
-                content = dict(status='error')
-                content['reason'] = 'no such message: '+msg_id
+                try:
+                    raise KeyError('No such message: '+msg_id)
+                except:
+                    content = wrap_exception()
                 break
         self.session.send(self.clientele, "result_reply", content=content, 
                                             parent=msg, ident=client_id)

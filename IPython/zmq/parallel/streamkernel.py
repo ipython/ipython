@@ -143,6 +143,7 @@ class Kernel(object):
         self.control_stream = control_stream
         # self.control_socket = control_stream.socket
         self.reply_stream = reply_stream
+        self.identity = self.reply_stream.getsockopt(zmq.IDENTITY)
         self.task_stream = task_stream
         self.pub_stream = pub_stream
         self.client = client
@@ -158,7 +159,7 @@ class Kernel(object):
         for msg_type in ['execute_request', 'complete_request', 'apply_request']:
             self.queue_handlers[msg_type] = getattr(self, msg_type)
         
-        for msg_type in ['kill_request', 'abort_request']+self.queue_handlers.keys():
+        for msg_type in ['kill_request', 'abort_request', 'clear_request']+self.queue_handlers.keys():
             self.control_handlers[msg_type] = getattr(self, msg_type)
 
     #-------------------- control handlers -----------------------------
@@ -214,7 +215,7 @@ class Kernel(object):
         print(Message(reply_msg), file=sys.__stdout__)
     
     def kill_request(self, stream, idents, parent):
-        """kill ourselves.  This should really be handled in an external process"""
+        """kill ourself.  This should really be handled in an external process"""
         self.abort_queues()
         msg = self.session.send(stream, 'kill_reply', ident=idents, parent=parent, 
                 content = dict(status='ok'))
@@ -224,6 +225,12 @@ class Kernel(object):
         os.kill(os.getpid(), SIGTERM)
         time.sleep(1)
         os.kill(os.getpid(), SIGKILL)
+    
+    def clear_request(self, stream, idents, parent):
+        """Clear our namespace."""
+        self.user_ns = {}
+        msg = self.session.send(stream, 'clear_reply', ident=idents, parent=parent, 
+                content = dict(status='ok'))
     
     def dispatch_control(self, msg):
         idents,msg = self.session.feed_identities(msg, copy=False)
@@ -330,7 +337,7 @@ class Kernel(object):
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.pub_stream.send(pyin_msg)
         # self.session.send(self.pub_stream, u'pyin', {u'code':code},parent=parent)
-        sub = {'dependencies_met' : True}
+        sub = {'dependencies_met' : True, 'engine' : self.identity}
         try:
             # allow for not overriding displayhook
             if hasattr(sys.displayhook, 'set_parent'):
@@ -382,7 +389,7 @@ class Kernel(object):
             result_buf = []
             
             if etype is UnmetDependency:
-                sub = {'dependencies_met' : False}
+                sub['dependencies_met'] = False
         else:
             reply_content = {'status' : 'ok'}
         # reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
