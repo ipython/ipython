@@ -132,6 +132,7 @@ def find_packages():
     add_package(packages, 'testing.plugin', tests=False)
     add_package(packages, 'utils', tests=True)
     add_package(packages, 'zmq')
+    add_package(packages, 'zmq.parallel')
     add_package(packages, 'zmq.pylab')
     return packages
 
