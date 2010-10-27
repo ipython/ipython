@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Utilities for getting information about a system.
+Utilities for getting information about IPython and the system it's running in.
 """
 
 #-----------------------------------------------------------------------------
@@ -16,37 +16,122 @@ Utilities for getting information about a system.
 
 import os
 import platform
+import pprint
 import sys
 import subprocess
 
+from ConfigParser import ConfigParser
+
 from IPython.core import release
+
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+COMMIT_INFO_FNAME = '.git_commit_info.ini'
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
+def pkg_commit_hash(pkg_path):
+    """Get short form of commit hash given directory `pkg_path`
+
+    There should be a file called 'COMMIT_INFO.txt' in `pkg_path`.  This is a
+    file in INI file format, with at least one section: ``commit hash``, and two
+    variables ``archive_subst_hash`` and ``install_hash``.  The first has a
+    substitution pattern in it which may have been filled by the execution of
+    ``git archive`` if this is an archive generated that way.  The second is
+    filled in by the installation, if the installation is from a git archive.
+
+    We get the commit hash from (in order of preference):
+
+    * A substituted value in ``archive_subst_hash``
+    * A written commit hash value in ``install_hash`
+    * git output, if we are in a git repository
+
+    If all these fail, we return a not-found placeholder tuple
+
+    Parameters
+    ----------
+    pkg_path : str
+       directory containing package
+
+    Returns
+    -------
+    hash_from : str
+       Where we got the hash from - description
+    hash_str : str
+       short form of hash
+    """
+    # Try and get commit from written commit text file
+    pth = os.path.join(pkg_path, COMMIT_INFO_FNAME)
+    if not os.path.isfile(pth):
+        raise IOError('Missing commit info file %s' % pth)
+    cfg_parser = ConfigParser()
+    cfg_parser.read(pth)
+    archive_subst = cfg_parser.get('commit hash', 'archive_subst_hash')
+    if not archive_subst.startswith('$Format'): # it has been substituted
+        return 'archive substitution', archive_subst
+    install_subst = cfg_parser.get('commit hash', 'install_hash')
+    if install_subst != '':
+        return 'installation', install_subst
+    # maybe we are in a repository
+    proc = subprocess.Popen('git rev-parse --short HEAD',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd=pkg_path, shell=True)
+    repo_commit, _ = proc.communicate()
+    if repo_commit:
+        return 'repository', repo_commit.strip()
+    return '(none found)', '<not found>'
+
+
+def pkg_info(pkg_path):
+    """Return dict describing the context of this package
+
+    Parameters
+    ----------
+    pkg_path : str
+       path containing __init__.py for package
+
+    Returns
+    -------
+    context : dict
+       with named parameters of interest
+    """
+    src, hsh = pkg_commit_hash(pkg_path)
+    return dict(
+        ipython_version=release.version,
+        ipython_path=pkg_path,
+        commit_source=src,
+        commit_hash=hsh,
+        sys_version=sys.version,
+        sys_executable=sys.executable,
+        sys_platform=sys.platform,
+        platform=platform.platform(),
+        os_name=os.name,
+        )
+
+
 def sys_info():
     """Return useful information about IPython and the system, as a string.
 
-    Examples
-    --------
-    In [1]: print(sys_info())
-    IPython version: 0.11.bzr.r1340   # random
-    BZR revision   : 1340
-    Platform info  : os.name -> posix, sys.platform -> linux2
-                   : Linux-2.6.31-17-generic-i686-with-Ubuntu-9.10-karmic
-    Python info    : 2.6.4 (r264:75706, Dec  7 2009, 18:45:15) 
-    [GCC 4.4.1]
-    """
-    out = []
-    out.append('IPython version: %s' % release.version)
-    out.append('BZR revision   : %s' % release.revision)
-    out.append('Platform info  : os.name -> %s, sys.platform -> %s' %
-               (os.name,sys.platform) )
-    out.append('               : %s' % platform.platform())
-    out.append('Python info    : %s' % sys.version)
-    out.append('')  # ensure closing newline
-    return '\n'.join(out)
+    Example
+    -------
+    In [2]: print sys_info()
+    {'commit_hash': '144fdae',      # random
+     'commit_source': 'repository',
+     'ipython_path': '/home/fperez/usr/lib/python2.6/site-packages/IPython',
+     'ipython_version': '0.11.dev',
+     'os_name': 'posix',
+     'platform': 'Linux-2.6.35-22-generic-i686-with-Ubuntu-10.10-maverick',
+     'sys_executable': '/usr/bin/python',
+     'sys_platform': 'linux2',
+     'sys_version': '2.6.6 (r266:84292, Sep 15 2010, 15:52:39) \\n[GCC 4.4.5]'}
+   """
+    p = os.path
+    path = p.dirname(p.abspath(p.join(__file__, '..')))
+    return pprint.pformat(pkg_info(path))
 
 
 def _num_cpus_unix():
