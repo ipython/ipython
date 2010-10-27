@@ -6,12 +6,16 @@ Under Posix environments it works like a typical setup.py script.
 Under Windows, the command sdist is not supported, since IPython 
 requires utilities which are not available under Windows."""
 
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2008-2010, IPython Development Team.
+#  Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
+#  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
+#  Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
 #
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#  Distributed under the terms of the Modified BSD License.
+#
+#  The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Minimal Python version sanity check
@@ -55,7 +59,8 @@ from setupbase import (
     find_package_data, 
     find_scripts,
     find_data_files,
-    check_for_dependencies
+    check_for_dependencies,
+    record_commit_info,
 )
 
 isfile = os.path.isfile
@@ -239,6 +244,7 @@ else:
 # Do the actual setup now
 #---------------------------------------------------------------------------
 
+setup_args['cmdclass'] = {'build_py': record_commit_info('IPython')}
 setup_args['packages'] = packages
 setup_args['package_data'] = package_data
 setup_args['scripts'] = scripts

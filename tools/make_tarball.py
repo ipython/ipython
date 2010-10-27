@@ -9,7 +9,7 @@ import shutil
 
 from  toollib import *
 
-tag = commands.getoutput('git describe')
+tag = commands.getoutput('git describe --tags')
 base_name = 'ipython-%s' % tag
 tar_name = '%s.tgz' % base_name
 
