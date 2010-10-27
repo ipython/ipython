@@ -1,8 +1,10 @@
+build
+./dist
 docs/dist
 docs/build/*
 docs/source/api/generated
-*.pyc
+*.py[co]
 build
 *.egg-info
-*.py~
+*~
 *.bak
