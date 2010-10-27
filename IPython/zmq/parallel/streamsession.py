@@ -63,10 +63,10 @@ def wrap_exception():
     etype, evalue, tb = sys.exc_info()
     tb = traceback.format_exception(etype, evalue, tb)
     exc_content = {
-        u'status' : u'error',
-        u'traceback' : tb,
-        u'etype' : unicode(etype),
-        u'evalue' : unicode(evalue)
+        'status' : 'error',
+        'traceback' : str(tb),
+        'etype' : str(etype),
+        'evalue' : str(evalue)
     }
     return exc_content
 
