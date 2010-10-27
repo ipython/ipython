@@ -209,7 +209,7 @@ if 'setuptools' in sys.modules:
         'console_scripts': [
             'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
             'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
-            'ipython-http = IPython.frontend.html.ipythonhttp:main',
+            'ipython-webnb = IPython.frontend.html.ipythonhttp:main',
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.kernel.ipcontrollerapp:launch_new_instance',
             'ipengine = IPython.kernel.ipengineapp:launch_new_instance',

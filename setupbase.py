@@ -262,7 +262,7 @@ def find_scripts():
                pjoin(kernel_scripts, 'ipcluster'),
                pjoin(main_scripts, 'ipython'),
                pjoin(main_scripts, 'ipython-qtconsole'),
-               pjoin(main_scripts, 'ipython-http'),
+               pjoin(main_scripts, 'ipython-webnb'),
                pjoin(main_scripts, 'pycolor'),
                pjoin(main_scripts, 'irunner'),
                pjoin(main_scripts, 'iptest')

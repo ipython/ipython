@@ -293,6 +293,7 @@ InputArea.prototype.activate = function () {
     this.update()
     
     var thisObj = this
+    this.text.click(function(e) { e.stopPropagation() })
     this.text.keydown(function (e) {thisObj.keyfunc(e)})
     this.text.keyup(function (e) {
         thisObj.msg.code = e.target.value

@@ -46,7 +46,8 @@ class CometManager(object):
         return client_id in self.clients
     
     def heartbeat(self, client_id):
-        self.clients[client_id][0] = time.time()
+        if client_id in self.clients:
+            self.clients[client_id][0] = time.time()
     
     def send(self, msg_type, *args):
         if msg_type == "connect_request":
