@@ -21,15 +21,13 @@ __test__ = {}
 
 import cPickle as pickle
 
-# from twisted.python import components
-# from zope.interface import Interface, implements
-
 try:
     import numpy
 except ImportError:
     pass
 
-from IPython.kernel.error import SerializationError
+class SerializationError(Exception):
+    pass
 
 #-----------------------------------------------------------------------------
 # Classes and functions

@@ -18,8 +18,8 @@ __docformat__ = "restructuredtext en"
 from types import FunctionType
 
 # contents of codeutil should either be in here, or codeutil belongs in IPython/util
-from IPython.kernel import codeutil
 from IPython.zmq.parallel.dependency import dependent
+import codeutil
 
 class CannedObject(object):
     def __init__(self, obj, keys=[]):
