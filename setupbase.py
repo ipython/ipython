@@ -175,9 +175,9 @@ def make_dir_struct(tag,base,out_base):
         # filenames, we must join back with the dirpath to get full valid file
         # paths:
         pfiles = [pjoin(dirpath,f) for f in filenames]
-        # Finally, generate the entry we need, which is a triple of (tag,output
+        # Finally, generate the entry we need, which is a pari of (output
         # path, files) for use as a data_files parameter in install_data.
-        out.append((tag,out_path,pfiles))
+        out.append((out_path, pfiles))
 
     return out
     
@@ -194,7 +194,8 @@ def find_data_files():
     
     # Simple file lists can be made by hand
     manpages  = filter(isfile, glob(pjoin('docs','man','*.1.gz')))
-    igridhelpfiles = filter(isfile, glob(pjoin('IPython','extensions','igrid_help.*')))
+    igridhelpfiles = filter(isfile,
+                            glob(pjoin('IPython','extensions','igrid_help.*')))
 
     # For nested structures, use the utility above
     example_files = make_dir_struct(
@@ -209,8 +210,8 @@ def find_data_files():
     )
 
     # And assemble the entire output list
-    data_files = [ ('data',manpagebase, manpages),
-                   ('data',pjoin(docdirbase,'extensions'),igridhelpfiles),
+    data_files = [ (manpagebase, manpages),
+                   (pjoin(docdirbase, 'extensions'), igridhelpfiles),
                    ] + manual_files + example_files
                  
     ## import pprint  # dbg
