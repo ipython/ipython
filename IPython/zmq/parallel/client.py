@@ -67,7 +67,7 @@ def defaultblock(f, self, *args, **kwargs):
     self.block = saveblock
     return ret
 
-def remote(client, block=None, targets=None):
+def remote(client, bound=False, block=None, targets=None):
     """Turn a function into a remote function.
     
     This method can be used for map:
@@ -76,7 +76,7 @@ def remote(client, block=None, targets=None):
         def func(a)
     """
     def remote_function(f):
-        return RemoteFunction(client, f, block, targets)
+        return RemoteFunction(client, f, bound, block, targets)
     return remote_function
 
 #--------------------------------------------------------------------------
@@ -86,15 +86,16 @@ def remote(client, block=None, targets=None):
 class RemoteFunction(object):
     """Turn an existing function into a remote function"""
     
-    def __init__(self, client, f, block=None, targets=None):
+    def __init__(self, client, f, bound=False, block=None, targets=None):
         self.client = client
         self.func = f
         self.block=block
+        self.bound=bound
         self.targets=targets
     
     def __call__(self, *args, **kwargs):
         return self.client.apply(self.func, args=args, kwargs=kwargs,
-                block=self.block, targets=self.targets)
+                block=self.block, targets=self.targets, bound=self.bound)
     
 
 class AbortedTask(object):
