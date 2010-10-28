@@ -1,3 +1,20 @@
+/***********************************************************************
+ #-----------------------------------------------------------------------------
+ # Copyright (c) 2010, IPython Development Team.
+ #
+ # Distributed under the terms of the Modified BSD License.
+ #
+ # The full license is in the file COPYING.txt, distributed with this software.
+ #-----------------------------------------------------------------------------
+ 
+ All the UI elements, including:
+ 
+ Statusbar
+ History
+ Messages
+ Tabcomplete-menu
+ ***********************************************************************/
+
 //Let's arbitrarily set the number of columns to 5
 //We can eventually recompute the ideal width
 columns = 5

@@ -1,83 +1,45 @@
 """ Defines a KernelManager that provides signals and slots.
 """
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
 import os
 import re
-import cgi
 import time
-import json
-import Queue
-import threading
-import mimetypes
 from string import Template
-from SocketServer import ThreadingMixIn
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
-client_death = 300 # seconds without heartbeat that client considered dead
+#Basic http manipulation imports
+import cgi
+import json
+import mimetypes
+
+#HTTPserver imports
+from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from SocketServer import ThreadingMixIn
+
+#Cometmanager import
+from CometManager import Manager
+
+# IPython imports.
+from IPython.utils.traitlets import Type
+from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
+    XReqSocketChannel, RepSocketChannel, HBSocketChannel
+
+#-----------------------------------------------------------------------------
+# Constants
+#-----------------------------------------------------------------------------
 #Base path to serve js and css files from
 basepath = os.path.split(__file__)[0]+"/" 
+manager = Manager()
 
-class CometManager(object):
-    """Tracks msg_id, client get requests for the Comet design pattern"""
-    def __init__(self):
-        self.clients = {}
-        self.req_queue = Queue.Queue()
-        
-    def register(self, client_id):
-        self.clients[client_id] = [time.time(), Queue.Queue()]
-    
-    def __getitem__(self, client_id):
-        if client_id in self.clients:
-            return self.clients[client_id][1]
-        else:
-            return None
-    
-    def append(self, msg):
-        """Add a message to the queues across all tracked clients"""
-        for i in self.clients.keys():
-            dead_for = time.time() - self.clients[i][0]
-            #Remove client if no heartbeat, otherwise add to its queue
-            if dead_for > client_death:
-                del self.clients[i]
-            else:
-                self.clients[i][1].put(msg)
-    
-    def __contains__(self, client_id):
-        return client_id in self.clients
-    
-    def heartbeat(self, client_id):
-        if client_id in self.clients:
-            self.clients[client_id][0] = time.time()
-            
-    def connect(self):
-        return self.kernel_manager.xreq_channel.execute("")
-        
-    def execute(self, *args):
-        return self.kernel_manager.xreq_channel.execute(*args)
-    
-    def complete(self, code, pos):
-        chunk = re.split('\s|\(|=|;', code[:int(pos)])[-1]
-        self.kernel_manager.xreq_channel.complete(chunk, code, pos)
-        return self.req_queue.get()
-    
-    def inspect(self, oname):
-        self.kernel_manager.xreq_channel.object_info(oname)
-        return self.req_queue.get()
-    
-    def history(self, index = None, raw = False, output=False):
-        if index == -1:
-            index = None
-            
-        self.kernel_manager.xreq_channel.history(index, raw, output)
-        return self.req_queue.get()
-            
-    def addreq(self, msg):
-        self.req_queue.put(msg)
-        
-manager = CometManager()
-
+## HTTP server and handlers
 class IPyHttpHandler(BaseHTTPRequestHandler):
+    """Derives from BaseHTTPRequestHandler to handle requests from HTTP server
+    """
     def do_GET(self):
+        """Handles GET requests from the client
+        """
         #Path is either a real path, or the client_id
         path = self.path.strip("/")
         if path in manager:
@@ -110,6 +72,8 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             self.end_headers()
     
     def do_POST(self):
+        """Handles GET requests from the client
+        """
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.end_headers()
@@ -144,11 +108,8 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
 class IPyHttpServer(ThreadingMixIn, HTTPServer):
     pass
 
-# IPython imports.
-from IPython.utils.traitlets import Type
-from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
-    XReqSocketChannel, RepSocketChannel, HBSocketChannel
 
+## IPython kernel sockets
 class HttpXReqSocketChannel(XReqSocketChannel):
     #---------------------------------------------------------------------------
     # 'XReqSocketChannel' interface
@@ -184,6 +145,7 @@ class HttpRepSocketChannel(RepSocketChannel):
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
+        #FIXME: Need to find a sane way to implement REP socket
         pass
 
 class HttpHBSocketChannel(HBSocketChannel):
@@ -195,9 +157,10 @@ class HttpHBSocketChannel(HBSocketChannel):
         """ Reimplemented to emit signals instead of making callbacks.
         """
         # Emit the generic signal.
+        #FIXME: What to do with a dead kernel on client side?
         pass
 
-
+## IPython Kernel
 class HttpKernelManager(KernelManager):
     """ A KernelManager that provides signals and slots.
     """

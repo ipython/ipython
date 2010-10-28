@@ -1,7 +1,21 @@
+/***********************************************************************
+ #-----------------------------------------------------------------------------
+ # Copyright (c) 2010, IPython Development Team.
+ #
+ # Distributed under the terms of the Modified BSD License.
+ #
+ # The full license is in the file COPYING.txt, distributed with this software.
+ #-----------------------------------------------------------------------------
+ 
+ Basic startup functions, environment
+ ***********************************************************************/
+//Setup defaults for any AJAX requests
 $.ajaxSetup({
     url: client_id,
     dataType: "json"
 })
+
+//Things to initialize when the page is done loading
 $(document).ready(function() {
     heartbeat()
     comet = new CometGetter()
@@ -13,6 +27,7 @@ $(document).ready(function() {
     execute(" ")
 })
 
+//Fix raw text to parse correctly in crazy XML
 function xmlencode(string) {
     return string.replace(/\&/g,'&'+'amp;')
         .replace(/</g,'&'+'lt;')
@@ -22,15 +37,14 @@ function xmlencode(string) {
         .replace(/`/g,'&'+'#96;')
 }
 
+//Map from terminal commands to CSS classes
 attrib = {
     "30":"cblack", "31":"cred",
     "32":"cgreen", "33":"cyellow",  
     "34":"cblue", "36":"ccyan", 
     "37":"cwhite", "01":"cbold"}
+//Fixes escaped console commands, IE colors. Turns them into HTML
 function fixConsole(txt) {
-    //Fixes escaped console commands, IE colors. Turns them into HTML
-    //Unfortunately, the "semantics" of html and console are very 
-    //different, so fancy things *will* break
     txt = xmlencode(txt)
     var re = /\033\[([\d;]*?)m/
     var opened = false
@@ -52,26 +66,13 @@ function fixConsole(txt) {
     if (opened) txt += "</span>"
     return txt.trim()
 }
+//A smart modulus function, for possible negative values
 function mod(x, y) {
     return ((x%y)+y)%y;
 }
 
-function inspect(obj) {
-    if (obj instanceof Object) {
-        var str = []
-        for (var i in obj) 
-            str.push(i+": "+inspect(obj[i]).replace("\n", "\n\t"))
-        return "{\n\t"+str.join("\n\t")+"\n}\n"
-    } else {
-        try {
-        return obj.toString()
-        } catch (e) {
-        }
-        return ""
-    }
-}
-
-var dedentKeys = /(raise|return|break|continue|yield|pass)/g
+//Checks the appropriate indentation level
+dedentKeys = /(raise|return|break|continue|yield|pass)/g
 function checkIndent(code, pos) {
     code = code.slice(0,pos).split("\n")
     //Second to last one, the last one is the newline

@@ -1,4 +1,4 @@
-""" A minimal application using the Qt console-style IPython frontend.
+""" A minimal application using the IPython web notebook frontend.
 """
 
 #-----------------------------------------------------------------------------
@@ -7,7 +7,6 @@
 
 # Local imports
 import os
-import threading
 from IPython.external.argparse import ArgumentParser
 from IPython.frontend.html.kernelmanager import HttpKernelManager, \
     IPyHttpServer, IPyHttpHandler
@@ -61,37 +60,41 @@ def main():
 
     args = parser.parse_args()
     
-    def defer():
-        import time
-        time.sleep(2)
-        import webbrowser
-        webbrowser.open("http://localhost:8080/notebook")
-    threading.Thread(target=defer).start()
-    
-    
-    # Don't let Qt or ZMQ swallow KeyboardInterupts.
+    # Don't let ZMQ swallow KeyboardInterupts.
     import signal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    try:
-        # Create a KernelManager and start a kernel.
-        kernel_manager = HttpKernelManager(xreq_address=(args.ip, args.xreq),
-                                         sub_address=(args.ip, args.sub),
-                                         rep_address=(args.ip, args.rep),
-                                         hb_address=(args.ip, args.hb))
-        if args.ip == LOCALHOST and not args.existing:
-            if args.pure:
-                kernel_manager.start_kernel(ipython=False)
-            elif args.pylab:
-                kernel_manager.start_kernel(pylab=args.pylab)
-            else:
-                kernel_manager.start_kernel()
-        kernel_manager.start_channels()
-        
-        #Start the web server
-        server = IPyHttpServer(("", 8080), IPyHttpHandler)
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
+    
+    # Create a KernelManager and start a kernel.
+    kernel_manager = HttpKernelManager(xreq_address=(args.ip, args.xreq),
+                                     sub_address=(args.ip, args.sub),
+                                     rep_address=(args.ip, args.rep),
+                                     hb_address=(args.ip, args.hb))
+    if args.ip == LOCALHOST and not args.existing:
+        if args.pure:
+            kernel_manager.start_kernel(ipython=False)
+        elif args.pylab:
+            kernel_manager.start_kernel(pylab=args.pylab)
+        else:
+            kernel_manager.start_kernel()
+    kernel_manager.start_channels()
+    
+    #Start the web server
+    server = IPyHttpServer(("", 8080), IPyHttpHandler)
+    server.serve_forever()
 
 if __name__ == '__main__':
-    main()
+    #FIXME: Ctrl-C is not trapped by this try-except, gets lost somewhere in kernel manager
+    try:
+        import threading
+        def defer():
+            """Defer the startup of the browser
+            """
+            import time
+            time.sleep(2)
+            import webbrowser
+            webbrowser.open("http://localhost:8080/notebook")
+        #I need threading here because the main function blocks -- better ideas?
+        threading.Thread(target=defer).start()
+        main()
+    except KeyboardInterrupt:
+        pass

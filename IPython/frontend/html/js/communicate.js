@@ -1,3 +1,16 @@
+/***********************************************************************
+ #-----------------------------------------------------------------------------
+ # Copyright (c) 2010, IPython Development Team.
+ #
+ # Distributed under the terms of the Modified BSD License.
+ #
+ # The full license is in the file COPYING.txt, distributed with this software.
+ #-----------------------------------------------------------------------------
+ 
+ This file contains all the AJAX communication functions, used as a library
+ for most of the other elements
+ ***********************************************************************/
+ 
 function CometGetter() {
     this.queue = []
     this.start()

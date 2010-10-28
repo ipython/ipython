@@ -1,4 +1,18 @@
 /***********************************************************************
+ #-----------------------------------------------------------------------------
+ # Copyright (c) 2010, IPython Development Team.
+ #
+ # Distributed under the terms of the Modified BSD License.
+ #
+ # The full license is in the file COPYING.txt, distributed with this software.
+ #-----------------------------------------------------------------------------
+ 
+ Manages messages that arrive via the CometGetter interface
+ Creates new messages if required, otherwise manages the communication between
+ COMET and the messages
+ ***********************************************************************/
+
+/***********************************************************************
  * Process any payload objects into html
  ***********************************************************************/
 function procPayload(payload) {
@@ -89,7 +103,7 @@ Manager.prototype.deactivate = function (current) {
     }
 }
 Manager.prototype.process = function (json, origin, immediate) {
-    if (json.content.execution_count)
+    if (typeof(json.content.execution_count) != "undefined")
         exec_count = json.content.execution_count
         
     var id = json.parent_header.msg_id
