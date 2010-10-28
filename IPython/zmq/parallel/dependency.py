@@ -80,15 +80,11 @@ class Dependency(set):
         if len(self) == 0:
             return True
         if self.mode == 'all':
-            for dep in self:
-                if dep not in completed:
-                    return False
-            return True
+            return self.issubset(completed)
         elif self.mode == 'any':
-            for com in completed:
-                if com in self.dependencies:
-                    return True
-            return False
+            return not self.isdisjoint(completed)
+        else:
+            raise NotImplementedError("Only any|all supported, not %r"%mode)
     
     def as_dict(self):
         """Represent this dependency as a dict. For json compatibility."""

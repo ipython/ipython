@@ -30,9 +30,9 @@ from IPython.external.decorator import decorator
 
 @decorator
 def logged(f,self,*args,**kwargs):
-    # print ("#--------------------")
-    # print ("%s(*%s,**%s)"%(f.func_name, args, kwargs))
-    # print ("#--")
+    print ("#--------------------")
+    print ("%s(*%s,**%s)"%(f.func_name, args, kwargs))
+    print ("#--")
     return f(self,*args, **kwargs)
 
 #----------------------------------------------------------------------
@@ -340,6 +340,7 @@ class TaskScheduler(object):
         msg_id = parent['msg_id']
         self.pending[engine].pop(msg_id)
         self.completed[engine].add(msg_id)
+        self.all_done.add(msg_id)
         
         self.update_dependencies(msg_id)
         
