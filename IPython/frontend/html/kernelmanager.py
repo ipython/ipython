@@ -33,7 +33,7 @@ class CometManager(object):
             return None
     
     def append(self, msg):
-        """Add a message to the SUB queues across all tracked clients"""
+        """Add a message to the queues across all tracked clients"""
         for i in self.clients.keys():
             dead_for = time.time() - self.clients[i][0]
             #Remove client if no heartbeat, otherwise add to its queue
@@ -48,12 +48,12 @@ class CometManager(object):
     def heartbeat(self, client_id):
         if client_id in self.clients:
             self.clients[client_id][0] = time.time()
-    
-    def send(self, msg_type, *args):
-        if msg_type == "connect_request":
-            args = ("",)
-        self.kernel_manager.xreq_channel.execute(*args)
-        return self.req_queue.get()
+            
+    def connect(self):
+        return self.kernel_manager.xreq_channel.execute(*args)
+        
+    def execute(self, *args):
+        return self.kernel_manager.xreq_channel.execute(*args)
     
     def complete(self, code, pos):
         chunk = re.split('\s|\(|=|;', code[:int(pos)])[-1]
@@ -126,13 +126,13 @@ class IPyHttpHandler(BaseHTTPRequestHandler):
             manager.heartbeat(client_id)
         else:
             if msg_type == "execute":
-                resp = manager.send("execute_request", data["code"].value)
+                resp = manager.execute(data["code"].value)
             elif msg_type == "complete":
                 resp = manager.complete(data["code"].value, data["pos"].value)
             elif msg_type == "inspect":
                 resp = manager.inspect(data['name'].value)
             elif msg_type == "connect":
-                resp = manager.send("connect_request")
+                resp = manager.connect()
             elif msg_type == "history":
                 resp = manager.history(data['index'].value)
             json.dump(resp, self.wfile)
@@ -156,7 +156,10 @@ class HttpXReqSocketChannel(XReqSocketChannel):
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
-        manager.addreq(msg)
+        if msg.msg_type == "execute_reply":
+            manager.append(msg)
+        else:
+            manager.addreq(msg)
     """
         Useful for filtering namespace:
         filter( lambda x: not x.startswith('_') and x not in startns, 
