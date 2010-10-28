@@ -50,7 +50,7 @@ class CometManager(object):
             self.clients[client_id][0] = time.time()
             
     def connect(self):
-        return self.kernel_manager.xreq_channel.execute(*args)
+        return self.kernel_manager.xreq_channel.execute("")
         
     def execute(self, *args):
         return self.kernel_manager.xreq_channel.execute(*args)
@@ -156,7 +156,7 @@ class HttpXReqSocketChannel(XReqSocketChannel):
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
-        if msg.msg_type == "execute_reply":
+        if msg["msg_type"] == "execute_reply":
             manager.append(msg)
         else:
             manager.addreq(msg)

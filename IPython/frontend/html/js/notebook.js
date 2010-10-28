@@ -8,17 +8,9 @@ $(document).ready(function() {
     manager = new Manager("messages")
     statusbar = new StatusBar("statusbar")
     kernhistory = new History("history .inside")
-    //Startup POST, set some globals
-    $.ajax({
-        type: "POST",
-        data: {type:"connect"},
-        success: function(json, status, request) {
-            username = json.parent_header.username
-            session = json.header.session
-            exec_count = json.content.execution_count
-            manager.get().activate()
-        }
-    })
+    //Startup connection, set some globals
+    //Currently a hack that looks like a messed up execute statement
+    execute(" ")
 })
 
 function xmlencode(string) {

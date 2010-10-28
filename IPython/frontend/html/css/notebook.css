@@ -113,6 +113,7 @@
 .message .output { 
 	float:left;
 	width:90%;
+	height:0px;
 }
 
 

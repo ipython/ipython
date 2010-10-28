@@ -21,8 +21,11 @@ CometGetter.prototype.complete = function(json, status, request) {
         statusbar.set(json.content.execution_state)
     } else if (this.pause) {
         this.queue.push(json)
-    } else 
-        manager.process(json, false, !this.pause)
+    } else {
+        if (typeof(exec_count) != "undefined" || 
+            json.msg_type == "execute_reply")
+            manager.process(json, false, !this.pause)
+    }
 }
 CometGetter.prototype.start = function () {
     this.pause = false
@@ -52,20 +55,20 @@ function execute(code, msg) {
     $.ajax({
         type: "POST",
         data: {type:"execute", code:code},
-        success: function(json, status, request) {
-            if (json != null)
-                manager.process(json, msg)
+        success: function(msg_id, status, request) {
+            if (msg != null)
+                manager.set(msg, msg_id)
             comet.start()
         }
     })
 }
 
-function tabcomplete(code, pos, func) {
+function tabcomplete(code, pos, callback) {
     $.ajax({
         type:"POST",
         data: {type:"complete", code:code, pos:pos},
         success: function(json, status, request) {
-            func(json.content.matches)
+            callback(json.content.matches)
         }
     })
 }

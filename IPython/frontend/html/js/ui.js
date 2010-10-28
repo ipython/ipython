@@ -28,6 +28,11 @@ function History(obj) {
 //    gethistory(-1)
 }
 History.prototype.append = function(hist) {
+    if (typeof(hist) == "string") {
+        var h = {}
+        h[exec_count+1] = hist
+        hist = h
+    }
     for (var i in hist) {
         this.history.push(hist[i])
         var link = $(document.createElement("a"))
@@ -43,158 +48,6 @@ History.prototype.click = function (id) {
     var msg = manager.get()
     msg.code = this.history[id]
     msg.activate()
-}
-
-/***********************************************************************
- * Manages the messages and their ordering
- ***********************************************************************/
-function Manager(obj) {
-    this.messages = {}
-    this.ordering = []
-    this.obj = "#"+obj
-    this.ondeck = null
-    this.cursor = 0
-    var thisObj = this
-    $(document).click(function() {
-        thisObj.deactivate(thisObj.ondeck)
-    })
-    
-    this.buf_out = null
-}
-Manager.prototype.get = function (msg_id) {
-    if (typeof(msg_id) == "undefined") {
-        //Handle manager.get(), to return a new message on deck
-        if (this.ondeck == null) {
-            this.ondeck = new Message(-1, this.obj)
-            this.cursor = this.ordering.length
-        }
-        return this.ondeck
-    } else if (msg_id[0] == "+" || msg_id[0] == "-") {
-        //Handle the manager.get("+1") case, to advance the cursor
-        var idx = parseInt(msg_id)
-        if (this.cursor + idx <= this.ordering.length &&
-            this.cursor + idx >= 0)
-            this.cursor += idx
-        if (this.cursor >= this.ordering.length ||
-            this.ordering.length == 0) {
-            return this.get()
-        }
-        return this.ordering[this.cursor]
-    } else if (typeof(this.messages[msg_id]) == "undefined") {
-        this.messages[msg_id] = new Message(msg_id, this.obj)
-        this.ordering.push(this.messages[msg_id])
-    }
-    return this.messages[msg_id]
-}
-Manager.prototype.deactivate = function (current) {
-    for (var i in this.messages)
-        this.messages[i].deactivate()
-    if (this.ondeck != null) {
-        this.ondeck.deactivate()
-        if (this.ondeck != current) { 
-            this.ondeck.remove()
-            this.ondeck = null
-        }
-    }
-}
-Manager.prototype.process = function (json, origin, immediate) {
-    var id = json.parent_header.msg_id
-    var type = json.msg_type
-    
-    //execute() calls always include an originating message
-    //By this point, we know the correct ID for that message, so let's set it
-    if (origin) {
-        if (type != "execute_reply") 
-            throw Exception("Received other message with an origin??")
-        this.messages[id] = origin
-        if (origin == this.ondeck) { 
-            this.ordering.push(origin)
-            this.ondeck = null
-        }
-    }
-    
-    //comet might have some buffered calls if it's paused, let's tacle first!
-    while (comet.queue.length > 0)
-        this.process(comet.queue.pop())
-    
-    var msg = this.get(id)
-    if (type == "execute_reply") {
-        exec_count = json.content.execution_count
-        var data = null
-        //If this reply has an SVG, let's add it
-        if (json.content.payload.length > 0) {
-            var payload = json.content.payload[0]
-            if (typeof(payload['format']) != "undefined") {
-                var format = payload['format']
-                if (format == "svg") {
-                    data = payload['data']
-                    //Remove the doctype from the top, otherwise no way to embed
-                    data = data.split("\n").slice(4).join("\n")
-                } else if (format == "png") {
-                    data = $(document.createElement("img"))
-                    data.attr("src", "data:image/png;"+payload['data'])
-                }
-            } else if (typeof(payload["text"]) != "undefined") {
-                data = fixConsole(payload["text"])
-            }
-            
-        } else
-            //Execute returned nothing, we need to flush in case of older messages
-            msg.clearOutput()
-        
-        //Flush everything to output, including possible pyout/stream from pub
-        var obj = $(document.createElement("div"))
-        var head = typeof(this.buf_out) == "object" && this.buf_out != null
-        if (this.buf_out != null) {
-            obj.html(head?this.buf_out[0]:this.buf_out)
-            obj.append("<br />")
-            this.buf_out = null
-        }
-        msg.setOutput(obj.append(data), head)
-        
-        //Open a new input object
-        manager.get().activate()
-    } else if (type == "pyin") {
-        if (json.content.code == "")
-            msg.remove()
-        else {
-            var data = {}
-            data[msg.num] = json.content.code
-            msg.setInput(json.content.code, true)
-            kernhistory.append(data)
-        }
-    } else {
-        //If a message arrives, remove current ondeck and readd later
-        var removed = false
-        if (this.ondeck != null && this.ondeck.code == "") {
-            this.ondeck.remove()
-            removed = true
-        }
-        
-        if (type == "stream") {
-            this.buf_out = fixConsole(json.content.data)
-        } else if (type == "pyout") {
-            exec_count = json.content.execution_count
-            msg.num = json.content.execution_count
-            this.buf_out = [fixConsole(json.content.data)]
-        } else if (type == "pyerr") {
-            this.buf_out = fixConsole(json.content.traceback.join("\n"))
-        }
-        
-        if (immediate) {
-            var head = typeof(this.buf_out) == "object"
-            msg.setOutput(head?this.buf_out[0]:this.buf_out, head )
-            this.buf_out = null
-        }
-            
-        if (removed) this.get().activate()
-    }
-    
-    if (typeof(origin) != "undefined")
-        origin.msg_id = id
-}
-Manager.prototype.length = function () {
-    return this.ordering.length
 }
 
 /***********************************************************************
@@ -231,6 +84,7 @@ function Message(msg_id, obj) {
 }
 Message.prototype.activate = function () {
     manager.deactivate(this)
+    manager.cursor = manager.getOrder(this)
     this.outer.addClass("active")
     this.in_head.html("In [<span class='cbold'>"+(exec_count+1)+"</span>]:")
     this.text = new InputArea(this)
@@ -252,26 +106,25 @@ Message.prototype.setInput = function(value, header) {
 }
 Message.prototype.setOutput = function(value, header) {
     //Add some flair, animate the output filling
-    var obj = $(document.createElement("pre")).css(
-        {opacity:0, position:"absolute"})
+    //Find the height of the added content
+    var obj = $(document.createElement("pre"))
+        .css({opacity:0, position:"absolute"})
     $(document.body).append(obj.html(value))
     var h = obj.height()
     $(document.body).remove(obj)
     
-    this.output.height(this.output.height())
-    this.output.html(value)
-    
     var thisObj = this
-    this.output.animate({opacity:1, height:h}, {duration:200, complete:
-        function () { thisObj.output.attr("style", null); 
-            if (manager.ondeck != null)
-               $.scrollTo(manager.ondeck.outer) }
+    //Add the content, then animate to correct height
+    this.output.append(value)
+    this.output.animate({opacity:1, height:"+="+h}, {duration:200, complete:
+        function () { $.scrollTo(thisObj.outer) }
     })
-    
-    var head = header?"Out [<span class='cbold'>"+this.num+"</span>]:":""
-    this.out_head.html(head)
+    if (header)
+        this.out_head.html("Out [<span class='cbold'>"+this.num+"</span>]:")
 }
 Message.prototype.clearOutput = function () {
+    this.out_head.html("")
+    this.output.animate({height:0, opacity:0}, 200)
     this.output.html("")
 }
 
@@ -321,10 +174,13 @@ InputArea.prototype.keyfunc = function (e) {
             } else
                 this.submit(e.target.value)
         } else if (e.which == 38) {
+            //Down key
             manager.get("-1").activate()
         } else if (e.which == 40) {
+            //Up key
             manager.get("+1").activate()
         } else if (e.which == 9) {
+            //tab key
             e.preventDefault()
             var thisObj = this
             var pos = this.text.getSelection().end
@@ -351,6 +207,7 @@ InputArea.prototype.submit = function (code) {
         this.msg.remove()
     else {
         this.msg.input.html(code)
+        this.msg.clearOutput()
         execute(code, this.msg)
     }
 }
