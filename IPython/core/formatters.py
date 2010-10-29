@@ -53,7 +53,8 @@ class DefaultFormatter(Configurable):
     id = Str('default')
 
     # The kind of data returned.
-    format = Str('text')
+    # This is often, but not always a MIME type.
+    format = Str('text/plain')
 
     # Whether to pretty-print or not.
     pprint = Bool(True, config=True)
@@ -143,12 +144,17 @@ class FormatterABC(object):
     id = 'abstract'
 
     # The kind of data returned.
-    format = 'text'
+    format = 'text/plain'
 
     @abc.abstractmethod
     def __call__(self, obj):
         """ Return a JSONable representation of the object.
+
+        If the object cannot be formatted by this formatter, then return None
         """
-        return repr(obj)
+        try:
+            return repr(obj)
+        except TypeError:
+            return None
 
 FormatterABC.register(DefaultFormatter)
