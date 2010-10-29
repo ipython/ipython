@@ -208,9 +208,19 @@ class DisplayHook(Configurable):
                 # But avoid extraneous empty lines.
                 result_repr = '\n' + result_repr
 
-        return result_repr
+        extra_formats = []
+        for f in self.extra_formatters:
+            try:
+                data = f(result)
+            except Exception:
+                # FIXME: log the exception.
+                continue
+            if data is not None:
+                extra_formats.append((f.id, f.format, data))
 
-    def write_result_repr(self, result_repr):
+        return result_repr, extra_formats
+
+    def write_result_repr(self, result_repr, extra_formats):
         # We want to print because we want to always make sure we have a 
         # newline, even if all the prompt separators are ''. This is the
         # standard IPython behavior.
@@ -265,8 +275,8 @@ class DisplayHook(Configurable):
         if result is not None and not self.quiet():
             self.start_displayhook()
             self.write_output_prompt()
-            result_repr = self.compute_result_repr(result)
-            self.write_result_repr(result_repr)
+            result_repr, extra_formats = self.compute_result_repr(result)
+            self.write_result_repr(result_repr, extra_formats)
             self.update_user_ns(result)
             self.log_output(result)
             self.finish_displayhook()

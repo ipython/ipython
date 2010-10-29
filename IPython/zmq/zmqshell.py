@@ -65,8 +65,9 @@ class ZMQDisplayHook(DisplayHook):
         if self.do_full_cache:
             self.msg['content']['execution_count'] = self.prompt_count
 
-    def write_result_repr(self, result_repr):
+    def write_result_repr(self, result_repr, extra_formats):
         self.msg['content']['data'] = result_repr
+        self.msg['content']['extra_formats'] = extra_formats
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
