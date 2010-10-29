@@ -248,9 +248,21 @@ class TraitType(object):
         default values must be delayed until the parent :class:`HasTraits`
         class has been instantiated.
         """
-        dv = self.get_default_value()
-        newdv = self._validate(obj, dv)
-        obj._trait_values[self.name] = newdv
+        # Check for a deferred initializer defined in the same class as the
+        # trait declaration or above.
+        mro = type(obj).mro()
+        meth_name = '_%s_default' % self.name
+        for cls in mro[:mro.index(self.this_class)+1]:
+            if meth_name in cls.__dict__:
+                break
+        else:
+            # We didn't find one. Do static initialization.
+            dv = self.get_default_value()
+            newdv = self._validate(obj, dv)
+            obj._trait_values[self.name] = newdv
+            return
+        # Complete the dynamic initialization.
+        self.dynamic_initializer = cls.__dict__[meth_name]
 
     def __get__(self, obj, cls=None):
         """Get the value of the trait by self.name for the instance.
@@ -265,7 +277,19 @@ class TraitType(object):
         else:
             try:
                 value = obj._trait_values[self.name]
-            except:
+            except KeyError:
+                # Check for a dynamic initializer.
+                if hasattr(self, 'dynamic_initializer'):
+                    value = self.dynamic_initializer(obj)
+                    # FIXME: Do we really validate here?
+                    value = self._validate(obj, value)
+                    obj._trait_values[self.name] = value
+                    return value
+                else:
+                    raise TraitError('Unexpected error in TraitType: '
+                        'both default value and dynamic initializer are '
+                        'absent.')
+            except Exception:
                 # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
                 raise TraitError('Unexpected error in TraitType: '
@@ -293,6 +317,11 @@ class TraitType(object):
             return self.value_for(value)
         else:
             return value
+
+    def set_dynamic_initializer(self, method):
+        """ Set the dynamic initializer method, if any.
+        """
+        self.dynamic_initializer = method
 
     def info(self):
         return self.info_text

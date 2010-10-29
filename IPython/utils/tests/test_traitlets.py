@@ -129,6 +129,29 @@ class TestTraitType(TestCase):
         a = A()
         self.assertRaises(TraitError, A.tt.error, a, 10)
 
+    def test_dynamic_initializer(self):
+        class A(HasTraits):
+            x = Int(10)
+            def _x_default(self):
+                return 11
+        class B(A):
+            x = Int(20)
+        class C(A):
+            def _x_default(self):
+                return 21
+
+        a = A()
+        self.assertEquals(a._trait_values, {})
+        self.assertEquals(a.x, 11)
+        self.assertEquals(a._trait_values, {'x': 11})
+        b = B()
+        self.assertEquals(b._trait_values, {'x': 20})
+        self.assertEquals(b.x, 20)
+        c = C()
+        self.assertEquals(c._trait_values, {})
+        self.assertEquals(c.x, 21)
+        self.assertEquals(c._trait_values, {'x': 21})
+
 
 class TestHasTraitsMeta(TestCase):
 
