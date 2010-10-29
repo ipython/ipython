@@ -1,6 +1,35 @@
 # -*- coding: utf-8 -*-
 """Displayhook formatters.
 
+The DefaultFormatter is always present and may be configured from the ipython_config.py file. For example, to add a pretty-printer for a numpy.dtype object::
+
+    def dtype_pprinter(obj, p, cycle):
+        if cycle:
+            return p.text('dtype(...)')
+        if hasattr(obj, 'fields'):
+            if obj.fields is None:
+                p.text(repr(obj))
+            else:
+                p.begin_group(7, 'dtype([')
+                for i, field in enumerate(obj.descr):
+                    if i > 0:
+                        p.text(',')
+                        p.breakable()
+                    p.pretty(field)
+                p.end_group(7, '])')
+
+    c.DefaultFormatter.deferred_pprinters = {
+        ('numpy', 'dtype'): dtype_pprinter,
+    }
+        
+The deferred_pprinters dictionary is the preferred way to configure these
+pretty-printers. This allows you to define the pretty-printer without needing to
+import the type itself. The dictionary maps (modulename, typename) pairs to
+a function.
+
+See the `IPython.external.pretty` documentation for how to write
+pretty-printer functions.
+
 Authors:
 
 * Robert Kern
