@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """Displayhook formatters.
 
-The DefaultFormatter is always present and may be configured from the ipython_config.py file. For example, to add a pretty-printer for a numpy.dtype object::
+The DefaultFormatter is always present and may be configured from the
+ipython_config.py file. For example, to add a pretty-printer for a numpy.dtype
+object::
 
     def dtype_pprinter(obj, p, cycle):
         if cycle:
