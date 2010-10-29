@@ -25,32 +25,32 @@ class DefaultFormatter(Configurable):
     format = Str('text')
 
     # Whether to pretty-print or not.
-    pprint = Bool(True)
+    pprint = Bool(True, config=True)
 
     # Whether to be verbose or not.
-    verbose = Bool(False)
+    verbose = Bool(False, config=True)
 
     # The maximum width.
-    max_width = Int(79)
+    max_width = Int(79, config=True)
 
     # The newline character.
-    newline = Str('\n')
+    newline = Str('\n', config=True)
 
     # The singleton prettyprinters.
     # Maps the IDs of the builtin singleton objects to the format functions.
-    singleton_pprinters = Dict()
+    singleton_pprinters = Dict(config=True)
     def _singleton_pprinters_default(self):
         return pretty._singleton_pprinters.copy()
 
     # The type-specific prettyprinters.
     # Map type objects to the format functions.
-    type_pprinters = Dict()
+    type_pprinters = Dict(config=True)
     def _type_pprinters_default(self):
         return pretty._type_pprinters.copy()
 
     # The deferred-import type-specific prettyprinters.
     # Map (modulename, classname) pairs to the format functions.
-    deferred_pprinters = Dict()
+    deferred_pprinters = Dict(config=True)
     def _deferred_pprinters_default(self):
         return pretty._deferred_type_pprinters.copy()
 
@@ -60,11 +60,10 @@ class DefaultFormatter(Configurable):
         """ Format the object.
         """
         if not self.pprint:
-            r = repr(obj)
-            if r is None:
-                # It can happen.
-                r = ''
-            return r
+            try:
+                return repr(obj)
+            except TypeError:
+                return ''
         else:
             stream = StringIO()
             printer = pretty.RepresentationPrinter(stream, self.verbose,
