@@ -1,39 +1,40 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project."""
 
-#*****************************************************************************
-#       Copyright (C) 2008-2009  The IPython Development Team
-#       Copyright (C) 2001-2008 Fernando Perez <fperez@colorado.edu>
-#       Copyright (c) 2001 Janko Hauser <jhauser@zscout.de> and Nathaniel Gray
-#       <n8gray@caltech.edu>
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2008-2010, IPython Development Team.
+#  Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
+#  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
+#  Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
 #
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+#  Distributed under the terms of the Modified BSD License.
+#
+#  The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
 # Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'ipython'
 
-# For versions with substrings (like 0.6.16.svn), use an extra . to separate
-# the new substring.  We have to avoid using either dashes or underscores,
-# because bdist_rpm does not accept dashes (an RPM) convention, and
-# bdist_deb does not accept underscores (a Debian convention).
+# IPython version information.  An empty _version_extra corresponds to a full
+# release.  'dev' as a _version_extra string means this is a development
+# version
+_version_major = 0
+_version_minor = 11
+_version_micro = ''  # use '' for first of series, number for 1 and above
+_version_extra = 'dev'
+#_version_extra = ''  # Uncomment this for full releases
 
-development = True    # change this to False to do a release
-version_base = '0.11.alpha1'
-branch = 'ipython'
-# This needs to be updated to something that is meaningful for git
-revision = '0' 
+# Construct full version string from these.
+_ver = [_version_major, _version_minor]
+if _version_micro:
+    _ver.append(_version_micro)
+if _version_extra:
+    _ver.append(_version_extra)
 
-if development:
-    if branch == 'ipython':
-        version = '%s.git' % (version_base)
-    else:
-        version = '%s.git.%s' % (version_base, branch)
-else:
-    version = version_base
+__version__ = '.'.join(map(str, _ver))
 
+version = __version__  # backwards compatibility name
 
 description = "An interactive computing environment for Python"
 
@@ -95,8 +96,8 @@ The parallel computing architecture has the following main features:
 
 * Robust error handling in parallel code.
 
-The latest development version is always available from IPython's `Launchpad 
-site <http://launchpad.net/ipython>`_.
+The latest development version is always available from IPython's `GitHub
+site <http://github.com/ipython>`_.
 """
 
 license = 'BSD'

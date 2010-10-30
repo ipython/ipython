@@ -322,7 +322,6 @@ class IPAppConfigLoader(BaseAppConfigLoader):
 # Crash handler for this application
 #-----------------------------------------------------------------------------
 
-
 _message_template = """\
 Oops, $self.app_name crashed. We do our best to make it stable, but...
 
@@ -354,7 +353,7 @@ class IPAppCrashHandler(CrashHandler):
     def __init__(self, app):
         contact_name = release.authors['Fernando'][0]
         contact_email = release.authors['Fernando'][1]
-        bug_tracker = 'https://bugs.launchpad.net/ipython/+filebug'
+        bug_tracker = 'http://github.com/ipython/ipython/issues'
         super(IPAppCrashHandler,self).__init__(
             app, contact_name, contact_email, bug_tracker
         )

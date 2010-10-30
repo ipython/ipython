@@ -18,6 +18,7 @@ graft IPython/scripts
 graft IPython/testing
 graft IPython/utils
 
+include IPython/.git_commit_info.ini
 
 graft docs
 exclude docs/\#*

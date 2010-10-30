@@ -20,16 +20,16 @@ for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist'),
         remove_tree(d)
 
 # Build source and binary distros
-c('./setup.py sdist --formats=gztar,zip')
+sh('./setup.py sdist --formats=gztar,zip')
 
 # Build eggs
-c('python2.6 ./setupegg.py bdist_egg')
+sh('python2.6 ./setupegg.py bdist_egg')
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
 # bdist_wininst)
-c("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
+sh("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
 
 # Change name so retarded Vista runs the installer correctly
-c("rename 's/linux-i686/win32-setup/' dist/*.exe")
-c("rename 's/linux-x86_64/win32-setup/' dist/*.exe")
+sh("rename 's/linux-i686/win32-setup/' dist/*.exe")
+sh("rename 's/linux-x86_64/win32-setup/' dist/*.exe")

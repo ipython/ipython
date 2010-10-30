@@ -49,28 +49,22 @@ it system-wide or having configure anything, by typing at the terminal:
 
    python ipython.py
 
-and similarly, you can execute the built-in test suite with:
-   
-.. code-block:: bash
-
-   python iptest.py
-
-
-This script manages intelligently both nose and trial, choosing the correct
-test system for each of IPython's components.
-
-Once you have either installed it or at least configured your system to be
-able to import IPython, you can run the tests with:
+In order to run the test suite, you must at least be able to import IPython,
+even if you haven't fully installed the user-facing scripts yet (common in a
+development environment).  You can then run the tests with:
 
 .. code-block:: bash
 
   python -c "import IPython; IPython.test()"
 
-This should work as long as IPython can be imported, even if you haven't fully
-installed the user-facing scripts yet (common in a development environment).
-Once you have installed IPython, you will have available system-wide a script
-called :file:`iptest` that does the exact same as the :file:`iptest.py` script
-in the source directory, so you can then test simply with:
+Once you have installed IPython either via a full install or using:
+
+.. code-block:: bash
+
+  python setup.py develop
+
+you will have available a system-wide script called :file:`iptest` that runs
+the full test suite.  You can then run the suite with:
 
 .. code-block:: bash
 
@@ -83,25 +77,24 @@ Regardless of how you run things, you should eventually see something like:
 
    **********************************************************************
    Test suite completed for system with the following information:
-   IPython version: 0.11.bzr.r1340
-   BZR revision   : 1340
-   Platform info  : os.name -> posix, sys.platform -> linux2
-		  : Linux-2.6.31-17-generic-i686-with-Ubuntu-9.10-karmic
-   Python info    : 2.6.4 (r264:75706, Dec  7 2009, 18:45:15) 
-   [GCC 4.4.1]
-
-   Running from an installed IPython: True
+   {'commit_hash': '144fdae',
+    'commit_source': 'repository',
+    'ipython_path': '/home/fperez/usr/lib/python2.6/site-packages/IPython',
+    'ipython_version': '0.11.dev',
+    'os_name': 'posix',
+    'platform': 'Linux-2.6.35-22-generic-i686-with-Ubuntu-10.10-maverick',
+    'sys_executable': '/usr/bin/python',
+    'sys_platform': 'linux2',
+    'sys_version': '2.6.6 (r266:84292, Sep 15 2010, 15:52:39) \n[GCC 4.4.5]'}
 
    Tools and libraries available at test time:
       curses foolscap gobject gtk pexpect twisted wx wx.aui zope.interface
 
-   Tools and libraries NOT available at test time:
-      objc
-
-   Ran 11 test groups in 36.244s
+   Ran 9 test groups in 67.213s
 
    Status:
    OK
+
 
 If not, there will be a message indicating which test group failed and how to
 rerun that group individually.  For example, this tests the
@@ -110,7 +103,7 @@ indicators:
 
 .. code-block:: bash
 
-   $ python iptest.py -v IPython.utils
+   $ iptest -v IPython.utils
    ..........................SS..SSS............................S.S...
    .........................................................
    ----------------------------------------------------------------------
@@ -126,7 +119,7 @@ example, this lets you run the specific test :func:`test_rehashx` inside the
 
 .. code-block:: bash
 
-   $ python iptest.py -vv IPython.core.tests.test_magic:test_rehashx
+   $ iptest -vv IPython.core.tests.test_magic:test_rehashx
    IPython.core.tests.test_magic.test_rehashx(True,) ... ok
    IPython.core.tests.test_magic.test_rehashx(True,) ... ok
 
@@ -146,6 +139,16 @@ package basis:
 
     trial IPython.kernel
 
+.. note::
+
+   The system information summary printed above is accessible from the top
+   level package.  If you encounter a problem with IPython, it's useful to
+   include this information when reporting on the mailing list; use::
+
+       from IPython import sys_info
+       print sys_info()
+
+   and include the resulting information in your query.
 
 For developers: writing tests
 =============================

@@ -115,7 +115,7 @@ have['gobject'] = test_for('gobject')
 def report():
     """Return a string with a summary report of test-related variables."""
 
-    out = [ sys_info() ]
+    out = [ sys_info(), '\n']
 
     avail = []
     not_avail = []
