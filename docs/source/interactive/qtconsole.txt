@@ -1,0 +1,219 @@
+.. _qtconsole:
+
+=========================
+IPython as a QtGUI widget
+=========================
+
+We now have a version of IPython, using the new two-process :ref:`ZeroMQ Kernel <ipythonzmq>`,
+running in a PyQt_ GUI.
+
+Overview
+========
+
+The Qt frontend has hand-coded emacs-style bindings for text navigation. This is not yet
+configurable.
+
+.. seealso:: 
+
+    `The original IPython-Qt project description. <ipython_qt>`_
+    
+``%loadpy``
+===========
+
+The ``%loadpy`` magic has been added, just for the GUI frontend. It takes any python
+script (must end in '.py'), and pastes its contents as your next input, so you can edit it
+before executing. The script may be on your machine, but you can also specify a url, and
+it will download the script from the web. This is particularly useful for playing with
+examples from documentation, such as matplotlib.
+
+.. sourcecode:: ipython
+
+    In [6]: %loadpy 
+    http://matplotlib.sourceforge.net/plot_directive/mpl_examples/mplot3d/contour3d_demo.py
+
+    In [7]: from mpl_toolkits.mplot3d import axes3d
+       ...: import matplotlib.pyplot as plt
+       ...: 
+       ...: fig = plt.figure()
+       ...: ax = fig.add_subplot(111, projection='3d')
+       ...: X, Y, Z = axes3d.get_test_data(0.05)
+       ...: cset = ax.contour(X, Y, Z)
+       ...: ax.clabel(cset, fontsize=9, inline=1)
+       ...: 
+       ...: plt.show()
+
+Pylab
+=====
+
+One of the most exciting features of the new console is embedded matplotlib figures. You
+can use any standard matplotlib GUI backend (Except native MacOSX) to draw the figures,
+and since there is now a two-process model, there is no longer a conflict between user
+input and the drawing eventloop.
+
+.. image:: figs/besselj.png
+    :width: 519px
+
+.. pastefig:
+
+:func:`pastefig`
+****************
+
+An additional function, :func:`pastefig`, will be added to the global namespace if you
+specify the ``--pylab`` argument. This takes the active figures in matplotlib, and embeds
+them in your document. This is especially useful for saving_ your work.
+
+.. _inline:
+
+``--pylab inline``
+******************
+
+If you want to have all of your figures embedded in your session, instead of calling
+:func:`pastefig`, you can specify ``--pylab inline``, and each time you make a plot, it
+will show up in your document, as if you had called :func:`pastefig`.
+
+
+.. _saving:
+
+Saving and Printing
+===================
+
+IPythonQt has the ability to save your current session, as either HTML or XHTML. If you
+have been using `pastefig <pastefig>`_ or inline_ pylab, your figures will be PNG
+in HTML, or inlined as SVG in XHTML. PNG images have the option to be either in an
+external folder, as in many browsers' "Webpage, Complete" option, or inlined as well, for
+a larger, but more portable file.
+
+The widget also exposes the ability to print directly, via the default print shortcut or
+context menu.
+
+
+.. Note:: 
+
+    Saving is only available to richtext Qt widgets, so make sure you start ipqt with the
+    ``--rich`` flag, or with ``--pylab``, which always uses a richtext widget.
+
+
+See these examples of :download:`png/html<figs/jn.html>` and :download:`svg/xhtml
+<figs/jn.xhtml>` output. Note that syntax highlighting does not survive export. This is a known
+issue, and is being investigated.
+
+Colors and Highlighting
+=======================
+
+Terminal IPython has always had some coloring, but never syntax highlighting. There are a
+few simple color choices, specified by the ``--colors`` flag or ``%colors`` magic:
+
+* LightBG for light backgrounds
+* Linux for dark backgrounds
+* NoColor for a simple colorless terminal
+
+The Qt widget has full support for the ``--colors`` flag, but adds new, more intuitive
+aliases for the colors (the old names still work): dark=Linux, light=LightBG, bw=NoColor.
+
+The Qt widget, however, has full syntax highlighting as you type, handled by the
+`pygments`_ library. The ``--style`` argument exposes access to any style by name that can
+be found by pygments, and there are several already installed. The ``--colors`` argument,
+if unspecified, will be guessed based on the chosen style. Similarly, there are default
+styles associated with each ``--colors`` option.
+
+
+Screenshot of ``ipython-qtconsole --colors dark``, which uses the 'monokai' theme by
+default:
+
+.. image:: figs/colors.dark.png
+    :width: 627px
+    
+.. Note::
+
+    Calling ``ipython-qtconsole -h`` will show all the style names that pygments can find
+    on your system.
+
+You can also pass the filename of a custom CSS stylesheet, if you want to do your own
+coloring, via the ``--stylesheet`` argument.  The default LightBG stylesheet:
+
+.. sourcecode:: css
+
+    QPlainTextEdit, QTextEdit { background-color: white;
+            color: black ;
+            selection-background-color: #ccc}
+    .error { color: red; }
+    .in-prompt { color: navy; }
+    .in-prompt-number { font-weight: bold; }
+    .out-prompt { color: darkred; }
+    .out-prompt-number { font-weight: bold; }
+
+Process Management
+==================
+
+With the two-process ZMQ model, the frontend does not block input during execution. This
+means that actions can be taken by the frontend while the Kernel is executing, or even
+after it crashes. The most basic such command is via 'Ctrl-.', which restarts the kernel.
+This can be done in the middle of a blocking execution. The frontend can also know, via a
+heartbeat mechanism, that the kernel has died. This means that the frontend can safely
+restart the kernel.
+
+Multiple Consoles
+*****************
+
+Since the Kernel listens on the network, multiple frontends can connect to it.  These
+do not have to all be qt frontends - any IPython frontend can connect and run code.
+When you start ipython-qtconsole, there will be an output line, like::
+
+    To connect another client to this kernel, use:
+    -e --xreq 62109 --sub 62110 --rep 62111 --hb 62112
+
+Other frontends can connect to your kernel, and share in the execution. This is great for
+collaboration. The `-e` flag is for 'external'. Starting other consoles with that flag
+will not try to start their own, but rather connect to yours. Ultimately, you will not
+have to specify each port individually, but for now this copy-paste method is best.
+
+By default (for security reasons), the kernel only listens on localhost, so you can only
+connect multiple frontends to the kernel from your local machine. You can specify to
+listen on an external interface by specifying the ``--ip`` argument::
+
+    $> ipython-qtconsole --ip 192.168.1.123
+
+If you specify the ip as 0.0.0.0, that refers to all interfaces, so any computer that can
+see yours can connect to the kernel.
+
+.. warning::
+
+    Since the ZMQ code currently has no security, listening on an external-facing IP
+    is dangerous.  You are giving any computer that can see you on the network the ability
+    to issue arbitrary shell commands as you on your machine. Be very careful with this.
+
+
+Stopping Kernels and Consoles
+*****************************
+
+Since there can be many consoles per kernel, the shutdown mechanism and dialog are
+probably more complicated than you are used to. Since you don't always want to shutdown a
+kernel when you close a window, you are given the option to just close the console window
+or also close the Kernel and *all other windows*. Note that this only refers to all other
+*local* windows, as remote Consoles are not allowed to shutdown the kernel, and shutdowns
+do not close Remote consoles (to allow for saving, etc.).
+
+Rules:
+
+    * Restarting the kernel automatically clears all *local* Consoles, and prompts remote
+      Consoles about the reset.
+    * Shutdown closes all *local* Consoles, and notifies remotes that
+      the Kernel has been shutdown.
+    * Remote Consoles may not restart or shutdown the kernel.
+
+
+Regressions
+===========
+
+There are some features, where the qt console lags behind the Terminal frontend. We hope
+to have these fixed by 0.11 release.
+
+    * Configuration: The Qt frontend and ZMQ kernel are not yet hooked up to the IPython
+      configuration system
+    * History Persistence: Currently the history of a GUI session does
+      not persist between sessions.
+    * !cmd input: Due to our use of pexpect, we cannot pass input to subprocesses launched
+      using the '!' escape. (this will not be fixed).
+
+.. [PyQt] PyQt4 http://www.riverbankcomputing.co.uk/software/pyqt/download
+.. [pygments] Pygments http://pygments.org/

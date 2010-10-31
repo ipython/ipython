@@ -8,5 +8,6 @@ Using IPython for interactive work
    tutorial.txt
    reference.txt
    shell.txt
+   qtconsole.txt
 
 
