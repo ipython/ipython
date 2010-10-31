@@ -196,7 +196,7 @@ class DisplayHook(Configurable):
         """Compute and return the repr of the object to be displayed.
 
         This method only compute the string form of the repr and should NOT
-        actual print or write that to a stream.
+        actually print or write that to a stream.
         """
         result_repr = self.default_formatter(result)
         if '\n' in result_repr:
