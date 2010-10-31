@@ -20,15 +20,14 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import __builtin__
-from pprint import PrettyPrinter
-pformat = PrettyPrinter().pformat
 
 from IPython.config.configurable import Configurable
 from IPython.core import prompts
 import IPython.utils.generics
 import IPython.utils.io
-from IPython.utils.traitlets import Instance, Int
+from IPython.utils.traitlets import Instance, List
 from IPython.utils.warn import warn
+from IPython.core.formatters import DefaultFormatter
 
 #-----------------------------------------------------------------------------
 # Main displayhook class
@@ -54,6 +53,16 @@ class DisplayHook(Configurable):
     """
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+
+    # The default formatter.
+    default_formatter = Instance('IPython.core.formatters.FormatterABC')
+    def _default_formatter_default(self):
+        # FIXME: backwards compatibility for the InteractiveShell.pprint option?
+        return DefaultFormatter(config=self.config)
+
+    # Any additional FormatterABC instances we use.
+    # FIXME: currently unused.
+    extra_formatters = List(config=True)
 
     # Each call to the In[] prompt raises it by 1, even the first.
     #prompt_count = Int(0)
@@ -109,7 +118,6 @@ class DisplayHook(Configurable):
         self.output_sep = output_sep
         self.output_sep2 = output_sep2
         self._,self.__,self.___ = '','',''
-        self.pprint_types = map(type,[(),[],{}])
 
         # these are deliberately global:
         to_user_ns = {'_':self._,'__':self.__,'___':self.___}
@@ -184,39 +192,35 @@ class DisplayHook(Configurable):
         if self.do_full_cache:
             IPython.utils.io.Term.cout.write(outprompt)
 
-    # TODO: Make this method an extension point. The previous implementation
-    # has both a result_display hook as well as a result_display generic
-    # function to customize the repr on a per class basis. We need to rethink
-    # the hooks mechanism before doing this though.
     def compute_result_repr(self, result):
         """Compute and return the repr of the object to be displayed.
 
         This method only compute the string form of the repr and should NOT
-        actual print or write that to a stream. This method may also transform
-        the result itself, but the default implementation passes the original
-        through.
+        actual print or write that to a stream.
         """
-        try:
-            if self.shell.pprint:
-                try:
-                    result_repr = pformat(result)
-                except:
-                    # Work around possible bugs in pformat
-                    result_repr = repr(result)
-                if '\n' in result_repr:
-                    # So that multi-line strings line up with the left column of
-                    # the screen, instead of having the output prompt mess up
-                    # their first line.
-                    result_repr = '\n' + result_repr
-            else:
-                result_repr = repr(result)
-        except TypeError:
-            # This happens when result.__repr__ doesn't return a string,
-            # such as when it returns None.
-            result_repr = '\n'
-        return result, result_repr
+        result_repr = self.default_formatter(result)
+        if '\n' in result_repr:
+            # So that multi-line strings line up with the left column of
+            # the screen, instead of having the output prompt mess up
+            # their first line.
+            outprompt = str(self.prompt_out)
+            if outprompt and not outprompt.endswith('\n'):
+                # But avoid extraneous empty lines.
+                result_repr = '\n' + result_repr
 
-    def write_result_repr(self, result_repr):
+        extra_formats = []
+        for f in self.extra_formatters:
+            try:
+                data = f(result)
+            except Exception:
+                # FIXME: log the exception.
+                continue
+            if data is not None:
+                extra_formats.append((f.id, f.format, data))
+
+        return result_repr, extra_formats
+
+    def write_result_repr(self, result_repr, extra_formats):
         # We want to print because we want to always make sure we have a 
         # newline, even if all the prompt separators are ''. This is the
         # standard IPython behavior.
@@ -271,8 +275,8 @@ class DisplayHook(Configurable):
         if result is not None and not self.quiet():
             self.start_displayhook()
             self.write_output_prompt()
-            result, result_repr = self.compute_result_repr(result)
-            self.write_result_repr(result_repr)
+            result_repr, extra_formats = self.compute_result_repr(result)
+            self.write_result_repr(result_repr, extra_formats)
             self.update_user_ns(result)
             self.log_output(result)
             self.finish_displayhook()

@@ -475,6 +475,7 @@ class InteractiveShell(Configurable, Magic):
     def init_displayhook(self):
         # Initialize displayhook, set in/out prompts and printing system
         self.displayhook = self.displayhook_class(
+            config=self.config,
             shell=self,
             cache_size=self.cache_size,
             input_sep = self.separate_in,

@@ -1,11 +1,14 @@
 """ Defines miscellaneous Qt-related helper classes and functions.
 """
 
+# Standard library imports.
+import inspect
+
 # System library imports.
 from PyQt4 import QtCore, QtGui
 
 # IPython imports.
-from IPython.utils.traitlets import HasTraits
+from IPython.utils.traitlets import HasTraits, TraitType
 
 #-----------------------------------------------------------------------------
 # Metaclasses
@@ -14,7 +17,6 @@ from IPython.utils.traitlets import HasTraits
 MetaHasTraits = type(HasTraits)
 MetaQObject = type(QtCore.QObject)
 
-# You can switch the order of the parents here and it doesn't seem to matter.
 class MetaQObjectHasTraits(MetaQObject, MetaHasTraits):
     """ A metaclass that inherits from the metaclasses of HasTraits and QObject.
 
@@ -22,7 +24,24 @@ class MetaQObjectHasTraits(MetaQObject, MetaHasTraits):
     QObject. Using SuperQObject instead of QObject is highly recommended. See
     QtKernelManager for an example.
     """
-    pass
+    def __new__(mcls, name, bases, classdict):
+        # FIXME: this duplicates the code from MetaHasTraits.
+        # I don't think a super() call will help me here.
+        for k,v in classdict.iteritems():
+            if isinstance(v, TraitType):
+                v.name = k
+            elif inspect.isclass(v):
+                if issubclass(v, TraitType):
+                    vinst = v()
+                    vinst.name = k
+                    classdict[k] = vinst
+        cls = MetaQObject.__new__(mcls, name, bases, classdict)
+        return cls
+
+    def __init__(mcls, name, bases, classdict):
+        # Note: super() did not work, so we explicitly call these.
+        MetaQObject.__init__(mcls, name, bases, classdict)
+        MetaHasTraits.__init__(mcls, name, bases, classdict)
 
 #-----------------------------------------------------------------------------
 # Classes

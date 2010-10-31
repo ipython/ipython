@@ -725,16 +725,35 @@ case, the kernel instantiates as ``sys.displayhook`` an object which has
 similar behavior, but which instead of printing to stdout, broadcasts these
 values as ``pyout`` messages for clients to display appropriately.
 
+IPython's displayhook can handle multiple simultaneous formats depending on its
+configuration. The default pretty-printed repr text is always given with the
+``data`` entry in this message. Any other formats are provided in the
+``extra_formats`` list. Frontends are free to display any or all of these
+according to its capabilities. ``extra_formats`` list contains 3-tuples of an ID
+string, a type string, and the data. The ID is unique to the formatter
+implementation that created the data. Frontends will typically ignore the ID
+unless if it has requested a particular formatter. The type string tells the
+frontend how to interpret the data. It is often, but not always a MIME type.
+Frontends should ignore types that it does not understand. The data itself is
+any JSON object and depends on the format. It is often, but not always a string.
+
 Message type: ``pyout``::
 
     content = {
-        # The data is typically the repr() of the object.
-    'data' : str,
+        # The data is typically the repr() of the object. It should be displayed
+        # as monospaced text.
+        'data' : str,
     
-    # The counter for this execution is also provided so that clients can
-    # display it, since IPython automatically creates variables called _N (for
-    # prompt N).
-    'execution_count' : int,
+        # The counter for this execution is also provided so that clients can
+        # display it, since IPython automatically creates variables called _N
+        # (for prompt N).
+        'execution_count' : int,
+
+        # Any extra formats.
+        # The tuples are of the form (ID, type, data).
+        'extra_formats' : [
+           [str, str, object]
+        ]
     }
     
 Python errors
