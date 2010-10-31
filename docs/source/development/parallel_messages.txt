@@ -63,8 +63,6 @@ Message type: ``registration_reply``::
         'control' : 'tcp://...', # addr for control queue
         'heartbeat' : (a,b), # tuple containing two interfaces needed for heartbeat
         'task' : 'tcp://...', # addr for task queue, or None if no task queue running
-        # if error:
-        'reason' : 'queue_id already registered'
     }
 
 Clients use the same socket as engines to start their connections. Connection requests
@@ -172,8 +170,6 @@ Message type: ``result_reply``::
                          # values are the result messages
         'pending' : ['msg_id','...'], # msg_ids still pending
         'completed' : ['msg_id','...'], # list of completed msg_ids
-        # if error:
-        'reason' : "explanation"
     }
 
 For memory management purposes, Clients can also instruct the controller to forget the
@@ -199,9 +195,6 @@ Message type: ``purge_reply``::
 
     content = {
         'status' : 'ok', # or 'error'
-
-        # if error:
-        'reason' : "KeyError: no such msg_id 'whoda'"
     }
 
 :func:`apply` and :func:`apply_bound`
@@ -210,7 +203,7 @@ Message type: ``purge_reply``::
 The `Namespace <http://gist.github.com/483294>`_ model suggests that execution be able to
 use the model::
 
-    client.apply(f, *args, **kwargs)
+    ns.apply(f, *args, **kwargs)
     
 which takes `f`, a function in the user's namespace, and executes ``f(*args, **kwargs)``
 on a remote engine, returning the result (or, for non-blocking, information facilitating
@@ -220,8 +213,8 @@ as little data as we can. The `buffers` property of a Message was introduced for
 purpose.
 
 Utility method :func:`build_apply_message` in :mod:`IPython.zmq.streamsession` wraps a
-function signature and builds the correct buffer format for minimal data copying (exactly
-zero copies of numpy array data).
+function signature and builds a sendable buffer format for minimal data copying (exactly
+zero copies of numpy array data or buffers or large strings).
 
 Message type: ``apply_request``::
 
@@ -233,6 +226,8 @@ Message type: ``apply_request``::
     }
     buffers = ['...'] # at least 3 in length
                     # as built by build_apply_message(f,args,kwargs)
+
+after/follow represent task dependencies
 
 Message type: ``apply_reply``::
 
