@@ -32,6 +32,13 @@ a function.
 See the `IPython.external.pretty` documentation for how to write
 pretty-printer functions.
 """
+#-----------------------------------------------------------------------------
+# Copyright (c) 2010, IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
 # Stdlib imports
 import abc
