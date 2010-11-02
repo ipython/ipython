@@ -51,6 +51,9 @@ def install():
             
     # Now move onto setting the Start Menu up
     ipybase = pjoin(scripts, 'ipython')
+    if 'setuptools' in sys.modules:
+        # let setuptools take care of the scripts:
+        ipybase = ipybase + '-script.py'
     workdir = "%HOMEDRIVE%%HOMEPATH%"
 
     link = pjoin(ip_start_menu, 'IPython.lnk')

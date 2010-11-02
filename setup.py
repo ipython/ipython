@@ -232,8 +232,6 @@ if 'setuptools' in sys.modules:
         test='nose>=0.10.1',
         security='pyOpenSSL>=0.6'
     )
-    # Allow setuptools to handle the scripts
-    scripts = []
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
