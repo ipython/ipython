@@ -51,26 +51,27 @@ def install():
             
     # Now move onto setting the Start Menu up
     ipybase = pjoin(scripts, 'ipython')
+    workdir = "%HOMEDRIVE%%HOMEPATH%"
 
     link = pjoin(ip_start_menu, 'IPython.lnk')
     cmd = '"%s"' % ipybase
-    mkshortcut(python,'IPython',link,cmd)
+    mkshortcut(python, 'IPython', link, cmd, workdir)
     
     link = pjoin(ip_start_menu, 'pysh.lnk')
     cmd = '"%s" -p sh' % ipybase
-    mkshortcut(python,'IPython (command prompt mode)',link,cmd)
+    mkshortcut(python, 'IPython (command prompt mode)', link, cmd, workdir)
     
     link = pjoin(ip_start_menu, 'scipy.lnk')
     cmd = '"%s" -p scipy' % ipybase
-    mkshortcut(python,'IPython (scipy profile)',link,cmd)
+    mkshortcut(python, 'IPython (scipy profile)', link, cmd, workdir)
         
     link = pjoin(ip_start_menu, 'ipcontroller.lnk')
     cmd = '"%s" -xy' % pjoin(scripts, 'ipcontroller')
-    mkshortcut(python,'IPython controller',link,cmd)
+    mkshortcut(python, 'IPython controller', link, cmd, workdir)
     
     link = pjoin(ip_start_menu, 'ipengine.lnk')
     cmd = '"%s"' % pjoin(scripts, 'ipengine')
-    mkshortcut(python,'IPython engine',link,cmd)
+    mkshortcut(python, 'IPython engine', link, cmd, workdir)
     
     # Create documentation shortcuts ...
     t = prefix + r'\share\doc\ipython\manual\ipython.pdf'
