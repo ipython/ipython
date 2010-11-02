@@ -277,7 +277,11 @@ If no filename is given, or if filename is -, read standard input."""
     if fname == '-':
         stream = sys.stdin
     else:
-        stream = file(fname)
+        try:
+            stream = file(fname)
+        except IOError,msg:
+            print >> sys.stderr, msg
+            sys.exit(1)
 
     parser = Parser()
 
