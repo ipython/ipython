@@ -278,7 +278,7 @@ def find_scripts():
                   file=sys.stderr)
             sys.exit(1)
         scripts.append(pjoin('scripts','ipython_win_post_install.py'))
-    
+
     return scripts
 
 #---------------------------------------------------------------------------
