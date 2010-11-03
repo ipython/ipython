@@ -31,19 +31,28 @@ a function.
 
 See the `IPython.external.pretty` documentation for how to write
 pretty-printer functions.
-
-Authors:
-
-* Robert Kern
 """
+#-----------------------------------------------------------------------------
+# Copyright (c) 2010, IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
+# Stdlib imports
 import abc
 from cStringIO import StringIO
 
+# Our own imports
 from IPython.config.configurable import Configurable
 from IPython.external import pretty
 from IPython.utils.traitlets import Bool, Dict, Int, Str
 
+
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 
 class DefaultFormatter(Configurable):
     """ The default pretty-printer.

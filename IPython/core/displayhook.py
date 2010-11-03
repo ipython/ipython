@@ -196,18 +196,9 @@ class DisplayHook(Configurable):
         """Compute and return the repr of the object to be displayed.
 
         This method only compute the string form of the repr and should NOT
-        actual print or write that to a stream.
+        actually print or write that to a stream.
         """
         result_repr = self.default_formatter(result)
-        if '\n' in result_repr:
-            # So that multi-line strings line up with the left column of
-            # the screen, instead of having the output prompt mess up
-            # their first line.
-            outprompt = str(self.prompt_out)
-            if outprompt and not outprompt.endswith('\n'):
-                # But avoid extraneous empty lines.
-                result_repr = '\n' + result_repr
-
         extra_formats = []
         for f in self.extra_formatters:
             try:
@@ -224,6 +215,18 @@ class DisplayHook(Configurable):
         # We want to print because we want to always make sure we have a 
         # newline, even if all the prompt separators are ''. This is the
         # standard IPython behavior.
+        if '\n' in result_repr:
+            # So that multi-line strings line up with the left column of
+            # the screen, instead of having the output prompt mess up
+            # their first line.
+            # We use the ps_out_str template instead of the expanded prompt
+            # because the expansion may add ANSI escapes that will interfere
+            # with our ability to determine whether or not we should add
+            # a newline.
+            if self.ps_out_str and not self.ps_out_str.endswith('\n'):
+                # But avoid extraneous empty lines.
+                result_repr = '\n' + result_repr
+
         print >>IPython.utils.io.Term.cout, result_repr
 
     def update_user_ns(self, result):
