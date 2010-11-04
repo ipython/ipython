@@ -282,7 +282,9 @@ class Controller(object):
         """"""
         logger.debug("registration::dispatch_register_request(%s)"%msg)
         idents,msg = self.session.feed_identities(msg)
-        print (idents,msg, len(msg))
+        if not idents:
+            logger.error("Bad Queue Message: %s"%msg)
+            return
         try:
             msg = self.session.unpack_message(msg,content=True)
         except Exception as e:
@@ -304,6 +306,9 @@ class Controller(object):
         logger.debug("queue traffic: %s"%msg[:2])
         switch = msg[0]
         idents, msg = self.session.feed_identities(msg[1:])
+        if not idents:
+            logger.error("Bad Queue Message: %s"%msg)
+            return
         handler = self.queue_handlers.get(switch, None)
         if handler is not None:
             handler(idents, msg)
@@ -314,7 +319,9 @@ class Controller(object):
     def dispatch_client_msg(self, msg):
         """Route messages from clients"""
         idents, msg = self.session.feed_identities(msg)
-        client_id = idents[0]
+        if not idents:
+            logger.error("Bad Client Message: %s"%msg)
+            return
         try:
             msg = self.session.unpack_message(msg, content=True)
         except:
@@ -376,8 +383,10 @@ class Controller(object):
     #----------------------- MUX Queue Traffic ------------------------------
     
     def save_queue_request(self, idents, msg):
+        if len(idents) < 2:
+            logger.error("invalid identity prefix: %s"%idents)
+            return
         queue_id, client_id = idents[:2]
-            
         try:
             msg = self.session.unpack_message(msg, content=False)
         except:
@@ -399,8 +408,11 @@ class Controller(object):
         self.queues[eid].append(msg_id)
     
     def save_queue_result(self, idents, msg):
+        if len(idents) < 2:
+            logger.error("invalid identity prefix: %s"%idents)
+            return
+            
         client_id, queue_id = idents[:2]
-        
         try:
             msg = self.session.unpack_message(msg, content=False)
         except:
