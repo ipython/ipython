@@ -14,8 +14,8 @@ import zmq
 from zmq.utils import jsonapi
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.zmq.pickleutil import can, uncan, canSequence, uncanSequence
-from IPython.zmq.newserialized import serialize, unserialize
+from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
+from IPython.utils.newserialized import serialize, unserialize
 
 try:
     import cPickle
