@@ -11,15 +11,7 @@ ANYWHERE = 1 << 3
 class UnmetDependency(Exception):
     pass
 
-class depend2(object):
-    """dependency decorator"""
-    def __init__(self, f, *args, **kwargs):
-        self.dependency = (f,args,kwargs)
-    
-    def __call__(self, f, *args, **kwargs):
-        f._dependency = self.dependency
-        return decorator(_depend_wrapper, f)
-    
+
 class depend(object):
     """Dependency decorator, for use with tasks."""
     def __init__(self, f, *args, **kwargs):
