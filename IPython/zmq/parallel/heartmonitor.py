@@ -28,6 +28,7 @@ class Heart(object):
     id=None
     def __init__(self, in_addr, out_addr, in_type=zmq.SUB, out_type=zmq.XREQ, heart_id=None):
         self.device = ProcessDevice(zmq.FORWARDER, in_type, out_type)
+        self.device.daemon=True
         self.device.connect_in(in_addr)
         self.device.connect_out(out_addr)
         if in_type == zmq.SUB:

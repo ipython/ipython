@@ -28,7 +28,7 @@ from IPython.zmq.entry_point import bind_port
 
 from streamsession import Message, wrap_exception
 from entry_point import (make_base_argument_parser, select_random_ports, split_ports,
-                        connect_logger, parse_url)
+                        connect_logger, parse_url, signal_children)
 
 #-----------------------------------------------------------------------------
 # Code
@@ -882,6 +882,7 @@ def main():
     sub = ZMQStream(sub, loop)
     
     ports = select_random_ports(random_ports)
+    children = []
     # Multiplexer Queue (in a Process)
     if not mux:
         mux = (ports.pop(),ports.pop())
@@ -891,6 +892,7 @@ def main():
     q.connect_mon(iface%monport)
     q.daemon=True
     q.start()
+    children.append(q.launcher)
     
     # Control Queue (in a Process)
     if not control:
@@ -901,7 +903,7 @@ def main():
     q.connect_mon(iface%monport)
     q.daemon=True
     q.start()
-    
+    children.append(q.launcher)
     # Task Queue (in a Process)
     if not task:
         task = (ports.pop(),ports.pop())
@@ -912,12 +914,14 @@ def main():
         q.connect_mon(iface%monport)
         q.daemon=True
         q.start()
+        children.append(q.launcher)
     else:
         sargs = (iface%task[0],iface%task[1],iface%monport,iface%nport,args.scheduler)
         print (sargs)
-        p = Process(target=launch_scheduler, args=sargs)
-        p.daemon=True
-        p.start()
+        q = Process(target=launch_scheduler, args=sargs)
+        q.daemon=True
+        q.start()
+        children.append(q)
     
     time.sleep(.25)
     
@@ -937,9 +941,13 @@ def main():
         'task' : iface%task[0],
         'notification': iface%nport
         }
+    signal_children(children)
     con = Controller(loop, thesession, sub, reg, hmon, c, n, None, engine_addrs, client_addrs)
     dc = ioloop.DelayedCallback(lambda : print("Controller started..."), 100, loop)
     loop.start()
+    
+    
+    
 
 if __name__ == '__main__':
     main()

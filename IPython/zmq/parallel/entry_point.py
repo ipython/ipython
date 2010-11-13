@@ -5,10 +5,15 @@ launchers.
 # Standard library imports.
 import logging
 import atexit
+import sys
 import os
 import socket
 from subprocess import Popen, PIPE
-import sys
+from signal import signal, SIGINT, SIGABRT, SIGTERM
+try:
+    from signal import SIGKILL
+except ImportError:
+    SIGKILL=None
 
 # System library imports.
 import zmq
@@ -50,8 +55,14 @@ def parse_url(args):
         if iface[1]:
             args.regport = iface[1]
     args.url = "%s://%s:%i"%(args.transport, args.ip,args.regport)
-    
-        
+
+def signal_children(children):
+    def terminate_children(sig, frame):
+        for child in children:
+            child.terminate()
+        # sys.exit(sig)
+    for sig in (SIGINT, SIGABRT, SIGTERM):
+        signal(sig, terminate_children)
 
 def make_base_argument_parser():
     """ Creates an ArgumentParser for the generic arguments supported by all 
