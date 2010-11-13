@@ -199,7 +199,12 @@ def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pa
     This creates a tunnel redirecting `localhost:lport` to `remoteip:rport`,
     as seen from `server`.
     
+    If you are familiar with ssh tunnels, this creates the tunnel:
+    
+    ssh server -L localhost:lport:remoteip:rport
+    
     keyfile and password may be specified, but ssh config is checked for defaults.
+    
     
     Parameters
     ----------
@@ -244,8 +249,8 @@ def _shutdown_process(p):
         p.terminate()
 
 def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None):
-    """function for actually starting a paramiko tunnel, to be passed
-    to multiprocessing.Process(target=this).
+    """Function for actually starting a paramiko tunnel, to be passed
+    to multiprocessing.Process(target=this), and not called directly.
     """
     username, server, port = _split_server(server)
     client = paramiko.SSHClient()
@@ -283,18 +288,5 @@ else:
 
     
 __all__ = ['tunnel_connection', 'ssh_tunnel', 'openssh_tunnel', 'paramiko_tunnel', 'try_passwordless_ssh']
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

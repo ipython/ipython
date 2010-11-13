@@ -114,13 +114,6 @@ class Message(object):
 def msg_header(msg_id, msg_type, username, session):
     date=datetime.now().isoformat()
     return locals()
-    # return {
-    #     'msg_id' : msg_id,
-    #     'msg_type': msg_type,
-    #     'username' : username,
-    #     'session' : session
-    # }
-
 
 def extract_header(msg_or_header):
     """Given a message or header, return the header."""
@@ -179,8 +172,8 @@ def serialize_object(obj, threshold=64e-6):
     -------
     ('pmd', [bufs]) :
         where pmd is the pickled metadata wrapper,
-        bufs is a list of data buffers"""
-    # threshold is 100 B
+        bufs is a list of data buffers
+    """
     databuffers = []
     if isinstance(obj, (list, tuple)):
         clist = canSequence(obj)

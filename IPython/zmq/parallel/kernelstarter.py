@@ -35,7 +35,7 @@ class KernelStarter(object):
         msgtype = msg['msg_type']
         handler = self.handlers.get(msgtype, None)
         if handler is None:
-            self.downstream.send_multipart(raw_msg)
+            self.downstream.send_multipart(raw_msg, copy=False)
         else:
             handler(msg)
         
@@ -49,7 +49,7 @@ class KernelStarter(object):
         msgtype = msg['msg_type']
         handler = self.handlers.get(msgtype, None)
         if handler is None:
-            self.upstream.send_multipart(raw_msg)
+            self.upstream.send_multipart(raw_msg, copy=False)
         else:
             handler(msg)
     
@@ -58,7 +58,8 @@ class KernelStarter(object):
     #--------------------------------------------------------------------------
     
     def shutdown_request(self, msg):
-        
+        """"""
+        self.downstream.send_multipart(msg)
     
     #--------------------------------------------------------------------------
     # Kernel process management methods, from KernelManager:
@@ -202,7 +203,7 @@ class KernelStarter(object):
 
 
 def make_starter(up_addr, down_addr, *args, **kwargs):
-    """entry point script for launching a kernelstarter in a subprocess"""
+    """entry point function for launching a kernelstarter in a subprocess"""
     loop = ioloop.IOLoop.instance()
     ctx = zmq.Context()
     session = StreamSession()
