@@ -419,5 +419,5 @@ def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs,
             shell_streams=shell_streams, iopub_stream=iopub_stream, 
             client=client)
     kernel.start()
-    return loop, c
+    return loop, c, kernel
 

@@ -39,8 +39,10 @@ class Engine(object):
     registrar=None
     heart=None
     kernel=None
+    user_ns=None
     
-    def __init__(self, context, loop, session, registrar, client=None, ident=None):
+    def __init__(self, context, loop, session, registrar, client=None, ident=None,
+        heart_id=None, user_ns=None):
         self.context = context
         self.loop = loop
         self.session = session
@@ -48,6 +50,7 @@ class Engine(object):
         self.client = client
         self.ident = ident if ident else str(uuid.uuid4())
         self.registrar.on_send(printer)
+        self.user_ns = user_ns
         
     def register(self):
         
@@ -78,8 +81,14 @@ class Engine(object):
             sub.on_recv(lambda *a: None)
             port = sub.bind_to_random_port("tcp://%s"%LOCALHOST)
             iopub_addr = "tcp://%s:%i"%(LOCALHOST,12345)
-            make_kernel(self.ident, control_addr, shell_addrs, iopub_addr, hb_addrs, 
-                        client_addr=None, loop=self.loop, context=self.context, key=self.session.key)
+            
+            k = make_kernel(self.ident, control_addr, shell_addrs, iopub_addr,
+                            hb_addrs, client_addr=None, loop=self.loop,
+                            context=self.context, key=self.session.key)[-1]
+            self.kernel = k
+            if self.user_ns is not None:
+                self.user_ns.update(self.kernel.user_ns)
+                self.kernel.user_ns = self.user_ns
             
         else:
             # logger.error("Registration Failed: %s"%msg)
@@ -100,11 +109,11 @@ class Engine(object):
 
         
 
-def main():
+def main(argv=None, user_ns=None):
     
     parser = make_base_argument_parser()
     
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     
     parse_url(args)
     
@@ -127,7 +136,11 @@ def main():
     reg = zmqstream.ZMQStream(reg, loop)
     client = None
     
-    e = Engine(ctx, loop, session, reg, client, args.ident)
+    e = Engine(ctx, loop, session, reg, client, args.ident, user_ns=user_ns)
     dc = ioloop.DelayedCallback(e.start, 100, loop)
     dc.start()
     loop.start()
+
+# Execution as a script
+if __name__ == '__main__':
+    main()
