@@ -127,17 +127,21 @@ class Kernel(HasTraits):
         """kill ourself.  This should really be handled in an external process"""
         self.abort_queues()
         content = dict(parent['content'])
-        msg = self.session.send(self.reply_socket, 'shutdown_reply',
-                                content, parent, ident)
-        msg = self.session.send(self.pub_socket, 'shutdown_reply',
-                                content, parent, ident)
+        msg = self.session.send(stream, 'shutdown_reply',
+                                content=content, parent=parent, ident=ident)
+        # msg = self.session.send(self.pub_socket, 'shutdown_reply',
+        #                         content, parent, ident)
         # print >> sys.__stdout__, msg
         time.sleep(0.1)
         sys.exit(0)    
     
     def dispatch_control(self, msg):
         idents,msg = self.session.feed_identities(msg, copy=False)
-        msg = self.session.unpack_message(msg, content=True, copy=False)
+        try:
+            msg = self.session.unpack_message(msg, content=True, copy=False)
+        except:
+            logger.error("Invalid Message", exc_info=True)
+            return
         
         header = msg['header']
         msg_id = header['msg_id']
@@ -313,7 +317,12 @@ class Kernel(HasTraits):
     def dispatch_queue(self, stream, msg):
         self.control_stream.flush()
         idents,msg = self.session.feed_identities(msg, copy=False)
-        msg = self.session.unpack_message(msg, content=True, copy=False)
+        try:
+            msg = self.session.unpack_message(msg, content=True, copy=False)
+        except:
+            logger.error("Invalid Message", exc_info=True)
+            return
+            
         
         header = msg['header']
         msg_id = header['msg_id']
@@ -367,14 +376,15 @@ class Kernel(HasTraits):
         #         time.sleep(1e-3)
 
 def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs, 
-                client_addr=None, loop=None, context=None):
+                client_addr=None, loop=None, context=None, key=None):
     # create loop, context, and session:
     if loop is None:
         loop = ioloop.IOLoop.instance()
     if context is None:
         context = zmq.Context()
     c = context
-    session = StreamSession()
+    session = StreamSession(key=key)
+    # print (session.key)
     print (control_addr, shell_addrs, iopub_addr, hb_addrs)
     
     # create Control Stream

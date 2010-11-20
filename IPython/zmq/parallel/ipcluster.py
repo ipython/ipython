@@ -65,7 +65,7 @@ def main():
 
     controller_args = strip_args([('--n','-n')])
     engine_args = filter_args(['--url', '--regport', '--logport', '--ip', 
-                '--transport','--loglevel','--packer'])+['--ident']
+                '--transport','--loglevel','--packer', '--execkey'])+['--ident']
     
     controller = launch_process('controller', controller_args)
     for i in range(10):

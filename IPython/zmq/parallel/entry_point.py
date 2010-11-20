@@ -7,6 +7,7 @@ import logging
 import atexit
 import sys
 import os
+import stat
 import socket
 from subprocess import Popen, PIPE
 from signal import signal, SIGINT, SIGABRT, SIGTERM
@@ -33,7 +34,7 @@ def split_ports(s, n):
     return ports
 
 def select_random_ports(n):
-    """Selects and return n random ports that are open."""
+    """Selects and return n random ports that are available."""
     ports = []
     for i in xrange(n):
         sock = socket.socket()
@@ -46,6 +47,7 @@ def select_random_ports(n):
     return ports
 
 def parse_url(args):
+    """Ensure args.url contains full transport://interface:port"""
     if args.url:
         iface = args.url.split('://',1)
         if len(args) == 2:
@@ -57,12 +59,24 @@ def parse_url(args):
     args.url = "%s://%s:%i"%(args.transport, args.ip,args.regport)
 
 def signal_children(children):
+    """Relay interupt/term signals to children, for more solid process cleanup."""
     def terminate_children(sig, frame):
         for child in children:
             child.terminate()
         # sys.exit(sig)
     for sig in (SIGINT, SIGABRT, SIGTERM):
         signal(sig, terminate_children)
+
+def generate_exec_key(keyfile):
+    import uuid
+    newkey = str(uuid.uuid4())
+    with open(keyfile, 'w') as f:
+        # f.write('ipython-key ')
+        f.write(newkey)
+    # set user-only RW permissions (0600)
+    # this will have no effect on Windows
+    os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
+        
 
 def make_base_argument_parser():
     """ Creates an ArgumentParser for the generic arguments supported by all 
@@ -86,6 +100,8 @@ def make_base_argument_parser():
                         help='set the message format method [default: json]')
     parser.add_argument('--url', type=str,
                         help='set transport,ip,regport in one arg, e.g. tcp://127.0.0.1:10101')
+    parser.add_argument('--execkey', type=str,
+                        help="File containing key for authenticating requests.")
 
     return parser
 

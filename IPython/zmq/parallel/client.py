@@ -12,6 +12,7 @@
 
 from __future__ import print_function
 
+import os
 import time
 from pprint import pprint
 
@@ -139,19 +140,30 @@ class Client(object):
         A string of the form passed to ssh, i.e. 'server.tld' or 'user@server.tld:port'
         If keyfile or password is specified, and this is not, it will default to
         the ip given in addr.
-    keyfile : str; path to public key file
+    sshkey : str; path to public ssh key file
         This specifies a key to be used in ssh login, default None.
         Regular default ssh keys will be used without specifying this argument.
     password : str; 
         Your ssh password to sshserver. Note that if this is left None,
         you will be prompted for it if passwordless key based login is unavailable.
     
+    #------- exec authentication args -------
+    # If even localhost is untrusted, you can have some protection against
+    # unauthorized execution by using a key.  Messages are still sent
+    # as cleartext, so if someone can snoop your loopback traffic this will
+    # not help anything.
+    
+    exec_key : str
+        an authentication key or file containing a key
+        default: None
+    
+    
     Attributes
     ----------
     ids : set of int engine IDs
         requesting the ids attribute always synchronizes
         the registration state. To request ids without synchronization,
-        use semi-private _ids.
+        use semi-private _ids attributes.
     
     history : list of msg_ids
         a list of msg_ids, keeping track of all the execution
@@ -175,7 +187,7 @@ class Client(object):
             
     barrier : wait on one or more msg_ids
     
-    execution methods: apply/apply_bound/apply_to/applu_bount
+    execution methods: apply/apply_bound/apply_to/apply_bound
         legacy: execute, run
     
     query methods: queue_status, get_result, purge
@@ -202,26 +214,32 @@ class Client(object):
     debug = False
     
     def __init__(self, addr='tcp://127.0.0.1:10101', context=None, username=None, debug=False, 
-            sshserver=None, keyfile=None, password=None, paramiko=None):
+            sshserver=None, sshkey=None, password=None, paramiko=None,
+            exec_key=None,):
         if context is None:
             context = zmq.Context()
         self.context = context
         self._addr = addr
-        self._ssh = bool(sshserver or keyfile or password)
+        self._ssh = bool(sshserver or sshkey or password)
         if self._ssh and sshserver is None:
             # default to the same
             sshserver = addr.split('://')[1].split(':')[0]
         if self._ssh and password is None:
-            if tunnel.try_passwordless_ssh(sshserver, keyfile, paramiko):
+            if tunnel.try_passwordless_ssh(sshserver, sshkey, paramiko):
                 password=False
             else:
                 password = getpass("SSH Password for %s: "%sshserver)
-        ssh_kwargs = dict(keyfile=keyfile, password=password, paramiko=paramiko)
-
-        if username is None:
-            self.session = ss.StreamSession()
+        ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
+        
+        if os.path.isfile(exec_key):
+            arg = 'keyfile'
         else:
-            self.session = ss.StreamSession(username)
+            arg = 'key'
+        key_arg = {arg:exec_key}
+        if username is None:
+            self.session = ss.StreamSession(**key_arg)
+        else:
+            self.session = ss.StreamSession(username, **key_arg)
         self._registration_socket = self.context.socket(zmq.XREQ)
         self._registration_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:
@@ -536,11 +554,12 @@ class Client(object):
     
     @spinfirst
     @defaultblock
-    def kill(self, targets=None, block=None):
+    def shutdown(self, targets=None, restart=False, block=None):
         """Terminates one or more engine processes."""
         targets = self._build_targets(targets)[0]
         for t in targets:
-            self.session.send(self._control_socket, 'kill_request', content={},ident=t)
+            self.session.send(self._control_socket, 'shutdown_request', 
+                        content={'restart':restart},ident=t)
         error = False
         if self.block:
             for i in range(len(targets)):

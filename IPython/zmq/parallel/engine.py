@@ -40,7 +40,7 @@ class Engine(object):
     heart=None
     kernel=None
     
-    def __init__(self, context, loop, session, registrar, client, ident=None, heart_id=None):
+    def __init__(self, context, loop, session, registrar, client=None, ident=None):
         self.context = context
         self.loop = loop
         self.session = session
@@ -53,6 +53,7 @@ class Engine(object):
         
         content = dict(queue=self.ident, heartbeat=self.ident, control=self.ident)
         self.registrar.on_recv(self.complete_registration)
+        # print (self.session.key)
         self.session.send(self.registrar, "registration_request",content=content)
     
     def complete_registration(self, msg):
@@ -77,9 +78,8 @@ class Engine(object):
             sub.on_recv(lambda *a: None)
             port = sub.bind_to_random_port("tcp://%s"%LOCALHOST)
             iopub_addr = "tcp://%s:%i"%(LOCALHOST,12345)
-            
             make_kernel(self.ident, control_addr, shell_addrs, iopub_addr, hb_addrs, 
-                        client_addr=None, loop=self.loop, context=self.context)
+                        client_addr=None, loop=self.loop, context=self.context, key=self.session.key)
             
         else:
             # logger.error("Registration Failed: %s"%msg)
@@ -111,7 +111,8 @@ def main():
     iface="%s://%s"%(args.transport,args.ip)+':%i'
     
     loop = ioloop.IOLoop.instance()
-    session = StreamSession()
+    session = StreamSession(keyfile=args.execkey)
+    # print (session.key)
     ctx = zmq.Context()
 
     # setup logging
@@ -124,7 +125,7 @@ def main():
     reg = ctx.socket(zmq.PAIR)
     reg.connect(reg_conn)
     reg = zmqstream.ZMQStream(reg, loop)
-    client = Client(reg_conn)
+    client = None
     
     e = Engine(ctx, loop, session, reg, client, args.ident)
     dc = ioloop.DelayedCallback(e.start, 100, loop)

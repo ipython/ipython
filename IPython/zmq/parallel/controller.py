@@ -15,6 +15,7 @@ and monitors traffic through the various queues.
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
+import os
 from datetime import datetime
 import logging
 
@@ -28,7 +29,7 @@ from IPython.zmq.entry_point import bind_port
 
 from streamsession import Message, wrap_exception
 from entry_point import (make_base_argument_parser, select_random_ports, split_ports,
-                        connect_logger, parse_url, signal_children)
+                        connect_logger, parse_url, signal_children, generate_exec_key)
 
 #-----------------------------------------------------------------------------
 # Code
@@ -283,13 +284,12 @@ class Controller(object):
         logger.debug("registration::dispatch_register_request(%s)"%msg)
         idents,msg = self.session.feed_identities(msg)
         if not idents:
-            logger.error("Bad Queue Message: %s"%msg)
+            logger.error("Bad Queue Message: %s"%msg, exc_info=True)
             return
         try:
             msg = self.session.unpack_message(msg,content=True)
-        except Exception as e:
-            logger.error("registration::got bad registration message: %s"%msg)
-            raise e
+        except:
+            logger.error("registration::got bad registration message: %s"%msg, exc_info=True)
             return
         
         msg_type = msg['msg_type']
@@ -326,7 +326,7 @@ class Controller(object):
             msg = self.session.unpack_message(msg, content=True)
         except:
             content = wrap_exception()
-            logger.error("Bad Client Message: %s"%msg)
+            logger.error("Bad Client Message: %s"%msg, exc_info=True)
             self.session.send(self.clientele, "controller_error", ident=client_id, 
                     content=content)
             return
@@ -340,7 +340,7 @@ class Controller(object):
             assert handler is not None, "Bad Message Type: %s"%msg_type
         except:
             content = wrap_exception()
-            logger.error("Bad Message Type: %s"%msg_type)
+            logger.error("Bad Message Type: %s"%msg_type, exc_info=True)
             self.session.send(self.clientele, "controller_error", ident=client_id, 
                     content=content)
             return
@@ -390,7 +390,7 @@ class Controller(object):
         try:
             msg = self.session.unpack_message(msg, content=False)
         except:
-            logger.error("queue::client %r sent invalid message to %r: %s"%(client_id, queue_id, msg))
+            logger.error("queue::client %r sent invalid message to %r: %s"%(client_id, queue_id, msg), exc_info=True)
             return
         
         eid = self.by_ident.get(queue_id, None)
@@ -417,7 +417,7 @@ class Controller(object):
             msg = self.session.unpack_message(msg, content=False)
         except:
             logger.error("queue::engine %r sent invalid message to %r: %s"%(
-                    queue_id,client_id, msg))
+                    queue_id,client_id, msg), exc_info=True)
             return
         
         eid = self.by_ident.get(queue_id, None)
@@ -448,7 +448,7 @@ class Controller(object):
             msg = self.session.unpack_message(msg, content=False)
         except:
             logger.error("task::client %r sent invalid task message: %s"%(
-                    client_id, msg))
+                    client_id, msg), exc_info=True)
             return
         
         header = msg['header']
@@ -871,7 +871,11 @@ def main():
     n = ZMQStream(ctx.socket(zmq.PUB), loop)
     nport = bind_port(n, args.ip, args.notice)
     
-    thesession = session.StreamSession(username=args.ident or "controller")
+    ### Key File ###
+    if args.execkey and not os.path.isfile(args.execkey):
+            generate_exec_key(args.execkey)
+    
+    thesession = session.StreamSession(username=args.ident or "controller", keyfile=args.execkey)
     
     ### build and launch the queues ###
     

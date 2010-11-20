@@ -277,7 +277,9 @@ def unpack_apply_message(bufs, g=None, copy=True):
 class StreamSession(object):
     """tweaked version of IPython.zmq.session.Session, for development in Parallel"""
     debug=False
-    def __init__(self, username=None, session=None, packer=None, unpacker=None):
+    key=None
+    
+    def __init__(self, username=None, session=None, packer=None, unpacker=None, key=None, keyfile=None):
         if username is None:
             username = os.environ.get('USER','username')
         self.username = username
@@ -300,6 +302,14 @@ class StreamSession(object):
                 raise TypeError("unpacker must be callable, not %s"%type(unpacker))
             self.unpack = unpacker
         
+        if key is not None and keyfile is not None:
+            raise TypeError("Must specify key OR keyfile, not both")
+        if keyfile is not None:
+            with open(keyfile) as f:
+                self.key = f.read().strip()
+        else:
+            self.key = key
+        # print key, keyfile, self.key
         self.none = self.pack({})
             
     def msg_header(self, msg_type):
@@ -318,6 +328,14 @@ class StreamSession(object):
         msg['header'].update(sub)
         return msg
 
+    def check_key(self, msg_or_header):
+        """Check that a message's header has the right key"""
+        if self.key is None:
+            return True
+        header = extract_header(msg_or_header)
+        return header.get('key', None) == self.key
+            
+        
     def send(self, stream, msg_type, content=None, buffers=None, parent=None, subheader=None, ident=None):
         """Build and send a message via stream or socket.
         
@@ -353,6 +371,8 @@ class StreamSession(object):
         elif ident is not None:
             to_send.append(ident)
         to_send.append(DELIM)
+        if self.key is not None:
+            to_send.append(self.key)
         to_send.append(self.pack(msg['header']))
         to_send.append(self.pack(msg['parent_header']))
         
@@ -393,6 +413,8 @@ class StreamSession(object):
         if ident is not None:
             to_send.extend(ident)
         to_send.append(DELIM)
+        if self.key is not None:
+            to_send.append(self.key)
         to_send.extend(msg)
         stream.send_multipart(msg, flags, copy=copy)
     
@@ -457,19 +479,24 @@ class StreamSession(object):
             or the non-copying Message object in each place (False)
         
         """
-        if not len(msg) >= 3:
-            raise TypeError("malformed message, must have at least 3 elements")
+        ikey = int(self.key is not None)
+        minlen = 3 + ikey
+        if not len(msg) >= minlen:
+            raise TypeError("malformed message, must have at least %i elements"%minlen)
         message = {}
         if not copy:
-            for i in range(3):
+            for i in range(minlen):
                 msg[i] = msg[i].bytes
-        message['header'] = self.unpack(msg[0])
+        if ikey:
+            if not self.key == msg[0]:
+                raise KeyError("Invalid Session Key: %s"%msg[0])
+        message['header'] = self.unpack(msg[ikey+0])
         message['msg_type'] = message['header']['msg_type']
-        message['parent_header'] = self.unpack(msg[1])
+        message['parent_header'] = self.unpack(msg[ikey+1])
         if content:
-            message['content'] = self.unpack(msg[2])
+            message['content'] = self.unpack(msg[ikey+2])
         else:
-            message['content'] = msg[2]
+            message['content'] = msg[ikey+2]
     
         # message['buffers'] = msg[3:]
         # else:
@@ -481,7 +508,7 @@ class StreamSession(object):
         #     else:
         #         message['content'] = msg[2].bytes
         
-        message['buffers'] = msg[3:]# [ m.buffer for m in msg[3:] ]
+        message['buffers'] = msg[ikey+3:]# [ m.buffer for m in msg[3:] ]
         return message
             
         
