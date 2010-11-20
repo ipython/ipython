@@ -231,7 +231,7 @@ class Client(object):
                 password = getpass("SSH Password for %s: "%sshserver)
         ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
         
-        if os.path.isfile(exec_key):
+        if exec_key is not None and os.path.isfile(exec_key):
             arg = 'keyfile'
         else:
             arg = 'key'
