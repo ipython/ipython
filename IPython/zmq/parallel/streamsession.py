@@ -58,6 +58,7 @@ else:
 
 
 DELIM="<IDS|MSG>"
+ISO8601="%Y-%m-%dT%H:%M:%S.%f"
 
 def wrap_exception():
     etype, evalue, tb = sys.exc_info()
@@ -112,7 +113,7 @@ class Message(object):
 
 
 def msg_header(msg_id, msg_type, username, session):
-    date=datetime.now().isoformat()
+    date=datetime.now().strftime(ISO8601)
     return locals()
 
 def extract_header(msg_or_header):
@@ -187,14 +188,14 @@ def serialize_object(obj, threshold=64e-6):
         sobj = {}
         for k in sorted(obj.iterkeys()):
             s = serialize(can(obj[k]))
-            if s.getDataSize() > threshold:
+            if s.typeDescriptor in ('buffer', 'ndarray') or s.getDataSize() > threshold:
                 databuffers.append(s.getData())
                 s.data = None
             sobj[k] = s
         return pickle.dumps(sobj,-1),databuffers
     else:
         s = serialize(can(obj))
-        if s.getDataSize() > threshold:
+        if s.typeDescriptor in ('buffer', 'ndarray') or s.getDataSize() > threshold:
             databuffers.append(s.getData())
             s.data = None
         return pickle.dumps(s,-1),databuffers

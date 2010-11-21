@@ -15,6 +15,7 @@ import os
 import sys
 import time
 import traceback
+from datetime import datetime
 from signal import SIGTERM, SIGKILL
 from pprint import pprint
 
@@ -25,9 +26,10 @@ from zmq.eventloop import ioloop, zmqstream
 # Local imports.
 from IPython.utils.traitlets import HasTraits, Instance, List
 from IPython.zmq.completer import KernelCompleter
+from IPython.zmq.log import logger # a Logger object
 
 from streamsession import StreamSession, Message, extract_header, serialize_object,\
-                unpack_apply_message
+                unpack_apply_message, ISO8601
 from dependency import UnmetDependency
 import heartmonitor
 from client import Client
@@ -197,6 +199,7 @@ class Kernel(HasTraits):
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_stream.send(pyin_msg)
         self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent)
+        started = datetime.now().strftime(ISO8601)
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
             # allow for not overriding displayhook
@@ -221,7 +224,8 @@ class Kernel(HasTraits):
         # reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
         # self.reply_socket.send(ident, zmq.SNDMORE)
         # self.reply_socket.send_json(reply_msg)
-        reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, ident=ident)
+        reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, 
+                    ident=ident, subheader = dict(started=started))
         print(Message(reply_msg), file=sys.__stdout__)
         if reply_msg['content']['status'] == u'error':
             self.abort_queues()
@@ -250,7 +254,8 @@ class Kernel(HasTraits):
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_stream.send(pyin_msg)
         # self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent)
-        sub = {'dependencies_met' : True, 'engine' : self.identity}
+        sub = {'dependencies_met' : True, 'engine' : self.identity,
+                'started': datetime.now().strftime(ISO8601)}
         try:
             # allow for not overriding displayhook
             if hasattr(sys.displayhook, 'set_parent'):
@@ -345,9 +350,13 @@ class Kernel(HasTraits):
             self.control_stream.on_recv(self.dispatch_control, copy=False)
             self.control_stream.on_err(printer)
         
+        def make_dispatcher(stream):
+            def dispatcher(msg):
+                return self.dispatch_queue(stream, msg)
+            return dispatcher
+        
         for s in self.shell_streams:
-            s.on_recv(lambda msg: 
-                    self.dispatch_queue(s, msg), copy=False)
+            s.on_recv(make_dispatcher(s), copy=False)
             s.on_err(printer)
         
         if self.iopub_stream:
