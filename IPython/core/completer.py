@@ -456,23 +456,12 @@ class IPCompleter(Completer):
                          self.python_func_kw_matches,
                          ]
     
-    # Code contributed by Alex Schmolck, for ipython/emacs integration
     def all_completions(self, text):
-        """Return all possible completions for the benefit of emacs."""
-
-        completions = []
-        comp_append = completions.append
-        try:
-            for i in xrange(sys.maxint):
-                res = self.complete(text, i, text)
-                if not res:
-                    break
-                comp_append(res)
-        #XXX workaround for ``notDefined.<tab>``
-        except NameError:
-            pass
-        return completions
-    # /end Alex Schmolck code.
+        """
+        Wrapper around the complete method for the benefit of emacs
+        and pydb.
+        """
+        return self.complete(text)[1]
 
     def _clean_glob(self,text):
         return self.glob("%s*" % text)
