@@ -15,13 +15,15 @@ and monitors traffic through the various queues.
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
+import sys
 import os
 from datetime import datetime
 import logging
+import time
+import uuid
 
 import zmq
 from zmq.eventloop import zmqstream, ioloop
-import uuid
 
 # internal:
 from IPython.zmq.log import logger # a Logger object
@@ -232,6 +234,7 @@ class Controller(object):
                                 'purge_request': self.purge_results,
                                 'load_request': self.check_load,
                                 'resubmit_request': self.resubmit_task,
+                                'shutdown_request': self.shutdown_request,
                                 }
         
         self.registrar_handlers = {'registration_request' : self.register_engine,
@@ -716,6 +719,24 @@ class Controller(object):
     # Client Requests
     #-------------------------------------------------------------------------
     
+    def shutdown_request(self, client_id, msg):
+        """handle shutdown request."""
+        # s = self.context.socket(zmq.XREQ)
+        # s.connect(self.client_connections['mux'])
+        # time.sleep(0.1)
+        # for eid,ec in self.engines.iteritems():
+        #     self.session.send(s, 'shutdown_request', content=dict(restart=False), ident=ec.queue)
+        # time.sleep(1)
+        self.session.send(self.clientele, 'shutdown_reply', content={'status': 'ok'}, ident=client_id)
+        dc = ioloop.DelayedCallback(lambda : self._shutdown(), 1000, self.loop)
+        dc.start()
+    
+    def _shutdown(self):
+        logger.info("controller::controller shutting down.")
+        time.sleep(0.1)
+        sys.exit(0)
+        
+    
     def check_load(self, client_id, msg):
         content = msg['content']
         try:
@@ -1018,6 +1039,7 @@ def main(argv=None):
     signal_children(children)
     con = Controller(loop, thesession, sub, reg, hmon, c, n, db, engine_addrs, client_addrs)
     dc = ioloop.DelayedCallback(lambda : print("Controller started..."), 100, loop)
+    dc.start()
     loop.start()
     
     

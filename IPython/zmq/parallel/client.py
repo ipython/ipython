@@ -554,20 +554,32 @@ class Client(object):
     
     @spinfirst
     @defaultblock
-    def shutdown(self, targets=None, restart=False, block=None):
-        """Terminates one or more engine processes."""
+    def shutdown(self, targets=None, restart=False, controller=False, block=None):
+        """Terminates one or more engine processes, optionally including the controller."""
+        if controller:
+            targets = 'all'
         targets = self._build_targets(targets)[0]
         for t in targets:
             self.session.send(self._control_socket, 'shutdown_request', 
                         content={'restart':restart},ident=t)
         error = False
-        if self.block:
+        if block or controller:
             for i in range(len(targets)):
                 idents,msg = self.session.recv(self._control_socket,0)
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
                     error = ss.unwrap_exception(msg['content'])
+        
+        if controller:
+            time.sleep(0.25)
+            self.session.send(self._query_socket, 'shutdown_request')
+            idents,msg = self.session.recv(self._query_socket, 0)
+            if self.debug:
+                pprint(msg)
+            if msg['content']['status'] != 'ok':
+                error = ss.unwrap_exception(msg['content'])
+        
         if error:
             return error
     

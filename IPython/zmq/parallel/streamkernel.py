@@ -29,7 +29,7 @@ from IPython.zmq.completer import KernelCompleter
 from IPython.zmq.log import logger # a Logger object
 
 from streamsession import StreamSession, Message, extract_header, serialize_object,\
-                unpack_apply_message, ISO8601
+                unpack_apply_message, ISO8601, wrap_exception
 from dependency import UnmetDependency
 import heartmonitor
 from client import Client
@@ -53,6 +53,7 @@ class Kernel(HasTraits):
     task_stream = Instance(zmqstream.ZMQStream)
     iopub_stream = Instance(zmqstream.ZMQStream)
     client = Instance(Client)
+    loop = Instance(ioloop.IOLoop)
     
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
@@ -127,15 +128,21 @@ class Kernel(HasTraits):
     
     def shutdown_request(self, stream, ident, parent):
         """kill ourself.  This should really be handled in an external process"""
-        self.abort_queues()
-        content = dict(parent['content'])
+        try:
+            self.abort_queues()
+        except:
+            content = wrap_exception()
+        else:
+            content = dict(parent['content'])
+            content['status'] = 'ok'
         msg = self.session.send(stream, 'shutdown_reply',
                                 content=content, parent=parent, ident=ident)
         # msg = self.session.send(self.pub_socket, 'shutdown_reply',
         #                         content, parent, ident)
         # print >> sys.__stdout__, msg
-        time.sleep(0.1)
-        sys.exit(0)    
+        # time.sleep(0.2)
+        dc = ioloop.DelayedCallback(lambda : sys.exit(0), 1000, self.loop)
+        dc.start()
     
     def dispatch_control(self, msg):
         idents,msg = self.session.feed_identities(msg, copy=False)
@@ -207,15 +214,7 @@ class Kernel(HasTraits):
                 sys.displayhook.set_parent(parent)
             exec comp_code in self.user_ns, self.user_ns
         except:
-            # result = u'error'
-            etype, evalue, tb = sys.exc_info()
-            tb = traceback.format_exception(etype, evalue, tb)
-            exc_content = {
-                u'status' : u'error',
-                u'traceback' : tb,
-                u'etype' : unicode(etype),
-                u'evalue' : unicode(evalue)
-            }
+            exc_content = wrap_exception()
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent)
             reply_content = exc_content
@@ -292,15 +291,7 @@ class Kernel(HasTraits):
             packed_result,buf = serialize_object(result)
             result_buf = [packed_result]+buf
         except:
-            result = u'error'
-            etype, evalue, tb = sys.exc_info()
-            tb = traceback.format_exception(etype, evalue, tb)
-            exc_content = {
-                u'status' : u'error',
-                u'traceback' : tb,
-                u'etype' : unicode(etype),
-                u'evalue' : unicode(evalue)
-            }
+            exc_content = wrap_exception()
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent)
             reply_content = exc_content
@@ -426,7 +417,7 @@ def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs,
     
     kernel = Kernel(session=session, control_stream=control_stream, 
             shell_streams=shell_streams, iopub_stream=iopub_stream, 
-            client=client)
+            client=client, loop=loop)
     kernel.start()
     return loop, c, kernel
 
