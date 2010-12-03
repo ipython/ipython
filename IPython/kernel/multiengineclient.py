@@ -272,7 +272,7 @@ class InteractiveMultiEngineClient(object):
         except NameError:
             print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
         else:
-            pmagic = ip.get_component('parallel_magic')
+            pmagic = ip.plugin_manager.get_plugin('parallel_magic')
             if pmagic is not None:
                 pmagic.active_multiengine_client = self
             else:
