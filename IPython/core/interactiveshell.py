@@ -180,7 +180,7 @@ class InteractiveShell(Configurable, Magic):
     # but for now, we can't do that as readline is welded in everywhere.
     readline_use = CBool(True, config=True)
     readline_merge_completions = CBool(True, config=True)
-    readline_omit__names = Enum((0,1,2), default_value=0, config=True)
+    readline_omit__names = Enum((0,1,2), default_value=2, config=True)
     readline_remove_delims = Str('-/~', config=True)
     readline_parse_and_bind = List([
             'tab: complete',
