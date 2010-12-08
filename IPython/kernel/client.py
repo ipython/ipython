@@ -44,8 +44,8 @@ warnings.filterwarnings('ignore', 'the sha module is deprecated',
 
 import sys
 
+import twisted
 from twisted.internet import reactor
-from twisted.internet.error import PotentialZombieWarning
 from twisted.python import log
 
 from IPython.kernel.clientconnector import ClientConnector, Cluster
@@ -54,7 +54,6 @@ from IPython.kernel.twistedutil import blockingCallFromThread
 
 # These enable various things 
 from IPython.kernel import codeutil
-# import IPython.kernel.magic
 
 # Other things that the user will need
 from IPython.kernel.task import MapTask, StringTask
@@ -64,7 +63,11 @@ from IPython.kernel.error import CompositeError
 # Code
 #-------------------------------------------------------------------------------
 
-warnings.simplefilter('ignore', PotentialZombieWarning)
+# PotentialZombieWarning is deprecated from Twisted 10.0.0 and above and
+# using the filter on > 10.0.0 creates a warning itself.
+if twisted.version.major < 10:
+    from twisted.internet.error import PotentialZombieWarning
+    warnings.simplefilter('ignore', PotentialZombieWarning)
 
 _client_tub = ClientConnector()
 
@@ -76,6 +79,18 @@ TaskClient = get_task_client
 # This isn't great.  I should probably set this up in the ReactorInThread
 # class below.  But, it does work for now.
 log.startLogging(sys.stdout, setStdout=0)
+
+def _result_list_printer(obj, p, cycle):
+    if cycle:
+        return p.text('ResultList(...)')
+    return p.text(repr(obj))
+
+# ResultList is a list subclass and will use the default pretty printer.
+# This overrides that to use the __repr__ of ResultList.
+ip = get_ipython()
+ip.displayhook.default_formatter.for_type_by_name(
+    'IPython.kernel.multiengineclient', 'ResultList', _result_list_printer
+)
 
 # Now we start the reactor in a thread
 rit = ReactorInThread()

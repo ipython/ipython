@@ -159,12 +159,24 @@ class ParalleMagic(Plugin):
             self.autopx = False
             print "%autopx disabled"
 
-    def pxrun_source(self, ipself, source, filename="<input>", symbol="single"):
-        """A parallel replacement for InteractiveShell.run_source."""
+    def pxrun_source(self, ipself, source, filename=None,
+                   symbol='single', post_execute=True):
 
+        # We need to ensure that the source is unicode from here on.
+        if type(source)==str:
+            usource = source.decode(ipself.stdin_encoding)
+        else:
+            usource = source
+
+        if 0:  # dbg
+            print 'Source:', repr(source)  # dbg
+            print 'USource:', repr(usource)  # dbg
+            print 'type:', type(source) # dbg
+            print 'encoding', ipself.stdin_encoding  # dbg
+        
         try:
-            code = ipself.compile(source, filename, symbol)
-        except (OverflowError, SyntaxError, ValueError):
+            code = ipself.compile(usource, symbol, ipself.execution_count)
+        except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
             # Case 1
             ipself.showsyntaxerror(filename)
             return None
@@ -197,6 +209,6 @@ def load_ipython_extension(ip):
     global _loaded
     if not _loaded:
         plugin = ParalleMagic(shell=ip, config=ip.config)
-        ip.plugin_manager.register_plugin('parallel_magic', plugin)
+        ip.plugin_manager.register_plugin('parallelmagic', plugin)
         _loaded = True
 
