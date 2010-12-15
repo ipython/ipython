@@ -23,7 +23,6 @@ import sys
 
 from IPython.core.error import TryNext
 from IPython.core.usage import interactive_usage, default_banner
-from IPython.core.inputlist import InputList
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.pylabtools import pylab_activate

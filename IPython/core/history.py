@@ -21,7 +21,6 @@ import sys
 # Our own packages
 import IPython.utils.io
 
-from IPython.core.inputlist import InputList
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.io import ask_yes_no
 from IPython.utils.warn import warn
@@ -37,9 +36,9 @@ class HistoryManager(object):
 
     # An instance of the IPython shell we are attached to
     shell = None
-    # An InputList instance to hold processed history
+    # A list to hold processed history
     input_hist_parsed = None
-    # An InputList instance to hold raw history (as typed by user)
+    # A list to hold raw history (as typed by user)
     input_hist_raw = None
     # A list of directories visited during session
     dir_hist = None
@@ -229,7 +228,7 @@ class HistoryManager(object):
     def sync_inputs(self):
         """Ensure raw and translated histories have same length."""
         if len(self.input_hist_parsed) != len (self.input_hist_raw):
-            self.input_hist_raw = InputList(self.input_hist_parsed)
+            self.input_hist_raw[:] = self.input_hist_parsed
 
     def reset(self):
         """Clear all histories managed by this object."""
