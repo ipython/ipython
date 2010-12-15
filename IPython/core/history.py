@@ -14,6 +14,7 @@ from __future__ import print_function
 
 # Stdlib imports
 import fnmatch
+import json
 import os
 import sys
 
@@ -37,7 +38,7 @@ class HistoryManager(object):
     # An instance of the IPython shell we are attached to
     shell = None
     # An InputList instance to hold processed history
-    input_hist = None
+    input_hist_parsed = None
     # An InputList instance to hold raw history (as typed by user)
     input_hist_raw = None
     # A list of directories visited during session
@@ -64,11 +65,11 @@ class HistoryManager(object):
         self.shell = shell
         
         # List of input with multi-line handling.
-        self.input_hist = InputList()
+        self.input_hist_parsed = []
         # This one will hold the 'raw' input history, without any
         # pre-processing.  This will allow users to retrieve the input just as
         # it was exactly typed in by the user, with %hist -r.
-        self.input_hist_raw = InputList()
+        self.input_hist_raw = []
 
         # list of visited directories
         try:
@@ -84,7 +85,7 @@ class HistoryManager(object):
             histfname = 'history-%s' % shell.profile
         else:
             histfname = 'history'
-        self.hist_file = os.path.join(shell.ipython_dir, histfname)
+        self.hist_file = os.path.join(shell.ipython_dir, histfname + '.json')
 
         # Objects related to shadow history management
         self._init_shadow_hist()
@@ -95,18 +96,7 @@ class HistoryManager(object):
         
         # Fill the history zero entry, user counter starts at 1
         self.store_inputs('\n', '\n')
-
-        # For backwards compatibility, we must put these back in the shell
-        # object, until we've removed all direct uses of the history objects in
-        # the shell itself.
-        shell.input_hist = self.input_hist
-        shell.input_hist_raw = self.input_hist_raw
-        shell.output_hist = self.output_hist
-        shell.dir_hist = self.dir_hist
-        shell.histfile = self.hist_file
-        shell.shadowhist = self.shadow_hist
-        shell.db = self.shadow_db
-
+ 
     def _init_shadow_hist(self):
         try:
             self.shadow_db = PickleShareDB(os.path.join(
@@ -119,24 +109,41 @@ class HistoryManager(object):
             sys.exit()
         self.shadow_hist = ShadowHist(self.shadow_db, self.shell)
         
-    def save_hist(self):
-        """Save input history to a file (via readline library)."""
+    def populate_readline_history(self):
+        """Populate the readline history from the raw history.
 
-        try:
-            self.shell.readline.write_history_file(self.hist_file)
-        except:
-            print('Unable to save IPython command history to file: ' + 
-                  `self.hist_file`)
-
-    def reload_hist(self):
-        """Reload the input history from disk file."""
+        We only store one copy of the raw history, which is persisted to a json
+        file on disk.  The readline history is repopulated from the contents of
+        this file."""
 
         try:
             self.shell.readline.clear_history()
-            self.shell.readline.read_history_file(self.hist_file)
         except AttributeError:
             pass
+        else:
+            for h in self.input_hist_raw:
+                if not h.isspace():
+                    for line in h.splitlines():
+                        self.shell.readline.add_history(line)
 
+    def save_history(self):
+        """Save input history to a file (via readline library)."""
+        hist = dict(raw=self.input_hist_raw, #[-self.shell.history_length:],
+                    parsed=self.input_hist_parsed) #[-self.shell.history_length:])
+        with open(self.hist_file,'wt') as hfile:
+            json.dump(hist, hfile,
+                      sort_keys=True, indent=4)
+        
+    def reload_history(self):
+        """Reload the input history from disk file."""
+
+        with open(self.hist_file,'rt') as hfile:
+            hist = json.load(hfile)
+            self.input_hist_parsed = hist['parsed']
+            self.input_hist_raw = hist['raw']
+            if self.shell.has_readline:
+                self.populate_readline_history()
+        
     def get_history(self, index=None, raw=False, output=True):
         """Get the history list.
 
@@ -163,7 +170,7 @@ class HistoryManager(object):
         if raw:
             input_hist = self.input_hist_raw
         else:
-            input_hist = self.input_hist
+            input_hist = self.input_hist_parsed
         if output:
             output_hist = self.output_hist
         n = len(input_hist)
@@ -201,7 +208,7 @@ class HistoryManager(object):
         """
         if source_raw is None:
             source_raw = source
-        self.input_hist.append(source)
+        self.input_hist_parsed.append(source)
         self.input_hist_raw.append(source_raw)
         self.shadow_hist.add(source)
 
@@ -221,12 +228,12 @@ class HistoryManager(object):
 
     def sync_inputs(self):
         """Ensure raw and translated histories have same length."""
-        if len(self.input_hist) != len (self.input_hist_raw):
-            self.input_hist_raw = InputList(self.input_hist)
+        if len(self.input_hist_parsed) != len (self.input_hist_raw):
+            self.input_hist_raw = InputList(self.input_hist_parsed)
 
     def reset(self):
         """Clear all histories managed by this object."""
-        self.input_hist[:] = []
+        self.input_hist_parsed[:] = []
         self.input_hist_raw[:] = []
         self.output_hist.clear()
         # The directory history can't be completely empty
@@ -299,12 +306,12 @@ def magic_history(self, parameter_s = ''):
         close_at_end = True
 
     if 't' in opts:
-        input_hist = self.shell.input_hist
+        input_hist = self.shell.history_manager.input_hist_parsed
     elif 'r' in opts:
-        input_hist = self.shell.input_hist_raw
+        input_hist = self.shell.history_manager.input_hist_raw
     else:
         # Raw history is the default
-        input_hist = self.shell.input_hist_raw
+        input_hist = self.shell.history_manager.input_hist_raw
             
     default_length = 40
     pattern = None
@@ -337,7 +344,7 @@ def magic_history(self, parameter_s = ''):
     
     found = False
     if pattern is not None:
-        sh = self.shell.shadowhist.all()
+        sh = self.shell.history_manager.shadowhist.all()
         for idx, s in sh:
             if fnmatch.fnmatch(s, pattern):
                 print("0%d: %s" %(idx, s.expandtabs(4)), file=outfile)
@@ -373,7 +380,7 @@ def magic_history(self, parameter_s = ''):
         else:
             print(inline, end='', file=outfile)
         if print_outputs:
-            output = self.shell.output_hist.get(in_num)
+            output = self.shell.history_manager.output_hist.get(in_num)
             if output is not None:
                 print(repr(output), file=outfile)
 

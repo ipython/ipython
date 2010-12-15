@@ -186,9 +186,9 @@ python-profiler package from non-free.""")
         N-M -> include items N..M (closed endpoint)."""
 
         if raw:
-            hist = self.shell.input_hist_raw
+            hist = self.shell.history_manager.input_hist_raw
         else:
-            hist = self.shell.input_hist
+            hist = self.shell.history_manager.input_hist_parsed
 
         cmds = []
         for chunk in slices:
@@ -200,7 +200,7 @@ python-profiler package from non-free.""")
             else:
                 ini = int(chunk)
                 fin = ini+1
-            cmds.append(hist[ini:fin])
+            cmds.append(''.join(hist[ini:fin]))
         return cmds
             
     def arg_err(self,func):
@@ -1106,19 +1106,19 @@ Currently the magic system has the following functions:\n"""
                 logger.timestamp = False
 
             if log_raw_input:
-                input_hist = self.shell.input_hist_raw
+                input_hist = self.shell.history_manager.input_hist_raw
             else:
-                input_hist = self.shell.input_hist
+                input_hist = self.shell.history_manager.input_hist_parsed
                 
             if log_output:
                 log_write = logger.log_write
-                output_hist = self.shell.output_hist
+                output_hist = self.shell.history_manager.output_hist
                 for n in range(1,len(input_hist)-1):
                     log_write(input_hist[n].rstrip())
                     if n in output_hist:
                         log_write(repr(output_hist[n]),'output')
             else:
-                logger.log_write(input_hist[1:])
+                logger.log_write(''.join(input_hist[1:]))
             if timestamp:
                 # re-enable timestamping
                 logger.timestamp = True
@@ -1551,7 +1551,7 @@ Currently the magic system has the following functions:\n"""
         
         stats = None
         try:
-            self.shell.save_hist()
+            self.shell.save_history()
 
             if opts.has_key('p'):
                 stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
@@ -1670,7 +1670,7 @@ Currently the magic system has the following functions:\n"""
                 # contained therein.
                 del sys.modules[main_mod_name]
 
-            self.shell.reload_hist()
+            self.shell.reload_history()
                 
         return stats
 
@@ -2980,8 +2980,8 @@ Defaulting color scheme to 'NoColor'"""
         else:
             start_magic = start
         # Look through the input history in reverse
-        for n in range(len(self.shell.input_hist)-2,0,-1):
-            input = self.shell.input_hist[n]
+        for n in range(len(self.shell.history_manager.input_hist_parsed)-2,0,-1):
+            input = self.shell.history_manager.input_hist_parsed[n]
             # skip plain 'r' lines so we don't recurse to infinity
             if input != '_ip.magic("r")\n' and \
                    (input.startswith(start) or input.startswith(start_magic)):

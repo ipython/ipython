@@ -118,7 +118,7 @@ def jot_obj(self, obj, name, comment=''):
 
     # which one works better? 
     #all = ip.shadowhist.all()
-    all = ip.shell.input_hist
+    all = ip.shell.history_manager.input_hist_parsed
 
     # We may actually want to make snapshot of files that are run-ned.
 

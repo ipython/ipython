@@ -50,8 +50,8 @@ def clear_f(self,arg):
                     del user_ns[key]
                 except: pass
             # must be done in-place
-            self.input_hist[:] = ['\n'] * pc 
-            self.input_hist_raw[:] = ['\n'] * pc
+            self.history_manager.input_hist_parsed[:] = ['\n'] * pc 
+            self.history_manager.input_hist_raw[:] = ['\n'] * pc
 
         elif target == 'array':
             # Support cleaning up numpy arrays

@@ -332,14 +332,14 @@ class TerminalInteractiveShell(InteractiveShell):
                 if self.has_readline and self.readline_use:
                     histlen = self.readline.get_current_history_length()
                     if histlen > 1:
-                        newhist = self.input_hist_raw[-1].rstrip()
+                        newhist = self.history_manager.input_hist_raw[-1].rstrip()
                         self.readline.remove_history_item(histlen-1)
                         self.readline.replace_history_item(histlen-2,
                                         newhist.encode(self.stdin_encoding))
             else:
-                self.input_hist_raw.append('%s\n' % line)                
+                self.history_manager.input_hist_raw.append('%s\n' % line)                
         elif not continue_prompt:
-            self.input_hist_raw.append('\n')
+            self.history_manager.input_hist_raw.append('\n')
         try:
             lineout = self.prefilter_manager.prefilter_lines(line,continue_prompt)
         except:
