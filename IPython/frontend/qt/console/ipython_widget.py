@@ -184,8 +184,7 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to make a history request.
         """
         super(IPythonWidget, self)._started_channels()
-        # FIXME: Disabled until history requests are properly implemented.
-        #self.kernel_manager.xreq_channel.history(raw=True, output=False)
+        self.kernel_manager.xreq_channel.history(raw=True, output=False)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface

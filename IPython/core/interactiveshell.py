@@ -301,7 +301,7 @@ class InteractiveShell(Configurable, Magic):
     @property
     def db(self):
         return self.history_manager.shadow_db
-    
+
     @classmethod
     def instance(cls, *args, **kwargs):
         """Returns a global InteractiveShell instance."""
@@ -1263,6 +1263,10 @@ class InteractiveShell(Configurable, Magic):
             finally:
                 self.reload_history()
         return wrapper
+    
+    def get_history(self, index=None, raw=False, output=True):
+        return self.history_manager.get_history(index, raw, output)
+    
 
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
