@@ -207,6 +207,9 @@ class HistoryManager(object):
         """
         if source_raw is None:
             source_raw = source
+        # do not store quit/exit commands
+        if source_raw in ['Quit', 'quit', 'Exit', 'exit', '%Quit', '%quit', '%Exit', '%exit']:
+            return
         self.input_hist_parsed.append(source)
         self.input_hist_raw.append(source_raw)
         self.shadow_hist.add(source)
