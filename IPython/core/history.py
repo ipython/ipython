@@ -56,6 +56,11 @@ class HistoryManager(object):
     # history update, we populate the user's namespace with these, shifted as
     # necessary.
     _i00, _i, _ii, _iii = '','','',''
+
+    # A set with all forms of the exit command, so that we don't store them in
+    # the history (it's annoying to rewind the first entry and land on an exit
+    # call).
+    _exit_commands = None
     
     def __init__(self, shell):
         """Create a new history manager associated with a shell instance.
@@ -91,11 +96,14 @@ class HistoryManager(object):
     
         self._i00, self._i, self._ii, self._iii = '','','',''
 
+        self._exit_commands = set(['Quit', 'quit', 'Exit', 'exit', '%Quit',
+                                   '%quit', '%Exit', '%exit'])
+
         # Object is fully initialized, we can now call methods on it.
         
         # Fill the history zero entry, user counter starts at 1
         self.store_inputs('\n', '\n')
- 
+
     def _init_shadow_hist(self):
         try:
             self.shadow_db = PickleShareDB(os.path.join(
@@ -207,9 +215,11 @@ class HistoryManager(object):
         """
         if source_raw is None:
             source_raw = source
-        # do not store quit/exit commands
-        if source_raw in ['Quit', 'quit', 'Exit', 'exit', '%Quit', '%quit', '%Exit', '%exit']:
+            
+        # do not store exit/quit commands
+        if source_raw.strip() in self._exit_commands:
             return
+        
         self.input_hist_parsed.append(source.rstrip())
         self.input_hist_raw.append(source_raw.rstrip())
         self.shadow_hist.add(source)
