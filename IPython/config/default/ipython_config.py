@@ -90,6 +90,8 @@ c = get_config()
 
 # c.InteractiveShell.quiet = False
 
+# c.InteractiveShell.history_length = 10000
+
 # Readline 
 # c.InteractiveShell.readline_use = True
 

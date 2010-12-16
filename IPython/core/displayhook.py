@@ -173,7 +173,7 @@ class DisplayHook(Configurable):
         """Should we silence the display hook because of ';'?"""
         # do not print output if input ends in ';'
         try:
-            if self.shell.input_hist[self.prompt_count].endswith(';\n'):
+            if self.shell.history_manager.input_hist_parsed[self.prompt_count].endswith(';\n'):
                 return True
         except IndexError:
             # some uses of ipshellembed may fail here

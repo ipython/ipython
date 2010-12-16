@@ -45,7 +45,6 @@ from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.history import HistoryManager
-from IPython.core.inputlist import InputList
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
@@ -176,6 +175,8 @@ class InteractiveShell(Configurable, Magic):
     prompts_pad_left = CBool(True, config=True)
     quiet = CBool(False, config=True)
 
+    history_length = Int(10000, config=True)
+    
     # The readline stuff will eventually be moved to the terminal subclass
     # but for now, we can't do that as readline is welded in everywhere.
     readline_use = CBool(True, config=True)
@@ -292,6 +293,14 @@ class InteractiveShell(Configurable, Magic):
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
+
+    # While we're trying to have each part of the code directly access what it
+    # needs without keeping redundant references to objects, we have too much
+    # legacy code that expects ip.db to exist, so let's make it a property that
+    # retrieves the underlying object from our new history manager.
+    @property
+    def db(self):
+        return self.history_manager.shadow_db
 
     @classmethod
     def instance(cls, *args, **kwargs):
@@ -947,16 +956,16 @@ class InteractiveShell(Configurable, Magic):
             warn('help() not available - check site.py')
 
         # make global variables for user access to the histories
-        ns['_ih'] = self.input_hist
-        ns['_oh'] = self.output_hist
-        ns['_dh'] = self.dir_hist
+        ns['_ih'] = self.history_manager.input_hist_parsed
+        ns['_oh'] = self.history_manager.output_hist
+        ns['_dh'] = self.history_manager.dir_hist
 
         ns['_sh'] = shadowns
 
         # user aliases to input and output histories.  These shouldn't show up
         # in %who, as they can have very large reprs.
-        ns['In']  = self.input_hist
-        ns['Out'] = self.output_hist
+        ns['In']  = self.history_manager.input_hist_parsed
+        ns['Out'] = self.history_manager.output_hist
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
@@ -1228,19 +1237,13 @@ class InteractiveShell(Configurable, Magic):
     def init_history(self):
         self.history_manager = HistoryManager(shell=self)
 
-    def save_hist(self):
+    def save_history(self):
         """Save input history to a file (via readline library)."""
-        self.history_manager.save_hist()
+        self.history_manager.save_history()
 
-    # For backwards compatibility
-    savehist = save_hist
-        
-    def reload_hist(self):
+    def reload_history(self):
         """Reload the input history from disk file."""
-        self.history_manager.reload_hist()
-
-    # For backwards compatibility
-    reloadhist = reload_hist
+        self.history_manager.reload_history()
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
@@ -1254,12 +1257,16 @@ class InteractiveShell(Configurable, Magic):
             return func
 
         def wrapper():
-            self.save_hist()
+            self.save_history()
             try:
                 func()
             finally:
-                readline.read_history_file(self.histfile)
+                self.reload_history()
         return wrapper
+    
+    def get_history(self, index=None, raw=False, output=True):
+        return self.history_manager.get_history(index, raw, output)
+    
 
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
@@ -1488,8 +1495,6 @@ class InteractiveShell(Configurable, Magic):
             self.has_readline = False
             self.readline = None
             # Set a number of methods that depend on readline to be no-op
-            self.save_hist = no_op
-            self.reload_hist = no_op
             self.set_readline_completer = no_op
             self.set_custom_completer = no_op
             self.set_completer_frame = no_op
@@ -1541,16 +1546,12 @@ class InteractiveShell(Configurable, Magic):
             delims = delims.replace(ESC_MAGIC, '')
             readline.set_completer_delims(delims)
             # otherwise we end up with a monster history after a while:
-            readline.set_history_length(1000)
+            readline.set_history_length(self.history_length)
             try:
                 #print '*** Reading readline history'  # dbg
-                readline.read_history_file(self.histfile)
+                self.reload_history() 
             except IOError:
                 pass  # It doesn't exist yet.
-
-            # If we have readline, we want our history saved upon ipython
-            # exiting. 
-            atexit.register(self.save_hist)
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
@@ -2109,7 +2110,8 @@ class InteractiveShell(Configurable, Magic):
                 list.append(self, val)
 
             import new
-            self.input_hist.append = types.MethodType(myapp, self.input_hist)
+            self.history_manager.input_hist_parsed.append = types.MethodType(myapp,
+                                                                            self.history_manager.input_hist_parsed)
         # End dbg
 
         # All user code execution must happen with our context managers active
@@ -2520,6 +2522,9 @@ class InteractiveShell(Configurable, Magic):
                 os.unlink(tfile)
             except OSError:
                 pass
+
+        
+        self.save_history()
 
         # Clear all user namespaces to release all references cleanly.
         self.reset()

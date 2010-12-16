@@ -128,7 +128,7 @@ class HistoryConsoleWidget(ConsoleWidget):
                 break
         else:
             history = None
-
+        
         if history is not None:
             self._history_index = index
             self.input_buffer = history
