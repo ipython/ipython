@@ -167,7 +167,10 @@ class IPythonWidget(FrontendWidget):
             the IPython kernel.
         """
         history_dict = msg['content']['history']
-        items = [ history_dict[key] for key in sorted(history_dict.keys()) ]
+        input_history_dict = {}
+        for key,val in history_dict.items():
+            input_history_dict[int(key)] = val
+        items = [ val for _, val in sorted(input_history_dict.items()) ]
         self._set_history(items)
 
     def _handle_pyout(self, msg):
