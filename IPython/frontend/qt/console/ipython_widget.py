@@ -170,7 +170,7 @@ class IPythonWidget(FrontendWidget):
         input_history_dict = {}
         for key,val in history_dict.items():
             input_history_dict[int(key)] = val
-        items = [ val for _, val in sorted(input_history_dict.items()) ]
+        items = [ val.rstrip() for _, val in sorted(input_history_dict.items()) ]
         self._set_history(items)
 
     def _handle_pyout(self, msg):

@@ -210,8 +210,8 @@ class HistoryManager(object):
         # do not store quit/exit commands
         if source_raw in ['Quit', 'quit', 'Exit', 'exit', '%Quit', '%quit', '%Exit', '%exit']:
             return
-        self.input_hist_parsed.append(source)
-        self.input_hist_raw.append(source_raw)
+        self.input_hist_parsed.append(source.rstrip())
+        self.input_hist_raw.append(source_raw.rstrip())
         self.shadow_hist.add(source)
 
         # update the auto _i variables
