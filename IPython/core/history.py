@@ -372,7 +372,7 @@ def magic_history(self, parameter_s = ''):
         # Print user history with tabs expanded to 4 spaces.  The GUI clients
         # use hard tabs for easier usability in auto-indented code, but we want
         # to produce PEP-8 compliant history for safe pasting into an editor.
-        inline = input_hist[in_num].expandtabs(4)
+        inline = input_hist[in_num].expandtabs(4).rstrip()+'\n'
 
         if pattern is not None and not fnmatch.fnmatch(inline, pattern):
             continue
