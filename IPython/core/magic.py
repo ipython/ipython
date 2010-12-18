@@ -463,21 +463,21 @@ Currently the magic system has the following functions:\n"""
 
         1 -> active, but do not apply if there are no arguments on the line.
 
-        In this mode, you get:
+        In this mode, you get::
 
-        In [1]: callable
-        Out[1]: <built-in function callable>
+          In [1]: callable
+          Out[1]: <built-in function callable>
 
-        In [2]: callable 'hello'
-        ------> callable('hello')
-        Out[2]: False
-
-        2 -> Active always.  Even if no arguments are present, the callable
-        object is called:
-
-        In [2]: float
-        ------> float()
-        Out[2]: 0.0
+          In [2]: callable 'hello'
+          ------> callable('hello')
+          Out[2]: False
+ 
+          2 -> Active always.  Even if no arguments are present, the callable
+          object is called:
+ 
+          In [2]: float
+          ------> float()
+          Out[2]: 0.0
 
         Note that even with autocall off, you can still use '/' at the start of
         a line to treat the first argument on the command line as a function
@@ -2129,50 +2129,50 @@ Currently the magic system has the following functions:\n"""
         This is an example of creating a simple function inside the editor and
         then modifying it. First, start up the editor:
 
-        In [1]: ed
-        Editing... done. Executing edited code...
-        Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
+          In [1]: ed
+          Editing... done. Executing edited code...
+          Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
 
-        We can then call the function foo():
+          We can then call the function foo():
         
-        In [2]: foo()
-        foo() was defined in an editing session
+          In [2]: foo()
+          foo() was defined in an editing session
 
-        Now we edit foo.  IPython automatically loads the editor with the
-        (temporary) file where foo() was previously defined:
+          Now we edit foo.  IPython automatically loads the editor with the
+          (temporary) file where foo() was previously defined:
         
-        In [3]: ed foo
-        Editing... done. Executing edited code...
+          In [3]: ed foo
+          Editing... done. Executing edited code...
 
-        And if we call foo() again we get the modified version:
+          And if we call foo() again we get the modified version:
         
-        In [4]: foo()
-        foo() has now been changed!
+          In [4]: foo()
+          foo() has now been changed!
 
-        Here is an example of how to edit a code snippet successive
-        times. First we call the editor:
+          Here is an example of how to edit a code snippet successive
+          times. First we call the editor:
 
-        In [5]: ed
-        Editing... done. Executing edited code...
-        hello
-        Out[5]: "print 'hello'n"
+          In [5]: ed
+          Editing... done. Executing edited code...
+          hello
+          Out[5]: "print 'hello'n"
 
-        Now we call it again with the previous output (stored in _):
+          Now we call it again with the previous output (stored in _):
 
-        In [6]: ed _
-        Editing... done. Executing edited code...
-        hello world
-        Out[6]: "print 'hello world'n"
+          In [6]: ed _
+          Editing... done. Executing edited code...
+          hello world
+          Out[6]: "print 'hello world'n"
 
-        Now we call it with the output #8 (stored in _8, also as Out[8]):
+          Now we call it with the output #8 (stored in _8, also as Out[8]):
 
-        In [7]: ed _8
-        Editing... done. Executing edited code...
-        hello again
-        Out[7]: "print 'hello again'n"
+          In [7]: ed _8
+          Editing... done. Executing edited code...
+          hello again
+          Out[7]: "print 'hello again'n"
 
 
-        Changing the default editor hook:
+        Changing the default editor hook::
 
         If you wish to write your own editor hook, you can put it in a
         configuration file which you load at startup time.  The default hook
@@ -2385,14 +2385,14 @@ Currently the magic system has the following functions:\n"""
 
         if not readline.have_readline and sys.platform == "win32":
             msg = """\
-Proper color support under MS Windows requires the pyreadline library.
-You can find it at:
-http://ipython.scipy.org/moin/PyReadline/Intro
-Gary's readline needs the ctypes module, from:
-http://starship.python.net/crew/theller/ctypes
-(Note that ctypes is already part of Python versions 2.5 and newer).
-
-Defaulting color scheme to 'NoColor'"""
+        Proper color support under MS Windows requires the pyreadline library.
+        You can find it at:
+        http://ipython.scipy.org/moin/PyReadline/Intro
+        Gary's readline needs the ctypes module, from:
+        http://starship.python.net/crew/theller/ctypes
+        (Note that ctypes is already part of Python versions 2.5 and newer).
+    
+        Defaulting color scheme to 'NoColor'"""
             new_scheme = 'NoColor'
             warn(msg)
         
@@ -2482,11 +2482,11 @@ Defaulting color scheme to 'NoColor'"""
         IPython for variable expansion.  If you want to access a true shell
         variable, an extra $ is necessary to prevent its expansion by IPython:
 
-        In [6]: alias show echo
-        In [7]: PATH='A Python string'
-        In [8]: show $PATH
-        A Python string
-        In [9]: show $$PATH
+          In [6]: alias show echo
+          In [7]: PATH='A Python string'
+          In [8]: show $PATH
+          A Python string
+          In [9]: show $$PATH
         /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
         You can use the alias facility to acess all of $PATH.  See the %rehash
@@ -2630,6 +2630,34 @@ Defaulting color scheme to 'NoColor'"""
              (note: cd <bookmark_name> is enough if there is no
               directory <bookmark_name>, but a bookmark with the name exists.)
               'cd -b <tab>' allows you to tab-complete bookmark names. 
+          Examples
+          --------
+                    
+          The current directory string is not converted to use the correct CASE::
+
+            In [10]: cd parent/child
+            /home/tsuser/parent/child 
+
+            In [12]: cd ParEnt/Child
+            [Errno 2] No such file or directory: 'ParEnt/Child'
+
+
+          cd<Tab>  Gives the list of cd related commands ::
+
+            tsuser@tsuser-desktop:~/sprint/ipython$ cd
+            cd          cdparanoia  cdrecord
+
+
+          cd <Tab> Gives the list of directories in the current directory::
+               
+            tsuser@tsuser-desktop:~/sprint/ipython$ cd <Tab>
+            docs/             .git/             IPython/          ipython.egg-info/ scripts/          setupext/         tools/
+
+             
+          cd <Enter>  directly goes to the home directory ::
+      
+            tsuser@tsuser-desktop:~/sprint/ipython$ cd <Enter>
+            tsuser@tsuser-desktop:~$
 
         Options:
 
@@ -2638,7 +2666,10 @@ Defaulting color scheme to 'NoColor'"""
         since the default prompts do not display path information.
         
         Note that !cd doesn't work for this purpose because the shell where
-        !command runs is immediately discarded after executing 'command'."""
+        !command runs is immediately discarded after executing 'command'.
+        
+        
+        """
 
         parameter_s = parameter_s.strip()
         #bkms = self.shell.persist.get("bookmarks",{})
@@ -2805,6 +2836,8 @@ Defaulting color scheme to 'NoColor'"""
                 start=ini,stop=fin)
 
     @testdec.skip_doctest
+
+
     def magic_sc(self, parameter_s=''):
         """Shell capture - execute a shell command and capture its output.
 
@@ -2847,6 +2880,7 @@ Defaulting color scheme to 'NoColor'"""
         for sequential processing or to be passed to a shell command.
 
         For example:
+        --------------
 
         # all-random
         
@@ -3343,18 +3377,18 @@ Defaulting color scheme to 'NoColor'"""
         Examples
         --------
         In this case, where the MPL default is TkAgg:
-        In [2]: %pylab
+          In [2]: %pylab
 
-        Welcome to pylab, a matplotlib-based Python environment.
-        Backend in use: TkAgg
-        For more information, type 'help(pylab)'.
+          Welcome to pylab, a matplotlib-based Python environment.
+          Backend in use: TkAgg
+          For more information, type 'help(pylab)'.
 
-        But you can explicitly request a different backend:
-        In [3]: %pylab qt
+          But you can explicitly request a different backend:
+          In [3]: %pylab qt
 
-        Welcome to pylab, a matplotlib-based Python environment.
-        Backend in use: Qt4Agg
-        For more information, type 'help(pylab)'.
+          Welcome to pylab, a matplotlib-based Python environment.
+          Backend in use: Qt4Agg
+          For more information, type 'help(pylab)'.
         """
         self.shell.enable_pylab(s)
 
