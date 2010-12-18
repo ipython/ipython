@@ -2456,19 +2456,15 @@ Defaulting color scheme to 'NoColor'"""
         alias can not be executed until 'del foo' removes the Python variable.
 
         You can use the %l specifier in an alias definition to represent the
-        whole line when the alias is called.  For example:
-
-          In [2]: alias bracket echo "Input in brackets: <%l>"
-          In [3]: bracket hello world
-          Input in brackets: <hello world>
+        whole line when the alias is called. 
 
         You can also define aliases with parameters using %s specifiers (one
         per parameter):
         
           In [1]: alias parts echo first %s second %s
-          In [2]: %parts A B
+          In [2]: parts A B
           first A second B
-          In [3]: %parts A
+          In [3]: parts A
           Incorrect number of arguments: 2 expected.
           parts is an alias to: 'echo first %s second %s'
 
@@ -2488,6 +2484,44 @@ Defaulting color scheme to 'NoColor'"""
         A Python string
         In [9]: show $$PATH
         /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
+        example: 
+        -------
+        explanation::
+          
+          here in this example we are aliasing the command ls with lst
+          so that if we want to list the directories we can use the command lst.
+
+
+          In [1]: alias lst ls
+          In [2]: lst
+          COPYING.txt  ipython.egg-info/  README.txt    setupbase.pyc  setup.py*
+          docs/        ipython.py*        scripts/      setupegg.py*   tools/
+          IPython/     MANIFEST.in        setupbase.py  setupext/
+
+          In [1]: alias manual mkdir
+          In [2]: manual
+          MKDIR(1)                         User Commands                        MKDIR(1)
+
+          NAME
+                mkdir - make directories
+
+          SYNOPSIS
+                mkdir [OPTION]... DIRECTORY...
+
+          DESCRIPTION
+               Create the DIRECTORY(ies), if they do not already exist.
+
+               Mandatory  arguments  to  long  options are mandatory for short options
+               too.
+
+          -m, --mode=MODE
+              set file mode (as in chmod), not a=rwx - umask
+
+          -p, --parents
+              no error if existing, make parent directories as needed
+
+          -v, --verbose
+              print a message for each created directory
 
         You can use the alias facility to acess all of $PATH.  See the %rehash
         and %rehashx functions, which automatically create aliases for the
