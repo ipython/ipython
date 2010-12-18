@@ -2366,7 +2366,21 @@ Currently the magic system has the following functions:\n"""
 
         Currently implemented schemes: NoColor, Linux, LightBG.
 
-        Color scheme names are not case-sensitive."""
+        Color scheme names are not case-sensitive.
+
+        Usage
+        ------
+          %colors nocolor # It changes the color scheme for prompts, info system and exception handlers.Thus prompts, etc..
+
+                            will be displayed as normal text.             
+            
+          %usage lightbg  # It changes the color scheme for prompts, info system and exception handlers to light blue color.
+            
+          %usage linux    # It changes the color scheme for prompts, info system and exception handlers to green color. 
+        
+        
+                   
+        """
 
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
@@ -2432,7 +2446,10 @@ Defaulting color scheme to 'NoColor'"""
               ['OFF','ON'][self.shell.pprint]
                 
     def magic_Exit(self, parameter_s=''):
-        """Exit IPython."""
+        """
+        examples
+
+        Exit IPython."""
 
         self.shell.ask_exit()
 
