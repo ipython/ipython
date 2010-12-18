@@ -2002,7 +2002,38 @@ Currently the magic system has the following functions:\n"""
         filename you specify.
 
         It adds a '.py' extension to the file if you don't do so yourself, and
-        it asks for confirmation before overwriting existing files."""
+        it asks for confirmation before overwriting existing files. 
+        EXAMPLES
+        ........
+        
+        Explanation::
+       
+        ln [1]:%save filename.py (starting lineno-ending lineno)
+         
+
+        This is used to save the set of lines in specifed file,
+        It takes the extention as ".py".
+        It asks for confirmation before overwriting existing files.
+        To understand more.... see the following exaple
+        
+        MULTIPLICATION TABLE
+        - - ------------------------
+        11: 
+        for i in range(1,11):
+        12:
+        for n in range(1,10):    
+        13:
+        print n,'*',i,'=',n*i
+
+
+
+        IF WE WANT TO SAVE THESE SET OF LINES AS A FILE WE TYPE AS
+        ln[1]:%save mult.py 11-13 
+        
+       
+        """
+
+        
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
         fname,ranges = args[0], args[1:]
@@ -3363,5 +3394,4 @@ Defaulting color scheme to 'NoColor'"""
 
         See %xmode for changing exception reporting modes."""
         self.shell.showtraceback()
-
 # end Magic
