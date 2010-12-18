@@ -308,7 +308,21 @@ python-profiler package from non-free.""")
 
     # Functions for IPython shell work (vars,funcs, config, etc)
     def magic_lsmagic(self, parameter_s = ''):
-        """List currently available magic functions."""
+        """List currently available magic functions.
+
+            Examples
+            --------
+
+            Some explanation::
+
+              In [3]: %lsmagic 
+              Available magic functions:
+              %Exit  %Pprint  %Quit  %alias  %autocall  %autoindent  %automagic  
+              %bookmark  %cd  %colors  %cpaste  %debug  %dhist  %dirs  
+              %doctest_mode  %ed  %edit  %env  %exit  %gui  %hist  %history  ...etc.
+
+              Automagic is ON, % prefix NOT needed for magic functions.
+            """
         mesc = ESC_MAGIC
         print 'Available magic functions:\n'+mesc+\
               ('  '+mesc).join(self.lsmagic())
