@@ -731,7 +731,26 @@ Currently the magic system has the following functions:\n"""
         """Return a sorted list of all interactive variables.
 
         If arguments are given, only variables of types matching these
-        arguments are returned."""
+        arguments are returned.
+
+        Examples
+        --------
+
+        Define two variables and list them with who_ls::
+
+          In [1]: alpha = 123
+
+          In [2]: beta = 'test'
+
+          In [3]: %who_ls
+          Out[3]: ['alpha', 'beta']
+
+          In [4]: %who_ls int
+          Out[4]: ['alpha']
+
+          In [5]: %who_ls str
+          Out[5]: ['beta']
+        """
 
         user_ns = self.shell.user_ns
         internal_ns = self.shell.internal_ns
@@ -769,7 +788,26 @@ Currently the magic system has the following functions:\n"""
         file and things which are internal to IPython.
 
         This is deliberate, as typically you may load many modules and the
-        purpose of %who is to show you only what you've manually defined."""
+        purpose of %who is to show you only what you've manually defined.
+
+        Examples
+        --------
+
+        Define two variables and list them with who::
+
+          In [1]: alpha = 123
+
+          In [2]: beta = 'test'
+
+          In [3]: %who
+          alpha   beta
+
+          In [4]: %who int
+          alpha
+
+          In [5]: %who str
+          beta
+        """
 
         varlist = self.magic_who_ls(parameter_s)
         if not varlist:
@@ -802,7 +840,23 @@ Currently the magic system has the following functions:\n"""
           elements, typecode and size in memory.
 
           - Everything else: a string representation, snipping their middle if
-          too long."""
+          too long.
+
+        Examples
+        --------
+
+        Define two variables and list them with whos::
+
+          In [1]: alpha = 123
+
+          In [2]: beta = 'test'
+
+          In [3]: %whos
+          Variable   Type        Data/Info
+          --------------------------------
+          alpha      int         123
+          beta       str         test
+        """
         
         varnames = self.magic_who_ls(parameter_s)
         if not varnames:
