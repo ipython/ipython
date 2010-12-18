@@ -1701,8 +1701,8 @@ Currently the magic system has the following functions:\n"""
         -p<P>: use a precision of <P> digits to display the timing result.
         Default: 3
 
-        
-        Examples:
+        Examples
+        --------
 
           In [1]: %timeit pass
           10000000 loops, best of 3: 53.3 ns per loop
@@ -1719,7 +1719,18 @@ Currently the magic system has the following functions:\n"""
 
           In [6]: %timeit -n1 time.sleep(2)
           1 loops, best of 3: 2 s per loop
-          
+
+          In [7]: %timeit -n 15 x='hjsjkdhhsk'
+          15 loops, best of 3: 127 ns per loop
+            
+          In [8]: %timeit -n 10 -t x='hjsjkdhhsk'
+          10 loops, best of 3: 191 ns per loop
+
+          In [9]: %timeit -n 10 -c x='hjsjkdhhsk'
+          10 loops, best of 3: 0 ns per loop
+             
+          In [10]: %timeit -n 10 -r 5 fun_x
+          10 loops, best of 5: 191 ns per loop
 
         The times reported by %timeit will be slightly higher than those
         reported by the timeit.py script when variables are accessed. This is
