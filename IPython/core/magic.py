@@ -3054,7 +3054,30 @@ Defaulting color scheme to 'NoColor'"""
         """Show a syntax-highlighted file through a pager.
 
         This magic is similar to the cat utility, but it will assume the file
-        to be Python source and will show it with syntax highlighting. """
+        to be Python source and will show it with syntax highlighting. 
+    
+        While executing pycat, at first create some text file with some 
+        content. Then type the command in python prompt as 
+
+        "pycat <<text filename>>"
+
+        It will show the content of that file in that same shell
+
+        Examples
+        --------
+        Create one sample file in the name called Sample.txt with some content::
+
+        In [1]: !ls
+        ipython  pycat.py  pyc.py  Sample.txt
+        
+        Now we are going to print Sample.txt file::
+
+        In [2]: pycat Sample.txt
+        Hai, This is the first time, i am attending this scipy.in conference.
+        From this Conference, i learned some basic commends in ipython.
+
+        Another Example...        
+        """
         
         try:
             filename = get_py_filename(parameter_s)
