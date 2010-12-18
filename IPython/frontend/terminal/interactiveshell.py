@@ -545,51 +545,33 @@ class TerminalInteractiveShell(InteractiveShell):
         See also
         --------
         paste: automatically pull code from clipboard.
-        """
-        
-        opts,args = self.parse_options(parameter_s,'rs:',mode='string')
-        par = args.strip()
-        if opts.has_key('r'):
-            self._rerun_pasted()
-            return
-        
-        sentinel = opts.get('s','--')
-
-        block = self._strip_pasted_lines_for_code(
-            self._get_pasted_lines(sentinel))
-
-        self._execute_block(block, par)
-
-    def magic_paste(self, parameter_s=''):
-        """Paste & execute a pre-formatted code block from clipboard.
-        
-        The text is pulled directly from the clipboard without user
-        intervention and printed back on the screen before execution (unless
-        the -q flag is given to force quiet mode).
-
-        The block is dedented prior to execution to enable execution of method
-        definitions. '>' and '+' characters at the beginning of a line are
-        ignored, to allow pasting directly from e-mails, diff files and
-        doctests (the '...' continuation prompt is also stripped).  The
-        executed block is also assigned to variable named 'pasted_block' for
-        later editing with '%edit pasted_block'.
-        
-        You can also pass a variable name as an argument, e.g. '%paste foo'.
-        This assigns the pasted block to variable 'foo' as string, without 
-        dedenting or executing it (preceding >>> and + is still stripped)
-
-        Options
+         
+        Example
         -------
-        
-          -r: re-executes the block previously entered by cpaste.
+        This is an example of creating a simple function to create the code
+        and then paste
+        Intially type the command %cpaste is Paste & execute a 
+        pre-formatted code block from clipboard
+        You must terminate the block with '--' (two minus-signs) alone on the
+        line::
 
-          -q: quiet mode: do not echo the pasted text back to the terminal.
+             In [9]: %cpaste 
+             Pasting code; enter '--' alone on the line to stop.
+             :a = 5
+             :b = 6
+             :--
         
-        IPython statements (magics, shell escapes) are not supported (yet).
+       Pasting.... done.Executing Pasted code
 
-        See also
-        --------
-        cpaste: manually paste code into terminal until you mark its end.
+            In [10]: %cpaste -r
+            Re-executing 'a = 5...' (12 chars)
+
+            In [11]: a
+            Out[11]: 5
+
+            In [12]: b
+            Out[12]: 6
+
         """
         opts,args = self.parse_options(parameter_s,'rq',mode='string')
         par = args.strip()
