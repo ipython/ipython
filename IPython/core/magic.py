@@ -435,7 +435,8 @@ Currently the magic system has the following functions:\n"""
         variable whose name collides with that of a magic fn, automagic won't
         work for that function (you get the variable instead). However, if you
         delete the variable (del var), the previously shadowed magic function
-        becomes visible to automagic again."""
+        becomes visible to automagic again.  
+        """
 
         arg = parameter_s.lower()
         if parameter_s in ('on','1','true'):
@@ -465,27 +466,27 @@ Currently the magic system has the following functions:\n"""
 
         In this mode, you get:
 
-        In [1]: callable
-        Out[1]: <built-in function callable>
+          In [1]: callable
+          Out[1]: <built-in function callable>
 
-        In [2]: callable 'hello'
-        ------> callable('hello')
-        Out[2]: False
+          In [2]: callable 'hello'
+          ------> callable('hello')
+          Out[2]: False
 
         2 -> Active always.  Even if no arguments are present, the callable
         object is called:
 
-        In [2]: float
-        ------> float()
-        Out[2]: 0.0
+          In [2]: float
+          ------> float()
+          Out[2]: 0.0
 
         Note that even with autocall off, you can still use '/' at the start of
         a line to treat the first argument on the command line as a function
         and add parentheses to it:
 
-        In [8]: /str 43
-        ------> str(43)
-        Out[8]: '43'
+          In [8]: /str 43
+          ------> str(43)
+          Out[8]: '43'
 
         # all-random (note for auto-testing)
         """
@@ -545,6 +546,32 @@ Currently the magic system has the following functions:\n"""
             printpl('Current IPython profile: $self.shell.profile.')
         else:
             print 'No profile active.'
+
+    """ Profile: profiler is a program that describes the run time performance of a program, providing a variety of statistics.
+                
+                Example:
+                -------
+    import profile
+
+    def fib(n):
+       if n == 0:
+          return 0
+    elif n == 1:
+          return 1
+    else:
+        return fib(n-1) + fib(n-2)
+
+    def fib_seq(n):
+           seq = [ ]
+        if n > 0:
+          seq.extend(fib_seq(n-1))
+          seq.append(fib(n))
+          return seq
+
+        print 'RAW'
+        print '=' * 80
+        profile.run('print fib_seq(20); print')
+"""
 
     def magic_pinfo(self, parameter_s='', namespaces=None):
         """Provide detailed information about an object.
@@ -676,7 +703,7 @@ Currently the magic system has the following functions:\n"""
           search with -s or exclude them with -e (these options can be given
           more than once).
     
-        Examples:
+        Examples::
        
         %psearch a*            -> objects beginning with an a
         %psearch -e builtin a* -> objects NOT in the builtin space starting in a
@@ -919,18 +946,18 @@ Currently the magic system has the following functions:\n"""
 
         Examples
         --------
-        In [6]: a = 1
+          In [6]: a = 1
 
-        In [7]: a
-        Out[7]: 1
+          In [7]: a
+          Out[7]: 1
 
-        In [8]: 'a' in _ip.user_ns
-        Out[8]: True
+          In [8]: 'a' in _ip.user_ns
+          Out[8]: True
 
-        In [9]: %reset -f
+          In [9]: %reset -f
 
-        In [10]: 'a' in _ip.user_ns
-        Out[10]: False
+          In [10]: 'a' in _ip.user_ns
+          Out[10]: False
         """
 
         if parameter_s == '-f':
@@ -968,35 +995,35 @@ Currently the magic system has the following functions:\n"""
         this example for pedagogical reasons; in practice you do not need a
         full reset.
         
-        In [1]: %reset -f
+          In [1]: %reset -f
 
         Now, with a clean namespace we can make a few variables and use
-        %reset_selective to only delete names that match our regexp:
+        %reset_selective to only delete names that match our regexp::
 
-        In [2]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
+          In [2]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
 
-        In [3]: who_ls
-        Out[3]: ['a', 'b', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
+          In [3]: who_ls
+          Out[3]: ['a', 'b', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
 
-        In [4]: %reset_selective -f b[2-3]m
+          In [4]: %reset_selective -f b[2-3]m
 
-        In [5]: who_ls
-        Out[5]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
+          In [5]: who_ls
+          Out[5]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
 
-        In [6]: %reset_selective -f d
+          In [6]: %reset_selective -f d
 
-        In [7]: who_ls
-        Out[7]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
+          In [7]: who_ls
+          Out[7]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
 
-        In [8]: %reset_selective -f c
+          In [8]: %reset_selective -f c
 
-        In [9]: who_ls
-        Out[9]: ['a', 'b', 'b1m', 'b2s', 'b4m']
+          In [9]: who_ls
+          Out[9]: ['a', 'b', 'b1m', 'b2s', 'b4m']
 
-        In [10]: %reset_selective -f b
+          In [10]: %reset_selective -f b
 
-        In [11]: who_ls
-        Out[11]: ['a']
+          In [11]: who_ls
+          Out[11]: ['a']
         """
         
         opts, regex = self.parse_options(parameter_s,'f')
@@ -1041,7 +1068,7 @@ Currently the magic system has the following functions:\n"""
           over  : overwrite existing log.\\
           rotate: create rotating logs name.1~, name.2~, etc.
 
-        Options:
+        Options::
 
           -o: log also IPython's output.  In this mode, all commands which
           generate an Out[NN] prompt are recorded to the logfile, right after
@@ -1404,7 +1431,7 @@ Currently the magic system has the following functions:\n"""
         and sys.argv). This allows for very convenient loading of code for
         interactive work, while giving each program a 'clean sheet' to run in.
 
-        Options:
+        Options::
         
         -n: __name__ is NOT set to '__main__', but to the running file's name
         without extension (as python does under import).  This allows running
@@ -1431,7 +1458,7 @@ Currently the magic system has the following functions:\n"""
         must be an integer indicating how many times you want the script to
         run.  The final timing report will include total and per run results.
 
-        For example (testing the script uniq_stable.py):
+        For example (testing the script uniq_stable.py)::
 
             In [1]: run -t uniq_stable
 
@@ -1684,7 +1711,8 @@ Currently the magic system has the following functions:\n"""
         Time execution of a Python statement or expression using the timeit
         module.
 
-        Options:
+        Options::
+
         -n<N>: execute the given statement <N> times in a loop. If this value
         is not given, a fitting value is chosen. 
         
@@ -1823,7 +1851,7 @@ Currently the magic system has the following functions:\n"""
         2.3, the timeit module offers more control and sophistication, so this
         could be rewritten to use it (patches welcome).
         
-        Some examples:
+        Some examples::
 
           In [1]: time 2**128
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
@@ -1842,11 +1870,11 @@ Currently the magic system has the following functions:\n"""
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
 
-          Note that the time needed by Python to compile the given expression
-          will be reported if it is more than 0.1s.  In this example, the
-          actual exponentiation is done by Python at compilation time, so while
-          the expression can take a noticeable amount of time to compute, that
-          time is purely due to the compilation:
+        Note that the time needed by Python to compile the given expression
+        will be reported if it is more than 0.1s.  In this example, the
+        actual exponentiation is done by Python at compilation time, so while
+        the expression can take a noticeable amount of time to compute, that
+        time is purely due to the compilation:
 
           In [5]: time 3**9999;
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
@@ -1856,7 +1884,7 @@ Currently the magic system has the following functions:\n"""
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00 s
           Compiler : 0.78 s
-          """
+        """
         
         # fail immediately if the given expression can't be compiled
         
@@ -1910,7 +1938,7 @@ Currently the magic system has the following functions:\n"""
         Usage:\\
           %macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
 
-        Options:
+        Options::
         
           -r: use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
@@ -1931,7 +1959,7 @@ Currently the magic system has the following functions:\n"""
         Note: as a 'hidden' feature, you can also use traditional python slice
         notation, where N:M means numbers N through M-1.
 
-        For example, if your history contains (%hist prints it):
+        For example, if your history contains (%hist prints it)::
         
           44: x=1
           45: y=3
@@ -1941,7 +1969,7 @@ Currently the magic system has the following functions:\n"""
           49: print 'x',x,'y',y
 
         you can create a macro with lines 44 through 47 (included) and line 49
-        called my_macro with:
+        called my_macro with::
 
           In [55]: %macro my_macro 44-47 49
 
@@ -1956,13 +1984,13 @@ Currently the magic system has the following functions:\n"""
         but IPython's display system checks for macros and executes them as
         code instead of printing them when you type their name.
 
-        You can view a macro's contents by explicitly printing it with:
+        You can view a macro's contents by explicitly printing it with::
         
           'print macro_name'.
 
         For one-off cases which DON'T contain magic function calls in them you
         can obtain similar results by explicitly executing slices from your
-        input history with:
+        input history with::
 
           In [60]: exec In[44:48]+In[49]"""
 
@@ -1990,7 +2018,7 @@ Currently the magic system has the following functions:\n"""
         Usage:\\
           %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
 
-        Options:
+        Options::
         
           -r: use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
@@ -2108,7 +2136,7 @@ Currently the magic system has the following functions:\n"""
         specified editor with a temporary file containing the macro's data.
         Upon exit, the macro is reloaded with the contents of the file.
 
-        Note: opening at an exact line is only supported under Unix, and some
+        Note: Opening at an exact line is only supported under Unix, and some
         editors (like kedit and gedit up to Gnome 2.8) do not understand the
         '+NUMBER' parameter necessary for this feature. Good editors like
         (X)Emacs, vi, jed, pico and joe all do.
@@ -2129,50 +2157,50 @@ Currently the magic system has the following functions:\n"""
         This is an example of creating a simple function inside the editor and
         then modifying it. First, start up the editor:
 
-        In [1]: ed
-        Editing... done. Executing edited code...
-        Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
+          In [1]: ed
+          Editing... done. Executing edited code...
+          Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
 
-        We can then call the function foo():
+        We can then call the function foo()::
         
-        In [2]: foo()
-        foo() was defined in an editing session
+          In [2]: foo()
+          foo() was defined in an editing session
 
         Now we edit foo.  IPython automatically loads the editor with the
         (temporary) file where foo() was previously defined:
         
-        In [3]: ed foo
-        Editing... done. Executing edited code...
+          In [3]: ed foo
+          Editing... done. Executing edited code...
 
         And if we call foo() again we get the modified version:
         
-        In [4]: foo()
-        foo() has now been changed!
+          In [4]: foo()
+          foo() has now been changed!
 
         Here is an example of how to edit a code snippet successive
         times. First we call the editor:
 
-        In [5]: ed
-        Editing... done. Executing edited code...
-        hello
-        Out[5]: "print 'hello'n"
+          In [5]: ed
+          Editing... done. Executing edited code...
+          hello
+          Out[5]: "print 'hello'n"
 
         Now we call it again with the previous output (stored in _):
 
-        In [6]: ed _
-        Editing... done. Executing edited code...
-        hello world
-        Out[6]: "print 'hello world'n"
+          In [6]: ed _
+          Editing... done. Executing edited code...
+          hello world
+          Out[6]: "print 'hello world'n"
 
         Now we call it with the output #8 (stored in _8, also as Out[8]):
 
-        In [7]: ed _8
-        Editing... done. Executing edited code...
-        hello again
-        Out[7]: "print 'hello again'n"
+          In [7]: ed _8
+          Editing... done. Executing edited code...
+          hello again
+          Out[7]: "print 'hello again'n"
 
 
-        Changing the default editor hook:
+        Changing the default editor hook::
 
         If you wish to write your own editor hook, you can put it in a
         configuration file which you load at startup time.  The default hook
