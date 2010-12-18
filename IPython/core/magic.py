@@ -1135,7 +1135,7 @@ Currently the magic system has the following functions:\n"""
         options."""
         self.logger.logstop()
 
-    def magic_logoff(self,parameter_s=''):
+    def nself,parameter_s=''):
         """Temporarily stop logging.
 
         You must have previously started logging."""
@@ -1147,7 +1147,52 @@ Currently the magic system has the following functions:\n"""
         This function is for restarting logging which you've temporarily
         stopped with %logoff. For starting logging for the first time, you
         must use the %logstart function, which allows you to specify an
-        optional log filename."""
+        optional log filename.This function is for restarting logging which you've temporarily
+        stopped with %logoff. For starting logging for the first time, you
+        must use the %logstart function, which allows you to specify an
+        optional log filename.The "login" functions allow you to temporarily stop
+        and resume logging to a file which had previosly been started which %logstart.
+        They will fail (with and explanation) of you try to use then before logging has 
+        been started.
+
+
+        Examples
+        --------
+        ::
+          import junit.extensions.jfcunit.*;
+          import junit.extensions.jfcunit.finder.*;
+          import junit.extensions.jfcunit.eventdata.*;
+
+          public LoginScreenTest extends JFCTestCase {
+
+          private LoginScreen loginScreen = null;
+
+          public LoginScreenTest( String name ) {
+          super( name );
+          }
+
+          protected void setUp( ) throws Exception {
+          super.setUp( );
+
+          // Choose the text Helper
+          setHelper( new JFCTestHelper( ) ); // Uses the AWT Event Queue.
+          // setHelper( new RobotTestHelper( ) ); // Uses the OS Event Queue.
+
+          loginScreen = new LoginScreen( "LoginScreenTest: " + getName( ) );
+          loginScreen.setVisible( true );
+          }
+
+          protected void tearDown( ) throws Exception {
+          loginScreen = null;
+          getHelper.cleanUp( this );
+          super.tearDown( );
+          }
+
+          ...Tests...
+    
+        ----------------
+
+        """
         
         self.shell.logger.switch_log(1)
     
