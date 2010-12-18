@@ -578,7 +578,19 @@ Currently the magic system has the following functions:\n"""
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
-        If the object is a class, print the constructor information."""
+        If the object is a class, print the constructor information.
+        
+        Examples
+        --------        
+          In [6]: %pdef hist
+          hist(self, parameter_s='')
+
+          In [7]: %pdef pinfo
+          pinfo(self, parameter_s='', namespaces=None)
+
+        
+
+        """
         self._inspect('pdef',parameter_s, namespaces)
 
     def magic_pdoc(self, parameter_s='', namespaces=None):
