@@ -2366,7 +2366,11 @@ Currently the magic system has the following functions:\n"""
 
         Currently implemented schemes: NoColor, Linux, LightBG.
 
-        Color scheme names are not case-sensitive."""
+        Color scheme names are not case-sensitive.
+        
+        Examples
+        ------------
+"""
 
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
@@ -2432,7 +2436,11 @@ Defaulting color scheme to 'NoColor'"""
               ['OFF','ON'][self.shell.pprint]
                 
     def magic_Exit(self, parameter_s=''):
-        """Exit IPython."""
+        """Exit IPython.
+            Example:
+              In[3]:exit 
+              It exits from the shell           
+"""
 
         self.shell.ask_exit()
 
@@ -2605,7 +2613,14 @@ Defaulting color scheme to 'NoColor'"""
             os.chdir(savedir)
         
     def magic_pwd(self, parameter_s = ''):
-        """Return the current working directory path."""
+        """Return the current working directory path.
+     
+            Example:
+            In [9]: pwd
+            Out[9]: '/home/tsuser/sprint/ipython'
+
+            
+"""
         return os.getcwd()
 
     def magic_cd(self, parameter_s=''):
@@ -2764,7 +2779,15 @@ Defaulting color scheme to 'NoColor'"""
         print "popd ->",top
 
     def magic_dirs(self, parameter_s=''):
-        """Return the current directory stack."""
+        """Return the current directory stack.
+           Example
+           --------
+           This command returns the present directory we are working in::
+             In[3]:tsuser@tsuser-desktop:~/sprint/ipython$ dirs
+             Out[]:~/sprint/ipython
+
+         
+"""
 
         return self.shell.dir_stack
 
