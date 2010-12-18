@@ -2179,7 +2179,19 @@ Currently the magic system has the following functions:\n"""
         is defined in the IPython.core.hooks module, and you can use that as a
         starting example for further modifications.  That file also has
         general instructions on how to set a new hook for use once you've
-        defined it."""
+        defined it.
+
+        Example:
+        -------
+        Some Example::
+          In [6]:ed -p
+          Editing... done. Executing edited code...
+          FOSSEE 
+        # this will call the editor with the same data as the previous time
+          it was used, regardless of how long ago (in the current session)
+          it was.
+
+"""
         
         # FIXME: This function has become a convoluted mess.  It needs a
         # ground-up rewrite with clean, simple logic.
