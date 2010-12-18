@@ -1061,7 +1061,22 @@ Currently the magic system has the following functions:\n"""
           exactly as typed, with no transformations applied.
 
           -t: put timestamps before each input line logged (these are put in
-          comments)."""
+          comments).
+         
+          Examples
+          --------
+          ::
+            In [1] : %logstart 
+            Activating auto-logging.Current session state plus future input saved.
+            Filename      : ipython_log.py
+            Mode          : rotate
+            Output logging: False
+            Raw input log : False
+            Timestamping  : False
+            State         : active 
+            In [2]: print 1 
+            1        
+          """
         
         opts,par = self.parse_options(parameter_s,'ort')
         log_output = 'o' in opts
@@ -1132,7 +1147,12 @@ Currently the magic system has the following functions:\n"""
 
         In order to start logging again, a new %logstart call needs to be made,
         possibly (though not necessarily) with a new filename, mode and other
-        options."""
+        options.
+           Examples:
+           ---------
+           ::
+
+"""
         self.logger.logstop()
 
     def magic_logoff(self,parameter_s=''):
