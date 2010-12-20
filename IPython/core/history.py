@@ -17,6 +17,8 @@ import fnmatch
 import json
 import os
 import sys
+import threading
+import time
 
 # Our own packages
 import IPython.utils.io
@@ -251,6 +253,23 @@ class HistoryManager(object):
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
 
+class HistorySaveThread(threading.Thread):
+    """Thread to save history periodically"""
+
+    def __init__(self, IPython_object, time_interval, exit_now):
+        threading.Thread.__init__(self)
+        self.IPython_object = IPython_object
+        self.time_interval = time_interval
+        self.exit_now = exit_now
+
+    def run(self):
+        while 1:
+            if self.exit_now==True:
+                break
+            time.sleep(self.time_interval)
+            #printing for debug
+            #print("Saving...")
+            self.IPython_object.save_history()
 
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.

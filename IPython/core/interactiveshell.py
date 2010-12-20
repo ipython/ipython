@@ -27,8 +27,6 @@ import re
 import sys
 import tempfile
 import types
-import threading
-import time
 from contextlib import nested
 
 from IPython.config.configurable import Configurable
@@ -47,6 +45,7 @@ from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.history import HistoryManager
+from IPython.core.history import HistorySaveThread
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
@@ -131,23 +130,6 @@ class SeparateStr(Str):
 class MultipleInstanceError(Exception):
     pass
 
-class HistorySaveThread(threading.Thread):
-    """Thread to save history periodically"""
-
-    def __init__(self, IPython_object, time_interval, exit_now):
-        threading.Thread.__init__(self)
-        self.IPython_object = IPython_object
-        self.time_interval = time_interval
-        self.exit_now = exit_now
-
-    def run(self):
-        while 1:
-            if self.exit_now==True:
-                break
-            time.sleep(self.time_interval)
-            #printing for debug
-            #print "Saving..."
-            self.IPython_object.save_history()
 
 #-----------------------------------------------------------------------------
 # Main IPython class
@@ -312,7 +294,7 @@ class InteractiveShell(Configurable, Magic):
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
-        self.history_thread = HistorySaveThread(self, 1, False)
+        self.history_thread = HistorySaveThread(self, 10, False)
         self.history_thread.start()
 
     # While we're trying to have each part of the code directly access what it
