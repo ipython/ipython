@@ -261,14 +261,17 @@ class HistorySaveThread(threading.Thread):
         self.IPython_object = IPython_object
         self.time_interval = time_interval
         self.exit_now = exit_now
+        self.cond = threading.Condition()
 
     def run(self):
         while 1:
+            self.cond.acquire()
+            self.cond.wait(self.time_interval)
+            self.cond.release()
             if self.exit_now==True:
                 break
-            time.sleep(self.time_interval)
             #printing for debug
-            #print("Saving...")
+            print("Saving...")
             self.IPython_object.save_history()
 
 def magic_history(self, parameter_s = ''):
