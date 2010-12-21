@@ -505,8 +505,6 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.shell.history_thread.cond.release()
                 self.ask_exit()
         else:
-            self.shell.history_thread = HistorySaveThread(self.shell, 60, False)
-            self.shell.history_thread.start()
             self.ask_exit()
             
     #------------------------------------------------------------------------

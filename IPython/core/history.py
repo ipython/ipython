@@ -271,7 +271,7 @@ class HistorySaveThread(threading.Thread):
             if self.exit_now==True:
                 break
             #printing for debug
-            print("Saving...")
+            #print("Saving...")
             self.IPython_object.save_history()
 
 def magic_history(self, parameter_s = ''):
