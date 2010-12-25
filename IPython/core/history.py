@@ -146,8 +146,8 @@ class HistoryManager(object):
 
         with open(self.hist_file,'rt') as hfile:
             hist = json.load(hfile)
-            self.input_hist_parsed = hist['parsed']
-            self.input_hist_raw = hist['raw']
+            self.input_hist_parsed[:] = hist['parsed']
+            self.input_hist_raw[:] = hist['raw']
             if self.shell.has_readline:
                 self.populate_readline_history()
         
