@@ -322,12 +322,15 @@ def magic_history(self, parameter_s = ''):
       -f FILENAME: instead of printing the output to the screen, redirect it to
        the given file.  The file is always overwritten, though IPython asks for
        confirmation first if it already exists.
+
+      -O: prints the full history, i.e. the history persisted from previous
+       sessions. This option cannot be used in combination with -o and -n
     """
 
     if not self.shell.displayhook.do_full_cache:
         print('This feature is only available if numbered prompts are in use.')
         return
-    opts,args = self.parse_options(parameter_s,'gnoptsrf:',mode='list')
+    opts,args = self.parse_options(parameter_s,'gnoptsrOf:',mode='list')
 
     # Check if output to specific file was requested.
     try:
@@ -345,14 +348,22 @@ def magic_history(self, parameter_s = ''):
         outfile = open(outfname,'w')
         close_at_end = True
 
-    if 't' in opts:
-        input_hist = self.shell.history_manager.input_hist_parsed
-    elif 'r' in opts:
-        input_hist = self.shell.history_manager.input_hist_raw
+    if 'O' in opts:
+        if 't' in opts:
+            input_hist = self.shell.history_manager.input_hist_full_parsed
+        elif 'r' in opts:
+            input_hist = self.shell.history_manager.input_hist_full_raw
+        else:
+            input_hist = self.shell.history_manager.input_hist_full_raw
     else:
-        # Raw history is the default
-        input_hist = self.shell.history_manager.input_hist_raw
-            
+        if 't' in opts:
+            input_hist = self.shell.history_manager.input_hist_parsed
+        elif 'r' in opts:
+            input_hist = self.shell.history_manager.input_hist_raw
+        else:
+            # Raw history is the default
+            input_hist = self.shell.history_manager.input_hist_raw
+
     default_length = 40
     pattern = None
     if 'g' in opts:
@@ -381,7 +392,8 @@ def magic_history(self, parameter_s = ''):
     print_nums = 'n' in opts
     print_outputs = 'o' in opts
     pyprompts = 'p' in opts
-    
+    full_hist = 'O' in opts
+
     found = False
     if pattern is not None:
         sh = self.shell.history_manager.shadowhist.all()
@@ -406,7 +418,7 @@ def magic_history(self, parameter_s = ''):
             continue
             
         multiline = int(inline.count('\n') > 1)
-        if print_nums:
+        if print_nums and not full_hist:
             print('%s:%s' % (str(in_num).ljust(width), line_sep[multiline]),
                   file=outfile)
         if pyprompts:
@@ -419,7 +431,7 @@ def magic_history(self, parameter_s = ''):
                 print(inline, end='', file=outfile)
         else:
             print(inline, end='', file=outfile)
-        if print_outputs:
+        if print_outputs and not full_hist:
             output = self.shell.history_manager.output_hist.get(in_num)
             if output is not None:
                 print(repr(output), file=outfile)
