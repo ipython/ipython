@@ -36,10 +36,17 @@ class HistoryManager(object):
 
     # An instance of the IPython shell we are attached to
     shell = None
-    # A list to hold processed history
+    # A list to hold the full processed history for the current session
     input_hist_parsed = None
-    # A list to hold raw history (as typed by user)
+    # A list to hold the full raw history (as typed by user) for the
+    # current session
     input_hist_raw = None
+    # A list to hold the processed history including the ones from
+    # previous sessions
+    input_hist_full_parsed = None
+    # A list to hold the full raw history (as typed by user) including
+    # the ones from previous sessions
+    input_hist_full_raw = None
     # A list of directories visited during session
     dir_hist = None
     # A dict of output history, keyed with ints from the shell's execution count
@@ -68,12 +75,19 @@ class HistoryManager(object):
         # We need a pointer back to the shell for various tasks.
         self.shell = shell
         
-        # List of input with multi-line handling.
+        # List of input with multi-line handling for current session.
         self.input_hist_parsed = []
         # This one will hold the 'raw' input history, without any
-        # pre-processing.  This will allow users to retrieve the input just as
-        # it was exactly typed in by the user, with %hist -r.
+        # pre-processing for current session. This will allow users
+        # to retrieve the input just as it was exactly typed in by
+        # the user, with %hist -r.
         self.input_hist_raw = []
+
+        # List of input with multi-line handling which contains full history.
+        self.input_hist_full_parsed = []
+        # This one will hold the 'raw' input history, without any
+        # pre-processing containing full history
+        self.input_hist_full_raw = []
 
         # list of visited directories
         try:
@@ -128,15 +142,15 @@ class HistoryManager(object):
         except AttributeError:
             pass
         else:
-            for h in self.input_hist_raw:
+            for h in self.input_hist_full_raw:
                 if not h.isspace():
                     for line in h.splitlines():
                         self.shell.readline.add_history(line)
 
     def save_history(self):
         """Save input history to a file (via readline library)."""
-        hist = dict(raw=self.input_hist_raw, #[-self.shell.history_length:],
-                    parsed=self.input_hist_parsed) #[-self.shell.history_length:])
+        hist = dict(raw=self.input_hist_full_raw, #[-self.shell.history_length:],
+                    parsed=self.input_hist_full_parsed) #[-self.shell.history_length:])
         with open(self.hist_file,'wt') as hfile:
             json.dump(hist, hfile,
                       sort_keys=True, indent=4)
@@ -146,8 +160,8 @@ class HistoryManager(object):
 
         with open(self.hist_file,'rt') as hfile:
             hist = json.load(hfile)
-            self.input_hist_parsed[:] = hist['parsed']
-            self.input_hist_raw[:] = hist['raw']
+            self.input_hist_full_parsed[:] = hist['parsed']
+            self.input_hist_full_raw[:] = hist['raw']
             if self.shell.has_readline:
                 self.populate_readline_history()
         
@@ -219,9 +233,16 @@ class HistoryManager(object):
         # do not store exit/quit commands
         if source_raw.strip() in self._exit_commands:
             return
-        
-        self.input_hist_parsed.append(source.rstrip())
-        self.input_hist_raw.append(source_raw.rstrip())
+
+        clean_source = source.rstrip()
+        clean_source_raw = source_raw.rstrip()
+
+        self.input_hist_parsed.append(clean_source)
+        self.input_hist_raw.append(clean_source_raw)
+
+        self.input_hist_full_parsed.append(clean_source)
+        self.input_hist_full_raw.append(clean_source_raw)
+
         self.shadow_hist.add(source)
 
         # update the auto _i variables
@@ -243,11 +264,18 @@ class HistoryManager(object):
         if len(self.input_hist_parsed) != len (self.input_hist_raw):
             self.input_hist_raw[:] = self.input_hist_parsed
 
+        if len(self.input_hist_full_parsed) != len (self.input_hist_full_raw):
+            self.input_hist_full_raw[:] = self.input_hist_full_parsed
+
     def reset(self):
         """Clear all histories managed by this object."""
         self.input_hist_parsed[:] = []
         self.input_hist_raw[:] = []
         self.output_hist.clear()
+
+        self.input_hist_full_parsed[:] = []
+        self.input_hist_full_raw[:] = []
+
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
 

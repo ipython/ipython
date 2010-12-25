@@ -2980,8 +2980,8 @@ Defaulting color scheme to 'NoColor'"""
         else:
             start_magic = start
         # Look through the input history in reverse
-        for n in range(len(self.shell.history_manager.input_hist_parsed)-2,0,-1):
-            input = self.shell.history_manager.input_hist_parsed[n]
+        for n in range(len(self.shell.history_manager.input_hist_full_parsed)-2,0,-1):
+            input = self.shell.history_manager.input_hist_full_parsed[n]
             # skip plain 'r' lines so we don't recurse to infinity
             if input != '_ip.magic("r")\n' and \
                    (input.startswith(start) or input.startswith(start_magic)):
