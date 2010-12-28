@@ -382,13 +382,12 @@ def magic_history(self, parameter_s = ''):
             print('%s:%s' % (str(in_num).ljust(width), line_sep[multiline]),
                   file=outfile)
         if pyprompts:
-            print('>>>', file=outfile)
             if multiline:
-                lines = inline.splitlines()
+                lines =('>>> '+inline).splitlines()
                 print('\n... '.join(lines), file=outfile)
                 print('... ', file=outfile)
             else:
-                print(inline, end='', file=outfile)
+                print(">>> "+inline, end='', file=outfile)
         else:
             print(inline, end='', file=outfile)
         if print_outputs:
