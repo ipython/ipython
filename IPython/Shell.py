@@ -1149,19 +1149,6 @@ class IPShellMatplotlibQt4(IPShellQt4):
 #-----------------------------------------------------------------------------
 # Factory functions to actually start the proper thread-aware shell
 
-def check_gtk(mode):
-    try:
-        import gtk
-    except (ImportError, RuntimeError):
-        # GTK not present, or can't be started (no X11, happens in console)
-        return mode
-    if hasattr(gtk,'set_interactive'):
-        gtk.set_interactive(False)
-        return 'tkthread'
-    else:
-        return mode
-
-
 def _select_shell(argv):
     """Select a shell from the given argv vector.
 
@@ -1231,10 +1218,6 @@ def _select_shell(argv):
             else:
                 # Any other backend, use plain Tk
                 th_mode = 'tkthread'
-
-            # New versions of pygtk don't need the brittle threaded support.
-            th_mode = check_gtk(th_mode)
-                
         return mpl_shell[th_mode]
     else:
         # No pylab requested, just plain threads
@@ -1242,10 +1225,6 @@ def _select_shell(argv):
             th_mode = special_opts.pop()
         except KeyError:
             th_mode = 'tkthread'
-
-        # New versions of pygtk don't need the brittle threaded support.
-        if th_mode == 'gthread':
-            th_mode = check_gtk(th_mode)
         return th_shell[th_mode]
 
 
