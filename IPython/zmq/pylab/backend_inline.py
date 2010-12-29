@@ -14,7 +14,7 @@ from matplotlib.backends.backend_svg import new_figure_manager
 from matplotlib._pylab_helpers import Gcf
 
 # Local imports.
-from backend_payload import add_plot_payload
+from IPython.core.displaypub import publish_display_data
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -85,7 +85,11 @@ def send_svg_canvas(canvas):
     canvas.figure.set_facecolor('white')
     canvas.figure.set_edgecolor('white')
     try:
-        add_plot_payload('svg', svg_from_canvas(canvas))
+        publish_display_data(
+            'IPython.zmq.pylab.backend_inline.send_svg_canvas',
+            '<Matplotlib Plot>',
+            svg=svg_from_canvas(canvas)
+        )
     finally:
         canvas.figure.set_facecolor(fc)
         canvas.figure.set_edgecolor(ec)

@@ -26,6 +26,7 @@ from IPython.core.interactiveshell import (
 )
 from IPython.core import page
 from IPython.core.displayhook import DisplayHook
+from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
 from IPython.core.payloadpage import install_payload_page
 from IPython.utils import io
@@ -75,10 +76,34 @@ class ZMQDisplayHook(DisplayHook):
         self.msg = None
 
 
+class ZMQDisplayPublisher(DisplayPublisher):
+    """A ``DisplayPublisher`` that published data using a ZeroMQ PUB socket."""
+
+    session = Instance(Session)
+    pub_socket = Instance('zmq.Socket')
+    parent_header = Dict({})
+
+    def set_parent(self, parent):
+        """Set the parent for outbound messages."""
+        self.parent_header = extract_header(parent)
+
+    def publish(self, source, data, metadata=None):
+        if metadata is None:
+            metadata = {}
+        self._validate_data(source, data, metadata)
+        msg = self.session.msg(u'display_data', {}, parent=self.parent_header)
+        msg['content']['source'] = source
+        msg['content']['data'] = data
+        msg['content']['metadata'] = metadata
+        self.pub_socket.send_json(msg)
+
+
 class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
 
     displayhook_class = Type(ZMQDisplayHook)
+    display_pub_class = Type(ZMQDisplayPublisher)
+
     keepkernel_on_exit = None
 
     def init_environment(self):

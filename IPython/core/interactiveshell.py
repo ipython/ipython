@@ -41,6 +41,7 @@ from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.compilerop import CachingCompiler
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
+from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
@@ -150,6 +151,8 @@ class InteractiveShell(Configurable, Magic):
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True)
     displayhook_class = Type(DisplayHook)
+    display_pub_class = Type(DisplayPublisher)
+
     exit_now = CBool(False)
     # Monotonically increasing execution counter
     execution_count = Int(1)
@@ -284,6 +287,7 @@ class InteractiveShell(Configurable, Magic):
         self.init_io()
         self.init_traceback_handlers(custom_exceptions)
         self.init_prompts()
+        self.init_display_pub()
         self.init_displayhook()
         self.init_reload_doctest()
         self.init_magics()
@@ -480,6 +484,9 @@ class InteractiveShell(Configurable, Magic):
         # the DisplayHook. Once there is a separate prompt manager, this 
         # will initialize that object and all prompt related information.
         pass
+
+    def init_display_pub(self):
+        self.display_pub = self.display_pub_class(config=self.config)
 
     def init_displayhook(self):
         # Initialize displayhook, set in/out prompts and printing system

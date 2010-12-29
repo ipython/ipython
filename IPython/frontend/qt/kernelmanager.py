@@ -101,6 +101,9 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
     # Emitted when a message of type 'pyerr' is received.
     pyerr_received = QtCore.pyqtSignal(object)
 
+    # Emitted when a message of type 'display_data' is received
+    display_data_received = QtCore.pyqtSignal(object)
+
     # Emitted when a crash report message is received from the kernel's
     # last-resort sys.excepthook.
     crash_received = QtCore.pyqtSignal(object)
@@ -117,7 +120,6 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
         """
         # Emit the generic signal.
         self.message_received.emit(msg)
-        
         # Emit signals for specialized message types.
         msg_type = msg['msg_type']
         signal = getattr(self, msg_type + '_received', None)

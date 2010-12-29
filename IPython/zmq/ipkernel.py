@@ -91,6 +91,8 @@ class Kernel(Configurable):
         self.shell = ZMQInteractiveShell.instance()
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.pub_socket
+        self.shell.display_pub.session = self.session
+        self.shell.display_pub.pub_socket = self.pub_socket
 
         # TMP - hack while developing
         self.shell._reply_content = None
@@ -194,6 +196,7 @@ class Kernel(Configurable):
 
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
+        shell.display_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 

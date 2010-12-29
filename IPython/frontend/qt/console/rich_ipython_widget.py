@@ -56,7 +56,31 @@ class RichIPythonWidget(IPythonWidget):
                 menu.addAction('Save SVG As...', 
                                lambda: save_svg(svg, self._control))
         return menu
-    
+
+    #---------------------------------------------------------------------------
+    # 'BaseFrontendMixin' abstract interface
+    #---------------------------------------------------------------------------
+
+    def _handle_display_data(self, msg):
+        """ A handler for ``display_data`` message that handles html and svg.
+        """
+        if not self._hidden and self._is_from_this_session(msg):
+            source = msg['content']['source']
+            data = msg['content']['data']
+            metadata = msg['content']['metadata']
+            # Try to use the svg or html representations.
+            # FIXME: Is this the right ordering of things to try?
+            if data.has_key('image/svg+xml'):
+                svg = data['image/svg+xml']
+                # TODO: try/except this call.
+                self._append_svg(svg)
+            elif data.has_key('text/html'):
+                html = data['text/html']
+                self._append_html(html)
+            else:
+                # Default back to the plain text representation.
+                return super(RichIPythonWidget, self)._handle_display_data(msg)
+
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
@@ -65,20 +89,11 @@ class RichIPythonWidget(IPythonWidget):
         """ Reimplemented to handle matplotlib plot payloads.
         """
         if item['source'] == self._payload_source_plot:
+            # TODO: remove this as all plot data is coming back through the
+            # display_data message type.
             if item['format'] == 'svg':
                 svg = item['data']
-                try:
-                    image = svg_to_image(svg)
-                except ValueError:
-                    self._append_plain_text('Received invalid plot data.')
-                else:
-                    format = self._add_image(image)
-                    self._name_to_svg[str(format.name())] = svg
-                    format.setProperty(self._svg_text_format_property, svg)
-                    cursor = self._get_end_cursor()
-                    cursor.insertBlock()
-                    cursor.insertImage(format)
-                    cursor.insertBlock()
+                self._append_svg(svg)
                 return True
             else:
                 # Add other plot formats here!
@@ -89,6 +104,22 @@ class RichIPythonWidget(IPythonWidget):
     #---------------------------------------------------------------------------
     # 'RichIPythonWidget' protected interface
     #---------------------------------------------------------------------------
+
+    def _append_svg(self, svg):
+        """ Append raw svg data to the widget.
+        """
+        try:
+            image = svg_to_image(svg)
+        except ValueError:
+            self._append_plain_text('Received invalid plot data.')
+        else:
+            format = self._add_image(image)
+            self._name_to_svg[str(format.name())] = svg
+            format.setProperty(self._svg_text_format_property, svg)
+            cursor = self._get_end_cursor()
+            cursor.insertBlock()
+            cursor.insertImage(format)
+            cursor.insertBlock()
 
     def _add_image(self, image):
         """ Adds the specified QImage to the document and returns a
@@ -192,4 +223,4 @@ class RichIPythonWidget(IPythonWidget):
 
         else:
             return '<b>Unrecognized image format</b>'
-        
+

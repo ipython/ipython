@@ -700,29 +700,31 @@ socket with the names 'stdin' and 'stdin_reply'.  This will allow other clients
 to monitor/display kernel interactions and possibly replay them to their user
 or otherwise expose them.
 
-Representation Data
--------------------
+Display Data
+------------
 
-This type of message is used to bring back representations (text, html, svg,
-etc.) of Python objects to the frontend. Each message can have multiple
-representations of the object; it is up to the frontend to decide which to use
-and how. A single message should contain the different representations of a
-single Python object. Each representation should be a JSON'able data structure,
-and should be a valid MIME type.
+This type of message is used to bring back data that should be diplayed (text,
+html, svg, etc.) in the frontends. This data is published to all frontends.
+Each message can have multiple representations of the data; it is up to the
+frontend to decide which to use and how. A single message should contain all
+possible representations of the same information. Each representation should
+be a JSON'able data structure, and should be a valid MIME type.
 
 Some questions remain about this design:
 
-* Do we use this message type for pyout/displayhook?
-* What is the best way to organize the content dict of the message?
+* Do we use this message type for pyout/displayhook? Probably not, because
+  the displayhook also has to handle the Out prompt display. On the other hand
+  we could put that information into the metadata secion.
 
-Message type: ``repr_data``::
+Message type: ``display_data``::
 
-    # Option 1: if we only allow a single source.
     content = {
         'source' : str  # Who create the data
         'data' : dict  # {'mimetype1' : data1, 'mimetype2' : data2}
         'metadata' : dict  # Any metadata that describes the data
     }
+
+Other options for ``display_data`` content::
 
     # Option 2: allowing for a different source for each representation,
     but not keyed by anything.
