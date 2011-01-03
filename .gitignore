@@ -3,6 +3,7 @@ build
 docs/dist
 docs/build/*
 docs/source/api/generated
+docs/gh-pages
 *.py[co]
 build
 *.egg-info
