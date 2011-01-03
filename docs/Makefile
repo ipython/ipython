@@ -32,7 +32,7 @@ help:
 	@echo "gitwash-update update git workflow from source repo"
 
 clean:
-	-rm -rf build/* dist/* $(SRCDIR)/api/generated
+	-rm -rf build/* dist/* $(SRCDIR)/api/generated gh-pages
 
 pdf: latex
 	cd build/latex && make all-pdf
