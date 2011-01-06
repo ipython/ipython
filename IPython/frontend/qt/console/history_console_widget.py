@@ -1,5 +1,5 @@
 # System library imports
-from PyQt4 import QtGui
+from IPython.external.qt import QtGui
 
 # Local imports
 from console_widget import ConsoleWidget

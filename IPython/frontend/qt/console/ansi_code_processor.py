@@ -9,7 +9,7 @@ from collections import namedtuple
 import re
 
 # System library imports
-from PyQt4 import QtCore, QtGui
+from IPython.external.qt import QtCore, QtGui
 
 #-----------------------------------------------------------------------------
 # Constants and datatypes

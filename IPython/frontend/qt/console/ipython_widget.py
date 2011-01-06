@@ -17,7 +17,7 @@ from subprocess import Popen
 from textwrap import dedent
 
 # System library imports
-from PyQt4 import QtCore, QtGui
+from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter, \
@@ -56,7 +56,7 @@ class IPythonWidget(FrontendWidget):
     # an editor is needed for a file. This overrides 'editor' and 'editor_line'
     # settings.
     custom_edit = Bool(False)
-    custom_edit_requested = QtCore.pyqtSignal(object, object)
+    custom_edit_requested = QtCore.Signal(object, object)
 
     # A command for invoking a system text editor. If the string contains a
     # {filename} format specifier, it will be used. Otherwise, the filename will
@@ -227,7 +227,7 @@ class IPythonWidget(FrontendWidget):
         """ Copy the currently selected text to the clipboard, removing prompts
             if possible.
         """
-        text = unicode(self._control.textCursor().selection().toPlainText())
+        text = self._control.textCursor().selection().toPlainText()
         if text:
             lines = map(transform_ipy_prompt, text.splitlines())
             text = '\n'.join(lines)
@@ -325,7 +325,7 @@ class IPythonWidget(FrontendWidget):
 
         # Load code from the %loadpy magic, if necessary.
         if self._code_to_load is not None:
-            self.input_buffer = dedent(unicode(self._code_to_load).rstrip())
+            self.input_buffer = dedent(self._code_to_load.rstrip())
             self._code_to_load = None
 
     def _show_interpreter_prompt_for_reply(self, msg):

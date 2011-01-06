@@ -1,9 +1,10 @@
 # Standard library imports
 import re
 from textwrap import dedent
+from unicodedata import category
 
 # System library imports
-from PyQt4 import QtCore, QtGui
+from IPython.external.qt import QtCore, QtGui
 
 
 class CallTipWidget(QtGui.QLabel):
@@ -184,11 +185,10 @@ class CallTipWidget(QtGui.QLabel):
         """
         commas = depth = 0
         document = self._text_edit.document()
-        qchar = document.characterAt(position)
-        while (position > 0 and qchar.isPrint() and 
-               # Need to check explicitly for line/paragraph separators:
-               qchar.unicode() not in (0x2028, 0x2029)):
-            char = qchar.toAscii()
+        char = document.characterAt(position)
+        # Search until a match is found or a non-printable character is
+        # encountered.
+        while category(char) != 'Cc' and position > 0:
             if char == ',' and depth == 0:
                 commas += 1
             elif char == ')':
@@ -200,7 +200,7 @@ class CallTipWidget(QtGui.QLabel):
                     break
                 depth -= 1
             position += 1 if forward else -1
-            qchar = document.characterAt(position)
+            char = document.characterAt(position)
         else:
             position = -1
         return position, commas

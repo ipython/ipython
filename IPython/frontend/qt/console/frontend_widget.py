@@ -7,7 +7,7 @@ import time
 
 # System library imports
 from pygments.lexers import PythonLexer
-from PyQt4 import QtCore, QtGui
+from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
@@ -32,13 +32,13 @@ class FrontendHighlighter(PygmentsHighlighter):
         self._frontend = frontend
         self.highlighting_on = False
 
-    def highlightBlock(self, qstring):
+    def highlightBlock(self, string):
         """ Highlight a block of text. Reimplemented to highlight selectively.
         """
         if not self.highlighting_on:
             return
 
-        # The input to this function is unicode string that may contain
+        # The input to this function is a unicode string that may contain
         # paragraph break characters, non-breaking spaces, etc. Here we acquire
         # the string as plain text so we can compare it.
         current_block = self.currentBlock()
@@ -53,11 +53,11 @@ class FrontendHighlighter(PygmentsHighlighter):
         # Don't highlight the part of the string that contains the prompt.
         if string.startswith(prompt):
             self._current_offset = len(prompt)
-            qstring.remove(0, len(prompt))
+            string = string[len(prompt):]
         else:
             self._current_offset = 0
 
-        PygmentsHighlighter.highlightBlock(self, qstring)
+        PygmentsHighlighter.highlightBlock(self, string)
 
     def rehighlightBlock(self, block):
         """ Reimplemented to temporarily enable highlighting if disabled.
@@ -81,20 +81,20 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     # An option and corresponding signal for overriding the default kernel
     # interrupt behavior.
     custom_interrupt = Bool(False)
-    custom_interrupt_requested = QtCore.pyqtSignal()
+    custom_interrupt_requested = QtCore.Signal()
 
     # An option and corresponding signals for overriding the default kernel
     # restart behavior.
     custom_restart = Bool(False)
-    custom_restart_kernel_died = QtCore.pyqtSignal(float)
-    custom_restart_requested = QtCore.pyqtSignal()
+    custom_restart_kernel_died = QtCore.Signal(float)
+    custom_restart_requested = QtCore.Signal()
    
     # Emitted when an 'execute_reply' has been received from the kernel and
     # processed by the FrontendWidget.
-    executed = QtCore.pyqtSignal(object)
+    executed = QtCore.Signal(object)
 
     # Emitted when an exit request has been received from the kernel.
-    exit_requested = QtCore.pyqtSignal()
+    exit_requested = QtCore.Signal()
     
     # Protected class variables.
     _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
@@ -153,7 +153,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def copy(self):
         """ Copy the currently selected text to the clipboard, removing prompts.
         """
-        text = unicode(self._control.textCursor().selection().toPlainText())
+        text = self._control.textCursor().selection().toPlainText()
         if text:
             lines = map(transform_classic_prompt, text.splitlines())
             text = '\n'.join(lines)
@@ -491,7 +491,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Decide if it makes sense to show a call tip
         cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.Left)
-        if cursor.document().characterAt(cursor.position()).toAscii() != '(':
+        if cursor.document().characterAt(cursor.position()) != '(':
             return False
         context = self._get_context(cursor)
         if not context:
@@ -534,7 +534,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.StartOfBlock, 
                             QtGui.QTextCursor.KeepAnchor)
-        text = unicode(cursor.selection().toPlainText())
+        text = cursor.selection().toPlainText()
         return self._completion_lexer.get_context(text)
 
     def _process_execute_abort(self, msg):
