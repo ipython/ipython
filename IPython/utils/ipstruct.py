@@ -388,8 +388,6 @@ class Struct(dict):
                     inv_conflict_solve_user[func] = inv_conflict_solve_user[name]
                     del inv_conflict_solve_user[name]
             conflict_solve.update(self.__dict_invert(inv_conflict_solve_user))
-        #print 'merge. conflict_solve: '; pprint(conflict_solve) # dbg
-        #print '*'*50,'in merger. conflict_solver:';  pprint(conflict_solve)
         for key in data_dict:
             if key not in self:
                 self[key] = data_dict[key]

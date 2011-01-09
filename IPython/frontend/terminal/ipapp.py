@@ -188,10 +188,10 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             action='store_false', dest='InteractiveShell.pdb',
             help="Disable auto calling the pdb debugger after every exception.")
         paa('--pprint',
-            action='store_true', dest='InteractiveShell.pprint',
+            action='store_true', dest='PlainTextFormatter.pprint',
             help="Enable auto pretty printing of results.")
         paa('--no-pprint',
-            action='store_false', dest='InteractiveShell.pprint',
+            action='store_false', dest='PlainTextFormatter.pprint',
             help="Disable auto auto pretty printing of results.")
         paa('--prompt-in1','-pi1',
             type=str, dest='InteractiveShell.prompt_in1',
@@ -443,7 +443,7 @@ class IPythonApp(Application):
         if hasattr(config.Global, 'classic'):
             if config.Global.classic:
                 config.InteractiveShell.cache_size = 0
-                config.InteractiveShell.pprint = 0
+                config.PlainTextFormatter.pprint = 0
                 config.InteractiveShell.prompt_in1 = '>>> '
                 config.InteractiveShell.prompt_in2 = '... '
                 config.InteractiveShell.prompt_out = ''

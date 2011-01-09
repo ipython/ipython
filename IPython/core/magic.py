@@ -2424,12 +2424,12 @@ Defaulting color scheme to 'NoColor'"""
         else:
             shell.inspector.set_active_scheme('NoColor')
                 
-    def magic_Pprint(self, parameter_s=''):
+    def magic_pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
-        
-        self.shell.pprint = 1 - self.shell.pprint
+        ptformatter = self.shell.display_formatter.formatters['text/plain']
+        ptformatter.pprint = bool(1 - ptformatter.pprint)
         print 'Pretty printing has been turned', \
-              ['OFF','ON'][self.shell.pprint]
+              ['OFF','ON'][ptformatter.pprint]
                 
     def magic_Exit(self, parameter_s=''):
         """Exit IPython."""
@@ -3163,6 +3163,8 @@ Defaulting color scheme to 'NoColor'"""
         shell = self.shell
         oc = shell.displayhook
         meta = shell.meta
+        disp_formatter = self.shell.display_formatter
+        ptformatter = disp_formatter.formatters['text/plain']
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.
         dstore = meta.setdefault('doctest_mode',Struct())
@@ -3170,12 +3172,13 @@ Defaulting color scheme to 'NoColor'"""
 
         # save a few values we'll need to recover later
         mode = save_dstore('mode',False)
-        save_dstore('rc_pprint',shell.pprint)
+        save_dstore('rc_pprint',ptformatter.pprint)
         save_dstore('xmode',shell.InteractiveTB.mode)
         save_dstore('rc_separate_out',shell.separate_out)
         save_dstore('rc_separate_out2',shell.separate_out2)
         save_dstore('rc_prompts_pad_left',shell.prompts_pad_left)
         save_dstore('rc_separate_in',shell.separate_in)
+        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
 
         if mode == False:
             # turn on
@@ -3191,7 +3194,8 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.pad_left = oc.prompt2.pad_left = \
                                   oc.prompt_out.pad_left = False
 
-            shell.pprint = False
+            ptformatter.pprint = False
+            disp_formatter.plain_text_only = True
             
             shell.magic_xmode('Plain')
         else:
@@ -3208,7 +3212,8 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.pad_left = oc.prompt2.pad_left = \
                          oc.prompt_out.pad_left = dstore.rc_prompts_pad_left
 
-            shell.pprint = dstore.rc_pprint
+            ptformatter.pprint = dstore.rc_pprint
+            disp_formatter.plain_text_only = dstore.rc_plain_text_only
 
             shell.magic_xmode(dstore.xmode)
 

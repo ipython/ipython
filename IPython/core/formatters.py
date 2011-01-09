@@ -37,6 +37,9 @@ from IPython.utils.traitlets import Bool, Dict, Int, Str
 
 class DisplayFormatter(Configurable):
 
+    # When set to true only the default plain text formatter will be used.
+    plain_text_only = Bool(False, config=True)
+
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
     formatters = Dict(config=True)
@@ -93,6 +96,19 @@ class DisplayFormatter(Configurable):
             except for those included in this argument.
         """
         format_dict = {}
+
+        # If plain text only is active
+        if self.plain_text_only:
+            formatter = self.formatters['text/plain']
+            try:
+                data = formatter(obj)
+            except:
+                # FIXME: log the exception
+                raise
+            if data is not None:
+                format_dict['text/plain'] = data
+            return format_dict
+
         for format_type, formatter in self.formatters.items():
             if include is not None:
                 if format_type not in include:
@@ -133,6 +149,9 @@ class FormatterABC(object):
     # The format type of the data returned, usually a MIME type.
     format_type = 'text/plain'
 
+    # Is the formatter enabled...
+    enabled = True
+
     @abc.abstractmethod
     def __call__(self, obj):
         """Return a JSON'able representation of the object.
@@ -171,6 +190,8 @@ class BaseFormatter(Configurable):
 
     format_type = Str('text/plain')
 
+    enabled = Bool(True, config=True)
+
     print_method = Str('__repr__')
 
     # The singleton printers.
@@ -193,28 +214,31 @@ class BaseFormatter(Configurable):
 
     def __call__(self, obj):
         """Compute the format for an object."""
-        obj_id = id(obj)
-        try:
-            obj_class = getattr(obj, '__class__', None) or type(obj)
-            if hasattr(obj_class, self.print_method):
-                printer = getattr(obj_class, self.print_method)
-                return printer(obj)
+        if self.enabled:
+            obj_id = id(obj)
             try:
-                printer = self.singleton_printers[obj_id]
-            except (TypeError, KeyError):
-                pass
-            else:
-                return printer(obj)
-            for cls in pretty._get_mro(obj_class):
-                if cls in self.type_printers:
-                    return self.type_printers[cls](obj)
+                obj_class = getattr(obj, '__class__', None) or type(obj)
+                if hasattr(obj_class, self.print_method):
+                    printer = getattr(obj_class, self.print_method)
+                    return printer(obj)
+                try:
+                    printer = self.singleton_printers[obj_id]
+                except (TypeError, KeyError):
+                    pass
                 else:
-                    printer = self._in_deferred_types(cls)
-                    if printer is not None:
-                        return printer(obj)
+                    return printer(obj)
+                for cls in pretty._get_mro(obj_class):
+                    if cls in self.type_printers:
+                        return self.type_printers[cls](obj)
+                    else:
+                        printer = self._in_deferred_types(cls)
+                        if printer is not None:
+                            return printer(obj)
+                return None
+            except Exception:
+                pass
+        else:
             return None
-        except Exception:
-            pass
 
     def for_type(self, typ, func):
         """Add a format function for a given type.
@@ -281,6 +305,7 @@ class BaseFormatter(Configurable):
             self.type_printers[cls] = printer
         return printer
 
+
 class PlainTextFormatter(BaseFormatter):
     """The default pretty-printer.
 
@@ -307,6 +332,10 @@ class PlainTextFormatter(BaseFormatter):
 
     # The format type of data returned.
     format_type = Str('text/plain')
+
+    # This subclass ignores this attribute as it always need to return
+    # something.
+    enabled = Bool(True, config=False)
 
     # Look for a __pretty__ methods to use for pretty printing.
     print_method = Str('__pretty__')

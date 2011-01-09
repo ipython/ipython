@@ -213,13 +213,7 @@ def find_data_files():
     data_files = [ (manpagebase, manpages),
                    (pjoin(docdirbase, 'extensions'), igridhelpfiles),
                    ] + manual_files + example_files
-                 
-    ## import pprint  # dbg
-    ## print('*'*80)
-    ## print('data files')
-    ## pprint.pprint(data_files)
-    ## print('*'*80)
-    
+
     return data_files
 
 

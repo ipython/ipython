@@ -2,15 +2,6 @@
 """Generic functions for extending IPython.
 
 See http://cheeseshop.python.org/pypi/simplegeneric.
-
-Here is an example from IPython.utils.text::
-
-    def print_lsstring(arg):
-        "Prettier (non-repr-like) and more informative printer for LSString"
-        print "LSString (.p, .n, .l, .s available). Value:"
-        print arg
-        
-    print_lsstring = result_display.when_type(LSString)(print_lsstring)
 """
 
 #-----------------------------------------------------------------------------

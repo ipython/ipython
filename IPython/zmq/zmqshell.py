@@ -203,6 +203,8 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # Shorthands
         shell = self.shell
+        disp_formatter = self.shell.display_formatter
+        ptformatter = disp_formatter.formatters['text/plain']
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.
         dstore = shell.meta.setdefault('doctest_mode', Struct())
@@ -210,16 +212,19 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # save a few values we'll need to recover later
         mode = save_dstore('mode', False)
-        save_dstore('rc_pprint', shell.pprint)
+        save_dstore('rc_pprint', ptformatter.pprint)
+        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
         save_dstore('xmode', shell.InteractiveTB.mode)
         
         if mode == False:
             # turn on
-            shell.pprint = False
+            ptformatter.pprint = False
+            disp_formatter.plain_text_only = True
             shell.magic_xmode('Plain')
         else:
             # turn off
-            shell.pprint = dstore.rc_pprint
+            ptformatter.pprint = dstore.rc_pprint
+            disp_formatter.plain_text_only = dstore.rc_plain_text_only
             shell.magic_xmode(dstore.xmode)
 
         # Store new mode and inform on console

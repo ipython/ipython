@@ -172,7 +172,6 @@ class InteractiveShell(Configurable, Magic):
                                     config=True)
     pdb = CBool(False, config=True)
 
-    pprint = CBool(True, config=True)
     profile = Str('', config=True)
     prompt_in1 = Str('In [\\#]: ', config=True)
     prompt_in2 = Str('   .\\D.: ', config=True)
