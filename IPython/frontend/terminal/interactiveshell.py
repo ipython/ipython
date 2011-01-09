@@ -499,10 +499,6 @@ class TerminalInteractiveShell(InteractiveShell):
         This method calls the ask_exit callback."""
         if self.confirm_exit:
             if self.ask_yes_no('Do you really want to exit ([y]/n)?','y'):
-                self.shell.history_thread.exit_now=True
-                self.shell.history_thread.cond.acquire()
-                self.shell.history_thread.cond.notify()
-                self.shell.history_thread.cond.release()
                 self.ask_exit()
         else:
             self.ask_exit()

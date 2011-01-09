@@ -255,7 +255,8 @@ class HistoryManager(object):
 
 class HistorySaveThread(threading.Thread):
     """Thread to save history periodically"""
-
+    daemon = True
+    
     def __init__(self, IPython_object, time_interval, exit_now):
         threading.Thread.__init__(self)
         self.IPython_object = IPython_object
@@ -273,6 +274,12 @@ class HistorySaveThread(threading.Thread):
             #printing for debug
             #print("Saving...")
             self.IPython_object.save_history()
+            
+    def stop(self):
+        self.exit_now=True
+        self.cond.acquire()
+        self.cond.notify()
+        self.cond.release()
 
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
