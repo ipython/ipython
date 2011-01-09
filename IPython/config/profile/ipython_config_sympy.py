@@ -21,8 +21,9 @@ if hasattr(c.Global, 'exec_lines'):
 else:
     c.Global.exec_lines = [lines]
 
+# Load the sympy_printing extension to enable nice printing of sympy expr's.
 if hasattr(c.Global, 'extensions'):
-    c.Global.extensions.append('IPython.extensions.sympy_printing')
+    c.Global.extensions.append('sympy_printing')
 else:
-    c.Global.extensions = ['IPython.extensions.sympy_printing']
+    c.Global.extensions = ['sympy_printing']
 
