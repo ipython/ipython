@@ -179,9 +179,18 @@ class IPythonWidget(FrontendWidget):
         if not self._hidden and self._is_from_this_session(msg):
             content = msg['content']
             prompt_number = content['execution_count']
-            self._append_plain_text(self.output_sep)
-            self._append_html(self._make_out_prompt(prompt_number))
-            self._append_plain_text(content['data']+self.output_sep2)
+            data = content['data']
+            if data.has_key('text/html'):
+                self._append_plain_text(self.output_sep)
+                self._append_html(self._make_out_prompt(prompt_number))
+                html = data['text/html']
+                self._append_plain_text('\n')
+                self._append_html(html + self.output_sep2)
+            elif data.has_key('text/plain'):
+                self._append_plain_text(self.output_sep)
+                self._append_html(self._make_out_prompt(prompt_number))
+                text = data['text/plain']
+                self._append_plain_text(text + self.output_sep2)
 
     def _handle_display_data(self, msg):
         """ The base handler for the ``display_data`` message.
@@ -195,8 +204,12 @@ class IPythonWidget(FrontendWidget):
             metadata = msg['content']['metadata']
             # In the regular IPythonWidget, we simply print the plain text
             # representation.
-            if data.has_key('text/plain'):
-                self._append_plain_text(data['text/plain'])
+            if data.has_key('text/html'):
+                html = data['text/html']
+                self._append_html(html)
+            elif data.has_key('text/plain'):
+                text = data['text/plain']
+                self._append_plain_text(text)
 
     def _started_channels(self):
         """ Reimplemented to make a history request.

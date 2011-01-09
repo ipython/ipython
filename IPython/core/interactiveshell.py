@@ -45,6 +45,7 @@ from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
+from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
@@ -150,6 +151,7 @@ class InteractiveShell(Configurable, Magic):
                              default_value=get_default_colors(), config=True)
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True)
+    display_formatter = Instance(DisplayFormatter)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
 
@@ -287,6 +289,7 @@ class InteractiveShell(Configurable, Magic):
         self.init_io()
         self.init_traceback_handlers(custom_exceptions)
         self.init_prompts()
+        self.init_display_formatter()
         self.init_display_pub()
         self.init_displayhook()
         self.init_reload_doctest()
@@ -484,6 +487,9 @@ class InteractiveShell(Configurable, Magic):
         # the DisplayHook. Once there is a separate prompt manager, this 
         # will initialize that object and all prompt related information.
         pass
+
+    def init_display_formatter(self):
+        self.display_formatter = DisplayFormatter(config=self.config)
 
     def init_display_pub(self):
         self.display_pub = self.display_pub_class(config=self.config)

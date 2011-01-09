@@ -87,8 +87,8 @@ def send_svg_canvas(canvas):
     try:
         publish_display_data(
             'IPython.zmq.pylab.backend_inline.send_svg_canvas',
-            '<Matplotlib Plot>',
-            svg=svg_from_canvas(canvas)
+            'Matplotlib Plot',
+            {'image/svg+xml' : svg_from_canvas(canvas)}
         )
     finally:
         canvas.figure.set_facecolor(fc)

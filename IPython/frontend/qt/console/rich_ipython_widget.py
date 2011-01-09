@@ -61,8 +61,25 @@ class RichIPythonWidget(IPythonWidget):
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
 
+    def _handle_pyout(self, msg):
+        """ Overridden to handle rich data types, like SVG.
+        """
+        if not self._hidden and self._is_from_this_session(msg):
+            content = msg['content']
+            prompt_number = content['execution_count']
+            data = content['data']
+            if data.has_key('image/svg+xml'):
+                self._append_plain_text(self.output_sep)
+                self._append_html(self._make_out_prompt(prompt_number))
+                # TODO: try/except this call.
+                self._append_svg(data['image/svg+xml'])
+                self._append_html(self.output_sep2)
+            else:
+                # Default back to the plain text representation.
+                return super(RichIPythonWidget, self)._handle_pyout(msg)
+
     def _handle_display_data(self, msg):
-        """ A handler for ``display_data`` message that handles html and svg.
+        """ Overridden to handle rich data types, like SVG.
         """
         if not self._hidden and self._is_from_this_session(msg):
             source = msg['content']['source']
@@ -74,9 +91,6 @@ class RichIPythonWidget(IPythonWidget):
                 svg = data['image/svg+xml']
                 # TODO: try/except this call.
                 self._append_svg(svg)
-            elif data.has_key('text/html'):
-                html = data['text/html']
-                self._append_html(html)
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_display_data(msg)
@@ -88,9 +102,9 @@ class RichIPythonWidget(IPythonWidget):
     def _process_execute_payload(self, item):
         """ Reimplemented to handle matplotlib plot payloads.
         """
+        # TODO: remove this as all plot data is coming back through the
+        # display_data message type.
         if item['source'] == self._payload_source_plot:
-            # TODO: remove this as all plot data is coming back through the
-            # display_data message type.
             if item['format'] == 'svg':
                 svg = item['data']
                 self._append_svg(svg)

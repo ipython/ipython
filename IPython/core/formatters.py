@@ -1,36 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Displayhook formatters.
+"""Display formatters.
 
-The DefaultFormatter is always present and may be configured from the
-ipython_config.py file. For example, to add a pretty-printer for a numpy.dtype
-object::
 
-    def dtype_pprinter(obj, p, cycle):
-        if cycle:
-            return p.text('dtype(...)')
-        if hasattr(obj, 'fields'):
-            if obj.fields is None:
-                p.text(repr(obj))
-            else:
-                p.begin_group(7, 'dtype([')
-                for i, field in enumerate(obj.descr):
-                    if i > 0:
-                        p.text(',')
-                        p.breakable()
-                    p.pretty(field)
-                p.end_group(7, '])')
+Authors:
 
-    c.DefaultFormatter.deferred_pprinters = {
-        ('numpy', 'dtype'): dtype_pprinter,
-    }
-        
-The deferred_pprinters dictionary is the preferred way to configure these
-pretty-printers. This allows you to define the pretty-printer without needing to
-import the type itself. The dictionary maps (modulename, typename) pairs to
-a function.
-
-See the `IPython.external.pretty` documentation for how to write
-pretty-printer functions.
+* Robert Kern
+* Brian Granger
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2010, IPython Development Team.
@@ -42,7 +17,8 @@ pretty-printer functions.
 
 # Stdlib imports
 import abc
-from cStringIO import StringIO
+# We must use StringIO, as cStringIO doesn't handle unicode properly.
+from StringIO import StringIO
 
 # Our own imports
 from IPython.config.configurable import Configurable
@@ -51,19 +27,268 @@ from IPython.utils.traitlets import Bool, Dict, Int, Str
 
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# The main DisplayFormatter class
 #-----------------------------------------------------------------------------
 
-class DefaultFormatter(Configurable):
-    """ The default pretty-printer.
+
+class DisplayFormatter(Configurable):
+
+    # A dict of formatter whose keys are format types (MIME types) and whose
+    # values are subclasses of BaseFormatter.
+    formatters = Dict(config=True)
+    def _formatters_default(self):
+        """Activate the default formatters."""
+        formatter_classes = [
+            PlainTextFormatter,
+            HTMLFormatter,
+            SVGFormatter,
+            PNGFormatter,
+            LatexFormatter,
+            JSONFormatter
+        ]
+        d = {}
+        for cls in formatter_classes:
+            f = cls(config=self.config)
+            d[f.format_type] = f
+        return d
+
+    def format(self, obj, include=None, exclude=None):
+        """Return a format data dict for an object.
+
+        By default all format types will be computed.
+
+        The following MIME types are currently implemented:
+
+        * text/plain
+        * text/html
+        * text/latex
+        * application/json
+        * image/png
+        * immage/svg+xml
+
+        Parameters
+        ----------
+        obj : object
+            The Python object whose format data will be computed.
+
+        Returns
+        -------
+        format_dict : dict
+            A dictionary of key/value pairs, one or each format that was
+            generated for the object. The keys are the format types, which
+            will usually be MIME type strings and the values and JSON'able
+            data structure containing the raw data for the representation in
+            that format.
+        include : list or tuple, optional
+            A list of format type strings (MIME types) to include in the
+            format data dict. If this is set *only* the format types included
+            in this list will be computed.
+        exclude : list or tuple, optional
+            A list of format type string (MIME types) to exclue in the format
+            data dict. If this is set all format types will be computed,
+            except for those included in this argument.
+        """
+        format_dict = {}
+        for format_type, formatter in self.formatters.items():
+            if include is not None:
+                if format_type not in include:
+                    continue
+            if exclude is not None:
+                if format_type in exclude:
+                    continue
+            try:
+                data = formatter(obj)
+            except:
+                # FIXME: log the exception
+                raise
+            if data is not None:
+                format_dict[format_type] = data
+        return format_dict
+
+    @property
+    def format_types(self):
+        """Return the format types (MIME types) of the active formatters."""
+        return self.formatters.keys()
+
+
+#-----------------------------------------------------------------------------
+# Formatters for specific format types (text, html, svg, etc.)
+#-----------------------------------------------------------------------------
+
+
+class FormatterABC(object):
+    """ Abstract base class for Formatters.
+
+    A formatter is a callable class that is responsible for computing the
+    raw format data for a particular format type (MIME type). For example,
+    an HTML formatter would have a format type of `text/html` and would return
+    the HTML representation of the object when called.
+    """
+    __metaclass__ = abc.ABCMeta
+
+    # The format type of the data returned, usually a MIME type.
+    format_type = 'text/plain'
+
+    @abc.abstractmethod
+    def __call__(self, obj):
+        """Return a JSON'able representation of the object.
+
+        If the object cannot be formatted by this formatter, then return None
+        """
+        try:
+            return repr(obj)
+        except TypeError:
+            return None
+
+
+class BaseFormatter(Configurable):
+    """A base formatter class that is configurable.
+
+    This formatter should usually be used as the base class of all formatters.
+    It is a traited :class:`Configurable` class and includes an extensible
+    API for users to determine how their objects are formatted. The following
+    logic is used to find a function to format an given object.
+
+    1. The object is introspected to see if it has a method with the name
+       :attr:`print_method`. If is does, that object is passed to that method
+       for formatting.
+    2. If no print method is found, three internal dictionaries are consulted
+       to find print method: :attr:`singleton_printers`, :attr:`type_printers`
+       and :attr:`deferred_printers`.
+
+    Users should use these dictionarie to register functions that will be used
+    to compute the format data for their objects (if those objects don't have
+    the special print methods). The easiest way of using these dictionaries
+    is through the :meth:`for_type` and :meth:`for_type_by_name` methods.
+
+    If no function/callable is found to compute the format data, ``None`` is
+    returned and this format type is not used.
     """
 
-    # The ID of the formatter.
-    id = Str('default')
+    format_type = Str('text/plain')
 
-    # The kind of data returned.
-    # This is often, but not always a MIME type.
-    format = Str('text/plain')
+    print_method = Str('__repr__')
+
+    # The singleton printers.
+    # Maps the IDs of the builtin singleton objects to the format functions.
+    singleton_printers = Dict(config=True)
+    def _singleton_printers_default(self):
+        return {}
+
+    # The type-specific printers.
+    # Map type objects to the format functions.
+    type_printers = Dict(config=True)
+    def _type_printers_default(self):
+        return {}
+
+    # The deferred-import type-specific printers.
+    # Map (modulename, classname) pairs to the format functions.
+    deferred_printers = Dict(config=True)
+    def _deferred_printers_default(self):
+        return {}
+
+    def __call__(self, obj):
+        """Compute the format for an object."""
+        obj_id = id(obj)
+        try:
+            obj_class = getattr(obj, '__class__', None) or type(obj)
+            if hasattr(obj_class, self.print_method):
+                printer = getattr(obj_class, self.print_method)
+                return printer(obj)
+            try:
+                printer = self.singleton_printers[obj_id]
+            except (TypeError, KeyError):
+                pass
+            else:
+                return printer(obj)
+            for cls in pretty._get_mro(obj_class):
+                if cls in self.type_printers:
+                    return self.type_printers[cls](obj)
+                else:
+                    printer = self._in_deferred_types(cls)
+                    if printer is not None:
+                        return printer(obj)
+            return None
+        except Exception:
+            pass
+
+    def for_type(self, typ, func):
+        """Add a format function for a given type.
+
+        Parameteres
+        -----------
+        typ : class
+            The class of the object that will be formatted using `func`.
+        func : callable
+            The callable that will be called to compute the format data. The
+            call signature of this function is simple, it must take the
+            object to be formatted and return the raw data for the given
+            format. Subclasses may use a different call signature for the
+            `func` argument.
+        """
+        oldfunc = self.type_printers.get(typ, None)
+        if func is not None:
+            # To support easy restoration of old printers, we need to ignore
+            # Nones.
+            self.type_printers[typ] = func
+        return oldfunc
+
+    def for_type_by_name(self, type_module, type_name, func):
+        """Add a format function for a type specified by the full dotted
+        module and name of the type, rather than the type of the object.
+
+        Parameters
+        ----------
+        type_module : str
+            The full dotted name of the module the type is defined in, like
+            ``numpy``.
+        type_name : str
+            The name of the type (the class name), like ``dtype``
+        func : callable
+            The callable that will be called to compute the format data. The
+            call signature of this function is simple, it must take the
+            object to be formatted and return the raw data for the given
+            format. Subclasses may use a different call signature for the
+            `func` argument.
+        """
+        key = (type_module, type_name)
+        oldfunc = self.deferred_printers.get(key, None)
+        if func is not None:
+            # To support easy restoration of old printers, we need to ignore
+            # Nones.
+            self.deferred_printers[key] = func
+        return oldfunc
+
+
+class PlainTextFormatter(BaseFormatter):
+    """The default pretty-printer.
+
+    This uses :mod:`IPython.external.pretty` to compute the format data of
+    the object. If the object cannot be pretty printed, :func:`repr` is used.
+    See the documentation of :mod:`IPython.external.pretty` for details on
+    how to write pretty printers.  Here is a simple example::
+
+        def dtype_pprinter(obj, p, cycle):
+            if cycle:
+                return p.text('dtype(...)')
+            if hasattr(obj, 'fields'):
+                if obj.fields is None:
+                    p.text(repr(obj))
+                else:
+                    p.begin_group(7, 'dtype([')
+                    for i, field in enumerate(obj.descr):
+                        if i > 0:
+                            p.text(',')
+                            p.breakable()
+                        p.pretty(field)
+                    p.end_group(7, '])')
+    """
+
+    # The format type of data returned.
+    format_type = Str('text/plain')
+
+    # Look for a __pretty__ methods to use for pretty printing.
+    print_method = Str('__pretty__')
 
     # Whether to pretty-print or not.
     pprint = Bool(True, config=True)
@@ -77,93 +302,152 @@ class DefaultFormatter(Configurable):
     # The newline character.
     newline = Str('\n', config=True)
 
-    # The singleton prettyprinters.
-    # Maps the IDs of the builtin singleton objects to the format functions.
-    singleton_pprinters = Dict(config=True)
-    def _singleton_pprinters_default(self):
+    # Use the default pretty printers from IPython.external.pretty.
+    def _singleton_printers_default(self):
         return pretty._singleton_pprinters.copy()
 
-    # The type-specific prettyprinters.
-    # Map type objects to the format functions.
-    type_pprinters = Dict(config=True)
-    def _type_pprinters_default(self):
+    def _type_printers_default(self):
         return pretty._type_pprinters.copy()
 
-    # The deferred-import type-specific prettyprinters.
-    # Map (modulename, classname) pairs to the format functions.
-    deferred_pprinters = Dict(config=True)
-    def _deferred_pprinters_default(self):
+    def _deferred_printers_default(self):
         return pretty._deferred_type_pprinters.copy()
 
     #### FormatterABC interface ####
 
     def __call__(self, obj):
-        """ Format the object.
-        """
+        """Compute the pretty representation of the object."""
         if not self.pprint:
             try:
                 return repr(obj)
             except TypeError:
                 return ''
         else:
+            # This uses use StringIO, as cStringIO doesn't handle unicode.
             stream = StringIO()
             printer = pretty.RepresentationPrinter(stream, self.verbose,
                 self.max_width, self.newline,
-                singleton_pprinters=self.singleton_pprinters,
-                type_pprinters=self.type_pprinters,
-                deferred_pprinters=self.deferred_pprinters)
+                singleton_pprinters=self.singleton_printers,
+                type_pprinters=self.type_printers,
+                deferred_pprinters=self.deferred_printers)
             printer.pretty(obj)
             printer.flush()
             return stream.getvalue()
 
 
-    #### DefaultFormatter interface ####
+class HTMLFormatter(BaseFormatter):
+    """An HTML formatter.
 
-    def for_type(self, typ, func):
-        """
-        Add a pretty printer for a given type.
-        """
-        oldfunc = self.type_pprinters.get(typ, None)
-        if func is not None:
-            # To support easy restoration of old pprinters, we need to ignore
-            # Nones.
-            self.type_pprinters[typ] = func
-        return oldfunc
-
-    def for_type_by_name(self, type_module, type_name, func):
-        """
-        Add a pretty printer for a type specified by the module and name of
-        a type rather than the type object itself.
-        """
-        key = (type_module, type_name)
-        oldfunc = self.deferred_pprinters.get(key, None)
-        if func is not None:
-            # To support easy restoration of old pprinters, we need to ignore
-            # Nones.
-            self.deferred_pprinters[key] = func
-        return oldfunc
-
-
-class FormatterABC(object):
-    """ Abstract base class for Formatters.
+    To define the callables that compute the HTML representation of your
+    objects, define a :meth:`__html__` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
     """
-    __metaclass__ = abc.ABCMeta
+    format_type = Str('text/html')
 
-    # The ID of the formatter.
-    id = 'abstract'
+    print_method = Str('__html__')
 
-    # The kind of data returned.
-    format = 'text/plain'
 
-    @abc.abstractmethod
-    def __call__(self, obj):
-        """ Return a JSONable representation of the object.
+class SVGFormatter(BaseFormatter):
+    """An SVG formatter.
 
-        If the object cannot be formatted by this formatter, then return None
-        """
-        try:
-            return repr(obj)
-        except TypeError:
-            return None
+    To define the callables that compute the SVG representation of your
+    objects, define a :meth:`__svg__` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+    """
+    format_type = Str('image/svg+xml')
 
-FormatterABC.register(DefaultFormatter)
+    print_method = Str('__svg__')
+
+
+class PNGFormatter(BaseFormatter):
+    """A PNG formatter.
+
+    To define the callables that compute the PNG representation of your
+    objects, define a :meth:`__svg__` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this. The raw data should be the base64 encoded raw png data.
+    """
+    format_type = Str('image/png')
+
+    print_method = Str('__png__')
+
+
+class LatexFormatter(BaseFormatter):
+    """A LaTeX formatter.
+
+    To define the callables that compute the LaTeX representation of your
+    objects, define a :meth:`__latex__` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+    """
+    format_type = Str('text/latex')
+
+    print_method = Str('__latex__')
+
+
+class JSONFormatter(BaseFormatter):
+    """A JSON string formatter.
+
+    To define the callables that compute the JSON string representation of
+    your objects, define a :meth:`__json__` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+    """
+    format_type = Str('application/json')
+
+    print_method = Str('__json__')
+
+
+FormatterABC.register(BaseFormatter)
+FormatterABC.register(PlainTextFormatter)
+FormatterABC.register(HTMLFormatter)
+FormatterABC.register(SVGFormatter)
+FormatterABC.register(PNGFormatter)
+FormatterABC.register(LatexFormatter)
+FormatterABC.register(JSONFormatter)
+
+
+def format_display_data(obj, include=None, exclude=None):
+    """Return a format data dict for an object.
+
+    By default all format types will be computed.
+
+    The following MIME types are currently implemented:
+
+    * text/plain
+    * text/html
+    * text/latex
+    * application/json
+    * image/png
+    * immage/svg+xml
+
+    Parameters
+    ----------
+    obj : object
+        The Python object whose format data will be computed.
+
+    Returns
+    -------
+    format_dict : dict
+        A dictionary of key/value pairs, one or each format that was
+        generated for the object. The keys are the format types, which
+        will usually be MIME type strings and the values and JSON'able
+        data structure containing the raw data for the representation in
+        that format.
+    include : list or tuple, optional
+        A list of format type strings (MIME types) to include in the
+        format data dict. If this is set *only* the format types included
+        in this list will be computed.
+    exclude : list or tuple, optional
+        A list of format type string (MIME types) to exclue in the format
+        data dict. If this is set all format types will be computed,
+        except for those included in this argument.
+    """
+    from IPython.core.interactiveshell import InteractiveShell
+
+    InteractiveShell.instance().display_formatter.format(
+        obj,
+        include,
+        exclude
+    )

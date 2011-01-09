@@ -15,7 +15,14 @@ f, g, h = map(Function, 'fgh')
 # You have to make sure that attributes that are containers already
 # exist before using them.  Simple assigning a new list will override
 # all previous values.
+
 if hasattr(c.Global, 'exec_lines'):
     c.Global.exec_lines.append(lines)
 else:
     c.Global.exec_lines = [lines]
+
+if hasattr(c.Global, 'extensions'):
+    c.Global.extensions.append('IPython.extensions.sympy_printing')
+else:
+    c.Global.extensions = ['IPython.extensions.sympy_printing']
+

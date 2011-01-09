@@ -88,7 +88,7 @@ def _result_list_printer(obj, p, cycle):
 # ResultList is a list subclass and will use the default pretty printer.
 # This overrides that to use the __repr__ of ResultList.
 ip = get_ipython()
-ip.displayhook.default_formatter.for_type_by_name(
+ip.display_formatter.formatters['text/plain'].for_type_by_name(
     'IPython.kernel.multiengineclient', 'ResultList', _result_list_printer
 )
 

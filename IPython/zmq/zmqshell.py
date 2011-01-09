@@ -49,6 +49,7 @@ install_payload_page()
 #-----------------------------------------------------------------------------
 
 class ZMQDisplayHook(DisplayHook):
+    """A displayhook subclass that publishes data using ZeroMQ."""
 
     session = Instance(Session)
     pub_socket = Instance('zmq.Socket')
@@ -66,9 +67,8 @@ class ZMQDisplayHook(DisplayHook):
         if self.do_full_cache:
             self.msg['content']['execution_count'] = self.prompt_count
 
-    def write_result_repr(self, result_repr, extra_formats):
-        self.msg['content']['data'] = result_repr
-        self.msg['content']['extra_formats'] = extra_formats
+    def write_format_data(self, format_dict):
+        self.msg['content']['data'] = format_dict
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
@@ -77,7 +77,7 @@ class ZMQDisplayHook(DisplayHook):
 
 
 class ZMQDisplayPublisher(DisplayPublisher):
-    """A ``DisplayPublisher`` that published data using a ZeroMQ PUB socket."""
+    """A display publisher that publishes data using a ZeroMQ PUB socket."""
 
     session = Instance(Session)
     pub_socket = Instance('zmq.Socket')

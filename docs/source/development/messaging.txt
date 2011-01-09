@@ -689,10 +689,10 @@ Message type: ``stream``::
 
     content = {
         # The name of the stream is one of 'stdin', 'stdout', 'stderr'
-    'name' : str,
+        'name' : str,
     
-    # The data is an arbitrary string to be written to that stream
-    'data' : str,
+        # The data is an arbitrary string to be written to that stream
+        'data' : str,
     }
 
 When a kernel receives a raw_input call, it should also broadcast it on the pub
@@ -719,30 +719,18 @@ Some questions remain about this design:
 Message type: ``display_data``::
 
     content = {
-        'source' : str  # Who create the data
-        'data' : dict  # {'mimetype1' : data1, 'mimetype2' : data2}
-        'metadata' : dict  # Any metadata that describes the data
-    }
 
-Other options for ``display_data`` content::
+        # Who create the data
+        'source' : str,
 
-    # Option 2: allowing for a different source for each representation,
-    but not keyed by anything.
-    content = {
-        'data' = [(source, type, data), (source, type, data)]
-        'metadata' = dict
-    }
+        # The data dict contains key/value pairs, where the kids are MIME
+        # types and the values are the raw data of the representation in that
+        # format. The data dict must minimally contain the ``text/plain``
+        # MIME type which is used as a backup representation.        
+        'data' : dict,
 
-    # Option 3: like option 2, but keyed by the MIME types.
-    content = {
-        'data' = {'mimetype1' : (source, data), 'mimetype2' : (source, data)}
-        'metadata' = dict
-    }
-
-    # Option 4: like option 2, but keyed by the source.
-    content = {
-        'data' = {'source' : (mimetype, data), 'source' : (mimetype, data)}
-        'metadata' = dict
+        # Any metadata that describes the data
+        'metadata' : dict
     }
 
 Python inputs
@@ -784,20 +772,18 @@ any JSON object and depends on the format. It is often, but not always a string.
 Message type: ``pyout``::
 
     content = {
-        # The data is typically the repr() of the object. It should be displayed
-        # as monospaced text.
-        'data' : str,
-    
+
         # The counter for this execution is also provided so that clients can
         # display it, since IPython automatically creates variables called _N
         # (for prompt N).
         'execution_count' : int,
+        
+        # The data dict contains key/value pairs, where the kids are MIME
+        # types and the values are the raw data of the representation in that
+        # format. The data dict must minimally contain the ``text/plain``
+        # MIME type which is used as a backup representation.
+        'data' : dict,
 
-        # Any extra formats.
-        # The tuples are of the form (ID, type, data).
-        'extra_formats' : [
-           [str, str, object]
-        ]
     }
     
 Python errors
