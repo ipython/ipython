@@ -14,7 +14,9 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from sympy import pretty
+from IPython.lib.latextools import latex_to_png
+
+from sympy import pretty, latex
 
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
@@ -30,6 +32,12 @@ def print_basic_unicode(o, p, cycle):
     p.text(out)
 
 
+def print_png(o):
+    """A funciton to display sympy expression using LaTex -> PNG."""
+    s = latex(o)
+    png = latex_to_png(s, encode=True)
+    return png
+
 _loaded = False
 
 
@@ -40,6 +48,10 @@ def load_ipython_extension(ip):
         plaintext_formatter = ip.display_formatter.formatters['text/plain']
         plaintext_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_basic_unicode
+        )
+        png_formatter = ip.display_formatter.formatters['image/png']
+        png_formatter.for_type_by_name(
+            'sympy.core.basic', 'Basic', print_png
         )
         _loaded = True
 

@@ -210,6 +210,8 @@ class IPythonWidget(FrontendWidget):
             elif data.has_key('text/plain'):
                 text = data['text/plain']
                 self._append_plain_text(text)
+            # This newline seems to be needed for text and html output.
+            self._append_plain_text(u'\n')
 
     def _started_channels(self):
         """ Reimplemented to make a history request.

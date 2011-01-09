@@ -1,6 +1,7 @@
 # System library imports
 import os
 import re
+from base64 import decodestring
 from PyQt4 import QtCore, QtGui
 
 # Local imports
@@ -74,6 +75,13 @@ class RichIPythonWidget(IPythonWidget):
                 # TODO: try/except this call.
                 self._append_svg(data['image/svg+xml'])
                 self._append_html(self.output_sep2)
+            elif data.has_key('image/png'):
+                self._append_plain_text(self.output_sep)
+                self._append_html(self._make_out_prompt(prompt_number))
+                # TODO: try/except these calls
+                png = decodestring(data['image/png'])
+                self._append_png(png)
+                self._append_html(self.output_sep2)
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_pyout(msg)
@@ -91,6 +99,12 @@ class RichIPythonWidget(IPythonWidget):
                 svg = data['image/svg+xml']
                 # TODO: try/except this call.
                 self._append_svg(svg)
+            elif data.has_key('image/png'):
+                # TODO: try/except these calls
+                # PNG data is base64 encoded as it passes over the network
+                # in a JSON structure so we decode it.
+                png = decodestring(data['image/png'])
+                self._append_png(png)
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_display_data(msg)
@@ -130,6 +144,21 @@ class RichIPythonWidget(IPythonWidget):
             format = self._add_image(image)
             self._name_to_svg[str(format.name())] = svg
             format.setProperty(self._svg_text_format_property, svg)
+            cursor = self._get_end_cursor()
+            cursor.insertBlock()
+            cursor.insertImage(format)
+            cursor.insertBlock()
+
+    def _append_png(self, png):
+        """ Append raw svg data to the widget.
+        """
+        try:
+            image = QtGui.QImage()
+            image.loadFromData(png, 'PNG')
+        except ValueError:
+            self._append_plain_text('Received invalid plot data.')
+        else:
+            format = self._add_image(image)
             cursor = self._get_end_cursor()
             cursor.insertBlock()
             cursor.insertImage(format)

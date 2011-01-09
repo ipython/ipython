@@ -15,6 +15,10 @@ Authors:
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 # Stdlib imports
 import abc
 # We must use StringIO, as cStringIO doesn't handle unicode properly.
@@ -259,6 +263,23 @@ class BaseFormatter(Configurable):
             self.deferred_printers[key] = func
         return oldfunc
 
+    def _in_deferred_types(self, cls):
+        """
+        Check if the given class is specified in the deferred type registry.
+
+        Returns the printer from the registry if it exists, and None if the
+        class is not in the registry. Successful matches will be moved to the
+        regular type registry for future use.
+        """
+        mod = getattr(cls, '__module__', None)
+        name = getattr(cls, '__name__', None)
+        key = (mod, name)
+        printer = None
+        if key in self.deferred_printers:
+            # Move the printer over to the regular registry.
+            printer = self.deferred_printers.pop(key)
+            self.type_printers[cls] = printer
+        return printer
 
 class PlainTextFormatter(BaseFormatter):
     """The default pretty-printer.

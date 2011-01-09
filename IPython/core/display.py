@@ -48,6 +48,17 @@ def display(obj, include=None, exclude=None):
     publish('IPython.core.display.display', format_dict)
 
 
+def display_pretty(obj):
+    """Display the pretty (default) representation of an object.
+
+    Parameters
+    ----------
+    obj : object
+        The Python object to display.
+    """
+    display(obj, include=['text/plain'])
+
+
 def display_html(obj):
     """Display the HTML representation of an object.
 
