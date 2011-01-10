@@ -147,7 +147,10 @@ class HistoryManager(object):
         """Reload the input history from disk file."""
 
         with open(self.hist_file,'rt') as hfile:
-            hist = json.load(hfile)
+            try:
+                hist = json.load(hfile)
+            except ValueError:    # Ignore it if JSON is corrupt.
+                return
             self.input_hist_parsed = hist['parsed']
             self.input_hist_raw = hist['raw']
             if self.shell.has_readline:
