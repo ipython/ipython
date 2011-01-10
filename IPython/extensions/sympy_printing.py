@@ -34,7 +34,7 @@ def print_basic_unicode(o, p, cycle):
 
 def print_png(o):
     """A funciton to display sympy expression using LaTex -> PNG."""
-    s = latex(o)
+    s = latex(o, mode='inline')
     png = latex_to_png(s, encode=True)
     return png
 
