@@ -78,6 +78,8 @@ class RichIPythonWidget(IPythonWidget):
             elif data.has_key('image/png'):
                 self._append_plain_text(self.output_sep)
                 self._append_html(self._make_out_prompt(prompt_number))
+                # This helps the output to look nice.
+                self._append_plain_text('\n')
                 # TODO: try/except these calls
                 png = decodestring(data['image/png'])
                 self._append_png(png)

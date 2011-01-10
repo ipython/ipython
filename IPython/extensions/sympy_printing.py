@@ -35,6 +35,9 @@ def print_basic_unicode(o, p, cycle):
 def print_png(o):
     """A funciton to display sympy expression using LaTex -> PNG."""
     s = latex(o, mode='inline')
+    # mathtext does not understand \\operatorname to we remove it so functions
+    # like sin, cos can print. We should possible replace it with mathrm.
+    s = s.replace('\\operatorname','')
     png = latex_to_png(s, encode=True)
     return png
 
