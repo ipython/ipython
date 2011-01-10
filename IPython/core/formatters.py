@@ -77,6 +77,14 @@ class DisplayFormatter(Configurable):
         ----------
         obj : object
             The Python object whose format data will be computed.
+        include : list or tuple, optional
+            A list of format type strings (MIME types) to include in the
+            format data dict. If this is set *only* the format types included
+            in this list will be computed.
+        exclude : list or tuple, optional
+            A list of format type string (MIME types) to exclue in the format
+            data dict. If this is set all format types will be computed,
+            except for those included in this argument.
 
         Returns
         -------
@@ -86,14 +94,6 @@ class DisplayFormatter(Configurable):
             will usually be MIME type strings and the values and JSON'able
             data structure containing the raw data for the representation in
             that format.
-        include : list or tuple, optional
-            A list of format type strings (MIME types) to include in the
-            format data dict. If this is set *only* the format types included
-            in this list will be computed.
-        exclude : list or tuple, optional
-            A list of format type string (MIME types) to exclue in the format
-            data dict. If this is set all format types will be computed,
-            except for those included in this argument.
         """
         format_dict = {}
 
@@ -414,7 +414,7 @@ class PNGFormatter(BaseFormatter):
     """A PNG formatter.
 
     To define the callables that compute the PNG representation of your
-    objects, define a :meth:`__svg__` method or use the :meth:`for_type`
+    objects, define a :meth:`__png__` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this. The raw data should be the base64 encoded raw png data.
     """
