@@ -294,8 +294,6 @@ class InteractiveShell(Configurable, Magic):
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
-        self.history_thread = HistorySaveThread(self, 60)
-        self.history_thread.start()
 
     # While we're trying to have each part of the code directly access what it
     # needs without keeping redundant references to objects, we have too much
@@ -1238,7 +1236,10 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_history(self):
+        """Sets up the command history, and starts regular autosaves."""
         self.history_manager = HistoryManager(shell=self)
+        self.history_thread = HistorySaveThread(self, time_interval=60)
+        self.history_thread.start()
 
     def save_history(self):
         """Save input history to a file (via readline library)."""

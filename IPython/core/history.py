@@ -254,10 +254,13 @@ class HistoryManager(object):
         self.dir_hist[:] = [os.getcwd()]
 
 class HistorySaveThread(threading.Thread):
-    """Thread to save history periodically"""
+    """This thread saves history periodically (the current default is once per
+    minute), so that it is not lost in the event of a crash. It also allows the
+    commands in the current IPython shell to be accessed in a newly started
+    instance."""
     daemon = True
     
-    def __init__(self, IPython_object, time_interval):
+    def __init__(self, IPython_object, time_interval=60):
         threading.Thread.__init__(self)
         self.IPython_object = IPython_object
         self.time_interval = time_interval
@@ -268,11 +271,12 @@ class HistorySaveThread(threading.Thread):
             self.exit_now.wait(self.time_interval)
             if self.exit_now.is_set():
                 break
-            #printing for debug
-            #print("Saving...")
+            #print("Autosaving history...")   # DEBUG
             self.IPython_object.save_history()
             
     def stop(self):
+        """Safely and quickly stop the autosave thread. This will not cause the
+        history to be saved before stopping."""
         self.exit_now.set()
         self.join()
 
