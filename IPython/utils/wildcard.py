@@ -86,20 +86,30 @@ class NameSpace(dict):
             reg=re.compile(pattern+"$",re.I)
         else:
             reg=re.compile(pattern+"$")
-            
-        return dict((key,obj) for key,obj in self.iteritems() if all((\
-                        reg.match(key),                   # Matches pattern
-                        show_hidden(key, show_all),       # Not _hidden
-                        is_type(obj, type_pattern) )) )   # Correct type
+        
+        # Check each one matches regex; shouldn't be hidden; of correct type.
+        return dict((key,obj) for key,obj in self.iteritems() if reg.match(key)\
+                                                 and show_hidden(key, show_all)\
+                                                 and is_type(obj, type_pattern))
 
-def list_namespace(namespace,type_pattern,filter,ignore_case=False,show_all=False):
+def list_namespace(namespace, type_pattern, filter, ignore_case=False, show_all=False):
     """Return dictionary of all objects in a namespace dictionary that match
     type_pattern and filter."""
     pattern_list=filter.split(".")
     ns = NameSpace(namespace)
+    return _list_namespace(ns, type_pattern, pattern_list, ignore_case,show_all)
+    # This function is a more convenient wrapper around the recursive one below.
+
+def _list_namespace(ns, type_pattern, pattern_list, ignore_case=False, show_all=False):
+    """Return dictionary of objects in a namespace which match type_pattern
+    and filter (pattern_list).
+    
+    This is a recursive function behind list_namespace, which is intended to be
+    the public interface. Unlike that function, this expects a NameSpace
+    instance as the first argument, and the name pattern split by '.'s."""
     if len(pattern_list) == 1:
-        return ns.filter(name_pattern=pattern_list[0], type_pattern=type_pattern,
-                     ignore_case=ignore_case, show_all=show_all)
+       return ns.filter(name_pattern=pattern_list[0], type_pattern=type_pattern,
+                            ignore_case=ignore_case, show_all=show_all)
     else:
         # This is where we can change if all objects should be searched or
         # only modules. Just change the type_pattern to module to search only
@@ -108,27 +118,8 @@ def list_namespace(namespace,type_pattern,filter,ignore_case=False,show_all=Fals
                             ignore_case=ignore_case, show_all=show_all)
         results = {}
         for name, obj in filtered.iteritems():
-            ns = list_object_namespace(obj, type_pattern, pattern_list[1:],
-                                    ignore_case=ignore_case, show_all=show_all)
-            for inner_name, inner_obj in ns.iteritems():
-                results["%s.%s"%(name,inner_name)] = inner_obj
-        return results
-
-def list_object_namespace(ns_obj, type_pattern, pattern_list, ignore_case=False,
-                            show_all=False):
-    """Return dictionary of all attributes of an object which match type_pattern
-    and filter (pattern_list)."""
-    ns = NameSpace.from_object(ns_obj)
-    if len(pattern_list) == 1:
-        return ns.filter(name_pattern=pattern_list[0], type_pattern=type_pattern,
-                            ignore_case=ignore_case, show_all=show_all)
-    else:
-        filtered = ns.filter(name_pattern=pattern_list[0], type_pattern="all",
-                            ignore_case=ignore_case, show_all=show_all)
-        results = {}
-        for name, obj in filtered.iteritems():
-            ns = list_object_namespace(obj, type_pattern, pattern_list[1:],
-                              ignore_case=ignore_case, show_all=show_all)
+            ns = _list_namespace(NameSpace.from_object(obj), type_pattern,
+                   pattern_list[1:], ignore_case=ignore_case, show_all=show_all)
             for inner_name,inner_obj in ns.iteritems():
                 results["%s.%s"%(name,inner_name)] = inner_obj
         return results
