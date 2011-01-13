@@ -200,7 +200,7 @@ python-profiler package from non-free.""")
             else:
                 ini = int(chunk)
                 fin = ini+1
-            cmds.append(''.join(hist[ini:fin]))
+            cmds.append('\n'.join(hist[ini:fin]))
         return cmds
             
     def arg_err(self,func):
@@ -2079,10 +2079,9 @@ Currently the magic system has the following functions:\n"""
             if ans.lower() not in ['y','yes']:
                 print 'Operation cancelled.'
                 return
-        cmds = ''.join(self.extract_input_slices(ranges,opts.has_key('r')))
-        f = file(fname,'w')
-        f.write(cmds)
-        f.close()
+        cmds = '\n'.join(self.extract_input_slices(ranges,opts.has_key('r')))
+        with open(fname,'w') as f:
+            f.write(cmds)
         print 'The following commands were written to file `%s`:' % fname
         print cmds
 
