@@ -66,7 +66,7 @@ def wrap_exception():
     exc_content = {
         'status' : 'error',
         'traceback' : [ line.encode('utf8') for line in tb ],
-        'etype' : etype.encode('utf8'),
+        'etype' : str(etype).encode('utf8'),
         'evalue' : evalue.encode('utf8')
     }
     return exc_content
