@@ -495,29 +495,30 @@ class Controller(object):
         client_id = idents[0]
         
         try:
-            msg = self.session.unpack_message(msg, content=False, copy=False)
+            msg = self.session.unpack_message(msg, content=False)
         except:
             logger.error("task::client %r sent invalid task message: %s"%(
                     client_id, msg), exc_info=True)
             return
-        rec = init_record(msg)
+        record = init_record(msg)
         if MongoDB is not None and isinstance(self.db, MongoDB):
             record['buffers'] = map(Binary, record['buffers'])
-        rec['client_uuid'] = client_id
-        rec['queue'] = 'task'
+        record['client_uuid'] = client_id
+        record['queue'] = 'task'
         header = msg['header']
         msg_id = header['msg_id']
         self.pending.add(msg_id)
-        self.db.add_record(msg_id, rec)
+        self.db.add_record(msg_id, record)
     
     def save_task_result(self, idents, msg):
         """save the result of a completed task."""
         client_id = idents[0]
         try:
-            msg = self.session.unpack_message(msg, content=False, copy=False)
+            msg = self.session.unpack_message(msg, content=False)
         except:
             logger.error("task::invalid task result message send to %r: %s"%(
                     client_id, msg))
+            raise
             return
         
         parent = msg['parent_header']

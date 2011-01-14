@@ -14,6 +14,7 @@ from __future__ import print_function
 
 import os
 import time
+from getpass import getpass
 from pprint import pprint
 
 import zmq
@@ -86,7 +87,29 @@ def remote(client, bound=False, block=None, targets=None):
 #--------------------------------------------------------------------------
 
 class RemoteFunction(object):
-    """Turn an existing function into a remote function"""
+    """Turn an existing function into a remote function.
+    
+    Parameters
+    ----------
+    
+    client : Client instance
+        The client to be used to connect to engines
+    f : callable
+        The function to be wrapped into a remote function
+    bound : bool [default: False]
+        Whether the affect the remote namespace when called
+    block : bool [default: None]
+        Whether to wait for results or not.  The default behavior is
+        to use the current `block` attribute of `client`
+    targets : valid target list [default: all]
+        The targets on which to execute.
+    """
+    
+    client = None # the remote connection
+    func = None # the wrapped function
+    block = None # whether to block
+    bound = None # whether to affect the namespace
+    targets = None # where to execute
     
     def __init__(self, client, f, bound=False, block=None, targets=None):
         self.client = client
@@ -106,6 +129,7 @@ class AbortedTask(object):
         self.msg_id = msg_id
 
 class ControllerError(Exception):
+    """Exception Class for errors in the controller (not the Engine)."""
     def __init__(self, etype, evalue, tb):
         self.etype = etype
         self.evalue = evalue
@@ -795,7 +819,7 @@ class Client(object):
         """Pull objects from `target`'s namespace by `keys`"""
         if isinstance(keys, str):
             pass
-        elif isistance(keys, (list,tuple,set)):
+        elif isinstance(keys, (list,tuple,set)):
             for key in keys:
                 if not isinstance(key, str):
                     raise TypeError
