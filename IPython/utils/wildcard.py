@@ -4,6 +4,7 @@
 Authors
 -------
 - Jörgen Stenarson <jorgen.stenarson@bostream.nu>
+- Thomas Kluyver
 """
 
 #*****************************************************************************
@@ -19,7 +20,7 @@ import types
 from IPython.utils.dir2 import dir2
 
 def create_typestr2type_dicts(dont_include_in_type2typestr=["lambda"]):
-    """Return dictionaries mapping lower case typename (e.g. 'tuple) to type
+    """Return dictionaries mapping lower case typename (e.g. 'tuple') to type
     objects from the types package, and vice versa."""
     typenamelist = [tname for tname in dir(types) if tname.endswith("Type")]
     typestr2type, type2typestr = {}, {}
@@ -40,7 +41,7 @@ def is_type(obj, typestr_or_type):
     'tuple'<->TupleType. 'all' matches all types.
     
     TODO: Should be extended for choosing more than one type."""
-    if typestr_or_type=="all":
+    if typestr_or_type == "all":
         return True
     if type(typestr_or_type) == types.TypeType:
         test_type = typestr_or_type
@@ -50,76 +51,61 @@ def is_type(obj, typestr_or_type):
         return isinstance(obj, test_type)
     return False
 
-def show_hidden(str,show_all=False):
+def show_hidden(str, show_all=False):
     """Return true for strings starting with single _ if show_all is true."""
     return show_all or str.startswith("__") or not str.startswith("_")
 
-class NameSpace(dict):
-    """NameSpace holds the dictionary for a namespace and implements filtering
-    on name and types"""
+def dict_dir(obj):
+    """Produce a dictionary of an object's attributes. Builds on dir2 by
+    checking that a getattr() call actually succeeds."""
+    ns = {}
+    for key in dir2(obj):
+       # This seemingly unnecessary try/except is actually needed
+       # because there is code out there with metaclasses that
+       # create 'write only' attributes, where a getattr() call
+       # will fail even if the attribute appears listed in the
+       # object's dictionary.  Properties can actually do the same
+       # thing.  In particular, Traits use this pattern
+       try:
+           ns[key] = getattr(obj, key)
+       except AttributeError:
+           pass
+    return ns
+        
+def filter_ns(ns, name_pattern="*", type_pattern="all", ignore_case=True,
+            show_all=True):
+    """Filter a namespace dictionary by name pattern and item type."""
+    pattern = name_pattern.replace("*",".*").replace("?",".")
+    if ignore_case:
+        reg = re.compile(pattern+"$", re.I)
+    else:
+        reg = re.compile(pattern+"$")
     
-    @classmethod
-    def from_object(cls, obj, *args, **kwargs):
-        """Instantiate a namespace by constructing a dictionary of an object's
-        attributes. A class method, returns a new NameSpace instance."""
-        ns = cls()
-        for key in dir2(obj):
-           if isinstance(key, basestring):
-               # This seemingly unnecessary try/except is actually needed
-               # because there is code out there with metaclasses that
-               # create 'write only' attributes, where a getattr() call
-               # will fail even if the attribute appears listed in the
-               # object's dictionary.  Properties can actually do the same
-               # thing.  In particular, Traits use this pattern
-               try:
-                   ns[key] = getattr(obj,key)
-               except AttributeError:
-                   pass
-        return ns
-        
-    def filter(self, name_pattern="*", type_pattern="all", ignore_case=True,
-                show_all=True):
-        """Return a dictionary of the namespace filtered by regex pattern and
-        item type."""
-        pattern=name_pattern.replace("*",".*").replace("?",".")
-        if ignore_case:
-            reg=re.compile(pattern+"$",re.I)
-        else:
-            reg=re.compile(pattern+"$")
-        
-        # Check each one matches regex; shouldn't be hidden; of correct type.
-        return dict((key,obj) for key,obj in self.iteritems() if reg.match(key)\
-                                                 and show_hidden(key, show_all)\
-                                                 and is_type(obj, type_pattern))
+    # Check each one matches regex; shouldn't be hidden; of correct type.
+    return dict((key,obj) for key, obj in ns.iteritems() if reg.match(key) \
+                                            and show_hidden(key, show_all) \
+                                            and is_type(obj, type_pattern) )
 
 def list_namespace(namespace, type_pattern, filter, ignore_case=False, show_all=False):
     """Return dictionary of all objects in a namespace dictionary that match
     type_pattern and filter."""
     pattern_list=filter.split(".")
-    ns = NameSpace(namespace)
-    return _list_namespace(ns, type_pattern, pattern_list, ignore_case,show_all)
-    # This function is a more convenient wrapper around the recursive one below.
-
-def _list_namespace(ns, type_pattern, pattern_list, ignore_case=False, show_all=False):
-    """Return dictionary of objects in a namespace which match type_pattern
-    and filter (pattern_list).
-    
-    This is a recursive function behind list_namespace, which is intended to be
-    the public interface. Unlike that function, this expects a NameSpace
-    instance as the first argument, and the name pattern split by '.'s."""
     if len(pattern_list) == 1:
-       return ns.filter(name_pattern=pattern_list[0], type_pattern=type_pattern,
-                            ignore_case=ignore_case, show_all=show_all)
+       return filter_ns(namespace, name_pattern=pattern_list[0],
+                        type_pattern=type_pattern,
+                        ignore_case=ignore_case, show_all=show_all)
     else:
         # This is where we can change if all objects should be searched or
         # only modules. Just change the type_pattern to module to search only
         # modules
-        filtered = ns.filter(name_pattern=pattern_list[0], type_pattern="all",
+        filtered = filter_ns(namespace, name_pattern=pattern_list[0],
+                            type_pattern="all",
                             ignore_case=ignore_case, show_all=show_all)
         results = {}
         for name, obj in filtered.iteritems():
-            ns = _list_namespace(NameSpace.from_object(obj), type_pattern,
-                   pattern_list[1:], ignore_case=ignore_case, show_all=show_all)
-            for inner_name,inner_obj in ns.iteritems():
+            ns = list_namespace(dict_dir(obj), type_pattern, 
+                                ".".join(pattern_list[1:]),
+                                ignore_case=ignore_case, show_all=show_all)
+            for inner_name, inner_obj in ns.iteritems():
                 results["%s.%s"%(name,inner_name)] = inner_obj
         return results
