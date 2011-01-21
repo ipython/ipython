@@ -17,6 +17,8 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
 from IPython.utils.newserialized import serialize, unserialize
 
+from IPython.zmq.parallel.error import RemoteError
+
 try:
     import cPickle
     pickle = cPickle
@@ -60,25 +62,22 @@ else:
 DELIM="<IDS|MSG>"
 ISO8601="%Y-%m-%dT%H:%M:%S.%f"
 
-def wrap_exception():
+def wrap_exception(engine_info={}):
     etype, evalue, tb = sys.exc_info()
-    tb = traceback.format_exception(etype, evalue, tb)
+    stb = traceback.format_exception(etype, evalue, tb)
     exc_content = {
         'status' : 'error',
-        'traceback' : [ line.encode('utf8') for line in tb ],
-        'etype' : str(etype).encode('utf8'),
-        'evalue' : evalue.encode('utf8')
+        'traceback' : stb,
+        'ename' : unicode(etype.__name__),
+        'evalue' : unicode(evalue),
+        'engine_info' : engine_info
     }
     return exc_content
 
-class KernelError(Exception):
-    pass
-
 def unwrap_exception(content):
-    err = KernelError(content['etype'], content['evalue'])
-    err.evalue = content['evalue']
-    err.etype = content['etype']
-    err.traceback = ''.join(content['traceback'])
+    err = RemoteError(content['ename'], content['evalue'], 
+                ''.join(content['traceback']),
+                content.get('engine_info', {}))
     return err
     
 
@@ -402,7 +401,7 @@ class StreamSession(object):
             pprint.pprint(buffers)
         return omsg
     
-    def send_raw(self, stream, msg, flags=0, copy=True, idents=None):
+    def send_raw(self, stream, msg, flags=0, copy=True, ident=None):
         """Send a raw message via idents.
         
         Parameters

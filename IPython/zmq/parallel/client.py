@@ -27,6 +27,7 @@ import streamsession as ss
 # from remotenamespace import RemoteNamespace
 from view import DirectView, LoadBalancedView
 from dependency import Dependency, depend, require
+import error
 
 def _push(ns):
     globals().update(ns)
@@ -128,13 +129,14 @@ class AbortedTask(object):
     def __init__(self, msg_id):
         self.msg_id = msg_id
 
-class ControllerError(Exception):
-    """Exception Class for errors in the controller (not the Engine)."""
-    def __init__(self, etype, evalue, tb):
-        self.etype = etype
-        self.evalue = evalue
-        self.traceback=tb
-    
+class ResultDict(dict):
+    """A subclass of dict that raises errors if it has them."""
+    def __getitem__(self, key):
+        res = dict.__getitem__(self, key)
+        if isinstance(res, error.KernelError):
+            raise res
+        return res
+
 class Client(object):
     """A semi-synchronous client to the IPython ZMQ controller
     
@@ -402,12 +404,18 @@ class Client(object):
         if content['status'] == 'ok':
             self.results[msg_id] = ss.unserialize_object(msg['buffers'])
         elif content['status'] == 'aborted':
-            self.results[msg_id] = AbortedTask(msg_id)
+            self.results[msg_id] = error.AbortedTask(msg_id)
         elif content['status'] == 'resubmitted':
             # TODO: handle resubmission
             pass
         else:
-            self.results[msg_id] = ss.unwrap_exception(content)
+            e = ss.unwrap_exception(content)
+            e_uuid = e.engine_info['engineid']
+            for k,v in self._engines.iteritems():
+                if v == e_uuid:
+                    e.engine_info['engineid'] = k
+                    break
+            self.results[msg_id] = e
     
     def _flush_notifications(self):
         """Flush notifications of engine registrations waiting
@@ -649,6 +657,13 @@ class Client(object):
         result = self.apply(execute, (code,), targets=None, block=block, bound=False)
         return result
     
+    def _maybe_raise(self, result):
+        """wrapper for maybe raising an exception if apply failed."""
+        if isinstance(result, error.RemoteError):
+            raise result
+        
+        return result
+            
     def apply(self, f, args=None, kwargs=None, bound=True, block=None, targets=None,
                         after=None, follow=None):
         """Call `f(*args, **kwargs)` on a remote engine(s), returning the result.
@@ -758,7 +773,7 @@ class Client(object):
         self.history.append(msg_id)
         if block:
             self.barrier(msg_id)
-            return self.results[msg_id]
+            return self._maybe_raise(self.results[msg_id])
         else:
             return msg_id
     
@@ -795,12 +810,12 @@ class Client(object):
             else:
                 return msg_ids
         if len(msg_ids) == 1:
-            return self.results[msg_ids[0]]
+            return self._maybe_raise(self.results[msg_ids[0]])
         else:
             result = {}
             for target,mid in zip(targets, msg_ids):
                     result[target] = self.results[mid]
-            return result
+            return error.collect_exceptions(result, f.__name__)
     
     #--------------------------------------------------------------------------
     # Data movement

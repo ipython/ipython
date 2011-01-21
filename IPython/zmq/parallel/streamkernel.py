@@ -24,6 +24,7 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
+from IPython.core import ultratb
 from IPython.utils.traitlets import HasTraits, Instance, List
 from IPython.zmq.completer import KernelCompleter
 from IPython.zmq.log import logger # a Logger object
@@ -73,7 +74,13 @@ class Kernel(HasTraits):
         
         for msg_type in ['shutdown_request', 'abort_request']+self.shell_handlers.keys():
             self.control_handlers[msg_type] = getattr(self, msg_type)
-
+    
+    
+    def _wrap_exception(self, method=None):
+        e_info = dict(engineid=self.identity, method=method)
+        content=wrap_exception(e_info)
+        return content
+    
     #-------------------- control handlers -----------------------------
     def abort_queues(self):
         for stream in self.shell_streams:
@@ -131,7 +138,7 @@ class Kernel(HasTraits):
         try:
             self.abort_queues()
         except:
-            content = wrap_exception()
+            content = self._wrap_exception('shutdown')
         else:
             content = dict(parent['content'])
             content['status'] = 'ok'
@@ -214,7 +221,7 @@ class Kernel(HasTraits):
                 sys.displayhook.set_parent(parent)
             exec comp_code in self.user_ns, self.user_ns
         except:
-            exc_content = wrap_exception()
+            exc_content = self._wrap_exception('execute')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent)
             reply_content = exc_content
@@ -291,13 +298,13 @@ class Kernel(HasTraits):
             packed_result,buf = serialize_object(result)
             result_buf = [packed_result]+buf
         except:
-            exc_content = wrap_exception()
+            exc_content = self._wrap_exception('apply')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent)
             reply_content = exc_content
             result_buf = []
             
-            if etype is UnmetDependency:
+            if exc_content['ename'] == UnmetDependency.__name__:
                 sub['dependencies_met'] = False
         else:
             reply_content = {'status' : 'ok'}
