@@ -670,7 +670,7 @@ class InteractiveShell(object,Magic):
         # logstart method.
         self.loghead_tpl = \
 """#log# Automatic Logger file. *** THIS MUST BE THE FIRST LINE ***
-#log# DO NOT CHANGE THIS LINE OR THE TWO BELOW
+#log# DO NOT CHANGE THIS LINE OR THE TWO BELOW -* coding: %s *-
 #log# opts = %s
 #log# args = %s
 #log# It is safe to make manual edits below here.

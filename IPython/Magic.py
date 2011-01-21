@@ -1164,7 +1164,7 @@ Currently the magic system has the following functions:\n"""
         if logfname:
             logfname = os.path.expanduser(logfname)
         rc.opts.logfile = logfname
-        loghead = self.shell.loghead_tpl % (rc.opts,rc.args)
+        loghead = self.shell.loghead_tpl % (sys.stdin.encoding, rc.opts, rc.args)
         try:
             started  = logger.logstart(logfname,loghead,logmode,
                                        log_output,timestamp,log_raw_input)
