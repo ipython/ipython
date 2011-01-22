@@ -80,6 +80,10 @@ class Session(object):
         return h
 
     def msg(self, msg_type, content=None, parent=None):
+        """Construct a standard-form message, with a given type, content, and parent.
+        
+        NOT to be called directly.
+        """
         msg = {}
         msg['header'] = self.msg_header()
         msg['parent_header'] = {} if parent is None else extract_header(parent)
@@ -87,7 +91,30 @@ class Session(object):
         msg['content'] = {} if content is None else content
         return msg
 
-    def send(self, socket, msg_type, content=None, parent=None, ident=None):
+    def send(self, socket, msg_or_type, content=None, parent=None, ident=None):
+        """send a message via a socket, using a uniform message pattern.
+        
+        Parameters
+        ----------
+        socket : zmq.Socket
+            The socket on which to send.
+        msg_or_type : Message/dict or str
+            if str : then a new message will be constructed from content,parent
+            if Message/dict : then content and parent are ignored, and the message
+                is sent.  This is only for use when sending a Message for a second time.
+        content : dict, optional
+            The contents of the message
+        parent : dict, optional
+            The parent header, or parent message, of this message
+        ident : bytes, optional
+            The zmq.IDENTITY prefix of the destination.
+            Only for use on certain socket types.
+        
+        Returns
+        -------
+        msg : dict
+            The message, as constructed by self.msg(msg_type,content,parent)
+        """
         if isinstance(msg_type, (Message, dict)):
             msg = dict(msg_type)
         else:
@@ -95,10 +122,32 @@ class Session(object):
         if ident is not None:
             socket.send(ident, zmq.SNDMORE)
         socket.send_json(msg)
-        # omsg = Message(msg)
         return msg
     
     def recv(self, socket, mode=zmq.NOBLOCK):
+        """recv a message on a socket.
+        
+        Receive an optionally identity-prefixed message, as sent via session.send().
+        
+        Parameters
+        ----------
+        
+        socket : zmq.Socket
+            The socket on which to recv a message.
+        mode : int, optional
+            the mode flag passed to socket.recv
+            default: zmq.NOBLOCK
+        
+        Returns
+        -------
+        (ident,msg) : tuple
+            always length 2. If no message received, then return is (None,None)
+        ident : bytes or None
+                the identity prefix is there was one, None otherwise.
+        msg : dict or None
+                The actual message.  If mode==zmq.NOBLOCK and no message was waiting,
+                it will be None.
+        """
         try:
             msg = socket.recv_multipart(mode)
         except zmq.ZMQError, e:
