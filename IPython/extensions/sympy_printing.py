@@ -35,9 +35,10 @@ def print_basic_unicode(o, p, cycle):
 def print_png(o):
     """A funciton to display sympy expression using LaTex -> PNG."""
     s = latex(o, mode='inline')
-    # mathtext does not understand \\operatorname to we remove it so functions
-    # like sin, cos can print. We should possible replace it with mathrm.
+    # mathtext does not understand certain latex flags, so we try to replace
+    # them with suitable subs.
     s = s.replace('\\operatorname','')
+    s = s.replace('\\overline', '\\bar')
     png = latex_to_png(s, encode=True)
     return png
 
@@ -52,6 +53,10 @@ def load_ipython_extension(ip):
         plaintext_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_basic_unicode
         )
+        plaintext_formatter.for_type_by_name(
+            'sympy.matrices.matrices', 'Matrix', print_basic_unicode
+        )
+
         png_formatter = ip.display_formatter.formatters['image/png']
         png_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_png
