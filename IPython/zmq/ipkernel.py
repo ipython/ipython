@@ -106,17 +106,14 @@ class Kernel(Configurable):
     def do_one_iteration(self):
         """Do one iteration of the kernel's evaluation loop.
         """
-        try:
-            ident = self.reply_socket.recv(zmq.NOBLOCK)
-        except zmq.ZMQError, e:
-            if e.errno == zmq.EAGAIN:
-                return
-            else:
-                raise
+        ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
+        if msg is None:
+            return
+        
         # This assert will raise in versions of zeromq 2.0.7 and lesser.
         # We now require 2.0.8 or above, so we can uncomment for safety.
-        assert self.reply_socket.rcvmore(), "Missing message part."
-        msg = self.reply_socket.recv_json()
+        # print(ident,msg, file=sys.__stdout__)
+        assert ident is not None, "Missing message part."
         
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
@@ -169,17 +166,15 @@ class Kernel(Configurable):
     def _publish_pyin(self, code, parent):
         """Publish the code request on the pyin stream."""
 
-        pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
-        self.pub_socket.send_json(pyin_msg)
+        pyin_msg = self.session.send(self.pub_socket, u'pyin',{u'code':code}, parent=parent)
 
     def execute_request(self, ident, parent):
         
-        status_msg = self.session.msg(
+        status_msg = self.session.send(self.pub_socket,
             u'status',
             {u'execution_state':u'busy'},
             parent=parent
         )
-        self.pub_socket.send_json(status_msg)
         
         try:
             content = parent[u'content']
@@ -264,7 +259,7 @@ class Kernel(Configurable):
         shell.payload_manager.clear_payload()
 
         # Send the reply.
-        reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
+        reply_msg = self.session.send(self.reply_socket, u'execute_reply', reply_content, parent, ident=ident)
         io.raw_print(reply_msg)
 
         # Flush output before sending the reply.
@@ -276,17 +271,14 @@ class Kernel(Configurable):
         if self._execute_sleep:
             time.sleep(self._execute_sleep)
         
-        self.reply_socket.send(ident, zmq.SNDMORE)
-        self.reply_socket.send_json(reply_msg)
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
-        status_msg = self.session.msg(
+        status_msg = self.session.send(self.pub_socket,
             u'status',
             {u'execution_state':u'idle'},
             parent=parent
         )
-        self.pub_socket.send_json(status_msg)
 
     def complete_request(self, ident, parent):
         txt, matches = self._complete(parent)
@@ -335,22 +327,18 @@ class Kernel(Configurable):
 
     def _abort_queue(self):
         while True:
-            try:
-                ident = self.reply_socket.recv(zmq.NOBLOCK)
-            except zmq.ZMQError, e:
-                if e.errno == zmq.EAGAIN:
-                    break
+            ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
+            if msg is None:
+                break
             else:
-                assert self.reply_socket.rcvmore(), \
+                assert ident is not None, \
                        "Unexpected missing message part."
-                msg = self.reply_socket.recv_json()
             io.raw_print("Aborting:\n", Message(msg))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
-            reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
+            reply_msg = self.session.send(self.reply_socket, reply_type, 
+                    {'status' : 'aborted'}, msg, ident=ident)
             io.raw_print(reply_msg)
-            self.reply_socket.send(ident,zmq.SNDMORE)
-            self.reply_socket.send_json(reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.1)
@@ -362,11 +350,10 @@ class Kernel(Configurable):
 
         # Send the input request.
         content = dict(prompt=prompt)
-        msg = self.session.msg(u'input_request', content, parent)
-        self.req_socket.send_json(msg)
+        msg = self.session.send(self.req_socket, u'input_request', content, parent)
 
         # Await a response.
-        reply = self.req_socket.recv_json()
+        ident, reply = self.session.recv(self.req_socket, 0)
         try:
             value = reply['content']['value']
         except:
@@ -423,8 +410,8 @@ class Kernel(Configurable):
         """
         # io.rprint("Kernel at_shutdown") # dbg
         if self._shutdown_message is not None:
-            self.reply_socket.send_json(self._shutdown_message)
-            self.pub_socket.send_json(self._shutdown_message)
+            self.session.send(self.reply_socket, self._shutdown_message)
+            self.session.send(self.pub_socket, self._shutdown_message)
             io.raw_print(self._shutdown_message)
             # A very short sleep to give zmq time to flush its message buffers
             # before Python truly shuts down.

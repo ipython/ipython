@@ -4,6 +4,8 @@ import pprint
 
 import zmq
 
+from zmq.utils import jsonapi as json
+
 class Message(object):
     """A simple message object that maps dict keys to attributes.
 
@@ -86,24 +88,35 @@ class Session(object):
         return msg
 
     def send(self, socket, msg_type, content=None, parent=None, ident=None):
-        msg = self.msg(msg_type, content, parent)
+        if isinstance(msg_type, (Message, dict)):
+            msg = dict(msg_type)
+        else:
+            msg = self.msg(msg_type, content, parent)
         if ident is not None:
             socket.send(ident, zmq.SNDMORE)
         socket.send_json(msg)
-        omsg = Message(msg)
-        return omsg
-
+        # omsg = Message(msg)
+        return msg
+    
     def recv(self, socket, mode=zmq.NOBLOCK):
         try:
-            msg = socket.recv_json(mode)
+            msg = socket.recv_multipart(mode)
         except zmq.ZMQError, e:
             if e.errno == zmq.EAGAIN:
                 # We can convert EAGAIN to None as we know in this case
                 # recv_json won't return None.
-                return None
+                return None,None
             else:
                 raise
-        return Message(msg)
+        if len(msg) == 1:
+            ident=None
+            msg = msg[0]
+        elif len(msg) == 2:
+            ident, msg = msg
+        else:
+            raise ValueError("Got message with length > 2, which is invalid")
+        
+        return ident, json.loads(msg)
 
 def test_msg2obj():
     am = dict(x=1)

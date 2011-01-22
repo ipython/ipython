@@ -14,9 +14,8 @@ class DisplayHook(object):
             return
 
         __builtin__._ = obj
-        msg = self.session.msg(u'pyout', {u'data':repr(obj)},
+        msg = self.session.send(self.pub_socket, u'pyout', {u'data':repr(obj)},
                                parent=self.parent_header)
-        self.pub_socket.send_json(msg)
 
     def set_parent(self, parent):
         self.parent_header = extract_header(parent)

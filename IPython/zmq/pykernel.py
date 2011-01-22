@@ -69,9 +69,8 @@ class Kernel(HasTraits):
         """ Start the kernel main loop.
         """
         while True:
-            ident = self.reply_socket.recv()
-            assert self.reply_socket.rcvmore(), "Missing message part."
-            msg = self.reply_socket.recv_json()
+            ident,msg = self.session.recv(self.reply_socket,0)
+            assert ident is not None, "Missing message part."
             omsg = Message(msg)
             print>>sys.__stdout__
             print>>sys.__stdout__, omsg
@@ -105,8 +104,7 @@ class Kernel(HasTraits):
             print>>sys.__stderr__, "Got bad msg: "
             print>>sys.__stderr__, Message(parent)
             return
-        pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
-        self.pub_socket.send_json(pyin_msg)
+        pyin_msg = self.session.send(self.pub_socket, u'pyin',{u'code':code}, parent=parent)
 
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
@@ -131,8 +129,7 @@ class Kernel(HasTraits):
                 u'ename' : unicode(etype.__name__),
                 u'evalue' : unicode(evalue)
             }
-            exc_msg = self.session.msg(u'pyerr', exc_content, parent)
-            self.pub_socket.send_json(exc_msg)
+            exc_msg = self.session.send(self.pub_socket, u'pyerr', exc_content, parent)
             reply_content = exc_content
         else:
             reply_content = { 'status' : 'ok', 'payload' : {} }
@@ -142,10 +139,8 @@ class Kernel(HasTraits):
         sys.stdout.flush()
 
         # Send the reply.
-        reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
+        reply_msg = self.session.send(self.reply_socket, u'execute_reply', reply_content, parent, ident=ident)
         print>>sys.__stdout__, Message(reply_msg)
-        self.reply_socket.send(ident, zmq.SNDMORE)
-        self.reply_socket.send_json(reply_msg)
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
@@ -180,21 +175,18 @@ class Kernel(HasTraits):
     def _abort_queue(self):
         while True:
             try:
-                ident = self.reply_socket.recv(zmq.NOBLOCK)
+                ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
             except zmq.ZMQError, e:
                 if e.errno == zmq.EAGAIN:
                     break
             else:
-                assert self.reply_socket.rcvmore(), "Missing message part."
-                msg = self.reply_socket.recv_json()
+                assert ident is not None, "Missing message part."
             print>>sys.__stdout__, "Aborting:"
             print>>sys.__stdout__, Message(msg)
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
-            reply_msg = self.session.msg(reply_type, {'status':'aborted'}, msg)
+            reply_msg = self.session.send(self.reply_socket, reply_type, {'status':'aborted'}, msg, ident=ident)
             print>>sys.__stdout__, Message(reply_msg)
-            self.reply_socket.send(ident,zmq.SNDMORE)
-            self.reply_socket.send_json(reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.1)
@@ -206,11 +198,10 @@ class Kernel(HasTraits):
 
         # Send the input request.
         content = dict(prompt=prompt)
-        msg = self.session.msg(u'input_request', content, parent)
-        self.req_socket.send_json(msg)
+        msg = self.session.send(self.req_socket, u'input_request', content, parent)
 
         # Await a response.
-        reply = self.req_socket.recv_json()
+        ident,reply = self.session.recv(self.req_socket, 0)
         try:
             value = reply['content']['value']
         except:
