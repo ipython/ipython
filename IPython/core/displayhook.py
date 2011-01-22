@@ -195,13 +195,13 @@ class DisplayHook(Configurable):
         type. It is up to frontends to determine pick a MIME to to use and
         display that data in an appropriate manner.
 
-        This method only compute the format data for the object and should NOT
-        actually print or write that to a stream.
+        This method only computes the format data for the object and should
+        NOT actually print or write that to a stream.
 
         Parameters
         ----------
         result : object
-            The Python object passed to the display hook, whose forat will be
+            The Python object passed to the display hook, whose format will be
             computed.
 
         Returns

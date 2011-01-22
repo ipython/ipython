@@ -41,8 +41,9 @@ def display(obj, include=None, exclude=None):
         except for those included in this argument.
     """
     from IPython.core.interactiveshell import InteractiveShell
-    format = InteractiveShell.instance().display_formatter.format
-    publish = InteractiveShell.instance().display_pub.publish
+    inst = InteractiveShell.instance()
+    format = inst.display_formatter.format
+    publish = inst.display_pub.publish
 
     format_dict = format(obj, include=include, exclude=exclude)
     publish('IPython.core.display.display', format_dict)

@@ -27,6 +27,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 from IPython.config.configurable import Configurable
 
 #-----------------------------------------------------------------------------
@@ -98,7 +100,7 @@ class DisplayPublisher(Configurable):
         from IPython.utils import io
         # The default is to simply write the plain text data using io.Term.
         if data.has_key('text/plain'):
-            print >>io.Term.cout, data['text/plain']
+            print(data['text/plain'], file=io.Term.cout)
 
 
 def publish_display_data(self, source, data, metadata=None):
