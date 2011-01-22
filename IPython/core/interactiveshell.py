@@ -45,7 +45,6 @@ from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.history import HistoryManager
-from IPython.core.history import HistorySaveThread
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
@@ -1238,8 +1237,6 @@ class InteractiveShell(Configurable, Magic):
     def init_history(self):
         """Sets up the command history, and starts regular autosaves."""
         self.history_manager = HistoryManager(shell=self)
-        self.history_thread = HistorySaveThread(self, time_interval=60)
-        self.history_thread.start()
 
     def save_history(self):
         """Save input history to a file (via readline library)."""
@@ -2527,7 +2524,6 @@ class InteractiveShell(Configurable, Magic):
             except OSError:
                 pass
 
-        self.history_thread.stop()
         self.save_history()
 
         # Clear all user namespaces to release all references cleanly.

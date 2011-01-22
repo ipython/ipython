@@ -24,7 +24,6 @@ import sys
 from IPython.core.error import TryNext
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.core.history import HistorySaveThread
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.pylabtools import pylab_activate
 from IPython.utils.terminal import toggle_set_term_title, set_term_title

@@ -13,6 +13,7 @@
 from __future__ import print_function
 
 # Stdlib imports
+import atexit
 import fnmatch
 import json
 import os
@@ -105,6 +106,13 @@ class HistoryManager(object):
         
         # Fill the history zero entry, user counter starts at 1
         self.store_inputs('\n', '\n')
+        
+        # Autosave every 60 seconds:
+        self.autosave_flag = threading.Event()
+        self.autosave_timer = HistorySaveThread(self.autosave_flag, 60)
+        self.autosave_timer.start()
+        self.shell.register_post_execute(self.autosave_if_due)
+        # Ensure that any autosave thread we start is stopped tidily.
 
     def _init_shadow_hist(self):
         try:
@@ -142,6 +150,13 @@ class HistoryManager(object):
         with open(self.hist_file,'wt') as hfile:
             json.dump(hist, hfile,
                       sort_keys=True, indent=4)
+                      
+    def autosave_if_due(self):
+        """Check if the autosave event is set; if so, save history. We do it 
+        this way so that the save takes place in the main thread."""
+        if self.autosave_flag.is_set():
+            self.save_history()
+            self.autosave_flag.clear()
         
     def reload_history(self):
         """Reload the input history from disk file."""
@@ -257,29 +272,34 @@ class HistoryManager(object):
         self.dir_hist[:] = [os.getcwd()]
 
 class HistorySaveThread(threading.Thread):
-    """This thread saves history periodically (the current default is once per
-    minute), so that it is not lost in the event of a crash. It also allows the
-    commands in the current IPython shell to be accessed in a newly started
-    instance."""
+    """This thread makes IPython save history periodically (the current default
+    is once per minute), so that it is not lost in the event of a crash. It also
+    allows the commands in the current IPython shell to be accessed in a newly
+    started instance.
+    
+    This simply sets an event to indicate that history should be saved. The
+    actual save is carried out after executing a user command, to avoid
+    thread issues."""
     daemon = True
     
-    def __init__(self, IPython_object, time_interval=60):
+    def __init__(self, autosave_flag, time_interval=60):
         threading.Thread.__init__(self)
-        self.IPython_object = IPython_object
         self.time_interval = time_interval
+        self.autosave_flag = autosave_flag
         self.exit_now = threading.Event()
+        # Ensure the thread is stopped tidily when exiting normally
+        atexit.register(self.stop)
 
     def run(self):
         while True:
             self.exit_now.wait(self.time_interval)
             if self.exit_now.is_set():
                 break
-            #print("Autosaving history...")   # DEBUG
-            self.IPython_object.save_history()
+            #print("Setting flag for autosaving history...")   # DEBUG
+            self.autosave_flag.set()
             
     def stop(self):
-        """Safely and quickly stop the autosave thread. This will not cause the
-        history to be saved before stopping."""
+        """Safely and quickly stop the autosave timer thread."""
         self.exit_now.set()
         self.join()
 
