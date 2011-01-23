@@ -107,12 +107,13 @@ class HistoryManager(object):
         # Fill the history zero entry, user counter starts at 1
         self.store_inputs('\n', '\n')
         
-        # Autosave every 60 seconds:
+        # Create and start the autosaver.
         self.autosave_flag = threading.Event()
         self.autosave_timer = HistorySaveThread(self.autosave_flag, 60)
         self.autosave_timer.start()
+        # Register the autosave handler to be triggered as a post execute
+        # callback.
         self.shell.register_post_execute(self.autosave_if_due)
-        # Ensure that any autosave thread we start is stopped tidily.
 
     def _init_shadow_hist(self):
         try:
@@ -272,14 +273,16 @@ class HistoryManager(object):
         self.dir_hist[:] = [os.getcwd()]
 
 class HistorySaveThread(threading.Thread):
-    """This thread makes IPython save history periodically (the current default
-    is once per minute), so that it is not lost in the event of a crash. It also
-    allows the commands in the current IPython shell to be accessed in a newly
-    started instance.
+    """This thread makes IPython save history periodically.
+
+    Without this class, IPython would only save the history on a clean exit.
+    This saves the history periodically (the current default is once per
+    minute), so that it is not lost in the event of a crash.
     
-    This simply sets an event to indicate that history should be saved. The
-    actual save is carried out after executing a user command, to avoid
-    thread issues."""
+    The implementation sets an event to indicate that history should be saved.
+    The actual save is carried out after executing a user command, to avoid
+    thread issues.
+    """
     daemon = True
     
     def __init__(self, autosave_flag, time_interval=60):
@@ -295,7 +298,6 @@ class HistorySaveThread(threading.Thread):
             self.exit_now.wait(self.time_interval)
             if self.exit_now.is_set():
                 break
-            #print("Setting flag for autosaving history...")   # DEBUG
             self.autosave_flag.set()
             
     def stop(self):
