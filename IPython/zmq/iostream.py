@@ -37,10 +37,9 @@ class OutStream(object):
             data = self._buffer.getvalue()
             if data:
                 content = {u'name':self.name, u'data':data}
-                msg = self.session.msg(u'stream', content=content,
+                msg = self.session.send(self.pub_socket, u'stream', content=content,
                                        parent=self.parent_header)
                 io.raw_print(msg)
-                self.pub_socket.send_json(msg)
                 
                 self._buffer.close()
                 self._new_buffer()
