@@ -201,7 +201,7 @@ def serialize_object(obj, threshold=64e-6):
             
         
 def unserialize_object(bufs):
-    """reconstruct an object serialized by serialize_object from data buffers"""
+    """reconstruct an object serialized by serialize_object from data buffers."""
     bufs = list(bufs)
     sobj = pickle.loads(bufs.pop(0))
     if isinstance(sobj, (list, tuple)):
@@ -402,7 +402,7 @@ class StreamSession(object):
         return omsg
     
     def send_raw(self, stream, msg, flags=0, copy=True, ident=None):
-        """Send a raw message via idents.
+        """Send a raw message via ident path.
         
         Parameters
         ----------
@@ -444,9 +444,23 @@ class StreamSession(object):
             raise e
     
     def feed_identities(self, msg, copy=True):
-        """This is a completely horrible thing, but it strips the zmq
-        ident prefixes off of a message. It will break if any identities
-        are unpackable by self.unpack."""
+        """feed until DELIM is reached, then return the prefix as idents and remainder as
+        msg. This is easily broken by setting an IDENT to DELIM, but that would be silly.
+        
+        Parameters
+        ----------
+        msg : a list of Message or bytes objects
+            the message to be split
+        copy : bool
+            flag determining whether the arguments are bytes or Messages
+        
+        Returns
+        -------
+        (idents,msg) : two lists
+            idents will always be a list of bytes - the indentity prefix
+            msg will be a list of bytes or Messages, unchanged from input
+            msg should be unpackable via self.unpack_message at this point.
+        """
         msg = list(msg)
         idents = []
         while len(msg) > 3:

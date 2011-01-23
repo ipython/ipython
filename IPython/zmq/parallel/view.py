@@ -1,11 +1,24 @@
-#!/usr/bin/env python
-"""Views"""
+"""Views of remote engines"""
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2010  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
 from IPython.external.decorator import decorator
 
+#-----------------------------------------------------------------------------
+# Decorators
+#-----------------------------------------------------------------------------
 
 @decorator
 def myblock(f, self, *args, **kwargs):
+    """override client.block with self.block during a call"""
     block = self.client.block
     self.client.block = self.block
     ret = f(self, *args, **kwargs)
@@ -14,6 +27,7 @@ def myblock(f, self, *args, **kwargs):
 
 @decorator
 def save_ids(f, self, *args, **kwargs):
+    """Keep our history and outstanding attributes up to date after a method call."""
     ret = f(self, *args, **kwargs)
     msg_ids = self.client.history[-self._ntargets:]
     self.history.extend(msg_ids)
@@ -22,6 +36,7 @@ def save_ids(f, self, *args, **kwargs):
 
 @decorator
 def sync_results(f, self, *args, **kwargs):
+    """sync relevant results from self.client to our results attribute."""
     ret = f(self, *args, **kwargs)
     delta = self.outstanding.difference(self.client.outstanding)
     completed = self.outstanding.intersection(delta)
@@ -32,13 +47,20 @@ def sync_results(f, self, *args, **kwargs):
 
 @decorator
 def spin_after(f, self, *args, **kwargs):
+    """call spin after the method."""
     ret = f(self, *args, **kwargs)
     self.spin()
     return ret
 
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 
 class View(object):
-    """Base View class"""
+    """Base View class for more convenint apply(f,*args,**kwargs) syntax via attributes.
+    
+    Don't use this class, use subclasses.
+    """
     _targets = None
     _ntargets = None
     block=None
@@ -67,7 +89,7 @@ class View(object):
 
     @targets.setter
     def targets(self, value):
-        raise TypeError("Cannot set my targets argument after construction!")
+        raise AttributeError("Cannot set my targets argument after construction!")
 
     @sync_results
     def spin(self):
@@ -175,7 +197,16 @@ class View(object):
 
 
 class DirectView(View):
-    """Direct Multiplexer View"""
+    """Direct Multiplexer View of one or more engines.
+    
+    These are created via indexed access to a client:
+    
+    >>> dv_1 = client[1]
+    >>> dv_all = client[:]
+    >>> dv_even = client[::2]
+    >>> dv_some = client[1:3]
+    
+    """
     
     def update(self, ns):
         """update remote namespace with dict `ns`"""
@@ -214,6 +245,19 @@ class DirectView(View):
         return self.client.kill(targets=self.targets, block=block)
     
 class LoadBalancedView(View):
+    """An engine-agnostic View that only executes via the Task queue.
+    
+    Typically created via:
+    
+    >>> lbv = client[None]
+    <LoadBalancedView tcp://127.0.0.1:12345>
+    
+    but can also be created with:
+    
+    >>> lbc = LoadBalancedView(client)
+    
+    TODO: allow subset of engines across which to balance.
+    """
     def __repr__(self):
         return "<%s %s>"%(self.__class__.__name__, self.client._addr)
     

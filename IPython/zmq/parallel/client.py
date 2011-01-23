@@ -29,10 +29,16 @@ from view import DirectView, LoadBalancedView
 from dependency import Dependency, depend, require
 import error
 
+#--------------------------------------------------------------------------
+# helpers for implementing old MEC API via client.apply
+#--------------------------------------------------------------------------
+
 def _push(ns):
+    """helper method for implementing `client.push` via `client.apply`"""
     globals().update(ns)
 
 def _pull(keys):
+    """helper method for implementing `client.pull` via `client.apply`"""
     g = globals()
     if isinstance(keys, (list,tuple, set)):
         for key in keys:
@@ -45,10 +51,13 @@ def _pull(keys):
         return g.get(keys)
 
 def _clear():
+    """helper method for implementing `client.clear` via `client.apply`"""
     globals().clear()
 
 def execute(code):
+    """helper method for implementing `client.execute` via `client.apply`"""
     exec code in globals()
+    
 
 #--------------------------------------------------------------------------
 # Decorators for Client methods
@@ -613,7 +622,7 @@ class Client(object):
                 error = ss.unwrap_exception(msg['content'])
         
         if error:
-            return error
+            raise error
     
     #--------------------------------------------------------------------------
     # Execution methods
@@ -622,6 +631,8 @@ class Client(object):
     @defaultblock
     def execute(self, code, targets='all', block=None):
         """Executes `code` on `targets` in blocking or nonblocking manner.
+        
+        ``execute`` is always `bound` (affects engine namespace)
         
         Parameters
         ----------
@@ -634,17 +645,15 @@ class Client(object):
                 whether or not to wait until done to return
                 default: self.block
         """
-        # block = self.block if block is None else block
-        # saveblock = self.block
-        # self.block = block
         result = self.apply(execute, (code,), targets=targets, block=block, bound=True)
-        # self.block = saveblock
         return result
     
     def run(self, code, block=None):
         """Runs `code` on an engine. 
         
         Calls to this are load-balanced.
+        
+        ``run`` is never `bound` (no effect on engine namespace)
         
         Parameters
         ----------
@@ -908,7 +917,7 @@ class Client(object):
                 the engines on which to execute
                 default : all
         verbose : bool
-                whether to return lengths only, or lists of ids for each element
+                Whether to return lengths only, or lists of ids for each element
         """
         targets = self._build_targets(targets)[1]
         content = dict(targets=targets, verbose=verbose)
@@ -927,12 +936,16 @@ class Client(object):
         """Tell the controller to forget results.
         
         Individual results can be purged by msg_id, or the entire
-        history of specific targets can 
+        history of specific targets can be purged.
         
         Parameters
         ----------
+        msg_ids : str or list of strs
+                the msg_ids whose results should be forgotten.
         targets : int/str/list of ints/strs
-                the targets
+                The targets, by uuid or int_id, whose entire history is to be purged.
+                Use `targets='all'` to scrub everything from the controller's memory.
+                
                 default : None
         """
         if not targets and not msg_ids:
