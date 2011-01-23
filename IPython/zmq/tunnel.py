@@ -18,9 +18,12 @@ from __future__ import print_function
 import os,sys, atexit
 from multiprocessing import Process
 from getpass import getpass, getuser
+import warnings
 
 try:
-    import paramiko
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', DeprecationWarning)
+        import paramiko
 except ImportError:
     paramiko = None
 else:
