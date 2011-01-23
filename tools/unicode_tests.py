@@ -25,8 +25,8 @@ class HistoryTest(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             histfile = os.path.realpath(os.path.join(tmpdir, 'history.json'))
             # Ensure that we restore the history management that we mess with in
-            # this test doesn't affect the IPython instance used by the test suite
-            # beyond this test.
+            # this test doesn't affect the IPython instance used by the test
+            # suite beyond this test.
             hist_manager_ori = ip.history_manager
             try:
                 ip.history_manager = HistoryManager(ip)
@@ -40,9 +40,9 @@ class HistoryTest(unittest.TestCase):
                 ip.save_history()
                 ip.history_manager.input_hist_raw[:] = []
                 ip.reload_history()
-                self.assert_equal(len(ip.history_manager.input_hist_raw), len(hist))
+                self.assertEqual(len(ip.history_manager.input_hist_raw), len(hist))
                 for i,h in enumerate(hist):
-                    nt.assert_equal(hist[i], ip.history_manager.input_hist_raw[i])
+                    self.assertEqual(hist[i], ip.history_manager.input_hist_raw[i])
             finally:
                 # Restore history manager
                 ip.history_manager = hist_manager_ori
