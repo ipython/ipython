@@ -24,7 +24,6 @@ import sys
 from IPython.core.error import TryNext
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.core.history import HistorySaveThread
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.pylabtools import pylab_activate
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
@@ -499,10 +498,6 @@ class TerminalInteractiveShell(InteractiveShell):
         This method calls the ask_exit callback."""
         if self.confirm_exit:
             if self.ask_yes_no('Do you really want to exit ([y]/n)?','y'):
-                self.shell.history_thread.exit_now=True
-                self.shell.history_thread.cond.acquire()
-                self.shell.history_thread.cond.notify()
-                self.shell.history_thread.cond.release()
                 self.ask_exit()
         else:
             self.ask_exit()

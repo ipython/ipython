@@ -45,7 +45,6 @@ from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.history import HistoryManager
-from IPython.core.history import HistorySaveThread
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.magic import Magic
@@ -294,8 +293,6 @@ class InteractiveShell(Configurable, Magic):
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
-        self.history_thread = HistorySaveThread(self, 60, False)
-        self.history_thread.start()
 
     # While we're trying to have each part of the code directly access what it
     # needs without keeping redundant references to objects, we have too much
@@ -1238,6 +1235,7 @@ class InteractiveShell(Configurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_history(self):
+        """Sets up the command history, and starts regular autosaves."""
         self.history_manager = HistoryManager(shell=self)
 
     def save_history(self):
