@@ -115,10 +115,10 @@ class Session(object):
         msg : dict
             The message, as constructed by self.msg(msg_type,content,parent)
         """
-        if isinstance(msg_type, (Message, dict)):
-            msg = dict(msg_type)
+        if isinstance(msg_or_type, (Message, dict)):
+            msg = dict(msg_or_type)
         else:
-            msg = self.msg(msg_type, content, parent)
+            msg = self.msg(msg_or_type, content, parent)
         if ident is not None:
             socket.send(ident, zmq.SNDMORE)
         socket.send_json(msg)
