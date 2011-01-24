@@ -116,7 +116,6 @@ def find_packages():
     add_package(packages, 'external.Itpl')
     add_package(packages, 'external.mglob')
     add_package(packages, 'external.path')
-    add_package(packages, 'external.pretty')
     add_package(packages, 'external.pyparsing')
     add_package(packages, 'external.simplegeneric')
     add_package(packages, 'external.validate')

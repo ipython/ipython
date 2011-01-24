@@ -27,7 +27,7 @@ from StringIO import StringIO
 
 # Our own imports
 from IPython.config.configurable import Configurable
-from IPython.external import pretty
+from IPython.lib import pretty
 from IPython.utils.traitlets import Bool, Dict, Int, Str, CStr
 
 
