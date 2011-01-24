@@ -179,10 +179,11 @@ class BaseFormatter(Configurable):
        to find print method: :attr:`singleton_printers`, :attr:`type_printers`
        and :attr:`deferred_printers`.
 
-    Users should use these dictionarie to register functions that will be used
-    to compute the format data for their objects (if those objects don't have
-    the special print methods). The easiest way of using these dictionaries
-    is through the :meth:`for_type` and :meth:`for_type_by_name` methods.
+    Users should use these dictionaries to register functions that will be
+    used to compute the format data for their objects (if those objects don't
+    have the special print methods). The easiest way of using these
+    dictionaries is through the :meth:`for_type` and :meth:`for_type_by_name`
+    methods.
 
     If no function/callable is found to compute the format data, ``None`` is
     returned and this format type is not used.
@@ -243,7 +244,7 @@ class BaseFormatter(Configurable):
     def for_type(self, typ, func):
         """Add a format function for a given type.
 
-        Parameteres
+        Parameters
         -----------
         typ : class
             The class of the object that will be formatted using `func`.

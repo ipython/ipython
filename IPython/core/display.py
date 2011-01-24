@@ -21,7 +21,7 @@ Authors:
 # Main functions
 #-----------------------------------------------------------------------------
 
-def display(obj, include=None, exclude=None):
+def display(*objs, **kwargs):
     """Display a Python object in all frontends.
 
     By default all representations will be computed and sent to the frontends.
@@ -29,8 +29,8 @@ def display(obj, include=None, exclude=None):
 
     Parameters
     ----------
-    obj : object
-        The Python object to display.
+    objs : tuple of objects
+        The Python objects to display.
     include : list or tuple, optional
         A list of format type strings (MIME types) to include in the
         format data dict. If this is set *only* the format types included
@@ -40,79 +40,83 @@ def display(obj, include=None, exclude=None):
         data dict. If this is set all format types will be computed,
         except for those included in this argument.
     """
+    include = kwargs.get('include')
+    exclude = kwargs.get('exclude')
+    
     from IPython.core.interactiveshell import InteractiveShell
     inst = InteractiveShell.instance()
     format = inst.display_formatter.format
     publish = inst.display_pub.publish
 
-    format_dict = format(obj, include=include, exclude=exclude)
-    publish('IPython.core.display.display', format_dict)
+    for obj in objs:
+        format_dict = format(obj, include=include, exclude=exclude)
+        publish('IPython.core.display.display', format_dict)
 
 
-def display_pretty(obj):
+def display_pretty(*objs):
     """Display the pretty (default) representation of an object.
 
     Parameters
     ----------
-    obj : object
-        The Python object to display.
+    objs : tuple of objects
+        The Python objects to display.
     """
-    display(obj, include=['text/plain'])
+    display(*objs, include=['text/plain'])
 
 
-def display_html(obj):
+def display_html(*objs):
     """Display the HTML representation of an object.
 
     Parameters
     ----------
-    obj : object
-        The Python object to display.
+    objs : tuple of objects
+        The Python objects to display.
         """
-    display(obj, include=['text/plain','text/html'])
+    display(*objs, include=['text/plain','text/html'])
 
 
-def display_svg(obj):
+def display_svg(*objs):
     """Display the SVG representation of an object.
 
     Parameters
     ----------
-    obj : object
-        The Python object to display.
+    objs : tuple of objects
+        The Python objects to display.
     """
-    display(obj, include=['text/plain','image/svg+xml'])
+    display(*objs, include=['text/plain','image/svg+xml'])
 
 
-def display_png(obj):
+def display_png(*objs):
     """Display the PNG representation of an object.
 
     Parameters
     ----------
-    obj : object
-        The Python object to display.
+    objs : tuple of objects
+        The Python objects to display.
     """
-    display(obj, include=['text/plain','image/png'])
+    display(*objs, include=['text/plain','image/png'])
 
 
-def display_latex(obj):
+def display_latex(*objs):
     """Display the LaTeX representation of an object.
 
     Parameters
     ----------
-    obj : object
-        The Python object to display.
+    objs : tuple of objects
+        The Python objects to display.
     """
-    display(obj, include=['text/plain','text/latex'])
+    display(*objs, include=['text/plain','text/latex'])
 
 
-def display_json(obj):
+def display_json(*objs):
     """Display the JSON representation of an object.
 
     Parameters
     ----------
-    obj : object
-        The Python object to display.
+    objs : tuple of objects
+        The Python objects to display.
     """
-    display(obj, include=['text/plain','application/json'])
+    display(*objs, include=['text/plain','application/json'])
 
 
 

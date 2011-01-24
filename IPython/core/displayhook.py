@@ -212,8 +212,7 @@ class DisplayHook(Configurable):
             all return values of this should always include the "text/plain"
             MIME type representation of the object.
         """
-        format_dict = self.shell.display_formatter.format(result)
-        return format_dict
+        return self.shell.display_formatter.format(result)
 
     def write_format_data(self, format_dict):
         """Write the format data dict to the frontend.
