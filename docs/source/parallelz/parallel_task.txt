@@ -1,0 +1,121 @@
+.. _paralleltask:
+
+==========================
+The IPython task interface
+==========================
+
+The task interface to the controller presents the engines as a fault tolerant,
+dynamic load-balanced system or workers. Unlike the multiengine interface, in
+the task interface, the user have no direct access to individual engines. In
+some ways, this interface is simpler, but in other ways it is more powerful.
+
+Best of all the user can use both of these interfaces running at the same time
+to take advantage or both of their strengths. When the user can break up the
+user's work into segments that do not depend on previous execution, the task
+interface is ideal. But it also has more power and flexibility, allowing the
+user to guide the distribution of jobs, without having to assign tasks to
+engines explicitly.
+
+Starting the IPython controller and engines
+===========================================
+
+To follow along with this tutorial, you will need to start the IPython
+controller and four IPython engines. The simplest way of doing this is to use
+the :command:`ipcluster` command::
+
+	$ ipcluster local -n 4
+	
+For more detailed information about starting the controller and engines, see
+our :ref:`introduction <ip1par>` to using IPython for parallel computing.
+
+Creating a ``TaskClient`` instance
+=========================================
+
+The first step is to import the IPython :mod:`IPython.kernel.client` module
+and then create a :class:`TaskClient` instance:
+
+.. sourcecode:: ipython
+
+	In [1]: from IPython.kernel import client
+	
+	In [2]: tc = client.TaskClient()
+
+This form assumes that the :file:`ipcontroller-tc.furl` is in the
+:file:`~./ipython/security` directory on the client's host. If not, the
+location of the FURL file must be given as an argument to the
+constructor:
+
+.. sourcecode:: ipython
+
+    In [2]: mec = client.TaskClient('/path/to/my/ipcontroller-tc.furl')
+
+Quick and easy parallelism
+==========================
+
+In many cases, you simply want to apply a Python function to a sequence of
+objects, but *in parallel*. Like the multiengine interface, the task interface
+provides two simple ways of accomplishing this: a parallel version of
+:func:`map` and ``@parallel`` function decorator. However, the verions in the
+task interface have one important difference: they are dynamically load
+balanced. Thus, if the execution time per item varies significantly, you
+should use the versions in the task interface.
+
+Parallel map
+------------
+
+The parallel :meth:`map` in the task interface is similar to that in the
+multiengine interface:
+
+.. sourcecode:: ipython
+
+	In [63]: serial_result = map(lambda x:x**10, range(32))
+
+	In [64]: parallel_result = tc.map(lambda x:x**10, range(32))
+
+	In [65]: serial_result==parallel_result
+	Out[65]: True
+
+Parallel function decorator
+---------------------------
+
+Parallel functions are just like normal function, but they can be called on
+sequences and *in parallel*. The multiengine interface provides a decorator
+that turns any Python function into a parallel function:
+
+.. sourcecode:: ipython
+
+    In [10]: @tc.parallel()
+       ....: def f(x):
+       ....:     return 10.0*x**4
+       ....: 
+
+    In [11]: f(range(32))    # this is done in parallel
+    Out[11]: 
+    [0.0,10.0,160.0,...]
+
+More details
+============
+
+The :class:`TaskClient` has many more powerful features that allow quite a bit
+of flexibility in how tasks are defined and run. The next places to look are
+in the following classes:
+
+* :class:`IPython.kernel.client.TaskClient`
+* :class:`IPython.kernel.client.StringTask`
+* :class:`IPython.kernel.client.MapTask`
+
+The following is an overview of how to use these classes together:
+
+1. Create a :class:`TaskClient`.
+2. Create one or more instances of :class:`StringTask` or :class:`MapTask`
+   to define your tasks.
+3. Submit your tasks to using the :meth:`run` method of your
+   :class:`TaskClient` instance.
+4. Use :meth:`TaskClient.get_task_result` to get the results of the
+   tasks.
+
+We are in the process of developing more detailed information about the task
+interface. For now, the docstrings of the :class:`TaskClient`,
+:class:`StringTask` and :class:`MapTask` classes should be consulted.
+
+
