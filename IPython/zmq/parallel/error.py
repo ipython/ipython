@@ -247,11 +247,15 @@ class CompositeError(KernelError):
                 et,ev,tb = sys.exc_info()
 
 
-def collect_exceptions(rdict, method):
+def collect_exceptions(rdict_or_list, method):
     """check a result dict for errors, and raise CompositeError if any exist.
     Passthrough otherwise."""
     elist = []
-    for r in rdict.values():
+    if isinstance(rdict_or_list, dict):
+        rlist = rdict_or_list.values()
+    else:
+        rlist = rdict_or_list
+    for r in rlist:
         if isinstance(r, RemoteError):
             en, ev, etb, ei = r.ename, r.evalue, r.traceback, r.engine_info
             # Sometimes we could have CompositeError in our list.  Just take
@@ -264,7 +268,7 @@ def collect_exceptions(rdict, method):
             else:
                 elist.append((en, ev, etb, ei))
     if len(elist)==0:
-        return rdict
+        return rdict_or_list
     else:
         msg = "one or more exceptions from call to method: %s" % (method)
         # This silliness is needed so the debugger has access to the exception

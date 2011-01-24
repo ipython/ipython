@@ -228,6 +228,27 @@ class DirectView(View):
         block = block if block is not None else self.block
         return self.client.pull(key_s, block=block, targets=self.targets)
     
+    def scatter(self, key, seq, dist='b', flatten=False, targets=None, block=None):
+        """
+        Partition a Python sequence and send the partitions to a set of engines.
+        """
+        block = block if block is not None else self.block
+        if targets is None:
+            targets = self.targets
+        
+        return self.client.scatter(key, seq, dist=dist, flatten=flatten,
+                    targets=targets, block=block)
+    
+    def gather(self, key, dist='b', targets=None, block=True):
+        """
+        Gather a partitioned sequence on a set of engines as a single local seq.
+        """
+        block = block if block is not None else self.block
+        if targets is None:
+            targets = self.targets
+        
+        return self.client.gather(key, dist=dist, targets=targets, block=block)
+    
     def __getitem__(self, key):
         return self.get(key)
     
