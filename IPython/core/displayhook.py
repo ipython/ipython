@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """Displayhook for IPython.
 
+This defines a callable class that IPython uses for `sys.displayhook`.
+
 Authors:
 
 * Fernando Perez
 * Brian Granger
+* Robert Kern
 """
 
 #-----------------------------------------------------------------------------
@@ -27,7 +30,6 @@ import IPython.utils.generics
 import IPython.utils.io
 from IPython.utils.traitlets import Instance, List
 from IPython.utils.warn import warn
-from IPython.core.formatters import DefaultFormatter
 
 #-----------------------------------------------------------------------------
 # Main displayhook class
@@ -53,19 +55,6 @@ class DisplayHook(Configurable):
     """
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-
-    # The default formatter.
-    default_formatter = Instance('IPython.core.formatters.FormatterABC')
-    def _default_formatter_default(self):
-        # FIXME: backwards compatibility for the InteractiveShell.pprint option?
-        return DefaultFormatter(config=self.config)
-
-    # Any additional FormatterABC instances we use.
-    # FIXME: currently unused.
-    extra_formatters = List(config=True)
-
-    # Each call to the In[] prompt raises it by 1, even the first.
-    #prompt_count = Int(0)
 
     def __init__(self, shell=None, cache_size=1000,
                  colors='NoColor', input_sep='\n',
@@ -185,36 +174,63 @@ class DisplayHook(Configurable):
         pass
 
     def write_output_prompt(self):
-        """Write the output prompt."""
+        """Write the output prompt.
+
+        The default implementation simply writes the prompt to
+        ``io.Term.cout``.
+        """
         # Use write, not print which adds an extra space.
         IPython.utils.io.Term.cout.write(self.output_sep)
         outprompt = str(self.prompt_out)
         if self.do_full_cache:
             IPython.utils.io.Term.cout.write(outprompt)
 
-    def compute_result_repr(self, result):
-        """Compute and return the repr of the object to be displayed.
+    def compute_format_data(self, result):
+        """Compute format data of the object to be displayed.
 
-        This method only compute the string form of the repr and should NOT
-        actually print or write that to a stream.
+        The format data is a generalization of the :func:`repr` of an object.
+        In the default implementation the format data is a :class:`dict` of
+        key value pair where the keys are valid MIME types and the values
+        are JSON'able data structure containing the raw data for that MIME
+        type. It is up to frontends to determine pick a MIME to to use and
+        display that data in an appropriate manner.
+
+        This method only computes the format data for the object and should
+        NOT actually print or write that to a stream.
+
+        Parameters
+        ----------
+        result : object
+            The Python object passed to the display hook, whose format will be
+            computed.
+
+        Returns
+        -------
+        format_data : dict
+            A :class:`dict` whose keys are valid MIME types and values are
+            JSON'able raw data for that MIME type. It is recommended that
+            all return values of this should always include the "text/plain"
+            MIME type representation of the object.
         """
-        result_repr = self.default_formatter(result)
-        extra_formats = []
-        for f in self.extra_formatters:
-            try:
-                data = f(result)
-            except Exception:
-                # FIXME: log the exception.
-                continue
-            if data is not None:
-                extra_formats.append((f.id, f.format, data))
+        return self.shell.display_formatter.format(result)
 
-        return result_repr, extra_formats
+    def write_format_data(self, format_dict):
+        """Write the format data dict to the frontend.
 
-    def write_result_repr(self, result_repr, extra_formats):
+        This default version of this method simply writes the plain text
+        representation of the object to ``io.Term.cout``. Subclasses should
+        override this method to send the entire `format_dict` to the
+        frontends.
+
+        Parameters
+        ----------
+        format_dict : dict
+            The format dict for the object passed to `sys.displayhook`.
+        """
         # We want to print because we want to always make sure we have a 
         # newline, even if all the prompt separators are ''. This is the
         # standard IPython behavior.
+        result_repr = format_dict['text/plain']
         if '\n' in result_repr:
             # So that multi-line strings line up with the left column of
             # the screen, instead of having the output prompt mess up
@@ -278,8 +294,8 @@ class DisplayHook(Configurable):
         if result is not None and not self.quiet():
             self.start_displayhook()
             self.write_output_prompt()
-            result_repr, extra_formats = self.compute_result_repr(result)
-            self.write_result_repr(result_repr, extra_formats)
+            format_dict = self.compute_format_data(result)
+            self.write_format_data(format_dict)
             self.update_user_ns(result)
             self.log_output(result)
             self.finish_displayhook()
@@ -300,5 +316,6 @@ class DisplayHook(Configurable):
         if '_' not in __builtin__.__dict__:
             self.shell.user_ns.update({'_':None,'__':None, '___':None})
         import gc
-        gc.collect() # xxx needed?
+        # TODO: Is this really needed?
+        gc.collect()
 

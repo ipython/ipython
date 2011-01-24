@@ -179,9 +179,39 @@ class IPythonWidget(FrontendWidget):
         if not self._hidden and self._is_from_this_session(msg):
             content = msg['content']
             prompt_number = content['execution_count']
-            self._append_plain_text(self.output_sep)
-            self._append_html(self._make_out_prompt(prompt_number))
-            self._append_plain_text(content['data']+self.output_sep2)
+            data = content['data']
+            if data.has_key('text/html'):
+                self._append_plain_text(self.output_sep)
+                self._append_html(self._make_out_prompt(prompt_number))
+                html = data['text/html']
+                self._append_plain_text('\n')
+                self._append_html(html + self.output_sep2)
+            elif data.has_key('text/plain'):
+                self._append_plain_text(self.output_sep)
+                self._append_html(self._make_out_prompt(prompt_number))
+                text = data['text/plain']
+                self._append_plain_text(text + self.output_sep2)
+
+    def _handle_display_data(self, msg):
+        """ The base handler for the ``display_data`` message.
+        """
+        # For now, we don't display data from other frontends, but we 
+        # eventually will as this allows all frontends to monitor the display
+        # data. But we need to figure out how to handle this in the GUI.
+        if not self._hidden and self._is_from_this_session(msg):
+            source = msg['content']['source']
+            data = msg['content']['data']
+            metadata = msg['content']['metadata']
+            # In the regular IPythonWidget, we simply print the plain text
+            # representation.
+            if data.has_key('text/html'):
+                html = data['text/html']
+                self._append_html(html)
+            elif data.has_key('text/plain'):
+                text = data['text/plain']
+                self._append_plain_text(text)
+            # This newline seems to be needed for text and html output.
+            self._append_plain_text(u'\n')
 
     def _started_channels(self):
         """ Reimplemented to make a history request.
@@ -444,7 +474,7 @@ class IPythonWidget(FrontendWidget):
         else:
             self._page(item['text'], html=False)
 
-    #------ Trait change handlers ---------------------------------------------
+    #------ Trait change handlers --------------------------------------------
 
     def _style_sheet_changed(self):
         """ Set the style sheets of the underlying widgets.
@@ -464,4 +494,4 @@ class IPythonWidget(FrontendWidget):
             self._highlighter.set_style(self.syntax_style)
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
-        
+

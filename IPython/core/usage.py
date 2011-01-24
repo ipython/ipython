@@ -441,6 +441,31 @@ We have provided as magics ``%less`` to page files (aliased to ``%more``),
 most common commands you'd want to call in your subshell and that would cause
 problems if invoked via ``!cmd``, but you need to be aware of this limitation.
 
+Display
+=======
+
+The IPython console can now display objects in a variety of formats, including
+HTML, PNG and SVG. This is accomplished using the display functions in
+``IPython.core.display``::
+
+    In [4]: from IPython.core.display import display, display_html
+
+    In [5]: from IPython.core.display import display_png, display_svg
+
+Python objects can simply be passed to these functions and the appropriate
+representations will be displayed in the console as long as the objects know
+how to compute those representations. The easiest way of teaching objects how
+to format themselves in various representations is to define special methods
+such as: ``__html``, ``__svg__`` and ``__png__``. IPython's display formatters
+can also be given custom formatter functions for various types::
+
+    In [6]: ip = get_ipython()
+
+    In [7]: html_formatter = ip.display_formatter.formatters['text/html']
+
+    In [8]: html_formatter.for_type(Foo, foo_to_html)
+
+For further details, see ``IPython.core.formatters``.
 
 Inline matplotlib graphics
 ==========================
@@ -448,10 +473,14 @@ Inline matplotlib graphics
 The IPython console is capable of displaying matplotlib figures inline, in SVG
 format.  If started with the ``--pylab inline`` flag, then all figures are
 rendered inline automatically.  If started with ``--pylab`` or ``--pylab <your
-backend>``, then a GUI backend will be used, but the ``pastefig()`` function is
-added to the global and ``plt`` namespaces.  You can paste any figure that is
-currently open in a window with this function; type ``pastefig?`` for
-additional details."""
+backend>``, then a GUI backend will be used, but IPython's ``display()`` and
+``getfigs()`` functions can be used to view plots inline::
+
+    In [9]: display(*getfigs())    # display all figures inline
+
+    In[10]: display(*getfigs(1,2)) # display figures 1 and 2 inline
+"""
+
 
 quick_guide = """\
 ?         -> Introduction and overview of IPython's features.

@@ -81,8 +81,6 @@ c = get_config()
 
 # c.InteractiveShell.pdb = False
 
-# c.InteractiveShell.pprint = True
-
 # c.InteractiveShell.prompt_in1 = 'In [\#]: '
 # c.InteractiveShell.prompt_in2 = '   .\D.: '
 # c.InteractiveShell.prompt_out = 'Out[\#]: '
@@ -127,6 +125,12 @@ c = get_config()
 # c.InteractiveShell.wildcards_case_sensitive = True
 
 # c.InteractiveShell.xmode = 'Context'
+
+#-----------------------------------------------------------------------------
+# Formatter and display options
+#-----------------------------------------------------------------------------
+
+# c.PlainTextFormatter.pprint = True
 
 #-----------------------------------------------------------------------------
 # PrefilterManager options

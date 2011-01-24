@@ -19,6 +19,8 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
+from cStringIO import StringIO
+
 from IPython.utils.decorators import flag_calls
 
 # If user specifies a GUI, that dictates the backend, otherwise we read the
@@ -31,7 +33,107 @@ backends = {'tk': 'TkAgg',
             'inline' : 'module://IPython.zmq.pylab.backend_inline'}
 
 #-----------------------------------------------------------------------------
-# Main classes and functions
+# Matplotlib utilities
+#-----------------------------------------------------------------------------
+
+
+def getfigs(*fig_nums):
+    """Get a list of matplotlib figures by figure numbers.
+
+    If no arguments are given, all available figures are returned.  If the
+    argument list contains references to invalid figures, a warning is printed
+    but the function continues pasting further figures.
+
+    Parameters
+    ----------
+    figs : tuple
+        A tuple of ints giving the figure numbers of the figures to return.
+    """
+    from matplotlib._pylab_helpers import Gcf
+    if not fig_nums:
+        fig_managers = Gcf.get_all_fig_managers()
+        return [fm.canvas.figure for fm in fig_managers]
+    else:
+        figs = []
+        for num in fig_nums:
+            f = Gcf.figs.get(num)
+            if f is None:
+                print('Warning: figure %s not available.' % num)
+            figs.append(f.canvas.figure)
+        return figs
+
+
+def figsize(sizex, sizey):
+    """Set the default figure size to be [sizex, sizey].
+
+    This is just an easy to remember, convenience wrapper that sets::
+
+      matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
+    """
+    import matplotlib
+    matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
+
+
+def figure_to_svg(fig):
+    """Convert a figure to svg for inline display."""
+    fc = fig.get_facecolor()
+    ec = fig.get_edgecolor()
+    fig.set_facecolor('white')
+    fig.set_edgecolor('white')
+    try:
+        string_io = StringIO()
+        fig.canvas.print_figure(string_io, format='svg')
+        svg = string_io.getvalue()
+    finally:
+        fig.set_facecolor(fc)
+        fig.set_edgecolor(ec)
+    return svg
+
+
+# We need a little factory function here to create the closure where
+# safe_execfile can live.
+def mpl_runner(safe_execfile):
+    """Factory to return a matplotlib-enabled runner for %run.
+
+    Parameters
+    ----------
+    safe_execfile : function
+      This must be a function with the same interface as the
+      :meth:`safe_execfile` method of IPython.
+
+    Returns
+    -------
+    A function suitable for use as the ``runner`` argument of the %run magic
+    function.
+    """
+    
+    def mpl_execfile(fname,*where,**kw):
+        """matplotlib-aware wrapper around safe_execfile.
+
+        Its interface is identical to that of the :func:`execfile` builtin.
+
+        This is ultimately a call to execfile(), but wrapped in safeties to
+        properly handle interactive rendering."""
+
+        import matplotlib
+        import matplotlib.pylab as pylab
+
+        #print '*** Matplotlib runner ***' # dbg
+        # turn off rendering until end of script
+        is_interactive = matplotlib.rcParams['interactive']
+        matplotlib.interactive(False)
+        safe_execfile(fname,*where,**kw)
+        matplotlib.interactive(is_interactive)
+        # make rendering call now, if the user tried to do it
+        if pylab.draw_if_interactive.called:
+            pylab.draw()
+            pylab.draw_if_interactive.called = False
+
+    return mpl_execfile
+
+
+#-----------------------------------------------------------------------------
+# Code for initializing matplotlib and importing pylab
 #-----------------------------------------------------------------------------
 
 
@@ -111,7 +213,7 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
         # function that will pick up the results for display.  This can only be
         # done with access to the real shell object.
         if backend == backends['inline']:
-            from IPython.zmq.pylab.backend_inline import flush_svg, figsize
+            from IPython.zmq.pylab.backend_inline import flush_svg
             from matplotlib import pyplot
             shell.register_post_execute(flush_svg)
             # The typical default figure size is too large for inline use.  We
@@ -120,11 +222,22 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             # Add 'figsize' to pyplot and to the user's namespace
             user_ns['figsize'] = pyplot.figsize = figsize
             shell.user_ns_hidden['figsize'] = figsize
-        else:
-            from IPython.zmq.pylab.backend_inline import pastefig
-            from matplotlib import pyplot
-            # Add 'paste' to pyplot and to the user's namespace
-            user_ns['pastefig'] = pyplot.pastefig = pastefig
+        
+        # The old pastefig function has been replaced by display
+        # Always add this svg formatter so display works.
+        from IPython.zmq.pylab.backend_inline import figure_to_svg
+        from IPython.core.display import display, display_svg
+        svg_formatter = shell.display_formatter.formatters['image/svg+xml']
+        svg_formatter.for_type_by_name(
+            'matplotlib.figure','Figure',figure_to_svg
+        )
+        # Add display and display_png to the user's namespace
+        user_ns['display'] = display
+        shell.user_ns_hidden['display'] = display
+        user_ns['display_svg'] = display_svg
+        shell.user_ns_hidden['display_svg'] = display_svg
+        user_ns['getfigs'] = getfigs
+        shell.user_ns_hidden['getfigs'] = getfigs
 
     if import_all:
         s = ("from matplotlib.pylab import *\n"
@@ -164,45 +277,4 @@ Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.""" % backend
     
     return gui
-
-# We need a little factory function here to create the closure where
-# safe_execfile can live.
-def mpl_runner(safe_execfile):
-    """Factory to return a matplotlib-enabled runner for %run.
-
-    Parameters
-    ----------
-    safe_execfile : function
-      This must be a function with the same interface as the
-      :meth:`safe_execfile` method of IPython.
-
-    Returns
-    -------
-    A function suitable for use as the ``runner`` argument of the %run magic
-    function.
-    """
-    
-    def mpl_execfile(fname,*where,**kw):
-        """matplotlib-aware wrapper around safe_execfile.
-
-        Its interface is identical to that of the :func:`execfile` builtin.
-
-        This is ultimately a call to execfile(), but wrapped in safeties to
-        properly handle interactive rendering."""
-
-        import matplotlib
-        import matplotlib.pylab as pylab
-
-        #print '*** Matplotlib runner ***' # dbg
-        # turn off rendering until end of script
-        is_interactive = matplotlib.rcParams['interactive']
-        matplotlib.interactive(False)
-        safe_execfile(fname,*where,**kw)
-        matplotlib.interactive(is_interactive)
-        # make rendering call now, if the user tried to do it
-        if pylab.draw_if_interactive.called:
-            pylab.draw()
-            pylab.draw_if_interactive.called = False
-
-    return mpl_execfile
 

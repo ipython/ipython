@@ -26,6 +26,7 @@ from IPython.core.interactiveshell import (
 )
 from IPython.core import page
 from IPython.core.displayhook import DisplayHook
+from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
 from IPython.core.payloadpage import install_payload_page
 from IPython.utils import io
@@ -48,6 +49,7 @@ install_payload_page()
 #-----------------------------------------------------------------------------
 
 class ZMQDisplayHook(DisplayHook):
+    """A displayhook subclass that publishes data using ZeroMQ."""
 
     session = Instance(Session)
     pub_socket = Instance('zmq.Socket')
@@ -65,9 +67,8 @@ class ZMQDisplayHook(DisplayHook):
         if self.do_full_cache:
             self.msg['content']['execution_count'] = self.prompt_count
 
-    def write_result_repr(self, result_repr, extra_formats):
-        self.msg['content']['data'] = result_repr
-        self.msg['content']['extra_formats'] = extra_formats
+    def write_format_data(self, format_dict):
+        self.msg['content']['data'] = format_dict
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
@@ -75,10 +76,37 @@ class ZMQDisplayHook(DisplayHook):
         self.msg = None
 
 
+class ZMQDisplayPublisher(DisplayPublisher):
+    """A display publisher that publishes data using a ZeroMQ PUB socket."""
+
+    session = Instance(Session)
+    pub_socket = Instance('zmq.Socket')
+    parent_header = Dict({})
+
+    def set_parent(self, parent):
+        """Set the parent for outbound messages."""
+        self.parent_header = extract_header(parent)
+
+    def publish(self, source, data, metadata=None):
+        if metadata is None:
+            metadata = {}
+        self._validate_data(source, data, metadata)
+        content = {}
+        content['source'] = source
+        content['data'] = data
+        content['metadata'] = metadata
+        self.session.send(
+            self.pub_socket, u'display_data', content,
+            parent=self.parent_header
+        )
+
+
 class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
 
     displayhook_class = Type(ZMQDisplayHook)
+    display_pub_class = Type(ZMQDisplayPublisher)
+
     keepkernel_on_exit = None
 
     def init_environment(self):
@@ -178,6 +206,8 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # Shorthands
         shell = self.shell
+        disp_formatter = self.shell.display_formatter
+        ptformatter = disp_formatter.formatters['text/plain']
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.
         dstore = shell.meta.setdefault('doctest_mode', Struct())
@@ -185,16 +215,19 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # save a few values we'll need to recover later
         mode = save_dstore('mode', False)
-        save_dstore('rc_pprint', shell.pprint)
+        save_dstore('rc_pprint', ptformatter.pprint)
+        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
         save_dstore('xmode', shell.InteractiveTB.mode)
         
         if mode == False:
             # turn on
-            shell.pprint = False
+            ptformatter.pprint = False
+            disp_formatter.plain_text_only = True
             shell.magic_xmode('Plain')
         else:
             # turn off
-            shell.pprint = dstore.rc_pprint
+            ptformatter.pprint = dstore.rc_pprint
+            disp_formatter.plain_text_only = dstore.rc_plain_text_only
             shell.magic_xmode(dstore.xmode)
 
         # Store new mode and inform on console

@@ -352,7 +352,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle display hook output.
         """
         if not self._hidden and self._is_from_this_session(msg):
-            self._append_plain_text(msg['content']['data'] + '\n')
+            self._append_plain_text(msg['content']['data']['text/plain'] + '\n')
 
     def _handle_stream(self, msg):
         """ Handle stdout, stderr, and stdin.
