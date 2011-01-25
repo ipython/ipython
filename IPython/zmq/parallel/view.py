@@ -11,6 +11,7 @@
 #-----------------------------------------------------------------------------
 
 from IPython.external.decorator import decorator
+from IPython.zmq.parallel.remotefunction import ParallelFunction
 
 #-----------------------------------------------------------------------------
 # Decorators
@@ -28,8 +29,10 @@ def myblock(f, self, *args, **kwargs):
 @decorator
 def save_ids(f, self, *args, **kwargs):
     """Keep our history and outstanding attributes up to date after a method call."""
+    n_previous = len(self.client.history)
     ret = f(self, *args, **kwargs)
-    msg_ids = self.client.history[-self._ntargets:]
+    nmsgs = len(self.client.history) - n_previous
+    msg_ids = self.client.history[-nmsgs:]
     self.history.extend(msg_ids)
     map(self.outstanding.add, msg_ids)
     return ret
@@ -171,6 +174,16 @@ class View(object):
         
         """
         return self.client.apply(f, args, kwargs, block=True, targets=self.targets, bound=True)
+    
+    @spin_after
+    @save_ids
+    def map(self, f, *sequences):
+        """Parallel version of builtin `map`, using this view's engines."""
+        if isinstance(self.targets, int):
+            targets = [self.targets]
+        pf = ParallelFunction(self.client, f, block=self.block,
+                        bound=True, targets=targets)
+        return pf.map(*sequences)
     
     def abort(self, msg_ids=None, block=None):
         """Abort jobs on my engines.

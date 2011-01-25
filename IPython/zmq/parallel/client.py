@@ -29,6 +29,8 @@ from view import DirectView, LoadBalancedView
 from dependency import Dependency, depend, require
 import error
 import map as Map
+from pendingresult import PendingResult,PendingMapResult
+from remotefunction import remote,parallel,ParallelFunction,RemoteFunction
 
 #--------------------------------------------------------------------------
 # helpers for implementing old MEC API via client.apply
@@ -81,167 +83,6 @@ def defaultblock(f, self, *args, **kwargs):
     self.block = saveblock
     return ret
 
-def remote(client, bound=False, block=None, targets=None):
-    """Turn a function into a remote function.
-    
-    This method can be used for map:
-    
-    >>> @remote(client,block=True)
-        def func(a)
-    """
-    def remote_function(f):
-        return RemoteFunction(client, f, bound, block, targets)
-    return remote_function
-
-def parallel(client, dist='b', bound=False, block=None, targets='all'):
-    """Turn a function into a parallel remote function.
-    
-    This method can be used for map:
-    
-    >>> @parallel(client,block=True)
-        def func(a)
-    """
-    def parallel_function(f):
-        return ParallelFunction(client, f, dist, bound, block, targets)
-    return parallel_function
-
-#--------------------------------------------------------------------------
-# Classes
-#--------------------------------------------------------------------------
-
-class RemoteFunction(object):
-    """Turn an existing function into a remote function.
-    
-    Parameters
-    ----------
-    
-    client : Client instance
-        The client to be used to connect to engines
-    f : callable
-        The function to be wrapped into a remote function
-    bound : bool [default: False]
-        Whether the affect the remote namespace when called
-    block : bool [default: None]
-        Whether to wait for results or not.  The default behavior is
-        to use the current `block` attribute of `client`
-    targets : valid target list [default: all]
-        The targets on which to execute.
-    """
-    
-    client = None # the remote connection
-    func = None # the wrapped function
-    block = None # whether to block
-    bound = None # whether to affect the namespace
-    targets = None # where to execute
-    
-    def __init__(self, client, f, bound=False, block=None, targets=None):
-        self.client = client
-        self.func = f
-        self.block=block
-        self.bound=bound
-        self.targets=targets
-    
-    def __call__(self, *args, **kwargs):
-        return self.client.apply(self.func, args=args, kwargs=kwargs,
-                block=self.block, targets=self.targets, bound=self.bound)
-    
-
-class ParallelFunction(RemoteFunction):
-    """Class for mapping a function to sequences."""
-    def __init__(self, client, f, dist='b', bound=False, block=None, targets='all'):
-        super(ParallelFunction, self).__init__(client,f,bound,block,targets)
-        mapClass = Map.dists[dist]
-        self.mapObject = mapClass()
-    
-    def __call__(self, *sequences):
-        len_0 = len(sequences[0])
-        for s in sequences:
-            if len(s)!=len_0:
-                raise ValueError('all sequences must have equal length')
-        
-        if self.targets is None:
-            # load-balanced:
-            engines = [None]*len_0
-        else:
-            # multiplexed:
-            engines = self.client._build_targets(self.targets)[-1]
-        
-        nparts = len(engines)
-        msg_ids = []
-        for index, engineid in enumerate(engines):
-            args = []
-            for seq in sequences:
-                args.append(self.mapObject.getPartition(seq, index, nparts))
-            mid = self.client.apply(self.func, args=args, block=False, 
-                        bound=self.bound,
-                        targets=engineid)
-            msg_ids.append(mid)
-        
-        if self.block:
-            dg = PendingMapResult(self.client, msg_ids, self.mapObject)
-            dg.wait()
-            return dg.result
-        else:
-            return dg
-        
-
-class PendingResult(object):
-    """Class for representing results of non-blocking calls."""
-    def __init__(self, client, msg_ids):
-        self.client = client
-        self.msg_ids = msg_ids
-        self._result = None
-        self.done = False
-    
-    def __repr__(self):
-        if self.done:
-            return "<%s: finished>"%(self.__class__.__name__)
-        else:
-            return "<%s: %r>"%(self.__class__.__name__,self.msg_ids)
-    
-    @property
-    def result(self):
-        if self._result is not None:
-            return self._result
-        if not self.done:
-            self.wait(0)
-        if self.done:
-            results = map(self.client.results.get, self.msg_ids)
-            results = error.collect_exceptions(results, 'get_result')
-            self._result = self.reconstruct_result(results)
-            return self._result
-        else:
-            raise error.ResultNotCompleted
-    
-    def reconstruct_result(self, res):
-        """
-        Override me in subclasses for turning a list of results
-        into the expected form.
-        """
-        if len(res) == 1:
-            return res[0]
-        else:
-            return res
-    
-    def wait(self, timout=-1):
-        self.done = self.client.barrier(self.msg_ids)
-        return self.done
-
-class PendingMapResult(PendingResult):
-    """Class for representing results of non-blocking gathers.
-    
-    This will properly reconstruct the gather.
-    """
-    
-    def __init__(self, client, msg_ids, mapObject):
-        self.mapObject = mapObject
-        PendingResult.__init__(self, client, msg_ids)
-    
-    def reconstruct_result(self, res):
-        """Perform the gather on the actual results."""
-        return self.mapObject.joinPartitions(res)
-    
-        
 
 class AbortedTask(object):
     """A basic wrapper object describing an aborted task."""
@@ -944,10 +785,11 @@ class Client(object):
                     result[target] = self.results[mid]
             return error.collect_exceptions(result, f.__name__)
     
-    @defaultblock
-    def map(self, f, sequences, targets=None, block=None, bound=False):
-        pf = ParallelFunction(self,f,block=block,bound=bound,targets=targets)
-        return pf(*sequences)
+    def map(self, f, *sequences):
+        """Parallel version of builtin `map`, using all our engines."""
+        pf = ParallelFunction(self, f, block=self.block,
+                        bound=True, targets='all')
+        return pf.map(*sequences)
     
     #--------------------------------------------------------------------------
     # Data movement

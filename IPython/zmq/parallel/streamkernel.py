@@ -277,7 +277,12 @@ class Kernel(HasTraits):
                 suffix = prefix = "_" # prevent keyword collisions with lambda
             f,args,kwargs = unpack_apply_message(bufs, working, copy=False)
             # if f.fun
-            fname = prefix+f.func_name.strip('<>')+suffix
+            if hasattr(f, 'func_name'):
+                fname = f.func_name
+            else:
+                fname = f.__name__
+            
+            fname = prefix+fname.strip('<>')+suffix
             argname = prefix+"args"+suffix
             kwargname = prefix+"kwargs"+suffix
             resultname = prefix+"result"+suffix
