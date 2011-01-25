@@ -145,6 +145,9 @@ class SecurityError(KernelError):
 class FileTimeoutError(KernelError):
     pass
 
+class TimeoutError(KernelError):
+    pass
+
 class RemoteError(KernelError):
     """Error raised elsewhere"""
     ename=None

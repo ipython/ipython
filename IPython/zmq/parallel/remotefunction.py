@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 import map as Map
-from pendingresult import PendingMapResult
+from asyncresult import AsyncMapResult
 
 #-----------------------------------------------------------------------------
 # Decorators
@@ -126,10 +126,10 @@ class ParallelFunction(RemoteFunction):
                 f=self.func
             mid = self.client.apply(f, args=args, block=False, 
                         bound=self.bound,
-                        targets=engineid).msg_ids[0]
+                        targets=engineid)._msg_ids[0]
             msg_ids.append(mid)
         
-        r = PendingMapResult(self.client, msg_ids, self.mapObject)
+        r = AsyncMapResult(self.client, msg_ids, self.mapObject)
         if self.block:
             r.wait()
             return r.result

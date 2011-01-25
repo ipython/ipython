@@ -29,7 +29,7 @@ from view import DirectView, LoadBalancedView
 from dependency import Dependency, depend, require
 import error
 import map as Map
-from pendingresult import PendingResult,PendingMapResult
+from asyncresult import AsyncResult, AsyncMapResult
 from remotefunction import remote,parallel,ParallelFunction,RemoteFunction
 
 #--------------------------------------------------------------------------
@@ -746,7 +746,7 @@ class Client(object):
             self.barrier(msg_id)
             return self._maybe_raise(self.results[msg_id])
         else:
-            return PendingResult(self, [msg_id])
+            return AsyncResult(self, [msg_id])
     
     def _apply_direct(self, f, args, kwargs, bound=True, block=None, targets=None,
                                 after=None, follow=None):
@@ -776,7 +776,7 @@ class Client(object):
         if block:
             self.barrier(msg_ids)
         else:
-            return PendingResult(self, msg_ids)
+            return AsyncResult(self, msg_ids)
         if len(msg_ids) == 1:
             return self._maybe_raise(self.results[msg_ids[0]])
         else:
@@ -785,11 +785,23 @@ class Client(object):
                     result[target] = self.results[mid]
             return error.collect_exceptions(result, f.__name__)
     
+    #--------------------------------------------------------------------------
+    # Map and decorators
+    #--------------------------------------------------------------------------
+    
     def map(self, f, *sequences):
         """Parallel version of builtin `map`, using all our engines."""
         pf = ParallelFunction(self, f, block=self.block,
                         bound=True, targets='all')
         return pf.map(*sequences)
+    
+    def parallel(self, bound=True, targets='all', block=True):
+        """Decorator for making a ParallelFunction"""
+        return parallel(self, bound=bound, targets=targets, block=block)
+    
+    def remote(self, bound=True, targets='all', block=True):
+        """Decorator for making a RemoteFunction"""
+        return remote(self, bound=bound, targets=targets, block=block)
     
     #--------------------------------------------------------------------------
     # Data movement
@@ -831,7 +843,7 @@ class Client(object):
             else:
                 mid = self.push({key: partition}, targets=engineid, block=False)
             msg_ids.append(mid)
-        r = PendingResult(self, msg_ids)
+        r = AsyncResult(self, msg_ids)
         if block:
             r.wait()
             return
@@ -850,7 +862,7 @@ class Client(object):
         for index, engineid in enumerate(targets):
             msg_ids.append(self.pull(key, targets=engineid,block=False))
         
-        r = PendingMapResult(self, msg_ids, mapObject)
+        r = AsyncMapResult(self, msg_ids, mapObject)
         if block:
             r.wait()
             return r.result
@@ -1002,6 +1014,6 @@ __all__ = [ 'Client',
             'ParallelFunction',
             'DirectView',
             'LoadBalancedView',
-            'PendingResult',
-            'PendingMapResult'
+            'AsyncResult',
+            'AsyncMapResult'
             ]
