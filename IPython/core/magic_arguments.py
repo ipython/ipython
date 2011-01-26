@@ -46,12 +46,10 @@ arguments::
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-# Stdlib imports
-import shlex
-
 # Our own imports
 from IPython.external import argparse
 from IPython.core.error import UsageError
+from IPython.utils.process import arg_split
 
 
 class MagicArgumentParser(argparse.ArgumentParser):
@@ -85,7 +83,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
     def parse_argstring(self, argstring):
         """ Split a string into an argument list and parse that argument list.
         """
-        argv = shlex.split(argstring)
+        argv = arg_split(argstring)
         return self.parse_args(argv)
 
 
