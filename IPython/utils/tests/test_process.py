@@ -66,6 +66,9 @@ def test_arg_split():
     """Ensure that argument lines are correctly split like in a shell."""
     tests = [['hi', ['hi']],
              [u'hi', [u'hi']],
+             ['hello there', ['hello', 'there']],
+             [u'h\N{LATIN SMALL LETTER A WITH CARON}llo', [u'h\N{LATIN SMALL LETTER A WITH CARON}llo']],
+             ['something "with quotes"', ['something', '"with quotes"']],
              ]
     for argstr, argv in tests:
         nt.assert_equal(arg_split(argstr), argv)
