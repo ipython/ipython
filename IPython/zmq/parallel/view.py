@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 from IPython.external.decorator import decorator
-from IPython.zmq.parallel.remotefunction import ParallelFunction
+from IPython.zmq.parallel.remotefunction import ParallelFunction, parallel
 
 #-----------------------------------------------------------------------------
 # Decorators
@@ -22,8 +22,10 @@ def myblock(f, self, *args, **kwargs):
     """override client.block with self.block during a call"""
     block = self.client.block
     self.client.block = self.block
-    ret = f(self, *args, **kwargs)
-    self.client.block = block
+    try:
+        ret = f(self, *args, **kwargs)
+    finally:
+        self.client.block = block
     return ret
 
 @decorator
@@ -65,7 +67,6 @@ class View(object):
     Don't use this class, use subclasses.
     """
     _targets = None
-    _ntargets = None
     block=None
     bound=None
     history=None
@@ -75,7 +76,7 @@ class View(object):
         self._targets = targets
         self._ntargets = 1 if isinstance(targets, (int,type(None))) else len(targets)
         self.block = client.block
-        self.bound=True
+        self.bound=False
         self.history = []
         self.outstanding = set()
         self.results = {}
@@ -92,7 +93,8 @@ class View(object):
 
     @targets.setter
     def targets(self, value):
-        raise AttributeError("Cannot set my targets argument after construction!")
+        self._targets = value
+        # raise AttributeError("Cannot set my targets argument after construction!")
 
     @sync_results
     def spin(self):
@@ -185,6 +187,10 @@ class View(object):
                         bound=True, targets=targets)
         return pf.map(*sequences)
     
+    def parallel(self, bound=True, block=True):
+        """Decorator for making a ParallelFunction"""
+        return parallel(self.client, bound=bound, targets=self.targets, block=block)
+    
     def abort(self, msg_ids=None, block=None):
         """Abort jobs on my engines.
         
@@ -202,11 +208,12 @@ class View(object):
         """Fetch the Queue status of my engines"""
         return self.client.queue_status(targets=self.targets, verbose=verbose)
     
-    def purge_results(self, msg_ids=[],targets=[]):
+    def purge_results(self, msg_ids=[], targets=[]):
         """Instruct the controller to forget specific results."""
         if targets is None or targets == 'all':
             targets = self.targets
         return self.client.purge_results(msg_ids=msg_ids, targets=targets)
+    
 
 
 class DirectView(View):
@@ -219,7 +226,15 @@ class DirectView(View):
     >>> dv_even = client[::2]
     >>> dv_some = client[1:3]
     
+    This object provides dictionary access
+    
     """
+    
+    @sync_results
+    @save_ids
+    def execute(self, code, block=True):
+        """execute some code on my targets."""
+        return self.client.execute(code, block=self.block, targets=self.targets)
     
     def update(self, ns):
         """update remote namespace with dict `ns`"""
@@ -234,6 +249,8 @@ class DirectView(View):
         # block = block if block is not None else self.block
         return self.client.pull(key_s, block=True, targets=self.targets)
     
+    @sync_results
+    @save_ids
     def pull(self, key_s, block=True):
         """get object(s) by `key_s` from remote namespace
         will return one object if it is a key.
@@ -252,6 +269,8 @@ class DirectView(View):
         return self.client.scatter(key, seq, dist=dist, flatten=flatten,
                     targets=targets, block=block)
     
+    @sync_results
+    @save_ids
     def gather(self, key, dist='b', targets=None, block=True):
         """
         Gather a partitioned sequence on a set of engines as a single local seq.
@@ -277,6 +296,36 @@ class DirectView(View):
         """Kill my engines."""
         block = block if block is not None else self.block
         return self.client.kill(targets=self.targets, block=block)
+    
+    #----------------------------------------
+    # activate for %px,%autopx magics
+    #----------------------------------------
+    def activate(self):
+        """Make this `View` active for parallel magic commands.
+        
+        IPython has a magic command syntax to work with `MultiEngineClient` objects.
+        In a given IPython session there is a single active one.  While
+        there can be many `Views` created and used by the user, 
+        there is only one active one.  The active `View` is used whenever 
+        the magic commands %px and %autopx are used.
+        
+        The activate() method is called on a given `View` to make it 
+        active.  Once this has been done, the magic commands can be used.
+        """
+        
+        try:
+            # This is injected into __builtins__.
+            ip = get_ipython()
+        except NameError:
+            print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
+        else:
+            pmagic = ip.plugin_manager.get_plugin('parallelmagic')
+            if pmagic is not None:
+                pmagic.active_multiengine_client = self
+            else:
+                print "You must first load the parallelmagic extension " \
+                      "by doing '%load_ext parallelmagic'"
+
     
 class LoadBalancedView(View):
     """An engine-agnostic View that only executes via the Task queue.
