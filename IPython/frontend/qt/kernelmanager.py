@@ -102,7 +102,7 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
     pyerr_received = QtCore.Signal(object)
 
     # Emitted when a message of type 'display_data' is received
-    display_data_received = QtCore.pyqtSignal(object)
+    display_data_received = QtCore.Signal(object)
 
     # Emitted when a crash report message is received from the kernel's
     # last-resort sys.excepthook.

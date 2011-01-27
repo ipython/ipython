@@ -100,7 +100,7 @@ class CallTipWidget(QtGui.QLabel):
         """
         painter = QtGui.QStylePainter(self)
         option = QtGui.QStyleOptionFrame()
-        option.init(self)
+        option.initFrom(self)
         painter.drawPrimitive(QtGui.QStyle.PE_PanelTipLabel, option)
         painter.end()
 

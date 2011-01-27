@@ -335,7 +335,7 @@ class IPythonWidget(FrontendWidget):
             block = self._previous_prompt_obj.block
 
             # Make sure the prompt block has not been erased.
-            if block.isValid() and not block.text().isEmpty():
+            if block.isValid() and block.text():
 
                 # Remove the old prompt and insert a new prompt.
                 cursor = QtGui.QTextCursor(block)
