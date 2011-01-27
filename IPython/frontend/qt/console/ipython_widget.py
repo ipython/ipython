@@ -1,9 +1,5 @@
 """ A FrontendWidget that emulates the interface of the console IPython and
     supports the additional functionality provided by the IPython kernel.
-
-    TODO: Add support for retrieving the system default editor. Requires code
-          paths for Windows (use the registry), Mac OS (use LaunchServices), and
-          Linux (use the xdg system).
 """
 
 #-----------------------------------------------------------------------------
@@ -484,7 +480,7 @@ class IPythonWidget(FrontendWidget):
         if self._page_control:
             self._page_control.document().setDefaultStyleSheet(self.style_sheet)
 
-        bg_color = self._control.palette().background().color()
+        bg_color = self._control.palette().window().color()
         self._ansi_processor.set_background_color(bg_color)
 
     def _syntax_style_changed(self):
