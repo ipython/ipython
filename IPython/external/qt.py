@@ -3,12 +3,16 @@
 
 import os
 
-# Use PyQt by default until PySide is stable.
-qt_api = os.environ.get('QT_API', 'pyqt')
+# Available APIs.
+QT_API_PYQT = 'pyqt'
+QT_API_PYSIDE = 'pyside'
 
-if qt_api == 'pyqt':
+# Use PyQt by default until PySide is stable.
+QT_API = os.environ.get('QT_API', QT_API_PYQT)
+
+if QT_API == QT_API_PYQT:
     # For PySide compatibility, use the new string API that automatically
-    # converts QStrings to unicode Python strings.
+    # converts QStrings to Unicode Python strings.
     import sip
     sip.setapi('QString', 2)
 
@@ -18,5 +22,8 @@ if qt_api == 'pyqt':
     QtCore.Signal = QtCore.pyqtSignal
     QtCore.Slot = QtCore.pyqtSlot
 
-else:
+elif QT_API == QT_API_PYSIDE:
     from PySide import QtCore, QtGui, QtSvg
+
+else:
+    raise RuntimeError('Invalid Qt API "%s"' % QT_API)
