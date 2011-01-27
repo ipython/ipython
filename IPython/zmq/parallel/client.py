@@ -504,7 +504,7 @@ class Client(object):
                 if isinstance(msg_id, int):
                     msg_id = self.history[msg_id]
                 elif isinstance(msg_id, AsyncResult):
-                    map(theids.add, msg_id._msg_ids)
+                    map(theids.add, msg_id.msg_ids)
                     continue
                 theids.add(msg_id)
         if not theids.intersection(self.outstanding):
@@ -849,7 +849,7 @@ class Client(object):
                 r = self.push({key: partition[0]}, targets=engineid, block=False)
             else:
                 r = self.push({key: partition}, targets=engineid, block=False)
-            msg_ids.extend(r._msg_ids)
+            msg_ids.extend(r.msg_ids)
         r = AsyncResult(self, msg_ids)
         if block:
             return r.get()
@@ -866,7 +866,7 @@ class Client(object):
         mapObject = Map.dists[dist]()
         msg_ids = []
         for index, engineid in enumerate(targets):
-            msg_ids.extend(self.pull(key, targets=engineid,block=False)._msg_ids)
+            msg_ids.extend(self.pull(key, targets=engineid,block=False).msg_ids)
         
         r = AsyncMapResult(self, msg_ids, mapObject)
         if block:

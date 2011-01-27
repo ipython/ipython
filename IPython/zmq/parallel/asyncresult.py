@@ -23,7 +23,7 @@ class AsyncResult(object):
     """
     def __init__(self, client, msg_ids):
         self._client = client
-        self._msg_ids = msg_ids
+        self.msg_ids = msg_ids
         self._ready = False
         self._success = None
     
@@ -31,7 +31,7 @@ class AsyncResult(object):
         if self._ready:
             return "<%s: finished>"%(self.__class__.__name__)
         else:
-            return "<%s: %r>"%(self.__class__.__name__,self._msg_ids)
+            return "<%s: %r>"%(self.__class__.__name__,self.msg_ids)
     
     
     def _reconstruct_result(self, res):
@@ -74,10 +74,10 @@ class AsyncResult(object):
         """
         if self._ready:
             return
-        self._ready = self._client.barrier(self._msg_ids, timeout)
+        self._ready = self._client.barrier(self.msg_ids, timeout)
         if self._ready:
             try:
-                results = map(self._client.results.get, self._msg_ids)
+                results = map(self._client.results.get, self.msg_ids)
                 results = error.collect_exceptions(results, 'get')
                 self._result = self._reconstruct_result(results)
             except Exception, e:

@@ -344,4 +344,12 @@ class LoadBalancedView(View):
     def __repr__(self):
         return "<%s %s>"%(self.__class__.__name__, self.client._addr)
     
+    @property
+    def targets(self):
+        return None
+
+    @targets.setter
+    def targets(self, value):
+        raise AttributeError("Cannot set targets for LoadbalancedView!")
+
     
