@@ -4,11 +4,15 @@
 Security details of IPython
 ===========================
 
-IPython's :mod:`IPython.kernel` package exposes the full power of the Python
-interpreter over a TCP/IP network for the purposes of parallel computing. This
-feature brings up the important question of IPython's security model. This
-document gives details about this model and how it is implemented in IPython's
-architecture.
+.. note::
+
+    Not adapted to zmq yet
+
+IPython's :mod:`IPython.zmq.parallel` package exposes the full power of the
+Python interpreter over a TCP/IP network for the purposes of parallel
+computing. This feature brings up the important question of IPython's security
+model. This document gives details about this model and how it is implemented
+in IPython's architecture.
 
 Processs and network topology
 =============================

@@ -110,8 +110,7 @@ some decorators:
        ....: 
 
     In [11]: map(f, range(32))    # this is done in parallel
-    Out[11]: 
-    [0.0,10.0,160.0,...]
+    Out[11]: [0.0,10.0,160.0,...]
 
 See the docstring for the :func:`parallel` and :func:`remote` decorators for
 options.
@@ -185,7 +184,7 @@ blocks until the engines are done executing the command:
     In [5]: dview['b'] = 10
 
     In [6]: dview.apply_bound(lambda x: a+b+x, 27)
-    Out[6]: {0: 42, 1: 42, 2: 42, 3: 42}
+    Out[6]: [42,42,42,42]
 
 Python commands can be executed on specific engines by calling execute using
 the ``targets`` keyword argument, or creating a :class:`DirectView` instance
@@ -198,7 +197,7 @@ by index-access to the client:
     In [7]: rc.execute('c=a-b',targets=[1,3])
 
     In [8]: rc[:]['c'] # shorthand for rc.pull('c',targets='all')
-    Out[8]: {0: 15, 1: -5, 2: 15, 3: -5}
+    Out[8]: [15,-5,15,-5]
 
 .. note::
 
@@ -425,7 +424,7 @@ engines specified by the :attr:`targets` attribute of the
 
     In [26]: %px import numpy
     Parallel execution on engines: [0, 1, 2, 3]
-    Out[26]:{0: None, 1: None, 2: None, 3: None}
+    Out[26]:[None,None,None,None]
 
     In [27]: %px a = numpy.random.rand(2,2)
     Parallel execution on engines: [0, 1, 2, 3]
@@ -434,10 +433,11 @@ engines specified by the :attr:`targets` attribute of the
     Parallel execution on engines: [0, 1, 2, 3]
 
     In [28]: dv['ev']
-    Out[44]: {0: array([ 1.09522024, -0.09645227]), 
-            1: array([ 1.21435496, -0.35546712]), 
-            2: array([ 0.72180653,  0.07133042]), 
-            3: array([  1.46384341e+00,   1.04353244e-04])}
+    Out[44]: [ array([ 1.09522024, -0.09645227]), 
+               array([ 1.21435496, -0.35546712]), 
+               array([ 0.72180653,  0.07133042]), 
+               array([  1.46384341e+00,   1.04353244e-04])
+             ]
 
 .. Note::
 
@@ -496,10 +496,10 @@ on the engines given by the :attr:`targets` attribute:
     Parallel execution on engines: [0, 1, 2, 3]
     
     In [37]: dv['ans']
-    Out[37]: {0 : 'Average max eigenvalue is:  10.1387247332',
-              1 : 'Average max eigenvalue is:  10.2076902286',
-              2 : 'Average max eigenvalue is:  10.1891484655',
-              3 : 'Average max eigenvalue is:  10.1158837784',}
+    Out[37]: [ 'Average max eigenvalue is:  10.1387247332',
+               'Average max eigenvalue is:  10.2076902286',
+               'Average max eigenvalue is:  10.1891484655',
+               'Average max eigenvalue is:  10.1158837784',]
 
 
 .. Note::
@@ -524,23 +524,23 @@ Here are some examples of how you use :meth:`push` and :meth:`pull`:
 .. sourcecode:: ipython
 
     In [38]: rc.push(dict(a=1.03234,b=3453))
-    Out[38]: {0: None, 1: None, 2: None, 3: None}
+    Out[38]: [None,None,None,None]
 
     In [39]: rc.pull('a')
-    Out[39]: {0: 1.03234, 1: 1.03234, 2: 1.03234, 3: 1.03234}
+    Out[39]: [ 1.03234, 1.03234, 1.03234, 1.03234]
 
     In [40]: rc.pull('b',targets=0)
     Out[40]: 3453
 
     In [41]: rc.pull(('a','b'))
-    Out[41]: {0: [1.03234, 3453], 1: [1.03234, 3453], 2: [1.03234, 3453], 3:[1.03234, 3453]}
+    Out[41]: [ [1.03234, 3453], [1.03234, 3453], [1.03234, 3453], [1.03234, 3453] ]
     
     # zmq client does not have zip_pull
     In [42]: rc.zip_pull(('a','b'))
     Out[42]: [(1.03234, 1.03234, 1.03234, 1.03234), (3453, 3453, 3453, 3453)]
 
     In [43]: rc.push(dict(c='speed'))
-    Out[43]: {0: None, 1: None, 2: None, 3: None}
+    Out[43]: [None,None,None,None]
 
 In non-blocking mode :meth:`push` and :meth:`pull` also return
 :class:`AsyncResult` objects:
@@ -573,7 +573,7 @@ appear as a local dictionary. Underneath, this uses :meth:`push` and
     In [51]: rc[:]['a']=['foo','bar']
 
     In [52]: rc[:]['a']
-    Out[52]: {0: ['foo', 'bar'], 1: ['foo', 'bar'], 2: ['foo', 'bar'], 3: ['foo', 'bar']}
+    Out[52]: [ ['foo', 'bar'], ['foo', 'bar'], ['foo', 'bar'], ['foo', 'bar'] ]
 
 Scatter and gather
 ------------------
@@ -589,13 +589,10 @@ between engines, MPI should be used:
 .. sourcecode:: ipython
 
     In [58]: rc.scatter('a',range(16))
-    Out[58]: {0: None, 1: None, 2: None, 3: None}
+    Out[58]: [None,None,None,None]
 
     In [59]: rc[:]['a']
-    Out[59]: {0: [0, 1, 2, 3], 
-              1: [4, 5, 6, 7], 
-              2: [8, 9, 10, 11], 
-              3: [12, 13, 14, 15]}
+    Out[59]: [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ]
 
     In [60]: rc.gather('a')
     Out[60]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -613,7 +610,7 @@ basic effect using :meth:`scatter` and :meth:`gather`:
 .. sourcecode:: ipython
 
     In [66]: rc.scatter('x',range(64))
-    Out[66]: {0: None, 1: None, 2: None, 3: None}
+    Out[66]: [None,None,None,None]
 
     In [67]: px y = [i**10 for i in x]
     Executing command on Controller
@@ -772,10 +769,6 @@ instance:
 
     ZeroDivisionError: integer division or modulo by zero
 
-.. note::
-
-    The above example appears to be broken right now because of a change in 
-    how we are using Twisted.
 
 All of this same error handling magic even works in non-blocking mode:
 

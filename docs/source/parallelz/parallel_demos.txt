@@ -116,7 +116,7 @@ using IPython by following these steps:
 1. Copy the text files with the digits of pi 
    (ftp://pi.super-computing.org/.2/pi200m/) to the working directory of the
    engines on the compute nodes.
-2. Use :command:`ipcluster` to start 15 engines. We used an 8 core (2 quad 
+2. Use :command:`ipclusterz` to start 15 engines. We used an 8 core (2 quad 
    core CPUs) cluster with hyperthreading enabled which makes the 8 cores 
    looks like 16 (1 controller + 15 engines) in the OS. However, the maximum
    speedup we can observe is still only 8x.
@@ -133,13 +133,13 @@ calculation can also be run by simply typing the commands from
 
 .. sourcecode:: ipython
 
-    In [1]: from IPython.kernel import client
+    In [1]: from IPython.zmq.parallel import client
     2009-11-19 11:32:38-0800 [-] Log opened.
 
     # The MultiEngineClient allows us to use the engines interactively.
     # We simply pass MultiEngineClient the name of the cluster profile we
     # are using.
-    In [2]: mec = client.MultiEngineClient(profile='mycluster')
+    In [2]: c = client.Client(profile='mycluster')
     2009-11-19 11:32:44-0800 [-] Connecting [0]
     2009-11-19 11:32:44-0800 [Negotiation,client] Connected: ./ipcontroller-mec.furl
 
@@ -233,7 +233,7 @@ plot using Matplotlib.
 .. literalinclude:: ../../examples/kernel/mcdriver.py
    :language: python
 
-To use this code, start an IPython cluster using :command:`ipcluster`, open
+To use this code, start an IPython cluster using :command:`ipclusterz`, open
 IPython in the pylab mode with the file :file:`mcdriver.py` in your current
 working directory and then type:
 

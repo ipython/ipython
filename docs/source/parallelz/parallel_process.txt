@@ -4,6 +4,10 @@
 Starting the IPython controller and engines
 ===========================================
 
+.. note::
+
+    Not adapted to zmq yet
+
 To use IPython for parallel computing, you need to start one instance of
 the controller and one or more instances of the engine. The controller
 and each engine can run on different machines or on the same machine.
@@ -11,12 +15,12 @@ Because of this, there are many different possibilities.
 
 Broadly speaking, there are two ways of going about starting a controller and engines:
 
-* In an automated manner using the :command:`ipcluster` command.
+* In an automated manner using the :command:`ipclusterz` command.
 * In a more manual way using the :command:`ipcontroller` and 
   :command:`ipengine` commands.
 
 This document describes both of these methods. We recommend that new users
-start with the :command:`ipcluster` command as it simplifies many common usage
+start with the :command:`ipclusterz` command as it simplifies many common usage
 cases.
 
 General considerations
@@ -51,10 +55,10 @@ be run. If these file are put into the :file:`~/.ipython/security` directory
 of the client's host, they will be found automatically. Otherwise, the full
 path to them has to be passed to the client's constructor.
 
-Using :command:`ipcluster`
+Using :command:`ipclusterz`
 ==========================
 
-The :command:`ipcluster` command provides a simple way of starting a
+The :command:`ipclusterz` command provides a simple way of starting a
 controller and engines in the following situations:
 
 1. When the controller and engines are all run on localhost. This is useful
@@ -68,33 +72,33 @@ controller and engines in the following situations:
 .. note::
 
     It is also possible for advanced users to add support to
-    :command:`ipcluster` for starting controllers and engines using other
+    :command:`ipclusterz` for starting controllers and engines using other
     methods (like Sun's Grid Engine for example).
 
 .. note::
 
-    Currently :command:`ipcluster` requires that the
+    Currently :command:`ipclusterz` requires that the
     :file:`~/.ipython/security` directory live on a shared filesystem that is
     seen by both the controller and engines. If you don't have a shared file
     system you will need to use :command:`ipcontroller` and
     :command:`ipengine` directly.  This constraint can be relaxed if you are 
     using the :command:`ssh` method to start the cluster.
 
-Underneath the hood, :command:`ipcluster` just uses :command:`ipcontroller`
+Underneath the hood, :command:`ipclusterz` just uses :command:`ipcontroller`
 and :command:`ipengine` to perform the steps described above.
 
-Using :command:`ipcluster` in local mode
+Using :command:`ipclusterz` in local mode
 ----------------------------------------
 
 To start one controller and 4 engines on localhost, just do::
 
-    $ ipcluster local -n 4
+    $ ipclusterz -n 4
 
 To see other command line options for the local mode, do::
 
-    $ ipcluster local -h
+    $ ipclusterz -h
 
-Using :command:`ipcluster` in mpiexec/mpirun mode
+Using :command:`ipclusterz` in mpiexec/mpirun mode
 -------------------------------------------------
 
 The mpiexec/mpirun mode is useful if you:
@@ -112,7 +116,7 @@ The mpiexec/mpirun mode is useful if you:
 
 If these are satisfied, you can start an IPython cluster using::
 
-    $ ipcluster mpiexec -n 4
+    $ ipclusterz mpiexec -n 4
 
 This does the following:
 
@@ -123,25 +127,25 @@ On newer MPI implementations (such as OpenMPI), this will work even if you
 don't make any calls to MPI or call :func:`MPI_Init`. However, older MPI
 implementations actually require each process to call :func:`MPI_Init` upon
 starting. The easiest way of having this done is to install the mpi4py
-[mpi4py]_ package and then call ipcluster with the ``--mpi`` option::
+[mpi4py]_ package and then call ipclusterz with the ``--mpi`` option::
 
-    $ ipcluster mpiexec -n 4 --mpi=mpi4py
+    $ ipclusterz mpiexec -n 4 --mpi=mpi4py
 
 Unfortunately, even this won't work for some MPI implementations. If you are
 having problems with this, you will likely have to use a custom Python
 executable that itself calls :func:`MPI_Init` at the appropriate time.
 Fortunately, mpi4py comes with such a custom Python executable that is easy to
 install and use. However, this custom Python executable approach will not work
-with :command:`ipcluster` currently.
+with :command:`ipclusterz` currently.
 
 Additional command line options for this mode can be found by doing::
 
-    $ ipcluster mpiexec -h
+    $ ipclusterz mpiexec -h
 
 More details on using MPI with IPython can be found :ref:`here <parallelmpi>`.
 
 
-Using :command:`ipcluster` in PBS mode
+Using :command:`ipclusterz` in PBS mode
 --------------------------------------
 
 The PBS mode uses the Portable Batch System [PBS]_ to start the engines. To
@@ -184,13 +188,13 @@ There are a few important points about this template:
 Once you have created such a script, save it with a name like
 :file:`pbs.template`. Now you are ready to start your job::
 
-    $ ipcluster pbs -n 128 --pbs-script=pbs.template
+    $ ipclusterz pbs -n 128 --pbs-script=pbs.template
 
 Additional command line options for this mode can be found by doing::
 
-    $ ipcluster pbs -h
+    $ ipclusterz pbs -h
 
-Using :command:`ipcluster` in SSH mode
+Using :command:`ipclusterz` in SSH mode
 --------------------------------------
 
 The SSH mode uses :command:`ssh` to execute :command:`ipengine` on remote
@@ -225,7 +229,7 @@ start your cluster like so:
 
 .. sourcecode:: bash 
 
-   $ ipcluster ssh --clusterfile /path/to/my/clusterfile.py
+   $ ipclusterz ssh --clusterfile /path/to/my/clusterfile.py
 
 
 Two helper shell scripts are used to start and stop :command:`ipengine` on
@@ -235,7 +239,7 @@ remote hosts:
 * engine_killer.sh
 
 Defaults for both of these are contained in the source code for
-:command:`ipcluster`. The default scripts are written to a local file in a
+:command:`ipclusterz`. The default scripts are written to a local file in a
 tmep directory and then copied to a temp directory on the remote host and
 executed from there. On most Unix, Linux and OS X systems this is /tmp.
 
@@ -256,9 +260,9 @@ For a detailed options list:
 
 .. sourcecode:: bash
 
-   $ ipcluster ssh -h
+   $ ipclusterz ssh -h
 
-Current limitations of the SSH mode of :command:`ipcluster` are:
+Current limitations of the SSH mode of :command:`ipclusterz` are:
 
 * Untested on Windows. Would require a working :command:`ssh` on Windows.
   Also, we are using shell scripts to setup and execute commands on remote
@@ -358,9 +362,9 @@ listen on for the engines and clients. This is done as follows::
     $ ipcontroller -r --client-port=10101 --engine-port=10102
 
 These options also work with all of the various modes of
-:command:`ipcluster`::
+:command:`ipclusterz`::
 
-    $ ipcluster local -n 2 -r --client-port=10101 --engine-port=10102
+    $ ipclusterz -n 2 -r --client-port=10101 --engine-port=10102
 
 Then, just copy the furl files over the first time and you are set. You can
 start and stop the controller and engines any many times as you want in the

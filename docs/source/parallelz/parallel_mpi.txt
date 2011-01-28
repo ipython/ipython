@@ -4,6 +4,10 @@
 Using MPI with IPython
 =======================
 
+.. note::
+
+    Not adapted to zmq yet
+
 Often, a parallel algorithm will require moving data between the engines. One
 way of accomplishing this is by doing a pull and then a push using the
 multiengine client. However, this will be slow as all the data has to go
@@ -45,16 +49,16 @@ To use code that calls MPI, there are typically two things that MPI requires.
 There are a couple of ways that you can start the IPython engines and get
 these things to happen.
 
-Automatic starting using :command:`mpiexec` and :command:`ipcluster`
+Automatic starting using :command:`mpiexec` and :command:`ipclusterz`
 --------------------------------------------------------------------
 
-The easiest approach is to use the `mpiexec` mode of :command:`ipcluster`,
+The easiest approach is to use the `mpiexec` mode of :command:`ipclusterz`,
 which will first start a controller and then a set of engines using
 :command:`mpiexec`::
 
-    $ ipcluster mpiexec -n 4
+    $ ipclusterz mpiexec -n 4
 
-This approach is best as interrupting :command:`ipcluster` will automatically
+This approach is best as interrupting :command:`ipclusterz` will automatically
 stop and clean up the controller and engines.
 
 Manual starting using :command:`mpiexec`
@@ -72,11 +76,11 @@ starting the engines with::
 
     	mpiexec -n 4 ipengine --mpi=pytrilinos
 
-Automatic starting using PBS and :command:`ipcluster`
+Automatic starting using PBS and :command:`ipclusterz`
 -----------------------------------------------------
 
-The :command:`ipcluster` command also has built-in integration with PBS. For
-more information on this approach, see our documentation on :ref:`ipcluster
+The :command:`ipclusterz` command also has built-in integration with PBS. For
+more information on this approach, see our documentation on :ref:`ipclusterz
 <parallel_process>`.
 
 Actually using MPI
@@ -105,7 +109,7 @@ distributed array. Save the following text in a file called :file:`psum.py`:
 
 Now, start an IPython cluster in the same directory as :file:`psum.py`::
 
-    $ ipcluster mpiexec -n 4
+    $ ipclusterz mpiexec -n 4
 
 Finally, connect to the cluster and use this function interactively. In this
 case, we create a random array on each engine and sum up all the random arrays
@@ -113,9 +117,9 @@ using our :func:`psum` function:
 
 .. sourcecode:: ipython
 
-    In [1]: from IPython.kernel import client
+    In [1]: from IPython.zmq.parallel import client
     
-    In [2]: mec = client.MultiEngineClient()
+    In [2]: c = client.Client()
     
     In [3]: mec.activate()
     
