@@ -21,10 +21,10 @@ class AsyncResult(object):
     
     Provides the same interface as :py:class:`multiprocessing.AsyncResult`.
     """
-    def __init__(self, client, msg_ids, targets=None):
+    def __init__(self, client, msg_ids, fname=''):
         self._client = client
         self.msg_ids = msg_ids
-        self._targets=targets
+        self._fname=fname
         self._ready = False
         self._success = None
     
@@ -32,7 +32,7 @@ class AsyncResult(object):
         if self._ready:
             return "<%s: finished>"%(self.__class__.__name__)
         else:
-            return "<%s: %r>"%(self.__class__.__name__,self.msg_ids)
+            return "<%s: %s>"%(self.__class__.__name__,self._fname)
     
     
     def _reconstruct_result(self, res):
@@ -42,8 +42,6 @@ class AsyncResult(object):
         """
         if len(res) == 1:
             return res[0]
-        elif self.targets is not None:
-            return dict(zip(self._targets, res))
         else:
             return res
         
@@ -81,7 +79,7 @@ class AsyncResult(object):
         if self._ready:
             try:
                 results = map(self._client.results.get, self.msg_ids)
-                results = error.collect_exceptions(results, 'get')
+                results = error.collect_exceptions(results, self._fname)
                 self._result = self._reconstruct_result(results)
             except Exception, e:
                 self._exception = e
@@ -104,9 +102,9 @@ class AsyncMapResult(AsyncResult):
     This will properly reconstruct the gather.
     """
     
-    def __init__(self, client, msg_ids, mapObject):
+    def __init__(self, client, msg_ids, mapObject, fname=''):
         self._mapObject = mapObject
-        AsyncResult.__init__(self, client, msg_ids)
+        AsyncResult.__init__(self, client, msg_ids, fname=fname)
     
     def _reconstruct_result(self, res):
         """Perform the gather on the actual results."""

@@ -83,7 +83,6 @@ def defaultblock(f, self, *args, **kwargs):
         self.block = saveblock
     return ret
 
-
 class AbortedTask(object):
     """A basic wrapper object describing an aborted task."""
     def __init__(self, msg_id):
@@ -754,11 +753,11 @@ class Client(object):
         msg_id = msg['msg_id']
         self.outstanding.add(msg_id)
         self.history.append(msg_id)
+        ar = AsyncResult(self, [msg_id], fname=f.__name__)
         if block:
-            self.barrier(msg_id)
-            return self._maybe_raise(self.results[msg_id])
+            return ar.get()
         else:
-            return AsyncResult(self, [msg_id])
+            return ar
     
     def _apply_direct(self, f, args, kwargs, bound=True, block=None, targets=None,
                                 after=None, follow=None):
@@ -779,17 +778,11 @@ class Client(object):
             self.outstanding.add(msg_id)
             self.history.append(msg_id)
             msg_ids.append(msg_id)
+        ar = AsyncResult(self, msg_ids, fname=f.__name__)
         if block:
-            self.barrier(msg_ids)
+            return ar.get()
         else:
-            return AsyncResult(self, msg_ids, targets=targets)
-        if len(msg_ids) == 1:
-            return self._maybe_raise(self.results[msg_ids[0]])
-        else:
-            result = {}
-            for target,mid in zip(targets, msg_ids):
-                    result[target] = self.results[mid]
-            return error.collect_exceptions(result, f.__name__)
+            return ar
     
     #--------------------------------------------------------------------------
     # Map and decorators
@@ -849,7 +842,7 @@ class Client(object):
             else:
                 r = self.push({key: partition}, targets=engineid, block=False)
             msg_ids.extend(r.msg_ids)
-        r = AsyncResult(self, msg_ids,targets)
+        r = AsyncResult(self, msg_ids, fname='scatter')
         if block:
             return r.get()
         else:
@@ -867,7 +860,7 @@ class Client(object):
         for index, engineid in enumerate(targets):
             msg_ids.extend(self.pull(key, targets=engineid,block=False).msg_ids)
         
-        r = AsyncMapResult(self, msg_ids, mapObject)
+        r = AsyncMapResult(self, msg_ids, mapObject, fname='gather')
         if block:
             return r.get()
         else:
