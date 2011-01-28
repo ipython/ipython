@@ -263,21 +263,19 @@ class DirectView(View):
         Partition a Python sequence and send the partitions to a set of engines.
         """
         block = block if block is not None else self.block
-        if targets is None:
-            targets = self.targets
+        targets = targets if targets is not None else self.targets
         
         return self.client.scatter(key, seq, dist=dist, flatten=flatten,
                     targets=targets, block=block)
     
     @sync_results
     @save_ids
-    def gather(self, key, dist='b', targets=None, block=True):
+    def gather(self, key, dist='b', targets=None, block=None):
         """
         Gather a partitioned sequence on a set of engines as a single local seq.
         """
         block = block if block is not None else self.block
-        if targets is None:
-            targets = self.targets
+        targets = targets if targets is not None else self.targets
         
         return self.client.gather(key, dist=dist, targets=targets, block=block)
     
