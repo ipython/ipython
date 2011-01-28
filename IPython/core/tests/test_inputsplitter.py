@@ -329,6 +329,15 @@ class InputSplitterTestCase(unittest.TestCase):
                        [['for i in range(10):'
                          '  x=i**2'],
                         ['z = 1']],
+
+                       [['"asdf"']],
+
+                       [['"asdf"'],
+                        ['10'],
+                       ],
+
+                       [['"""foo',
+                         'bar"""']],
                        ]
         for block_lines in all_blocks:
             self.check_split(block_lines)
