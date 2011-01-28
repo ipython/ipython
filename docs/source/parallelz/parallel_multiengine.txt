@@ -71,7 +71,8 @@ Parallel map
 
 Python's builtin :func:`map` functions allows a function to be applied to a
 sequence element-by-element. This type of code is typically trivial to
-parallelize. In fact, since IPython's interface is all about functions anyway, you can just use the builtin :func:`map`, or a client's :map: method:
+parallelize. In fact, since IPython's interface is all about functions anyway,
+you can just use the builtin :func:`map`, or a client's :map: method:
 
 .. sourcecode:: ipython
 
@@ -124,6 +125,48 @@ done in blocking or non-blocking mode (non-blocking is default) using the
 :meth:`execute` method, and calling functions can be done via the
 :meth:`.View.apply` method.
 
+apply
+-----
+
+The main method for doing remote execution (in fact, all methods that
+communicate with the engines are built on top of it), is :meth:`Client.apply`.
+Ideally, :meth:`apply` would have the signature :meth:`apply(f,*args,**kwargs)`,
+which would call f(*args,**kwargs) remotely.  However, since :class:`Clients`
+require some more options, they cannot reasonably provide this interface.
+Instead, they provide the signature::
+
+    c.apply(f, args=None, kwargs=None, bound=True, block=None,
+                    targets=None, after=None, follow=None)
+
+In order to provide the nicer interface, we have :class:`View` classes, which wrap
+:meth:`Client.apply` by using attributes and extra :meth:`apply_x` methods to determine
+the extra arguments. For instance, performing index-access on a client creates a
+:class:`.LoadBalancedView`.
+
+.. sourcecode:: ipython
+
+    In [4]: view = rc[1:3]
+    Out[4]: <DirectView [1, 2]>
+
+    In [5]: view.apply<tab>
+    view.apply  view.apply_async  view.apply_async_bound  view.apply_bound  view.apply_sync  view.apply_sync_bound
+
+A :class:`DirectView` always uses its `targets` attribute, and it will use its `bound`
+and `block` attributes in its :meth:`apply` method, but the suffixed :meth:`apply_x`
+methods allow specifying `bound` and `block` via the different methods.
+
+==================  ==========  ==========
+method              block       bound
+==================  ==========  ==========
+apply               self.block  self.bound
+apply_sync          True        False
+apply_async         False       False
+apply_sync_bound    True        True
+apply_async_bound   False       True
+==================  ==========  ==========
+
+For explanation of these values, read on.
+
 Blocking execution
 ------------------
 
@@ -154,7 +197,7 @@ by index-access to the client:
 
     In [7]: rc.execute('c=a-b',targets=[1,3])
 
-    In [8]: rc[:]['c']
+    In [8]: rc[:]['c'] # shorthand for rc.pull('c',targets='all')
     Out[8]: {0: 15, 1: -5, 2: 15, 3: -5}
 
 .. note::

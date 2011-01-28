@@ -175,13 +175,16 @@ everything is working correctly, try the following commands:
 	Out[5]: {0: 'Hello, World', 1: 'Hello, World', 2: 'Hello, World', 3: 
 	        'Hello, World'}
 
-Remember, a client needs to be able to see the Controller.  So if the controller is on a different machine, and you have ssh access to that machine, then you would connect to it with::
+Remember, a client needs to be able to see the Controller. So if the
+controller is on a different machine, and you have ssh access to that machine,
+then you would connect to it with::
 
 .. sourcecode:: ipython
 
     In [2]: c = client.Client(sshserver='mycontroller.example.com')
 
-Where 'mycontroller.example.com' is the url or IP address of the machine on which the Controller is running.
+Where 'mycontroller.example.com' is the url or IP address of the machine on
+which the Controller is running.
 
 You are now ready to learn more about the :ref:`MUX
 <parallelmultiengine>` and :ref:`Task <paralleltask>` interfaces to the
