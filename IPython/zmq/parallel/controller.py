@@ -47,33 +47,6 @@ else:
 def _passer(*args, **kwargs):
     return
 
-class ReverseDict(dict):
-    """simple double-keyed subset of dict methods."""
-    
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
-        self.reverse = dict()
-        for key, value in self.iteritems():
-            self.reverse[value] = key
-    
-    def __getitem__(self, key):
-        try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            return self.reverse[key]
-    
-    def __setitem__(self, key, value):
-        if key in self.reverse:
-            raise KeyError("Can't have key %r on both sides!"%key)
-        dict.__setitem__(self, key, value)
-        self.reverse[value] = key
-    
-    def pop(self, key):
-        value = dict.pop(self, key)
-        self.d1.pop(value)
-        return value
-    
-
 def init_record(msg):
     """return an empty TaskRecord dict, with all keys initialized with None."""
     header = msg['header']
@@ -484,6 +457,8 @@ class Controller(object):
             }
             if MongoDB is not None and isinstance(self.db, MongoDB):
                 result['result_buffers'] = map(Binary, msg['buffers'])
+            else:
+                result['result_buffers'] = msg['buffers']
             self.db.update_record(msg_id, result)
         else:
             logger.debug("queue:: unknown msg finished %s"%msg_id)
@@ -552,6 +527,8 @@ class Controller(object):
             }
             if MongoDB is not None and isinstance(self.db, MongoDB):
                 result['result_buffers'] = map(Binary, msg['buffers'])
+            else:
+                result['result_buffers'] = msg['buffers']
             self.db.update_record(msg_id, result)
             
         else:
@@ -831,14 +808,16 @@ class Controller(object):
     def get_results(self, client_id, msg):
         """Get the result of 1 or more messages."""
         content = msg['content']
-        msg_ids = set(content['msg_ids'])
+        msg_ids = sorted(set(content['msg_ids']))
         statusonly = content.get('status_only', False)
         pending = []
         completed = []
         content = dict(status='ok')
         content['pending'] = pending
         content['completed'] = completed
+        buffers = []
         if not statusonly:
+            content['results'] = {}
             records = self.db.find_records(dict(msg_id={'$in':msg_ids}))
         for msg_id in msg_ids:
             if msg_id in self.pending:
@@ -846,7 +825,12 @@ class Controller(object):
             elif msg_id in self.all_completed:
                 completed.append(msg_id)
                 if not statusonly:
-                    content[msg_id] = records[msg_id]['result_content']
+                    rec = records[msg_id]
+                    content[msg_id] = { 'result_content': rec['result_content'],
+                                        'header': rec['header'],
+                                        'result_header' : rec['result_header'],
+                                      }
+                    buffers.extend(map(str, rec['result_buffers']))
             else:
                 try:
                     raise KeyError('No such message: '+msg_id)
@@ -854,7 +838,8 @@ class Controller(object):
                     content = wrap_exception()
                 break
         self.session.send(self.clientele, "result_reply", content=content, 
-                                            parent=msg, ident=client_id)
+                                            parent=msg, ident=client_id,
+                                            buffers=buffers)
 
 
 #-------------------------------------------------------------------------

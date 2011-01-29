@@ -40,7 +40,7 @@ class AsyncResult(object):
         Override me in subclasses for turning a list of results
         into the expected form.
         """
-        if len(res) == 1:
+        if len(self.msg_ids) == 1:
             return res[0]
         else:
             return res

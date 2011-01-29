@@ -183,6 +183,8 @@ class View(object):
         """Parallel version of builtin `map`, using this view's engines."""
         if isinstance(self.targets, int):
             targets = [self.targets]
+        else:
+            targets = self.targets
         pf = ParallelFunction(self.client, f, block=self.block,
                         bound=True, targets=targets)
         return pf.map(*sequences)

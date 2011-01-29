@@ -126,10 +126,10 @@ class ParallelFunction(RemoteFunction):
                 f=self.func
             mid = self.client.apply(f, args=args, block=False, 
                         bound=self.bound,
-                        targets=engineid)._msg_ids[0]
+                        targets=engineid).msg_ids[0]
             msg_ids.append(mid)
         
-        r = AsyncMapResult(self.client, msg_ids, self.mapObject)
+        r = AsyncMapResult(self.client, msg_ids, self.mapObject, fname=self.func.__name__)
         if self.block:
             r.wait()
             return r.result

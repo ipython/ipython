@@ -208,7 +208,7 @@ def unserialize_object(bufs):
         for s in sobj:
             if s.data is None:
                 s.data = bufs.pop(0)
-        return uncanSequence(map(unserialize, sobj))
+        return uncanSequence(map(unserialize, sobj)), bufs
     elif isinstance(sobj, dict):
         newobj = {}
         for k in sorted(sobj.iterkeys()):
@@ -216,11 +216,11 @@ def unserialize_object(bufs):
             if s.data is None:
                 s.data = bufs.pop(0)
             newobj[k] = uncan(unserialize(s))
-        return newobj
+        return newobj, bufs
     else:
         if sobj.data is None:
             sobj.data = bufs.pop(0)
-        return uncan(unserialize(sobj))
+        return uncan(unserialize(sobj)), bufs
 
 def pack_apply_message(f, args, kwargs, threshold=64e-6):
     """pack up a function, args, and kwargs to be sent over the wire

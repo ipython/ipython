@@ -14,6 +14,7 @@ import os
 import time
 from getpass import getpass
 from pprint import pprint
+from datetime import datetime
 
 import zmq
 from zmq.eventloop import ioloop, zmqstream
@@ -29,6 +30,7 @@ import error
 import map as Map
 from asyncresult import AsyncResult, AsyncMapResult
 from remotefunction import remote,parallel,ParallelFunction,RemoteFunction
+from util import ReverseDict
 
 #--------------------------------------------------------------------------
 # helpers for implementing old MEC API via client.apply
@@ -82,6 +84,11 @@ def defaultblock(f, self, *args, **kwargs):
     finally:
         self.block = saveblock
     return ret
+
+
+#--------------------------------------------------------------------------
+# Classes
+#--------------------------------------------------------------------------
 
 class AbortedTask(object):
     """A basic wrapper object describing an aborted task."""
@@ -233,10 +240,11 @@ class Client(object):
             tunnel.tunnel_connection(self._registration_socket, addr, sshserver, **ssh_kwargs)
         else:
             self._registration_socket.connect(addr)
-        self._engines = {}
+        self._engines = ReverseDict()
         self._ids = set()
         self.outstanding=set()
         self.results = {}
+        self.metadata = {}
         self.history = []
         self.debug = debug
         self.session.debug = debug
@@ -342,9 +350,27 @@ class Client(object):
         if eid in self._ids:
             self._ids.remove(eid)
             self._engines.pop(eid)
-        
+    #
+    def _build_metadata(self, header, parent, content):
+        md = {'msg_id' : parent['msg_id'],
+              'submitted' : datetime.strptime(parent['date'], ss.ISO8601),
+              'started' : datetime.strptime(header['started'], ss.ISO8601),
+              'completed' : datetime.strptime(header['date'], ss.ISO8601),
+              'received' : datetime.now(),
+              'engine_uuid' : header['engine'],
+              'engine_id' : self._engines.get(header['engine'], None),
+              'follow' : parent['follow'],
+              'after' : parent['after'],
+              'status' : content['status']
+             }
+        return md
+    
     def _handle_execute_reply(self, msg):
-        """Save the reply to an execute_request into our results."""
+        """Save the reply to an execute_request into our results.
+        
+        execute messages are never actually used. apply is used instead.
+        """
+        
         parent = msg['parent_header']
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
@@ -362,8 +388,12 @@ class Client(object):
         else:
             self.outstanding.remove(msg_id)
         content = msg['content']
+        header = msg['header']
+        
+        self.metadata[msg_id] = self._build_metadata(header, parent, content)
+        
         if content['status'] == 'ok':
-            self.results[msg_id] = ss.unserialize_object(msg['buffers'])
+            self.results[msg_id] = ss.unserialize_object(msg['buffers'])[0]
         elif content['status'] == 'aborted':
             self.results[msg_id] = error.AbortedTask(msg_id)
         elif content['status'] == 'resubmitted':
@@ -372,10 +402,8 @@ class Client(object):
         else:
             e = ss.unwrap_exception(content)
             e_uuid = e.engine_info['engineid']
-            for k,v in self._engines.iteritems():
-                if v == e_uuid:
-                    e.engine_info['engineid'] = k
-                    break
+            eid = self._engines[e_uuid]
+            e.engine_info['engineid'] = eid
             self.results[msg_id] = e
     
     def _flush_notifications(self):
@@ -882,6 +910,13 @@ class Client(object):
         status_only : bool (default: False)
             if False:
                 return the actual results
+        
+        Returns
+        -------
+        
+        results : dict
+            There will always be the keys 'pending' and 'completed', which will
+            be lists of msg_ids.
         """
         if not isinstance(msg_ids, (list,tuple)):
             msg_ids = [msg_ids]
@@ -895,11 +930,12 @@ class Client(object):
         
         completed = []
         local_results = {}
-        for msg_id in list(theids):
-            if msg_id in self.results:
-                completed.append(msg_id)
-                local_results[msg_id] = self.results[msg_id]
-                theids.remove(msg_id)
+        # temporarily disable local shortcut
+        # for msg_id in list(theids):
+        #     if msg_id in self.results:
+        #         completed.append(msg_id)
+        #         local_results[msg_id] = self.results[msg_id]
+        #         theids.remove(msg_id)
         
         if theids: # some not locally cached
             content = dict(msg_ids=theids, status_only=status_only)
@@ -911,16 +947,40 @@ class Client(object):
             content = msg['content']
             if content['status'] != 'ok':
                 raise ss.unwrap_exception(content)
+            buffers = msg['buffers']
         else:
             content = dict(completed=[],pending=[])
-        if not status_only:
-            # load cached results into result:
-            content['completed'].extend(completed)
-            content.update(local_results)
-            # update cache with results:
-            for msg_id in msg_ids:
-                if msg_id in content['completed']:
-                    self.results[msg_id] = content[msg_id]
+        
+        content['completed'].extend(completed)
+        
+        if status_only:
+            return content
+        
+        failures = []
+        # load cached results into result:
+        content.update(local_results)
+        # update cache with results:
+        for msg_id in sorted(theids):
+            if msg_id in content['completed']:
+                rec = content[msg_id]
+                parent = rec['header']
+                header = rec['result_header']
+                rcontent = rec['result_content']
+                if isinstance(rcontent, str):
+                    rcontent = self.session.unpack(rcontent)
+                
+                self.metadata[msg_id] = self._build_metadata(header, parent, rcontent)
+                
+                if rcontent['status'] == 'ok':
+                    res,buffers = ss.unserialize_object(buffers)
+                else:
+                    res = ss.unwrap_exception(rcontent)
+                    failures.append(res)
+                
+                self.results[msg_id] = res
+                content[msg_id] = res
+        
+        error.collect_exceptions(failures, "get_results")
         return content
 
     @spinfirst
@@ -945,7 +1005,7 @@ class Client(object):
         status = content.pop('status')
         if status != 'ok':
             raise ss.unwrap_exception(content)
-        return content
+        return ss.rekey(content)
         
     @spinfirst
     def purge_results(self, msg_ids=[], targets=[]):

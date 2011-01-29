@@ -35,7 +35,7 @@ class MongoDB(object):
     def update_record(self, msg_id, rec):
         """Update the data in an existing record."""
         obj_id = self._table[msg_id]
-        self._records.update({'_id':obj_id}, rec)
+        self._records.update({'_id':obj_id}, {'$set': rec})
     
     def drop_matching_records(self, check):
         """Remove a record from the DB."""
@@ -50,7 +50,11 @@ class MongoDB(object):
         """Find records matching a query dict."""
         matches = list(self._records.find(check))
         if id_only:
-            matches = [ rec['msg_id'] for rec in matches ]
-        return matches
+            return [ rec['msg_id'] for rec in matches ]
+        else:
+            data = {}
+            for rec in matches:
+                data[rec['msg_id']] = rec
+            return data
 
 
