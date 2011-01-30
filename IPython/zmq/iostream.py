@@ -1,3 +1,4 @@
+import logging
 import sys
 import time
 from cStringIO import StringIO
@@ -15,7 +16,7 @@ class OutStream(object):
 
     # The time interval between automatic flushes, in seconds.
     flush_interval = 0.05
-
+    _logger =  logging.getLogger()
     def __init__(self, session, pub_socket, name):
         self.session = session
         self.pub_socket = pub_socket
@@ -39,7 +40,7 @@ class OutStream(object):
                 content = {u'name':self.name, u'data':data}
                 msg = self.session.msg(u'stream', content=content,
                                        parent=self.parent_header)
-                io.raw_print(msg)
+                self._logger.debug(msg)
                 self.pub_socket.send_json(msg)
                 
                 self._buffer.close()
