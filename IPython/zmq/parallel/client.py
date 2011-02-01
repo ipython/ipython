@@ -103,6 +103,32 @@ class ResultDict(dict):
             raise res
         return res
 
+class Metadata(dict):
+    """Subclass of dict for initializing metadata values."""
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self)
+        md = {'msg_id' : None,
+              'submitted' : None,
+              'started' : None,
+              'completed' : None,
+              'received' : None,
+              'engine_uuid' : None,
+              'engine_id' : None,
+              'follow' : None,
+              'after' : None,
+              'status' : None,
+
+              'pyin' : None,
+              'pyout' : None,
+              'pyerr' : None,
+              'stdout' : '',
+              'stderr' : '',
+            }
+        self.update(md)
+        self.update(dict(*args, **kwargs))
+
+        
+
 class Client(object):
     """A semi-synchronous client to the IPython ZMQ controller
     
@@ -196,6 +222,7 @@ class Client(object):
     _registration_socket=None
     _query_socket=None
     _control_socket=None
+    _iopub_socket=None
     _notification_socket=None
     _mux_socket=None
     _task_socket=None
@@ -325,6 +352,11 @@ class Client(object):
                 self._control_socket = self.context.socket(zmq.PAIR)
                 self._control_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._control_socket, content.control)
+            if content.iopub:
+                self._iopub_socket = self.context.socket(zmq.SUB)
+                self._iopub_socket.setsockopt(zmq.SUBSCRIBE, '')
+                self._iopub_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                connect_socket(self._iopub_socket, content.iopub)
             self._update_engines(dict(content.engines))
                 
         else:
@@ -350,8 +382,8 @@ class Client(object):
         if eid in self._ids:
             self._ids.remove(eid)
             self._engines.pop(eid)
-    #
-    def _build_metadata(self, header, parent, content):
+    
+    def _extract_metadata(self, header, parent, content):
         md = {'msg_id' : parent['msg_id'],
               'submitted' : datetime.strptime(parent['date'], ss.ISO8601),
               'started' : datetime.strptime(header['started'], ss.ISO8601),
@@ -361,8 +393,8 @@ class Client(object):
               'engine_id' : self._engines.get(header['engine'], None),
               'follow' : parent['follow'],
               'after' : parent['after'],
-              'status' : content['status']
-             }
+              'status' : content['status'],
+            }
         return md
     
     def _handle_execute_reply(self, msg):
@@ -390,8 +422,12 @@ class Client(object):
         content = msg['content']
         header = msg['header']
         
-        self.metadata[msg_id] = self._build_metadata(header, parent, content)
+        # construct metadata:
+        md = self.metadata.setdefault(msg_id, Metadata())
+        md.update(self._extract_metadata(header, parent, content))
+        self.metadata[msg_id] = md
         
+        # construct result:
         if content['status'] == 'ok':
             self.results[msg_id] = ss.unserialize_object(msg['buffers'])[0]
         elif content['status'] == 'aborted':
@@ -448,6 +484,37 @@ class Client(object):
                 pprint(msg)
             msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
+    def _flush_iopub(self, sock):
+        """Flush replies from the iopub channel waiting
+        in the ZMQ queue.
+        """
+        msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        while msg is not None:
+            if self.debug:
+                pprint(msg)
+            msg = msg[-1]
+            parent = msg['parent_header']
+            msg_id = parent['msg_id']
+            content = msg['content']
+            header = msg['header']
+            msg_type = msg['msg_type']
+            
+            # init metadata:
+            md = self.metadata.setdefault(msg_id, Metadata())
+            
+            if msg_type == 'stream':
+                name = content['name']
+                s = md[name] or ''
+                md[name] = s + content['data']
+            elif msg_type == 'pyerr':
+                md.update({'pyerr' : ss.unwrap_exception(content)})
+            else:
+                md.update({msg_type : content['data']})
+            
+            self.metadata[msg_id] = md
+            
+            msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+    
     #--------------------------------------------------------------------------
     # getitem
     #--------------------------------------------------------------------------
@@ -501,6 +568,8 @@ class Client(object):
             self._flush_results(self._task_socket)
         if self._control_socket:
             self._flush_control(self._control_socket)
+        if self._iopub_socket:
+            self._flush_iopub(self._iopub_socket)
     
     def barrier(self, msg_ids=None, timeout=-1):
         """waits on one or more `msg_ids`, for up to `timeout` seconds.
@@ -966,10 +1035,13 @@ class Client(object):
                 parent = rec['header']
                 header = rec['result_header']
                 rcontent = rec['result_content']
+                iodict = rec['io']
                 if isinstance(rcontent, str):
                     rcontent = self.session.unpack(rcontent)
                 
-                self.metadata[msg_id] = self._build_metadata(header, parent, rcontent)
+                md = self.metadata.setdefault(msg_id, Metadata())
+                md.update(self._extract_metadata(header, parent, rcontent))
+                md.update(iodict)
                 
                 if rcontent['status'] == 'ok':
                     res,buffers = ss.unserialize_object(buffers)

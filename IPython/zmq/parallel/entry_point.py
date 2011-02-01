@@ -91,7 +91,7 @@ def make_base_argument_parser():
                         help='set the XREP port for registration [default: 10101]')
     parser.add_argument('--logport', type=int, metavar='PORT', default=20202,
                         help='set the PUB port for logging [default: 10201]')
-    parser.add_argument('--loglevel', type=int, metavar='LEVEL', default=logging.DEBUG,
+    parser.add_argument('--loglevel', type=str, metavar='LEVEL', default=logging.DEBUG,
                         help='set the log level [default: DEBUG]')
     parser.add_argument('--ident', type=str,
                         help='set the ZMQ identity [default: random]')
@@ -107,6 +107,11 @@ def make_base_argument_parser():
 
 
 def connect_logger(context, iface, root="ip", loglevel=logging.DEBUG):
+    try:
+        loglevel = int(loglevel)
+    except ValueError:
+        if isinstance(loglevel, str):
+            loglevel = getattr(logging, loglevel)
     lsock = context.socket(zmq.PUB)
     lsock.connect(iface)
     handler = handlers.PUBHandler(lsock)

@@ -58,8 +58,8 @@ def make_argument_parser():
                         help='set the PUB socket for registration notification [default: random]')
     parser.add_argument('--hb', type=str, metavar='PORTS',
                         help='set the 2 ports for heartbeats [default: random]')
-    parser.add_argument('--ping', type=int, default=3000,
-                        help='set the heartbeat period in ms [default: 3000]')
+    parser.add_argument('--ping', type=int, default=100,
+                        help='set the heartbeat period in ms [default: 100]')
     parser.add_argument('--monitor', type=int, metavar='PORT', default=0,
                         help='set the SUB port for queue monitoring [default: random]')
     parser.add_argument('--mux', type=str, metavar='PORTS',
@@ -68,11 +68,15 @@ def make_argument_parser():
                         help='set the XREP/XREQ ports for the task queue [default: random]')
     parser.add_argument('--control', type=str, metavar='PORTS',
                         help='set the XREP ports for the control queue [default: random]')
-    parser.add_argument('--scheduler', type=str, default='pure',
+    parser.add_argument('--iopub', type=str, metavar='PORTS',
+                        help='set the PUB/SUB ports for the iopub relay [default: random]')
+    parser.add_argument('--scheduler', type=str, default='lru',
                         choices = ['pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'],
-                        help='select the task scheduler  [default: pure ZMQ]')
+                        help='select the task scheduler  [default: Python LRU]')
     parser.add_argument('--mongodb', action='store_true',
                         help='Use MongoDB task storage [default: in-memory]')
+    parser.add_argument('--session', type=str, default=None,
+                        help='Manually specify the session id.')
     
     return parser
     
@@ -94,6 +98,11 @@ def main(argv=None):
         mux = split_ports(args.mux, 2)
     else:
         mux = None
+        random_ports += 2
+    if args.iopub:
+        iopub = split_ports(args.iopub, 2)
+    else:
+        iopub = None
         random_ports += 2
     if args.task:
         task = split_ports(args.task, 2)
@@ -139,7 +148,8 @@ def main(argv=None):
     if args.execkey and not os.path.isfile(args.execkey):
             generate_exec_key(args.execkey)
     
-    thesession = session.StreamSession(username=args.ident or "controller", keyfile=args.execkey)
+    thesession = session.StreamSession(username=args.ident or "controller", 
+                    keyfile=args.execkey, session=args.session)
     
     ### build and launch the queues ###
     
@@ -151,6 +161,19 @@ def main(argv=None):
     
     ports = select_random_ports(random_ports)
     children = []
+    
+    # IOPub relay (in a Process)
+    if not iopub:
+        iopub = (ports.pop(),ports.pop())
+    q = ProcessMonitoredQueue(zmq.SUB, zmq.PUB, zmq.PUB, 'iopub', 'N/A')
+    q.bind_in(iface%iopub[1])
+    q.bind_out(iface%iopub[0])
+    q.setsockopt_in(zmq.SUBSCRIBE, '')
+    q.connect_mon(iface%monport)
+    q.daemon=True
+    q.start()
+    children.append(q.launcher)
+    
     # Multiplexer Queue (in a Process)
     if not mux:
         mux = (ports.pop(),ports.pop())
@@ -204,6 +227,7 @@ def main(argv=None):
         'queue': iface%mux[1],
         'heartbeat': (iface%hb[0], iface%hb[1]),
         'task' : iface%task[1],
+        'iopub' : iface%iopub[1],
         'monitor' : iface%monport,
         }
     
@@ -212,8 +236,11 @@ def main(argv=None):
         'query': iface%cport,
         'queue': iface%mux[0],
         'task' : iface%task[0],
+        'iopub' : iface%iopub[0],
         'notification': iface%nport
         }
+    
+    # register relay of signals to the children
     signal_children(children)
     hub = Hub(loop, thesession, sub, reg, hmon, c, n, db, engine_addrs, client_addrs)
     dc = ioloop.DelayedCallback(lambda : print("Controller started..."), 100, loop)

@@ -30,9 +30,9 @@ from IPython.external.decorator import decorator
 
 @decorator
 def logged(f,self,*args,**kwargs):
-    print ("#--------------------")
-    print ("%s(*%s,**%s)"%(f.func_name, args, kwargs))
-    print ("#--")
+    # print ("#--------------------")
+    # print ("%s(*%s,**%s)"%(f.func_name, args, kwargs))
+    # print ("#--")
     return f(self,*args, **kwargs)
 
 #----------------------------------------------------------------------

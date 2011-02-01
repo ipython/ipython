@@ -41,6 +41,10 @@ else:
 def _passer(*args, **kwargs):
     return
 
+def _printer(*args, **kwargs):
+    print (args)
+    print (kwargs)
+
 def init_record(msg):
     """return an empty TaskRecord dict, with all keys initialized with None."""
     header = msg['header']
@@ -58,7 +62,12 @@ def init_record(msg):
         'result_header' : None,
         'result_content' : None,
         'result_buffers' : None,
-        'queue' : None
+        'queue' : None,
+        'pyin' : None,
+        'pyout': None,
+        'pyerr': None,
+        'stdout': '',
+        'stderr': '',
     }
 
 
@@ -181,19 +190,20 @@ class Hub(object):
         # register our callbacks
         self.registrar.on_recv(self.dispatch_register_request)
         self.clientele.on_recv(self.dispatch_client_msg)
-        self.queue.on_recv(self.dispatch_queue_traffic)
+        self.queue.on_recv(self.dispatch_monitor_traffic)
         
         if heartbeat is not None:
             heartbeat.add_heart_failure_handler(self.handle_heart_failure)
             heartbeat.add_new_heart_handler(self.handle_new_heart)
         
-        self.queue_handlers = { 'in' : self.save_queue_request,
+        self.monitor_handlers = { 'in' : self.save_queue_request,
                                 'out': self.save_queue_result,
                                 'intask': self.save_task_request,
                                 'outtask': self.save_task_result,
                                 'tracktask': self.save_task_destination,
                                 'incontrol': _passer,
                                 'outcontrol': _passer,
+                                'iopub': self.save_iopub_message,
         }
         
         self.client_handlers = {'queue_request': self.queue_status,
@@ -262,7 +272,7 @@ class Hub(object):
         try:
             msg = self.session.unpack_message(msg[1:], content=True)
         except:
-            logger.error("client::Invalid Message %s"%msg)
+            logger.error("client::Invalid Message %s"%msg, exc_info=True)
             return False
         
         msg_type = msg.get('msg_type', None)
@@ -299,19 +309,20 @@ class Hub(object):
         else:
             handler(idents, msg)
     
-    def dispatch_queue_traffic(self, msg):
-        """all ME and Task queue messages come through here"""
-        logger.debug("queue traffic: %s"%msg[:2])
+    def dispatch_monitor_traffic(self, msg):
+        """all ME and Task queue messages come through here, as well as
+        IOPub traffic."""
+        logger.debug("monitor traffic: %s"%msg[:2])
         switch = msg[0]
         idents, msg = self.session.feed_identities(msg[1:])
         if not idents:
-            logger.error("Bad Queue Message: %s"%msg)
+            logger.error("Bad Monitor Message: %s"%msg)
             return
-        handler = self.queue_handlers.get(switch, None)
+        handler = self.monitor_handlers.get(switch, None)
         if handler is not None:
             handler(idents, msg)
         else:
-            logger.error("Invalid message topic: %s"%switch)
+            logger.error("Invalid monitor topic: %s"%switch)
         
     
     def dispatch_client_msg(self, msg):
@@ -486,7 +497,7 @@ class Hub(object):
             msg = self.session.unpack_message(msg, content=False)
         except:
             logger.error("task::invalid task result message send to %r: %s"%(
-                    client_id, msg))
+                    client_id, msg), exc_info=True)
             raise
             return
         
@@ -532,7 +543,7 @@ class Hub(object):
         try:
             msg = self.session.unpack_message(msg, content=True)
         except:
-            logger.error("task::invalid task tracking message")
+            logger.error("task::invalid task tracking message", exc_info=True)
             return
         content = msg['content']
         print (content)
@@ -557,6 +568,43 @@ class Hub(object):
         # self.session.send('mia_reply', content=content, idents=client_id)
         
         
+    #--------------------- IOPub Traffic ------------------------------
+    
+    def save_iopub_message(self, topics, msg):
+        """save an iopub message into the db"""
+        print (topics)
+        try:
+            msg = self.session.unpack_message(msg, content=True)
+        except:
+            logger.error("iopub::invalid IOPub message", exc_info=True)
+            return
+        
+        parent = msg['parent_header']
+        msg_id = parent['msg_id']
+        msg_type = msg['msg_type']
+        content = msg['content']
+        
+        # ensure msg_id is in db
+        try:
+            rec = self.db.get_record(msg_id)
+        except:
+            logger.error("iopub::IOPub message has invalid parent", exc_info=True)
+            return
+        # stream
+        d = {}
+        if msg_type == 'stream':
+            name = content['name']
+            s = rec[name] or ''
+            d[name] = s + content['data']
+            
+        elif msg_type == 'pyerr':
+            d['pyerr'] = content
+        else:
+            d[msg_type] = content['data']
+        
+        self.db.update_record(msg_id, d)
+        
+    
             
     #-------------------------------------------------------------------------
     # Registration requests
@@ -579,7 +627,7 @@ class Hub(object):
         try:
             queue = content['queue']
         except KeyError:
-            logger.error("registration::queue not specified")
+            logger.error("registration::queue not specified", exc_info=True)
             return
         heart = content.get('heartbeat', None)
         """register a new engine, and create the socket(s) necessary"""
@@ -639,7 +687,7 @@ class Hub(object):
         try:
             eid = msg['content']['id']
         except:
-            logger.error("registration::bad engine id for unregistration: %s"%ident)
+            logger.error("registration::bad engine id for unregistration: %s"%ident, exc_info=True)
             return
         logger.info("registration::unregister_engine(%s)"%eid)
         content=dict(id=eid, queue=self.engines[eid].queue)
@@ -662,7 +710,7 @@ class Hub(object):
         try: 
             (eid,queue,reg,purge) = self.incoming_registrations.pop(heart)
         except KeyError:
-            logger.error("registration::tried to finish nonexistant registration")
+            logger.error("registration::tried to finish nonexistant registration", exc_info=True)
             return
         logger.info("registration::finished registering engine %i:%r"%(eid,queue))
         if purge is not None:
@@ -820,9 +868,13 @@ class Hub(object):
                 completed.append(msg_id)
                 if not statusonly:
                     rec = records[msg_id]
+                    io_dict = {}
+                    for key in 'pyin pyout pyerr stdout stderr'.split():
+                            io_dict[key] = rec[key]
                     content[msg_id] = { 'result_content': rec['result_content'],
                                         'header': rec['header'],
                                         'result_header' : rec['result_header'],
+                                        'io' : io_dict,
                                       }
                     buffers.extend(map(str, rec['result_buffers']))
             else:

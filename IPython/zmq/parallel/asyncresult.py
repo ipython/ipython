@@ -137,11 +137,13 @@ class AsyncResult(object):
         return self._metadata
     
     @property
-    @check_ready
     def result_dict(self):
         """result property as a dict."""
         return self.get_dict(0)
     
+    def __dict__(self):
+        return self.get_dict(0)
+
     #-------------------------------------
     # dict-access
     #-------------------------------------

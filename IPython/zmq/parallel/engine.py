@@ -26,7 +26,7 @@ from entry_point import make_base_argument_parser, connect_logger, parse_url
 
 
 def printer(*msg):
-    pprint(msg)
+    pprint(msg, stream=sys.__stdout__)
 
 class Engine(object):
     """IPython engine"""
@@ -69,19 +69,12 @@ class Engine(object):
             shell_addrs = [str(queue_addr)]
             control_addr = str(msg.content.control)
             task_addr = msg.content.task
+            iopub_addr = msg.content.iopub
             if task_addr:
                 shell_addrs.append(str(task_addr))
             
             hb_addrs = msg.content.heartbeat
             # ioloop.DelayedCallback(self.heart.start, 1000, self.loop).start()
-            
-            # placeholder for no, since pub isn't hooked up:
-            sub = self.context.socket(zmq.SUB)
-            sub = zmqstream.ZMQStream(sub, self.loop)
-            sub.on_recv(lambda *a: None)
-            port = sub.bind_to_random_port("tcp://%s"%LOCALHOST)
-            iopub_addr = "tcp://%s:%i"%(LOCALHOST,12345)
-            
             k = make_kernel(self.ident, control_addr, shell_addrs, iopub_addr,
                             hb_addrs, client_addr=None, loop=self.loop,
                             context=self.context, key=self.session.key)[-1]
@@ -96,7 +89,7 @@ class Engine(object):
         
         # logger.info("engine::completed registration with id %s"%self.session.username)
         
-        print (msg)
+        print (msg,file=sys.__stdout__)
     
     def unregister(self):
         self.session.send(self.registrar, "unregistration_request", content=dict(id=int(self.session.username)))
@@ -104,7 +97,7 @@ class Engine(object):
         sys.exit(0)
     
     def start(self):
-        print ("registering")
+        print ("registering",file=sys.__stdout__)
         self.register()
 
         
@@ -128,7 +121,7 @@ def main(argv=None, user_ns=None):
     connect_logger(ctx, iface%args.logport, root="engine", loglevel=args.loglevel)
     
     reg_conn = iface % args.regport
-    print (reg_conn)
+    print (reg_conn, file=sys.__stdout__)
     print ("Starting the engine...", file=sys.__stderr__)
     
     reg = ctx.socket(zmq.PAIR)

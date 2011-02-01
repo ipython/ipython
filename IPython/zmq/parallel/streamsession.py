@@ -336,7 +336,7 @@ class StreamSession(object):
         return header.get('key', None) == self.key
             
         
-    def send(self, stream, msg_type, content=None, buffers=None, parent=None, subheader=None, ident=None):
+    def send(self, stream, msg_or_type, content=None, buffers=None, parent=None, subheader=None, ident=None):
         """Build and send a message via stream or socket.
         
         Parameters
@@ -344,10 +344,9 @@ class StreamSession(object):
         
         stream : zmq.Socket or ZMQStream
             the socket-like object used to send the data
-        msg_type : str or Message/dict
-            Normally, msg_type will be 
-            
-            
+        msg_or_type : str or Message/dict
+            Normally, msg_or_type will be a msg_type unless a message is being sent more
+            than once.
         
         Returns
         -------
@@ -356,13 +355,13 @@ class StreamSession(object):
                 the nice wrapped dict-like object containing the headers
             
         """
-        if isinstance(msg_type, (Message, dict)):
+        if isinstance(msg_or_type, (Message, dict)):
             # we got a Message, not a msg_type
             # don't build a new Message
-            msg = msg_type
+            msg = msg_or_type
             content = msg['content']
         else:
-            msg = self.msg(msg_type, content, parent, subheader)
+            msg = self.msg(msg_or_type, content, parent, subheader)
         buffers = [] if buffers is None else buffers
         to_send = []
         if isinstance(ident, list):

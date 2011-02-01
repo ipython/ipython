@@ -28,6 +28,9 @@ from IPython.core import ultratb
 from IPython.utils.traitlets import HasTraits, Instance, List
 from IPython.zmq.completer import KernelCompleter
 from IPython.zmq.log import logger # a Logger object
+from IPython.zmq.iostream import OutStream
+from IPython.zmq.displayhook import DisplayHook
+
 
 from streamsession import StreamSession, Message, extract_header, serialize_object,\
                 unpack_apply_message, ISO8601, wrap_exception
@@ -36,7 +39,7 @@ import heartmonitor
 from client import Client
 
 def printer(*args):
-    pprint(args)
+    pprint(args, stream=sys.__stdout__)
 
 #-----------------------------------------------------------------------------
 # Main kernel class
@@ -59,6 +62,7 @@ class Kernel(HasTraits):
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
         self.identity = self.shell_streams[0].getsockopt(zmq.IDENTITY)
+        self.prefix = 'engine.%s'%self.identity
         self.user_ns = {}
         self.history = []
         self.compiler = CommandCompiler()
@@ -212,18 +216,22 @@ class Kernel(HasTraits):
             return
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_stream.send(pyin_msg)
-        self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent)
+        self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent,
+                            ident=self.identity+'.pyin')
         started = datetime.now().strftime(ISO8601)
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
             # allow for not overriding displayhook
             if hasattr(sys.displayhook, 'set_parent'):
                 sys.displayhook.set_parent(parent)
+                sys.stdout.set_parent(parent)
+                sys.stderr.set_parent(parent)
             exec comp_code in self.user_ns, self.user_ns
         except:
             exc_content = self._wrap_exception('execute')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
-            self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent)
+            self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
+                            ident=self.identity+'.pyerr')
             reply_content = exc_content
         else:
             reply_content = {'status' : 'ok'}
@@ -247,7 +255,7 @@ class Kernel(HasTraits):
         return self.completer.complete(msg.content.line, msg.content.text)
     
     def apply_request(self, stream, ident, parent):
-        print (parent)
+        # print (parent)
         try:
             content = parent[u'content']
             bufs = parent[u'buffers']
@@ -266,6 +274,8 @@ class Kernel(HasTraits):
             # allow for not overriding displayhook
             if hasattr(sys.displayhook, 'set_parent'):
                 sys.displayhook.set_parent(parent)
+                sys.stdout.set_parent(parent)
+                sys.stderr.set_parent(parent)
             # exec "f(*args,**kwargs)" in self.user_ns, self.user_ns
             if bound:
                 working = self.user_ns
@@ -305,7 +315,8 @@ class Kernel(HasTraits):
         except:
             exc_content = self._wrap_exception('apply')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
-            self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent)
+            self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
+                                ident=self.identity+'.pyerr')
             reply_content = exc_content
             result_buf = []
             
@@ -318,7 +329,7 @@ class Kernel(HasTraits):
         # self.reply_socket.send_json(reply_msg)
         reply_msg = self.session.send(stream, u'apply_reply', reply_content, 
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
-        print(Message(reply_msg), file=sys.__stdout__)
+        # print(Message(reply_msg), file=sys.__stdout__)
         # if reply_msg['content']['status'] == u'error':
         #     self.abort_queues()
     
@@ -364,7 +375,7 @@ class Kernel(HasTraits):
         
         if self.iopub_stream:
             self.iopub_stream.on_err(printer)
-            self.iopub_stream.on_send(printer)
+            # self.iopub_stream.on_send(printer)
         
         #### while True mode:
         # while True:
@@ -388,7 +399,9 @@ class Kernel(HasTraits):
         #         time.sleep(1e-3)
 
 def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs, 
-                client_addr=None, loop=None, context=None, key=None):
+                client_addr=None, loop=None, context=None, key=None,
+                out_stream_factory=OutStream, display_hook_factory=DisplayHook):
+    
     # create loop, context, and session:
     if loop is None:
         loop = ioloop.IOLoop.instance()
@@ -416,6 +429,17 @@ def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs,
     iopub_stream = zmqstream.ZMQStream(c.socket(zmq.PUB), loop)
     iopub_stream.setsockopt(zmq.IDENTITY, identity)
     iopub_stream.connect(iopub_addr)
+    
+    # Redirect input streams and set a display hook.
+    if out_stream_factory:
+        sys.stdout = out_stream_factory(session, iopub_stream, u'stdout')
+        sys.stdout.topic = identity+'.stdout'
+        sys.stderr = out_stream_factory(session, iopub_stream, u'stderr')
+        sys.stderr.topic = identity+'.stderr'
+    if display_hook_factory:
+        sys.displayhook = display_hook_factory(session, iopub_stream)
+        sys.displayhook.topic = identity+'.pyout'
+    
     
     # launch heartbeat
     heart = heartmonitor.Heart(*map(str, hb_addrs), heart_id=identity)
