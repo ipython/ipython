@@ -250,7 +250,7 @@ class CompositeError(KernelError):
                 et,ev,tb = sys.exc_info()
 
 
-def collect_exceptions(rdict_or_list, method):
+def collect_exceptions(rdict_or_list, method='unspecified'):
     """check a result dict for errors, and raise CompositeError if any exist.
     Passthrough otherwise."""
     elist = []
