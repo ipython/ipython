@@ -2,6 +2,10 @@
 Parallel examples
 =================
 
+.. note::
+
+    Not adapted to zmq yet
+
 In this section we describe two more involved examples of using an IPython
 cluster to perform a parallel computation. In these examples, we will be using
 IPython's "pylab" mode, which enables interactive plotting using the

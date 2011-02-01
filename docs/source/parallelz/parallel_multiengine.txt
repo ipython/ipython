@@ -129,8 +129,8 @@ apply
 
 The main method for doing remote execution (in fact, all methods that
 communicate with the engines are built on top of it), is :meth:`Client.apply`.
-Ideally, :meth:`apply` would have the signature :meth:`apply(f,*args,**kwargs)`,
-which would call f(*args,**kwargs) remotely.  However, since :class:`Clients`
+Ideally, :meth:`apply` would have the signature ``apply(f,*args,**kwargs)``,
+which would call ``f(*args,**kwargs)`` remotely.  However, since :class:`Clients`
 require some more options, they cannot reasonably provide this interface.
 Instead, they provide the signature::
 
@@ -613,7 +613,7 @@ basic effect using :meth:`scatter` and :meth:`gather`:
     Out[66]: [None,None,None,None]
 
     In [67]: px y = [i**10 for i in x]
-    Executing command on Controller
+    Parallel execution on engines: [0, 1, 2, 3]
     Out[67]: 
 
     In [68]: y = rc.gather('y')

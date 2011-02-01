@@ -54,7 +54,6 @@ The IPython architecture consists of four components:
 
 * The IPython engine.
 * The IPython controller.
-* The IPython scheduler.
 * The controller client.
 
 These components live in the :mod:`IPython.zmq.parallel` package and are
@@ -80,13 +79,11 @@ to the user.
 IPython controller
 ------------------
 
-The IPython controller provides an interface for working with a set of
-engines. At an general level, the controller is a collection of processes to
-which IPython engines can connect. For each connected engine, the controller
-manages two queues. All actions that can be performed on the engine go through
-this queue. While the engines themselves block when user code is run, the
-controller hides that from the user to provide a fully asynchronous interface
-to a set of engines.
+The IPython controller provides an interface for working with a set of engines. At a
+general level, the controller is a collection of processes to which IPython engines and
+clients can connect. The controller is composed of a :class:`Hub` and a collection of
+:class:`Schedulers`. These Schedulers are typically run in separate processes but on the
+same machine as the Hub, but can be run anywhere from local threads or on remote machines.
 
 The controller also provides a single point of contact for users who wish to
 utilize the engines connected to the controller. There are different ways of
@@ -107,11 +104,31 @@ styles of parallelism.
     A single controller and set of engines can be used with multiple models
     simultaneously. This opens the door for lots of interesting things.
 
-Controller client
------------------
 
-There is one primary object, the :class:`~.parallel.client.Client`, for connecting to a controller.  For each model, there is a corresponding view. These views allow users to interact with a set of engines through the
-interface.  Here are the two default views:
+The Hub
+*******
+
+The center of an IPython cluster is the Controller Hub. This is the process that keeps
+track of engine connections, schedulers, clients, as well as all task requests and
+results. The primary role of the Hub is to facilitate queries of the cluster state, and
+minimize the necessary information required to establish the many connections involved in
+connecting new clients and engines.
+
+
+Schedulers
+**********
+
+All actions that can be performed on the engine go through a Scheduler. While the engines
+themselves block when user code is run, the schedulers hide that from the user to provide
+a fully asynchronous interface to a set of engines.
+
+
+IPython client
+--------------
+
+There is one primary object, the :class:`~.parallel.client.Client`, for connecting to a
+controller. For each model, there is a corresponding view. These views allow users to
+interact with a set of engines through the interface. Here are the two default views:
 
 * The :class:`DirectView` class for explicit addressing.
 * The :class:`LoadBalancedView` class for destination-agnostic scheduling.
@@ -175,16 +192,16 @@ everything is working correctly, try the following commands:
 	Out[5]: {0: 'Hello, World', 1: 'Hello, World', 2: 'Hello, World', 3: 
 	        'Hello, World'}
 
-Remember, a client needs to be able to see the Controller. So if the
-controller is on a different machine, and you have ssh access to that machine,
+Remember, a client needs to be able to see the Hub. So if they
+are on a different machine, and you have ssh access to that machine,
 then you would connect to it with::
 
 .. sourcecode:: ipython
 
-    In [2]: c = client.Client(sshserver='mycontroller.example.com')
+    In [2]: c = client.Client(sshserver='myhub.example.com')
 
-Where 'mycontroller.example.com' is the url or IP address of the machine on
-which the Controller is running.
+Where 'myhub.example.com' is the url or IP address of the machine on
+which the Hub process is running.
 
 You are now ready to learn more about the :ref:`MUX
 <parallelmultiengine>` and :ref:`Task <paralleltask>` interfaces to the
