@@ -11,6 +11,8 @@ Python Scheduler exists.
 
 from __future__ import print_function
 from random import randint,random
+import logging
+from types import FunctionType
 
 try:
     import numpy
@@ -21,17 +23,22 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # local imports
-from IPython.zmq.log import logger # a Logger object
+from IPython.external.decorator import decorator
+from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import Instance
+
 from client import Client
 from dependency import Dependency
 import streamsession as ss
+from entry_point import connect_logger, local_logger
 
-from IPython.external.decorator import decorator
+
+logger = logging.getLogger()
 
 @decorator
 def logged(f,self,*args,**kwargs):
     # print ("#--------------------")
-    # print ("%s(*%s,**%s)"%(f.func_name, args, kwargs))
+    logger.debug("scheduler::%s(*%s,**%s)"%(f.func_name, args, kwargs))
     # print ("#--")
     return f(self,*args, **kwargs)
 
@@ -99,7 +106,7 @@ def leastload(loads):
 #---------------------------------------------------------------------
 # Classes
 #---------------------------------------------------------------------
-class TaskScheduler(object):
+class TaskScheduler(Configurable):
     """Python TaskScheduler object.
     
     This is the simplest object that supports msg_id based
@@ -108,10 +115,15 @@ class TaskScheduler(object):
     
     """
     
-    scheme = leastload # function for determining the destination
-    client_stream = None # client-facing stream
-    engine_stream = None # engine-facing stream
-    mon_stream = None # controller-facing stream
+    # configurables:
+    scheme = Instance(FunctionType, default=leastload) # function for determining the destination
+    client_stream = Instance(zmqstream.ZMQStream) # client-facing stream
+    engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
+    notifier_stream = Instance(zmqstream.ZMQStream) # hub-facing sub stream
+    mon_stream = Instance(zmqstream.ZMQStream) # hub-facing pub stream
+    io_loop = Instance(ioloop.IOLoop)
+    
+    # internals:
     dependencies = None # dict by msg_id of [ msg_ids that depend on key ]
     depending = None # dict by msg_id of (msg_id, raw_msg, after, follow)
     pending = None # dict by engine_uuid of submitted tasks
@@ -123,23 +135,10 @@ class TaskScheduler(object):
     blacklist = None # dict by msg_id of locations where a job has encountered UnmetDependency
     
     
-    def __init__(self, client_stream, engine_stream, mon_stream, 
-                notifier_stream, scheme=None, io_loop=None):
-        if io_loop is None:
-            io_loop = ioloop.IOLoop.instance()
-        self.io_loop = io_loop
-        self.client_stream = client_stream
-        self.engine_stream = engine_stream
-        self.mon_stream = mon_stream
-        self.notifier_stream = notifier_stream
-        
-        if scheme is not None:
-            self.scheme = scheme
-        else:
-            self.scheme = TaskScheduler.scheme
+    def __init__(self, **kwargs):
+        super(TaskScheduler, self).__init__(**kwargs)
         
         self.session = ss.StreamSession(username="TaskScheduler")
-        
         self.dependencies = {}
         self.depending = {}
         self.completed = {}
@@ -150,12 +149,13 @@ class TaskScheduler(object):
         self.targets = []
         self.loads = []
         
-        engine_stream.on_recv(self.dispatch_result, copy=False)
+        self.engine_stream.on_recv(self.dispatch_result, copy=False)
         self._notification_handlers = dict(
             registration_notification = self._register_engine,
             unregistration_notification = self._unregister_engine
         )
         self.notifier_stream.on_recv(self.dispatch_notification)
+        logger.info("Scheduler started...%r"%self)
     
     def resume_receiving(self):
         """Resume accepting jobs."""
@@ -183,6 +183,7 @@ class TaskScheduler(object):
                 handler(str(msg['content']['queue']))
             except KeyError:
                 logger.error("task::Invalid notification msg: %s"%msg)
+    
     @logged
     def _register_engine(self, uid):
         """New engine with ident `uid` became available."""
@@ -306,7 +307,8 @@ class TaskScheduler(object):
         self.add_job(idx)
         self.pending[target][msg_id] = (msg, follow)
         content = dict(msg_id=msg_id, engine_id=target)
-        self.session.send(self.mon_stream, 'task_destination', content=content, ident='tracktask')
+        self.session.send(self.mon_stream, 'task_destination', content=content, 
+                        ident=['tracktask',self.session.session])
     
     #-----------------------------------------------------------------------
     # Result Handling
@@ -395,7 +397,7 @@ class TaskScheduler(object):
     
 
 
-def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, scheme='weighted'):
+def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, log_addr=None, loglevel=logging.DEBUG, scheme='weighted'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
     
@@ -414,7 +416,15 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, scheme='weighted'):
     nots.setsockopt(zmq.SUBSCRIBE, '')
     nots.connect(not_addr)
     
-    scheduler = TaskScheduler(ins,outs,mons,nots,scheme,loop)
+    # setup logging
+    if log_addr:
+        connect_logger(ctx, log_addr, root="scheduler", loglevel=loglevel)
+    else:
+        local_logger(loglevel)
+    
+    scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
+                            mon_stream=mons,notifier_stream=nots,
+                            scheme=scheme,io_loop=loop)
     
     loop.start()
 

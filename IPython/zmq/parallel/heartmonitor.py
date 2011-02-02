@@ -7,13 +7,13 @@ and hearts are tracked based on their XREQ identities.
 from __future__ import print_function
 import time
 import uuid
+import logging
 
 import zmq
 from zmq.devices import ProcessDevice,ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
-#internal
-from IPython.zmq.log import logger
+logger = logging.getLogger()
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
@@ -53,6 +53,7 @@ class HeartMonitor(object):
     hearts=None
     on_probation=None
     last_ping=None
+    # debug=False
     
     def __init__(self, loop, pingstream, pongstream, period=1000):
         self.loop = loop
@@ -84,19 +85,6 @@ class HeartMonitor(object):
         """add a new handler for heart failure"""
         logger.debug("heartbeat::new heart failure handler: %s"%handler)
         self._failure_handlers.add(handler)
-    
-    # def _flush(self):
-    #     """override IOLoop triggers"""
-    #     while True:
-    #         try:
-    #             msg = self.pongstream.socket.recv_multipart(zmq.NOBLOCK)
-    #             logger.warn("IOLoop triggered beat with incoming heartbeat waiting to be handled")
-    #         except zmq.ZMQError:
-    #             return
-    #         else:
-    #             self.handle_pong(msg)
-    #         # print '.'
-    #             
             
     def beat(self):
         self.pongstream.flush() 
@@ -105,7 +93,7 @@ class HeartMonitor(object):
         toc = time.time()
         self.lifetime += toc-self.tic
         self.tic = toc
-        logger.debug("heartbeat::%s"%self.lifetime)
+        # logger.debug("heartbeat::%s"%self.lifetime)
         goodhearts = self.hearts.intersection(self.responses)
         missed_beats = self.hearts.difference(goodhearts)
         heartfailures = self.on_probation.intersection(missed_beats)
@@ -144,7 +132,7 @@ class HeartMonitor(object):
         "a heart just beat"
         if msg[1] == str(self.lifetime):
             delta = time.time()-self.tic
-            logger.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))
+            # logger.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))
             self.responses.add(msg[0])
         elif msg[1] == str(self.last_ping):
             delta = time.time()-self.tic + (self.lifetime-self.last_ping)

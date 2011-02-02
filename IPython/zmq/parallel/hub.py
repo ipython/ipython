@@ -18,14 +18,19 @@ from __future__ import print_function
 import sys
 from datetime import datetime
 import time
+import logging
 
 import zmq
-from zmq.eventloop import ioloop
+from zmq.eventloop import ioloop, zmqstream
 
 # internal:
-from IPython.zmq.log import logger # a Logger object
+from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import HasTraits, Instance, Int, Str, Dict
+# from IPython.zmq.log import logger # a Logger object
 
 from streamsession import Message, wrap_exception, ISO8601
+from heartmonitor import HeartMonitor
+from util import validate_url_container
 
 try:
     from pymongo.binary import Binary
@@ -38,6 +43,8 @@ else:
 # Code
 #-----------------------------------------------------------------------------
 
+logger = logging.getLogger()
+
 def _passer(*args, **kwargs):
     return
 
@@ -46,7 +53,7 @@ def _printer(*args, **kwargs):
     print (kwargs)
 
 def init_record(msg):
-    """return an empty TaskRecord dict, with all keys initialized with None."""
+    """Initialize a TaskRecord based on a request."""
     header = msg['header']
     return {
         'msg_id' : header['msg_id'],
@@ -71,7 +78,7 @@ def init_record(msg):
     }
 
 
-class EngineConnector(object):
+class EngineConnector(HasTraits):
     """A simple object for accessing the various zmq connections of an object.
     Attributes are:
     id (int): engine ID
@@ -80,22 +87,18 @@ class EngineConnector(object):
     registration (str): identity of registration XREQ socket
     heartbeat (str): identity of heartbeat XREQ socket
     """
-    id=0
-    queue=None
-    control=None
-    registration=None
-    heartbeat=None
-    pending=None
+    id=Int(0)
+    queue=Str()
+    control=Str()
+    registration=Str()
+    heartbeat=Str()
+    pending=Instance(set)
     
-    def __init__(self, id, queue, registration, control, heartbeat=None):
-        logger.info("engine::Engine Connected: %i"%id)
-        self.id = id
-        self.queue = queue
-        self.registration = registration
-        self.control = control
-        self.heartbeat = heartbeat
+    def __init__(self, **kwargs):
+        super(EngineConnector, self).__init__(**kwargs)
+        logger.info("engine::Engine Connected: %i"%self.id)
         
-class Hub(object):
+class Hub(Configurable):
     """The IPython Controller Hub with 0MQ connections
     
     Parameters
@@ -123,26 +126,25 @@ class Hub(object):
     clients=None
     hearts=None
     pending=None
-    results=None
     tasks=None
     completed=None
-    mia=None
+    # mia=None
     incoming_registrations=None
     registration_timeout=None
     
-    #objects from constructor:
-    loop=None
-    registrar=None
-    clientelle=None
-    queue=None
-    heartbeat=None
-    notifier=None
-    db=None
-    client_addr=None
-    engine_addrs=None
+    # objects from constructor:
+    loop=Instance(ioloop.IOLoop)
+    registrar=Instance(zmqstream.ZMQStream)
+    clientele=Instance(zmqstream.ZMQStream)
+    monitor=Instance(zmqstream.ZMQStream)
+    heartmonitor=Instance(HeartMonitor)
+    notifier=Instance(zmqstream.ZMQStream)
+    db=Instance(object)
+    client_addrs=Dict()
+    engine_addrs=Dict()
     
     
-    def __init__(self, loop, session, queue, registrar, heartbeat, clientele, notifier, db, engine_addrs, client_addrs):
+    def __init__(self, **kwargs):
         """
         # universal:
         loop: IOLoop for creating future connections
@@ -158,6 +160,8 @@ class Hub(object):
         engine_addrs: zmq address/protocol dict for engine connections
         client_addrs: zmq address/protocol dict for client connections
         """
+        
+        super(Hub, self).__init__(**kwargs)
         self.ids = set()
         self.keytable={}
         self.incoming_registrations={}
@@ -166,35 +170,44 @@ class Hub(object):
         self.clients = {}
         self.hearts = {}
         # self.mia = set()
-        
+        self.registration_timeout = max(5000, 2*self.heartmonitor.period)
+        # this is the stuff that will move to DB:
+        self.pending = set() # pending messages, keyed by msg_id
+        self.queues = {} # pending msg_ids keyed by engine_id
+        self.tasks = {} # pending msg_ids submitted as tasks, keyed by client_id
+        self.completed = {} # completed msg_ids keyed by engine_id
+        self.all_completed = set()
+        self._idcounter = 0
         # self.sockets = {}
-        self.loop = loop
-        self.session = session
-        self.registrar = registrar
-        self.clientele = clientele
-        self.queue = queue
-        self.heartbeat = heartbeat
-        self.notifier = notifier
-        self.db = db
+        # self.loop = loop
+        # self.session = session
+        # self.registrar = registrar
+        # self.clientele = clientele
+        # self.queue = queue
+        # self.heartmonitor = heartbeat
+        # self.notifier = notifier
+        # self.db = db
         
         # validate connection dicts:
-        self.client_addrs = client_addrs
-        assert isinstance(client_addrs['queue'], str)
-        assert isinstance(client_addrs['control'], str)
+        # self.client_addrs = client_addrs
+        validate_url_container(self.client_addrs)
+        
+        # assert isinstance(self.client_addrs['queue'], str)
+        # assert isinstance(self.client_addrs['control'], str)
         # self.hb_addrs = hb_addrs
-        self.engine_addrs = engine_addrs
-        assert isinstance(engine_addrs['queue'], str)
-        assert isinstance(client_addrs['control'], str)
-        assert len(engine_addrs['heartbeat']) == 2
+        validate_url_container(self.engine_addrs)
+        # self.engine_addrs = engine_addrs
+        # assert isinstance(self.engine_addrs['queue'], str)
+        # assert isinstance(self.engine_addrs['control'], str)
+        # assert len(engine_addrs['heartbeat']) == 2
         
         # register our callbacks
         self.registrar.on_recv(self.dispatch_register_request)
         self.clientele.on_recv(self.dispatch_client_msg)
-        self.queue.on_recv(self.dispatch_monitor_traffic)
+        self.monitor.on_recv(self.dispatch_monitor_traffic)
         
-        if heartbeat is not None:
-            heartbeat.add_heart_failure_handler(self.handle_heart_failure)
-            heartbeat.add_new_heart_handler(self.handle_new_heart)
+        self.heartmonitor.add_heart_failure_handler(self.handle_heart_failure)
+        self.heartmonitor.add_new_heart_handler(self.handle_new_heart)
         
         self.monitor_handlers = { 'in' : self.save_queue_request,
                                 'out': self.save_queue_result,
@@ -218,25 +231,21 @@ class Hub(object):
                                 'unregistration_request' : self.unregister_engine,
                                 'connection_request': self.connection_request,
         }
-        self.registration_timeout = max(5000, 2*self.heartbeat.period)
-        # this is the stuff that will move to DB:
-        # self.results = {} # completed results
-        self.pending = set() # pending messages, keyed by msg_id
-        self.queues = {} # pending msg_ids keyed by engine_id
-        self.tasks = {} # pending msg_ids submitted as tasks, keyed by client_id
-        self.completed = {} # completed msg_ids keyed by engine_id
-        self.all_completed = set()
         
         logger.info("controller::created controller")
     
-    def _new_id(self):
+    @property
+    def _next_id(self):
         """gemerate a new ID"""
-        newid = 0
-        incoming = [id[0] for id in self.incoming_registrations.itervalues()]
-        # print newid, self.ids, self.incoming_registrations
-        while newid in self.ids or newid in incoming:
-            newid += 1
+        newid = self._idcounter
+        self._idcounter += 1
         return newid
+        # newid = 0
+        # incoming = [id[0] for id in self.incoming_registrations.itervalues()]
+        # # print newid, self.ids, self.incoming_registrations
+        # while newid in self.ids or newid in incoming:
+        #     newid += 1
+        # return newid
     
     #-----------------------------------------------------------------------------
     # message validation
@@ -580,6 +589,9 @@ class Hub(object):
             return
         
         parent = msg['parent_header']
+        if not parent:
+            logger.error("iopub::invalid IOPub message: %s"%msg)
+            return
         msg_id = parent['msg_id']
         msg_type = msg['msg_type']
         content = msg['content']
@@ -631,7 +643,7 @@ class Hub(object):
             return
         heart = content.get('heartbeat', None)
         """register a new engine, and create the socket(s) necessary"""
-        eid = self._new_id()
+        eid = self._next_id
         # print (eid, queue, reg, heart)
         
         logger.debug("registration::register_engine(%i, %r, %r, %r)"%(eid, queue, reg, heart))
@@ -644,10 +656,12 @@ class Hub(object):
                 raise KeyError("queue_id %r in use"%queue)
             except:
                 content = wrap_exception()
+                logger.error("queue_id %r in use"%queue, exc_info=True)
         elif heart in self.hearts: # need to check unique hearts?
             try:
                 raise KeyError("heart_id %r in use"%heart)
             except:
+                logger.error("heart_id %r in use"%heart, exc_info=True)
                 content = wrap_exception()
         else:
             for h, pack in self.incoming_registrations.iteritems():
@@ -655,12 +669,14 @@ class Hub(object):
                     try:
                         raise KeyError("heart_id %r in use"%heart)
                     except:
+                        logger.error("heart_id %r in use"%heart, exc_info=True)
                         content = wrap_exception()
                     break
                 elif queue == pack[1]:
                     try:
                         raise KeyError("queue_id %r in use"%queue)
                     except:
+                        logger.error("queue_id %r in use"%queue, exc_info=True)
                         content = wrap_exception()
                     break
         
@@ -669,15 +685,15 @@ class Hub(object):
                 ident=reg)
         
         if content['status'] == 'ok':
-            if heart in self.heartbeat.hearts:
+            if heart in self.heartmonitor.hearts:
                 # already beating
-                self.incoming_registrations[heart] = (eid,queue,reg,None)
+                self.incoming_registrations[heart] = (eid,queue,reg[0],None)
                 self.finish_registration(heart)
             else:
                 purge = lambda : self._purge_stalled_registration(heart)
                 dc = ioloop.DelayedCallback(purge, self.registration_timeout, self.loop)
                 dc.start()
-                self.incoming_registrations[heart] = (eid,queue,reg,dc)
+                self.incoming_registrations[heart] = (eid,queue,reg[0],dc)
         else:
             logger.error("registration::registration %i failed: %s"%(eid, content['evalue']))
         return eid
@@ -718,7 +734,8 @@ class Hub(object):
         control = queue
         self.ids.add(eid)
         self.keytable[eid] = queue
-        self.engines[eid] = EngineConnector(eid, queue, reg, control, heart)
+        self.engines[eid] = EngineConnector(id=eid, queue=queue, registration=reg, 
+                                    control=control, heartbeat=heart)
         self.by_ident[queue] = eid
         self.queues[eid] = list()
         self.tasks[eid] = list()

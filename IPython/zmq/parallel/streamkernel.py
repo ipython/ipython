@@ -15,6 +15,7 @@ import os
 import sys
 import time
 import traceback
+import logging
 from datetime import datetime
 from signal import SIGTERM, SIGKILL
 from pprint import pprint
@@ -25,9 +26,8 @@ from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
 from IPython.core import ultratb
-from IPython.utils.traitlets import HasTraits, Instance, List
+from IPython.utils.traitlets import HasTraits, Instance, List, Int
 from IPython.zmq.completer import KernelCompleter
-from IPython.zmq.log import logger # a Logger object
 from IPython.zmq.iostream import OutStream
 from IPython.zmq.displayhook import DisplayHook
 
@@ -37,6 +37,8 @@ from streamsession import StreamSession, Message, extract_header, serialize_obje
 from dependency import UnmetDependency
 import heartmonitor
 from client import Client
+
+logger = logging.getLogger()
 
 def printer(*args):
     pprint(args, stream=sys.__stdout__)
@@ -51,8 +53,9 @@ class Kernel(HasTraits):
     # Kernel interface
     #---------------------------------------------------------------------------
 
+    id = Int(-1)
     session = Instance(StreamSession)
-    shell_streams = Instance(list)
+    shell_streams = List()
     control_stream = Instance(zmqstream.ZMQStream)
     task_stream = Instance(zmqstream.ZMQStream)
     iopub_stream = Instance(zmqstream.ZMQStream)
@@ -62,7 +65,8 @@ class Kernel(HasTraits):
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
         self.identity = self.shell_streams[0].getsockopt(zmq.IDENTITY)
-        self.prefix = 'engine.%s'%self.identity
+        self.prefix = 'engine.%s'%self.id
+        logger.root_topic = self.prefix
         self.user_ns = {}
         self.history = []
         self.compiler = CommandCompiler()
@@ -108,8 +112,8 @@ class Kernel(HasTraits):
                 
                 # assert self.reply_socketly_socket.rcvmore(), "Unexpected missing message part."
                 # msg = self.reply_socket.recv_json()
-            print ("Aborting:", file=sys.__stdout__)
-            print (Message(msg), file=sys.__stdout__)
+            logger.info("Aborting:")
+            logger.info(str(msg))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             # reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
@@ -117,7 +121,7 @@ class Kernel(HasTraits):
             # self.reply_socket.send_json(reply_msg)
             reply_msg = self.session.send(stream, reply_type, 
                         content={'status' : 'aborted'}, parent=msg, ident=idents)[0]
-            print(Message(reply_msg), file=sys.__stdout__)
+            logger.debug(str(reply_msg))
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.05)
@@ -135,7 +139,7 @@ class Kernel(HasTraits):
         content = dict(status='ok')
         reply_msg = self.session.send(stream, 'abort_reply', content=content, 
                 parent=parent, ident=ident)[0]
-        print(Message(reply_msg), file=sys.__stdout__)
+        logger(Message(reply_msg), file=sys.__stdout__)
     
     def shutdown_request(self, stream, ident, parent):
         """kill ourself.  This should really be handled in an external process"""
@@ -168,7 +172,7 @@ class Kernel(HasTraits):
         
         handler = self.control_handlers.get(msg['msg_type'], None)
         if handler is None:
-            print ("UNKNOWN CONTROL MESSAGE TYPE:", msg, file=sys.__stderr__)
+            logger.error("UNKNOWN CONTROL MESSAGE TYPE: %r"%msg['msg_type'])
         else:
             handler(self.control_stream, idents, msg)
     
@@ -211,13 +215,12 @@ class Kernel(HasTraits):
         try:
             code = parent[u'content'][u'code']
         except:
-            print("Got bad msg: ", file=sys.__stderr__)
-            print(Message(parent), file=sys.__stderr__)
+            logger.error("Got bad msg: %s"%parent, exc_info=True)
             return
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_stream.send(pyin_msg)
         self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent,
-                            ident=self.identity+'.pyin')
+                            ident='%s.pyin'%self.prefix)
         started = datetime.now().strftime(ISO8601)
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
@@ -231,7 +234,7 @@ class Kernel(HasTraits):
             exc_content = self._wrap_exception('execute')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
-                            ident=self.identity+'.pyerr')
+                            ident='%s.pyerr'%self.prefix)
             reply_content = exc_content
         else:
             reply_content = {'status' : 'ok'}
@@ -240,7 +243,7 @@ class Kernel(HasTraits):
         # self.reply_socket.send_json(reply_msg)
         reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, 
                     ident=ident, subheader = dict(started=started))
-        print(Message(reply_msg), file=sys.__stdout__)
+        logger.debug(str(reply_msg))
         if reply_msg['content']['status'] == u'error':
             self.abort_queues()
 
@@ -262,8 +265,7 @@ class Kernel(HasTraits):
             msg_id = parent['header']['msg_id']
             bound = content.get('bound', False)
         except:
-            print("Got bad msg: ", file=sys.__stderr__)
-            print(Message(parent), file=sys.__stderr__)
+            logger.error("Got bad msg: %s"%parent, exc_info=True)
             return
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_stream.send(pyin_msg)
@@ -316,7 +318,7 @@ class Kernel(HasTraits):
             exc_content = self._wrap_exception('apply')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
-                                ident=self.identity+'.pyerr')
+                                ident='%s.pyerr'%self.prefix)
             reply_content = exc_content
             result_buf = []
             
@@ -354,7 +356,7 @@ class Kernel(HasTraits):
             return
         handler = self.shell_handlers.get(msg['msg_type'], None)
         if handler is None:
-            print ("UNKNOWN MESSAGE TYPE:", msg, file=sys.__stderr__)
+            logger.error("UNKNOWN MESSAGE TYPE: %r"%msg['msg_type'])
         else:
             handler(stream, idents, msg)
     
@@ -398,7 +400,7 @@ class Kernel(HasTraits):
         #         # don't busywait
         #         time.sleep(1e-3)
 
-def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs, 
+def make_kernel(int_id, identity, control_addr, shell_addrs, iopub_addr, hb_addrs, 
                 client_addr=None, loop=None, context=None, key=None,
                 out_stream_factory=OutStream, display_hook_factory=DisplayHook):
     
@@ -410,7 +412,7 @@ def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs,
     c = context
     session = StreamSession(key=key)
     # print (session.key)
-    print (control_addr, shell_addrs, iopub_addr, hb_addrs)
+    # print (control_addr, shell_addrs, iopub_addr, hb_addrs)
     
     # create Control Stream
     control_stream = zmqstream.ZMQStream(c.socket(zmq.PAIR), loop)
@@ -433,12 +435,12 @@ def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs,
     # Redirect input streams and set a display hook.
     if out_stream_factory:
         sys.stdout = out_stream_factory(session, iopub_stream, u'stdout')
-        sys.stdout.topic = identity+'.stdout'
+        sys.stdout.topic = 'engine.%i.stdout'%int_id
         sys.stderr = out_stream_factory(session, iopub_stream, u'stderr')
-        sys.stderr.topic = identity+'.stderr'
+        sys.stderr.topic = 'engine.%i.stderr'%int_id
     if display_hook_factory:
         sys.displayhook = display_hook_factory(session, iopub_stream)
-        sys.displayhook.topic = identity+'.pyout'
+        sys.displayhook.topic = 'engine.%i.pyout'%int_id
     
     
     # launch heartbeat
@@ -451,7 +453,7 @@ def make_kernel(identity, control_addr, shell_addrs, iopub_addr, hb_addrs,
     else:
         client = None
     
-    kernel = Kernel(session=session, control_stream=control_stream, 
+    kernel = Kernel(id=int_id, session=session, control_stream=control_stream, 
             shell_streams=shell_streams, iopub_stream=iopub_stream, 
             client=client, loop=loop)
     kernel.start()

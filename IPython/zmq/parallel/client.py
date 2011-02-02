@@ -90,11 +90,6 @@ def defaultblock(f, self, *args, **kwargs):
 # Classes
 #--------------------------------------------------------------------------
 
-class AbortedTask(object):
-    """A basic wrapper object describing an aborted task."""
-    def __init__(self, msg_id):
-        self.msg_id = msg_id
-
 class ResultDict(dict):
     """A subclass of dict that raises errors if it has them."""
     def __getitem__(self, key):
@@ -332,10 +327,10 @@ class Client(object):
         msg = ss.Message(msg)
         content = msg.content
         if content.status == 'ok':
-            if content.queue:
+            if content.mux:
                 self._mux_socket = self.context.socket(zmq.PAIR)
                 self._mux_socket.setsockopt(zmq.IDENTITY, self.session.session)
-                connect_socket(self._mux_socket, content.queue)
+                connect_socket(self._mux_socket, content.mux)
             if content.task:
                 self._task_socket = self.context.socket(zmq.PAIR)
                 self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)

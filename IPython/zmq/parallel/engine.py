@@ -8,49 +8,48 @@ import sys
 import time
 import traceback
 import uuid
+import logging
 from pprint import pprint
 
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
-from IPython.utils.traitlets import HasTraits
-from IPython.utils.localinterfaces import LOCALHOST 
+# internal
+from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import Instance, Str, Dict
+# from IPython.utils.localinterfaces import LOCALHOST 
 
 from streamsession import Message, StreamSession
-from client import Client
 from streamkernel import Kernel, make_kernel
 import heartmonitor
-from entry_point import make_base_argument_parser, connect_logger, parse_url
+from entry_point import (make_base_argument_parser, connect_engine_logger, parse_url,
+                        local_logger)
 # import taskthread
-# from log import logger
-
+logger = logging.getLogger()
 
 def printer(*msg):
-    pprint(msg, stream=sys.__stdout__)
+    # print (logger.handlers, file=sys.__stdout__)
+    logger.info(str(msg))
 
-class Engine(object):
+class Engine(Configurable):
     """IPython engine"""
     
-    id=None
-    context=None
-    loop=None
-    session=None
-    ident=None
-    registrar=None
-    heart=None
     kernel=None
-    user_ns=None
+    id=None
     
-    def __init__(self, context, loop, session, registrar, client=None, ident=None,
-        heart_id=None, user_ns=None):
-        self.context = context
-        self.loop = loop
-        self.session = session
-        self.registrar = registrar
-        self.client = client
-        self.ident = ident if ident else str(uuid.uuid4())
+    # configurables:
+    context=Instance(zmq.Context)
+    loop=Instance(ioloop.IOLoop)
+    session=Instance(StreamSession)
+    ident=Str()
+    registrar=Instance(zmqstream.ZMQStream)
+    user_ns=Dict()
+    
+    def __init__(self, **kwargs):
+        super(Engine, self).__init__(**kwargs)
+        if not self.ident:
+            self.ident =  str(uuid.uuid4())
         self.registrar.on_send(printer)
-        self.user_ns = user_ns
         
     def register(self):
         
@@ -64,9 +63,10 @@ class Engine(object):
         idents,msg = self.session.feed_identities(msg)
         msg = Message(self.session.unpack_message(msg))
         if msg.content.status == 'ok':
-            self.session.username = str(msg.content.id)
-            queue_addr = msg.content.queue
-            shell_addrs = [str(queue_addr)]
+            self.id = int(msg.content.id)
+            self.session.username = 'engine-%i'%self.id
+            queue_addr = msg.content.mux
+            shell_addrs = [ str(queue_addr) ]
             control_addr = str(msg.content.control)
             task_addr = msg.content.task
             iopub_addr = msg.content.iopub
@@ -75,7 +75,7 @@ class Engine(object):
             
             hb_addrs = msg.content.heartbeat
             # ioloop.DelayedCallback(self.heart.start, 1000, self.loop).start()
-            k = make_kernel(self.ident, control_addr, shell_addrs, iopub_addr,
+            k = make_kernel(self.id, self.ident, control_addr, shell_addrs, iopub_addr,
                             hb_addrs, client_addr=None, loop=self.loop,
                             context=self.context, key=self.session.key)[-1]
             self.kernel = k
@@ -84,12 +84,12 @@ class Engine(object):
                 self.kernel.user_ns = self.user_ns
             
         else:
-            # logger.error("Registration Failed: %s"%msg)
+            logger.error("Registration Failed: %s"%msg)
             raise Exception("Registration Failed: %s"%msg)
         
-        # logger.info("engine::completed registration with id %s"%self.session.username)
+        logger.info("completed registration with id %i"%self.id)
         
-        print (msg,file=sys.__stdout__)
+        # logger.info(str(msg))
     
     def unregister(self):
         self.session.send(self.registrar, "unregistration_request", content=dict(id=int(self.session.username)))
@@ -97,7 +97,7 @@ class Engine(object):
         sys.exit(0)
     
     def start(self):
-        print ("registering",file=sys.__stdout__)
+        logger.info("registering")
         self.register()
 
         
@@ -118,7 +118,6 @@ def main(argv=None, user_ns=None):
     ctx = zmq.Context()
 
     # setup logging
-    connect_logger(ctx, iface%args.logport, root="engine", loglevel=args.loglevel)
     
     reg_conn = iface % args.regport
     print (reg_conn, file=sys.__stdout__)
@@ -127,10 +126,16 @@ def main(argv=None, user_ns=None):
     reg = ctx.socket(zmq.PAIR)
     reg.connect(reg_conn)
     reg = zmqstream.ZMQStream(reg, loop)
-    client = None
     
-    e = Engine(ctx, loop, session, reg, client, args.ident, user_ns=user_ns)
-    dc = ioloop.DelayedCallback(e.start, 100, loop)
+    e = Engine(context=ctx, loop=loop, session=session, registrar=reg, 
+            ident=args.ident or '', user_ns=user_ns)
+    if args.logport:
+        print ("connecting logger to %s"%(iface%args.logport), file=sys.__stdout__)
+        connect_engine_logger(ctx, iface%args.logport, e, loglevel=args.loglevel)
+    else:
+        local_logger(args.loglevel)
+    
+    dc = ioloop.DelayedCallback(e.start, 0, loop)
     dc.start()
     loop.start()
 

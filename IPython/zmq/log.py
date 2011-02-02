@@ -21,7 +21,3 @@ class EnginePUBHandler(PUBHandler):
         else:
             return "engine"
     
-
-logger = logging.getLogger('ipzmq')
-logger.setLevel(logging.DEBUG)
-

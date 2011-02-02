@@ -17,6 +17,7 @@ from __future__ import print_function
 
 import os
 import time
+import logging
 from multiprocessing import Process
 
 import zmq
@@ -29,7 +30,8 @@ from IPython.zmq.entry_point import bind_port
 
 from hub import Hub
 from entry_point import (make_base_argument_parser, select_random_ports, split_ports,
-                        connect_logger, parse_url, signal_children, generate_exec_key)
+                        connect_logger, parse_url, signal_children, generate_exec_key,
+                        local_logger)
 
 
 import streamsession as session
@@ -118,8 +120,6 @@ def main(argv=None):
     ctx = zmq.Context()
     loop = ioloop.IOLoop.instance()
     
-    # setup logging
-    connect_logger(ctx, iface%args.logport, root="controller", loglevel=args.loglevel)
     
     # Registrar socket
     reg = ZMQStream(ctx.socket(zmq.XREP), loop)
@@ -207,7 +207,9 @@ def main(argv=None):
         q.start()
         children.append(q.launcher)
     else:
-        sargs = (iface%task[0],iface%task[1],iface%monport,iface%nport,args.scheduler)
+        log_addr = iface%args.logport if args.logport else None
+        sargs = (iface%task[0], iface%task[1], iface%monport, iface%nport,
+                    log_addr, args.loglevel, args.scheduler)
         print (sargs)
         q = Process(target=launch_scheduler, args=sargs)
         q.daemon=True
@@ -224,7 +226,7 @@ def main(argv=None):
     # build connection dicts
     engine_addrs = {
         'control' : iface%control[1],
-        'queue': iface%mux[1],
+        'mux': iface%mux[1],
         'heartbeat': (iface%hb[0], iface%hb[1]),
         'task' : iface%task[1],
         'iopub' : iface%iopub[1],
@@ -234,15 +236,24 @@ def main(argv=None):
     client_addrs = {
         'control' : iface%control[0],
         'query': iface%cport,
-        'queue': iface%mux[0],
+        'mux': iface%mux[0],
         'task' : iface%task[0],
         'iopub' : iface%iopub[0],
         'notification': iface%nport
         }
     
+    # setup logging
+    if args.logport:
+        connect_logger(ctx, iface%args.logport, root="controller", loglevel=args.loglevel)
+    else:
+        local_logger(args.loglevel)
+        
     # register relay of signals to the children
     signal_children(children)
-    hub = Hub(loop, thesession, sub, reg, hmon, c, n, db, engine_addrs, client_addrs)
+    hub = Hub(loop=loop, session=thesession, monitor=sub, heartmonitor=hmon,
+                registrar=reg, clientele=c, notifier=n, db=db,
+                engine_addrs=engine_addrs, client_addrs=client_addrs)
+    
     dc = ioloop.DelayedCallback(lambda : print("Controller started..."), 100, loop)
     dc.start()
     loop.start()

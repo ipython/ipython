@@ -22,7 +22,7 @@ from zmq.log import handlers
 # Local imports.
 from IPython.core.ultratb import FormattedTB
 from IPython.external.argparse import ArgumentParser
-from IPython.zmq.log import logger
+from IPython.zmq.log import EnginePUBHandler
 
 def split_ports(s, n):
     """Parser helper for multiport strings"""
@@ -82,6 +82,7 @@ def make_base_argument_parser():
     """ Creates an ArgumentParser for the generic arguments supported by all 
     ipcluster entry points.
     """
+    
     parser = ArgumentParser()
     parser.add_argument('--ip', type=str, default='127.0.0.1',
                         help='set the controller\'s IP address [default: local]')
@@ -89,10 +90,10 @@ def make_base_argument_parser():
                         help='set the transport to use [default: tcp]')
     parser.add_argument('--regport', type=int, metavar='PORT', default=10101,
                         help='set the XREP port for registration [default: 10101]')
-    parser.add_argument('--logport', type=int, metavar='PORT', default=20202,
-                        help='set the PUB port for logging [default: 10201]')
-    parser.add_argument('--loglevel', type=str, metavar='LEVEL', default=logging.DEBUG,
-                        help='set the log level [default: DEBUG]')
+    parser.add_argument('--logport', type=int, metavar='PORT', default=0,
+                        help='set the PUB port for remote logging [default: log to stdout]')
+    parser.add_argument('--loglevel', type=str, metavar='LEVEL', default=logging.INFO,
+                        help='set the log level [default: INFO]')
     parser.add_argument('--ident', type=str,
                         help='set the ZMQ identity [default: random]')
     parser.add_argument('--packer', type=str, default='json',
@@ -105,17 +106,42 @@ def make_base_argument_parser():
 
     return parser
 
-
-def connect_logger(context, iface, root="ip", loglevel=logging.DEBUG):
+def integer_loglevel(loglevel):
     try:
         loglevel = int(loglevel)
     except ValueError:
         if isinstance(loglevel, str):
             loglevel = getattr(logging, loglevel)
+    return loglevel
+
+def connect_logger(context, iface, root="ip", loglevel=logging.DEBUG):
+    loglevel = integer_loglevel(loglevel)
     lsock = context.socket(zmq.PUB)
     lsock.connect(iface)
     handler = handlers.PUBHandler(lsock)
     handler.setLevel(loglevel)
     handler.root_topic = root
+    logger = logging.getLogger()
     logger.addHandler(handler)
-    
+    logger.setLevel(loglevel)
+
+def connect_engine_logger(context, iface, engine, loglevel=logging.DEBUG):
+    logger = logging.getLogger()
+    loglevel = integer_loglevel(loglevel)
+    lsock = context.socket(zmq.PUB)
+    lsock.connect(iface)
+    handler = EnginePUBHandler(engine, lsock)
+    handler.setLevel(loglevel)
+    logger.addHandler(handler)
+    logger.setLevel(loglevel)
+
+def local_logger(loglevel=logging.DEBUG):
+    loglevel = integer_loglevel(loglevel)
+    logger = logging.getLogger()
+    if logger.handlers:
+        # if there are any handlers, skip the hookup
+        return
+    handler = logging.StreamHandler()
+    handler.setLevel(loglevel)
+    logger.addHandler(handler)
+    logger.setLevel(loglevel)

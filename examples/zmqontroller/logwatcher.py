@@ -19,6 +19,7 @@
 #    You should have received a copy of the Lesser GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import zmq
 logport = 20202
 def main(topics, addrs):
@@ -26,20 +27,27 @@ def main(topics, addrs):
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
     for topic in topics:
+        print "Subscribing to: %r"%topic
         socket.setsockopt(zmq.SUBSCRIBE, topic)
     if addrs:
         for addr in addrs:
             print "Connecting to: ", addr
             socket.connect(addr)
     else:
-        socket.bind('tcp://127.0.0.1:%i'%logport)
+        socket.bind('tcp://*:%i'%logport)
 
     while True:
         # topic = socket.recv()
         # print topic
-        topic, msg = socket.recv_multipart()
-        # msg = socket.recv_pyobj()
-        print "%s | %s " % (topic, msg),
+        # print 'tic'
+        raw = socket.recv_multipart()
+        if len(raw) != 2:
+            print "!!! invalid log message: %s"%raw
+        else:
+            topic, msg = raw
+            # don't newline, since log messages always newline:
+            print "%s | %s" % (topic, msg),
+            sys.stdout.flush()
 
 if __name__ == '__main__':
     import sys
