@@ -2113,19 +2113,6 @@ class InteractiveShell(Configurable, Magic):
         self.history_manager.store_inputs(ipy_cell, cell)
 
         self.logger.log(ipy_cell, cell)
-        # dbg code!!!
-        if 0:
-            def myapp(self, val):  # dbg
-                import traceback as tb
-                stack = ''.join(tb.format_stack())
-                print 'Value:', val
-                print 'Stack:\n', stack
-                list.append(self, val)
-
-            import new
-            self.history_manager.input_hist_parsed.append = types.MethodType(myapp,
-                                                                            self.history_manager.input_hist_parsed)
-        # End dbg
 
         # All user code execution must happen with our context managers active
         with nested(self.builtin_trap, self.display_trap):
