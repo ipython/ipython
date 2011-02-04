@@ -39,11 +39,7 @@ from __future__ import absolute_import
 import re
 import sys
 import unittest
-from doctest import DocTestFinder, DocTestRunner
-try:
-    from doctest import TestResults
-except:
-    from ._doctest26 import TestResults
+from doctest import DocTestFinder, DocTestRunner, TestResults
 
 # We already have python3-compliant code for parametric tests
 if sys.version[0]=='2':
