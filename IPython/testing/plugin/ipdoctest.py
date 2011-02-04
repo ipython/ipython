@@ -273,6 +273,10 @@ class DocTestCase(doctests.DocTestCase):
             # fills with the necessary info from the module being tested).
             _ip.user_ns.update(self._dt_test.globs)
             self._dt_test.globs = _ip.user_ns
+            # IPython must protect the _ key in the namespace (it can't exist)
+            # so that Python's doctest code sets it naturally, so we enable
+            # this feature of our testing namespace.
+            _ip.user_ns.protect_underscore = True
 
         super(DocTestCase, self).setUp()
 
@@ -282,6 +286,9 @@ class DocTestCase(doctests.DocTestCase):
         # teardown doesn't destroy the ipython namespace
         if isinstance(self._dt_test.examples[0],IPExample):
             self._dt_test.globs = self._dt_test_globs_ori
+            # Restore the behavior of the '_' key in the user namespace to
+            # normal after each doctest, so that unittests behave normally
+            _ip.user_ns.protect_underscore = False
             
         # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
         # it does look like one to me: its tearDown method tries to run
