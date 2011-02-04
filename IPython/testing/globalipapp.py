@@ -86,9 +86,11 @@ class ipnsdict(dict):
         self._checkpoint()
         dict.update(self,other)
 
-        # If '_' is in the namespace, python won't set it when executing code,
-        # and we have examples that test it.  So we ensure that the namespace
-        # is always 'clean' of it before it's used for test code execution.
+        # If '_' is in the namespace, python won't set it when executing code
+        # *in doctests*, and we have multiple doctests that use '_'.  So we
+        # ensure that the namespace is always 'clean' of it before it's used
+        # for test code execution.  Note: this means that outside of doctests,
+        # our own testing 
         self.pop('_',None)
 
         # The builtins namespace must *always* be the real __builtin__ module,

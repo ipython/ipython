@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """Tests for the inputsplitter module.
+
+Authors
+-------
+* Fernando Perez
+* Robert Kern
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
