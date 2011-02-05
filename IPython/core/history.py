@@ -65,8 +65,11 @@ class HistoryManager(object):
     # call).
     _exit_commands = None
     
-    def __init__(self, shell):
+    def __init__(self, shell, load_history=False):
         """Create a new history manager associated with a shell instance.
+        
+        If load_history is true, it will load the history from file and set the
+        session offset so that the next line typed can be retrieved as #1.
         """
         # We need a pointer back to the shell for various tasks.
         self.shell = shell
@@ -77,6 +80,9 @@ class HistoryManager(object):
         # pre-processing.  This will allow users to retrieve the input just as
         # it was exactly typed in by the user, with %hist -r.
         self.input_hist_raw = []
+        
+        # Offset so the first line of the current session is #1
+        self.session_offset = -1
 
         # list of visited directories
         try:
@@ -104,8 +110,9 @@ class HistoryManager(object):
 
         # Object is fully initialized, we can now call methods on it.
         
-        # Fill the history zero entry, user counter starts at 1
-        self.store_inputs('\n', '\n')
+        if load_history:
+            self.reload_history()
+            self.session_offset = len(self.input_hist_raw) -1
         
         # Create and start the autosaver.
         self.autosave_flag = threading.Event()
@@ -114,6 +121,7 @@ class HistoryManager(object):
         # Register the autosave handler to be triggered as a post execute
         # callback.
         self.shell.register_post_execute(self.autosave_if_due)
+        
 
     def _init_shadow_hist(self):
         try:
@@ -180,7 +188,7 @@ class HistoryManager(object):
         Parameters
         ----------
         index : n or (n1, n2) or None
-            If n, then the last entries. If a tuple, then all in
+            If n, then the last n entries. If a tuple, then all in
             range(n1, n2). If None, then all entries. Raises IndexError if
             the format of index is incorrect.
         raw : bool
@@ -192,8 +200,7 @@ class HistoryManager(object):
         -------
         If output is True, then return a dict of tuples, keyed by the prompt
         numbers and with values of (input, output). If output is False, then
-        a dict, keyed by the prompt number with the values of input. Raises
-        IndexError if no history is found.
+        a dict, keyed by the prompt number with the values of input.
         """
         if raw:
             input_hist = self.input_hist_raw
@@ -201,24 +208,25 @@ class HistoryManager(object):
             input_hist = self.input_hist_parsed
         if output:
             output_hist = self.output_hist
+            
         n = len(input_hist)
+        offset = self.session_offset
         if index is None:
-            start=0; stop=n
+            start=offset+1; stop=n
         elif isinstance(index, int):
             start=n-index; stop=n
-        elif isinstance(index, tuple) and len(index) == 2:
-            start=index[0]; stop=index[1]
+        elif len(index) == 2:
+            start = index[0] + offset
+            stop = index[1] + offset
         else:
             raise IndexError('Not a valid index for the input history: %r'
                              % index)
         hist = {}
         for i in range(start, stop):
             if output:
-                hist[i] = (input_hist[i], output_hist.get(i))
+                hist[i-offset] = (input_hist[i], output_hist.get(i-offset))
             else:
-                hist[i] = input_hist[i]
-        if not hist:
-            raise IndexError('No history for range of indices: %r' % index)
+                hist[i-offset] = input_hist[i]
         return hist
 
     def store_inputs(self, source, source_raw=None):
@@ -353,6 +361,9 @@ def magic_history(self, parameter_s = ''):
         print('This feature is only available if numbered prompts are in use.')
         return
     opts,args = self.parse_options(parameter_s,'gnoptsrf:',mode='list')
+    
+    # For brevity
+    history_manager = self.shell.history_manager
 
     # Check if output to specific file was requested.
     try:
@@ -369,47 +380,41 @@ def magic_history(self, parameter_s = ''):
 
         outfile = open(outfname,'w')
         close_at_end = True
-
-    if 't' in opts:
-        input_hist = self.shell.history_manager.input_hist_parsed
-    elif 'r' in opts:
-        input_hist = self.shell.history_manager.input_hist_raw
-    else:
-        # Raw history is the default
-        input_hist = self.shell.history_manager.input_hist_raw
+    
+    print_nums = 'n' in opts
+    print_outputs = 'o' in opts
+    pyprompts = 'p' in opts
+    # Raw history is the default
+    raw = not('t' in opts)
             
     default_length = 40
     pattern = None
     if 'g' in opts:
-        init = 1
-        final = len(input_hist)
+        index = None
         parts = parameter_s.split(None, 1)
         if len(parts) == 1:
             parts += '*'
         head, pattern = parts
         pattern = "*" + pattern + "*"
     elif len(args) == 0:
-        final = len(input_hist)-1
-        init = max(1,final-default_length)
+        index = None
     elif len(args) == 1:
-        final = len(input_hist)
-        init = max(1, final-int(args[0]))
+        index = int(args[0])
     elif len(args) == 2:
-        init, final = map(int, args)
+        index = map(int, args)
     else:
         warn('%hist takes 0, 1 or 2 arguments separated by spaces.')
         print(self.magic_hist.__doc__, file=IPython.utils.io.Term.cout)
         return
+        
+    hist = history_manager.get_history(index, raw, print_outputs)
     
-    width = len(str(final))
+    width = len(str(max(hist.iterkeys())))
     line_sep = ['','\n']
-    print_nums = 'n' in opts
-    print_outputs = 'o' in opts
-    pyprompts = 'p' in opts
     
     found = False
     if pattern is not None:
-        sh = self.shell.history_manager.shadowhist.all()
+        sh = history_manager.shadow_hist.all()
         for idx, s in sh:
             if fnmatch.fnmatch(s, pattern):
                 print("0%d: %s" %(idx, s.expandtabs(4)), file=outfile)
@@ -421,41 +426,39 @@ def magic_history(self, parameter_s = ''):
               file=outfile)
         print("=== start of normal history ===", file=outfile)
         
-    for in_num in range(init, final):
+    for in_num, inline in sorted(hist.iteritems()):
         # Print user history with tabs expanded to 4 spaces.  The GUI clients
         # use hard tabs for easier usability in auto-indented code, but we want
         # to produce PEP-8 compliant history for safe pasting into an editor.
-        inline = input_hist[in_num].expandtabs(4).rstrip()+'\n'
+        if print_outputs:
+            inline, output = inline
+        inline = inline.expandtabs(4).rstrip()
 
         if pattern is not None and not fnmatch.fnmatch(inline, pattern):
             continue
             
-        multiline = int(inline.count('\n') > 1)
+        multiline = "\n" in inline
         if print_nums:
             print('%s:%s' % (str(in_num).ljust(width), line_sep[multiline]),
-                  file=outfile)
+                  file=outfile, end='')
         if pyprompts:
-            print('>>>', file=outfile)
+            inline = ">>> " + inline
             if multiline:
                 lines = inline.splitlines()
                 print('\n... '.join(lines), file=outfile)
                 print('... ', file=outfile)
             else:
-                print(inline, end='', file=outfile)
+                print(inline, file=outfile)
         else:
-            print(inline, end='', file=outfile)
-        if print_outputs:
-            output = self.shell.history_manager.output_hist.get(in_num)
-            if output is not None:
-                print(repr(output), file=outfile)
+            print(inline, file=outfile)
+        if print_outputs and output:
+            print(repr(output), file=outfile)
 
     if close_at_end:
         outfile.close()
 
-
-def magic_hist(self, parameter_s=''):
-    """Alternate name for %history."""
-    return self.magic_history(parameter_s)
+# %hist is an alternative name
+magic_hist = magic_history
 
 
 def rep_f(self, arg):

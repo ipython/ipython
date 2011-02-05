@@ -1248,7 +1248,7 @@ class InteractiveShell(Configurable, Magic):
 
     def init_history(self):
         """Sets up the command history, and starts regular autosaves."""
-        self.history_manager = HistoryManager(shell=self)
+        self.history_manager = HistoryManager(shell=self, load_history=True)
 
     def save_history(self):
         """Save input history to a file (via readline library)."""
@@ -1560,11 +1560,8 @@ class InteractiveShell(Configurable, Magic):
             readline.set_completer_delims(delims)
             # otherwise we end up with a monster history after a while:
             readline.set_history_length(self.history_length)
-            try:
-                #print '*** Reading readline history'  # dbg
-                self.reload_history() 
-            except IOError:
-                pass  # It doesn't exist yet.
+            
+            self.history_manager.populate_readline_history()
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
