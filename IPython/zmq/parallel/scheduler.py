@@ -25,7 +25,7 @@ from zmq.eventloop import ioloop, zmqstream
 # local imports
 from IPython.external.decorator import decorator
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Instance
+from IPython.utils.traitlets import Instance, Dict, List, Set
 
 from client import Client
 from dependency import Dependency
@@ -33,12 +33,10 @@ import streamsession as ss
 from entry_point import connect_logger, local_logger
 
 
-logger = logging.getLogger()
-
 @decorator
 def logged(f,self,*args,**kwargs):
     # print ("#--------------------")
-    logger.debug("scheduler::%s(*%s,**%s)"%(f.func_name, args, kwargs))
+    logging.debug("scheduler::%s(*%s,**%s)"%(f.func_name, args, kwargs))
     # print ("#--")
     return f(self,*args, **kwargs)
 
@@ -115,7 +113,7 @@ class TaskScheduler(Configurable):
     
     """
     
-    # configurables:
+    # input arguments:
     scheme = Instance(FunctionType, default=leastload) # function for determining the destination
     client_stream = Instance(zmqstream.ZMQStream) # client-facing stream
     engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
@@ -124,30 +122,22 @@ class TaskScheduler(Configurable):
     io_loop = Instance(ioloop.IOLoop)
     
     # internals:
-    dependencies = None # dict by msg_id of [ msg_ids that depend on key ]
-    depending = None # dict by msg_id of (msg_id, raw_msg, after, follow)
-    pending = None # dict by engine_uuid of submitted tasks
-    completed = None # dict by engine_uuid of completed tasks
-    clients = None # dict by msg_id for who submitted the task
-    targets = None # list of target IDENTs
-    loads = None # list of engine loads
-    all_done = None # set of all completed tasks
-    blacklist = None # dict by msg_id of locations where a job has encountered UnmetDependency
+    dependencies = Dict() # dict by msg_id of [ msg_ids that depend on key ]
+    depending = Dict() # dict by msg_id of (msg_id, raw_msg, after, follow)
+    pending = Dict() # dict by engine_uuid of submitted tasks
+    completed = Dict() # dict by engine_uuid of completed tasks
+    clients = Dict() # dict by msg_id for who submitted the task
+    targets = List() # list of target IDENTs
+    loads = List() # list of engine loads
+    all_done = Set() # set of all completed tasks
+    blacklist = Dict() # dict by msg_id of locations where a job has encountered UnmetDependency
+    session = Instance(ss.StreamSession)
     
     
     def __init__(self, **kwargs):
         super(TaskScheduler, self).__init__(**kwargs)
         
         self.session = ss.StreamSession(username="TaskScheduler")
-        self.dependencies = {}
-        self.depending = {}
-        self.completed = {}
-        self.pending = {}
-        self.all_done = set()
-        self.blacklist = {}
-        
-        self.targets = []
-        self.loads = []
         
         self.engine_stream.on_recv(self.dispatch_result, copy=False)
         self._notification_handlers = dict(
@@ -155,7 +145,7 @@ class TaskScheduler(Configurable):
             unregistration_notification = self._unregister_engine
         )
         self.notifier_stream.on_recv(self.dispatch_notification)
-        logger.info("Scheduler started...%r"%self)
+        logging.info("Scheduler started...%r"%self)
     
     def resume_receiving(self):
         """Resume accepting jobs."""
@@ -182,7 +172,7 @@ class TaskScheduler(Configurable):
             try:
                 handler(str(msg['content']['queue']))
             except KeyError:
-                logger.error("task::Invalid notification msg: %s"%msg)
+                logging.error("task::Invalid notification msg: %s"%msg)
     
     @logged
     def _register_engine(self, uid):
@@ -232,7 +222,7 @@ class TaskScheduler(Configurable):
         try:
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
         except Exception as e:
-            logger.error("task::Invaid msg: %s"%msg)
+            logging.error("task::Invaid msg: %s"%msg)
             return
         
         # send to monitor
@@ -318,7 +308,7 @@ class TaskScheduler(Configurable):
         try:
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
         except Exception as e:
-            logger.error("task::Invaid result: %s"%msg)
+            logging.error("task::Invaid result: %s"%msg)
             return
         msg = self.session.unpack_message(msg, content=False, copy=False)
         header = msg['header']
@@ -404,8 +394,6 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, log_addr=None, logle
     ctx = zmq.Context()
     loop = ioloop.IOLoop()
     
-    scheme = globals().get(scheme)
-    
     ins = ZMQStream(ctx.socket(zmq.XREP),loop)
     ins.bind(in_addr)
     outs = ZMQStream(ctx.socket(zmq.XREP),loop)
@@ -416,6 +404,7 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, log_addr=None, logle
     nots.setsockopt(zmq.SUBSCRIBE, '')
     nots.connect(not_addr)
     
+    scheme = globals().get(scheme, None)
     # setup logging
     if log_addr:
         connect_logger(ctx, log_addr, root="scheduler", loglevel=loglevel)
@@ -426,7 +415,10 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, log_addr=None, logle
                             mon_stream=mons,notifier_stream=nots,
                             scheme=scheme,io_loop=loop)
     
-    loop.start()
+    try:
+        loop.start()
+    except KeyboardInterrupt:
+        print ("interrupted, exiting...", file=sys.__stderr__)
 
 
 if __name__ == '__main__':

@@ -10,10 +10,11 @@ from datetime import datetime
 
 from pymongo import Connection
 
+from dictdb import BaseDB
 #----------------------
 # MongoDB class
 #----------------------
-class MongoDB(object):
+class MongoDB(BaseDB):
     """MongoDB TaskRecord backend."""
     def __init__(self, session_uuid, *args, **kwargs):
         self._connection = Connection(*args, **kwargs)

@@ -51,12 +51,18 @@ def squash_unicode(obj):
         obj = obj.encode('utf8')
     return obj
 
+json_packer = jsonapi.dumps
+json_unpacker = lambda s: squash_unicode(jsonapi.loads(s))
+
+pickle_packer = lambda o: pickle.dumps(o,-1)
+pickle_unpacker = pickle.loads
+
 if use_json:
-    default_packer = jsonapi.dumps
-    default_unpacker = lambda s: squash_unicode(jsonapi.loads(s))
+    default_packer = json_packer
+    default_unpacker = json_unpacker
 else:
-    default_packer = lambda o: pickle.dumps(o,-1)
-    default_unpacker = pickle.loads
+    default_packer = pickle_packer
+    default_unpacker = pickle_unpacker
 
 
 DELIM="<IDS|MSG>"

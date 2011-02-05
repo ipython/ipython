@@ -26,69 +26,97 @@ from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
 from IPython.core import ultratb
-from IPython.utils.traitlets import HasTraits, Instance, List, Int
+from IPython.utils.traitlets import HasTraits, Instance, List, Int, Dict, Set, Str
 from IPython.zmq.completer import KernelCompleter
 from IPython.zmq.iostream import OutStream
 from IPython.zmq.displayhook import DisplayHook
 
-
+from factory import SessionFactory
 from streamsession import StreamSession, Message, extract_header, serialize_object,\
                 unpack_apply_message, ISO8601, wrap_exception
 from dependency import UnmetDependency
 import heartmonitor
 from client import Client
 
-logger = logging.getLogger()
-
 def printer(*args):
     pprint(args, stream=sys.__stdout__)
+
+
+class _Passer:
+    """Empty class that implements `send()` that does nothing."""
+    def send(self, *args, **kwargs):
+        pass
+    send_multipart = send
+    
 
 #-----------------------------------------------------------------------------
 # Main kernel class
 #-----------------------------------------------------------------------------
 
-class Kernel(HasTraits):
+class Kernel(SessionFactory):
 
     #---------------------------------------------------------------------------
     # Kernel interface
     #---------------------------------------------------------------------------
-
-    id = Int(-1)
-    session = Instance(StreamSession)
-    shell_streams = List()
+    
+    # kwargs:
+    int_id = Int(-1, config=True)
+    user_ns = Dict(config=True)
+    exec_lines = List(config=True)
+    
     control_stream = Instance(zmqstream.ZMQStream)
     task_stream = Instance(zmqstream.ZMQStream)
     iopub_stream = Instance(zmqstream.ZMQStream)
-    client = Instance(Client)
-    loop = Instance(ioloop.IOLoop)
+    client = Instance('IPython.zmq.parallel.client.Client')
+    
+    # internals
+    shell_streams = List()
+    compiler = Instance(CommandCompiler, (), {})
+    completer = Instance(KernelCompleter)
+    
+    aborted = Set()
+    shell_handlers = Dict()
+    control_handlers = Dict()
+    
+    def _set_prefix(self):
+        self.prefix = "engine.%s"%self.int_id
+    
+    def _connect_completer(self):
+        self.completer = KernelCompleter(self.user_ns)
     
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
-        self.identity = self.shell_streams[0].getsockopt(zmq.IDENTITY)
-        self.prefix = 'engine.%s'%self.id
-        logger.root_topic = self.prefix
-        self.user_ns = {}
-        self.history = []
-        self.compiler = CommandCompiler()
-        self.completer = KernelCompleter(self.user_ns)
-        self.aborted = set()
+        self._set_prefix()
+        self._connect_completer()
+        
+        self.on_trait_change(self._set_prefix, 'id')
+        self.on_trait_change(self._connect_completer, 'user_ns')
         
         # Build dict of handlers for message types
-        self.shell_handlers = {}
-        self.control_handlers = {}
         for msg_type in ['execute_request', 'complete_request', 'apply_request', 
                 'clear_request']:
             self.shell_handlers[msg_type] = getattr(self, msg_type)
         
         for msg_type in ['shutdown_request', 'abort_request']+self.shell_handlers.keys():
             self.control_handlers[msg_type] = getattr(self, msg_type)
-    
+        
+        self._initial_exec_lines()
     
     def _wrap_exception(self, method=None):
-        e_info = dict(engineid=self.identity, method=method)
+        e_info = dict(engineid=self.ident, method=method)
         content=wrap_exception(e_info)
         return content
     
+    def _initial_exec_lines(self):
+        s = _Passer()
+        content = dict(silent=True, user_variable=[],user_expressions=[])
+        for line in self.exec_lines:
+            logging.debug("executing initialization: %s"%line)
+            content.update({'code':line})
+            msg = self.session.msg('execute_request', content)
+            self.execute_request(s, [], msg)
+        
+        
     #-------------------- control handlers -----------------------------
     def abort_queues(self):
         for stream in self.shell_streams:
@@ -112,8 +140,8 @@ class Kernel(HasTraits):
                 
                 # assert self.reply_socketly_socket.rcvmore(), "Unexpected missing message part."
                 # msg = self.reply_socket.recv_json()
-            logger.info("Aborting:")
-            logger.info(str(msg))
+            logging.info("Aborting:")
+            logging.info(str(msg))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             # reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
@@ -121,7 +149,7 @@ class Kernel(HasTraits):
             # self.reply_socket.send_json(reply_msg)
             reply_msg = self.session.send(stream, reply_type, 
                         content={'status' : 'aborted'}, parent=msg, ident=idents)[0]
-            logger.debug(str(reply_msg))
+            logging.debug(str(reply_msg))
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.05)
@@ -139,7 +167,7 @@ class Kernel(HasTraits):
         content = dict(status='ok')
         reply_msg = self.session.send(stream, 'abort_reply', content=content, 
                 parent=parent, ident=ident)[0]
-        logger(Message(reply_msg), file=sys.__stdout__)
+        logging.debug(str(reply_msg))
     
     def shutdown_request(self, stream, ident, parent):
         """kill ourself.  This should really be handled in an external process"""
@@ -164,7 +192,7 @@ class Kernel(HasTraits):
         try:
             msg = self.session.unpack_message(msg, content=True, copy=False)
         except:
-            logger.error("Invalid Message", exc_info=True)
+            logging.error("Invalid Message", exc_info=True)
             return
         
         header = msg['header']
@@ -172,7 +200,7 @@ class Kernel(HasTraits):
         
         handler = self.control_handlers.get(msg['msg_type'], None)
         if handler is None:
-            logger.error("UNKNOWN CONTROL MESSAGE TYPE: %r"%msg['msg_type'])
+            logging.error("UNKNOWN CONTROL MESSAGE TYPE: %r"%msg['msg_type'])
         else:
             handler(self.control_stream, idents, msg)
     
@@ -210,15 +238,15 @@ class Kernel(HasTraits):
         self.user_ns = {}
         msg = self.session.send(stream, 'clear_reply', ident=idents, parent=parent, 
                 content = dict(status='ok'))
+        self._initial_exec_lines()
     
     def execute_request(self, stream, ident, parent):
+        logging.debug('execute request %s'%parent)
         try:
             code = parent[u'content'][u'code']
         except:
-            logger.error("Got bad msg: %s"%parent, exc_info=True)
+            logging.error("Got bad msg: %s"%parent, exc_info=True)
             return
-        # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
-        # self.iopub_stream.send(pyin_msg)
         self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent,
                             ident='%s.pyin'%self.prefix)
         started = datetime.now().strftime(ISO8601)
@@ -243,7 +271,7 @@ class Kernel(HasTraits):
         # self.reply_socket.send_json(reply_msg)
         reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, 
                     ident=ident, subheader = dict(started=started))
-        logger.debug(str(reply_msg))
+        logging.debug(str(reply_msg))
         if reply_msg['content']['status'] == u'error':
             self.abort_queues()
 
@@ -265,12 +293,12 @@ class Kernel(HasTraits):
             msg_id = parent['header']['msg_id']
             bound = content.get('bound', False)
         except:
-            logger.error("Got bad msg: %s"%parent, exc_info=True)
+            logging.error("Got bad msg: %s"%parent, exc_info=True)
             return
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_stream.send(pyin_msg)
         # self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent)
-        sub = {'dependencies_met' : True, 'engine' : self.identity,
+        sub = {'dependencies_met' : True, 'engine' : self.ident,
                 'started': datetime.now().strftime(ISO8601)}
         try:
             # allow for not overriding displayhook
@@ -341,7 +369,7 @@ class Kernel(HasTraits):
         try:
             msg = self.session.unpack_message(msg, content=True, copy=False)
         except:
-            logger.error("Invalid Message", exc_info=True)
+            logging.error("Invalid Message", exc_info=True)
             return
             
         
@@ -356,7 +384,7 @@ class Kernel(HasTraits):
             return
         handler = self.shell_handlers.get(msg['msg_type'], None)
         if handler is None:
-            logger.error("UNKNOWN MESSAGE TYPE: %r"%msg['msg_type'])
+            logging.error("UNKNOWN MESSAGE TYPE: %r"%msg['msg_type'])
         else:
             handler(stream, idents, msg)
     
@@ -372,8 +400,9 @@ class Kernel(HasTraits):
             return dispatcher
         
         for s in self.shell_streams:
+            # s.on_recv(printer)
             s.on_recv(make_dispatcher(s), copy=False)
-            s.on_err(printer)
+            # s.on_err(printer)
         
         if self.iopub_stream:
             self.iopub_stream.on_err(printer)
@@ -403,7 +432,7 @@ class Kernel(HasTraits):
 def make_kernel(int_id, identity, control_addr, shell_addrs, iopub_addr, hb_addrs, 
                 client_addr=None, loop=None, context=None, key=None,
                 out_stream_factory=OutStream, display_hook_factory=DisplayHook):
-    
+    """NO LONGER IN USE"""
     # create loop, context, and session:
     if loop is None:
         loop = ioloop.IOLoop.instance()
@@ -453,7 +482,7 @@ def make_kernel(int_id, identity, control_addr, shell_addrs, iopub_addr, hb_addr
     else:
         client = None
     
-    kernel = Kernel(id=int_id, session=session, control_stream=control_stream, 
+    kernel = Kernel(id=int_id, session=session, control_stream=control_stream,
             shell_streams=shell_streams, iopub_stream=iopub_stream, 
             client=client, loop=loop)
     kernel.start()

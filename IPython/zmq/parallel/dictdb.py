@@ -75,7 +75,11 @@ class CompositeFilter(object):
                 return False
         return True
 
-class DictDB(object):
+class BaseDB(object):
+    """Empty Parent class so traitlets work on DB."""
+    pass
+
+class DictDB(BaseDB):
     """Basic in-memory dict-based object for saving Task Records.
     
     This is the first object to present the DB interface

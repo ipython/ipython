@@ -16,6 +16,7 @@ and monitors traffic through the various queues.
 from __future__ import print_function
 
 import os
+import sys
 import time
 import logging
 from multiprocessing import Process
@@ -23,12 +24,13 @@ from multiprocessing import Process
 import zmq
 from zmq.eventloop import  ioloop
 from zmq.eventloop.zmqstream import ZMQStream
-from zmq.devices import ProcessMonitoredQueue
+# from zmq.devices import ProcessMonitoredQueue
 
 # internal:
+from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import Int, Str, Instance, List, Bool
 from IPython.zmq.entry_point import bind_port
 
-from hub import Hub
 from entry_point import (make_base_argument_parser, select_random_ports, split_ports,
                         connect_logger, parse_url, signal_children, generate_exec_key,
                         local_logger)
@@ -37,6 +39,7 @@ from entry_point import (make_base_argument_parser, select_random_ports, split_p
 import streamsession as session
 import heartmonitor
 from scheduler import launch_scheduler
+from hub import Hub, HubFactory
 
 from dictdb import DictDB
 try:
@@ -81,8 +84,84 @@ def make_argument_parser():
                         help='Manually specify the session id.')
     
     return parser
+
+class ControllerFactory(HubFactory):
+    """Configurable for setting up a Hub and Schedulers."""
+    
+    scheme = Str('pure', config=True)
+    usethreads = Bool(False, config=True)
+    
+    # internal
+    children = List()
+    mq_class = Str('zmq.devices.ProcessMonitoredQueue')
+    
+    def _update_mq(self):
+        self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if self.usethreads else 'Process')
+        
+    def __init__(self, **kwargs):
+        super(ControllerFactory, self).__init__(**kwargs)
+        self.subconstructors.append(self.construct_schedulers)
+        self._update_mq()
+        self.on_trait_change(self._update_mq, 'usethreads')
+    
+    def start(self):
+        super(ControllerFactory, self).start()
+        for child in self.children:
+            child.start()
+        if not self.usethreads:
+            signal_children([ getattr(c, 'launcher', c) for c in self.children ])
+        
+    
+    def construct_schedulers(self):
+        children = self.children
+        mq = import_item(self.mq_class)
+        
+        # IOPub relay (in a Process)
+        q = mq(zmq.PUB, zmq.SUB, zmq.PUB, 'N/A','iopub')
+        q.bind_in(self.client_addrs['iopub'])
+        q.bind_out(self.engine_addrs['iopub'])
+        q.setsockopt_out(zmq.SUBSCRIBE, '')
+        q.connect_mon(self.monitor_url)
+        q.daemon=True
+        children.append(q)
+
+        # Multiplexer Queue (in a Process)
+        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'in', 'out')
+        q.bind_in(self.client_addrs['mux'])
+        q.bind_out(self.engine_addrs['mux'])
+        q.connect_mon(self.monitor_url)
+        q.daemon=True
+        children.append(q)
+
+        # Control Queue (in a Process)
+        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'incontrol', 'outcontrol')
+        q.bind_in(self.client_addrs['control'])
+        q.bind_out(self.engine_addrs['control'])
+        q.connect_mon(self.monitor_url)
+        q.daemon=True
+        children.append(q)
+        # Task Queue (in a Process)
+        if self.scheme == 'pure':
+            logging.warn("task::using pure XREQ Task scheduler")
+            q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
+            q.bind_in(self.client_addrs['task'])
+            q.bind_out(self.engine_addrs['task'])
+            q.connect_mon(self.monitor_url)
+            q.daemon=True
+            children.append(q)
+        elif self.scheme == 'none':
+            logging.warn("task::using no Task scheduler")
+            
+        else:
+            logging.warn("task::using Python %s Task scheduler"%self.scheme)
+            sargs = (self.client_addrs['task'], self.engine_addrs['task'], self.monitor_url, self.client_addrs['notification'])
+            q = Process(target=launch_scheduler, args=sargs, kwargs = dict(scheme=self.scheme))
+            q.daemon=True
+            children.append(q)
+        
     
 def main(argv=None):
+    """DO NOT USE ME ANYMORE"""
     
     parser = make_argument_parser()
     
@@ -256,9 +335,10 @@ def main(argv=None):
     
     dc = ioloop.DelayedCallback(lambda : print("Controller started..."), 100, loop)
     dc.start()
-    loop.start()
-    
-    
+    try:
+        loop.start()
+    except KeyboardInterrupt:
+        print ("interrupted, exiting...", file=sys.__stderr__)
     
 
 if __name__ == '__main__':

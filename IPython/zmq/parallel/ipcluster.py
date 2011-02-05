@@ -4,8 +4,7 @@ import sys,os
 import time
 from subprocess import Popen, PIPE
 
-from entry_point import parse_url
-from controller import make_argument_parser
+from IPython.external.argparse import ArgumentParser, SUPPRESS
 
 def _filter_arg(flag, args):
     filtered = []
@@ -48,7 +47,7 @@ def strip_args(flags, args=sys.argv[1:]):
 
 def launch_process(mod, args):
     """Launch a controller or engine in a subprocess."""
-    code = "from IPython.zmq.parallel.%s import main;main()"%mod
+    code = "from IPython.zmq.parallel.%s import launch_new_instance;launch_new_instance()"%mod
     arguments = [ sys.executable, '-c', code ] + args
     blackholew = file(os.devnull, 'w')
     blackholer = file(os.devnull, 'r')
@@ -57,17 +56,13 @@ def launch_process(mod, args):
     return proc
 
 def main():
-    parser = make_argument_parser()
+    parser = ArgumentParser(argument_default=SUPPRESS)
     parser.add_argument('--n', '-n', type=int, default=1,
                 help="The number of engines to start.")
-    args = parser.parse_args()
-    parse_url(args)
-
-    controller_args = strip_args([('--n','-n')])
-    engine_args = filter_args(['--url', '--regport', '--logport', '--ip', 
-                '--transport','--loglevel','--packer', '--execkey'])+['--ident']
+    ns,args = parser.parse_known_args()
+    n = ns.n
     
-    controller = launch_process('controller', controller_args)
+    controller = launch_process('ipcontrollerapp', args)
     for i in range(10):
         time.sleep(.1)
         if controller.poll() is not None:
@@ -75,9 +70,9 @@ def main():
             print (controller.stderr.read())
             sys.exit(255)
     
-    print("Launched Controller at %s"%args.url)
-    engines = [ launch_process('engine', engine_args+['engine-%i'%i]) for i in range(args.n) ]
-    print("%i Engines started"%args.n)
+    print("Launched Controller")
+    engines = [ launch_process('ipengineapp', args+['--ident', 'engine-%i'%i]) for i in range(n) ]
+    print("%i Engines started"%n)
     
     def wait_quietly(p):
         try:
