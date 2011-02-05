@@ -105,7 +105,7 @@ class HistoryManager(object):
         # Object is fully initialized, we can now call methods on it.
         
         # Fill the history zero entry, user counter starts at 1
-        self.store_inputs('\n', '\n')
+        self.store_inputs('', '')
         
         # Create and start the autosaver.
         self.autosave_flag = threading.Event()
@@ -169,6 +169,9 @@ class HistoryManager(object):
                 return
             self.input_hist_parsed = hist['parsed']
             self.input_hist_raw = hist['raw']
+            if not self.input_hist_raw:
+                # Fill the history zero entry, user counter starts at 1
+                self.store_inputs('', '')
             if self.shell.has_readline:
                 self.populate_readline_history()
         
@@ -180,7 +183,7 @@ class HistoryManager(object):
         Parameters
         ----------
         index : n or (n1, n2) or None
-            If n, then the last entries. If a tuple, then all in
+            If n, then the last n entries. If a tuple, then all in
             range(n1, n2). If None, then all entries. Raises IndexError if
             the format of index is incorrect.
         raw : bool
