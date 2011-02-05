@@ -184,11 +184,7 @@ python-profiler package from non-free.""")
         N:M -> standard python form, means including items N...(M-1).
 
         N-M -> include items N..M (closed endpoint)."""
-
-        if raw:
-            hist = self.shell.history_manager.input_hist_raw
-        else:
-            hist = self.shell.history_manager.input_hist_parsed
+        history_manager = self.shell.history_manager
 
         cmds = []
         for chunk in slices:
@@ -200,7 +196,8 @@ python-profiler package from non-free.""")
             else:
                 ini = int(chunk)
                 fin = ini+1
-            cmds.append('\n'.join(hist[ini:fin]))
+            hist = history_manager.get_history((ini,fin), raw=raw, output=False)
+            cmds.append('\n'.join(hist[i] for i in sorted(hist.iterkeys())))
         return cmds
             
     def arg_err(self,func):
@@ -2044,7 +2041,7 @@ Currently the magic system has the following functions:\n"""
         
         #print 'rng',ranges  # dbg
         lines = self.extract_input_slices(ranges,opts.has_key('r'))
-        macro = Macro(lines)
+        macro = Macro("\n".join(lines))
         self.shell.define_macro(name, macro)
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print 'Macro contents:'
@@ -2294,7 +2291,7 @@ Currently the magic system has the following functions:\n"""
             # This means that you can't edit files whose names begin with
             # numbers this way. Tough.
             ranges = args.split()
-            data = ''.join(self.extract_input_slices(ranges,opts_r))
+            data = '\n'.join(self.extract_input_slices(ranges,opts_r))
         elif args.endswith('.py'):
             filename = make_filename(args)
             data = ''

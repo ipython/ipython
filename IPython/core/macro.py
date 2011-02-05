@@ -19,9 +19,9 @@ class Macro(IPyAutocall):
     Args to macro are available in _margv list if you need them.
     """
 
-    def __init__(self,data):
+    def __init__(self,code):
         """store the macro value, as a single string which can be executed"""
-        self.value = '\n'.join(data).rstrip()+'\n'
+        self.value = code.rstrip()+'\n'
         
     def __str__(self):
         return self.value
