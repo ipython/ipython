@@ -57,7 +57,7 @@ import IPython.utils.io
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
-from IPython.utils.text import LSString, SList, StringTypes, format_screen
+from IPython.utils.text import LSString, SList, format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
@@ -2284,9 +2284,10 @@ Currently the magic system has the following functions:\n"""
 
         # by default this is done with temp files, except when the given
         # arg is a filename
-        use_temp = 1
+        use_temp = True
 
-        if re.match(r'\d',args):
+        data = ''
+        if args[0].isdigit():
             # Mode where user specifies ranges of lines, like in %macro.
             # This means that you can't edit files whose names begin with
             # numbers this way. Tough.
@@ -2294,16 +2295,15 @@ Currently the magic system has the following functions:\n"""
             data = '\n'.join(self.extract_input_slices(ranges,opts_r))
         elif args.endswith('.py'):
             filename = make_filename(args)
-            data = ''
-            use_temp = 0
+            use_temp = False
         elif args:
             try:
                 # Load the parameter given as a variable. If not a string,
                 # process it as an object instead (below)
 
                 #print '*** args',args,'type',type(args)  # dbg
-                data = eval(args,self.shell.user_ns)
-                if not type(data) in StringTypes:
+                data = eval(args, self.shell.user_ns)
+                if not isinstance(data, basestring):
                     raise DataIsObject
 
             except (NameError,SyntaxError):
@@ -2313,13 +2313,11 @@ Currently the magic system has the following functions:\n"""
                     warn("Argument given (%s) can't be found as a variable "
                          "or as a filename." % args)
                     return
-
-                data = ''
-                use_temp = 0
+                use_temp = False
+            
             except DataIsObject:
-
                 # macros have a special edit function
-                if isinstance(data,Macro):
+                if isinstance(data, Macro):
                     self._edit_macro(args,data)
                     return
                                 
@@ -2358,9 +2356,7 @@ Currently the magic system has the following functions:\n"""
                             warn('The file `%s` where `%s` was defined cannot '
                                  'be read.' % (filename,data))
                             return
-                use_temp = 0
-        else:
-            data = ''
+                use_temp = False
 
         if use_temp:
             filename = self.shell.mktempfile(data)
@@ -2383,7 +2379,7 @@ Currently the magic system has the following functions:\n"""
         if args.strip() == 'pasted_block':
             self.shell.user_ns['pasted_block'] = file_read(filename)
         
-        if opts.has_key('x'):  # -x prevents actual execution
+        if 'x' in opts:  # -x prevents actual execution
             print
         else:
             print 'done. Executing edited code...'
