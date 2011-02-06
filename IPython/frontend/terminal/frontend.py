@@ -81,7 +81,8 @@ class Frontend(object):
            print("history file can not be readed.")   
 
        self.messages = {}
-       self.prompt_count = 0
+
+       self.prompt_count = self.km.xreq_channel.execute('', silent=True)
        self.backgrounded = 0
        self._splitter = InputSplitter()
         
@@ -95,11 +96,12 @@ class Frontend(object):
            while self._splitter.push_accepts_more():
               code = raw_input('.....:'+' '*self._splitter.indent_spaces)
               self._splitter.push(' '*self._splitter.indent_spaces+code)
+       except  KeyboardInterrupt:
+           print('\nKeyboardInterrupt\n')
+           pass
+       else:
            self._execute(self._splitter.source,False)
            self._splitter.reset()
-       except  KeyboardInterrupt:
-            print('\nKeyboardInterrupt\n')    
-            pass  
        
    def start(self):
        """ init a bucle that call interact method to get code.
@@ -107,7 +109,10 @@ class Frontend(object):
        """
        while True:
            try:
-               self.interact()    
+               self.interact()
+           except  KeyboardInterrupt:
+                print('\nKeyboardInterrupt\n')
+                pass
            except EOFError:
                answer = ''    
                while True:
@@ -122,30 +127,68 @@ class Frontend(object):
 
         See parent class :meth:`execute` docstring for full details.
        """
-       msg_id = self.km.xreq_channel.execute(source, hidden)  
-       if self.km.xreq_channel.was_called():
-         msg_xreq =  self.km.xreq_channel.get_msg()
-         print "xreq not implemented yet"
+       msg_id = self.km.xreq_channel.execute(source, hidden)
+       self.handle_xrep_channel()
+       
+#       while self.km.rep_channel.was_called() :
+#            msg_rep = self.km.rep_channel.get_msg()
+#            print "rep hadler not implemented yet"
         
-       if self.km.rep_channel.was_called():
-         msg_rep = self.km.rep_channel.get_msg()
-         print "rep hadler not implemented yet" 
-        
-       while True:
-         if not self.km.sub_channel.was_called():
-            break
-       print "calles sub0"
-       sub_msg = self.km.sub_channel.get_msg()
-       if self.km.session.username == sub_msg['parent_header']['username'] and self.km.session.session == sub_msg['parent_header']['session']:
-         print "calles sub1"
- 
 
-   def handle_sub_msg(self,msg):
-		 if msg['content'] == '':
-			 pass
+       
+#       self.km.xreq_channel.execute('', silent=True)
+   def handle_xrep_channel(self):
+       msg_header = self.km.session.msg_header()
+       if self.km.xreq_channel.was_called():
+           msg_xreq =  self.km.xreq_channel.get_msg()
+           if msg_header["session"] == msg_xreq["parent_header"]["session"] :
+               if msg_xreq["content"]["status"] == 'ok' :
+                   self.handle_sub_channel()
+
+               else:
+                   print >> sys.stderr, "Error executing: ", source
+                   print >> sys.stderr, "Status in the kernel: ", msg_xreq["content"]["status"]
+           self.prompt_count = msg_xreq["content"]["execution_count"]
+           print msg_xreq
+       else:
+           print >> sys.stderr, "Kernel is busy!"
+
+
+   def handle_sub_channel(self):
+       """ Method to procces subscribe channel's messages
+
+           this method read a message and procces the content
+           in differents outputs like stdout, stderr, pyout
+           and status
+
+           Arguments:
+           sub_msg:  message receive from kernel in the sub socket channel
+                     capture by kernel manager.
+
+       """
+       while self.km.sub_channel.was_called():
+           sub_msg = self.km.sub_channel.get_msg()
+           if  msg_header["username"] == sub_msg['parent_header']['username'] and self.km.session.session == sub_msg['parent_header']['session']:
+               if sub_msg['msg_type'] == 'status' :
+                    if sub_msg["content"]["execution_state"] == "busy" :
+                        pass
+
+               if sub_msg['msg_type'] == 'stream' :
+                  if sub_msg["content"]["name"] == "stdout":
+                    print >> sys.stdout,sub_msg["content"]["data"]
+                    sys.stdout.flush()
+               if sub_msg["content"]["name"] == "stderr" :
+                    print >> sys.stderr,sub_msg["content"]["data"]
+                    sys.stderr.flush()
+                
+               if sub_msg['msg_type'] == 'pyout' :
+                    print >> sys.stdout,"Out[%i]:"%sub_msg["content"]["execution_count"], sub_msg["content"]["data"]
+                    sys.stdout.flush()
+
        
 def start_frontend():
     """ Entry point for application.
+    
     """
     # Parse command line arguments.
     parser = ArgumentParser()
