@@ -158,26 +158,26 @@ class HubFactory(RegistrationFactory):
     subconstructors = List()
     _constructed = Bool(False)
     
+    def _ip_changed(self, name, old, new):
+        self.engine_ip = new
+        self.client_ip = new
+        self.monitor_ip = new
+        self._update_monitor_url()
+    
     def _update_monitor_url(self):
         self.monitor_url = "%s://%s:%i"%(self.monitor_transport, self.monitor_ip, self.mon_port)
     
-    def _sync_ips(self):
-        self.engine_ip = self.ip
-        self.client_ip = self.ip
-        self.monitor_ip = self.ip
-        self._update_monitor_url()
-    
-    def _sync_transports(self):
-        self.engine_transport = self.transport
-        self.client_transport = self.transport
-        self.monitor_transport = self.transport
+    def _transport_changed(self, name, old, new):
+        self.engine_transport = new
+        self.client_transport = new
+        self.monitor_transport = new
         self._update_monitor_url()
         
     def __init__(self, **kwargs):
         super(HubFactory, self).__init__(**kwargs)
         self._update_monitor_url()
-        self.on_trait_change(self._sync_ips, 'ip')
-        self.on_trait_change(self._sync_transports, 'transport')
+        # self.on_trait_change(self._sync_ips, 'ip')
+        # self.on_trait_change(self._sync_transports, 'transport')
         self.subconstructors.append(self.construct_hub)
     
     
@@ -334,45 +334,11 @@ class Hub(HasTraits):
         """
         
         super(Hub, self).__init__(**kwargs)
-        self.ids = set()
-        self.pending = set()
-        # self.keytable={}
-        # self.incoming_registrations={}
-        # self.engines = {}
-        # self.by_ident = {}
-        # self.clients = {}
-        # self.hearts = {}
-        # self.mia = set()
         self.registration_timeout = max(5000, 2*self.heartmonitor.period)
-        # this is the stuff that will move to DB:
-        # self.pending = set() # pending messages, keyed by msg_id
-        # self.queues = {} # pending msg_ids keyed by engine_id
-        # self.tasks = {} # pending msg_ids submitted as tasks, keyed by client_id
-        # self.completed = {} # completed msg_ids keyed by engine_id
-        # self.all_completed = set()
-        # self._idcounter = 0
-        # self.sockets = {}
-        # self.loop = loop
-        # self.session = session
-        # self.registrar = registrar
-        # self.clientele = clientele
-        # self.queue = queue
-        # self.heartmonitor = heartbeat
-        # self.notifier = notifier
-        # self.db = db
         
         # validate connection dicts:
-        # self.client_addrs = client_addrs
         validate_url_container(self.client_addrs)
-        
-        # assert isinstance(self.client_addrs['queue'], str)
-        # assert isinstance(self.client_addrs['control'], str)
-        # self.hb_addrs = hb_addrs
         validate_url_container(self.engine_addrs)
-        # self.engine_addrs = engine_addrs
-        # assert isinstance(self.engine_addrs['queue'], str)
-        # assert isinstance(self.engine_addrs['control'], str)
-        # assert len(engine_addrs['heartbeat']) == 2
         
         # register our callbacks
         self.registrar.on_recv(self.dispatch_register_request)
@@ -409,7 +375,9 @@ class Hub(HasTraits):
     
     @property
     def _next_id(self):
-        """gemerate a new ID"""
+        """gemerate a new ID.
+        
+        No longer reuse old ids, just count from 0."""
         newid = self._idcounter
         self._idcounter += 1
         return newid

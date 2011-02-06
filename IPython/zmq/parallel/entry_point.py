@@ -28,15 +28,6 @@ from IPython.core.ultratb import FormattedTB
 from IPython.external.argparse import ArgumentParser
 from IPython.zmq.log import EnginePUBHandler
 
-def split_ports(s, n):
-    """Parser helper for multiport strings"""
-    if not s:
-        return tuple([0]*n)
-    ports = map(int, s.split(','))
-    if len(ports) != n:
-        raise ValueError
-    return ports
-
 _random_ports = set()
 
 def select_random_ports(n):
@@ -56,18 +47,6 @@ def select_random_ports(n):
         ports[i] = port
         _random_ports.add(port)
     return ports
-
-def parse_url(args):
-    """Ensure args.url contains full transport://interface:port"""
-    if args.url:
-        iface = args.url.split('://',1)
-        if len(args) == 2:
-            args.transport,iface = iface
-        iface = iface.split(':')
-        args.ip = iface[0]
-        if iface[1]:
-            args.regport = iface[1]
-    args.url = "%s://%s:%i"%(args.transport, args.ip,args.regport)
 
 def signal_children(children):
     """Relay interupt/term signals to children, for more solid process cleanup."""
@@ -90,35 +69,7 @@ def generate_exec_key(keyfile):
     # set user-only RW permissions (0600)
     # this will have no effect on Windows
     os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
-        
 
-def make_base_argument_parser():
-    """ Creates an ArgumentParser for the generic arguments supported by all 
-    ipcluster entry points.
-    """
-    
-    parser = ArgumentParser()
-    parser.add_argument('--ip', type=str, default='127.0.0.1',
-                        help='set the controller\'s IP address [default: local]')
-    parser.add_argument('--transport', type=str, default='tcp',
-                        help='set the transport to use [default: tcp]')
-    parser.add_argument('--regport', type=int, metavar='PORT', default=10101,
-                        help='set the XREP port for registration [default: 10101]')
-    parser.add_argument('--logport', type=int, metavar='PORT', default=0,
-                        help='set the PUB port for remote logging [default: log to stdout]')
-    parser.add_argument('--loglevel', type=str, metavar='LEVEL', default=logging.INFO,
-                        help='set the log level [default: INFO]')
-    parser.add_argument('--ident', type=str,
-                        help='set the ZMQ identity [default: random]')
-    parser.add_argument('--packer', type=str, default='json',
-                        choices=['json','pickle'],
-                        help='set the message format method [default: json]')
-    parser.add_argument('--url', type=str,
-                        help='set transport,ip,regport in one arg, e.g. tcp://127.0.0.1:10101')
-    parser.add_argument('--execkey', type=str,
-                        help="File containing key for authenticating requests.")
-
-    return parser
 
 def integer_loglevel(loglevel):
     try:

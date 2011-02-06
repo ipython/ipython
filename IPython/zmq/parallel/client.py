@@ -90,14 +90,6 @@ def defaultblock(f, self, *args, **kwargs):
 # Classes
 #--------------------------------------------------------------------------
 
-class ResultDict(dict):
-    """A subclass of dict that raises errors if it has them."""
-    def __getitem__(self, key):
-        res = dict.__getitem__(self, key)
-        if isinstance(res, error.KernelError):
-            raise res
-        return res
-
 class Metadata(dict):
     """Subclass of dict for initializing metadata values."""
     def __init__(self, *args, **kwargs):

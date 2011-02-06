@@ -6,7 +6,6 @@ connected to the Controller's queue(s).
 from __future__ import print_function
 import sys
 import time
-import traceback
 import uuid
 import logging
 from pprint import pprint
@@ -21,12 +20,9 @@ from IPython.utils.traitlets import Instance, Str, Dict, Int, Type
 
 from factory import RegistrationFactory
 
-from streamsession import Message, StreamSession
-from streamkernel import Kernel, make_kernel
+from streamsession import Message
+from streamkernel import Kernel
 import heartmonitor
-from entry_point import (make_base_argument_parser, connect_engine_logger, parse_url,
-                        local_logger)
-# import taskthread
 
 def printer(*msg):
     # print (logging.handlers, file=sys.__stdout__)
@@ -107,16 +103,15 @@ class EngineFactory(RegistrationFactory):
             # print (hb_addrs)
             
             # # Redirect input streams and set a display hook.
-            # if self.out_stream_factory:
-            #     sys.stdout = self.out_stream_factory(self.session, iopub_stream, u'stdout')
-            #     sys.stdout.topic = 'engine.%i.stdout'%self.id
-            #     sys.stderr = self.out_stream_factory(self.session, iopub_stream, u'stderr')
-            #     sys.stderr.topic = 'engine.%i.stderr'%self.id
-            # if self.display_hook_factory:
-            #     sys.displayhook = self.display_hook_factory(self.session, iopub_stream)
-            #     sys.displayhook.topic = 'engine.%i.pyout'%self.id
+            if self.out_stream_factory:
+                sys.stdout = self.out_stream_factory(self.session, iopub_stream, u'stdout')
+                sys.stdout.topic = 'engine.%i.stdout'%self.id
+                sys.stderr = self.out_stream_factory(self.session, iopub_stream, u'stderr')
+                sys.stderr.topic = 'engine.%i.stderr'%self.id
+            if self.display_hook_factory:
+                sys.displayhook = self.display_hook_factory(self.session, iopub_stream)
+                sys.displayhook.topic = 'engine.%i.pyout'%self.id
             
-            # ioloop.DelayedCallback(self.heart.start, 1000, self.loop).start()
             self.kernel = Kernel(int_id=self.id, ident=self.ident, session=self.session, 
                     control_stream=control_stream,
                     shell_streams=shell_streams, iopub_stream=iopub_stream, loop=loop,
@@ -124,6 +119,7 @@ class EngineFactory(RegistrationFactory):
             self.kernel.start()
             
             heart = heartmonitor.Heart(*map(str, hb_addrs), heart_id=identity)
+            # ioloop.DelayedCallback(heart.start, 1000, self.loop).start()
             heart.start()
             
             
@@ -143,48 +139,3 @@ class EngineFactory(RegistrationFactory):
         dc = ioloop.DelayedCallback(self.register, 0, self.loop)
         dc.start()
 
-
-
-def main(argv=None, user_ns=None):
-    """DO NOT USE ME ANYMORE"""
-    parser = make_base_argument_parser()
-    
-    args = parser.parse_args(argv)
-    
-    parse_url(args)
-    
-    iface="%s://%s"%(args.transport,args.ip)+':%i'
-    
-    loop = ioloop.IOLoop.instance()
-    session = StreamSession(keyfile=args.execkey)
-    # print (session.key)
-    ctx = zmq.Context()
-
-    # setup logging
-    
-    reg_conn = iface % args.regport
-    print (reg_conn, file=sys.__stdout__)
-    print ("Starting the engine...", file=sys.__stderr__)
-    
-    reg = ctx.socket(zmq.PAIR)
-    reg.connect(reg_conn)
-    reg = zmqstream.ZMQStream(reg, loop)
-    
-    e = Engine(context=ctx, loop=loop, session=session, registrar=reg, 
-            ident=args.ident or '', user_ns=user_ns)
-    if args.logport:
-        print ("connecting logger to %s"%(iface%args.logport), file=sys.__stdout__)
-        connect_engine_logger(ctx, iface%args.logport, e, loglevel=args.loglevel)
-    else:
-        local_logger(args.loglevel)
-    
-    dc = ioloop.DelayedCallback(e.start, 0, loop)
-    dc.start()
-    try:
-        loop.start()
-    except KeyboardInterrupt:
-        print ("interrupted, exiting...", file=sys.__stderr__)
-
-# Execution as a script
-if __name__ == '__main__':
-    main()

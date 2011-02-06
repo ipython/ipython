@@ -123,6 +123,11 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
             help='The (2) ports the Hub\'s Heartmonitor will use for the heartbeat '
             'connections [default: random]',
             metavar='Hub.hb_ports')
+        paa('--ping',
+            type=int, dest='HubFactory.ping',
+            help='The frequency at which the Hub pings the engines for heartbeats '
+            ' (in ms) [default: 100]',
+            metavar='Hub.ping')
         
         # Client config
         paa('--client-ip',
@@ -204,10 +209,10 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
             help='Try to reuse existing execution keys.')
         paa('--no-secure',
             action='store_false', dest='Global.secure',
-            help='Turn off execution keys.')
+            help='Turn off execution keys (default).')
         paa('--secure',
             action='store_true', dest='Global.secure',
-            help='Turn on execution keys (default).')
+            help='Turn on execution keys.')
         paa('--execkey',
             type=str, dest='Global.exec_key',
             help='path to a file containing an execution key.',
@@ -280,6 +285,19 @@ class IPControllerApp(ApplicationWithClusterDir):
         except:
             self.log.error("Couldn't construct the Controller", exc_info=True)
             self.exit(1)
+    
+    def save_urls(self):
+        """save the registration urls to files."""
+        c = self.master_config
+        
+        sec_dir = c.Global.security_dir
+        cf = self.factory
+        
+        with open(os.path.join(sec_dir, 'ipcontroller-engine.url'), 'w') as f:
+            f.write("%s://%s:%s"%(cf.engine_transport, cf.engine_ip, cf.regport))
+        
+        with open(os.path.join(sec_dir, 'ipcontroller-client.url'), 'w') as f:
+            f.write("%s://%s:%s"%(cf.client_transport, cf.client_ip, cf.regport))
         
     
     def import_statements(self):
@@ -291,19 +309,19 @@ class IPControllerApp(ApplicationWithClusterDir):
             except:
                 self.log.msg("Error running statement: %s" % s)
 
-    # def start_logging(self):
-    #     super(IPControllerApp, self).start_logging()
-    #     if self.master_config.Global.log_url:
-    #         context = self.factory.context
-    #         lsock = context.socket(zmq.PUB)
-    #         lsock.connect(self.master_config.Global.log_url)
-    #         handler = PUBHandler(lsock)
-    #         handler.root_topic = 'controller'
-    #         handler.setLevel(self.log_level)
-    #         self.log.addHandler(handler)
+    def start_logging(self):
+        super(IPControllerApp, self).start_logging()
+        if self.master_config.Global.log_url:
+            context = self.factory.context
+            lsock = context.socket(zmq.PUB)
+            lsock.connect(self.master_config.Global.log_url)
+            handler = PUBHandler(lsock)
+            handler.root_topic = 'controller'
+            handler.setLevel(self.log_level)
+            self.log.addHandler(handler)
     # 
     def start_app(self):
-        # Start the controller service.
+        # Start the subprocesses:
         self.factory.start()
         self.write_pid_file(overwrite=True)
         try:

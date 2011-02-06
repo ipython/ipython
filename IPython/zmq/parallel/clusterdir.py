@@ -35,18 +35,6 @@ from IPython.utils.path import (
 from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
-# Warnings control
-#-----------------------------------------------------------------------------
-# Twisted generates annoying warnings with Python 2.6, as will do other code
-# that imports 'sets' as of today
-warnings.filterwarnings('ignore', 'the sets module is deprecated',
-                        DeprecationWarning )
-
-# This one also comes from Twisted
-warnings.filterwarnings('ignore', 'the sha module is deprecated',
-                        DeprecationWarning)
-
-#-----------------------------------------------------------------------------
 # Module errors
 #-----------------------------------------------------------------------------
 
