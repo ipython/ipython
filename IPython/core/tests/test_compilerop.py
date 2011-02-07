@@ -46,6 +46,14 @@ def test_compiler():
     cp('x=1', 'single')
     nt.assert_true(len(linecache.cache) > ncache)
 
+def test_compiler_unicode():
+    import sys
+    nt.assert_equal(sys.getdefaultencoding(), "ascii")
+    
+    cp = compilerop.CachingCompiler()
+    ncache = len(linecache.cache)
+    cp(u"t = 'žćčšđ'", "single")
+    nt.assert_true(len(linecache.cache) > ncache)
 
 def test_compiler_check_cache():
     """Test the compiler properly manages the cache.
