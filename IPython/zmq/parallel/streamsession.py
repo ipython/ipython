@@ -399,12 +399,12 @@ class StreamSession(object):
             stream.send(b, flag, copy=False)
         if buffers:
             stream.send(buffers[-1], copy=False)
-        omsg = Message(msg)
+        # omsg = Message(msg)
         if self.debug:
-            pprint.pprint(omsg)
+            pprint.pprint(msg)
             pprint.pprint(to_send)
             pprint.pprint(buffers)
-        return omsg
+        return msg
     
     def send_raw(self, stream, msg, flags=0, copy=True, ident=None):
         """Send a raw message via ident path.

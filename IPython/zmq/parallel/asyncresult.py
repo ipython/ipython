@@ -36,6 +36,7 @@ class AsyncResult(object):
         self._fname=fname
         self._ready = False
         self._success = None
+        self._flatten_result = len(msg_ids) == 1
     
     def __repr__(self):
         if self._ready:
@@ -49,7 +50,7 @@ class AsyncResult(object):
         Override me in subclasses for turning a list of results
         into the expected form.
         """
-        if len(self.msg_ids) == 1:
+        if self._flatten_result:
             return res[0]
         else:
             return res
@@ -115,7 +116,7 @@ class AsyncResult(object):
     def get_dict(self, timeout=-1):
         """Get the results as a dict, keyed by engine_id."""
         results = self.get(timeout)
-        engine_ids = [md['engine_id'] for md in self._metadata ]
+        engine_ids = [ md['engine_id'] for md in self._metadata ]
         bycount = sorted(engine_ids, key=lambda k: engine_ids.count(k))
         maxcount = bycount.count(bycount[-1])
         if maxcount > 1:
@@ -130,11 +131,17 @@ class AsyncResult(object):
         """result property."""
         return self._result
     
+    # abbreviated alias:
+    r = result
+    
     @property
     @check_ready
     def metadata(self):
         """metadata property."""
-        return self._metadata
+        if self._flatten_result:
+            return self._metadata[0]
+        else:
+            return self._metadata
     
     @property
     def result_dict(self):
@@ -157,7 +164,11 @@ class AsyncResult(object):
         elif isinstance(key, slice):
             return error.collect_exceptions(self._result[key], self._fname)
         elif isinstance(key, basestring):
-            return [ md[key] for md in self._metadata ]
+            values = [ md[key] for md in self._metadata ]
+            if self._flatten_result:
+                return values[0]
+            else:
+                return values
         else:
             raise TypeError("Invalid key type %r, must be 'int','slice', or 'str'"%type(key))
     
@@ -177,8 +188,9 @@ class AsyncMapResult(AsyncResult):
     """
     
     def __init__(self, client, msg_ids, mapObject, fname=''):
-        self._mapObject = mapObject
         AsyncResult.__init__(self, client, msg_ids, fname=fname)
+        self._mapObject = mapObject
+        self._flatten_result = False
     
     def _reconstruct_result(self, res):
         """Perform the gather on the actual results."""

@@ -16,17 +16,23 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 from types import FunctionType
+import copy
 
-# contents of codeutil should either be in here, or codeutil belongs in IPython/util
 from IPython.zmq.parallel.dependency import dependent
+
 import codeutil
+
+#-------------------------------------------------------------------------------
+# Classes
+#-------------------------------------------------------------------------------
+
 
 class CannedObject(object):
     def __init__(self, obj, keys=[]):
         self.keys = keys
-        self.obj = obj
+        self.obj = copy.copy(obj)
         for key in keys:
-            setattr(obj, key, can(getattr(obj, key)))
+            setattr(self.obj, key, can(getattr(obj, key)))
             
     
     def getObject(self, g=None):
@@ -43,6 +49,7 @@ class CannedFunction(CannedObject):
     def __init__(self, f):
         self._checkType(f)    
         self.code = f.func_code
+        self.__name__ = f.__name__
     
     def _checkType(self, obj):
         assert isinstance(obj, FunctionType), "Not a function type"
@@ -52,6 +59,11 @@ class CannedFunction(CannedObject):
             g = globals()
         newFunc = FunctionType(self.code, g)
         return newFunc
+
+#-------------------------------------------------------------------------------
+# Functions
+#-------------------------------------------------------------------------------
+
 
 def can(obj):
     if isinstance(obj, FunctionType):

@@ -148,6 +148,12 @@ class FileTimeoutError(KernelError):
 class TimeoutError(KernelError):
     pass
 
+class UnmetDependency(KernelError):
+    pass
+
+class ImpossibleDependency(UnmetDependency):
+    pass
+
 class RemoteError(KernelError):
     """Error raised elsewhere"""
     ename=None

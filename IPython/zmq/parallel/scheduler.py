@@ -27,6 +27,7 @@ from IPython.external.decorator import decorator
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance, Dict, List, Set
 
+import error
 from client import Client
 from dependency import Dependency
 import streamsession as ss
@@ -104,6 +105,9 @@ def leastload(loads):
 #---------------------------------------------------------------------
 # Classes
 #---------------------------------------------------------------------
+# store empty default dependency:
+MET = Dependency([])
+
 class TaskScheduler(Configurable):
     """Python TaskScheduler object.
     
@@ -126,10 +130,14 @@ class TaskScheduler(Configurable):
     depending = Dict() # dict by msg_id of (msg_id, raw_msg, after, follow)
     pending = Dict() # dict by engine_uuid of submitted tasks
     completed = Dict() # dict by engine_uuid of completed tasks
+    failed = Dict() # dict by engine_uuid of failed tasks
+    destinations = Dict() # dict by msg_id of engine_uuids where jobs ran (reverse of completed+failed)
     clients = Dict() # dict by msg_id for who submitted the task
     targets = List() # list of target IDENTs
     loads = List() # list of engine loads
-    all_done = Set() # set of all completed tasks
+    all_completed = Set() # set of all completed tasks
+    all_failed = Set() # set of all failed tasks
+    all_done = Set() # set of all finished tasks=union(completed,failed)
     blacklist = Dict() # dict by msg_id of locations where a job has encountered UnmetDependency
     session = Instance(ss.StreamSession)
     
@@ -182,6 +190,7 @@ class TaskScheduler(Configurable):
         self.loads.insert(0,0)
         # initialize sets
         self.completed[uid] = set()
+        self.failed[uid] = set()
         self.pending[uid] = {}
         if len(self.targets) == 1:
             self.resume_receiving()
@@ -196,6 +205,11 @@ class TaskScheduler(Configurable):
         self.engine_stream.flush()
         
         self.completed.pop(uid)
+        self.failed.pop(uid)
+        # don't pop destinations, because it might be used later
+        # map(self.destinations.pop, self.completed.pop(uid))
+        # map(self.destinations.pop, self.failed.pop(uid))
+        
         lost = self.pending.pop(uid)
         
         idx = self.targets.index(uid)
@@ -235,21 +249,58 @@ class TaskScheduler(Configurable):
         # time dependencies
         after = Dependency(header.get('after', []))
         if after.mode == 'all':
-            after.difference_update(self.all_done)
-        if after.check(self.all_done):
+            after.difference_update(self.all_completed)
+            if not after.success_only:
+                after.difference_update(self.all_failed)
+        if after.check(self.all_completed, self.all_failed):
             # recast as empty set, if `after` already met,
             # to prevent unnecessary set comparisons
-            after = Dependency([])
+            after = MET
         
         # location dependencies
         follow = Dependency(header.get('follow', []))
-        if len(after) == 0:
+        
+        # check if unreachable:
+        if after.unreachable(self.all_failed) or follow.unreachable(self.all_failed):
+            self.depending[msg_id] = [raw_msg,MET,MET]
+            return self.fail_unreachable(msg_id)
+        
+        if after.check(self.all_completed, self.all_failed):
             # time deps already met, try to run
             if not self.maybe_run(msg_id, raw_msg, follow):
                 # can't run yet
                 self.save_unmet(msg_id, raw_msg, after, follow)
         else:
             self.save_unmet(msg_id, raw_msg, after, follow)
+    
+    @logged
+    def fail_unreachable(self, msg_id):
+        """a message has become unreachable"""
+        if msg_id not in self.depending:
+            logging.error("msg %r already failed!"%msg_id)
+            return
+        raw_msg, after, follow = self.depending.pop(msg_id)
+        for mid in follow.union(after):
+            if mid in self.dependencies:
+                self.dependencies[mid].remove(msg_id)
+        
+        idents,msg = self.session.feed_identities(raw_msg, copy=False)
+        msg = self.session.unpack_message(msg, copy=False, content=False)
+        header = msg['header']
+        
+        try:
+            raise error.ImpossibleDependency()
+        except:
+            content = ss.wrap_exception()
+        
+        self.all_done.add(msg_id)
+        self.all_failed.add(msg_id)
+        
+        msg = self.session.send(self.client_stream, 'apply_reply', content, 
+                                                parent=header, ident=idents)
+        self.session.send(self.mon_stream, msg, ident=['outtask']+idents)
+        
+        self.update_dependencies(msg_id, success=False)
     
     @logged
     def maybe_run(self, msg_id, raw_msg, follow=None):
@@ -259,10 +310,20 @@ class TaskScheduler(Configurable):
             def can_run(idx):
                 target = self.targets[idx]
                 return target not in self.blacklist.get(msg_id, []) and\
-                        follow.check(self.completed[target])
+                        follow.check(self.completed[target], self.failed[target])
             
             indices = filter(can_run, range(len(self.targets)))
             if not indices:
+                # TODO evaluate unmeetable follow dependencies
+                if follow.mode == 'all':
+                    dests = set()
+                    relevant = self.all_completed if follow.success_only else self.all_done
+                    for m in follow.intersection(relevant):
+                        dests.add(self.destinations[m])
+                    if len(dests) > 1:
+                        self.fail_unreachable(msg_id)
+                
+                
                 return False
         else:
             indices = None
@@ -271,10 +332,10 @@ class TaskScheduler(Configurable):
         return True
             
     @logged
-    def save_unmet(self, msg_id, msg, after, follow):
+    def save_unmet(self, msg_id, raw_msg, after, follow):
         """Save a message for later submission when its dependencies are met."""
-        self.depending[msg_id] = (msg_id,msg,after,follow)
-        # track the ids in both follow/after, but not those already completed
+        self.depending[msg_id] = [raw_msg,after,follow]
+        # track the ids in follow or after, but not those already finished
         for dep_id in after.union(follow).difference(self.all_done):
             if dep_id not in self.dependencies:
                 self.dependencies[dep_id] = set()
@@ -313,14 +374,15 @@ class TaskScheduler(Configurable):
         msg = self.session.unpack_message(msg, content=False, copy=False)
         header = msg['header']
         if header.get('dependencies_met', True):
-            self.handle_result_success(idents, msg['parent_header'], raw_msg)
-            # send to monitor
+            success = (header['status'] == 'ok')
+            self.handle_result(idents, msg['parent_header'], raw_msg, success)
+            # send to Hub monitor
             self.mon_stream.send_multipart(['outtask']+raw_msg, copy=False)
         else:
             self.handle_unmet_dependency(idents, msg['parent_header'])
         
     @logged
-    def handle_result_success(self, idents, parent, raw_msg):
+    def handle_result(self, idents, parent, raw_msg, success=True):
         # first, relay result to client
         engine = idents[0]
         client = idents[1]
@@ -331,10 +393,16 @@ class TaskScheduler(Configurable):
         # now, update our data structures
         msg_id = parent['msg_id']
         self.pending[engine].pop(msg_id)
-        self.completed[engine].add(msg_id)
+        if success:
+            self.completed[engine].add(msg_id)
+            self.all_completed.add(msg_id)
+        else:
+            self.failed[engine].add(msg_id)
+            self.all_failed.add(msg_id)
         self.all_done.add(msg_id)
+        self.destinations[msg_id] = engine
         
-        self.update_dependencies(msg_id)
+        self.update_dependencies(msg_id, success)
         
     @logged
     def handle_unmet_dependency(self, idents, parent):
@@ -346,24 +414,39 @@ class TaskScheduler(Configurable):
         raw_msg,follow = self.pending[engine].pop(msg_id)
         if not self.maybe_run(msg_id, raw_msg, follow):
             # resubmit failed, put it back in our dependency tree
-            self.save_unmet(msg_id, raw_msg, Dependency(), follow)
+            self.save_unmet(msg_id, raw_msg, MET, follow)
         pass
+    
     @logged
-    def update_dependencies(self, dep_id):
+    def update_dependencies(self, dep_id, success=True):
         """dep_id just finished. Update our dependency
         table and submit any jobs that just became runable."""
-        
+        # print ("\n\n***********")
+        # pprint (dep_id)
+        # pprint (self.dependencies)
+        # pprint (self.depending)
+        # pprint (self.all_completed)
+        # pprint (self.all_failed)
+        # print ("\n\n***********\n\n")
         if dep_id not in self.dependencies:
             return
         jobs = self.dependencies.pop(dep_id)
-        for job in jobs:
-            msg_id, raw_msg, after, follow = self.depending[job]
-            if dep_id in after:
-                after.remove(dep_id)
-            if not after: # time deps met, maybe run
+        
+        for msg_id in jobs:
+            raw_msg, after, follow = self.depending[msg_id]
+            # if dep_id in after:
+            #     if after.mode == 'all' and (success or not after.success_only):
+            #         after.remove(dep_id)
+            
+            if after.unreachable(self.all_failed) or follow.unreachable(self.all_failed):
+                self.fail_unreachable(msg_id)
+            
+            elif after.check(self.all_completed, self.all_failed): # time deps met, maybe run
+                self.depending[msg_id][1] = MET
                 if self.maybe_run(msg_id, raw_msg, follow):
-                    self.depending.pop(job)
-                    for mid in follow:
+                    
+                    self.depending.pop(msg_id)
+                    for mid in follow.union(after):
                         if mid in self.dependencies:
                             self.dependencies[mid].remove(msg_id)
     

@@ -91,7 +91,13 @@ def defaultblock(f, self, *args, **kwargs):
 #--------------------------------------------------------------------------
 
 class Metadata(dict):
-    """Subclass of dict for initializing metadata values."""
+    """Subclass of dict for initializing metadata values.
+    
+    Attribute access works on keys.
+    
+    These objects have a strict set of keys - errors will raise if you try
+    to add new keys.
+    """
     def __init__(self, *args, **kwargs):
         dict.__init__(self)
         md = {'msg_id' : None,
@@ -113,7 +119,27 @@ class Metadata(dict):
             }
         self.update(md)
         self.update(dict(*args, **kwargs))
+    
+    def __getattr__(self, key):
+        """getattr aliased to getitem"""
+        if key in self.iterkeys():
+            return self[key]
+        else:
+            raise AttributeError(key)
 
+    def __setattr__(self, key, value):
+        """setattr aliased to setitem, with strict"""
+        if key in self.iterkeys():
+            self[key] = value
+        else:
+            raise AttributeError(key)
+    
+    def __setitem__(self, key, value):
+        """strict static key enforcement"""
+        if key in self.iterkeys():
+            dict.__setitem__(self, key, value)
+        else:
+            raise KeyError(key)
         
 
 class Client(object):
@@ -372,16 +398,22 @@ class Client(object):
     
     def _extract_metadata(self, header, parent, content):
         md = {'msg_id' : parent['msg_id'],
-              'submitted' : datetime.strptime(parent['date'], ss.ISO8601),
-              'started' : datetime.strptime(header['started'], ss.ISO8601),
-              'completed' : datetime.strptime(header['date'], ss.ISO8601),
               'received' : datetime.now(),
-              'engine_uuid' : header['engine'],
-              'engine_id' : self._engines.get(header['engine'], None),
+              'engine_uuid' : header.get('engine', None),
               'follow' : parent['follow'],
               'after' : parent['after'],
               'status' : content['status'],
             }
+        
+        if md['engine_uuid'] is not None:
+            md['engine_id'] = self._engines.get(md['engine_uuid'], None)
+        
+        if 'date' in parent:
+            md['submitted'] = datetime.strptime(parent['date'], ss.ISO8601)
+        if 'started' in header:
+            md['started'] = datetime.strptime(header['started'], ss.ISO8601)
+        if 'date' in header:
+            md['completed'] = datetime.strptime(header['date'], ss.ISO8601)
         return md
     
     def _handle_execute_reply(self, msg):
@@ -393,7 +425,10 @@ class Client(object):
         parent = msg['parent_header']
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
-            print("got unknown result: %s"%msg_id)
+            if msg_id in self.history:
+                print ("got stale result: %s"%msg_id)
+            else:
+                print ("got unknown result: %s"%msg_id)
         else:
             self.outstanding.remove(msg_id)
         self.results[msg_id] = ss.unwrap_exception(msg['content'])
@@ -403,7 +438,12 @@ class Client(object):
         parent = msg['parent_header']
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
-            print ("got unknown result: %s"%msg_id)
+            if msg_id in self.history:
+                print ("got stale result: %s"%msg_id)
+                print self.results[msg_id]
+                print msg
+            else:
+                print ("got unknown result: %s"%msg_id)
         else:
             self.outstanding.remove(msg_id)
         content = msg['content']
@@ -424,9 +464,10 @@ class Client(object):
             pass
         else:
             e = ss.unwrap_exception(content)
-            e_uuid = e.engine_info['engineid']
-            eid = self._engines[e_uuid]
-            e.engine_info['engineid'] = eid
+            if e.engine_info:
+                e_uuid = e.engine_info['engineid']
+                eid = self._engines[e_uuid]
+                e.engine_info['engineid'] = eid
             self.results[msg_id] = e
     
     def _flush_notifications(self):
@@ -811,6 +852,8 @@ class Client(object):
         elif after is None:
             after = []
         if isinstance(follow, Dependency):
+            # if len(follow) > 1 and follow.mode == 'all':
+            #     warn("complex follow-dependencies are not rigorously tested for reachability", UserWarning)
             follow = follow.as_dict()
         elif isinstance(follow, AsyncResult):
             follow=follow.msg_ids
@@ -827,7 +870,6 @@ class Client(object):
                             after=None, follow=None):
         """The underlying method for applying functions in a load balanced
         manner, via the task queue."""
-        
         subheader = dict(after=after, follow=follow)
         bufs = ss.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)

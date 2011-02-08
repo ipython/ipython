@@ -34,7 +34,6 @@ from IPython.zmq.displayhook import DisplayHook
 from factory import SessionFactory
 from streamsession import StreamSession, Message, extract_header, serialize_object,\
                 unpack_apply_message, ISO8601, wrap_exception
-from dependency import UnmetDependency
 import heartmonitor
 from client import Client
 
@@ -266,9 +265,7 @@ class Kernel(SessionFactory):
             reply_content = exc_content
         else:
             reply_content = {'status' : 'ok'}
-        # reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
-        # self.reply_socket.send(ident, zmq.SNDMORE)
-        # self.reply_socket.send_json(reply_msg)
+        
         reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, 
                     ident=ident, subheader = dict(started=started))
         logging.debug(str(reply_msg))
@@ -317,10 +314,7 @@ class Kernel(SessionFactory):
                 suffix = prefix = "_" # prevent keyword collisions with lambda
             f,args,kwargs = unpack_apply_message(bufs, working, copy=False)
             # if f.fun
-            if hasattr(f, 'func_name'):
-                fname = f.func_name
-            else:
-                fname = f.__name__
+            fname = getattr(f, '__name__', 'f')
             
             fname = prefix+fname.strip('<>')+suffix
             argname = prefix+"args"+suffix
@@ -350,16 +344,17 @@ class Kernel(SessionFactory):
             reply_content = exc_content
             result_buf = []
             
-            if exc_content['ename'] == UnmetDependency.__name__:
+            if exc_content['ename'] == 'UnmetDependency':
                 sub['dependencies_met'] = False
         else:
             reply_content = {'status' : 'ok'}
-        # reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
-        # self.reply_socket.send(ident, zmq.SNDMORE)
-        # self.reply_socket.send_json(reply_msg)
+        
+        # put 'ok'/'error' status in header, for scheduler introspection:
+        sub['status'] = reply_content['status']
+        
         reply_msg = self.session.send(stream, u'apply_reply', reply_content, 
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
-        # print(Message(reply_msg), file=sys.__stdout__)
+        
         # if reply_msg['content']['status'] == u'error':
         #     self.abort_queues()
     
@@ -400,13 +395,11 @@ class Kernel(SessionFactory):
             return dispatcher
         
         for s in self.shell_streams:
-            # s.on_recv(printer)
             s.on_recv(make_dispatcher(s), copy=False)
-            # s.on_err(printer)
+            s.on_err(printer)
         
         if self.iopub_stream:
             self.iopub_stream.on_err(printer)
-            # self.iopub_stream.on_send(printer)
         
         #### while True mode:
         # while True:
