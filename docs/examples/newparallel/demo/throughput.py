@@ -14,7 +14,7 @@ def echo(s=''):
     return s
 
 def time_throughput(nmessages, t=0, f=wait):
-    client = clientmod.Client('tcp://127.0.0.1:10101')
+    client = clientmod.Client()
     view = client[None]
     # do one ping before starting timing
     if f is echo:
@@ -83,7 +83,4 @@ def do_echo(n,tlist=[0],f=echo, trials=2, runner=time_throughput):
         A[i] = n/A[i]
         print t,A[i]
     return A
-
-def start_cluster(n, scheduler):
-    pass
     

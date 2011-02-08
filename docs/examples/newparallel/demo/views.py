@@ -1,6 +1,6 @@
 from IPython.zmq.parallel.client import *
 
-client = Client('tcp://127.0.0.1:10101')
+client = Client()
 
 for id in client.ids:
     client.push(dict(ids=id*id), targets=id)

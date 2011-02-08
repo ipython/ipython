@@ -10,12 +10,16 @@ import sys
 
 argv = sys.argv
 
-from IPython.zmq.parallel.engine import main
+from IPython.zmq.parallel.engine import EngineFactory
+from IPython.zmq.parallel.ipengineapp import launch_new_instance
 
 ns = {}
 
 # job
 exec sys.argv[1] in ns
 
+# this should really use Config:
+EngineFactory.user_ns = ns
+
 # start engine with job namespace
-main([], user_ns=ns)
+launch_new_instance()

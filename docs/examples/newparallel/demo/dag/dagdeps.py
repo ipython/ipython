@@ -61,13 +61,13 @@ def submit_jobs(client, G, jobs):
         results[node] = client.apply(jobs[node], after=deps)
     return results
 
-def validate_tree(G, times):
+def validate_tree(G, results):
     """Validate that jobs executed after their dependencies."""
     for node in G:
-        t = times[node]
+        started = results[node].metadata.started
         for parent in G.predecessors(node):
-            pt = times[parent]
-            assert t > pt, "%s should have happened after %s"%(node, parent)
+            finished = results[parent].metadata.completed
+            assert started > finished, "%s should have happened after %s"%(node, parent)
 
 def main(nodes, edges):
     """Generate a random graph, submit jobs, then validate that the
@@ -76,28 +76,28 @@ def main(nodes, edges):
     in-degree on the y (just for spread).  All arrows must
     point at least slightly to the right if the graph is valid.
     """
+    from matplotlib.dates import date2num
     print "building DAG"
     G = random_dag(nodes, edges)
     jobs = {}
-    msg_ids = {}
-    times = {}
     pos = {}
     for node in G:
         jobs[node] = randomwait
     
-    client = cmod.Client('tcp://127.0.0.1:10101')
+    client = cmod.Client()
     print "submitting tasks"
     results = submit_jobs(client, G, jobs)
     print "waiting for results"
     client.barrier()
     print "done"
     for node in G:
-        times[node] = results[node].get()
-        pos[node] = (times[node], G.in_degree(node)+random())
+        # times[node] = results[node].get()
+        t = date2num(results[node].metadata.started)
+        pos[node] = (t, G.in_degree(node)+random())
     
-    validate_tree(G, times)
+    validate_tree(G, results)
     nx.draw(G, pos)
-    return G,times,msg_ids
+    return G,results
 
 if __name__ == '__main__':
     import pylab
