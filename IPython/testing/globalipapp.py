@@ -68,11 +68,19 @@ class ipnsdict(dict):
     This subclass adds a simple checkpointing capability so that when testing
     machinery clears it (we use it as the test execution context), it doesn't
     get completely destroyed.
+
+    In addition, it can handle the presence of the '_' key in a special manner,
+    which is needed because of how Python's doctest machinery operates with
+    '_'.  See constructor and :meth:`update` for details.
     """
     
     def __init__(self,*a):
         dict.__init__(self,*a)
         self._savedict = {}
+        # If this flag is True, the .update() method will unconditionally
+        # remove a key named '_'.  This is so that such a dict can be used as a
+        # namespace in doctests that call '_'.
+        self.protect_underscore = False
         
     def clear(self):
         dict.clear(self)
@@ -86,10 +94,15 @@ class ipnsdict(dict):
         self._checkpoint()
         dict.update(self,other)
 
-        # If '_' is in the namespace, python won't set it when executing code,
-        # and we have examples that test it.  So we ensure that the namespace
-        # is always 'clean' of it before it's used for test code execution.
-        self.pop('_',None)
+        if self.protect_underscore:
+            # If '_' is in the namespace, python won't set it when executing
+            # code *in doctests*, and we have multiple doctests that use '_'.
+            # So we ensure that the namespace is always 'clean' of it before
+            # it's used for test code execution.
+            # This flag is only turned on by the doctest machinery, so that
+            # normal test code can assume the _ key is updated like any other
+            # key and can test for its presence after cell executions.
+            self.pop('_', None)
 
         # The builtins namespace must *always* be the real __builtin__ module,
         # else weird stuff happens.  The main ipython code does have provisions

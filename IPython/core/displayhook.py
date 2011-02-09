@@ -260,11 +260,14 @@ class DisplayHook(Configurable):
                 self.flush()
             # Don't overwrite '_' and friends if '_' is in __builtin__ (otherwise
             # we cause buggy behavior for things like gettext).
+
             if '_' not in __builtin__.__dict__:
                 self.___ = self.__
                 self.__ = self._
                 self._ = result
-                self.shell.user_ns.update({'_':self._,'__':self.__,'___':self.___})
+                self.shell.user_ns.update({'_':self._,
+                                           '__':self.__,
+                                           '___':self.___})
 
             # hackish access to top-level  namespace to create _1,_2... dynamically
             to_main = {}
