@@ -284,6 +284,8 @@ class HistoryManager(object):
         self.output_hist.clear()
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
+        # Reset session offset to -1, so next command counts as #1
+        self.session_offset = -1
 
 class HistorySaveThread(threading.Thread):
     """This thread makes IPython save history periodically.
