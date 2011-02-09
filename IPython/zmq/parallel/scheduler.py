@@ -10,8 +10,9 @@ Python Scheduler exists.
 #----------------------------------------------------------------------
 
 from __future__ import print_function
-from random import randint,random
+import sys
 import logging
+from random import randint,random
 from types import FunctionType
 
 try:
@@ -24,7 +25,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 # local imports
 from IPython.external.decorator import decorator
-from IPython.config.configurable import Configurable
+# from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance, Dict, List, Set
 
 import error
@@ -32,12 +33,13 @@ from client import Client
 from dependency import Dependency
 import streamsession as ss
 from entry_point import connect_logger, local_logger
+from factory import LoggingFactory
 
 
 @decorator
 def logged(f,self,*args,**kwargs):
     # print ("#--------------------")
-    logging.debug("scheduler::%s(*%s,**%s)"%(f.func_name, args, kwargs))
+    self.log.debug("scheduler::%s(*%s,**%s)"%(f.func_name, args, kwargs))
     # print ("#--")
     return f(self,*args, **kwargs)
 
@@ -108,7 +110,7 @@ def leastload(loads):
 # store empty default dependency:
 MET = Dependency([])
 
-class TaskScheduler(Configurable):
+class TaskScheduler(LoggingFactory):
     """Python TaskScheduler object.
     
     This is the simplest object that supports msg_id based
@@ -153,7 +155,7 @@ class TaskScheduler(Configurable):
             unregistration_notification = self._unregister_engine
         )
         self.notifier_stream.on_recv(self.dispatch_notification)
-        logging.info("Scheduler started...%r"%self)
+        self.log.info("Scheduler started...%r"%self)
     
     def resume_receiving(self):
         """Resume accepting jobs."""
@@ -180,7 +182,7 @@ class TaskScheduler(Configurable):
             try:
                 handler(str(msg['content']['queue']))
             except KeyError:
-                logging.error("task::Invalid notification msg: %s"%msg)
+                self.log.error("task::Invalid notification msg: %s"%msg)
     
     @logged
     def _register_engine(self, uid):
@@ -236,7 +238,7 @@ class TaskScheduler(Configurable):
         try:
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
         except Exception as e:
-            logging.error("task::Invaid msg: %s"%msg)
+            self.log.error("task::Invaid msg: %s"%msg)
             return
         
         # send to monitor
@@ -277,7 +279,7 @@ class TaskScheduler(Configurable):
     def fail_unreachable(self, msg_id):
         """a message has become unreachable"""
         if msg_id not in self.depending:
-            logging.error("msg %r already failed!"%msg_id)
+            self.log.error("msg %r already failed!"%msg_id)
             return
         raw_msg, after, follow = self.depending.pop(msg_id)
         for mid in follow.union(after):
@@ -369,7 +371,7 @@ class TaskScheduler(Configurable):
         try:
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
         except Exception as e:
-            logging.error("task::Invaid result: %s"%msg)
+            self.log.error("task::Invaid result: %s"%msg)
             return
         msg = self.session.unpack_message(msg, content=False, copy=False)
         header = msg['header']
@@ -470,7 +472,7 @@ class TaskScheduler(Configurable):
     
 
 
-def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, log_addr=None, loglevel=logging.DEBUG, scheme='weighted'):
+def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, logname='ZMQ', log_addr=None, loglevel=logging.DEBUG, scheme='weighted'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
     
@@ -490,13 +492,13 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, log_addr=None, logle
     scheme = globals().get(scheme, None)
     # setup logging
     if log_addr:
-        connect_logger(ctx, log_addr, root="scheduler", loglevel=loglevel)
+        connect_logger(logname, ctx, log_addr, root="scheduler", loglevel=loglevel)
     else:
-        local_logger(loglevel)
+        local_logger(logname, loglevel)
     
     scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
                             mon_stream=mons,notifier_stream=nots,
-                            scheme=scheme,io_loop=loop)
+                            scheme=scheme,io_loop=loop, logname=logname)
     
     try:
         loop.start()

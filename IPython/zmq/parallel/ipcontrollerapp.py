@@ -279,7 +279,7 @@ class IPControllerApp(ApplicationWithClusterDir):
             c.SessionFactory.exec_key = ''
         
         try:
-            self.factory = ControllerFactory(config=c)
+            self.factory = ControllerFactory(config=c, logname=self.log.name)
             self.start_logging()
             self.factory.construct()
         except:

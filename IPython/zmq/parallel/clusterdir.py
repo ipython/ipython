@@ -480,12 +480,11 @@ class ApplicationWithClusterDir(Application):
             open_log_file = None
         else:
             open_log_file = sys.stdout
-        logger = logging.getLogger()
-        level = self.log_level
-        self.log = logger
-        # since we've reconnected the logger, we need to reconnect the log-level
-        self.log_level = level
-        if open_log_file is not None and self._log_handler not in self.log.handlers:
+        if open_log_file is not None:
+            self.log.removeHandler(self._log_handler)
+            self._log_handler = logging.StreamHandler(open_log_file)
+            self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
+            self._log_handler.setFormatter(self._log_formatter)
             self.log.addHandler(self._log_handler)
         # log.startLogging(open_log_file)
 

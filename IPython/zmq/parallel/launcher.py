@@ -30,11 +30,12 @@ from subprocess import Popen, PIPE
 
 from zmq.eventloop import ioloop
 
-from IPython.config.configurable import Configurable
+# from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Str, Int, List, Unicode, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
+from factory import LoggingFactory
 # from IPython.kernel.winhpcjob import (
 #     IPControllerTask, IPEngineTask,
 #     IPControllerJob, IPEngineSetJob
@@ -75,7 +76,7 @@ class UnknownStatus(LauncherError):
     pass
 
 
-class BaseLauncher(Configurable):
+class BaseLauncher(LoggingFactory):
     """An asbtraction for starting, stopping and signaling a process."""
 
     # In all of the launchers, the work_dir is where child processes will be
@@ -90,8 +91,8 @@ class BaseLauncher(Configurable):
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
-    def __init__(self, work_dir=u'.', config=None):
-        super(BaseLauncher, self).__init__(work_dir=work_dir, config=config)
+    def __init__(self, work_dir=u'.', config=None, **kwargs):
+        super(BaseLauncher, self).__init__(work_dir=work_dir, config=config, **kwargs)
         self.state = 'before' # can be before, running, after
         self.stop_callbacks = []
         self.start_data = None
@@ -163,7 +164,7 @@ class BaseLauncher(Configurable):
         a pass-through so it can be used as a callback.
         """
 
-        logging.info('Process %r started: %r' % (self.args[0], data))
+        self.log.info('Process %r started: %r' % (self.args[0], data))
         self.start_data = data
         self.state = 'running'
         return data
@@ -174,7 +175,7 @@ class BaseLauncher(Configurable):
         This logs the process stopping and sets the state to 'after'. Call
         this to trigger all the deferreds from :func:`observe_stop`."""
 
-        logging.info('Process %r stopped: %r' % (self.args[0], data))
+        self.log.info('Process %r stopped: %r' % (self.args[0], data))
         self.stop_data = data
         self.state = 'after'
         for i in range(len(self.stop_callbacks)):
@@ -212,9 +213,9 @@ class LocalProcessLauncher(BaseLauncher):
     cmd_and_args = List([])
     poll_frequency = Int(100) # in ms
 
-    def __init__(self, work_dir=u'.', config=None):
+    def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(LocalProcessLauncher, self).__init__(
-            work_dir=work_dir, config=config
+            work_dir=work_dir, config=config, **kwargs
         )
         self.process = None
         self.start_deferred = None
@@ -259,7 +260,7 @@ class LocalProcessLauncher(BaseLauncher):
         line = self.process.stdout.readline()
         # a stopped process will be readable but return empty strings
         if line:
-            logging.info(line[:-1])
+            self.log.info(line[:-1])
         else:
             self.poll()
     
@@ -267,7 +268,7 @@ class LocalProcessLauncher(BaseLauncher):
         line = self.process.stderr.readline()
         # a stopped process will be readable but return empty strings
         if line:
-            logging.error(line[:-1])
+            self.log.error(line[:-1])
         else:
             self.poll()
     
@@ -294,7 +295,7 @@ class LocalControllerLauncher(LocalProcessLauncher):
         """Start the controller by cluster_dir."""
         self.controller_args.extend(['--cluster-dir', cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
-        logging.info("Starting LocalControllerLauncher: %r" % self.args)
+        self.log.info("Starting LocalControllerLauncher: %r" % self.args)
         return super(LocalControllerLauncher, self).start()
 
 
@@ -327,9 +328,9 @@ class LocalEngineSetLauncher(BaseLauncher):
     # launcher class
     launcher_class = LocalEngineLauncher
     
-    def __init__(self, work_dir=u'.', config=None):
+    def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(LocalEngineSetLauncher, self).__init__(
-            work_dir=work_dir, config=config
+            work_dir=work_dir, config=config, **kwargs
         )
         self.launchers = {}
         self.stop_data = {}
@@ -339,14 +340,14 @@ class LocalEngineSetLauncher(BaseLauncher):
         self.cluster_dir = unicode(cluster_dir)
         dlist = []
         for i in range(n):
-            el = self.launcher_class(work_dir=self.work_dir, config=self.config)
+            el = self.launcher_class(work_dir=self.work_dir, config=self.config, logname=self.log.name)
             # Copy the engine args over to each engine launcher.
             import copy
             el.engine_args = copy.deepcopy(self.engine_args)
             el.on_stop(self._notice_engine_stopped)
             d = el.start(cluster_dir)
             if i==0:
-                logging.info("Starting LocalEngineSetLauncher: %r" % el.args)
+                self.log.info("Starting LocalEngineSetLauncher: %r" % el.args)
             self.launchers[i] = el
             dlist.append(d)
         self.notify_start(dlist)
@@ -431,7 +432,7 @@ class MPIExecControllerLauncher(MPIExecLauncher):
         """Start the controller by cluster_dir."""
         self.controller_args.extend(['--cluster-dir', cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
-        logging.info("Starting MPIExecControllerLauncher: %r" % self.args)
+        self.log.info("Starting MPIExecControllerLauncher: %r" % self.args)
         return super(MPIExecControllerLauncher, self).start(1)
 
     def find_args(self):
@@ -453,7 +454,7 @@ class MPIExecEngineSetLauncher(MPIExecLauncher):
         self.engine_args.extend(['--cluster-dir', cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
         self.n = n
-        logging.info('Starting MPIExecEngineSetLauncher: %r' % self.args)
+        self.log.info('Starting MPIExecEngineSetLauncher: %r' % self.args)
         return super(MPIExecEngineSetLauncher, self).start(n)
 
     def find_args(self):
@@ -572,7 +573,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #         else:
 #             raise LauncherError("Job id couldn't be determined: %s" % output)
 #         self.job_id = job_id
-#         logging.info('Job started with job id: %r' % job_id)
+#         self.log.info('Job started with job id: %r' % job_id)
 #         return job_id
 # 
 #     @inlineCallbacks
@@ -584,7 +585,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #             '/jobfile:%s' % self.job_file,
 #             '/scheduler:%s' % self.scheduler
 #         ]
-#         logging.info("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
+#         self.log.info("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
 #         # Twisted will raise DeprecationWarnings if we try to pass unicode to this
 #         output = yield getProcessOutput(str(self.job_cmd),
 #             [str(a) for a in args],
@@ -602,7 +603,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #             self.job_id,
 #             '/scheduler:%s' % self.scheduler
 #         ]
-#         logging.info("Stopping Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
+#         self.log.info("Stopping Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
 #         try:
 #             # Twisted will raise DeprecationWarnings if we try to pass unicode to this
 #             output = yield getProcessOutput(str(self.job_cmd),
@@ -633,7 +634,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #         t.controller_args.extend(self.extra_args)
 #         job.add_task(t)
 # 
-#         logging.info("Writing job description file: %s" % self.job_file)
+#         self.log.info("Writing job description file: %s" % self.job_file)
 #         job.write(self.job_file)
 # 
 #     @property
@@ -665,7 +666,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #             t.engine_args.extend(self.extra_args)
 #             job.add_task(t)
 # 
-#         logging.info("Writing job description file: %s" % self.job_file)
+#         self.log.info("Writing job description file: %s" % self.job_file)
 #         job.write(self.job_file)
 # 
 #     @property
@@ -729,14 +730,14 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #         else:
 #             raise LauncherError("Job id couldn't be determined: %s" % output)
 #         self.job_id = job_id
-#         logging.info('Job started with job id: %r' % job_id)
+#         self.log.info('Job started with job id: %r' % job_id)
 #         return job_id
 # 
 #     def write_batch_script(self, n):
 #         """Instantiate and write the batch script to the work_dir."""
 #         self.context['n'] = n
 #         script_as_string = Itpl.itplns(self.batch_template, self.context)
-#         logging.info('Writing instantiated batch script: %s' % self.batch_file)
+#         self.log.info('Writing instantiated batch script: %s' % self.batch_file)
 #         f = open(self.batch_file, 'w')
 #         f.write(script_as_string)
 #         f.close()
@@ -783,7 +784,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #         # ${cluster_dir}
 #         self.context['cluster_dir'] = cluster_dir
 #         self.cluster_dir = unicode(cluster_dir)
-#         logging.info("Starting PBSControllerLauncher: %r" % self.args)
+#         self.log.info("Starting PBSControllerLauncher: %r" % self.args)
 #         return super(PBSControllerLauncher, self).start(1)
 # 
 # 
@@ -795,7 +796,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #         """Start n engines by profile or cluster_dir."""
 #         self.program_args.extend(['--cluster-dir', cluster_dir])
 #         self.cluster_dir = unicode(cluster_dir)
-#         logging.info('Starting PBSEngineSetLauncher: %r' % self.args)
+#         self.log.info('Starting PBSEngineSetLauncher: %r' % self.args)
 #         return super(PBSEngineSetLauncher, self).start(n)
 
 
@@ -819,6 +820,6 @@ class IPClusterLauncher(LocalProcessLauncher):
             ['-n', repr(self.ipcluster_n)] + self.ipcluster_args
 
     def start(self):
-        logging.info("Starting ipcluster: %r" % self.args)
+        self.log.info("Starting ipcluster: %r" % self.args)
         return super(IPClusterLauncher, self).start()
 

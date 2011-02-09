@@ -110,7 +110,7 @@ class Kernel(SessionFactory):
         s = _Passer()
         content = dict(silent=True, user_variable=[],user_expressions=[])
         for line in self.exec_lines:
-            logging.debug("executing initialization: %s"%line)
+            self.log.debug("executing initialization: %s"%line)
             content.update({'code':line})
             msg = self.session.msg('execute_request', content)
             self.execute_request(s, [], msg)
@@ -139,8 +139,8 @@ class Kernel(SessionFactory):
                 
                 # assert self.reply_socketly_socket.rcvmore(), "Unexpected missing message part."
                 # msg = self.reply_socket.recv_json()
-            logging.info("Aborting:")
-            logging.info(str(msg))
+            self.log.info("Aborting:")
+            self.log.info(str(msg))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             # reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
@@ -148,7 +148,7 @@ class Kernel(SessionFactory):
             # self.reply_socket.send_json(reply_msg)
             reply_msg = self.session.send(stream, reply_type, 
                         content={'status' : 'aborted'}, parent=msg, ident=idents)[0]
-            logging.debug(str(reply_msg))
+            self.log.debug(str(reply_msg))
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.05)
@@ -166,7 +166,7 @@ class Kernel(SessionFactory):
         content = dict(status='ok')
         reply_msg = self.session.send(stream, 'abort_reply', content=content, 
                 parent=parent, ident=ident)[0]
-        logging.debug(str(reply_msg))
+        self.log.debug(str(reply_msg))
     
     def shutdown_request(self, stream, ident, parent):
         """kill ourself.  This should really be handled in an external process"""
@@ -191,7 +191,7 @@ class Kernel(SessionFactory):
         try:
             msg = self.session.unpack_message(msg, content=True, copy=False)
         except:
-            logging.error("Invalid Message", exc_info=True)
+            self.log.error("Invalid Message", exc_info=True)
             return
         
         header = msg['header']
@@ -199,7 +199,7 @@ class Kernel(SessionFactory):
         
         handler = self.control_handlers.get(msg['msg_type'], None)
         if handler is None:
-            logging.error("UNKNOWN CONTROL MESSAGE TYPE: %r"%msg['msg_type'])
+            self.log.error("UNKNOWN CONTROL MESSAGE TYPE: %r"%msg['msg_type'])
         else:
             handler(self.control_stream, idents, msg)
     
@@ -240,11 +240,11 @@ class Kernel(SessionFactory):
         self._initial_exec_lines()
     
     def execute_request(self, stream, ident, parent):
-        logging.debug('execute request %s'%parent)
+        self.log.debug('execute request %s'%parent)
         try:
             code = parent[u'content'][u'code']
         except:
-            logging.error("Got bad msg: %s"%parent, exc_info=True)
+            self.log.error("Got bad msg: %s"%parent, exc_info=True)
             return
         self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent,
                             ident='%s.pyin'%self.prefix)
@@ -268,7 +268,7 @@ class Kernel(SessionFactory):
         
         reply_msg = self.session.send(stream, u'execute_reply', reply_content, parent=parent, 
                     ident=ident, subheader = dict(started=started))
-        logging.debug(str(reply_msg))
+        self.log.debug(str(reply_msg))
         if reply_msg['content']['status'] == u'error':
             self.abort_queues()
 
@@ -290,7 +290,7 @@ class Kernel(SessionFactory):
             msg_id = parent['header']['msg_id']
             bound = content.get('bound', False)
         except:
-            logging.error("Got bad msg: %s"%parent, exc_info=True)
+            self.log.error("Got bad msg: %s"%parent, exc_info=True)
             return
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_stream.send(pyin_msg)
@@ -364,7 +364,7 @@ class Kernel(SessionFactory):
         try:
             msg = self.session.unpack_message(msg, content=True, copy=False)
         except:
-            logging.error("Invalid Message", exc_info=True)
+            self.log.error("Invalid Message", exc_info=True)
             return
             
         
@@ -379,7 +379,7 @@ class Kernel(SessionFactory):
             return
         handler = self.shell_handlers.get(msg['msg_type'], None)
         if handler is None:
-            logging.error("UNKNOWN MESSAGE TYPE: %r"%msg['msg_type'])
+            self.log.error("UNKNOWN MESSAGE TYPE: %r"%msg['msg_type'])
         else:
             handler(stream, idents, msg)
     

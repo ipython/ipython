@@ -18,15 +18,16 @@ import logging
 
 import zmq
 from zmq.eventloop import ioloop, zmqstream
-from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Int, Str, Instance, List
+
+from factory import LoggingFactory
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
 
-class LogWatcher(Configurable):
+class LogWatcher(LoggingFactory):
     """A simple class that receives messages on a SUB socket, as published
     by subclasses of `zmq.log.handlers.PUBHandler`, and logs them itself.
     
@@ -43,21 +44,25 @@ class LogWatcher(Configurable):
     def _loop_default(self):
         return ioloop.IOLoop.instance()
     
-    def __init__(self, config=None):
-        super(LogWatcher, self).__init__(config=config)
+    def __init__(self, **kwargs):
+        super(LogWatcher, self).__init__(**kwargs)
         s = self.context.socket(zmq.SUB)
         s.bind(self.url)
         self.stream = zmqstream.ZMQStream(s, self.loop)
         self.subscribe()
         self.on_trait_change(self.subscribe, 'topics')
-        
+    
+    def start(self):
         self.stream.on_recv(self.log_message)
+    
+    def stop(self):
+        self.stream.stop_on_recv()
     
     def subscribe(self):
         """Update our SUB socket's subscriptions."""
         self.stream.setsockopt(zmq.UNSUBSCRIBE, '')
         for topic in self.topics:
-            logging.debug("Subscribing to: %r"%topic)
+            self.log.debug("Subscribing to: %r"%topic)
             self.stream.setsockopt(zmq.SUBSCRIBE, topic)
     
     def _extract_level(self, topic_str):
@@ -79,7 +84,7 @@ class LogWatcher(Configurable):
     def log_message(self, raw):
         """receive and parse a message, then log it."""
         if len(raw) != 2 or '.' not in raw[0]:
-            logging.error("Invalid log message: %s"%raw)
+            self.log.error("Invalid log message: %s"%raw)
             return
         else:
             topic, msg = raw

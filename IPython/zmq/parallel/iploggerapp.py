@@ -107,7 +107,7 @@ class IPLoggerApp(ApplicationWithClusterDir):
         self.start_logging()
 
         try:
-            self.watcher = LogWatcher(config=self.master_config)
+            self.watcher = LogWatcher(config=self.master_config, logname=self.log.name)
         except:
             self.log.error("Couldn't start the LogWatcher", exc_info=True)
             self.exit(1)
@@ -115,6 +115,7 @@ class IPLoggerApp(ApplicationWithClusterDir):
 
     def start_app(self):
         try:
+            self.watcher.start()
             self.watcher.loop.start()
         except KeyboardInterrupt:
             self.log.critical("Logging Interrupted, shutting down...\n")

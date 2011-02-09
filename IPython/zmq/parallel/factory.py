@@ -29,9 +29,15 @@ import IPython.zmq.parallel.streamsession as ss
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+class LoggingFactory(Configurable):
+    """A most basic class, that has a `log` (type:`Logger`) attribute, set via a `logname` Trait."""
+    log = Instance('logging.Logger', ('ZMQ', logging.WARN))
+    logname = CStr('ZMQ')
+    def _logname_changed(self, name, old, new):
+        self.log = logging.getLogger(new)
+    
 
-
-class SessionFactory(Configurable):
+class SessionFactory(LoggingFactory):
     """The Base factory from which every factory in IPython.zmq.parallel inherits"""
     
     packer = Str('',config=True)
@@ -41,13 +47,13 @@ class SessionFactory(Configurable):
         return str(uuid.uuid4())
     username = Str(os.environ.get('USER','username'),config=True)
     exec_key = CUnicode('',config=True)
-    
     # not configurable:
     context = Instance('zmq.Context', (), {})
     session = Instance('IPython.zmq.parallel.streamsession.StreamSession')
-    loop = Instance('zmq.eventloop.ioloop.IOLoop')
+    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
     def _loop_default(self):
         return IOLoop.instance()
+    
     
     def __init__(self, **kwargs):
         super(SessionFactory, self).__init__(**kwargs)

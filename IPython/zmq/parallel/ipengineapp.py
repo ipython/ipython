@@ -193,7 +193,7 @@ class IPEngineApp(ApplicationWithClusterDir):
         # Create the underlying shell class and EngineService
         # shell_class = import_item(self.master_config.Global.shell_class)
         try:
-            self.engine = EngineFactory(config=config)
+            self.engine = EngineFactory(config=config, logname=self.log.name)
         except:
             self.log.error("Couldn't start the Engine", exc_info=True)
             self.exit(1)

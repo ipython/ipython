@@ -79,8 +79,8 @@ def integer_loglevel(loglevel):
             loglevel = getattr(logging, loglevel)
     return loglevel
 
-def connect_logger(context, iface, root="ip", loglevel=logging.DEBUG):
-    logger = logging.getLogger()
+def connect_logger(logname, context, iface, root="ip", loglevel=logging.DEBUG):
+    logger = logging.getLogger(logname)
     if any([isinstance(h, handlers.PUBHandler) for h in logger.handlers]):
         # don't add a second PUBHandler
         return
@@ -106,9 +106,9 @@ def connect_engine_logger(context, iface, engine, loglevel=logging.DEBUG):
     logger.addHandler(handler)
     logger.setLevel(loglevel)
 
-def local_logger(loglevel=logging.DEBUG):
+def local_logger(logname, loglevel=logging.DEBUG):
     loglevel = integer_loglevel(loglevel)
-    logger = logging.getLogger()
+    logger = logging.getLogger(logname)
     if any([isinstance(h, logging.StreamHandler) for h in logger.handlers]):
         # don't add a second StreamHandler
         return

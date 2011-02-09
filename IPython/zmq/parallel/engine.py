@@ -25,8 +25,8 @@ from streamkernel import Kernel
 import heartmonitor
 
 def printer(*msg):
-    # print (logging.handlers, file=sys.__stdout__)
-    logging.info(str(msg))
+    # print (self.log.handlers, file=sys.__stdout__)
+    self.log.info(str(msg))
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""
@@ -54,7 +54,7 @@ class EngineFactory(RegistrationFactory):
     def register(self):
         """send the registration_request"""
         
-        logging.info("registering")
+        self.log.info("registering")
         content = dict(queue=self.ident, heartbeat=self.ident, control=self.ident)
         self.registrar.on_recv(self.complete_registration)
         # print (self.session.key)
@@ -112,10 +112,9 @@ class EngineFactory(RegistrationFactory):
                 sys.displayhook = self.display_hook_factory(self.session, iopub_stream)
                 sys.displayhook.topic = 'engine.%i.pyout'%self.id
             
-            self.kernel = Kernel(int_id=self.id, ident=self.ident, session=self.session, 
-                    control_stream=control_stream,
-                    shell_streams=shell_streams, iopub_stream=iopub_stream, loop=loop,
-                    user_ns = self.user_ns, config=self.config)
+            self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session, 
+                    control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream, 
+                    loop=loop, user_ns = self.user_ns, logname=self.log.name)
             self.kernel.start()
             
             heart = heartmonitor.Heart(*map(str, hb_addrs), heart_id=identity)
@@ -124,10 +123,10 @@ class EngineFactory(RegistrationFactory):
             
             
         else:
-            logging.error("Registration Failed: %s"%msg)
+            self.log.error("Registration Failed: %s"%msg)
             raise Exception("Registration Failed: %s"%msg)
         
-        logging.info("Completed registration with id %i"%self.id)
+        self.log.info("Completed registration with id %i"%self.id)
     
     
     def unregister(self):

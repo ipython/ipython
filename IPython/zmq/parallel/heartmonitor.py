@@ -13,6 +13,9 @@ import zmq
 from zmq.devices import ProcessDevice,ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
+from IPython.utils.traitlets import Set, Instance, CFloat, Bool
+from factory import LoggingFactory
+
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
     This is a simple wrapper with defaults for the most common
@@ -39,36 +42,35 @@ class Heart(object):
     def start(self):
         return self.device.start()
         
-class HeartMonitor(object):
+class HeartMonitor(LoggingFactory):
     """A basic HeartMonitor class
     pingstream: a PUB stream
     pongstream: an XREP stream
     period: the period of the heartbeat in milliseconds"""
-    loop=None
-    pingstream=None
-    pongstream=None
-    period=None
-    hearts=None
-    on_probation=None
-    last_ping=None
-    # debug=False
     
-    def __init__(self, loop, pingstream, pongstream, period=1000):
-        self.loop = loop
-        self.period = period
+    period=CFloat(1000, config=True) # in milliseconds
+    
+    pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
+    pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
+    loop = Instance('zmq.eventloop.ioloop.IOLoop')
+    def _loop_default(self):
+        return ioloop.IOLoop.instance()
+    debug=Bool(False)
+    
+    # not settable:
+    hearts=Set()
+    responses=Set()
+    on_probation=Set()
+    last_ping=CFloat(0)
+    _new_handlers = Set()
+    _failure_handlers = Set()
+    lifetime = CFloat(0)
+    tic = CFloat(0)
+    
+    def __init__(self, **kwargs):
+        super(HeartMonitor, self).__init__(**kwargs)
         
-        self.pingstream = pingstream
-        self.pongstream = pongstream
         self.pongstream.on_recv(self.handle_pong)
-        
-        self.hearts = set()
-        self.responses = set()
-        self.on_probation = set()
-        self.lifetime = 0
-        self.tic = time.time()
-        
-        self._new_handlers = set()
-        self._failure_handlers = set()
     
     def start(self):
         self.caller = ioloop.PeriodicCallback(self.beat, self.period, self.loop)
@@ -76,12 +78,12 @@ class HeartMonitor(object):
     
     def add_new_heart_handler(self, handler):
         """add a new handler for new hearts"""
-        logging.debug("heartbeat::new_heart_handler: %s"%handler)
+        self.log.debug("heartbeat::new_heart_handler: %s"%handler)
         self._new_handlers.add(handler)
         
     def add_heart_failure_handler(self, handler):
         """add a new handler for heart failure"""
-        logging.debug("heartbeat::new heart failure handler: %s"%handler)
+        self.log.debug("heartbeat::new heart failure handler: %s"%handler)
         self._failure_handlers.add(handler)
             
     def beat(self):
@@ -91,7 +93,7 @@ class HeartMonitor(object):
         toc = time.time()
         self.lifetime += toc-self.tic
         self.tic = toc
-        # logging.debug("heartbeat::%s"%self.lifetime)
+        # self.log.debug("heartbeat::%s"%self.lifetime)
         goodhearts = self.hearts.intersection(self.responses)
         missed_beats = self.hearts.difference(goodhearts)
         heartfailures = self.on_probation.intersection(missed_beats)
@@ -101,7 +103,7 @@ class HeartMonitor(object):
         self.on_probation = missed_beats.intersection(self.hearts)
         self.responses = set()
         # print self.on_probation, self.hearts
-        # logging.debug("heartbeat::beat %.3f, %i beating hearts"%(self.lifetime, len(self.hearts)))
+        # self.log.debug("heartbeat::beat %.3f, %i beating hearts"%(self.lifetime, len(self.hearts)))
         self.pingstream.send(str(self.lifetime))
     
     def handle_new_heart(self, heart):
@@ -109,7 +111,7 @@ class HeartMonitor(object):
             for handler in self._new_handlers:
                 handler(heart)
         else:
-            logging.info("heartbeat::yay, got new heart %s!"%heart)
+            self.log.info("heartbeat::yay, got new heart %s!"%heart)
         self.hearts.add(heart)
     
     def handle_heart_failure(self, heart):
@@ -118,10 +120,10 @@ class HeartMonitor(object):
                 try:
                     handler(heart)
                 except Exception as e:
-                    logging.error("heartbeat::Bad Handler! %s"%handler, exc_info=True)
+                    self.log.error("heartbeat::Bad Handler! %s"%handler, exc_info=True)
                     pass
         else:
-            logging.info("heartbeat::Heart %s failed :("%heart)
+            self.log.info("heartbeat::Heart %s failed :("%heart)
         self.hearts.remove(heart)
         
     
@@ -129,14 +131,14 @@ class HeartMonitor(object):
         "a heart just beat"
         if msg[1] == str(self.lifetime):
             delta = time.time()-self.tic
-            # logging.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))
+            # self.log.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))
             self.responses.add(msg[0])
         elif msg[1] == str(self.last_ping):
             delta = time.time()-self.tic + (self.lifetime-self.last_ping)
-            logging.warn("heartbeat::heart %r missed a beat, and took %.2f ms to respond"%(msg[0], 1000*delta))
+            self.log.warn("heartbeat::heart %r missed a beat, and took %.2f ms to respond"%(msg[0], 1000*delta))
             self.responses.add(msg[0])
         else:
-            logging.warn("heartbeat::got bad heartbeat (possibly old?): %s (current=%.3f)"%
+            self.log.warn("heartbeat::got bad heartbeat (possibly old?): %s (current=%.3f)"%
             (msg[1],self.lifetime))
 
 

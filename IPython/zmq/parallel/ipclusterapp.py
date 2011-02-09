@@ -314,11 +314,12 @@ class IPClusterApp(ApplicationWithClusterDir):
         # and engine will be launched.
         el_class = import_item(config.Global.engine_launcher)
         self.engine_launcher = el_class(
-            work_dir=self.cluster_dir, config=config
+            work_dir=self.cluster_dir, config=config, logname=self.log.name
         )
         cl_class = import_item(config.Global.controller_launcher)
         self.controller_launcher = cl_class(
-            work_dir=self.cluster_dir, config=config
+            work_dir=self.cluster_dir, config=config,
+            logname=self.log.name
         )
 
         # Setup signals
@@ -348,11 +349,11 @@ class IPClusterApp(ApplicationWithClusterDir):
         return d
 
     def startup_message(self, r=None):
-        logging.info("IPython cluster: started")
+        self.log.info("IPython cluster: started")
         return r
         
     def start_controller(self, r=None):
-        # logging.info("In start_controller")
+        # self.log.info("In start_controller")
         config = self.master_config
         d = self.controller_launcher.start(
             cluster_dir=config.Global.cluster_dir
@@ -360,7 +361,7 @@ class IPClusterApp(ApplicationWithClusterDir):
         return d
             
     def start_engines(self, r=None):
-        # logging.info("In start_engines")
+        # self.log.info("In start_engines")
         config = self.master_config
         d = self.engine_launcher.start(
             config.Global.n,
@@ -369,12 +370,12 @@ class IPClusterApp(ApplicationWithClusterDir):
         return d
 
     def stop_controller(self, r=None):
-        # logging.info("In stop_controller")
+        # self.log.info("In stop_controller")
         if self.controller_launcher.running:
             return self.controller_launcher.stop()
 
     def stop_engines(self, r=None):
-        # logging.info("In stop_engines")
+        # self.log.info("In stop_engines")
         if self.engine_launcher.running:
             d = self.engine_launcher.stop()
             # d.addErrback(self.log_err)
@@ -383,16 +384,16 @@ class IPClusterApp(ApplicationWithClusterDir):
             return None
 
     def log_err(self, f):
-        logging.error(f.getTraceback())
+        self.log.error(f.getTraceback())
         return None
         
     def stop_launchers(self, r=None):
         if not self._stopping:
             self._stopping = True
             # if isinstance(r, failure.Failure):
-            #     logging.error('Unexpected error in ipcluster:')
-            #     logging.info(r.getTraceback())
-            logging.error("IPython cluster: stopping")
+            #     self.log.error('Unexpected error in ipcluster:')
+            #     self.log.info(r.getTraceback())
+            self.log.error("IPython cluster: stopping")
             # These return deferreds. We are not doing anything with them
             # but we are holding refs to them as a reminder that they 
             # do return deferreds.
@@ -462,7 +463,7 @@ class IPClusterApp(ApplicationWithClusterDir):
         try:
             self.loop.start()
         except:
-            logging.info("stopping...")
+            self.log.info("stopping...")
         self.remove_pid_file()
 
     def start_app_stop(self):

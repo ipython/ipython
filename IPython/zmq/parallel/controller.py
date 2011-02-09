@@ -44,14 +44,12 @@ class ControllerFactory(HubFactory):
     children = List()
     mq_class = Str('zmq.devices.ProcessMonitoredQueue')
     
-    def _update_mq(self):
-        self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if self.usethreads else 'Process')
+    def _usethreads_changed(self, name, old, new):
+        self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if new else 'Process')
         
     def __init__(self, **kwargs):
         super(ControllerFactory, self).__init__(**kwargs)
         self.subconstructors.append(self.construct_schedulers)
-        self._update_mq()
-        self.on_trait_change(self._update_mq, 'usethreads')
     
     def start(self):
         super(ControllerFactory, self).start()
@@ -91,7 +89,7 @@ class ControllerFactory(HubFactory):
         children.append(q)
         # Task Queue (in a Process)
         if self.scheme == 'pure':
-            logging.warn("task::using pure XREQ Task scheduler")
+            self.log.warn("task::using pure XREQ Task scheduler")
             q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
             q.bind_in(self.client_addrs['task'])
             q.bind_out(self.engine_addrs['task'])
@@ -99,10 +97,10 @@ class ControllerFactory(HubFactory):
             q.daemon=True
             children.append(q)
         elif self.scheme == 'none':
-            logging.warn("task::using no Task scheduler")
+            self.log.warn("task::using no Task scheduler")
             
         else:
-            logging.warn("task::using Python %s Task scheduler"%self.scheme)
+            self.log.warn("task::using Python %s Task scheduler"%self.scheme)
             sargs = (self.client_addrs['task'], self.engine_addrs['task'], self.monitor_url, self.client_addrs['notification'])
             q = Process(target=launch_scheduler, args=sargs, kwargs = dict(scheme=self.scheme))
             q.daemon=True
