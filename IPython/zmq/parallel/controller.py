@@ -100,9 +100,9 @@ class ControllerFactory(HubFactory):
             self.log.warn("task::using no Task scheduler")
             
         else:
-            self.log.warn("task::using Python %s Task scheduler"%self.scheme)
+            self.log.info("task::using Python %s Task scheduler"%self.scheme)
             sargs = (self.client_addrs['task'], self.engine_addrs['task'], self.monitor_url, self.client_addrs['notification'])
-            q = Process(target=launch_scheduler, args=sargs, kwargs = dict(scheme=self.scheme))
+            q = Process(target=launch_scheduler, args=sargs, kwargs = dict(scheme=self.scheme,logname=self.log.name, loglevel=self.log.level))
             q.daemon=True
             children.append(q)
 

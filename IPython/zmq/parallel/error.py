@@ -154,6 +154,9 @@ class UnmetDependency(KernelError):
 class ImpossibleDependency(UnmetDependency):
     pass
 
+class DependencyTimeout(UnmetDependency):
+    pass
+
 class RemoteError(KernelError):
     """Error raised elsewhere"""
     ename=None

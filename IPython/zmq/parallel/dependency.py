@@ -55,7 +55,7 @@ def require(*names):
     return depend(_require, *names)
 
 class Dependency(set):
-    """An object for representing a set of dependencies.
+    """An object for representing a set of msg_id dependencies.
     
     Subclassed from set()."""
     

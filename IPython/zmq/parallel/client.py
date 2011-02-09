@@ -765,9 +765,26 @@ class Client(object):
             raise result
         
         return result
-            
+    
+    def _build_dependency(self, dep):
+        """helper for building jsonable dependencies from various input forms"""
+        if isinstance(dep, Dependency):
+            return dep.as_dict()
+        elif isinstance(dep, AsyncResult):
+            return dep.msg_ids
+        elif dep is None:
+            return []
+        elif isinstance(dep, set):
+            return list(dep)
+        elif isinstance(dep, (list,dict)):
+            return dep
+        elif isinstance(dep, str):
+            return [dep]
+        else:
+            raise TypeError("Dependency may be: set,list,dict,Dependency or AsyncResult, not %r"%type(dep))
+        
     def apply(self, f, args=None, kwargs=None, bound=True, block=None, targets=None,
-                        after=None, follow=None):
+                        after=None, follow=None, timeout=None):
         """Call `f(*args, **kwargs)` on a remote engine(s), returning the result.
         
         This is the central execution command for the client.
@@ -817,6 +834,10 @@ class Client(object):
             This job will only be run on an engine where this dependency
             is met.
         
+        timeout : float or None
+            Only for load-balanced execution (targets=None)
+            Specify an amount of time (in seconds)
+        
         Returns
         -------
         if block is False:
@@ -844,33 +865,23 @@ class Client(object):
             raise TypeError("args must be tuple or list, not %s"%type(args))
         if not isinstance(kwargs, dict):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
-            
-        if isinstance(after, Dependency):
-            after = after.as_dict()
-        elif isinstance(after, AsyncResult):
-            after=after.msg_ids
-        elif after is None:
-            after = []
-        if isinstance(follow, Dependency):
-            # if len(follow) > 1 and follow.mode == 'all':
-            #     warn("complex follow-dependencies are not rigorously tested for reachability", UserWarning)
-            follow = follow.as_dict()
-        elif isinstance(follow, AsyncResult):
-            follow=follow.msg_ids
-        elif follow is None:
-            follow = []
-        options  = dict(bound=bound, block=block, after=after, follow=follow)
+        
+        after = self._build_dependency(after)
+        follow = self._build_dependency(follow)
+        
+        options  = dict(bound=bound, block=block)
             
         if targets is None:
-            return self._apply_balanced(f, args, kwargs, **options)
+            return self._apply_balanced(f, args, kwargs, timeout=timeout, 
+                                            after=after, follow=follow, **options)
         else:
             return self._apply_direct(f, args, kwargs, targets=targets, **options)
     
     def _apply_balanced(self, f, args, kwargs, bound=True, block=None,
-                            after=None, follow=None):
+                            after=None, follow=None, timeout=None):
         """The underlying method for applying functions in a load balanced
         manner, via the task queue."""
-        subheader = dict(after=after, follow=follow)
+        subheader = dict(after=after, follow=follow, timeout=timeout)
         bufs = ss.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)
         
@@ -885,8 +896,7 @@ class Client(object):
         else:
             return ar
     
-    def _apply_direct(self, f, args, kwargs, bound=True, block=None, targets=None,
-                                after=None, follow=None):
+    def _apply_direct(self, f, args, kwargs, bound=True, block=None, targets=None):
         """Then underlying method for applying functions to specific engines
         via the MUX queue."""
         

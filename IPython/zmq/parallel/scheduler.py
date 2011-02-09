@@ -12,9 +12,9 @@ Python Scheduler exists.
 from __future__ import print_function
 import sys
 import logging
-from random import randint,random
+from random import randint, random
 from types import FunctionType
-
+from datetime import datetime, timedelta
 try:
     import numpy
 except ImportError:
@@ -29,11 +29,11 @@ from IPython.external.decorator import decorator
 from IPython.utils.traitlets import Instance, Dict, List, Set
 
 import error
-from client import Client
+# from client import Client
 from dependency import Dependency
 import streamsession as ss
 from entry_point import connect_logger, local_logger
-from factory import LoggingFactory
+from factory import SessionFactory
 
 
 @decorator
@@ -110,7 +110,7 @@ def leastload(loads):
 # store empty default dependency:
 MET = Dependency([])
 
-class TaskScheduler(LoggingFactory):
+class TaskScheduler(SessionFactory):
     """Python TaskScheduler object.
     
     This is the simplest object that supports msg_id based
@@ -125,7 +125,6 @@ class TaskScheduler(LoggingFactory):
     engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
     notifier_stream = Instance(zmqstream.ZMQStream) # hub-facing sub stream
     mon_stream = Instance(zmqstream.ZMQStream) # hub-facing pub stream
-    io_loop = Instance(ioloop.IOLoop)
     
     # internals:
     dependencies = Dict() # dict by msg_id of [ msg_ids that depend on key ]
@@ -141,20 +140,18 @@ class TaskScheduler(LoggingFactory):
     all_failed = Set() # set of all failed tasks
     all_done = Set() # set of all finished tasks=union(completed,failed)
     blacklist = Dict() # dict by msg_id of locations where a job has encountered UnmetDependency
-    session = Instance(ss.StreamSession)
+    auditor = Instance('zmq.eventloop.ioloop.PeriodicCallback')
     
     
-    def __init__(self, **kwargs):
-        super(TaskScheduler, self).__init__(**kwargs)
-        
-        self.session = ss.StreamSession(username="TaskScheduler")
-        
+    def start(self):
         self.engine_stream.on_recv(self.dispatch_result, copy=False)
         self._notification_handlers = dict(
             registration_notification = self._register_engine,
             unregistration_notification = self._unregister_engine
         )
         self.notifier_stream.on_recv(self.dispatch_notification)
+        self.auditor = ioloop.PeriodicCallback(self.audit_timeouts, 1e3, self.loop) # 1 Hz
+        self.auditor.start()
         self.log.info("Scheduler started...%r"%self)
     
     def resume_receiving(self):
@@ -261,37 +258,55 @@ class TaskScheduler(LoggingFactory):
         
         # location dependencies
         follow = Dependency(header.get('follow', []))
-        
         # check if unreachable:
         if after.unreachable(self.all_failed) or follow.unreachable(self.all_failed):
-            self.depending[msg_id] = [raw_msg,MET,MET]
+            self.depending[msg_id] = [raw_msg,MET,MET,None]
             return self.fail_unreachable(msg_id)
+        
+        # turn timeouts into datetime objects:
+        timeout = header.get('timeout', None)
+        if timeout:
+            timeout = datetime.now() + timedelta(0,timeout,0)
         
         if after.check(self.all_completed, self.all_failed):
             # time deps already met, try to run
             if not self.maybe_run(msg_id, raw_msg, follow):
                 # can't run yet
-                self.save_unmet(msg_id, raw_msg, after, follow)
+                self.save_unmet(msg_id, raw_msg, after, follow, timeout)
         else:
-            self.save_unmet(msg_id, raw_msg, after, follow)
+            self.save_unmet(msg_id, raw_msg, after, follow, timeout)
     
     @logged
-    def fail_unreachable(self, msg_id):
+    def audit_timeouts(self):
+        """Audit all waiting tasks for expired timeouts."""
+        now = datetime.now()
+        for msg_id in self.depending.keys():
+            # must recheck, in case one failure cascaded to another:
+            if msg_id in self.depending:
+                raw,after,follow,timeout = self.depending[msg_id]
+                if timeout and timeout < now:
+                    self.fail_unreachable(msg_id, timeout=True)
+                
+    @logged
+    def fail_unreachable(self, msg_id, timeout=False):
         """a message has become unreachable"""
         if msg_id not in self.depending:
             self.log.error("msg %r already failed!"%msg_id)
             return
-        raw_msg, after, follow = self.depending.pop(msg_id)
+        raw_msg, after, follow, timeout = self.depending.pop(msg_id)
         for mid in follow.union(after):
             if mid in self.dependencies:
                 self.dependencies[mid].remove(msg_id)
         
+        # FIXME: unpacking a message I've already unpacked, but didn't save:
         idents,msg = self.session.feed_identities(raw_msg, copy=False)
         msg = self.session.unpack_message(msg, copy=False, content=False)
         header = msg['header']
         
+        impossible = error.DependencyTimeout if timeout else error.ImpossibleDependency
+        
         try:
-            raise error.ImpossibleDependency()
+            raise impossible()
         except:
             content = ss.wrap_exception()
         
@@ -334,9 +349,9 @@ class TaskScheduler(LoggingFactory):
         return True
             
     @logged
-    def save_unmet(self, msg_id, raw_msg, after, follow):
+    def save_unmet(self, msg_id, raw_msg, after, follow, timeout):
         """Save a message for later submission when its dependencies are met."""
-        self.depending[msg_id] = [raw_msg,after,follow]
+        self.depending[msg_id] = [raw_msg,after,follow,timeout]
         # track the ids in follow or after, but not those already finished
         for dep_id in after.union(follow).difference(self.all_done):
             if dep_id not in self.dependencies:
@@ -413,10 +428,10 @@ class TaskScheduler(LoggingFactory):
         if msg_id not in self.blacklist:
             self.blacklist[msg_id] = set()
         self.blacklist[msg_id].add(engine)
-        raw_msg,follow = self.pending[engine].pop(msg_id)
+        raw_msg,follow,timeout = self.pending[engine].pop(msg_id)
         if not self.maybe_run(msg_id, raw_msg, follow):
             # resubmit failed, put it back in our dependency tree
-            self.save_unmet(msg_id, raw_msg, MET, follow)
+            self.save_unmet(msg_id, raw_msg, MET, follow, timeout)
         pass
     
     @logged
@@ -435,7 +450,7 @@ class TaskScheduler(LoggingFactory):
         jobs = self.dependencies.pop(dep_id)
         
         for msg_id in jobs:
-            raw_msg, after, follow = self.depending[msg_id]
+            raw_msg, after, follow, timeout = self.depending[msg_id]
             # if dep_id in after:
             #     if after.mode == 'all' and (success or not after.success_only):
             #         after.remove(dep_id)
@@ -497,9 +512,9 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, logname='ZMQ', log_a
         local_logger(logname, loglevel)
     
     scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
-                            mon_stream=mons,notifier_stream=nots,
-                            scheme=scheme,io_loop=loop, logname=logname)
-    
+                            mon_stream=mons, notifier_stream=nots,
+                            scheme=scheme, loop=loop, logname=logname)
+    scheduler.start()
     try:
         loop.start()
     except KeyboardInterrupt:

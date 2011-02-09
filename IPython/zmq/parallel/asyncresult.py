@@ -36,7 +36,7 @@ class AsyncResult(object):
         self._fname=fname
         self._ready = False
         self._success = None
-        self._flatten_result = len(msg_ids) == 1
+        self._single_result = len(msg_ids) == 1
     
     def __repr__(self):
         if self._ready:
@@ -50,7 +50,7 @@ class AsyncResult(object):
         Override me in subclasses for turning a list of results
         into the expected form.
         """
-        if self._flatten_result:
+        if self._single_result:
             return res[0]
         else:
             return res
@@ -90,7 +90,12 @@ class AsyncResult(object):
             try:
                 results = map(self._client.results.get, self.msg_ids)
                 self._result = results
-                results = error.collect_exceptions(results, self._fname)
+                if self._single_result:
+                    r = results[0]
+                    if isinstance(r, Exception):
+                        raise r
+                else:
+                    results = error.collect_exceptions(results, self._fname)
                 self._result = self._reconstruct_result(results)
             except Exception, e:
                 self._exception = e
@@ -138,7 +143,7 @@ class AsyncResult(object):
     @check_ready
     def metadata(self):
         """metadata property."""
-        if self._flatten_result:
+        if self._single_result:
             return self._metadata[0]
         else:
             return self._metadata
@@ -165,7 +170,7 @@ class AsyncResult(object):
             return error.collect_exceptions(self._result[key], self._fname)
         elif isinstance(key, basestring):
             values = [ md[key] for md in self._metadata ]
-            if self._flatten_result:
+            if self._single_result:
                 return values[0]
             else:
                 return values
@@ -190,7 +195,7 @@ class AsyncMapResult(AsyncResult):
     def __init__(self, client, msg_ids, mapObject, fname=''):
         AsyncResult.__init__(self, client, msg_ids, fname=fname)
         self._mapObject = mapObject
-        self._flatten_result = False
+        self._single_result = False
     
     def _reconstruct_result(self, res):
         """Perform the gather on the actual results."""
