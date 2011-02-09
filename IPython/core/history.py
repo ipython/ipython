@@ -54,6 +54,10 @@ class HistoryManager(object):
     # ShadowHist instance with the actual shadow history
     shadow_hist = None
     
+    # Offset so the first line of the current session is #1. Can be
+    # updated after loading history from file.
+    session_offset = -1
+    
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
     # history update, we populate the user's namespace with these, shifted as
@@ -68,8 +72,12 @@ class HistoryManager(object):
     def __init__(self, shell, load_history=False):
         """Create a new history manager associated with a shell instance.
         
-        If load_history is true, it will load the history from file and set the
-        session offset so that the next line typed can be retrieved as #1.
+        Parameters
+        ----------
+        load_history: bool, optional
+            If True, history will be loaded from file, and the session
+            offset set, so that the next line entered can be retrieved
+            as #1.
         """
         # We need a pointer back to the shell for various tasks.
         self.shell = shell
@@ -80,9 +88,6 @@ class HistoryManager(object):
         # pre-processing.  This will allow users to retrieve the input just as
         # it was exactly typed in by the user, with %hist -r.
         self.input_hist_raw = []
-        
-        # Offset so the first line of the current session is #1
-        self.session_offset = -1
 
         # list of visited directories
         try:
