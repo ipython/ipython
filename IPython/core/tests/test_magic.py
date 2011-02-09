@@ -173,6 +173,18 @@ def test_shist():
     yield nt.assert_equal,s.get(2),'world'
     
     shutil.rmtree(tfile)
+    
+def test_macro():
+    ip = get_ipython()
+    ip.history_manager.reset()   # Clear any existing history.
+    cmds = ["a=1", "def b():\n  return a**2", "print(a,b())"]
+    for cmd in cmds:
+        ip.history_manager.store_inputs(cmd)
+    ip.magic("macro test 1-3")
+    nt.assert_equal(ip.user_ns["test"].value, "\n".join(cmds)+"\n")
+    
+    # List macros. This goes to stdout, so just check it doesn't crash.
+    ip.magic("macro")
 
     
 # XXX failing for now, until we get clearcmd out of quarantine.  But we should
