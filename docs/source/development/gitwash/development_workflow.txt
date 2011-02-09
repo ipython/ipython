@@ -149,7 +149,7 @@ Overview
    # pull changes from github
    git fetch upstream
    # merge from upstream
-   git merge upstream master
+   git merge upstream/master
 
 In detail
 ---------
