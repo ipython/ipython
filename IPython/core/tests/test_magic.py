@@ -183,8 +183,8 @@ def test_macro():
     ip.magic("macro test 1-3")
     nt.assert_equal(ip.user_ns["test"].value, "\n".join(cmds)+"\n")
     
-    # List macros. This goes to stdout, so just check it doesn't crash.
-    ip.magic("macro")
+    # List macros.
+    assert "test" in ip.magic("macro")
 
     
 # XXX failing for now, until we get clearcmd out of quarantine.  But we should

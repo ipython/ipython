@@ -1964,17 +1964,16 @@ Currently the magic system has the following functions:\n"""
           In [60]: exec In[44:48]+In[49]"""
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
-        if not args:
-            macs = [k for k,v in self.shell.user_ns.items() if isinstance(v, Macro)]
-            macs.sort()
-            return macs
+        if not args:   # List existing macros
+            return sorted(k for k,v in self.shell.user_ns.iteritems() if\
+                                                        isinstance(v, Macro))
         if len(args) == 1:
             raise UsageError(
                 "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
         name,ranges = args[0], args[1:]
         
         #print 'rng',ranges  # dbg
-        lines = self.extract_input_slices(ranges,opts.has_key('r'))
+        lines = self.extract_input_slices(ranges,'r' in opts)
         macro = Macro("\n".join(lines))
         self.shell.define_macro(name, macro)
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
@@ -2010,7 +2009,7 @@ Currently the magic system has the following functions:\n"""
             if ans.lower() not in ['y','yes']:
                 print 'Operation cancelled.'
                 return
-        cmds = '\n'.join(self.extract_input_slices(ranges,opts.has_key('r')))
+        cmds = '\n'.join(self.extract_input_slices(ranges, 'r' in opts))
         with open(fname,'w') as f:
             f.write(cmds)
         print 'The following commands were written to file `%s`:' % fname
