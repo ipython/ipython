@@ -1302,9 +1302,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                     intercepted = (not self._in_buffer(anchor) or
                                    not self._in_buffer(position))
 
-        # Don't move the cursor if control is down to allow copy-paste using
-        # the keyboard in any part of the buffer.
-        if not ctrl_down:
+        # Don't move the cursor if Control/Cmd is pressed to allow copy-paste
+        # using the keyboard in any part of the buffer.
+        if not self._control_key_down(event.modifiers(), include_command=True):
             self._keep_cursor_in_buffer()
 
         return intercepted
