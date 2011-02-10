@@ -59,7 +59,7 @@ class CallTipWidget(QtGui.QLabel):
                 self._hide_timer.stop()
 
             elif etype == QtCore.QEvent.Leave:
-                self._hide_later()
+                self._leave_event_hide()
 
         return super(CallTipWidget, self).eventFilter(obj, event)
 
@@ -92,7 +92,7 @@ class CallTipWidget(QtGui.QLabel):
         """ Reimplemented to start the hide timer.
         """
         super(CallTipWidget, self).leaveEvent(event)
-        self._hide_later()
+        self._leave_event_hide()
 
     def paintEvent(self, event):
         """ Reimplemented to paint the background panel.
@@ -205,10 +205,15 @@ class CallTipWidget(QtGui.QLabel):
             position = -1
         return position, commas
 
-    def _hide_later(self):
-        """ Hides the tooltip after some time has passed.
+    def _leave_event_hide(self):
+        """ Hides the tooltip after some time has passed (assuming the cursor is
+            not over the tooltip).
         """
-        if not self._hide_timer.isActive():
+        if (not self._hide_timer.isActive() and
+            # If Enter events always came after Leave events, we wouldn't need
+            # this check. But on Mac OS, it sometimes happens the other way
+            # around when the tooltip is created.
+            QtGui.qApp.topLevelAt(QtGui.QCursor.pos()) != self):
             self._hide_timer.start(300, self)
 
     #------ Signal handlers ----------------------------------------------------
