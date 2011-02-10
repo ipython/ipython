@@ -24,7 +24,7 @@ class ReverseDict(dict):
     
     def pop(self, key):
         value = dict.pop(self, key)
-        self.d1.pop(value)
+        self._reverse.pop(value)
         return value
     
     def get(self, key, default=None):
