@@ -103,8 +103,8 @@ gitwash-update:
 nightly: dist
 	rsync -avH --delete dist/ ipython:www/doc/nightly
 
-gh-pages: html
+gh-pages: html pdf
 	python gh-pages.py
 
-gh-pages-current: html
-	python gh-pages.py current
+gh-pages-current: html pdf
+	python gh-pages.py current "Current Development Version"
