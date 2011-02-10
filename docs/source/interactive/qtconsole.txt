@@ -120,7 +120,7 @@ styles associated with each ``--colors`` option.
 Screenshot of ``ipython-qtconsole --colors dark``, which uses the 'monokai' theme by
 default:
 
-.. image:: figs/colors.dark.png
+.. image:: figs/colors_dark.png
     :width: 627px
     
 .. Note::

@@ -29,6 +29,7 @@ from subprocess import Popen, PIPE, CalledProcessError, check_call
 
 pages_dir = 'gh-pages'
 html_dir = 'build/html'
+pdf_dir = 'build/latex'
 pages_repo = 'git@github.com:ipython/ipython-doc.git'
 
 #-----------------------------------------------------------------------------
@@ -74,20 +75,28 @@ def init_repo(path):
     cd(here)
 
 
-def render_htmlindex(fname, tag):
-    rel = '<li> Release: <a href="{t}/index.html">{t}</a>'.format(t=tag)
+def render_htmlindex(fname, tag, desc=None):
+    if desc is None:
+        desc = tag
+        
+    rel = '<li>{d}: <a href="{t}/index.html">HTML</a> and <a href="{t}/ipython.pdf">PDF</a>'.format(t=tag,d=desc)
     rep = re.compile('<!-- RELEASE -->')
     out = []
     with file(fname) as f:
-        for line in f:
+        contents = f.read()
+    lines = contents.splitlines()
+    if rel in contents:
+        out = lines
+    else:
+        for line in lines:
             out.append(line)
             if rep.search(line):
                 out.append(rep.sub(rel, line))
-    return ''.join(out)
+    return '\n'.join(out)+'\n'
 
 
-def new_htmlindex(fname, tag):
-    new_page = render_htmlindex(fname, tag)
+def new_htmlindex(fname, tag, desc=None):
+    new_page = render_htmlindex(fname, tag, desc)
     os.rename(fname, fname+'~')
     with file(fname, 'w') as f:
         f.write(new_page)
@@ -102,7 +111,12 @@ if __name__ == '__main__':
         tag = sys.argv[1]
     except IndexError:
         tag = sh2('git describe')
-
+    
+    try:
+        desc = sys.argv[2]
+    except IndexError:
+        desc="Release (%s)"%tag
+    
     startdir = os.getcwd()
     if not os.path.exists(pages_dir):
         init_repo(pages_dir)
@@ -116,6 +130,7 @@ if __name__ == '__main__':
     # directory, and then copy the html tree in there
     shutil.rmtree(dest, ignore_errors=True)
     shutil.copytree(html_dir, dest)
+    shutil.copy(pjoin(pdf_dir, 'ipython.pdf'), pjoin(dest, 'ipython.pdf'))
 
     try:
         cd(pages_dir)
@@ -128,7 +143,7 @@ if __name__ == '__main__':
             raise RuntimeError(e)
 
         sh('git add %s' % tag)
-        new_htmlindex('index.html', tag)
+        new_htmlindex('index.html', tag, desc)
         sh('git add index.html')
         sh('git commit -m"Created new doc release, named: %s"' % tag)
         print
