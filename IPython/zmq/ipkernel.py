@@ -81,7 +81,7 @@ class Kernel(Configurable):
     _recorded_ports = None
 
 
-    _logger = logging.getLogger()
+    _logger = logging.getLogger(__name__)
 
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
