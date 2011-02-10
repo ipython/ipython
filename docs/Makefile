@@ -32,7 +32,7 @@ help:
 	@echo "gitwash-update update git workflow from source repo"
 
 clean:
-	-rm -rf build/* dist/* $(SRCDIR)/api/generated gh-pages
+	-rm -rf build/* dist/* $(SRCDIR)/api/generated
 
 pdf: latex
 	cd build/latex && make all-pdf
@@ -104,4 +104,7 @@ nightly: dist
 	rsync -avH --delete dist/ ipython:www/doc/nightly
 
 gh-pages: html
-	sh update_ghpages.sh
+	python gh-pages.py
+
+gh-pages-current: html
+	python gh-pages.py current

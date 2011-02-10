@@ -44,7 +44,6 @@ extensions = [
     'inheritance_diagram',
     'ipython_console_highlighting', 
     'numpydoc',  # to preprocess docstrings
-    'sphinxtogithub',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
