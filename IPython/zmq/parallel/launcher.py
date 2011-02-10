@@ -20,26 +20,44 @@ import re
 import sys
 import logging
 
-from signal import SIGINT
+from signal import SIGINT, SIGTERM
 try:
     from signal import SIGKILL
 except ImportError:
     SIGKILL=SIGTERM
 
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
+try:
+    from subprocess import check_open
+except ImportError:
+    # pre-2.7:
+    from StringIO import StringIO
+    
+    def check_open(*args, **kwargs):
+        sio = StringIO()
+        kwargs.update(dict(stdout=PIPE, stderr=STDOUT))
+        p = Popen(*args, **kwargs)
+        out,err = p.communicate()
+        return out
 
 from zmq.eventloop import ioloop
 
+from IPython.external import Itpl
 # from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Str, Int, List, Unicode, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
 from factory import LoggingFactory
-# from IPython.kernel.winhpcjob import (
-#     IPControllerTask, IPEngineTask,
-#     IPControllerJob, IPEngineSetJob
-# )
+
+# load winhpcjob from IPython.kernel
+try:
+    from IPython.kernel.winhpcjob import (
+        IPControllerTask, IPEngineTask,
+        IPControllerJob, IPEngineSetJob
+    )
+except ImportError:
+    pass
 
 
 #-----------------------------------------------------------------------------
@@ -286,7 +304,7 @@ class LocalControllerLauncher(LocalProcessLauncher):
 
     controller_cmd = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
-    controller_args = List(['--log-to-file','--log-level', str(logging.ERROR)], config=True)
+    controller_args = List(['--log-to-file','--log-level', str(logging.INFO)], config=True)
 
     def find_args(self):
         return self.controller_cmd + self.controller_args
@@ -305,7 +323,7 @@ class LocalEngineLauncher(LocalProcessLauncher):
     engine_cmd = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
     engine_args = List(
-        ['--log-to-file','--log-level', str(logging.ERROR)], config=True
+        ['--log-to-file','--log-level', str(logging.INFO)], config=True
     )
 
     def find_args(self):
@@ -323,7 +341,7 @@ class LocalEngineSetLauncher(BaseLauncher):
 
     # Command line arguments for ipengine.
     engine_args = List(
-        ['--log-to-file','--log-level', str(logging.ERROR)], config=True
+        ['--log-to-file','--log-level', str(logging.INFO)], config=True
     )
     # launcher class
     launcher_class = LocalEngineLauncher
@@ -425,7 +443,7 @@ class MPIExecControllerLauncher(MPIExecLauncher):
 
     controller_cmd = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
-    controller_args = List(['--log-to-file','--log-level', str(logging.ERROR)], config=True)
+    controller_args = List(['--log-to-file','--log-level', str(logging.INFO)], config=True)
     n = Int(1, config=False)
 
     def start(self, cluster_dir):
@@ -445,7 +463,7 @@ class MPIExecEngineSetLauncher(MPIExecLauncher):
     engine_cmd = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
     engine_args = List(
-        ['--log-to-file','--log-level', str(logging.ERROR)], config=True
+        ['--log-to-file','--log-level', str(logging.INFO)], config=True
     )
     n = Int(1, config=True)
 
@@ -506,14 +524,14 @@ class SSHControllerLauncher(SSHLauncher):
 
     program = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
-    program_args = List(['--log-to-file','--log-level', str(logging.ERROR)], config=True)
+    program_args = List(['--log-to-file','--log-level', str(logging.INFO)], config=True)
 
 
 class SSHEngineLauncher(SSHLauncher):
     program = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
     program_args = List(
-        ['--log-to-file','--log-level', str(logging.ERROR)], config=True
+        ['--log-to-file','--log-level', str(logging.INFO)], config=True
     )
     
 class SSHEngineSetLauncher(LocalEngineSetLauncher):
@@ -525,279 +543,271 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 #-----------------------------------------------------------------------------
 
 
-# # This is only used on Windows.
-# def find_job_cmd():
-#     if os.name=='nt':
-#         try:
-#             return find_cmd('job')
-#         except FindCmdError:
-#             return 'job'
-#     else:
-#         return 'job'
-# 
-# 
-# class WindowsHPCLauncher(BaseLauncher):
-# 
-#     # A regular expression used to get the job id from the output of the 
-#     # submit_command.
-#     job_id_regexp = Str(r'\d+', config=True)
-#     # The filename of the instantiated job script.
-#     job_file_name = Unicode(u'ipython_job.xml', config=True)
-#     # The full path to the instantiated job script. This gets made dynamically
-#     # by combining the work_dir with the job_file_name.
-#     job_file = Unicode(u'')
-#     # The hostname of the scheduler to submit the job to
-#     scheduler = Str('', config=True)
-#     job_cmd = Str(find_job_cmd(), config=True)
-# 
-#     def __init__(self, work_dir=u'.', config=None):
-#         super(WindowsHPCLauncher, self).__init__(
-#             work_dir=work_dir, config=config
-#         )
-# 
-#     @property
-#     def job_file(self):
-#         return os.path.join(self.work_dir, self.job_file_name)
-# 
-#     def write_job_file(self, n):
-#         raise NotImplementedError("Implement write_job_file in a subclass.")
-# 
-#     def find_args(self):
-#         return ['job.exe']
-#         
-#     def parse_job_id(self, output):
-#         """Take the output of the submit command and return the job id."""
-#         m = re.search(self.job_id_regexp, output)
-#         if m is not None:
-#             job_id = m.group()
-#         else:
-#             raise LauncherError("Job id couldn't be determined: %s" % output)
-#         self.job_id = job_id
-#         self.log.info('Job started with job id: %r' % job_id)
-#         return job_id
-# 
-#     @inlineCallbacks
-#     def start(self, n):
-#         """Start n copies of the process using the Win HPC job scheduler."""
-#         self.write_job_file(n)
-#         args = [
-#             'submit',
-#             '/jobfile:%s' % self.job_file,
-#             '/scheduler:%s' % self.scheduler
-#         ]
-#         self.log.info("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
-#         # Twisted will raise DeprecationWarnings if we try to pass unicode to this
-#         output = yield getProcessOutput(str(self.job_cmd),
-#             [str(a) for a in args],
-#             env=dict((str(k),str(v)) for k,v in os.environ.items()),
-#             path=self.work_dir
-#         )
-#         job_id = self.parse_job_id(output)
-#         self.notify_start(job_id)
-#         defer.returnValue(job_id)
-# 
-#     @inlineCallbacks
-#     def stop(self):
-#         args = [
-#             'cancel',
-#             self.job_id,
-#             '/scheduler:%s' % self.scheduler
-#         ]
-#         self.log.info("Stopping Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
-#         try:
-#             # Twisted will raise DeprecationWarnings if we try to pass unicode to this
-#             output = yield getProcessOutput(str(self.job_cmd),
-#                 [str(a) for a in args],
-#                 env=dict((str(k),str(v)) for k,v in os.environ.iteritems()),
-#                 path=self.work_dir
-#             )
-#         except:
-#             output = 'The job already appears to be stoppped: %r' % self.job_id
-#         self.notify_stop(output)  # Pass the output of the kill cmd
-#         defer.returnValue(output)
-# 
-# 
-# class WindowsHPCControllerLauncher(WindowsHPCLauncher):
-# 
-#     job_file_name = Unicode(u'ipcontroller_job.xml', config=True)
-#     extra_args = List([], config=False)
-# 
-#     def write_job_file(self, n):
-#         job = IPControllerJob(config=self.config)
-# 
-#         t = IPControllerTask(config=self.config)
-#         # The tasks work directory is *not* the actual work directory of 
-#         # the controller. It is used as the base path for the stdout/stderr
-#         # files that the scheduler redirects to.
-#         t.work_directory = self.cluster_dir
-#         # Add the --cluster-dir and from self.start().
-#         t.controller_args.extend(self.extra_args)
-#         job.add_task(t)
-# 
-#         self.log.info("Writing job description file: %s" % self.job_file)
-#         job.write(self.job_file)
-# 
-#     @property
-#     def job_file(self):
-#         return os.path.join(self.cluster_dir, self.job_file_name)
-# 
-#     def start(self, cluster_dir):
-#         """Start the controller by cluster_dir."""
-#         self.extra_args = ['--cluster-dir', cluster_dir]
-#         self.cluster_dir = unicode(cluster_dir)
-#         return super(WindowsHPCControllerLauncher, self).start(1)
-# 
-# 
-# class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
-# 
-#     job_file_name = Unicode(u'ipengineset_job.xml', config=True)
-#     extra_args = List([], config=False)
-# 
-#     def write_job_file(self, n):
-#         job = IPEngineSetJob(config=self.config)
-# 
-#         for i in range(n):
-#             t = IPEngineTask(config=self.config)
-#             # The tasks work directory is *not* the actual work directory of 
-#             # the engine. It is used as the base path for the stdout/stderr
-#             # files that the scheduler redirects to.
-#             t.work_directory = self.cluster_dir
-#             # Add the --cluster-dir and from self.start().
-#             t.engine_args.extend(self.extra_args)
-#             job.add_task(t)
-# 
-#         self.log.info("Writing job description file: %s" % self.job_file)
-#         job.write(self.job_file)
-# 
-#     @property
-#     def job_file(self):
-#         return os.path.join(self.cluster_dir, self.job_file_name)
-# 
-#     def start(self, n, cluster_dir):
-#         """Start the controller by cluster_dir."""
-#         self.extra_args = ['--cluster-dir', cluster_dir]
-#         self.cluster_dir = unicode(cluster_dir)
-#         return super(WindowsHPCEngineSetLauncher, self).start(n)
-# 
-# 
-# #-----------------------------------------------------------------------------
-# # Batch (PBS) system launchers
-# #-----------------------------------------------------------------------------
-# 
-# # TODO: Get PBS launcher working again.
-# 
-# class BatchSystemLauncher(BaseLauncher):
-#     """Launch an external process using a batch system.
-# 
-#     This class is designed to work with UNIX batch systems like PBS, LSF,
-#     GridEngine, etc.  The overall model is that there are different commands
-#     like qsub, qdel, etc. that handle the starting and stopping of the process.
-# 
-#     This class also has the notion of a batch script. The ``batch_template``
-#     attribute can be set to a string that is a template for the batch script.
-#     This template is instantiated using Itpl. Thus the template can use
-#     ${n} fot the number of instances. Subclasses can add additional variables
-#     to the template dict.
-#     """
-# 
-#     # Subclasses must fill these in.  See PBSEngineSet
-#     # The name of the command line program used to submit jobs.
-#     submit_command = Str('', config=True)
-#     # The name of the command line program used to delete jobs.
-#     delete_command = Str('', config=True)
-#     # A regular expression used to get the job id from the output of the 
-#     # submit_command.
-#     job_id_regexp = Str('', config=True)
-#     # The string that is the batch script template itself.
-#     batch_template = Str('', config=True)
-#     # The filename of the instantiated batch script.
-#     batch_file_name = Unicode(u'batch_script', config=True)
-#     # The full path to the instantiated batch script.
-#     batch_file = Unicode(u'')
-# 
-#     def __init__(self, work_dir=u'.', config=None):
-#         super(BatchSystemLauncher, self).__init__(
-#             work_dir=work_dir, config=config
-#         )
-#         self.batch_file = os.path.join(self.work_dir, self.batch_file_name)
-#         self.context = {}
-# 
-#     def parse_job_id(self, output):
-#         """Take the output of the submit command and return the job id."""
-#         m = re.match(self.job_id_regexp, output)
-#         if m is not None:
-#             job_id = m.group()
-#         else:
-#             raise LauncherError("Job id couldn't be determined: %s" % output)
-#         self.job_id = job_id
-#         self.log.info('Job started with job id: %r' % job_id)
-#         return job_id
-# 
-#     def write_batch_script(self, n):
-#         """Instantiate and write the batch script to the work_dir."""
-#         self.context['n'] = n
-#         script_as_string = Itpl.itplns(self.batch_template, self.context)
-#         self.log.info('Writing instantiated batch script: %s' % self.batch_file)
-#         f = open(self.batch_file, 'w')
-#         f.write(script_as_string)
-#         f.close()
-# 
-#     @inlineCallbacks
-#     def start(self, n):
-#         """Start n copies of the process using a batch system."""
-#         self.write_batch_script(n)
-#         output = yield getProcessOutput(self.submit_command,
-#             [self.batch_file], env=os.environ)
-#         job_id = self.parse_job_id(output)
-#         self.notify_start(job_id)
-#         defer.returnValue(job_id)
-# 
-#     @inlineCallbacks
-#     def stop(self):
-#         output = yield getProcessOutput(self.delete_command,
-#             [self.job_id], env=os.environ
-#         )
-#         self.notify_stop(output)  # Pass the output of the kill cmd
-#         defer.returnValue(output)
-# 
-# 
-# class PBSLauncher(BatchSystemLauncher):
-#     """A BatchSystemLauncher subclass for PBS."""
-# 
-#     submit_command = Str('qsub', config=True)
-#     delete_command = Str('qdel', config=True)
-#     job_id_regexp = Str(r'\d+', config=True)
-#     batch_template = Str('', config=True)
-#     batch_file_name = Unicode(u'pbs_batch_script', config=True)
-#     batch_file = Unicode(u'')
-# 
-# 
-# class PBSControllerLauncher(PBSLauncher):
-#     """Launch a controller using PBS."""
-# 
-#     batch_file_name = Unicode(u'pbs_batch_script_controller', config=True)
-# 
-#     def start(self, cluster_dir):
-#         """Start the controller by profile or cluster_dir."""
-#         # Here we save profile and cluster_dir in the context so they
-#         # can be used in the batch script template as ${profile} and
-#         # ${cluster_dir}
-#         self.context['cluster_dir'] = cluster_dir
-#         self.cluster_dir = unicode(cluster_dir)
-#         self.log.info("Starting PBSControllerLauncher: %r" % self.args)
-#         return super(PBSControllerLauncher, self).start(1)
-# 
-# 
-# class PBSEngineSetLauncher(PBSLauncher):
-# 
-#     batch_file_name = Unicode(u'pbs_batch_script_engines', config=True)
-# 
-#     def start(self, n, cluster_dir):
-#         """Start n engines by profile or cluster_dir."""
-#         self.program_args.extend(['--cluster-dir', cluster_dir])
-#         self.cluster_dir = unicode(cluster_dir)
-#         self.log.info('Starting PBSEngineSetLauncher: %r' % self.args)
-#         return super(PBSEngineSetLauncher, self).start(n)
+# This is only used on Windows.
+def find_job_cmd():
+    if os.name=='nt':
+        try:
+            return find_cmd('job')
+        except FindCmdError:
+            return 'job'
+    else:
+        return 'job'
+
+
+class WindowsHPCLauncher(BaseLauncher):
+
+    # A regular expression used to get the job id from the output of the 
+    # submit_command.
+    job_id_regexp = Str(r'\d+', config=True)
+    # The filename of the instantiated job script.
+    job_file_name = Unicode(u'ipython_job.xml', config=True)
+    # The full path to the instantiated job script. This gets made dynamically
+    # by combining the work_dir with the job_file_name.
+    job_file = Unicode(u'')
+    # The hostname of the scheduler to submit the job to
+    scheduler = Str('', config=True)
+    job_cmd = Str(find_job_cmd(), config=True)
+
+    def __init__(self, work_dir=u'.', config=None):
+        super(WindowsHPCLauncher, self).__init__(
+            work_dir=work_dir, config=config
+        )
+
+    @property
+    def job_file(self):
+        return os.path.join(self.work_dir, self.job_file_name)
+
+    def write_job_file(self, n):
+        raise NotImplementedError("Implement write_job_file in a subclass.")
+
+    def find_args(self):
+        return ['job.exe']
+        
+    def parse_job_id(self, output):
+        """Take the output of the submit command and return the job id."""
+        m = re.search(self.job_id_regexp, output)
+        if m is not None:
+            job_id = m.group()
+        else:
+            raise LauncherError("Job id couldn't be determined: %s" % output)
+        self.job_id = job_id
+        self.log.info('Job started with job id: %r' % job_id)
+        return job_id
+
+    def start(self, n):
+        """Start n copies of the process using the Win HPC job scheduler."""
+        self.write_job_file(n)
+        args = [
+            'submit',
+            '/jobfile:%s' % self.job_file,
+            '/scheduler:%s' % self.scheduler
+        ]
+        self.log.info("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
+        # Twisted will raise DeprecationWarnings if we try to pass unicode to this
+        output = check_output([self.job_cmd]+args,
+            env=os.environ,
+            cwd=self.work_dir,
+            stderr=STDOUT
+        )
+        job_id = self.parse_job_id(output)
+        # self.notify_start(job_id)
+        return job_id
+
+    def stop(self):
+        args = [
+            'cancel',
+            self.job_id,
+            '/scheduler:%s' % self.scheduler
+        ]
+        self.log.info("Stopping Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
+        try:
+            output = check_output([self.job_cmd]+args,
+                env=os.environ,
+                cwd=self.work_dir,
+                stderr=STDOUT
+            )
+        except:
+            output = 'The job already appears to be stoppped: %r' % self.job_id
+        self.notify_stop(output)  # Pass the output of the kill cmd
+        return output
+
+
+class WindowsHPCControllerLauncher(WindowsHPCLauncher):
+
+    job_file_name = Unicode(u'ipcontroller_job.xml', config=True)
+    extra_args = List([], config=False)
+
+    def write_job_file(self, n):
+        job = IPControllerJob(config=self.config)
+
+        t = IPControllerTask(config=self.config)
+        # The tasks work directory is *not* the actual work directory of 
+        # the controller. It is used as the base path for the stdout/stderr
+        # files that the scheduler redirects to.
+        t.work_directory = self.cluster_dir
+        # Add the --cluster-dir and from self.start().
+        t.controller_args.extend(self.extra_args)
+        job.add_task(t)
+
+        self.log.info("Writing job description file: %s" % self.job_file)
+        job.write(self.job_file)
+
+    @property
+    def job_file(self):
+        return os.path.join(self.cluster_dir, self.job_file_name)
+
+    def start(self, cluster_dir):
+        """Start the controller by cluster_dir."""
+        self.extra_args = ['--cluster-dir', cluster_dir]
+        self.cluster_dir = unicode(cluster_dir)
+        return super(WindowsHPCControllerLauncher, self).start(1)
+
+
+class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
+
+    job_file_name = Unicode(u'ipengineset_job.xml', config=True)
+    extra_args = List([], config=False)
+
+    def write_job_file(self, n):
+        job = IPEngineSetJob(config=self.config)
+
+        for i in range(n):
+            t = IPEngineTask(config=self.config)
+            # The tasks work directory is *not* the actual work directory of 
+            # the engine. It is used as the base path for the stdout/stderr
+            # files that the scheduler redirects to.
+            t.work_directory = self.cluster_dir
+            # Add the --cluster-dir and from self.start().
+            t.engine_args.extend(self.extra_args)
+            job.add_task(t)
+
+        self.log.info("Writing job description file: %s" % self.job_file)
+        job.write(self.job_file)
+
+    @property
+    def job_file(self):
+        return os.path.join(self.cluster_dir, self.job_file_name)
+
+    def start(self, n, cluster_dir):
+        """Start the controller by cluster_dir."""
+        self.extra_args = ['--cluster-dir', cluster_dir]
+        self.cluster_dir = unicode(cluster_dir)
+        return super(WindowsHPCEngineSetLauncher, self).start(n)
+
+
+#-----------------------------------------------------------------------------
+# Batch (PBS) system launchers
+#-----------------------------------------------------------------------------
+
+# TODO: Get PBS launcher working again.
+
+class BatchSystemLauncher(BaseLauncher):
+    """Launch an external process using a batch system.
+
+    This class is designed to work with UNIX batch systems like PBS, LSF,
+    GridEngine, etc.  The overall model is that there are different commands
+    like qsub, qdel, etc. that handle the starting and stopping of the process.
+
+    This class also has the notion of a batch script. The ``batch_template``
+    attribute can be set to a string that is a template for the batch script.
+    This template is instantiated using Itpl. Thus the template can use
+    ${n} fot the number of instances. Subclasses can add additional variables
+    to the template dict.
+    """
+
+    # Subclasses must fill these in.  See PBSEngineSet
+    # The name of the command line program used to submit jobs.
+    submit_command = Str('', config=True)
+    # The name of the command line program used to delete jobs.
+    delete_command = Str('', config=True)
+    # A regular expression used to get the job id from the output of the 
+    # submit_command.
+    job_id_regexp = Str('', config=True)
+    # The string that is the batch script template itself.
+    batch_template = Str('', config=True)
+    # The filename of the instantiated batch script.
+    batch_file_name = Unicode(u'batch_script', config=True)
+    # The full path to the instantiated batch script.
+    batch_file = Unicode(u'')
+
+    def __init__(self, work_dir=u'.', config=None):
+        super(BatchSystemLauncher, self).__init__(
+            work_dir=work_dir, config=config
+        )
+        self.batch_file = os.path.join(self.work_dir, self.batch_file_name)
+        self.context = {}
+
+    def parse_job_id(self, output):
+        """Take the output of the submit command and return the job id."""
+        m = re.match(self.job_id_regexp, output)
+        if m is not None:
+            job_id = m.group()
+        else:
+            raise LauncherError("Job id couldn't be determined: %s" % output)
+        self.job_id = job_id
+        self.log.info('Job started with job id: %r' % job_id)
+        return job_id
+
+    def write_batch_script(self, n):
+        """Instantiate and write the batch script to the work_dir."""
+        self.context['n'] = n
+        script_as_string = Itpl.itplns(self.batch_template, self.context)
+        self.log.info('Writing instantiated batch script: %s' % self.batch_file)
+        f = open(self.batch_file, 'w')
+        f.write(script_as_string)
+        f.close()
+
+    def start(self, n):
+        """Start n copies of the process using a batch system."""
+        self.write_batch_script(n)
+        output = check_output([self.submit_command, self.batch_file], env=os.environ, stdout=STDOUT)
+        job_id = self.parse_job_id(output)
+        # self.notify_start(job_id)
+        return job_id
+
+    def stop(self):
+        output = Popen([self.delete_command, self.job_id], env=os.environ, stderr=STDOUT)
+        self.notify_stop(output)  # Pass the output of the kill cmd
+        return output
+
+
+class PBSLauncher(BatchSystemLauncher):
+    """A BatchSystemLauncher subclass for PBS."""
+
+    submit_command = Str('qsub', config=True)
+    delete_command = Str('qdel', config=True)
+    job_id_regexp = Str(r'\d+', config=True)
+    batch_template = Str('', config=True)
+    batch_file_name = Unicode(u'pbs_batch_script', config=True)
+    batch_file = Unicode(u'')
+
+
+class PBSControllerLauncher(PBSLauncher):
+    """Launch a controller using PBS."""
+
+    batch_file_name = Unicode(u'pbs_batch_script_controller', config=True)
+
+    def start(self, cluster_dir):
+        """Start the controller by profile or cluster_dir."""
+        # Here we save profile and cluster_dir in the context so they
+        # can be used in the batch script template as ${profile} and
+        # ${cluster_dir}
+        self.context['cluster_dir'] = cluster_dir
+        self.cluster_dir = unicode(cluster_dir)
+        self.log.info("Starting PBSControllerLauncher: %r" % self.args)
+        return super(PBSControllerLauncher, self).start(1)
+
+
+class PBSEngineSetLauncher(PBSLauncher):
+
+    batch_file_name = Unicode(u'pbs_batch_script_engines', config=True)
+
+    def start(self, n, cluster_dir):
+        """Start n engines by profile or cluster_dir."""
+        self.program_args.extend(['--cluster-dir', cluster_dir])
+        self.cluster_dir = unicode(cluster_dir)
+        self.log.info('Starting PBSEngineSetLauncher: %r' % self.args)
+        return super(PBSEngineSetLauncher, self).start(n)
 
 
 #-----------------------------------------------------------------------------
@@ -811,7 +821,7 @@ class IPClusterLauncher(LocalProcessLauncher):
     ipcluster_cmd = List(ipcluster_cmd_argv, config=True)
     # Command line arguments to pass to ipcluster.
     ipcluster_args = List(
-        ['--clean-logs', '--log-to-file', '--log-level', str(logging.ERROR)], config=True)
+        ['--clean-logs', '--log-to-file', '--log-level', str(logging.INFO)], config=True)
     ipcluster_subcommand = Str('start')
     ipcluster_n = Int(2)
 

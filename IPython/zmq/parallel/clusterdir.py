@@ -17,6 +17,7 @@ The IPython cluster directory
 
 from __future__ import with_statement
 
+import re
 import os
 import shutil
 import sys
@@ -469,7 +470,8 @@ class ApplicationWithClusterDir(Application):
         if self.master_config.Global.clean_logs:
             log_dir = self.master_config.Global.log_dir
             for f in os.listdir(log_dir):
-                if f.startswith(self.name + u'-') and f.endswith('.log'):
+                if re.match(r'%s-\d+\.(log|err|out)'%self.name,f):
+                # if f.startswith(self.name + u'-') and f.endswith('.log'):
                     os.remove(os.path.join(log_dir, f))
         # Start logging to the new log file
         if self.master_config.Global.log_to_file:

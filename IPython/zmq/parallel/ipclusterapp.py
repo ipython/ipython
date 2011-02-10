@@ -15,6 +15,7 @@ The ipcluster application.
 # Imports
 #-----------------------------------------------------------------------------
 
+import re
 import logging
 import os
 import signal
@@ -412,13 +413,9 @@ class IPClusterApp(ApplicationWithClusterDir):
         if self.master_config.Global.clean_logs:
             log_dir = self.master_config.Global.log_dir
             for f in os.listdir(log_dir):
-                if f.startswith('ipengine' + '-'):
-                    if f.endswith('.log') or f.endswith('.out') or f.endswith('.err'):
-                        os.remove(os.path.join(log_dir, f))
-                if f.startswith('ipcontroller' + '-'):
-                    if f.endswith('.log') or f.endswith('.out') or f.endswith('.err'):
-                        os.remove(os.path.join(log_dir, f))
-        # This will remote old log files for ipcluster itself
+                if re.match(r'ip(engine|controller)z-\d+\.(log|err|out)',f):
+                    os.remove(os.path.join(log_dir, f))
+        # This will remove old log files for ipcluster itself
         super(IPClusterApp, self).start_logging()
 
     def start_app(self):
