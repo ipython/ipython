@@ -10,13 +10,14 @@ from IPython.utils import io
 #-----------------------------------------------------------------------------
 # Stream classes
 #-----------------------------------------------------------------------------
+logger =  logging.getLogger(__name__)
 
 class OutStream(object):
     """A file like object that publishes the stream to a 0MQ PUB socket."""
 
     # The time interval between automatic flushes, in seconds.
     flush_interval = 0.05
-    _logger =  logging.getLogger()
+    
     def __init__(self, session, pub_socket, name):
         self.session = session
         self.pub_socket = pub_socket
@@ -40,7 +41,7 @@ class OutStream(object):
                 content = {u'name':self.name, u'data':data}
                 msg = self.session.msg(u'stream', content=content,
                                        parent=self.parent_header)
-                self._logger.debug(msg)
+                logger.debug(msg)
                 self.pub_socket.send_json(msg)
                 
                 self._buffer.close()

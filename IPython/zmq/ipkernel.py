@@ -37,6 +37,11 @@ from iostream import OutStream
 from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
+
+#Kernel Logger
+logger = logging.getLogger(__name__)
+ 
+
 #-----------------------------------------------------------------------------
 # Main kernel class
 #-----------------------------------------------------------------------------
@@ -81,8 +86,6 @@ class Kernel(Configurable):
     _recorded_ports = None
 
 
-    _logger = logging.getLogger(__name__)
-
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
 
@@ -125,20 +128,20 @@ class Kernel(Configurable):
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
         # Eventually we'll move these from stdout to a logger.
-        self._logger.debug('\n*** MESSAGE TYPE:'+str(msg['msg_type'])+'***')
-        self._logger.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
+        logger.debug('\n*** MESSAGE TYPE:'+str(msg['msg_type'])+'***')
+        logger.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
 
         # Find and call actual handler for message
         handler = self.handlers.get(msg['msg_type'], None)
         if handler is None:
-            self._logger.error("UNKNOWN MESSAGE TYPE:" +str(msg))
+            logger.error("UNKNOWN MESSAGE TYPE:" +str(msg))
         else:
             handler(ident, msg)
             
         # Check whether we should exit, in case the incoming message set the
         # exit flag on
         if self.shell.exit_now:
-            self._logger.debug('\nExiting IPython kernel...')
+            logger.debug('\nExiting IPython kernel...')
             # We do a normal, clean exit, which allows any actions registered
             # via atexit (such as history saving) to take place.
             sys.exit(0)
@@ -188,8 +191,8 @@ class Kernel(Configurable):
             code = content[u'code']
             silent = content[u'silent'] 
         except:
-            self._logger.error("Got bad msg: ")
-            self._logger.error(str(Message(parent)))
+            logger.error("Got bad msg: ")
+            logger.error(str(Message(parent)))
             return
 
         shell = self.shell # we'll need this a lot here
@@ -267,7 +270,7 @@ class Kernel(Configurable):
 
         # Send the reply.
         reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
-        self._logger.debug(str(reply_msg))
+        logger.debug(str(reply_msg))
 
         # Flush output before sending the reply.
         sys.stdout.flush()
@@ -297,7 +300,7 @@ class Kernel(Configurable):
                    'status' : 'ok'}
         completion_msg = self.session.send(self.reply_socket, 'complete_reply',
                                            matches, parent, ident)
-        self._logger.debug(str(completion_msg))
+        logger.debug(str(completion_msg))
 
     def object_info_request(self, ident, parent):
         object_info = self.shell.object_inspect(parent['content']['oname'])
@@ -305,7 +308,7 @@ class Kernel(Configurable):
         oinfo = json_clean(object_info)
         msg = self.session.send(self.reply_socket, 'object_info_reply',
                                 oinfo, parent, ident)
-        self._logger.debug(msg)
+        logger.debug(msg)
 
     def history_request(self, ident, parent):
         output = parent['content']['output']
@@ -315,7 +318,7 @@ class Kernel(Configurable):
         content = {'history' : hist}
         msg = self.session.send(self.reply_socket, 'history_reply',
                                 content, parent, ident)
-        self._logger.debug(str(msg))
+        logger.debug(str(msg))
 
     def connect_request(self, ident, parent):
         if self._recorded_ports is not None:
@@ -324,7 +327,7 @@ class Kernel(Configurable):
             content = {}
         msg = self.session.send(self.reply_socket, 'connect_reply',
                                 content, parent, ident)
-        self._logger.debug(msg)
+        logger.debug(msg)
 
     def shutdown_request(self, ident, parent):
         self.shell.exit_now = True
@@ -346,11 +349,11 @@ class Kernel(Configurable):
                 assert self.reply_socket.rcvmore(), \
                        "Unexpected missing message part."
                 msg = self.reply_socket.recv_json()
-            self._logger.debug("Aborting:\n"+str(Message(msg)))
+            logger.debug("Aborting:\n"+str(Message(msg)))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
-            self._logger.debug(reply_msg)
+            logger.debug(reply_msg)
             self.reply_socket.send(ident,zmq.SNDMORE)
             self.reply_socket.send_json(reply_msg)
             # We need to wait a bit for requests to come in. This can probably
@@ -372,8 +375,8 @@ class Kernel(Configurable):
         try:
             value = reply['content']['value']
         except:
-            self._logger.error("Got bad raw_input reply: ")
-            self._logger.error(str(Message(parent)))
+            logger.error("Got bad raw_input reply: ")
+            logger.error(str(Message(parent)))
             value = ''
         return value
     
@@ -427,7 +430,7 @@ class Kernel(Configurable):
         if self._shutdown_message is not None:
             self.reply_socket.send_json(self._shutdown_message)
             self.pub_socket.send_json(self._shutdown_message)
-            self._logger.debug(str(self._shutdown_message))
+            logger.debug(str(self._shutdown_message))
             # A very short sleep to give zmq time to flush its message buffers
             # before Python truly shuts down.
             time.sleep(0.01)
