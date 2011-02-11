@@ -21,12 +21,14 @@ import copy
 import sys
 import os
 import logging
-# from twisted.application import service
-# from twisted.internet import reactor
-# from twisted.python import log
+import stat
+import socket
+
+import uuid
 
 import zmq
 from zmq.log.handlers import PUBHandler
+from zmq.utils import jsonapi as json
 
 from IPython.config.loader import Config
 from IPython.zmq.parallel import factory
@@ -38,7 +40,7 @@ from IPython.zmq.parallel.clusterdir import (
 # from IPython.kernel.fcutil import FCServiceFactory, FURLError
 from IPython.utils.traitlets import Instance, Unicode
 
-from entry_point import generate_exec_key
+from util import disambiguate_ip_address, split_url
 
 
 #-----------------------------------------------------------------------------
@@ -217,6 +219,17 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
             type=str, dest='Global.exec_key',
             help='path to a file containing an execution key.',
             metavar='keyfile')
+        paa('--ssh',
+            type=str, dest='Global.sshserver',
+            help='ssh url for clients to use when connecting to the Controller '
+            'processes. It should be of the form: [user@]server[:port]. The '
+            'Controller\'s listening addresses must be accessible from the ssh server',
+            metavar='Global.sshserver')
+        paa('--location',
+            type=str, dest='Global.location',
+            help="The external IP or domain name of this machine, used for disambiguating "
+            "engine and client connections.",
+            metavar='Global.location')
         factory.add_session_arguments(self.parser)
         factory.add_registration_arguments(self.parser)
 
@@ -233,6 +246,7 @@ class IPControllerApp(ApplicationWithClusterDir):
     command_line_loader = IPControllerAppConfigLoader
     default_config_file_name = default_config_file_name
     auto_create_cluster_dir = True
+    
 
     def create_default_config(self):
         super(IPControllerApp, self).create_default_config()
@@ -240,9 +254,11 @@ class IPControllerApp(ApplicationWithClusterDir):
         # as those are set in a component.
         self.default_config.Global.import_statements = []
         self.default_config.Global.clean_logs = True
-        self.default_config.Global.secure = False
+        self.default_config.Global.secure = True
         self.default_config.Global.reuse_key = False
         self.default_config.Global.exec_key = "exec_key.key"
+        self.default_config.Global.sshserver = None
+        self.default_config.Global.location = None
 
     def pre_construct(self):
         super(IPControllerApp, self).pre_construct()
@@ -259,7 +275,25 @@ class IPControllerApp(ApplicationWithClusterDir):
         #     c.FCClientServiceFactory.secure = c.Global.secure
         #     c.FCEngineServiceFactory.secure = c.Global.secure
         #     del c.Global.secure
-
+    
+    def save_connection_dict(self, fname, cdict):
+        """save a connection dict to json file."""
+        c = self.master_config
+        url = cdict['url']
+        location = cdict['location']
+        if not location:
+            try:
+                proto,ip,port = split_url(url)
+            except AssertionError:
+                pass
+            else:
+                location = socket.gethostbyname_ex(socket.gethostname())[2][-1]
+            cdict['location'] = location
+        fname = os.path.join(c.Global.security_dir, fname)
+        with open(fname, 'w') as f:
+            f.write(json.dumps(cdict, indent=2))
+        os.chmod(fname, stat.S_IRUSR|stat.S_IWUSR)
+        
     def construct(self):
         # This is the working dir by now.
         sys.path.insert(0, '')
@@ -270,13 +304,17 @@ class IPControllerApp(ApplicationWithClusterDir):
         if c.Global.secure:
             keyfile = os.path.join(c.Global.security_dir, c.Global.exec_key)
             if not c.Global.reuse_key or not os.path.exists(keyfile):
-                generate_exec_key(keyfile)
-            c.SessionFactory.exec_key = keyfile
+                key = str(uuid.uuid4())
+                with open(keyfile, 'w') as f:
+                    f.write(key)
+                os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
+            else:
+                with open(keyfile) as f:
+                    key = f.read().strip()
+            c.SessionFactory.exec_key = key
         else:
-            keyfile = os.path.join(c.Global.security_dir, c.Global.exec_key)
-            if os.path.exists(keyfile):
-                os.remove(keyfile)
             c.SessionFactory.exec_key = ''
+            key = None
         
         try:
             self.factory = ControllerFactory(config=c, logname=self.log.name)
@@ -285,6 +323,18 @@ class IPControllerApp(ApplicationWithClusterDir):
         except:
             self.log.error("Couldn't construct the Controller", exc_info=True)
             self.exit(1)
+        
+        f = self.factory
+        cdict = {'exec_key' : key,
+                'ssh' : c.Global.sshserver,
+                'url' : "%s://%s:%s"%(f.client_transport, f.client_ip, f.regport),
+                'location' : c.Global.location
+                }
+        self.save_connection_dict('ipcontroller-client.json', cdict)
+        edict = cdict
+        edict['url']="%s://%s:%s"%((f.client_transport, f.client_ip, f.regport))
+        self.save_connection_dict('ipcontroller-engine.json', edict)
+        
     
     def save_urls(self):
         """save the registration urls to files."""

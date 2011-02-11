@@ -15,10 +15,11 @@ from zmq.eventloop import ioloop, zmqstream
 
 # internal
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Instance, Str, Dict, Int, Type
+from IPython.utils.traitlets import Instance, Str, Dict, Int, Type, CFloat
 # from IPython.utils.localinterfaces import LOCALHOST 
 
 from factory import RegistrationFactory
+from util import disambiguate_url
 
 from streamsession import Message
 from streamkernel import Kernel
@@ -35,6 +36,8 @@ class EngineFactory(RegistrationFactory):
     user_ns=Dict(config=True)
     out_stream_factory=Type('IPython.zmq.iostream.OutStream', config=True)
     display_hook_factory=Type('IPython.zmq.displayhook.DisplayHook', config=True)
+    location=Str(config=True)
+    timeout=CFloat(2,config=True)
     
     # not configurable:
     id=Int(allow_none=True)
@@ -62,6 +65,7 @@ class EngineFactory(RegistrationFactory):
     
     def complete_registration(self, msg):
         # print msg
+        self._abort_dc.stop()
         ctx = self.context
         loop = self.loop
         identity = self.ident
@@ -83,20 +87,20 @@ class EngineFactory(RegistrationFactory):
             for addr in shell_addrs:
                 stream = zmqstream.ZMQStream(ctx.socket(zmq.PAIR), loop)
                 stream.setsockopt(zmq.IDENTITY, identity)
-                stream.connect(addr)
+                stream.connect(disambiguate_url(addr, self.location))
                 shell_streams.append(stream)
             
             # control stream:
             control_addr = str(msg.content.control)
             control_stream = zmqstream.ZMQStream(ctx.socket(zmq.PAIR), loop)
             control_stream.setsockopt(zmq.IDENTITY, identity)
-            control_stream.connect(control_addr)
+            control_stream.connect(disambiguate_url(control_addr, self.location))
             
             # create iopub stream:
             iopub_addr = msg.content.iopub
             iopub_stream = zmqstream.ZMQStream(ctx.socket(zmq.PUB), loop)
             iopub_stream.setsockopt(zmq.IDENTITY, identity)
-            iopub_stream.connect(iopub_addr)
+            iopub_stream.connect(disambiguate_url(iopub_addr, self.location))
             
             # launch heartbeat
             hb_addrs = msg.content.heartbeat
@@ -116,25 +120,28 @@ class EngineFactory(RegistrationFactory):
                     control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream, 
                     loop=loop, user_ns = self.user_ns, logname=self.log.name)
             self.kernel.start()
-            
+            hb_addrs = [ disambiguate_url(addr, self.location) for addr in hb_addrs ]
             heart = heartmonitor.Heart(*map(str, hb_addrs), heart_id=identity)
             # ioloop.DelayedCallback(heart.start, 1000, self.loop).start()
             heart.start()
             
             
         else:
-            self.log.error("Registration Failed: %s"%msg)
+            self.log.fatal("Registration Failed: %s"%msg)
             raise Exception("Registration Failed: %s"%msg)
         
         self.log.info("Completed registration with id %i"%self.id)
     
     
-    def unregister(self):
+    def abort(self):
+        self.log.fatal("Registration timed out")
         self.session.send(self.registrar, "unregistration_request", content=dict(id=self.id))
         time.sleep(1)
-        sys.exit(0)
+        sys.exit(255)
     
     def start(self):
         dc = ioloop.DelayedCallback(self.register, 0, self.loop)
         dc.start()
+        self._abort_dc = ioloop.DelayedCallback(self.abort, self.timeout*1000, self.loop)
+        self._abort_dc.start()
 

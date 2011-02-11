@@ -17,6 +17,7 @@ The IPython engine application
 
 import os
 import sys
+import json
 
 import zmq
 from zmq.eventloop import ioloop
@@ -31,6 +32,8 @@ from IPython.zmq.parallel import factory
 from IPython.zmq.parallel.engine import EngineFactory
 from IPython.zmq.parallel.streamkernel import Kernel
 from IPython.utils.importstring import import_item
+
+from util import disambiguate_url
 
 #-----------------------------------------------------------------------------
 # Module level variables
@@ -76,10 +79,10 @@ class IPEngineAppConfigLoader(ClusterDirConfigLoader):
         super(IPEngineAppConfigLoader, self)._add_arguments()
         paa = self.parser.add_argument
         # Controller config
-        paa('--url-file',
+        paa('--file',
             type=unicode, dest='Global.url_file',
-            help='The full location of the file containing the FURL of the '
-            'controller. If this is not given, the FURL file must be in the '
+            help='The full location of the file containing the connection information fo '
+            'controller. If this is not given, the file must be in the '
             'security directory of the cluster directory.  This location is '
             'resolved using the --profile and --app-dir options.',
             metavar='Global.url_file')
@@ -95,16 +98,16 @@ class IPEngineAppConfigLoader(ClusterDirConfigLoader):
         paa('--log-url',
             dest='Global.log_url',
             help="url of ZMQ logger, as started with iploggerz")
-        paa('--execkey',
-            type=str, dest='Global.exec_key',
-            help='path to a file containing an execution key.',
-            metavar='keyfile')
-        paa('--no-secure',
-            action='store_false', dest='Global.secure',
-            help='Turn off execution keys.')
-        paa('--secure',
-            action='store_true', dest='Global.secure',
-            help='Turn on execution keys (default).')
+        # paa('--execkey',
+        #     type=str, dest='Global.exec_key',
+        #     help='path to a file containing an execution key.',
+        #     metavar='keyfile')
+        # paa('--no-secure',
+        #     action='store_false', dest='Global.secure',
+        #     help='Turn off execution keys.')
+        # paa('--secure',
+        #     action='store_true', dest='Global.secure',
+        #     help='Turn on execution keys (default).')
         # init command
         paa('-c',
             type=str, dest='Global.extra_exec_lines',
@@ -142,11 +145,12 @@ class IPEngineApp(ApplicationWithClusterDir):
         # Configuration related to the controller
         # This must match the filename (path not included) that the controller
         # used for the FURL file.
-        self.default_config.Global.url = u'tcp://localhost:10101'
+        self.default_config.Global.url_file = u''
+        self.default_config.Global.url_file_name = u'ipcontroller-engine.json'
         # If given, this is the actual location of the controller's FURL file.
         # If not, this is computed using the profile, app_dir and furl_file_name
-        self.default_config.Global.key_file_name = u'exec_key.key'
-        self.default_config.Global.key_file = u''
+        # self.default_config.Global.key_file_name = u'exec_key.key'
+        # self.default_config.Global.key_file = u''
 
         # MPI related config attributes
         self.default_config.MPI.use = ''
@@ -159,11 +163,27 @@ class IPEngineApp(ApplicationWithClusterDir):
     def pre_construct(self):
         super(IPEngineApp, self).pre_construct()
         # self.find_cont_url_file()
-        self.find_key_file()
+        self.find_url_file()
         if self.master_config.Global.extra_exec_lines:
             self.master_config.Global.exec_lines.append(self.master_config.Global.extra_exec_lines)
 
-    def find_key_file(self):
+    # def find_key_file(self):
+    #     """Set the key file.
+    # 
+    #     Here we don't try to actually see if it exists for is valid as that
+    #     is hadled by the connection logic.
+    #     """
+    #     config = self.master_config
+    #     # Find the actual controller key file
+    #     if not config.Global.key_file:
+    #         try_this = os.path.join(
+    #             config.Global.cluster_dir, 
+    #             config.Global.security_dir,
+    #             config.Global.key_file_name
+    #         )
+    #         config.Global.key_file = try_this
+        
+    def find_url_file(self):
         """Set the key file.
 
         Here we don't try to actually see if it exists for is valid as that
@@ -171,20 +191,33 @@ class IPEngineApp(ApplicationWithClusterDir):
         """
         config = self.master_config
         # Find the actual controller key file
-        if not config.Global.key_file:
+        if not config.Global.url_file:
             try_this = os.path.join(
                 config.Global.cluster_dir, 
                 config.Global.security_dir,
-                config.Global.key_file_name
+                config.Global.url_file_name
             )
-            config.Global.key_file = try_this
+            config.Global.url_file = try_this
         
     def construct(self):
         # This is the working dir by now.
         sys.path.insert(0, '')
         config = self.master_config
-        if os.path.exists(config.Global.key_file) and config.Global.secure:
-            config.SessionFactory.exec_key = config.Global.key_file
+        # if os.path.exists(config.Global.key_file) and config.Global.secure:
+        #     config.SessionFactory.exec_key = config.Global.key_file
+        if os.path.exists(config.Global.url_file):
+            with open(config.Global.url_file) as f:
+                d = json.loads(f.read())
+                for k,v in d.iteritems():
+                    if isinstance(v, unicode):
+                        d[k] = v.encode()
+            if d['exec_key']:
+                config.SessionFactory.exec_key = d['exec_key']
+            d['url'] = disambiguate_url(d['url'], d['location'])
+            config.RegistrationFactory.url=d['url']
+            config.EngineFactory.location = d['location']
+        
+        
         
         config.Kernel.exec_lines = config.Global.exec_lines
 

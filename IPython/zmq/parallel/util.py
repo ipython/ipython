@@ -1,5 +1,6 @@
 """some generic utilities"""
 import re
+import socket
 
 class ReverseDict(dict):
     """simple double-keyed subset of dict methods."""
@@ -77,3 +78,42 @@ def validate_url_container(container):
     
     for element in container:
         validate_url_container(element)
+
+
+def split_url(url):
+    """split a zmq url (tcp://ip:port) into ('tcp','ip','port')."""
+    proto_addr = url.split('://')
+    assert len(proto_addr) == 2, 'Invalid url: %r'%url
+    proto, addr = proto_addr
+    lis = addr.split(':')
+    assert len(lis) == 2, 'Invalid url: %r'%url
+    addr,s_port = lis
+    return proto,addr,s_port
+    
+def disambiguate_ip_address(ip, location=None):
+    """turn multi-ip interfaces '0.0.0.0' and '*' into connectable
+    ones, based on the location (default interpretation of location is localhost)."""
+    if ip in ('0.0.0.0', '*'):
+        external_ips = socket.gethostbyname_ex(socket.gethostname())[2]
+        if location is None or location in external_ips:
+            ip='127.0.0.1'
+        elif external_ips:
+            ip=external_ips[0]
+    return ip
+
+def disambiguate_url(url, location=None):
+    """turn multi-ip interfaces '0.0.0.0' and '*' into connectable
+    ones, based on the location (default interpretation is localhost).
+    
+    This is for zeromq urls, such as tcp://*:10101."""
+    try:
+        proto,ip,port = split_url(url)
+    except AssertionError:
+        # probably not tcp url; could be ipc, etc.
+        return url
+    
+    ip = disambiguate_ip_address(ip,location)
+    
+    return "%s://%s:%s"%(proto,ip,port)
+
+

@@ -15,14 +15,18 @@ import time
 from getpass import getpass
 from pprint import pprint
 from datetime import datetime
+import json
+pjoin = os.path.join
 
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
+from IPython.utils.path import get_ipython_dir
 from IPython.external.decorator import decorator
 from IPython.zmq import tunnel
 
 import streamsession as ss
+from clusterdir import ClusterDir, ClusterDirError
 # from remotenamespace import RemoteNamespace
 from view import DirectView, LoadBalancedView
 from dependency import Dependency, depend, require
@@ -30,7 +34,7 @@ import error
 import map as Map
 from asyncresult import AsyncResult, AsyncMapResult
 from remotefunction import remote,parallel,ParallelFunction,RemoteFunction
-from util import ReverseDict
+from util import ReverseDict, disambiguate_url, validate_url
 
 #--------------------------------------------------------------------------
 # helpers for implementing old MEC API via client.apply
@@ -231,7 +235,6 @@ class Client(object):
     _connected=False
     _ssh=False
     _engines=None
-    _addr='tcp://127.0.0.1:10101'
     _registration_socket=None
     _query_socket=None
     _control_socket=None
@@ -246,25 +249,59 @@ class Client(object):
     debug = False
     targets = None
     
-    def __init__(self, addr='tcp://127.0.0.1:10101', context=None, username=None, debug=False, 
+    def __init__(self, url_or_file=None, profile='default', cluster_dir=None, ipython_dir=None,
+            context=None, username=None, debug=False, exec_key=None,
             sshserver=None, sshkey=None, password=None, paramiko=None,
-            exec_key=None,):
+            ):
         if context is None:
             context = zmq.Context()
         self.context = context
         self.targets = 'all'
-        self._addr = addr
+        
+        self._setup_cluster_dir(profile, cluster_dir, ipython_dir)
+        if self._cd is not None:
+            if url_or_file is None:
+                url_or_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
+        assert url_or_file is not None, "I can't find enough information to connect to a controller!"\
+            " Please specify at least one of url_or_file or profile."
+        
+        try:
+            validate_url(url_or_file)
+        except AssertionError:
+            if not os.path.exists(url_or_file):
+                if self._cd:
+                    url_or_file = os.path.join(self._cd.security_dir, url_or_file)
+                assert os.path.exists(url_or_file), "Not a valid connection file or url: %r"%url_or_file
+            with open(url_or_file) as f:
+                cfg = json.loads(f.read())
+        else:
+            cfg = {'url':url_or_file}
+        
+        # sync defaults from args, json:
+        if sshserver:
+            cfg['ssh'] = sshserver
+        if exec_key:
+            cfg['exec_key'] = exec_key
+        exec_key = cfg['exec_key']
+        sshserver=cfg['ssh']
+        url = cfg['url']
+        location = cfg.setdefault('location', None)
+        cfg['url'] = disambiguate_url(cfg['url'], location)
+        url = cfg['url']
+        
+        self._config = cfg
+        
+        
         self._ssh = bool(sshserver or sshkey or password)
         if self._ssh and sshserver is None:
-            # default to the same
-            sshserver = addr.split('://')[1].split(':')[0]
+            # default to ssh via localhost
+            sshserver = url.split('://')[1].split(':')[0]
         if self._ssh and password is None:
             if tunnel.try_passwordless_ssh(sshserver, sshkey, paramiko):
                 password=False
             else:
                 password = getpass("SSH Password for %s: "%sshserver)
         ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
-        
         if exec_key is not None and os.path.isfile(exec_key):
             arg = 'keyfile'
         else:
@@ -277,9 +314,9 @@ class Client(object):
         self._registration_socket = self.context.socket(zmq.XREQ)
         self._registration_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:
-            tunnel.tunnel_connection(self._registration_socket, addr, sshserver, **ssh_kwargs)
+            tunnel.tunnel_connection(self._registration_socket, url, sshserver, **ssh_kwargs)
         else:
-            self._registration_socket.connect(addr)
+            self._registration_socket.connect(url)
         self._engines = ReverseDict()
         self._ids = set()
         self.outstanding=set()
@@ -296,6 +333,23 @@ class Client(object):
                                 'apply_reply' : self._handle_apply_reply}
         self._connect(sshserver, ssh_kwargs)
         
+    
+    def _setup_cluster_dir(self, profile, cluster_dir, ipython_dir):
+        if ipython_dir is None:
+            ipython_dir = get_ipython_dir()
+        if cluster_dir is not None:
+            try:
+                self._cd = ClusterDir.find_cluster_dir(cluster_dir)
+            except ClusterDirError:
+                pass
+        elif profile is not None:
+            try:
+                self._cd = ClusterDir.find_cluster_dir_by_profile(
+                    ipython_dir, profile)
+            except ClusterDirError:
+                pass
+        else:
+            self._cd = None
     
     @property
     def ids(self):
@@ -332,11 +386,12 @@ class Client(object):
             return
         self._connected=True
 
-        def connect_socket(s, addr):
+        def connect_socket(s, url):
+            url = disambiguate_url(url, self._config['location'])
             if self._ssh:
-                return tunnel.tunnel_connection(s, addr, sshserver, **ssh_kwargs)
+                return tunnel.tunnel_connection(s, url, sshserver, **ssh_kwargs)
             else:
-                return s.connect(addr)
+                return s.connect(url)
             
         self.session.send(self._registration_socket, 'connection_request')
         idents,msg = self.session.recv(self._registration_socket,mode=0)
@@ -902,7 +957,7 @@ class Client(object):
         
         queues,targets = self._build_targets(targets)
         
-        subheader = dict(after=after, follow=follow)
+        subheader = {}
         content = dict(bound=bound)
         bufs = ss.pack_apply_message(f,args,kwargs)
         

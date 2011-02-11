@@ -46,7 +46,7 @@ class SessionFactory(LoggingFactory):
     def _ident_default(self):
         return str(uuid.uuid4())
     username = Str(os.environ.get('USER','username'),config=True)
-    exec_key = CUnicode('',config=True)
+    exec_key = CStr('',config=True)
     # not configurable:
     context = Instance('zmq.Context', (), {})
     session = Instance('IPython.zmq.parallel.streamsession.StreamSession')
@@ -57,9 +57,7 @@ class SessionFactory(LoggingFactory):
     
     def __init__(self, **kwargs):
         super(SessionFactory, self).__init__(**kwargs)
-        
-        keyfile = self.exec_key or None
-        
+        exec_key = self.exec_key or None
         # set the packers:
         if not self.packer:
             packer_f = unpacker_f = None
@@ -74,7 +72,7 @@ class SessionFactory(LoggingFactory):
             unpacker_f = import_item(self.unpacker)
         
         # construct the session
-        self.session = ss.StreamSession(self.username, self.ident, packer=packer_f, unpacker=unpacker_f, keyfile=keyfile)
+        self.session = ss.StreamSession(self.username, self.ident, packer=packer_f, unpacker=unpacker_f, key=exec_key)
     
 
 class RegistrationFactory(SessionFactory):
@@ -85,8 +83,8 @@ class RegistrationFactory(SessionFactory):
     ip = Str('127.0.0.1', config=True)
     regport = Instance(int, config=True)
     def _regport_default(self):
-        return 10101
-        # return select_random_ports(1)[0]
+        # return 10101
+        return select_random_ports(1)[0]
     
     def __init__(self, **kwargs):
         super(RegistrationFactory, self).__init__(**kwargs)

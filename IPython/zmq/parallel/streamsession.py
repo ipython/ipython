@@ -315,6 +315,8 @@ class StreamSession(object):
                 self.key = f.read().strip()
         else:
             self.key = key
+        if isinstance(self.key, unicode):
+            self.key = self.key.encode('utf8')
         # print key, keyfile, self.key
         self.none = self.pack({})
             
