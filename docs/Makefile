@@ -107,4 +107,5 @@ gh-pages: html pdf
 	python gh-pages.py
 
 gh-pages-current: html pdf
-	python gh-pages.py current "Current Development Version"
+	ipver="$(ipython -v 2>&1)"
+	python gh-pages.py dev "Current Development Version ($ipver)"

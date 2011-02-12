@@ -75,12 +75,12 @@ def init_repo(path):
     cd(here)
 
 
-def render_htmlindex(fname, tag, desc=None):
+def render_rstindex(fname, tag, desc=None):
     if desc is None:
         desc = tag
         
-    rel = '<li>{d}: <a href="{t}/index.html">HTML</a> and <a href="{t}/ipython.pdf">PDF</a>'.format(t=tag,d=desc)
-    rep = re.compile('<!-- RELEASE -->')
+    rel = '* {d}: `HTML <{t}/index.html>`_ and `PDF <{t}/ipython.pdf>`_.'.format(t=tag,d=desc)
+    rep = re.compile(r'\.\. release')
     out = []
     with file(fname) as f:
         contents = f.read()
@@ -95,8 +95,8 @@ def render_htmlindex(fname, tag, desc=None):
     return '\n'.join(out)+'\n'
 
 
-def new_htmlindex(fname, tag, desc=None):
-    new_page = render_htmlindex(fname, tag, desc)
+def new_rstindex(fname, tag, desc=None):
+    new_page = render_rstindex(fname, tag, desc)
     os.rename(fname, fname+'~')
     with file(fname, 'w') as f:
         f.write(new_page)
@@ -119,7 +119,14 @@ if __name__ == '__main__':
     
     startdir = os.getcwd()
     if not os.path.exists(pages_dir):
+        # init the repo
         init_repo(pages_dir)
+    else:
+        # ensure up-to-date before operating
+        cd(pages_dir)
+        sh('git checkout gh-pages')
+        sh('git pull')
+        cd(startdir)
 
     dest = pjoin(pages_dir, tag)
 
@@ -134,7 +141,6 @@ if __name__ == '__main__':
 
     try:
         cd(pages_dir)
-        sh('git checkout gh-pages')
         status = sh2('git status | head -1')
         branch = re.match('\# On branch (.*)$', status).group(1)
         if branch != 'gh-pages':
@@ -143,8 +149,9 @@ if __name__ == '__main__':
             raise RuntimeError(e)
 
         sh('git add %s' % tag)
-        new_htmlindex('index.html', tag, desc)
-        sh('git add index.html')
+        new_rstindex('index.rst', tag, desc)
+        sh('python build_index.py')
+        sh('git add index.rst index.html')
         sh('git commit -m"Created new doc release, named: %s"' % tag)
         print
         print 'Most recent 3 commits:'
