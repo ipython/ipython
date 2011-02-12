@@ -4,10 +4,6 @@
 Starting the IPython controller and engines
 ===========================================
 
-.. note::
-
-    Not adapted to zmq yet
-
 To use IPython for parallel computing, you need to start one instance of
 the controller and one or more instances of the engine. The controller
 and each engine can run on different machines or on the same machine.
@@ -16,8 +12,8 @@ Because of this, there are many different possibilities.
 Broadly speaking, there are two ways of going about starting a controller and engines:
 
 * In an automated manner using the :command:`ipclusterz` command.
-* In a more manual way using the :command:`ipcontroller` and 
-  :command:`ipengine` commands.
+* In a more manual way using the :command:`ipcontrollerz` and 
+  :command:`ipenginez` commands.
 
 This document describes both of these methods. We recommend that new users
 start with the :command:`ipclusterz` command as it simplifies many common usage
@@ -34,26 +30,24 @@ matter which method you use to start your IPython cluster.
 Let's say that you want to start the controller on ``host0`` and engines on
 hosts ``host1``-``hostn``. The following steps are then required:
 
-1. Start the controller on ``host0`` by running :command:`ipcontroller` on
+1. Start the controller on ``host0`` by running :command:`ipcontrollerz` on
    ``host0``.
-2. Move the FURL file (:file:`ipcontroller-engine.furl`) created by the 
+2. Move the JSON file (:file:`ipcontroller-engine.json`) created by the 
    controller from ``host0`` to hosts ``host1``-``hostn``.
 3. Start the engines on hosts ``host1``-``hostn`` by running 
-   :command:`ipengine`.  This command has to be told where the FURL file 
-   (:file:`ipcontroller-engine.furl`) is located.
+   :command:`ipenginez`.  This command has to be told where the JSON file 
+   (:file:`ipcontroller-engine.json`) is located.
 
-At this point, the controller and engines will be connected. By default, the
-FURL files created by the controller are put into the
-:file:`~/.ipython/security` directory. If the engines share a filesystem with
-the controller, step 2 can be skipped as the engines will automatically look
-at that location.
+At this point, the controller and engines will be connected. By default, the JSON files
+created by the controller are put into the :file:`~/.ipython/clusterz_default/security`
+directory. If the engines share a filesystem with the controller, step 2 can be skipped as
+the engines will automatically look at that location.
 
-The final step required required to actually use the running controller from a
-client is to move the FURL files :file:`ipcontroller-mec.furl` and
-:file:`ipcontroller-tc.furl` from ``host0`` to the host where the clients will
-be run. If these file are put into the :file:`~/.ipython/security` directory
-of the client's host, they will be found automatically. Otherwise, the full
-path to them has to be passed to the client's constructor.
+The final step required to actually use the running controller from a client is to move
+the JSON file :file:`ipcontroller-client.json` from ``host0`` to any host where clients
+will be run. If these file are put into the :file:`~/.ipython/clusterz_default/security`
+directory of the client's host, they will be found automatically. Otherwise, the full path
+to them has to be passed to the client's constructor.
 
 Using :command:`ipclusterz`
 ==========================
@@ -78,28 +72,38 @@ controller and engines in the following situations:
 .. note::
 
     Currently :command:`ipclusterz` requires that the
-    :file:`~/.ipython/security` directory live on a shared filesystem that is
+    :file:`~/.ipython/cluster_<profile>/security` directory live on a shared filesystem that is
     seen by both the controller and engines. If you don't have a shared file
-    system you will need to use :command:`ipcontroller` and
-    :command:`ipengine` directly.  This constraint can be relaxed if you are 
+    system you will need to use :command:`ipcontrollerz` and
+    :command:`ipenginez` directly.  This constraint can be relaxed if you are 
     using the :command:`ssh` method to start the cluster.
 
-Underneath the hood, :command:`ipclusterz` just uses :command:`ipcontroller`
-and :command:`ipengine` to perform the steps described above.
+Under the hood, :command:`ipclusterz` just uses :command:`ipcontrollerz`
+and :command:`ipenginez` to perform the steps described above.
 
 Using :command:`ipclusterz` in local mode
 ----------------------------------------
 
 To start one controller and 4 engines on localhost, just do::
 
-    $ ipclusterz -n 4
+    $ ipclusterz start -n 4
 
 To see other command line options for the local mode, do::
 
     $ ipclusterz -h
 
+.. note::
+
+    The remainder of this section refers to the 0.10 clusterfile model, no longer in use.
+    skip to 
+
 Using :command:`ipclusterz` in mpiexec/mpirun mode
 -------------------------------------------------
+
+.. note::
+
+    This section is out of date for IPython 0.11
+
 
 The mpiexec/mpirun mode is useful if you:
 
@@ -148,6 +152,11 @@ More details on using MPI with IPython can be found :ref:`here <parallelmpi>`.
 Using :command:`ipclusterz` in PBS mode
 --------------------------------------
 
+.. note::
+
+    This section is out of date for IPython 0.11
+
+
 The PBS mode uses the Portable Batch System [PBS]_ to start the engines. To
 use this mode, you first need to create a PBS script template that will be
 used to start the engines. Here is a sample PBS script template:
@@ -179,7 +188,7 @@ There are a few important points about this template:
    escape any ``$`` by using ``$$``.  This is important when referring to 
    environment variables in the template.
 
-4. Any options to :command:`ipengine` should be given in the batch script 
+4. Any options to :command:`ipenginez` should be given in the batch script 
    template.
 
 5. Depending on the configuration of you system, you may have to set 
@@ -197,8 +206,13 @@ Additional command line options for this mode can be found by doing::
 Using :command:`ipclusterz` in SSH mode
 --------------------------------------
 
-The SSH mode uses :command:`ssh` to execute :command:`ipengine` on remote
-nodes and the :command:`ipcontroller` on localhost.
+.. note::
+
+    This section is out of date for IPython 0.11
+
+
+The SSH mode uses :command:`ssh` to execute :command:`ipenginez` on remote
+nodes and the :command:`ipcontrollerz` on localhost.
 
 When using using this mode it highly recommended that you have set up SSH keys
 and are using ssh-agent [SSH]_ for password-less logins.
@@ -220,7 +234,7 @@ note:
 * The `engines` dict, where the keys is the host we want to run engines on and
   the value is the number of engines to run on that host.
 * send_furl can either be `True` or `False`, if `True` it will copy over the
-  furl needed for :command:`ipengine` to each host.
+  furl needed for :command:`ipenginez` to each host.
 
 The ``--clusterfile`` command line option lets you specify the file to use for
 the cluster definition. Once you have your cluster file and you can
@@ -232,7 +246,7 @@ start your cluster like so:
    $ ipclusterz ssh --clusterfile /path/to/my/clusterfile.py
 
 
-Two helper shell scripts are used to start and stop :command:`ipengine` on
+Two helper shell scripts are used to start and stop :command:`ipenginez` on
 remote hosts:
 
 * sshx.sh 
@@ -254,7 +268,7 @@ The default sshx.sh is the following:
 If you want to use a custom sshx.sh script you need to use the ``--sshx``
 option and specify the file to use. Using a custom sshx.sh file could be
 helpful when you need to setup the environment on the remote host before
-executing :command:`ipengine`.
+executing :command:`ipenginez`.
 
 For a detailed options list:
 
@@ -267,40 +281,40 @@ Current limitations of the SSH mode of :command:`ipclusterz` are:
 * Untested on Windows. Would require a working :command:`ssh` on Windows.
   Also, we are using shell scripts to setup and execute commands on remote
   hosts.
-* :command:`ipcontroller` is started on localhost, with no option to start it
+* :command:`ipcontrollerz` is started on localhost, with no option to start it
   on a remote node.
 
-Using the :command:`ipcontroller` and :command:`ipengine` commands
-==================================================================
+Using the :command:`ipcontrollerz` and :command:`ipenginez` commands
+====================================================================
 
-It is also possible to use the :command:`ipcontroller` and :command:`ipengine`
+It is also possible to use the :command:`ipcontrollerz` and :command:`ipenginez`
 commands to start your controller and engines. This approach gives you full
 control over all aspects of the startup process.
 
 Starting the controller and engine on your local machine
 --------------------------------------------------------
 
-To use :command:`ipcontroller` and :command:`ipengine` to start things on your
+To use :command:`ipcontrollerz` and :command:`ipenginez` to start things on your
 local machine, do the following.
 
 First start the controller::
 
-	$ ipcontroller
+	$ ipcontrollerz
 	
 Next, start however many instances of the engine you want using (repeatedly)
 the command::
 
-	$ ipengine
+	$ ipenginez
 
 The engines should start and automatically connect to the controller using the
-FURL files in :file:`~./ipython/security`. You are now ready to use the
+JSON files in :file:`~/.ipython/cluster_<profile>/security`. You are now ready to use the
 controller and engines from IPython.
 
 .. warning:: 
 	
-	The order of the above operations is very important.  You *must*
- 	start the controller before the engines, since the engines connect 
-	to the controller as they get started.
+	The order of the above operations may be important.  You *must*
+	start the controller before the engines, unless you are manually specifying
+	the ports on which to connect, in which case ordering is not important.
 
 .. note::
 
@@ -315,58 +329,54 @@ Starting the controller and engines on different hosts
 When the controller and engines are running on different hosts, things are
 slightly more complicated, but the underlying ideas are the same:
 
-1. Start the controller on a host using :command:`ipcontroller`.
-2. Copy :file:`ipcontroller-engine.furl` from :file:`~./ipython/security` on
+1. Start the controller on a host using :command:`ipcontrollerz`.
+2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/cluster_<profile>/security` on
    the controller's host to the host where the engines will run.
-3. Use :command:`ipengine` on the engine's hosts to start the engines.
+3. Use :command:`ipenginez` on the engine's hosts to start the engines.
 
-The only thing you have to be careful of is to tell :command:`ipengine` where
-the :file:`ipcontroller-engine.furl` file is located. There are two ways you
+The only thing you have to be careful of is to tell :command:`ipenginez` where
+the :file:`ipcontroller-engine.json` file is located. There are two ways you
 can do this:
 
-* Put :file:`ipcontroller-engine.furl` in the :file:`~./ipython/security`
+* Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/cluster_<profile>/security`
   directory on the engine's host, where it will be found automatically.
-* Call :command:`ipengine` with the ``--furl-file=full_path_to_the_file``
+* Call :command:`ipenginez` with the ``--file=full_path_to_the_file``
   flag.
 
-The ``--furl-file`` flag works like this::
+The ``--file`` flag works like this::
 
-    $ ipengine --furl-file=/path/to/my/ipcontroller-engine.furl
+    $ ipengine --file=/path/to/my/ipcontroller-engine.json
 
 .. note::
     
     If the controller's and engine's hosts all have a shared file system  
-    (:file:`~./ipython/security` is the same on all of them), then things
+    (:file:`~/.ipython/cluster_<profile>/security` is the same on all of them), then things
     will just work!
 
-Make FURL files persistent
+Make JSON files persistent
 ---------------------------
 
-At fist glance it may seem that that managing the FURL files is a bit
-annoying. Going back to the house and key analogy, copying the FURL around
+At fist glance it may seem that that managing the JSON files is a bit
+annoying. Going back to the house and key analogy, copying the JSON around
 each time you start the controller is like having to make a new key every time
 you want to unlock the door and enter your house. As with your house, you want
-to be able to create the key (or FURL file) once, and then simply use it at
+to be able to create the key (or JSON file) once, and then simply use it at
 any point in the future.
 
-This is possible, but before you do this, you **must** remove any old FURL
-files in the :file:`~/.ipython/security` directory.
+This is possible, but before you do this, you **must** remove any old JSON
+files in the :file:`~/.ipython/cluster_<profile>/security` directory.
 
 .. warning::
 
-    You **must** remove old FURL files before using persistent FURL files.
+    You **must** remove old JSON files before using persistent JSON files.
 
-Then, The only thing you have to do is decide what ports the controller will
-listen on for the engines and clients. This is done as follows::
+Then, the only thing you have to do is specify the registration port, so that
+the connection information in the JSON files remains accurate::
 
-    $ ipcontroller -r --client-port=10101 --engine-port=10102
+    $ ipcontrollerz -r --regport 12345
 
-These options also work with all of the various modes of
-:command:`ipclusterz`::
 
-    $ ipclusterz -n 2 -r --client-port=10101 --engine-port=10102
-
-Then, just copy the furl files over the first time and you are set. You can
+Then, just copy the JSON files over the first time and you are set. You can
 start and stop the controller and engines any many times as you want in the
 future, just make sure to tell the controller to use the *same* ports.
 
@@ -383,8 +393,8 @@ Log files
 
 All of the components of IPython have log files associated with them.
 These log files can be extremely useful in debugging problems with
-IPython and can be found in the directory :file:`~/.ipython/log`.  Sending
-the log files to us will often help us to debug any problems.
+IPython and can be found in the directory :file:`~/.ipython/cluster_<profile>/log`.
+Sending the log files to us will often help us to debug any problems.
 
 
 .. [PBS] Portable Batch System.  http://www.openpbs.org/

@@ -192,9 +192,9 @@ by index-access to the client:
 
 .. sourcecode:: ipython
 
-    In [6]: rc.execute('c=a+b',targets=[0,2])
+    In [6]: rc[::2].execute('c=a+b') # shorthand for rc.execute('c=a+b',targets=[0,2])
 
-    In [7]: rc.execute('c=a-b',targets=[1,3])
+    In [7]: rc[1::2].execute('c=a-b') # shorthand for rc.execute('c=a-b',targets=[1,3])
 
     In [8]: rc[:]['c'] # shorthand for rc.pull('c',targets='all')
     Out[8]: [15,-5,15,-5]
