@@ -28,12 +28,12 @@ except ImportError:
 
 from subprocess import Popen, PIPE, STDOUT
 try:
-    from subprocess import check_open
+    from subprocess import check_output
 except ImportError:
     # pre-2.7:
     from StringIO import StringIO
     
-    def check_open(*args, **kwargs):
+    def check_output(*args, **kwargs):
         sio = StringIO()
         kwargs.update(dict(stdout=PIPE, stderr=STDOUT))
         p = Popen(*args, **kwargs)
@@ -495,7 +495,7 @@ class SSHLauncher(LocalProcessLauncher):
     """
 
     ssh_cmd = List(['ssh'], config=True)
-    ssh_args = List([], config=True)
+    ssh_args = List(['-tt'], config=True)
     program = List(['date'], config=True)
     program_args = List([], config=True)
     hostname = Str('', config=True)
@@ -513,11 +513,20 @@ class SSHLauncher(LocalProcessLauncher):
                self.program + self.program_args
 
     def start(self, cluster_dir, hostname=None, user=None):
+        print self.config
         if hostname is not None:
             self.hostname = hostname
         if user is not None:
             self.user = user
+        print (self.location, hostname, user)
         return super(SSHLauncher, self).start()
+    
+    def signal(self, sig):
+        if self.state == 'running':
+            # send escaped ssh connection-closer
+            self.process.stdin.write('~.')
+            self.process.stdin.flush()
+        
 
 
 class SSHControllerLauncher(SSHLauncher):
@@ -568,9 +577,9 @@ class WindowsHPCLauncher(BaseLauncher):
     scheduler = Str('', config=True)
     job_cmd = Str(find_job_cmd(), config=True)
 
-    def __init__(self, work_dir=u'.', config=None):
+    def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(WindowsHPCLauncher, self).__init__(
-            work_dir=work_dir, config=config
+            work_dir=work_dir, config=config, **kwargs
         )
 
     @property
@@ -730,9 +739,9 @@ class BatchSystemLauncher(BaseLauncher):
     # The full path to the instantiated batch script.
     batch_file = Unicode(u'')
 
-    def __init__(self, work_dir=u'.', config=None):
+    def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(BatchSystemLauncher, self).__init__(
-            work_dir=work_dir, config=config
+            work_dir=work_dir, config=config, **kwargs
         )
         self.batch_file = os.path.join(self.work_dir, self.batch_file_name)
         self.context = {}
@@ -766,7 +775,7 @@ class BatchSystemLauncher(BaseLauncher):
         return job_id
 
     def stop(self):
-        output = Popen([self.delete_command, self.job_id], env=os.environ, stderr=STDOUT)
+        output = check_output([self.delete_command, self.job_id], env=os.environ, stderr=STDOUT)
         self.notify_stop(output)  # Pass the output of the kill cmd
         return output
 
