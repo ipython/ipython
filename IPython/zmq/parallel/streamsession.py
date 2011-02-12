@@ -435,7 +435,7 @@ class StreamSession(object):
         except zmq.ZMQError as e:
             if e.errno == zmq.EAGAIN:
                 # We can convert EAGAIN to None as we know in this case
-                # recv_json won't return None.
+                # recv_multipart won't return None.
                 return None
             else:
                 raise
@@ -468,9 +468,11 @@ class StreamSession(object):
             msg will be a list of bytes or Messages, unchanged from input
             msg should be unpackable via self.unpack_message at this point.
         """
+        ikey = int(self.key is not None)
+        minlen = 3 + ikey
         msg = list(msg)
         idents = []
-        while len(msg) > 3:
+        while len(msg) > minlen:
             if copy:
                 s = msg[0]
             else:
@@ -502,8 +504,6 @@ class StreamSession(object):
         """
         ikey = int(self.key is not None)
         minlen = 3 + ikey
-        if not len(msg) >= minlen:
-            raise TypeError("malformed message, must have at least %i elements"%minlen)
         message = {}
         if not copy:
             for i in range(minlen):
@@ -511,6 +511,8 @@ class StreamSession(object):
         if ikey:
             if not self.key == msg[0]:
                 raise KeyError("Invalid Session Key: %s"%msg[0])
+        if not len(msg) >= minlen:
+            raise TypeError("malformed message, must have at least %i elements"%minlen)
         message['header'] = self.unpack(msg[ikey+0])
         message['msg_type'] = message['header']['msg_type']
         message['parent_header'] = self.unpack(msg[ikey+1])
@@ -518,20 +520,9 @@ class StreamSession(object):
             message['content'] = self.unpack(msg[ikey+2])
         else:
             message['content'] = msg[ikey+2]
-    
-        # message['buffers'] = msg[3:]
-        # else:
-        #     message['header'] = self.unpack(msg[0].bytes)
-        #     message['msg_type'] = message['header']['msg_type']
-        #     message['parent_header'] = self.unpack(msg[1].bytes)
-        #     if content:
-        #         message['content'] = self.unpack(msg[2].bytes)
-        #     else:
-        #         message['content'] = msg[2].bytes
         
         message['buffers'] = msg[ikey+3:]# [ m.buffer for m in msg[3:] ]
         return message
-            
         
 
 def test_msg2obj():
