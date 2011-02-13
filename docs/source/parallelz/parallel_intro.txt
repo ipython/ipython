@@ -53,7 +53,8 @@ Architecture overview
 The IPython architecture consists of four components:
 
 * The IPython engine.
-* The IPython controller.
+* The IPython hub.
+* The IPython schedulers.
 * The controller client.
 
 These components live in the :mod:`IPython.zmq.parallel` package and are
@@ -79,9 +80,9 @@ to the user.
 IPython controller
 ------------------
 
-The IPython controller provides an interface for working with a set of engines. At a
-general level, the controller is a collection of processes to which IPython engines and
-clients can connect. The controller is composed of a :class:`Hub` and a collection of
+The IPython controller processes provide an interface for working with a set of engines.
+At a general level, the controller is a collection of processes to which IPython engines
+and clients can connect. The controller is composed of a :class:`Hub` and a collection of
 :class:`Schedulers`. These Schedulers are typically run in separate processes but on the
 same machine as the Hub, but can be run anywhere from local threads or on remote machines.
 
@@ -92,8 +93,8 @@ the client's :meth:`.Client.apply` method, with various arguments, or
 constructing :class:`.View` objects to represent subsets of engines. The two
 primary models for interacting with engines are:
 
-* A MUX interface, where engines are addressed explicitly.
-* A Task interface, where the Scheduler is trusted with assigning work to
+* A **Direct** interface, where engines are addressed explicitly.
+* A **LoadBalanced** interface, where the Scheduler is trusted with assigning work to
   appropriate engines.
 
 Advanced users can readily extend the View models to enable other
@@ -108,7 +109,7 @@ styles of parallelism.
 The Hub
 *******
 
-The center of an IPython cluster is the Controller Hub. This is the process that keeps
+The center of an IPython cluster is the Hub. This is the process that keeps
 track of engine connections, schedulers, clients, as well as all task requests and
 results. The primary role of the Hub is to facilitate queries of the cluster state, and
 minimize the necessary information required to establish the many connections involved in
@@ -138,15 +139,41 @@ Security
 
 IPython uses ZeroMQ for networking, which has provided many advantages, but
 one of the setbacks is its utter lack of security [ZeroMQ]_. By default, no IPython
-connections are secured, but open ports only listen on localhost. The only
+connections are encrypted, but open ports only listen on localhost. The only
 source of security for IPython is via ssh-tunnel. IPython supports both shell
-(`openssh`) and `paramiko` based tunnels for connections.
+(`openssh`) and `paramiko` based tunnels for connections.  There is a key necessary
+to submit requests, but due to the lack of encryption, it does not provide
+significant security if loopback traffic is compromised.
 
 In our architecture, the controller is the only process that listens on
 network ports, and is thus the main point of vulnerability. The standard model
 for secure connections is to designate that the controller listen on
-localhost, and use ssh-tunnels on the same machine to connect clients and/or
+localhost, and use ssh-tunnels to connect clients and/or
 engines.
+
+To connect and authenticate to the controller an engine or client needs
+some information that the controller has stored in a JSON file.
+Thus, the JSON files need to be copied to a location where
+the clients and engines can find them. Typically, this is the
+:file:`~/.ipython/clusterz_default/security` directory on the host where the 
+client/engine is running (which could be a different host than the controller). 
+Once the JSON files are copied over, everything should work fine.
+
+Currently, there are two JSON files that the controller creates:
+
+ipcontroller-engine.json
+    This JSON file has the information necessary for an engine to connect
+    to a controller.
+
+ipcontroller-client.json
+    The client's connection information.  This may not differ from the engine's,
+    but since the controller may listen on different ports for clients and
+    engines, it is stored separately.
+
+More details of how these JSON files are used are given below.
+
+A detailed description of the security model and its implementation in IPython
+can be found :ref:`here <parallelsecurity>`.
 
 .. warning::
 
@@ -157,9 +184,6 @@ engines.
     Controller is insecure. There is no way around this with ZeroMQ.
 
 
-.. TODO: edit parallelsecurity
-A detailed description of the security model and its implementation in IPython
-can be found :ref:`here <parallelsecurity>`.
 
 Getting Started
 ===============
@@ -170,7 +194,7 @@ simply start a controller and engines on a single host using the
 :command:`ipclusterz` command. To start a controller and 4 engines on your
 localhost, just do::
 
-    $ ipclusterz -n 4
+    $ ipclusterz start -n 4
 
 More details about starting the IPython controller and engines can be found
 :ref:`here <parallel_process>`
@@ -189,12 +213,21 @@ everything is working correctly, try the following commands:
 	Out[4]: set([0, 1, 2, 3])
 	
 	In [5]: c.apply(lambda : "Hello, World", targets='all', block=True)
-	Out[5]: {0: 'Hello, World', 1: 'Hello, World', 2: 'Hello, World', 3: 
-	        'Hello, World'}
+	Out[5]: [ 'Hello, World', 'Hello, World', 'Hello, World', 'Hello, World' ]
 
-Remember, a client needs to be able to see the Hub. So if they
-are on a different machine, and you have ssh access to that machine,
-then you would connect to it with::
+
+When a client is created with no arguments, the client tries to find the corresponding
+JSON file in the local `~/.ipython/clusterz_default/security` directory. If it finds it,
+you are set. If you have put the JSON file in a different location or it has a different
+name, create the client like this:
+
+.. sourcecode:: ipython
+
+    In [2]: c = client.Client('/path/to/my/ipcontroller-client.json')
+
+Remember, a client needs to be able to see the Hub's ports to connect. So if they are on a
+different machine, you may need to use an ssh server to tunnel access to that machine,
+then you would connect to it with:
 
 .. sourcecode:: ipython
 
@@ -203,8 +236,8 @@ then you would connect to it with::
 Where 'myhub.example.com' is the url or IP address of the machine on
 which the Hub process is running.
 
-You are now ready to learn more about the :ref:`MUX
-<parallelmultiengine>` and :ref:`Task <paralleltask>` interfaces to the
+You are now ready to learn more about the :ref:`Direct
+<parallelmultiengine>` and :ref:`LoadBalanced <paralleltask>` interfaces to the
 controller.
 
 .. [ZeroMQ] ZeroMQ.  http://www.zeromq.org

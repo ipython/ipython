@@ -30,6 +30,9 @@ class AsyncResult(object):
     
     Provides the same interface as :py:class:`multiprocessing.AsyncResult`.
     """
+    
+    msg_ids = None
+    
     def __init__(self, client, msg_ids, fname=''):
         self._client = client
         self.msg_ids = msg_ids

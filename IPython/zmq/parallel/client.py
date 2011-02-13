@@ -455,8 +455,8 @@ class Client(object):
         md = {'msg_id' : parent['msg_id'],
               'received' : datetime.now(),
               'engine_uuid' : header.get('engine', None),
-              'follow' : parent['follow'],
-              'after' : parent['after'],
+              'follow' : parent.get('follow', []),
+              'after' : parent.get('after', []),
               'status' : content['status'],
             }
         

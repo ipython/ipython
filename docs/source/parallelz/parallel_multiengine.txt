@@ -1,10 +1,10 @@
 .. _parallelmultiengine:
 
-===============================
-IPython's multiengine interface
-===============================
+==========================
+IPython's Direct interface
+==========================
 
-The multiengine interface represents one possible way of working with a set of
+The direct, or multiengine, interface represents one possible way of working with a set of
 IPython engines. The basic idea behind the multiengine interface is that the
 capabilities of each engine are directly and explicitly exposed to the user.
 Thus, in the multiengine interface, each engine is given an id that is used to
@@ -19,7 +19,7 @@ To follow along with this tutorial, you will need to start the IPython
 controller and four IPython engines. The simplest way of doing this is to use
 the :command:`ipclusterz` command::
 
-    $ ipclusterz -n 4
+    $ ipclusterz start -n 4
     
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <ip1par>` to using IPython for parallel computing.
@@ -36,16 +36,17 @@ module and then create a :class:`.Client` instance:
     
     In [2]: rc = client.Client()
 
-This form assumes that the controller was started on localhost with default
-configuration. If not, the location of the controller must be given as an
-argument to the constructor:
+This form assumes that the default connection information (stored in
+:file:`ipcontroller-client.json` found in `~/.ipython/clusterz_default/security`) is
+accurate. If the controller was started on a remote machine, you must copy that connection
+file to the client machine, or enter its contents as arguments to the Client constructor:
 
 .. sourcecode:: ipython
 
-    # for a visible LAN controller listening on an external port:
-    In [2]: rc = client.Client('tcp://192.168.1.16:10101')
-    # for a remote controller at my.server.com listening on localhost:
-    In [3]: rc = client.Client(sshserver='my.server.com')
+    # If you have copied the json connector file from the controller:
+    In [2]: rc = client.Client('/path/to/ipcontroller-client.json')
+    # for a remote controller at 10.0.1.5, visible from my.server.com:
+    In [3]: rc = client.Client('tcp://10.0.1.5:12345', sshserver='my.server.com')
     
 
 To make sure there are engines connected to the controller, use can get a list
@@ -63,8 +64,8 @@ Quick and easy parallelism
 
 In many cases, you simply want to apply a Python function to a sequence of
 objects, but *in parallel*. The client interface provides a simple way
-of accomplishing this: useing the builtin :func:`map` and the ``@remote``
-function decorator.
+of accomplishing this: using the builtin :func:`map` and the ``@remote``
+function decorator, or the client's :meth:`map` method.
 
 Parallel map
 ------------
@@ -72,7 +73,7 @@ Parallel map
 Python's builtin :func:`map` functions allows a function to be applied to a
 sequence element-by-element. This type of code is typically trivial to
 parallelize. In fact, since IPython's interface is all about functions anyway,
-you can just use the builtin :func:`map`, or a client's :map: method:
+you can just use the builtin :func:`map`, or a client's :meth:`map` method:
 
 .. sourcecode:: ipython
 
@@ -179,7 +180,6 @@ blocks until the engines are done executing the command:
     In [2]: rc.block=True
     In [3]: dview = rc[:] # A DirectView of all engines
     In [4]: dview['a'] = 5
-    
 
     In [5]: dview['b'] = 10
 

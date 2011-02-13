@@ -263,7 +263,7 @@ class IPClusterApp(ApplicationWithClusterDir):
         self.default_config.Global.engine_launcher = \
             'IPython.zmq.parallel.launcher.LocalEngineSetLauncher'
         self.default_config.Global.n = 2
-        self.default_config.Global.delay = 1
+        self.default_config.Global.delay = 2
         self.default_config.Global.reset_config = False
         self.default_config.Global.clean_logs = True
         self.default_config.Global.signal = signal.SIGINT
