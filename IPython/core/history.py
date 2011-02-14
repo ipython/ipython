@@ -347,6 +347,16 @@ def magic_history(self, parameter_s = ''):
       -f FILENAME: instead of printing the output to the screen, redirect it to
        the given file.  The file is always overwritten, though IPython asks for
        confirmation first if it already exists.
+       
+    Example
+    -------
+
+    ::
+    
+      In [6]: %hist -n 4 6
+      4:a = 12
+      5:print a**2
+
     """
 
     if not self.shell.displayhook.do_full_cache:
