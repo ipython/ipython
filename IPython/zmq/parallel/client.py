@@ -23,7 +23,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 from IPython.utils.path import get_ipython_dir
 from IPython.external.decorator import decorator
-from IPython.zmq import tunnel
+from IPython.external.ssh import tunnel
 
 import streamsession as ss
 from clusterdir import ClusterDir, ClusterDirError
@@ -152,9 +152,10 @@ class Client(object):
     Parameters
     ----------
     
-    addr : bytes; zmq url, e.g. 'tcp://127.0.0.1:10101'
-        The address of the controller's registration socket.
-        [Default: 'tcp://127.0.0.1:10101']
+    url_or_file : bytes; zmq url or path to ipcontroller-client.json
+        Connection information for the Hub's registration.  If a json connector
+        file is given, then likely no further configuration is necessary.
+        [Default: None]
     context : zmq.Context
         Pass an existing zmq.Context instance, otherwise the client will create its own
     username : bytes
@@ -178,15 +179,18 @@ class Client(object):
     sshkey : str; path to public ssh key file
         This specifies a key to be used in ssh login, default None.
         Regular default ssh keys will be used without specifying this argument.
-    password : str; 
+    password : str 
         Your ssh password to sshserver. Note that if this is left None,
         you will be prompted for it if passwordless key based login is unavailable.
+    paramiko : bool
+        flag for whether to use paramiko instead of shell ssh for tunneling.
+        [default: True on win32, False else]
     
     #------- exec authentication args -------
     # If even localhost is untrusted, you can have some protection against
     # unauthorized execution by using a key.  Messages are still sent
     # as cleartext, so if someone can snoop your loopback traffic this will
-    # not help anything.
+    # not help against malicious attacks.
     
     exec_key : str
         an authentication key or file containing a key
