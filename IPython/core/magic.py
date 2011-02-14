@@ -2647,7 +2647,16 @@ Defaulting color scheme to 'NoColor'"""
         since the default prompts do not display path information.
         
         Note that !cd doesn't work for this purpose because the shell where
-        !command runs is immediately discarded after executing 'command'."""
+        !command runs is immediately discarded after executing 'command'.
+        
+        Example
+        --------
+        
+        ::
+        
+          In [10]: cd parent/child
+          /home/tsuser/parent/child
+        """
 
         parameter_s = parameter_s.strip()
         #bkms = self.shell.persist.get("bookmarks",{})
