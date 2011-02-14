@@ -1,3 +1,4 @@
+import logging
 import sys
 import time
 from cStringIO import StringIO
@@ -5,6 +6,13 @@ from cStringIO import StringIO
 from session import extract_header, Message
 
 from IPython.utils import io
+
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+# Module-level logger
+logger =  logging.getLogger(__name__)
 
 #-----------------------------------------------------------------------------
 # Stream classes
@@ -15,7 +23,7 @@ class OutStream(object):
 
     # The time interval between automatic flushes, in seconds.
     flush_interval = 0.05
-
+    
     def __init__(self, session, pub_socket, name):
         self.session = session
         self.pub_socket = pub_socket
@@ -37,10 +45,10 @@ class OutStream(object):
             data = self._buffer.getvalue()
             if data:
                 content = {u'name':self.name, u'data':data}
-                msg = self.session.send(self.pub_socket, u'stream', content=content,
-                                       parent=self.parent_header)
-                io.raw_print(msg)
-                
+                msg = self.session.send(self.pub_socket, u'stream',
+                                        content=content,
+                                        parent=self.parent_header)
+                logger.debug(msg)
                 self._buffer.close()
                 self._new_buffer()
 
