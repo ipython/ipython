@@ -139,21 +139,21 @@ Building and uploading
 The built docs are stored in a separate repository. Through some github magic,
 they're automatically exposed as a website. It works like this:
 
-- You will need to have sphinx and latex installed. In Ubuntu, install
+* You will need to have sphinx and latex installed. In Ubuntu, install
   ``texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended``.
   Install the latest version of sphinx from PyPI (``pip install sphinx``).
-- Ensure that the development version of IPython is the first in your system
+* Ensure that the development version of IPython is the first in your system
   path. You can either use a virtualenv, or modify your PYTHONPATH.
-- Switch into the docs directory, and run ``make gh-pages``. This will build
+* Switch into the docs directory, and run ``make gh-pages``. This will build
   your updated docs as html and pdf, then automatically check out the latest
   version of the docs repository, copy the built docs into it, and commit your
   changes.
-- Open the built docs in a web browser, and check that they're as expected.
-- (If rebuilding the docs for the development version, it may have duplicated
+* Open the built docs in a web browser, and check that they're as expected.
+* (If rebuilding the docs for the development version, it may have duplicated
   the link to the development version in the homepage. Remove this from
   index.rst, then run ``python build_index.py`` to update index.html. Commit the
   change.)
-- Upload the docs with ``git push``. This only works if you have write access to
+* Upload the docs with ``git push``. This only works if you have write access to
   the docs repository.
 
 .. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html
