@@ -362,3 +362,28 @@ def test_xmode():
     for i in range(3):
         _ip.magic("xmode")
     nt.assert_equal(_ip.InteractiveTB.mode, xmode)
+
+def doctest_who():
+    """doctest for %who
+    
+    In [1]: %reset -f
+    
+    In [2]: alpha = 123
+    
+    In [3]: beta = 'beta'
+    
+    In [4]: %who int
+    alpha
+    
+    In [5]: %who str
+    beta
+    
+    In [6]: %whos
+    Variable   Type    Data/Info
+    ----------------------------
+    alpha      int     123
+    beta       str     beta
+    
+    In [7]: %who_ls
+    Out[7]: ['alpha', 'beta']
+    """

@@ -727,6 +727,7 @@ Currently the magic system has the following functions:\n"""
         except:
             shell.showtraceback()
         
+    @testdec.skip_doctest
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
 
@@ -762,11 +763,12 @@ Currently the magic system has the following functions:\n"""
         typelist = parameter_s.split()
         if typelist:
             typeset = set(typelist)
-            out = [i for i in out if type(i).__name__ in typeset]
+            out = [i for i in out if type(user_ns[i]).__name__ in typeset]
 
         out.sort()
         return out
         
+    @testdec.skip_doctest
     def magic_who(self, parameter_s=''):
         """Print all interactive variables, with some minimal formatting.
 
@@ -827,6 +829,7 @@ Currently the magic system has the following functions:\n"""
                 print
         print
 
+    @testdec.skip_doctest
     def magic_whos(self, parameter_s=''):
         """Like %who, but gives some extra information about each variable.
 
