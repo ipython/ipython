@@ -47,7 +47,7 @@ class BlockingSubSocketChannel(SubSocketChannel):
 
     def get_msg(self, block=True, timeout=None):
         """Get a message if there is one that is ready."""
-        return self.in_queue.get(block, timeout)
+        return self._in_queue.get(block, timeout)
 
     def get_msgs(self):
         """Get all messages that are currently ready."""
@@ -79,7 +79,7 @@ class BlockingXReqSocketChannel(XReqSocketChannel):
 
     def get_msg(self, block=True, timeout=None):
         """Get a message if there is one that is ready."""
-        return self.in_queue.get(block, timeout)
+        return self._in_queue.get(block, timeout)
 
     def get_msgs(self):
         """Get all messages that are currently ready."""
