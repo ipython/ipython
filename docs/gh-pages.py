@@ -110,7 +110,10 @@ if __name__ == '__main__':
     try:
         tag = sys.argv[1]
     except IndexError:
-        tag = sh2('git describe')
+        try:
+            tag = sh2('git describe')
+        except CalledProcessError:
+            tag = "dev"   # Fallback
     
     try:
         desc = sys.argv[2]
