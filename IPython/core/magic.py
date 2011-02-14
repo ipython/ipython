@@ -2605,7 +2605,16 @@ Defaulting color scheme to 'NoColor'"""
             os.chdir(savedir)
         
     def magic_pwd(self, parameter_s = ''):
-        """Return the current working directory path."""
+        """Return the current working directory path.
+        
+        Example
+        -------
+        
+        ::
+        
+          In [9]: pwd
+          Out[9]: '/home/tsuser/sprint/ipython'
+        """
         return os.getcwd()
 
     def magic_cd(self, parameter_s=''):
