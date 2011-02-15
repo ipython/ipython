@@ -1277,8 +1277,8 @@ class InteractiveShell(Configurable, Magic):
                 self.reload_history()
         return wrapper
     
-    def get_history(self, index=None, raw=False, output=True):
-        return self.history_manager.get_history(index, raw, output)
+    def get_history(self, index=None, raw=False, output=True,this_session=True):
+        return self.history_manager.get_history(index, raw, output,this_session)
     
 
     #-------------------------------------------------------------------------

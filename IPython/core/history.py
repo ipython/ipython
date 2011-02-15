@@ -186,7 +186,7 @@ class HistoryManager(object):
             if self.shell.has_readline:
                 self.populate_readline_history()
         
-    def get_history(self, index=None, raw=False, output=True):
+    def get_history(self, index=None, raw=False, output=True,this_session=True):
         """Get the history list.
 
         Get the input and output history.
@@ -201,6 +201,9 @@ class HistoryManager(object):
             If True, return the raw input.
         output : bool
             If True, then return the output as well.
+        this_session : bool
+            If True, indexing is from 1 at the start of this session.
+            If False, indexing is from 1 at the start of the whole history.
 
         Returns
         -------
@@ -214,9 +217,13 @@ class HistoryManager(object):
             input_hist = self.input_hist_parsed
         if output:
             output_hist = self.output_hist
+        
+        if this_session:
+            offset = self.session_offset
+        else:
+            offset = -1
             
         n = len(input_hist)
-        offset = self.session_offset
         if index is None:
             start=offset+1; stop=n
         elif isinstance(index, int):

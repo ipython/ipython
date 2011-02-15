@@ -282,7 +282,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         self._queue_request(msg)
         return msg['header']['msg_id']
 
-    def history(self, index=None, raw=False, output=True):
+    def history(self, index=None, raw=False, output=True, this_session=True):
         """Get the history list.
 
         Parameters
@@ -295,12 +295,16 @@ class XReqSocketChannel(ZmqSocketChannel):
             If True, return the raw input.
         output : bool
             If True, then return the output as well.
+        this_session : bool
+            If True, returns only history from the current session. Otherwise,
+            includes reloaded history from previous sessions.
 
         Returns
         -------
         The msg_id of the message sent.
         """
-        content = dict(index=index, raw=raw, output=output)
+        content = dict(index=index, raw=raw, output=output, 
+                                                    this_session=this_session)
         msg = self.session.msg('history_request', content)
         self._queue_request(msg)
         return msg['header']['msg_id']

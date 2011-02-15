@@ -309,10 +309,9 @@ class Kernel(Configurable):
         logger.debug(msg)
 
     def history_request(self, ident, parent):
-        output = parent['content']['output']
-        index = parent['content']['index']
-        raw = parent['content']['raw']
-        hist = self.shell.get_history(index=index, raw=raw, output=output)
+        # parent['content'] should contain keys "index", "raw", "output" and
+        # "this_session".
+        hist = self.shell.get_history(**parent['content'])
         content = {'history' : hist}
         msg = self.session.send(self.reply_socket, 'history_reply',
                                 content, parent, ident)
