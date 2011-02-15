@@ -268,11 +268,6 @@ class Kernel(Configurable):
         # it to sit in memory until the next execute_request comes in.
         shell.payload_manager.clear_payload()
 
-        # Send the reply.
-        reply_msg = self.session.send(self.reply_socket, u'execute_reply',
-                                      reply_content, parent, ident=ident)
-        logger.debug(str(reply_msg))
-
         # Flush output before sending the reply.
         sys.stdout.flush()
         sys.stderr.flush()
@@ -282,6 +277,11 @@ class Kernel(Configurable):
         if self._execute_sleep:
             time.sleep(self._execute_sleep)
         
+        # Send the reply.
+        reply_msg = self.session.send(self.reply_socket, u'execute_reply',
+                                      reply_content, parent, ident=ident)
+        logger.debug(str(reply_msg))
+
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
