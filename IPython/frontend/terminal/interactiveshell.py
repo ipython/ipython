@@ -545,6 +545,17 @@ class TerminalInteractiveShell(InteractiveShell):
         See also
         --------
         paste: automatically pull code from clipboard.
+        
+        Examples
+        --------
+        ::
+        
+          In [8]: %cpaste
+          Pasting code; enter '--' alone on the line to stop.
+          :>>> a = ["world!", "Hello"]
+          :>>> print " ".join(sorted(a))
+          :--
+          Hello world!
         """
         
         opts,args = self.parse_options(parameter_s,'rs:',mode='string')
