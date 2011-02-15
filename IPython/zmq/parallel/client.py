@@ -155,9 +155,12 @@ class Client(object):
     url_or_file : bytes; zmq url or path to ipcontroller-client.json
         Connection information for the Hub's registration.  If a json connector
         file is given, then likely no further configuration is necessary.
-        [Default: None]
+        [Default: use profile]
+    profile : bytes
+        The name of the Cluster profile to be used to find connector information.
+        [Default: 'default']
     context : zmq.Context
-        Pass an existing zmq.Context instance, otherwise the client will create its own
+        Pass an existing zmq.Context instance, otherwise the client will create its own.
     username : bytes
         set username to be passed to the Session object
     debug : bool
@@ -800,23 +803,26 @@ class Client(object):
         result = self.apply(_execute, (code,), targets=targets, block=self.block, bound=True)
         return result
     
-    def run(self, code, block=None):
-        """Runs `code` on an engine. 
+    def run(self, filename, targets='all', block=None):
+        """Execute contents of `filename` on engine(s). 
         
-        Calls to this are load-balanced.
-        
-        ``run`` is never `bound` (no effect on engine namespace)
+        This simply reads the contents of the file and calls `execute`.
         
         Parameters
         ----------
-        code : str
-                the code string to be executed
+        filename : str
+                The path to the file
+        targets : int/str/list of ints/strs
+                the engines on which to execute
+                default : all
         block : bool
                 whether or not to wait until done
+                default: self.block
         
         """
-        result = self.apply(_execute, (code,), targets=None, block=block, bound=False)
-        return result
+        with open(filename, 'rb') as f:
+            code = f.read()
+        return self.execute(code, targets=targets, block=block)
     
     def _maybe_raise(self, result):
         """wrapper for maybe raising an exception if apply failed."""
