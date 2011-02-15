@@ -348,9 +348,8 @@ def magic_history(self, parameter_s = ''):
        the given file.  The file is always overwritten, though IPython asks for
        confirmation first if it already exists.
        
-    Example
-    -------
-
+    Examples
+    --------
     ::
     
       In [6]: %hist -n 4 6

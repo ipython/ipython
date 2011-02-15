@@ -2607,9 +2607,8 @@ Defaulting color scheme to 'NoColor'"""
     def magic_pwd(self, parameter_s = ''):
         """Return the current working directory path.
         
-        Example
-        -------
-        
+        Examples
+        --------
         ::
         
           In [9]: pwd
@@ -2649,9 +2648,8 @@ Defaulting color scheme to 'NoColor'"""
         Note that !cd doesn't work for this purpose because the shell where
         !command runs is immediately discarded after executing 'command'.
         
-        Example
+        Examples
         --------
-        
         ::
         
           In [10]: cd parent/child
