@@ -578,7 +578,15 @@ Currently the magic system has the following functions:\n"""
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
-        If the object is a class, print the constructor information."""
+        If the object is a class, print the constructor information.
+        
+        Examples
+        --------
+        ::
+        
+          In [3]: %pdef urllib.urlopen
+          urllib.urlopen(url, data=None, proxies=None)
+        """
         self._inspect('pdef',parameter_s, namespaces)
 
     def magic_pdoc(self, parameter_s='', namespaces=None):
