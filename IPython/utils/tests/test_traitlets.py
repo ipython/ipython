@@ -142,15 +142,27 @@ class TestTraitType(TestCase):
 
         a = A()
         self.assertEquals(a._trait_values, {})
+        self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
         self.assertEquals(a.x, 11)
         self.assertEquals(a._trait_values, {'x': 11})
         b = B()
         self.assertEquals(b._trait_values, {'x': 20})
+        self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
         self.assertEquals(b.x, 20)
         c = C()
         self.assertEquals(c._trait_values, {})
+        self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
         self.assertEquals(c.x, 21)
         self.assertEquals(c._trait_values, {'x': 21})
+        # Ensure that the base class remains unmolested when the _default
+        # initializer gets overridden in a subclass.
+        a = A()
+        c = C()
+        self.assertEquals(a._trait_values, {})
+        self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEquals(a.x, 11)
+        self.assertEquals(a._trait_values, {'x': 11})
+
 
 
 class TestHasTraitsMeta(TestCase):

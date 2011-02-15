@@ -262,7 +262,7 @@ class TraitType(object):
             obj._trait_values[self.name] = newdv
             return
         # Complete the dynamic initialization.
-        self.dynamic_initializer = cls.__dict__[meth_name]
+        obj._trait_dyn_inits[self.name] = cls.__dict__[meth_name]
 
     def __get__(self, obj, cls=None):
         """Get the value of the trait by self.name for the instance.
@@ -279,8 +279,8 @@ class TraitType(object):
                 value = obj._trait_values[self.name]
             except KeyError:
                 # Check for a dynamic initializer.
-                if hasattr(self, 'dynamic_initializer'):
-                    value = self.dynamic_initializer(obj)
+                if self.name in obj._trait_dyn_inits:
+                    value = obj._trait_dyn_inits[self.name](obj)
                     # FIXME: Do we really validate here?
                     value = self._validate(obj, value)
                     obj._trait_values[self.name] = value
@@ -317,11 +317,6 @@ class TraitType(object):
             return self.value_for(value)
         else:
             return value
-
-    def set_dynamic_initializer(self, method):
-        """ Set the dynamic initializer method, if any.
-        """
-        self.dynamic_initializer = method
 
     def info(self):
         return self.info_text
@@ -399,6 +394,7 @@ class HasTraits(object):
             inst = new_meth(cls, **kw)
         inst._trait_values = {}
         inst._trait_notifiers = {}
+        inst._trait_dyn_inits = {}
         # Here we tell all the TraitType instances to set their default
         # values on the instance. 
         for key in dir(cls):
