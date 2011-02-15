@@ -575,10 +575,19 @@ Currently the magic system has the following functions:\n"""
         self.shell._inspect('pinfo', parameter_s, detail_level=1,
                             namespaces=namespaces)
 
+    @testdec.skip_doctest
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
-        If the object is a class, print the constructor information."""
+        If the object is a class, print the constructor information.
+        
+        Examples
+        --------
+        ::
+        
+          In [3]: %pdef urllib.urlopen
+          urllib.urlopen(url, data=None, proxies=None)
+        """
         self._inspect('pdef',parameter_s, namespaces)
 
     def magic_pdoc(self, parameter_s='', namespaces=None):
@@ -2423,7 +2432,14 @@ Currently the magic system has the following functions:\n"""
 
         Currently implemented schemes: NoColor, Linux, LightBG.
 
-        Color scheme names are not case-sensitive."""
+        Color scheme names are not case-sensitive.
+        
+        Examples
+        --------
+        To get a plain black and white terminal::
+        
+          %colors nocolor
+        """
 
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
@@ -2660,11 +2676,21 @@ Defaulting color scheme to 'NoColor'"""
             db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
-        
+    
+    @testdec.skip_doctest    
     def magic_pwd(self, parameter_s = ''):
-        """Return the current working directory path."""
+        """Return the current working directory path.
+        
+        Examples
+        --------
+        ::
+        
+          In [9]: pwd
+          Out[9]: '/home/tsuser/sprint/ipython'
+        """
         return os.getcwd()
-
+    
+    @testdec.skip_doctest
     def magic_cd(self, parameter_s=''):
         """Change the current working directory.
 
@@ -2695,7 +2721,15 @@ Defaulting color scheme to 'NoColor'"""
         since the default prompts do not display path information.
         
         Note that !cd doesn't work for this purpose because the shell where
-        !command runs is immediately discarded after executing 'command'."""
+        !command runs is immediately discarded after executing 'command'.
+        
+        Examples
+        --------
+        ::
+        
+          In [10]: cd parent/child
+          /home/tsuser/parent/child
+        """
 
         parameter_s = parameter_s.strip()
         #bkms = self.shell.persist.get("bookmarks",{})
