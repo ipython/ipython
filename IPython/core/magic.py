@@ -2374,7 +2374,14 @@ Currently the magic system has the following functions:\n"""
 
         Currently implemented schemes: NoColor, Linux, LightBG.
 
-        Color scheme names are not case-sensitive."""
+        Color scheme names are not case-sensitive.
+        
+        Examples
+        --------
+        To get a plain black and white terminal::
+        
+          %colors nocolor
+        """
 
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
