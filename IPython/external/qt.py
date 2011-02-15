@@ -26,4 +26,5 @@ elif QT_API == QT_API_PYSIDE:
     from PySide import QtCore, QtGui, QtSvg
 
 else:
-    raise RuntimeError('Invalid Qt API "%s"' % QT_API)
+    raise RuntimeError('Invalid Qt API %r, valid values are: %r or %r' % 
+                       (QT_API, QT_API_PYQT, QT_API_PYSIDE))
