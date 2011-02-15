@@ -105,7 +105,3 @@ nightly: dist
 
 gh-pages: html pdf
 	python gh-pages.py
-
-gh-pages-current: html pdf
-	ipver="$(ipython -v 2>&1)"
-	python gh-pages.py dev "Current Development Version ($ipver)"

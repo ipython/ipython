@@ -74,34 +74,6 @@ def init_repo(path):
     sh('git checkout gh-pages')
     cd(here)
 
-
-def render_rstindex(fname, tag, desc=None):
-    if desc is None:
-        desc = tag
-        
-    rel = '* {d}: `HTML <{t}/index.html>`_ and `PDF <{t}/ipython.pdf>`_.'.format(t=tag,d=desc)
-    rep = re.compile(r'\.\. release')
-    out = []
-    with file(fname) as f:
-        contents = f.read()
-    lines = contents.splitlines()
-    if rel in contents:
-        out = lines
-    else:
-        for line in lines:
-            out.append(line)
-            if rep.search(line):
-                out.append(rep.sub(rel, line))
-    return '\n'.join(out)+'\n'
-
-
-def new_rstindex(fname, tag, desc=None):
-    new_page = render_rstindex(fname, tag, desc)
-    os.rename(fname, fname+'~')
-    with file(fname, 'w') as f:
-        f.write(new_page)
-
-
 #-----------------------------------------------------------------------------
 # Script starts
 #-----------------------------------------------------------------------------
@@ -114,11 +86,6 @@ if __name__ == '__main__':
             tag = sh2('git describe')
         except CalledProcessError:
             tag = "dev"   # Fallback
-    
-    try:
-        desc = sys.argv[2]
-    except IndexError:
-        desc="Release (%s)"%tag
     
     startdir = os.getcwd()
     if not os.path.exists(pages_dir):
@@ -152,10 +119,7 @@ if __name__ == '__main__':
             raise RuntimeError(e)
 
         sh('git add %s' % tag)
-        new_rstindex('index.rst', tag, desc)
-        sh('python build_index.py')
-        sh('git add index.rst index.html')
-        sh('git commit -m"Created new doc release, named: %s"' % tag)
+        sh('git commit -m"Updated doc release: %s"' % tag)
         print
         print 'Most recent 3 commits:'
         sys.stdout.flush()

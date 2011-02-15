@@ -149,12 +149,14 @@ they're automatically exposed as a website. It works like this:
   version of the docs repository, copy the built docs into it, and commit your
   changes.
 * Open the built docs in a web browser, and check that they're as expected.
-* (If rebuilding the docs for the development version, it may have duplicated
-  the link to the development version in the homepage. Remove this from
-  index.rst, then run ``python build_index.py`` to update index.html. Commit the
+* (When building the docs for a new tagged release, you will have to add its link to
+  index.rst, then run ``python build_index.py`` to update index.html. Commit the 
   change.)
 * Upload the docs with ``git push``. This only works if you have write access to
   the docs repository.
+* If you are building a version that is not the current dev branch, nor a tagged release,
+  then you must run gh-pages.py directly with ``python gh-pages.py <version>``, and *not*
+  with ``make gh-pages``.
 
 .. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html
 .. [Sphinx] Sphinx. http://sphinx.pocoo.org/
