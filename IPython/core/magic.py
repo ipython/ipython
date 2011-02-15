@@ -575,6 +575,7 @@ Currently the magic system has the following functions:\n"""
         self.shell._inspect('pinfo', parameter_s, detail_level=1,
                             namespaces=namespaces)
 
+    @testdec.skip_doctest
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
@@ -2618,7 +2619,8 @@ Defaulting color scheme to 'NoColor'"""
             db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
-        
+    
+    @testdec.skip_doctest    
     def magic_pwd(self, parameter_s = ''):
         """Return the current working directory path.
         
@@ -2630,7 +2632,8 @@ Defaulting color scheme to 'NoColor'"""
           Out[9]: '/home/tsuser/sprint/ipython'
         """
         return os.getcwd()
-
+    
+    @testdec.skip_doctest
     def magic_cd(self, parameter_s=''):
         """Change the current working directory.
 

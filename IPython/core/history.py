@@ -24,6 +24,7 @@ import time
 # Our own packages
 import IPython.utils.io
 
+from IPython.testing import decorators as testdec
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.io import ask_yes_no
 from IPython.utils.warn import warn
@@ -305,6 +306,7 @@ class HistorySaveThread(threading.Thread):
         self.exit_now.set()
         self.join()
 
+@testdec.skip_doctest
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
     
