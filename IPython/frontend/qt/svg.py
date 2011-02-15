@@ -10,7 +10,7 @@ def save_svg(string, parent=None):
 
     Parameters:
     -----------
-    string : str
+    string : basestring
         A Python string containing a SVG document.
 
     parent : QWidget, optional
@@ -40,9 +40,12 @@ def svg_to_clipboard(string):
 
     Parameters:
     -----------
-    string : str
+    string : basestring
         A Python string containing a SVG document.
     """
+    if isinstance(string, unicode):
+        string = string.encode('utf-8')
+
     mime_data = QtCore.QMimeData()
     mime_data.setData('image/svg+xml', string)
     QtGui.QApplication.clipboard().setMimeData(mime_data)
@@ -52,7 +55,7 @@ def svg_to_image(string, size=None):
 
     Parameters:
     -----------
-    string : str
+    string : basestring
         A Python string containing a SVG document.
 
     size : QSize, optional
@@ -68,6 +71,9 @@ def svg_to_image(string, size=None):
     --------
     A QImage of format QImage.Format_ARGB32.
     """
+    if isinstance(string, unicode):
+        string = string.encode('utf-8')
+
     renderer = QtSvg.QSvgRenderer(QtCore.QByteArray(string))
     if not renderer.isValid():
         raise ValueError('Invalid SVG data.')
