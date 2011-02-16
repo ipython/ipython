@@ -30,7 +30,7 @@ import streamsession as ss
 from clusterdir import ClusterDir, ClusterDirError
 # from remotenamespace import RemoteNamespace
 from view import DirectView, LoadBalancedView
-from dependency import Dependency, depend, require
+from dependency import Dependency, depend, require, dependent
 import error
 import map as Map
 from asyncresult import AsyncResult, AsyncMapResult
@@ -893,13 +893,11 @@ class Client(object):
         block : bool (default: self.block)
             Whether to wait for the result, or return immediately.
             False:
-                returns msg_id(s)
-                if multiple targets:
-                    list of ids
+                returns AsyncResult
             True:
                 returns actual result(s) of f(*args, **kwargs)
                 if multiple targets:
-                    dict of results, by engine ID
+                    list of results, matching `targets`
         targets : int,list of ints, 'all', None
             Specify the destination of the job.
             if None:
@@ -930,16 +928,13 @@ class Client(object):
         Returns
         -------
         if block is False:
-            if single target:
-                return msg_id
-            else:
-                return list of msg_ids
-                ? (should this be dict like block=True) ?
+            return AsyncResult wrapping msg_ids
+            output of AsyncResult.get() is identical to that of `apply(...block=True)`
         else:
             if single target:
-                return result of f(*args, **kwargs)
+                return result of `f(*args, **kwargs)`
             else:
-                return dict of results, keyed by engine
+                return list of results, matching `targets`
         """
         
         # defaults:
@@ -977,6 +972,18 @@ class Client(object):
                             after=None, follow=None, timeout=None):
         """The underlying method for applying functions in a load balanced
         manner, via the task queue."""
+        
+        if self._task_scheme == 'pure':
+            # pure zmq scheme doesn't support dependencies
+            msg = "Pure ZMQ scheduler doesn't support dependencies"
+            if (follow or after):
+                # hard fail on DAG dependencies
+                raise RuntimeError(msg)
+            if isinstance(f, dependent):
+                # soft warn on functional dependencies
+                warnings.warn(msg, RuntimeWarning)
+            
+        
         subheader = dict(after=after, follow=follow, timeout=timeout)
         bufs = ss.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)

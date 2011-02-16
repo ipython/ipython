@@ -86,7 +86,7 @@ Message type: ``connection_reply``::
         'status' : 'ok', # or 'error'
         # if ok:
         'queue' : 'tcp://127.0.0.1:12345', # connection for client side of the MUX queue
-        'task' : 'tcp...', # addr for task queue, or None if no task queue running
+        'task' : ('lru','tcp...'), # routing scheme and addr for task queue (len 2 tuple)
         'query' : 'tcp...', # addr for methods to query the hub, like queue_request, etc.
         'control' : 'tcp...', # addr for control methods, like abort, etc.
     }

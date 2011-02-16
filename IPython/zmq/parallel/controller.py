@@ -100,7 +100,7 @@ class ControllerFactory(HubFactory):
             
         else:
             self.log.info("task::using Python %s Task scheduler"%self.scheme)
-            sargs = (self.client_info['task'], self.engine_info['task'], self.monitor_url, self.client_info['notification'])
+            sargs = (self.client_info['task'][1], self.engine_info['task'], self.monitor_url, self.client_info['notification'])
             kwargs = dict(scheme=self.scheme,logname=self.log.name, loglevel=self.log.level, config=self.config)
             q = Process(target=launch_scheduler, args=sargs, kwargs=kwargs)
             q.daemon=True
