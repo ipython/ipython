@@ -99,6 +99,9 @@ class EngineConnector(HasTraits):
 class HubFactory(RegistrationFactory):
     """The Configurable for setting up a Hub."""
     
+    # name of a scheduler scheme
+    scheme = Str('lru', config=True)
+    
     # port-pairs for monitoredqueues:
     hb = Instance(list, config=True)
     def _hb_default(self):
@@ -238,7 +241,7 @@ class HubFactory(RegistrationFactory):
         time.sleep(.25)
 
         # build connection dicts
-        self.engine_addrs = {
+        self.engine_info = {
             'control' : engine_iface%self.control[1],
             'mux': engine_iface%self.mux[1],
             'heartbeat': (engine_iface%self.hb[0], engine_iface%self.hb[1]),
@@ -247,19 +250,19 @@ class HubFactory(RegistrationFactory):
             # 'monitor' : engine_iface%self.mon_port,
             }
 
-        self.client_addrs = {
+        self.client_info = {
             'control' : client_iface%self.control[0],
             'query': client_iface%self.query_port,
             'mux': client_iface%self.mux[0],
-            'task' : client_iface%self.task[0],
+            'task' : (self.scheme, client_iface%self.task[0]),
             'iopub' : client_iface%self.iopub[0],
             'notification': client_iface%self.notifier_port
             }
-        self.log.debug("hub::Hub engine addrs: %s"%self.engine_addrs)
-        self.log.debug("hub::Hub client addrs: %s"%self.client_addrs)
+        self.log.debug("hub::Hub engine addrs: %s"%self.engine_info)
+        self.log.debug("hub::Hub client addrs: %s"%self.client_info)
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
                 registrar=reg, clientele=c, notifier=n, db=self.db,
-                engine_addrs=self.engine_addrs, client_addrs=self.client_addrs,
+                engine_info=self.engine_info, client_info=self.client_info,
                 logname=self.log.name)
     
 
@@ -279,9 +282,9 @@ class Hub(LoggingFactory):
     notifier: ZMQStream for broadcasting engine registration changes (PUB)
     db: connection to db for out of memory logging of commands
                 NotImplemented
-    engine_addrs: dict of zmq connection information for engines to connect
+    engine_info: dict of zmq connection information for engines to connect
                 to the queues.
-    client_addrs: dict of zmq connection information for engines to connect
+    client_info: dict of zmq connection information for engines to connect
                 to the queues.
     """
     # internal data structures:
@@ -309,8 +312,8 @@ class Hub(LoggingFactory):
     heartmonitor=Instance(HeartMonitor)
     notifier=Instance(ZMQStream)
     db=Instance(object)
-    client_addrs=Dict()
-    engine_addrs=Dict()
+    client_info=Dict()
+    engine_info=Dict()
     
     
     def __init__(self, **kwargs):
@@ -326,16 +329,21 @@ class Hub(LoggingFactory):
         clientele: ZMQStream for client connections
         # extra:
         db: ZMQStream for db connection (NotImplemented)
-        engine_addrs: zmq address/protocol dict for engine connections
-        client_addrs: zmq address/protocol dict for client connections
+        engine_info: zmq address/protocol dict for engine connections
+        client_info: zmq address/protocol dict for client connections
         """
         
         super(Hub, self).__init__(**kwargs)
         self.registration_timeout = max(5000, 2*self.heartmonitor.period)
         
         # validate connection dicts:
-        validate_url_container(self.client_addrs)
-        validate_url_container(self.engine_addrs)
+        for k,v in self.client_info.iteritems():
+            if k == 'task':
+                validate_url_container(v[1])
+            else:
+                validate_url_container(v)
+        # validate_url_container(self.client_info)
+        validate_url_container(self.engine_info)
         
         # register our callbacks
         self.registrar.on_recv(self.dispatch_register_request)
@@ -764,7 +772,7 @@ class Hub(LoggingFactory):
         """Reply with connection addresses for clients."""
         self.log.info("client::client %s connected"%client_id)
         content = dict(status='ok')
-        content.update(self.client_addrs)
+        content.update(self.client_info)
         jsonable = {}
         for k,v in self.keytable.iteritems():
             jsonable[str(k)] = v
@@ -787,7 +795,7 @@ class Hub(LoggingFactory):
         self.log.debug("registration::register_engine(%i, %r, %r, %r)"%(eid, queue, reg, heart))
         
         content = dict(id=eid,status='ok')
-        content.update(self.engine_addrs)
+        content.update(self.engine_info)
         # check if requesting available IDs:
         if queue in self.by_ident:
             try:

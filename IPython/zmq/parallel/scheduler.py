@@ -294,7 +294,7 @@ class TaskScheduler(SessionFactory):
         else:
             self.save_unmet(msg_id, raw_msg, after, follow, timeout)
     
-    @logged
+    # @logged
     def audit_timeouts(self):
         """Audit all waiting tasks for expired timeouts."""
         now = datetime.now()
@@ -506,13 +506,13 @@ class TaskScheduler(SessionFactory):
     
 
 
-def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, logname='ZMQ', log_addr=None, loglevel=logging.DEBUG, scheme='weighted'):
+def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname='ZMQ', log_addr=None, loglevel=logging.DEBUG, scheme='weighted'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
     
     ctx = zmq.Context()
     loop = ioloop.IOLoop()
-    
+    print (in_addr, out_addr, mon_addr, not_addr)
     ins = ZMQStream(ctx.socket(zmq.XREP),loop)
     ins.bind(in_addr)
     outs = ZMQStream(ctx.socket(zmq.XREP),loop)
@@ -532,14 +532,11 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, logname='ZMQ', log_a
     
     scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
                             mon_stream=mons, notifier_stream=nots,
-                            scheme=scheme, loop=loop, logname=logname)
+                            scheme=scheme, loop=loop, logname=logname,
+                            config=config)
     scheduler.start()
     try:
         loop.start()
     except KeyboardInterrupt:
         print ("interrupted, exiting...", file=sys.__stderr__)
 
-
-if __name__ == '__main__':
-    iface = 'tcp://127.0.0.1:%i'
-    launch_scheduler(iface%12345,iface%1236,iface%12347,iface%12348)

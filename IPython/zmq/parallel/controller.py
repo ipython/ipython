@@ -37,7 +37,6 @@ from hub import Hub, HubFactory
 class ControllerFactory(HubFactory):
     """Configurable for setting up a Hub and Schedulers."""
     
-    scheme = Str('pure', config=True)
     usethreads = Bool(False, config=True)
     
     # internal
@@ -65,8 +64,8 @@ class ControllerFactory(HubFactory):
         
         # IOPub relay (in a Process)
         q = mq(zmq.PUB, zmq.SUB, zmq.PUB, 'N/A','iopub')
-        q.bind_in(self.client_addrs['iopub'])
-        q.bind_out(self.engine_addrs['iopub'])
+        q.bind_in(self.client_info['iopub'])
+        q.bind_out(self.engine_info['iopub'])
         q.setsockopt_out(zmq.SUBSCRIBE, '')
         q.connect_mon(self.monitor_url)
         q.daemon=True
@@ -74,16 +73,16 @@ class ControllerFactory(HubFactory):
 
         # Multiplexer Queue (in a Process)
         q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'in', 'out')
-        q.bind_in(self.client_addrs['mux'])
-        q.bind_out(self.engine_addrs['mux'])
+        q.bind_in(self.client_info['mux'])
+        q.bind_out(self.engine_info['mux'])
         q.connect_mon(self.monitor_url)
         q.daemon=True
         children.append(q)
 
         # Control Queue (in a Process)
         q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'incontrol', 'outcontrol')
-        q.bind_in(self.client_addrs['control'])
-        q.bind_out(self.engine_addrs['control'])
+        q.bind_in(self.client_info['control'])
+        q.bind_out(self.engine_info['control'])
         q.connect_mon(self.monitor_url)
         q.daemon=True
         children.append(q)
@@ -91,8 +90,8 @@ class ControllerFactory(HubFactory):
         if self.scheme == 'pure':
             self.log.warn("task::using pure XREQ Task scheduler")
             q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
-            q.bind_in(self.client_addrs['task'])
-            q.bind_out(self.engine_addrs['task'])
+            q.bind_in(self.client_info['task'][1])
+            q.bind_out(self.engine_info['task'])
             q.connect_mon(self.monitor_url)
             q.daemon=True
             children.append(q)
@@ -101,8 +100,9 @@ class ControllerFactory(HubFactory):
             
         else:
             self.log.info("task::using Python %s Task scheduler"%self.scheme)
-            sargs = (self.client_addrs['task'], self.engine_addrs['task'], self.monitor_url, self.client_addrs['notification'])
-            q = Process(target=launch_scheduler, args=sargs, kwargs = dict(scheme=self.scheme,logname=self.log.name, loglevel=self.log.level))
+            sargs = (self.client_info['task'], self.engine_info['task'], self.monitor_url, self.client_info['notification'])
+            kwargs = dict(scheme=self.scheme,logname=self.log.name, loglevel=self.log.level, config=self.config)
+            q = Process(target=launch_scheduler, args=sargs, kwargs=kwargs)
             q.daemon=True
             children.append(q)
 

@@ -15,6 +15,7 @@ import time
 from getpass import getpass
 from pprint import pprint
 from datetime import datetime
+import warnings
 import json
 pjoin = os.path.join
 
@@ -249,6 +250,7 @@ class Client(object):
     _notification_socket=None
     _mux_socket=None
     _task_socket=None
+    _task_scheme=None
     block = False
     outstanding=None
     results = None
@@ -297,7 +299,6 @@ class Client(object):
         url = cfg['url']
         
         self._config = cfg
-        
         
         self._ssh = bool(sshserver or sshkey or password)
         if self._ssh and sshserver is None:
@@ -360,7 +361,7 @@ class Client(object):
     
     @property
     def ids(self):
-        """Always up to date ids property."""
+        """Always up-to-date ids property."""
         self._flush_notifications()
         return self._ids
     
@@ -370,6 +371,23 @@ class Client(object):
             eid = int(k)
             self._engines[eid] = bytes(v) # force not unicode
             self._ids.add(eid)
+        if sorted(self._engines.keys()) != range(len(self._engines)) and \
+                        self._task_scheme == 'pure' and self._task_socket:
+            self._stop_scheduling_tasks()
+    
+    def _stop_scheduling_tasks(self):
+        """Stop scheduling tasks because an engine has been unregistered
+        from a pure ZMQ scheduler.
+        """
+        
+        self._task_socket.close()
+        self._task_socket = None
+        msg = "An engine has been unregistered, and we are using pure " +\
+              "ZMQ task scheduling.  Task farming will be disabled."
+        if self.outstanding:
+            msg += " If you were running tasks when this happened, " +\
+                   "some `outstanding` msg_ids may never resolve."
+        warnings.warn(msg, RuntimeWarning)
     
     def _build_targets(self, targets):
         """Turn valid target IDs or 'all' into two lists:
@@ -389,6 +407,8 @@ class Client(object):
     def _connect(self, sshserver, ssh_kwargs):
         """setup all our socket connections to the controller. This is called from
         __init__."""
+        
+        # Maybe allow reconnecting?
         if self._connected:
             return
         self._connected=True
@@ -406,15 +426,17 @@ class Client(object):
             pprint(msg)
         msg = ss.Message(msg)
         content = msg.content
+        self._config['registration'] = dict(content)
         if content.status == 'ok':
             if content.mux:
                 self._mux_socket = self.context.socket(zmq.PAIR)
                 self._mux_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._mux_socket, content.mux)
             if content.task:
+                self._task_scheme, task_addr = content.task
                 self._task_socket = self.context.socket(zmq.PAIR)
                 self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)
-                connect_socket(self._task_socket, content.task)
+                connect_socket(self._task_socket, task_addr)
             if content.notification:
                 self._notification_socket = self.context.socket(zmq.SUB)
                 connect_socket(self._notification_socket, content.notification)
@@ -457,6 +479,8 @@ class Client(object):
         if eid in self._ids:
             self._ids.remove(eid)
             self._engines.pop(eid)
+        if self._task_socket and self._task_scheme == 'pure':
+            self._stop_scheduling_tasks()
     
     def _extract_metadata(self, header, parent, content):
         md = {'msg_id' : parent['msg_id'],
@@ -937,8 +961,15 @@ class Client(object):
         options  = dict(bound=bound, block=block)
             
         if targets is None:
-            return self._apply_balanced(f, args, kwargs, timeout=timeout, 
+            if self._task_socket:
+                return self._apply_balanced(f, args, kwargs, timeout=timeout, 
                                             after=after, follow=follow, **options)
+            else:
+                msg = "Task farming is disabled"
+                if self._task_scheme == 'pure':
+                    msg += " because the pure ZMQ scheduler cannot handle"
+                    msg += " disappearing engines."
+                raise RuntimeError(msg)
         else:
             return self._apply_direct(f, args, kwargs, targets=targets, **options)
     
@@ -1103,12 +1134,13 @@ class Client(object):
         
         completed = []
         local_results = {}
-        # temporarily disable local shortcut
-        # for msg_id in list(theids):
-        #     if msg_id in self.results:
-        #         completed.append(msg_id)
-        #         local_results[msg_id] = self.results[msg_id]
-        #         theids.remove(msg_id)
+        
+        # comment this block out to temporarily disable local shortcut:
+        for msg_id in list(theids):
+            if msg_id in self.results:
+                completed.append(msg_id)
+                local_results[msg_id] = self.results[msg_id]
+                theids.remove(msg_id)
         
         if theids: # some not locally cached
             content = dict(msg_ids=theids, status_only=status_only)

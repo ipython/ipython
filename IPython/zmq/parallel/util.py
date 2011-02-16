@@ -97,8 +97,8 @@ def disambiguate_ip_address(ip, location=None):
         external_ips = socket.gethostbyname_ex(socket.gethostname())[2]
         if location is None or location in external_ips:
             ip='127.0.0.1'
-        elif external_ips:
-            ip=external_ips[0]
+        elif location:
+            return location
     return ip
 
 def disambiguate_url(url, location=None):

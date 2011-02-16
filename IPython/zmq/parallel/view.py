@@ -342,7 +342,7 @@ class LoadBalancedView(View):
     TODO: allow subset of engines across which to balance.
     """
     def __repr__(self):
-        return "<%s %s>"%(self.__class__.__name__, self.client._addr)
+        return "<%s %s>"%(self.__class__.__name__, self.client._config['url'])
     
     @property
     def targets(self):

@@ -4,7 +4,7 @@ Parallel examples
 
 .. note::
 
-    Performance numbers from ``IPython.kernel``, not newparallel
+    Performance numbers from ``IPython.kernel``, not newparallel.
 
 In this section we describe two more involved examples of using an IPython
 cluster to perform a parallel computation. In these examples, we will be using
@@ -34,7 +34,7 @@ million digits.
 
 In both the serial and parallel calculation we will be using functions defined
 in the :file:`pidigits.py` file, which is available in the
-:file:`docs/examples/kernel` directory of the IPython source distribution.
+:file:`docs/examples/newparallel` directory of the IPython source distribution.
 These functions provide basic facilities for working with the digits of pi and
 can be loaded into IPython by putting :file:`pidigits.py` in your current
 working directory and then doing:
@@ -46,7 +46,7 @@ working directory and then doing:
 Serial calculation
 ------------------
 
-For the serial calculation, we will use SymPy (http://www.sympy.org) to
+For the serial calculation, we will use `SymPy <http://www.sympy.org>`_ to
 calculate 10,000 digits of pi and then look at the frequencies of the digits
 0-9. Out of 10,000 digits, we expect each digit to occur 1,000 times. While
 SymPy is capable of calculating many more digits of pi, our purpose here is to
@@ -110,7 +110,7 @@ calculation, we will need two top-level functions from :file:`pidigits.py`:
 
 .. literalinclude:: ../../examples/newparallel/pidigits.py
    :language: python
-   :lines: 34-49
+   :lines: 41-56
 
 We will also use the :func:`plot_two_digit_freqs` function to plot the
 results. The code to run this calculation in parallel is contained in
@@ -215,12 +215,12 @@ simulation of the underlying asset price. In this example we use this approach
 to price both European and Asian (path dependent) options for various strike
 prices and volatilities.
 
-The code for this example can be found in the :file:`docs/examples/kernel`
+The code for this example can be found in the :file:`docs/examples/newparallel`
 directory of the IPython source. The function :func:`price_options` in
 :file:`mcpricer.py` implements the basic Monte Carlo pricing algorithm using
 the NumPy package and is shown here:
 
-.. literalinclude:: ../../examples/kernel/mcpricer.py
+.. literalinclude:: ../../examples/newparallel/mcpricer.py
    :language: python
 
 To run this code in parallel, we will use IPython's :class:`LoadBalancedView` class,
@@ -233,7 +233,7 @@ be found in the file :file:`mcpricer.py`. The code in this file creates a
 volatilities and strike prices. The results are then plotted as a 2D contour
 plot using Matplotlib.
 
-.. literalinclude:: ../../examples/kernel/mcdriver.py
+.. literalinclude:: ../../examples/newparallel/mcdriver.py
    :language: python
 
 To use this code, start an IPython cluster using :command:`ipclusterz`, open

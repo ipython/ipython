@@ -190,7 +190,7 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
             'connections, respectively [default: random]',
             metavar='Scheduler.iopub_ports')
         paa('--scheme',
-            type=str, dest='ControllerFactory.scheme',
+            type=str, dest='HubFactory.scheme',
             choices = ['pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'],
             help='select the task scheduler scheme  [default: Python LRU]',
             metavar='Scheduler.scheme')
