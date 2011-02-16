@@ -457,7 +457,10 @@ class IPCompleter(Completer):
                          ]
     
     def all_completions(self, text):
-        """Wrapper around the complete method for the benefit of emacs."""
+        """
+        Wrapper around the complete method for the benefit of emacs
+        and pydb.
+        """
         return self.complete(text)[1]
 
     def _clean_glob(self,text):
