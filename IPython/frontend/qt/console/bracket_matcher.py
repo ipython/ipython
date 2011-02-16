@@ -2,7 +2,7 @@
 """
 
 # System library imports
-from PyQt4 import QtCore, QtGui
+from IPython.external.qt import QtCore, QtGui
 
 
 class BracketMatcher(QtCore.QObject):
@@ -42,8 +42,7 @@ class BracketMatcher(QtCore.QObject):
         """
         # Decide what character to search for and what direction to search in.
         document = self._text_edit.document()
-        qchar = document.characterAt(position)
-        start_char = qchar.toAscii()
+        start_char = document.characterAt(position)
         search_char = self._opening_map.get(start_char)
         if search_char:
             increment = 1
@@ -55,9 +54,9 @@ class BracketMatcher(QtCore.QObject):
                 return -1
 
         # Search for the character.
+        char = start_char
         depth = 0
         while position >= 0 and position < document.characterCount():
-            char = qchar.toAscii()
             if char == start_char:
                 depth += 1
             elif char == search_char:
@@ -65,7 +64,7 @@ class BracketMatcher(QtCore.QObject):
             if depth == 0:
                 break
             position += increment
-            qchar = document.characterAt(position)
+            char = document.characterAt(position)
         else:
             position = -1
         return position

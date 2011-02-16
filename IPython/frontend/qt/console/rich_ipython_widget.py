@@ -1,8 +1,10 @@
-# System library imports
+# Standard libary imports.
+from base64 import decodestring
 import os
 import re
-from base64 import decodestring
-from PyQt4 import QtCore, QtGui
+
+# System libary imports.
+from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.frontend.qt.svg import save_svg, svg_to_clipboard, svg_to_image
@@ -41,9 +43,7 @@ class RichIPythonWidget(IPythonWidget):
         """
         format = self._control.cursorForPosition(pos).charFormat()
         name = format.stringProperty(QtGui.QTextFormat.ImageName)
-        if name.isEmpty():
-            menu = super(RichIPythonWidget, self)._context_menu_make(pos)
-        else:
+        if name:
             menu = QtGui.QMenu()
 
             menu.addAction('Copy Image', lambda: self._copy_image(name))
@@ -51,11 +51,13 @@ class RichIPythonWidget(IPythonWidget):
             menu.addSeparator()
 
             svg = format.stringProperty(self._svg_text_format_property)
-            if not svg.isEmpty():
+            if svg:
                 menu.addSeparator()
                 menu.addAction('Copy SVG', lambda: svg_to_clipboard(svg))
                 menu.addAction('Save SVG As...', 
                                lambda: save_svg(svg, self._control))
+        else:
+            menu = super(RichIPythonWidget, self)._context_menu_make(pos)
         return menu
 
     #---------------------------------------------------------------------------
@@ -171,7 +173,7 @@ class RichIPythonWidget(IPythonWidget):
             QTextImageFormat that references it.
         """
         document = self._control.document()
-        name = QtCore.QString.number(image.cacheKey())
+        name = str(image.cacheKey())
         document.addResource(QtGui.QTextDocument.ImageResource,
                              QtCore.QUrl(name), image)
         format = QtGui.QTextImageFormat()

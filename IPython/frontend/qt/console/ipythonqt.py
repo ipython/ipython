@@ -6,8 +6,9 @@
 #-----------------------------------------------------------------------------
 
 # Systemm library imports
-from PyQt4 import QtGui
+from IPython.external.qt import QtGui
 from pygments.styles import get_all_styles
+
 # Local imports
 from IPython.external.argparse import ArgumentParser
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
@@ -82,7 +83,8 @@ class MainWindow(QtGui.QMainWindow):
                     justthis.setShortcut('N')
                     closeall = QtGui.QPushButton("&Yes, quit everything", self)
                     closeall.setShortcut('Y')
-                    box = QtGui.QMessageBox(QtGui.QMessageBox.Question, title, msg)
+                    box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+                                            title, msg)
                     box.setInformativeText(info)
                     box.addButton(cancel)
                     box.addButton(justthis, QtGui.QMessageBox.NoRole)

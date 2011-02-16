@@ -1,5 +1,5 @@
 # System library imports.
-from PyQt4 import QtGui
+from IPython.external.qt import QtGui
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexer import RegexLexer, _TokenType, Text, Error
 from pygments.lexers import PythonLexer
@@ -99,12 +99,10 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         self._lexer = lexer if lexer else PythonLexer()
         self.set_style('default')
 
-    def highlightBlock(self, qstring):
+    def highlightBlock(self, string):
         """ Highlight a block of text.
         """
-        qstring = unicode(qstring)
         prev_data = self.currentBlock().previous().userData()
-
         if prev_data is not None:
             self._lexer._saved_state_stack = prev_data.syntax_stack
         elif hasattr(self._lexer, '_saved_state_stack'):
@@ -112,7 +110,7 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
 
         # Lex the text using Pygments
         index = 0
-        for token, text in self._lexer.get_tokens(qstring):
+        for token, text in self._lexer.get_tokens(string):
             length = len(text)
             self.setFormat(index, length, self._get_format(token))
             index += length
