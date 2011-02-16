@@ -456,6 +456,10 @@ class IPCompleter(Completer):
                          self.python_func_kw_matches,
                          ]
     
+    def all_completions(self, text):
+        """Wrapper around the complete method for the benefit of emacs."""
+        return self.complete(text)[1]
+
     def _clean_glob(self,text):
         return self.glob("%s*" % text)
 
