@@ -320,4 +320,5 @@ channel is established.
 
 .. [RFC5246] <http://tools.ietf.org/html/rfc5246>
 
-
+.. [OpenSSH] <http://www.openssh.com/>
+.. [Paramiko] <http://www.lag.net/paramiko/>

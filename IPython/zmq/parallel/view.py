@@ -228,7 +228,12 @@ class DirectView(View):
     >>> dv_even = client[::2]
     >>> dv_some = client[1:3]
     
-    This object provides dictionary access
+    This object provides dictionary access to engine namespaces:
+    
+    # push a=5:
+    >>> dv['a'] = 5 
+    # pull 'foo':
+    >>> db['foo']
     
     """
     

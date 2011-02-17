@@ -863,14 +863,9 @@ class Client(object):
             return dep.msg_ids
         elif dep is None:
             return []
-        elif isinstance(dep, set):
-            return list(dep)
-        elif isinstance(dep, (list,dict)):
-            return dep
-        elif isinstance(dep, str):
-            return [dep]
         else:
-            raise TypeError("Dependency may be: set,list,dict,Dependency or AsyncResult, not %r"%type(dep))
+            # pass to Dependency constructor
+            return list(Dependency(dep))
         
     def apply(self, f, args=None, kwargs=None, bound=True, block=None, targets=None,
                         after=None, follow=None, timeout=None):
@@ -921,9 +916,11 @@ class Client(object):
             This job will only be run on an engine where this dependency
             is met.
         
-        timeout : float or None
+        timeout : float/int or None
             Only for load-balanced execution (targets=None)
-            Specify an amount of time (in seconds)
+            Specify an amount of time (in seconds) for the scheduler to
+            wait for dependencies to be met before failing with a
+            DependencyTimeout.
         
         Returns
         -------
@@ -949,9 +946,6 @@ class Client(object):
             raise TypeError("args must be tuple or list, not %s"%type(args))
         if not isinstance(kwargs, dict):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
-        
-        after = self._build_dependency(after)
-        follow = self._build_dependency(follow)
         
         options  = dict(bound=bound, block=block)
             
@@ -984,6 +978,8 @@ class Client(object):
                 warnings.warn(msg, RuntimeWarning)
             
         
+        after = self._build_dependency(after)
+        follow = self._build_dependency(follow)
         subheader = dict(after=after, follow=follow, timeout=timeout)
         bufs = ss.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)

@@ -100,7 +100,7 @@ class HubFactory(RegistrationFactory):
     """The Configurable for setting up a Hub."""
     
     # name of a scheduler scheme
-    scheme = Str('lru', config=True)
+    scheme = Str('leastload', config=True)
     
     # port-pairs for monitoredqueues:
     hb = Instance(list, config=True)

@@ -154,7 +154,10 @@ class UnmetDependency(KernelError):
 class ImpossibleDependency(UnmetDependency):
     pass
 
-class DependencyTimeout(UnmetDependency):
+class DependencyTimeout(ImpossibleDependency):
+    pass
+
+class InvalidDependency(ImpossibleDependency):
     pass
 
 class RemoteError(KernelError):

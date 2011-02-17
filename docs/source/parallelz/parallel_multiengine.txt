@@ -132,11 +132,11 @@ The main method for doing remote execution (in fact, all methods that
 communicate with the engines are built on top of it), is :meth:`Client.apply`.
 Ideally, :meth:`apply` would have the signature ``apply(f,*args,**kwargs)``,
 which would call ``f(*args,**kwargs)`` remotely.  However, since :class:`Clients`
-require some more options, they cannot reasonably provide this interface.
+require some more options, they cannot easily provide this interface.
 Instead, they provide the signature::
 
-    c.apply(f, args=None, kwargs=None, bound=True, block=None,
-                    targets=None, after=None, follow=None)
+    c.apply(f, args=None, kwargs=None, bound=True, block=None, targets=None,
+                    after=None, follow=None, timeout=None)
 
 In order to provide the nicer interface, we have :class:`View` classes, which wrap
 :meth:`Client.apply` by using attributes and extra :meth:`apply_x` methods to determine
@@ -184,7 +184,7 @@ blocks until the engines are done executing the command:
     In [5]: dview['b'] = 10
 
     In [6]: dview.apply_bound(lambda x: a+b+x, 27)
-    Out[6]: [42,42,42,42]
+    Out[6]: [42, 42, 42, 42]
 
 Python commands can be executed on specific engines by calling execute using
 the ``targets`` keyword argument, or creating a :class:`DirectView` instance
@@ -197,7 +197,7 @@ by index-access to the client:
     In [7]: rc[1::2].execute('c=a-b') # shorthand for rc.execute('c=a-b',targets=[1,3])
 
     In [8]: rc[:]['c'] # shorthand for rc.pull('c',targets='all')
-    Out[8]: [15,-5,15,-5]
+    Out[8]: [15, -5, 15, -5]
 
 .. note::
 
@@ -258,7 +258,7 @@ time through its :meth:`get` method.
 
 .. Note::
 
-    The :class:`AsyncResult` object provides the exact same interface as 
+    The :class:`AsyncResult` object provides a superset of the interface in 
     :py:class:`multiprocessing.pool.AsyncResult`.  See the 
     `official Python documentation <http://docs.python.org/library/multiprocessing#multiprocessing.pool.AsyncResult>`_
     for more.
@@ -270,15 +270,12 @@ local Python/IPython session:
 .. sourcecode:: ipython
     
     # define our function
-    In [35]: def wait(t):
-       ....:     import time
-       ....:     tic = time.time()
-       ....:     time.sleep(t)
-       ....:     return time.time()-tic
+    In [6]: def wait(t):
+       ...:     import time
+       ...:     tic = time.time()
+       ...:     time.sleep(t)
+       ...:     return time.time()-tic
     
-    # In blocking mode
-    In [6]: rc.apply('import time')
-
     # In non-blocking mode
     In [7]: pr = rc[:].apply_async(wait, 2)
 
@@ -316,8 +313,8 @@ local Python/IPython session:
 
 Often, it is desirable to wait until a set of :class:`AsyncResult` objects
 are done. For this, there is a the method :meth:`barrier`. This method takes a
-tuple of :class:`AsyncResult` objects (or `msg_ids`) and blocks until all of the associated
-results are ready:
+tuple of :class:`AsyncResult` objects (or `msg_ids`) and blocks until all of the 
+associated results are ready:
 
 .. sourcecode:: ipython
 
@@ -329,7 +326,7 @@ results are ready:
     # Wait until all of them are done
     In [74]: rc.barrier(pr_list)
 
-    # Then, their results are ready using get_result or the r attribute
+    # Then, their results are ready using get() or the `.r` attribute
     In [75]: pr_list[0].get()
     Out[75]: [2.9982571601867676, 2.9982588291168213, 2.9987530708312988, 2.9990990161895752]
     

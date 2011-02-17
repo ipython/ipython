@@ -13,14 +13,7 @@ Matplotlib package. IPython can be started in this mode by typing::
 
     ipython --pylab
 
-at the system command line. If this prints an error message, you will 
-need to install the default profiles from within IPython by doing,
-
-.. sourcecode:: ipython
-
-    In [1]: %install_profiles
-
-and then restarting IPython.
+at the system command line.
 
 150 million digits of pi
 ========================

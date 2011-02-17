@@ -127,7 +127,7 @@ class TaskScheduler(SessionFactory):
     mon_stream = Instance(zmqstream.ZMQStream) # hub-facing pub stream
     
     # internals:
-    dependencies = Dict() # dict by msg_id of [ msg_ids that depend on key ]
+    graph = Dict() # dict by msg_id of [ msg_ids that depend on key ]
     depending = Dict() # dict by msg_id of (msg_id, raw_msg, after, follow)
     pending = Dict() # dict by engine_uuid of submitted tasks
     completed = Dict() # dict by engine_uuid of completed tasks
@@ -139,6 +139,7 @@ class TaskScheduler(SessionFactory):
     all_completed = Set() # set of all completed tasks
     all_failed = Set() # set of all failed tasks
     all_done = Set() # set of all finished tasks=union(completed,failed)
+    all_ids = Set() # set of all submitted task IDs
     blacklist = Dict() # dict by msg_id of locations where a job has encountered UnmetDependency
     auditor = Instance('zmq.eventloop.ioloop.PeriodicCallback')
     
@@ -239,7 +240,7 @@ class TaskScheduler(SessionFactory):
             msg = self.session.send(self.client_stream, 'apply_reply', content, 
                                                     parent=parent, ident=idents)
             self.session.send(self.mon_stream, msg, ident=['outtask']+idents)
-            self.update_dependencies(msg_id)
+            self.update_graph(msg_id)
     
     
     #-----------------------------------------------------------------------
@@ -252,20 +253,21 @@ class TaskScheduler(SessionFactory):
         self.notifier_stream.flush()
         try:
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
-        except Exception as e:
-            self.log.error("task::Invaid msg: %s"%msg)
+            msg = self.session.unpack_message(msg, content=False, copy=False)
+        except:
+            self.log.error("task::Invaid task: %s"%raw_msg, exc_info=True)
             return
         
         # send to monitor
         self.mon_stream.send_multipart(['intask']+raw_msg, copy=False)
         
-        msg = self.session.unpack_message(msg, content=False, copy=False)
         header = msg['header']
         msg_id = header['msg_id']
+        self.all_ids.add(msg_id)
         
         # time dependencies
         after = Dependency(header.get('after', []))
-        if after.mode == 'all':
+        if after.all:
             after.difference_update(self.all_completed)
             if not after.success_only:
                 after.difference_update(self.all_failed)
@@ -276,10 +278,16 @@ class TaskScheduler(SessionFactory):
         
         # location dependencies
         follow = Dependency(header.get('follow', []))
-        # check if unreachable:
-        if after.unreachable(self.all_failed) or follow.unreachable(self.all_failed):
-            self.depending[msg_id] = [raw_msg,MET,MET,None]
-            return self.fail_unreachable(msg_id)
+        
+        for dep in after,follow:
+            # check valid:
+            if msg_id in dep or dep.difference(self.all_ids):
+                self.depending[msg_id] = [raw_msg,MET,MET,None]
+                return self.fail_unreachable(msg_id, error.InvalidDependency)
+            # check if unreachable:
+            if dep.unreachable(self.all_failed):
+                self.depending[msg_id] = [raw_msg,MET,MET,None]
+                return self.fail_unreachable(msg_id)
         
         # turn timeouts into datetime objects:
         timeout = header.get('timeout', None)
@@ -288,7 +296,7 @@ class TaskScheduler(SessionFactory):
         
         if after.check(self.all_completed, self.all_failed):
             # time deps already met, try to run
-            if not self.maybe_run(msg_id, raw_msg, follow):
+            if not self.maybe_run(msg_id, raw_msg, follow, timeout):
                 # can't run yet
                 self.save_unmet(msg_id, raw_msg, after, follow, timeout)
         else:
@@ -306,25 +314,23 @@ class TaskScheduler(SessionFactory):
                     self.fail_unreachable(msg_id, timeout=True)
                 
     @logged
-    def fail_unreachable(self, msg_id, timeout=False):
+    def fail_unreachable(self, msg_id, why=error.ImpossibleDependency):
         """a message has become unreachable"""
         if msg_id not in self.depending:
             self.log.error("msg %r already failed!"%msg_id)
             return
         raw_msg, after, follow, timeout = self.depending.pop(msg_id)
         for mid in follow.union(after):
-            if mid in self.dependencies:
-                self.dependencies[mid].remove(msg_id)
+            if mid in self.graph:
+                self.graph[mid].remove(msg_id)
         
         # FIXME: unpacking a message I've already unpacked, but didn't save:
         idents,msg = self.session.feed_identities(raw_msg, copy=False)
         msg = self.session.unpack_message(msg, copy=False, content=False)
         header = msg['header']
         
-        impossible = error.DependencyTimeout if timeout else error.ImpossibleDependency
-        
         try:
-            raise impossible()
+            raise why()
         except:
             content = ss.wrap_exception()
         
@@ -335,10 +341,10 @@ class TaskScheduler(SessionFactory):
                                                 parent=header, ident=idents)
         self.session.send(self.mon_stream, msg, ident=['outtask']+idents)
         
-        self.update_dependencies(msg_id, success=False)
+        self.update_graph(msg_id, success=False)
     
     @logged
-    def maybe_run(self, msg_id, raw_msg, follow=None):
+    def maybe_run(self, msg_id, raw_msg, follow=None, timeout=None):
         """check location dependencies, and run if they are met."""
             
         if follow:
@@ -349,8 +355,7 @@ class TaskScheduler(SessionFactory):
             
             indices = filter(can_run, range(len(self.targets)))
             if not indices:
-                # TODO evaluate unmeetable follow dependencies
-                if follow.mode == 'all':
+                if follow.all:
                     dests = set()
                     relevant = self.all_completed if follow.success_only else self.all_done
                     for m in follow.intersection(relevant):
@@ -363,7 +368,7 @@ class TaskScheduler(SessionFactory):
         else:
             indices = None
             
-        self.submit_task(msg_id, raw_msg, indices)
+        self.submit_task(msg_id, raw_msg, follow, timeout, indices)
         return True
             
     @logged
@@ -372,12 +377,12 @@ class TaskScheduler(SessionFactory):
         self.depending[msg_id] = [raw_msg,after,follow,timeout]
         # track the ids in follow or after, but not those already finished
         for dep_id in after.union(follow).difference(self.all_done):
-            if dep_id not in self.dependencies:
-                self.dependencies[dep_id] = set()
-            self.dependencies[dep_id].add(msg_id)
+            if dep_id not in self.graph:
+                self.graph[dep_id] = set()
+            self.graph[dep_id].add(msg_id)
     
     @logged
-    def submit_task(self, msg_id, raw_msg, follow=None, indices=None):
+    def submit_task(self, msg_id, raw_msg, follow, timeout, indices=None):
         """Submit a task to any of a subset of our targets."""
         if indices:
             loads = [self.loads[i] for i in indices]
@@ -391,7 +396,7 @@ class TaskScheduler(SessionFactory):
         self.engine_stream.send(target, flags=zmq.SNDMORE, copy=False)
         self.engine_stream.send_multipart(raw_msg, copy=False)
         self.add_job(idx)
-        self.pending[target][msg_id] = (raw_msg, follow)
+        self.pending[target][msg_id] = (raw_msg, follow, timeout)
         content = dict(msg_id=msg_id, engine_id=target)
         self.session.send(self.mon_stream, 'task_destination', content=content, 
                         ident=['tracktask',self.session.session])
@@ -403,10 +408,11 @@ class TaskScheduler(SessionFactory):
     def dispatch_result(self, raw_msg):
         try:
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
-        except Exception as e:
-            self.log.error("task::Invaid result: %s"%msg)
+            msg = self.session.unpack_message(msg, content=False, copy=False)
+        except:
+            self.log.error("task::Invaid result: %s"%raw_msg, exc_info=True)
             return
-        msg = self.session.unpack_message(msg, content=False, copy=False)
+        
         header = msg['header']
         if header.get('dependencies_met', True):
             success = (header['status'] == 'ok')
@@ -438,7 +444,7 @@ class TaskScheduler(SessionFactory):
         self.all_done.add(msg_id)
         self.destinations[msg_id] = engine
         
-        self.update_dependencies(msg_id, success)
+        self.update_graph(msg_id, success)
         
     @logged
     def handle_unmet_dependency(self, idents, parent):
@@ -448,30 +454,30 @@ class TaskScheduler(SessionFactory):
             self.blacklist[msg_id] = set()
         self.blacklist[msg_id].add(engine)
         raw_msg,follow,timeout = self.pending[engine].pop(msg_id)
-        if not self.maybe_run(msg_id, raw_msg, follow):
+        if not self.maybe_run(msg_id, raw_msg, follow, timeout):
             # resubmit failed, put it back in our dependency tree
             self.save_unmet(msg_id, raw_msg, MET, follow, timeout)
         pass
     
     @logged
-    def update_dependencies(self, dep_id, success=True):
+    def update_graph(self, dep_id, success=True):
         """dep_id just finished. Update our dependency
         table and submit any jobs that just became runable."""
         # print ("\n\n***********")
         # pprint (dep_id)
-        # pprint (self.dependencies)
+        # pprint (self.graph)
         # pprint (self.depending)
         # pprint (self.all_completed)
         # pprint (self.all_failed)
         # print ("\n\n***********\n\n")
-        if dep_id not in self.dependencies:
+        if dep_id not in self.graph:
             return
-        jobs = self.dependencies.pop(dep_id)
+        jobs = self.graph.pop(dep_id)
         
         for msg_id in jobs:
             raw_msg, after, follow, timeout = self.depending[msg_id]
             # if dep_id in after:
-            #     if after.mode == 'all' and (success or not after.success_only):
+            #     if after.all and (success or not after.success_only):
             #         after.remove(dep_id)
             
             if after.unreachable(self.all_failed) or follow.unreachable(self.all_failed):
@@ -479,12 +485,12 @@ class TaskScheduler(SessionFactory):
             
             elif after.check(self.all_completed, self.all_failed): # time deps met, maybe run
                 self.depending[msg_id][1] = MET
-                if self.maybe_run(msg_id, raw_msg, follow):
+                if self.maybe_run(msg_id, raw_msg, follow, timeout):
                     
                     self.depending.pop(msg_id)
                     for mid in follow.union(after):
-                        if mid in self.dependencies:
-                            self.dependencies[mid].remove(msg_id)
+                        if mid in self.graph:
+                            self.graph[mid].remove(msg_id)
     
     #----------------------------------------------------------------------
     # methods to be overridden by subclasses
@@ -506,7 +512,8 @@ class TaskScheduler(SessionFactory):
     
 
 
-def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname='ZMQ', log_addr=None, loglevel=logging.DEBUG, scheme='weighted'):
+def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname='ZMQ', 
+                            log_addr=None, loglevel=logging.DEBUG, scheme='lru'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
     

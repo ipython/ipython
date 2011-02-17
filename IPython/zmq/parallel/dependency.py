@@ -2,13 +2,7 @@
 
 from IPython.external.decorator import decorator
 from error import UnmetDependency
-
-
-# flags
-ALL = 1 << 0
-ANY = 1 << 1
-HERE = 1 << 2
-ANYWHERE = 1 << 3
+from asyncresult import AsyncResult
 
 
 class depend(object):
@@ -59,53 +53,58 @@ class Dependency(set):
     
     Subclassed from set()."""
     
-    mode='all'
+    all=True
     success_only=True
     
-    def __init__(self, dependencies=[], mode='all', success_only=True):
+    def __init__(self, dependencies=[], all=True, success_only=True):
         if isinstance(dependencies, dict):
             # load from dict
-            mode = dependencies.get('mode', mode)
+            all = dependencies.get('all', True)
             success_only = dependencies.get('success_only', success_only)
             dependencies = dependencies.get('dependencies', [])
-        set.__init__(self, dependencies)
-        self.mode = mode.lower()
+        ids = []
+        if isinstance(dependencies, AsyncResult):
+            ids.extend(AsyncResult.msg_ids)
+        else:
+            for d in dependencies:
+                if isinstance(d, basestring):
+                    ids.append(d)
+                elif isinstance(d, AsyncResult):
+                    ids.extend(d.msg_ids)
+                else:
+                    raise TypeError("invalid dependency type: %r"%type(d))
+        set.__init__(self, ids)
+        self.all = all
         self.success_only=success_only
-        if self.mode not in ('any', 'all'):
-            raise NotImplementedError("Only any|all supported, not %r"%mode)
     
     def check(self, completed, failed=None):
         if failed is not None and not self.success_only:
             completed = completed.union(failed)
         if len(self) == 0:
             return True
-        if self.mode == 'all':
+        if self.all:
             return self.issubset(completed)
-        elif self.mode == 'any':
-            return not self.isdisjoint(completed)
         else:
-            raise NotImplementedError("Only any|all supported, not %r"%mode)
+            return not self.isdisjoint(completed)
     
     def unreachable(self, failed):
         if len(self) == 0 or len(failed) == 0 or not self.success_only:
             return False
-        print self, self.success_only, self.mode, failed
-        if self.mode == 'all':
+        # print self, self.success_only, self.all, failed
+        if self.all:
             return not self.isdisjoint(failed)
-        elif self.mode == 'any':
-            return self.issubset(failed)
         else:
-            raise NotImplementedError("Only any|all supported, not %r"%mode)
+            return self.issubset(failed)
         
     
     def as_dict(self):
         """Represent this dependency as a dict. For json compatibility."""
         return dict(
             dependencies=list(self),
-            mode=self.mode,
+            all=self.all,
             success_only=self.success_only,
         )
     
 
-__all__ = ['depend', 'require', 'Dependency']
+__all__ = ['depend', 'require', 'dependent', 'Dependency']
 

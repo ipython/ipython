@@ -57,7 +57,7 @@ def submit_jobs(client, G, jobs):
     """Submit jobs via client where G describes the time dependencies."""
     results = {}
     for node in nx.topological_sort(G):
-        deps = [ results[n].msg_ids[0] for n in G.predecessors(node) ]
+        deps = [ results[n] for n in G.predecessors(node) ]
         results[node] = client.apply(jobs[node], after=deps)
     return results
 
@@ -77,30 +77,34 @@ def main(nodes, edges):
     point at least slightly to the right if the graph is valid.
     """
     from matplotlib.dates import date2num
+    from matplotlib.cm import gist_rainbow
     print "building DAG"
     G = random_dag(nodes, edges)
     jobs = {}
     pos = {}
+    colors = {}
     for node in G:
         jobs[node] = randomwait
     
     client = cmod.Client()
-    print "submitting tasks"
+    print "submitting %i tasks with %i dependencies"%(nodes,edges)
     results = submit_jobs(client, G, jobs)
     print "waiting for results"
     client.barrier()
     print "done"
     for node in G:
-        # times[node] = results[node].get()
-        t = date2num(results[node].metadata.started)
-        pos[node] = (t, G.in_degree(node)+random())
-    
+        md = results[node].metadata
+        start = date2num(md.started)
+        runtime = date2num(md.completed) - start
+        pos[node] = (start, runtime)
+        colors[node] = md.engine_id
     validate_tree(G, results)
-    nx.draw(G, pos)
+    nx.draw(G, pos, node_list = colors.keys(), node_color=colors.values(), cmap=gist_rainbow)
     return G,results
 
 if __name__ == '__main__':
     import pylab
-    main(32,128)
+    # main(5,10)
+    main(32,96)
     pylab.show()
     

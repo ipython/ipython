@@ -20,7 +20,9 @@ import logging
 import os
 import signal
 import logging
+import errno
 
+import zmq
 from zmq.eventloop import ioloop
 
 from IPython.external.argparse import ArgumentParser, SUPPRESS
@@ -385,7 +387,8 @@ class IPClusterApp(ApplicationWithClusterDir):
             # observing of engine stopping is inconsistent. Some launchers
             # might trigger on a single engine stopping, other wait until
             # all stop.  TODO: think more about how to handle this.
-
+        else:
+            self.controller_launcher = None
         
         el_class = import_item(config.Global.engine_launcher)
         self.engine_launcher = el_class(
@@ -427,7 +430,7 @@ class IPClusterApp(ApplicationWithClusterDir):
 
     def stop_controller(self, r=None):
         # self.log.info("In stop_controller")
-        if self.controller_launcher.running:
+        if self.controller_launcher and self.controller_launcher.running:
             return self.controller_launcher.stop()
 
     def stop_engines(self, r=None):
@@ -516,8 +519,13 @@ class IPClusterApp(ApplicationWithClusterDir):
         self.write_pid_file()
         try:
             self.loop.start()
-        except:
-            self.log.info("stopping...")
+        except KeyboardInterrupt:
+            pass
+        except zmq.ZMQError as e:
+            if e.errno == errno.EINTR:
+                pass
+            else:
+                raise
         self.remove_pid_file()
 
     def start_app_engines(self):
@@ -539,8 +547,13 @@ class IPClusterApp(ApplicationWithClusterDir):
         # self.write_pid_file()
         try:
             self.loop.start()
-        except:
-            self.log.fatal("stopping...")
+        except KeyboardInterrupt:
+            pass
+        except zmq.ZMQError as e:
+            if e.errno == errno.EINTR:
+                pass
+            else:
+                raise
         # self.remove_pid_file()
     
     def start_app_stop(self):
