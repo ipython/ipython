@@ -20,7 +20,6 @@ import sqlite3
 import IPython.utils.io
 
 from IPython.testing import decorators as testdec
-from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.io import ask_yes_no
 from IPython.utils.warn import warn
 
@@ -49,6 +48,11 @@ class HistoryManager(object):
     db = None
     # The number of the current session in the history database
     session_number = None
+    # Number of lines to cache before writing to the database (to save power)
+    #  - if 0, lines will be written instantly.
+    db_cache_size = 0
+    # The line cache
+    db_cache = None
     
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
@@ -126,6 +130,7 @@ class HistoryManager(object):
         self.db.execute("""UPDATE singletons SET value=? WHERE
                         name='session_number'""", (self.session_number+1,))
         self.db.commit()
+        self.db_cache = []
                         
     def get_db_history(self, session, start=1, stop=None, raw=True):
         """Retrieve input history from the database by session.
@@ -249,8 +254,14 @@ class HistoryManager(object):
         
         self.input_hist_parsed.append(source.rstrip())
         self.input_hist_raw.append(source_raw.rstrip())
-        with self.db:
-            self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
+        if self.db_cache_size:
+            self.db_cache.append((self.session_number,
+                                self.shell.execution_count, source, source_raw))
+            if len(self.db_cache) > self.db_cache_size:
+                self.writeout_cache()
+        else:  # Instant write
+            with self.db:
+                self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
                             (self.session_number, self.shell.execution_count,
                              source, source_raw))
 
@@ -267,6 +278,12 @@ class HistoryManager(object):
                    '_iii': self._iii,
                    new_i : self._i00 }
         self.shell.user_ns.update(to_main)
+        
+    def writeout_cache(self):
+        with self.db:
+            self.db.executemany("INSERT INTO history VALUES (?, ?, ?, ?)",
+                                self.db_cache)
+        self.db_cache = []
 
     def sync_inputs(self):
         """Ensure raw and translated histories have same length."""
