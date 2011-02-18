@@ -2100,7 +2100,7 @@ class InteractiveShell(Configurable, Magic):
         ipy_cell = ''.join(blocks)
 
         # Store raw and processed history
-        self.history_manager.store_inputs(ipy_cell, cell)
+        self.history_manager.store_inputs(self.execution_count, ipy_cell, cell)
 
         self.logger.log(ipy_cell, cell)
 
@@ -2390,8 +2390,8 @@ class InteractiveShell(Configurable, Magic):
         full_source = '\n'.join(self.buffer)
         more = self.run_source(full_source, self.filename)
         if not more:
-            self.history_manager.store_inputs('\n'.join(self.buffer_raw),
-                                              full_source)
+            self.history_manager.store_inputs(self.execution_count,
+                                        '\n'.join(self.buffer_raw), full_source)
             self.reset_buffer()
             self.execution_count += 1
         return more

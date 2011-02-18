@@ -13,6 +13,7 @@
 from __future__ import print_function
 
 # Stdlib imports
+import fnmatch
 import os
 import sqlite3
 
@@ -232,12 +233,15 @@ class HistoryManager(object):
                 hist[i] = input_hist[i]
         return hist
 
-    def store_inputs(self, source, source_raw=None):
+    def store_inputs(self, line_num, source, source_raw=None):
         """Store source and raw input in history and create input cache
         variables _i*.
         
         Parameters
         ----------
+        line_num : int
+          The prompt number of this input.
+        
         source : str
           Python input.
 
@@ -254,16 +258,15 @@ class HistoryManager(object):
         
         self.input_hist_parsed.append(source.rstrip())
         self.input_hist_raw.append(source_raw.rstrip())
-        if self.db_cache_size:
-            self.db_cache.append((self.session_number,
-                                self.shell.execution_count, source, source_raw))
+        
+        db_row = (self.session_number, line_num, source, source_raw)
+        if self.db_cache_size:        # Cache before writing
+            self.db_cache.append(db_row)
             if len(self.db_cache) > self.db_cache_size:
                 self.writeout_cache()
-        else:  # Instant write
+        else:                         # Instant write
             with self.db:
-                self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
-                            (self.session_number, self.shell.execution_count,
-                             source, source_raw))
+              self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)", db_row)
 
         # update the auto _i variables
         self._iii = self._ii
@@ -272,7 +275,7 @@ class HistoryManager(object):
         self._i00 = source_raw
 
         # hackish access to user namespace to create _i1,_i2... dynamically
-        new_i = '_i%s' % self.shell.execution_count
+        new_i = '_i%s' % line_num
         to_main = {'_i': self._i,
                    '_ii': self._ii,
                    '_iii': self._iii,
