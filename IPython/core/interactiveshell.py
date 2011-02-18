@@ -56,11 +56,11 @@ from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io
-from IPython.utils import pickleshare
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
+from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
@@ -250,6 +250,11 @@ class InteractiveShell(Configurable, Magic):
         # is what we want to do.
         self.save_sys_module_state()
         self.init_sys_modules()
+        
+        # While we're trying to have each part of the code directly access what
+        # it needs without keeping redundant references to objects, we have too
+        # much legacy code that expects ip.db to exist.
+        self.db = PickleShareDB(os.path.join(self.ipython_dir, 'db'))
 
         self.init_history()
         self.init_encoding()
@@ -299,14 +304,6 @@ class InteractiveShell(Configurable, Magic):
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
-
-    # While we're trying to have each part of the code directly access what it
-    # needs without keeping redundant references to objects, we have too much
-    # legacy code that expects ip.db to exist, so let's make it a property that
-    # retrieves the underlying object from our new history manager.
-    @property
-    def db(self):
-        return self.history_manager.shadow_db
 
     @classmethod
     def instance(cls, *args, **kwargs):
@@ -1248,15 +1245,7 @@ class InteractiveShell(Configurable, Magic):
 
     def init_history(self):
         """Sets up the command history, and starts regular autosaves."""
-        self.history_manager = HistoryManager(shell=self, load_history=True)
-
-    def save_history(self):
-        """Save input history to a file (via readline library)."""
-        self.history_manager.save_history()
-
-    def reload_history(self):
-        """Reload the input history from disk file."""
-        self.history_manager.reload_history()
+        self.history_manager = HistoryManager(shell=self)
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
@@ -1277,8 +1266,8 @@ class InteractiveShell(Configurable, Magic):
                 self.reload_history()
         return wrapper
     
-    def get_history(self, index=None, raw=False, output=True,this_session=True):
-        return self.history_manager.get_history(index, raw, output,this_session)
+    def get_history(self, start=1, stop=None, raw=False, output=True):
+        return self.history_manager.get_history(start, stop, raw, output)
     
 
     #-------------------------------------------------------------------------
@@ -1561,7 +1550,11 @@ class InteractiveShell(Configurable, Magic):
             # otherwise we end up with a monster history after a while:
             readline.set_history_length(self.history_length)
             
-            self.history_manager.populate_readline_history()
+            # Load the last 1000 lines from history
+            for cell in self.history_manager.tail_db_history(1000):
+                if cell.strip(): # Ignore blank lines
+                    for line in cell.splitlines():
+                        readline.add_history(line)
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
@@ -2535,8 +2528,6 @@ class InteractiveShell(Configurable, Magic):
                 os.unlink(tfile)
             except OSError:
                 pass
-
-        self.save_history()
 
         # Clear all user namespaces to release all references cleanly.
         self.reset()

@@ -13,13 +13,8 @@
 from __future__ import print_function
 
 # Stdlib imports
-import atexit
-import fnmatch
-import json
 import os
-import sys
-import threading
-import time
+import sqlite3
 
 # Our own packages
 import IPython.utils.io
@@ -50,14 +45,10 @@ class HistoryManager(object):
     output_hist = None
     # String with path to the history file
     hist_file = None
-    # PickleShareDB instance holding the raw data for the shadow history
-    shadow_db = None
-    # ShadowHist instance with the actual shadow history
-    shadow_hist = None
-    
-    # Offset so the first line of the current session is #1. Can be
-    # updated after loading history from file.
-    session_offset = -1
+    # The SQLite database
+    db = None
+    # The number of the current session in the history database
+    session_number = None
     
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
@@ -83,12 +74,13 @@ class HistoryManager(object):
         # We need a pointer back to the shell for various tasks.
         self.shell = shell
         
-        # List of input with multi-line handling.
-        self.input_hist_parsed = []
+        # List of input with multi-line handling. One blank entry so indexing
+        # starts from 1.
+        self.input_hist_parsed = [""]
         # This one will hold the 'raw' input history, without any
         # pre-processing.  This will allow users to retrieve the input just as
         # it was exactly typed in by the user, with %hist -r.
-        self.input_hist_raw = []
+        self.input_hist_raw = [""]
 
         # list of visited directories
         try:
@@ -104,99 +96,100 @@ class HistoryManager(object):
             histfname = 'history-%s' % shell.profile
         else:
             histfname = 'history'
-        self.hist_file = os.path.join(shell.ipython_dir, histfname + '.json')
-
-        # Objects related to shadow history management
-        self._init_shadow_hist()
+        self.hist_file = os.path.join(shell.ipython_dir, histfname + '.sqlite')
     
         self._i00, self._i, self._ii, self._iii = '','','',''
 
         self._exit_commands = set(['Quit', 'quit', 'Exit', 'exit', '%Quit',
                                    '%quit', '%Exit', '%exit'])
 
-        # Object is fully initialized, we can now call methods on it.
+        self.init_db()
         
-        if load_history:
-            self.reload_history()
-            self.session_offset = len(self.input_hist_raw) -1
+    def init_db(self):
+        self.db = sqlite3.connect(self.hist_file)
+        self.db.execute("""CREATE TABLE IF NOT EXISTS history (session integer,
+                        line integer, source text, source_raw text,
+                        PRIMARY KEY (session, line))""")
+        cur = self.db.execute("""SELECT name FROM sqlite_master WHERE
+                                type='table' AND name='singletons'""")
+        if not cur.fetchone():
+            self.db.execute("""CREATE TABLE singletons
+                            (name text PRIMARY KEY, value)""")
+            self.db.execute("""INSERT INTO singletons VALUES
+                            ('session_number', 1)""")
+            self.db.commit()
+        cur = self.db.execute("""SELECT value FROM singletons WHERE
+                              name='session_number'""")
+        self.session_number = cur.fetchone()[0]
         
-        # Create and start the autosaver.
-        self.autosave_flag = threading.Event()
-        self.autosave_timer = HistorySaveThread(self.autosave_flag, 60)
-        self.autosave_timer.start()
-        # Register the autosave handler to be triggered as a post execute
-        # callback.
-        self.shell.register_post_execute(self.autosave_if_due)
+        #Increment by one for next session.
+        self.db.execute("""UPDATE singletons SET value=? WHERE
+                        name='session_number'""", (self.session_number+1,))
+        self.db.commit()
+                        
+    def get_db_history(self, session, start=1, stop=None, raw=True):
+        """Retrieve input history from the database by session.
         
-
-    def _init_shadow_hist(self):
-        try:
-            self.shadow_db = PickleShareDB(os.path.join(
-                                           self.shell.ipython_dir, 'db'))
-        except UnicodeDecodeError:
-            print("Your ipython_dir can't be decoded to unicode!")
-            print("Please set HOME environment variable to something that")
-            print(r"only has ASCII characters, e.g. c:\home")
-            print("Now it is", self.ipython_dir)
-            sys.exit()
-        self.shadow_hist = ShadowHist(self.shadow_db, self.shell)
+        Parameters
+        ----------
+        session : int
+            Session number to retrieve. If negative, counts back from current
+            session (so -1 is previous session).
+        start : int
+            First line to retrieve.
+        stop : int
+            Last line to retrieve. If None, retrieve to the end of the session.
+        raw : bool
+            If True, return raw input
+            
+        Returns
+        -------
+        An iterator over the desired lines.
+        """
+        toget = 'source_raw' if raw else 'source'
+        if session < 0:
+            session += self.session_number
         
-    def populate_readline_history(self):
-        """Populate the readline history from the raw history.
-
-        We only store one copy of the raw history, which is persisted to a json
-        file on disk.  The readline history is repopulated from the contents of
-        this file."""
-
-        try:
-            self.shell.readline.clear_history()
-        except AttributeError:
-            pass
+        if stop:
+            cur = self.db.execute("SELECT " + toget + """ FROM history WHERE
+                            session==? AND line BETWEEN ? and ?""",
+                            (session, start, stop))
         else:
-            for h in self.input_hist_raw:
-                if not h.isspace():
-                    for line in h.splitlines():
-                        self.shell.readline.add_history(line)
-
-    def save_history(self):
-        """Save input history to a file (via readline library)."""
-        hist = dict(raw=self.input_hist_raw, #[-self.shell.history_length:],
-                    parsed=self.input_hist_parsed) #[-self.shell.history_length:])
-        with open(self.hist_file,'wt') as hfile:
-            json.dump(hist, hfile,
-                      sort_keys=True, indent=4)
-                      
-    def autosave_if_due(self):
-        """Check if the autosave event is set; if so, save history. We do it 
-        this way so that the save takes place in the main thread."""
-        if self.autosave_flag.is_set():
-            self.save_history()
-            self.autosave_flag.clear()
+            cur = self.db.execute("SELECT " + toget + """ FROM history WHERE
+                            session==? AND line>=?""", (session, start))
+        return (x[0] for x in cur)
+                            
+    def tail_db_history(self, n=10, raw=True):
+        """Get the last n lines from the history database."""
+        toget = 'source_raw' if raw else 'source'
+        cur = self.db.execute("SELECT " + toget + """ FROM history ORDER BY
+                            session DESC, line DESC LIMIT ?""", (n,))
+        return (x[0] for x in reversed(cur.fetchall()))
         
-    def reload_history(self):
-        """Reload the input history from disk file."""
-
-        with open(self.hist_file,'rt') as hfile:
-            try:
-                hist = json.load(hfile)
-            except ValueError:    # Ignore it if JSON is corrupt.
-                return
-            self.input_hist_parsed = hist['parsed']
-            self.input_hist_raw = hist['raw']
-            if self.shell.has_readline:
-                self.populate_readline_history()
+    def globsearch_db(self, pattern="*"):
+        """Search the database using unix glob-style matching (wildcards * and
+        ?, escape using \).
         
-    def get_history(self, index=None, raw=False, output=True,this_session=True):
+        Returns
+        -------
+        An iterator over tuples: (session, line_number, command)
+        """
+        return self.db.execute("""SELECT session, line, source_raw FROM history
+                                WHERE source_raw GLOB ?""", (pattern,))
+        
+    def get_history(self, start=1, stop=None, raw=False, output=True):
         """Get the history list.
 
         Get the input and output history.
 
         Parameters
         ----------
-        index : n or (n1, n2) or None
-            If n, then the last n entries. If a tuple, then all in
-            range(n1, n2). If None, then all entries. Raises IndexError if
-            the format of index is incorrect.
+        start : int
+            From (prompt number in the current session). Negative numbers count
+            back from the end.
+        stop : int
+            To (prompt number in the current session, exclusive). Negative
+            numbers count back from the end, and None goes to the end.
         raw : bool
             If True, return the raw input.
         output : bool
@@ -217,29 +210,21 @@ class HistoryManager(object):
             input_hist = self.input_hist_parsed
         if output:
             output_hist = self.output_hist
-        
-        if this_session:
-            offset = self.session_offset
-        else:
-            offset = -1
             
         n = len(input_hist)
-        if index is None:
-            start=offset+1; stop=n
-        elif isinstance(index, int):
-            start=n-index; stop=n
-        elif len(index) == 2:
-            start = index[0] + offset
-            stop = index[1] + offset
-        else:
-            raise IndexError('Not a valid index for the input history: %r'
-                             % index)
+        if start < 0:
+            start += n
+        if not stop:
+            stop = n
+        elif stop < 0:
+            stop += n
+        
         hist = {}
         for i in range(start, stop):
             if output:
-                hist[i-offset] = (input_hist[i], output_hist.get(i-offset))
+                hist[i] = (input_hist[i], output_hist.get(i))
             else:
-                hist[i-offset] = input_hist[i]
+                hist[i] = input_hist[i]
         return hist
 
     def store_inputs(self, source, source_raw=None):
@@ -264,7 +249,10 @@ class HistoryManager(object):
         
         self.input_hist_parsed.append(source.rstrip())
         self.input_hist_raw.append(source_raw.rstrip())
-        self.shadow_hist.add(source)
+        with self.db:
+            self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
+                            (self.session_number, self.shell.execution_count,
+                             source, source_raw))
 
         # update the auto _i variables
         self._iii = self._ii
@@ -282,8 +270,12 @@ class HistoryManager(object):
 
     def sync_inputs(self):
         """Ensure raw and translated histories have same length."""
-        if len(self.input_hist_parsed) != len (self.input_hist_raw):
-            self.input_hist_raw[:] = self.input_hist_parsed
+        lr = len(self.input_hist_raw)
+        lp = len(self.input_hist_parsed)
+        if lp < lr:
+            self.input_hist_raw[:lr-lp] = []
+        elif lr < lp:
+            self.input_hist_parsed[:lp-lr] = []
 
     def reset(self):
         """Clear all histories managed by this object."""
@@ -292,41 +284,6 @@ class HistoryManager(object):
         self.output_hist.clear()
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
-        # Reset session offset to -1, so next command counts as #1
-        self.session_offset = -1
-
-class HistorySaveThread(threading.Thread):
-    """This thread makes IPython save history periodically.
-
-    Without this class, IPython would only save the history on a clean exit.
-    This saves the history periodically (the current default is once per
-    minute), so that it is not lost in the event of a crash.
-    
-    The implementation sets an event to indicate that history should be saved.
-    The actual save is carried out after executing a user command, to avoid
-    thread issues.
-    """
-    daemon = True
-    
-    def __init__(self, autosave_flag, time_interval=60):
-        threading.Thread.__init__(self)
-        self.time_interval = time_interval
-        self.autosave_flag = autosave_flag
-        self.exit_now = threading.Event()
-        # Ensure the thread is stopped tidily when exiting normally
-        atexit.register(self.stop)
-
-    def run(self):
-        while True:
-            self.exit_now.wait(self.time_interval)
-            if self.exit_now.is_set():
-                break
-            self.autosave_flag.set()
-            
-    def stop(self):
-        """Safely and quickly stop the autosave timer thread."""
-        self.exit_now.set()
-        self.join()
 
 @testdec.skip_doctest
 def magic_history(self, parameter_s = ''):
@@ -364,9 +321,8 @@ def magic_history(self, parameter_s = ''):
       'get_ipython().magic("%cd /")' instead of '%cd /'.
       
       -g: treat the arg as a pattern to grep for in (full) history.
-      This includes the "shadow history" (almost all commands ever written).
-      Use '%hist -g' to show full shadow history (may be very long).
-      In shadow history, every index nuwber starts with 0.
+      This includes the saved history (almost all commands ever written).
+      Use '%hist -g' to show full saved history (may be very long).
 
       -f FILENAME: instead of printing the output to the screen, redirect it to
        the given file.  The file is always overwritten, though IPython asks for
@@ -415,39 +371,37 @@ def magic_history(self, parameter_s = ''):
     default_length = 40
     pattern = None
     if 'g' in opts:
-        index = None
+        start = 1; stop = None
         parts = parameter_s.split(None, 1)
         if len(parts) == 1:
             parts += '*'
         head, pattern = parts
         pattern = "*" + pattern + "*"
     elif len(args) == 0:
-        index = None
+        start = 1; stop = None
     elif len(args) == 1:
-        index = int(args[0])
+        start = -int(args[0]); stop=None
     elif len(args) == 2:
-        index = map(int, args)
+        start = int(args[0]); stop = int(args[1])
     else:
         warn('%hist takes 0, 1 or 2 arguments separated by spaces.')
         print(self.magic_hist.__doc__, file=IPython.utils.io.Term.cout)
         return
         
-    hist = history_manager.get_history(index, raw, print_outputs)
+    hist = history_manager.get_history(start, stop, raw, print_outputs)
     
     width = len(str(max(hist.iterkeys())))
     line_sep = ['','\n']
     
     found = False
     if pattern is not None:
-        sh = history_manager.shadow_hist.all()
-        for idx, s in sh:
-            if fnmatch.fnmatch(s, pattern):
-                print("0%d: %s" %(idx, s.expandtabs(4)), file=outfile)
-                found = True
+        for session, line, s in history_manager.globsearch_db(pattern):
+            print("%d#%d: %s" %(session, line, s.expandtabs(4)), file=outfile)
+            found = True
     
     if found:
         print("===", file=outfile)
-        print("shadow history ends, fetch by %rep <number> (must start with 0)",
+        print("shadow history ends, fetch by %rep session#line",
               file=outfile)
         print("=== start of normal history ===", file=outfile)
         
@@ -545,50 +499,6 @@ def rep_f(self, arg):
         self.run_cell(lines)
     except ValueError:
         print("Not found in recent history:", args)
-        
-
-_sentinel = object()
-
-class ShadowHist(object):
-    def __init__(self, db, shell):
-        # cmd => idx mapping
-        self.curidx = 0
-        self.db = db
-        self.disabled = False
-        self.shell = shell
-    
-    def inc_idx(self):
-        idx = self.db.get('shadowhist_idx', 1)
-        self.db['shadowhist_idx'] = idx + 1
-        return idx
-        
-    def add(self, ent):
-        if self.disabled:
-            return
-        try:
-            old = self.db.hget('shadowhist', ent, _sentinel)
-            if old is not _sentinel:
-                return
-            newidx = self.inc_idx()
-            #print("new", newidx) # dbg
-            self.db.hset('shadowhist',ent, newidx)
-        except:
-            self.shell.showtraceback()
-            print("WARNING: disabling shadow history")
-            self.disabled = True
-    
-    def all(self):
-        d = self.db.hdict('shadowhist')
-        items = [(i,s) for (s,i) in d.iteritems()]
-        items.sort()
-        return items
-
-    def get(self, idx):
-        all = self.all()
-        
-        for k, v in all:
-            if k == idx:
-                return v
 
 
 def init_ipython(ip):
