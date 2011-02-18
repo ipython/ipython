@@ -66,10 +66,15 @@ class View(object):
     
     Don't use this class, use subclasses.
     """
-    _targets = None
     block=None
     bound=None
     history=None
+    outstanding = set()
+    results = {}
+    
+    _targets = None
+    _apply_name = 'apply'
+    _default_names = ['targets', 'block']
     
     def __init__(self, client, targets=None):
         self.client = client
@@ -80,6 +85,9 @@ class View(object):
         self.history = []
         self.outstanding = set()
         self.results = {}
+        for name in self._default_names:
+            setattr(self, name, getattr(self, name, None))
+        
 
     def __repr__(self):
         strtargets = str(self._targets)
@@ -95,11 +103,23 @@ class View(object):
     def targets(self, value):
         self._targets = value
         # raise AttributeError("Cannot set my targets argument after construction!")
-
+    
+    def _defaults(self, *excludes):
+        """return dict of our default attributes, excluding names given."""
+        d = {}
+        for name in self._default_names:
+            if name not in excludes:
+                d[name] = getattr(self, name)
+        return d
+    
     @sync_results
     def spin(self):
         """spin the client, and sync"""
         self.client.spin()
+    
+    @property
+    def _apply(self):
+        return getattr(self.client, self._apply_name)
 
     @sync_results
     @save_ids
@@ -113,7 +133,7 @@ class View(object):
         else:
             returns actual result of f(*args, **kwargs)
         """
-        return self.client.apply(f, args, kwargs, block=self.block, targets=self.targets, bound=self.bound)
+        return self._apply(f, args, kwargs, **self._defaults())
 
     @save_ids
     def apply_async(self, f, *args, **kwargs):
@@ -123,7 +143,8 @@ class View(object):
         
         returns msg_id
         """
-        return self.client.apply(f,args,kwargs, block=False, targets=self.targets, bound=False)
+        d = self._defaults('block', 'bound')
+        return self._apply(f,args,kwargs, block=False, bound=False, **d)
 
     @spin_after
     @save_ids
@@ -135,7 +156,8 @@ class View(object):
         
         returns: actual result of f(*args, **kwargs)
         """
-        return self.client.apply(f,args,kwargs, block=True, targets=self.targets, bound=False)
+        d = self._defaults('block', 'bound')
+        return self._apply(f,args,kwargs, block=True, bound=False, **d)
 
     @sync_results
     @save_ids
@@ -150,7 +172,8 @@ class View(object):
         This method has access to the targets' globals
         
         """
-        return self.client.apply(f, args, kwargs, block=self.block, targets=self.targets, bound=True)
+        d = self._defaults('bound')
+        return self._apply(f, args, kwargs, bound=True, **d)
 
     @sync_results
     @save_ids
@@ -163,7 +186,8 @@ class View(object):
         This method has access to the targets' globals
         
         """
-        return self.client.apply(f, args, kwargs, block=False, targets=self.targets, bound=True)
+        d = self._defaults('block', 'bound')
+        return self._apply(f, args, kwargs, block=False, bound=True, **d)
 
     @spin_after
     @save_ids
@@ -175,7 +199,8 @@ class View(object):
         This method has access to the targets' globals
         
         """
-        return self.client.apply(f, args, kwargs, block=True, targets=self.targets, bound=True)
+        d = self._defaults('block', 'bound')
+        return self._apply(f, args, kwargs, block=True, bound=True, **d)
     
     @spin_after
     @save_ids
@@ -337,24 +362,22 @@ class LoadBalancedView(View):
     
     Typically created via:
     
-    >>> lbv = client[None]
-    <LoadBalancedView tcp://127.0.0.1:12345>
+    >>> v = client[None]
+    <LoadBalancedView None>
     
     but can also be created with:
     
-    >>> lbc = LoadBalancedView(client)
+    >>> v = client.view([1,3],balanced=True)
     
-    TODO: allow subset of engines across which to balance.
+    which would restrict loadbalancing to between engines 1 and 3.
+    
     """
-    def __repr__(self):
-        return "<%s %s>"%(self.__class__.__name__, self.client._config['url'])
     
-    @property
-    def targets(self):
-        return None
-
-    @targets.setter
-    def targets(self, value):
-        raise AttributeError("Cannot set targets for LoadbalancedView!")
-
+    _apply_name = 'apply_balanced'
+    _default_names = ['targets', 'block', 'bound', 'follow', 'after', 'timeout']
+    
+    def __init__(self, client, targets=None):
+        super(LoadBalancedView, self).__init__(client, targets)
+        self._ntargets = 1
+        self._apply_name = 'apply_balanced'
     

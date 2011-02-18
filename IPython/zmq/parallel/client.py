@@ -326,7 +326,7 @@ class Client(object):
         else:
             self._registration_socket.connect(url)
         self._engines = ReverseDict()
-        self._ids = set()
+        self._ids = []
         self.outstanding=set()
         self.results = {}
         self.metadata = {}
@@ -370,7 +370,8 @@ class Client(object):
         for k,v in engines.iteritems():
             eid = int(k)
             self._engines[eid] = bytes(v) # force not unicode
-            self._ids.add(eid)
+            self._ids.append(eid)
+        self._ids = sorted(self._ids)
         if sorted(self._engines.keys()) != range(len(self._engines)) and \
                         self._task_scheme == 'pure' and self._task_socket:
             self._stop_scheduling_tasks()
@@ -470,7 +471,6 @@ class Client(object):
         eid = content['id']
         d = {eid : content['queue']}
         self._update_engines(d)
-        self._ids.add(int(eid))
 
     def _unregister_engine(self, msg):
         """Unregister an engine that has died."""
@@ -664,9 +664,9 @@ class Client(object):
         """property for convenient RemoteFunction generation.
         
         >>> @client.remote
-        ... def f():
+        ... def getpid():
                 import os
-                print (os.getpid())
+                return os.getpid()
         """
         return remote(self, block=self.block)
     
@@ -867,6 +867,7 @@ class Client(object):
             # pass to Dependency constructor
             return list(Dependency(dep))
         
+    @defaultblock
     def apply(self, f, args=None, kwargs=None, bound=True, block=None, targets=None,
                         after=None, follow=None, timeout=None):
         """Call `f(*args, **kwargs)` on a remote engine(s), returning the result.
@@ -903,24 +904,9 @@ class Client(object):
                 Run on each specified engine
             if int:
                 Run on single engine
-            
-        after : Dependency or collection of msg_ids
-            Only for load-balanced execution (targets=None)
-            Specify a list of msg_ids as a time-based dependency.
-            This job will only be run *after* the dependencies
-            have been met.
-            
-        follow : Dependency or collection of msg_ids
-            Only for load-balanced execution (targets=None)
-            Specify a list of msg_ids as a location-based dependency.
-            This job will only be run on an engine where this dependency
-            is met.
         
-        timeout : float/int or None
-            Only for load-balanced execution (targets=None)
-            Specify an amount of time (in seconds) for the scheduler to
-            wait for dependencies to be met before failing with a
-            DependencyTimeout.
+        after,follow,timeout only used in `apply_balanced`. See that docstring
+        for details.
         
         Returns
         -------
@@ -947,25 +933,88 @@ class Client(object):
         if not isinstance(kwargs, dict):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
         
-        options  = dict(bound=bound, block=block)
+        options  = dict(bound=bound, block=block, targets=targets)
             
         if targets is None:
-            if self._task_socket:
-                return self._apply_balanced(f, args, kwargs, timeout=timeout, 
-                                            after=after, follow=follow, **options)
-            else:
-                msg = "Task farming is disabled"
-                if self._task_scheme == 'pure':
-                    msg += " because the pure ZMQ scheduler cannot handle"
-                    msg += " disappearing engines."
-                raise RuntimeError(msg)
+            return self.apply_balanced(f, args, kwargs, timeout=timeout, 
+                                        after=after, follow=follow, **options)
         else:
-            return self._apply_direct(f, args, kwargs, targets=targets, **options)
+            if follow or after or timeout:
+                msg = "follow, after, and timeout args are only used for load-balanced"
+                msg += "execution."
+                raise ValueError(msg)
+            return self._apply_direct(f, args, kwargs, **options)
     
-    def _apply_balanced(self, f, args, kwargs, bound=True, block=None,
+    @defaultblock
+    def apply_balanced(self, f, args, kwargs, bound=True, block=None, targets=None,
                             after=None, follow=None, timeout=None):
-        """The underlying method for applying functions in a load balanced
-        manner, via the task queue."""
+        """call f(*args, **kwargs) remotely in a load-balanced manner.
+        
+        Parameters
+        ----------
+        
+        f : function
+            The fuction to be called remotely
+        args : tuple/list
+            The positional arguments passed to `f`
+        kwargs : dict
+            The keyword arguments passed to `f`
+        bound : bool (default: True)
+            Whether to execute in the Engine(s) namespace, or in a clean
+            namespace not affecting the engine.
+        block : bool (default: self.block)
+            Whether to wait for the result, or return immediately.
+            False:
+                returns AsyncResult
+            True:
+                returns actual result(s) of f(*args, **kwargs)
+                if multiple targets:
+                    list of results, matching `targets`
+        targets : int,list of ints, 'all', None
+            Specify the destination of the job.
+            if None:
+                Submit via Task queue for load-balancing.
+            if 'all':
+                Run on all active engines
+            if list:
+                Run on each specified engine
+            if int:
+                Run on single engine
+        
+        after : Dependency or collection of msg_ids
+            Only for load-balanced execution (targets=None)
+            Specify a list of msg_ids as a time-based dependency.
+            This job will only be run *after* the dependencies
+            have been met.
+            
+        follow : Dependency or collection of msg_ids
+            Only for load-balanced execution (targets=None)
+            Specify a list of msg_ids as a location-based dependency.
+            This job will only be run on an engine where this dependency
+            is met.
+        
+        timeout : float/int or None
+            Only for load-balanced execution (targets=None)
+            Specify an amount of time (in seconds) for the scheduler to
+            wait for dependencies to be met before failing with a
+            DependencyTimeout.
+        
+        Returns
+        -------
+        if block is False:
+            return AsyncResult wrapping msg_id
+            output of AsyncResult.get() is identical to that of `apply(...block=True)`
+        else:
+            wait for, and return actual result of `f(*args, **kwargs)`
+        
+        """
+        
+        if self._task_socket is None:
+            msg = "Task farming is disabled"
+            if self._task_scheme == 'pure':
+                msg += " because the pure ZMQ scheduler cannot handle"
+                msg += " disappearing engines."
+            raise RuntimeError(msg)
         
         if self._task_scheme == 'pure':
             # pure zmq scheme doesn't support dependencies
@@ -978,9 +1027,26 @@ class Client(object):
                 warnings.warn(msg, RuntimeWarning)
             
         
+        # defaults:
+        args = args if args is not None else []
+        kwargs = kwargs if kwargs is not None else {}
+        
+        if targets:
+            idents,_ = self._build_targets(targets)
+        else:
+            idents = []
+        
+        # enforce types of f,args,kwrags
+        if not callable(f):
+            raise TypeError("f must be callable, not %s"%type(f))
+        if not isinstance(args, (tuple, list)):
+            raise TypeError("args must be tuple or list, not %s"%type(args))
+        if not isinstance(kwargs, dict):
+            raise TypeError("kwargs must be dict, not %s"%type(kwargs))
+        
         after = self._build_dependency(after)
         follow = self._build_dependency(follow)
-        subheader = dict(after=after, follow=follow, timeout=timeout)
+        subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents)
         bufs = ss.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)
         
@@ -991,31 +1057,40 @@ class Client(object):
         self.history.append(msg_id)
         ar = AsyncResult(self, [msg_id], fname=f.__name__)
         if block:
-            return ar.get()
+            try:
+                return ar.get()
+            except KeyboardInterrupt:
+                return ar
         else:
             return ar
     
     def _apply_direct(self, f, args, kwargs, bound=True, block=None, targets=None):
         """Then underlying method for applying functions to specific engines
-        via the MUX queue."""
+        via the MUX queue.
         
-        queues,targets = self._build_targets(targets)
+        Not to be called directly!
+        """
+        
+        idents,targets = self._build_targets(targets)
         
         subheader = {}
         content = dict(bound=bound)
         bufs = ss.pack_apply_message(f,args,kwargs)
         
         msg_ids = []
-        for queue in queues:
+        for ident in idents:
             msg = self.session.send(self._mux_socket, "apply_request", 
-                    content=content, buffers=bufs,ident=queue, subheader=subheader)
+                    content=content, buffers=bufs, ident=ident, subheader=subheader)
             msg_id = msg['msg_id']
             self.outstanding.add(msg_id)
             self.history.append(msg_id)
             msg_ids.append(msg_id)
         ar = AsyncResult(self, msg_ids, fname=f.__name__)
         if block:
-            return ar.get()
+            try:
+                return ar.get()
+            except KeyboardInterrupt:
+                return ar
         else:
             return ar
     
@@ -1036,6 +1111,15 @@ class Client(object):
     def remote(self, bound=True, targets='all', block=True):
         """Decorator for making a RemoteFunction."""
         return remote(self, bound=bound, targets=targets, block=block)
+    
+    def view(self, targets=None, balanced=False):
+        """Method for constructing View objects"""
+        if not balanced:
+            if not targets:
+                targets = slice(None)
+            return self[targets]
+        else:
+            return LoadBalancedView(self, targets)
     
     #--------------------------------------------------------------------------
     # Data movement
