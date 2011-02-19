@@ -219,6 +219,10 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             # The typical default figure size is too large for inline use.  We
             # might make this a user-configurable parameter later.
             figsize(6.0, 4.0)
+            # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
+            pyplot.rcParams['font.size'] = 10
+            # 10pt still needs a little more room on the xlabel:
+            pyplot.rcParams['figure.subplot.bottom'] = .125
             # Add 'figsize' to pyplot and to the user's namespace
             user_ns['figsize'] = pyplot.figsize = figsize
             shell.user_ns_hidden['figsize'] = figsize
