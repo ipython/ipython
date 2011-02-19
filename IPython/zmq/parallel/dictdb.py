@@ -90,7 +90,7 @@ class DictDB(BaseDB):
     """
     _records = None
     
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self._records = dict()
     
     def _match_one(self, rec, tests):

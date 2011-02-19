@@ -237,7 +237,7 @@ class HubFactory(RegistrationFactory):
         sub = ZMQStream(sub, loop)
         
         # connect the db
-        self.db = import_item(self.db_class)()
+        self.db = import_item(self.db_class)(self.session.session)
         time.sleep(.25)
 
         # build connection dicts
