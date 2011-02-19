@@ -49,11 +49,14 @@ class HistoryManager(object):
     db = None
     # The number of the current session in the history database
     session_number = None
-    # Number of lines to cache before writing to the database (to save power)
-    #  - if 0, lines will be written instantly.
+    # Should we log output to the database? (default no)
+    db_log_output = False
+    # Write to database every x commands (higher values save disk access & power)
+    #  Values of 1 or less effectively disable caching. 
     db_cache_size = 0
-    # The line cache
-    db_cache = None
+    # The input and output caches
+    db_input_cache = None
+    db_output_cache = None
     
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
@@ -112,8 +115,13 @@ class HistoryManager(object):
         
     def init_db(self):
         self.db = sqlite3.connect(self.hist_file)
-        self.db.execute("""CREATE TABLE IF NOT EXISTS history (session integer,
-                        line integer, source text, source_raw text,
+        self.db.execute("""CREATE TABLE IF NOT EXISTS history 
+                (session integer, line integer, source text, source_raw text,
+                PRIMARY KEY (session, line))""")
+        # Output history is optional, but ensure the table's there so it can be
+        # enabled later.
+        self.db.execute("""CREATE TABLE IF NOT EXISTS output_history
+                        (session integer, line integer, output text,
                         PRIMARY KEY (session, line))""")
         cur = self.db.execute("""SELECT name FROM sqlite_master WHERE
                                 type='table' AND name='singletons'""")
@@ -131,7 +139,8 @@ class HistoryManager(object):
         self.db.execute("""UPDATE singletons SET value=? WHERE
                         name='session_number'""", (self.session_number+1,))
         self.db.commit()
-        self.db_cache = []
+        self.db_input_cache = []
+        self.db_output_cache = []
                         
     def get_db_history(self, session, start=1, stop=None, raw=True):
         """Retrieve input history from the database by session.
@@ -259,14 +268,11 @@ class HistoryManager(object):
         self.input_hist_parsed.append(source.rstrip())
         self.input_hist_raw.append(source_raw.rstrip())
         
-        db_row = (self.session_number, line_num, source, source_raw)
-        if self.db_cache_size:        # Cache before writing
-            self.db_cache.append(db_row)
-            if len(self.db_cache) > self.db_cache_size:
-                self.writeout_cache()
-        else:                         # Instant write
-            with self.db:
-              self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)", db_row)
+        self.db_input_cache.append((self.session_number, line_num,
+                                    source, source_raw))
+        # Trigger to flush cache and write to DB.
+        if len(self.db_input_cache) >= self.db_cache_size:
+            self.writeout_cache()
 
         # update the auto _i variables
         self._iii = self._ii
@@ -282,11 +288,24 @@ class HistoryManager(object):
                    new_i : self._i00 }
         self.shell.user_ns.update(to_main)
         
+    def store_output(self, line_num, output):
+        if not self.db_log_output:
+            return
+        db_row = (self.session_number, line_num, output)
+        if self.db_cache_size > 1:
+            self.db_output_cache.append(db_row)
+        else:
+          with self.db:
+            self.db.execute("INSERT INTO output_history VALUES (?,?,?)", db_row)
+        
     def writeout_cache(self):
         with self.db:
             self.db.executemany("INSERT INTO history VALUES (?, ?, ?, ?)",
-                                self.db_cache)
-        self.db_cache = []
+                                self.db_input_cache)
+            self.db.executemany("INSERT INTO output_history VALUES (?, ?, ?)",
+                                self.db_output_cache)
+        self.db_input_cache = []
+        self.db_output_cache = []
 
     def sync_inputs(self):
         """Ensure raw and translated histories have same length."""
