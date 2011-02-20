@@ -246,6 +246,24 @@ def get_home_dir():
     else:
         raise HomeDirError('No valid home directory could be found for your OS')
 
+def get_xdg_dir():
+    """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
+    
+    This is only for posix (Linux,Unix,OS X, etc) systems.
+    """
+
+    isdir = os.path.isdir
+    env = os.environ
+    
+    if os.name == 'posix':
+        # Linux, Unix, AIX, OS X
+        # use ~/.config if not set OR empty
+        xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
+        if xdg and isdir(xdg):
+            return xdg.decode(sys.getfilesystemencoding())
+    
+    return None
+    
 
 def get_ipython_dir():
     """Get the IPython directory for this platform and user.
@@ -253,14 +271,34 @@ def get_ipython_dir():
     This uses the logic in `get_home_dir` to find the home directory
     and the adds .ipython to the end of the path.
     """
+    
+    env = os.environ
+    pjoin = os.path.join
+    exists = os.path.exists
+    
     ipdir_def = '.ipython'
+    xdg_def = 'ipython'
+    
     home_dir = get_home_dir()
+    xdg_dir = get_xdg_dir()
     # import pdb; pdb.set_trace()  # dbg
-    ipdir = os.environ.get(
-        'IPYTHON_DIR', os.environ.get(
-            'IPYTHONDIR', os.path.join(home_dir, ipdir_def)
-        )
-    )
+    ipdir = env.get('IPYTHON_DIR', env.get('IPYTHONDIR', None))
+    if ipdir is None:
+        # not set explicitly, use XDG_CONFIG_HOME or HOME
+        home_ipdir = pjoin(home_dir, ipdir_def)
+        if xdg_dir:
+            # use XDG, as long as the user isn't already
+            # using $HOME/.ipython and *not* XDG/ipython
+            
+            xdg_ipdir = pjoin(xdg_dir, xdg_def)
+        
+            if exists(xdg_ipdir) or not exists(home_ipdir):
+                ipdir = xdg_ipdir
+        
+        if ipdir is None:
+            # not using XDG
+            ipdir = home_ipdir
+    
     return ipdir.decode(sys.getfilesystemencoding())
 
 
