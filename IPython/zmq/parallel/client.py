@@ -1098,10 +1098,82 @@ class Client(object):
     # Map and decorators
     #--------------------------------------------------------------------------
     
-    def map(self, f, *sequences):
-        """Parallel version of builtin `map`, using all our engines."""
+    def map(self, f, *sequences, **kwargs):
+        """Parallel version of builtin `map`, using all our engines.
+        
+        `block` and `targets` can be passed as keyword arguments only.
+        
+        There will be one task per target, so work will be chunked
+        if the sequences are longer than `targets`.  
+        
+        Results can be iterated as they are ready, but will become available in chunks.
+        
+        Parameters
+        ----------
+        
+        f : callable
+            function to be mapped
+        *sequences: one or more sequences of matching length
+            the sequences to be distributed and passed to `f`
+        block : bool
+            whether to wait for the result or not [default self.block]
+        targets : valid targets
+            targets to be used [default self.targets]
+        
+        Returns
+        -------
+        
+        if block=False:
+            AsyncMapResult
+                An object like AsyncResult, but which reassembles the sequence of results
+                into a single list. AsyncMapResults can be iterated through before all
+                results are complete.
+            else:
+                the result of map(f,*sequences)
+        
+        """
+        block = kwargs.get('block', self.block)
+        targets = kwargs.get('targets', self.targets)
+        assert len(sequences) > 0, "must have some sequences to map onto!"
+        pf = ParallelFunction(self, f, block=block,
+                        bound=True, targets=targets)
+        return pf.map(*sequences)
+    
+    def imap(self, f, *sequences, **kwargs):
+        """Parallel version of builtin `itertools.imap`, load-balanced across all engines.
+        
+        Each element will be a separate task, and will be load-balanced.  This
+        lets individual elements be ready for iteration as soon as they come.
+        
+        Parameters
+        ----------
+        
+        f : callable
+            function to be mapped
+        *sequences: one or more sequences of matching length
+            the sequences to be distributed and passed to `f`
+        block : bool
+            whether to wait for the result or not [default self.block]
+        
+        Returns
+        -------
+        
+        if block=False:
+            AsyncMapResult
+                An object like AsyncResult, but which reassembles the sequence of results
+                into a single list. AsyncMapResults can be iterated through before all
+                results are complete.
+            else:
+                the result of map(f,*sequences)
+        
+        """
+        
+        block = kwargs.get('block', self.block)
+        
+        assert len(sequences) > 0, "must have some sequences to map onto!"
+        
         pf = ParallelFunction(self, f, block=self.block,
-                        bound=True, targets='all')
+                        bound=True, targets=None)
         return pf.map(*sequences)
     
     def parallel(self, bound=True, targets='all', block=True):

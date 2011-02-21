@@ -283,7 +283,9 @@ class Kernel(SessionFactory):
         return self.completer.complete(msg.content.line, msg.content.text)
     
     def apply_request(self, stream, ident, parent):
-        # print (parent)
+        # flush previous reply, so this request won't block it
+        stream.flush(zmq.POLLOUT)
+        
         try:
             content = parent[u'content']
             bufs = parent[u'buffers']
@@ -354,7 +356,7 @@ class Kernel(SessionFactory):
         
         reply_msg = self.session.send(stream, u'apply_reply', reply_content, 
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
-        
+
         # if reply_msg['content']['status'] == u'error':
         #     self.abort_queues()
     

@@ -35,6 +35,8 @@ class AsyncResult(object):
     
     def __init__(self, client, msg_ids, fname=''):
         self._client = client
+        if isinstance(msg_ids, basestring):
+            msg_ids = [msg_ids]
         self.msg_ids = msg_ids
         self._fname=fname
         self._ready = False
@@ -203,6 +205,28 @@ class AsyncMapResult(AsyncResult):
     def _reconstruct_result(self, res):
         """Perform the gather on the actual results."""
         return self._mapObject.joinPartitions(res)
+    
+    # asynchronous iterator:
+    def __iter__(self):
+        try:
+            rlist = self.get(0)
+        except error.TimeoutError:
+            # wait for each result individually
+            for msg_id in self.msg_ids:
+                ar = AsyncResult(self._client, msg_id, self._fname)
+                rlist = ar.get()
+                try:
+                    for r in rlist:
+                        yield r
+                except TypeError:
+                    # flattened, not a list
+                    # this could get broken by flattened data that returns iterables
+                    # but most calls to map do not expose the `flatten` argument
+                    yield rlist
+        else:
+            # already done
+            for r in rlist:
+                yield r
     
         
 __all__ = ['AsyncResult', 'AsyncMapResult']
