@@ -41,7 +41,7 @@ and then create a :class:`TaskClient` instance:
 	In [2]: tc = client.TaskClient()
 
 This form assumes that the :file:`ipcontroller-tc.furl` is in the
-:file:`~./ipython/security` directory on the client's host. If not, the
+:file:`$IPYTHON_DIR/cluster_<profile>/security` directory on the client's host. If not, the
 location of the FURL file must be given as an argument to the
 constructor:
 

@@ -395,7 +395,7 @@ to 'mydir', if it exists.
 
 You can define your own magic functions to extend the system. See the supplied
 ipythonrc and example-magic.py files for details (in your ipython
-configuration directory, typically $HOME/.ipython/).
+configuration directory, typically $HOME/.config/ipython on Linux or $HOME/.ipython elsewhere).
 
 You can also define your own aliased names for magic functions. In your
 ipythonrc file, placing a line like:

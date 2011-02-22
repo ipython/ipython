@@ -37,7 +37,7 @@ and then create a :class:`MultiEngineClient` instance:
 	In [2]: mec = client.MultiEngineClient()
 
 This form assumes that the :file:`ipcontroller-mec.furl` is in the
-:file:`~./ipython/security` directory on the client's host. If not, the
+:file:`$IPYTHON_DIR/cluster_<profile>/security` directory on the client's host. If not, the
 location of the FURL file must be given as an argument to the
 constructor:
 
