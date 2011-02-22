@@ -1245,7 +1245,7 @@ class InteractiveShell(Configurable, Magic):
 
     def init_history(self):
         """Sets up the command history, and starts regular autosaves."""
-        self.history_manager = HistoryManager(shell=self)
+        self.history_manager = HistoryManager(shell=self, config=self.config)
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving

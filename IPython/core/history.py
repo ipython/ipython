@@ -18,45 +18,47 @@ import os
 import sqlite3
 
 # Our own packages
+from IPython.config.configurable import Configurable
 import IPython.utils.io
 
 from IPython.testing import decorators as testdec
 from IPython.utils.io import ask_yes_no
+from IPython.utils.traitlets import Bool, Dict, Instance, Int, List, Unicode
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class HistoryManager(object):
+class HistoryManager(Configurable):
     """A class to organize all history-related functionality in one place.
     """
     # Public interface
 
     # An instance of the IPython shell we are attached to
-    shell = None
-    # A list to hold processed history
-    input_hist_parsed = None
-    # A list to hold raw history (as typed by user)
-    input_hist_raw = None
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    # Lists to hold processed and raw history. These start with a blank entry
+    # so that we can index them starting from 1
+    input_hist_parsed = List([""])
+    input_hist_raw = List([""])
     # A list of directories visited during session
-    dir_hist = None
+    dir_hist = List()
     # A dict of output history, keyed with ints from the shell's execution count
-    output_hist = None
-    # String with path to the history file
-    hist_file = None
+    output_hist = Dict()
+    # String holding the path to the history file
+    hist_file = Unicode()
     # The SQLite database
-    db = None
+    db = Instance(sqlite3.Connection)
     # The number of the current session in the history database
-    session_number = None
+    session_number = Int()
     # Should we log output to the database? (default no)
-    db_log_output = False
+    db_log_output = Bool(False, config=True)
     # Write to database every x commands (higher values save disk access & power)
     #  Values of 1 or less effectively disable caching. 
-    db_cache_size = 0
+    db_cache_size = Int(0, config=True)
     # The input and output caches
-    db_input_cache = None
-    db_output_cache = None
+    db_input_cache = List()
+    db_output_cache = List()
     
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
@@ -69,26 +71,11 @@ class HistoryManager(object):
     # call).
     _exit_commands = None
     
-    def __init__(self, shell, load_history=False):
+    def __init__(self, shell, config=None):
         """Create a new history manager associated with a shell instance.
-        
-        Parameters
-        ----------
-        load_history: bool, optional
-            If True, history will be loaded from file, and the session
-            offset set, so that the next line entered can be retrieved
-            as #1.
         """
         # We need a pointer back to the shell for various tasks.
-        self.shell = shell
-        
-        # List of input with multi-line handling. One blank entry so indexing
-        # starts from 1.
-        self.input_hist_parsed = [""]
-        # This one will hold the 'raw' input history, without any
-        # pre-processing.  This will allow users to retrieve the input just as
-        # it was exactly typed in by the user, with %hist -r.
-        self.input_hist_raw = [""]
+        super(HistoryManager, self).__init__(shell=shell, config=config)
 
         # list of visited directories
         try:
@@ -96,22 +83,18 @@ class HistoryManager(object):
         except OSError:
             self.dir_hist = []
 
-        # dict of output history
-        self.output_hist = {}
-
         # Now the history file
         if shell.profile:
             histfname = 'history-%s' % shell.profile
         else:
             histfname = 'history'
         self.hist_file = os.path.join(shell.ipython_dir, histfname + '.sqlite')
+        self.init_db()
     
         self._i00, self._i, self._ii, self._iii = '','','',''
 
         self._exit_commands = set(['Quit', 'quit', 'Exit', 'exit', '%Quit',
                                    '%quit', '%Exit', '%exit'])
-
-        self.init_db()
         
     def init_db(self):
         self.db = sqlite3.connect(self.hist_file)
@@ -139,8 +122,6 @@ class HistoryManager(object):
         self.db.execute("""UPDATE singletons SET value=? WHERE
                         name='session_number'""", (self.session_number+1,))
         self.db.commit()
-        self.db_input_cache = []
-        self.db_output_cache = []
                         
     def get_db_history(self, session, start=1, stop=None, raw=True):
         """Retrieve input history from the database by session.
