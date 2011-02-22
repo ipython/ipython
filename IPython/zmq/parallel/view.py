@@ -266,7 +266,7 @@ class DirectView(View):
     @save_ids
     def execute(self, code, block=True):
         """execute some code on my targets."""
-        return self.client.execute(code, block=self.block, targets=self.targets)
+        return self.client.execute(code, block=block, targets=self.targets)
     
     def update(self, ns):
         """update remote namespace with dict `ns`"""

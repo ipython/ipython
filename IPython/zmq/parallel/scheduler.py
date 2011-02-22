@@ -225,7 +225,7 @@ class TaskScheduler(SessionFactory):
         """Deal with jobs resident in an engine that died."""
         lost = self.pending.pop(engine)
         
-        for msg_id, (raw_msg,follow) in lost.iteritems():
+        for msg_id, (raw_msg, targets, MET, follow, timeout) in lost.iteritems():
             self.all_failed.add(msg_id)
             self.all_done.add(msg_id)
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
