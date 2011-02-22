@@ -3504,15 +3504,15 @@ Defaulting color scheme to 'NoColor'"""
             fmt = s
             try:
                 fmt%3.14159
-            except:
-                raise TypeError("Precision must be int or format string, not %r"%s)
+            except Exception:
+                raise ValueError("Precision must be int or format string, not %r"%s)
         elif s:
             # otherwise, should be an int
             try:
                 i = int(s)
                 assert i >= 0
-            except:
-                raise TypeError("Precision must be non-negative int or format string, not %r"%s)
+            except (ValueError, AssertionError):
+                raise ValueError("Precision must be non-negative int or format string, not %r"%s)
             
             fmt = '%%.%if'%i
             if 'numpy' in sys.modules:
