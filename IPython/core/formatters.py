@@ -20,8 +20,8 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # Stdlib imports
-import sys
 import abc
+import sys
 # We must use StringIO, as cStringIO doesn't handle unicode properly.
 from StringIO import StringIO
 
