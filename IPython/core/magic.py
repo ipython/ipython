@@ -3459,5 +3459,77 @@ Defaulting color scheme to 'NoColor'"""
 
         See %xmode for changing exception reporting modes."""
         self.shell.showtraceback()
+    
+    @testdec.skip_doctest
+    def magic_precision(self, s=''):
+        """Set floating point precision for pretty printing.
+        
+        Can set either integer precision or a format string.
+        
+        If numpy has been imported and precision is an int,
+        numpy display precision will also be set, via ``numpy.set_printoptions``.
+        
+        If no argument is given, defaults will be restored.
+        
+        Examples
+        --------
+        ::
+        
+            In [1]: from math import pi
+        
+            In [2]: %precision 3
+        
+            In [3]: pi
+            Out[3]: 3.142
+        
+            In [4]: %precision %i
+        
+            In [5]: pi
+            Out[5]: 3
+        
+            In [6]: %precision %e
+        
+            In [7]: pi**10
+            Out[7]: 9.364805e+04
+        
+            In [8]: %precision
+        
+            In [9]: pi**10
+            Out[9]: 93648.047476082982
+        
+        """
+        
+        if '%' in s:
+            # got explicit format string
+            fmt = s
+            try:
+                fmt%3.14159
+            except:
+                raise TypeError("Precision must be int or format string, not %r"%s)
+        elif s:
+            # otherwise, should be an int
+            try:
+                i = int(s)
+                assert i >= 0
+            except:
+                raise TypeError("Precision must be non-negative int or format string, not %r"%s)
+            
+            fmt = '%%.%if'%i
+            if 'numpy' in sys.modules:
+                import numpy
+                numpy.set_printoptions(precision=i)
+        else:
+            # default back to repr
+            fmt = '%r'
+            if 'numpy' in sys.modules:
+                import numpy
+                # numpy default is 8
+                numpy.set_printoptions(precision=8)
+        
+        def _pretty_float(obj,p,cycle):
+            p.text(fmt%obj)
+        
+        ptformatter = self.shell.display_formatter.formatters['text/plain']
+        ptformatter.for_type(float, _pretty_float)
 
 # end Magic
