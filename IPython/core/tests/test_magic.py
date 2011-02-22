@@ -387,3 +387,22 @@ def doctest_who():
     In [7]: %who_ls
     Out[7]: ['alpha', 'beta']
     """
+
+def doctest_precision():
+    """doctest for %precision
+    
+    In [1]: f = get_ipython().shell.display_formatter.formatters['text/plain']
+    
+    In [2]: %precision 5
+    Out[2]: '%.5f'
+    
+    In [3]: f.float_format
+    Out[3]: '%.5f'
+    
+    In [4]: %precision %e
+    Out[4]: '%e'
+    
+    In [5]: f(3.1415927)
+    Out[5]: '3.141593e+00'
+    """
+

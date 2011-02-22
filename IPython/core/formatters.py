@@ -20,6 +20,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # Stdlib imports
+import sys
 import abc
 # We must use StringIO, as cStringIO doesn't handle unicode properly.
 from StringIO import StringIO
@@ -27,7 +28,7 @@ from StringIO import StringIO
 # Our own imports
 from IPython.config.configurable import Configurable
 from IPython.external import pretty
-from IPython.utils.traitlets import Bool, Dict, Int, Str
+from IPython.utils.traitlets import Bool, Dict, Int, Str, CStr
 
 
 #-----------------------------------------------------------------------------
@@ -352,13 +353,65 @@ class PlainTextFormatter(BaseFormatter):
 
     # The newline character.
     newline = Str('\n', config=True)
+    
+    # format-string for pprinting floats
+    float_format = Str('%r')
+    # setter for float precision, either int or direct format-string
+    float_precision = CStr('', config=True)
+    
+    def _float_precision_changed(self, name, old, new):
+        """float_precision changed, set float_format accordingly.
+        
+        float_precision can be set by int or str.
+        This will set float_format, after interpreting input.
+        If numpy has been imported, numpy print precision will also be set.
+        
+        integer `n` sets format to '%.nf', otherwise, format set directly.
+        
+        An empty string returns to defaults (repr for float, 8 for numpy).
+        
+        This parameter can be set via the '%precision' magic.
+        """
+        
+        if '%' in new:
+            # got explicit format string
+            fmt = new
+            try:
+                fmt%3.14159
+            except Exception:
+                raise ValueError("Precision must be int or format string, not %r"%new)
+        elif new:
+            # otherwise, should be an int
+            try:
+                i = int(new)
+                assert i >= 0
+            except ValueError:
+                raise ValueError("Precision must be int or format string, not %r"%new)
+            except AssertionError:
+                raise ValueError("int precision must be non-negative, not %r"%i)
+            
+            fmt = '%%.%if'%i
+            if 'numpy' in sys.modules:
+                # set numpy precision if it has been imported
+                import numpy
+                numpy.set_printoptions(precision=i)
+        else:
+            # default back to repr
+            fmt = '%r'
+            if 'numpy' in sys.modules:
+                import numpy
+                # numpy default is 8
+                numpy.set_printoptions(precision=8)
+        self.float_format = fmt
 
     # Use the default pretty printers from IPython.external.pretty.
     def _singleton_printers_default(self):
         return pretty._singleton_pprinters.copy()
 
     def _type_printers_default(self):
-        return pretty._type_pprinters.copy()
+        d = pretty._type_pprinters.copy()
+        d[float] = lambda obj,p,cycle: p.text(self.float_format%obj)
+        return d
 
     def _deferred_printers_default(self):
         return pretty._deferred_type_pprinters.copy()
