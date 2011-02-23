@@ -345,8 +345,8 @@ class ApplicationWithClusterDir(Application):
     command_line_loader = ClusterDirConfigLoader
     crash_handler_class = ClusterDirCrashHandler
     auto_create_cluster_dir = True
-    # temporarily override default_log_level to DEBUG
-    default_log_level = logging.DEBUG
+    # temporarily override default_log_level to INFO
+    default_log_level = logging.INFO
 
     def create_default_config(self):
         super(ApplicationWithClusterDir, self).create_default_config()
