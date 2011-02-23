@@ -139,8 +139,8 @@ class ClusterDir(Configurable):
 
     def copy_all_config_files(self, path=None, overwrite=False):
         """Copy all config files into the active cluster directory."""
-        for f in [u'ipcontroller_config.py', u'ipengine_config.py',
-                  u'ipcluster_config.py']:
+        for f in [u'ipcontrollerz_config.py', u'ipenginez_config.py',
+                  u'ipclusterz_config.py']:
             self.copy_config_file(f, path=path, overwrite=overwrite)
 
     @classmethod
