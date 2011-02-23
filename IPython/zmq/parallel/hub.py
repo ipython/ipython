@@ -26,7 +26,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import HasTraits, Instance, Int, Str, Dict, Set, List, Bool
+from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
 from IPython.utils.importstring import import_item
 
 from entry_point import select_random_ports
@@ -138,18 +138,18 @@ class HubFactory(RegistrationFactory):
     
     ping = Int(1000, config=True) # ping frequency
     
-    engine_ip = Str('127.0.0.1', config=True)
-    engine_transport = Str('tcp', config=True)
+    engine_ip = CStr('127.0.0.1', config=True)
+    engine_transport = CStr('tcp', config=True)
     
-    client_ip = Str('127.0.0.1', config=True)
-    client_transport = Str('tcp', config=True)
+    client_ip = CStr('127.0.0.1', config=True)
+    client_transport = CStr('tcp', config=True)
     
-    monitor_ip = Str('127.0.0.1', config=True)
-    monitor_transport = Str('tcp', config=True)
+    monitor_ip = CStr('127.0.0.1', config=True)
+    monitor_transport = CStr('tcp', config=True)
     
-    monitor_url = Str('')
+    monitor_url = CStr('')
     
-    db_class = Str('IPython.zmq.parallel.dictdb.DictDB', config=True)
+    db_class = CStr('IPython.zmq.parallel.dictdb.DictDB', config=True)
     
     # not configurable
     db = Instance('IPython.zmq.parallel.dictdb.BaseDB')
@@ -234,6 +234,7 @@ class HubFactory(RegistrationFactory):
         sub = ctx.socket(zmq.SUB)
         sub.setsockopt(zmq.SUBSCRIBE, "")
         sub.bind(self.monitor_url)
+        sub.bind('inproc://monitor')
         sub = ZMQStream(sub, loop)
         
         # connect the db

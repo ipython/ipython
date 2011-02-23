@@ -12,7 +12,7 @@ c = get_config()
 # - Start using mpiexec.
 # - Start using the Windows HPC Server 2008 scheduler
 # - Start using PBS
-# - Start using SSH (currently broken)
+# - Start using SSH
 
 
 # The selected launchers can be configured below.
@@ -22,14 +22,14 @@ c = get_config()
 # - MPIExecControllerLauncher
 # - PBSControllerLauncher
 # - WindowsHPCControllerLauncher
-# c.Global.controller_launcher = 'IPython.kernel.launcher.LocalControllerLauncher'
+# c.Global.controller_launcher = 'IPython.zmq.parallel.launcher.LocalControllerLauncher'
 
 # Options are:
 # - LocalEngineSetLauncher
 # - MPIExecEngineSetLauncher
 # - PBSEngineSetLauncher
 # - WindowsHPCEngineSetLauncher
-# c.Global.engine_launcher = 'IPython.kernel.launcher.LocalEngineSetLauncher'
+# c.Global.engine_launcher = 'IPython.zmq.parallel.launcher.LocalEngineSetLauncher'
 
 #-----------------------------------------------------------------------------
 # Global configuration

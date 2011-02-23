@@ -38,7 +38,7 @@ from IPython.zmq.parallel.clusterdir import (
 #-----------------------------------------------------------------------------
 
 
-default_config_file_name = u'ipcluster_config.py'
+default_config_file_name = u'ipclusterz_config.py'
 
 
 _description = """\

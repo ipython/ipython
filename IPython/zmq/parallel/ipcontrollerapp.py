@@ -49,7 +49,7 @@ from util import disambiguate_ip_address, split_url
 
 
 #: The default config file name for this application
-default_config_file_name = u'ipcontroller_config.py'
+default_config_file_name = u'ipcontrollerz_config.py'
 
 
 _description = """Start the IPython controller for parallel computing.
@@ -58,7 +58,7 @@ The IPython controller provides a gateway between the IPython engines and
 clients. The controller needs to be started before the engines and can be
 configured using command line options or using a cluster directory. Cluster
 directories contain config, log and security files and are usually located in
-your .ipython directory and named as "cluster_<profile>". See the --profile
+your ipython directory and named as "cluster_<profile>". See the --profile
 and --cluster-dir options for details.
 """
 
@@ -189,6 +189,7 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
             help='The (2) ports the IOPub scheduler will listen on for client,engine '
             'connections, respectively [default: random]',
             metavar='Scheduler.iopub_ports')
+            
         paa('--scheme',
             type=str, dest='HubFactory.scheme',
             choices = ['pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'],
@@ -198,6 +199,12 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
             dest='ControllerFactory.usethreads', action="store_true",
             help='Use threads instead of processes for the schedulers',
             )
+        paa('--hwm',
+            dest='ControllerFactory.hwm', type=int,
+            help='specify the High Water Mark (HWM) for the downstream '
+            'socket in the pure ZMQ scheduler. This is the maximum number '
+            'of allowed outstanding tasks on each engine.',
+            )
         
         ## Global config
         paa('--log-to-file',
@@ -206,9 +213,9 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
         paa('--log-url',
             type=str, dest='Global.log_url',
             help='Broadcast logs to an iploggerz process [default: disabled]')
-        paa('-r','--reuse-key', 
-            action='store_true', dest='Global.reuse_key',
-            help='Try to reuse existing execution keys.')
+        paa('-r','--reuse-files', 
+            action='store_true', dest='Global.reuse_files',
+            help='Try to reuse existing json connection files.')
         paa('--no-secure',
             action='store_false', dest='Global.secure',
             help='Turn off execution keys (default).')
@@ -255,7 +262,7 @@ class IPControllerApp(ApplicationWithClusterDir):
         self.default_config.Global.import_statements = []
         self.default_config.Global.clean_logs = True
         self.default_config.Global.secure = True
-        self.default_config.Global.reuse_key = False
+        self.default_config.Global.reuse_files = False
         self.default_config.Global.exec_key = "exec_key.key"
         self.default_config.Global.sshserver = None
         self.default_config.Global.location = None
@@ -293,24 +300,53 @@ class IPControllerApp(ApplicationWithClusterDir):
         with open(fname, 'w') as f:
             f.write(json.dumps(cdict, indent=2))
         os.chmod(fname, stat.S_IRUSR|stat.S_IWUSR)
+    
+    def load_config_from_json(self):
+        """load config from existing json connector files."""
+        c = self.master_config
+        # load from engine config
+        with open(os.path.join(c.Global.security_dir, 'ipcontroller-engine.json')) as f:
+            cfg = json.loads(f.read())
+        key = c.SessionFactory.exec_key = cfg['exec_key']
+        xport,addr = cfg['url'].split('://')
+        c.HubFactory.engine_transport = xport
+        ip,ports = addr.split(':')
+        c.HubFactory.engine_ip = ip
+        c.HubFactory.regport = int(ports)
+        c.Global.location = cfg['location']
         
+        # load client config
+        with open(os.path.join(c.Global.security_dir, 'ipcontroller-client.json')) as f:
+            cfg = json.loads(f.read())
+        assert key == cfg['exec_key'], "exec_key mismatch between engine and client keys"
+        xport,addr = cfg['url'].split('://')
+        c.HubFactory.client_transport = xport
+        ip,ports = addr.split(':')
+        c.HubFactory.client_ip = ip
+        c.Global.sshserver = cfg['ssh']
+        assert int(ports) == c.HubFactory.regport, "regport mismatch"
+    
     def construct(self):
         # This is the working dir by now.
         sys.path.insert(0, '')
         c = self.master_config
         
         self.import_statements()
-
-        if c.Global.secure:
+        reusing = c.Global.reuse_files
+        if reusing:
+            try:
+                self.load_config_from_json()
+            except (AssertionError,IOError):
+                reusing=False
+        # check again, because reusing may have failed:
+        if reusing:
+            pass
+        elif c.Global.secure:
             keyfile = os.path.join(c.Global.security_dir, c.Global.exec_key)
-            if not c.Global.reuse_key or not os.path.exists(keyfile):
-                key = str(uuid.uuid4())
-                with open(keyfile, 'w') as f:
-                    f.write(key)
-                os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
-            else:
-                with open(keyfile) as f:
-                    key = f.read().strip()
+            key = str(uuid.uuid4())
+            with open(keyfile, 'w') as f:
+                f.write(key)
+            os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
             c.SessionFactory.exec_key = key
         else:
             c.SessionFactory.exec_key = ''
@@ -324,16 +360,18 @@ class IPControllerApp(ApplicationWithClusterDir):
             self.log.error("Couldn't construct the Controller", exc_info=True)
             self.exit(1)
         
-        f = self.factory
-        cdict = {'exec_key' : key,
-                'ssh' : c.Global.sshserver,
-                'url' : "%s://%s:%s"%(f.client_transport, f.client_ip, f.regport),
-                'location' : c.Global.location
-                }
-        self.save_connection_dict('ipcontroller-client.json', cdict)
-        edict = cdict
-        edict['url']="%s://%s:%s"%((f.client_transport, f.client_ip, f.regport))
-        self.save_connection_dict('ipcontroller-engine.json', edict)
+        if not reusing:
+            # save to new json config files
+            f = self.factory
+            cdict = {'exec_key' : key,
+                    'ssh' : c.Global.sshserver,
+                    'url' : "%s://%s:%s"%(f.client_transport, f.client_ip, f.regport),
+                    'location' : c.Global.location
+                    }
+            self.save_connection_dict('ipcontroller-client.json', cdict)
+            edict = cdict
+            edict['url']="%s://%s:%s"%((f.client_transport, f.client_ip, f.regport))
+            self.save_connection_dict('ipcontroller-engine.json', edict)
         
     
     def save_urls(self):

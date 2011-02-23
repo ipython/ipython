@@ -40,7 +40,7 @@ from util import disambiguate_url
 #-----------------------------------------------------------------------------
 
 #: The default config file name for this application
-default_config_file_name = u'ipengine_config.py'
+default_config_file_name = u'ipenginez_config.py'
 
 
 mpi4py_init = """from mpi4py import MPI as mpi
@@ -64,7 +64,7 @@ IPython engines run in parallel and perform computations on behalf of a client
 and controller. A controller needs to be started before the engines. The
 engine can be configured using command line options or using a cluster
 directory. Cluster directories contain config, log and security files and are
-usually located in your .ipython directory and named as "cluster_<profile>".
+usually located in your ipython directory and named as "cluster_<profile>".
 See the --profile and --cluster-dir options for details.
 """
 
@@ -79,7 +79,7 @@ class IPEngineAppConfigLoader(ClusterDirConfigLoader):
         super(IPEngineAppConfigLoader, self)._add_arguments()
         paa = self.parser.add_argument
         # Controller config
-        paa('--file',
+        paa('--file', '-f',
             type=unicode, dest='Global.url_file',
             help='The full location of the file containing the connection information fo '
             'controller. If this is not given, the file must be in the '

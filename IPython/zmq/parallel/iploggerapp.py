@@ -39,7 +39,7 @@ IPython controllers and engines (and your own processes) can broadcast log messa
 by registering a `zmq.log.handlers.PUBHandler` with the `logging` module. The
 logger can be configured using command line options or using a cluster
 directory. Cluster directories contain config, log and security files and are
-usually located in your .ipython directory and named as "cluster_<profile>".
+usually located in your ipython directory and named as "cluster_<profile>".
 See the --profile and --cluster-dir options for details.
 """
 

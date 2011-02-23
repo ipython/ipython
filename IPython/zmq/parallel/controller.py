@@ -18,7 +18,7 @@ import logging
 from multiprocessing import Process
 
 import zmq
-
+from zmq.devices import ProcessMonitoredQueue
 # internal:
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Int, Str, Instance, List, Bool
@@ -38,6 +38,8 @@ class ControllerFactory(HubFactory):
     """Configurable for setting up a Hub and Schedulers."""
     
     usethreads = Bool(False, config=True)
+    # pure-zmq downstream HWM
+    hwm = Int(0, config=True)
     
     # internal
     children = List()
@@ -52,22 +54,28 @@ class ControllerFactory(HubFactory):
     
     def start(self):
         super(ControllerFactory, self).start()
+        child_procs = []
         for child in self.children:
             child.start()
-        if not self.usethreads:
-            signal_children([ getattr(c, 'launcher', c) for c in self.children ])
+            if isinstance(child, ProcessMonitoredQueue):
+                child_procs.append(child.launcher)
+            elif isinstance(child, Process):
+                child_procs.append(child)
+        if child_procs:
+            signal_children(child_procs)
         
     
     def construct_schedulers(self):
         children = self.children
         mq = import_item(self.mq_class)
         
+        maybe_inproc = 'inproc://monitor' if self.usethreads else self.monitor_url
         # IOPub relay (in a Process)
         q = mq(zmq.PUB, zmq.SUB, zmq.PUB, 'N/A','iopub')
         q.bind_in(self.client_info['iopub'])
         q.bind_out(self.engine_info['iopub'])
         q.setsockopt_out(zmq.SUBSCRIBE, '')
-        q.connect_mon(self.monitor_url)
+        q.connect_mon(maybe_inproc)
         q.daemon=True
         children.append(q)
 
@@ -75,7 +83,7 @@ class ControllerFactory(HubFactory):
         q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'in', 'out')
         q.bind_in(self.client_info['mux'])
         q.bind_out(self.engine_info['mux'])
-        q.connect_mon(self.monitor_url)
+        q.connect_mon(maybe_inproc)
         q.daemon=True
         children.append(q)
 
@@ -83,16 +91,17 @@ class ControllerFactory(HubFactory):
         q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'incontrol', 'outcontrol')
         q.bind_in(self.client_info['control'])
         q.bind_out(self.engine_info['control'])
-        q.connect_mon(self.monitor_url)
+        q.connect_mon(maybe_inproc)
         q.daemon=True
         children.append(q)
         # Task Queue (in a Process)
         if self.scheme == 'pure':
             self.log.warn("task::using pure XREQ Task scheduler")
             q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
+            q.setsockopt_out(zmq.HWM, self.hwm)
             q.bind_in(self.client_info['task'][1])
             q.bind_out(self.engine_info['task'])
-            q.connect_mon(self.monitor_url)
+            q.connect_mon(maybe_inproc)
             q.daemon=True
             children.append(q)
         elif self.scheme == 'none':
