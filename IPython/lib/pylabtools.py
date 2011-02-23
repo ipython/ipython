@@ -216,13 +216,23 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             from IPython.zmq.pylab.backend_inline import flush_svg
             from matplotlib import pyplot
             shell.register_post_execute(flush_svg)
-            # The typical default figure size is too large for inline use.  We
-            # might make this a user-configurable parameter later.
-            figsize(6.0, 4.0)
-            # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
-            pyplot.rcParams['font.size'] = 10
-            # 10pt still needs a little more room on the xlabel:
-            pyplot.rcParams['figure.subplot.bottom'] = .125
+            # The typical default figure size is too large for inline use,
+            # so we shrink the figure size to 6x4, and tweak fonts to
+            # make that fit.  This is configurable via Global.inline_rc,
+            # or rather it will be once the zmq kernel is hooked up to
+            # the config system.
+            
+            default_rc = {
+                'figure.figsize': (6.0,4.0),
+                # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
+                'font.size': 10,
+                # 10pt still needs a little more room on the xlabel:
+                'figure.subplot.bottom' : .125
+            }
+            rc = getattr(shell.config.Global, 'inline_rc', default_rc)
+            pyplot.rcParams.update(rc)
+            shell.config.Global.inline_rc = rc
+            
             # Add 'figsize' to pyplot and to the user's namespace
             user_ns['figsize'] = pyplot.figsize = figsize
             shell.user_ns_hidden['figsize'] = figsize
