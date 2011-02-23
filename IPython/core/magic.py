@@ -165,14 +165,15 @@ python-profiler package from non-free.""")
         out.sort()
         return out
     
-    def extract_input_slices(self,slices,raw=False):
+    def extract_input_lines(self, range_str, raw=False):
         """Return as a string a set of input history slices.
 
         Inputs:
 
-          - slices: the set of slices is given as a list of strings (like
-          ['1','4:8','9'], since this function is for use by magic functions
-          which get their arguments as strings.
+          - range_str: the set of slices is given as a string, like 
+          "~5#6-~4#2 4:8 9", since this function is for use by magic functions
+          which get their arguments as strings. The number before the # is the
+          session number: ~n goes n back from the current session.
 
         Optional inputs:
 
@@ -184,21 +185,9 @@ python-profiler package from non-free.""")
         N:M -> standard python form, means including items N...(M-1).
 
         N-M -> include items N..M (closed endpoint)."""
-        history_manager = self.shell.history_manager
-
-        cmds = []
-        for chunk in slices:
-            if ':' in chunk:
-                ini,fin = map(int,chunk.split(':'))
-            elif '-' in chunk:
-                ini,fin = map(int,chunk.split('-'))
-                fin += 1
-            else:
-                ini = int(chunk)
-                fin = ini+1
-            hist = history_manager.get_history((ini,fin), raw=raw, output=False)
-            cmds.append('\n'.join(hist[i] for i in sorted(hist.iterkeys())))
-        return cmds
+        lines = self.shell.history_manager.\
+                                    get_hist_from_rangestr(range_str, raw=raw)
+        return "\n".join(x for _, _, x in lines)
             
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
@@ -2036,11 +2025,11 @@ Currently the magic system has the following functions:\n"""
         if len(args) == 1:
             raise UsageError(
                 "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
-        name,ranges = args[0], args[1:]
+        name, ranges = args[0], " ".join(args[1:])
         
         #print 'rng',ranges  # dbg
-        lines = self.extract_input_slices(ranges,'r' in opts)
-        macro = Macro("\n".join(lines))
+        lines = self.extract_input_lines(ranges,'r' in opts)
+        macro = Macro(lines)
         self.shell.define_macro(name, macro)
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print 'Macro contents:'
@@ -2067,7 +2056,7 @@ Currently the magic system has the following functions:\n"""
         it asks for confirmation before overwriting existing files."""
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
-        fname,ranges = args[0], args[1:]
+        fname,ranges = args[0], " ".join(args[1:])
         if not fname.endswith('.py'):
             fname += '.py'
         if os.path.isfile(fname):
@@ -2075,7 +2064,7 @@ Currently the magic system has the following functions:\n"""
             if ans.lower() not in ['y','yes']:
                 print 'Operation cancelled.'
                 return
-        cmds = '\n'.join(self.extract_input_slices(ranges, 'r' in opts))
+        cmds = self.extract_input_lines(ranges, 'r' in opts)
         with open(fname,'w') as f:
             f.write(cmds)
         print 'The following commands were written to file `%s`:' % fname
@@ -2261,13 +2250,13 @@ Currently the magic system has the following functions:\n"""
 
         opts,args = self.parse_options(parameter_s,'prxn:')
         # Set a few locals from the options for convenience:
-        opts_p = opts.has_key('p')
-        opts_r = opts.has_key('r')
+        opts_prev = 'p' in opts
+        opts_raw = 'r' in opts
         
         # Default line number value
         lineno = opts.get('n',None)
 
-        if opts_p:
+        if opts_prev:
             args = '_%s' % last_call[0]
             if not self.shell.user_ns.has_key(args):
                 args = last_call[1]
@@ -2276,7 +2265,7 @@ Currently the magic system has the following functions:\n"""
         # let it be clobbered by successive '-p' calls.
         try:
             last_call[0] = self.shell.displayhook.prompt_count
-            if not opts_p:
+            if not opts_prev:
                 last_call[1] = parameter_s
         except:
             pass
@@ -2290,8 +2279,7 @@ Currently the magic system has the following functions:\n"""
             # Mode where user specifies ranges of lines, like in %macro.
             # This means that you can't edit files whose names begin with
             # numbers this way. Tough.
-            ranges = args.split()
-            data = '\n'.join(self.extract_input_slices(ranges,opts_r))
+            data = self.extract_input_lines(args, opts_raw)
         elif args.endswith('.py'):
             filename = make_filename(args)
             use_temp = False

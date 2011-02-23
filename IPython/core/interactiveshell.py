@@ -1551,7 +1551,7 @@ class InteractiveShell(Configurable, Magic):
             readline.set_history_length(self.history_length)
             
             # Load the last 1000 lines from history
-            for cell in self.history_manager.tail_db_history(1000):
+            for _, _, cell in self.history_manager.get_hist_tail(1000):
                 if cell.strip(): # Ignore blank lines
                     for line in cell.splitlines():
                         readline.add_history(line)

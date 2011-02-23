@@ -13,8 +13,8 @@
 from __future__ import print_function
 
 # Stdlib imports
-import fnmatch
 import os
+import re
 import sqlite3
 
 # Our own packages
@@ -122,47 +122,15 @@ class HistoryManager(Configurable):
         self.db.execute("""UPDATE singletons SET value=? WHERE
                         name='session_number'""", (self.session_number+1,))
         self.db.commit()
-                        
-    def get_db_history(self, session, start=1, stop=None, raw=True):
-        """Retrieve input history from the database by session.
-        
-        Parameters
-        ----------
-        session : int
-            Session number to retrieve. If negative, counts back from current
-            session (so -1 is previous session).
-        start : int
-            First line to retrieve.
-        stop : int
-            Last line to retrieve. If None, retrieve to the end of the session.
-        raw : bool
-            If True, return raw input
-            
-        Returns
-        -------
-        An iterator over the desired lines.
-        """
-        toget = 'source_raw' if raw else 'source'
-        if session < 0:
-            session += self.session_number
-        
-        if stop:
-            cur = self.db.execute("SELECT " + toget + """ FROM history WHERE
-                            session==? AND line BETWEEN ? and ?""",
-                            (session, start, stop))
-        else:
-            cur = self.db.execute("SELECT " + toget + """ FROM history WHERE
-                            session==? AND line>=?""", (session, start))
-        return (x[0] for x in cur)
                             
-    def tail_db_history(self, n=10, raw=True):
+    def get_hist_tail(self, n=10, raw=True):
         """Get the last n lines from the history database."""
         toget = 'source_raw' if raw else 'source'
-        cur = self.db.execute("SELECT " + toget + """ FROM history ORDER BY
-                            session DESC, line DESC LIMIT ?""", (n,))
-        return (x[0] for x in reversed(cur.fetchall()))
+        cur = self.db.execute("SELECT session, line, " + toget +\
+            " FROM history ORDER BY session DESC, line DESC LIMIT ?""", (n,))
+        return reversed(cur.fetchall())
         
-    def globsearch_db(self, pattern="*"):
+    def get_hist_search(self, pattern="*", raw=True):
         """Search the database using unix glob-style matching (wildcards * and
         ?, escape using \).
         
@@ -170,42 +138,14 @@ class HistoryManager(Configurable):
         -------
         An iterator over tuples: (session, line_number, command)
         """
-        return self.db.execute("""SELECT session, line, source_raw FROM history
-                                WHERE source_raw GLOB ?""", (pattern,))
-        
-    def get_history(self, start=1, stop=None, raw=False, output=True):
-        """Get the history list.
-
-        Get the input and output history.
-
-        Parameters
-        ----------
-        start : int
-            From (prompt number in the current session). Negative numbers count
-            back from the end.
-        stop : int
-            To (prompt number in the current session, exclusive). Negative
-            numbers count back from the end, and None goes to the end.
-        raw : bool
-            If True, return the raw input.
-        output : bool
-            If True, then return the output as well.
-        this_session : bool
-            If True, indexing is from 1 at the start of this session.
-            If False, indexing is from 1 at the start of the whole history.
-
-        Returns
-        -------
-        If output is True, then return a dict of tuples, keyed by the prompt
-        numbers and with values of (input, output). If output is False, then
-        a dict, keyed by the prompt number with the values of input.
-        """
-        if raw:
-            input_hist = self.input_hist_raw
-        else:
-            input_hist = self.input_hist_parsed
-        if output:
-            output_hist = self.output_hist
+        toget = "source_raw" if raw else source
+        return self.db.execute("SELECT session, line, " +toget+ \
+                        "FROM history WHERE" +toget+ "GLOB ?", (pattern,))
+                                
+    def _get_hist_session(self, start=1, stop=None, raw=True, output=False):
+        """Get input and output history from the current session. Called by
+        get_history, and takes similar parameters."""
+        input_hist = self.input_hist_raw if raw else self.input_hist_parsed
             
         n = len(input_hist)
         if start < 0:
@@ -215,13 +155,69 @@ class HistoryManager(Configurable):
         elif stop < 0:
             stop += n
         
-        hist = {}
         for i in range(start, stop):
             if output:
-                hist[i] = (input_hist[i], output_hist.get(i))
+                line = (input_hist[i], self.output_hist.get(i))
             else:
-                hist[i] = input_hist[i]
-        return hist
+                line = input_hist[i]
+            yield (0, i, line)
+            
+    def get_history(self, session=0, start=1, stop=None, raw=True,output=False):
+        """Retrieve input by session.
+        
+        Parameters
+        ----------
+        session : int
+            Session number to retrieve. The current session is 0, and negative
+            numbers count back from current session, so -1 is previous session.
+        start : int
+            First line to retrieve.
+        stop : int
+            Last line to retrieve. If None, retrieve to the end of the session.
+        raw : bool
+            If True, return untranslated input
+        output : bool
+            If True, attempt to include output. This will be 'real' Python
+            objects for the current session, or text reprs from previous
+            sessions if db_log_output was enabled at the time. Where no output
+            is found, None is used.
+            
+        Returns
+        -------
+        An iterator over the desired lines. Each line is a 3-tuple, either
+        (session, line, input) if output is False, or
+        (session, line, (input, output)) if output is True.
+        """
+        if session == 0 or session==self.session_number:   # Current session
+            return self._get_hist_session(start, stop, raw, output)
+        if session < 0:
+            session += self.session_number
+            
+        # Assemble the SQL query:
+        sqlfrom = "history"
+        toget = 'source_raw' if raw else 'source'
+        if output:
+            sqlfrom = "history LEFT JOIN output_history USING (session, line)"
+            toget = "history.%s, output_history.output" % toget
+        if stop:
+            lineclause = "line BETWEEN ? and ?"
+            params = (session, start, stop)
+        else:
+            lineclause = "line>=?"
+            params = (session, start)
+        
+        cur = self.db.execute("SELECT %s FROM %s WHERE session==? AND %s"\
+                                %(toget, sqlfrom, lineclause), params)
+        if output:     # Regroup into 3-tuples
+            return ((ses, lin (inp, out)) for ses, lin, inp, out in cur)
+        return cur
+        
+    def get_hist_from_rangestr(self, rangestr, raw=True, output=False):
+        """Get lines of history from a string of ranges, as used by magic
+        commands %hist, %save, %macro, etc."""
+        for parts in extract_hist_ranges(rangestr):
+            for line in self.get_history(*parts, raw=raw, output=output):
+                yield line
 
     def store_inputs(self, line_num, source, source_raw=None):
         """Store source and raw input in history and create input cache
@@ -304,6 +300,52 @@ class HistoryManager(Configurable):
         self.output_hist.clear()
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
+        
+# To match, e.g. ~5#8-~2#3
+range_re = re.compile(r"""
+((?P<startsess>~?\d+)\#)?
+(?P<start>\d+)                    # Only the start line num is compulsory
+((?P<sep>[\-:])
+ ((?P<endsess>~?\d+)\#)?
+ (?P<end>\d+))?
+""", re.VERBOSE)
+
+def extract_hist_ranges(ranges_str):
+    """Turn a string of history ranges into 3-tuples of (session, start, stop).
+    
+    Examples
+    --------
+    list(extract_input_ranges("~8#5-~7#4 2"))
+    [(-8, 5, None), (-7, 1, 4), (0, 2, 3)]
+    """
+    print(ranges_str)
+    for range_str in ranges_str.split():
+        rmatch = range_re.match(range_str)
+        start = int(rmatch.group("start"))
+        end = rmatch.group("end")
+        end = int(end) if end else start+1   # If no end specified, get (a, a+1)
+        if rmatch.group("sep") == "-":       # 1-3 == 1:4 --> [1, 2, 3]
+            end += 1
+        startsess = rmatch.group("startsess") or "0"
+        endsess = rmatch.group("endsess") or startsess
+        startsess = int(startsess.replace("~","-"))
+        endsess = int(endsess.replace("~","-"))
+        assert endsess >= startsess
+
+        if endsess == startsess:
+            yield (startsess, start, end)
+            continue
+        # Multiple sessions in one range:
+        yield (startsess, start, None)
+        for sess in range(startsess+1, endsess):
+            yield (sess, 1, None)
+        yield (endsess, 1, end)
+
+def _format_lineno(session, line):
+    """Helper function to format line numbers properly."""
+    if session == 0:
+        return str(line)
+    return "%s#%s" % (session, line)
 
 @testdec.skip_doctest
 def magic_history(self, parameter_s = ''):
@@ -343,6 +385,9 @@ def magic_history(self, parameter_s = ''):
       -g: treat the arg as a pattern to grep for in (full) history.
       This includes the saved history (almost all commands ever written).
       Use '%hist -g' to show full saved history (may be very long).
+      
+      -l: get the last n lines from all sessions. Specify n as a single arg, or
+      the default is the last 10 lines.
 
       -f FILENAME: instead of printing the output to the screen, redirect it to
        the given file.  The file is always overwritten, though IPython asks for
@@ -361,7 +406,7 @@ def magic_history(self, parameter_s = ''):
     if not self.shell.displayhook.do_full_cache:
         print('This feature is only available if numbered prompts are in use.')
         return
-    opts,args = self.parse_options(parameter_s,'gnoptsrf:',mode='list')
+    opts,args = self.parse_options(parameter_s,'noprtglf:',mode='string')
     
     # For brevity
     history_manager = self.shell.history_manager
@@ -383,53 +428,52 @@ def magic_history(self, parameter_s = ''):
         close_at_end = True
     
     print_nums = 'n' in opts
-    print_outputs = 'o' in opts
+    get_output = 'o' in opts
     pyprompts = 'p' in opts
     # Raw history is the default
     raw = not('t' in opts)
             
     default_length = 40
     pattern = None
+    
+    # Glob search:
     if 'g' in opts:
-        start = 1; stop = None
-        parts = parameter_s.split(None, 1)
-        if len(parts) == 1:
-            parts += '*'
-        head, pattern = parts
-        pattern = "*" + pattern + "*"
-    elif len(args) == 0:
-        start = 1; stop = None
-    elif len(args) == 1:
-        start = -int(args[0]); stop=None
-    elif len(args) == 2:
-        start = int(args[0]); stop = int(args[1])
-    else:
-        warn('%hist takes 0, 1 or 2 arguments separated by spaces.')
-        print(self.magic_hist.__doc__, file=IPython.utils.io.Term.cout)
-        return
+        pattern = "*" + args + "*" if args else "*"
         
-    hist = history_manager.get_history(start, stop, raw, print_outputs)
-    
-    width = len(str(max(hist.iterkeys())))
-    line_sep = ['','\n']
-    
-    found = False
-    if pattern is not None:
-        for session, line, s in history_manager.globsearch_db(pattern):
+        # Display:
+        matches_current_session = []
+        for session, line, s in history_manager.get_hist_search(pattern, raw):
+            if session == history_manager.session_number:
+                matches_current_session.append(line, s)
+                continue
             print("%d#%d: %s" %(session, line, s.expandtabs(4)), file=outfile)
-            found = True
+        if matches_current_session:
+            print("=== Current session: ===", file=outfile)
+            for line, s in matches_current_session:
+                print("%d: %s" %(line, s.expandtabs(4)), file=outfile)
+        return
     
-    if found:
-        print("===", file=outfile)
-        print("shadow history ends, fetch by %rep session#line",
-              file=outfile)
-        print("=== start of normal history ===", file=outfile)
+    if 'l' in opts:         # Get 'tail'
+        try:
+            n = int(args)
+        except ValueError, IndexError:
+            n = 10
+        hist = history_manager.get_hist_tail(n, raw=raw)
+    else:
+        if args:            # Get history by ranges
+            hist = history_manager.get_hist_from_rangestr(args, raw, get_output)
+        else:               # Just get history for the current session
+            hist = history_manager.get_history(raw=raw, output=get_output)
+    # Pull hist into a list, so we can get the widest number in it.
+    hist = list(hist)
+    
+    width = max(len(_format_lineno(s, l)) for s, l, _ in hist)
         
-    for in_num, inline in sorted(hist.iteritems()):
+    for session, lineno, inline in hist:
         # Print user history with tabs expanded to 4 spaces.  The GUI clients
         # use hard tabs for easier usability in auto-indented code, but we want
         # to produce PEP-8 compliant history for safe pasting into an editor.
-        if print_outputs:
+        if get_output:
             inline, output = inline
         inline = inline.expandtabs(4).rstrip()
 
@@ -437,15 +481,16 @@ def magic_history(self, parameter_s = ''):
             continue
             
         multiline = "\n" in inline
+        line_sep = '\n' if multiline else ''
         if print_nums:
-            print('%s:%s' % (str(in_num).ljust(width), line_sep[multiline]),
-                  file=outfile, end='')
+            print('%s:%s' % (_format_lineno(session, lineno).ljust(width),
+                    line_sep[multiline]),  file=outfile, end='')
         if pyprompts:
             print(">>> ", end="", file=outfile)
             if multiline:
                 inline = "\n... ".join(inline.splitlines()) + "\n..."
         print(inline, file=outfile)
-        if print_outputs and output:
+        if get_output and output:
             print(repr(output), file=outfile)
 
     if close_at_end:
