@@ -117,7 +117,7 @@ controller creates a number of FURLs for different purposes:
   to execute.
 
 Upon starting, the controller creates these different FURLS and writes them
-files in the user-read-only directory :file:`$HOME/.ipython/security`. Thus,
+files in the user-read-only directory :file:`$IPYTHON_DIR/cluster_default/security`. Thus,
 only the user who starts the controller has access to the FURLs.
 
 For an IPython client or engine to authenticate with a controller, it must

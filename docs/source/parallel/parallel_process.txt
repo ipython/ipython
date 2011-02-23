@@ -40,14 +40,14 @@ hosts ``host1``-``hostn``. The following steps are then required:
 
 At this point, the controller and engines will be connected. By default, the
 FURL files created by the controller are put into the
-:file:`~/.ipython/security` directory. If the engines share a filesystem with
+:file:`$IPYTHON_DIR/cluster_<profile>/security` directory. If the engines share a filesystem with
 the controller, step 2 can be skipped as the engines will automatically look
 at that location.
 
 The final step required required to actually use the running controller from a
 client is to move the FURL files :file:`ipcontroller-mec.furl` and
 :file:`ipcontroller-tc.furl` from ``host0`` to the host where the clients will
-be run. If these file are put into the :file:`~/.ipython/security` directory
+be run. If these file are put into the :file:`$IPYTHON_DIR/cluster_<profile>/security` directory
 of the client's host, they will be found automatically. Otherwise, the full
 path to them has to be passed to the client's constructor.
 
@@ -74,7 +74,7 @@ controller and engines in the following situations:
 .. note::
 
     Currently :command:`ipcluster` requires that the
-    :file:`~/.ipython/security` directory live on a shared filesystem that is
+    :file:`$IPYTHON_DIR/cluster_<profile>/security` directory live on a shared filesystem that is
     seen by both the controller and engines. If you don't have a shared file
     system you will need to use :command:`ipcontroller` and
     :command:`ipengine` directly.  This constraint can be relaxed if you are 
@@ -289,7 +289,7 @@ the command::
 	$ ipengine
 
 The engines should start and automatically connect to the controller using the
-FURL files in :file:`~./ipython/security`. You are now ready to use the
+FURL files in :file:`$IPYTHON_DIR/cluster_<profile>/security`. You are now ready to use the
 controller and engines from IPython.
 
 .. warning:: 
@@ -312,7 +312,7 @@ When the controller and engines are running on different hosts, things are
 slightly more complicated, but the underlying ideas are the same:
 
 1. Start the controller on a host using :command:`ipcontroller`.
-2. Copy :file:`ipcontroller-engine.furl` from :file:`~./ipython/security` on
+2. Copy :file:`ipcontroller-engine.furl` from :file:`$IPYTHON_DIR/cluster_<profile>/security` on
    the controller's host to the host where the engines will run.
 3. Use :command:`ipengine` on the engine's hosts to start the engines.
 
@@ -320,7 +320,7 @@ The only thing you have to be careful of is to tell :command:`ipengine` where
 the :file:`ipcontroller-engine.furl` file is located. There are two ways you
 can do this:
 
-* Put :file:`ipcontroller-engine.furl` in the :file:`~./ipython/security`
+* Put :file:`ipcontroller-engine.furl` in the :file:`$IPYTHON_DIR/cluster_<profile>/security`
   directory on the engine's host, where it will be found automatically.
 * Call :command:`ipengine` with the ``--furl-file=full_path_to_the_file``
   flag.
@@ -332,7 +332,7 @@ The ``--furl-file`` flag works like this::
 .. note::
     
     If the controller's and engine's hosts all have a shared file system  
-    (:file:`~./ipython/security` is the same on all of them), then things
+    (:file:`$IPYTHON_DIR/cluster_<profile>/security` is the same on all of them), then things
     will just work!
 
 Make FURL files persistent
@@ -346,7 +346,7 @@ to be able to create the key (or FURL file) once, and then simply use it at
 any point in the future.
 
 This is possible, but before you do this, you **must** remove any old FURL
-files in the :file:`~/.ipython/security` directory.
+files in the :file:`$IPYTHON_DIR/cluster_<profile>/security` directory.
 
 .. warning::
 
@@ -379,7 +379,7 @@ Log files
 
 All of the components of IPython have log files associated with them.
 These log files can be extremely useful in debugging problems with
-IPython and can be found in the directory :file:`~/.ipython/log`.  Sending
+IPython and can be found in the directory :file:`$IPYTHON_DIR/cluster_<profile>/log`.  Sending
 the log files to us will often help us to debug any problems.
 
 
