@@ -218,7 +218,7 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             shell.register_post_execute(flush_svg)
             # The typical default figure size is too large for inline use,
             # so we shrink the figure size to 6x4, and tweak fonts to
-            # make that fit.  This is configurable via Global.inline_rc,
+            # make that fit.  This is configurable via Global.pylab_inline_rc,
             # or rather it will be once the zmq kernel is hooked up to
             # the config system.
             
@@ -229,9 +229,9 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
                 # 10pt still needs a little more room on the xlabel:
                 'figure.subplot.bottom' : .125
             }
-            rc = getattr(shell.config.Global, 'inline_rc', default_rc)
+            rc = getattr(shell.config.Global, 'pylab_inline_rc', default_rc)
             pyplot.rcParams.update(rc)
-            shell.config.Global.inline_rc = rc
+            shell.config.Global.pylab_inline_rc = rc
             
             # Add 'figsize' to pyplot and to the user's namespace
             user_ns['figsize'] = pyplot.figsize = figsize
