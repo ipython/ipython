@@ -15,12 +15,11 @@ The ipcluster application.
 # Imports
 #-----------------------------------------------------------------------------
 
-import re
+import errno
 import logging
 import os
+import re
 import signal
-import logging
-import errno
 
 import zmq
 from zmq.eventloop import ioloop

@@ -11,12 +11,13 @@
 #-----------------------------------------------------------------------------
 
 import os
+import json
 import time
+import warnings
+from datetime import datetime
 from getpass import getpass
 from pprint import pprint
-from datetime import datetime
-import warnings
-import json
+
 pjoin = os.path.join
 
 import zmq
@@ -26,16 +27,15 @@ from IPython.utils.path import get_ipython_dir
 from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
-import streamsession as ss
-from clusterdir import ClusterDir, ClusterDirError
-# from remotenamespace import RemoteNamespace
-from view import DirectView, LoadBalancedView
-from dependency import Dependency, depend, require, dependent
 import error
 import map as Map
+import streamsession as ss
 from asyncresult import AsyncResult, AsyncMapResult
+from clusterdir import ClusterDir, ClusterDirError
+from dependency import Dependency, depend, require, dependent
 from remotefunction import remote,parallel,ParallelFunction,RemoteFunction
 from util import ReverseDict, disambiguate_url, validate_url
+from view import DirectView, LoadBalancedView
 
 #--------------------------------------------------------------------------
 # helpers for implementing old MEC API via client.apply

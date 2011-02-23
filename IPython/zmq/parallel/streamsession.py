@@ -4,11 +4,18 @@
 
 
 import os
+import pprint
 import sys
 import traceback
-import pprint
 import uuid
 from datetime import datetime
+
+try:
+    import cPickle
+    pickle = cPickle
+except:
+    cPickle = None
+    import pickle
 
 import zmq
 from zmq.utils import jsonapi
@@ -18,13 +25,6 @@ from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
 from IPython.utils.newserialized import serialize, unserialize
 
 from IPython.zmq.parallel.error import RemoteError
-
-try:
-    import cPickle
-    pickle = cPickle
-except:
-    cPickle = None
-    import pickle
 
 # packer priority: jsonlib[2], cPickle, simplejson/json, pickle
 json_name = '' if not jsonapi.jsonmod else jsonapi.jsonmod.__name__

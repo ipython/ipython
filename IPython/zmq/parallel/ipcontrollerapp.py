@@ -18,12 +18,11 @@ The IPython controller application.
 from __future__ import with_statement
 
 import copy
-import sys
 import os
 import logging
-import stat
 import socket
-
+import stat
+import sys
 import uuid
 
 import zmq

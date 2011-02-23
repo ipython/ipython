@@ -10,15 +10,17 @@ Kernel adapted from kernel.py to use ZMQ Streams
 # Standard library imports.
 from __future__ import print_function
 import __builtin__
-from code import CommandCompiler
+
+import logging
 import os
 import sys
 import time
 import traceback
-import logging
+
+from code import CommandCompiler
 from datetime import datetime
-from signal import SIGTERM, SIGKILL
 from pprint import pprint
+from signal import SIGTERM, SIGKILL
 
 # System library imports.
 import zmq
@@ -31,11 +33,11 @@ from IPython.zmq.completer import KernelCompleter
 from IPython.zmq.iostream import OutStream
 from IPython.zmq.displayhook import DisplayHook
 
+import heartmonitor
+from client import Client
 from factory import SessionFactory
 from streamsession import StreamSession, Message, extract_header, serialize_object,\
                 unpack_apply_message, ISO8601, wrap_exception
-import heartmonitor
-from client import Client
 
 def printer(*args):
     pprint(args, stream=sys.__stdout__)

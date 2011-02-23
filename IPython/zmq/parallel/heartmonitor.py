@@ -6,8 +6,8 @@ and hearts are tracked based on their XREQ identities.
 
 from __future__ import print_function
 import time
-import uuid
 import logging
+import uuid
 
 import zmq
 from zmq.devices import ProcessDevice,ThreadDevice

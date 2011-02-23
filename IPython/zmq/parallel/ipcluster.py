@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import sys,os
+
+import os
+import sys
 import time
 from subprocess import Popen, PIPE
 

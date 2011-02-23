@@ -7,14 +7,14 @@ NOTE: Most of this module has been deprecated by moving to Configurables
 """
 
 # Standard library imports.
-import logging
 import atexit
-import sys
+import logging
 import os
 import stat
 import socket
-from subprocess import Popen, PIPE
+import sys
 from signal import signal, SIGINT, SIGABRT, SIGTERM
+from subprocess import Popen, PIPE
 try:
     from signal import SIGKILL
 except ImportError:

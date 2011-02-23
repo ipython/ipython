@@ -12,19 +12,18 @@
 #-----------------------------------------------------------------------------
 
 
-import os
 import logging
-
+import os
 import uuid
 
 from zmq.eventloop.ioloop import IOLoop
 
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Str,Int,Instance, CUnicode, CStr
 from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import Str,Int,Instance, CUnicode, CStr
 
-from IPython.zmq.parallel.entry_point import select_random_ports
 import IPython.zmq.parallel.streamsession as ss
+from IPython.zmq.parallel.entry_point import select_random_ports
 
 #-----------------------------------------------------------------------------
 # Classes

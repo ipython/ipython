@@ -15,10 +15,10 @@ Facilities for launching IPython processes asynchronously.
 # Imports
 #-----------------------------------------------------------------------------
 
+import logging
 import os
 import re
 import sys
-import logging
 
 from signal import SIGINT, SIGTERM
 try:

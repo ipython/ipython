@@ -4,10 +4,11 @@ it handles registration, etc. and launches a kernel
 connected to the Controller's queue(s).
 """
 from __future__ import print_function
+
+import logging
 import sys
 import time
 import uuid
-import logging
 from pprint import pprint
 
 import zmq
@@ -18,12 +19,11 @@ from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance, Str, Dict, Int, Type, CFloat
 # from IPython.utils.localinterfaces import LOCALHOST 
 
-from factory import RegistrationFactory
-from util import disambiguate_url
-
-from streamsession import Message
-from streamkernel import Kernel
 import heartmonitor
+from factory import RegistrationFactory
+from streamkernel import Kernel
+from streamsession import Message
+from util import disambiguate_url
 
 def printer(*msg):
     # print (self.log.handlers, file=sys.__stdout__)

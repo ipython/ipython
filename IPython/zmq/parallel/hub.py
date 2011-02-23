@@ -15,10 +15,10 @@ and monitors traffic through the various queues.
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-import sys
-from datetime import datetime
-import time
 import logging
+import sys
+import time
+from datetime import datetime
 
 import zmq
 from zmq.eventloop import ioloop
@@ -26,14 +26,14 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
 from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
 
 from entry_point import select_random_ports
 from factory import RegistrationFactory, LoggingFactory
 
-from streamsession import Message, wrap_exception, ISO8601
 from heartmonitor import HeartMonitor
+from streamsession import Message, wrap_exception, ISO8601
 from util import validate_url_container
 
 try:

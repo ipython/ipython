@@ -17,16 +17,16 @@ The IPython cluster directory
 
 from __future__ import with_statement
 
-import re
 import os
+import logging
+import re
 import shutil
 import sys
-import logging
 import warnings
 
 from IPython.config.loader import PyFileConfigLoader
-from IPython.core.application import Application, BaseAppConfigLoader
 from IPython.config.configurable import Configurable
+from IPython.core.application import Application, BaseAppConfigLoader
 from IPython.core.crashhandler import CrashHandler
 from IPython.core import release
 from IPython.utils.path import (

@@ -15,9 +15,9 @@ The IPython engine application
 # Imports
 #-----------------------------------------------------------------------------
 
+import json
 import os
 import sys
-import json
 
 import zmq
 from zmq.eventloop import ioloop

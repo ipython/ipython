@@ -10,11 +10,14 @@ Python Scheduler exists.
 #----------------------------------------------------------------------
 
 from __future__ import print_function
-import sys
+
 import logging
+import sys
+
+from datetime import datetime, timedelta
 from random import randint, random
 from types import FunctionType
-from datetime import datetime, timedelta
+
 try:
     import numpy
 except ImportError:
@@ -25,13 +28,11 @@ from zmq.eventloop import ioloop, zmqstream
 
 # local imports
 from IPython.external.decorator import decorator
-# from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance, Dict, List, Set
 
 import error
-# from client import Client
-from dependency import Dependency
 import streamsession as ss
+from dependency import Dependency
 from entry_point import connect_logger, local_logger
 from factory import SessionFactory
 

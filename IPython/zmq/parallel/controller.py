@@ -24,10 +24,8 @@ from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Int, Str, Instance, List, Bool
 
 from entry_point import signal_children
-
-
-from scheduler import launch_scheduler
 from hub import Hub, HubFactory
+from scheduler import launch_scheduler
 
 #-----------------------------------------------------------------------------
 # Configurable

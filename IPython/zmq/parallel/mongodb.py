@@ -11,9 +11,11 @@ from datetime import datetime
 from pymongo import Connection
 
 from dictdb import BaseDB
-#----------------------
+
+#-----------------------------------------------------------------------------
 # MongoDB class
-#----------------------
+#-----------------------------------------------------------------------------
+
 class MongoDB(BaseDB):
     """MongoDB TaskRecord backend."""
     def __init__(self, session_uuid, *args, **kwargs):
@@ -21,7 +23,6 @@ class MongoDB(BaseDB):
         self._db = self._connection[session_uuid]
         self._records = self._db['task_records']
         self._table = {}
-    
     
     def add_record(self, msg_id, rec):
         """Add a new Task Record, by msg_id."""
