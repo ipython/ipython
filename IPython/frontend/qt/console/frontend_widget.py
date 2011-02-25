@@ -143,8 +143,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         document = self._control.document()
         document.contentsChange.connect(self._document_contents_change)
         
-        # set flag for whether we are connected via localhost
-        self._local_kernel = kw.get('local_kernel', FrontendWidget._local_kernel)
+        # Set flag for whether we are connected via localhost.
+        self._local_kernel = kw.get('local_kernel', 
+                                    FrontendWidget._local_kernel)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
@@ -192,6 +193,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
+        # Flush all state from the input splitter so the next round of
+        # reading input starts with a clean buffer.
+        self._input_splitter.reset()
+
         if not self._reading:
             self._highlighter.highlighting_on = False
 
@@ -383,7 +388,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 title = self.window().windowTitle()
                 if not msg['content']['restart']:
                     reply = QtGui.QMessageBox.question(self, title,
-                        "Kernel has been shutdown permanently. Close the Console?",
+                        "Kernel has been shutdown permanently. "
+                        "Close the Console?",
                         QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
                         sys.exit(0)

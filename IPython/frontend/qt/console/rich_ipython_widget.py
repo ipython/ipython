@@ -30,8 +30,12 @@ class RichIPythonWidget(IPythonWidget):
         """
         kw['kind'] = 'rich'
         super(RichIPythonWidget, self).__init__(*args, **kw)
-        # Dictionary for resolving Qt names to images when
-        # generating XHTML output
+
+        # Configure the ConsoleWidget HTML exporter for our formats.
+        self._html_exporter.image_tag = self._get_image_tag
+
+        # Dictionary for resolving Qt names to images when generating XHTML
+        # output
         self._name_to_svg = {}
 
     #---------------------------------------------------------------------------
@@ -194,51 +198,35 @@ class RichIPythonWidget(IPythonWidget):
                                     QtCore.QUrl(name))
         return variant.toPyObject()
 
-    def _save_image(self, name, format='PNG'):
-        """ Shows a save dialog for the ImageResource with 'name'.
-        """
-        dialog = QtGui.QFileDialog(self._control, 'Save Image')
-        dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
-        dialog.setDefaultSuffix(format.lower())
-        dialog.setNameFilter('%s file (*.%s)' % (format, format.lower()))
-        if dialog.exec_():
-            filename = dialog.selectedFiles()[0]
-            image = self._get_image(name)
-            image.save(filename, format)
-
-    def image_tag(self, match, path = None, format = "png"):
+    def _get_image_tag(self, match, path = None, format = "png"):
         """ Return (X)HTML mark-up for the image-tag given by match.
 
         Parameters
         ----------
-        match : re.SRE_Match 
+        match : re.SRE_Match
             A match to an HTML image tag as exported by Qt, with
             match.group("Name") containing the matched image ID.
 
         path : string|None, optional [default None]
-            If not None, specifies a path to which supporting files
-            may be written (e.g., for linked images).
-            If None, all images are to be included inline.
+            If not None, specifies a path to which supporting files may be
+            written (e.g., for linked images).  If None, all images are to be
+            included inline.
 
         format : "png"|"svg", optional [default "png"]
             Format for returned or referenced images.
-
-        Subclasses supporting image display should override this
-        method.
         """
-
-        if(format == "png"):
+        if format == "png":
             try:
                 image = self._get_image(match.group("name"))
             except KeyError:
                 return "<b>Couldn't find image %s</b>" % match.group("name")
 
-            if(path is not None):
+            if path is not None:
                 if not os.path.exists(path):
                     os.mkdir(path)
                 relpath = os.path.basename(path)
-                if(image.save("%s/qt_img%s.png" % (path,match.group("name")),
-                              "PNG")):
+                if image.save("%s/qt_img%s.png" % (path,match.group("name")),
+                              "PNG"):
                     return '<img src="%s/qt_img%s.png">' % (relpath,
                                                             match.group("name"))
                 else:
@@ -252,7 +240,7 @@ class RichIPythonWidget(IPythonWidget):
                 return '<img src="data:image/png;base64,\n%s\n" />' % (
                     re.sub(r'(.{60})',r'\1\n',str(ba.toBase64())))
 
-        elif(format == "svg"):
+        elif format == "svg":
             try:
                 svg = str(self._name_to_svg[match.group("name")])
             except KeyError:
@@ -271,3 +259,14 @@ class RichIPythonWidget(IPythonWidget):
         else:
             return '<b>Unrecognized image format</b>'
 
+    def _save_image(self, name, format='PNG'):
+        """ Shows a save dialog for the ImageResource with 'name'.
+        """
+        dialog = QtGui.QFileDialog(self._control, 'Save Image')
+        dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
+        dialog.setDefaultSuffix(format.lower())
+        dialog.setNameFilter('%s file (*.%s)' % (format, format.lower()))
+        if dialog.exec_():
+            filename = dialog.selectedFiles()[0]
+            image = self._get_image(name)
+            image.save(filename, format)

@@ -17,6 +17,7 @@ from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.config.configurable import Configurable
+from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.traitlets import Bool, Enum, Int
 from ansi_code_processor import QtAnsiCodeProcessor
@@ -170,6 +171,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._executing = False
         self._filter_drag = False
         self._filter_resize = False
+        self._html_exporter = HtmlExporter(self._control)
         self._prompt = ''
         self._prompt_html = None
         self._prompt_pos = 0
@@ -178,8 +180,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._reading_callback = None
         self._tab_width = 8
         self._text_completing_pos = 0
-        self._filename = 'ipython.html'
-        self._png_mode=None
 
         # Set a monospaced font.
         self.reset_font()
@@ -190,7 +190,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         printkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
         if printkey.matches("Ctrl+P") and sys.platform != 'darwin':
             # Only override the default if there is a collision.
-            # Qt ctrl = cmd on OSX, so the match gets a false positive on darwin.
+            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
             printkey = "Ctrl+Shift+P"
         action.setShortcut(printkey)
         action.triggered.connect(self.print_)
@@ -198,9 +198,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._print_action = action
 
         action = QtGui.QAction('Save as HTML/XML', None)
-        action.setEnabled(self.can_export())
         action.setShortcut(QtGui.QKeySequence.Save)
-        action.triggered.connect(self.export)
+        action.triggered.connect(self._html_exporter.export)
         self.addAction(action)
         self._export_action = action
         
@@ -210,7 +209,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         action.triggered.connect(self.select_all)
         self.addAction(action)
         self._select_all_action = action
-        
 
     def eventFilter(self, obj, event):
         """ Reimplemented to ensure a console-like behavior in the underlying
@@ -347,12 +345,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
             return bool(QtGui.QApplication.clipboard().text())
         return False
-
-    def can_export(self):
-        """Returns whether we can export. Currently only rich widgets
-        can export html.
-        """
-        return self.kind == "rich"
 
     def clear(self, keep_input=True):
         """ Clear the console. 
@@ -560,194 +552,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             if(QtGui.QPrintDialog(printer).exec_() != QtGui.QDialog.Accepted):
                 return
         self._control.print_(printer)
-
-    def export(self, parent = None):
-        """Export HTML/XML in various modes from one Dialog."""
-        parent = parent or None # sometimes parent is False
-        dialog = QtGui.QFileDialog(parent, 'Save Console as...')
-        dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
-        filters = [
-            'HTML with PNG figures (*.html *.htm)',
-            'XHTML with inline SVG figures (*.xhtml *.xml)'
-        ]
-        dialog.setNameFilters(filters)
-        if self._filename:
-            dialog.selectFile(self._filename)
-            root,ext = os.path.splitext(self._filename)
-            if ext.lower() in ('.xml', '.xhtml'):
-                dialog.selectNameFilter(filters[-1])
-        if dialog.exec_():
-            filename = str(dialog.selectedFiles()[0])
-            self._filename = filename
-            choice = str(dialog.selectedNameFilter())
-
-            if choice.startswith('XHTML'):
-                exporter = self.export_xhtml
-            else:
-                exporter = self.export_html
-
-            try:
-                return exporter(filename)
-            except Exception, e:
-                title = self.window().windowTitle()
-                msg = "Error while saving to: %s\n"%filename+str(e)
-                reply = QtGui.QMessageBox.warning(self, title, msg,
-                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-        return None
-
-    def export_html(self, filename):
-        """ Export the contents of the ConsoleWidget as HTML.
-
-        Parameters:
-        -----------
-        filename : str
-            The file to be saved.
-        inline : bool, optional [default True]
-            If True, include images as inline PNGs.  Otherwise,
-            include them as links to external PNG files, mimicking
-            web browsers' "Web Page, Complete" behavior.
-        """
-        # N.B. this is overly restrictive, but Qt's output is
-        # predictable...
-        img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
-        html = self.fix_html_encoding(
-            str(self._control.toHtml().toUtf8()))
-        if self._png_mode:
-            # preference saved, don't ask again
-            if img_re.search(html):
-                inline = (self._png_mode == 'inline')
-            else:
-                inline = True
-        elif img_re.search(html):
-            # there are images
-            widget = QtGui.QWidget()
-            layout = QtGui.QVBoxLayout(widget)
-            title = self.window().windowTitle()
-            msg = "Exporting HTML with PNGs"
-            info = "Would you like inline PNGs (single large html file) or "+\
-            "external image files?"
-            checkbox = QtGui.QCheckBox("&Don't ask again")
-            checkbox.setShortcut('D')
-            ib = QtGui.QPushButton("&Inline", self)
-            ib.setShortcut('I')
-            eb = QtGui.QPushButton("&External", self)
-            eb.setShortcut('E')
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Question, title, msg)
-            box.setInformativeText(info)
-            box.addButton(ib,QtGui.QMessageBox.NoRole)
-            box.addButton(eb,QtGui.QMessageBox.YesRole)
-            box.setDefaultButton(ib)
-            layout.setSpacing(0)
-            layout.addWidget(box)
-            layout.addWidget(checkbox)
-            widget.setLayout(layout)
-            widget.show()
-            reply = box.exec_()
-            inline = (reply == 0)
-            if checkbox.checkState():
-                # don't ask anymore, always use this choice
-                if inline:
-                    self._png_mode='inline'
-                else:
-                    self._png_mode='external'
-        else:
-            # no images
-            inline = True
-
-        if inline:
-            path = None
-        else:
-            root,ext = os.path.splitext(filename)
-            path = root+"_files"
-            if os.path.isfile(path):
-                raise OSError("%s exists, but is not a directory."%path)
-
-        f = open(filename, 'w')
-        try:
-            f.write(img_re.sub(
-                lambda x: self.image_tag(x, path = path, format = "png"),
-                html))
-        except Exception, e:
-            f.close()
-            raise e
-        else:
-            f.close()
-        return filename
-
-
-    def export_xhtml(self, filename):
-        """ Export the contents of the ConsoleWidget as XHTML with inline SVGs.
-        """
-        f = open(filename, 'w')
-        try:
-            # N.B. this is overly restrictive, but Qt's output is
-            # predictable...
-            img_re = re.compile(r'<img src="(?P<name>[\d]+)" />')
-            html = str(self._control.toHtml().toUtf8())
-            # Hack to make xhtml header -- note that we are not doing
-            # any check for valid xml
-            offset = html.find("<html>")
-            assert(offset > -1)
-            html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
-                    html[offset+6:])
-            # And now declare UTF-8 encoding
-            html = self.fix_html_encoding(html)
-            f.write(img_re.sub(
-                lambda x: self.image_tag(x, path = None, format = "svg"),
-                html))
-        except Exception, e:
-            f.close()
-            raise e
-        else:
-            f.close()
-        return filename
-
-    def fix_html_encoding(self, html):
-        """ Return html string, with a UTF-8 declaration added to <HEAD>.
-
-        Assumes that html is Qt generated and has already been UTF-8 encoded
-        and coerced to a python string.  If the expected head element is
-        not found, the given object is returned unmodified.
-
-        This patching is needed for proper rendering of some characters
-        (e.g., indented commands) when viewing exported HTML on a local
-        system (i.e., without seeing an encoding declaration in an HTTP
-        header).
-
-        C.f. http://www.w3.org/International/O-charset for details.
-        """
-        offset = html.find("<head>")
-        if(offset > -1):
-            html = (html[:offset+6]+
-                    '\n<meta http-equiv="Content-Type" '+
-                    'content="text/html; charset=utf-8" />\n'+
-                    html[offset+6:])
-
-        return html
-
-    def image_tag(self, match, path = None, format = "png"):
-        """ Return (X)HTML mark-up for the image-tag given by match.
-
-        Parameters
-        ----------
-        match : re.SRE_Match 
-            A match to an HTML image tag as exported by Qt, with
-            match.group("Name") containing the matched image ID.
-
-        path : string|None, optional [default None]
-            If not None, specifies a path to which supporting files
-            may be written (e.g., for linked images).
-            If None, all images are to be included inline.
-
-        format : "png"|"svg", optional [default "png"]
-            Format for returned or referenced images.
-
-        Subclasses supporting image display should override this
-        method.
-        """
-
-        # Default case -- not enough information to generate tag
-        return ""
 
     def prompt_to_top(self):
         """ Moves the prompt to the top of the viewport.
@@ -1722,10 +1526,6 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
-        # Flush all state from the input splitter so the next round of
-        # reading input starts with a clean buffer.
-        self._input_splitter.reset()
-
         self._control.setReadOnly(True)
         self._prompt_finished_hook()
 
@@ -1882,6 +1682,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         diff = maximum - scrollbar.maximum()
         scrollbar.setRange(0, maximum)
         scrollbar.setPageStep(step)
+
         # Compensate for undesirable scrolling that occurs automatically due to
         # maximumBlockCount() text truncation.
         if diff < 0 and document.blockCount() == document.maximumBlockCount():
