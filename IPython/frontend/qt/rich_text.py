@@ -17,6 +17,9 @@ from IPython.external.qt import QtGui
 # Constants
 #-----------------------------------------------------------------------------
 
+# A regular expression for an HTML paragraph with no content.
+EMPTY_P_RE = re.compile(r'<p[^/>]*>\s*</p>')
+
 # A regular expression for matching images in rich text HTML.
 # Note that this is overly restrictive, but Qt's output is predictable...
 IMG_RE = re.compile(r'<img src="(?P<name>[\d]+)" />')
@@ -151,7 +154,7 @@ def export_html(html, filename, image_tag = None, inline = True):
             raise OSError("%s exists, but is not a directory." % path)
 
     with open(filename, 'w') as f:
-        html = fix_html_encoding(html)
+        html = fix_html(html)
         f.write(IMG_RE.sub(lambda x: image_tag(x, path = path, format = "png"),
                            html))
 
@@ -181,7 +184,7 @@ def export_xhtml(html, filename, image_tag=None):
         html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
                 html[offset+6:])
 
-        html = fix_html_encoding(html)
+        html = fix_html(html)
         f.write(IMG_RE.sub(lambda x: image_tag(x, path = None, format = "svg"),
                            html))
 
@@ -210,24 +213,26 @@ def default_image_tag(match, path = None, format = "png"):
     return ''
 
 
-def fix_html_encoding(html):
-    """ Return html string, with a UTF-8 declaration added to <HEAD>.
+def fix_html(html):
+    """ Transforms a Qt-generated HTML string into a standards-compliant one.
     
-    Assumes that html is Qt generated and has already been UTF-8 encoded
-    and coerced to a python string. If the expected head element is
-    not found, the given object is returned unmodified.
-
-    This patching is needed for proper rendering of some characters
-    (e.g., indented commands) when viewing exported HTML on a local
-    system (i.e., without seeing an encoding declaration in an HTTP
-    header).
-    
-    C.f. http://www.w3.org/International/O-charset for details.
+    Parameters:
+    -----------
+    html : str,
+        A utf-8 encoded Python string containing the Qt HTML.
     """
+    # A UTF-8 declaration is needed for proper rendering of some characters
+    # (e.g., indented commands) when viewing exported HTML on a local system
+    # (i.e., without seeing an encoding declaration in an HTTP header).
+    # C.f. http://www.w3.org/International/O-charset for details.
     offset = html.find('<head>')
     if offset > -1:
         html = (html[:offset+6]+
                 '\n<meta http-equiv="Content-Type" '+
                 'content="text/html; charset=utf-8" />\n'+
                 html[offset+6:])
+
+    # Replace empty paragraphs tags with line breaks.
+    html = re.sub(EMPTY_P_RE, '<br/>', html)
+
     return html
