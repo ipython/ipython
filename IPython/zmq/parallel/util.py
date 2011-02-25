@@ -59,7 +59,7 @@ def validate_url(url):
         except ValueError:
             raise AssertionError("Invalid port %r in url: %r"%(port, url))
         
-        assert pat.match(addr) is not None, 'Invalid url: %r'%url
+        assert addr == '*' or pat.match(addr) is not None, 'Invalid url: %r'%url
         
     else:
         # only validate tcp urls currently

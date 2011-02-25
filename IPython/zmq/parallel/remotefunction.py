@@ -17,7 +17,7 @@ from asyncresult import AsyncMapResult
 # Decorators
 #-----------------------------------------------------------------------------
 
-def remote(client, bound=False, block=None, targets=None):
+def remote(client, bound=False, block=None, targets=None, balanced=None):
     """Turn a function into a remote function.
     
     This method can be used for map:
@@ -26,10 +26,10 @@ def remote(client, bound=False, block=None, targets=None):
         def func(a)
     """
     def remote_function(f):
-        return RemoteFunction(client, f, bound, block, targets)
+        return RemoteFunction(client, f, bound, block, targets, balanced)
     return remote_function
 
-def parallel(client, dist='b', bound=False, block=None, targets='all'):
+def parallel(client, dist='b', bound=False, block=None, targets='all', balanced=None):
     """Turn a function into a parallel remote function.
     
     This method can be used for map:
@@ -38,7 +38,7 @@ def parallel(client, dist='b', bound=False, block=None, targets='all'):
         def func(a)
     """
     def parallel_function(f):
-        return ParallelFunction(client, f, dist, bound, block, targets)
+        return ParallelFunction(client, f, dist, bound, block, targets, balanced)
     return parallel_function
 
 #--------------------------------------------------------------------------
@@ -62,6 +62,8 @@ class RemoteFunction(object):
         to use the current `block` attribute of `client`
     targets : valid target list [default: all]
         The targets on which to execute.
+    balanced : bool
+        Whether to load-balance with the Task scheduler or not
     """
     
     client = None # the remote connection
@@ -69,23 +71,30 @@ class RemoteFunction(object):
     block = None # whether to block
     bound = None # whether to affect the namespace
     targets = None # where to execute
+    balanced = None # whether to load-balance
     
-    def __init__(self, client, f, bound=False, block=None, targets=None):
+    def __init__(self, client, f, bound=False, block=None, targets=None, balanced=None):
         self.client = client
         self.func = f
         self.block=block
         self.bound=bound
         self.targets=targets
+        if balanced is None:
+            if targets is None:
+                balanced = True
+            else:
+                balanced = False
+        self.balanced = balanced
     
     def __call__(self, *args, **kwargs):
         return self.client.apply(self.func, args=args, kwargs=kwargs,
-                block=self.block, targets=self.targets, bound=self.bound)
+                block=self.block, targets=self.targets, bound=self.bound, balanced=self.balanced)
     
 
 class ParallelFunction(RemoteFunction):
     """Class for mapping a function to sequences."""
-    def __init__(self, client, f, dist='b', bound=False, block=None, targets='all'):
-        super(ParallelFunction, self).__init__(client,f,bound,block,targets)
+    def __init__(self, client, f, dist='b', bound=False, block=None, targets='all', balanced=None):
+        super(ParallelFunction, self).__init__(client,f,bound,block,targets,balanced)
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
     
@@ -93,21 +102,19 @@ class ParallelFunction(RemoteFunction):
         len_0 = len(sequences[0])
         for s in sequences:
             if len(s)!=len_0:
-                raise ValueError('all sequences must have equal length')
+                msg = 'all sequences must have equal length, but %i!=%i'%(len_0,len(s))
+                raise ValueError(msg)
         
-        if self.targets is None:
-            # load-balanced:
-            engines = [None]*len_0
-        elif isinstance(self.targets, int):
-            engines = [None]*self.targets
+        if self.balanced:
+            targets = [self.targets]*len_0
         else:
             # multiplexed:
-            engines = self.client._build_targets(self.targets)[-1]
+            targets = self.client._build_targets(self.targets)[-1]
         
-        nparts = len(engines)
+        nparts = len(targets)
         msg_ids = []
         # my_f = lambda *a: map(self.func, *a)
-        for index, engineid in enumerate(engines):
+        for index, t in enumerate(targets):
             args = []
             for seq in sequences:
                 part = self.mapObject.getPartition(seq, index, nparts)
@@ -124,22 +131,26 @@ class ParallelFunction(RemoteFunction):
                 args = [self.func]+args
             else:
                 f=self.func
-            mid = self.client.apply(f, args=args, block=False, 
-                        bound=self.bound,
-                        targets=engineid).msg_ids[0]
-            msg_ids.append(mid)
+            ar = self.client.apply(f, args=args, block=False, bound=self.bound, 
+                        targets=targets, balanced=self.balanced)
+            
+            msg_ids.append(ar.msg_ids[0])
         
         r = AsyncMapResult(self.client, msg_ids, self.mapObject, fname=self.func.__name__)
         if self.block:
-            r.wait()
-            return r.result
+            try:
+                return r.get()
+            except KeyboardInterrupt:
+                return r
         else:
             return r
     
     def map(self, *sequences):
         """call a function on each element of a sequence remotely."""
         self._map = True
-        ret = self.__call__(*sequences)
-        del self._map
+        try:
+            ret = self.__call__(*sequences)
+        finally:
+            del self._map
         return ret
 

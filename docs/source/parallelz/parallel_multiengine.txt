@@ -37,7 +37,7 @@ module and then create a :class:`.Client` instance:
     In [2]: rc = client.Client()
 
 This form assumes that the default connection information (stored in
-:file:`ipcontroller-client.json` found in `~/.ipython/clusterz_default/security`) is
+:file:`ipcontroller-client.json` found in :file:`IPYTHON_DIR/clusterz_default/security`) is
 accurate. If the controller was started on a remote machine, you must copy that connection
 file to the client machine, or enter its contents as arguments to the Client constructor:
 
@@ -45,17 +45,17 @@ file to the client machine, or enter its contents as arguments to the Client con
 
     # If you have copied the json connector file from the controller:
     In [2]: rc = client.Client('/path/to/ipcontroller-client.json')
-    # for a remote controller at 10.0.1.5, visible from my.server.com:
+    # or for a remote controller at 10.0.1.5, visible from my.server.com:
     In [3]: rc = client.Client('tcp://10.0.1.5:12345', sshserver='my.server.com')
     
 
-To make sure there are engines connected to the controller, use can get a list
+To make sure there are engines connected to the controller, users can get a list
 of engine ids:
 
 .. sourcecode:: ipython
 
     In [3]: rc.ids
-    Out[3]: set([0, 1, 2, 3])
+    Out[3]: [0, 1, 2, 3]
 
 Here we see that there are four engines ready to do work for us.
 
@@ -73,24 +73,25 @@ Parallel map
 Python's builtin :func:`map` functions allows a function to be applied to a
 sequence element-by-element. This type of code is typically trivial to
 parallelize. In fact, since IPython's interface is all about functions anyway,
-you can just use the builtin :func:`map`, or a client's :meth:`map` method:
+you can just use the builtin :func:`map` with a :class:`RemoteFunction`, or a 
+DirectView's :meth:`map` method:
 
 .. sourcecode:: ipython
 
     In [62]: serial_result = map(lambda x:x**10, range(32))
 
-    In [66]: parallel_result = rc.map(lambda x: x**10, range(32))
+    In [66]: parallel_result = rc[:].map(lambda x: x**10, range(32))
 
-    In [67]: serial_result==parallel_result
+    In [67]: serial_result==parallel_result.get()
     Out[67]: True
 
 
 .. note::
 
-    The client's own version of :meth:`map` or that of :class:`.DirectView` do
+    The :class:`DirectView`'s version of :meth:`map` does
     not do any load balancing. For a load balanced version, use a
     :class:`LoadBalancedView`, or a :class:`ParallelFunction` with
-    `targets=None`.
+    `balanced=True`.
 
 .. seealso::
     
@@ -105,16 +106,18 @@ some decorators:
 
 .. sourcecode:: ipython
 
-    In [10]: @rc.remote(block=True)
+    In [10]: @rc.remote(block=True, targets=0)
        ....: def f(x):
        ....:     return 10.0*x**4
        ....: 
 
-    In [11]: map(f, range(32))    # this is done in parallel
+    In [11]: map(f, range(32))    # this is done on engine 0
     Out[11]: [0.0,10.0,160.0,...]
 
-See the docstring for the :func:`parallel` and :func:`remote` decorators for
-options.
+.. seealso::
+
+    See the docstring for the :func:`parallel` and :func:`remote` decorators for
+    options.
 
 Calling Python functions
 ========================
@@ -141,7 +144,7 @@ Instead, they provide the signature::
 In order to provide the nicer interface, we have :class:`View` classes, which wrap
 :meth:`Client.apply` by using attributes and extra :meth:`apply_x` methods to determine
 the extra arguments. For instance, performing index-access on a client creates a
-:class:`.LoadBalancedView`.
+:class:`.DirectView`.
 
 .. sourcecode:: ipython
 
@@ -218,7 +221,7 @@ unbound, unless called by the :meth:`apply_bound` method:
 
 .. sourcecode:: ipython
 
-    In [9]: rc[:]['b'] = 5 # assign b to 5 everywhere
+    In [9]: dview['b'] = 5 # assign b to 5 everywhere
     
     In [10]: v0 = rc[0]
     
@@ -277,14 +280,14 @@ local Python/IPython session:
        ...:     return time.time()-tic
     
     # In non-blocking mode
-    In [7]: pr = rc[:].apply_async(wait, 2)
+    In [7]: pr = dview.apply_async(wait, 2)
 
     # Now block for the result
     In [8]: pr.get()
     Out[8]: [2.0006198883056641, 1.9997570514678955, 1.9996809959411621, 2.0003249645233154]
 
     # Again in non-blocking mode
-    In [9]: pr = rc[:].apply_async(wait, 10)
+    In [9]: pr = dview.apply_async(wait, 10)
 
     # Poll to see if the result is ready
     In [10]: pr.ready()
@@ -321,7 +324,7 @@ associated results are ready:
     In [72]: rc.block=False
 
     # A trivial list of AsyncResults objects
-    In [73]: pr_list = [rc[:].apply_async(wait, 3) for i in range(10)]
+    In [73]: pr_list = [dview.apply_async(wait, 3) for i in range(10)]
 
     # Wait until all of them are done
     In [74]: rc.barrier(pr_list)
@@ -332,63 +335,38 @@ associated results are ready:
     
 
 
-The ``block`` and ``targets`` keyword arguments and attributes
---------------------------------------------------------------
-
-.. warning::
-
-    This is different now, I haven't updated this section.
-    -MinRK
+The ``block`` keyword argument and attributes
+---------------------------------------------
 
 Most methods(like :meth:`apply`) accept
-``block`` and ``targets`` as keyword arguments. As we have seen above, these
-keyword arguments control the blocking mode and which engines the command is
-applied to. The :class:`Client` class also has :attr:`block` and
-:attr:`targets` attributes that control the default behavior when the keyword
-arguments are not provided. Thus the following logic is used for :attr:`block`
-and :attr:`targets`:
+``block`` as a keyword argument. As we have seen above, these
+keyword arguments control the blocking mode . The :class:`Client` class also has 
+a :attr:`block` attribute that controls the default behavior when the keyword
+argument is not provided. Thus the following logic is used for :attr:`block`:
 
 * If no keyword argument is provided, the instance attributes are used.
-* Keyword argument, if provided override the instance attributes.
+* Keyword argument, if provided override the instance attributes for
+  the duration of a single call.
 
 The following examples demonstrate how to use the instance attributes:
 
 .. sourcecode:: ipython
 
-    In [16]: rc.targets = [0,2]
-
     In [17]: rc.block = False
 
-    In [18]: pr = rc.execute('a=5')
+    In [18]: ar = rc.apply(lambda : 10, targets=[0,2])
 
-    In [19]: pr.r
-    Out[19]: 
-    <Results List>
-    [0] In [6]: a=5
-    [2] In [6]: a=5
-
-    # Note targets='all' means all engines
-    In [20]: rc.targets = 'all'
+    In [19]: ar.get()
+    Out[19]: [10,10]
 
     In [21]: rc.block = True
 
-    In [22]: rc.execute('b=10; print b')
-    Out[22]: 
-    <Results List>
-    [0] In [7]: b=10; print b
-    [0] Out[7]: 10
+    # Note targets='all' means all engines
+    In [22]: rc.apply(lambda : 42, targets='all')
+    Out[22]: [42, 42, 42, 42]
 
-    [1] In [6]: b=10; print b
-    [1] Out[6]: 10
-
-    [2] In [7]: b=10; print b
-    [2] Out[7]: 10
-
-    [3] In [6]: b=10; print b
-    [3] Out[6]: 10
-
-The :attr:`block` and :attr:`targets` instance attributes also determine the
-behavior of the parallel magic commands.
+The :attr:`block` and :attr:`targets` instance attributes of the
+:class:`.DirectView` also determine the behavior of the parallel magic commands.
 
 
 Parallel magic commands
@@ -567,9 +545,9 @@ appear as a local dictionary. Underneath, this uses :meth:`push` and
 
     In [50]: rc.block=True
 
-    In [51]: rc[:]['a']=['foo','bar']
+    In [51]: dview['a']=['foo','bar']
 
-    In [52]: rc[:]['a']
+    In [52]: dview['a']
     Out[52]: [ ['foo', 'bar'], ['foo', 'bar'], ['foo', 'bar'], ['foo', 'bar'] ]
 
 Scatter and gather
@@ -585,13 +563,13 @@ between engines, MPI should be used:
 
 .. sourcecode:: ipython
 
-    In [58]: rc.scatter('a',range(16))
+    In [58]: dview.scatter('a',range(16))
     Out[58]: [None,None,None,None]
 
-    In [59]: rc[:]['a']
+    In [59]: dview['a']
     Out[59]: [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ]
 
-    In [60]: rc.gather('a')
+    In [60]: dview.gather('a')
     Out[60]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
 Other things to look at
@@ -606,14 +584,14 @@ basic effect using :meth:`scatter` and :meth:`gather`:
 
 .. sourcecode:: ipython
 
-    In [66]: rc.scatter('x',range(64))
+    In [66]: dview.scatter('x',range(64))
     Out[66]: [None,None,None,None]
 
     In [67]: px y = [i**10 for i in x]
     Parallel execution on engines: [0, 1, 2, 3]
     Out[67]: 
 
-    In [68]: y = rc.gather('y')
+    In [68]: y = dview.gather('y')
 
     In [69]: print y
     [0, 1, 1024, 59049, 1048576, 9765625, 60466176, 282475249, 1073741824,...]

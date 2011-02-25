@@ -10,7 +10,11 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils.traitlets import HasTraits, Bool, List, Dict, Set, Int, Instance
+
 from IPython.external.decorator import decorator
+from IPython.zmq.parallel.asyncresult import AsyncResult
+from IPython.zmq.parallel.dependency import Dependency
 from IPython.zmq.parallel.remotefunction import ParallelFunction, parallel
 
 #-----------------------------------------------------------------------------
@@ -61,30 +65,29 @@ def spin_after(f, self, *args, **kwargs):
 # Classes
 #-----------------------------------------------------------------------------
 
-class View(object):
+class View(HasTraits):
     """Base View class for more convenint apply(f,*args,**kwargs) syntax via attributes.
     
     Don't use this class, use subclasses.
     """
-    block=None
-    bound=None
-    history=None
-    outstanding = set()
-    results = {}
+    block=Bool(False)
+    bound=Bool(False)
+    history=List()
+    outstanding = Set()
+    results = Dict()
+    client = Instance('IPython.zmq.parallel.client.Client')
     
+    _ntargets = Int(1)
+    _balanced = Bool(False)
+    _default_names = List(['block', 'bound'])
     _targets = None
-    _apply_name = 'apply'
-    _default_names = ['targets', 'block']
     
-    def __init__(self, client, targets=None):
-        self.client = client
+    def __init__(self, client=None, targets=None):
+        super(View, self).__init__(client=client)
         self._targets = targets
         self._ntargets = 1 if isinstance(targets, (int,type(None))) else len(targets)
         self.block = client.block
-        self.bound=False
-        self.history = []
-        self.outstanding = set()
-        self.results = {}
+        
         for name in self._default_names:
             setattr(self, name, getattr(self, name, None))
         
@@ -101,26 +104,46 @@ class View(object):
 
     @targets.setter
     def targets(self, value):
-        self._targets = value
-        # raise AttributeError("Cannot set my targets argument after construction!")
+        raise AttributeError("Cannot set View `targets` after construction!")
     
     def _defaults(self, *excludes):
         """return dict of our default attributes, excluding names given."""
-        d = {}
+        d = dict(balanced=self._balanced, targets=self.targets)
         for name in self._default_names:
             if name not in excludes:
                 d[name] = getattr(self, name)
         return d
     
+    def set_flags(self, **kwargs):
+        """set my attribute flags by keyword.
+        
+        A View is a wrapper for the Client's apply method, but
+        with attributes that specify keyword arguments, those attributes
+        can be set by keyword argument with this method.
+        
+        Parameters
+        ----------
+        
+        block : bool
+            whether to wait for results
+        bound : bool
+            whether to use the client's namespace
+        """
+        for key in kwargs:
+            if key not in self._default_names:
+                raise KeyError("Invalid name: %r"%key)
+        for name in ('block', 'bound'):
+            if name in kwargs:
+                setattr(self, name, kwargs)
+    
+    #----------------------------------------------------------------
+    # wrappers for client methods:
+    #----------------------------------------------------------------
     @sync_results
     def spin(self):
         """spin the client, and sync"""
         self.client.spin()
     
-    @property
-    def _apply(self):
-        return getattr(self.client, self._apply_name)
-
     @sync_results
     @save_ids
     def apply(self, f, *args, **kwargs):
@@ -133,7 +156,7 @@ class View(object):
         else:
             returns actual result of f(*args, **kwargs)
         """
-        return self._apply(f, args, kwargs, **self._defaults())
+        return self.client.apply(f, args, kwargs, **self._defaults())
 
     @save_ids
     def apply_async(self, f, *args, **kwargs):
@@ -144,7 +167,7 @@ class View(object):
         returns msg_id
         """
         d = self._defaults('block', 'bound')
-        return self._apply(f,args,kwargs, block=False, bound=False, **d)
+        return self.client.apply(f,args,kwargs, block=False, bound=False, **d)
 
     @spin_after
     @save_ids
@@ -157,7 +180,7 @@ class View(object):
         returns: actual result of f(*args, **kwargs)
         """
         d = self._defaults('block', 'bound')
-        return self._apply(f,args,kwargs, block=True, bound=False, **d)
+        return self.client.apply(f,args,kwargs, block=True, bound=False, **d)
 
     @sync_results
     @save_ids
@@ -173,7 +196,7 @@ class View(object):
         
         """
         d = self._defaults('bound')
-        return self._apply(f, args, kwargs, bound=True, **d)
+        return self.client.apply(f, args, kwargs, bound=True, **d)
 
     @sync_results
     @save_ids
@@ -187,7 +210,7 @@ class View(object):
         
         """
         d = self._defaults('block', 'bound')
-        return self._apply(f, args, kwargs, block=False, bound=True, **d)
+        return self.client.apply(f, args, kwargs, block=False, bound=True, **d)
 
     @spin_after
     @save_ids
@@ -200,23 +223,7 @@ class View(object):
         
         """
         d = self._defaults('block', 'bound')
-        return self._apply(f, args, kwargs, block=True, bound=True, **d)
-    
-    @spin_after
-    @save_ids
-    def map(self, f, *sequences):
-        """Parallel version of builtin `map`, using this view's engines."""
-        if isinstance(self.targets, int):
-            targets = [self.targets]
-        else:
-            targets = self.targets
-        pf = ParallelFunction(self.client, f, block=self.block,
-                        bound=True, targets=targets)
-        return pf.map(*sequences)
-    
-    def parallel(self, bound=True, block=True):
-        """Decorator for making a ParallelFunction"""
-        return parallel(self.client, bound=bound, targets=self.targets, block=block)
+        return self.client.apply(f, args, kwargs, block=True, bound=True, **d)
     
     def abort(self, msg_ids=None, block=None):
         """Abort jobs on my engines.
@@ -240,6 +247,17 @@ class View(object):
         if targets is None or targets == 'all':
             targets = self.targets
         return self.client.purge_results(msg_ids=msg_ids, targets=targets)
+        
+    #-------------------------------------------------------------------
+    # Decorators
+    #-------------------------------------------------------------------
+    def parallel(self, bound=True, block=True):
+        """Decorator for making a ParallelFunction"""
+        return parallel(self.client, bound=bound, targets=self.targets, block=block, balanced=self._balanced)
+    
+    def remote(self, bound=True, block=True):
+        """Decorator for making a RemoteFunction"""
+        return parallel(self.client, bound=bound, targets=self.targets, block=block, balanced=self._balanced)
     
 
 
@@ -261,6 +279,62 @@ class DirectView(View):
     >>> db['foo']
     
     """
+    
+    def __init__(self, client=None, targets=None):
+        super(DirectView, self).__init__(client=client, targets=targets)
+        self._balanced = False
+    
+    @spin_after
+    @save_ids
+    def map(self, f, *sequences, **kwargs):
+        """Parallel version of builtin `map`, using this View's `targets`.
+        
+        There will be one task per target, so work will be chunked
+        if the sequences are longer than `targets`.  
+        
+        Results can be iterated as they are ready, but will become available in chunks.
+        
+        Parameters
+        ----------
+        
+        f : callable
+            function to be mapped
+        *sequences: one or more sequences of matching length
+            the sequences to be distributed and passed to `f`
+        block : bool
+            whether to wait for the result or not [default self.block]
+        bound : bool
+            whether to wait for the result or not [default self.bound]
+        
+        Returns
+        -------
+        
+        if block=False:
+            AsyncMapResult
+                An object like AsyncResult, but which reassembles the sequence of results
+                into a single list. AsyncMapResults can be iterated through before all
+                results are complete.
+            else:
+                the result of map(f,*sequences)
+        """
+        
+        block = kwargs.get('block', self.block)
+        bound = kwargs.get('bound', self.bound)
+        for k in kwargs.keys():
+            if k not in ['block', 'bound']:
+                raise TypeError("invalid keyword arg, %r"%k)
+        
+        assert len(sequences) > 0, "must have some sequences to map onto!"
+        pf = ParallelFunction(self.client, f, block=block,
+                        bound=bound, targets=self.targets, balanced=False)
+        return pf.map(*sequences)
+    
+    def map_async(self, f, *sequences, **kwargs):
+        """Parallel version of builtin `map`, using this view's engines."""
+        if 'block' in kwargs:
+            raise TypeError("map_async doesn't take a `block` keyword argument.")
+        kwargs['block'] = True
+        return self.map(f,*sequences,**kwargs)
     
     @sync_results
     @save_ids
@@ -358,14 +432,13 @@ class DirectView(View):
 
     
 class LoadBalancedView(View):
-    """An engine-agnostic View that only executes via the Task queue.
+    """An load-balancing View that only executes via the Task scheduler.
     
-    Typically created via:
+    Load-balanced views can be created with the client's `view` method:
     
-    >>> v = client[None]
-    <LoadBalancedView None>
+    >>> v = client.view(balanced=True)
     
-    but can also be created with:
+    or targets can be specified, to restrict the potential destinations:
     
     >>> v = client.view([1,3],balanced=True)
     
@@ -374,10 +447,126 @@ class LoadBalancedView(View):
     """
     
     _apply_name = 'apply_balanced'
-    _default_names = ['targets', 'block', 'bound', 'follow', 'after', 'timeout']
+    _default_names = ['block', 'bound', 'follow', 'after', 'timeout']
     
-    def __init__(self, client, targets=None):
-        super(LoadBalancedView, self).__init__(client, targets)
+    def __init__(self, client=None, targets=None):
+        super(LoadBalancedView, self).__init__(client=client, targets=targets)
         self._ntargets = 1
-        self._apply_name = 'apply_balanced'
+    
+    def _validate_dependency(self, dep):
+        """validate a dependency.
+        
+        For use in `set_flags`.
+        """
+        if dep is None or isinstance(dep, (str, AsyncResult, Dependency)):
+            return True
+        elif isinstance(dep, (list,set, tuple)):
+            for d in dep:
+                if not isinstance(d, str, AsyncResult):
+                    return False
+        elif isinstance(dep, dict):
+            if set(dep.keys()) != set(Dependency().as_dict().keys()):
+                return False
+            if not isinstance(dep['msg_ids'], list):
+                return False
+            for d in dep['msg_ids']:
+                if not isinstance(d, str):
+                    return False
+        else:
+            return False
+                
+    def set_flags(self, **kwargs):
+        """set my attribute flags by keyword.
+        
+        A View is a wrapper for the Client's apply method, but
+        with attributes that specify keyword arguments, those attributes
+        can be set by keyword argument with this method.
+        
+        Parameters
+        ----------
+        
+        block : bool
+            whether to wait for results
+        bound : bool
+            whether to use the engine's namespace
+        follow : Dependency, list, msg_id, AsyncResult
+            the location dependencies of tasks
+        after : Dependency, list, msg_id, AsyncResult
+            the time dependencies of tasks
+        timeout : int,None
+            the timeout to be used for tasks
+        """
+        
+        super(LoadBalancedView, self).set_flags(**kwargs)
+        for name in ('follow', 'after'):
+            if name in kwargs:
+                value = kwargs[name]
+                if self._validate_dependency(value):
+                    setattr(self, name, value)
+                else:
+                    raise ValueError("Invalid dependency: %r"%value)
+        if 'timeout' in kwargs:
+            t = kwargs['timeout']
+            if not isinstance(t, (int, long, float, None)):
+                raise TypeError("Invalid type for timeout: %r"%type(t))
+            if t is not None:
+                if t < 0:
+                    raise ValueError("Invalid timeout: %s"%t)
+            self.timeout = t
+                
+    @spin_after
+    @save_ids
+    def map(self, f, *sequences, **kwargs):
+        """Parallel version of builtin `map`, load-balanced by this View.
+        
+        Each element will be a separate task, and will be load-balanced.  This
+        lets individual elements be available for iteration as soon as they arrive.
+        
+        Parameters
+        ----------
+        
+        f : callable
+            function to be mapped
+        *sequences: one or more sequences of matching length
+            the sequences to be distributed and passed to `f`
+        block : bool
+            whether to wait for the result or not [default self.block]
+        bound : bool
+            whether to use the engine's namespace
+        
+        Returns
+        -------
+        
+        if block=False:
+            AsyncMapResult
+                An object like AsyncResult, but which reassembles the sequence of results
+                into a single list. AsyncMapResults can be iterated through before all
+                results are complete.
+            else:
+                the result of map(f,*sequences)
+        
+        """
+        
+        block = kwargs.get('block', self.block)
+        bound = kwargs.get('bound', self.bound)
+        
+        assert len(sequences) > 0, "must have some sequences to map onto!"
+        
+        pf = ParallelFunction(self.client, f, block=block, bound=bound, 
+                                targets=self.targets, balanced=True)
+        return pf.map(*sequences)
+    
+    def map_async(self, f, *sequences, **kwargs):
+        """Parallel version of builtin `map`, using this view's engines.
+        
+        This is equivalent to map(...block=False)
+        
+        See `map` for details.
+        """
+        
+        if 'block' in kwargs:
+            raise TypeError("map_async doesn't take a `block` keyword argument.")
+        kwargs['block'] = True
+        return self.map(f,*sequences,**kwargs)
+    
     

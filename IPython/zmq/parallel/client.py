@@ -21,7 +21,7 @@ from pprint import pprint
 pjoin = os.path.join
 
 import zmq
-from zmq.eventloop import ioloop, zmqstream
+# from zmq.eventloop import ioloop, zmqstream
 
 from IPython.utils.path import get_ipython_dir
 from IPython.external.decorator import decorator
@@ -203,6 +203,7 @@ class Client(object):
     
     Attributes
     ----------
+    
     ids : set of int engine IDs
         requesting the ids attribute always synchronizes
         the registration state. To request ids without synchronization,
@@ -225,17 +226,23 @@ class Client(object):
     
     Methods
     -------
-    spin : flushes incoming results and registration state changes
-            control methods spin, and requesting `ids` also ensures up to date
-            
-    barrier : wait on one or more msg_ids
     
-    execution methods: apply/apply_bound/apply_to/apply_bound
+    spin
+        flushes incoming results and registration state changes
+        control methods spin, and requesting `ids` also ensures up to date
+    
+    barrier
+        wait on one or more msg_ids
+    
+    execution methods
+        apply
         legacy: execute, run
     
-    query methods: queue_status, get_result, purge
+    query methods
+        queue_status, get_result, purge
     
-    control methods: abort, kill
+    control methods
+        abort, shutdown
     
     """
     
@@ -265,7 +272,6 @@ class Client(object):
         if context is None:
             context = zmq.Context()
         self.context = context
-        self.targets = 'all'
         
         self._setup_cluster_dir(profile, cluster_dir, ipython_dir)
         if self._cd is not None:
@@ -634,41 +640,17 @@ class Client(object):
     #--------------------------------------------------------------------------
     
     def __getitem__(self, key):
-        """Dict access returns DirectView multiplexer objects or,
-        if key is None, a LoadBalancedView."""
-        if key is None:
-            return LoadBalancedView(self)
-        if isinstance(key, int):
-            if key not in self.ids:
-                raise IndexError("No such engine: %i"%key)
-            return DirectView(self, key)
+        """index access returns DirectView multiplexer objects
         
-        if isinstance(key, slice):
-            indices = range(len(self.ids))[key]
-            ids = sorted(self._ids)
-            key = [ ids[i] for i in indices ]
-            # newkeys = sorted(self._ids)[thekeys[k]]
-        
-        if isinstance(key, (tuple, list, xrange)):
-            _,targets = self._build_targets(list(key))
-            return DirectView(self, targets)
+        Must be int, slice, or list/tuple/xrange of ints"""
+        if not isinstance(key, (int, slice, tuple, list, xrange)):
+            raise TypeError("key by int/slice/iterable of ints only, not %s"%(type(key)))
         else:
-            raise TypeError("key by int/iterable of ints only, not %s"%(type(key)))
+            return self.view(key, balanced=False)
     
     #--------------------------------------------------------------------------
     # Begin public methods
     #--------------------------------------------------------------------------
-    
-    @property
-    def remote(self):
-        """property for convenient RemoteFunction generation.
-        
-        >>> @client.remote
-        ... def getpid():
-                import os
-                return os.getpid()
-        """
-        return remote(self, block=self.block)
     
     def spin(self):
         """Flush any registration notifications and execution results
@@ -690,6 +672,7 @@ class Client(object):
         
         Parameters
         ----------
+        
         msg_ids : int, str, or list of ints and/or strs, or one or more AsyncResult objects
                 ints are indices to self.history
                 strs are msg_ids
@@ -700,6 +683,7 @@ class Client(object):
         
         Returns
         -------
+        
         True : when all msg_ids are done
         False : timeout reached, some msg_ids still outstanding
         """
@@ -815,6 +799,7 @@ class Client(object):
         
         Parameters
         ----------
+        
         code : str
                 the code string to be executed
         targets : int/str/list of ints/strs
@@ -824,7 +809,7 @@ class Client(object):
                 whether or not to wait until done to return
                 default: self.block
         """
-        result = self.apply(_execute, (code,), targets=targets, block=self.block, bound=True)
+        result = self.apply(_execute, (code,), targets=targets, block=self.block, bound=True, balanced=False)
         return result
     
     def run(self, filename, targets='all', block=None):
@@ -834,6 +819,7 @@ class Client(object):
         
         Parameters
         ----------
+        
         filename : str
                 The path to the file
         targets : int/str/list of ints/strs
@@ -868,7 +854,8 @@ class Client(object):
             return list(Dependency(dep))
         
     @defaultblock
-    def apply(self, f, args=None, kwargs=None, bound=True, block=None, targets=None,
+    def apply(self, f, args=None, kwargs=None, bound=True, block=None,
+                        targets=None, balanced=None,
                         after=None, follow=None, timeout=None):
         """Call `f(*args, **kwargs)` on a remote engine(s), returning the result.
         
@@ -905,82 +892,11 @@ class Client(object):
             if int:
                 Run on single engine
         
-        after,follow,timeout only used in `apply_balanced`. See that docstring
-        for details.
-        
-        Returns
-        -------
-        if block is False:
-            return AsyncResult wrapping msg_ids
-            output of AsyncResult.get() is identical to that of `apply(...block=True)`
-        else:
-            if single target:
-                return result of `f(*args, **kwargs)`
-            else:
-                return list of results, matching `targets`
-        """
-        
-        # defaults:
-        block = block if block is not None else self.block
-        args = args if args is not None else []
-        kwargs = kwargs if kwargs is not None else {}
-        
-        # enforce types of f,args,kwrags
-        if not callable(f):
-            raise TypeError("f must be callable, not %s"%type(f))
-        if not isinstance(args, (tuple, list)):
-            raise TypeError("args must be tuple or list, not %s"%type(args))
-        if not isinstance(kwargs, dict):
-            raise TypeError("kwargs must be dict, not %s"%type(kwargs))
-        
-        options  = dict(bound=bound, block=block, targets=targets)
+        balanced : bool, default None
+            whether to load-balance.  This will default to True
+            if targets is unspecified, or False if targets is specified.
             
-        if targets is None:
-            return self.apply_balanced(f, args, kwargs, timeout=timeout, 
-                                        after=after, follow=follow, **options)
-        else:
-            if follow or after or timeout:
-                msg = "follow, after, and timeout args are only used for load-balanced"
-                msg += "execution."
-                raise ValueError(msg)
-            return self._apply_direct(f, args, kwargs, **options)
-    
-    @defaultblock
-    def apply_balanced(self, f, args, kwargs, bound=True, block=None, targets=None,
-                            after=None, follow=None, timeout=None):
-        """call f(*args, **kwargs) remotely in a load-balanced manner.
-        
-        Parameters
-        ----------
-        
-        f : function
-            The fuction to be called remotely
-        args : tuple/list
-            The positional arguments passed to `f`
-        kwargs : dict
-            The keyword arguments passed to `f`
-        bound : bool (default: True)
-            Whether to execute in the Engine(s) namespace, or in a clean
-            namespace not affecting the engine.
-        block : bool (default: self.block)
-            Whether to wait for the result, or return immediately.
-            False:
-                returns AsyncResult
-            True:
-                returns actual result(s) of f(*args, **kwargs)
-                if multiple targets:
-                    list of results, matching `targets`
-        targets : int,list of ints, 'all', None
-            Specify the destination of the job.
-            if None:
-                Submit via Task queue for load-balancing.
-            if 'all':
-                Run on all active engines
-            if list:
-                Run on each specified engine
-            if int:
-                Run on single engine
-        
+            The following arguments are only used when balanced is True:
         after : Dependency or collection of msg_ids
             Only for load-balanced execution (targets=None)
             Specify a list of msg_ids as a time-based dependency.
@@ -999,15 +915,67 @@ class Client(object):
             wait for dependencies to be met before failing with a
             DependencyTimeout.
         
+        after,follow,timeout only used if `balanced=True`.
+        
         Returns
         -------
+        
         if block is False:
-            return AsyncResult wrapping msg_id
+            return AsyncResult wrapping msg_ids
             output of AsyncResult.get() is identical to that of `apply(...block=True)`
         else:
-            wait for, and return actual result of `f(*args, **kwargs)`
-        
+            if single target:
+                return result of `f(*args, **kwargs)`
+            else:
+                return list of results, matching `targets`
         """
+        
+        # defaults:
+        args = args if args is not None else []
+        kwargs = kwargs if kwargs is not None else {}
+        
+        if balanced is None:
+            if targets is None:
+                # default to balanced if targets unspecified
+                balanced = True
+            else:
+                # otherwise default to multiplexing
+                balanced = False
+        
+        if targets is None and balanced is False:
+            # default to all if *not* balanced, and targets is unspecified
+            targets = 'all'
+        
+        # enforce types of f,args,kwrags
+        if not callable(f):
+            raise TypeError("f must be callable, not %s"%type(f))
+        if not isinstance(args, (tuple, list)):
+            raise TypeError("args must be tuple or list, not %s"%type(args))
+        if not isinstance(kwargs, dict):
+            raise TypeError("kwargs must be dict, not %s"%type(kwargs))
+        
+        options  = dict(bound=bound, block=block, targets=targets)
+            
+        if balanced:
+            return self._apply_balanced(f, args, kwargs, timeout=timeout, 
+                                        after=after, follow=follow, **options)
+        elif follow or after or timeout:
+                msg = "follow, after, and timeout args are only used for"
+                msg += " load-balanced execution."
+                raise ValueError(msg)
+        else:
+            return self._apply_direct(f, args, kwargs, **options)
+    
+    def _apply_balanced(self, f, args, kwargs, bound=True, block=None, targets=None,
+                            after=None, follow=None, timeout=None):
+        """call f(*args, **kwargs) remotely in a load-balanced manner.
+        
+        This is a private method, see `apply` for details.
+        Not to be called directly!
+        """
+        
+        for kwarg in (bound, block, targets):
+            assert kwarg is not None, "kwarg %r must be specified!"%kwarg
         
         if self._task_socket is None:
             msg = "Task farming is disabled"
@@ -1025,7 +993,6 @@ class Client(object):
             if isinstance(f, dependent):
                 # soft warn on functional dependencies
                 warnings.warn(msg, RuntimeWarning)
-            
         
         # defaults:
         args = args if args is not None else []
@@ -1035,14 +1002,6 @@ class Client(object):
             idents,_ = self._build_targets(targets)
         else:
             idents = []
-        
-        # enforce types of f,args,kwrags
-        if not callable(f):
-            raise TypeError("f must be callable, not %s"%type(f))
-        if not isinstance(args, (tuple, list)):
-            raise TypeError("args must be tuple or list, not %s"%type(args))
-        if not isinstance(kwargs, dict):
-            raise TypeError("kwargs must be dict, not %s"%type(kwargs))
         
         after = self._build_dependency(after)
         follow = self._build_dependency(follow)
@@ -1064,12 +1023,16 @@ class Client(object):
         else:
             return ar
     
-    def _apply_direct(self, f, args, kwargs, bound=True, block=None, targets=None):
+    def _apply_direct(self, f, args, kwargs, bound=None, block=None, targets=None):
         """Then underlying method for applying functions to specific engines
         via the MUX queue.
         
+        This is a private method, see `apply` for details.
         Not to be called directly!
         """
+        
+        for kwarg in (bound, block, targets):
+            assert kwarg is not None, "kwarg %r must be specified!"%kwarg
         
         idents,targets = self._build_targets(targets)
         
@@ -1095,103 +1058,46 @@ class Client(object):
             return ar
     
     #--------------------------------------------------------------------------
-    # Map and decorators
+    # decorators
     #--------------------------------------------------------------------------
     
-    def map(self, f, *sequences, **kwargs):
-        """Parallel version of builtin `map`, using all our engines.
-        
-        `block` and `targets` can be passed as keyword arguments only.
-        
-        There will be one task per target, so work will be chunked
-        if the sequences are longer than `targets`.  
-        
-        Results can be iterated as they are ready, but will become available in chunks.
-        
-        Parameters
-        ----------
-        
-        f : callable
-            function to be mapped
-        *sequences: one or more sequences of matching length
-            the sequences to be distributed and passed to `f`
-        block : bool
-            whether to wait for the result or not [default self.block]
-        targets : valid targets
-            targets to be used [default self.targets]
-        
-        Returns
-        -------
-        
-        if block=False:
-            AsyncMapResult
-                An object like AsyncResult, but which reassembles the sequence of results
-                into a single list. AsyncMapResults can be iterated through before all
-                results are complete.
-            else:
-                the result of map(f,*sequences)
-        
-        """
-        block = kwargs.get('block', self.block)
-        targets = kwargs.get('targets', self.targets)
-        assert len(sequences) > 0, "must have some sequences to map onto!"
-        pf = ParallelFunction(self, f, block=block,
-                        bound=True, targets=targets)
-        return pf.map(*sequences)
-    
-    def imap(self, f, *sequences, **kwargs):
-        """Parallel version of builtin `itertools.imap`, load-balanced across all engines.
-        
-        Each element will be a separate task, and will be load-balanced.  This
-        lets individual elements be ready for iteration as soon as they come.
-        
-        Parameters
-        ----------
-        
-        f : callable
-            function to be mapped
-        *sequences: one or more sequences of matching length
-            the sequences to be distributed and passed to `f`
-        block : bool
-            whether to wait for the result or not [default self.block]
-        
-        Returns
-        -------
-        
-        if block=False:
-            AsyncMapResult
-                An object like AsyncResult, but which reassembles the sequence of results
-                into a single list. AsyncMapResults can be iterated through before all
-                results are complete.
-            else:
-                the result of map(f,*sequences)
-        
-        """
-        
-        block = kwargs.get('block', self.block)
-        
-        assert len(sequences) > 0, "must have some sequences to map onto!"
-        
-        pf = ParallelFunction(self, f, block=self.block,
-                        bound=True, targets=None)
-        return pf.map(*sequences)
-    
-    def parallel(self, bound=True, targets='all', block=True):
+    @defaultblock
+    def parallel(self, bound=True, targets='all', block=None):
         """Decorator for making a ParallelFunction."""
         return parallel(self, bound=bound, targets=targets, block=block)
     
-    def remote(self, bound=True, targets='all', block=True):
+    @defaultblock
+    def remote(self, bound=True, targets='all', block=None):
         """Decorator for making a RemoteFunction."""
         return remote(self, bound=bound, targets=targets, block=block)
     
     def view(self, targets=None, balanced=False):
         """Method for constructing View objects"""
-        if not balanced:
-            if not targets:
+        if targets is None:
+            if balanced:
+                return LoadBalancedView(client=self)
+            else:
                 targets = slice(None)
-            return self[targets]
+        
+        if balanced:
+            view_class = LoadBalancedView
         else:
-            return LoadBalancedView(self, targets)
+            view_class = DirectView
+        if isinstance(targets, int):
+            if targets not in self.ids:
+                raise IndexError("No such engine: %i"%targets)
+            return view_class(client=self, targets=targets)
+        
+        if isinstance(targets, slice):
+            indices = range(len(self.ids))[targets]
+            ids = sorted(self._ids)
+            targets = [ ids[i] for i in indices ]
+        
+        if isinstance(targets, (tuple, list, xrange)):
+            _,targets = self._build_targets(list(targets))
+            return view_class(client=self, targets=targets)
+        else:
+            raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
     
     #--------------------------------------------------------------------------
     # Data movement
@@ -1202,7 +1108,7 @@ class Client(object):
         """Push the contents of `ns` into the namespace on `target`"""
         if not isinstance(ns, dict):
             raise TypeError("Must be a dict, not %s"%type(ns))
-        result = self.apply(_push, (ns,), targets=targets, block=block, bound=True)
+        result = self.apply(_push, (ns,), targets=targets, block=block, bound=True, balanced=False)
         return result
     
     @defaultblock
@@ -1214,14 +1120,14 @@ class Client(object):
             for key in keys:
                 if not isinstance(key, str):
                     raise TypeError
-        result = self.apply(_pull, (keys,), targets=targets, block=block, bound=True)
+        result = self.apply(_pull, (keys,), targets=targets, block=block, bound=True, balanced=False)
         return result
     
+    @defaultblock
     def scatter(self, key, seq, dist='b', flatten=False, targets='all', block=None):
         """
         Partition a Python sequence and send the partitions to a set of engines.
         """
-        block = block if block is not None else self.block
         targets = self._build_targets(targets)[-1]
         mapObject = Map.dists[dist]()
         nparts = len(targets)
@@ -1239,11 +1145,11 @@ class Client(object):
         else:
             return r
     
+    @defaultblock
     def gather(self, key, dist='b', targets='all', block=None):
         """
         Gather a partitioned sequence on a set of engines as a single local seq.
         """
-        block = block if block is not None else self.block
         
         targets = self._build_targets(targets)[-1]
         mapObject = Map.dists[dist]()
@@ -1267,6 +1173,7 @@ class Client(object):
         
         Parameters
         ----------
+        
         msg_ids : list of ints or msg_ids
             if int:
                 Passed as index to self.history for convenience.
@@ -1351,13 +1258,14 @@ class Client(object):
         return content
 
     @spinfirst
-    def queue_status(self, targets=None, verbose=False):
+    def queue_status(self, targets='all', verbose=False):
         """Fetch the status of engine queues.
         
         Parameters
         ----------
+        
         targets : int/str/list of ints/strs
-                the engines on which to execute
+                the engines whose states are to be queried.
                 default : all
         verbose : bool
                 Whether to return lengths only, or lists of ids for each element
@@ -1383,6 +1291,7 @@ class Client(object):
         
         Parameters
         ----------
+        
         msg_ids : str or list of strs
                 the msg_ids whose results should be forgotten.
         targets : int/str/list of ints/strs
@@ -1404,59 +1313,6 @@ class Client(object):
         if content['status'] != 'ok':
             raise ss.unwrap_exception(content)
 
-    #----------------------------------------
-    # activate for %px,%autopx magics
-    #----------------------------------------
-    def activate(self):
-        """Make this `View` active for parallel magic commands.
-        
-        IPython has a magic command syntax to work with `MultiEngineClient` objects.
-        In a given IPython session there is a single active one.  While
-        there can be many `Views` created and used by the user, 
-        there is only one active one.  The active `View` is used whenever 
-        the magic commands %px and %autopx are used.
-        
-        The activate() method is called on a given `View` to make it 
-        active.  Once this has been done, the magic commands can be used.
-        """
-        
-        try:
-            # This is injected into __builtins__.
-            ip = get_ipython()
-        except NameError:
-            print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
-        else:
-            pmagic = ip.plugin_manager.get_plugin('parallelmagic')
-            if pmagic is not None:
-                pmagic.active_multiengine_client = self
-            else:
-                print "You must first load the parallelmagic extension " \
-                      "by doing '%load_ext parallelmagic'"
-
-class AsynClient(Client):
-    """An Asynchronous client, using the Tornado Event Loop.
-    !!!unfinished!!!"""
-    io_loop = None
-    _queue_stream = None
-    _notifier_stream = None
-    _task_stream = None
-    _control_stream = None
-    
-    def __init__(self, addr, context=None, username=None, debug=False, io_loop=None):
-        Client.__init__(self, addr, context, username, debug)
-        if io_loop is None:
-            io_loop = ioloop.IOLoop.instance()
-        self.io_loop = io_loop
-        
-        self._queue_stream = zmqstream.ZMQStream(self._mux_socket, io_loop)
-        self._control_stream = zmqstream.ZMQStream(self._control_socket, io_loop)
-        self._task_stream = zmqstream.ZMQStream(self._task_socket, io_loop)
-        self._notification_stream = zmqstream.ZMQStream(self._notification_socket, io_loop)
-    
-    def spin(self):
-        for stream in (self.queue_stream, self.notifier_stream, 
-                        self.task_stream, self.control_stream):
-            stream.flush()
 
 __all__ = [ 'Client', 
             'depend', 

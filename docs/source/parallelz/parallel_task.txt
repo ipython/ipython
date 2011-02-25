@@ -41,8 +41,8 @@ module and then create a :class:`.Client` instance:
 	
 	In [2]: rc = client.Client()
 	
-	In [3]: lview = rc[None]
-	Out[3]: <LoadBalancedView tcp://127.0.0.1:10101>
+	In [3]: lview = rc.view(balanced=True)
+	Out[3]: <LoadBalancedView None>
     
 
 This form assumes that the controller was started on localhost with default
@@ -66,7 +66,7 @@ objects, but *in parallel*. Like the multiengine interface, these can be
 implemented via the task interface. The exact same tools can perform these
 actions in load-balanced ways as well as multiplexed ways: a parallel version
 of :func:`map` and :func:`@parallel` function decorator. If one specifies the
-argument `targets=None`, then they are dynamically load balanced. Thus, if the
+argument `balanced=True`, then they are dynamically load balanced. Thus, if the
 execution time per item varies significantly, you should use the versions in
 the task interface.
 
@@ -80,7 +80,7 @@ for the ``None`` element:
 
 	In [63]: serial_result = map(lambda x:x**10, range(32))
 
-	In [64]: parallel_result = tc[None].map(lambda x:x**10, range(32))
+	In [64]: parallel_result = lview.map(lambda x:x**10, range(32), block=True)
 
 	In [65]: serial_result==parallel_result
 	Out[65]: True
@@ -258,13 +258,13 @@ you can skip using Dependency objects, and just pass msg_ids or AsyncResult obje
 
     In [14]: client.block=False
 
-    In [15]: ar = client.apply(f, args, kwargs, targets=None)
+    In [15]: ar = client.apply(f, args, kwargs, balanced=True)
 
-    In [16]: ar2 = client.apply(f2, targets=None)
+    In [16]: ar2 = client.apply(f2, balanced=True)
 
-    In [17]: ar3 = client.apply(f3, after=[ar,ar2])
+    In [17]: ar3 = client.apply(f3, after=[ar,ar2], balanced=True)
 
-    In [17]: ar4 = client.apply(f3, follow=[ar], timeout=2.5)
+    In [17]: ar4 = client.apply(f3, follow=[ar], timeout=2.5, balanced=True)
 
 
 .. seealso::
@@ -383,7 +383,7 @@ The following is an overview of how to use these classes together:
 1. Create a :class:`Client`.
 2. Define some functions to be run as tasks
 3. Submit your tasks to using the :meth:`apply` method of your
-   :class:`Client` instance, specifying `targets=None`. This signals
+   :class:`Client` instance, specifying `balanced=True`. This signals
    the :class:`Client` to entrust the Scheduler with assigning tasks to engines.
 4. Use :meth:`Client.get_results` to get the results of the
    tasks, or use the :meth:`AsyncResult.get` method of the results to wait
