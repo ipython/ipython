@@ -171,8 +171,8 @@ python-profiler package from non-free.""")
         Inputs:
 
           - range_str: the set of slices is given as a string, like 
-          "~5#6-~4#2 4:8 9", since this function is for use by magic functions
-          which get their arguments as strings. The number before the # is the
+          "~5/6-~4/2 4:8 9", since this function is for use by magic functions
+          which get their arguments as strings. The number before the / is the
           session number: ~n goes n back from the current session.
 
         Optional inputs:
