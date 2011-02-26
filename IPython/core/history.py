@@ -195,12 +195,12 @@ class HistoryManager(Configurable):
             
         # Assemble the SQL query:
         sqlfrom = "history"
-        toget = 'source_raw' if raw else 'source'
+        toget = "session, line, " +('source_raw' if raw else 'source')
         if output:
             sqlfrom = "history LEFT JOIN output_history USING (session, line)"
             toget = "history.%s, output_history.output" % toget
         if stop:
-            lineclause = "line BETWEEN ? and ?"
+            lineclause = "line >= ? AND line < ?"
             params = (session, start, stop)
         else:
             lineclause = "line>=?"
@@ -215,8 +215,8 @@ class HistoryManager(Configurable):
     def get_hist_from_rangestr(self, rangestr, raw=True, output=False):
         """Get lines of history from a string of ranges, as used by magic
         commands %hist, %save, %macro, etc."""
-        for parts in extract_hist_ranges(rangestr):
-            for line in self.get_history(*parts, raw=raw, output=output):
+        for sess, s, e in extract_hist_ranges(rangestr):
+            for line in self.get_history(sess, s, e, raw=raw, output=output):
                 yield line
 
     def store_inputs(self, line_num, source, source_raw=None):
@@ -301,12 +301,12 @@ class HistoryManager(Configurable):
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
         
-# To match, e.g. ~5#8-~2#3
+# To match, e.g. ~5/8-~2/3
 range_re = re.compile(r"""
-((?P<startsess>~?\d+)\#)?
+((?P<startsess>~?\d+)/)?
 (?P<start>\d+)                    # Only the start line num is compulsory
 ((?P<sep>[\-:])
- ((?P<endsess>~?\d+)\#)?
+ ((?P<endsess>~?\d+)/)?
  (?P<end>\d+))?
 """, re.VERBOSE)
 
@@ -315,10 +315,9 @@ def extract_hist_ranges(ranges_str):
     
     Examples
     --------
-    list(extract_input_ranges("~8#5-~7#4 2"))
+    list(extract_input_ranges("~8/5-~7/4 2"))
     [(-8, 5, None), (-7, 1, 4), (0, 2, 3)]
     """
-    print(ranges_str)
     for range_str in ranges_str.split():
         rmatch = range_re.match(range_str)
         start = int(rmatch.group("start"))
