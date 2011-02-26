@@ -76,6 +76,7 @@ def main(nodes, edges):
     in-degree on the y (just for spread).  All arrows must
     point at least slightly to the right if the graph is valid.
     """
+    import pylab
     from matplotlib.dates import date2num
     from matplotlib.cm import gist_rainbow
     print "building DAG"
@@ -99,7 +100,15 @@ def main(nodes, edges):
         pos[node] = (start, runtime)
         colors[node] = md.engine_id
     validate_tree(G, results)
-    nx.draw(G, pos, node_list = colors.keys(), node_color=colors.values(), cmap=gist_rainbow)
+    nx.draw(G, pos, node_list=colors.keys(), node_color=colors.values(), cmap=gist_rainbow,
+            with_labels=False)
+    x,y = zip(*pos.values())
+    xmin,ymin = map(min, (x,y))
+    xmax,ymax = map(max, (x,y))
+    xscale = xmax-xmin
+    yscale = ymax-ymin
+    pylab.xlim(xmin-xscale*.1,xmax+xscale*.1)
+    pylab.ylim(ymin-yscale*.1,ymax+yscale*.1)
     return G,results
 
 if __name__ == '__main__':

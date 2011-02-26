@@ -24,6 +24,8 @@ import zmq
 # from zmq.eventloop import ioloop, zmqstream
 
 from IPython.utils.path import get_ipython_dir
+from IPython.utils.traitlets import (HasTraits, Int, Instance, CUnicode, 
+                                    Dict, List, Bool, Str, Set)
 from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
@@ -147,7 +149,7 @@ class Metadata(dict):
             raise KeyError(key)
         
 
-class Client(object):
+class Client(HasTraits):
     """A semi-synchronous client to the IPython ZMQ controller
     
     Parameters
@@ -247,31 +249,41 @@ class Client(object):
     """
     
     
-    _connected=False
-    _ssh=False
-    _engines=None
-    _registration_socket=None
-    _query_socket=None
-    _control_socket=None
-    _iopub_socket=None
-    _notification_socket=None
-    _mux_socket=None
-    _task_socket=None
-    _task_scheme=None
-    block = False
-    outstanding=None
-    results = None
-    history = None
-    debug = False
-    targets = None
+    block = Bool(False)
+    outstanding=Set()
+    results = Dict()
+    metadata = Dict()
+    history = List()
+    debug = Bool(False)
+    profile=CUnicode('default')
+    
+    _ids = List()
+    _connected=Bool(False)
+    _ssh=Bool(False)
+    _context = Instance('zmq.Context')
+    _config = Dict()
+    _engines=Instance(ReverseDict, (), {})
+    _registration_socket=Instance('zmq.Socket')
+    _query_socket=Instance('zmq.Socket')
+    _control_socket=Instance('zmq.Socket')
+    _iopub_socket=Instance('zmq.Socket')
+    _notification_socket=Instance('zmq.Socket')
+    _mux_socket=Instance('zmq.Socket')
+    _task_socket=Instance('zmq.Socket')
+    _task_scheme=Str()
+    _balanced_views=Dict()
+    _direct_views=Dict()
+    _closed = False
     
     def __init__(self, url_or_file=None, profile='default', cluster_dir=None, ipython_dir=None,
             context=None, username=None, debug=False, exec_key=None,
             sshserver=None, sshkey=None, password=None, paramiko=None,
             ):
+        super(Client, self).__init__(debug=debug, profile=profile)
         if context is None:
             context = zmq.Context()
-        self.context = context
+        self._context = context
+            
         
         self._setup_cluster_dir(profile, cluster_dir, ipython_dir)
         if self._cd is not None:
@@ -325,20 +337,14 @@ class Client(object):
             self.session = ss.StreamSession(**key_arg)
         else:
             self.session = ss.StreamSession(username, **key_arg)
-        self._registration_socket = self.context.socket(zmq.XREQ)
+        self._registration_socket = self._context.socket(zmq.XREQ)
         self._registration_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:
             tunnel.tunnel_connection(self._registration_socket, url, sshserver, **ssh_kwargs)
         else:
             self._registration_socket.connect(url)
-        self._engines = ReverseDict()
-        self._ids = []
-        self.outstanding=set()
-        self.results = {}
-        self.metadata = {}
-        self.history = []
-        self.debug = debug
-        self.session.debug = debug
+        
+        self.session.debug = self.debug
         
         self._notification_handlers = {'registration_notification' : self._register_engine,
                                     'unregistration_notification' : self._unregister_engine,
@@ -370,6 +376,14 @@ class Client(object):
         """Always up-to-date ids property."""
         self._flush_notifications()
         return self._ids
+        
+    def close(self):
+        if self._closed:
+            return
+        snames = filter(lambda n: n.endswith('socket'), dir(self))
+        for socket in map(lambda name: getattr(self, name), snames):
+            socket.close()
+        self._closed = True
     
     def _update_engines(self, engines):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
@@ -436,28 +450,28 @@ class Client(object):
         self._config['registration'] = dict(content)
         if content.status == 'ok':
             if content.mux:
-                self._mux_socket = self.context.socket(zmq.PAIR)
+                self._mux_socket = self._context.socket(zmq.PAIR)
                 self._mux_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._mux_socket, content.mux)
             if content.task:
                 self._task_scheme, task_addr = content.task
-                self._task_socket = self.context.socket(zmq.PAIR)
+                self._task_socket = self._context.socket(zmq.PAIR)
                 self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._task_socket, task_addr)
             if content.notification:
-                self._notification_socket = self.context.socket(zmq.SUB)
+                self._notification_socket = self._context.socket(zmq.SUB)
                 connect_socket(self._notification_socket, content.notification)
                 self._notification_socket.setsockopt(zmq.SUBSCRIBE, "")
             if content.query:
-                self._query_socket = self.context.socket(zmq.PAIR)
+                self._query_socket = self._context.socket(zmq.PAIR)
                 self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._query_socket, content.query)
             if content.control:
-                self._control_socket = self.context.socket(zmq.PAIR)
+                self._control_socket = self._context.socket(zmq.PAIR)
                 self._control_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._control_socket, content.control)
             if content.iopub:
-                self._iopub_socket = self.context.socket(zmq.SUB)
+                self._iopub_socket = self._context.socket(zmq.SUB)
                 self._iopub_socket.setsockopt(zmq.SUBSCRIBE, '')
                 self._iopub_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._iopub_socket, content.iopub)
@@ -636,8 +650,12 @@ class Client(object):
             msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
     #--------------------------------------------------------------------------
-    # getitem
+    # len, getitem
     #--------------------------------------------------------------------------
+    
+    def __len__(self):
+        """len(client) returns # of engines."""
+        return len(self.ids)
     
     def __getitem__(self, key):
         """index access returns DirectView multiplexer objects
@@ -929,8 +947,9 @@ class Client(object):
             else:
                 return list of results, matching `targets`
         """
-        
+        assert not self._closed, "cannot use me anymore, I'm closed!"
         # defaults:
+        block = block if block is not None else self.block
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
         
@@ -955,7 +974,7 @@ class Client(object):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
         
         options  = dict(bound=bound, block=block, targets=targets)
-            
+        
         if balanced:
             return self._apply_balanced(f, args, kwargs, timeout=timeout, 
                                         after=after, follow=follow, **options)
@@ -966,7 +985,7 @@ class Client(object):
         else:
             return self._apply_direct(f, args, kwargs, **options)
     
-    def _apply_balanced(self, f, args, kwargs, bound=True, block=None, targets=None,
+    def _apply_balanced(self, f, args, kwargs, bound=None, block=None, targets=None,
                             after=None, follow=None, timeout=None):
         """call f(*args, **kwargs) remotely in a load-balanced manner.
         
@@ -974,8 +993,9 @@ class Client(object):
         Not to be called directly!
         """
         
-        for kwarg in (bound, block, targets):
-            assert kwarg is not None, "kwarg %r must be specified!"%kwarg
+        loc = locals()
+        for name in ('bound', 'block'):
+            assert loc[name] is not None, "kwarg %r must be specified!"%name
         
         if self._task_socket is None:
             msg = "Task farming is disabled"
@@ -1030,9 +1050,9 @@ class Client(object):
         This is a private method, see `apply` for details.
         Not to be called directly!
         """
-        
-        for kwarg in (bound, block, targets):
-            assert kwarg is not None, "kwarg %r must be specified!"%kwarg
+        loc = locals()
+        for name in ('bound', 'block', 'targets'):
+            assert loc[name] is not None, "kwarg %r must be specified!"%name
         
         idents,targets = self._build_targets(targets)
         
@@ -1058,35 +1078,65 @@ class Client(object):
             return ar
     
     #--------------------------------------------------------------------------
-    # decorators
+    # construct a View object
     #--------------------------------------------------------------------------
     
     @defaultblock
-    def parallel(self, bound=True, targets='all', block=None):
-        """Decorator for making a ParallelFunction."""
-        return parallel(self, bound=bound, targets=targets, block=block)
+    def remote(self, bound=True, block=None, targets=None, balanced=None):
+        """Decorator for making a RemoteFunction"""
+        return remote(self, bound=bound, targets=targets, block=block, balanced=balanced)
     
     @defaultblock
-    def remote(self, bound=True, targets='all', block=None):
-        """Decorator for making a RemoteFunction."""
-        return remote(self, bound=bound, targets=targets, block=block)
+    def parallel(self, dist='b', bound=True, block=None, targets=None, balanced=None):
+        """Decorator for making a ParallelFunction"""
+        return parallel(self, bound=bound, targets=targets, block=block, balanced=balanced)
     
-    def view(self, targets=None, balanced=False):
-        """Method for constructing View objects"""
+    def _cache_view(self, targets, balanced):
+        """save views, so subsequent requests don't create new objects."""
+        if balanced:
+            view_class = LoadBalancedView
+            view_cache = self._balanced_views
+        else:
+            view_class = DirectView
+            view_cache = self._direct_views
+        
+        # use str, since often targets will be a list
+        key = str(targets)
+        if key not in view_cache:
+            view_cache[key] = view_class(client=self, targets=targets)
+        
+        return view_cache[key]
+    
+    def view(self, targets=None, balanced=None):
+        """Method for constructing View objects.
+        
+        If no arguments are specified, create a LoadBalancedView
+        using all engines.  If only `targets` specified, it will
+        be a DirectView.  This method is the underlying implementation
+        of ``client.__getitem__``.
+        
+        Parameters
+        ----------
+        
+        targets: list,slice,int,etc. [default: use all engines]
+            The engines to use for the View
+        balanced : bool [default: False if targets specified, True else]
+            whether to build a LoadBalancedView or a DirectView
+        
+        """
+        
+        balanced = (targets is None) if balanced is None else balanced
+        
         if targets is None:
             if balanced:
-                return LoadBalancedView(client=self)
+                return self._cache_view(None,True)
             else:
                 targets = slice(None)
         
-        if balanced:
-            view_class = LoadBalancedView
-        else:
-            view_class = DirectView
         if isinstance(targets, int):
             if targets not in self.ids:
                 raise IndexError("No such engine: %i"%targets)
-            return view_class(client=self, targets=targets)
+            return self._cache_view(targets, balanced)
         
         if isinstance(targets, slice):
             indices = range(len(self.ids))[targets]
@@ -1095,7 +1145,7 @@ class Client(object):
         
         if isinstance(targets, (tuple, list, xrange)):
             _,targets = self._build_targets(list(targets))
-            return view_class(client=self, targets=targets)
+            return self._cache_view(targets, balanced)
         else:
             raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
     

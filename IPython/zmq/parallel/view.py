@@ -134,7 +134,7 @@ class View(HasTraits):
                 raise KeyError("Invalid name: %r"%key)
         for name in ('block', 'bound'):
             if name in kwargs:
-                setattr(self, name, kwargs)
+                setattr(self, name, kwargs[name])
     
     #----------------------------------------------------------------
     # wrappers for client methods:
@@ -249,16 +249,49 @@ class View(HasTraits):
         return self.client.purge_results(msg_ids=msg_ids, targets=targets)
         
     #-------------------------------------------------------------------
+    # Map
+    #-------------------------------------------------------------------
+    
+    def map(self, f, *sequences, **kwargs):
+        """override in subclasses"""
+        raise NotImplementedError
+    
+    def map_async(self, f, *sequences, **kwargs):
+        """Parallel version of builtin `map`, using this view's engines.
+        
+        This is equivalent to map(...block=False)
+        
+        See `map` for details.
+        """
+        if 'block' in kwargs:
+            raise TypeError("map_async doesn't take a `block` keyword argument.")
+        kwargs['block'] = False
+        return self.map(f,*sequences,**kwargs)
+    
+    def map_sync(self, f, *sequences, **kwargs):
+        """Parallel version of builtin `map`, using this view's engines.
+        
+        This is equivalent to map(...block=True)
+        
+        See `map` for details.
+        """
+        if 'block' in kwargs:
+            raise TypeError("map_sync doesn't take a `block` keyword argument.")
+        kwargs['block'] = True
+        return self.map(f,*sequences,**kwargs)
+    
+    #-------------------------------------------------------------------
     # Decorators
     #-------------------------------------------------------------------
-    def parallel(self, bound=True, block=True):
-        """Decorator for making a ParallelFunction"""
-        return parallel(self.client, bound=bound, targets=self.targets, block=block, balanced=self._balanced)
     
     def remote(self, bound=True, block=True):
         """Decorator for making a RemoteFunction"""
-        return parallel(self.client, bound=bound, targets=self.targets, block=block, balanced=self._balanced)
+        return remote(self.client, bound=bound, targets=self.targets, block=block, balanced=self._balanced)
     
+    def parallel(self, dist='b', bound=True, block=None):
+        """Decorator for making a ParallelFunction"""
+        block = self.block if block is None else block
+        return parallel(self.client, bound=bound, targets=self.targets, block=block, balanced=self._balanced)
 
 
 class DirectView(View):
@@ -325,16 +358,9 @@ class DirectView(View):
                 raise TypeError("invalid keyword arg, %r"%k)
         
         assert len(sequences) > 0, "must have some sequences to map onto!"
-        pf = ParallelFunction(self.client, f, block=block,
-                        bound=bound, targets=self.targets, balanced=False)
+        pf = ParallelFunction(self.client, f, block=block, bound=bound,
+                        targets=self.targets, balanced=False)
         return pf.map(*sequences)
-    
-    def map_async(self, f, *sequences, **kwargs):
-        """Parallel version of builtin `map`, using this view's engines."""
-        if 'block' in kwargs:
-            raise TypeError("map_async doesn't take a `block` keyword argument.")
-        kwargs['block'] = True
-        return self.map(f,*sequences,**kwargs)
     
     @sync_results
     @save_ids
@@ -446,12 +472,12 @@ class LoadBalancedView(View):
     
     """
     
-    _apply_name = 'apply_balanced'
     _default_names = ['block', 'bound', 'follow', 'after', 'timeout']
     
     def __init__(self, client=None, targets=None):
         super(LoadBalancedView, self).__init__(client=client, targets=targets)
         self._ntargets = 1
+        self._balanced = True
     
     def _validate_dependency(self, dep):
         """validate a dependency.
@@ -547,26 +573,20 @@ class LoadBalancedView(View):
         
         """
         
+        # default
         block = kwargs.get('block', self.block)
         bound = kwargs.get('bound', self.bound)
+        chunk_size = kwargs.get('chunk_size', 1)
+        
+        keyset = set(kwargs.keys())
+        extra_keys = keyset.difference_update(set(['block', 'bound', 'chunk_size']))
+        if extra_keys:
+            raise TypeError("Invalid kwargs: %s"%list(extra_keys))
         
         assert len(sequences) > 0, "must have some sequences to map onto!"
         
         pf = ParallelFunction(self.client, f, block=block, bound=bound, 
-                                targets=self.targets, balanced=True)
+                                targets=self.targets, balanced=True,
+                                chunk_size=chunk_size)
         return pf.map(*sequences)
-    
-    def map_async(self, f, *sequences, **kwargs):
-        """Parallel version of builtin `map`, using this view's engines.
-        
-        This is equivalent to map(...block=False)
-        
-        See `map` for details.
-        """
-        
-        if 'block' in kwargs:
-            raise TypeError("map_async doesn't take a `block` keyword argument.")
-        kwargs['block'] = True
-        return self.map(f,*sequences,**kwargs)
-    
     

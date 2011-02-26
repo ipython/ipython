@@ -27,15 +27,17 @@ filestring = 'pi200m.ascii.%(i)02dof20'
 files = [filestring % {'i':i} for i in range(1,16)]
 
 # Connect to the IPython cluster
-c = client.Client()
+c = client.Client(profile='edison')
 c.run('pidigits.py')
 
 # the number of engines
-n = len(c.ids)
-id0 = list(c.ids)[0]
+n = len(c)
+id0 = c.ids[0]
+v = c[:]
+v.set_flags(bound=True,block=True)
 # fetch the pi-files
 print "downloading %i files of pi"%n
-c.map(fetch_pi_file, files[:n])
+v.map(fetch_pi_file, files[:n])
 print "done"
 
 # Run 10m digits on 1 engine
@@ -48,8 +50,7 @@ print "Digits per second (1 core, 10m digits):   ", digits_per_second1
 
 # Run n*10m digits on all engines
 t1 = clock()
-c.block=True
-freqs_all = c.map(compute_two_digit_freqs, files[:n])
+freqs_all = v.map(compute_two_digit_freqs, files[:n])
 freqs150m = reduce_freqs(freqs_all)
 t2 = clock()
 digits_per_second8 = n*10.0e6/(t2-t1)

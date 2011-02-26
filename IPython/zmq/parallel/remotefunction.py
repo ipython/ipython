@@ -10,6 +10,8 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import warnings
+
 import map as Map
 from asyncresult import AsyncMapResult
 
@@ -17,7 +19,7 @@ from asyncresult import AsyncMapResult
 # Decorators
 #-----------------------------------------------------------------------------
 
-def remote(client, bound=False, block=None, targets=None, balanced=None):
+def remote(client, bound=True, block=None, targets=None, balanced=None):
     """Turn a function into a remote function.
     
     This method can be used for map:
@@ -29,7 +31,7 @@ def remote(client, bound=False, block=None, targets=None, balanced=None):
         return RemoteFunction(client, f, bound, block, targets, balanced)
     return remote_function
 
-def parallel(client, dist='b', bound=False, block=None, targets='all', balanced=None):
+def parallel(client, dist='b', bound=True, block=None, targets='all', balanced=None):
     """Turn a function into a parallel remote function.
     
     This method can be used for map:
@@ -93,8 +95,10 @@ class RemoteFunction(object):
 
 class ParallelFunction(RemoteFunction):
     """Class for mapping a function to sequences."""
-    def __init__(self, client, f, dist='b', bound=False, block=None, targets='all', balanced=None):
+    def __init__(self, client, f, dist='b', bound=False, block=None, targets='all', balanced=None, chunk_size=None):
         super(ParallelFunction, self).__init__(client,f,bound,block,targets,balanced)
+        self.chunk_size = chunk_size
+        
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
     
@@ -106,12 +110,18 @@ class ParallelFunction(RemoteFunction):
                 raise ValueError(msg)
         
         if self.balanced:
-            targets = [self.targets]*len_0
+            if self.chunk_size:
+                nparts = len_0/self.chunk_size + int(len_0%self.chunk_size > 0)
+            else:
+                nparts = len_0
+            targets = [self.targets]*nparts
         else:
+            if self.chunk_size:
+                warnings.warn("`chunk_size` is ignored when `balanced=False", UserWarning)
             # multiplexed:
             targets = self.client._build_targets(self.targets)[-1]
+            nparts = len(targets)
         
-        nparts = len(targets)
         msg_ids = []
         # my_f = lambda *a: map(self.func, *a)
         for index, t in enumerate(targets):
@@ -132,7 +142,7 @@ class ParallelFunction(RemoteFunction):
             else:
                 f=self.func
             ar = self.client.apply(f, args=args, block=False, bound=self.bound, 
-                        targets=targets, balanced=self.balanced)
+                        targets=t, balanced=self.balanced)
             
             msg_ids.append(ar.msg_ids[0])
         

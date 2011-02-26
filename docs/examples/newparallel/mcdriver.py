@@ -49,7 +49,7 @@ c = client.Client(profile=cluster_profile)
 
 # A LoadBalancedView is an interface to the engines that provides dynamic load 
 # balancing at the expense of not knowing which engine will execute the code.
-view = c[None]
+view = c.view()
 
 # Initialize the common code on the engines. This Python module has the
 # price_options function that prices the options.
