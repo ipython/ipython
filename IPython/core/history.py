@@ -146,9 +146,9 @@ class HistoryManager(Configurable):
         -------
         An iterator over tuples: (session, line_number, command)
         """
-        toget = "source_raw" if raw else source
+        toget = "source_raw" if raw else "source"
         return self.db.execute("SELECT session, line, " +toget+ \
-                        "FROM history WHERE" +toget+ "GLOB ?", (pattern,))
+                        " FROM history WHERE " +toget+ " GLOB ?", (pattern,))
                                 
     def _get_hist_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
@@ -424,6 +424,12 @@ def magic_history(self, parameter_s = ''):
     
     # For brevity
     history_manager = self.shell.history_manager
+    
+    def _format_lineno(session, line):
+        """Helper function to format line numbers properly."""
+        if session in (0, history_manager.session_number):
+            return str(line)
+        return "%s/%s" % (session, line)
 
     # Check if output to specific file was requested.
     try:
@@ -458,9 +464,9 @@ def magic_history(self, parameter_s = ''):
         matches_current_session = []
         for session, line, s in history_manager.get_hist_search(pattern, raw):
             if session == history_manager.session_number:
-                matches_current_session.append(line, s)
+                matches_current_session.append((line, s))
                 continue
-            print("%d#%d: %s" %(session, line, s.expandtabs(4)), file=outfile)
+            print("%d/%d: %s" %(session, line, s.expandtabs(4)), file=outfile)
         if matches_current_session:
             print("=== Current session: ===", file=outfile)
             for line, s in matches_current_session:
@@ -499,7 +505,7 @@ def magic_history(self, parameter_s = ''):
         multiline = "\n" in inline
         line_sep = '\n' if multiline else ''
         if print_nums:
-            print('%s:%s' % (_format_lineno(session, lineno).ljust(width),
+            print('%s:%s' % (_format_lineno(session, lineno).rjust(width),
                     line_sep),  file=outfile, end='')
         if pyprompts:
             print(">>> ", end="", file=outfile)
