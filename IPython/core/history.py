@@ -97,6 +97,7 @@ class HistoryManager(Configurable):
                                    '%quit', '%Exit', '%exit'])
         
     def init_db(self):
+        """Connect to the database and get new session number."""
         self.db = sqlite3.connect(self.hist_file)
         self.db.execute("""CREATE TABLE IF NOT EXISTS history 
                 (session integer, line integer, source text, source_raw text,
@@ -173,7 +174,8 @@ class HistoryManager(Configurable):
         start : int
             First line to retrieve.
         stop : int
-            Last line to retrieve. If None, retrieve to the end of the session.
+            End of line range (excluded from output itself). If None, retrieve
+            to the end of the session.
         raw : bool
             If True, return untranslated input
         output : bool
@@ -294,12 +296,16 @@ class HistoryManager(Configurable):
             self.input_hist_parsed[:lp-lr] = []
 
     def reset(self):
-        """Clear all histories managed by this object."""
-        self.input_hist_parsed[:] = []
-        self.input_hist_raw[:] = []
+        """Clear all histories managed by this object, and start a new 
+        session."""
+        self.input_hist_parsed[:] = [""]
+        self.input_hist_raw[:] = [""]
         self.output_hist.clear()
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
+        
+        self.writeout_cache()
+        self.init_db()     # New session
         
 # To match, e.g. ~5/8-~2/3
 range_re = re.compile(r"""
@@ -483,7 +489,7 @@ def magic_history(self, parameter_s = ''):
         line_sep = '\n' if multiline else ''
         if print_nums:
             print('%s:%s' % (_format_lineno(session, lineno).ljust(width),
-                    line_sep[multiline]),  file=outfile, end='')
+                    line_sep),  file=outfile, end='')
         if pyprompts:
             print(">>> ", end="", file=outfile)
             if multiline:
