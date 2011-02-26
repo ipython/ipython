@@ -1,35 +1,30 @@
-"""toplevel setup/teardown for prallel tests."""
+"""toplevel setup/teardown for parallel tests."""
+
 import time
+from subprocess import Popen, PIPE
 
 from IPython.zmq.parallel.ipcluster import launch_process
 from IPython.zmq.parallel.entry_point import select_random_ports
-# from multiprocessing import Process
 
-cluster_logs = dict(
-    regport=0,
-    processes = [],
-)
+processes = []
+
+# nose setup/teardown
 
 def setup():
-    p = select_random_ports(1)[0]
-    cluster_logs['regport']=p
-    cp = launch_process('controller',('--scheduler lru --ping 100 --regport %i'%p).split())
-    # cp.start()
-    cluster_logs['processes'].append(cp)
-    add_engine(p)
-    time.sleep(2)
+    cp = Popen('ipcontrollerz --profile iptest -r --log-level 40'.split(), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    processes.append(cp)
+    time.sleep(.5)
+    add_engine()
+    time.sleep(3)
 
-def add_engine(port=None):
-    if port is None:
-        port = cluster_logs['regport']
-    ep = launch_process('engine', ['--regport',str(port)])
+def add_engine(profile='iptest'):
+    ep = Popen(['ipenginez']+ ['--profile', profile, '--log-level', '40'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
     # ep.start()
-    cluster_logs['processes'].append(ep)
+    processes.append(ep)
     return ep
 
 def teardown():
     time.sleep(1)
-    processes = cluster_logs['processes']
     while processes:
         p = processes.pop()
         if p.poll() is None:
@@ -47,5 +42,4 @@ def teardown():
                 p.kill()
             except:
                 print "couldn't shutdown process: ",p
-    
     
