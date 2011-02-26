@@ -990,14 +990,16 @@ class InteractiveShell(Configurable, Magic):
         # Finally, update the real user's namespace
         self.user_ns.update(ns)
 
-    def reset(self):
+    def reset(self, new_session=True):
         """Clear all internal namespaces.
 
         Note that this is much more aggressive than %reset, since it clears
         fully all namespaces, as well as all input/output lists.
+        
+        If new_session is True, a new history session will be opened.
         """
         # Clear histories
-        self.history_manager.reset()
+        self.history_manager.reset(new_session)
 
         # Reset counter used to index all histories
         self.execution_count = 0
@@ -1265,9 +1267,6 @@ class InteractiveShell(Configurable, Magic):
             finally:
                 self.reload_history()
         return wrapper
-    
-    def get_history(self, start=1, stop=None, raw=False, output=True):
-        return self.history_manager.get_history(start, stop, raw, output)
     
 
     #-------------------------------------------------------------------------
@@ -2194,8 +2193,8 @@ class InteractiveShell(Configurable, Magic):
         magic calls (%magic), special shell access (!cmd), etc.
         """
         
-        if isinstance(lines, (list, tuple)):
-            lines = '\n'.join(lines)
+        if not isinstance(lines, (list, tuple)):
+            lines = lines.splitlines()
 
         if clean:
             lines = self._cleanup_ipy_script(lines)
@@ -2203,7 +2202,6 @@ class InteractiveShell(Configurable, Magic):
         # We must start with a clean buffer, in case this is run from an
         # interactive IPython session (via a magic, for example).
         self.reset_buffer()
-        lines = lines.splitlines()
 
         # Since we will prefilter all lines, store the user's raw input too
         # before we apply any transformations
@@ -2533,7 +2531,7 @@ class InteractiveShell(Configurable, Magic):
         self.history_manager.writeout_cache()
 
         # Clear all user namespaces to release all references cleanly.
-        self.reset()
+        self.reset(new_session=False)
 
         # Run user hooks
         self.hooks.shutdown_hook()

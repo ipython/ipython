@@ -157,7 +157,6 @@ def test_macro():
     cmds = ["a=1", "def b():\n  return a**2", "print(a,b())"]
     for i, cmd in enumerate(cmds, start=1):
         ip.history_manager.store_inputs(i, cmd)
-        print i, cmd
     ip.magic("macro test 1-3")
     nt.assert_equal(ip.user_ns["test"].value, "\n".join(cmds)+"\n")
     

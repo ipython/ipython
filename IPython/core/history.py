@@ -124,12 +124,19 @@ class HistoryManager(Configurable):
                         name='session_number'""", (self.session_number+1,))
         self.db.commit()
                             
-    def get_hist_tail(self, n=10, raw=True):
+    def get_hist_tail(self, n=10, raw=True, output=False):
         """Get the last n lines from the history database."""
         toget = 'source_raw' if raw else 'source'
+        sqlfrom = "history"
+        if output:
+            sqlfrom = "history LEFT JOIN output_history USING (session, line)"
+            toget = "history.%s, output_history.output" % toget
         cur = self.db.execute("SELECT session, line, " + toget +\
-            " FROM history ORDER BY session DESC, line DESC LIMIT ?""", (n,))
-        return reversed(cur.fetchall())
+            " FROM "+sqlfrom+" ORDER BY session DESC, line DESC LIMIT ?", (n,))
+        hist = reversed(cur.fetchall())
+        if output:
+            return ((ses, lin, (inp, out)) for ses, lin, inp, out in hist)
+        return hist
         
     def get_hist_search(self, pattern="*", raw=True):
         """Search the database using unix glob-style matching (wildcards * and
@@ -158,7 +165,7 @@ class HistoryManager(Configurable):
         
         for i in range(start, stop):
             if output:
-                line = (input_hist[i], self.output_hist.get(i))
+                line = (input_hist[i], repr(self.output_hist.get(i)))
             else:
                 line = input_hist[i]
             yield (0, i, line)
@@ -197,7 +204,7 @@ class HistoryManager(Configurable):
             
         # Assemble the SQL query:
         sqlfrom = "history"
-        toget = "session, line, " +('source_raw' if raw else 'source')
+        toget = 'source_raw' if raw else 'source'
         if output:
             sqlfrom = "history LEFT JOIN output_history USING (session, line)"
             toget = "history.%s, output_history.output" % toget
@@ -208,10 +215,10 @@ class HistoryManager(Configurable):
             lineclause = "line>=?"
             params = (session, start)
         
-        cur = self.db.execute("SELECT %s FROM %s WHERE session==? AND %s"\
-                                %(toget, sqlfrom, lineclause), params)
+        cur = self.db.execute("""SELECT session, line, %s FROM %s WHERE
+            session==? AND %s""" %(toget, sqlfrom, lineclause), params)
         if output:     # Regroup into 3-tuples
-            return ((ses, lin (inp, out)) for ses, lin, inp, out in cur)
+            return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
         
     def get_hist_from_rangestr(self, rangestr, raw=True, output=False):
@@ -278,6 +285,7 @@ class HistoryManager(Configurable):
             self.db.execute("INSERT INTO output_history VALUES (?,?,?)", db_row)
         
     def writeout_cache(self):
+        #print(self.db_input_cache)
         with self.db:
             self.db.executemany("INSERT INTO history VALUES (?, ?, ?, ?)",
                                 self.db_input_cache)
@@ -295,8 +303,8 @@ class HistoryManager(Configurable):
         elif lr < lp:
             self.input_hist_parsed[:lp-lr] = []
 
-    def reset(self):
-        """Clear all histories managed by this object, and start a new 
+    def reset(self, new_session=True):
+        """Clear the current session's history, and (optionally) start a new
         session."""
         self.input_hist_parsed[:] = [""]
         self.input_hist_raw[:] = [""]
@@ -304,8 +312,9 @@ class HistoryManager(Configurable):
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
         
-        self.writeout_cache()
-        self.init_db()     # New session
+        if new_session:
+            self.writeout_cache()
+            self.init_db()     # Get new session number
         
 # To match, e.g. ~5/8-~2/3
 range_re = re.compile(r"""
@@ -463,7 +472,7 @@ def magic_history(self, parameter_s = ''):
             n = int(args)
         except ValueError, IndexError:
             n = 10
-        hist = history_manager.get_hist_tail(n, raw=raw)
+        hist = history_manager.get_hist_tail(n, raw=raw, output=get_output)
     else:
         if args:            # Get history by ranges
             hist = history_manager.get_hist_from_rangestr(args, raw, get_output)
@@ -471,6 +480,8 @@ def magic_history(self, parameter_s = ''):
             hist = history_manager.get_history(raw=raw, output=get_output)
     # Pull hist into a list, so we can get the widest number in it.
     hist = list(hist)
+    if not hist:
+        return
     
     width = max(len(_format_lineno(s, l)) for s, l, _ in hist)
         
@@ -496,7 +507,7 @@ def magic_history(self, parameter_s = ''):
                 inline = "\n... ".join(inline.splitlines()) + "\n..."
         print(inline, file=outfile)
         if get_output and output:
-            print(repr(output), file=outfile)
+            print(output, file=outfile)
 
     if close_at_end:
         outfile.close()

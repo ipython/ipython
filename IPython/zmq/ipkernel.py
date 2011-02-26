@@ -107,7 +107,7 @@ class Kernel(Configurable):
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
-                      'object_info_request', 'history_request',
+                      'object_info_request', 'history_tail_request',
                       'connect_request', 'shutdown_request']
         self.handlers = {}
         for msg_type in msg_types:
@@ -308,12 +308,11 @@ class Kernel(Configurable):
                                 oinfo, parent, ident)
         logger.debug(msg)
 
-    def history_request(self, ident, parent):
-        # parent['content'] should contain keys "index", "raw", "output" and
-        # "this_session".
-        hist = self.shell.get_history(**parent['content'])
-        content = {'history' : hist}
-        msg = self.session.send(self.reply_socket, 'history_reply',
+    def history_tail_request(self, ident, parent):
+        # parent['content'] should contain keys "n", "raw" and "output"
+        hist = self.shell.history_manager.get_hist_tail(**parent['content'])
+        content = {'history' : list(hist)}
+        msg = self.session.send(self.reply_socket, 'history_tail_reply',
                                 content, parent, ident)
         logger.debug(str(msg))
 
