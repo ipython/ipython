@@ -10,7 +10,9 @@ class TestAnsiCodeProcessor(unittest.TestCase):
     def setUp(self):
         self.processor = AnsiCodeProcessor()
 
-    def testClear(self):
+    def test_clear(self):
+        """ Do control sequences for clearing the console work?
+        """
         string = '\x1b[2J\x1b[K'
         i = -1
         for i, substring in enumerate(self.processor.split_string(string)):
@@ -30,8 +32,10 @@ class TestAnsiCodeProcessor(unittest.TestCase):
                 self.fail('Too many substrings.')
         self.assertEquals(i, 1, 'Too few substrings.')
 
-    def testColors(self):
-        string = "first\x1b[34mblue\x1b[0mlast"
+    def test_colors(self):
+        """ Do basic controls sequences for colors work?
+        """
+        string = 'first\x1b[34mblue\x1b[0mlast'
         i = -1
         for i, substring in enumerate(self.processor.split_string(string)):
             if i == 0:
@@ -47,7 +51,24 @@ class TestAnsiCodeProcessor(unittest.TestCase):
                 self.fail('Too many substrings.')
         self.assertEquals(i, 2, 'Too few substrings.')
 
-    def testScroll(self):
+    def test_colors_xterm(self):
+        """ Do xterm-specific control sequences for colors work?
+        """
+        string = '\x1b]4;20;rgb:ff/ff/ff\x1b' \
+            '\x1b]4;25;rgbi:1.0/1.0/1.0\x1b'
+        substrings = list(self.processor.split_string(string))
+        desired = { 20 : (255, 255, 255),
+                    25 : (255, 255, 255) }
+        self.assertEquals(self.processor.color_map, desired)
+
+        string = '\x1b[38;5;20m\x1b[48;5;25m'
+        substrings = list(self.processor.split_string(string))
+        self.assertEquals(self.processor.foreground_color, 20)
+        self.assertEquals(self.processor.background_color, 25)
+
+    def test_scroll(self):
+        """ Do control sequences for scrolling the buffer work?
+        """
         string = '\x1b[5S\x1b[T'
         i = -1
         for i, substring in enumerate(self.processor.split_string(string)):
@@ -69,7 +90,9 @@ class TestAnsiCodeProcessor(unittest.TestCase):
                 self.fail('Too many substrings.')
         self.assertEquals(i, 1, 'Too few substrings.')
 
-    def testSpecials(self):
+    def test_specials(self):
+        """ Are special characters processed correctly?
+        """
         string = '\f' # form feed
         self.assertEquals(list(self.processor.split_string(string)), [''])
         self.assertEquals(len(self.processor.actions), 1)
