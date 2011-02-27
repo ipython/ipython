@@ -15,7 +15,7 @@ from IPython.utils.traitlets import HasTraits, Bool, List, Dict, Set, Int, Insta
 from IPython.external.decorator import decorator
 from IPython.zmq.parallel.asyncresult import AsyncResult
 from IPython.zmq.parallel.dependency import Dependency
-from IPython.zmq.parallel.remotefunction import ParallelFunction, parallel
+from IPython.zmq.parallel.remotefunction import ParallelFunction, parallel, remote
 
 #-----------------------------------------------------------------------------
 # Decorators
@@ -91,6 +91,8 @@ class View(HasTraits):
         for name in self._default_names:
             setattr(self, name, getattr(self, name, None))
         
+        assert not self.__class__ is View, "Don't use base View objects, use subclasses"
+        
 
     def __repr__(self):
         strtargets = str(self._targets)
@@ -106,9 +108,17 @@ class View(HasTraits):
     def targets(self, value):
         raise AttributeError("Cannot set View `targets` after construction!")
     
+    @property
+    def balanced(self):
+        return self._balanced
+
+    @balanced.setter
+    def balanced(self, value):
+        raise AttributeError("Cannot set View `balanced` after construction!")
+    
     def _defaults(self, *excludes):
         """return dict of our default attributes, excluding names given."""
-        d = dict(balanced=self._balanced, targets=self.targets)
+        d = dict(balanced=self._balanced, targets=self._targets)
         for name in self._default_names:
             if name not in excludes:
                 d[name] = getattr(self, name)
@@ -182,22 +192,22 @@ class View(HasTraits):
         d = self._defaults('block', 'bound')
         return self.client.apply(f,args,kwargs, block=True, bound=False, **d)
 
-    @sync_results
-    @save_ids
-    def apply_bound(self, f, *args, **kwargs):
-        """calls f(*args, **kwargs) bound to engine namespace(s).
-        
-        if self.block is False:
-            returns msg_id
-        else:
-            returns actual result of f(*args, **kwargs)
-        
-        This method has access to the targets' globals
-        
-        """
-        d = self._defaults('bound')
-        return self.client.apply(f, args, kwargs, bound=True, **d)
-
+    # @sync_results
+    # @save_ids
+    # def apply_bound(self, f, *args, **kwargs):
+    #     """calls f(*args, **kwargs) bound to engine namespace(s).
+    #     
+    #     if self.block is False:
+    #         returns msg_id
+    #     else:
+    #         returns actual result of f(*args, **kwargs)
+    #     
+    #     This method has access to the targets' namespace via globals()
+    #     
+    #     """
+    #     d = self._defaults('bound')
+    #     return self.client.apply(f, args, kwargs, bound=True, **d)
+    # 
     @sync_results
     @save_ids
     def apply_async_bound(self, f, *args, **kwargs):
@@ -206,7 +216,7 @@ class View(HasTraits):
         
         returns: msg_id
         
-        This method has access to the targets' globals
+        This method has access to the targets' namespace via globals()
         
         """
         d = self._defaults('block', 'bound')
@@ -219,35 +229,54 @@ class View(HasTraits):
         
         returns: actual result of f(*args, **kwargs)
         
-        This method has access to the targets' globals
+        This method has access to the targets' namespace via globals()
         
         """
         d = self._defaults('block', 'bound')
         return self.client.apply(f, args, kwargs, block=True, bound=True, **d)
     
-    def abort(self, msg_ids=None, block=None):
+    def abort(self, jobs=None, block=None):
         """Abort jobs on my engines.
         
         Parameters
         ----------
         
-        msg_ids : None, str, list of strs, optional
+        jobs : None, str, list of strs, optional
             if None: abort all jobs.
             else: abort specific msg_id(s).
         """
         block = block if block is not None else self.block
-        return self.client.abort(msg_ids=msg_ids, targets=self.targets, block=block)
+        return self.client.abort(jobs=jobs, targets=self._targets, block=block)
 
     def queue_status(self, verbose=False):
         """Fetch the Queue status of my engines"""
-        return self.client.queue_status(targets=self.targets, verbose=verbose)
+        return self.client.queue_status(targets=self._targets, verbose=verbose)
     
-    def purge_results(self, msg_ids=[], targets=[]):
+    def purge_results(self, jobs=[], targets=[]):
         """Instruct the controller to forget specific results."""
         if targets is None or targets == 'all':
-            targets = self.targets
-        return self.client.purge_results(msg_ids=msg_ids, targets=targets)
+            targets = self._targets
+        return self.client.purge_results(jobs=jobs, targets=targets)
+    
+    @spin_after
+    def get_result(self, indices_or_msg_ids=None):
+        """return one or more results, specified by history index or msg_id.
         
+        See client.get_result for details.
+        
+        """
+        
+        if indices_or_msg_ids is None:
+            indices_or_msg_ids = -1
+        if isinstance(indices_or_msg_ids, int):
+            indices_or_msg_ids = self.history[indices_or_msg_ids]
+        elif isinstance(indices_or_msg_ids, (list,tuple,set)):
+            indices_or_msg_ids = list(indices_or_msg_ids)
+            for i,index in enumerate(indices_or_msg_ids):
+                if isinstance(index, int):
+                    indices_or_msg_ids[i] = self.history[index]
+        return self.client.get_result(indices_or_msg_ids)
+    
     #-------------------------------------------------------------------
     # Map
     #-------------------------------------------------------------------
@@ -261,7 +290,7 @@ class View(HasTraits):
         
         This is equivalent to map(...block=False)
         
-        See `map` for details.
+        See `self.map` for details.
         """
         if 'block' in kwargs:
             raise TypeError("map_async doesn't take a `block` keyword argument.")
@@ -273,12 +302,20 @@ class View(HasTraits):
         
         This is equivalent to map(...block=True)
         
-        See `map` for details.
+        See `self.map` for details.
         """
         if 'block' in kwargs:
             raise TypeError("map_sync doesn't take a `block` keyword argument.")
         kwargs['block'] = True
         return self.map(f,*sequences,**kwargs)
+    
+    def imap(self, f, *sequences, **kwargs):
+        """Parallel version of `itertools.imap`.
+        
+        See `self.map` for details.
+        """
+        
+        return iter(self.map_async(f,*sequences, **kwargs))
     
     #-------------------------------------------------------------------
     # Decorators
@@ -286,12 +323,12 @@ class View(HasTraits):
     
     def remote(self, bound=True, block=True):
         """Decorator for making a RemoteFunction"""
-        return remote(self.client, bound=bound, targets=self.targets, block=block, balanced=self._balanced)
+        return remote(self.client, bound=bound, targets=self._targets, block=block, balanced=self._balanced)
     
     def parallel(self, dist='b', bound=True, block=None):
         """Decorator for making a ParallelFunction"""
         block = self.block if block is None else block
-        return parallel(self.client, bound=bound, targets=self.targets, block=block, balanced=self._balanced)
+        return parallel(self.client, bound=bound, targets=self._targets, block=block, balanced=self._balanced)
 
 
 class DirectView(View):
@@ -320,7 +357,9 @@ class DirectView(View):
     @spin_after
     @save_ids
     def map(self, f, *sequences, **kwargs):
-        """Parallel version of builtin `map`, using this View's `targets`.
+        """view.map(f, *sequences, block=self.block, bound=self.bound) => list|AsyncMapResult
+        
+        Parallel version of builtin `map`, using this View's `targets`.
         
         There will be one task per target, so work will be chunked
         if the sequences are longer than `targets`.  
@@ -337,7 +376,7 @@ class DirectView(View):
         block : bool
             whether to wait for the result or not [default self.block]
         bound : bool
-            whether to wait for the result or not [default self.bound]
+            whether to have access to the engines' namespaces [default self.bound]
         
         Returns
         -------
@@ -347,7 +386,8 @@ class DirectView(View):
                 An object like AsyncResult, but which reassembles the sequence of results
                 into a single list. AsyncMapResults can be iterated through before all
                 results are complete.
-            else:
+        else:
+            list
                 the result of map(f,*sequences)
         """
         
@@ -359,18 +399,18 @@ class DirectView(View):
         
         assert len(sequences) > 0, "must have some sequences to map onto!"
         pf = ParallelFunction(self.client, f, block=block, bound=bound,
-                        targets=self.targets, balanced=False)
+                        targets=self._targets, balanced=False)
         return pf.map(*sequences)
     
     @sync_results
     @save_ids
     def execute(self, code, block=True):
         """execute some code on my targets."""
-        return self.client.execute(code, block=block, targets=self.targets)
+        return self.client.execute(code, block=block, targets=self._targets)
     
     def update(self, ns):
         """update remote namespace with dict `ns`"""
-        return self.client.push(ns, targets=self.targets, block=self.block)
+        return self.client.push(ns, targets=self._targets, block=self.block)
     
     push = update
     
@@ -379,7 +419,7 @@ class DirectView(View):
         will return one object if it is a key.
         It also takes a list of keys, and will return a list of objects."""
         # block = block if block is not None else self.block
-        return self.client.pull(key_s, block=True, targets=self.targets)
+        return self.client.pull(key_s, block=True, targets=self._targets)
     
     @sync_results
     @save_ids
@@ -388,14 +428,14 @@ class DirectView(View):
         will return one object if it is a key.
         It also takes a list of keys, and will return a list of objects."""
         block = block if block is not None else self.block
-        return self.client.pull(key_s, block=block, targets=self.targets)
+        return self.client.pull(key_s, block=block, targets=self._targets)
     
     def scatter(self, key, seq, dist='b', flatten=False, targets=None, block=None):
         """
         Partition a Python sequence and send the partitions to a set of engines.
         """
         block = block if block is not None else self.block
-        targets = targets if targets is not None else self.targets
+        targets = targets if targets is not None else self._targets
         
         return self.client.scatter(key, seq, dist=dist, flatten=flatten,
                     targets=targets, block=block)
@@ -407,7 +447,7 @@ class DirectView(View):
         Gather a partitioned sequence on a set of engines as a single local seq.
         """
         block = block if block is not None else self.block
-        targets = targets if targets is not None else self.targets
+        targets = targets if targets is not None else self._targets
         
         return self.client.gather(key, dist=dist, targets=targets, block=block)
     
@@ -420,12 +460,12 @@ class DirectView(View):
     def clear(self, block=False):
         """Clear the remote namespaces on my engines."""
         block = block if block is not None else self.block
-        return self.client.clear(targets=self.targets, block=block)
+        return self.client.clear(targets=self._targets, block=block)
     
     def kill(self, block=True):
         """Kill my engines."""
         block = block if block is not None else self.block
-        return self.client.kill(targets=self.targets, block=block)
+        return self.client.kill(targets=self._targets, block=block)
     
     #----------------------------------------
     # activate for %px,%autopx magics
@@ -504,9 +544,9 @@ class LoadBalancedView(View):
     def set_flags(self, **kwargs):
         """set my attribute flags by keyword.
         
-        A View is a wrapper for the Client's apply method, but
-        with attributes that specify keyword arguments, those attributes
-        can be set by keyword argument with this method.
+        A View is a wrapper for the Client's apply method, but with attributes
+        that specify keyword arguments, those attributes can be set by keyword
+        argument with this method.
         
         Parameters
         ----------
@@ -543,10 +583,15 @@ class LoadBalancedView(View):
     @spin_after
     @save_ids
     def map(self, f, *sequences, **kwargs):
-        """Parallel version of builtin `map`, load-balanced by this View.
+        """view.map(f, *sequences, block=self.block, bound=self.bound, chunk_size=1) => list|AsyncMapResult
         
-        Each element will be a separate task, and will be load-balanced.  This
-        lets individual elements be available for iteration as soon as they arrive.
+        Parallel version of builtin `map`, load-balanced by this View.
+        
+        `block`, `bound`, and `chunk_size` can be specified by keyword only.
+        
+        Each `chunk_size` elements will be a separate task, and will be
+        load-balanced. This lets individual elements be available for iteration
+        as soon as they arrive.
         
         Parameters
         ----------
@@ -558,7 +603,9 @@ class LoadBalancedView(View):
         block : bool
             whether to wait for the result or not [default self.block]
         bound : bool
-            whether to use the engine's namespace
+            whether to use the engine's namespace [default self.bound]
+        chunk_size : int
+            how many elements should be in each task [default 1]
         
         Returns
         -------
@@ -586,7 +633,7 @@ class LoadBalancedView(View):
         assert len(sequences) > 0, "must have some sequences to map onto!"
         
         pf = ParallelFunction(self.client, f, block=block, bound=bound, 
-                                targets=self.targets, balanced=True,
+                                targets=self._targets, balanced=True,
                                 chunk_size=chunk_size)
         return pf.map(*sequences)
     

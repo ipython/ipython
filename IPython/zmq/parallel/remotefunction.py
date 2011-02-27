@@ -128,7 +128,7 @@ class ParallelFunction(RemoteFunction):
             args = []
             for seq in sequences:
                 part = self.mapObject.getPartition(seq, index, nparts)
-                if not part:
+                if len(part) == 0:
                     continue
                 else:
                     args.append(part)

@@ -33,7 +33,8 @@ Creating a ``Client`` instance
 ==============================
 
 The first step is to import the IPython :mod:`IPython.zmq.parallel.client`
-module and then create a :class:`.Client` instance:
+module and then create a :class:`.Client` instance, and we will also be using
+a :class:`LoadBalancedView`, here called `lview`:
 
 .. sourcecode:: ipython
 
@@ -41,8 +42,7 @@ module and then create a :class:`.Client` instance:
 	
 	In [2]: rc = client.Client()
 	
-	In [3]: lview = rc.view(balanced=True)
-	Out[3]: <LoadBalancedView None>
+	In [3]: lview = rc.view()
     
 
 This form assumes that the controller was started on localhost with default
@@ -73,14 +73,15 @@ the task interface.
 Parallel map
 ------------
 
-To load-balance :meth:`map`,simply use a LoadBalancedView, created by asking
-for the ``None`` element:
+To load-balance :meth:`map`,simply use a LoadBalancedView:
 
 .. sourcecode:: ipython
-
+    
+    In [62]: lview.block = True
+    
 	In [63]: serial_result = map(lambda x:x**10, range(32))
 
-	In [64]: parallel_result = lview.map(lambda x:x**10, range(32), block=True)
+	In [64]: parallel_result = lview.map(lambda x:x**10, range(32))
 
 	In [65]: serial_result==parallel_result
 	Out[65]: True

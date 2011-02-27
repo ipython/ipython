@@ -10,6 +10,8 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import time
+
 from IPython.external.decorator import decorator
 import error
 
@@ -189,6 +191,23 @@ class AsyncResult(object):
             raise AttributeError("%r object has no attribute %r"%(
                     self.__class__.__name__, key))
         return self.__getitem__(key)
+    
+    # asynchronous iterator:
+    def __iter__(self):
+        if self._single_result:
+            raise TypeError("AsyncResults with a single result are not iterable.")
+        try:
+            rlist = self.get(0)
+        except error.TimeoutError:
+            # wait for each result individually
+            for msg_id in self.msg_ids:
+                ar = AsyncResult(self._client, msg_id, self._fname)
+                yield ar.get()
+        else:
+            # already done
+            for r in rlist:
+                yield r
+
 
     
 class AsyncMapResult(AsyncResult):
@@ -227,6 +246,49 @@ class AsyncMapResult(AsyncResult):
             # already done
             for r in rlist:
                 yield r
+
+
+class AsyncHubResult(AsyncResult):
+    """Class to wrap pending results that must be requested from the Hub"""
     
+    def wait(self, timeout=-1):
+        """wait for result to complete."""
+        start = time.time()
+        if self._ready:
+            return
+        local_ids = filter(lambda msg_id: msg_id in self._client.outstanding, self.msg_ids)
+        local_ready = self._client.barrier(local_ids, timeout)
+        if local_ready:
+            remote_ids = filter(lambda msg_id: msg_id not in self._client.results, self.msg_ids)
+            if not remote_ids:
+                self._ready = True
+            else:
+                rdict = self._client.result_status(remote_ids, status_only=False)
+                pending = rdict['pending']
+                while pending and time.time() < start+timeout:
+                    rdict = self._client.result_status(remote_ids, status_only=False)
+                    pending = rdict['pending']
+                    if pending:
+                        time.sleep(0.1)
+                if not pending:
+                    self._ready = True
+        if self._ready:
+            try:
+                results = map(self._client.results.get, self.msg_ids)
+                self._result = results
+                if self._single_result:
+                    r = results[0]
+                    if isinstance(r, Exception):
+                        raise r
+                else:
+                    results = error.collect_exceptions(results, self._fname)
+                self._result = self._reconstruct_result(results)
+            except Exception, e:
+                self._exception = e
+                self._success = False
+            else:
+                self._success = True
+            finally:
+                self._metadata = map(self._client.metadata.get, self.msg_ids)
         
-__all__ = ['AsyncResult', 'AsyncMapResult']
+__all__ = ['AsyncResult', 'AsyncMapResult', 'AsyncHubResult']

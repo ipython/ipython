@@ -32,7 +32,7 @@ from IPython.external.ssh import tunnel
 import error
 import map as Map
 import streamsession as ss
-from asyncresult import AsyncResult, AsyncMapResult
+from asyncresult import AsyncResult, AsyncMapResult, AsyncHubResult
 from clusterdir import ClusterDir, ClusterDirError
 from dependency import Dependency, depend, require, dependent
 from remotefunction import remote,parallel,ParallelFunction,RemoteFunction
@@ -485,6 +485,15 @@ class Client(HasTraits):
     # handlers and callbacks for incoming messages
     #--------------------------------------------------------------------------
     
+    def _unwrap_exception(self, content):
+        """unwrap exception, and remap engineid to int."""
+        e = ss.unwrap_exception(content)
+        if e.engine_info:
+            e_uuid = e.engine_info['engineid']
+            eid = self._engines[e_uuid]
+            e.engine_info['engineid'] = eid
+        return e
+    
     def _register_engine(self, msg):
         """Register a new engine, and update our connection info."""
         content = msg['content']
@@ -537,7 +546,7 @@ class Client(HasTraits):
                 print ("got unknown result: %s"%msg_id)
         else:
             self.outstanding.remove(msg_id)
-        self.results[msg_id] = ss.unwrap_exception(msg['content'])
+        self.results[msg_id] = self._unwrap_exception(msg['content'])
     
     def _handle_apply_reply(self, msg):
         """Save the reply to an apply_request into our results."""
@@ -569,12 +578,7 @@ class Client(HasTraits):
             # TODO: handle resubmission
             pass
         else:
-            e = ss.unwrap_exception(content)
-            if e.engine_info:
-                e_uuid = e.engine_info['engineid']
-                eid = self._engines[e_uuid]
-                e.engine_info['engineid'] = eid
-            self.results[msg_id] = e
+            self.results[msg_id] = self._unwrap_exception(content)
     
     def _flush_notifications(self):
         """Flush notifications of engine registrations waiting
@@ -641,7 +645,7 @@ class Client(HasTraits):
                 s = md[name] or ''
                 md[name] = s + content['data']
             elif msg_type == 'pyerr':
-                md.update({'pyerr' : ss.unwrap_exception(content)})
+                md.update({'pyerr' : self._unwrap_exception(content)})
             else:
                 md.update({msg_type : content['data']})
             
@@ -685,13 +689,13 @@ class Client(HasTraits):
         if self._iopub_socket:
             self._flush_iopub(self._iopub_socket)
     
-    def barrier(self, msg_ids=None, timeout=-1):
-        """waits on one or more `msg_ids`, for up to `timeout` seconds.
+    def barrier(self, jobs=None, timeout=-1):
+        """waits on one or more `jobs`, for up to `timeout` seconds.
         
         Parameters
         ----------
         
-        msg_ids : int, str, or list of ints and/or strs, or one or more AsyncResult objects
+        jobs : int, str, or list of ints and/or strs, or one or more AsyncResult objects
                 ints are indices to self.history
                 strs are msg_ids
                 default: wait on all outstanding messages
@@ -706,19 +710,20 @@ class Client(HasTraits):
         False : timeout reached, some msg_ids still outstanding
         """
         tic = time.time()
-        if msg_ids is None:
+        if jobs is None:
             theids = self.outstanding
         else:
-            if isinstance(msg_ids, (int, str, AsyncResult)):
-                msg_ids = [msg_ids]
+            if isinstance(jobs, (int, str, AsyncResult)):
+                jobs = [jobs]
             theids = set()
-            for msg_id in msg_ids:
-                if isinstance(msg_id, int):
-                    msg_id = self.history[msg_id]
-                elif isinstance(msg_id, AsyncResult):
-                    map(theids.add, msg_id.msg_ids)
+            for job in jobs:
+                if isinstance(job, int):
+                    # index access
+                    job = self.history[job]
+                elif isinstance(job, AsyncResult):
+                    map(theids.add, job.msg_ids)
                     continue
-                theids.add(msg_id)
+                theids.add(job)
         if not theids.intersection(self.outstanding):
             return True
         self.spin()
@@ -747,18 +752,39 @@ class Client(HasTraits):
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
-                    error = ss.unwrap_exception(msg['content'])
+                    error = self._unwrap_exception(msg['content'])
         if error:
             return error
         
     
     @spinfirst
     @defaultblock
-    def abort(self, msg_ids = None, targets=None, block=None):
-        """Abort the execution queues of target(s)."""
+    def abort(self, jobs=None, targets=None, block=None):
+        """Abort specific jobs from the execution queues of target(s).
+        
+        This is a mechanism to prevent jobs that have already been submitted
+        from executing.
+        
+        Parameters
+        ----------
+        
+        jobs : msg_id, list of msg_ids, or AsyncResult
+            The jobs to be aborted
+        
+        
+        """
         targets = self._build_targets(targets)[0]
-        if isinstance(msg_ids, basestring):
-            msg_ids = [msg_ids]
+        msg_ids = []
+        if isinstance(jobs, (basestring,AsyncResult)):
+            jobs = [jobs]
+        bad_ids = filter(lambda obj: not isinstance(obj, (basestring, AsyncResult)), jobs)
+        if bad_ids:
+            raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
+        for j in jobs:
+            if isinstance(j, AsyncResult):
+                msg_ids.extend(j.msg_ids)
+            else:
+                msg_ids.append(j)
         content = dict(msg_ids=msg_ids)
         for t in targets:
             self.session.send(self._control_socket, 'abort_request', 
@@ -770,7 +796,7 @@ class Client(HasTraits):
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
-                    error = ss.unwrap_exception(msg['content'])
+                    error = self._unwrap_exception(msg['content'])
         if error:
             return error
     
@@ -791,7 +817,7 @@ class Client(HasTraits):
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
-                    error = ss.unwrap_exception(msg['content'])
+                    error = self._unwrap_exception(msg['content'])
         
         if controller:
             time.sleep(0.25)
@@ -800,7 +826,7 @@ class Client(HasTraits):
             if self.debug:
                 pprint(msg)
             if msg['content']['status'] != 'ok':
-                error = ss.unwrap_exception(msg['content'])
+                error = self._unwrap_exception(msg['content'])
         
         if error:
             raise error
@@ -827,8 +853,9 @@ class Client(HasTraits):
                 whether or not to wait until done to return
                 default: self.block
         """
-        result = self.apply(_execute, (code,), targets=targets, block=self.block, bound=True, balanced=False)
-        return result
+        result = self.apply(_execute, (code,), targets=targets, block=block, bound=True, balanced=False)
+        if not block:
+            return result
     
     def run(self, filename, targets='all', block=None):
         """Execute contents of `filename` on engine(s). 
@@ -1134,6 +1161,8 @@ class Client(HasTraits):
                 targets = slice(None)
         
         if isinstance(targets, int):
+            if targets < 0:
+                targets = self.ids[targets]
             if targets not in self.ids:
                 raise IndexError("No such engine: %i"%targets)
             return self._cache_view(targets, balanced)
@@ -1159,7 +1188,8 @@ class Client(HasTraits):
         if not isinstance(ns, dict):
             raise TypeError("Must be a dict, not %s"%type(ns))
         result = self.apply(_push, (ns,), targets=targets, block=block, bound=True, balanced=False)
-        return result
+        if not block:
+            return result
     
     @defaultblock
     def pull(self, keys, targets='all', block=None):
@@ -1191,7 +1221,7 @@ class Client(HasTraits):
             msg_ids.extend(r.msg_ids)
         r = AsyncResult(self, msg_ids, fname='scatter')
         if block:
-            return r.get()
+            r.get()
         else:
             return r
     
@@ -1218,33 +1248,104 @@ class Client(HasTraits):
     #--------------------------------------------------------------------------
     
     @spinfirst
-    def get_results(self, msg_ids, status_only=False):
-        """Returns the result of the execute or task request with `msg_ids`.
+    @defaultblock
+    def get_result(self, indices_or_msg_ids=None, block=None):
+        """Retrieve a result by msg_id or history index, wrapped in an AsyncResult object.
+        
+        If the client already has the results, no request to the Hub will be made.
+        
+        This is a convenient way to construct AsyncResult objects, which are wrappers
+        that include metadata about execution, and allow for awaiting results that
+        were not submitted by this Client.
+        
+        It can also be a convenient way to retrieve the metadata associated with
+        blocking execution, since it always retrieves
+        
+        Examples
+        --------
+        ::
+        
+            In [10]: r = client.apply()
         
         Parameters
         ----------
         
-        msg_ids : list of ints or msg_ids
+        indices_or_msg_ids : integer history index, str msg_id, or list of either
+            The indices or msg_ids of indices to be retrieved
+        
+        block : bool
+            Whether to wait for the result to be done
+        
+        Returns
+        -------
+        
+        AsyncResult
+            A single AsyncResult object will always be returned.
+        
+        AsyncHubResult
+            A subclass of AsyncResult that retrieves results from the Hub
+        
+        """
+        if indices_or_msg_ids is None:
+            indices_or_msg_ids = -1
+        
+        if not isinstance(indices_or_msg_ids, (list,tuple)):
+            indices_or_msg_ids = [indices_or_msg_ids]
+        
+        theids = []
+        for id in indices_or_msg_ids:
+            if isinstance(id, int):
+                id = self.history[id]
+            if not isinstance(id, str):
+                raise TypeError("indices must be str or int, not %r"%id)
+            theids.append(id)
+        
+        local_ids = filter(lambda msg_id: msg_id in self.history or msg_id in self.results, theids)
+        remote_ids = filter(lambda msg_id: msg_id not in local_ids, theids)
+        
+        if remote_ids:
+            ar = AsyncHubResult(self, msg_ids=theids)
+        else:
+            ar = AsyncResult(self, msg_ids=theids)
+        
+        if block:
+            ar.wait()
+        
+        return ar
+    
+    @spinfirst
+    def result_status(self, msg_ids, status_only=True):
+        """Check on the status of the result(s) of the apply request with `msg_ids`.
+        
+        If status_only is False, then the actual results will be retrieved, else
+        only the status of the results will be checked.
+        
+        Parameters
+        ----------
+        
+        msg_ids : list of msg_ids
             if int:
                 Passed as index to self.history for convenience.
-        status_only : bool (default: False)
+        status_only : bool (default: True)
             if False:
-                return the actual results
+                Retrieve the actual results of completed tasks.
         
         Returns
         -------
         
         results : dict
             There will always be the keys 'pending' and 'completed', which will
-            be lists of msg_ids.
+            be lists of msg_ids that are incomplete or complete. If `status_only`
+            is False, then completed results will be keyed by their `msg_id`.
         """
-        if not isinstance(msg_ids, (list,tuple)):
-            msg_ids = [msg_ids]
+        if not isinstance(indices_or_msg_ids, (list,tuple)):
+            indices_or_msg_ids = [indices_or_msg_ids]
+            
         theids = []
-        for msg_id in msg_ids:
+        for msg_id in indices_or_msg_ids:
             if isinstance(msg_id, int):
                 msg_id = self.history[msg_id]
-            if not isinstance(msg_id, str):
+            if not isinstance(msg_id, basestring):
                 raise TypeError("msg_ids must be str, not %r"%msg_id)
             theids.append(msg_id)
         
@@ -1252,7 +1353,7 @@ class Client(HasTraits):
         local_results = {}
         
         # comment this block out to temporarily disable local shortcut:
-        for msg_id in list(theids):
+        for msg_id in theids:
             if msg_id in self.results:
                 completed.append(msg_id)
                 local_results[msg_id] = self.results[msg_id]
@@ -1267,7 +1368,7 @@ class Client(HasTraits):
                 pprint(msg)
             content = msg['content']
             if content['status'] != 'ok':
-                raise ss.unwrap_exception(content)
+                raise self._unwrap_exception(content)
             buffers = msg['buffers']
         else:
             content = dict(completed=[],pending=[])
@@ -1298,13 +1399,17 @@ class Client(HasTraits):
                 if rcontent['status'] == 'ok':
                     res,buffers = ss.unserialize_object(buffers)
                 else:
-                    res = ss.unwrap_exception(rcontent)
+                    print rcontent
+                    res = self._unwrap_exception(rcontent)
                     failures.append(res)
                 
                 self.results[msg_id] = res
                 content[msg_id] = res
         
-        error.collect_exceptions(failures, "get_results")
+        if len(theids) == 1 and failures:
+                raise failures[0]
+        
+        error.collect_exceptions(failures, "result_status")
         return content
 
     @spinfirst
@@ -1329,11 +1434,11 @@ class Client(HasTraits):
         content = msg['content']
         status = content.pop('status')
         if status != 'ok':
-            raise ss.unwrap_exception(content)
+            raise self._unwrap_exception(content)
         return ss.rekey(content)
         
     @spinfirst
-    def purge_results(self, msg_ids=[], targets=[]):
+    def purge_results(self, jobs=[], targets=[]):
         """Tell the controller to forget results.
         
         Individual results can be purged by msg_id, or the entire
@@ -1342,7 +1447,7 @@ class Client(HasTraits):
         Parameters
         ----------
         
-        msg_ids : str or list of strs
+        jobs : str or list of strs or AsyncResult objects
                 the msg_ids whose results should be forgotten.
         targets : int/str/list of ints/strs
                 The targets, by uuid or int_id, whose entire history is to be purged.
@@ -1350,10 +1455,24 @@ class Client(HasTraits):
                 
                 default : None
         """
-        if not targets and not msg_ids:
-            raise ValueError
+        if not targets and not jobs:
+            raise ValueError("Must specify at least one of `targets` and `jobs`")
         if targets:
             targets = self._build_targets(targets)[1]
+        
+        # construct msg_ids from jobs
+        msg_ids = []
+        if isinstance(jobs, (basestring,AsyncResult)):
+            jobs = [jobs]
+        bad_ids = filter(lambda obj: not isinstance(obj, (basestring, AsyncResult)), jobs)
+        if bad_ids:
+            raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
+        for j in jobs:
+            if isinstance(j, AsyncResult):
+                msg_ids.extend(j.msg_ids)
+            else:
+                msg_ids.append(j)
+        
         content = dict(targets=targets, msg_ids=msg_ids)
         self.session.send(self._query_socket, "purge_request", content=content)
         idents, msg = self.session.recv(self._query_socket, 0)
@@ -1361,7 +1480,7 @@ class Client(HasTraits):
             pprint(msg)
         content = msg['content']
         if content['status'] != 'ok':
-            raise ss.unwrap_exception(content)
+            raise self._unwrap_exception(content)
 
 
 __all__ = [ 'Client', 

@@ -59,13 +59,24 @@ of engine ids:
 
 Here we see that there are four engines ready to do work for us.
 
+For direct execution, we will make use of a :class:`DirectView` object, which can be
+constructed via list-access to the client:
+
+.. sourcecode::
+
+    In [4]: dview = rc[:] # use all engines
+
+.. seealso::
+
+    For more information, see the in-depth explanation of :ref:`Views <parallel_view>`.
+
+
 Quick and easy parallelism
 ==========================
 
 In many cases, you simply want to apply a Python function to a sequence of
 objects, but *in parallel*. The client interface provides a simple way
-of accomplishing this: using the builtin :func:`map` and the ``@remote``
-function decorator, or the client's :meth:`map` method.
+of accomplishing this: using the DirectView's :meth:`~DirectView.map` method.
 
 Parallel map
 ------------
@@ -79,44 +90,67 @@ DirectView's :meth:`map` method:
 .. sourcecode:: ipython
 
     In [62]: serial_result = map(lambda x:x**10, range(32))
+    
+    In [63]: dview.block = True
+    
+    In [66]: parallel_result = dview.map(lambda x: x**10, range(32))
 
-    In [66]: parallel_result = rc[:].map(lambda x: x**10, range(32))
-
-    In [67]: serial_result==parallel_result.get()
+    In [67]: serial_result==parallel_result
     Out[67]: True
 
 
 .. note::
 
     The :class:`DirectView`'s version of :meth:`map` does
-    not do any load balancing. For a load balanced version, use a
+    not do dynamic load balancing. For a load balanced version, use a
     :class:`LoadBalancedView`, or a :class:`ParallelFunction` with
     `balanced=True`.
 
 .. seealso::
     
-    :meth:`map` is implemented via :class:`.ParallelFunction`.
+    :meth:`map` is implemented via :class:`ParallelFunction`.
 
-Remote function decorator
--------------------------
+Remote function decorators
+--------------------------
 
 Remote functions are just like normal functions, but when they are called,
 they execute on one or more engines, rather than locally. IPython provides
-some decorators:
+two decorators:
 
 .. sourcecode:: ipython
 
-    In [10]: @rc.remote(block=True, targets=0)
-       ....: def f(x):
-       ....:     return 10.0*x**4
-       ....: 
+    In [10]: @rc.remote(block=True, targets='all')
+        ...: def getpid():
+        ...:     import os
+        ...:     return os.getpid()
+        ...: 
 
-    In [11]: map(f, range(32))    # this is done on engine 0
-    Out[11]: [0.0,10.0,160.0,...]
+    In [11]: getpid()
+    Out[11]: [12345, 12346, 12347, 12348]
+
+A ``@parallel`` decorator creates parallel functions, that break up an element-wise
+operations and distribute them, reconstructing the result.
+
+.. sourcecode:: ipython
+
+    In [12]: import numpy as np
+    
+    In [13]: A = np.random.random((64,48))
+    
+    In [14]: @rc.parallel(block=True, targets='all')
+        ...: def pmul(A,B):
+        ...:     return A*B
+    
+    In [15]: C_local = A*A
+    
+    In [16]: C_remote_partial = pmul(A,A)
+    
+    In [17]: (C_local == C_remote).all()
+    Out[17]: True
 
 .. seealso::
 
-    See the docstring for the :func:`parallel` and :func:`remote` decorators for
+    See the docstrings for the :func:`parallel` and :func:`remote` decorators for
     options.
 
 Calling Python functions
@@ -152,7 +186,7 @@ the extra arguments. For instance, performing index-access on a client creates a
     Out[4]: <DirectView [1, 2]>
 
     In [5]: view.apply<tab>
-    view.apply  view.apply_async  view.apply_async_bound  view.apply_bound  view.apply_sync  view.apply_sync_bound
+    view.apply  view.apply_async  view.apply_async_bound  view.apply_sync  view.apply_sync_bound
 
 A :class:`DirectView` always uses its `targets` attribute, and it will use its `bound`
 and `block` attributes in its :meth:`apply` method, but the suffixed :meth:`apply_x`
@@ -180,8 +214,8 @@ blocks until the engines are done executing the command:
 
 .. sourcecode:: ipython
 
-    In [2]: rc.block=True
-    In [3]: dview = rc[:] # A DirectView of all engines
+    In [2]: dview = rc[:] # A DirectView of all engines
+    In [3]: dview.block=True
     In [4]: dview['a'] = 5
 
     In [5]: dview['b'] = 10
@@ -189,13 +223,13 @@ blocks until the engines are done executing the command:
     In [6]: dview.apply_bound(lambda x: a+b+x, 27)
     Out[6]: [42, 42, 42, 42]
 
-Python commands can be executed on specific engines by calling execute using
-the ``targets`` keyword argument, or creating a :class:`DirectView` instance
-by index-access to the client:
+Python commands can be executed on specific engines by calling execute using the ``targets``
+keyword argument in :meth:`client.execute`, or creating a :class:`DirectView` instance by
+index-access to the client:
 
 .. sourcecode:: ipython
 
-    In [6]: rc[::2].execute('c=a+b') # shorthand for rc.execute('c=a+b',targets=[0,2])
+    In [6]: rc.execute('c=a+b', targets=[0,2])
 
     In [7]: rc[1::2].execute('c=a-b') # shorthand for rc.execute('c=a-b',targets=[1,3])
 
@@ -214,10 +248,12 @@ by index-access to the client:
     :meth:`View.apply(f,*args,**kwargs)`, which simply calls
     ``f(*args,**kwargs)`` remotely.
 
-This example also shows one of the most important things about the IPython
+Bound and unbound execution
+---------------------------
+
+The previous example also shows one of the most important things about the IPython
 engines: they have a persistent user namespaces. The :meth:`apply` method can
-be run in either a bound or unbound way. The default for a View is to be
-unbound, unless called by the :meth:`apply_bound` method:
+be run in either a bound or unbound manner:
 
 .. sourcecode:: ipython
 
@@ -225,10 +261,10 @@ unbound, unless called by the :meth:`apply_bound` method:
     
     In [10]: v0 = rc[0]
     
-    In [12]: v0.apply_bound(lambda : b)
+    In [12]: v0.apply_sync_bound(lambda : b)
     Out[12]: 5
     
-    In [13]: v0.apply(lambda : b)
+    In [13]: v0.apply_sync(lambda : b)
     ---------------------------------------------------------------------------
     RemoteError                               Traceback (most recent call last)
     /home/you/<ipython-input-34-21a468eb10f0> in <module>()
@@ -244,10 +280,10 @@ unbound, unless called by the :meth:`apply_bound` method:
     
 
 Specifically, `bound=True` specifies that the engine's namespace is to be used
-for execution, and `bound=False` specifies that the engine's namespace is not
-to be used (hence, 'b' is undefined during unbound execution, since the
-function is called in an empty namespace). Unbound execution is often useful
-for large numbers of atomic tasks, which prevents bloating the engine's
+as the `globals` when the function is called, and `bound=False` specifies that 
+the engine's namespace is not to be used (hence, 'b' is undefined during unbound 
+execution, since the function is called in an empty namespace). Unbound execution is 
+often useful for large numbers of atomic tasks, which prevents bloating the engine's
 memory, while bound execution lets you build on your previous work.
 
 
@@ -257,7 +293,7 @@ Non-blocking execution
 In non-blocking mode, :meth:`apply` submits the command to be executed and
 then returns a :class:`AsyncResult` object immediately. The
 :class:`AsyncResult` object gives you a way of getting a result at a later
-time through its :meth:`get` method. 
+time through its :meth:`get` method.
 
 .. Note::
 
@@ -280,25 +316,25 @@ local Python/IPython session:
        ...:     return time.time()-tic
     
     # In non-blocking mode
-    In [7]: pr = dview.apply_async(wait, 2)
+    In [7]: ar = dview.apply_async(wait, 2)
 
     # Now block for the result
-    In [8]: pr.get()
+    In [8]: ar.get()
     Out[8]: [2.0006198883056641, 1.9997570514678955, 1.9996809959411621, 2.0003249645233154]
 
     # Again in non-blocking mode
-    In [9]: pr = dview.apply_async(wait, 10)
+    In [9]: ar = dview.apply_async(wait, 10)
 
     # Poll to see if the result is ready
-    In [10]: pr.ready()
+    In [10]: ar.ready()
     Out[10]: False
     
     # ask for the result, but wait a maximum of 1 second:
-    In [45]: pr.get(1)
+    In [45]: ar.get(1)
     ---------------------------------------------------------------------------
     TimeoutError                              Traceback (most recent call last)
     /home/you/<ipython-input-45-7cd858bbb8e0> in <module>()
-    ----> 1 pr.get(1)
+    ----> 1 ar.get(1)
 
     /path/to/site-packages/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
          62                 raise self._exception
@@ -316,8 +352,8 @@ local Python/IPython session:
 
 Often, it is desirable to wait until a set of :class:`AsyncResult` objects
 are done. For this, there is a the method :meth:`barrier`. This method takes a
-tuple of :class:`AsyncResult` objects (or `msg_ids`) and blocks until all of the 
-associated results are ready:
+tuple of :class:`AsyncResult` objects (or `msg_ids` or indices to the client's History),
+and blocks until all of the associated results are ready:
 
 .. sourcecode:: ipython
 
@@ -338,15 +374,17 @@ associated results are ready:
 The ``block`` keyword argument and attributes
 ---------------------------------------------
 
-Most methods(like :meth:`apply`) accept
+Most client methods(like :meth:`apply`) accept
 ``block`` as a keyword argument. As we have seen above, these
-keyword arguments control the blocking mode . The :class:`Client` class also has 
+keyword arguments control the blocking mode. The :class:`Client` class also has 
 a :attr:`block` attribute that controls the default behavior when the keyword
 argument is not provided. Thus the following logic is used for :attr:`block`:
 
 * If no keyword argument is provided, the instance attributes are used.
 * Keyword argument, if provided override the instance attributes for
   the duration of a single call.
+  
+DirectView objects also have a ``bound`` attribute, which is used in the same way.
 
 The following examples demonstrate how to use the instance attributes:
 
@@ -365,7 +403,7 @@ The following examples demonstrate how to use the instance attributes:
     In [22]: rc.apply(lambda : 42, targets='all')
     Out[22]: [42, 42, 42, 42]
 
-The :attr:`block` and :attr:`targets` instance attributes of the
+The :attr:`block`, :attr:`bound`, and :attr:`targets` instance attributes of the
 :class:`.DirectView` also determine the behavior of the parallel magic commands.
 
 
@@ -381,9 +419,9 @@ Parallel magic commands
 We provide a few IPython magic commands (``%px``, ``%autopx`` and ``%result``)
 that make it more pleasant to execute Python commands on the engines
 interactively. These are simply shortcuts to :meth:`execute` and
-:meth:`get_result`. The ``%px`` magic executes a single Python command on the
-engines specified by the :attr:`targets` attribute of the
-:class:`MultiEngineClient` instance (by default this is ``'all'``):
+:meth:`get_result` of the :class:`DirectView`. The ``%px`` magic executes a single 
+Python command on the engines specified by the :attr:`targets` attribute of the
+:class:`DirectView` instance:
 
 .. sourcecode:: ipython
 
@@ -399,7 +437,6 @@ engines specified by the :attr:`targets` attribute of the
 
     In [26]: %px import numpy
     Parallel execution on engines: [0, 1, 2, 3]
-    Out[26]:[None,None,None,None]
 
     In [27]: %px a = numpy.random.rand(2,2)
     Parallel execution on engines: [0, 1, 2, 3]
@@ -408,36 +445,25 @@ engines specified by the :attr:`targets` attribute of the
     Parallel execution on engines: [0, 1, 2, 3]
 
     In [28]: dv['ev']
-    Out[44]: [ array([ 1.09522024, -0.09645227]), 
+    Out[28]: [ array([ 1.09522024, -0.09645227]), 
                array([ 1.21435496, -0.35546712]), 
                array([ 0.72180653,  0.07133042]), 
                array([  1.46384341e+00,   1.04353244e-04])
              ]
 
-.. Note::
-
-    ``%result`` doesn't work
-
-The ``%result`` magic gets and prints the stdin/stdout/stderr of the last
-command executed on each engine. It is simply a shortcut to the
+The ``%result`` magic gets the most recent result, or takes an argument
+specifying the index of the result to be requested. It is simply a shortcut to the
 :meth:`get_result` method:
 
 .. sourcecode:: ipython
-
-    In [29]: %result
-    Out[29]:
-    <Results List>
-    [0] In [10]: print numpy.linalg.eigvals(a)
-    [0] Out[10]: [ 1.28167017  0.14197338]
-
-    [1] In [9]: print numpy.linalg.eigvals(a)
-    [1] Out[9]: [-0.14093616  1.27877273]
-
-    [2] In [10]: print numpy.linalg.eigvals(a)
-    [2] Out[10]: [-0.37023573  1.06779409]
-
-    [3] In [9]: print numpy.linalg.eigvals(a)
-    [3] Out[9]: [ 0.83664764 -0.25602658]
+    
+    In [29]: dv.apply_async_bound(lambda : ev)
+    
+    In [30]: %result
+    Out[30]: [ [ 1.28167017  0.14197338],
+                [-0.14093616  1.27877273],
+                [-0.37023573  1.06779409],
+                [ 0.83664764 -0.25602658] ]
 
 The ``%autopx`` magic switches to a mode where everything you type is executed
 on the engines given by the :attr:`targets` attribute:
@@ -475,12 +501,6 @@ on the engines given by the :attr:`targets` attribute:
                'Average max eigenvalue is:  10.2076902286',
                'Average max eigenvalue is:  10.1891484655',
                'Average max eigenvalue is:  10.1158837784',]
-
-
-.. Note::
-
-    Multiline ``%autpx`` gets fouled up by NameErrors, because IPython
-    currently introspects too much.
 
 
 Moving Python objects around
@@ -524,12 +544,10 @@ In non-blocking mode :meth:`push` and :meth:`pull` also return
 
     In [47]: rc.block=False
 
-    In [48]: pr = rc.pull('a')
+    In [48]: ar = rc.pull('a')
 
-    In [49]: pr.get()
+    In [49]: ar.get()
     Out[49]: [1.03234, 1.03234, 1.03234, 1.03234]
-
-
 
 
 Dictionary interface
@@ -751,9 +769,9 @@ All of this same error handling magic even works in non-blocking mode:
 
     In [83]: rc.block=False
 
-    In [84]: pr = rc.execute('1/0')
+    In [84]: ar = rc.execute('1/0')
 
-    In [85]: pr.get()
+    In [85]: ar.get()
     ---------------------------------------------------------------------------
     CompositeError                            Traceback (most recent call last)
 
