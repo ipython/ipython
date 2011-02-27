@@ -100,9 +100,9 @@ def uncan(obj, g=None):
     elif isinstance(obj, CannedObject):
         return obj.getObject(g)
     elif isinstance(obj,dict):
-        return uncanDict(obj)
+        return uncanDict(obj, g)
     elif isinstance(obj, (list,tuple)):
-        return uncanSequence(obj)
+        return uncanSequence(obj, g)
     else:
         return obj
 

@@ -8,9 +8,10 @@ from zmq.tests import BaseZMQTestCase
 
 from IPython.external.decorator import decorator
 
+from IPython.zmq.parallel import error
+from IPython.zmq.parallel.client import Client
 from IPython.zmq.parallel.ipcluster import launch_process
 from IPython.zmq.parallel.entry_point import select_random_ports
-from IPython.zmq.parallel.client import Client
 from IPython.zmq.parallel.tests import processes,add_engine
 
 # simple tasks for use in apply tests
@@ -70,6 +71,16 @@ class ClusterTestCase(BaseZMQTestCase):
             self.sockets.append(getattr(c, name))
         return c
     
+    def assertRaisesRemote(self, etype, f, *args, **kwargs):
+        try:
+            f(*args, **kwargs)
+        except error.CompositeError as e:
+            e.raise_exception()
+        except error.RemoteError as e:
+            self.assertEquals(etype.__name__, e.ename, "Should have raised %r, but raised %r"%(e.ename, etype.__name__))
+        else:
+            self.fail("should have raised a RemoteError")
+            
     def setUp(self):
         BaseZMQTestCase.setUp(self)
         self.client = self.connect_client()

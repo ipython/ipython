@@ -201,7 +201,7 @@ class TaskRejectError(KernelError):
     """
 
 
-class CompositeError(KernelError):
+class CompositeError(RemoteError):
     """Error for representing possibly multiple errors on engines"""
     def __init__(self, message, elist):
         Exception.__init__(self, *(message, elist))
@@ -215,7 +215,7 @@ class CompositeError(KernelError):
         if not ei:
             return '[Engine Exception]'
         else:
-            return '[%i:%s]: ' % (ei['engineid'], ei['method'])
+            return '[%s:%s]: ' % (ei['engineid'], ei['method'])
 
     def _get_traceback(self, ev):
         try:
@@ -256,10 +256,7 @@ class CompositeError(KernelError):
         except:
             raise IndexError("an exception with index %i does not exist"%excid)
         else:
-            try:
-                raise RemoteError(en, ev, etb, ei)
-            except:
-                et,ev,tb = sys.exc_info()
+            raise RemoteError(en, ev, etb, ei)
 
 
 def collect_exceptions(rdict_or_list, method='unspecified'):
@@ -290,6 +287,6 @@ def collect_exceptions(rdict_or_list, method='unspecified'):
         # instance (e in this case)
         try:
             raise CompositeError(msg, elist)
-        except CompositeError, e:
+        except CompositeError as e:
             raise e
 

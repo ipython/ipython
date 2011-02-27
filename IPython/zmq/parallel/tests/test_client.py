@@ -44,10 +44,13 @@ class TestClient(ClusterTestCase):
         v = self.client[:-3]
         self.assert_(isinstance(v, DirectView))
         self.assertEquals(v.targets, targets[:-3])
+        v = self.client[-1]
+        self.assert_(isinstance(v, DirectView))
+        self.assertEquals(v.targets, targets[-1])
         nt.assert_raises(TypeError, lambda : self.client[None])
     
     def test_view_cache(self):
-        """test blocking and non-blocking behavior"""
+        """test that multiple view requests return the same object"""
         v = self.client[:2]
         v2 =self.client[:2]
         self.assertTrue(v is v2)
@@ -65,6 +68,7 @@ class TestClient(ClusterTestCase):
         # self.client.push()
     
     def test_push_pull(self):
+        """test pushing and pulling"""
         data = dict(a=10, b=1.05, c=range(10), d={'e':(1,2),'f':'hi'})
         self.add_engines(4)
         push = self.client.push
@@ -89,6 +93,7 @@ class TestClient(ClusterTestCase):
         self.assertEquals(r, nengines*[[10,20]])
     
     def test_push_pull_function(self):
+        "test pushing and pulling functions"
         def testf(x):
             return 2.0*x
         
@@ -112,6 +117,18 @@ class TestClient(ClusterTestCase):
         execute("def g(x): return x*x", targets=0)
         r = pull(('testf','g'),targets=0)
         self.assertEquals((r[0](10),r[1](10)), (testf(10), 100))
-        
+    
+    def test_push_function_globals(self):
+        """test that pushed functions have access to globals"""
+        def geta():
+            return a
+        self.add_engines(1)
+        v = self.client[-1]
+        v.block=True
+        v['f'] = geta
+        self.assertRaisesRemote(NameError, v.execute, 'b=f()')
+        v.execute('a=5')
+        v.execute('b=f()')
+        self.assertEquals(v['b'], 5)
     
         
