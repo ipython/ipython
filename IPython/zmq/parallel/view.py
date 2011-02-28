@@ -10,6 +10,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.testing import decorators as testdec
 from IPython.utils.traitlets import HasTraits, Bool, List, Dict, Set, Int, Instance
 
 from IPython.external.decorator import decorator
@@ -330,7 +331,7 @@ class View(HasTraits):
         block = self.block if block is None else block
         return parallel(self.client, bound=bound, targets=self._targets, block=block, balanced=self._balanced)
 
-
+@testdec.skip_doctest
 class DirectView(View):
     """Direct Multiplexer View of one or more engines.
     
@@ -413,7 +414,7 @@ class DirectView(View):
         return self.client.push(ns, targets=self._targets, block=self.block)
     
     push = update
-    
+
     def get(self, key_s):
         """get object(s) by `key_s` from remote namespace
         will return one object if it is a key.
@@ -430,26 +431,24 @@ class DirectView(View):
         block = block if block is not None else self.block
         return self.client.pull(key_s, block=block, targets=self._targets)
     
-    def scatter(self, key, seq, dist='b', flatten=False, targets=None, block=None):
+    def scatter(self, key, seq, dist='b', flatten=False, block=None):
         """
         Partition a Python sequence and send the partitions to a set of engines.
         """
         block = block if block is not None else self.block
-        targets = targets if targets is not None else self._targets
         
         return self.client.scatter(key, seq, dist=dist, flatten=flatten,
-                    targets=targets, block=block)
+                    targets=self._targets, block=block)
     
     @sync_results
     @save_ids
-    def gather(self, key, dist='b', targets=None, block=None):
+    def gather(self, key, dist='b', block=None):
         """
         Gather a partitioned sequence on a set of engines as a single local seq.
         """
         block = block if block is not None else self.block
-        targets = targets if targets is not None else self._targets
         
-        return self.client.gather(key, dist=dist, targets=targets, block=block)
+        return self.client.gather(key, dist=dist, targets=self._targets, block=block)
     
     def __getitem__(self, key):
         return self.get(key)
@@ -496,7 +495,8 @@ class DirectView(View):
                 print "You must first load the parallelmagic extension " \
                       "by doing '%load_ext parallelmagic'"
 
-    
+
+@testdec.skip_doctest
 class LoadBalancedView(View):
     """An load-balancing View that only executes via the Task scheduler.
     

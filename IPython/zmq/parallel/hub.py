@@ -702,7 +702,7 @@ class Hub(LoggingFactory):
             self.log.error("task::invalid task tracking message", exc_info=True)
             return
         content = msg['content']
-        print (content)
+        # print (content)
         msg_id = content['msg_id']
         engine_uuid = content['engine_id']
         eid = self.by_ident[engine_uuid]
@@ -728,7 +728,7 @@ class Hub(LoggingFactory):
     
     def save_iopub_message(self, topics, msg):
         """save an iopub message into the db"""
-        print (topics)
+        # print (topics)
         try:
             msg = self.session.unpack_message(msg, content=True)
         except:

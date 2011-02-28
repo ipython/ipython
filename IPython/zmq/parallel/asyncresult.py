@@ -35,7 +35,7 @@ class AsyncResult(object):
     
     msg_ids = None
     
-    def __init__(self, client, msg_ids, fname=''):
+    def __init__(self, client, msg_ids, fname='unknown'):
         self._client = client
         if isinstance(msg_ids, basestring):
             msg_ids = [msg_ids]
@@ -265,7 +265,7 @@ class AsyncHubResult(AsyncResult):
             else:
                 rdict = self._client.result_status(remote_ids, status_only=False)
                 pending = rdict['pending']
-                while pending and time.time() < start+timeout:
+                while pending and (timeout < 0 or time.time() < start+timeout):
                     rdict = self._client.result_status(remote_ids, status_only=False)
                     pending = rdict['pending']
                     if pending:

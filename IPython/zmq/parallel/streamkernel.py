@@ -104,7 +104,7 @@ class Kernel(SessionFactory):
         self._initial_exec_lines()
     
     def _wrap_exception(self, method=None):
-        e_info = dict(engineid=self.ident, method=method)
+        e_info = dict(engine_uuid=self.ident, engine_id=self.int_id, method=method)
         content=wrap_exception(e_info)
         return content
     

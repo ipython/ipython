@@ -2,28 +2,35 @@ import time
 
 import nose.tools as nt
 
-from IPython.zmq.parallel.asyncresult import AsyncResult
+from IPython.zmq.parallel import client as clientmod
+from IPython.zmq.parallel import error
+from IPython.zmq.parallel.asyncresult import AsyncResult, AsyncHubResult
 from IPython.zmq.parallel.view import LoadBalancedView, DirectView
 
-from clienttest import ClusterTestCase, segfault
+from clienttest import ClusterTestCase, segfault, wait
 
 class TestClient(ClusterTestCase):
     
     def test_ids(self):
-        self.assertEquals(len(self.client.ids), 1)
+        n = len(self.client.ids)
         self.add_engines(3)
-        self.assertEquals(len(self.client.ids), 4)
+        self.assertEquals(len(self.client.ids), n+3)
+        self.assertTrue
     
     def test_segfault(self):
+        """test graceful handling of engine death"""
         self.add_engines(1)
         eid = self.client.ids[-1]
-        self.client[eid].apply(segfault)
+        ar = self.client.apply(segfault, block=False)
+        self.assertRaisesRemote(error.EngineError, ar.get)
+        eid = ar.engine_id
         while eid in self.client.ids:
             time.sleep(.01)
             self.client.spin()
     
     def test_view_indexing(self):
-        self.add_engines(4)
+        """test index access for views"""
+        self.add_engines(2)
         targets = self.client._build_targets('all')[-1]
         v = self.client[:]
         self.assertEquals(v.targets, targets)
@@ -60,17 +67,30 @@ class TestClient(ClusterTestCase):
     
     def test_targets(self):
         """test various valid targets arguments"""
-        pass
+        build = self.client._build_targets
+        ids = self.client.ids
+        idents,targets = build(None)
+        self.assertEquals(ids, targets)
     
     def test_clear(self):
         """test clear behavior"""
-        # self.add_engines(4)
-        # self.client.push()
+        self.add_engines(2)
+        self.client.block=True
+        self.client.push(dict(a=5))
+        self.client.pull('a')
+        id0 = self.client.ids[-1]
+        self.client.clear(targets=id0)
+        self.client.pull('a', targets=self.client.ids[:-1])
+        self.assertRaisesRemote(NameError, self.client.pull, 'a')
+        self.client.clear()
+        for i in self.client.ids:
+            self.assertRaisesRemote(NameError, self.client.pull, 'a', targets=i)
+            
     
     def test_push_pull(self):
         """test pushing and pulling"""
         data = dict(a=10, b=1.05, c=range(10), d={'e':(1,2),'f':'hi'})
-        self.add_engines(4)
+        self.add_engines(2)
         push = self.client.push
         pull = self.client.pull
         self.client.block=True
@@ -131,4 +151,15 @@ class TestClient(ClusterTestCase):
         v.execute('b=f()')
         self.assertEquals(v['b'], 5)
     
+    def test_get_result(self):
+        """test getting results from the Hub."""
+        c = clientmod.Client(profile='iptest')
+        t = self.client.ids[-1]
+        ar = c.apply(wait, (1,), block=False, targets=t)
+        time.sleep(.25)
+        ahr = self.client.get_result(ar.msg_ids)
+        self.assertTrue(isinstance(ahr, AsyncHubResult))
+        self.assertEquals(ahr.get(), ar.get())
+        ar2 = self.client.get_result(ar.msg_ids)
+        self.assertFalse(isinstance(ar2, AsyncHubResult))
         

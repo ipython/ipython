@@ -175,7 +175,7 @@ class RemoteError(KernelError):
         self.args=(ename, evalue)
     
     def __repr__(self):
-        engineid = self.engine_info.get('engineid', ' ')
+        engineid = self.engine_info.get('engine_id', ' ')
         return "<Remote[%s]:%s(%s)>"%(engineid, self.ename, self.evalue)
         
     def __str__(self):

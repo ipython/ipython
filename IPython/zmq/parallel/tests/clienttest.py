@@ -17,7 +17,7 @@ from IPython.zmq.parallel.tests import processes,add_engine
 # simple tasks for use in apply tests
 
 def segfault():
-    """"""
+    """this will segfault"""
     import ctypes
     ctypes.memset(-1,0,1)
 
@@ -73,9 +73,10 @@ class ClusterTestCase(BaseZMQTestCase):
     
     def assertRaisesRemote(self, etype, f, *args, **kwargs):
         try:
-            f(*args, **kwargs)
-        except error.CompositeError as e:
-            e.raise_exception()
+            try:
+                f(*args, **kwargs)
+            except error.CompositeError as e:
+                e.raise_exception()
         except error.RemoteError as e:
             self.assertEquals(etype.__name__, e.ename, "Should have raised %r, but raised %r"%(e.ename, etype.__name__))
         else:
@@ -87,10 +88,11 @@ class ClusterTestCase(BaseZMQTestCase):
         self.base_engine_count=len(self.client.ids)
         self.engines=[]
     
-    def tearDown(self):
-        [ e.terminate() for e in filter(lambda e: e.poll() is None, self.engines) ]
-        # while len(self.client.ids) > self.base_engine_count:
-        #     time.sleep(.1)
-        del self.engines
-        BaseZMQTestCase.tearDown(self)
+    # def tearDown(self):
+    #     [ e.terminate() for e in filter(lambda e: e.poll() is None, self.engines) ]
+    #     [ e.wait() for e in self.engines ]
+    #     while len(self.client.ids) > self.base_engine_count:
+    #         time.sleep(.1)
+    #     del self.engines
+    #     BaseZMQTestCase.tearDown(self)
         

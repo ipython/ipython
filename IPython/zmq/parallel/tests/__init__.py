@@ -29,7 +29,6 @@ def teardown():
         p = processes.pop()
         if p.poll() is None:
             try:
-                print 'terminating'
                 p.terminate()
             except Exception, e:
                 print e

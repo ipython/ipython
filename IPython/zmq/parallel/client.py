@@ -360,16 +360,17 @@ class Client(HasTraits):
         if cluster_dir is not None:
             try:
                 self._cd = ClusterDir.find_cluster_dir(cluster_dir)
+                return
             except ClusterDirError:
                 pass
         elif profile is not None:
             try:
                 self._cd = ClusterDir.find_cluster_dir_by_profile(
                     ipython_dir, profile)
+                return
             except ClusterDirError:
                 pass
-        else:
-            self._cd = None
+        self._cd = None
     
     @property
     def ids(self):
@@ -489,9 +490,9 @@ class Client(HasTraits):
         """unwrap exception, and remap engineid to int."""
         e = ss.unwrap_exception(content)
         if e.engine_info:
-            e_uuid = e.engine_info['engineid']
+            e_uuid = e.engine_info['engine_uuid']
             eid = self._engines[e_uuid]
-            e.engine_info['engineid'] = eid
+            e.engine_info['engine_id'] = eid
         return e
     
     def _register_engine(self, msg):
@@ -1338,11 +1339,11 @@ class Client(HasTraits):
             be lists of msg_ids that are incomplete or complete. If `status_only`
             is False, then completed results will be keyed by their `msg_id`.
         """
-        if not isinstance(indices_or_msg_ids, (list,tuple)):
-            indices_or_msg_ids = [indices_or_msg_ids]
+        if not isinstance(msg_ids, (list,tuple)):
+            indices_or_msg_ids = [msg_ids]
             
         theids = []
-        for msg_id in indices_or_msg_ids:
+        for msg_id in msg_ids:
             if isinstance(msg_id, int):
                 msg_id = self.history[msg_id]
             if not isinstance(msg_id, basestring):

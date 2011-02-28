@@ -12,6 +12,8 @@
 
 import warnings
 
+from IPython.testing import decorators as testdec
+
 import map as Map
 from asyncresult import AsyncMapResult
 
@@ -19,26 +21,32 @@ from asyncresult import AsyncMapResult
 # Decorators
 #-----------------------------------------------------------------------------
 
+@testdec.skip_doctest
 def remote(client, bound=True, block=None, targets=None, balanced=None):
     """Turn a function into a remote function.
     
     This method can be used for map:
     
-    >>> @remote(client,block=True)
-        def func(a)
+    In [1]: @remote(client,block=True)
+       ...: def func(a):
+       ...:    pass
     """
+    
     def remote_function(f):
         return RemoteFunction(client, f, bound, block, targets, balanced)
     return remote_function
 
+@testdec.skip_doctest
 def parallel(client, dist='b', bound=True, block=None, targets='all', balanced=None):
     """Turn a function into a parallel remote function.
     
     This method can be used for map:
     
-    >>> @parallel(client,block=True)
-        def func(a)
+    In [1]: @parallel(client,block=True)
+       ...: def func(a):
+       ...:    pass
     """
+    
     def parallel_function(f):
         return ParallelFunction(client, f, dist, bound, block, targets, balanced)
     return parallel_function
