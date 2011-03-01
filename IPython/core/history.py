@@ -138,7 +138,7 @@ class HistoryManager(Configurable):
             return ((ses, lin, (inp, out)) for ses, lin, inp, out in hist)
         return hist
         
-    def get_hist_search(self, pattern="*", raw=True):
+    def get_hist_search(self, pattern="*", raw=True, output=False):
         """Search the database using unix glob-style matching (wildcards * and
         ?, escape using \).
         
@@ -147,8 +147,17 @@ class HistoryManager(Configurable):
         An iterator over tuples: (session, line_number, command)
         """
         toget = "source_raw" if raw else "source"
-        return self.db.execute("SELECT session, line, " +toget+ \
-                        " FROM history WHERE " +toget+ " GLOB ?", (pattern,))
+        tosearch = toget
+        sqlfrom = "history"
+        if output:
+            sqlfrom = "history LEFT JOIN output_history USING (session, line)"
+            toget = "history.%s, output_history.output" % toget
+            tosearch = "history." + tosearch
+        hist = self.db.execute("SELECT session, line, " +toget+ \
+                    " FROM "+sqlfrom+" WHERE " +tosearch+ " GLOB ?", (pattern,))
+        if output:
+            return ((ses, lin, (inp, out)) for ses, lin, inp, out in hist)
+        return hist
                                 
     def _get_hist_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
@@ -456,24 +465,11 @@ def magic_history(self, parameter_s = ''):
     default_length = 40
     pattern = None
     
-    # Glob search:
-    if 'g' in opts:
+    if 'g' in opts:         # Glob search
         pattern = "*" + args + "*" if args else "*"
-        
-        # Display:
-        matches_current_session = []
-        for session, line, s in history_manager.get_hist_search(pattern, raw):
-            if session == history_manager.session_number:
-                matches_current_session.append((line, s))
-                continue
-            print("%d/%d: %s" %(session, line, s.expandtabs(4)), file=outfile)
-        if matches_current_session:
-            print("=== Current session: ===", file=outfile)
-            for line, s in matches_current_session:
-                print("%d: %s" %(line, s.expandtabs(4)), file=outfile)
-        return
-    
-    if 'l' in opts:         # Get 'tail'
+        hist = history_manager.get_hist_search(pattern, raw=raw,
+                                                              output=get_output)
+    elif 'l' in opts:       # Get 'tail'
         try:
             n = int(args)
         except ValueError, IndexError:
@@ -484,12 +480,10 @@ def magic_history(self, parameter_s = ''):
             hist = history_manager.get_hist_from_rangestr(args, raw, get_output)
         else:               # Just get history for the current session
             hist = history_manager.get_history(raw=raw, output=get_output)
-    # Pull hist into a list, so we can get the widest number in it.
-    hist = list(hist)
-    if not hist:
-        return
     
-    width = max(len(_format_lineno(s, l)) for s, l, _ in hist)
+    # We could be displaying the entire history, so let's not try to pull it 
+    # into a list in memory. Anything that needs more space will just misalign.
+    width = 4
         
     for session, lineno, inline in hist:
         # Print user history with tabs expanded to 4 spaces.  The GUI clients
@@ -498,12 +492,9 @@ def magic_history(self, parameter_s = ''):
         if get_output:
             inline, output = inline
         inline = inline.expandtabs(4).rstrip()
-
-        if pattern is not None and not fnmatch.fnmatch(inline, pattern):
-            continue
             
         multiline = "\n" in inline
-        line_sep = '\n' if multiline else ''
+        line_sep = '\n' if multiline else ' '
         if print_nums:
             print('%s:%s' % (_format_lineno(session, lineno).rjust(width),
                     line_sep),  file=outfile, end='')
