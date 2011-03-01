@@ -19,7 +19,6 @@ class RichIPythonWidget(IPythonWidget):
 
     # RichIPythonWidget protected class variables.
     _payload_source_plot = 'IPython.zmq.pylab.backend_payload.add_plot_payload'
-    _svg_text_format_property = 1
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -34,9 +33,8 @@ class RichIPythonWidget(IPythonWidget):
         # Configure the ConsoleWidget HTML exporter for our formats.
         self._html_exporter.image_tag = self._get_image_tag
 
-        # Dictionary for resolving Qt names to images when generating XHTML
-        # output
-        self._name_to_svg = {}
+        # Dictionary for resolving document resource names to SVG data.
+        self._name_to_svg_map = {}
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface
@@ -54,8 +52,8 @@ class RichIPythonWidget(IPythonWidget):
             menu.addAction('Save Image As...', lambda: self._save_image(name))
             menu.addSeparator()
 
-            svg = format.stringProperty(self._svg_text_format_property)
-            if svg:
+            svg = self._name_to_svg_map.get(name, None)
+            if svg is not None:
                 menu.addSeparator()
                 menu.addAction('Copy SVG', lambda: svg_to_clipboard(svg))
                 menu.addAction('Save SVG As...', 
@@ -118,26 +116,6 @@ class RichIPythonWidget(IPythonWidget):
                 return super(RichIPythonWidget, self)._handle_display_data(msg)
 
     #---------------------------------------------------------------------------
-    # 'FrontendWidget' protected interface
-    #---------------------------------------------------------------------------
-
-    def _process_execute_payload(self, item):
-        """ Reimplemented to handle matplotlib plot payloads.
-        """
-        # TODO: remove this as all plot data is coming back through the
-        # display_data message type.
-        if item['source'] == self._payload_source_plot:
-            if item['format'] == 'svg':
-                svg = item['data']
-                self._append_svg(svg)
-                return True
-            else:
-                # Add other plot formats here!
-                return False
-        else:
-            return super(RichIPythonWidget, self)._process_execute_payload(item)
-
-    #---------------------------------------------------------------------------
     # 'RichIPythonWidget' protected interface
     #---------------------------------------------------------------------------
 
@@ -150,8 +128,7 @@ class RichIPythonWidget(IPythonWidget):
             self._append_plain_text('Received invalid plot data.')
         else:
             format = self._add_image(image)
-            self._name_to_svg[str(format.name())] = svg
-            format.setProperty(self._svg_text_format_property, svg)
+            self._name_to_svg_map[format.name()] = svg
             cursor = self._get_end_cursor()
             cursor.insertBlock()
             cursor.insertImage(format)
@@ -194,9 +171,9 @@ class RichIPythonWidget(IPythonWidget):
         """ Returns the QImage stored as the ImageResource with 'name'.
         """
         document = self._control.document()
-        variant = document.resource(QtGui.QTextDocument.ImageResource,
-                                    QtCore.QUrl(name))
-        return variant.toPyObject()
+        image = document.resource(QtGui.QTextDocument.ImageResource,
+                                  QtCore.QUrl(name))
+        return image
 
     def _get_image_tag(self, match, path = None, format = "png"):
         """ Return (X)HTML mark-up for the image-tag given by match.
@@ -242,7 +219,7 @@ class RichIPythonWidget(IPythonWidget):
 
         elif format == "svg":
             try:
-                svg = str(self._name_to_svg[match.group("name")])
+                svg = str(self._name_to_svg_map[match.group("name")])
             except KeyError:
                 return "<b>Couldn't find image %s</b>" % match.group("name")
 

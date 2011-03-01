@@ -11,10 +11,12 @@ QT_API_PYSIDE = 'pyside'
 QT_API = os.environ.get('QT_API', QT_API_PYQT)
 
 if QT_API == QT_API_PYQT:
-    # For PySide compatibility, use the new string API that automatically
-    # converts QStrings to Unicode Python strings.
+    # For PySide compatibility, use the new-style string API that automatically
+    # converts QStrings to Unicode Python strings. Also, automatically unpack
+    # QVariants to their underlying objects.
     import sip
     sip.setapi('QString', 2)
+    sip.setapi('QVariant', 2)
 
     from PyQt4 import QtCore, QtGui, QtSvg
 
