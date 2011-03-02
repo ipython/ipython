@@ -135,7 +135,7 @@ class HistoryManager(Configurable):
           Parameters passed to the SQL query (to replace "?")
         raw : bool
           If True, get raw input.
-        output : 
+        output : bool
           If True, include output where available.
         
         Returns
