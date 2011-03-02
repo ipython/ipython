@@ -123,20 +123,43 @@ class HistoryManager(Configurable):
         self.db.execute("""UPDATE singletons SET value=? WHERE
                         name='session_number'""", (self.session_number+1,))
         self.db.commit()
-                            
-    def get_hist_tail(self, n=10, raw=True, output=False):
-        """Get the last n lines from the history database."""
+    
+    def _get_hist_sql(self, sql, params, raw=True, output=False):
+        """Prepares and runs an SQL query for the history database.
+        
+        Parameters
+        ----------
+        sql : str
+          Any filtering expressions to go after SELECT ... FROM ...
+        params : tuple
+          Parameters passed to the SQL query (to replace "?")
+        raw : bool
+          If True, get raw input.
+        output : 
+          If True, include output where available.
+        
+        Returns
+        -------
+        An iterator over 3-tuples: (session, line_number, command), or if output
+        is True, (session, line_number, (command, output)).
+        """
         toget = 'source_raw' if raw else 'source'
         sqlfrom = "history"
         if output:
             sqlfrom = "history LEFT JOIN output_history USING (session, line)"
             toget = "history.%s, output_history.output" % toget
-        cur = self.db.execute("SELECT session, line, " + toget +\
-            " FROM "+sqlfrom+" ORDER BY session DESC, line DESC LIMIT ?", (n,))
-        hist = reversed(cur.fetchall())
-        if output:
-            return ((ses, lin, (inp, out)) for ses, lin, inp, out in hist)
-        return hist
+        cur = self.db.execute("SELECT session, line, %s FROM %s " %\
+                                (toget, sqlfrom) + sql, params)
+        if output:    # Regroup into 3-tuples
+            return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
+        return cur
+        
+    
+    def get_hist_tail(self, n=10, raw=True, output=False):
+        """Get the last n lines from the history database."""
+        cur = self._get_hist_sql("ORDER BY session DESC, line DESC LIMIT ?",
+                                (n,), raw=raw, output=output)
+        return reversed(list(cur))
         
     def get_hist_search(self, pattern="*", raw=True, output=False):
         """Search the database using unix glob-style matching (wildcards * and
@@ -146,18 +169,11 @@ class HistoryManager(Configurable):
         -------
         An iterator over tuples: (session, line_number, command)
         """
-        toget = "source_raw" if raw else "source"
-        tosearch = toget
-        sqlfrom = "history"
+        tosearch = "source_raw" if raw else "source"
         if output:
-            sqlfrom = "history LEFT JOIN output_history USING (session, line)"
-            toget = "history.%s, output_history.output" % toget
             tosearch = "history." + tosearch
-        hist = self.db.execute("SELECT session, line, " +toget+ \
-                    " FROM "+sqlfrom+" WHERE " +tosearch+ " GLOB ?", (pattern,))
-        if output:
-            return ((ses, lin, (inp, out)) for ses, lin, inp, out in hist)
-        return hist
+        return self._get_hist_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
+                                    raw=raw, output=output)
                                 
     def _get_hist_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
@@ -211,12 +227,6 @@ class HistoryManager(Configurable):
         if session < 0:
             session += self.session_number
             
-        # Assemble the SQL query:
-        sqlfrom = "history"
-        toget = 'source_raw' if raw else 'source'
-        if output:
-            sqlfrom = "history LEFT JOIN output_history USING (session, line)"
-            toget = "history.%s, output_history.output" % toget
         if stop:
             lineclause = "line >= ? AND line < ?"
             params = (session, start, stop)
@@ -224,11 +234,8 @@ class HistoryManager(Configurable):
             lineclause = "line>=?"
             params = (session, start)
         
-        cur = self.db.execute("""SELECT session, line, %s FROM %s WHERE
-            session==? AND %s""" %(toget, sqlfrom, lineclause), params)
-        if output:     # Regroup into 3-tuples
-            return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
-        return cur
+        return self._get_hist_sql("WHERE session==? AND %s""" % lineclause,
+                                    params, raw=raw, output=output)
         
     def get_hist_from_rangestr(self, rangestr, raw=True, output=False):
         """Get lines of history from a string of ranges, as used by magic
