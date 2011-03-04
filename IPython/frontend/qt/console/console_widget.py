@@ -199,7 +199,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         action = QtGui.QAction('Save as HTML/XML', None)
         action.setShortcut(QtGui.QKeySequence.Save)
-        action.triggered.connect(self._html_exporter.export)
+        action.triggered.connect(self.export_html)
         self.addAction(action)
         self._export_action = action
         
@@ -467,6 +467,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self._control.moveCursor(QtGui.QTextCursor.End)
 
         return complete
+
+    def export_html(self):
+        """ Shows a dialog to export HTML/XML in various formats.
+        """
+        self._html_exporter.export()
 
     def _get_input_buffer(self):
         """ The text that the user has entered entered at the current prompt.
