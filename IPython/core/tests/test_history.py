@@ -33,7 +33,7 @@ def test_history():
             ip.history_manager.init_db()  # Has to be called after changing file
             ip.history_manager.reset()
             print 'test',histfile
-            hist = ['a=1', 'def f():\n    test = 1\n    return test', u'b="žćčšđ"']
+            hist = ['a=1', 'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
             
