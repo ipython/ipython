@@ -31,9 +31,9 @@ from IPython.zmq.log import EnginePUBHandler
 from IPython.zmq.parallel import factory
 from IPython.zmq.parallel.engine import EngineFactory
 from IPython.zmq.parallel.streamkernel import Kernel
+from IPython.zmq.parallel.util import disambiguate_url
 from IPython.utils.importstring import import_item
 
-from util import disambiguate_url
 
 #-----------------------------------------------------------------------------
 # Module level variables

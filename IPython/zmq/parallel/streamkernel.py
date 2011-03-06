@@ -33,10 +33,10 @@ from IPython.zmq.completer import KernelCompleter
 from IPython.zmq.iostream import OutStream
 from IPython.zmq.displayhook import DisplayHook
 
-import heartmonitor
-from client import Client
-from factory import SessionFactory
-from streamsession import StreamSession, Message, extract_header, serialize_object,\
+from . import heartmonitor
+from .client import Client
+from .factory import SessionFactory
+from .streamsession import StreamSession, Message, extract_header, serialize_object,\
                 unpack_apply_message, ISO8601, wrap_exception
 
 def printer(*args):

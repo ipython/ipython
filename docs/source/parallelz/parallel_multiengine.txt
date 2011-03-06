@@ -170,14 +170,26 @@ communicate with the engines are built on top of it), is :meth:`Client.apply`.
 Ideally, :meth:`apply` would have the signature ``apply(f,*args,**kwargs)``,
 which would call ``f(*args,**kwargs)`` remotely.  However, since :class:`Clients`
 require some more options, they cannot easily provide this interface.
-Instead, they provide the signature::
+Instead, they provide the signature:
+
+.. sourcecode:: python
 
     c.apply(f, args=None, kwargs=None, bound=True, block=None, targets=None,
                     after=None, follow=None, timeout=None)
 
+Where various behavior is controlled via keyword arguments. This means that in the client,
+you must pass `args` as a tuple, and `kwargs` as a dict.
+
 In order to provide the nicer interface, we have :class:`View` classes, which wrap
 :meth:`Client.apply` by using attributes and extra :meth:`apply_x` methods to determine
-the extra arguments. For instance, performing index-access on a client creates a
+the extra keyword arguments.  This means that the views can have the desired pattern:
+
+.. sourcecode:: python
+
+    v.apply(f, *args, **kwargs)
+
+
+For instance, performing index-access on a client creates a
 :class:`.DirectView`.
 
 .. sourcecode:: ipython
@@ -221,7 +233,7 @@ blocks until the engines are done executing the command:
     In [5]: dview['b'] = 10
 
     In [6]: dview.apply_bound(lambda x: a+b+x, 27)
-    Out[6]: [42, 42, 42, 42]
+    Out[6]: [42, 42, 42, 42]%exit
 
 Python commands can be executed on specific engines by calling execute using the ``targets``
 keyword argument in :meth:`client.execute`, or creating a :class:`DirectView` instance by
@@ -553,15 +565,14 @@ In non-blocking mode :meth:`push` and :meth:`pull` also return
 Dictionary interface
 --------------------
 
-Since a namespace is just a :class:`dict`, :class:`DirectView` objects provide
+Since a Python namespace is just a :class:`dict`, :class:`DirectView` objects provide
 dictionary-style access by key and methods such as :meth:`get` and
 :meth:`update` for convenience. This make the remote namespaces of the engines
-appear as a local dictionary. Underneath, this uses :meth:`push` and
-:meth:`pull`:
+appear as a local dictionary. Underneath, these methods call :meth:`apply`:
 
 .. sourcecode:: ipython
 
-    In [50]: rc.block=True
+    In [50]: dview.block=True
 
     In [51]: dview['a']=['foo','bar']
 
@@ -603,7 +614,6 @@ basic effect using :meth:`scatter` and :meth:`gather`:
 .. sourcecode:: ipython
 
     In [66]: dview.scatter('x',range(64))
-    Out[66]: [None,None,None,None]
 
     In [67]: px y = [i**10 for i in x]
     Parallel execution on engines: [0, 1, 2, 3]
@@ -620,40 +630,49 @@ Parallel exceptions
 In the multiengine interface, parallel commands can raise Python exceptions,
 just like serial commands. But, it is a little subtle, because a single
 parallel command can actually raise multiple exceptions (one for each engine
-the command was run on). To express this idea, the MultiEngine interface has a
+the command was run on). To express this idea, we have a
 :exc:`CompositeError` exception class that will be raised in most cases. The
 :exc:`CompositeError` class is a special type of exception that wraps one or
 more other types of exceptions. Here is how it works:
 
 .. sourcecode:: ipython
 
-    In [76]: rc.block=True
+    In [76]: dview.block=True
 
-    In [77]: rc.execute('1/0')
+    In [77]: dview.execute('1/0')
     ---------------------------------------------------------------------------
     CompositeError                            Traceback (most recent call last)
+    /Users/minrk/<ipython-input-10-5d56b303a66c> in <module>()
+    ----> 1 dview.execute('1/0')
 
-    /ipython1-client-r3021/docs/examples/<ipython console> in <module>()
+    ...
+    
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in apply(self, f, args, kwargs, bound, block, targets, balanced, after, follow, timeout)
+       1012                 raise ValueError(msg)
+       1013         else:
+    -> 1014             return self._apply_direct(f, args, kwargs, **options)
+       1015 
+       1016     def _apply_balanced(self, f, args, kwargs, bound=None, block=None, targets=None,
 
-    /ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in execute(self, lines, targets, block)
-        432         targets, block = self._findTargetsAndBlock(targets, block)
-        433         result = blockingCallFromThread(self.smultiengine.execute, lines,
-    --> 434             targets=targets, block=block)
-        435         if block:
-        436             result = ResultList(result)
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in _apply_direct(self, f, args, kwargs, bound, block, targets)
+       1100         if block:
+       1101             try:
+    -> 1102                 return ar.get()
+       1103             except KeyboardInterrupt:
+       1104                 return ar
 
-    /ipython1-client-r3021/ipython1/kernel/twistedutil.pyc in blockingCallFromThread(f, *a, **kw)
-         72             result.raiseException()
-         73         except Exception, e:
-    ---> 74             raise e
-         75     return result
-         76 
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+         78                 return self._result
+         79             else:
+    ---> 80                 raise self._exception
+         81         else:
+         82             raise error.TimeoutError("Result not ready.")
 
-    CompositeError: one or more exceptions from call to method: execute
-    [0:execute]: ZeroDivisionError: integer division or modulo by zero
-    [1:execute]: ZeroDivisionError: integer division or modulo by zero
-    [2:execute]: ZeroDivisionError: integer division or modulo by zero
-    [3:execute]: ZeroDivisionError: integer division or modulo by zero
+    CompositeError: one or more exceptions from call to method: _execute
+    [0:apply]: ZeroDivisionError: integer division or modulo by zero
+    [1:apply]: ZeroDivisionError: integer division or modulo by zero
+    [2:apply]: ZeroDivisionError: integer division or modulo by zero
+    [3:apply]: ZeroDivisionError: integer division or modulo by zero
 
 Notice how the error message printed when :exc:`CompositeError` is raised has
 information about the individual exceptions that were raised on each engine.
@@ -690,37 +709,68 @@ instance:
     In [81]: rc.execute('1/0')
     ---------------------------------------------------------------------------
     CompositeError                            Traceback (most recent call last)
+    /Users/minrk/<ipython-input-5-b0c7a2b62c52> in <module>()
+    ----> 1 rc.execute('1/0')
 
-    /ipython1-client-r3021/docs/examples/<ipython console> in <module>()
+    /Users/minrk/<string> in execute(self, code, targets, block)
 
-    /ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in execute(self, lines, targets, block)
-        432         targets, block = self._findTargetsAndBlock(targets, block)
-        433         result = blockingCallFromThread(self.smultiengine.execute, lines,
-    --> 434             targets=targets, block=block)
-        435         if block:
-        436             result = ResultList(result)
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in defaultblock(f, self, *args, **kwargs)
+         88     self.block = block
+         89     try:
+    ---> 90         ret = f(self, *args, **kwargs)
+         91     finally:
+         92         self.block = saveblock
 
-    /ipython1-client-r3021/ipython1/kernel/twistedutil.pyc in blockingCallFromThread(f, *a, **kw)
-         72             result.raiseException()
-         73         except Exception, e:
-    ---> 74             raise e
-         75     return result
-         76 
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in execute(self, code, targets, block)
+        855                 default: self.block
+        856         """
+    --> 857         result = self.apply(_execute, (code,), targets=targets, block=block, bound=True, balanced=False)
+        858         if not block:
+        859             return result
 
-    CompositeError: one or more exceptions from call to method: execute
-    [0:execute]: ZeroDivisionError: integer division or modulo by zero
-    [1:execute]: ZeroDivisionError: integer division or modulo by zero
-    [2:execute]: ZeroDivisionError: integer division or modulo by zero
-    [3:execute]: ZeroDivisionError: integer division or modulo by zero
+    /Users/minrk/<string> in apply(self, f, args, kwargs, bound, block, targets, balanced, after, follow, timeout)
 
-    In [82]: %debug
-    > 
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in defaultblock(f, self, *args, **kwargs)
+         88     self.block = block
+         89     try:
+    ---> 90         ret = f(self, *args, **kwargs)
+         91     finally:
+         92         self.block = saveblock
+
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in apply(self, f, args, kwargs, bound, block, targets, balanced, after, follow, timeout)
+       1012                 raise ValueError(msg)
+       1013         else:
+    -> 1014             return self._apply_direct(f, args, kwargs, **options)
+       1015 
+       1016     def _apply_balanced(self, f, args, kwargs, bound=None, block=None, targets=None,
+
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in _apply_direct(self, f, args, kwargs, bound, block, targets)
+       1100         if block:
+       1101             try:
+    -> 1102                 return ar.get()
+       1103             except KeyboardInterrupt:
+       1104                 return ar
+
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+         78                 return self._result
+         79             else:
+    ---> 80                 raise self._exception
+         81         else:
+         82             raise error.TimeoutError("Result not ready.")
+
+    CompositeError: one or more exceptions from call to method: _execute
+    [0:apply]: ZeroDivisionError: integer division or modulo by zero
+    [1:apply]: ZeroDivisionError: integer division or modulo by zero
+    [2:apply]: ZeroDivisionError: integer division or modulo by zero
+    [3:apply]: ZeroDivisionError: integer division or modulo by zero
     
-    /ipython1-client-r3021/ipython1/kernel/twistedutil.py(74)blockingCallFromThread()
-         73         except Exception, e:
-    ---> 74             raise e
-         75     return result
-
+    In [82]: %debug
+    > /Users/minrk/dev/ip/mine/IPython/zmq/parallel/asyncresult.py(80)get()
+         79             else:
+    ---> 80                 raise self._exception
+         81         else:
+    
+    
     # With the debugger running, e is the exceptions instance.  We can tab complete
     # on it and see the extra methods that are available.
     ipdb> e.
@@ -730,37 +780,49 @@ instance:
     e.__doc__           e.__init__          e.__repr__          e._get_engine_str   e.print_tracebacks
     e.__getattribute__  e.__module__        e.__setattr__       e._get_traceback    e.raise_exception
     ipdb> e.print_tracebacks()
-    [0:execute]: 
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)
-
-    /ipython1-client-r3021/docs/examples/<string> in <module>()
-
+    [0:apply]: 
+    Traceback (most recent call last):
+      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 332, in apply_request
+        exec code in working, working
+      File "<string>", line 1, in <module>
+      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.py", line 69, in _execute
+        exec code in globals()
+      File "<string>", line 1, in <module>
     ZeroDivisionError: integer division or modulo by zero
 
-    [1:execute]: 
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)
 
-    /ipython1-client-r3021/docs/examples/<string> in <module>()
-
+    [1:apply]: 
+    Traceback (most recent call last):
+      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 332, in apply_request
+        exec code in working, working
+      File "<string>", line 1, in <module>
+      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.py", line 69, in _execute
+        exec code in globals()
+      File "<string>", line 1, in <module>
     ZeroDivisionError: integer division or modulo by zero
 
-    [2:execute]: 
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)
 
-    /ipython1-client-r3021/docs/examples/<string> in <module>()
-
+    [2:apply]: 
+    Traceback (most recent call last):
+      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 332, in apply_request
+        exec code in working, working
+      File "<string>", line 1, in <module>
+      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.py", line 69, in _execute
+        exec code in globals()
+      File "<string>", line 1, in <module>
     ZeroDivisionError: integer division or modulo by zero
 
-    [3:execute]: 
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)
 
-    /ipython1-client-r3021/docs/examples/<string> in <module>()
-
+    [3:apply]: 
+    Traceback (most recent call last):
+      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 332, in apply_request
+        exec code in working, working
+      File "<string>", line 1, in <module>
+      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.py", line 69, in _execute
+        exec code in globals()
+      File "<string>", line 1, in <module>
     ZeroDivisionError: integer division or modulo by zero
+    
 
 
 All of this same error handling magic even works in non-blocking mode:
@@ -774,41 +836,19 @@ All of this same error handling magic even works in non-blocking mode:
     In [85]: ar.get()
     ---------------------------------------------------------------------------
     CompositeError                            Traceback (most recent call last)
+    /Users/minrk/<ipython-input-3-8531eb3d26fb> in <module>()
+    ----> 1 ar.get()
 
-    /ipython1-client-r3021/docs/examples/<ipython console> in <module>()
+    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+         78                 return self._result
+         79             else:
+    ---> 80                 raise self._exception
+         81         else:
+         82             raise error.TimeoutError("Result not ready.")
 
-    /ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in _get_r(self)
-        170 
-        171     def _get_r(self):
-    --> 172         return self.get_result(block=True)
-        173 
-        174     r = property(_get_r)
-
-    /ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in get_result(self, default, block)
-        131                 return self.result
-        132         try:
-    --> 133             result = self.client.get_pending_deferred(self.result_id, block)
-        134         except error.ResultNotCompleted:
-        135             return default
-
-    /ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in get_pending_deferred(self, deferredID, block)
-        385 
-        386     def get_pending_deferred(self, deferredID, block):
-    --> 387         return blockingCallFromThread(self.smultiengine.get_pending_deferred, deferredID, block)
-        388 
-        389     def barrier(self, pendingResults):
-
-    /ipython1-client-r3021/ipython1/kernel/twistedutil.pyc in blockingCallFromThread(f, *a, **kw)
-         72             result.raiseException()
-         73         except Exception, e:
-    ---> 74             raise e
-         75     return result
-         76 
-
-    CompositeError: one or more exceptions from call to method: execute
-    [0:execute]: ZeroDivisionError: integer division or modulo by zero
-    [1:execute]: ZeroDivisionError: integer division or modulo by zero
-    [2:execute]: ZeroDivisionError: integer division or modulo by zero
-    [3:execute]: ZeroDivisionError: integer division or modulo by zero
-
+    CompositeError: one or more exceptions from call to method: _execute
+    [0:apply]: ZeroDivisionError: integer division or modulo by zero
+    [1:apply]: ZeroDivisionError: integer division or modulo by zero
+    [2:apply]: ZeroDivisionError: integer division or modulo by zero
+    [3:apply]: ZeroDivisionError: integer division or modulo by zero
 

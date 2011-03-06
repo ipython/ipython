@@ -14,7 +14,7 @@ from zmq.devices import ProcessDevice,ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
 from IPython.utils.traitlets import Set, Instance, CFloat, Bool
-from factory import LoggingFactory
+from .factory import LoggingFactory
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.

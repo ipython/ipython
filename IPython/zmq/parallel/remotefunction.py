@@ -14,8 +14,8 @@ import warnings
 
 from IPython.testing import decorators as testdec
 
-import map as Map
-from asyncresult import AsyncMapResult
+from . import map as Map
+from .asyncresult import AsyncMapResult
 
 #-----------------------------------------------------------------------------
 # Decorators

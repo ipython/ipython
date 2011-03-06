@@ -48,7 +48,7 @@ from IPython.utils.traitlets import Str, Int, List, Unicode, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
-from factory import LoggingFactory
+from .factory import LoggingFactory
 
 # load winhpcjob from IPython.kernel
 try:

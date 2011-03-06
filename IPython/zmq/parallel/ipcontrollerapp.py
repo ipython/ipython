@@ -36,10 +36,10 @@ from IPython.zmq.parallel.clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )
+from IPython.zmq.parallel.util import disambiguate_ip_address, split_url
 # from IPython.kernel.fcutil import FCServiceFactory, FURLError
 from IPython.utils.traitlets import Instance, Unicode
 
-from util import disambiguate_ip_address, split_url
 
 
 #-----------------------------------------------------------------------------

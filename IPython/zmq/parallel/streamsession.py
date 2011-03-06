@@ -24,7 +24,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
 from IPython.utils.newserialized import serialize, unserialize
 
-from IPython.zmq.parallel.error import RemoteError
+from .error import RemoteError
 
 # packer priority: jsonlib[2], cPickle, simplejson/json, pickle
 json_name = '' if not jsonapi.jsonmod else jsonapi.jsonmod.__name__

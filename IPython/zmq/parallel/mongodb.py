@@ -10,7 +10,7 @@ from datetime import datetime
 
 from pymongo import Connection
 
-from dictdb import BaseDB
+from .dictdb import BaseDB
 
 #-----------------------------------------------------------------------------
 # MongoDB class

@@ -215,7 +215,7 @@ class CompositeError(RemoteError):
         if not ei:
             return '[Engine Exception]'
         else:
-            return '[%s:%s]: ' % (ei['engineid'], ei['method'])
+            return '[%s:%s]: ' % (ei['engine_id'], ei['method'])
 
     def _get_traceback(self, ev):
         try:

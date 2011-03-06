@@ -13,7 +13,7 @@
 import time
 
 from IPython.external.decorator import decorator
-import error
+from . import error
 
 #-----------------------------------------------------------------------------
 # Classes

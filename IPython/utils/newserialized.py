@@ -100,7 +100,7 @@ class SerializeIt(object):
                 self.typeDescriptor = 'ndarray'
                 self.metadata = {'shape':self.obj.shape,
                                  'dtype':self.obj.dtype.str}
-        elif isinstance(self.obj, str):
+        elif isinstance(self.obj, bytes):
             self.typeDescriptor = 'bytes'
             self.metadata = {}
         elif isinstance(self.obj, buffer):
@@ -109,7 +109,7 @@ class SerializeIt(object):
         else:
             self.typeDescriptor = 'pickle'
             self.metadata = {}
-        self._generateData()            
+        self._generateData()
     
     def _generateData(self):
         if self.typeDescriptor == 'ndarray':
@@ -145,11 +145,13 @@ class UnSerializeIt(UnSerialized):
     def getObject(self):
         typeDescriptor = self.serialized.getTypeDescriptor()
         if globals().has_key('numpy') and typeDescriptor == 'ndarray':
-                result = numpy.frombuffer(self.serialized.getData(), dtype = self.serialized.metadata['dtype'])
+                buf = self.serialized.getData()
+                if isinstance(buf, buffer):
+                    result = numpy.frombuffer(buf, dtype = self.serialized.metadata['dtype'])
+                else:
+                    # memoryview
+                    result = numpy.array(buf, dtype = self.serialized.metadata['dtype'])
                 result.shape = self.serialized.metadata['shape']
-                # numpy arrays with frombuffer are read-only.  We are working with
-                # the numpy folks to address this issue.
-                # result = result.copy()
         elif typeDescriptor == 'pickle':
             result = pickle.loads(self.serialized.getData())
         elif typeDescriptor in ('bytes', 'buffer'):

@@ -29,12 +29,12 @@ from IPython.config.configurable import Configurable
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
 
-from entry_point import select_random_ports
-from factory import RegistrationFactory, LoggingFactory
+from .entry_point import select_random_ports
+from .factory import RegistrationFactory, LoggingFactory
 
-from heartmonitor import HeartMonitor
-from streamsession import Message, wrap_exception, ISO8601
-from util import validate_url_container
+from .heartmonitor import HeartMonitor
+from .streamsession import Message, wrap_exception, ISO8601
+from .util import validate_url_container
 
 try:
     from pymongo.binary import Binary

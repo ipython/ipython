@@ -29,15 +29,15 @@ from IPython.utils.traitlets import (HasTraits, Int, Instance, CUnicode,
 from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
-import error
-import map as Map
-import streamsession as ss
-from asyncresult import AsyncResult, AsyncMapResult, AsyncHubResult
-from clusterdir import ClusterDir, ClusterDirError
-from dependency import Dependency, depend, require, dependent
-from remotefunction import remote,parallel,ParallelFunction,RemoteFunction
-from util import ReverseDict, disambiguate_url, validate_url
-from view import DirectView, LoadBalancedView
+from . import error
+from . import map as Map
+from . import streamsession as ss
+from .asyncresult import AsyncResult, AsyncMapResult, AsyncHubResult
+from .clusterdir import ClusterDir, ClusterDirError
+from .dependency import Dependency, depend, require, dependent
+from .remotefunction import remote,parallel,ParallelFunction,RemoteFunction
+from .util import ReverseDict, disambiguate_url, validate_url
+from .view import DirectView, LoadBalancedView
 
 #--------------------------------------------------------------------------
 # helpers for implementing old MEC API via client.apply

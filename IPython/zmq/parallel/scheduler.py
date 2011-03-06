@@ -30,11 +30,11 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.external.decorator import decorator
 from IPython.utils.traitlets import Instance, Dict, List, Set
 
-import error
-import streamsession as ss
-from dependency import Dependency
-from entry_point import connect_logger, local_logger
-from factory import SessionFactory
+from . import error
+from . import streamsession as ss
+from .dependency import Dependency
+from .entry_point import connect_logger, local_logger
+from .factory import SessionFactory
 
 
 @decorator

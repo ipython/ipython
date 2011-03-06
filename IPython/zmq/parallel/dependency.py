@@ -2,8 +2,8 @@
 
 from IPython.external.decorator import decorator
 
-from asyncresult import AsyncResult
-from error import UnmetDependency
+from .asyncresult import AsyncResult
+from .error import UnmetDependency
 
 
 class depend(object):

@@ -1,7 +1,8 @@
 """KernelStarter class that intercepts Control Queue messages, and handles process management."""
 
 from zmq.eventloop import ioloop
-from streamsession import StreamSession
+
+from .streamsession import StreamSession
 
 class KernelStarter(object):
     """Object for resetting/killing the Kernel."""

@@ -24,7 +24,7 @@ from IPython.zmq.parallel.clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )
-from IPython.zmq.parallel.logwatcher import LogWatcher
+from .logwatcher import LogWatcher
 
 #-----------------------------------------------------------------------------
 # Module level variables

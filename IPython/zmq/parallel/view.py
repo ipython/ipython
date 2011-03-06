@@ -14,9 +14,10 @@ from IPython.testing import decorators as testdec
 from IPython.utils.traitlets import HasTraits, Bool, List, Dict, Set, Int, Instance
 
 from IPython.external.decorator import decorator
-from IPython.zmq.parallel.asyncresult import AsyncResult
-from IPython.zmq.parallel.dependency import Dependency
-from IPython.zmq.parallel.remotefunction import ParallelFunction, parallel, remote
+
+from .asyncresult import AsyncResult
+from .dependency import Dependency
+from .remotefunction import ParallelFunction, parallel, remote
 
 #-----------------------------------------------------------------------------
 # Decorators
@@ -405,15 +406,32 @@ class DirectView(View):
     
     @sync_results
     @save_ids
-    def execute(self, code, block=True):
+    def execute(self, code, block=None):
         """execute some code on my targets."""
+        
+        block = block if block is not None else self.block
+        
         return self.client.execute(code, block=block, targets=self._targets)
+    
+    @sync_results
+    @save_ids
+    def run(self, fname, block=None):
+        """execute the code in a file on my targets."""
+        
+        block = block if block is not None else self.block
+        
+        return self.client.run(fname, block=block, targets=self._targets)
     
     def update(self, ns):
         """update remote namespace with dict `ns`"""
         return self.client.push(ns, targets=self._targets, block=self.block)
     
-    push = update
+    def push(self, ns, block=None):
+        """update remote namespace with dict `ns`"""
+        
+        block = block if block is not None else self.block
+        
+        return self.client.push(ns, targets=self._targets, block=block)
 
     def get(self, key_s):
         """get object(s) by `key_s` from remote namespace

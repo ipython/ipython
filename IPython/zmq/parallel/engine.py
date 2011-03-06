@@ -19,11 +19,11 @@ from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance, Str, Dict, Int, Type, CFloat
 # from IPython.utils.localinterfaces import LOCALHOST 
 
-import heartmonitor
-from factory import RegistrationFactory
-from streamkernel import Kernel
-from streamsession import Message
-from util import disambiguate_url
+from . import heartmonitor
+from .factory import RegistrationFactory
+from .streamkernel import Kernel
+from .streamsession import Message
+from .util import disambiguate_url
 
 def printer(*msg):
     # print (self.log.handlers, file=sys.__stdout__)
