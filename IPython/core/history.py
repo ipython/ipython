@@ -157,6 +157,7 @@ class HistoryManager(Configurable):
     
     def get_hist_tail(self, n=10, raw=True, output=False):
         """Get the last n lines from the history database."""
+        self.writeout_cache()
         cur = self._get_hist_sql("ORDER BY session DESC, line DESC LIMIT ?",
                                 (n,), raw=raw, output=output)
         return reversed(list(cur))
@@ -172,6 +173,7 @@ class HistoryManager(Configurable):
         tosearch = "source_raw" if raw else "source"
         if output:
             tosearch = "history." + tosearch
+        self.writeout_cache()
         return self._get_hist_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
                                     raw=raw, output=output)
                                 
