@@ -309,8 +309,12 @@ class Kernel(Configurable):
         logger.debug(msg)
 
     def history_tail_request(self, ident, parent):
-        # parent['content'] should contain keys "n", "raw" and "output"
-        hist = self.shell.history_manager.get_hist_tail(**parent['content'])
+        # We need to pull these out, as passing **kwargs doesn't work with
+        # unicode keys before Python 2.6.5.
+        n = parent['content']['n']
+        raw = parent['content']['raw']
+        output = parent['content']['output']
+        hist = self.shell.history_manager.get_hist_tail(n, raw=raw, output=output)
         content = {'history' : list(hist)}
         msg = self.session.send(self.reply_socket, 'history_tail_reply',
                                 content, parent, ident)
