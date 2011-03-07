@@ -42,7 +42,24 @@ class CannedObject(object):
             setattr(self.obj, key, uncan(getattr(self.obj, key), g))
         return self.obj
 
-        
+class Reference(CannedObject):
+    """object for wrapping a remote reference by name."""
+    def __init__(self, name):
+        if not isinstance(name, basestring):
+            raise TypeError("illegal name: %r"%name)
+        self.name = name
+    
+    def __repr__(self):
+        return "<Reference: %r>"%self.name
+    
+    def getObject(self, g=None):
+        if g is None:
+            g = globals()
+        try:
+            return g[self.name]
+        except KeyError:
+            raise NameError("name %r is not defined"%self.name)
+    
 
 class CannedFunction(CannedObject):
     
@@ -54,7 +71,7 @@ class CannedFunction(CannedObject):
     def _checkType(self, obj):
         assert isinstance(obj, FunctionType), "Not a function type"
     
-    def getFunction(self, g=None):
+    def getObject(self, g=None):
         if g is None:
             g = globals()
         newFunc = FunctionType(self.code, g)
@@ -66,11 +83,11 @@ class CannedFunction(CannedObject):
 
 
 def can(obj):
-    if isinstance(obj, FunctionType):
-        return CannedFunction(obj)
-    elif isinstance(obj, dependent):
+    if isinstance(obj, dependent):
         keys = ('f','df')
         return CannedObject(obj, keys=keys)
+    elif isinstance(obj, FunctionType):
+        return CannedFunction(obj)
     elif isinstance(obj,dict):
         return canDict(obj)
     elif isinstance(obj, (list,tuple)):
@@ -95,9 +112,7 @@ def canSequence(obj):
         return obj
 
 def uncan(obj, g=None):
-    if isinstance(obj, CannedFunction):
-        return obj.getFunction(g)
-    elif isinstance(obj, CannedObject):
+    if isinstance(obj, CannedObject):
         return obj.getObject(g)
     elif isinstance(obj,dict):
         return uncanDict(obj, g)
