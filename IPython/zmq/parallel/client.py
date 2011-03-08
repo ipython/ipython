@@ -32,12 +32,13 @@ from IPython.external.ssh import tunnel
 
 from . import error
 from . import map as Map
+from . import util
 from . import streamsession as ss
 from .asyncresult import AsyncResult, AsyncMapResult, AsyncHubResult
 from .clusterdir import ClusterDir, ClusterDirError
 from .dependency import Dependency, depend, require, dependent
-from .remotefunction import remote,parallel,ParallelFunction,RemoteFunction
-from .util import ReverseDict, disambiguate_url, validate_url
+from .remotefunction import remote, parallel, ParallelFunction, RemoteFunction
+from .util import ReverseDict, validate_url, disambiguate_url
 from .view import DirectView, LoadBalancedView
 
 #--------------------------------------------------------------------------
@@ -489,7 +490,7 @@ class Client(HasTraits):
     
     def _unwrap_exception(self, content):
         """unwrap exception, and remap engineid to int."""
-        e = ss.unwrap_exception(content)
+        e = error.unwrap_exception(content)
         if e.engine_info:
             e_uuid = e.engine_info['engine_uuid']
             eid = self._engines[e_uuid]
@@ -526,11 +527,11 @@ class Client(HasTraits):
             md['engine_id'] = self._engines.get(md['engine_uuid'], None)
         
         if 'date' in parent:
-            md['submitted'] = datetime.strptime(parent['date'], ss.ISO8601)
+            md['submitted'] = datetime.strptime(parent['date'], util.ISO8601)
         if 'started' in header:
-            md['started'] = datetime.strptime(header['started'], ss.ISO8601)
+            md['started'] = datetime.strptime(header['started'], util.ISO8601)
         if 'date' in header:
-            md['completed'] = datetime.strptime(header['date'], ss.ISO8601)
+            md['completed'] = datetime.strptime(header['date'], util.ISO8601)
         return md
     
     def _handle_execute_reply(self, msg):
@@ -573,7 +574,7 @@ class Client(HasTraits):
         
         # construct result:
         if content['status'] == 'ok':
-            self.results[msg_id] = ss.unserialize_object(msg['buffers'])[0]
+            self.results[msg_id] = util.unserialize_object(msg['buffers'])[0]
         elif content['status'] == 'aborted':
             self.results[msg_id] = error.AbortedTask(msg_id)
         elif content['status'] == 'resubmitted':
@@ -1055,7 +1056,7 @@ class Client(HasTraits):
         after = self._build_dependency(after)
         follow = self._build_dependency(follow)
         subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents)
-        bufs = ss.pack_apply_message(f,args,kwargs)
+        bufs = util.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)
         
         msg = self.session.send(self._task_socket, "apply_request", 
@@ -1087,7 +1088,7 @@ class Client(HasTraits):
         
         subheader = {}
         content = dict(bound=bound)
-        bufs = ss.pack_apply_message(f,args,kwargs)
+        bufs = util.pack_apply_message(f,args,kwargs)
         
         msg_ids = []
         for ident in idents:
@@ -1399,7 +1400,7 @@ class Client(HasTraits):
                 md.update(iodict)
                 
                 if rcontent['status'] == 'ok':
-                    res,buffers = ss.unserialize_object(buffers)
+                    res,buffers = util.unserialize_object(buffers)
                 else:
                     print rcontent
                     res = self._unwrap_exception(rcontent)
@@ -1437,7 +1438,7 @@ class Client(HasTraits):
         status = content.pop('status')
         if status != 'ok':
             raise self._unwrap_exception(content)
-        return ss.rekey(content)
+        return util.rekey(content)
         
     @spinfirst
     def purge_results(self, jobs=[], targets=[]):
@@ -1495,5 +1496,6 @@ __all__ = [ 'Client',
             'DirectView',
             'LoadBalancedView',
             'AsyncResult',
-            'AsyncMapResult'
+            'AsyncMapResult',
+            'Reference'
             ]

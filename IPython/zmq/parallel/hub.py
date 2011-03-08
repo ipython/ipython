@@ -15,7 +15,6 @@ and monitors traffic through the various queues.
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-import logging
 import sys
 import time
 from datetime import datetime
@@ -25,16 +24,15 @@ from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
-from IPython.config.configurable import Configurable
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
 
 from .entry_point import select_random_ports
 from .factory import RegistrationFactory, LoggingFactory
 
+from . import error
 from .heartmonitor import HeartMonitor
-from .streamsession import Message, wrap_exception, ISO8601
-from .util import validate_url_container
+from .util import validate_url_container, ISO8601
 
 try:
     from pymongo.binary import Binary
@@ -491,7 +489,7 @@ class Hub(LoggingFactory):
         try:
             msg = self.session.unpack_message(msg, content=True)
         except:
-            content = wrap_exception()
+            content = error.wrap_exception()
             self.log.error("Bad Client Message: %s"%msg, exc_info=True)
             self.session.send(self.clientele, "hub_error", ident=client_id, 
                     content=content)
@@ -505,7 +503,7 @@ class Hub(LoggingFactory):
         try:
             assert handler is not None, "Bad Message Type: %s"%msg_type
         except:
-            content = wrap_exception()
+            content = error.wrap_exception()
             self.log.error("Bad Message Type: %s"%msg_type, exc_info=True)
             self.session.send(self.clientele, "hub_error", ident=client_id, 
                     content=content)
@@ -802,14 +800,14 @@ class Hub(LoggingFactory):
             try:
                 raise KeyError("queue_id %r in use"%queue)
             except:
-                content = wrap_exception()
+                content = error.wrap_exception()
                 self.log.error("queue_id %r in use"%queue, exc_info=True)
         elif heart in self.hearts: # need to check unique hearts?
             try:
                 raise KeyError("heart_id %r in use"%heart)
             except:
                 self.log.error("heart_id %r in use"%heart, exc_info=True)
-                content = wrap_exception()
+                content = error.wrap_exception()
         else:
             for h, pack in self.incoming_registrations.iteritems():
                 if heart == h:
@@ -817,14 +815,14 @@ class Hub(LoggingFactory):
                         raise KeyError("heart_id %r in use"%heart)
                     except:
                         self.log.error("heart_id %r in use"%heart, exc_info=True)
-                        content = wrap_exception()
+                        content = error.wrap_exception()
                     break
                 elif queue == pack[1]:
                     try:
                         raise KeyError("queue_id %r in use"%queue)
                     except:
                         self.log.error("queue_id %r in use"%queue, exc_info=True)
-                        content = wrap_exception()
+                        content = error.wrap_exception()
                     break
         
         msg = self.session.send(self.registrar, "registration_reply", 
@@ -928,7 +926,7 @@ class Hub(LoggingFactory):
             targets = content['targets']
             targets = self._validate_targets(targets)
         except:
-            content = wrap_exception()
+            content = error.wrap_exception()
             self.session.send(self.clientele, "hub_error", 
                     content=content, ident=client_id)
             return
@@ -952,7 +950,7 @@ class Hub(LoggingFactory):
         try:
             targets = self._validate_targets(targets)
         except:
-            content = wrap_exception()
+            content = error.wrap_exception()
             self.session.send(self.clientele, "hub_error", 
                     content=content, ident=client_id)
             return
@@ -987,12 +985,12 @@ class Hub(LoggingFactory):
                         try:
                             raise IndexError("msg pending: %r"%msg_id)
                         except:
-                            reply = wrap_exception()
+                            reply = error.wrap_exception()
                     else:
                         try:
                             raise IndexError("No such msg: %r"%msg_id)
                         except:
-                            reply = wrap_exception()
+                            reply = error.wrap_exception()
                     break
             eids = content.get('engine_ids', [])
             for eid in eids:
@@ -1000,7 +998,7 @@ class Hub(LoggingFactory):
                     try:
                         raise IndexError("No such engine: %i"%eid)
                     except:
-                        reply = wrap_exception()
+                        reply = error.wrap_exception()
                     break
                 msg_ids = self.completed.pop(eid)
                 uid = self.engines[eid].queue
@@ -1046,7 +1044,7 @@ class Hub(LoggingFactory):
                 try:
                     raise KeyError('No such message: '+msg_id)
                 except:
-                    content = wrap_exception()
+                    content = error.wrap_exception()
                 break
         self.session.send(self.clientele, "result_reply", content=content, 
                                             parent=msg, ident=client_id,

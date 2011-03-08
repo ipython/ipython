@@ -3,6 +3,9 @@
 """Classes and functions for kernel related errors and exceptions."""
 from __future__ import print_function
 
+import sys
+import traceback
+
 __docformat__ = "restructuredtext en"
 
 # Tell nose to skip this module
@@ -289,4 +292,22 @@ def collect_exceptions(rdict_or_list, method='unspecified'):
             raise CompositeError(msg, elist)
         except CompositeError as e:
             raise e
+
+def wrap_exception(engine_info={}):
+    etype, evalue, tb = sys.exc_info()
+    stb = traceback.format_exception(etype, evalue, tb)
+    exc_content = {
+        'status' : 'error',
+        'traceback' : stb,
+        'ename' : unicode(etype.__name__),
+        'evalue' : unicode(evalue),
+        'engine_info' : engine_info
+    }
+    return exc_content
+
+def unwrap_exception(content):
+    err = RemoteError(content['ename'], content['evalue'], 
+                ''.join(content['traceback']),
+                content.get('engine_info', {}))
+    return err
 

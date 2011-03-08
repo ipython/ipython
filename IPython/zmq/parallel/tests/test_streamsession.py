@@ -47,24 +47,24 @@ class TestSession(SessionTestCase):
         self.assertEquals(s.username, 'carrot')
         
     
-    def test_rekey(self):
-        """rekeying dict around json str keys"""
-        d = {'0': uuid.uuid4(), 0:uuid.uuid4()}
-        self.assertRaises(KeyError, ss.rekey, d)
-        
-        d = {'0': uuid.uuid4(), 1:uuid.uuid4(), 'asdf':uuid.uuid4()}
-        d2 = {0:d['0'],1:d[1],'asdf':d['asdf']}
-        rd = ss.rekey(d)
-        self.assertEquals(d2,rd)
-        
-        d = {'1.5':uuid.uuid4(),'1':uuid.uuid4()}
-        d2 = {1.5:d['1.5'],1:d['1']}
-        rd = ss.rekey(d)
-        self.assertEquals(d2,rd)
-        
-        d = {'1.0':uuid.uuid4(),'1':uuid.uuid4()}
-        self.assertRaises(KeyError, ss.rekey, d)
-    
+    # def test_rekey(self):
+    #     """rekeying dict around json str keys"""
+    #     d = {'0': uuid.uuid4(), 0:uuid.uuid4()}
+    #     self.assertRaises(KeyError, ss.rekey, d)
+    #     
+    #     d = {'0': uuid.uuid4(), 1:uuid.uuid4(), 'asdf':uuid.uuid4()}
+    #     d2 = {0:d['0'],1:d[1],'asdf':d['asdf']}
+    #     rd = ss.rekey(d)
+    #     self.assertEquals(d2,rd)
+    #     
+    #     d = {'1.5':uuid.uuid4(),'1':uuid.uuid4()}
+    #     d2 = {1.5:d['1.5'],1:d['1']}
+    #     rd = ss.rekey(d)
+    #     self.assertEquals(d2,rd)
+    #     
+    #     d = {'1.0':uuid.uuid4(),'1':uuid.uuid4()}
+    #     self.assertRaises(KeyError, ss.rekey, d)
+    # 
     def test_unique_msg_ids(self):
         """test that messages receive unique ids"""
         ids = set()

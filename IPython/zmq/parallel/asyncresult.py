@@ -30,7 +30,7 @@ def check_ready(f, self, *args, **kwargs):
 class AsyncResult(object):
     """Class for representing results of non-blocking calls.
     
-    Provides the same interface as :py:class:`multiprocessing.AsyncResult`.
+    Provides the same interface as :py:class:`multiprocessing.pool.AsyncResult`.
     """
     
     msg_ids = None
@@ -53,7 +53,8 @@ class AsyncResult(object):
     
     
     def _reconstruct_result(self, res):
-        """
+        """Reconstruct our result from actual result list (always a list)
+        
         Override me in subclasses for turning a list of results
         into the expected form.
         """
@@ -68,7 +69,7 @@ class AsyncResult(object):
         If `timeout` is not ``None`` and the result does not arrive within
         `timeout` seconds then ``TimeoutError`` is raised. If the
         remote call raised an exception then that exception will be reraised
-        by get().
+        by get() inside a `RemoteError`.
         """
         if not self.ready():
             self.wait(timeout)
@@ -89,6 +90,8 @@ class AsyncResult(object):
     
     def wait(self, timeout=-1):
         """Wait until the result is available or until `timeout` seconds pass.
+        
+        This method always returns None.
         """
         if self._ready:
             return
@@ -118,7 +121,7 @@ class AsyncResult(object):
         
         Will raise ``AssertionError`` if the result is not ready.
         """
-        assert self._ready
+        assert self.ready()
         return self._success
     
     #----------------------------------------------------------------
@@ -126,7 +129,11 @@ class AsyncResult(object):
     #----------------------------------------------------------------
     
     def get_dict(self, timeout=-1):
-        """Get the results as a dict, keyed by engine_id."""
+        """Get the results as a dict, keyed by engine_id.
+        
+        timeout behavior is described in `get()`.
+        """
+        
         results = self.get(timeout)
         engine_ids = [ md['engine_id'] for md in self._metadata ]
         bycount = sorted(engine_ids, key=lambda k: engine_ids.count(k))
@@ -140,7 +147,7 @@ class AsyncResult(object):
     @property
     @check_ready
     def result(self):
-        """result property."""
+        """result property wrapper for `get(timeout=0)`."""
         return self._result
     
     # abbreviated alias:
@@ -149,7 +156,7 @@ class AsyncResult(object):
     @property
     @check_ready
     def metadata(self):
-        """metadata property."""
+        """property for accessing execution metadata."""
         if self._single_result:
             return self._metadata[0]
         else:
@@ -186,7 +193,7 @@ class AsyncResult(object):
     
     @check_ready
     def __getattr__(self, key):
-        """getattr maps to getitem for convenient access to metadata."""
+        """getattr maps to getitem for convenient attr access to metadata."""
         if key not in self._metadata[0].keys():
             raise AttributeError("%r object has no attribute %r"%(
                     self.__class__.__name__, key))
@@ -249,7 +256,11 @@ class AsyncMapResult(AsyncResult):
 
 
 class AsyncHubResult(AsyncResult):
-    """Class to wrap pending results that must be requested from the Hub"""
+    """Class to wrap pending results that must be requested from the Hub.
+    
+    Note that waiting/polling on these objects requires polling the Hubover the network,
+    so use `AsyncHubResult.wait()` sparingly.
+    """
     
     def wait(self, timeout=-1):
         """wait for result to complete."""

@@ -7,7 +7,25 @@ from .error import UnmetDependency
 
 
 class depend(object):
-    """Dependency decorator, for use with tasks."""
+    """Dependency decorator, for use with tasks.
+    
+    `@depend` lets you define a function for engine dependencies
+    just like you use `apply` for tasks.
+    
+    
+    Examples
+    --------
+    ::
+    
+        @depend(df, a,b, c=5)
+        def f(m,n,p)
+        
+        view.apply(f, 1,2,3)
+    
+    will call df(a,b,c=5) on the engine, and if it returns False or
+    raises an UnmetDependency error, then the task will not be run
+    and another engine will be tried.
+    """
     def __init__(self, f, *args, **kwargs):
         self.f = f
         self.args = args
@@ -39,6 +57,7 @@ class dependent(object):
         return self.func_name
 
 def _require(*names):
+    """Helper for @require decorator."""
     for name in names:
         try:
             __import__(name)
@@ -47,12 +66,35 @@ def _require(*names):
     return True
 
 def require(*names):
+    """Simple decorator for requiring names to be importable.
+    
+    Examples
+    --------
+    
+    In [1]: @require('numpy')
+       ...: def norm(a):
+       ...:     import numpy
+       ...:     return numpy.linalg.norm(a,2)
+    """
     return depend(_require, *names)
 
 class Dependency(set):
     """An object for representing a set of msg_id dependencies.
     
-    Subclassed from set()."""
+    Subclassed from set().
+    
+    Parameters
+    ----------
+    dependencies: list/set of msg_ids or AsyncResult objects or output of Dependency.as_dict()
+        The msg_ids to depend on
+    all : bool [default True]
+        Whether the dependency should be considered met when *all* depending tasks have completed
+        or only when *any* have been completed.
+    success_only : bool [default True]
+        Whether to consider only successes for Dependencies, or consider failures as well.
+        If `all=success_only=True`, then this task will fail with an ImpossibleDependency
+        as soon as the first depended-upon task fails.
+    """
     
     all=True
     success_only=True

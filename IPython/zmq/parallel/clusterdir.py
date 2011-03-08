@@ -22,7 +22,6 @@ import logging
 import re
 import shutil
 import sys
-import warnings
 
 from IPython.config.loader import PyFileConfigLoader
 from IPython.config.configurable import Configurable

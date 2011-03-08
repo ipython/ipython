@@ -21,7 +21,7 @@ import zmq
 from zmq.devices import ProcessMonitoredQueue
 # internal:
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Int, Str, Instance, List, Bool
+from IPython.utils.traitlets import Int, CStr, Instance, List, Bool
 
 from .entry_point import signal_children
 from .hub import Hub, HubFactory
@@ -41,7 +41,7 @@ class ControllerFactory(HubFactory):
     
     # internal
     children = List()
-    mq_class = Str('zmq.devices.ProcessMonitoredQueue')
+    mq_class = CStr('zmq.devices.ProcessMonitoredQueue')
     
     def _usethreads_changed(self, name, old, new):
         self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if new else 'Process')

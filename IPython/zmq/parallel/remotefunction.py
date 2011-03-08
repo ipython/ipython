@@ -102,7 +102,31 @@ class RemoteFunction(object):
     
 
 class ParallelFunction(RemoteFunction):
-    """Class for mapping a function to sequences."""
+    """Class for mapping a function to sequences.
+    
+    This will distribute the sequences according the a mapper, and call
+    the function on each sub-sequence.  If called via map, then the function
+    will be called once on each element, rather that each sub-sequence.
+    
+    Parameters
+    ----------
+    
+    client : Client instance
+        The client to be used to connect to engines
+    f : callable
+        The function to be wrapped into a remote function
+    bound : bool [default: False]
+        Whether the affect the remote namespace when called
+    block : bool [default: None]
+        Whether to wait for results or not.  The default behavior is
+        to use the current `block` attribute of `client`
+    targets : valid target list [default: all]
+        The targets on which to execute.
+    balanced : bool
+        Whether to load-balance with the Task scheduler or not
+    chunk_size : int or None
+        The size of chunk to use when breaking up sequences in a load-balanced manner
+    """
     def __init__(self, client, f, dist='b', bound=False, block=None, targets='all', balanced=None, chunk_size=None):
         super(ParallelFunction, self).__init__(client,f,bound,block,targets,balanced)
         self.chunk_size = chunk_size
@@ -164,7 +188,11 @@ class ParallelFunction(RemoteFunction):
             return r
     
     def map(self, *sequences):
-        """call a function on each element of a sequence remotely."""
+        """call a function on each element of a sequence remotely. 
+        This should behave very much like the builtin map, but return an AsyncMapResult
+        if self.block is False.
+        """
+        # set _map as a flag for use inside self.__call__
         self._map = True
         try:
             ret = self.__call__(*sequences)
@@ -172,3 +200,4 @@ class ParallelFunction(RemoteFunction):
             del self._map
         return ret
 
+__all__ = ['remote', 'parallel', 'RemoteFunction', 'ParallelFunction']

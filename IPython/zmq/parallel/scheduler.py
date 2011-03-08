@@ -31,7 +31,6 @@ from IPython.external.decorator import decorator
 from IPython.utils.traitlets import Instance, Dict, List, Set
 
 from . import error
-from . import streamsession as ss
 from .dependency import Dependency
 from .entry_point import connect_logger, local_logger
 from .factory import SessionFactory
@@ -237,7 +236,7 @@ class TaskScheduler(SessionFactory):
             try:
                 raise error.EngineError("Engine %r died while running task %r"%(engine, msg_id))
             except:
-                content = ss.wrap_exception()
+                content = error.wrap_exception()
             msg = self.session.send(self.client_stream, 'apply_reply', content, 
                                                     parent=parent, ident=idents)
             self.session.send(self.mon_stream, msg, ident=['outtask']+idents)
@@ -340,7 +339,7 @@ class TaskScheduler(SessionFactory):
         try:
             raise why()
         except:
-            content = ss.wrap_exception()
+            content = error.wrap_exception()
         
         self.all_done.add(msg_id)
         self.all_failed.add(msg_id)

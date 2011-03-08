@@ -1,21 +1,17 @@
 #!/usr/bin/env python
 """A simple engine that talks to a controller over 0MQ.
 it handles registration, etc. and launches a kernel
-connected to the Controller's queue(s).
+connected to the Controller's Schedulers.
 """
 from __future__ import print_function
 
-import logging
 import sys
 import time
-import uuid
-from pprint import pprint
 
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # internal
-from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance, Str, Dict, Int, Type, CFloat
 # from IPython.utils.localinterfaces import LOCALHOST 
 
@@ -24,10 +20,6 @@ from .factory import RegistrationFactory
 from .streamkernel import Kernel
 from .streamsession import Message
 from .util import disambiguate_url
-
-def printer(*msg):
-    # print (self.log.handlers, file=sys.__stdout__)
-    self.log.info(str(msg))
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""

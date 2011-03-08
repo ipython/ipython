@@ -1,4 +1,4 @@
-"""Views of remote engines"""
+"""Views of remote engines."""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
 #
@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 from IPython.testing import decorators as testdec
-from IPython.utils.traitlets import HasTraits, Bool, List, Dict, Set, Int, Instance
+from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, Instance
 
 from IPython.external.decorator import decorator
 
@@ -82,7 +82,7 @@ class View(HasTraits):
     _ntargets = Int(1)
     _balanced = Bool(False)
     _default_names = List(['block', 'bound'])
-    _targets = None
+    _targets = Any()
     
     def __init__(self, client=None, targets=None):
         super(View, self).__init__(client=client)
@@ -655,3 +655,4 @@ class LoadBalancedView(View):
                                 chunk_size=chunk_size)
         return pf.map(*sequences)
     
+__all__ = ['LoadBalancedView', 'DirectView']

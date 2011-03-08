@@ -45,15 +45,15 @@ We support a subset of mongodb operators:
 from datetime import datetime
 
 filters = {
- '$eq' : lambda a,b: a==b,
  '$lt' : lambda a,b: a < b,
  '$gt' : lambda a,b: b > a,
+ '$eq' : lambda a,b: a == b,
+ '$ne' : lambda a,b: a != b,
  '$lte': lambda a,b: a <= b,
  '$gte': lambda a,b: a >= b,
- '$ne' : lambda a,b: not a==b,
  '$in' : lambda a,b: a in b,
  '$nin': lambda a,b: a not in b,
- '$all' : lambda a,b: all([ a in bb for bb in b ]),
+ '$all': lambda a,b: all([ a in bb for bb in b ]),
  '$mod': lambda a,b: a%b[0] == b[1],
  '$exists' : lambda a,b: (b and a is not None) or (a is None and not b)
 }
