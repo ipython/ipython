@@ -901,7 +901,8 @@ class KernelManager(HasTraits):
 
     @property
     def hb_channel(self):
-        """Get the REP socket channel object to handle stdin (raw_input)."""
+        """Get the heartbeat socket channel object to check that the
+        kernel is alive."""
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(self.context, 
                                                        self.session,
