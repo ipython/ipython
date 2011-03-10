@@ -146,7 +146,7 @@ class UnSerializeIt(UnSerialized):
         typeDescriptor = self.serialized.getTypeDescriptor()
         if globals().has_key('numpy') and typeDescriptor == 'ndarray':
                 buf = self.serialized.getData()
-                if isinstance(buf, buffer):
+                if isinstance(buf, (buffer,bytes)):
                     result = numpy.frombuffer(buf, dtype = self.serialized.metadata['dtype'])
                 else:
                     # memoryview

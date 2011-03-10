@@ -134,3 +134,47 @@ c = get_config()
 # set the engine heartbeat ports to use:
 # c.HubFactory.hb = (10303,10313)
 
+#-----------------------------------------------------------------------------
+# Configure the TaskRecord database backend
+#-----------------------------------------------------------------------------
+
+# For memory/persistance reasons, tasks can be stored out-of-memory in a database.
+# Currently, only sqlite and mongodb are supported as backends, but the interface
+# is fairly simple, so advanced developers could write their own backend.
+
+# ----- in-memory configuration --------
+# this line restores the default behavior: in-memory storage of all results.
+# c.HubFactory.db_class = 'IPython.zmq.parallel.dictdb.DictDB'
+
+# ----- sqlite configuration --------
+# use this line to activate sqlite:
+# c.HubFactory.db_class = 'IPython.zmq.parallel.sqlitedb.SQLiteDB'
+
+# You can specify the name of the db-file.  By default, this will be located
+# in the active cluster_dir, e.g. ~/.ipython/clusterz_default/tasks.db
+# c.SQLiteDB.filename = 'tasks.db'
+
+# You can also specify the location of the db-file, if you want it to be somewhere
+# other than the cluster_dir.
+# c.SQLiteDB.location = '/scratch/'
+
+# This will specify the name of the table for the controller to use.  The default
+# behavior is to use the session ID of the SessionFactory object (a uuid). Overriding
+# this will result in results persisting for multiple sessions.
+# c.SQLiteDB.table = 'results'
+
+# ----- mongodb configuration --------
+# use this line to activate mongodb:
+# c.HubFactory.db_class = 'IPython.zmq.parallel.mongodb.MongoDB'
+
+# You can specify the args and kwargs pymongo will use when creating the Connection.
+# For more information on what these options might be, see pymongo documentation.
+# c.MongoDB.connection_kwargs = {}
+# c.MongoDB.connection_args = []
+
+# This will specify the name of the mongo database for the controller to use.  The default
+# behavior is to use the session ID of the SessionFactory object (a uuid). Overriding
+# this will result in task results persisting through multiple sessions.
+# c.MongoDB.database = 'ipythondb'
+
+

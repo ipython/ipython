@@ -118,7 +118,11 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
         paa('--mongodb', 
             dest='HubFactory.db_class', action='store_const',
             const='IPython.zmq.parallel.mongodb.MongoDB', 
-            help='Use MongoDB task storage [default: in-memory]')
+            help='Use MongoDB for task storage [default: in-memory]')
+        paa('--sqlite', 
+            dest='HubFactory.db_class', action='store_const',
+            const='IPython.zmq.parallel.sqlitedb.SQLiteDB', 
+            help='Use SQLite3 for DB task storage [default: in-memory]')
         paa('--hb',
             type=int, dest='HubFactory.hb', nargs=2,
             help='The (2) ports the Hub\'s Heartmonitor will use for the heartbeat '

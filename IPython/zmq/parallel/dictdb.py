@@ -44,6 +44,10 @@ We support a subset of mongodb operators:
 
 from datetime import datetime
 
+from IPython.config.configurable import Configurable
+
+from IPython.utils.traitlets import Dict, CUnicode
+
 filters = {
  '$lt' : lambda a,b: a < b,
  '$gt' : lambda a,b: b > a,
@@ -75,9 +79,10 @@ class CompositeFilter(object):
                 return False
         return True
 
-class BaseDB(object):
+class BaseDB(Configurable):
     """Empty Parent class so traitlets work on DB."""
-    pass
+    # base configurable traits:
+    session = CUnicode("")
 
 class DictDB(BaseDB):
     """Basic in-memory dict-based object for saving Task Records.
@@ -88,10 +93,8 @@ class DictDB(BaseDB):
     The interface is based on MongoDB, so adding a MongoDB
     backend should be straightforward.
     """
-    _records = None
     
-    def __init__(self, *args, **kwargs):
-        self._records = dict()
+    _records = Dict()
     
     def _match_one(self, rec, tests):
         """Check if a specific record matches tests."""

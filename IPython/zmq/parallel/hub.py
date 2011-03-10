@@ -34,13 +34,6 @@ from . import error
 from .heartmonitor import HeartMonitor
 from .util import validate_url_container, ISO8601
 
-try:
-    from pymongo.binary import Binary
-except ImportError:
-    MongoDB=None
-else:
-    from mongodb import MongoDB
-    
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -236,7 +229,10 @@ class HubFactory(RegistrationFactory):
         sub = ZMQStream(sub, loop)
         
         # connect the db
-        self.db = import_item(self.db_class)(self.session.session)
+        self.log.info('Hub using DB backend: %r'%(self.db_class.split()[-1]))
+        cdir = self.config.Global.cluster_dir
+        print (cdir)
+        self.db = import_item(self.db_class)(session=self.session.session, config=self.config)
         time.sleep(.25)
 
         # build connection dicts
@@ -257,8 +253,8 @@ class HubFactory(RegistrationFactory):
             'iopub' : client_iface%self.iopub[0],
             'notification': client_iface%self.notifier_port
             }
-        self.log.debug("hub::Hub engine addrs: %s"%self.engine_info)
-        self.log.debug("hub::Hub client addrs: %s"%self.client_info)
+        self.log.debug("Hub engine addrs: %s"%self.engine_info)
+        self.log.debug("Hub client addrs: %s"%self.client_info)
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
                 registrar=reg, clientele=c, notifier=n, db=self.db,
                 engine_info=self.engine_info, client_info=self.client_info,
@@ -569,8 +565,7 @@ class Hub(LoggingFactory):
         record['engine_uuid'] = queue_id
         record['client_uuid'] = client_id
         record['queue'] = 'mux'
-        if MongoDB is not None and isinstance(self.db, MongoDB):
-            record['buffers'] = map(Binary, record['buffers'])
+
         self.pending.add(msg_id)
         self.queues[eid].append(msg_id)
         self.db.add_record(msg_id, record)
@@ -614,10 +609,8 @@ class Hub(LoggingFactory):
                 'started' : started,
                 'completed' : completed
             }
-            if MongoDB is not None and isinstance(self.db, MongoDB):
-                result['result_buffers'] = map(Binary, msg['buffers'])
-            else:
-                result['result_buffers'] = msg['buffers']
+
+            result['result_buffers'] = msg['buffers']
             self.db.update_record(msg_id, result)
         else:
             self.log.debug("queue:: unknown msg finished %s"%msg_id)
@@ -635,8 +628,7 @@ class Hub(LoggingFactory):
                     client_id, msg), exc_info=True)
             return
         record = init_record(msg)
-        if MongoDB is not None and isinstance(self.db, MongoDB):
-            record['buffers'] = map(Binary, record['buffers'])
+
         record['client_uuid'] = client_id
         record['queue'] = 'task'
         header = msg['header']
@@ -684,10 +676,8 @@ class Hub(LoggingFactory):
                 'completed' : completed,
                 'engine_uuid': engine_uuid
             }
-            if MongoDB is not None and isinstance(self.db, MongoDB):
-                result['result_buffers'] = map(Binary, msg['buffers'])
-            else:
-                result['result_buffers'] = msg['buffers']
+
+            result['result_buffers'] = msg['buffers']
             self.db.update_record(msg_id, result)
             
         else:

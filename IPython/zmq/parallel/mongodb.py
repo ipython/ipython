@@ -9,6 +9,9 @@
 from datetime import datetime
 
 from pymongo import Connection
+from pymongo.binary import Binary
+
+from IPython.utils.traitlets import Dict, List, CUnicode
 
 from .dictdb import BaseDB
 
@@ -18,15 +21,29 @@ from .dictdb import BaseDB
 
 class MongoDB(BaseDB):
     """MongoDB TaskRecord backend."""
-    def __init__(self, session_uuid, *args, **kwargs):
-        self._connection = Connection(*args, **kwargs)
-        self._db = self._connection[session_uuid]
+    
+    connection_args = List(config=True)
+    connection_kwargs = Dict(config=True)
+    database = CUnicode(config=True)
+    _table = Dict()
+    
+    def __init__(self, **kwargs):
+        super(MongoDB, self).__init__(**kwargs)
+        self._connection = Connection(*self.connection_args, **self.connection_kwargs)
+        if not self.database:
+            self.database = self.session
+        self._db = self._connection[self.database]
         self._records = self._db['task_records']
-        self._table = {}
+    
+    def _binary_buffers(self, rec):
+        for key in ('buffers', 'result_buffers'):
+            if key in rec:
+                rec[key] = map(Binary, rec[key])
     
     def add_record(self, msg_id, rec):
         """Add a new Task Record, by msg_id."""
         # print rec
+        rec = _binary_buffers(rec)
         obj_id = self._records.insert(rec)
         self._table[msg_id] = obj_id
     
@@ -36,6 +53,7 @@ class MongoDB(BaseDB):
     
     def update_record(self, msg_id, rec):
         """Update the data in an existing record."""
+        rec = _binary_buffers(rec)
         obj_id = self._table[msg_id]
         self._records.update({'_id':obj_id}, {'$set': rec})
     
