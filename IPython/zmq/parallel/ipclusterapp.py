@@ -123,7 +123,7 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             """List all available clusters, by cluster directory, that can
             be found in the current working directly or in the ipython
             directory. Cluster directories are named using the convention
-            'cluster_<profile>'."""
+            'clusterz_<profile>'."""
         )
 
         # The "create" subcommand parser
@@ -136,13 +136,13 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             """Create an ipython cluster directory by its profile name or 
             cluster directory path. Cluster directories contain 
             configuration, log and security related files and are named 
-            using the convention 'cluster_<profile>'. By default they are
+            using the convention 'clusterz_<profile>'. By default they are
             located in your ipython directory. Once created, you will
             probably need to edit the configuration files in the cluster
             directory to configure your cluster. Most users will create a
             cluster directory by profile name, 
             'ipclusterz create -p mycluster', which will put the directory
-            in '<ipython_dir>/cluster_mycluster'. 
+            in '<ipython_dir>/clusterz_mycluster'. 
             """
         )
         paa = parser_create.add_argument
@@ -162,7 +162,7 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             """Start an ipython cluster by its profile name or cluster 
             directory. Cluster directories contain configuration, log and
             security related files and are named using the convention
-            'cluster_<profile>' and should be creating using the 'start'
+            'clusterz_<profile>' and should be creating using the 'start'
             subcommand of 'ipcluster'. If your cluster directory is in 
             the cwd or the ipython directory, you can simply refer to it
             using its profile name, 'ipclusterz start -n 4 -p <profile>`,
@@ -200,7 +200,7 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             description=
             """Stop a running ipython cluster by its profile name or cluster 
             directory. Cluster directories are named using the convention
-            'cluster_<profile>'. If your cluster directory is in 
+            'clusterz_<profile>'. If your cluster directory is in 
             the cwd or the ipython directory, you can simply refer to it
             using its profile name, 'ipclusterz stop -p <profile>`, otherwise
             use the '--cluster-dir' option.
@@ -223,7 +223,7 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             by profile name or cluster directory.
             Cluster directories contain configuration, log and
             security related files and are named using the convention
-            'cluster_<profile>' and should be creating using the 'start'
+            'clusterz_<profile>' and should be creating using the 'start'
             subcommand of 'ipcluster'. If your cluster directory is in 
             the cwd or the ipython directory, you can simply refer to it
             using its profile name, 'ipclusterz engines -n 4 -p <profile>`,
@@ -322,7 +322,7 @@ class IPClusterApp(ApplicationWithClusterDir):
             files = os.listdir(path)
             for f in files:
                 full_path = os.path.join(path, f)
-                if os.path.isdir(full_path) and f.startswith('cluster_'):
+                if os.path.isdir(full_path) and f.startswith('clusterz_'):
                     profile = full_path.split('_')[-1]
                     start_cmd = 'ipclusterz start -p %s -n 4' % profile
                     print start_cmd + " ==> " + full_path

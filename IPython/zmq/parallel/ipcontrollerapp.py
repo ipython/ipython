@@ -57,7 +57,7 @@ The IPython controller provides a gateway between the IPython engines and
 clients. The controller needs to be started before the engines and can be
 configured using command line options or using a cluster directory. Cluster
 directories contain config, log and security files and are usually located in
-your ipython directory and named as "cluster_<profile>". See the --profile
+your ipython directory and named as "clusterz_<profile>". See the --profile
 and --cluster-dir options for details.
 """
 

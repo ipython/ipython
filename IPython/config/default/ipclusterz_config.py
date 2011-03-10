@@ -115,7 +115,11 @@ c = get_config()
 # environment variables would be setup, etc. This string is interpolated using
 # the Itpl module in IPython.external. Basically, you can use ${n} for the
 # number of engine and ${cluster_dir} for the cluster_dir.
-# c.PBSControllerLauncher.batch_template = """"""
+# c.PBSControllerLauncher.batch_template = """
+# #PBS -l nprocs=$n
+# 
+# ipcontrollerz --cluster-dir $cluster_dir
+# """
 
 # The name of the instantiated batch script that will actually be used to
 # submit the job. This will be written to the cluster directory.
@@ -135,7 +139,11 @@ c = get_config()
 # environment variables would be setup, etc. This string is interpolated using
 # the Itpl module in IPython.external. Basically, you can use ${n} for the
 # number of engine and ${cluster_dir} for the cluster_dir.
-# c.PBSEngineSetLauncher.batch_template = """"""
+# c.PBSEngineSetLauncher.batch_template = """
+# #PBS -l nprocs=$n
+# 
+# ipenginez --cluster-dir $cluster_dir$s
+# """
 
 # The name of the instantiated batch script that will actually be used to
 # submit the job. This will be written to the cluster directory.

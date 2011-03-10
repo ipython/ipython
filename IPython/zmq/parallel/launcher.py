@@ -44,7 +44,7 @@ from zmq.eventloop import ioloop
 
 from IPython.external import Itpl
 # from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Str, Int, List, Unicode, Instance
+from IPython.utils.traitlets import Str, Int, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
@@ -738,13 +738,18 @@ class BatchSystemLauncher(BaseLauncher):
     batch_file_name = Unicode(u'batch_script', config=True)
     # The full path to the instantiated batch script.
     batch_file = Unicode(u'')
+    # the format dict used with batch_template:
+    context = Dict()
 
+    
+    def find_args(self):
+        return [self.submit_command]
+    
     def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(BatchSystemLauncher, self).__init__(
             work_dir=work_dir, config=config, **kwargs
         )
         self.batch_file = os.path.join(self.work_dir, self.batch_file_name)
-        self.context = {}
 
     def parse_job_id(self, output):
         """Take the output of the submit command and return the job id."""
@@ -766,8 +771,13 @@ class BatchSystemLauncher(BaseLauncher):
         f.write(script_as_string)
         f.close()
 
-    def start(self, n):
+    def start(self, n, cluster_dir):
         """Start n copies of the process using a batch system."""
+        # Here we save profile and cluster_dir in the context so they
+        # can be used in the batch script template as ${profile} and
+        # ${cluster_dir}
+        self.context['cluster_dir'] = cluster_dir
+        self.cluster_dir = unicode(cluster_dir)
         self.write_batch_script(n)
         output = check_output([self.submit_command, self.batch_file], env=os.environ, stdout=STDOUT)
         job_id = self.parse_job_id(output)
@@ -798,13 +808,8 @@ class PBSControllerLauncher(PBSLauncher):
 
     def start(self, cluster_dir):
         """Start the controller by profile or cluster_dir."""
-        # Here we save profile and cluster_dir in the context so they
-        # can be used in the batch script template as ${profile} and
-        # ${cluster_dir}
-        self.context['cluster_dir'] = cluster_dir
-        self.cluster_dir = unicode(cluster_dir)
         self.log.info("Starting PBSControllerLauncher: %r" % self.args)
-        return super(PBSControllerLauncher, self).start(1)
+        return super(PBSControllerLauncher, self).start(1, cluster_dir)
 
 
 class PBSEngineSetLauncher(PBSLauncher):
@@ -813,10 +818,8 @@ class PBSEngineSetLauncher(PBSLauncher):
 
     def start(self, n, cluster_dir):
         """Start n engines by profile or cluster_dir."""
-        self.program_args.extend(['--cluster-dir', cluster_dir])
-        self.cluster_dir = unicode(cluster_dir)
         self.log.info('Starting PBSEngineSetLauncher: %r' % self.args)
-        return super(PBSEngineSetLauncher, self).start(n)
+        return super(PBSEngineSetLauncher, self).start(n, cluster_dir)
 
 
 #-----------------------------------------------------------------------------
