@@ -61,7 +61,6 @@ class EngineFactory(RegistrationFactory):
         ctx = self.context
         loop = self.loop
         identity = self.ident
-        print (identity)
         
         idents,msg = self.session.feed_identities(msg)
         msg = Message(self.session.unpack_message(msg))

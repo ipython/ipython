@@ -94,8 +94,10 @@ class SerializeIt(object):
         self.data = None
         self.obj = unSerialized.getObject()
         if globals().has_key('numpy') and isinstance(self.obj, numpy.ndarray):
-                if len(self.obj) == 0:         # length 0 arrays can't be reconstructed
-                    raise SerializationError("You cannot send a length 0 array")
+            if len(self.obj.shape) == 0: # length 0 arrays are just pickled
+                self.typeDescriptor = 'pickle'
+                self.metadata = {}
+            else:
                 self.obj = numpy.ascontiguousarray(self.obj, dtype=None)
                 self.typeDescriptor = 'ndarray'
                 self.metadata = {'shape':self.obj.shape,
