@@ -15,10 +15,10 @@ Facilities for launching IPython processes asynchronously.
 # Imports
 #-----------------------------------------------------------------------------
 
+import copy
 import logging
 import os
 import re
-import sys
 
 from signal import SIGINT, SIGTERM
 try:
@@ -30,12 +30,9 @@ from subprocess import Popen, PIPE, STDOUT
 try:
     from subprocess import check_output
 except ImportError:
-    # pre-2.7:
-    from StringIO import StringIO
-    
+    # pre-2.7, define check_output with Popen
     def check_output(*args, **kwargs):
-        sio = StringIO()
-        kwargs.update(dict(stdout=PIPE, stderr=STDOUT))
+        kwargs.update(dict(stdout=PIPE))
         p = Popen(*args, **kwargs)
         out,err = p.communicate()
         return out
@@ -44,7 +41,7 @@ from zmq.eventloop import ioloop
 
 from IPython.external import Itpl
 # from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Str, Int, List, Unicode, Dict, Instance
+from IPython.utils.traitlets import Any, Str, Int, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
@@ -106,6 +103,10 @@ class BaseLauncher(LoggingFactory):
     # the --work-dir option.
     work_dir = Unicode(u'.')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
+    
+    start_data = Any()
+    stop_data = Any()
+    
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
@@ -346,11 +347,13 @@ class LocalEngineSetLauncher(BaseLauncher):
     # launcher class
     launcher_class = LocalEngineLauncher
     
+    launchers = Dict()
+    stop_data = Dict()
+    
     def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(LocalEngineSetLauncher, self).__init__(
             work_dir=work_dir, config=config, **kwargs
         )
-        self.launchers = {}
         self.stop_data = {}
 
     def start(self, n, cluster_dir):
@@ -360,7 +363,6 @@ class LocalEngineSetLauncher(BaseLauncher):
         for i in range(n):
             el = self.launcher_class(work_dir=self.work_dir, config=self.config, logname=self.log.name)
             # Copy the engine args over to each engine launcher.
-            import copy
             el.engine_args = copy.deepcopy(self.engine_args)
             el.on_stop(self._notice_engine_stopped)
             d = el.start(cluster_dir)
@@ -397,7 +399,6 @@ class LocalEngineSetLauncher(BaseLauncher):
         return self.interrupt_then_kill()
     
     def _notice_engine_stopped(self, data):
-        print "notice", data
         pid = data['pid']
         for idx,el in self.launchers.iteritems():
             if el.process.pid == pid:
@@ -429,7 +430,7 @@ class MPIExecLauncher(LocalProcessLauncher):
 
     def find_args(self):
         """Build self.args using all the fields."""
-        return self.mpi_cmd + ['-n', self.n] + self.mpi_args + \
+        return self.mpi_cmd + ['-n', str(self.n)] + self.mpi_args + \
                self.program + self.program_args
 
     def start(self, n):
@@ -460,25 +461,20 @@ class MPIExecControllerLauncher(MPIExecLauncher):
 
 class MPIExecEngineSetLauncher(MPIExecLauncher):
 
-    engine_cmd = List(ipengine_cmd_argv, config=True)
+    program = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
-    engine_args = List(
+    program_args = List(
         ['--log-to-file','--log-level', str(logging.INFO)], config=True
     )
     n = Int(1, config=True)
 
     def start(self, n, cluster_dir):
         """Start n engines by profile or cluster_dir."""
-        self.engine_args.extend(['--cluster-dir', cluster_dir])
+        self.program_args.extend(['--cluster-dir', cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
         self.n = n
         self.log.info('Starting MPIExecEngineSetLauncher: %r' % self.args)
         return super(MPIExecEngineSetLauncher, self).start(n)
-
-    def find_args(self):
-        return self.mpi_cmd + ['-n', self.n] + self.mpi_args + \
-               self.engine_cmd + self.engine_args
-
 
 #-----------------------------------------------------------------------------
 # SSH launchers
@@ -499,11 +495,14 @@ class SSHLauncher(LocalProcessLauncher):
     program = List(['date'], config=True)
     program_args = List([], config=True)
     hostname = Str('', config=True)
-    user = Str(os.environ.get('USER','username'), config=True)
+    user = Str('', config=True)
     location = Str('')
 
     def _hostname_changed(self, name, old, new):
-        self.location = '%s@%s' % (self.user, new)
+        if self.user:
+            self.location = '%s@%s' % (self.user, new)
+        else:
+            self.location = new
 
     def _user_changed(self, name, old, new):
         self.location = '%s@%s' % (new, self.hostname)
@@ -513,12 +512,12 @@ class SSHLauncher(LocalProcessLauncher):
                self.program + self.program_args
 
     def start(self, cluster_dir, hostname=None, user=None):
-        print self.config
+        self.cluster_dir = unicode(cluster_dir)
         if hostname is not None:
             self.hostname = hostname
         if user is not None:
             self.user = user
-        print (self.location, hostname, user)
+        
         return super(SSHLauncher, self).start()
     
     def signal(self, sig):
@@ -533,7 +532,7 @@ class SSHControllerLauncher(SSHLauncher):
 
     program = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
-    program_args = List(['--log-to-file','--log-level', str(logging.INFO)], config=True)
+    program_args = List(['-r', '--log-to-file','--log-level', str(logging.INFO)], config=True)
 
 
 class SSHEngineLauncher(SSHLauncher):
@@ -545,6 +544,40 @@ class SSHEngineLauncher(SSHLauncher):
     
 class SSHEngineSetLauncher(LocalEngineSetLauncher):
     launcher_class = SSHEngineLauncher
+    engines = Dict(config=True)
+    
+    def start(self, n, cluster_dir):
+        """Start engines by profile or cluster_dir.
+        `n` is ignored, and the `engines` config property is used instead.
+        """
+        
+        self.cluster_dir = unicode(cluster_dir)
+        dlist = []
+        for host, n in self.engines.iteritems():
+            if isinstance(n, (tuple, list)):
+                n, args = n
+            else:
+                args = copy.deepcopy(self.engine_args)
+            
+            if '@' in host:
+                user,host = host.split('@',1)
+            else:
+                user=None
+            for i in range(n):
+                el = self.launcher_class(work_dir=self.work_dir, config=self.config, logname=self.log.name)
+                
+                # Copy the engine args over to each engine launcher.
+                i
+                el.program_args = args
+                el.on_stop(self._notice_engine_stopped)
+                d = el.start(cluster_dir, user=user, hostname=host)
+                if i==0:
+                    self.log.info("Starting SSHEngineSetLauncher: %r" % el.args)
+                self.launchers[host+str(i)] = el
+                dlist.append(d)
+        self.notify_start(dlist)
+        return dlist
+    
 
 
 #-----------------------------------------------------------------------------
@@ -619,7 +652,7 @@ class WindowsHPCLauncher(BaseLauncher):
             stderr=STDOUT
         )
         job_id = self.parse_job_id(output)
-        # self.notify_start(job_id)
+        self.notify_start(job_id)
         return job_id
 
     def stop(self):
@@ -637,7 +670,7 @@ class WindowsHPCLauncher(BaseLauncher):
             )
         except:
             output = 'The job already appears to be stoppped: %r' % self.job_id
-        self.notify_stop(output)  # Pass the output of the kill cmd
+        self.notify_stop(dict(job_id=self.job_id, output=output))  # Pass the output of the kill cmd
         return output
 
 
@@ -708,8 +741,6 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
 # Batch (PBS) system launchers
 #-----------------------------------------------------------------------------
 
-# TODO: Get PBS launcher working again.
-
 class BatchSystemLauncher(BaseLauncher):
     """Launch an external process using a batch system.
 
@@ -743,7 +774,7 @@ class BatchSystemLauncher(BaseLauncher):
 
     
     def find_args(self):
-        return [self.submit_command]
+        return [self.submit_command, self.batch_file]
     
     def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(BatchSystemLauncher, self).__init__(
@@ -753,13 +784,13 @@ class BatchSystemLauncher(BaseLauncher):
 
     def parse_job_id(self, output):
         """Take the output of the submit command and return the job id."""
-        m = re.match(self.job_id_regexp, output)
+        m = re.search(self.job_id_regexp, output)
         if m is not None:
             job_id = m.group()
         else:
             raise LauncherError("Job id couldn't be determined: %s" % output)
         self.job_id = job_id
-        self.log.info('Job started with job id: %r' % job_id)
+        self.log.info('Job submitted with job id: %r' % job_id)
         return job_id
 
     def write_batch_script(self, n):
@@ -779,14 +810,15 @@ class BatchSystemLauncher(BaseLauncher):
         self.context['cluster_dir'] = cluster_dir
         self.cluster_dir = unicode(cluster_dir)
         self.write_batch_script(n)
-        output = check_output([self.submit_command, self.batch_file], env=os.environ, stdout=STDOUT)
+        output = check_output(self.args, env=os.environ)
+        
         job_id = self.parse_job_id(output)
-        # self.notify_start(job_id)
+        self.notify_start(job_id)
         return job_id
 
     def stop(self):
-        output = check_output([self.delete_command, self.job_id], env=os.environ, stderr=STDOUT)
-        self.notify_stop(output)  # Pass the output of the kill cmd
+        output = check_output([self.delete_command, self.job_id], env=os.environ)
+        self.notify_stop(dict(job_id=self.job_id, output=output)) # Pass the output of the kill cmd
         return output
 
 
