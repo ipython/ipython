@@ -30,6 +30,7 @@ def test_history():
             ip.history_manager = HistoryManager(shell=ip)
             ip.history_manager.hist_file = histfile
             ip.history_manager.init_db()  # Has to be called after changing file
+            ip.history_manager.reset()
             print 'test',histfile
             hist = ['a=1', 'def f():\n    test = 1\n    return test', 'b=2']
             for i, h in enumerate(hist, start=1):

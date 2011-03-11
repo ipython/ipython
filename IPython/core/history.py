@@ -13,6 +13,7 @@
 from __future__ import print_function
 
 # Stdlib imports
+import datetime
 import os
 import re
 import sqlite3
@@ -90,6 +91,7 @@ class HistoryManager(Configurable):
             histfname = 'history'
         self.hist_file = os.path.join(shell.ipython_dir, histfname + '.sqlite')
         self.init_db()
+        self.new_session()
     
         self._i00, self._i, self._ii, self._iii = '','','',''
 
@@ -97,8 +99,11 @@ class HistoryManager(Configurable):
                                    '%quit', '%Exit', '%exit'])
         
     def init_db(self):
-        """Connect to the database and get new session number."""
+        """Connect to the database, and create tables if necessary."""
         self.db = sqlite3.connect(self.hist_file)
+        self.db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
+                        primary key autoincrement, start timestamp,
+                        end timestamp, num_cmds integer, remark text)""")
         self.db.execute("""CREATE TABLE IF NOT EXISTS history 
                 (session integer, line integer, source text, source_raw text,
                 PRIMARY KEY (session, line))""")
@@ -107,23 +112,47 @@ class HistoryManager(Configurable):
         self.db.execute("""CREATE TABLE IF NOT EXISTS output_history
                         (session integer, line integer, output text,
                         PRIMARY KEY (session, line))""")
-        cur = self.db.execute("""SELECT name FROM sqlite_master WHERE
-                                type='table' AND name='singletons'""")
-        if not cur.fetchone():
-            self.db.execute("""CREATE TABLE singletons
-                            (name text PRIMARY KEY, value)""")
-            self.db.execute("""INSERT INTO singletons VALUES
-                            ('session_number', 1)""")
-            self.db.commit()
-        cur = self.db.execute("""SELECT value FROM singletons WHERE
-                              name='session_number'""")
-        self.session_number = cur.fetchone()[0]
-        
-        #Increment by one for next session.
-        self.db.execute("""UPDATE singletons SET value=? WHERE
-                        name='session_number'""", (self.session_number+1,))
         self.db.commit()
     
+    def new_session(self):
+        """Get a new session number."""
+        with self.db:
+            cur = self.db.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
+                            NULL, "") """, (datetime.datetime.now(),))
+            self.session_number = cur.lastrowid
+            
+    def end_session(self):
+        """Close the database session, filling in the end time and line count."""
+        self.writeout_cache()
+        with self.db:
+            self.db.execute("""UPDATE sessions SET end=?, num_cmds=? WHERE
+                            session==?""", (datetime.datetime.now(),
+                            len(self.input_hist_parsed)-1, self.session_number))
+        self.session_number = 0
+                            
+    def name_session(self, name):
+        """Give the current session a name in the history database."""
+        with self.db:
+            self.db.execute("UPDATE sessions SET remark=? WHERE session==?",
+                            (name, self.session_number))
+                            
+    def reset(self, new_session=True):
+        """Clear the session history, releasing all object references, and
+        optionally open a new session."""
+        if self.session_number:
+            self.end_session()
+        self.input_hist_parsed[:] = [""]
+        self.input_hist_raw[:] = [""]
+        self.output_hist.clear()
+        # The directory history can't be completely empty
+        self.dir_hist[:] = [os.getcwd()]
+        
+        if new_session:
+            self.new_session()
+    
+    ## -------------------------------
+    ## Methods for retrieving history:
+    ## -------------------------------
     def _get_hist_sql(self, sql, params, raw=True, output=False):
         """Prepares and runs an SQL query for the history database.
         
@@ -245,7 +274,10 @@ class HistoryManager(Configurable):
         for sess, s, e in extract_hist_ranges(rangestr):
             for line in self.get_history(sess, s, e, raw=raw, output=output):
                 yield line
-
+    
+    ## ----------------------------
+    ## Methods for storing history:
+    ## ----------------------------
     def store_inputs(self, line_num, source, source_raw=None):
         """Store source and raw input in history and create input cache
         variables _i*.
@@ -312,27 +344,6 @@ class HistoryManager(Configurable):
         self.db_input_cache = []
         self.db_output_cache = []
 
-    def sync_inputs(self):
-        """Ensure raw and translated histories have same length."""
-        lr = len(self.input_hist_raw)
-        lp = len(self.input_hist_parsed)
-        if lp < lr:
-            self.input_hist_raw[:lr-lp] = []
-        elif lr < lp:
-            self.input_hist_parsed[:lp-lr] = []
-
-    def reset(self, new_session=True):
-        """Clear the current session's history, and (optionally) start a new
-        session."""
-        self.input_hist_parsed[:] = [""]
-        self.input_hist_raw[:] = [""]
-        self.output_hist.clear()
-        # The directory history can't be completely empty
-        self.dir_hist[:] = [os.getcwd()]
-        
-        if new_session:
-            self.writeout_cache()
-            self.init_db()     # Get new session number
         
 # To match, e.g. ~5/8-~2/3
 range_re = re.compile(r"""

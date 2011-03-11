@@ -2526,10 +2526,10 @@ class InteractiveShell(Configurable, Magic):
                 os.unlink(tfile)
             except OSError:
                 pass
-                
-        # Write anything in the history cache to the database.
-        self.history_manager.writeout_cache()
-
+        
+        # Close the history session (this stores the end time and line count)
+        self.history_manager.end_session()
+        
         # Clear all user namespaces to release all references cleanly.
         self.reset(new_session=False)
 

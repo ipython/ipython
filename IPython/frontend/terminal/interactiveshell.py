@@ -185,10 +185,6 @@ class TerminalInteractiveShell(InteractiveShell):
         
         with nested(self.builtin_trap, self.display_trap):
 
-            # if you run stuff with -c <cmd>, raw hist is not updated
-            # ensure that it's in sync
-            self.history_manager.sync_inputs()
-
             while 1:
                 try:
                     self.interact(display_banner=display_banner)
