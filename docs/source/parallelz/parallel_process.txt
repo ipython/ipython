@@ -274,8 +274,7 @@ connections on all its interfaces, by adding in :file:`ipcontrollerz_config`:
 
 .. sourcecode:: python
 
-    c.HubFactory.client_ip = '*'
-    c.HubFactory.engine_ip = '*'
+    c.RegistrationFactory.ip = '*'
 
 You can now run the cluster with::
 
@@ -447,7 +446,7 @@ any point in the future.
 To do this, the only thing you have to do is specify the `-r` flag, so that
 the connection information in the JSON files remains accurate::
 
-    $ ipcontrollerz -r --regport 12345
+    $ ipcontrollerz -r
 
 Then, just copy the JSON files over the first time and you are set. You can
 start and stop the controller and engines any many times as you want in the
