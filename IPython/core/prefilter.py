@@ -32,6 +32,7 @@ import re
 from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
 from IPython.config.configurable import Configurable
+from IPython.core.macro import Macro
 from IPython.core.splitinput import split_user_input
 from IPython.core import page
 
@@ -598,6 +599,18 @@ class ShellEscapeChecker(PrefilterChecker):
             return self.prefilter_manager.get_handler_by_name('shell')
 
 
+class MacroChecker(PrefilterChecker):
+    
+    priority = Int(250, config=True)
+    
+    def check(self, line_info):
+        obj = self.shell.user_ns.get(line_info.ifun)
+        if isinstance(obj, Macro):
+            return self.prefilter_manager.get_handler_by_name('macro')
+        else:
+            return None
+
+
 class IPyAutocallChecker(PrefilterChecker):
 
     priority = Int(300, config=True)
@@ -837,6 +850,16 @@ class ShellEscapeHandler(PrefilterHandler):
         return line_out
 
 
+class MacroHandler(PrefilterHandler):
+    handler_name = Str("macro")
+    
+    def handle(self, line_info):
+        obj = self.shell.user_ns.get(line_info.ifun)
+        pre_space = line_info.pre_whitespace
+        line_sep = "\n" + pre_space
+        return pre_space + line_sep.join(obj.value.splitlines())
+
+
 class MagicHandler(PrefilterHandler):
 
     handler_name = Str('magic')
@@ -979,6 +1002,7 @@ _default_transformers = [
 _default_checkers = [
     EmacsChecker,
     ShellEscapeChecker,
+    MacroChecker,
     IPyAutocallChecker,
     MultiLineMagicChecker,
     EscCharsChecker,
@@ -993,6 +1017,7 @@ _default_handlers = [
     PrefilterHandler,
     AliasHandler,
     ShellEscapeHandler,
+    MacroHandler,
     MagicHandler,
     AutoHandler,
     HelpHandler,
