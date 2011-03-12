@@ -4,8 +4,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from __future__ import with_statement
-
 # Standard library imports.
 import os
 import re
@@ -179,7 +177,7 @@ def export_xhtml(html, filename, image_tag=None):
         # Hack to make xhtml header -- note that we are not doing any check for
         # valid XML.
         offset = html.find("<html>")
-        assert(offset > -1)
+        assert offset > -1, 'Invalid HTML string: no <html> tag.'
         html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
                 html[offset+6:])
 
