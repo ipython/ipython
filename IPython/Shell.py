@@ -844,11 +844,13 @@ class IPShellGTK(IPThread):
         """Called when GTK is idle.
 
         Must return True always, otherwise GTK stops calling it"""
-        
-        update_tk(self.tk)
-        self.IP.runcode()
-        time.sleep(0.01)
-        return True
+        try:
+            update_tk(self.tk)
+            self.IP.runcode()
+            time.sleep(0.01)
+            return True
+        except IOError:
+            return True
 
 
 class IPShellWX(IPThread):
