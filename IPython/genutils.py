@@ -936,10 +936,20 @@ def get_home_dir():
             # in case a user stuck some string which does NOT resolve to a
             # valid path, it's as good as if we hadn't foud it
             raise KeyError
-        return homedir
+        return homedir.decode(sys.getfilesystemencoding())
     except KeyError:
         if os.name == 'posix':
-            raise HomeDirError,'undefined $HOME, IPython can not proceed.'
+            # Last-ditch attempt at finding a suitable $HOME, on systems where
+            # it may not be defined in the environment but the system shell
+            # still knows it - reported once as:
+            # https://github.com/ipython/ipython/issues/154
+            from subprocess import Popen, PIPE
+            homedir = Popen('echo $HOME', shell=True, 
+                            stdout=PIPE).communicate()[0].strip()
+            if homedir:
+                return homedir.decode(sys.getfilesystemencoding())
+            else:
+                raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
         elif os.name == 'nt':
             # For some strange reason, win9x returns 'nt' for os.name.
             try:
@@ -948,7 +958,7 @@ def get_home_dir():
                     homedir = os.path.join(env['USERPROFILE'])
                     if not isdir(homedir):
                         raise HomeDirError
-                return homedir
+                return homedir.decode(sys.getfilesystemencoding())
             except KeyError:
                 try:
                     # Use the registry to get the 'My Documents' folder.
@@ -964,7 +974,7 @@ def get_home_dir():
                              'This is not a valid directory on your system.' %
                              homedir)
                         raise HomeDirError(e)
-                    return homedir
+                    return homedir.decode(sys.getfilesystemencoding())
                 except HomeDirError:
                     raise
                 except:
