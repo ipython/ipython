@@ -26,17 +26,16 @@ from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.pylabtools import pylab_activate
+from IPython.testing import decorators as testdec
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn
 from IPython.utils.text import num_ini_spaces
 from IPython.utils.traitlets import Int, Str, CBool
 
-
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
-
 
 def get_default_editor():
     try:
@@ -53,11 +52,9 @@ def get_default_editor():
 # overwrites it (like wx.py.PyShell does)
 raw_input_original = raw_input
 
-
 #-----------------------------------------------------------------------------
 # Main class
 #-----------------------------------------------------------------------------
-
 
 class TerminalInteractiveShell(InteractiveShell):
 
@@ -516,6 +513,7 @@ class TerminalInteractiveShell(InteractiveShell):
         self.shell.set_autoindent()
         print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
 
+    @testdec.skip_doctest
     def magic_cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
         
