@@ -73,7 +73,12 @@ import socket, select
 import os, threading, subprocess
 import re
 
-ERRCONDS = select.POLLHUP|select.POLLERR
+try:
+    ERRCONDS = select.POLLHUP|select.POLLERR
+except AttributeError:
+    raise ImportError("Vim server not supported on this platform - select "
+                      "missing necessary POLLHUP/POLLERR functionality")
+
 SERVER = None
 ip = IPython.ipapi.get()
 
