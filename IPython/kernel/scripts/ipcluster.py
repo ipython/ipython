@@ -411,7 +411,7 @@ bsub < $1
 
 sshx_template_prefix="""#!/bin/sh
 """
-sshx_template_suffix=""""$@" &> /dev/null &
+sshx_template_suffix=""""$@" > /dev/null 2>&1 &
 echo $!
 """
 
