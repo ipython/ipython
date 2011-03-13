@@ -18,6 +18,7 @@ Logger class for IPython's logging facilities.
 import glob
 import os
 import time
+import sys
 
 #****************************************************************************
 # FIXME: This class isn't a mixin anymore, but it still needs attributes from
@@ -241,7 +242,7 @@ which already exists. But you must first start the logging process with
                 if self.timestamp:
                     write(time.strftime('# %a, %d %b %Y %H:%M:%S\n',
                                         time.localtime()))
-                write('%s\n' % data)
+                write('%s\n' % data.encode(sys.stdin.encoding))
             elif kind=='output' and self.log_output:
                 odata = '\n'.join(['#[Out]# %s' % s
                                    for s in data.split('\n')])
