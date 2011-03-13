@@ -177,7 +177,17 @@ def get_home_dir():
         try:
             homedir = env['HOME']
         except KeyError:
-            raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
+            # Last-ditch attempt at finding a suitable $HOME, on systems where
+            # it may not be defined in the environment but the system shell
+            # still knows it - reported once as:
+            # https://github.com/ipython/ipython/issues/154
+            from subprocess import Popen, PIPE
+            homedir = Popen('echo $HOME', shell=True, 
+                            stdout=PIPE).communicate()[0].strip()
+            if homedir:
+                return homedir.decode(sys.getfilesystemencoding())
+            else:
+                raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
         else:
             return homedir.decode(sys.getfilesystemencoding())
     elif os.name == 'nt':

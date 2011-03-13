@@ -193,6 +193,7 @@ def test_get_home_dir_7():
     env["HOMESHARE"] = abspath(HOME_TEST_DIR)
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+
     
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
