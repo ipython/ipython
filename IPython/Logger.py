@@ -246,7 +246,7 @@ which already exists. But you must first start the logging process with
             elif kind=='output' and self.log_output:
                 odata = '\n'.join(['#[Out]# %s' % s
                                    for s in data.split('\n')])
-                write('%s\n' % odata)
+                write('%s\n' % odata.encode(sys.stdin.encoding))
             self.logfile.flush()
 
     def logstop(self):
