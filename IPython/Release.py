@@ -22,13 +22,14 @@ name = 'ipython'
 
 development = True    # change this to False to do a release
 version_base = '0.10.2'
-branch = 'ipython'
+extra_ver = None  # Default
+extra_ver = 'rc1'  # Use for release candidates and similar
 
 if development:
-    if branch == 'ipython':
+    if extra_ver == None:
         version = '%s.git' % (version_base)
     else:
-        version = '%s.git.%s' % (version_base, branch)
+        version = '%s.%s' % (version_base, extra_ver)
 else:
     version = version_base
 
