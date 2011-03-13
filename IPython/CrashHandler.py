@@ -168,7 +168,6 @@ $self.bug_tracker
         
         rpt_add('*'*75+'\n\n'+'IPython post-mortem report\n\n')
         rpt_add('IPython version: %s \n\n' % Release.version)
-        rpt_add('BZR revision   : %s \n\n' % Release.revision)
         rpt_add('Platform info  : os.name -> %s, sys.platform -> %s' %
                      (os.name,sys.platform) )
         rpt_add(sec_sep+'Current user configuration structure:\n\n')
@@ -195,7 +194,7 @@ class IPythonCrashHandler(CrashHandler):
         
         # Set argument defaults
         app_name = 'IPython'
-        bug_tracker = 'https://bugs.launchpad.net/ipython/+filebug'
+        bug_tracker = 'https://github.com/ipython/ipython/issues'
         contact_name,contact_email = Release.authors[AUTHOR_CONTACT][:2]
         crash_report_fname = 'IPython_crash_report.txt'
         # Call parent constructor
@@ -212,7 +211,6 @@ class IPythonCrashHandler(CrashHandler):
         
         rpt_add('*'*75+'\n\n'+'IPython post-mortem report\n\n')
         rpt_add('IPython version: %s \n\n' % Release.version)
-        rpt_add('BZR revision   : %s \n\n' % Release.revision)
         rpt_add('Platform info  : os.name -> %s, sys.platform -> %s' %
                      (os.name,sys.platform) )
         rpt_add(sec_sep+'Current user configuration structure:\n\n')
