@@ -163,6 +163,28 @@ def test_macro():
     # List macros.
     assert "test" in ip.magic("macro")
 
+# XXX This should be a doctest, but the doctest logic doesn't seem to do
+# dynamic transformations (like expanding macros). Doing it like this for now.
+def test_macro_run():
+    """Test that we can run a multi-line macro successfully."""
+    ip = get_ipython()
+    ip.history_manager.reset()
+    cmds = ["a=10", "a+=1", "print a", "%macro test 2-3"]
+    for cmd in cmds:
+        ip.run_cell(cmd)
+    nt.assert_equal(ip.user_ns["test"].value, "a+=1\nprint a\n")
+    original_stdout = sys.stdout
+    new_stdout = StringIO()
+    sys.stdout = new_stdout
+    try:
+        ip.run_cell("test")
+        nt.assert_true("12" in new_stdout.getvalue())
+        ip.run_cell("test")
+        nt.assert_true("13" in new_stdout.getvalue())
+    finally:
+        sys.stdout = original_stdout
+        new_stdout.close()
+
     
 # XXX failing for now, until we get clearcmd out of quarantine.  But we should
 # fix this and revert the skip to happen only if numpy is not around.

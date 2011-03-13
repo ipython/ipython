@@ -2060,13 +2060,15 @@ class InteractiveShell(Configurable, Magic):
                 warn('Unknown failure executing file: <%s>' % fname)
 
     def run_cell(self, cell):
-        """Run the contents of an entire multiline 'cell' of code.
+        """Run the contents of an entire multiline 'cell' of code, and store it
+        in the history.
 
         The cell is split into separate blocks which can be executed
         individually.  Then, based on how many blocks there are, they are
         executed as follows:
 
-        - A single block: 'single' mode.
+        - A single block: 'single' mode. If it is also a single line, dynamic
+        transformations, including automagic and macros, will be applied.
 
         If there's more than one block, it depends:
 
@@ -2085,6 +2087,15 @@ class InteractiveShell(Configurable, Magic):
         cell : str
           A single or multiline string.
         """
+        # Store the untransformed code
+        raw_cell = cell
+        
+        # We only do dynamic transforms on a single line. We need to do this
+        # first, because a macro can be expanded to several lines, which then
+        # need to be split into blocks again.
+        if len(cell.splitlines()) <= 1:
+            temp = self.input_splitter.split_blocks(cell)
+            cell = self.prefilter_manager.prefilter_line(temp[0])
         
         # We need to break up the input into executable blocks that can be run
         # in 'single' mode, to provide comfortable user behavior.
@@ -2096,12 +2107,12 @@ class InteractiveShell(Configurable, Magic):
         # Store the 'ipython' version of the cell as well, since that's what
         # needs to go into the translated history and get executed (the
         # original cell may contain non-python syntax).
-        ipy_cell = ''.join(blocks)
+        cell = ''.join(blocks)
 
         # Store raw and processed history
-        self.history_manager.store_inputs(self.execution_count, ipy_cell, cell)
+        self.history_manager.store_inputs(self.execution_count, cell, raw_cell)
 
-        self.logger.log(ipy_cell, cell)
+        self.logger.log(cell, raw_cell)
 
         # All user code execution must happen with our context managers active
         with nested(self.builtin_trap, self.display_trap):
@@ -2109,19 +2120,17 @@ class InteractiveShell(Configurable, Magic):
             # Single-block input should behave like an interactive prompt
             if len(blocks) == 1:
                 # since we return here, we need to update the execution count
-                out = self.run_one_block(blocks[0])
+                out = self.run_source(blocks[0])
                 self.execution_count += 1
                 return out
 
             # In multi-block input, if the last block is a simple (one-two
             # lines) expression, run it in single mode so it produces output.
-            # Otherwise just feed the whole thing to run_code.  This seems like
-            # a reasonable usability design.
+            # Otherwise just run it all in 'exec' mode.  This seems like a
+            # reasonable usability design.
             last = blocks[-1]
             last_nlines = len(last.splitlines())
-
-            # Note: below, whenever we call run_code, we must sync history
-            # ourselves, because run_code is NOT meant to manage history at all.
+            
             if last_nlines < 2:
                 # Here we consider the cell split between 'body' and 'last',
                 # store all history and execute 'body', and if successful, then
@@ -2132,8 +2141,8 @@ class InteractiveShell(Configurable, Magic):
                 retcode = self.run_source(ipy_body, symbol='exec',
                                           post_execute=False)
                 if retcode==0:
-                    # And the last expression via runlines so it produces output
-                    self.run_one_block(last)
+                    # Last expression compiled as 'single' so it produces output
+                    self.run_source(last)
             else:
                 # Run the whole cell as one entity, storing both raw and
                 # processed input in history
@@ -2141,46 +2150,6 @@ class InteractiveShell(Configurable, Magic):
 
         # Each cell is a *single* input, regardless of how many lines it has
         self.execution_count += 1
-
-    def run_one_block(self, block):
-        """Run a single interactive block of source code.
-
-        If the block is single-line, dynamic transformations are applied to it
-        (like automagics, autocall and alias recognition).
-
-        If the block is multi-line, it must consist of valid Python code only.
-
-        Parameters
-        ----------
-        block : string
-           A (possibly multiline) string of code to be executed.
-
-        Returns
-        -------
-        The output of the underlying execution method used, be it
-        :meth:`run_source` or :meth:`run_single_line`.
-        """
-        if len(block.splitlines()) <= 1:
-            out = self.run_single_line(block)
-        else:
-            # Call run_source, which correctly compiles the input cell.
-            # run_code must only be called when we know we have a code object,
-            # as it does a naked exec and the compilation mode may not be what
-            # we wanted.
-            out = self.run_source(block)
-        return out
-
-    def run_single_line(self, line):
-        """Run a single-line interactive statement.
-
-        This assumes the input has been transformed to IPython syntax by
-        applying all static transformations (those with an explicit prefix like
-        % or !), but it will further try to apply the dynamic ones.
-
-        It does not update history.
-        """
-        tline = self.prefilter_manager.prefilter_line(line)
-        return self.run_source(tline)
 
     # PENDING REMOVAL: this method is slated for deletion, once our new
     # input logic has been 100% moved to frontends and is stable.
