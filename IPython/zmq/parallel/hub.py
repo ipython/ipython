@@ -231,7 +231,6 @@ class HubFactory(RegistrationFactory):
         # connect the db
         self.log.info('Hub using DB backend: %r'%(self.db_class.split()[-1]))
         cdir = self.config.Global.cluster_dir
-        print (cdir)
         self.db = import_item(self.db_class)(session=self.session.session, config=self.config)
         time.sleep(.25)
 
@@ -415,24 +414,6 @@ class Hub(LoggingFactory):
             raise IndexError("No Engines Registered")
         return targets
     
-    def _validate_client_msg(self, msg):
-        """validates and unpacks headers of a message. Returns False if invalid,
-        (ident, header, parent, content)"""
-        client_id = msg[0]
-        try:
-            msg = self.session.unpack_message(msg[1:], content=True)
-        except:
-            self.log.error("client::Invalid Message %s"%msg, exc_info=True)
-            return False
-        
-        msg_type = msg.get('msg_type', None)
-        if msg_type is None:
-            return False
-        header = msg.get('header')
-        # session doesn't handle split content for now:
-        return client_id, msg
-        
-    
     #-----------------------------------------------------------------------------
     # dispatch methods (1 per stream)
     #-----------------------------------------------------------------------------
@@ -598,22 +579,27 @@ class Hub(LoggingFactory):
             self.all_completed.add(msg_id)
             self.queues[eid].remove(msg_id)
             self.completed[eid].append(msg_id)
-            rheader = msg['header']
-            completed = datetime.strptime(rheader['date'], ISO8601)
-            started = rheader.get('started', None)
-            if started is not None:
-                started = datetime.strptime(started, ISO8601)
-            result = {
-                'result_header' : rheader,
-                'result_content': msg['content'],
-                'started' : started,
-                'completed' : completed
-            }
+        elif msg_id not in self.all_completed:
+            # it could be a result from a dead engine that died before delivering the
+            # result
+            self.log.warn("queue:: unknown msg finished %s"%msg_id)
+            return
+        # update record anyway, because the unregistration could have been premature
+        rheader = msg['header']
+        completed = datetime.strptime(rheader['date'], ISO8601)
+        started = rheader.get('started', None)
+        if started is not None:
+            started = datetime.strptime(started, ISO8601)
+        result = {
+            'result_header' : rheader,
+            'result_content': msg['content'],
+            'started' : started,
+            'completed' : completed
+        }
 
-            result['result_buffers'] = msg['buffers']
-            self.db.update_record(msg_id, result)
-        else:
-            self.log.debug("queue:: unknown msg finished %s"%msg_id)
+        result['result_buffers'] = msg['buffers']
+        self.db.update_record(msg_id, result)
+        
             
     #--------------------- Task Queue Traffic ------------------------------
     
@@ -841,19 +827,45 @@ class Hub(LoggingFactory):
             self.log.error("registration::bad engine id for unregistration: %s"%ident, exc_info=True)
             return
         self.log.info("registration::unregister_engine(%s)"%eid)
+        # print (eid)
         content=dict(id=eid, queue=self.engines[eid].queue)
         self.ids.remove(eid)
-        self.keytable.pop(eid)
+        uuid = self.keytable.pop(eid)
         ec = self.engines.pop(eid)
         self.hearts.pop(ec.heartbeat)
         self.by_ident.pop(ec.queue)
         self.completed.pop(eid)
-        for msg_id in self.queues.pop(eid):
-            msg = self.pending.remove(msg_id)
+        self._handle_stranded_msgs(eid, uuid)
             ############## TODO: HANDLE IT ################
         
         if self.notifier:
             self.session.send(self.notifier, "unregistration_notification", content=content)
+    
+    def _handle_stranded_msgs(self, eid, uuid):
+        """Handle messages known to be on an engine when the engine unregisters.
+        
+        It is possible that this will fire prematurely - that is, an engine will
+        go down after completing a result, and the client will be notified
+        that the result failed and later receive the actual result.
+        """
+        
+        outstanding = self.queues.pop(eid)
+        
+        for msg_id in outstanding:
+            self.pending.remove(msg_id)
+            self.all_completed.add(msg_id)
+            try:
+                raise error.EngineError("Engine %r died while running task %r"%(eid, msg_id))
+            except:
+                content = error.wrap_exception()
+            # build a fake header:
+            header = {}
+            header['engine'] = uuid
+            header['date'] = datetime.now().strftime(ISO8601)
+            rec = dict(result_content=content, result_header=header, result_buffers=[])
+            rec['completed'] = header['date']
+            rec['engine_uuid'] = uuid
+            self.db.update_record(msg_id, rec)
     
     def finish_registration(self, heart):
         """Second half of engine registration, called after our HeartMonitor
@@ -1029,7 +1041,8 @@ class Hub(LoggingFactory):
                                         'result_header' : rec['result_header'],
                                         'io' : io_dict,
                                       }
-                    buffers.extend(map(str, rec['result_buffers']))
+                    if rec['result_buffers']:
+                        buffers.extend(map(str, rec['result_buffers']))
             else:
                 try:
                     raise KeyError('No such message: '+msg_id)

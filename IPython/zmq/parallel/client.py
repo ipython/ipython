@@ -252,13 +252,14 @@ class Client(HasTraits):
     
     
     block = Bool(False)
-    outstanding=Set()
-    results = Dict()
-    metadata = Dict()
+    outstanding = Set()
+    results = Instance('collections.defaultdict', (dict,))
+    metadata = Instance('collections.defaultdict', (Metadata,))
     history = List()
     debug = Bool(False)
     profile=CUnicode('default')
     
+    _outstanding_dict = Instance('collections.defaultdict', (set,))
     _ids = List()
     _connected=Bool(False)
     _ssh=Bool(False)
@@ -498,23 +499,6 @@ class Client(HasTraits):
             e.engine_info['engine_id'] = eid
         return e
     
-    def _register_engine(self, msg):
-        """Register a new engine, and update our connection info."""
-        content = msg['content']
-        eid = content['id']
-        d = {eid : content['queue']}
-        self._update_engines(d)
-
-    def _unregister_engine(self, msg):
-        """Unregister an engine that has died."""
-        content = msg['content']
-        eid = int(content['id'])
-        if eid in self._ids:
-            self._ids.remove(eid)
-            self._engines.pop(eid)
-        if self._task_socket and self._task_scheme == 'pure':
-            self._stop_scheduling_tasks()
-    
     def _extract_metadata(self, header, parent, content):
         md = {'msg_id' : parent['msg_id'],
               'received' : datetime.now(),
@@ -534,6 +518,54 @@ class Client(HasTraits):
         if 'date' in header:
             md['completed'] = datetime.strptime(header['date'], util.ISO8601)
         return md
+    
+    def _register_engine(self, msg):
+        """Register a new engine, and update our connection info."""
+        content = msg['content']
+        eid = content['id']
+        d = {eid : content['queue']}
+        self._update_engines(d)
+
+    def _unregister_engine(self, msg):
+        """Unregister an engine that has died."""
+        content = msg['content']
+        eid = int(content['id'])
+        if eid in self._ids:
+            self._ids.remove(eid)
+            uuid = self._engines.pop(eid)
+            
+            self._handle_stranded_msgs(eid, uuid)
+                
+        if self._task_socket and self._task_scheme == 'pure':
+            self._stop_scheduling_tasks()
+    
+    def _handle_stranded_msgs(self, eid, uuid):
+        """Handle messages known to be on an engine when the engine unregisters.
+        
+        It is possible that this will fire prematurely - that is, an engine will
+        go down after completing a result, and the client will be notified
+        of the unregistration and later receive the successful result.
+        """
+        
+        outstanding = self._outstanding_dict[uuid]
+        
+        for msg_id in list(outstanding):
+            print msg_id
+            if msg_id in self.results:
+                # we already 
+                continue
+            try:
+                raise error.EngineError("Engine %r died while running task %r"%(eid, msg_id))
+            except:
+                content = error.wrap_exception()
+            # build a fake message:
+            parent = {}
+            header = {}
+            parent['msg_id'] = msg_id
+            header['engine'] = uuid
+            header['date'] = datetime.now().strftime(util.ISO8601)
+            msg = dict(parent_header=parent, header=header, content=content)
+            self._handle_apply_reply(msg)
     
     def _handle_execute_reply(self, msg):
         """Save the reply to an execute_request into our results.
@@ -569,9 +601,14 @@ class Client(HasTraits):
         header = msg['header']
         
         # construct metadata:
-        md = self.metadata.setdefault(msg_id, Metadata())
+        md = self.metadata[msg_id]
         md.update(self._extract_metadata(header, parent, content))
+        # is this redundant?
         self.metadata[msg_id] = md
+        
+        e_outstanding = self._outstanding_dict[md['engine_uuid']]
+        if msg_id in e_outstanding:
+            e_outstanding.remove(msg_id)
         
         # construct result:
         if content['status'] == 'ok':
@@ -642,7 +679,7 @@ class Client(HasTraits):
             msg_type = msg['msg_type']
             
             # init metadata:
-            md = self.metadata.setdefault(msg_id, Metadata())
+            md = self.metadata[msg_id]
             
             if msg_type == 'stream':
                 name = content['name']
@@ -653,6 +690,7 @@ class Client(HasTraits):
             else:
                 md.update({msg_type : content['data']})
             
+            # reduntant?
             self.metadata[msg_id] = md
             
             msg = self.session.recv(sock, mode=zmq.NOBLOCK)
@@ -1067,6 +1105,8 @@ class Client(HasTraits):
         msg_id = msg['msg_id']
         self.outstanding.add(msg_id)
         self.history.append(msg_id)
+        self.metadata[msg_id]['submitted'] = datetime.now()
+        
         ar = AsyncResult(self, [msg_id], fname=f.__name__)
         if block:
             try:
@@ -1099,6 +1139,7 @@ class Client(HasTraits):
                     content=content, buffers=bufs, ident=ident, subheader=subheader)
             msg_id = msg['msg_id']
             self.outstanding.add(msg_id)
+            self._outstanding_dict[ident].add(msg_id)
             self.history.append(msg_id)
             msg_ids.append(msg_id)
         ar = AsyncResult(self, msg_ids, fname=f.__name__)
@@ -1345,7 +1386,7 @@ class Client(HasTraits):
             is False, then completed results will be keyed by their `msg_id`.
         """
         if not isinstance(msg_ids, (list,tuple)):
-            indices_or_msg_ids = [msg_ids]
+            msg_ids = [msg_ids]
             
         theids = []
         for msg_id in msg_ids:
@@ -1398,7 +1439,7 @@ class Client(HasTraits):
                 if isinstance(rcontent, str):
                     rcontent = self.session.unpack(rcontent)
                 
-                md = self.metadata.setdefault(msg_id, Metadata())
+                md = self.metadata[msg_id]
                 md.update(self._extract_metadata(header, parent, rcontent))
                 md.update(iodict)
                 
