@@ -372,6 +372,8 @@ def extract_hist_ranges(ranges_str):
     """
     for range_str in ranges_str.split():
         rmatch = range_re.match(range_str)
+        if not rmatch:
+            continue
         start = int(rmatch.group("start"))
         end = rmatch.group("end")
         end = int(end) if end else start+1   # If no end specified, get (a, a+1)
@@ -537,11 +539,8 @@ def magic_history(self, parameter_s = ''):
     if close_at_end:
         outfile.close()
 
-# %hist is an alternative name
-magic_hist = magic_history
 
-
-def rep_f(self, arg):
+def magic_rep(self, arg):
     r""" Repeat a command, or get command to input line for editing
 
     - %rep (no arguments):
@@ -573,43 +572,37 @@ def rep_f(self, arg):
     """
     
     opts,args = self.parse_options(arg,'',mode='list')
-    if not args:
+    if not args:                # Last output
         self.set_next_input(str(self.shell.user_ns["_"]))
         return
 
-    if len(args) == 1 and not '-' in args[0]:
-        arg = args[0]
-        if len(arg) > 1 and arg.startswith('0'):
-            # get from shadow hist
-            num = int(arg[1:])
-            line = self.shell.shadowhist.get(num)
-            self.set_next_input(str(line))
-            return
-        try:
-            num = int(args[0])
-            self.set_next_input(str(self.shell.input_hist_raw[num]).rstrip())
-            return
-        except ValueError:
-            pass
-        
-        for h in reversed(self.shell.input_hist_raw):
+    arg = " ".join(args)
+    histlines = self.history_manager.get_hist_from_rangestr(arg, raw=False)
+    histlines = [x[2] for x in histlines]
+    
+    if len(histlines) > 1:      # Execute immediately
+        histlines = "\n".join(histlines)
+        print("=== Executing: ===")
+        print(histlines)
+        print("=== Output: ===")
+        self.run_source(histlines, symbol="exec")
+    
+    elif len(histlines) == 1:   # Editable input
+        self.set_next_input(histlines[0].rstrip())
+    
+    else:                       # Search for term - editable input
+        histlines = self.history_manager.get_hist_search("*"+arg+"*")
+        for h in reversed([x[2] for x in histlines]):
             if 'rep' in h:
                 continue
-            if fnmatch.fnmatch(h,'*' + arg + '*'):
-                self.set_next_input(str(h).rstrip())
-                return
-        
-    try:
-        lines = self.extract_input_slices(args, True)
-        print("lines", lines)
-        self.run_cell(lines)
-    except ValueError:
-        print("Not found in recent history:", args)
+            self.set_next_input(h.rstrip())
+            return
+        print("Not found in history:", arg)
 
 
 def init_ipython(ip):
-    ip.define_magic("rep",rep_f)        
-    ip.define_magic("hist",magic_hist)            
+    ip.define_magic("rep", magic_rep) 
+    ip.define_magic("hist",magic_history)    # Alternative name
     ip.define_magic("history",magic_history)
 
     # XXX - ipy_completers are in quarantine, need to be updated to new apis
