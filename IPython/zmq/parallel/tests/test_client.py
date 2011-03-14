@@ -1,4 +1,5 @@
 import time
+from tempfile import mktemp
 
 import nose.tools as nt
 
@@ -162,4 +163,25 @@ class TestClient(ClusterTestCase):
         self.assertEquals(ahr.get(), ar.get())
         ar2 = self.client.get_result(ar.msg_ids)
         self.assertFalse(isinstance(ar2, AsyncHubResult))
+    
+    def test_ids_list(self):
+        """test client.ids"""
+        self.add_engines(2)
+        ids = self.client.ids
+        self.assertEquals(ids, self.client._ids)
+        self.assertFalse(ids is self.client._ids)
+        ids.remove(ids[-1])
+        self.assertNotEquals(ids, self.client._ids)
+    
+    def test_arun_newline(self):
+        """test that run appends newline to files"""
+        tmpfile = mktemp()
+        with open(tmpfile, 'w') as f:
+            f.write("""def g():
+                return 5
+                """)
+        v = self.client[-1]
+        v.run(tmpfile, block=True)
+        self.assertEquals(v.apply_sync_bound(lambda : g()), 5)
+
         

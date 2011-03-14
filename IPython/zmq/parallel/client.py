@@ -378,7 +378,8 @@ class Client(HasTraits):
     def ids(self):
         """Always up-to-date ids property."""
         self._flush_notifications()
-        return self._ids
+        # always copy:
+        return list(self._ids)
         
     def close(self):
         if self._closed:
@@ -878,8 +879,10 @@ class Client(HasTraits):
                 default: self.block
         
         """
-        with open(filename, 'rb') as f:
-            code = f.read()
+        with open(filename, 'r') as f:
+            # add newline in case of trailing indented whitespace
+            # which will cause SyntaxError
+            code = f.read()+'\n'
         return self.execute(code, targets=targets, block=block)
     
     def _maybe_raise(self, result):
