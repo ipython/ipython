@@ -2119,8 +2119,11 @@ class InteractiveShell(Configurable, Magic):
 
             # Single-block input should behave like an interactive prompt
             if len(blocks) == 1:
-                # since we return here, we need to update the execution count
                 out = self.run_source(blocks[0])
+                # Write output to the database. Does nothing unless
+                # history output logging is enabled.
+                self.history_manager.store_output(self.execution_count)
+                # since we return here, we need to update the execution count
                 self.execution_count += 1
                 return out
 
@@ -2148,6 +2151,9 @@ class InteractiveShell(Configurable, Magic):
                 # processed input in history
                 self.run_source(ipy_cell, symbol='exec')
 
+        # Write output to the database. Does nothing unless
+        # history output logging is enabled.
+        self.history_manager.store_output(self.execution_count)
         # Each cell is a *single* input, regardless of how many lines it has
         self.execution_count += 1
 

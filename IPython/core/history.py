@@ -14,9 +14,12 @@ from __future__ import print_function
 
 # Stdlib imports
 import datetime
+import json
 import os
 import re
 import sqlite3
+
+from collections import defaultdict
 
 # Our own packages
 from IPython.config.configurable import Configurable
@@ -45,7 +48,7 @@ class HistoryManager(Configurable):
     # A list of directories visited during session
     dir_hist = List()
     # A dict of output history, keyed with ints from the shell's execution count
-    output_hist = Dict()
+    output_hist = Instance(defaultdict)
     # String holding the path to the history file
     hist_file = Unicode()
     # The SQLite database
@@ -94,6 +97,7 @@ class HistoryManager(Configurable):
         self.new_session()
     
         self._i00, self._i, self._ii, self._iii = '','','',''
+        self.output_hist = defaultdict(list)
 
         self._exit_commands = set(['Quit', 'quit', 'Exit', 'exit', '%Quit',
                                    '%quit', '%Exit', '%exit'])
@@ -179,8 +183,10 @@ class HistoryManager(Configurable):
             toget = "history.%s, output_history.output" % toget
         cur = self.db.execute("SELECT session, line, %s FROM %s " %\
                                 (toget, sqlfrom) + sql, params)
-        if output:    # Regroup into 3-tuples
-            return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
+        if output:    # Regroup into 3-tuples, and parse JSON
+            loads = lambda out: json.loads(out) if out else None
+            return ((ses, lin, (inp, loads(out))) \
+                                        for ses, lin, inp, out in cur)
         return cur
         
     
@@ -221,7 +227,8 @@ class HistoryManager(Configurable):
         
         for i in range(start, stop):
             if output:
-                line = (input_hist[i], repr(self.output_hist.get(i)))
+                output_item = [repr(x) for x in self.output_hist[i]]
+                line = (input_hist[i], output_item)
             else:
                 line = input_hist[i]
             yield (0, i, line)
@@ -324,9 +331,10 @@ class HistoryManager(Configurable):
                    new_i : self._i00 }
         self.shell.user_ns.update(to_main)
         
-    def store_output(self, line_num, output):
-        if not self.db_log_output:
+    def store_output(self, line_num):
+        if (not self.db_log_output) or not self.output_hist[line_num]:
             return
+        output = json.dumps([repr(x) for x in self.output_hist[line_num]])
         db_row = (self.session_number, line_num, output)
         if self.db_cache_size > 1:
             self.db_output_cache.append(db_row)
@@ -524,7 +532,7 @@ def magic_history(self, parameter_s = ''):
                 inline = "\n... ".join(inline.splitlines()) + "\n..."
         print(inline, file=outfile)
         if get_output and output:
-            print(output, file=outfile)
+            print("\n".join(output), file=outfile)
 
     if close_at_end:
         outfile.close()
