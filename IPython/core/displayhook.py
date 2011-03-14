@@ -275,13 +275,15 @@ class DisplayHook(Configurable):
                 new_result = '_'+`self.prompt_count`
                 to_main[new_result] = result
                 self.shell.user_ns.update(to_main)
-                # This is a defaultdict of lists, so we can always append
-                self.shell.user_ns['_oh'][self.prompt_count].append(result)
+                self.shell.user_ns['_oh'][self.prompt_count] = result
 
     def log_output(self, format_dict):
         """Log the output."""
         if self.shell.logger.log_output:
             self.shell.logger.log_write(format_dict['text/plain'], 'output')
+        # This is a defaultdict of lists, so we can always append
+        self.shell.history_manager.output_hist_reprs[self.prompt_count]\
+                                    .append(format_dict['text/plain'])
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
