@@ -179,7 +179,7 @@ class StreamSession(object):
         return header.get('key', None) == self.key
             
         
-    def send(self, stream, msg_or_type, content=None, buffers=None, parent=None, subheader=None, ident=None):
+    def send(self, stream, msg_or_type, content=None, buffers=None, parent=None, subheader=None, ident=None, track=False):
         """Build and send a message via stream or socket.
         
         Parameters
@@ -191,13 +191,34 @@ class StreamSession(object):
             Normally, msg_or_type will be a msg_type unless a message is being sent more
             than once.
         
+        content : dict or None
+            the content of the message (ignored if msg_or_type is a message)
+        buffers : list or None
+            the already-serialized buffers to be appended to the message
+        parent : Message or dict or None
+            the parent or parent header describing the parent of this message
+        subheader : dict or None
+            extra header keys for this message's header
+        ident : bytes or list of bytes
+            the zmq.IDENTITY routing path
+        track : bool
+            whether to track.  Only for use with Sockets, because ZMQStream objects cannot track messages.
+        
         Returns
         -------
-        (msg,sent) : tuple
-            msg : Message
-                the nice wrapped dict-like object containing the headers
+        msg : message dict
+            the constructed message
+        (msg,tracker) : (message dict, MessageTracker)
+            if track=True, then a 2-tuple will be returned, the first element being the constructed
+            message, and the second being the MessageTracker
             
         """
+
+        if not isinstance(stream, (zmq.Socket, ZMQStream)):
+            raise TypeError("stream must be Socket or ZMQStream, not %r"%type(stream))
+        elif track and isinstance(stream, ZMQStream):
+            raise TypeError("ZMQStream cannot track messages")
+        
         if isinstance(msg_or_type, (Message, dict)):
             # we got a Message, not a msg_type
             # don't build a new Message
@@ -205,6 +226,7 @@ class StreamSession(object):
             content = msg['content']
         else:
             msg = self.msg(msg_or_type, content, parent, subheader)
+        
         buffers = [] if buffers is None else buffers
         to_send = []
         if isinstance(ident, list):
@@ -222,7 +244,7 @@ class StreamSession(object):
             content = self.none
         elif isinstance(content, dict):
             content = self.pack(content)
-        elif isinstance(content, str):
+        elif isinstance(content, bytes):
             # content is already packed, as in a relayed message
             pass
         else:
@@ -231,16 +253,29 @@ class StreamSession(object):
         flag = 0
         if buffers:
             flag = zmq.SNDMORE
-        stream.send_multipart(to_send, flag, copy=False)
+            _track = False
+        else:
+            _track=track
+        if track:
+            tracker = stream.send_multipart(to_send, flag, copy=False, track=_track)
+        else:
+            tracker = stream.send_multipart(to_send, flag, copy=False)
         for b in buffers[:-1]:
             stream.send(b, flag, copy=False)
         if buffers:
-            stream.send(buffers[-1], copy=False)
+            if track:
+                tracker = stream.send(buffers[-1], copy=False, track=track)
+            else:
+                tracker = stream.send(buffers[-1], copy=False)
+                
         # omsg = Message(msg)
         if self.debug:
             pprint.pprint(msg)
             pprint.pprint(to_send)
             pprint.pprint(buffers)
+        
+        msg['tracker'] = tracker
+        
         return msg
     
     def send_raw(self, stream, msg, flags=0, copy=True, ident=None):
@@ -250,7 +285,7 @@ class StreamSession(object):
         ----------
         msg : list of sendable buffers"""
         to_send = []
-        if isinstance(ident, str):
+        if isinstance(ident, bytes):
             ident = [ident]
         if ident is not None:
             to_send.extend(ident)

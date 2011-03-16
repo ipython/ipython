@@ -34,13 +34,17 @@ class AsyncResult(object):
     """
     
     msg_ids = None
+    _targets = None
+    _tracker = None
     
-    def __init__(self, client, msg_ids, fname='unknown'):
+    def __init__(self, client, msg_ids, fname='unknown', targets=None, tracker=None):
         self._client = client
         if isinstance(msg_ids, basestring):
             msg_ids = [msg_ids]
         self.msg_ids = msg_ids
         self._fname=fname
+        self._targets = targets
+        self._tracker = tracker
         self._ready = False
         self._success = None
         self._single_result = len(msg_ids) == 1
@@ -169,6 +173,19 @@ class AsyncResult(object):
     
     def __dict__(self):
         return self.get_dict(0)
+    
+    def abort(self):
+        """abort my tasks."""
+        assert not self.ready(), "Can't abort, I am already done!"
+        return self.client.abort(self.msg_ids, targets=self._targets, block=True)
+
+    @property
+    def sent(self):
+        """check whether my messages have been sent"""
+        if self._tracker is None:
+            return True
+        else:
+            return self._tracker.done
 
     #-------------------------------------
     # dict-access

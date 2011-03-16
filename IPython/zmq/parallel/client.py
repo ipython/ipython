@@ -356,6 +356,9 @@ class Client(HasTraits):
                                 'apply_reply' : self._handle_apply_reply}
         self._connect(sshserver, ssh_kwargs)
         
+    def __del__(self):
+        """cleanup sockets, but _not_ context."""
+        self.close()
     
     def _setup_cluster_dir(self, profile, cluster_dir, ipython_dir):
         if ipython_dir is None:
@@ -387,7 +390,8 @@ class Client(HasTraits):
             return
         snames = filter(lambda n: n.endswith('socket'), dir(self))
         for socket in map(lambda name: getattr(self, name), snames):
-            socket.close()
+            if isinstance(socket, zmq.Socket) and not socket.closed:
+                socket.close()
         self._closed = True
     
     def _update_engines(self, engines):
@@ -550,7 +554,6 @@ class Client(HasTraits):
         outstanding = self._outstanding_dict[uuid]
         
         for msg_id in list(outstanding):
-            print msg_id
             if msg_id in self.results:
                 # we already 
                 continue
@@ -796,7 +799,7 @@ class Client(HasTraits):
                 if msg['content']['status'] != 'ok':
                     error = self._unwrap_exception(msg['content'])
         if error:
-            return error
+            raise error
         
     
     @spinfirst
@@ -840,7 +843,7 @@ class Client(HasTraits):
                 if msg['content']['status'] != 'ok':
                     error = self._unwrap_exception(msg['content'])
         if error:
-            return error
+            raise error
     
     @spinfirst
     @defaultblock
@@ -945,7 +948,8 @@ class Client(HasTraits):
     @defaultblock
     def apply(self, f, args=None, kwargs=None, bound=True, block=None,
                         targets=None, balanced=None,
-                        after=None, follow=None, timeout=None):
+                        after=None, follow=None, timeout=None,
+                        track=False):
         """Call `f(*args, **kwargs)` on a remote engine(s), returning the result.
         
         This is the central execution command for the client.
@@ -1003,6 +1007,9 @@ class Client(HasTraits):
             Specify an amount of time (in seconds) for the scheduler to
             wait for dependencies to be met before failing with a
             DependencyTimeout.
+        track : bool
+            whether to track non-copying sends.
+            [default False]
         
         after,follow,timeout only used if `balanced=True`.
         
@@ -1044,7 +1051,7 @@ class Client(HasTraits):
         if not isinstance(kwargs, dict):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
         
-        options  = dict(bound=bound, block=block, targets=targets)
+        options  = dict(bound=bound, block=block, targets=targets, track=track)
         
         if balanced:
             return self._apply_balanced(f, args, kwargs, timeout=timeout, 
@@ -1057,7 +1064,7 @@ class Client(HasTraits):
             return self._apply_direct(f, args, kwargs, **options)
     
     def _apply_balanced(self, f, args, kwargs, bound=None, block=None, targets=None,
-                            after=None, follow=None, timeout=None):
+                            after=None, follow=None, timeout=None, track=None):
         """call f(*args, **kwargs) remotely in a load-balanced manner.
         
         This is a private method, see `apply` for details.
@@ -1065,7 +1072,7 @@ class Client(HasTraits):
         """
         
         loc = locals()
-        for name in ('bound', 'block'):
+        for name in ('bound', 'block', 'track'):
             assert loc[name] is not None, "kwarg %r must be specified!"%name
         
         if self._task_socket is None:
@@ -1101,13 +1108,13 @@ class Client(HasTraits):
         content = dict(bound=bound)
         
         msg = self.session.send(self._task_socket, "apply_request", 
-                content=content, buffers=bufs, subheader=subheader)
+                content=content, buffers=bufs, subheader=subheader, track=track)
         msg_id = msg['msg_id']
         self.outstanding.add(msg_id)
         self.history.append(msg_id)
         self.metadata[msg_id]['submitted'] = datetime.now()
-        
-        ar = AsyncResult(self, [msg_id], fname=f.__name__)
+        tracker = None if track is False else msg['tracker']
+        ar = AsyncResult(self, [msg_id], fname=f.__name__, targets=targets, tracker=tracker)
         if block:
             try:
                 return ar.get()
@@ -1116,7 +1123,8 @@ class Client(HasTraits):
         else:
             return ar
     
-    def _apply_direct(self, f, args, kwargs, bound=None, block=None, targets=None):
+    def _apply_direct(self, f, args, kwargs, bound=None, block=None, targets=None,
+                                        track=None):
         """Then underlying method for applying functions to specific engines
         via the MUX queue.
         
@@ -1124,7 +1132,7 @@ class Client(HasTraits):
         Not to be called directly!
         """
         loc = locals()
-        for name in ('bound', 'block', 'targets'):
+        for name in ('bound', 'block', 'targets', 'track'):
             assert loc[name] is not None, "kwarg %r must be specified!"%name
         
         idents,targets = self._build_targets(targets)
@@ -1134,15 +1142,22 @@ class Client(HasTraits):
         bufs = util.pack_apply_message(f,args,kwargs)
         
         msg_ids = []
+        trackers = []
         for ident in idents:
             msg = self.session.send(self._mux_socket, "apply_request", 
-                    content=content, buffers=bufs, ident=ident, subheader=subheader)
+                    content=content, buffers=bufs, ident=ident, subheader=subheader,
+                    track=track)
+            if track:
+                trackers.append(msg['tracker'])
             msg_id = msg['msg_id']
             self.outstanding.add(msg_id)
             self._outstanding_dict[ident].add(msg_id)
             self.history.append(msg_id)
             msg_ids.append(msg_id)
-        ar = AsyncResult(self, msg_ids, fname=f.__name__)
+        
+        tracker = None if track is False else zmq.MessageTracker(*trackers)
+        ar = AsyncResult(self, msg_ids, fname=f.__name__, targets=targets, tracker=tracker)
+        
         if block:
             try:
                 return ar.get()
@@ -1230,11 +1245,11 @@ class Client(HasTraits):
     #--------------------------------------------------------------------------
     
     @defaultblock
-    def push(self, ns, targets='all', block=None):
+    def push(self, ns, targets='all', block=None, track=False):
         """Push the contents of `ns` into the namespace on `target`"""
         if not isinstance(ns, dict):
             raise TypeError("Must be a dict, not %s"%type(ns))
-        result = self.apply(_push, (ns,), targets=targets, block=block, bound=True, balanced=False)
+        result = self.apply(_push, (ns,), targets=targets, block=block, bound=True, balanced=False, track=track)
         if not block:
             return result
     
@@ -1251,7 +1266,7 @@ class Client(HasTraits):
         return result
     
     @defaultblock
-    def scatter(self, key, seq, dist='b', flatten=False, targets='all', block=None):
+    def scatter(self, key, seq, dist='b', flatten=False, targets='all', block=None, track=False):
         """
         Partition a Python sequence and send the partitions to a set of engines.
         """
@@ -1259,16 +1274,25 @@ class Client(HasTraits):
         mapObject = Map.dists[dist]()
         nparts = len(targets)
         msg_ids = []
+        trackers = []
         for index, engineid in enumerate(targets):
             partition = mapObject.getPartition(seq, index, nparts)
             if flatten and len(partition) == 1:
-                r = self.push({key: partition[0]}, targets=engineid, block=False)
+                r = self.push({key: partition[0]}, targets=engineid, block=False, track=track)
             else:
-                r = self.push({key: partition}, targets=engineid, block=False)
+                r = self.push({key: partition}, targets=engineid, block=False, track=track)
             msg_ids.extend(r.msg_ids)
-        r = AsyncResult(self, msg_ids, fname='scatter')
+            if track:
+                trackers.append(r._tracker)
+        
+        if track:
+            tracker = zmq.MessageTracker(*trackers)
+        else:
+            tracker = None
+        
+        r = AsyncResult(self, msg_ids, fname='scatter', targets=targets, tracker=tracker)
         if block:
-            r.get()
+            r.wait()
         else:
             return r
     

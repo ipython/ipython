@@ -1,24 +1,26 @@
 """toplevel setup/teardown for parallel tests."""
 
+import tempfile
 import time
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
 
 from IPython.zmq.parallel.ipcluster import launch_process
 from IPython.zmq.parallel.entry_point import select_random_ports
 
 processes = []
+blackhole = tempfile.TemporaryFile()
 
 # nose setup/teardown
 
 def setup():
-    cp = Popen('ipcontrollerz --profile iptest -r --log-level 40'.split(), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    cp = Popen('ipcontrollerz --profile iptest -r --log-level 40'.split(), stdout=blackhole, stderr=STDOUT)
     processes.append(cp)
     time.sleep(.5)
     add_engine()
-    time.sleep(3)
+    time.sleep(2)
 
 def add_engine(profile='iptest'):
-    ep = Popen(['ipenginez']+ ['--profile', profile, '--log-level', '40'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    ep = Popen(['ipenginez']+ ['--profile', profile, '--log-level', '40'], stdout=blackhole, stderr=STDOUT)
     # ep.start()
     processes.append(ep)
     return ep

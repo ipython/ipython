@@ -4,7 +4,7 @@ import uuid
 import zmq
 
 from zmq.tests import BaseZMQTestCase
-
+from zmq.eventloop.zmqstream import ZMQStream
 # from IPython.zmq.tests import SessionTestCase
 from IPython.zmq.parallel import streamsession as ss
 
@@ -31,7 +31,7 @@ class TestSession(SessionTestCase):
     
     def test_args(self):
         """initialization arguments for StreamSession"""
-        s = ss.StreamSession()
+        s = self.session
         self.assertTrue(s.pack is ss.default_packer)
         self.assertTrue(s.unpack is ss.default_unpacker)
         self.assertEquals(s.username, os.environ.get('USER', 'username'))
@@ -46,7 +46,24 @@ class TestSession(SessionTestCase):
         self.assertEquals(s.session, u)
         self.assertEquals(s.username, 'carrot')
         
-    
+    def test_tracking(self):
+        """test tracking messages"""
+        a,b = self.create_bound_pair(zmq.PAIR, zmq.PAIR)
+        s = self.session
+        stream = ZMQStream(a)
+        msg = s.send(a, 'hello', track=False)
+        self.assertTrue(msg['tracker'] is None)
+        msg = s.send(a, 'hello', track=True)
+        self.assertTrue(isinstance(msg['tracker'], zmq.MessageTracker))
+        M = zmq.Message(b'hi there', track=True)
+        msg = s.send(a, 'hello', buffers=[M], track=True)
+        t = msg['tracker']
+        self.assertTrue(isinstance(t, zmq.MessageTracker))
+        self.assertRaises(zmq.NotDone, t.wait, .1)
+        del M
+        t.wait(1) # this will raise
+        
+        
     # def test_rekey(self):
     #     """rekeying dict around json str keys"""
     #     d = {'0': uuid.uuid4(), 0:uuid.uuid4()}
