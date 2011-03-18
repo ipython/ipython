@@ -17,11 +17,14 @@ var Notebook = function (selector) {
 Notebook.prototype.bind_events = function () {
     var that = this;
     that.element.keydown(function (event) {
-        // console.log(event);
+        console.log(event);
         if (event.which == 38 && event.shiftKey) {
             that.select_prev();
         } else if (event.which == 40 && event.shiftKey) {
             that.select_next();
+        } else if (event.which == 13 && event.shiftKey) {
+            // The focus is not quite working here.
+            that.insert_code_cell_after();
         }
     });
 };
