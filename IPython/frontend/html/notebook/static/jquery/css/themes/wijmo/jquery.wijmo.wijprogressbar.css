@@ -1,0 +1,126 @@
+﻿
+.wijmo-wijprogressbar
+{
+    moz-user-select: none;
+    text-align: left;
+    float: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.wijmo-wijprogressbar .ui-progressbar-value
+{
+    position: absolute;
+    border-width: 0;
+    margin: 0;
+}
+
+div.wijmo-wijprogressbar-east
+{
+    width: 200px;
+    height: 1.1em;
+}
+div.wijmo-wijprogressbar-west
+{
+    width: 200px;
+    height: 1.1em;
+}
+div.wijmo-wijprogressbar-south
+{
+    height: 200px;
+    width: 1.1em;
+    line-height: 100%;
+}
+
+div.wijmo-wijprogressbar-north
+{
+    height: 200px;
+    width: 1.1em;
+    line-height: 100%;
+}
+
+.wijmo-wijprogressbar-east .ui-progressbar-value
+{
+    left: 0;
+    height: 100%;
+}
+.wijmo-wijprogressbar-west .ui-progressbar-value
+{
+    right: 0;
+    height: 100%;
+}
+.wijmo-wijprogressbar-south .ui-progressbar-value
+{
+    top: 0;
+    width: 100%;
+}
+
+.wijmo-wijprogressbar-north .ui-progressbar-value
+{
+    bottom: 0;
+    width: 100%;
+}
+
+.wijmo-wijprogressbar .lb_west, .wijmo-wijprogressbar .lb_east, .wijmo-wijprogressbar .lb_south, .wijmo-wijprogressbar .lb_north, .wijmo-wijprogressbar .lb_center
+{
+    display: block; position:absolute; 
+}
+
+.wijmo-wijprogressbar .lb_west
+{
+    text-align: left;
+}
+.wijmo-wijprogressbar .lb_east
+{
+    text-align: right;
+}
+.wijmo-wijprogressbar .lb_south
+{
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    bottom: 0;
+}
+.wijmo-wijprogressbar .lb_north
+{
+    width: 100%;
+    text-align: center;
+    top: 0;
+}
+.wijmo-wijprogressbar .lb_center
+{
+    width: 100%;
+    text-align: center;
+}
+.wijmo-wijprogressbar .lb_running
+{
+    position: absolute;
+    left: auto;
+    top: auto;
+}
+
+.wijmo-wijprogressbar-east .lb_running, .wijmo-wijprogressbar-west .lb_running
+{
+    width: auto;
+    height: 100%;
+}
+.wijmo-wijprogressbar-south .lb_running, .wijmo-wijprogressbar-north .lb_running
+{
+    width: 100%;
+    height: auto;
+    text-align: center;
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);    
+}
+
+.wijmo-wijprogressbar-west .ui-progressbar-label
+{
+    position: absolute;
+    right: 0;
+}
+.wijmo-wijprogressbar-north .ui-progressbar-label, .wijmo-wijprogressbar-south .ui-progressbar-label
+{
+    position: absolute;
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+}

@@ -1,0 +1,44 @@
+.wijmo-wijradio
+{
+    position: relative; /*float: left;*/
+    margin: 3px 0;
+    width: 16px;
+    line-height: 16px;
+}
+.wijmo-wijradio .wijmo-wijradio-inputwrapper
+{
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+.wijmo-wijradio label
+{
+    display: block;
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+    padding: 0 0 0 1.4em;
+    outline: none;
+    margin: 0 3px;
+    width: 8em;
+}
+.wijmo-wijradio .wijmo-wijradio-box
+{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+.wijmo-wijradio .wijmo-wijradio-relative
+{
+    position: relative;
+    float: left;
+    margin-right: 3px;   
+}
+

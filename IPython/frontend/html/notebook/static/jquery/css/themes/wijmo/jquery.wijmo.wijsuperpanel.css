@@ -1,0 +1,97 @@
+/* SuperPanel
+----------------------------------*/
+.wijmo-wijsuperpanel
+{
+    overflow: hidden;
+    outline: none;
+    background-image: none;
+}
+.wijmo-wijsuperpanel-statecontainer
+{
+    overflow: hidden;
+    position: relative;
+    zoom:1;
+}
+.wijmo-wijsuperpanel-contentwrapper
+{
+    position: absolute;
+    overflow: hidden;
+
+}
+.wijmo-wijsuperpanel-hbarcontainer, .wijmo-wijsuperpanel-vbarcontainer
+{
+    font-size: 0px;
+    border:0;
+}
+.wijmo-wijsuperpanel-templateouterwrapper
+{
+    position: relative; 
+/*    overflow:auto; */
+    zoom: 1;
+}
+
+.wijmo-wijsuperpanel-vbarcontainer .ui-state-default, .wijmo-wijsuperpanel-hbarcontainer .ui-state-default
+{
+    width: 16px;
+    height: 16px;
+    position: absolute;
+}
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-vbarcontainer
+{
+    position: absolute;
+    width: 18px;
+    padding-top: 18px;
+    padding-bottom: 18px;
+    border: none;
+}
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-hbarcontainer
+{
+    position: absolute;
+    height: 18px;
+    padding-left: 18px;
+    padding-right: 18px;
+    border: none;
+}
+.wijmo-wijsuperpanel-handle
+{
+    position: absolute;
+    font-size:0px;
+    overflow:hidden;
+}
+.wijmo-wijsuperpanel-handle *
+{
+    font-size:0px;
+}
+.wijmo-wijsuperpanel-helper
+{
+    border-style: dotted;
+    background: transparent;
+}
+
+.wijmo-wijsuperpanel-button
+{
+    position: absolute;
+    padding: 4px;
+}
+.wijmo-wijsuperpanel .ui-icon-gripsmall-diagonal-se
+{
+    background: none;
+    width: 7px;
+    height: 7px;
+}
+.wijmo-wijsuperpanel-hbar-buttonleft
+{
+    left: 0;
+}
+.wijmo-wijsuperpanel-hbar-buttonright
+{
+    right: 0;
+}
+.wijmo-wijsuperpanel-vbar-buttontop
+{
+    top: 0;
+}
+.wijmo-wijsuperpanel-vbar-buttonbottom
+{
+    bottom: 0;
+}

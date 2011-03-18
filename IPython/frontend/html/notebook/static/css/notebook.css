@@ -1,0 +1,173 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+body {
+    background-color: white;
+}
+
+span#ipython_notebook h1 {
+    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    font-size: 32pt;
+    padding: 10px;
+    margin: 10px;
+}
+
+
+div#toolbar {
+    width: 100%;
+    height: auto;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+	padding: 5px;
+}
+
+#main_toolbar {
+}
+
+#main_toolbar button {
+    font-size: 0.9em;
+}
+
+div.notebook {
+    width: 760px;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    background-color: white;
+
+/*  Uncomment this block for help in debugging the padding and margins
+/*    border-left-width: 1px;
+    border-left-style: solid;
+    border-left-color: black;
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-right-color: black;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;*/
+}
+
+div.cell {
+    width: 740px;
+    margin: 5px 5px 5px 5px;
+    padding: 5px;
+    font-size: 11pt;
+    position: relative;
+}
+
+div.code_cell {
+    background-color: white;
+}
+
+div.prompt {
+    vertical-align: top;
+    display: table-cell;
+    width: 85px;
+    min-width 80px !important;
+    font-family: Menlo, "Courier New", Courier, mono;
+    font-weight: normal;
+    font-style: normal;
+}
+
+div.input {
+    display: table;
+    height: auto;
+}
+
+div.input_prompt {
+    color: blue;
+}
+
+
+textarea.input_area {
+    text-align: left;
+    font-family: Menlo, "Courier New", Courier, mono;
+    font-size: inherit;
+    border-style: none;
+    display: table-cell;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    font-weight: normal;
+    font-style: normal;
+    width: 665px;
+    outline: none;
+    resize: none;
+}
+
+
+div.output {
+    display: table;
+}
+
+div.output_prompt {
+    color: red;
+}
+
+div.output_area {
+    text-align: left;
+    font-family: Menlo, "Courier New", Courier, mono;
+    font-size: inherit;
+    margin:  0;
+    padding:  0;
+    display: table-cell;
+    width:  665px;
+}
+
+div.text_cell {
+    background-color: white;
+}
+
+textarea.text_cell_input {
+    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    font-size: inherit;
+    outline: none;
+    resize: none;
+    width:  inherit;
+    border-style: none;
+    padding: 0;
+    margin: 0;
+    color: black;
+}
+
+div.text_cell_render {
+    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    font-size: inherit;
+    outline: none;
+    resize: none;
+    width:  inherit;
+    border-style: none;
+    padding: 0;
+    margin: 0;
+    color: black;
+}
+
+div.text_cell_render em {
+    font-style: italic;
+}
+
+div.text_cell_render strong {
+    font-weight: bold;
+}
+
