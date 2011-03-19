@@ -10,12 +10,12 @@ view.run('communicator.py')
 view.execute('com = EngineCommunicator()')
 
 # gather the connection information into a dict
-ar = view.apply_async_bound(lambda : com.info)
+ar = view.apply_async(lambda : com.info)
 peers = ar.get_dict()
 # this is a dict, keyed by engine ID, of the connection info for the EngineCommunicators
 
 # connect the engines to each other:
-view.apply_sync_bound(lambda pdict: com.connect(pdict), peers)
+view.apply_sync(lambda pdict: com.connect(pdict), peers)
 
 # now all the engines are connected, and we can communicate between them:
 
@@ -34,7 +34,7 @@ def send(client, sender, targets, msg_name, dest_name=None, block=None):
         msg = globals()[m_name]
         return com.send(targets, msg)
         
-    client[sender].apply_async_bound(_send, targets, msg_name)
+    client[sender].apply_async(_send, targets, msg_name)
     
     return client[targets].execute('%s=com.recv()'%dest_name, block=None)
 

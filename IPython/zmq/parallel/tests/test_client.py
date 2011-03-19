@@ -165,6 +165,17 @@ class TestClient(ClusterTestCase):
         v.execute('b=f()')
         self.assertEquals(v['b'], 5)
     
+    def test_push_function_defaults(self):
+        """test that pushed functions preserve default args"""
+        def echo(a=10):
+            return a
+        self.add_engines(1)
+        v = self.client[-1]
+        v.block=True
+        v['f'] = echo
+        v.execute('b=f()')
+        self.assertEquals(v['b'], 10)
+
     def test_get_result(self):
         """test getting results from the Hub."""
         c = clientmod.Client(profile='iptest')
@@ -195,7 +206,7 @@ class TestClient(ClusterTestCase):
                 """)
         v = self.client[-1]
         v.run(tmpfile, block=True)
-        self.assertEquals(v.apply_sync_bound(lambda : g()), 5)
+        self.assertEquals(v.apply_sync(lambda : g()), 5)
 
     def test_apply_tracked(self):
         """test tracking for apply"""
@@ -245,8 +256,7 @@ class TestClient(ClusterTestCase):
         v = self.client[-1]
         v['a'] = 123
         ra = clientmod.Reference('a')
-        b = v.apply_sync_bound(lambda x: x, ra)
+        b = v.apply_sync(lambda x: x, ra)
         self.assertEquals(b, 123)
-        self.assertRaisesRemote(NameError, v.apply_sync, lambda x: x, ra)
 
 

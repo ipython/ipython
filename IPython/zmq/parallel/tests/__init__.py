@@ -4,8 +4,7 @@ import tempfile
 import time
 from subprocess import Popen, PIPE, STDOUT
 
-from IPython.zmq.parallel.ipcluster import launch_process
-from IPython.zmq.parallel.entry_point import select_random_ports
+from IPython.zmq.parallel import client
 
 processes = []
 blackhole = tempfile.TemporaryFile()
@@ -17,7 +16,10 @@ def setup():
     processes.append(cp)
     time.sleep(.5)
     add_engine()
-    time.sleep(2)
+    c = client.Client(profile='iptest')
+    while not c.ids:
+        time.sleep(.1)
+        c.spin()
 
 def add_engine(profile='iptest'):
     ep = Popen(['ipenginez']+ ['--profile', profile, '--log-level', '40'], stdout=blackhole, stderr=STDOUT)
@@ -42,5 +44,5 @@ def teardown():
                 print 'killing'
                 p.kill()
             except:
-                print "couldn't shutdown process: ",p
+                print "couldn't shutdown process: ", p
     

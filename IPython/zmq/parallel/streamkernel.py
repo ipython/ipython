@@ -34,7 +34,7 @@ from .client import Client
 from .error import wrap_exception
 from .factory import SessionFactory
 from .streamsession import StreamSession
-from .util import serialize_object, unpack_apply_message, ISO8601
+from .util import serialize_object, unpack_apply_message, ISO8601, Namespace
 
 def printer(*args):
     pprint(args, stream=sys.__stdout__)
@@ -305,35 +305,38 @@ class Kernel(SessionFactory):
                 sys.stdout.set_parent(parent)
                 sys.stderr.set_parent(parent)
             # exec "f(*args,**kwargs)" in self.user_ns, self.user_ns
-            if bound:
-                working = self.user_ns
-                suffix = str(msg_id).replace("-","")
-                prefix = "_"
-                
-            else:
-                working = dict()
-                suffix = prefix = "_" # prevent keyword collisions with lambda
+            working = self.user_ns
+            # suffix = 
+            prefix = "_"+str(msg_id).replace("-","")+"_"
+            # if bound:
+            #     
+            # else:
+            #     working = dict()
+            #     suffix = prefix = "_" # prevent keyword collisions with lambda
             f,args,kwargs = unpack_apply_message(bufs, working, copy=False)
+            if bound:
+                bound_ns = Namespace(working)
+                args = [bound_ns]+list(args)
             # if f.fun
             fname = getattr(f, '__name__', 'f')
             
-            fname = prefix+fname.strip('<>')+suffix
-            argname = prefix+"args"+suffix
-            kwargname = prefix+"kwargs"+suffix
-            resultname = prefix+"result"+suffix
+            fname = prefix+"f"
+            argname = prefix+"args"
+            kwargname = prefix+"kwargs"
+            resultname = prefix+"result"
             
-            ns = { fname : f, argname : args, kwargname : kwargs }
+            ns = { fname : f, argname : args, kwargname : kwargs , resultname : None }
             # print ns
             working.update(ns)
             code = "%s=%s(*%s,**%s)"%(resultname, fname, argname, kwargname)
-            exec code in working, working
-            result = working.get(resultname)
-            # clear the namespace
-            if bound:
+            try:
+                exec code in working,working
+                result = working.get(resultname)
+            finally:
                 for key in ns.iterkeys():
-                    self.user_ns.pop(key)
-            else:
-                del working
+                    working.pop(key)
+            if bound:
+                working.update(bound_ns)
             
             packed_result,buf = serialize_object(result)
             result_buf = [packed_result]+buf

@@ -15,6 +15,23 @@ from IPython.utils.newserialized import serialize, unserialize
 
 ISO8601="%Y-%m-%dT%H:%M:%S.%f"
 
+class Namespace(dict):
+    """Subclass of dict for attribute access to keys."""
+    
+    def __getattr__(self, key):
+        """getattr aliased to getitem"""
+        if key in self.iterkeys():
+            return self[key]
+        else:
+            raise NameError(key)
+
+    def __setattr__(self, key, value):
+        """setattr aliased to setitem, with strict"""
+        if hasattr(dict, key):
+            raise KeyError("Cannot override dict keys %r"%key)
+        self[key] = value
+    
+
 class ReverseDict(dict):
     """simple double-keyed subset of dict methods."""
     
@@ -264,7 +281,18 @@ def unpack_apply_message(bufs, g=None, copy=True):
     for k in sorted(skwargs.iterkeys()):
         sa = skwargs[k]
         if sa.data is None:
-            sa.data = bufs.pop(0)
+            m = bufs.pop(0)
+            if sa.getTypeDescriptor() in ('buffer', 'ndarray'):
+                if copy:
+                    sa.data = buffer(m)
+                else:
+                    sa.data = m.buffer
+            else:
+                if copy:
+                    sa.data = m
+                else:
+                    sa.data = m.bytes
+
         kwargs[k] = uncan(unserialize(sa), g)
     
     return f,args,kwargs

@@ -66,6 +66,7 @@ class CannedFunction(CannedObject):
     def __init__(self, f):
         self._checkType(f)    
         self.code = f.func_code
+        self.defaults = f.func_defaults
         self.__name__ = f.__name__
     
     def _checkType(self, obj):
@@ -74,7 +75,7 @@ class CannedFunction(CannedObject):
     def getObject(self, g=None):
         if g is None:
             g = globals()
-        newFunc = FunctionType(self.code, g)
+        newFunc = FunctionType(self.code, g, self.__name__, self.defaults)
         return newFunc
 
 #-------------------------------------------------------------------------------

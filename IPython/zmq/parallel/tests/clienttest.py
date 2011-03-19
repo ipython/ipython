@@ -91,8 +91,8 @@ class ClusterTestCase(BaseZMQTestCase):
     def tearDown(self):
         self.client.close()
         BaseZMQTestCase.tearDown(self)
-    #     [ e.terminate() for e in filter(lambda e: e.poll() is None, self.engines) ]
-    #     [ e.wait() for e in self.engines ]
+        # [ e.terminate() for e in filter(lambda e: e.poll() is None, self.engines) ]
+        # [ e.wait() for e in self.engines ]
     #     while len(self.client.ids) > self.base_engine_count:
     #         time.sleep(.1)
     #     del self.engines

@@ -74,6 +74,7 @@ class View(HasTraits):
     """
     block=Bool(False)
     bound=Bool(False)
+    track=Bool(False)
     history=List()
     outstanding = Set()
     results = Dict()
@@ -81,7 +82,7 @@ class View(HasTraits):
     
     _ntargets = Int(1)
     _balanced = Bool(False)
-    _default_names = List(['block', 'bound'])
+    _default_names = List(['block', 'bound', 'track'])
     _targets = Any()
     
     def __init__(self, client=None, targets=None):
@@ -139,7 +140,12 @@ class View(HasTraits):
         block : bool
             whether to wait for results
         bound : bool
-            whether to use the client's namespace
+            whether to pass the client's Namespace as the first argument
+            to functions called via `apply`.
+        track : bool
+            whether to create a MessageTracker to allow the user to 
+            safely edit after arrays and buffers during non-copying
+            sends.
         """
         for key in kwargs:
             if key not in self._default_names:
@@ -161,10 +167,11 @@ class View(HasTraits):
     def apply(self, f, *args, **kwargs):
         """calls f(*args, **kwargs) on remote engines, returning the result.
         
-        This method does not involve the engine's namespace.
+        This method sets all of `client.apply`'s keyword arguments via this
+        View's attributes.
         
         if self.block is False:
-            returns msg_id
+            returns AsyncResult
         else:
             returns actual result of f(*args, **kwargs)
         """
@@ -174,9 +181,7 @@ class View(HasTraits):
     def apply_async(self, f, *args, **kwargs):
         """calls f(*args, **kwargs) on remote engines in a nonblocking manner.
         
-        This method does not involve the engine's namespace.
-        
-        returns msg_id
+        returns AsyncResult
         """
         d = self._defaults('block', 'bound')
         return self.client.apply(f,args,kwargs, block=False, bound=False, **d)
@@ -187,11 +192,9 @@ class View(HasTraits):
         """calls f(*args, **kwargs) on remote engines in a blocking manner,
          returning the result.
         
-        This method does not involve the engine's namespace.
-        
         returns: actual result of f(*args, **kwargs)
         """
-        d = self._defaults('block', 'bound')
+        d = self._defaults('block', 'bound', 'track')
         return self.client.apply(f,args,kwargs, block=True, bound=False, **d)
 
     # @sync_results
@@ -216,9 +219,9 @@ class View(HasTraits):
         """calls f(*args, **kwargs) bound to engine namespace(s) 
         in a nonblocking manner.
         
-        returns: msg_id
+        The first argument to `f` will be the Engine's Namespace
         
-        This method has access to the targets' namespace via globals()
+        returns: AsyncResult
         
         """
         d = self._defaults('block', 'bound')
@@ -229,9 +232,9 @@ class View(HasTraits):
     def apply_sync_bound(self, f, *args, **kwargs):
         """calls f(*args, **kwargs) bound to engine namespace(s), waiting for the result.
         
-        returns: actual result of f(*args, **kwargs)
+        The first argument to `f` will be the Engine's Namespace
         
-        This method has access to the targets' namespace via globals()
+        returns: actual result of f(*args, **kwargs)
         
         """
         d = self._defaults('block', 'bound')
@@ -323,11 +326,11 @@ class View(HasTraits):
     # Decorators
     #-------------------------------------------------------------------
     
-    def remote(self, bound=True, block=True):
+    def remote(self, bound=False, block=True):
         """Decorator for making a RemoteFunction"""
         return remote(self.client, bound=bound, targets=self._targets, block=block, balanced=self._balanced)
     
-    def parallel(self, dist='b', bound=True, block=None):
+    def parallel(self, dist='b', bound=False, block=None):
         """Decorator for making a ParallelFunction"""
         block = self.block if block is None else block
         return parallel(self.client, bound=bound, targets=self._targets, block=block, balanced=self._balanced)
@@ -378,7 +381,7 @@ class DirectView(View):
         block : bool
             whether to wait for the result or not [default self.block]
         bound : bool
-            whether to have access to the engines' namespaces [default self.bound]
+            whether to pass the client's Namespace as the first argument to `f`
         
         Returns
         -------
@@ -572,7 +575,12 @@ class LoadBalancedView(View):
         block : bool
             whether to wait for results
         bound : bool
-            whether to use the engine's namespace
+            whether to pass the client's Namespace as the first argument
+            to functions called via `apply`.
+        track : bool
+            whether to create a MessageTracker to allow the user to 
+            safely edit after arrays and buffers during non-copying
+            sends.
         follow : Dependency, list, msg_id, AsyncResult
             the location dependencies of tasks
         after : Dependency, list, msg_id, AsyncResult
@@ -621,7 +629,11 @@ class LoadBalancedView(View):
         block : bool
             whether to wait for the result or not [default self.block]
         bound : bool
-            whether to use the engine's namespace [default self.bound]
+            whether to pass the client's Namespace as the first argument to `f`
+        track : bool
+            whether to create a MessageTracker to allow the user to 
+            safely edit after arrays and buffers during non-copying
+            sends.
         chunk_size : int
             how many elements should be in each task [default 1]
         

@@ -68,7 +68,7 @@ constructed via list-access to the client:
 
 .. seealso::
 
-    For more information, see the in-depth explanation of :ref:`Views <parallel_view>`.
+    For more information, see the in-depth explanation of :ref:`Views <parallel_details>`.
 
 
 Quick and easy parallelism
@@ -232,8 +232,8 @@ blocks until the engines are done executing the command:
 
     In [5]: dview['b'] = 10
 
-    In [6]: dview.apply_bound(lambda x: a+b+x, 27)
-    Out[6]: [42, 42, 42, 42]%exit
+    In [6]: dview.apply_sync(lambda x: a+b+x, 27)
+    Out[6]: [42, 42, 42, 42]
 
 Python commands can be executed on specific engines by calling execute using the ``targets``
 keyword argument in :meth:`client.execute`, or creating a :class:`DirectView` instance by
@@ -265,7 +265,13 @@ Bound and unbound execution
 
 The previous example also shows one of the most important things about the IPython
 engines: they have a persistent user namespaces. The :meth:`apply` method can
-be run in either a bound or unbound manner:
+be run in either a bound or unbound manner.
+
+When applying a function in a `bound` manner, the first argument to that function
+will be the Engine's namespace, which is a :class:`Namespace` object, a dictionary
+also providing attribute-access to keys.
+
+In all (unbound and bound) execution
 
 .. sourcecode:: ipython
 
@@ -273,31 +279,16 @@ be run in either a bound or unbound manner:
     
     In [10]: v0 = rc[0]
     
-    In [12]: v0.apply_sync_bound(lambda : b)
-    Out[12]: 5
+    # multiply b*2 inplace
+    In [12]: v0.apply_sync_bound(lambda ns: ns.b*=2)
     
-    In [13]: v0.apply_sync(lambda : b)
-    ---------------------------------------------------------------------------
-    RemoteError                               Traceback (most recent call last)
-    /home/you/<ipython-input-34-21a468eb10f0> in <module>()
-    ----> 1 v0.apply(lambda : b)
-    ...
-    RemoteError: NameError(global name 'b' is not defined)
-    Traceback (most recent call last):
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 294, in apply_request
-        exec code in working, working
-      File "<string>", line 1, in <module>
-      File "<ipython-input-34-21a468eb10f0>", line 1, in <lambda>
-    NameError: global name 'b' is not defined
-    
+    # b is still available in globals during unbound execution
+    In [13]: v0.apply_sync(lambda a: a*b, 3)
+    Out[13]: 30
 
-Specifically, `bound=True` specifies that the engine's namespace is to be used
-as the `globals` when the function is called, and `bound=False` specifies that 
-the engine's namespace is not to be used (hence, 'b' is undefined during unbound 
-execution, since the function is called in an empty namespace). Unbound execution is 
-often useful for large numbers of atomic tasks, which prevents bloating the engine's
-memory, while bound execution lets you build on your previous work.
-
+`bound=True` specifies that the engine's namespace is to be passed as the first argument when
+the function is called, and the default `bound=False` specifies that the normal behavior, but
+the engine's namespace will be available as the globals() when the function is called.
 
 Non-blocking execution
 ----------------------
@@ -469,7 +460,7 @@ specifying the index of the result to be requested. It is simply a shortcut to t
 
 .. sourcecode:: ipython
     
-    In [29]: dv.apply_async_bound(lambda : ev)
+    In [29]: dv.apply_async(lambda : ev)
     
     In [30]: %result
     Out[30]: [ [ 1.28167017  0.14197338],

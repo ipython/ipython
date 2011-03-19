@@ -22,7 +22,7 @@ from .asyncresult import AsyncMapResult
 #-----------------------------------------------------------------------------
 
 @testdec.skip_doctest
-def remote(client, bound=True, block=None, targets=None, balanced=None):
+def remote(client, bound=False, block=None, targets=None, balanced=None):
     """Turn a function into a remote function.
     
     This method can be used for map:
@@ -37,7 +37,7 @@ def remote(client, bound=True, block=None, targets=None, balanced=None):
     return remote_function
 
 @testdec.skip_doctest
-def parallel(client, dist='b', bound=True, block=None, targets='all', balanced=None):
+def parallel(client, dist='b', bound=False, block=None, targets='all', balanced=None):
     """Turn a function into a parallel remote function.
     
     This method can be used for map:

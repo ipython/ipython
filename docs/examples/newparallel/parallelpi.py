@@ -42,7 +42,7 @@ print "done"
 
 # Run 10m digits on 1 engine
 t1 = clock()
-freqs10m = c[id0].apply_sync_bound(compute_two_digit_freqs, files[0])
+freqs10m = c[id0].apply_sync(compute_two_digit_freqs, files[0])
 t2 = clock()
 digits_per_second1 = 10.0e6/(t2-t1)
 print "Digits per second (1 core, 10m digits):   ", digits_per_second1

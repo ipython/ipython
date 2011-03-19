@@ -298,6 +298,8 @@ The basic cases that are checked:
     This analysis has not been proven to be rigorous, so it is likely possible for tasks
     to become impossible to run in obscure situations, so a timeout may be a good choice.
 
+.. _parallel_schedulers:
+
 Schedulers
 ==========
 
@@ -309,6 +311,12 @@ of a controller config object.
 
 The built-in routing schemes:
 
+To select one of these schemes, simply do::
+
+    $ ipcontrollerz --scheme <schemename>
+    for instance:
+    $ ipcontrollerz --scheme lru
+
 lru: Least Recently Used
 
     Always assign work to the least-recently-used engine.  A close relative of
@@ -316,11 +324,12 @@ lru: Least Recently Used
     with respect to runtime of each task.
 
 plainrandom: Plain Random
+
     Randomly picks an engine on which to run.
 
 twobin: Two-Bin Random
 
-    **Depends on numpy**
+    **Requires numpy**
     
      Pick two engines at random, and use the LRU of the two. This is known to be better
     than plain random in many cases, but requires a small amount of computation.
@@ -333,7 +342,7 @@ leastload: Least Load
 
 weighted: Weighted Two-Bin Random
 
-    **Depends on numpy**
+    **Requires numpy**
     
     Pick two engines at random using the number of outstanding tasks as inverse weights,
     and use the one with the lower load.
@@ -360,7 +369,7 @@ Disabled features when using the ZMQ Scheduler:
     allows graceful handling of Engines coming and going.  There is no way to know
     where ZeroMQ messages have gone, so there is no way to know what tasks are on which
     engine until they *finish*.  This makes recovery from engine shutdown very difficult.
-  
+
 
 .. note::
 

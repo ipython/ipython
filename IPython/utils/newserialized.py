@@ -102,7 +102,7 @@ class SerializeIt(object):
                 self.typeDescriptor = 'ndarray'
                 self.metadata = {'shape':self.obj.shape,
                                  'dtype':self.obj.dtype.str}
-        elif isinstance(self.obj, bytes):
+        elif isinstance(self.obj, str):
             self.typeDescriptor = 'bytes'
             self.metadata = {}
         elif isinstance(self.obj, buffer):
@@ -148,7 +148,7 @@ class UnSerializeIt(UnSerialized):
         typeDescriptor = self.serialized.getTypeDescriptor()
         if globals().has_key('numpy') and typeDescriptor == 'ndarray':
                 buf = self.serialized.getData()
-                if isinstance(buf, (buffer,bytes)):
+                if isinstance(buf, (str, buffer)):
                     result = numpy.frombuffer(buf, dtype = self.serialized.metadata['dtype'])
                 else:
                     # memoryview

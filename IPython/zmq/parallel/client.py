@@ -45,30 +45,29 @@ from .view import DirectView, LoadBalancedView
 # helpers for implementing old MEC API via client.apply
 #--------------------------------------------------------------------------
 
-def _push(ns):
+def _push(user_ns, **ns):
     """helper method for implementing `client.push` via `client.apply`"""
-    globals().update(ns)
+    user_ns.update(ns)
 
-def _pull(keys):
+def _pull(user_ns, keys):
     """helper method for implementing `client.pull` via `client.apply`"""
-    g = globals()
     if isinstance(keys, (list,tuple, set)):
         for key in keys:
-            if not g.has_key(key):
+            if not user_ns.has_key(key):
                 raise NameError("name '%s' is not defined"%key)
-        return map(g.get, keys)
+        return map(user_ns.get, keys)
     else:
-        if not g.has_key(keys):
+        if not user_ns.has_key(keys):
             raise NameError("name '%s' is not defined"%keys)
-        return g.get(keys)
+        return user_ns.get(keys)
 
-def _clear():
+def _clear(user_ns):
     """helper method for implementing `client.clear` via `client.apply`"""
-    globals().clear()
+    user_ns.clear()
 
-def _execute(code):
+def _execute(user_ns, code):
     """helper method for implementing `client.execute` via `client.apply`"""
-    exec code in globals()
+    exec code in user_ns
     
 
 #--------------------------------------------------------------------------
@@ -946,7 +945,7 @@ class Client(HasTraits):
             return list(Dependency(dep))
         
     @defaultblock
-    def apply(self, f, args=None, kwargs=None, bound=True, block=None,
+    def apply(self, f, args=None, kwargs=None, bound=False, block=None,
                         targets=None, balanced=None,
                         after=None, follow=None, timeout=None,
                         track=False):
@@ -963,9 +962,8 @@ class Client(HasTraits):
             The positional arguments passed to `f`
         kwargs : dict
             The keyword arguments passed to `f`
-        bound : bool (default: True)
-            Whether to execute in the Engine(s) namespace, or in a clean
-            namespace not affecting the engine.
+        bound : bool (default: False)
+            Whether to pass the Engine(s) Namespace as the first argument to `f`.
         block : bool (default: self.block)
             Whether to wait for the result, or return immediately.
             False:
@@ -1171,12 +1169,12 @@ class Client(HasTraits):
     #--------------------------------------------------------------------------
     
     @defaultblock
-    def remote(self, bound=True, block=None, targets=None, balanced=None):
+    def remote(self, bound=False, block=None, targets=None, balanced=None):
         """Decorator for making a RemoteFunction"""
         return remote(self, bound=bound, targets=targets, block=block, balanced=balanced)
     
     @defaultblock
-    def parallel(self, dist='b', bound=True, block=None, targets=None, balanced=None):
+    def parallel(self, dist='b', bound=False, block=None, targets=None, balanced=None):
         """Decorator for making a ParallelFunction"""
         return parallel(self, bound=bound, targets=targets, block=block, balanced=balanced)
     
@@ -1249,19 +1247,21 @@ class Client(HasTraits):
         """Push the contents of `ns` into the namespace on `target`"""
         if not isinstance(ns, dict):
             raise TypeError("Must be a dict, not %s"%type(ns))
-        result = self.apply(_push, (ns,), targets=targets, block=block, bound=True, balanced=False, track=track)
+        result = self.apply(_push, kwargs=ns, targets=targets, block=block, bound=True, balanced=False, track=track)
         if not block:
             return result
     
     @defaultblock
     def pull(self, keys, targets='all', block=None):
         """Pull objects from `target`'s namespace by `keys`"""
-        if isinstance(keys, str):
+        if isinstance(keys, basestring):
             pass
         elif isinstance(keys, (list,tuple,set)):
             for key in keys:
-                if not isinstance(key, str):
-                    raise TypeError
+                if not isinstance(key, basestring):
+                    raise TypeError("keys must be str, not type %r"%type(key))
+        else:
+            raise TypeError("keys must be strs, not %r"%keys)
         result = self.apply(_pull, (keys,), targets=targets, block=block, bound=True, balanced=False)
         return result
     
