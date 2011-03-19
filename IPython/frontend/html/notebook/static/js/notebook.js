@@ -16,7 +16,7 @@ var Notebook = function (selector) {
 
 Notebook.prototype.bind_events = function () {
     var that = this;
-    that.element.keydown(function (event) {
+    $(document).keydown(function (event) {
         console.log(event);
         if (event.which == 38 && event.shiftKey) {
             that.select_prev();
@@ -24,6 +24,7 @@ Notebook.prototype.bind_events = function () {
             that.select_next();
         } else if (event.which == 13 && event.shiftKey) {
             // The focus is not quite working here.
+            event.preventDefault();
             that.insert_code_cell_after();
         }
     });
@@ -155,7 +156,7 @@ Notebook.prototype.insert_cell_before = function (cell, index) {
         this.append_cell(cell);
         return this;
     };
-    if (index > 0 && index < ncells) {
+    if (index >= 0 && index < ncells) {
         this.cell_elements().eq(index).before(cell.element);
     };
     return this;
@@ -170,6 +171,7 @@ Notebook.prototype.move_cell_up = function (index) {
         if (pivot !== null && tomove !== null) {
             tomove.detach();
             pivot.before(tomove);
+            this.select(i-1);
         };
     };
     return this;
@@ -184,6 +186,7 @@ Notebook.prototype.move_cell_down = function (index) {
         if (pivot !== null && tomove !== null) {
             tomove.detach();
             pivot.after(tomove);
+            this.select(i+1);
         };
     };
     return this;
@@ -321,7 +324,10 @@ var Cell = function (notebook) {
 Cell.prototype.select = function () {
     this.element.addClass('ui-widget-content ui-corner-all');
     this.selected = true;
+    // TODO: we need t test across browsers to see if both of these are needed.
+    // In the meantime, there should not be any harm in having them both.
     this.element.find('textarea').trigger('focusin');
+    this.element.find('textarea').trigger('focus');
 };
 
 
@@ -445,25 +451,50 @@ TextCell.prototype.create_element = function () {
 };
 
 
-TextCell.prototype.config_mathjax = function () {
+TextCell.prototype.select = function () {
+    this.edit();
+    Cell.prototype.select.apply(this);
+};
+
+
+TextCell.prototype.edit = function () {
     var text_cell = this.element;
     var input = text_cell.find("textarea.text_cell_input");
-    var output = text_cell.find("div.text_cell_render");
+    var output = text_cell.find("div.text_cell_render");    
+    output.hide();
+    input.show().trigger('focus');
+};
 
+
+TextCell.prototype.render = function () {
+    var text_cell = this.element;
+    var input = text_cell.find("textarea.text_cell_input");
+    var output = text_cell.find("div.text_cell_render");    
+    var text = input.val();
+    output.html(text)
+    input.html(text);
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    input.hide();
+    output.show();
+};
+
+
+TextCell.prototype.config_mathjax = function () {
+    var text_cell = this.element;
+    var that = this;
     text_cell.click(function () {
-        output.hide();
-        input.show().trigger('focus');
+        that.edit();
     }).focusout(function () {
-        var text = input.val();
-        output.html(text)
-        input.html(text);
-        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-        input.hide();
-        output.show();
+        that.render();
     });
     
     text_cell.trigger("focusout");
 };
+
+
+//============================================================================
+// On document ready
+//============================================================================
 
 
 $(document).ready(function () {
