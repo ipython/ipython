@@ -281,6 +281,7 @@ Notebook.prototype.code_to_text = function (index) {
         this.insert_text_cell_after(i);
         var target_cell = this.cells()[i+1];
         var text = source_element.find("textarea.input_area").val();
+        if (text === "") {text = target_cell.placeholder;};
         target_cell.element.find("textarea.text_cell_input").val(text);
         target_cell.element.find("textarea.text_cell_input").html(text);
         target_cell.element.find("div.text_cell_render").html(text);
@@ -430,6 +431,7 @@ CodeCell.prototype.set_output_prompt = function (number) {
 
 var TextCell = function (notebook) {
     Cell.apply(this, arguments);
+    this.placeholder = "Type <strong>HTML</strong> and LaTeX: $\\alpha^2$"
 };
 
 
@@ -437,9 +439,9 @@ TextCell.prototype = new Cell();
 
 
 TextCell.prototype.create_element = function () {
-    var cell = $('<div></div').addClass('cell text_cell').
+    var cell = $("<div>").addClass('cell text_cell').
                append(
-                   $('<textarea>Type HTML/LaTex content here</textarea>').
+                   $("<textarea>" + this.placeholder + "</textarea>").
                    addClass('text_cell_input').
                    attr('rows',1).
                    attr('cols',80).
