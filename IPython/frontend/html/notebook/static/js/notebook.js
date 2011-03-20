@@ -19,8 +19,10 @@ Notebook.prototype.bind_events = function () {
     $(document).keydown(function (event) {
         console.log(event);
         if (event.which == 38 && event.shiftKey) {
+            event.preventDefault();
             that.select_prev();
         } else if (event.which == 40 && event.shiftKey) {
+            event.preventDefault();
             that.select_next();
         } else if (event.which == 13 && event.shiftKey) {
             // The focus is not quite working here.
