@@ -202,7 +202,8 @@ class HistoryManager(Configurable):
                                 (n,), raw=raw, output=output)
         return reversed(list(cur))
         
-    def get_hist_search(self, pattern="*", raw=True, output=False):
+    def get_hist_search(self, pattern="*", raw=True, search_raw=True,
+                                                        output=False):
         """Search the database using unix glob-style matching (wildcards * and
         ?, escape using \).
         
@@ -210,7 +211,7 @@ class HistoryManager(Configurable):
         -------
         An iterator over tuples: (session, line_number, command)
         """
-        tosearch = "source_raw" if raw else "source"
+        tosearch = "source_raw" if search_raw else "source"
         if output:
             tosearch = "history." + tosearch
         self.writeout_cache()
@@ -307,13 +308,15 @@ class HistoryManager(Configurable):
         """
         if source_raw is None:
             source_raw = source
+        source = source.rstrip()
+        source_raw = source_raw.rstrip()
             
         # do not store exit/quit commands
         if source_raw.strip() in self._exit_commands:
             return
         
-        self.input_hist_parsed.append(source.rstrip())
-        self.input_hist_raw.append(source_raw.rstrip())
+        self.input_hist_parsed.append(source)
+        self.input_hist_raw.append(source_raw)
         
         self.db_input_cache.append((self.session_number, line_num,
                                     source, source_raw))
@@ -556,59 +559,95 @@ def magic_rep(self, arg):
     variable) to the next input prompt. Allows you to create elaborate command
     lines without using copy-paste::
     
-        $ l = ["hei", "vaan"]       
-        $ "".join(l)        
-        ==> heivaan        
-        $ %rep        
-        $ heivaan_ <== cursor blinking    
+         In[1]: l = ["hei", "vaan"]
+         In[2]: "".join(l)
+        Out[2]: heivaan
+         In[3]: %rep
+         In[4]: heivaan_ <== cursor blinking
     
     %rep 45
     
-    Place history line 45 to next input prompt. Use %hist to find out the
-    number.
+    Place history line 45 on the next input prompt. Use %hist to find
+    out the number.
     
     %rep 1-4 6-7 3
     
-    Repeat the specified lines immediately. Input slice syntax is the same as
-    in %macro and %save.
+    Combine the specified lines into one cell, and place it on the next
+    input prompt. History slice syntax is the same as in %macro and %save.
     
-    %rep foo
+    %rep foo+bar
     
-    Place the most recent line that has the substring "foo" to next input.
-    (e.g. 'svn ci -m foobar').    
+    If foo+bar can be evaluated in the user namespace, the result is
+    placed at the next input prompt. Otherwise, the history is searched
+    for lines which contain that substring, and the most recent one is
+    placed at the next input prompt.
     """
-    
-    opts,args = self.parse_options(arg,'',mode='list')
-    if not args:                # Last output
+    if not arg:                 # Last output
         self.set_next_input(str(self.shell.user_ns["_"]))
         return
+                                # Get history range
+    histlines = self.history_manager.get_hist_from_rangestr(arg)
+    cmd = "\n".join(x[2] for x in histlines)
+    if cmd:
+        self.set_next_input(cmd.rstrip())
+        return
 
-    arg = " ".join(args)
-    histlines = self.history_manager.get_hist_from_rangestr(arg, raw=False)
-    histlines = [x[2] for x in histlines]
-    
-    if len(histlines) > 1:      # Execute immediately
-        histlines = "\n".join(histlines)
-        print("=== Executing: ===")
-        print(histlines)
-        print("=== Output: ===")
-        self.run_source(histlines, symbol="exec")
-    
-    elif len(histlines) == 1:   # Editable input
-        self.set_next_input(histlines[0].rstrip())
-    
-    else:                       # Search for term - editable input
+    try:                        # Variable in user namespace
+        cmd = str(eval(arg, self.shell.user_ns))
+    except Exception:           # Search for term in history
         histlines = self.history_manager.get_hist_search("*"+arg+"*")
         for h in reversed([x[2] for x in histlines]):
             if 'rep' in h:
                 continue
             self.set_next_input(h.rstrip())
             return
-        print("Not found in history:", arg)
+    else:
+        self.set_next_input(cmd.rstrip())
+    print("Couldn't evaluate or find in history:", arg)
+        
+def magic_rerun(self, parameter_s=''):
+    """Re-run previous input
+    
+    By default, you can specify ranges of input history to be repeated
+    (as with %hist). With no arguments, it will repeat the last line.
+    
+    Options:
+    
+      -l <n> : Repeat the last n lines of input, not including the
+      current command.
+      
+      -g foo : Repeat the most recent line which contains foo
+    """
+    opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
+    if "l" in opts:         # Last n lines
+        n = int(opts['l']) + 1
+        hist = self.history_manager.get_hist_tail(n, raw=False)
+    elif "g" in opts:       # Search
+        p = "*"+opts['g']+"*"
+        hist = self.history_manager.get_hist_search(p, raw=False)
+        hist = list(hist)[-2:]
+    elif args:              # Specify history ranges
+        hist = self.history_manager.get_hist_from_rangestr(args)
+    else:                   # Last line
+        hist = self.history_manager.get_hist_tail(2, raw=False)
+    hist = [x[2] for x in hist]
+    if hist and parameter_s in hist[-1]:
+        hist = hist[:-1]
+    if not hist:
+        print("No lines in history match specification")
+        return
+    histlines = "\n".join(hist)
+    print("=== Executing: ===")
+    print(histlines)
+    print("=== Output: ===")
+    self.run_source("\n".join(hist), symbol="exec")
 
 
 def init_ipython(ip):
     ip.define_magic("rep", magic_rep) 
+    ip.define_magic("recall", magic_rep)
+    ip.define_magic("rerun", magic_rerun)
+    ip.define_magic("r", magic_rerun)
     ip.define_magic("hist",magic_history)    # Alternative name
     ip.define_magic("history",magic_history)
 

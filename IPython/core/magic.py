@@ -3029,38 +3029,6 @@ Defaulting color scheme to 'NoColor'"""
         if parameter_s:
             return self.shell.getoutput(parameter_s)
 
-    def magic_r(self, parameter_s=''):
-        """Repeat previous input.
-
-        Note: Consider using the more powerfull %rep instead!
-        
-        If given an argument, repeats the previous command which starts with
-        the same string, otherwise it just repeats the previous input.
-
-        Shell escaped commands (with ! as first character) are not recognized
-        by this system, only pure python code and magic commands.
-        """
-
-        start = parameter_s.strip()
-        esc_magic = ESC_MAGIC
-        # Identify magic commands even if automagic is on (which means
-        # the in-memory version is different from that typed by the user).
-        if self.shell.automagic:
-            start_magic = esc_magic+start
-        else:
-            start_magic = start
-        # Look through the input history in reverse
-        for n in range(len(self.shell.history_manager.input_hist_parsed)-2,0,-1):
-            input = self.shell.history_manager.input_hist_parsed[n]
-            # skip plain 'r' lines so we don't recurse to infinity
-            if input != '_ip.magic("r")\n' and \
-                   (input.startswith(start) or input.startswith(start_magic)):
-                #print 'match',`input`  # dbg
-                print 'Executing:',input,
-                self.shell.run_cell(input)
-                return
-        print 'No previous input matching `%s` found.' % start
-
     
     def magic_bookmark(self, parameter_s=''):
         """Manage IPython's bookmark system.
