@@ -1,3 +1,5 @@
+import sys
+import tempfile
 import time
 from signal import SIGINT
 from multiprocessing import Process
@@ -62,7 +64,7 @@ class ClusterTestCase(BaseZMQTestCase):
         while time.time()-tic < timeout and len(self.client.ids) < n:
             time.sleep(0.1)
         
-        assert not self.client.ids < n, "waiting for engines timed out"
+        assert not len(self.client.ids) < n, "waiting for engines timed out"
     
     def connect_client(self):
         """connect a client with my Context, and track its sockets for cleanup"""
@@ -89,12 +91,15 @@ class ClusterTestCase(BaseZMQTestCase):
         self.engines=[]
     
     def tearDown(self):
+        
+        # close fds:
+        for e in filter(lambda e: e.poll() is not None, processes):
+            processes.remove(e)
+        
         self.client.close()
         BaseZMQTestCase.tearDown(self)
-        # [ e.terminate() for e in filter(lambda e: e.poll() is None, self.engines) ]
-        # [ e.wait() for e in self.engines ]
-    #     while len(self.client.ids) > self.base_engine_count:
-    #         time.sleep(.1)
-    #     del self.engines
-    #     BaseZMQTestCase.tearDown(self)
+        # this will be superfluous when pyzmq merges PR #88
+        self.context.term()
+        print tempfile.TemporaryFile().fileno(),
+        sys.stdout.flush()
         

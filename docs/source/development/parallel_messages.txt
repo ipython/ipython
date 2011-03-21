@@ -124,9 +124,10 @@ Client Queries (``XREP``)
 *************************
 
 The hub monitors and logs all queue traffic, so that clients can retrieve past
-results or monitor pending tasks. Currently, this information resides in memory on the
-Controller, but will ultimately be offloaded to a database over an additional ZMQ
-connection. The interface should remain the same or at least similar.
+results or monitor pending tasks. This information may reside in-memory on the Hub, or
+on disk in a database (SQLite and MongoDB are currently supported).  These requests are
+handled by the same socket as registration.
+
 
 :func:`queue_request` requests can specify multiple engines to query via the `targets`
 element. A verbose flag can be passed, to determine whether the result should be the list

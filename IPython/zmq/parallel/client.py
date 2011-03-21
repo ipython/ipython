@@ -270,8 +270,9 @@ class Client(HasTraits):
     _control_socket=Instance('zmq.Socket')
     _iopub_socket=Instance('zmq.Socket')
     _notification_socket=Instance('zmq.Socket')
-    _mux_socket=Instance('zmq.Socket')
-    _task_socket=Instance('zmq.Socket')
+    _apply_socket=Instance('zmq.Socket')
+    _mux_ident=Str()
+    _task_ident=Str()
     _task_scheme=Str()
     _balanced_views=Dict()
     _direct_views=Dict()
@@ -401,16 +402,16 @@ class Client(HasTraits):
             self._ids.append(eid)
         self._ids = sorted(self._ids)
         if sorted(self._engines.keys()) != range(len(self._engines)) and \
-                        self._task_scheme == 'pure' and self._task_socket:
+                        self._task_scheme == 'pure' and self._task_ident:
             self._stop_scheduling_tasks()
     
     def _stop_scheduling_tasks(self):
         """Stop scheduling tasks because an engine has been unregistered
         from a pure ZMQ scheduler.
         """
-        
-        self._task_socket.close()
-        self._task_socket = None
+        self._task_ident = ''
+        # self._task_socket.close()
+        # self._task_socket = None
         msg = "An engine has been unregistered, and we are using pure " +\
               "ZMQ task scheduling.  Task farming will be disabled."
         if self.outstanding:
@@ -457,15 +458,18 @@ class Client(HasTraits):
         content = msg.content
         self._config['registration'] = dict(content)
         if content.status == 'ok':
+            self._apply_socket = self._context.socket(zmq.XREP)
+            self._apply_socket.setsockopt(zmq.IDENTITY, self.session.session)
             if content.mux:
-                self._mux_socket = self._context.socket(zmq.XREQ)
-                self._mux_socket.setsockopt(zmq.IDENTITY, self.session.session)
-                connect_socket(self._mux_socket, content.mux)
+                # self._mux_socket = self._context.socket(zmq.XREQ)
+                self._mux_ident = 'mux'
+                connect_socket(self._apply_socket, content.mux)
             if content.task:
                 self._task_scheme, task_addr = content.task
-                self._task_socket = self._context.socket(zmq.XREQ)
-                self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)
-                connect_socket(self._task_socket, task_addr)
+                # self._task_socket = self._context.socket(zmq.XREQ)
+                # self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                connect_socket(self._apply_socket, task_addr)
+                self._task_ident = 'task'
             if content.notification:
                 self._notification_socket = self._context.socket(zmq.SUB)
                 connect_socket(self._notification_socket, content.notification)
@@ -484,7 +488,8 @@ class Client(HasTraits):
                 self._iopub_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._iopub_socket, content.iopub)
             self._update_engines(dict(content.engines))
-                
+            # give XREP apply_socket some time to connect
+            time.sleep(0.25)
         else:
             self._connected = False
             raise Exception("Failed to connect!")
@@ -496,7 +501,7 @@ class Client(HasTraits):
     def _unwrap_exception(self, content):
         """unwrap exception, and remap engineid to int."""
         e = error.unwrap_exception(content)
-        print e.traceback
+        # print e.traceback
         if e.engine_info:
             e_uuid = e.engine_info['engine_uuid']
             eid = self._engines[e_uuid]
@@ -540,7 +545,7 @@ class Client(HasTraits):
             
             self._handle_stranded_msgs(eid, uuid)
                 
-        if self._task_socket and self._task_scheme == 'pure':
+        if self._task_ident and self._task_scheme == 'pure':
             self._stop_scheduling_tasks()
     
     def _handle_stranded_msgs(self, eid, uuid):
@@ -725,10 +730,8 @@ class Client(HasTraits):
         """
         if self._notification_socket:
             self._flush_notifications()
-        if self._mux_socket:
-            self._flush_results(self._mux_socket)
-        if self._task_socket:
-            self._flush_results(self._task_socket)
+        if self._apply_socket:
+            self._flush_results(self._apply_socket)
         if self._control_socket:
             self._flush_control(self._control_socket)
         if self._iopub_socket:
@@ -1030,6 +1033,12 @@ class Client(HasTraits):
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
         
+        if not self._ids:
+            # flush notification socket if no engines yet
+            any_ids = self.ids
+            if not any_ids:
+                raise error.NoEnginesRegistered("Can't execute without any connected engines.")
+        
         if balanced is None:
             if targets is None:
                 # default to balanced if targets unspecified
@@ -1074,7 +1083,7 @@ class Client(HasTraits):
         for name in ('bound', 'block', 'track'):
             assert loc[name] is not None, "kwarg %r must be specified!"%name
         
-        if self._task_socket is None:
+        if not self._task_ident:
             msg = "Task farming is disabled"
             if self._task_scheme == 'pure':
                 msg += " because the pure ZMQ scheduler cannot handle"
@@ -1106,7 +1115,7 @@ class Client(HasTraits):
         bufs = util.pack_apply_message(f,args,kwargs)
         content = dict(bound=bound)
         
-        msg = self.session.send(self._task_socket, "apply_request", 
+        msg = self.session.send(self._apply_socket, "apply_request", ident=self._task_ident,
                 content=content, buffers=bufs, subheader=subheader, track=track)
         msg_id = msg['msg_id']
         self.outstanding.add(msg_id)
@@ -1130,6 +1139,11 @@ class Client(HasTraits):
         This is a private method, see `apply` for details.
         Not to be called directly!
         """
+        
+        if not self._mux_ident:
+            msg = "Multiplexing is disabled"
+            raise RuntimeError(msg)
+        
         loc = locals()
         for name in ('bound', 'block', 'targets', 'track'):
             assert loc[name] is not None, "kwarg %r must be specified!"%name
@@ -1143,8 +1157,8 @@ class Client(HasTraits):
         msg_ids = []
         trackers = []
         for ident in idents:
-            msg = self.session.send(self._mux_socket, "apply_request", 
-                    content=content, buffers=bufs, ident=ident, subheader=subheader,
+            msg = self.session.send(self._apply_socket, "apply_request", 
+                    content=content, buffers=bufs, ident=[self._mux_ident, ident], subheader=subheader,
                     track=track)
             if track:
                 trackers.append(msg['tracker'])

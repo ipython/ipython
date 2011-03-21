@@ -12,7 +12,7 @@ blackhole = tempfile.TemporaryFile()
 # nose setup/teardown
 
 def setup():
-    cp = Popen('ipcontrollerz --profile iptest -r --log-level 40'.split(), stdout=blackhole, stderr=STDOUT)
+    cp = Popen('ipcontrollerz --profile iptest -r --log-level 10 --log-to-file'.split(), stdout=blackhole, stderr=STDOUT)
     processes.append(cp)
     time.sleep(.5)
     add_engine()
@@ -22,7 +22,7 @@ def setup():
         c.spin()
 
 def add_engine(profile='iptest'):
-    ep = Popen(['ipenginez']+ ['--profile', profile, '--log-level', '40'], stdout=blackhole, stderr=STDOUT)
+    ep = Popen(['ipenginez']+ ['--profile', profile, '--log-level', '10', '--log-to-file'], stdout=blackhole, stderr=STDOUT)
     # ep.start()
     processes.append(ep)
     return ep

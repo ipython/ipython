@@ -544,7 +544,8 @@ class TaskScheduler(SessionFactory):
 
 
 def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname='ZMQ', 
-                            log_addr=None, loglevel=logging.DEBUG, scheme='lru'):
+                            log_addr=None, loglevel=logging.DEBUG, scheme='lru',
+                            identity=b'task'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
     
@@ -552,8 +553,11 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname=
     loop = ioloop.IOLoop()
     print (in_addr, out_addr, mon_addr, not_addr)
     ins = ZMQStream(ctx.socket(zmq.XREP),loop)
+    ins.setsockopt(zmq.IDENTITY, identity)
     ins.bind(in_addr)
+    
     outs = ZMQStream(ctx.socket(zmq.XREP),loop)
+    outs.setsockopt(zmq.IDENTITY, identity)
     outs.bind(out_addr)
     mons = ZMQStream(ctx.socket(zmq.PUB),loop)
     mons.connect(mon_addr)

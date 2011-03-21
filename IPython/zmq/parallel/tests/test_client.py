@@ -17,7 +17,6 @@ class TestClient(ClusterTestCase):
         n = len(self.client.ids)
         self.add_engines(3)
         self.assertEquals(len(self.client.ids), n+3)
-        self.assertTrue
     
     def test_segfault_task(self):
         """test graceful handling of engine death (balanced)"""
@@ -179,8 +178,9 @@ class TestClient(ClusterTestCase):
     def test_get_result(self):
         """test getting results from the Hub."""
         c = clientmod.Client(profile='iptest')
-        t = self.client.ids[-1]
+        self.add_engines(1)
         ar = c.apply(wait, (1,), block=False, targets=t)
+        # give the monitor time to notice the message
         time.sleep(.25)
         ahr = self.client.get_result(ar.msg_ids)
         self.assertTrue(isinstance(ahr, AsyncHubResult))

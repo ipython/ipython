@@ -80,6 +80,7 @@ class ControllerFactory(HubFactory):
         # Multiplexer Queue (in a Process)
         q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'in', 'out')
         q.bind_in(self.client_info['mux'])
+        q.setsockopt_in(zmq.IDENTITY, 'mux')
         q.bind_out(self.engine_info['mux'])
         q.connect_mon(maybe_inproc)
         q.daemon=True
@@ -88,6 +89,7 @@ class ControllerFactory(HubFactory):
         # Control Queue (in a Process)
         q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'incontrol', 'outcontrol')
         q.bind_in(self.client_info['control'])
+        q.setsockopt_in(zmq.IDENTITY, 'control')
         q.bind_out(self.engine_info['control'])
         q.connect_mon(maybe_inproc)
         q.daemon=True
@@ -98,6 +100,7 @@ class ControllerFactory(HubFactory):
             q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
             q.setsockopt_out(zmq.HWM, self.hwm)
             q.bind_in(self.client_info['task'][1])
+            q.setsockopt_in(zmq.IDENTITY, 'task')
             q.bind_out(self.engine_info['task'])
             q.connect_mon(maybe_inproc)
             q.daemon=True
