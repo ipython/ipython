@@ -195,17 +195,26 @@ class HistoryManager(Configurable):
         return cur
         
     
-    def get_hist_tail(self, n=10, raw=True, output=False):
-        """Get the last n lines from the history database."""
+    def get_hist_tail(self, n=10, raw=True, output=False, include_latest=False):
+        """Get the last n lines from the history database.
+        
+        If include_latest is False (default), n+1 lines are fetched, and
+        the latest one is discarded. This is intended to be used where
+        the function is called by a user command, which it should not
+        return."""
         self.writeout_cache()
+        if not include_latest:
+            n += 1
         cur = self._get_hist_sql("ORDER BY session DESC, line DESC LIMIT ?",
                                 (n,), raw=raw, output=output)
+        if not include_latest:
+            return reversed(list(cur)[1:])
         return reversed(list(cur))
         
     def get_hist_search(self, pattern="*", raw=True, search_raw=True,
                                                         output=False):
-        """Search the database using unix glob-style matching (wildcards * and
-        ?, escape using \).
+        """Search the database using unix glob-style matching (wildcards
+        * and ?).
         
         Returns
         -------
@@ -620,19 +629,20 @@ def magic_rerun(self, parameter_s=''):
     """
     opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
     if "l" in opts:         # Last n lines
-        n = int(opts['l']) + 1
+        n = int(opts['l'])
         hist = self.history_manager.get_hist_tail(n, raw=False)
     elif "g" in opts:       # Search
         p = "*"+opts['g']+"*"
         hist = self.history_manager.get_hist_search(p, raw=False)
-        hist = list(hist)[-2:]
+        hist = list(hist)
+        if 'magic("rerun' in hist[-1][2]:
+            hist = hist[:-1]   # We can ignore the current line
+        hist = hist[-1:]       # Just get the last match
     elif args:              # Specify history ranges
         hist = self.history_manager.get_hist_from_rangestr(args)
     else:                   # Last line
-        hist = self.history_manager.get_hist_tail(2, raw=False)
+        hist = self.history_manager.get_hist_tail(1, raw=False)
     hist = [x[2] for x in hist]
-    if hist and parameter_s in hist[-1]:
-        hist = hist[:-1]
     if not hist:
         print("No lines in history match specification")
         return
@@ -647,7 +657,6 @@ def init_ipython(ip):
     ip.define_magic("rep", magic_rep) 
     ip.define_magic("recall", magic_rep)
     ip.define_magic("rerun", magic_rerun)
-    ip.define_magic("r", magic_rerun)
     ip.define_magic("hist",magic_history)    # Alternative name
     ip.define_magic("history",magic_history)
 

@@ -59,11 +59,17 @@ def test_history():
             nt.assert_equal(list(gothist), zip([1,1,1],[1,2,3], hist))
             
             # Check get_hist_tail
-            gothist = ip.history_manager.get_hist_tail(4, output=True)
+            gothist = ip.history_manager.get_hist_tail(4, output=True,
+                                                    include_latest=True)
             expected = [(1, 3, (hist[-1], ["spam"])),
                         (2, 1, (newcmds[0], None)),
                         (2, 2, (newcmds[1], None)),
                         (2, 3, (newcmds[2], None)),]
+            nt.assert_equal(list(gothist), expected)
+            
+            gothist = ip.history_manager.get_hist_tail(2)
+            expected = [(2, 1, newcmds[0]),
+                        (2, 2, newcmds[1])]
             nt.assert_equal(list(gothist), expected)
             
             # Check get_hist_search
@@ -92,3 +98,12 @@ def test_extract_hist_ranges():
                 (-7, 1, 6)]
     actual = list(extract_hist_ranges(instr))
     nt.assert_equal(actual, expected)
+    
+def test_magic_rerun():
+    """Simple test for %rerun (no args -> rerun last line)"""
+    ip = get_ipython()
+    ip.run_cell("a = 10")
+    ip.run_cell("a += 1")
+    nt.assert_equal(ip.user_ns["a"], 11)
+    ip.run_cell("%rerun")
+    nt.assert_equal(ip.user_ns["a"], 12)
