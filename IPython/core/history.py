@@ -308,8 +308,8 @@ class HistoryManager(Configurable):
         """
         if source_raw is None:
             source_raw = source
-        source = source.rstrip()
-        source_raw = source_raw.rstrip()
+        source = source.rstrip('\n')
+        source_raw = source_raw.rstrip('\n')
             
         # do not store exit/quit commands
         if source_raw.strip() in self._exit_commands:
