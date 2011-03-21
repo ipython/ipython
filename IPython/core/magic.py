@@ -2275,75 +2275,73 @@ Currently the magic system has the following functions:\n"""
         use_temp = True
 
         data = ''
-        if args[0].isdigit():
-            # Mode where user specifies ranges of lines, like in %macro.
-            # This means that you can't edit files whose names begin with
-            # numbers this way. Tough.
-            data = self.extract_input_lines(args, opts_raw)
-        elif args.endswith('.py'):
+        if args.endswith('.py'):
             filename = make_filename(args)
             use_temp = False
         elif args:
-            try:
-                # Load the parameter given as a variable. If not a string,
-                # process it as an object instead (below)
-
-                #print '*** args',args,'type',type(args)  # dbg
-                data = eval(args, self.shell.user_ns)
-                if not isinstance(data, basestring):
-                    raise DataIsObject
-
-            except (NameError,SyntaxError):
-                # given argument is not a variable, try as a filename
-                filename = make_filename(args)
-                if filename is None:
-                    warn("Argument given (%s) can't be found as a variable "
-                         "or as a filename." % args)
-                    return
-                use_temp = False
-            
-            except DataIsObject:
-                # macros have a special edit function
-                if isinstance(data, Macro):
-                    self._edit_macro(args,data)
-                    return
-                                
-                # For objects, try to edit the file where they are defined
+            # Mode where user specifies ranges of lines, like in %macro.
+            data = self.extract_input_lines(args, opts_raw)
+            if not data:
                 try:
-                    filename = inspect.getabsfile(data)
-                    if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
-                        # class created by %edit? Try to find source
-                        # by looking for method definitions instead, the
-                        # __module__ in those classes is FakeModule.
-                        attrs = [getattr(data, aname) for aname in dir(data)]
-                        for attr in attrs:
-                            if not inspect.ismethod(attr):
-                                continue
-                            filename = inspect.getabsfile(attr)
-                            if filename and 'fakemodule' not in filename.lower():
-                                # change the attribute to be the edit target instead
-                                data = attr 
-                                break
-                    
-                    datafile = 1
-                except TypeError:
+                    # Load the parameter given as a variable. If not a string,
+                    # process it as an object instead (below)
+
+                    #print '*** args',args,'type',type(args)  # dbg
+                    data = eval(args, self.shell.user_ns)
+                    if not isinstance(data, basestring):
+                        raise DataIsObject
+
+                except (NameError,SyntaxError):
+                    # given argument is not a variable, try as a filename
                     filename = make_filename(args)
-                    datafile = 1
-                    warn('Could not find file where `%s` is defined.\n'
-                         'Opening a file named `%s`' % (args,filename))
-                # Now, make sure we can actually read the source (if it was in
-                # a temp file it's gone by now).
-                if datafile:
+                    if filename is None:
+                        warn("Argument given (%s) can't be found as a variable "
+                             "or as a filename." % args)
+                        return
+                    use_temp = False
+                
+                except DataIsObject:
+                    # macros have a special edit function
+                    if isinstance(data, Macro):
+                        self._edit_macro(args,data)
+                        return
+                                    
+                    # For objects, try to edit the file where they are defined
                     try:
-                        if lineno is None:
-                            lineno = inspect.getsourcelines(data)[1]
-                    except IOError:
+                        filename = inspect.getabsfile(data)
+                        if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
+                            # class created by %edit? Try to find source
+                            # by looking for method definitions instead, the
+                            # __module__ in those classes is FakeModule.
+                            attrs = [getattr(data, aname) for aname in dir(data)]
+                            for attr in attrs:
+                                if not inspect.ismethod(attr):
+                                    continue
+                                filename = inspect.getabsfile(attr)
+                                if filename and 'fakemodule' not in filename.lower():
+                                    # change the attribute to be the edit target instead
+                                    data = attr 
+                                    break
+                        
+                        datafile = 1
+                    except TypeError:
                         filename = make_filename(args)
-                        if filename is None:
-                            warn('The file `%s` where `%s` was defined cannot '
-                                 'be read.' % (filename,data))
-                            return
-                use_temp = False
+                        datafile = 1
+                        warn('Could not find file where `%s` is defined.\n'
+                             'Opening a file named `%s`' % (args,filename))
+                    # Now, make sure we can actually read the source (if it was in
+                    # a temp file it's gone by now).
+                    if datafile:
+                        try:
+                            if lineno is None:
+                                lineno = inspect.getsourcelines(data)[1]
+                        except IOError:
+                            filename = make_filename(args)
+                            if filename is None:
+                                warn('The file `%s` where `%s` was defined cannot '
+                                     'be read.' % (filename,data))
+                                return
+                    use_temp = False
 
         if use_temp:
             filename = self.shell.mktempfile(data)
@@ -2370,7 +2368,7 @@ Currently the magic system has the following functions:\n"""
             print
         else:
             print 'done. Executing edited code...'
-            if opts_r:
+            if opts_raw:
                 self.shell.run_cell(file_read(filename))
             else:
                 self.shell.safe_execfile(filename,self.shell.user_ns,
