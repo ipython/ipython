@@ -41,7 +41,7 @@ class EngineFactory(RegistrationFactory):
         super(EngineFactory, self).__init__(**kwargs)
         ctx = self.context
         
-        reg = ctx.socket(zmq.PAIR)
+        reg = ctx.socket(zmq.XREQ)
         reg.setsockopt(zmq.IDENTITY, self.ident)
         reg.connect(self.url)
         self.registrar = zmqstream.ZMQStream(reg, self.loop)
@@ -74,16 +74,26 @@ class EngineFactory(RegistrationFactory):
             task_addr = msg.content.task
             if task_addr:
                 shell_addrs.append(str(task_addr))
-            shell_streams = []
+            
+            # Uncomment this to go back to two-socket model
+            # shell_streams = []
+            # for addr in shell_addrs:
+            #     stream = zmqstream.ZMQStream(ctx.socket(zmq.XREP), loop)
+            #     stream.setsockopt(zmq.IDENTITY, identity)
+            #     stream.connect(disambiguate_url(addr, self.location))
+            #     shell_streams.append(stream)
+            
+            # Now use only one shell stream for mux and tasks
+            stream = zmqstream.ZMQStream(ctx.socket(zmq.XREP), loop)
+            stream.setsockopt(zmq.IDENTITY, identity)
+            shell_streams = [stream]
             for addr in shell_addrs:
-                stream = zmqstream.ZMQStream(ctx.socket(zmq.PAIR), loop)
-                stream.setsockopt(zmq.IDENTITY, identity)
                 stream.connect(disambiguate_url(addr, self.location))
-                shell_streams.append(stream)
+            # end single stream-socket
             
             # control stream:
             control_addr = str(msg.content.control)
-            control_stream = zmqstream.ZMQStream(ctx.socket(zmq.PAIR), loop)
+            control_stream = zmqstream.ZMQStream(ctx.socket(zmq.XREP), loop)
             control_stream.setsockopt(zmq.IDENTITY, identity)
             control_stream.connect(disambiguate_url(control_addr, self.location))
             

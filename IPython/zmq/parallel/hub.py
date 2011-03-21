@@ -119,10 +119,6 @@ class HubFactory(RegistrationFactory):
     def _mon_port_default(self):
         return select_random_ports(1)[0]
     
-    query_port = Instance(int, config=True)
-    def _query_port_default(self):
-        return select_random_ports(1)[0]
-    
     notifier_port = Instance(int, config=True)
     def _notifier_port_default(self):
         return select_random_ports(1)[0]
@@ -194,11 +190,11 @@ class HubFactory(RegistrationFactory):
         loop = self.loop
         
         # Registrar socket
-        reg = ZMQStream(ctx.socket(zmq.XREP), loop)
-        reg.bind(client_iface % self.regport)
+        q = ZMQStream(ctx.socket(zmq.XREP), loop)
+        q.bind(client_iface % self.regport)
         self.log.info("Hub listening on %s for registration."%(client_iface%self.regport))
         if self.client_ip != self.engine_ip:
-            reg.bind(engine_iface % self.regport)
+            q.bind(engine_iface % self.regport)
             self.log.info("Hub listening on %s for registration."%(engine_iface%self.regport))
         
         ### Engine connections ###
@@ -212,9 +208,6 @@ class HubFactory(RegistrationFactory):
                                 period=self.ping, logname=self.log.name)
 
         ### Client connections ###
-        # Clientele socket
-        c = ZMQStream(ctx.socket(zmq.XREP), loop)
-        c.bind(client_iface%self.query_port)
         # Notifier socket
         n = ZMQStream(ctx.socket(zmq.PUB), loop)
         n.bind(client_iface%self.notifier_port)
@@ -230,7 +223,7 @@ class HubFactory(RegistrationFactory):
         
         # connect the db
         self.log.info('Hub using DB backend: %r'%(self.db_class.split()[-1]))
-        cdir = self.config.Global.cluster_dir
+        # cdir = self.config.Global.cluster_dir
         self.db = import_item(self.db_class)(session=self.session.session, config=self.config)
         time.sleep(.25)
 
@@ -246,7 +239,6 @@ class HubFactory(RegistrationFactory):
 
         self.client_info = {
             'control' : client_iface%self.control[0],
-            'query': client_iface%self.query_port,
             'mux': client_iface%self.mux[0],
             'task' : (self.scheme, client_iface%self.task[0]),
             'iopub' : client_iface%self.iopub[0],
@@ -255,7 +247,7 @@ class HubFactory(RegistrationFactory):
         self.log.debug("Hub engine addrs: %s"%self.engine_info)
         self.log.debug("Hub client addrs: %s"%self.client_info)
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
-                registrar=reg, clientele=c, notifier=n, db=self.db,
+                query=q, notifier=n, db=self.db,
                 engine_info=self.engine_info, client_info=self.client_info,
                 logname=self.log.name)
     
@@ -269,10 +261,8 @@ class Hub(LoggingFactory):
     session: StreamSession object
     <removed> context: zmq context for creating new connections (?)
     queue: ZMQStream for monitoring the command queue (SUB)
-    registrar: ZMQStream for engine registration requests (XREP)
+    query: ZMQStream for engine registration and client queries requests (XREP)
     heartbeat: HeartMonitor object checking the pulse of the engines
-    clientele: ZMQStream for client connections (XREP)
-                not used for jobs, only query/control commands
     notifier: ZMQStream for broadcasting engine registration changes (PUB)
     db: connection to db for out of memory logging of commands
                 NotImplemented
@@ -300,8 +290,7 @@ class Hub(LoggingFactory):
     
     # objects from constructor:
     loop=Instance(ioloop.IOLoop)
-    registrar=Instance(ZMQStream)
-    clientele=Instance(ZMQStream)
+    query=Instance(ZMQStream)
     monitor=Instance(ZMQStream)
     heartmonitor=Instance(HeartMonitor)
     notifier=Instance(ZMQStream)
@@ -317,10 +306,8 @@ class Hub(LoggingFactory):
         session: streamsession for sending serialized data
         # engine:
         queue: ZMQStream for monitoring queue messages
-        registrar: ZMQStream for engine registration
+        query: ZMQStream for engine+client registration and client requests
         heartbeat: HeartMonitor object for tracking engines
-        # client:
-        clientele: ZMQStream for client connections
         # extra:
         db: ZMQStream for db connection (NotImplemented)
         engine_info: zmq address/protocol dict for engine connections
@@ -340,8 +327,7 @@ class Hub(LoggingFactory):
         validate_url_container(self.engine_info)
         
         # register our callbacks
-        self.registrar.on_recv(self.dispatch_register_request)
-        self.clientele.on_recv(self.dispatch_client_msg)
+        self.query.on_recv(self.dispatch_query)
         self.monitor.on_recv(self.dispatch_monitor_traffic)
         
         self.heartmonitor.add_heart_failure_handler(self.handle_heart_failure)
@@ -357,15 +343,13 @@ class Hub(LoggingFactory):
                                 'iopub': self.save_iopub_message,
         }
         
-        self.client_handlers = {'queue_request': self.queue_status,
+        self.query_handlers = {'queue_request': self.queue_status,
                                 'result_request': self.get_results,
                                 'purge_request': self.purge_results,
                                 'load_request': self.check_load,
                                 'resubmit_request': self.resubmit_task,
                                 'shutdown_request': self.shutdown_request,
-                                }
-        
-        self.registrar_handlers = {'registration_request' : self.register_engine,
+                                'registration_request' : self.register_engine,
                                 'unregistration_request' : self.unregister_engine,
                                 'connection_request': self.connection_request,
         }
@@ -418,27 +402,27 @@ class Hub(LoggingFactory):
     # dispatch methods (1 per stream)
     #-----------------------------------------------------------------------------
     
-    def dispatch_register_request(self, msg):
-        """"""
-        self.log.debug("registration::dispatch_register_request(%s)"%msg)
-        idents,msg = self.session.feed_identities(msg)
-        if not idents:
-            self.log.error("Bad Queue Message: %s"%msg, exc_info=True)
-            return
-        try:
-            msg = self.session.unpack_message(msg,content=True)
-        except:
-            self.log.error("registration::got bad registration message: %s"%msg, exc_info=True)
-            return
-        
-        msg_type = msg['msg_type']
-        content = msg['content']
-        
-        handler = self.registrar_handlers.get(msg_type, None)
-        if handler is None:
-            self.log.error("registration::got bad registration message: %s"%msg)
-        else:
-            handler(idents, msg)
+    # def dispatch_registration_request(self, msg):
+    #     """"""
+    #     self.log.debug("registration::dispatch_register_request(%s)"%msg)
+    #     idents,msg = self.session.feed_identities(msg)
+    #     if not idents:
+    #         self.log.error("Bad Query Message: %s"%msg, exc_info=True)
+    #         return
+    #     try:
+    #         msg = self.session.unpack_message(msg,content=True)
+    #     except:
+    #         self.log.error("registration::got bad registration message: %s"%msg, exc_info=True)
+    #         return
+    #     
+    #     msg_type = msg['msg_type']
+    #     content = msg['content']
+    #     
+    #     handler = self.query_handlers.get(msg_type, None)
+    #     if handler is None:
+    #         self.log.error("registration::got bad registration message: %s"%msg)
+    #     else:
+    #         handler(idents, msg)
     
     def dispatch_monitor_traffic(self, msg):
         """all ME and Task queue messages come through here, as well as
@@ -456,37 +440,37 @@ class Hub(LoggingFactory):
             self.log.error("Invalid monitor topic: %s"%switch)
         
     
-    def dispatch_client_msg(self, msg):
-        """Route messages from clients"""
+    def dispatch_query(self, msg):
+        """Route registration requests and queries from clients."""
         idents, msg = self.session.feed_identities(msg)
         if not idents:
-            self.log.error("Bad Client Message: %s"%msg)
+            self.log.error("Bad Query Message: %s"%msg)
             return
         client_id = idents[0]
         try:
             msg = self.session.unpack_message(msg, content=True)
         except:
             content = error.wrap_exception()
-            self.log.error("Bad Client Message: %s"%msg, exc_info=True)
-            self.session.send(self.clientele, "hub_error", ident=client_id, 
+            self.log.error("Bad Query Message: %s"%msg, exc_info=True)
+            self.session.send(self.query, "hub_error", ident=client_id, 
                     content=content)
             return
         
         # print client_id, header, parent, content
         #switch on message type:
         msg_type = msg['msg_type']
-        self.log.info("client:: client %s requested %s"%(client_id, msg_type))
-        handler = self.client_handlers.get(msg_type, None)
+        self.log.info("client::client %s requested %s"%(client_id, msg_type))
+        handler = self.query_handlers.get(msg_type, None)
         try:
             assert handler is not None, "Bad Message Type: %s"%msg_type
         except:
             content = error.wrap_exception()
             self.log.error("Bad Message Type: %s"%msg_type, exc_info=True)
-            self.session.send(self.clientele, "hub_error", ident=client_id, 
+            self.session.send(self.query, "hub_error", ident=client_id, 
                     content=content)
             return
         else:
-            handler(client_id, msg)
+            handler(idents, msg)
             
     def dispatch_db(self, msg):
         """"""
@@ -752,7 +736,7 @@ class Hub(LoggingFactory):
         for k,v in self.keytable.iteritems():
             jsonable[str(k)] = v
         content['engines'] = jsonable
-        self.session.send(self.registrar, 'connection_reply', content, parent=msg, ident=client_id)
+        self.session.send(self.query, 'connection_reply', content, parent=msg, ident=client_id)
     
     def register_engine(self, reg, msg):
         """Register a new engine."""
@@ -801,7 +785,7 @@ class Hub(LoggingFactory):
                         content = error.wrap_exception()
                     break
         
-        msg = self.session.send(self.registrar, "registration_reply", 
+        msg = self.session.send(self.query, "registration_reply", 
                 content=content, 
                 ident=reg)
         
@@ -912,7 +896,7 @@ class Hub(LoggingFactory):
         # for eid,ec in self.engines.iteritems():
         #     self.session.send(s, 'shutdown_request', content=dict(restart=False), ident=ec.queue)
         # time.sleep(1)
-        self.session.send(self.clientele, 'shutdown_reply', content={'status': 'ok'}, ident=client_id)
+        self.session.send(self.query, 'shutdown_reply', content={'status': 'ok'}, ident=client_id)
         dc = ioloop.DelayedCallback(lambda : self._shutdown(), 1000, self.loop)
         dc.start()
     
@@ -929,7 +913,7 @@ class Hub(LoggingFactory):
             targets = self._validate_targets(targets)
         except:
             content = error.wrap_exception()
-            self.session.send(self.clientele, "hub_error", 
+            self.session.send(self.query, "hub_error", 
                     content=content, ident=client_id)
             return
         
@@ -937,7 +921,7 @@ class Hub(LoggingFactory):
         # loads = {}
         for t in targets:
             content[bytes(t)] = len(self.queues[t])+len(self.tasks[t])
-        self.session.send(self.clientele, "load_reply", content=content, ident=client_id)
+        self.session.send(self.query, "load_reply", content=content, ident=client_id)
             
     
     def queue_status(self, client_id, msg):
@@ -953,7 +937,7 @@ class Hub(LoggingFactory):
             targets = self._validate_targets(targets)
         except:
             content = error.wrap_exception()
-            self.session.send(self.clientele, "hub_error", 
+            self.session.send(self.query, "hub_error", 
                     content=content, ident=client_id)
             return
         verbose = content.get('verbose', False)
@@ -968,7 +952,7 @@ class Hub(LoggingFactory):
                 tasks = len(tasks)
             content[bytes(t)] = {'queue': queue, 'completed': completed , 'tasks': tasks}
             # pending
-        self.session.send(self.clientele, "queue_reply", content=content, ident=client_id)
+        self.session.send(self.query, "queue_reply", content=content, ident=client_id)
     
     def purge_results(self, client_id, msg):
         """Purge results from memory. This method is more valuable before we move
@@ -1006,7 +990,7 @@ class Hub(LoggingFactory):
                 uid = self.engines[eid].queue
                 self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
         
-        self.session.send(self.clientele, 'purge_reply', content=reply, ident=client_id)
+        self.session.send(self.query, 'purge_reply', content=reply, ident=client_id)
     
     def resubmit_task(self, client_id, msg, buffers):
         """Resubmit a task."""
@@ -1049,7 +1033,7 @@ class Hub(LoggingFactory):
                 except:
                     content = error.wrap_exception()
                 break
-        self.session.send(self.clientele, "result_reply", content=content, 
+        self.session.send(self.query, "result_reply", content=content, 
                                             parent=msg, ident=client_id,
                                             buffers=buffers)
 

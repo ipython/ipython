@@ -265,7 +265,7 @@ class Client(HasTraits):
     _context = Instance('zmq.Context')
     _config = Dict()
     _engines=Instance(ReverseDict, (), {})
-    _registration_socket=Instance('zmq.Socket')
+    # _hub_socket=Instance('zmq.Socket')
     _query_socket=Instance('zmq.Socket')
     _control_socket=Instance('zmq.Socket')
     _iopub_socket=Instance('zmq.Socket')
@@ -339,12 +339,12 @@ class Client(HasTraits):
             self.session = ss.StreamSession(**key_arg)
         else:
             self.session = ss.StreamSession(username, **key_arg)
-        self._registration_socket = self._context.socket(zmq.XREQ)
-        self._registration_socket.setsockopt(zmq.IDENTITY, self.session.session)
+        self._query_socket = self._context.socket(zmq.XREQ)
+        self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:
-            tunnel.tunnel_connection(self._registration_socket, url, sshserver, **ssh_kwargs)
+            tunnel.tunnel_connection(self._query_socket, url, sshserver, **ssh_kwargs)
         else:
-            self._registration_socket.connect(url)
+            self._query_socket.connect(url)
         
         self.session.debug = self.debug
         
@@ -449,8 +449,8 @@ class Client(HasTraits):
             else:
                 return s.connect(url)
             
-        self.session.send(self._registration_socket, 'connection_request')
-        idents,msg = self.session.recv(self._registration_socket,mode=0)
+        self.session.send(self._query_socket, 'connection_request')
+        idents,msg = self.session.recv(self._query_socket,mode=0)
         if self.debug:
             pprint(msg)
         msg = ss.Message(msg)
@@ -458,29 +458,29 @@ class Client(HasTraits):
         self._config['registration'] = dict(content)
         if content.status == 'ok':
             if content.mux:
-                self._mux_socket = self._context.socket(zmq.PAIR)
+                self._mux_socket = self._context.socket(zmq.XREQ)
                 self._mux_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._mux_socket, content.mux)
             if content.task:
                 self._task_scheme, task_addr = content.task
-                self._task_socket = self._context.socket(zmq.PAIR)
+                self._task_socket = self._context.socket(zmq.XREQ)
                 self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._task_socket, task_addr)
             if content.notification:
                 self._notification_socket = self._context.socket(zmq.SUB)
                 connect_socket(self._notification_socket, content.notification)
-                self._notification_socket.setsockopt(zmq.SUBSCRIBE, "")
-            if content.query:
-                self._query_socket = self._context.socket(zmq.PAIR)
-                self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
-                connect_socket(self._query_socket, content.query)
+                self._notification_socket.setsockopt(zmq.SUBSCRIBE, b'')
+            # if content.query:
+            #     self._query_socket = self._context.socket(zmq.XREQ)
+            #     self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
+            #     connect_socket(self._query_socket, content.query)
             if content.control:
-                self._control_socket = self._context.socket(zmq.PAIR)
+                self._control_socket = self._context.socket(zmq.XREQ)
                 self._control_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._control_socket, content.control)
             if content.iopub:
                 self._iopub_socket = self._context.socket(zmq.SUB)
-                self._iopub_socket.setsockopt(zmq.SUBSCRIBE, '')
+                self._iopub_socket.setsockopt(zmq.SUBSCRIBE, b'')
                 self._iopub_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._iopub_socket, content.iopub)
             self._update_engines(dict(content.engines))
@@ -496,6 +496,7 @@ class Client(HasTraits):
     def _unwrap_exception(self, content):
         """unwrap exception, and remap engineid to int."""
         e = error.unwrap_exception(content)
+        print e.traceback
         if e.engine_info:
             e_uuid = e.engine_info['engine_uuid']
             eid = self._engines[e_uuid]
