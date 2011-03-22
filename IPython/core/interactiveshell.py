@@ -2060,7 +2060,7 @@ class InteractiveShell(Configurable, Magic):
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
 
-    def run_cell(self, cell):
+    def run_cell(self, cell, store_history=True):
         """Run the contents of an entire multiline 'cell' of code, and store it
         in the history.
 
@@ -2111,7 +2111,9 @@ class InteractiveShell(Configurable, Magic):
         cell = ''.join(blocks)
 
         # Store raw and processed history
-        self.history_manager.store_inputs(self.execution_count, cell, raw_cell)
+        if store_history:
+            self.history_manager.store_inputs(self.execution_count, 
+                                                        cell, raw_cell)
 
         self.logger.log(cell, raw_cell)
 
@@ -2123,9 +2125,10 @@ class InteractiveShell(Configurable, Magic):
                 out = self.run_source(blocks[0])
                 # Write output to the database. Does nothing unless
                 # history output logging is enabled.
-                self.history_manager.store_output(self.execution_count)
-                # since we return here, we need to update the execution count
-                self.execution_count += 1
+                if store_history:
+                    self.history_manager.store_output(self.execution_count)
+                    # since we return here, we need to update the execution count
+                    self.execution_count += 1
                 return out
 
             # In multi-block input, if the last block is a simple (one-two
@@ -2154,9 +2157,10 @@ class InteractiveShell(Configurable, Magic):
 
         # Write output to the database. Does nothing unless
         # history output logging is enabled.
-        self.history_manager.store_output(self.execution_count)
-        # Each cell is a *single* input, regardless of how many lines it has
-        self.execution_count += 1
+        if store_history:
+            self.history_manager.store_output(self.execution_count)
+            # Each cell is a *single* input, regardless of how many lines it has
+            self.execution_count += 1
 
     # PENDING REMOVAL: this method is slated for deletion, once our new
     # input logic has been 100% moved to frontends and is stable.

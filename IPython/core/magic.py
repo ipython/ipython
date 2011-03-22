@@ -2369,7 +2369,8 @@ Currently the magic system has the following functions:\n"""
         else:
             print 'done. Executing edited code...'
             if opts_raw:
-                self.shell.run_cell(file_read(filename))
+                self.shell.run_cell(file_read(filename),
+                                                    store_history=False)
             else:
                 self.shell.safe_execfile(filename,self.shell.user_ns,
                                          self.shell.user_ns)

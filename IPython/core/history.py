@@ -630,18 +630,20 @@ def magic_rerun(self, parameter_s=''):
     opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
     if "l" in opts:         # Last n lines
         n = int(opts['l'])
-        hist = self.history_manager.get_hist_tail(n, raw=False)
+        hist = self.history_manager.get_hist_tail(n)
     elif "g" in opts:       # Search
         p = "*"+opts['g']+"*"
-        hist = self.history_manager.get_hist_search(p, raw=False)
-        hist = list(hist)
-        if 'magic("rerun' in hist[-1][2]:
-            hist = hist[:-1]   # We can ignore the current line
-        hist = hist[-1:]       # Just get the last match
+        hist = list(self.history_manager.get_hist_search(p))
+        for l in reversed(hist):
+            if "rerun" not in l[2]:
+                hist = [l]     # The last match which isn't a %rerun
+                break
+        else:
+            hist = []          # No matches except %rerun
     elif args:              # Specify history ranges
         hist = self.history_manager.get_hist_from_rangestr(args)
     else:                   # Last line
-        hist = self.history_manager.get_hist_tail(1, raw=False)
+        hist = self.history_manager.get_hist_tail(1)
     hist = [x[2] for x in hist]
     if not hist:
         print("No lines in history match specification")
@@ -650,7 +652,7 @@ def magic_rerun(self, parameter_s=''):
     print("=== Executing: ===")
     print(histlines)
     print("=== Output: ===")
-    self.run_source("\n".join(hist), symbol="exec")
+    self.run_cell("\n".join(hist), store_history=False)
 
 
 def init_ipython(ip):
