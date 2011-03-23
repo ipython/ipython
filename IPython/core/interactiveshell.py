@@ -192,7 +192,8 @@ class InteractiveShell(Configurable, Magic):
             '"\C-l": clear-screen',
             'set show-all-if-ambiguous on',
             '"\C-o": tab-insert',
-            '"\M-i": "    "',
+            # See bug gh-58 - with \M-i enabled, chars 0x9000-0x9fff
+            # crash IPython.
             '"\M-o": "\d\d\d\d"',
             '"\M-I": "\d\d\d\d"',
             '"\C-r": reverse-search-history',
