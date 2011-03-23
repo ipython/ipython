@@ -428,18 +428,22 @@ class InputSplitter(object):
             return True
 
         # If we already have complete input and we're flush left, the answer
-        # depends.  In line mode, we're done.  But in cell mode, we need to
-        # check how many blocks the input so far compiles into, because if
-        # there's already more than one full independent block of input, then
-        # the client has entered full 'cell' mode and is feeding lines that
-        # each is complete.  In this case we should then keep accepting.
-        # The Qt terminal-like console does precisely this, to provide the
-        # convenience of terminal-like input of single expressions, but
-        # allowing the user (with a separate keystroke) to switch to 'cell'
-        # mode and type multiple expressions in one shot.
+        # depends.  In line mode, if there hasn't been any indentation,
+        # that's it. If we've come back from some indentation, we need
+        # the blank final line to finish.
+        # In cell mode, we need to check how many blocks the input so far
+        # compiles into, because if there's already more than one full
+        # independent block of input, then the client has entered full
+        # 'cell' mode and is feeding lines that each is complete.  In this
+        # case we should then keep accepting. The Qt terminal-like console
+        # does precisely this, to provide the convenience of terminal-like
+        # input of single expressions, but allowing the user (with a
+        # separate keystroke) to switch to 'cell' mode and type multiple
+        # expressions in one shot.
         if self.indent_spaces==0:
             if self.input_mode=='line':
-                return False
+                if not self._full_dedent:
+                    return False
             else:
                 nblocks = len(split_blocks(''.join(self._buffer)))
                 if nblocks==1:

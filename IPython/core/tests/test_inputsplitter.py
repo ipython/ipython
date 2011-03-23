@@ -259,6 +259,17 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertTrue(isp.push_accepts_more())
         isp.push('')
         self.assertFalse(isp.push_accepts_more())
+        
+    def test_push_accepts_more5(self):
+        # In cell mode, inputs must be fed in whole blocks, so skip this test
+        if self.isp.input_mode == 'cell': return
+
+        isp = self.isp
+        isp.push('try:')
+        isp.push('    a = 5')
+        isp.push('except:')
+        isp.push('    raise')
+        self.assertTrue(isp.push_accepts_more())
 
     def test_continuation(self):
         isp = self.isp
