@@ -44,6 +44,21 @@ from zmqshell import ZMQInteractiveShell
 # Module-level logger
 logger = logging.getLogger(__name__)
 
+# FIXME: this needs to be done more cleanly later, once we have proper
+# configuration support.  This is a library, so it shouldn't set a stream
+# handler, see:
+# http://docs.python.org/library/logging.html#configuring-logging-for-a-library
+# But this lets us at least do developer debugging for now by manually turning
+# it on/off.  And once we have full config support, the client entry points
+# will select their logging handlers, as well as passing to this library the
+# logging level.
+
+if 0:  # dbg - set to 1 to actually see the messages.
+    logger.addHandler(logging.StreamHandler())
+    logger.setLevel(logging.DEBUG)
+
+# /FIXME
+
 #-----------------------------------------------------------------------------
 # Main kernel class
 #-----------------------------------------------------------------------------
