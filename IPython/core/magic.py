@@ -981,7 +981,7 @@ Currently the magic system has the following functions:\n"""
 
         Parameters
         ----------
-          -y : force reset without asking for confirmation.
+          -f : force reset without asking for confirmation.
 
         Examples
         --------
