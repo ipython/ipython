@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""Old ipcluster script.  Possibly to be removed."""
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2010-2011  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import os

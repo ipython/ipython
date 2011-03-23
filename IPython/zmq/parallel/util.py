@@ -1,4 +1,15 @@
 """some generic utilities for dealing with classes, urls, and serialization"""
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2010-2011  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import re
 import socket
 
@@ -14,6 +25,10 @@ from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
 from IPython.utils.newserialized import serialize, unserialize
 
 ISO8601="%Y-%m-%dT%H:%M:%S.%f"
+
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 
 class Namespace(dict):
     """Subclass of dict for attribute access to keys."""
@@ -63,6 +78,10 @@ class ReverseDict(dict):
             return self[key]
         except KeyError:
             return default
+
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
 
 def validate_url(url):
     """validate a url for zeromq"""
