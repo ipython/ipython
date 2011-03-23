@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 import zmq
 from zmq.eventloop.zmqstream import ZMQStream
@@ -15,7 +16,21 @@ class SessionManager(object):
     def __del__(self):
         self.stop_all()
 
-    def start_session(self, session_id):
+    @property
+    def session_ids(self):
+        return self._session.keys()
+
+    def __len__(self):
+        return len(self.session_ids)
+
+    def __contains__(self, session_id):
+        if session_id in self.session_ids:
+            return True
+        else:
+            return False
+
+    def start_session(self):
+        session_id = str(uuid.uuid4())
         ports = self.kernel_manager.get_kernel_ports(self.kernel_id)
         iopub_stream = self.create_connected_stream(ports['iopub_port'], zmq.SUB)
         shell_stream = self.create_connected_stream(ports['shell_port'], zmq.XREQ)
@@ -23,6 +38,7 @@ class SessionManager(object):
             iopub_stream = iopub_stream,
             shell_stream = shell_stream
         )
+        return session_id
 
     def stop_session(self, session_id):
         session_dict = self._sessions.get(session_id)
