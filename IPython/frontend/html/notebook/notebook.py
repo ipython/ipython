@@ -1,13 +1,11 @@
 import json
 import logging
 import os
-import uuid
 
 import zmq
 
 # Install the pyzmq ioloop. This has to be done before anything else from
 # tornado is imported.
-from zmq.eventloop.zmqstream import ZMQStream
 from zmq.eventloop import ioloop
 import tornado.ioloop
 tornado.ioloop = ioloop
@@ -21,8 +19,8 @@ from kernelmanager import KernelManager
 
 options.define("port", default=8888, help="run on the given port", type=int)
 
-_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
-_session_id_regex = r"(?P<session_id>\w+)"
+_session_id_regex = r"(?P<session_id>\w+-\w+-\w+-\w+-\w+)"
+_kernel_id_regex = r"(?P<kernel_id>\w+)"
 
 
 class MainHandler(web.RequestHandler):
@@ -30,30 +28,44 @@ class MainHandler(web.RequestHandler):
         self.render('notebook.html')
 
 
-class KernelHandler(web.RequestHandler):
+class BaseKernelHandler(object):
+
+    def get_kernel(self):
+        return self.application.kernel_manager
+
+    def get_session(self, kernel_id):
+        km = self.get_kernel()
+        sm = km.get_session_manager(kernel_id)
+        return sm
+
+
+class KernelHandler(web.RequestHandler, BaseKernelHandler):
 
     def get(self):
-        self.write(json.dumps(self.application.kernel_manager.kernel_ids))
-
-    def post(self):
-        kid = self.application.kernel_manager.start_kernel()
-        logging.info("Starting kernel: %s" % kid)
-        self.write(json.dumps(kid))
-
-
-class SessionHandler(web.RequestHandler):
+        self.write(json.dumps(self.get_kernel().kernel_ids))
 
     def post(self, *args, **kwargs):
         kernel_id = kwargs['kernel_id']
-        session_id = kwargs['session_id']
-        logging.info("Starting session: %s, %s" % (kernel_id,session_id))
-        km = self.application.kernel_manager
-        sm = km.get_session_manager(kernel_id)
-        sm.start_session(session_id)
-        self.finish()
+        self.get_kernel().start_kernel(kernel_id)
+        logging.info("Starting kernel: %s" % kernel_id)
+        self.write(json.dumps(kernel_id))
 
 
-class ZMQStreamHandler(websocket.WebSocketHandler):
+class SessionHandler(web.RequestHandler, BaseKernelHandler):
+
+    def get(self, *args, **kwargs):
+        kernel_id = kwargs['kernel_id']
+        self.write(json.dumps(self.get_session(kernel_id).session_ids))
+
+    def post(self, *args, **kwargs):
+        kernel_id = kwargs['kernel_id']
+        sm = self.get_session(kernel_id)
+        session_id = sm.start_session()
+        logging.info("Starting session: %s, %s" % (kernel_id, session_id))
+        self.write(json.dumps(session_id))
+
+
+class ZMQStreamHandler(websocket.WebSocketHandler, BaseKernelHandler):
 
     stream_name = ''
 
@@ -61,20 +73,17 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         kernel_id = kwargs['kernel_id']
         session_id = kwargs['session_id']
         logging.info("Connection open: %s, %s" % (kernel_id,session_id))
-        sm = self.application.kernel_manager.get_session_manager(kernel_id)
+        sm = self.get_session(kernel_id)
         method_name = "get_%s_stream" % self.stream_name
         method = getattr(sm, method_name)
         self.zmq_stream = method(session_id)
         self.zmq_stream.on_recv(self._on_zmq_reply)
-        self.session_manager = sm
-        self.session_id = session_id
 
     def on_message(self, msg):
         logging.info("Message received: %r" % msg)
-        self.zmq_stream.send(msg)
+        self.zmq_stream.send_unicode(msg)
 
     def on_close(self):
-        logging.info("Connection closed: %s, %s" % (kernel_id,session_id))
         self.zmq_stream.close()
 
     def _on_zmq_reply(self, msg):
@@ -97,8 +106,8 @@ class NotebookApplication(web.Application):
     def __init__(self):
         handlers = [
             (r"/", MainHandler),
-            (r"/kernels", KernelHandler),
-            (r"/kernels/%s/sessions/%s" % (_kernel_id_regex,_session_id_regex), SessionHandler),
+            (r"/kernels/%s" % (_kernel_id_regex,), KernelHandler),
+            (r"/kernels/%s/sessions" % (_kernel_id_regex,), SessionHandler),
             (r"/kernels/%s/sessions/%s/iopub" % (_kernel_id_regex,_session_id_regex), IOPubStreamHandler),
             (r"/kernels/%s/sessions/%s/shell" % (_kernel_id_regex,_session_id_regex), ShellStreamHandler),
         ]
