@@ -1928,17 +1928,18 @@ Currently the magic system has the following functions:\n"""
             tc = clock()-t0
         # skew measurement as little as possible
         glob = self.shell.user_ns
+        locs = self._magic_locals
         clk = clock2
         wtime = time.time
         # time execution
         wall_st = wtime()
         if mode=='eval':
             st = clk()
-            out = eval(code,glob)
+            out = eval(code, glob, locs)
             end = clk()
         else:
             st = clk()
-            exec code in glob
+            exec code in glob, locs
             end = clk()
             out = None
         wall_end = wtime()

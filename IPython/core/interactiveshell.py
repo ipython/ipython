@@ -22,6 +22,7 @@ import __future__
 import abc
 import atexit
 import codeop
+import inspect
 import os
 import re
 import sys
@@ -1727,6 +1728,10 @@ class InteractiveShell(Configurable, Magic):
         valid Python code you can type at the interpreter, including loops and
         compound statements.
         """
+        # Save the scope of the call so magic functions like %time can
+        # evaluate expressions in it.
+        self._magic_locals = inspect.stack()[1][0].f_locals
+        
         args = arg_s.split(' ',1)
         magic_name = args[0]
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
