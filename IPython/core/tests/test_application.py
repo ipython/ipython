@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tests for IPython.core.application"""
 
 import os
@@ -7,7 +8,7 @@ from IPython.core.application import Application
 
 def test_unicode_cwd():
     """Check that IPython starts with non-ascii characters in the path."""
-    wd = tempfile.mkdtemp(suffix="€")
+    wd = tempfile.mkdtemp(suffix=u"€")
     
     old_wd = os.getcwdu()
     os.chdir(wd)
@@ -34,7 +35,7 @@ def test_unicode_cwd():
         
 def test_unicode_ipdir():
     """Check that IPython starts with non-ascii characters in the IP dir."""
-    ipdir = tempfile.mkdtemp(suffix="€")
+    ipdir = tempfile.mkdtemp(suffix=u"€")
     
     # Create the config file, so it tries to load it.
     with open(os.path.join(ipdir, 'ipython_config.py'), "w") as f:
@@ -42,7 +43,7 @@ def test_unicode_ipdir():
     
     old_ipdir1 = os.environ.pop("IPYTHONDIR", None)
     old_ipdir2 = os.environ.pop("IPYTHON_DIR", None)
-    os.environ["IPYTHONDIR"] = ipdir
+    os.environ["IPYTHONDIR"] = ipdir.encode("utf-8")
     try:
         app = Application()
         # The lines below are copied from Application.initialize()
