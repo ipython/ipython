@@ -8,10 +8,11 @@ var IPYTHON = {};
 
 var Notebook = function (selector) {
     this.element = $(selector);
+    this.element.scroll();
     this.element.data("notebook", this);
     this.next_prompt_number = 1;
     this.bind_events();
-}
+};
 
 
 Notebook.prototype.bind_events = function () {
@@ -197,6 +198,7 @@ Notebook.prototype.move_cell_down = function (index) {
 
 Notebook.prototype.sort_cells = function () {
     var ncells = this.ncells();
+    var sindex = this.selected_index();
     var swapped;
     do {
         swapped = false
@@ -209,6 +211,7 @@ Notebook.prototype.sort_cells = function () {
             };
         };
     } while (swapped);
+    this.select(sindex);
     return this;
 };
 
@@ -464,7 +467,7 @@ TextCell.prototype.select = function () {
 TextCell.prototype.edit = function () {
     var text_cell = this.element;
     var input = text_cell.find("textarea.text_cell_input");
-    var output = text_cell.find("div.text_cell_render");    
+    var output = text_cell.find("div.text_cell_render");  
     output.hide();
     input.show().trigger('focus');
 };
@@ -475,6 +478,10 @@ TextCell.prototype.render = function () {
     var input = text_cell.find("textarea.text_cell_input");
     var output = text_cell.find("div.text_cell_render");    
     var text = input.val();
+    if (text === "") {
+        text = this.placeholder;
+        input.val(text);
+    };
     output.html(text)
     input.html(text);
     MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
@@ -494,6 +501,42 @@ TextCell.prototype.config_mathjax = function () {
     
     text_cell.trigger("focusout");
 };
+
+
+//============================================================================
+// On document ready
+//============================================================================
+
+
+var KernelManager = function () {
+    this.kernelid = null;
+    this.baseurl = "/kernels";
+};
+
+
+KernelManager.prototype.create_kernel = function () {
+    var that = this;
+    $.post(this.baseurl, function (data) {
+        that.kernelid = data;
+    }, 'json');
+}
+
+
+KernelManager.prototype.execute = function (code, callback) {
+    var msg = {
+        header : {msg_id : 0, username : "bgranger", session: 0},
+        msg_type : "execute_request",
+        content : {code : code}
+    };
+    var settings = {
+      data : JSON.stringify(msg),
+      processData : false,
+      contentType : "application/json",
+      success : callback,
+      type : "POST"
+    }
+    var url = this.baseurl + "/" + this.kernelid + "/" + ""
+}
 
 
 //============================================================================
