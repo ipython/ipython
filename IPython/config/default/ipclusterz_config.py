@@ -11,7 +11,7 @@ c = get_config()
 # - Start as a regular process on localhost.
 # - Start using mpiexec.
 # - Start using the Windows HPC Server 2008 scheduler
-# - Start using PBS
+# - Start using PBS/SGE
 # - Start using SSH
 
 
@@ -21,13 +21,16 @@ c = get_config()
 # - LocalControllerLauncher
 # - MPIExecControllerLauncher
 # - PBSControllerLauncher
+# - SGEControllerLauncher
 # - WindowsHPCControllerLauncher
 # c.Global.controller_launcher = 'IPython.zmq.parallel.launcher.LocalControllerLauncher'
+c.Global.controller_launcher = 'IPython.zmq.parallel.launcher.PBSControllerLauncher'
 
 # Options are:
 # - LocalEngineSetLauncher
 # - MPIExecEngineSetLauncher
 # - PBSEngineSetLauncher
+# - SGEEngineSetLauncher
 # - WindowsHPCEngineSetLauncher
 # c.Global.engine_launcher = 'IPython.zmq.parallel.launcher.LocalEngineSetLauncher'
 
@@ -136,14 +139,23 @@ c = get_config()
 # Unix batch (PBS) schedulers launchers
 #-----------------------------------------------------------------------------
 
+# SGE and PBS are very similar. All configurables in this section called 'PBS*'
+# also exist as 'SGE*'.
+
 # The command line program to use to submit a PBS job.
-# c.PBSControllerLauncher.submit_command = ['qsub']
+# c.PBSLauncher.submit_command = ['qsub']
 
 # The command line program to use to delete a PBS job.
-# c.PBSControllerLauncher.delete_command = ['qdel']
+# c.PBSLauncher.delete_command = ['qdel']
+
+# The PBS queue in which the job should run
+# c.PBSLauncher.queue = 'myqueue'
 
 # A regular expression that takes the output of qsub and find the job id.
-# c.PBSControllerLauncher.job_id_regexp = r'\d+'
+# c.PBSLauncher.job_id_regexp = r'\d+'
+
+# If for some reason the Controller and Engines have different options above, they
+# can be set as c.PBSControllerLauncher.<option> etc.
 
 # The batch submission script used to start the controller. This is where
 # environment variables would be setup, etc. This string is interpreted using
@@ -151,23 +163,17 @@ c = get_config()
 # number of engine and ${cluster_dir} for the cluster_dir.
 # c.PBSControllerLauncher.batch_template = """
 # #PBS -N ipcontroller
+# #PBS -q $queue
 # 
 # ipcontrollerz --cluster-dir $cluster_dir
 # """
 
+# You can also load this template from a file
+# c.PBSControllerLauncher.batch_template_file = u"/path/to/my/template.sh"
+
 # The name of the instantiated batch script that will actually be used to
 # submit the job. This will be written to the cluster directory.
-# c.PBSControllerLauncher.batch_file_name = u'pbs_batch_script_controller'
-
-
-# The command line program to use to submit a PBS job.
-# c.PBSEngineSetLauncher.submit_command = 'qsub'
-
-# The command line program to use to delete a PBS job.
-# c.PBSEngineSetLauncher.delete_command = 'qdel'
-
-# A regular expression that takes the output of qsub and find the job id.
-# c.PBSEngineSetLauncher.job_id_regexp = r'\d+'
+# c.PBSControllerLauncher.batch_file_name = u'pbs_controller'
 
 # The batch submission script used to start the engines. This is where
 # environment variables would be setup, etc. This string is interpreted using
@@ -180,9 +186,14 @@ c = get_config()
 # ipenginez --cluster-dir $cluster_dir$s
 # """
 
+# You can also load this template from a file
+# c.PBSControllerLauncher.batch_template_file = u"/path/to/my/template.sh"
+
 # The name of the instantiated batch script that will actually be used to
 # submit the job. This will be written to the cluster directory.
-# c.PBSEngineSetLauncher.batch_file_name = u'pbs_batch_script_engines'
+# c.PBSEngineSetLauncher.batch_file_name = u'pbs_engines'
+
+
 
 #-----------------------------------------------------------------------------
 # Windows HPC Server 2008 launcher configuration
