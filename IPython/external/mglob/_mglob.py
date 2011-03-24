@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 r""" mglob - enhanced file list expansion module
 
 Use as stand-alone utility (for xargs, `backticks` etc.), 

@@ -1,18 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Copyright © 2006-2009 Steven J. Bethard <steven.bethard@gmail.com>.
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may not
-# use this file except in compliance with the License. You may obtain a copy
-# of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
+# Author: Steven J. Bethard <steven.bethard@gmail.com>.
 
 """Command-line parsing library
 
@@ -75,7 +61,7 @@ considered public as object names -- the API of the formatter objects is
 still considered an implementation detail.)
 """
 
-__version__ = '1.1a1'
+__version__ = '1.1'
 __all__ = [
     'ArgumentParser',
     'ArgumentError',
@@ -97,39 +83,9 @@ import textwrap as _textwrap
 
 from gettext import gettext as _
 
-try:
-    _set = set
-except NameError:
-    from sets import Set as _set
-
-try:
-    _basestring = basestring
-except NameError:
-    _basestring = str
-
-try:
-    _sorted = sorted
-except NameError:
-
-    def _sorted(iterable, reverse=False):
-        result = list(iterable)
-        result.sort()
-        if reverse:
-            result.reverse()
-        return result
-
 
 def _callable(obj):
     return hasattr(obj, '__call__') or hasattr(obj, '__bases__')
-
-# silence Python 2.6 buggy warnings about Exception.message
-if _sys.version_info[:2] == (2, 6):
-    import warnings
-    warnings.filterwarnings(
-        action='ignore',
-        message='BaseException.message has been deprecated as of Python 2.6',
-        category=DeprecationWarning,
-        module='argparse')
 
 
 SUPPRESS = '==SUPPRESS=='
@@ -163,7 +119,7 @@ class _AttributeHolder(object):
         return '%s(%s)' % (type_name, ', '.join(arg_strings))
 
     def _get_kwargs(self):
-        return _sorted(self.__dict__.items())
+        return sorted(self.__dict__.items())
 
     def _get_args(self):
         return []
@@ -416,7 +372,7 @@ class HelpFormatter(object):
 
     def _format_actions_usage(self, actions, groups):
         # find group indices and identify actions in groups
-        group_actions = _set()
+        group_actions = set()
         inserts = {}
         for group in groups:
             try:
@@ -486,7 +442,7 @@ class HelpFormatter(object):
                 parts.append(part)
 
         # insert things at the necessary indices
-        for i in _sorted(inserts, reverse=True):
+        for i in sorted(inserts, reverse=True):
             parts[i:i] = [inserts[i]]
 
         # join all the action items with spaces
@@ -621,6 +577,9 @@ class HelpFormatter(object):
         for name in list(params):
             if params[name] is SUPPRESS:
                 del params[name]
+        for name in list(params):
+            if hasattr(params[name], '__name__'):
+                params[name] = params[name].__name__
         if params.get('choices') is not None:
             choices_str = ', '.join([str(c) for c in params['choices']])
             params['choices'] = choices_str
@@ -1028,7 +987,7 @@ class _VersionAction(Action):
                  version=None,
                  dest=SUPPRESS,
                  default=SUPPRESS,
-                 help=None):
+                 help="show program's version number and exit"):
         super(_VersionAction, self).__init__(
             option_strings=option_strings,
             dest=dest,
@@ -1169,7 +1128,10 @@ class Namespace(_AttributeHolder):
     """
 
     def __init__(self, **kwargs):
-        self.__dict__.update(**kwargs)
+        for name in kwargs:
+            setattr(self, name, kwargs[name])
+
+    __hash__ = None
 
     def __eq__(self, other):
         return vars(self) == vars(other)
@@ -1296,6 +1258,12 @@ class _ActionsContainer(object):
         if not _callable(action_class):
             raise ValueError('unknown action "%s"' % action_class)
         action = action_class(**kwargs)
+
+        # raise an error if the action type is not callable
+        type_func = self._registry_get('type', action.type, action.type)
+        if not _callable(type_func):
+            raise ValueError('%r is not callable' % type_func)
+
         return self._add_action(action)
 
     def add_argument_group(self, *args, **kwargs):
@@ -1393,12 +1361,6 @@ class _ActionsContainer(object):
         option_strings = []
         long_option_strings = []
         for option_string in args:
-            # error on one-or-fewer-character option strings
-            if len(option_string) < 2:
-                msg = _('invalid option string %r: '
-                        'must be at least two characters long')
-                raise ValueError(msg % option_string)
-
             # error on strings that don't start with an appropriate prefix
             if not option_string[0] in self.prefix_chars:
                 msg = _('invalid option string %r: '
@@ -1406,18 +1368,12 @@ class _ActionsContainer(object):
                 tup = option_string, self.prefix_chars
                 raise ValueError(msg % tup)
 
-            # error on strings that are all prefix characters
-            if not (_set(option_string) - _set(self.prefix_chars)):
-                msg = _('invalid option string %r: '
-                        'must contain characters other than %r')
-                tup = option_string, self.prefix_chars
-                raise ValueError(msg % tup)
-
             # strings starting with two prefix characters are long options
             option_strings.append(option_string)
             if option_string[0] in self.prefix_chars:
-                if option_string[1] in self.prefix_chars:
-                    long_option_strings.append(option_string)
+                if len(option_string) > 1:
+                    if option_string[1] in self.prefix_chars:
+                        long_option_strings.append(option_string)
 
         # infer destination, '--foo-bar' -> 'foo_bar' and '-x' -> 'x'
         dest = kwargs.pop('dest', None)
@@ -1427,6 +1383,9 @@ class _ActionsContainer(object):
             else:
                 dest_option_string = option_strings[0]
             dest = dest_option_string.lstrip(self.prefix_chars)
+            if not dest:
+                msg = _('dest= is required for options like %r')
+                raise ValueError(msg % option_string)
             dest = dest.replace('-', '_')
 
         # return the updated keyword arguments
@@ -1542,7 +1501,6 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         - usage -- A usage message (default: auto-generated from arguments)
         - description -- A description of what the program does
         - epilog -- Text following the argument descriptions
-        - version -- Add a -v/--version option with the given version string
         - parents -- Parsers whose arguments should be copied into this one
         - formatter_class -- HelpFormatter class for printing help messages
         - prefix_chars -- Characters that prefix optional arguments
@@ -1566,6 +1524,14 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
                  argument_default=None,
                  conflict_handler='error',
                  add_help=True):
+
+        if version is not None:
+            import warnings
+            warnings.warn(
+                """The "version" argument to ArgumentParser is deprecated. """
+                """Please use """
+                """"add_argument(..., action='version', version="N", ...)" """
+                """instead""", DeprecationWarning)
 
         superinit = super(ArgumentParser, self).__init__
         superinit(description=description,
@@ -1708,7 +1674,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
                 if not hasattr(namespace, action.dest):
                     if action.default is not SUPPRESS:
                         default = action.default
-                        if isinstance(action.default, _basestring):
+                        if isinstance(action.default, basestring):
                             default = self._get_value(action, default)
                         setattr(namespace, action.dest, default)
 
@@ -1768,8 +1734,8 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         arg_strings_pattern = ''.join(arg_string_pattern_parts)
 
         # converts arg strings to the appropriate and then takes the action
-        seen_actions = _set()
-        seen_non_default_actions = _set()
+        seen_actions = set()
+        seen_non_default_actions = set()
 
         def take_action(action, argument_strings, option_string=None):
             seen_actions.add(action)
@@ -1973,7 +1939,10 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
                 try:
                     args_file = open(arg_string[1:])
                     try:
-                        arg_strings = args_file.read().splitlines()
+                        arg_strings = []
+                        for arg_line in args_file.read().splitlines():
+                            for arg in self.convert_arg_line_to_args(arg_line):
+                                arg_strings.append(arg)
                         arg_strings = self._read_args_from_files(arg_strings)
                         new_arg_strings.extend(arg_strings)
                     finally:
@@ -1984,6 +1953,9 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
 
         # return the modified argument list
         return new_arg_strings
+
+    def convert_arg_line_to_args(self, arg_line):
+        return [arg_line]
 
     def _match_argument(self, action, arg_strings_pattern):
         # match the pattern for this action to the arg strings
@@ -2029,14 +2001,14 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         if not arg_string[0] in self.prefix_chars:
             return None
 
-        # if it's just dashes, it was meant to be positional
-        if not arg_string.strip('-'):
-            return None
-
         # if the option string is present in the parser, return the action
         if arg_string in self._option_string_actions:
             action = self._option_string_actions[arg_string]
             return action, arg_string, None
+
+        # if it's just a single character, it was meant to be positional
+        if len(arg_string) == 1:
+            return None
 
         # if the option string before the "=" is present, return the action
         if '=' in arg_string:
@@ -2176,7 +2148,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
                 value = action.const
             else:
                 value = action.default
-            if isinstance(value, _basestring):
+            if isinstance(value, basestring):
                 value = self._get_value(action, value)
                 self._check_value(action, value)
 
@@ -2279,6 +2251,11 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         return formatter.format_help()
 
     def format_version(self):
+        import warnings
+        warnings.warn(
+            'The format_version method is deprecated -- the "version" '
+            'argument to ArgumentParser is no longer supported.',
+            DeprecationWarning)
         formatter = self._get_formatter()
         formatter.add_text(self.version)
         return formatter.format_help()
@@ -2300,6 +2277,11 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         self._print_message(self.format_help(), file)
 
     def print_version(self, file=None):
+        import warnings
+        warnings.warn(
+            'The print_version method is deprecated -- the "version" '
+            'argument to ArgumentParser is no longer supported.',
+            DeprecationWarning)
         self._print_message(self.format_version(), file)
 
     def _print_message(self, message, file=None):
