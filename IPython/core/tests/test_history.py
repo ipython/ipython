@@ -17,8 +17,10 @@ import nose.tools as nt
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
 
-def test_history():
+def setUp():
     nt.assert_equal(sys.getdefaultencoding(), "ascii")
+
+def test_history():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
         #tmpdir = '/software/temp'

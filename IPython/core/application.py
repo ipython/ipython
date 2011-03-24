@@ -362,6 +362,10 @@ class Application(object):
         This tries to load the config file from disk.  If successful, the
         ``CONFIG_FILE`` config variable is set to the resolved config file
         location.  If not successful, an empty config is used.
+        
+        By default, errors in loading config are handled, and a warning
+        printed on screen. For testing, the suppress_errors option is set
+        to False, so errors will make tests fail.
         """
         self.log.debug("Attempting to load config file: %s" %
                        self.config_file_name)

@@ -168,6 +168,10 @@ def make_exclude():
 
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
+        
+    # We do this unconditionally, so that the test suite doesn't import
+    # gtk, changing the default encoding and masking some unicode bugs.
+    exclusions.append(ipjoin('lib', 'inputhookgtk'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://bugs.launchpad.net/bugs/366982
