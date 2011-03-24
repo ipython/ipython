@@ -1550,12 +1550,14 @@ class InteractiveShell(Configurable, Magic):
             # otherwise we end up with a monster history after a while:
             readline.set_history_length(self.history_length)
             
+            stdin_encoding = sys.stdin.encoding or "utf-8"
+            
             # Load the last 1000 lines from history
             for _, _, cell in self.history_manager.get_tail(1000,
                                                 include_latest=True):
                 if cell.strip(): # Ignore blank lines
                     for line in cell.splitlines():
-                        readline.add_history(line)
+                        readline.add_history(line.encode(stdin_encoding))
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
@@ -2105,7 +2107,6 @@ class InteractiveShell(Configurable, Magic):
         if len(cell.splitlines()) <= 1:
             cell = self.prefilter_manager.prefilter_line(blocks[0])
             blocks = self.input_splitter.split_blocks(cell)
-        
 
         # Store the 'ipython' version of the cell as well, since that's what
         # needs to go into the translated history and get executed (the
@@ -2246,7 +2247,7 @@ class InteractiveShell(Configurable, Magic):
         else:
             usource = source
 
-        if 0:  # dbg
+        if False:  # dbg
             print 'Source:', repr(source)  # dbg
             print 'USource:', repr(usource)  # dbg
             print 'type:', type(source) # dbg

@@ -83,7 +83,8 @@ def test_history():
             testfilename = os.path.realpath(os.path.join(tmpdir, "test.py"))
             ip.magic_save(testfilename + " ~1/1-3")
             testfile = open(testfilename, "r")
-            nt.assert_equal(testfile.read(), "\n".join(hist))
+            nt.assert_equal(testfile.read().decode("utf-8"),
+                    "# coding: utf-8\n" + "\n".join(hist))
             
             # Duplicate line numbers - check that it doesn't crash, and
             # gets a new session
