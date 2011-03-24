@@ -587,8 +587,6 @@ class InputSplitter(object):
 
         If input lines are not newline-terminated, a newline is automatically
         appended."""
-        if not isinstance(lines, unicode):
-            lines = lines.decode(self.encoding)
         
         if buffer is None:
             buffer = self._buffer
@@ -600,7 +598,7 @@ class InputSplitter(object):
         setattr(self, store, self._set_source(buffer))
 
     def _set_source(self, buffer):
-        return ''.join(buffer)
+        return u''.join(buffer)
 
 
 #-----------------------------------------------------------------------------
