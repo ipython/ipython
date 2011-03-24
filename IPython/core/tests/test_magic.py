@@ -163,8 +163,6 @@ def test_macro():
     # List macros.
     assert "test" in ip.magic("macro")
 
-# XXX This should be a doctest, but the doctest logic doesn't seem to do
-# dynamic transformations (like expanding macros). Doing it like this for now.
 def test_macro_run():
     """Test that we can run a multi-line macro successfully."""
     ip = get_ipython()
