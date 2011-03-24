@@ -158,15 +158,12 @@ class IPythonWidget(FrontendWidget):
             else:
                 super(IPythonWidget, self)._handle_execute_reply(msg)
 
-    def _handle_history_reply(self, msg):
-        """ Implemented to handle history replies, which are only supported by
-            the IPython kernel.
+    def _handle_history_tail_reply(self, msg):
+        """ Implemented to handle history tail replies, which are only supported
+            by the IPython kernel.
         """
-        history_dict = msg['content']['history']
-        input_history_dict = {}
-        for key,val in history_dict.items():
-            input_history_dict[int(key)] = val
-        items = [ val.rstrip() for _, val in sorted(input_history_dict.items()) ]
+        history_items = msg['content']['history']
+        items = [ line.rstrip() for _, _, line in history_items ]
         self._set_history(items)
 
     def _handle_pyout(self, msg):
@@ -213,7 +210,7 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to make a history request.
         """
         super(IPythonWidget, self)._started_channels()
-        self.kernel_manager.xreq_channel.history(raw=True, output=False)
+        self.kernel_manager.xreq_channel.history_tail(1000)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface

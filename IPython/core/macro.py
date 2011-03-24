@@ -8,9 +8,8 @@
 #*****************************************************************************
 
 import IPython.utils.io
-from IPython.core.autocall import IPyAutocall
 
-class Macro(IPyAutocall):
+class Macro(object):
     """Simple class to store the value of macros as strings.
 
     Macro is just a callable that executes a string of IPython
@@ -19,20 +18,15 @@ class Macro(IPyAutocall):
     Args to macro are available in _margv list if you need them.
     """
 
-    def __init__(self,data):
+    def __init__(self,code):
         """store the macro value, as a single string which can be executed"""
-        self.value = ''.join(data).rstrip()+'\n'
+        self.value = code.rstrip()+'\n'
         
     def __str__(self):
         return self.value
 
     def __repr__(self):
         return 'IPython.macro.Macro(%s)' % repr(self.value)
-    
-    def __call__(self,*args):
-        IPython.utils.io.Term.cout.flush()
-        self._ip.user_ns['_margv'] = args
-        self._ip.run_cell(self.value)
     
     def __getstate__(self):
         """ needed for safe pickling via %store """

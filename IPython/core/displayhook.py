@@ -277,10 +277,13 @@ class DisplayHook(Configurable):
                 self.shell.user_ns.update(to_main)
                 self.shell.user_ns['_oh'][self.prompt_count] = result
 
-    def log_output(self, result):
+    def log_output(self, format_dict):
         """Log the output."""
         if self.shell.logger.log_output:
-            self.shell.logger.log_write(repr(result), 'output')
+            self.shell.logger.log_write(format_dict['text/plain'], 'output')
+        # This is a defaultdict of lists, so we can always append
+        self.shell.history_manager.output_hist_reprs[self.prompt_count]\
+                                    .append(format_dict['text/plain'])
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
@@ -300,7 +303,7 @@ class DisplayHook(Configurable):
             format_dict = self.compute_format_data(result)
             self.write_format_data(format_dict)
             self.update_user_ns(result)
-            self.log_output(result)
+            self.log_output(format_dict)
             self.finish_displayhook()
 
     def flush(self):

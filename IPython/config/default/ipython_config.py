@@ -148,3 +148,14 @@ c = get_config()
 # c.AliasManager.user_aliases = [
 #     ('foo', 'echo Hi')
 # ]
+
+#-----------------------------------------------------------------------------
+# HistoryManager options
+#-----------------------------------------------------------------------------
+
+# Enable logging output as well as input to the database.
+# c.HistoryManager.db_log_output = False
+
+# Only write to the database every n commands - this can save disk
+# access (and hence power) over the default of writing on every command.
+# c.HistoryManager.db_cache_size = 0

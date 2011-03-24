@@ -56,11 +56,11 @@ from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io
-from IPython.utils import pickleshare
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
+from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
@@ -251,6 +251,11 @@ class InteractiveShell(Configurable, Magic):
         # is what we want to do.
         self.save_sys_module_state()
         self.init_sys_modules()
+        
+        # While we're trying to have each part of the code directly access what
+        # it needs without keeping redundant references to objects, we have too
+        # much legacy code that expects ip.db to exist.
+        self.db = PickleShareDB(os.path.join(self.ipython_dir, 'db'))
 
         self.init_history()
         self.init_encoding()
@@ -300,14 +305,6 @@ class InteractiveShell(Configurable, Magic):
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
-
-    # While we're trying to have each part of the code directly access what it
-    # needs without keeping redundant references to objects, we have too much
-    # legacy code that expects ip.db to exist, so let's make it a property that
-    # retrieves the underlying object from our new history manager.
-    @property
-    def db(self):
-        return self.history_manager.shadow_db
 
     @classmethod
     def instance(cls, *args, **kwargs):
@@ -994,14 +991,16 @@ class InteractiveShell(Configurable, Magic):
         # Finally, update the real user's namespace
         self.user_ns.update(ns)
 
-    def reset(self):
+    def reset(self, new_session=True):
         """Clear all internal namespaces.
 
         Note that this is much more aggressive than %reset, since it clears
         fully all namespaces, as well as all input/output lists.
+        
+        If new_session is True, a new history session will be opened.
         """
         # Clear histories
-        self.history_manager.reset()
+        self.history_manager.reset(new_session)
 
         # Reset counter used to index all histories
         self.execution_count = 0
@@ -1249,15 +1248,7 @@ class InteractiveShell(Configurable, Magic):
 
     def init_history(self):
         """Sets up the command history, and starts regular autosaves."""
-        self.history_manager = HistoryManager(shell=self)
-
-    def save_history(self):
-        """Save input history to a file (via readline library)."""
-        self.history_manager.save_history()
-
-    def reload_history(self):
-        """Reload the input history from disk file."""
-        self.history_manager.reload_history()
+        self.history_manager = HistoryManager(shell=self, config=self.config)
 
     def history_saving_wrapper(self, func):
         """ Wrap func for readline history saving
@@ -1277,9 +1268,6 @@ class InteractiveShell(Configurable, Magic):
             finally:
                 self.reload_history()
         return wrapper
-    
-    def get_history(self, index=None, raw=False, output=True):
-        return self.history_manager.get_history(index, raw, output)
     
 
     #-------------------------------------------------------------------------
@@ -1561,11 +1549,13 @@ class InteractiveShell(Configurable, Magic):
             readline.set_completer_delims(delims)
             # otherwise we end up with a monster history after a while:
             readline.set_history_length(self.history_length)
-            try:
-                #print '*** Reading readline history'  # dbg
-                self.reload_history() 
-            except IOError:
-                pass  # It doesn't exist yet.
+            
+            # Load the last 1000 lines from history
+            for _, _, cell in self.history_manager.get_tail(1000,
+                                                include_latest=True):
+                if cell.strip(): # Ignore blank lines
+                    for line in cell.splitlines():
+                        readline.add_history(line)
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
@@ -2071,14 +2061,16 @@ class InteractiveShell(Configurable, Magic):
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
 
-    def run_cell(self, cell):
-        """Run the contents of an entire multiline 'cell' of code.
+    def run_cell(self, cell, store_history=True):
+        """Run the contents of an entire multiline 'cell' of code, and store it
+        in the history.
 
         The cell is split into separate blocks which can be executed
         individually.  Then, based on how many blocks there are, they are
         executed as follows:
 
-        - A single block: 'single' mode.
+        - A single block: 'single' mode. If it is also a single line, dynamic
+        transformations, including automagic and macros, will be applied.
 
         If there's more than one block, it depends:
 
@@ -2097,6 +2089,15 @@ class InteractiveShell(Configurable, Magic):
         cell : str
           A single or multiline string.
         """
+        # Store the untransformed code
+        raw_cell = cell
+        
+        # We only do dynamic transforms on a single line. We need to do this
+        # first, because a macro can be expanded to several lines, which then
+        # need to be split into blocks again.
+        if len(cell.splitlines()) <= 1:
+            temp = self.input_splitter.split_blocks(cell)
+            cell = self.prefilter_manager.prefilter_line(temp[0])
         
         # We need to break up the input into executable blocks that can be run
         # in 'single' mode, to provide comfortable user behavior.
@@ -2108,32 +2109,36 @@ class InteractiveShell(Configurable, Magic):
         # Store the 'ipython' version of the cell as well, since that's what
         # needs to go into the translated history and get executed (the
         # original cell may contain non-python syntax).
-        ipy_cell = ''.join(blocks)
+        cell = ''.join(blocks)
 
         # Store raw and processed history
-        self.history_manager.store_inputs(ipy_cell, cell)
+        if store_history:
+            self.history_manager.store_inputs(self.execution_count, 
+                                                        cell, raw_cell)
 
-        self.logger.log(ipy_cell, cell)
+        self.logger.log(cell, raw_cell)
 
         # All user code execution must happen with our context managers active
         with nested(self.builtin_trap, self.display_trap):
 
             # Single-block input should behave like an interactive prompt
             if len(blocks) == 1:
-                # since we return here, we need to update the execution count
-                out = self.run_one_block(blocks[0])
-                self.execution_count += 1
+                out = self.run_source(blocks[0])
+                # Write output to the database. Does nothing unless
+                # history output logging is enabled.
+                if store_history:
+                    self.history_manager.store_output(self.execution_count)
+                    # since we return here, we need to update the execution count
+                    self.execution_count += 1
                 return out
 
             # In multi-block input, if the last block is a simple (one-two
             # lines) expression, run it in single mode so it produces output.
-            # Otherwise just feed the whole thing to run_code.  This seems like
-            # a reasonable usability design.
+            # Otherwise just run it all in 'exec' mode.  This seems like a
+            # reasonable usability design.
             last = blocks[-1]
             last_nlines = len(last.splitlines())
-
-            # Note: below, whenever we call run_code, we must sync history
-            # ourselves, because run_code is NOT meant to manage history at all.
+            
             if last_nlines < 2:
                 # Here we consider the cell split between 'body' and 'last',
                 # store all history and execute 'body', and if successful, then
@@ -2144,55 +2149,19 @@ class InteractiveShell(Configurable, Magic):
                 retcode = self.run_source(ipy_body, symbol='exec',
                                           post_execute=False)
                 if retcode==0:
-                    # And the last expression via runlines so it produces output
-                    self.run_one_block(last)
+                    # Last expression compiled as 'single' so it produces output
+                    self.run_source(last)
             else:
                 # Run the whole cell as one entity, storing both raw and
                 # processed input in history
                 self.run_source(ipy_cell, symbol='exec')
 
-        # Each cell is a *single* input, regardless of how many lines it has
-        self.execution_count += 1
-
-    def run_one_block(self, block):
-        """Run a single interactive block of source code.
-
-        If the block is single-line, dynamic transformations are applied to it
-        (like automagics, autocall and alias recognition).
-
-        If the block is multi-line, it must consist of valid Python code only.
-
-        Parameters
-        ----------
-        block : string
-           A (possibly multiline) string of code to be executed.
-
-        Returns
-        -------
-        The output of the underlying execution method used, be it
-        :meth:`run_source` or :meth:`run_single_line`.
-        """
-        if len(block.splitlines()) <= 1:
-            out = self.run_single_line(block)
-        else:
-            # Call run_source, which correctly compiles the input cell.
-            # run_code must only be called when we know we have a code object,
-            # as it does a naked exec and the compilation mode may not be what
-            # we wanted.
-            out = self.run_source(block)
-        return out
-
-    def run_single_line(self, line):
-        """Run a single-line interactive statement.
-
-        This assumes the input has been transformed to IPython syntax by
-        applying all static transformations (those with an explicit prefix like
-        % or !), but it will further try to apply the dynamic ones.
-
-        It does not update history.
-        """
-        tline = self.prefilter_manager.prefilter_line(line)
-        return self.run_source(tline)
+        # Write output to the database. Does nothing unless
+        # history output logging is enabled.
+        if store_history:
+            self.history_manager.store_output(self.execution_count)
+            # Each cell is a *single* input, regardless of how many lines it has
+            self.execution_count += 1
 
     # PENDING REMOVAL: this method is slated for deletion, once our new
     # input logic has been 100% moved to frontends and is stable.
@@ -2205,8 +2174,8 @@ class InteractiveShell(Configurable, Magic):
         magic calls (%magic), special shell access (!cmd), etc.
         """
         
-        if isinstance(lines, (list, tuple)):
-            lines = '\n'.join(lines)
+        if not isinstance(lines, (list, tuple)):
+            lines = lines.splitlines()
 
         if clean:
             lines = self._cleanup_ipy_script(lines)
@@ -2214,7 +2183,6 @@ class InteractiveShell(Configurable, Magic):
         # We must start with a clean buffer, in case this is run from an
         # interactive IPython session (via a magic, for example).
         self.reset_buffer()
-        lines = lines.splitlines()
 
         # Since we will prefilter all lines, store the user's raw input too
         # before we apply any transformations
@@ -2401,8 +2369,8 @@ class InteractiveShell(Configurable, Magic):
         full_source = '\n'.join(self.buffer)
         more = self.run_source(full_source, self.filename)
         if not more:
-            self.history_manager.store_inputs('\n'.join(self.buffer_raw),
-                                              full_source)
+            self.history_manager.store_inputs(self.execution_count,
+                                        '\n'.join(self.buffer_raw), full_source)
             self.reset_buffer()
             self.execution_count += 1
         return more
@@ -2539,11 +2507,12 @@ class InteractiveShell(Configurable, Magic):
                 os.unlink(tfile)
             except OSError:
                 pass
-
-        self.save_history()
-
+        
+        # Close the history session (this stores the end time and line count)
+        self.history_manager.end_session()
+        
         # Clear all user namespaces to release all references cleanly.
-        self.reset()
+        self.reset(new_session=False)
 
         # Run user hooks
         self.hooks.shutdown_hook()

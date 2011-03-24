@@ -62,7 +62,7 @@ def doctest_hist_f():
 
     In [10]: tfile = tempfile.mktemp('.py','tmp-ipython-')
 
-    In [11]: %hist -n -f $tfile 3
+    In [11]: %hist -nl -f $tfile 3
 
     In [13]: import os; os.unlink(tfile)
     """
@@ -80,7 +80,7 @@ def doctest_hist_r():
 
     In [2]: x=1
 
-    In [3]: %hist -r 2
+    In [3]: %hist -rl 2
     x=1 # random
     %hist -r 2
     """
@@ -150,29 +150,38 @@ def doctest_hist_op():
     <...s instance at ...>
     >>> 
     """
+  
+def test_macro():
+    ip = get_ipython()
+    ip.history_manager.reset()   # Clear any existing history.
+    cmds = ["a=1", "def b():\n  return a**2", "print(a,b())"]
+    for i, cmd in enumerate(cmds, start=1):
+        ip.history_manager.store_inputs(i, cmd)
+    ip.magic("macro test 1-3")
+    nt.assert_equal(ip.user_ns["test"].value, "\n".join(cmds)+"\n")
+    
+    # List macros.
+    assert "test" in ip.magic("macro")
 
-def test_shist():
-    # Simple tests of ShadowHist class - test generator.
-    import os, shutil, tempfile
-
-    from IPython.utils import pickleshare
-    from IPython.core.history import ShadowHist
-    
-    tfile = tempfile.mktemp('','tmp-ipython-')
-    
-    db = pickleshare.PickleShareDB(tfile)
-    s = ShadowHist(db, get_ipython())
-    s.add('hello')
-    s.add('world')
-    s.add('hello')
-    s.add('hello')
-    s.add('karhu')
-
-    yield nt.assert_equals,s.all(),[(1, 'hello'), (2, 'world'), (3, 'karhu')]
-    
-    yield nt.assert_equal,s.get(2),'world'
-    
-    shutil.rmtree(tfile)
+def test_macro_run():
+    """Test that we can run a multi-line macro successfully."""
+    ip = get_ipython()
+    ip.history_manager.reset()
+    cmds = ["a=10", "a+=1", "print a", "%macro test 2-3"]
+    for cmd in cmds:
+        ip.run_cell(cmd)
+    nt.assert_equal(ip.user_ns["test"].value, "a+=1\nprint a\n")
+    original_stdout = sys.stdout
+    new_stdout = StringIO()
+    sys.stdout = new_stdout
+    try:
+        ip.run_cell("test")
+        nt.assert_true("12" in new_stdout.getvalue())
+        ip.run_cell("test")
+        nt.assert_true("13" in new_stdout.getvalue())
+    finally:
+        sys.stdout = original_stdout
+        new_stdout.close()
 
     
 # XXX failing for now, until we get clearcmd out of quarantine.  But we should
