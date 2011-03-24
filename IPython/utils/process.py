@@ -114,11 +114,17 @@ def arg_split(s, posix=False):
     # http://bugs.python.org/issue1170
     # At least encoding the input when it's unicode seems to help, but there
     # may be more problems lurking.  Apparently this is fixed in python3.
+    is_unicode = False
     if isinstance(s, unicode):
-        s = s.encode(sys.stdin.encoding)
+        is_unicode = True
+        s = s.encode('utf-8')
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
-    return list(lex)
+    tokens = list(lex)
+    if is_unicode:
+        # Convert the tokens back to unicode.
+        tokens = [x.decode('utf-8') for x in tokens]
+    return tokens
 
 
 def abbrev_cwd():
