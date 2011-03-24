@@ -35,3 +35,9 @@ class InteractiveShellTestCase(unittest.TestCase):
         # And also multi-line cells
         ip.run_cell('"""a\nb"""\n')
         self.assertEquals(ip.user_ns['_'], 'a\nb')
+        
+    def test_run_empty_cell(self):
+        """Just make sure we don't get a horrible error with a blank
+        cell of input. Yes, I did overlook that."""
+        ip = get_ipython()
+        ip.run_cell('')

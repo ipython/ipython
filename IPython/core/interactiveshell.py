@@ -2092,19 +2092,20 @@ class InteractiveShell(Configurable, Magic):
         # Store the untransformed code
         raw_cell = cell
         
-        # We only do dynamic transforms on a single line. We need to do this
-        # first, because a macro can be expanded to several lines, which then
-        # need to be split into blocks again.
-        if len(cell.splitlines()) <= 1:
-            temp = self.input_splitter.split_blocks(cell)
-            cell = self.prefilter_manager.prefilter_line(temp[0])
-        
         # We need to break up the input into executable blocks that can be run
         # in 'single' mode, to provide comfortable user behavior.
         blocks = self.input_splitter.split_blocks(cell)
         
-        if not blocks:
+        if not blocks:   # Blank cell
             return
+        
+        # We only do dynamic transforms on a single line. But a macro can
+        # be expanded to several lines, so we need to split it into input
+        # blocks again.
+        if len(cell.splitlines()) <= 1:
+            cell = self.prefilter_manager.prefilter_line(blocks[0])
+            blocks = self.input_splitter.split_blocks(cell)
+        
 
         # Store the 'ipython' version of the cell as well, since that's what
         # needs to go into the translated history and get executed (the
