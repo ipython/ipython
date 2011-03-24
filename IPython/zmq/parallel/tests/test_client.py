@@ -1,7 +1,6 @@
 import time
 from tempfile import mktemp
 
-import nose.tools as nt
 import zmq
 
 from IPython.zmq.parallel import client as clientmod
@@ -65,7 +64,7 @@ class TestClient(ClusterTestCase):
         v = self.client[-1]
         self.assert_(isinstance(v, DirectView))
         self.assertEquals(v.targets, targets[-1])
-        nt.assert_raises(TypeError, lambda : self.client[None])
+        self.assertRaises(TypeError, lambda : self.client[None])
     
     def test_view_cache(self):
         """test that multiple view requests return the same object"""
@@ -179,6 +178,7 @@ class TestClient(ClusterTestCase):
         """test getting results from the Hub."""
         c = clientmod.Client(profile='iptest')
         self.add_engines(1)
+        t = c.ids[-1]
         ar = c.apply(wait, (1,), block=False, targets=t)
         # give the monitor time to notice the message
         time.sleep(.25)

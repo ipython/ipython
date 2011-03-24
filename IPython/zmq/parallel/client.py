@@ -284,7 +284,7 @@ class Client(HasTraits):
             ):
         super(Client, self).__init__(debug=debug, profile=profile)
         if context is None:
-            context = zmq.Context()
+            context = zmq.Context.instance()
         self._context = context
             
         
@@ -976,6 +976,10 @@ class Client(HasTraits):
                 returns actual result(s) of f(*args, **kwargs)
                 if multiple targets:
                     list of results, matching `targets`
+        track : bool
+            whether to track non-copying sends.
+            [default False]
+
         targets : int,list of ints, 'all', None
             Specify the destination of the job.
             if None:
@@ -986,34 +990,37 @@ class Client(HasTraits):
                 Run on each specified engine
             if int:
                 Run on single engine
-        
+            Note:
+                that if `balanced=True`, and `targets` is specified,
+                then the load-balancing will be limited to balancing
+                among `targets`.
+
         balanced : bool, default None
             whether to load-balance.  This will default to True
             if targets is unspecified, or False if targets is specified.
-            
-            The following arguments are only used when balanced is True:
+
+            If `balanced` and `targets` are both specified, the task will
+            be assigne to *one* of the targets by the scheduler.
+
+        The following arguments are only used when balanced is True:
+
         after : Dependency or collection of msg_ids
             Only for load-balanced execution (targets=None)
             Specify a list of msg_ids as a time-based dependency.
             This job will only be run *after* the dependencies
             have been met.
-            
+
         follow : Dependency or collection of msg_ids
             Only for load-balanced execution (targets=None)
             Specify a list of msg_ids as a location-based dependency.
             This job will only be run on an engine where this dependency
             is met.
-        
+
         timeout : float/int or None
             Only for load-balanced execution (targets=None)
             Specify an amount of time (in seconds) for the scheduler to
             wait for dependencies to be met before failing with a
             DependencyTimeout.
-        track : bool
-            whether to track non-copying sends.
-            [default False]
-        
-        after,follow,timeout only used if `balanced=True`.
         
         Returns
         -------
@@ -1022,7 +1029,7 @@ class Client(HasTraits):
             return AsyncResult wrapping msg_ids
             output of AsyncResult.get() is identical to that of `apply(...block=True)`
         else:
-            if single target:
+            if single target (or balanced):
                 return result of `f(*args, **kwargs)`
             else:
                 return list of results, matching `targets`

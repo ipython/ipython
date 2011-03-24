@@ -69,8 +69,9 @@ class ClusterTestCase(BaseZMQTestCase):
     def connect_client(self):
         """connect a client with my Context, and track its sockets for cleanup"""
         c = Client(profile='iptest',context=self.context)
-        for name in filter(lambda n:n.endswith('socket'), dir(c)):
-            self.sockets.append(getattr(c, name))
+        
+        # for name in filter(lambda n:n.endswith('socket'), dir(c)):
+        #     self.sockets.append(getattr(c, name))
         return c
     
     def assertRaisesRemote(self, etype, f, *args, **kwargs):
@@ -100,6 +101,6 @@ class ClusterTestCase(BaseZMQTestCase):
         BaseZMQTestCase.tearDown(self)
         # this will be superfluous when pyzmq merges PR #88
         self.context.term()
-        print tempfile.TemporaryFile().fileno(),
-        sys.stdout.flush()
+        # print tempfile.TemporaryFile().fileno(),
+        # sys.stdout.flush()
         

@@ -16,3 +16,8 @@
 # from .remotefunction import *
 # from .view import *
 
+import zmq
+
+if zmq.__version__ < '2.1.3':
+    raise ImportError("IPython.zmq.parallel requires pyzmq/0MQ >= 2.1.3, you appear to have %s"%zmq.__version__)
+
