@@ -98,7 +98,15 @@ class HistoryManager(Configurable):
         else:
             histfname = 'history'
         self.hist_file = os.path.join(shell.ipython_dir, histfname + '.sqlite')
-        self.init_db()
+        try:
+            self.init_db()
+        except sqlite3.DatabaseError:
+            newpath = os.path.join(self.shell.ipython_dir, "hist-corrupt.sqlite")
+            os.rename(self.hist_file, newpath)
+            print("ERROR! History file wasn't a valid SQLite database.",
+            "It was moved to %s" % newpath, "and a new file created.")
+            self.init_db()
+        
         self.new_session()
     
         self._i00, self._i, self._ii, self._iii = '','','',''
@@ -357,8 +365,7 @@ class HistoryManager(Configurable):
         self.input_hist_parsed.append(source)
         self.input_hist_raw.append(source_raw)
         
-        self.db_input_cache.append((self.session_number, line_num,
-                                    source, source_raw))
+        self.db_input_cache.append((line_num, source, source_raw))
         # Trigger to flush cache and write to DB.
         if len(self.db_input_cache) >= self.db_cache_size:
             self.writeout_cache()
@@ -390,22 +397,46 @@ class HistoryManager(Configurable):
         if (not self.db_log_output) or not self.output_hist_reprs[line_num]:
             return
         output = json.dumps(self.output_hist_reprs[line_num])
-        db_row = (self.session_number, line_num, output)
-        if self.db_cache_size > 1:
-            self.db_output_cache.append(db_row)
-        else:
-          with self.db:
-            self.db.execute("INSERT INTO output_history VALUES (?,?,?)", db_row)
         
+        self.db_output_cache.append((line_num, output))
+        if self.db_cache_size <= 1:
+            self.writeout_cache()
+        
+    def _writeout_input_cache(self):
+        for line in self.db_input_cache:
+            with self.db:
+                self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
+                                (self.session_number,)+line)
+    
+    def _writeout_output_cache(self):
+        for line in self.db_output_cache:
+            with self.db:
+                self.db.execute("INSERT INTO output_history VALUES (?, ?, ?)",
+                                (self.session_number,)+line)
+    
     def writeout_cache(self):
-        #print(self.db_input_cache)
-        with self.db:
-            self.db.executemany("INSERT INTO history VALUES (?, ?, ?, ?)",
-                                self.db_input_cache)
-            self.db.executemany("INSERT INTO output_history VALUES (?, ?, ?)",
-                                self.db_output_cache)
-        self.db_input_cache = []
-        self.db_output_cache = []
+        """Write any entries in the cache to the database."""
+        try:
+            self._writeout_input_cache()
+        except sqlite3.IntegrityError:
+            self.new_session()
+            print("ERROR! Session/line number was not unique in",
+                  "database. History logging moved to new session",
+                                            self.session_number)
+            try: # Try writing to the new session. If this fails, don't recurse
+                self.writeout_cache()
+            except sqlite3.IntegrityError:
+                pass
+        finally:
+            self.db_input_cache = []
+            
+        try:
+            self._writeout_output_cache()
+        except sqlite3.IntegrityError:
+            print("!! Session/line number for output was not unique",
+                  "in database. Output will not be stored.")
+        finally:
+            self.db_output_cache = []
 
         
 # To match, e.g. ~5/8-~2/3
