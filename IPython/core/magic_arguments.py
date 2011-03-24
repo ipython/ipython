@@ -119,8 +119,7 @@ def construct_parser(magic_func):
 def parse_argstring(magic_func, argstring):
     """ Parse the string of arguments for the given magic function.
     """
-    args = magic_func.parser.parse_argstring(argstring)
-    return args
+    return magic_func.parser.parse_argstring(argstring)
 
 
 def real_name(magic_func):
@@ -129,8 +128,7 @@ def real_name(magic_func):
     magic_name = magic_func.__name__
     if magic_name.startswith('magic_'):
         magic_name = magic_name[len('magic_'):]
-    arg_name = getattr(magic_func, 'argcmd_name', magic_name)
-    return arg_name
+    return getattr(magic_func, 'argcmd_name', magic_name)
 
 
 class ArgDecorator(object):
@@ -200,8 +198,7 @@ class argument_group(ArgDecorator):
     def add_to_parser(self, parser, group):
         """ Add this object's information to the parser.
         """
-        group = parser.add_argument_group(*self.args, **self.kwds)
-        return group
+        return parser.add_argument_group(*self.args, **self.kwds)
 
 
 class kwds(ArgDecorator):
