@@ -52,14 +52,14 @@ def test_history():
             newcmds = ["z=5","class X(object):\n    pass", "k='p'"]
             for i, cmd in enumerate(newcmds, start=1):
                 ip.history_manager.store_inputs(i, cmd)
-            gothist = ip.history_manager.get_history(start=1, stop=4)
+            gothist = ip.history_manager.get_range(start=1, stop=4)
             nt.assert_equal(list(gothist), zip([0,0,0],[1,2,3], newcmds))
             # Previous session:
-            gothist = ip.history_manager.get_history(-1, 1, 4)
+            gothist = ip.history_manager.get_range(-1, 1, 4)
             nt.assert_equal(list(gothist), zip([1,1,1],[1,2,3], hist))
             
             # Check get_hist_tail
-            gothist = ip.history_manager.get_hist_tail(4, output=True,
+            gothist = ip.history_manager.get_tail(4, output=True,
                                                     include_latest=True)
             expected = [(1, 3, (hist[-1], ["spam"])),
                         (2, 1, (newcmds[0], None)),
@@ -67,15 +67,15 @@ def test_history():
                         (2, 3, (newcmds[2], None)),]
             nt.assert_equal(list(gothist), expected)
             
-            gothist = ip.history_manager.get_hist_tail(2)
+            gothist = ip.history_manager.get_tail(2)
             expected = [(2, 1, newcmds[0]),
                         (2, 2, newcmds[1])]
             nt.assert_equal(list(gothist), expected)
             
             # Check get_hist_search
-            gothist = ip.history_manager.get_hist_search("*test*")
+            gothist = ip.history_manager.search("*test*")
             nt.assert_equal(list(gothist), [(1,2,hist[1])] )
-            gothist = ip.history_manager.get_hist_search("b*", output=True)
+            gothist = ip.history_manager.search("b*", output=True)
             nt.assert_equal(list(gothist), [(1,3,(hist[2],["spam"]))] )
             
             # Cross testing: check that magic %save can get previous session.

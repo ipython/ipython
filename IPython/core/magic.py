@@ -186,7 +186,7 @@ python-profiler package from non-free.""")
 
         N-M -> include items N..M (closed endpoint)."""
         lines = self.shell.history_manager.\
-                                    get_hist_from_rangestr(range_str, raw=raw)
+                                    get_range_by_str(range_str, raw=raw)
         return "\n".join(x for _, _, x in lines)
             
     def arg_err(self,func):
@@ -1976,9 +1976,7 @@ Currently the magic system has the following functions:\n"""
         you had typed them. You just type 'name' at the prompt and the code
         executes.
 
-        The notation for indicating number ranges is: n1-n2 means 'use line
-        numbers n1,...n2' (the endpoint is included).  That is, '5-7' means
-        using the lines numbered 5,6 and 7.
+        The syntax for indicating input ranges is described in %history.
 
         Note: as a 'hidden' feature, you can also use traditional python slice
         notation, where N:M means numbers N through M-1.
@@ -2048,9 +2046,8 @@ Currently the magic system has the following functions:\n"""
           Python.  If this option is given, the raw input as typed as the
           command line is used instead.
 
-        This function uses the same syntax as %macro for line extraction, but
-        instead of creating a macro it saves the resulting string to the
-        filename you specify.
+        This function uses the same syntax as %history for input ranges, 
+        then saves the lines to the filename you specify.
 
         It adds a '.py' extension to the file if you don't do so yourself, and
         it asks for confirmation before overwriting existing files."""
@@ -2138,15 +2135,17 @@ Currently the magic system has the following functions:\n"""
         Arguments:
 
         If arguments are given, the following possibilites exist:
+        
+        - If the argument is a filename, IPython will load that into the
+        editor. It will execute its contents with execfile() when you exit,
+        loading any code in the file into your interactive namespace.
 
-        - The arguments are numbers or pairs of colon-separated numbers (like
-        1 4:8 9). These are interpreted as lines of previous input to be
-        loaded into the editor. The syntax is the same of the %macro command.
+        - The arguments are ranges of input history,  e.g. "7 ~1/4-6".
+        The syntax is the same as in the %history magic.
 
-        - If the argument doesn't start with a number, it is evaluated as a
-        variable and its contents loaded into the editor. You can thus edit
-        any string which contains python code (including the result of
-        previous edits).
+        - If the argument is a string variable, its contents are loaded
+        into the editor. You can thus edit any string which contains
+        python code (including the result of previous edits).
 
         - If the argument is the name of an object (other than a string),
         IPython will try to locate the file where it was defined and open the
@@ -2162,11 +2161,6 @@ Currently the magic system has the following functions:\n"""
         editors (like kedit and gedit up to Gnome 2.8) do not understand the
         '+NUMBER' parameter necessary for this feature. Good editors like
         (X)Emacs, vi, jed, pico and joe all do.
-
-        - If the argument is not found as a variable, IPython will look for a
-        file with that name (adding .py if necessary) and load it into the
-        editor. It will execute its contents with execfile() when you exit,
-        loading any code in the file into your interactive namespace.
 
         After executing your code, %edit will return as output the code you
         typed in the editor (except when it was an existing file). This way

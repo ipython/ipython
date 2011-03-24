@@ -162,7 +162,7 @@ class HistoryManager(Configurable):
     ## -------------------------------
     ## Methods for retrieving history:
     ## -------------------------------
-    def _get_hist_sql(self, sql, params, raw=True, output=False):
+    def _run_sql(self, sql, params, raw=True, output=False):
         """Prepares and runs an SQL query for the history database.
         
         Parameters
@@ -171,15 +171,12 @@ class HistoryManager(Configurable):
           Any filtering expressions to go after SELECT ... FROM ...
         params : tuple
           Parameters passed to the SQL query (to replace "?")
-        raw : bool
-          If True, get raw input.
-        output : bool
-          If True, include output where available.
+        raw, output : bool
+          See :meth:`get_range`
         
         Returns
         -------
-        An iterator over 3-tuples: (session, line_number, command), or if output
-        is True, (session, line_number, (command, output)).
+        Tuples as :meth:`get_range`
         """
         toget = 'source_raw' if raw else 'source'
         sqlfrom = "history"
@@ -195,41 +192,61 @@ class HistoryManager(Configurable):
         return cur
         
     
-    def get_hist_tail(self, n=10, raw=True, output=False, include_latest=False):
+    def get_tail(self, n=10, raw=True, output=False, include_latest=False):
         """Get the last n lines from the history database.
         
-        If include_latest is False (default), n+1 lines are fetched, and
-        the latest one is discarded. This is intended to be used where
-        the function is called by a user command, which it should not
-        return."""
+        Parameters
+        ----------
+        n : int
+          The number of lines to get
+        raw, output : bool
+          See :meth:`get_range`
+        include_latest : bool
+          If False (default), n+1 lines are fetched, and the latest one
+          is discarded. This is intended to be used where the function
+          is called by a user command, which it should not return.
+        
+        Returns
+        -------
+        Tuples as :meth:`get_range`
+        """
         self.writeout_cache()
         if not include_latest:
             n += 1
-        cur = self._get_hist_sql("ORDER BY session DESC, line DESC LIMIT ?",
+        cur = self._run_sql("ORDER BY session DESC, line DESC LIMIT ?",
                                 (n,), raw=raw, output=output)
         if not include_latest:
             return reversed(list(cur)[1:])
         return reversed(list(cur))
         
-    def get_hist_search(self, pattern="*", raw=True, search_raw=True,
+    def search(self, pattern="*", raw=True, search_raw=True,
                                                         output=False):
         """Search the database using unix glob-style matching (wildcards
         * and ?).
         
+        Parameters
+        ----------
+        pattern : str
+          The wildcarded pattern to match when searching
+        search_raw : bool
+          If True, search the raw input, otherwise, the parsed input
+        raw, output : bool
+          See :meth:`get_range`
+        
         Returns
         -------
-        An iterator over tuples: (session, line_number, command)
+        Tuples as :meth:`get_range`
         """
         tosearch = "source_raw" if search_raw else "source"
         if output:
             tosearch = "history." + tosearch
         self.writeout_cache()
-        return self._get_hist_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
+        return self._run_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
                                     raw=raw, output=output)
                                 
-    def _get_hist_session(self, start=1, stop=None, raw=True, output=False):
+    def _get_range_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
-        get_history, and takes similar parameters."""
+        get_range, and takes similar parameters."""
         input_hist = self.input_hist_raw if raw else self.input_hist_parsed
             
         n = len(input_hist)
@@ -247,7 +264,7 @@ class HistoryManager(Configurable):
                 line = input_hist[i]
             yield (0, i, line)
             
-    def get_history(self, session=0, start=1, stop=None, raw=True,output=False):
+    def get_range(self, session=0, start=1, stop=None, raw=True,output=False):
         """Retrieve input by session.
         
         Parameters
@@ -275,7 +292,7 @@ class HistoryManager(Configurable):
         (session, line, (input, output)) if output is True.
         """
         if session == 0 or session==self.session_number:   # Current session
-            return self._get_hist_session(start, stop, raw, output)
+            return self._get_range_session(start, stop, raw, output)
         if session < 0:
             session += self.session_number
             
@@ -286,14 +303,27 @@ class HistoryManager(Configurable):
             lineclause = "line>=?"
             params = (session, start)
         
-        return self._get_hist_sql("WHERE session==? AND %s""" % lineclause,
+        return self._run_sql("WHERE session==? AND %s""" % lineclause,
                                     params, raw=raw, output=output)
         
-    def get_hist_from_rangestr(self, rangestr, raw=True, output=False):
+    def get_range_by_str(self, rangestr, raw=True, output=False):
         """Get lines of history from a string of ranges, as used by magic
-        commands %hist, %save, %macro, etc."""
+        commands %hist, %save, %macro, etc.
+        
+        Parameters
+        ----------
+        rangestr : str
+          A string specifying ranges, e.g. "5 ~2/1-4". See
+          :func:`magic_history` for full details.
+        raw, output : bool
+          As :meth:`get_range`
+          
+        Returns
+        -------
+        Tuples as :meth:`get_range`
+        """
         for sess, s, e in extract_hist_ranges(rangestr):
-            for line in self.get_history(sess, s, e, raw=raw, output=output):
+            for line in self.get_range(sess, s, e, raw=raw, output=output):
                 yield line
     
     ## ----------------------------
@@ -350,7 +380,13 @@ class HistoryManager(Configurable):
     def store_output(self, line_num):
         """If database output logging is enabled, this saves all the
         outputs from the indicated prompt number to the database. It's
-        called by run_cell after code has been executed."""
+        called by run_cell after code has been executed.
+        
+        Parameters
+        ----------
+        line_num : int
+          The line number from which to save outputs
+        """
         if (not self.db_log_output) or not self.output_hist_reprs[line_num]:
             return
         output = json.dumps(self.output_hist_reprs[line_num])
@@ -428,11 +464,18 @@ def magic_history(self, parameter_s = ''):
     %history n1 n2 -> print inputs between n1 and n2 (n2 not included)\\
 
     By default, input history is printed without line numbers so it can be
-    directly pasted into an editor.
+    directly pasted into an editor. Use -n to show them.
 
-    With -n, each input's number <n> is shown, and is accessible as the
-    automatically generated variable _i<n> as well as In[<n>].  Multi-line
-    statements are printed starting at a new line for easy copy/paste.
+    Ranges of history can be indicated using the syntax:
+    4      : Line 4, current session
+    4-6    : Lines 4-6, current session
+    243/1-5: Lines 1-5, session 243
+    ~2/7   : Line 7, session 2 before current
+    ~8/1-~6/5 : From the first line of 8 sessions ago, to the fifth line
+                of 6 sessions ago.
+    Multiple ranges can be entered, separated by spaces
+    
+    The same syntax is used by %macro, %save, %edit, %rerun
 
     Options:
 
@@ -516,19 +559,18 @@ def magic_history(self, parameter_s = ''):
     
     if 'g' in opts:         # Glob search
         pattern = "*" + args + "*" if args else "*"
-        hist = history_manager.get_hist_search(pattern, raw=raw,
-                                                              output=get_output)
+        hist = history_manager.search(pattern, raw=raw, output=get_output)
     elif 'l' in opts:       # Get 'tail'
         try:
             n = int(args)
         except ValueError, IndexError:
             n = 10
-        hist = history_manager.get_hist_tail(n, raw=raw, output=get_output)
+        hist = history_manager.get_tail(n, raw=raw, output=get_output)
     else:
         if args:            # Get history by ranges
-            hist = history_manager.get_hist_from_rangestr(args, raw, get_output)
+            hist = history_manager.get_range_by_str(args, raw, get_output)
         else:               # Just get history for the current session
-            hist = history_manager.get_history(raw=raw, output=get_output)
+            hist = history_manager.get_range(raw=raw, output=get_output)
     
     # We could be displaying the entire history, so let's not try to pull it 
     # into a list in memory. Anything that needs more space will just misalign.
@@ -579,10 +621,10 @@ def magic_rep(self, arg):
     Place history line 45 on the next input prompt. Use %hist to find
     out the number.
     
-    %rep 1-4 6-7 3
+    %rep 1-4
     
     Combine the specified lines into one cell, and place it on the next
-    input prompt. History slice syntax is the same as in %macro and %save.
+    input prompt. See %history for the slice syntax.
     
     %rep foo+bar
     
@@ -595,7 +637,7 @@ def magic_rep(self, arg):
         self.set_next_input(str(self.shell.user_ns["_"]))
         return
                                 # Get history range
-    histlines = self.history_manager.get_hist_from_rangestr(arg)
+    histlines = self.history_manager.get_range_by_str(arg)
     cmd = "\n".join(x[2] for x in histlines)
     if cmd:
         self.set_next_input(cmd.rstrip())
@@ -604,7 +646,7 @@ def magic_rep(self, arg):
     try:                        # Variable in user namespace
         cmd = str(eval(arg, self.shell.user_ns))
     except Exception:           # Search for term in history
-        histlines = self.history_manager.get_hist_search("*"+arg+"*")
+        histlines = self.history_manager.search("*"+arg+"*")
         for h in reversed([x[2] for x in histlines]):
             if 'rep' in h:
                 continue
@@ -618,7 +660,7 @@ def magic_rerun(self, parameter_s=''):
     """Re-run previous input
     
     By default, you can specify ranges of input history to be repeated
-    (as with %hist). With no arguments, it will repeat the last line.
+    (as with %history). With no arguments, it will repeat the last line.
     
     Options:
     
@@ -630,10 +672,10 @@ def magic_rerun(self, parameter_s=''):
     opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
     if "l" in opts:         # Last n lines
         n = int(opts['l'])
-        hist = self.history_manager.get_hist_tail(n)
+        hist = self.history_manager.get_tail(n)
     elif "g" in opts:       # Search
         p = "*"+opts['g']+"*"
-        hist = list(self.history_manager.get_hist_search(p))
+        hist = list(self.history_manager.search(p))
         for l in reversed(hist):
             if "rerun" not in l[2]:
                 hist = [l]     # The last match which isn't a %rerun
@@ -641,9 +683,9 @@ def magic_rerun(self, parameter_s=''):
         else:
             hist = []          # No matches except %rerun
     elif args:              # Specify history ranges
-        hist = self.history_manager.get_hist_from_rangestr(args)
+        hist = self.history_manager.get_range_by_str(args)
     else:                   # Last line
-        hist = self.history_manager.get_hist_tail(1)
+        hist = self.history_manager.get_tail(1)
     hist = [x[2] for x in hist]
     if not hist:
         print("No lines in history match specification")

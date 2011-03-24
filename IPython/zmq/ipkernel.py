@@ -314,7 +314,7 @@ class Kernel(Configurable):
         n = parent['content']['n']
         raw = parent['content']['raw']
         output = parent['content']['output']
-        hist = self.shell.history_manager.get_hist_tail(n, raw=raw, output=output)
+        hist = self.shell.history_manager.get_tail(n, raw=raw, output=output)
         content = {'history' : list(hist)}
         msg = self.session.send(self.reply_socket, 'history_tail_reply',
                                 content, parent, ident)
