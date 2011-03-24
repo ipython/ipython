@@ -83,6 +83,11 @@ def test_history():
             ip.magic_save(testfilename + " ~1/1-3")
             testfile = open(testfilename, "r")
             nt.assert_equal(testfile.read(), "\n".join(hist))
+            
+            # Duplicate line numbers - check that it doesn't crash, and
+            # gets a new session
+            ip.history_manager.store_inputs(1, "rogue")
+            nt.assert_equal(ip.history_manager.session_number, 3)
         finally:
             # Restore history manager
             ip.history_manager = hist_manager_ori
