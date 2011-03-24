@@ -325,6 +325,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             argv = sys.argv[1:]
         self.argv = argv
         self.parser_args = parser_args
+        self.version = parser_kw.pop("version", None)
         kwargs = dict(argument_default=argparse.SUPPRESS)
         kwargs.update(parser_kw)
         self.parser_kw = kwargs

@@ -69,10 +69,16 @@ class BaseAppConfigLoader(ArgParseConfigLoader):
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
             metavar='Global.log_level')
+            
+    def _add_version(self, parser):
+        """Add the --version option to the parser."""
+        parser.add_argument('--version', action="version",
+                                                version=self.version)
 
     def _add_arguments(self):
         self._add_ipython_dir(self.parser)
         self._add_log_level(self.parser)
+        self._add_version(self.parser)
 
 
 class Application(object):
