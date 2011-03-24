@@ -33,7 +33,7 @@ class KernelManager(object):
     def start_kernel(self, kernel_id):
         if kernel_id in self._kernels:
             raise DuplicateKernelError("Kernel already exists: %s" % kernel_id)
-        (process, shell_port, iopub_port, stdin_port, hb_port) = launch_kernel()
+        (process, shell_port, iopub_port, stdin_port, hb_port) = launch_kernel(pylab='inline')
         d = dict(
             process = process,
             stdin_port = stdin_port,

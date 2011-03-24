@@ -43,6 +43,8 @@ from zmqshell import ZMQInteractiveShell
 
 # Module-level logger
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.DEBUG)
 
 # FIXME: this needs to be done more cleanly later, once we have proper
 # configuration support.  This is a library, so it shouldn't set a stream
