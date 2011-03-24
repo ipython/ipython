@@ -45,8 +45,8 @@ file to the client machine, or enter its contents as arguments to the Client con
 
     # If you have copied the json connector file from the controller:
     In [2]: rc = client.Client('/path/to/ipcontroller-client.json')
-    # or for a remote controller at 10.0.1.5, visible from my.server.com:
-    In [3]: rc = client.Client('tcp://10.0.1.5:12345', sshserver='my.server.com')
+    # or to connect with a specific profile you have set up:
+    In [3]: rc = client.Client(profile='mpi')
     
 
 To make sure there are engines connected to the controller, users can get a list
@@ -62,7 +62,7 @@ Here we see that there are four engines ready to do work for us.
 For direct execution, we will make use of a :class:`DirectView` object, which can be
 constructed via list-access to the client:
 
-.. sourcecode::
+.. sourcecode:: ipython
 
     In [4]: dview = rc[:] # use all engines
 

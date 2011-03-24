@@ -34,7 +34,7 @@ Here, we have a very simple 5-node DAG:
 
 With NetworkX, an arrow is just a fattened bit on the edge. Here, we can see that task 0
 depends on nothing, and can run immediately. 1 and 2 depend on 0; 3 depends on
- 1 and 2; and 4 depends only on 1.
+1 and 2; and 4 depends only on 1.
 
 A possible sequence of events for this workflow:
 
@@ -141,9 +141,9 @@ started after all of its predecessors were completed:
     :lines: 64-70
 
 We can also validate the graph visually. By drawing the graph with each node's x-position
-as its start time, all arrows must be pointing to the right if the order was respected.
-For spreading, the y-position will be the in-degree, so tasks with lots of dependencies
-will be at the top, and tasks with few dependencies will be at the bottom.
+as its start time, all arrows must be pointing to the right if dependencies were respected.
+For spreading, the y-position will be the runtime of the task, so long tasks
+will be at the top, and quick, small tasks will be at the bottom.
 
 .. sourcecode:: ipython
 
@@ -166,7 +166,7 @@ will be at the top, and tasks with few dependencies will be at the bottom.
 .. figure:: dagdeps.*
 
     Time started on x, runtime on y, and color-coded by engine-id (in this case there
-    were four engines).
+    were four engines). Edges denote dependencies.
 
 
 .. _NetworkX: http://networkx.lanl.gov/

@@ -50,7 +50,7 @@ directory of the client's host, they will be found automatically. Otherwise, the
 to them has to be passed to the client's constructor.
 
 Using :command:`ipclusterz`
-==========================
+===========================
 
 The :command:`ipclusterz` command provides a simple way of starting a
 controller and engines in the following situations:
@@ -309,7 +309,7 @@ To use this mode, select the SSH launchers in :file:`ipclusterz_config.py`:
 
 .. sourcecode:: python
 
-    c.Global.engine_launcher = 'IPython.zmq.parallel.launcher.PBSEngineSetLauncher'
+    c.Global.engine_launcher = 'IPython.zmq.parallel.launcher.SSHEngineSetLauncher'
     # and if the Controller is also to be remote:
     c.Global.controller_launcher = 'IPython.zmq.parallel.launcher.SSHControllerLauncher'
     
@@ -469,15 +469,20 @@ IPython and can be found in the directory :file:`~/.ipython/cluster_<profile>/lo
 Sending the log files to us will often help us to debug any problems.
 
 
-.. [PBS] Portable Batch System.  http://www.openpbs.org/
-.. [SSH] SSH-Agent http://en.wikipedia.org/wiki/Ssh-agent
-
 Configuring `ipcontrollerz`
 ---------------------------
 
-.. note::
+Ports and addresses
+*******************
 
-    TODO
+
+Database Backend
+****************
+
+
+.. seealso::
+
+    
 
 Configuring `ipenginez`
 -----------------------
@@ -487,3 +492,6 @@ Configuring `ipenginez`
     TODO
 
 
+
+.. [PBS] Portable Batch System.  http://www.openpbs.org/
+.. [SSH] SSH-Agent http://en.wikipedia.org/wiki/ssh-agent
