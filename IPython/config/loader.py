@@ -362,7 +362,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         raise NotImplementedError("subclasses must implement _add_arguments")
 
     def _parse_args(self, args):
-        """self.parser->self.parsed_data""" 
+        """self.parser->self.parsed_data"""
         self.parsed_data, self.extra_args = self.parser.parse_known_args(args)
 
     def _convert_to_config(self):

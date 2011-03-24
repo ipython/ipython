@@ -78,7 +78,10 @@ class BaseAppConfigLoader(ArgParseConfigLoader):
     def _add_arguments(self):
         self._add_ipython_dir(self.parser)
         self._add_log_level(self.parser)
-        self._add_version(self.parser)
+        try:  # Old versions of argparse don't have a version action
+            self._add_version(self.parser)
+        except Exception:
+            pass
 
 
 class Application(object):
