@@ -1,4 +1,18 @@
-# Author: Steven J. Bethard <steven.bethard@gmail.com>.
+# -*- coding: utf-8 -*-
+
+# Copyright © 2006-2009 Steven J. Bethard <steven.bethard@gmail.com>.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy
+# of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
 """Command-line parsing library
 
@@ -83,9 +97,39 @@ import textwrap as _textwrap
 
 from gettext import gettext as _
 
+try:
+    _set = set
+except NameError:
+    from sets import Set as _set
+
+try:
+    _basestring = basestring
+except NameError:
+    _basestring = str
+
+try:
+    _sorted = sorted
+except NameError:
+
+    def _sorted(iterable, reverse=False):
+        result = list(iterable)
+        result.sort()
+        if reverse:
+            result.reverse()
+        return result
+
 
 def _callable(obj):
     return hasattr(obj, '__call__') or hasattr(obj, '__bases__')
+
+# silence Python 2.6 buggy warnings about Exception.message
+if _sys.version_info[:2] == (2, 6):
+    import warnings
+    warnings.filterwarnings(
+        action='ignore',
+        message='BaseException.message has been deprecated as of Python 2.6',
+        category=DeprecationWarning,
+        module='argparse')
 
 
 SUPPRESS = '==SUPPRESS=='
@@ -119,7 +163,7 @@ class _AttributeHolder(object):
         return '%s(%s)' % (type_name, ', '.join(arg_strings))
 
     def _get_kwargs(self):
-        return sorted(self.__dict__.items())
+        return _sorted(self.__dict__.items())
 
     def _get_args(self):
         return []
@@ -372,7 +416,7 @@ class HelpFormatter(object):
 
     def _format_actions_usage(self, actions, groups):
         # find group indices and identify actions in groups
-        group_actions = set()
+        group_actions = _set()
         inserts = {}
         for group in groups:
             try:
@@ -442,7 +486,7 @@ class HelpFormatter(object):
                 parts.append(part)
 
         # insert things at the necessary indices
-        for i in sorted(inserts, reverse=True):
+        for i in _sorted(inserts, reverse=True):
             parts[i:i] = [inserts[i]]
 
         # join all the action items with spaces
@@ -987,7 +1031,7 @@ class _VersionAction(Action):
                  version=None,
                  dest=SUPPRESS,
                  default=SUPPRESS,
-                 help="show program's version number and exit"):
+                 help=None):
         super(_VersionAction, self).__init__(
             option_strings=option_strings,
             dest=dest,
@@ -1130,8 +1174,6 @@ class Namespace(_AttributeHolder):
     def __init__(self, **kwargs):
         for name in kwargs:
             setattr(self, name, kwargs[name])
-
-    __hash__ = None
 
     def __eq__(self, other):
         return vars(self) == vars(other)
@@ -1674,7 +1716,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
                 if not hasattr(namespace, action.dest):
                     if action.default is not SUPPRESS:
                         default = action.default
-                        if isinstance(action.default, basestring):
+                        if isinstance(action.default, _basestring):
                             default = self._get_value(action, default)
                         setattr(namespace, action.dest, default)
 
@@ -1734,8 +1776,8 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         arg_strings_pattern = ''.join(arg_string_pattern_parts)
 
         # converts arg strings to the appropriate and then takes the action
-        seen_actions = set()
-        seen_non_default_actions = set()
+        seen_actions = _set()
+        seen_non_default_actions = _set()
 
         def take_action(action, argument_strings, option_string=None):
             seen_actions.add(action)
@@ -2148,7 +2190,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
                 value = action.const
             else:
                 value = action.default
-            if isinstance(value, basestring):
+            if isinstance(value, _basestring):
                 value = self._get_value(action, value)
                 self._check_value(action, value)
 

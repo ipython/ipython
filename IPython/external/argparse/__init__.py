@@ -10,3 +10,4 @@ try:
     from argparse import *
 except ImportError:
     from _argparse import *
+    from _argparse import SUPPRESS
