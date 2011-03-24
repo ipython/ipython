@@ -105,8 +105,14 @@ if __name__ == '__main__':
     
     if partition is None:
         partition = [num_procs,1]
+    else:
+        num_procs = min(num_procs, partition[0]*partition[1])
     
     assert partition[0]*partition[1] == num_procs, "can't map partition %s to %i engines"%(partition, num_procs)
+    
+    # construct the View:
+    view = rc[:num_procs]
+    print "Running %s system on %s processes until %f"%(grid, partition, tstop)
     
     # functions defining initial/boundary/source conditions
     def I(x,y):
@@ -120,8 +126,8 @@ if __name__ == '__main__':
         return 0.0
     
     # initialize t_hist/u_hist for saving the state at each step (optional)
-    rc[:]['t_hist'] = []
-    rc[:]['u_hist'] = []
+    view['t_hist'] = []
+    view['u_hist'] = []
 
     # set vector/scalar implementation details
     impl = {}
@@ -130,19 +136,19 @@ if __name__ == '__main__':
     impl['bc'] = 'vectorized'
     
     # execute some files so that the classes we need will be defined on the engines:
-    rc[:].execute('import numpy')
-    rc[:].run('communicator.py')
-    rc[:].run('RectPartitioner.py')
-    rc[:].run('wavesolver.py')
+    view.execute('import numpy')
+    view.run('communicator.py')
+    view.run('RectPartitioner.py')
+    view.run('wavesolver.py')
     
     # scatter engine IDs
-    rc[:].scatter('my_id', rc.ids, flatten=True)
+    view.scatter('my_id', range(num_procs), flatten=True)
     
     # create the engine connectors
-    rc[:].execute('com = EngineCommunicator()')
+    view.execute('com = EngineCommunicator()')
 
     # gather the connection information into a single dict
-    ar = rc[:].apply_async(lambda : com.info)
+    ar = view.apply_async(lambda : com.info)
     peers = ar.get_dict()
     # print peers
     # this is a dict, keyed by engine ID, of the connection info for the EngineCommunicators
@@ -150,7 +156,7 @@ if __name__ == '__main__':
     # setup remote partitioner
     # note that Reference means that the argument passed to setup_partitioner will be the
     # object named 'com' in the engine's namespace
-    rc[:].apply_sync_bound(setup_partitioner, Reference('com'), peers, Reference('my_id'), num_procs, grid, partition)
+    view.apply_sync_bound(setup_partitioner, Reference('com'), peers, Reference('my_id'), num_procs, grid, partition)
     time.sleep(1)
     # convenience lambda to call solver.solve:
     _solve = lambda *args, **kwargs: solver.solve(*args, **kwargs)
@@ -158,11 +164,11 @@ if __name__ == '__main__':
     if ns.scalar:
         impl['inner'] = 'scalar'
         # setup remote solvers
-        rc[:].apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly, partitioner=Reference('partitioner'), dt=0,implementation=impl)
+        view.apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly, partitioner=Reference('partitioner'), dt=0,implementation=impl)
 
         # run first with element-wise Python operations for each cell
         t0 = time.time()
-        ar = rc[:].apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test, user_action=user_action)
+        ar = view.apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test, user_action=user_action)
         if final_test:
             # this sum is performed element-wise as results finish
             s = sum(ar)
@@ -176,11 +182,11 @@ if __name__ == '__main__':
     # run again with faster numpy-vectorized inner implementation:
     impl['inner'] = 'vectorized'
     # setup remote solvers
-    rc[:].apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
+    view.apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
 
     t0 = time.time()
     
-    ar = rc[:].apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test)#, user_action=wave_saver)
+    ar = view.apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test)#, user_action=wave_saver)
     if final_test:
         # this sum is performed element-wise as results finish
         s = sum(ar)
@@ -195,7 +201,7 @@ if __name__ == '__main__':
     # If the partion scheme is Nx1, then u can be reconstructed via 'gather':
     if ns.save and partition[-1] == 1:
         import pylab
-        rc[:].execute('u_last=u_hist[-1]')
-        u_last = rc[:].gather('u_last', block=True)
+        view.execute('u_last=u_hist[-1]')
+        u_last = view.gather('u_last', block=True)
         pylab.pcolor(u_last)
         pylab.show()

@@ -9,7 +9,7 @@ from IPython.zmq.parallel.util import disambiguate_url
 
 class EngineCommunicator(object):
     """An object that connects Engines to each other.
-    north and west sockets listen, while south and east sockets connect.
+    north and east sockets listen, while south and west sockets connect.
     
     This class is useful in cases where there is a set of nodes that
     must communicate only with their nearest neighbors.

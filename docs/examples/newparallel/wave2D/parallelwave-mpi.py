@@ -108,6 +108,9 @@ if __name__ == '__main__':
     
     assert partition[0]*partition[1] == num_procs, "can't map partition %s to %i engines"%(partition, num_procs)
     
+    view = rc[:]
+    print "Running %s system on %s processes until %f"%(grid, partition, tstop)
+    
     # functions defining initial/boundary/source conditions
     def I(x,y):
         from numpy import exp
@@ -120,15 +123,15 @@ if __name__ == '__main__':
         return 0.0
     
     # initial imports, setup rank
-    rc[:].execute('\n'.join([
+    view.execute('\n'.join([
     "from mpi4py import MPI",
     "import numpy",
     "mpi = MPI.COMM_WORLD",
     "my_id = MPI.COMM_WORLD.Get_rank()"]), block=True)
     
     # initialize t_hist/u_hist for saving the state at each step (optional)
-    rc[:]['t_hist'] = []
-    rc[:]['u_hist'] = []
+    view['t_hist'] = []
+    view['u_hist'] = []
     
     # set vector/scalar implementation details
     impl = {}
@@ -137,17 +140,17 @@ if __name__ == '__main__':
     impl['bc'] = 'vectorized'
     
     # execute some files so that the classes we need will be defined on the engines:
-    rc[:].run('RectPartitioner.py')
-    rc[:].run('wavesolver.py')
-
+    view.run('RectPartitioner.py')
+    view.run('wavesolver.py')
+    
     # setup remote partitioner
     # note that Reference means that the argument passed to setup_partitioner will be the
     # object named 'my_id' in the engine's namespace
-    rc[:].apply_sync_bound(setup_partitioner, Reference('my_id'), num_procs, grid, partition)
+    view.apply_sync_bound(setup_partitioner, Reference('my_id'), num_procs, grid, partition)
     # wait for initial communication to complete
-    rc[:].execute('mpi.barrier()')
+    view.execute('mpi.barrier()')
     # setup remote solvers
-    rc[:].apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
+    view.apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
 
     # lambda for calling solver.solve:
     _solve = lambda *args, **kwargs: solver.solve(*args, **kwargs)
@@ -156,7 +159,7 @@ if __name__ == '__main__':
         impl['inner'] = 'scalar'
         # run first with element-wise Python operations for each cell
         t0 = time.time()
-        ar = rc[:].apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test, user_action=user_action)
+        ar = view.apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test, user_action=user_action)
         if final_test:
             # this sum is performed element-wise as results finish
             s = sum(ar)
@@ -169,12 +172,12 @@ if __name__ == '__main__':
     
     impl['inner'] = 'vectorized'
     # setup new solvers
-    rc[:].apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
-    rc[:].execute('mpi.barrier()')
+    view.apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
+    view.execute('mpi.barrier()')
     
     # run again with numpy vectorized inner-implementation
     t0 = time.time()
-    ar = rc[:].apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test)#, user_action=wave_saver)
+    ar = view.apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test)#, user_action=wave_saver)
     if final_test:
         # this sum is performed element-wise as results finish
         s = sum(ar)
@@ -189,9 +192,9 @@ if __name__ == '__main__':
     # If the partion scheme is Nx1, then u can be reconstructed via 'gather':
     if ns.save and partition[-1] == 1:
         import pylab
-        rc[:].execute('u_last=u_hist[-1]')
+        view.execute('u_last=u_hist[-1]')
         # map mpi IDs to IPython IDs, which may not match
-        ranks = rc[:]['my_id']
+        ranks = view['my_id']
         targets = range(len(ranks))
         for idx in range(len(ranks)):
             targets[idx] = ranks.index(idx)
