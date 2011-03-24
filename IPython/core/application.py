@@ -353,18 +353,22 @@ class Application(object):
         # our shipped copies of builtin profiles even if they don't have them
         # in their local ipython directory.
         prof_dir = os.path.join(get_ipython_package_dir(), 'config', 'profile')
-        self.config_file_paths = (os.getcwd(), self.ipython_dir, prof_dir)
+        self.config_file_paths = (os.getcwdu(), self.ipython_dir, prof_dir)
 
     def pre_load_file_config(self):
         """Do actions before the config file is loaded."""
         pass
 
-    def load_file_config(self):
+    def load_file_config(self, suppress_errors=True):
         """Load the config file.
         
         This tries to load the config file from disk.  If successful, the
         ``CONFIG_FILE`` config variable is set to the resolved config file
         location.  If not successful, an empty config is used.
+        
+        By default, errors in loading config are handled, and a warning
+        printed on screen. For testing, the suppress_errors option is set
+        to False, so errors will make tests fail.
         """
         self.log.debug("Attempting to load config file: %s" %
                        self.config_file_name)
@@ -380,6 +384,8 @@ class Application(object):
                                self.config_file_name, exc_info=True)
             self.file_config = Config()
         except:
+            if not suppress_errors:     # For testing purposes
+                raise
             self.log.warn("Error loading config file: %s" %
                           self.config_file_name, exc_info=True)
             self.file_config = Config()

@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tests for the IPython tab-completion machinery.
 """
 #-----------------------------------------------------------------------------
@@ -16,8 +17,10 @@ import nose.tools as nt
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
 
-def test_history():
+def setUp():
+    nt.assert_equal(sys.getdefaultencoding(), "ascii")
 
+def test_history():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
         #tmpdir = '/software/temp'
@@ -32,7 +35,7 @@ def test_history():
             ip.history_manager.init_db()  # Has to be called after changing file
             ip.history_manager.reset()
             print 'test',histfile
-            hist = ['a=1', 'def f():\n    test = 1\n    return test', 'b=2']
+            hist = ['a=1', 'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
             
@@ -82,7 +85,8 @@ def test_history():
             testfilename = os.path.realpath(os.path.join(tmpdir, "test.py"))
             ip.magic_save(testfilename + " ~1/1-3")
             testfile = open(testfilename, "r")
-            nt.assert_equal(testfile.read(), "\n".join(hist))
+            nt.assert_equal(testfile.read().decode("utf-8"),
+                    "# coding: utf-8\n" + "\n".join(hist))
             
             # Duplicate line numbers - check that it doesn't crash, and
             # gets a new session
@@ -91,6 +95,7 @@ def test_history():
         finally:
             # Restore history manager
             ip.history_manager = hist_manager_ori
+
 
 def test_extract_hist_ranges():
     instr = "1 2/3 ~4/5-6 ~4/7-~4/9 ~9/2-~7/5"

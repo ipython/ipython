@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tests for the compilerop module.
 """
 #-----------------------------------------------------------------------------
@@ -15,6 +16,7 @@ from __future__ import print_function
 
 # Stdlib imports
 import linecache
+import sys
 
 # Third-party imports
 import nose.tools as nt
@@ -46,6 +48,16 @@ def test_compiler():
     cp('x=1', 'single')
     nt.assert_true(len(linecache.cache) > ncache)
 
+def setUp():
+    # Check we're in a proper Python 2 environment (some imports, such
+    # as GTK, can change the default encoding, which can hide bugs.)
+    nt.assert_equal(sys.getdefaultencoding(), "ascii")
+
+def test_compiler_unicode():
+    cp = compilerop.CachingCompiler()
+    ncache = len(linecache.cache)
+    cp(u"t = 'žćčšđ'", "single")
+    nt.assert_true(len(linecache.cache) > ncache)
 
 def test_compiler_check_cache():
     """Test the compiler properly manages the cache.

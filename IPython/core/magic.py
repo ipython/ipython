@@ -2063,7 +2063,8 @@ Currently the magic system has the following functions:\n"""
                 return
         cmds = self.extract_input_lines(ranges, 'r' in opts)
         with open(fname,'w') as f:
-            f.write(cmds)
+            f.write("# coding: utf-8\n")
+            f.write(cmds.encode("utf-8"))
         print 'The following commands were written to file `%s`:' % fname
         print cmds
 

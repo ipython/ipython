@@ -285,7 +285,9 @@ class PyFileConfigLoader(FileConfigLoader):
             return self.config
 
         namespace = dict(load_subconfig=load_subconfig, get_config=get_config)
-        execfile(self.full_filename, namespace)
+        fs_encoding = sys.getfilesystemencoding() or 'ascii'
+        conf_filename = self.full_filename.encode(fs_encoding)
+        execfile(conf_filename, namespace)
 
     def _convert_to_config(self):
         if self.data is None:

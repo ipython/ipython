@@ -66,6 +66,7 @@ from __future__ import print_function
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import ast
 import codeop
 import re
 import sys
@@ -185,9 +186,6 @@ def split_blocks(python):
     commands : list of str
         Separate commands that can be exec'ed independently.
     """
-
-    import compiler
-    
     # compiler.parse treats trailing spaces after a newline as a
     # SyntaxError.  This is different than codeop.CommandCompiler, which
     # will compile the trailng spaces just fine.  We simply strip any
@@ -197,22 +195,15 @@ def split_blocks(python):
     python_ori = python # save original in case we bail on error
     python = python.strip()
 
-    # The compiler module does not like unicode. We need to convert
-    # it encode it:
-    if isinstance(python, unicode):
-        # Use the utf-8-sig BOM so the compiler detects this a UTF-8
-        # encode string.
-        python = '\xef\xbb\xbf' + python.encode('utf-8')
-
     # The compiler module will parse the code into an abstract syntax tree.
     # This has a bug with str("a\nb"), but not str("""a\nb""")!!!
     try:
-        ast = compiler.parse(python)
+        code_ast = ast.parse(python)
     except:
         return [python_ori]
 
     # Uncomment to help debug the ast tree
-    # for n in ast.node:
+    # for n in code_ast.body:
     #     print n.lineno,'->',n
 
     # Each separate command is available by iterating over ast.node. The
@@ -223,14 +214,7 @@ def split_blocks(python):
     # other situations that cause Discard nodes that shouldn't be discarded.
     # We might eventually discover other cases where lineno is None and have
     # to put in a more sophisticated test.
-    linenos = [x.lineno-1 for x in ast.node if x.lineno is not None]
-
-    # When we have a bare string as the first statement, it does not end up as
-    # a Discard Node in the AST as we might expect. Instead, it gets interpreted
-    # as the docstring of the module. Check for this case and prepend 0 (the
-    # first line number) to the list of linenos to account for it.
-    if ast.doc is not None:
-        linenos.insert(0, 0)
+    linenos = [x.lineno-1 for x in code_ast.body if x.lineno is not None]
 
     # When we finally get the slices, we will need to slice all the way to
     # the end even though we don't have a line number for it. Fortunately,
@@ -603,7 +587,7 @@ class InputSplitter(object):
 
         If input lines are not newline-terminated, a newline is automatically
         appended."""
-
+        
         if buffer is None:
             buffer = self._buffer
             
@@ -614,7 +598,7 @@ class InputSplitter(object):
         setattr(self, store, self._set_source(buffer))
 
     def _set_source(self, buffer):
-        return ''.join(buffer).encode(self.encoding)
+        return u''.join(buffer)
 
 
 #-----------------------------------------------------------------------------

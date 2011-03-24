@@ -105,8 +105,6 @@ have['zope.interface'] = test_for('zope.interface')
 have['twisted'] = test_for('twisted')
 have['foolscap'] = test_for('foolscap')
 have['pexpect'] = test_for('pexpect')
-have['gtk'] = test_for('gtk')
-have['gobject'] = test_for('gobject')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -170,9 +168,10 @@ def make_exclude():
 
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
-
-    if not have['gtk'] or not have['gobject']:
-        exclusions.append(ipjoin('lib', 'inputhookgtk'))
+        
+    # We do this unconditionally, so that the test suite doesn't import
+    # gtk, changing the default encoding and masking some unicode bugs.
+    exclusions.append(ipjoin('lib', 'inputhookgtk'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://bugs.launchpad.net/bugs/366982

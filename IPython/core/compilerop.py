@@ -38,8 +38,10 @@ import time
 
 def code_name(code, number=0):
     """ Compute a (probably) unique name for code for caching.
+    
+    This now expects code to be unicode.
     """
-    hash_digest = hashlib.md5(code).hexdigest()
+    hash_digest = hashlib.md5(code.encode("utf-8")).hexdigest()
     # Include the number and 12 characters of the hash in the name.  It's
     # pretty much impossible that in a single session we'll have collisions
     # even with truncated hashes, and the full one makes tracebacks too long
