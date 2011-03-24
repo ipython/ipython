@@ -1,23 +1,76 @@
-html, body, div, span, applet, object, iframe,
+/**
+ * HTML5 ✰ Boilerplate
+ *
+ * style.css contains a reset, font normalization and some base styles.
+ *
+ * Credit is left where credit is due.
+ * Much inspiration was taken from these projects:
+ * - yui.yahooapis.com/2.8.1/build/base/base.css
+ * - camendesign.com/design/
+ * - praegnanz.de/weblog/htmlcssjs-kickstart
+ */
+
+
+/**
+ * html5doctor.com Reset Stylesheet (Eric Meyer's Reset Reloaded + HTML5 baseline)
+ * v1.6.1 2010-09-17 | Authors: Eric Meyer & Richard Clark
+ * html5doctor.com/html-5-reset-stylesheet/
+ */
+
+html, body, div, span, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
+abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li,
 fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
+article, aside, canvas, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section, summary,
 time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
+
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+blockquote, q { quotes: none; }
+
+blockquote:before, blockquote:after,
+q:before, q:after { content: ""; content: none; }
+
+ins { background-color: #ff9; color: #000; text-decoration: none; }
+
+mark { background-color: #ff9; color: #000; font-style: italic; font-weight: bold; }
+
+del { text-decoration: line-through; }
+
+abbr[title], dfn[title] { border-bottom: 1px dotted; cursor: help; }
+
+table { border-collapse: collapse; border-spacing: 0; }
+
+hr { display: block; height: 1px; border: 0; border-top: 1px solid #ccc; margin: 1em 0; padding: 0; }
+
+input, select { vertical-align: middle; }
+
+
+/**
+ * Font normalization inspired by YUI Library's fonts.css: developer.yahoo.com/yui/
+ */
+
+body { font:13px/1.231 sans-serif; *font-size:small; } /* Hack retained to preserve specificity */
+select, input, textarea, button { font:99% sans-serif; }
+
+/* Normalize monospace sizing:
+   en.wikipedia.org/wiki/MediaWiki_talk:Common.css/Archive_11#Teletype_style_fix_for_Chrome */
+pre, code, kbd, samp { font-family: monospace, sans-serif; }
+
+
 
 body {
     background-color: white;
@@ -37,44 +90,32 @@ div#toolbar {
     border-bottom-width: 2px;
     border-bottom-style: solid;
     border-bottom-color: black;
-	padding: 5px;
+    padding: 5px;
 }
 
-#main_toolbar {
-}
 
-#main_toolbar button {
+/*#main_toolbar button {
     font-size: 0.9em;
-}
+}*/
 
 div.notebook {
-    width: 760px;
+    width: 790px;
     height: 100%;
     margin-left: auto;
     margin-right: auto;
     padding-top: 5px;
     padding-bottom: 5px;
     background-color: white;
-
-/*  Uncomment this block for help in debugging the padding and margins
-/*    border-left-width: 1px;
-    border-left-style: solid;
-    border-left-color: black;
-    border-right-width: 1px;
-    border-right-style: solid;
-    border-right-color: black;
-    border-bottom-width: 1px;
-    border-bottom-style: solid;
-    border-bottom-color: black;*/
 }
 
 div.cell {
     width: 740px;
-    margin: 5px 5px 5px 5px;
+    margin: 5px auto 5px 5px;
     padding: 5px;
-    font-size: 11pt;
     position: relative;
+    display: table;
 }
+
 
 div.code_cell {
     background-color: white;
@@ -83,16 +124,18 @@ div.code_cell {
 div.prompt {
     vertical-align: top;
     display: table-cell;
-    width: 85px;
-    min-width 80px !important;
+    width: 80px;
+    padding: 0px;
+    margin: 0px;
     font-family: Menlo, "Courier New", Courier, mono;
     font-weight: normal;
     font-style: normal;
 }
 
 div.input {
-    display: table;
-    height: auto;
+    display: table-row;
+    padding: 0px;
+    margin: 0px;
 }
 
 div.input_prompt {
@@ -106,19 +149,21 @@ textarea.input_area {
     font-size: inherit;
     border-style: none;
     display: table-cell;
-    margin: 0;
-    padding: 0;
+    padding: 0px;
+    margin: 0px;
     overflow: auto;
     font-weight: normal;
     font-style: normal;
-    width: 665px;
+    width: 650px;
     outline: none;
     resize: none;
 }
 
 
 div.output {
-    display: table;
+    display: table-row;
+    padding: 0px;
+    margin: 0px;
 }
 
 div.output_prompt {
@@ -128,11 +173,10 @@ div.output_prompt {
 div.output_area {
     text-align: left;
     font-family: Menlo, "Courier New", Courier, mono;
-    font-size: inherit;
-    margin:  0;
-    padding:  0;
+    padding: 0px;
+    margin: 0px;
     display: table-cell;
-    width:  665px;
+    width:  650px;
 }
 
 div.text_cell {

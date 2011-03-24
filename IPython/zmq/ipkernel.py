@@ -46,7 +46,6 @@ from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
 
-
 #-----------------------------------------------------------------------------
 # Main kernel class
 #-----------------------------------------------------------------------------

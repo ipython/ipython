@@ -33,6 +33,7 @@ class SessionManager(object):
         session_id = str(uuid.uuid4())
         ports = self.kernel_manager.get_kernel_ports(self.kernel_id)
         iopub_stream = self.create_connected_stream(ports['iopub_port'], zmq.SUB)
+        iopub_stream.socket.setsockopt(zmq.SUBSCRIBE, b'')
         shell_stream = self.create_connected_stream(ports['shell_port'], zmq.XREQ)
         self._sessions[session_id] = dict(
             iopub_stream = iopub_stream,
@@ -54,7 +55,7 @@ class SessionManager(object):
     def create_connected_stream(self, port, socket_type):
         sock = self.context.socket(socket_type)
         addr = "tcp://%s:%i" % (self.kernel_manager.ip, port)
-        logging.info("Connecting to: %s" % addr)
+        logging.info("Connecting to: %s, %r" % (addr, socket_type))
         sock.connect(addr)
         return ZMQStream(sock)
 

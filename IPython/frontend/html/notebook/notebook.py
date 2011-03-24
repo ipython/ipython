@@ -80,15 +80,17 @@ class ZMQStreamHandler(websocket.WebSocketHandler, BaseKernelHandler):
         self.zmq_stream.on_recv(self._on_zmq_reply)
 
     def on_message(self, msg):
-        logging.info("Message received: %r" % msg)
+        logging.info("Message received: %r, %r" % (msg, self.__class__))
+        logging.info(self.zmq_stream)
         self.zmq_stream.send_unicode(msg)
 
     def on_close(self):
         self.zmq_stream.close()
 
-    def _on_zmq_reply(self, msg):
-        logging.info("Message reply: %r" % msg)
-        self.write_message(msg)
+    def _on_zmq_reply(self, msg_list):
+        for msg in msg_list:
+            logging.info("Message reply: %r" % msg)
+            self.write_message(msg)
 
 
 class IOPubStreamHandler(ZMQStreamHandler):

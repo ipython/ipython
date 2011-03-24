@@ -2,6 +2,67 @@ var IPYTHON = {};
 
 
 //============================================================================
+// Utilities
+//============================================================================
+
+
+var uuid = function () {
+    // http://www.ietf.org/rfc/rfc4122.txt
+    var s = [];
+    var hexDigits = "0123456789ABCDEF";
+    for (var i = 0; i < 32; i++) {
+        s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+    }
+    s[12] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+    s[16] = hexDigits.substr((s[16] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+
+    var uuid = s.join("");
+    return uuid;
+};
+
+
+//Fix raw text to parse correctly in crazy XML
+function xmlencode(string) {
+    return string.replace(/\&/g,'&'+'amp;')
+        .replace(/</g,'&'+'lt;')
+        .replace(/>/g,'&'+'gt;')
+        .replace(/\'/g,'&'+'apos;')
+        .replace(/\"/g,'&'+'quot;')
+        .replace(/`/g,'&'+'#96;')
+}
+
+//Map from terminal commands to CSS classes
+attrib = {
+    "30":"cblack", "31":"cred",
+    "32":"cgreen", "33":"cyellow",  
+    "34":"cblue", "36":"ccyan", 
+    "37":"cwhite", "01":"cbold"}
+
+//Fixes escaped console commands, IE colors. Turns them into HTML
+function fixConsole(txt) {
+    txt = xmlencode(txt)
+    var re = /\033\[([\d;]*?)m/
+    var opened = false
+    var cmds = []
+    var opener = ""
+    var closer = ""
+    
+    while (re.test(txt)) {
+        var cmds = txt.match(re)[1].split(";")
+        closer = opened?"</span>":""
+        opened = cmds.length > 1 || cmds[0] != 0
+        var rep = []
+        for (var i in cmds)
+            if (typeof(attrib[cmds[i]]) != "undefined")
+                rep.push(attrib[cmds[i]])
+        opener = rep.length > 0?"<span class=\""+rep.join(" ")+"\">":""
+        txt = txt.replace(re, closer + opener)
+    }
+    if (opened) txt += "</span>"
+    return txt.trim()
+}
+
+//============================================================================
 // Notebook
 //============================================================================
 
@@ -11,14 +72,18 @@ var Notebook = function (selector) {
     this.element.scroll();
     this.element.data("notebook", this);
     this.next_prompt_number = 1;
+    this.next_kernel_number = 0;
+    this.kernel = null;
+    this.msg_cell_map = {};
     this.bind_events();
+    this.start_kernel();
 };
 
 
 Notebook.prototype.bind_events = function () {
     var that = this;
     $(document).keydown(function (event) {
-        console.log(event);
+        // console.log(event);
         if (event.which == 38 && event.shiftKey) {
             event.preventDefault();
             that.select_prev();
@@ -27,9 +92,27 @@ Notebook.prototype.bind_events = function () {
             that.select_next();
         } else if (event.which == 13 && event.shiftKey) {
             // The focus is not quite working here.
+            var cell = that.selected_cell();
+            var cell_index = that.find_cell_index(cell);
+            if (cell instanceof CodeCell) {
+                event.preventDefault();
+                cell.clear_output();
+                var msg_id = that.kernel.execute(cell.get_code());
+                that.msg_cell_map[msg_id] = cell.cell_id;
+                if (cell_index === (that.ncells()-1)) {
+                    that.insert_code_cell_after();
+                } else {
+                    that.select(cell_index+1);
+                };
+            }
+        } else if (event.which == 9) {
             event.preventDefault();
-            that.insert_code_cell_after();
-        }
+            var cell = that.selected_cell();
+            if (cell instanceof CodeCell) {
+                var ta = cell.element.find("textarea.input_area");
+                ta.val(ta.val() + "    ");
+            };
+        };
     });
 };
 
@@ -106,6 +189,19 @@ Notebook.prototype.selected_index = function () {
     this.cell_elements().filter(function (index) {
         if ($(this).data("cell").selected === true) {
             result = index;
+        };
+    });
+    return result;
+};
+
+
+Notebook.prototype.cell_for_msg = function (msg_id) {
+    var cell_id = this.msg_cell_map[msg_id];
+    var result = null;
+    this.cell_elements().filter(function (index) {
+        cell = $(this).data("cell");
+        if (cell.cell_id === cell_id) {
+            result = cell;
         };
     });
     return result;
@@ -301,13 +397,63 @@ Notebook.prototype.code_to_text = function (index) {
 Notebook.prototype.collapse = function (index) {
     var i = this.index_or_selected(index);
     this.cells()[i].collapse();
-}
+};
 
 
 Notebook.prototype.expand = function (index) {
     var i = this.index_or_selected(index);
     this.cells()[i].expand();
-}
+};
+
+
+// Kernel related things
+
+Notebook.prototype.start_kernel = function () {
+    this.kernel = new Kernel("kernel" + this.next_kernel_number);
+    this.next_kernel_number = this.next_kernel_number + 1;
+    this.kernel.start_kernel(this._kernel_started, this);
+};
+
+
+Notebook.prototype._kernel_started = function () {
+    console.log("Kernel started: ", this.kernel.kernel_id);
+    this.kernel.start_session(this._session_started, this);
+};
+
+
+Notebook.prototype._session_started = function () {
+    console.log("Session started: ", this.kernel.session_id);
+    var that = this;
+
+    this.kernel.shell_channel.onmessage = function (e) {
+        reply = $.parseJSON(e.data);
+        console.log(reply);
+        var msg_type = reply.msg_type;
+        var cell = that.cell_for_msg(reply.parent_header.msg_id);
+        if (msg_type === "execute_reply") {
+            cell.set_prompt(reply.content.execution_count);
+        };
+    };
+
+    this.kernel.iopub_channel.onmessage = function (e) {
+        reply = $.parseJSON(e.data);
+        console.log(reply);
+        var msg_type = reply.msg_type;
+        var cell = that.cell_for_msg(reply.parent_header.msg_id);
+        if (msg_type === "stream") {
+            cell.expand();
+            cell.append_stream(reply.content.data + "\n");
+        } else if (msg_type === "pyout" || msg_type === "display_data") {
+            cell.expand();
+            cell.append_display_data(reply.content.data);
+        };
+    };
+};
+
+
+Notebook.prototype._handle_execute_reply = function (reply, cell) {
+    cell.set_prompt(reply.content.execution_count);
+};
 
 
 //============================================================================
@@ -324,6 +470,7 @@ var Cell = function (notebook) {
         this.element.data("cell", this);
         this.bind_events();
     }
+    this.cell_id = uuid();
 };
 
 
@@ -394,9 +541,41 @@ CodeCell.prototype.create_element = function () {
                 ).append(
                     $('<div/>').addClass('output_area')
                 );
-    output.hide();
     cell.append(input).append(output);
     this.element = cell;
+    this.collapse()
+};
+
+
+CodeCell.prototype.append_stream = function (data) {
+    var data_list = data.split("\n");
+    console.log(data_list);
+    if (data_list.length > 0) {
+        for (var i=0; i<data_list.length; i++) {
+            console.log(i, data_list[i]);
+            var toinsert = fixConsole(data_list[i]);
+            this.element.find("div.output_area").append($("<p>").append(toinsert));
+        };
+    }
+};
+
+
+CodeCell.prototype.append_display_data = function (data) {
+    if (data["image/svg+xml"] !== undefined) {
+        this.append_svg(data["image/svg+xml"]);
+    } else if (data["text/plain"] !== undefined) {
+        console.log(data["text/plain"]);
+        this.append_stream(data["text/plain"]);
+    };
+};
+
+CodeCell.prototype.append_svg = function (svg) {
+    this.element.find("div.output_area").append(svg);
+};
+
+
+CodeCell.prototype.clear_output = function () {
+    this.element.find("div.output_area").html("");
 };
 
 
@@ -428,6 +607,10 @@ CodeCell.prototype.set_output_prompt = function (number) {
     this.element.find('div.output_prompt').html('Out[' + n + ']:');
 };
 
+
+CodeCell.prototype.get_code = function () {
+    return this.element.find("textarea.input_area").val();
+};
 
 //============================================================================
 // TextCell
@@ -508,34 +691,71 @@ TextCell.prototype.config_mathjax = function () {
 //============================================================================
 
 
-var KernelManager = function () {
-    this.kernelid = null;
-    this.baseurl = "/kernels";
+var Kernel = function (kernel_id) {
+    this.kernel_id = kernel_id;
+    this.base_url = "/kernels";
+    this.kernel_url = this.base_url + "/" + this.kernel_id
+    this.session_id = null;
 };
 
 
-KernelManager.prototype.create_kernel = function () {
+Kernel.prototype.get_msg = function (msg_type, content) {
+    var msg = {
+        header : {
+            msg_id : uuid(),
+            username : "bgranger",
+            session: this.session_id
+        },
+        msg_type : msg_type,
+        content : content,
+        parent_header : {}
+    };
+    return msg;
+}
+
+Kernel.prototype.start_kernel = function (callback, context) {
+    $.post(this.kernel_url, function () {
+        callback.call(context);
+    });
+};
+
+
+Kernel.prototype.start_session = function (callback, context) {
     var that = this;
-    $.post(this.baseurl, function (data) {
-        that.kernelid = data;
-    }, 'json');
+    $.post(this.kernel_url + "/sessions",
+        function (session_id) {
+            that._handle_start_session(session_id, callback, context);
+        },
+        'json');
 }
 
 
-KernelManager.prototype.execute = function (code, callback) {
-    var msg = {
-        header : {msg_id : 0, username : "bgranger", session: 0},
-        msg_type : "execute_request",
-        content : {code : code}
+Kernel.prototype._handle_start_session = function (session_id, callback, context) {
+    this.session_id = session_id;
+    this.session_url = this.kernel_url + "/sessions/" + this.session_id;
+    this._start_channels();
+    callback.call(context);
+};
+
+
+Kernel.prototype._start_channels = function () {
+    var ws_url = "ws://127.0.0.1:8888" + this.session_url;
+    this.shell_channel = new WebSocket(ws_url + "/shell");
+    this.iopub_channel = new WebSocket(ws_url + "/iopub");
+}
+
+
+Kernel.prototype.execute = function (code) {
+    var content = {
+        code : code,
+        silent : false,
+        user_variables : [],
+        user_expressions : {}
     };
-    var settings = {
-      data : JSON.stringify(msg),
-      processData : false,
-      contentType : "application/json",
-      success : callback,
-      type : "POST"
-    }
-    var url = this.baseurl + "/" + this.kernelid + "/" + ""
+    var msg = this.get_msg("execute_request", content);
+
+    this.shell_channel.send(JSON.stringify(msg));
+    return msg.header.msg_id;
 }
 
 
@@ -578,5 +798,9 @@ $(document).ready(function () {
 
     $("#sort").buttonset();
     $("#sort_cells").click(function () {IPYTHON.notebook.sort_cells();});
+
+    $("#toggle").buttonset();
+    $("#collapse").click(function () {IPYTHON.notebook.collapse();});
+    $("#expand").click(function () {IPYTHON.notebook.expand();});
 
 });
