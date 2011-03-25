@@ -88,9 +88,12 @@ def _find_cmd(cmd):
 
 def _system_body(p):
     """Callback for _system."""
+    enc = sys.stdin.encoding
     for line in read_no_interrupt(p.stdout).splitlines():
+        line = line.decode(enc)
         print(line, file=sys.stdout)
     for line in read_no_interrupt(p.stderr).splitlines():
+        line = line.decode(enc)
         print(line, file=sys.stderr)
 
 
