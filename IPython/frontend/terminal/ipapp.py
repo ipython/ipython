@@ -299,7 +299,7 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             nargs='?', const='auto', metavar='gui-mode',
             help="Pre-load matplotlib and numpy for interactive use. "+
             "If no value is given, the gui backend is matplotlib's, else use "+
-            "one of:  ['tk', 'qt', 'wx', 'gtk'].")
+            "one of:  ['tk', 'qt', 'wx', 'gtk', 'osx'].")
 
         # Legacy GUI options.  Leave them in for backwards compatibility, but the
         # 'thread' names are really a misnomer now.
