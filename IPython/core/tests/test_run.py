@@ -170,6 +170,25 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "a = A()\n")
         self.mktmp(src)
         tt.ipexec_validate(self.fname, 'object A deleted')
+    
+    def test_aggressive_namespace_cleanup(self):
+        """Test that namespace cleanup is not too aggressive GH-238
+        
+        returning from another run magic deletes the namespace"""
+        # see ticket https://github.com/ipython/ipython/issues/238
+        class secondtmp(tt.TempFileMixin): pass
+        empty = secondtmp()
+        empty.mktmp('')
+        src = ("ip = get_ipython()\n"
+               "for i in range(5):\n"
+               "   try:\n"
+               "       ip.magic('run %s')\n"
+               "   except NameError, e:\n"
+               "       print i;break\n" % empty.fname)
+        self.mktmp(src)
+        _ip.magic('run %s' % self.fname)
+        _ip.runlines('ip == get_ipython()')
+        tt.assert_equals(_ip.user_ns['i'], 5)
 
     @dec.skip_win32
     def test_tclass(self):
