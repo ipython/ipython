@@ -282,6 +282,7 @@ def make_quoted_expr(s):
     tail = ''
     tailpadding = ''
     raw  = ''
+    ucode = 'u'
     if "\\" in s:
         raw = 'r'
         if s.endswith('\\'):
@@ -298,7 +299,7 @@ def make_quoted_expr(s):
     else:
         # give up, backslash-escaped string will do
         return '"%s"' % esc_quotes(s)
-    res = raw + quote + s + tailpadding + quote + tail
+    res = ucode + raw + quote + s + tailpadding + quote + tail
     return res
 
 

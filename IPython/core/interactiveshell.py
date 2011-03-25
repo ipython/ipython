@@ -1730,7 +1730,7 @@ class InteractiveShell(Configurable, Magic):
         args = arg_s.split(' ',1)
         magic_name = args[0]
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-
+        
         try:
             magic_args = args[1]
         except IndexError:
@@ -2453,12 +2453,11 @@ class InteractiveShell(Configurable, Magic):
         The global namespace for expansion is always the user's interactive
         namespace.
         """
-
-        return str(ItplNS(cmd,
-                          self.user_ns,  # globals
+        res = ItplNS(cmd, self.user_ns,  # globals
                           # Skip our own frame in searching for locals:
                           sys._getframe(depth+1).f_locals # locals
-                          ))
+                          )
+        return str(res).decode(res.codec)
 
     def mktempfile(self, data=None, prefix='ipython_edit_'):
         """Make a new tempfile and return its filename.
