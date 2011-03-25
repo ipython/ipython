@@ -1,6 +1,26 @@
 var IPYTHON = {};
 
 
+
+// $.get("/notebooks/number2.nb",function (data, status, xhr) {console.log(data);});
+// 
+// settings = {
+//   processData : false,
+//   cache : false,
+//   type : "DELETE",
+//   success : function (data, status, xhr) {console.log(data);}
+// }
+// $.ajax("/notebooks/number2.nb",settings)
+// 
+// settings = {
+//   processData : false,
+//   cache : false,
+//   type : "PUT",
+//   success : function (data, status, xhr) {console.log(data);}
+// }
+// $.ajax("/notebooks/number2.nb",settings)
+
+
 //============================================================================
 // Utilities
 //============================================================================

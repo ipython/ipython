@@ -1,6 +1,8 @@
+import datetime
 import json
 import logging
 import os
+import urllib
 
 import zmq
 
@@ -103,6 +105,53 @@ class ShellStreamHandler(ZMQStreamHandler):
     stream_name = 'shell'
 
 
+class NotebookRootHandler(web.RequestHandler):
+
+    def get(self):
+        files = os.listdir(os.getcwd())
+        files = [file for file in files if file.endswith(".nb")]
+        self.write(json.dumps(files))
+
+
+class NotebookHandler(web.RequestHandler):
+
+    SUPPORTED_METHODS = ("GET", "DELETE", "PUT")
+
+    def find_path(self, filename):
+        filename = urllib.unquote(filename) + ".nb"
+        path = os.path.join(os.getcwd(), filename)
+        return path
+
+    def get(self, filename):
+        path = self.find_path(filename)
+        if not os.path.isfile(path):
+            raise web.HTTPError(404)
+        info = os.stat(path)
+        self.set_header("Content-Type", "application/unknown")
+        self.set_header("Last-Modified", datetime.datetime.utcfromtimestamp(
+            info.st_mtime))
+        f = open(path, "r")
+        try:
+            self.finish(f.read())
+        finally:
+            f.close()
+
+    def put(self, filename):
+        path = self.find_path(filename)
+        f = open(path, "w")
+        f.write(self.request.body)
+        f.close()
+        self.finish()
+
+    def delete(self, filename):
+        path = self.find_path(filename)
+        if not os.path.isfile(path):
+            raise web.HTTPError(404)
+        os.unlink(path)
+        self.set_status(204)
+        self.finish()
+
+
 class NotebookApplication(web.Application):
 
     def __init__(self):
@@ -112,6 +161,8 @@ class NotebookApplication(web.Application):
             (r"/kernels/%s/sessions" % (_kernel_id_regex,), SessionHandler),
             (r"/kernels/%s/sessions/%s/iopub" % (_kernel_id_regex,_session_id_regex), IOPubStreamHandler),
             (r"/kernels/%s/sessions/%s/shell" % (_kernel_id_regex,_session_id_regex), ShellStreamHandler),
+            (r"/notebooks", NotebookRootHandler),
+            (r"/notebooks/([^/]+)", NotebookHandler)
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
