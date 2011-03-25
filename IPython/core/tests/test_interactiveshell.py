@@ -56,9 +56,21 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEquals(ip.user_ns['y'], 3)
 
     def test_multiline_string_cells(self):
-        """Code sprinkled with multiline strings should execute (GH-306)"""
+        "Code sprinkled with multiline strings should execute (GH-306)"
         ip = get_ipython()
         ip.run_cell('tmp=0')
         self.assertEquals(ip.user_ns['tmp'], 0)
         ip.run_cell('tmp=1;"""a\nb"""\n')
         self.assertEquals(ip.user_ns['tmp'], 1)
+
+    def test_dont_cache_with_semicolon(self):
+        "Ending a line with semicolon should not cache the returned object (GH-307)"
+        ip = get_ipython()
+        oldlen = len(ip.user_ns['Out'])
+        a = ip.run_cell('1;')
+        newlen = len(ip.user_ns['Out'])
+        self.assertEquals(oldlen, newlen)
+        #also test the default caching behavior
+        a = ip.run_cell('1')
+        newlen = len(ip.user_ns['Out'])
+        self.assertEquals(oldlen+1, newlen)
