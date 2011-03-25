@@ -857,7 +857,7 @@ class EscapedTransformer(object):
         elif line_info.esc == '??':
             pinfo = 'pinfo2'
 
-        tpl = '%sget_ipython().magic("%s %s")'
+        tpl = '%sget_ipython().magic(u"%s %s")'
         return tpl % (line_info.lspace, pinfo,
                       ' '.join([line_info.fpart, line_info.rest]).strip())
 

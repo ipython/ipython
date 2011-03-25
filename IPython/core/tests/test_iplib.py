@@ -155,11 +155,11 @@ Exception reporting mode: Plain
 
 In [18]: %run simpleerr.py exit
 An exception has occurred, use %tb to see the full traceback.
-SystemExit: (1, 'Mode = exit')
+SystemExit: (1, u'Mode = exit')
 
 In [19]: %run simpleerr.py exit 2
 An exception has occurred, use %tb to see the full traceback.
-SystemExit: (2, 'Mode = exit')
+SystemExit: (2, u'Mode = exit')
 
 In [20]: %tb
 Traceback (most recent call last):
@@ -169,7 +169,7 @@ Traceback (most recent call last):
     sysexit(stat, mode)
   File ... line 11, in sysexit
     raise SystemExit(stat, 'Mode = %s' % mode)
-SystemExit: (2, 'Mode = exit')
+SystemExit: (2, u'Mode = exit')
 
 In [21]: %xmode context
 Exception reporting mode: Context
@@ -197,7 +197,7 @@ SystemExit                                Traceback (most recent call last)
      12 
      13 def bar(mode):
 <BLANKLINE>
-SystemExit: (2, 'Mode = exit')
+SystemExit: (2, u'Mode = exit')
 
 In [23]: %xmode verbose
 Exception reporting mode: Verbose
@@ -211,29 +211,29 @@ SystemExit                                Traceback (most recent call last)
      31 
 ---> 32     bar(mode)
         global bar = <function bar at ...>
-        global mode = 'exit'
+        global mode = u'exit'
 <BLANKLINE>
-... in bar(mode='exit')
+... in bar(mode=u'exit')
      20         except:
      21             stat = 1
 ---> 22         sysexit(stat, mode)
         global sysexit = <function sysexit at ...>
         stat = 2
-        mode = 'exit'
+        mode = u'exit'
      23     else:
      24         raise ValueError('Unknown mode')
 <BLANKLINE>
-... in sysexit(stat=2, mode='exit')
+... in sysexit(stat=2, mode=u'exit')
       9 
      10 def sysexit(stat, mode):
 ---> 11     raise SystemExit(stat, 'Mode = %s' % mode)
         global SystemExit = undefined
         stat = 2
-        mode = 'exit'
+        mode = u'exit'
      12 
      13 def bar(mode):
 <BLANKLINE>
-SystemExit: (2, 'Mode = exit')
+SystemExit: (2, u'Mode = exit')
     """
 
 
