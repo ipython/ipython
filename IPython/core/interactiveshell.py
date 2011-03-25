@@ -2094,7 +2094,6 @@ class InteractiveShell(Configurable, Magic):
         # Store the untransformed code
         raw_cell = cell
         
-        
         # Code transformation and execution must take place with our
         # modifications to builtins.
         with self.builtin_trap:
@@ -2121,14 +2120,13 @@ class InteractiveShell(Configurable, Magic):
             # Store raw and processed history
             if store_history:
                 self.history_manager.store_inputs(self.execution_count, 
-                                                            cell, raw_cell)
+                                                  cell, raw_cell)
 
             self.logger.log(cell, raw_cell)
 
             # All user code execution should take place with our
             # modified displayhook.
             with self.display_trap:
-            
                 # Single-block input should behave like an interactive prompt
                 if len(blocks) == 1:
                     out = self.run_source(blocks[0])
@@ -2164,7 +2162,7 @@ class InteractiveShell(Configurable, Magic):
                 else:
                     # Run the whole cell as one entity, storing both raw and
                     # processed input in history
-                    self.run_source(ipy_cell, symbol='exec')
+                    self.run_source(cell, symbol='exec')
 
         # Write output to the database. Does nothing unless
         # history output logging is enabled.
