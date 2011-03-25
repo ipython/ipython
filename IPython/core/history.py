@@ -47,15 +47,22 @@ class HistoryManager(Configurable):
     input_hist_raw = List([""])
     # A list of directories visited during session
     dir_hist = List()
+    def _dir_hist_default(self):
+        try:
+            return [os.getcwd()]
+        except OSError:
+            return []
+
     # A dict of output history, keyed with ints from the shell's
     # execution count. If there are several outputs from one command,
     # only the last one is stored.
     output_hist = Dict()
     # Contains all outputs, in lists of reprs.
-    output_hist_reprs = Instance(defaultdict)
-    
+    output_hist_reprs = Instance(defaultdict, args=(list,))
+
     # String holding the path to the history file
-    hist_file = Unicode()
+    hist_file = Unicode(config=True)
+
     # The SQLite database
     db = Instance(sqlite3.Connection)
     # The number of the current session in the history database
@@ -73,47 +80,48 @@ class HistoryManager(Configurable):
     # Variables used to store the three last inputs from the user.  On each new
     # history update, we populate the user's namespace with these, shifted as
     # necessary.
-    _i00, _i, _ii, _iii = '','','',''
+    _i00 = Unicode(u'')
+    _i = Unicode(u'')
+    _ii = Unicode(u'')
+    _iii = Unicode(u'')
 
     # A set with all forms of the exit command, so that we don't store them in
     # the history (it's annoying to rewind the first entry and land on an exit
     # call).
-    _exit_commands = None
-    
-    def __init__(self, shell, config=None):
+    _exit_commands = Instance(set, args=(['Quit', 'quit', 'Exit', 'exit',
+        '%Quit', '%quit', '%Exit', '%exit'],))
+
+    def __init__(self, shell, config=None, **traits):
         """Create a new history manager associated with a shell instance.
         """
         # We need a pointer back to the shell for various tasks.
-        super(HistoryManager, self).__init__(shell=shell, config=config)
+        super(HistoryManager, self).__init__(shell=shell, config=config,
+            **traits)
 
-        # list of visited directories
-        try:
-            self.dir_hist = [os.getcwd()]
-        except OSError:
-            self.dir_hist = []
+        if self.hist_file == u'':
+            # No one has set the hist_file, yet.
+            if shell.profile:
+                histfname = 'history-%s' % shell.profile
+            else:
+                histfname = 'history'
+            self.hist_file = os.path.join(shell.ipython_dir, histfname + '.sqlite')
 
-        # Now the history file
-        if shell.profile:
-            histfname = 'history-%s' % shell.profile
-        else:
-            histfname = 'history'
-        self.hist_file = os.path.join(shell.ipython_dir, histfname + '.sqlite')
         try:
             self.init_db()
         except sqlite3.DatabaseError:
-            newpath = os.path.join(self.shell.ipython_dir, "hist-corrupt.sqlite")
-            os.rename(self.hist_file, newpath)
-            print("ERROR! History file wasn't a valid SQLite database.",
-            "It was moved to %s" % newpath, "and a new file created.")
-            self.init_db()
-        
-        self.new_session()
-    
-        self._i00, self._i, self._ii, self._iii = '','','',''
-        self.output_hist_reprs = defaultdict(list)
+            if os.path.isfile(self.hist_file):
+                # Try to move the file out of the way.
+                newpath = os.path.join(self.shell.ipython_dir, "hist-corrupt.sqlite")
+                os.rename(self.hist_file, newpath)
+                print("ERROR! History file wasn't a valid SQLite database.",
+                "It was moved to %s" % newpath, "and a new file created.")
+                self.init_db()
+            else:
+                # The hist_file is probably :memory: or something else.
+                raise
 
-        self._exit_commands = set(['Quit', 'quit', 'Exit', 'exit', '%Quit',
-                                   '%quit', '%Exit', '%exit'])
+        self.new_session()
+
         
     def init_db(self):
         """Connect to the database, and create tables if necessary."""

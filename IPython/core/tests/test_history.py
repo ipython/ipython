@@ -23,18 +23,10 @@ def setUp():
 def test_history():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
-        #tmpdir = '/software/temp'
-        histfile = os.path.realpath(os.path.join(tmpdir, 'history.sqlite'))
-        # Ensure that we restore the history management that we mess with in
-        # this test doesn't affect the IPython instance used by the test suite
-        # beyond this test.
+        # Make a new :memory: DB.
         hist_manager_ori = ip.history_manager
         try:
-            ip.history_manager = HistoryManager(shell=ip)
-            ip.history_manager.hist_file = histfile
-            ip.history_manager.init_db()  # Has to be called after changing file
-            ip.history_manager.reset()
-            print 'test',histfile
+            ip.history_manager = HistoryManager(shell=ip, hist_file=':memory:')
             hist = ['a=1', 'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)

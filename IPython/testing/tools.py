@@ -167,6 +167,7 @@ def default_config():
     config.TerminalInteractiveShell.colors = 'NoColor'
     config.TerminalTerminalInteractiveShell.term_title = False,
     config.TerminalInteractiveShell.autocall = 0
+    config.HistoryManager.hist_file = u':memory:'
     return config
 
 
