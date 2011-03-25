@@ -2094,69 +2094,77 @@ class InteractiveShell(Configurable, Magic):
         # Store the untransformed code
         raw_cell = cell
         
-        # We need to break up the input into executable blocks that can be run
-        # in 'single' mode, to provide comfortable user behavior.
-        blocks = self.input_splitter.split_blocks(cell)
         
-        if not blocks:   # Blank cell
-            return
-        
-        # We only do dynamic transforms on a single line. But a macro can
-        # be expanded to several lines, so we need to split it into input
-        # blocks again.
-        if len(cell.splitlines()) <= 1:
-            cell = self.prefilter_manager.prefilter_line(blocks[0])
-            blocks = self.input_splitter.split_blocks(cell)
-
-        # Store the 'ipython' version of the cell as well, since that's what
-        # needs to go into the translated history and get executed (the
-        # original cell may contain non-python syntax).
-        cell = ''.join(blocks)
-
-        # Store raw and processed history
-        if store_history:
-            self.history_manager.store_inputs(self.execution_count, 
-                                                        cell, raw_cell)
-
-        self.logger.log(cell, raw_cell)
-
-        # All user code execution must happen with our context managers active
-        with nested(self.builtin_trap, self.display_trap):
-
-            # Single-block input should behave like an interactive prompt
-            if len(blocks) == 1:
-                out = self.run_source(blocks[0])
-                # Write output to the database. Does nothing unless
-                # history output logging is enabled.
-                if store_history:
-                    self.history_manager.store_output(self.execution_count)
-                    # since we return here, we need to update the execution count
-                    self.execution_count += 1
-                return out
-
-            # In multi-block input, if the last block is a simple (one-two
-            # lines) expression, run it in single mode so it produces output.
-            # Otherwise just run it all in 'exec' mode.  This seems like a
-            # reasonable usability design.
-            last = blocks[-1]
-            last_nlines = len(last.splitlines())
+        # Code transformation and execution must take place with our
+        # modifications to builtins.
+        with self.builtin_trap:
             
-            if last_nlines < 2:
-                # Here we consider the cell split between 'body' and 'last',
-                # store all history and execute 'body', and if successful, then
-                # proceed to execute 'last'.
+            # We need to break up the input into executable blocks that can
+            # be runin 'single' mode, to provide comfortable user behavior.
+            blocks = self.input_splitter.split_blocks(cell)
+            
+            if not blocks:   # Blank cell
+                return
+            
+            # We only do dynamic transforms on a single line. But a macro
+            # can be expanded to several lines, so we need to split it
+            # into input blocks again.
+            if len(cell.splitlines()) <= 1:
+                cell = self.prefilter_manager.prefilter_line(blocks[0])
+                blocks = self.input_splitter.split_blocks(cell)
 
-                # Get the main body to run as a cell
-                ipy_body = ''.join(blocks[:-1])
-                retcode = self.run_source(ipy_body, symbol='exec',
-                                          post_execute=False)
-                if retcode==0:
-                    # Last expression compiled as 'single' so it produces output
-                    self.run_source(last)
-            else:
-                # Run the whole cell as one entity, storing both raw and
-                # processed input in history
-                self.run_source(ipy_cell, symbol='exec')
+            # Store the 'ipython' version of the cell as well, since
+            # that's what needs to go into the translated history and get
+            # executed (the original cell may contain non-python syntax).
+            cell = ''.join(blocks)
+
+            # Store raw and processed history
+            if store_history:
+                self.history_manager.store_inputs(self.execution_count, 
+                                                            cell, raw_cell)
+
+            self.logger.log(cell, raw_cell)
+
+            # All user code execution should take place with our
+            # modified displayhook.
+            with self.display_trap:
+            
+                # Single-block input should behave like an interactive prompt
+                if len(blocks) == 1:
+                    out = self.run_source(blocks[0])
+                    # Write output to the database. Does nothing unless
+                    # history output logging is enabled.
+                    if store_history:
+                        self.history_manager.store_output(self.execution_count)
+                        # Since we return here, we need to update the
+                        # execution count
+                        self.execution_count += 1
+                    return out
+
+                # In multi-block input, if the last block is a simple (one-two
+                # lines) expression, run it in single mode so it produces output.
+                # Otherwise just run it all in 'exec' mode.  This seems like a
+                # reasonable usability design.
+                last = blocks[-1]
+                last_nlines = len(last.splitlines())
+                
+                if last_nlines < 2:
+                    # Here we consider the cell split between 'body' and 'last',
+                    # store all history and execute 'body', and if successful, then
+                    # proceed to execute 'last'.
+
+                    # Get the main body to run as a cell
+                    ipy_body = ''.join(blocks[:-1])
+                    retcode = self.run_source(ipy_body, symbol='exec',
+                                              post_execute=False)
+                    if retcode==0:
+                        # Last expression compiled as 'single' so it
+                        # produces output
+                        self.run_source(last)
+                else:
+                    # Run the whole cell as one entity, storing both raw and
+                    # processed input in history
+                    self.run_source(ipy_cell, symbol='exec')
 
         # Write output to the database. Does nothing unless
         # history output logging is enabled.
