@@ -158,7 +158,7 @@ class InteractiveShell(Configurable, Magic):
     exit_now = CBool(False)
     # Monotonically increasing execution counter
     execution_count = Int(1)
-    filename = Str("<ipython console>")
+    filename = Unicode("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
 
     # Input splitter, to split entire cells of input into either individual
@@ -166,13 +166,13 @@ class InteractiveShell(Configurable, Magic):
     input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                               (), {})
     logstart = CBool(False, config=True)
-    logfile = Str('', config=True)
-    logappend = Str('', config=True)
+    logfile = Unicode('', config=True)
+    logappend = Unicode('', config=True)
     object_info_string_level = Enum((0,1,2), default_value=0,
                                     config=True)
     pdb = CBool(False, config=True)
 
-    profile = Str('', config=True)
+    profile = Unicode('', config=True)
     prompt_in1 = Str('In [\\#]: ', config=True)
     prompt_in2 = Str('   .\\D.: ', config=True)
     prompt_out = Str('Out[\\#]: ', config=True)
@@ -1987,7 +1987,6 @@ class InteractiveShell(Configurable, Magic):
         kw.setdefault('exit_ignore', False)
 
         fname = os.path.abspath(os.path.expanduser(fname))
-
         # Make sure we have a .py file
         if not fname.endswith('.py'):
             warn('File must end with .py to be run using execfile: <%s>' % fname)
@@ -2004,6 +2003,11 @@ class InteractiveShell(Configurable, Magic):
         # behavior of running a script from the system command line, where
         # Python inserts the script's directory into sys.path
         dname = os.path.dirname(fname)
+        
+        if isinstance(fname, unicode):
+            # execfile uses default encoding instead of filesystem encoding
+            # so unicode filenames will fail
+            fname = fname.encode(sys.getfilesystemencoding() or sys.getdefaultencoding())
 
         with prepended_to_syspath(dname):
             try:
