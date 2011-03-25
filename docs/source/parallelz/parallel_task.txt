@@ -1,4 +1,4 @@
-.. _paralleltask:
+.. _parallel_task:
 
 ==========================
 The IPython task interface
@@ -54,11 +54,12 @@ argument to the constructor:
     # or to connect with a specific profile you have set up:
     In [3]: rc = client.Client(profile='mpi')
 
-For load-balanced execution, we will make use of a :class:`LoadBalancedView` object, which can be constructed via the client's :meth:`view` method:
+For load-balanced execution, we will make use of a :class:`LoadBalancedView` object, which can
+be constructed via the client's :meth:`load_balanced_view` method:
 
 .. sourcecode:: ipython
 
-    In [4]: lview = rc.view() # default load-balanced view
+    In [4]: lview = rc.load_balanced_view() # default load-balanced view
 
 .. seealso::
 
@@ -109,6 +110,8 @@ that turns any Python function into a parallel function:
 
     In [11]: f.map(range(32))    # this is done in parallel
     Out[11]: [0.0,10.0,160.0,...]
+
+.. _parallel_dependencies:
 
 Dependencies
 ============
@@ -230,12 +233,18 @@ any|all
     only after *all* of them have finished.  This is set by a Dependency's :attr:`all`
     boolean attribute, which defaults to ``True``.
 
-success_only
-    Whether to consider only tasks that did not raise an error as being fulfilled.
-    Sometimes you want to run a task after another, but only if that task succeeded.  In
-    this case, ``success_only`` should be ``True``.  However sometimes you may not care
-    whether the task succeeds, and always want the second task to run, in which case
-    you should use `success_only=False`.  The default behavior is to only use successes.
+success [default: True]
+    Whether to consider tasks that succeeded as fulfilling dependencies.
+
+failure [default : False]
+    Whether to consider tasks that failed as fulfilling dependencies.
+    using `failure=True,success=False` is useful for setting up cleanup tasks, to be run
+    only when tasks have failed.
+
+Sometimes you want to run a task after another, but only if that task succeeded. In this case,
+``success`` should be ``True`` and ``failure`` should be ``False``. However sometimes you may
+not care whether the task succeeds, and always want the second task to run, in which case you
+should use `success=failure=True`. The default behavior is to only use successes.
 
 There are other switches for interpretation that are made at the *task* level.  These are
 specified via keyword arguments to the client's :meth:`apply` method.
@@ -258,7 +267,7 @@ timeout
     Dependencies only work within the task scheduler. You cannot instruct a load-balanced
     task to run after a job submitted via the MUX interface.
 
-The simplest form of Dependencies is with `all=True,success_only=True`. In these cases,
+The simplest form of Dependencies is with `all=True,success=True,failure=False`. In these cases,
 you can skip using Dependency objects, and just pass msg_ids or AsyncResult objects as the
 `follow` and `after` keywords to :meth:`client.apply`:
 
@@ -266,13 +275,13 @@ you can skip using Dependency objects, and just pass msg_ids or AsyncResult obje
 
     In [14]: client.block=False
 
-    In [15]: ar = client.apply(f, args, kwargs, balanced=True)
+    In [15]: ar = lview.apply(f, args, kwargs)
 
-    In [16]: ar2 = client.apply(f2, balanced=True)
+    In [16]: ar2 = lview.apply(f2)
 
-    In [17]: ar3 = client.apply(f3, after=[ar,ar2], balanced=True)
+    In [17]: ar3 = lview.apply_with_flags(f3, after=[ar,ar2])
 
-    In [17]: ar4 = client.apply(f3, follow=[ar], timeout=2.5, balanced=True)
+    In [17]: ar4 = lview.apply_with_flags(f3, follow=[ar], timeout=2.5)
 
 
 .. seealso::
@@ -297,8 +306,8 @@ The basic cases that are checked:
 
 * depending on nonexistent messages
 * `follow` dependencies were run on more than one machine and `all=True`
-* any dependencies failed and `all=True,success_only=True`
-* all dependencies failed and `all=False,success_only=True`
+* any dependencies failed and `all=True,success=True,failures=False`
+* all dependencies failed and `all=False,success=True,failure=False`
 
 .. warning::
 
@@ -386,26 +395,24 @@ Disabled features when using the ZMQ Scheduler:
 More details
 ============
 
-The :class:`Client` has many more powerful features that allow quite a bit
+The :class:`LoadBalancedView` has many more powerful features that allow quite a bit
 of flexibility in how tasks are defined and run. The next places to look are
 in the following classes:
 
-* :class:`IPython.zmq.parallel.client.Client`
+* :class:`IPython.zmq.parallel.view.LoadBalancedView`
 * :class:`IPython.zmq.parallel.client.AsyncResult`
-* :meth:`IPython.zmq.parallel.client.Client.apply`
+* :meth:`IPython.zmq.parallel.view.LoadBalancedView.apply`
 * :mod:`IPython.zmq.parallel.dependency`
 
 The following is an overview of how to use these classes together:
 
-1. Create a :class:`Client`.
+1. Create a :class:`Client` and :class:`LoadBalancedView`
 2. Define some functions to be run as tasks
 3. Submit your tasks to using the :meth:`apply` method of your
-   :class:`Client` instance, specifying `balanced=True`. This signals
-   the :class:`Client` to entrust the Scheduler with assigning tasks to engines.
-4. Use :meth:`Client.get_results` to get the results of the
+   :class:`LoadBalancedView` instance.
+4. Use :meth:`Client.get_result` to get the results of the
    tasks, or use the :meth:`AsyncResult.get` method of the results to wait
    for and then receive the results.
-
 
 .. seealso::
 

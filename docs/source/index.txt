@@ -19,7 +19,7 @@ Contents
    whatsnew/index.txt
    install/index.txt
    interactive/index.txt
-   parallel/index.txt
+   .. parallel/index.txt
    parallelz/index.txt
    config/index.txt
    development/index.txt

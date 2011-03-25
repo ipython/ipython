@@ -6,11 +6,9 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-from IPython.external.decorator import decorator
-
 from .asyncresult import AsyncResult
 from .error import UnmetDependency
-
+from .util import interactive
 
 class depend(object):
     """Dependency decorator, for use with tasks.
@@ -54,6 +52,8 @@ class dependent(object):
         self.dkwargs = dkwargs
 
     def __call__(self, *args, **kwargs):
+        # if hasattr(self.f, 'func_globals') and hasattr(self.df, 'func_globals'):
+        #     self.df.func_globals = self.f.func_globals
         if self.df(*self.dargs, **self.dkwargs) is False:
             raise UnmetDependency()
         return self.f(*args, **kwargs)
@@ -62,13 +62,18 @@ class dependent(object):
     def __name__(self):
         return self.func_name
 
+@interactive
 def _require(*names):
     """Helper for @require decorator."""
+    from IPython.zmq.parallel.error import UnmetDependency
+    user_ns = globals()
     for name in names:
+        if name in user_ns:
+            continue
         try:
-            __import__(name)
+            exec 'import %s'%name in user_ns
         except ImportError:
-            return False
+            raise UnmetDependency(name)
     return True
 
 def require(*names):
@@ -96,54 +101,73 @@ class Dependency(set):
     all : bool [default True]
         Whether the dependency should be considered met when *all* depending tasks have completed
         or only when *any* have been completed.
-    success_only : bool [default True]
-        Whether to consider only successes for Dependencies, or consider failures as well.
-        If `all=success_only=True`, then this task will fail with an ImpossibleDependency
+    success : bool [default True]
+        Whether to consider successes as fulfilling dependencies.
+    failure : bool [default False]
+        Whether to consider failures as fulfilling dependencies.
+    
+    If `all=success=True` and `failure=False`, then the task will fail with an ImpossibleDependency
         as soon as the first depended-upon task fails.
     """
     
     all=True
-    success_only=True
+    success=True
+    failure=True
     
-    def __init__(self, dependencies=[], all=True, success_only=True):
+    def __init__(self, dependencies=[], all=True, success=True, failure=False):
         if isinstance(dependencies, dict):
             # load from dict
             all = dependencies.get('all', True)
-            success_only = dependencies.get('success_only', success_only)
+            success = dependencies.get('success', success)
+            failure = dependencies.get('failure', failure)
             dependencies = dependencies.get('dependencies', [])
         ids = []
-        if isinstance(dependencies, AsyncResult):
-            ids.extend(AsyncResult.msg_ids)
-        else:
-            for d in dependencies:
-                if isinstance(d, basestring):
-                    ids.append(d)
-                elif isinstance(d, AsyncResult):
-                    ids.extend(d.msg_ids)
-                else:
-                    raise TypeError("invalid dependency type: %r"%type(d))
+        
+        # extract ids from various sources:
+        if isinstance(dependencies, (basestring, AsyncResult)):
+            dependencies = [dependencies]
+        for d in dependencies:
+            if isinstance(d, basestring):
+                ids.append(d)
+            elif isinstance(d, AsyncResult):
+                ids.extend(d.msg_ids)
+            else:
+                raise TypeError("invalid dependency type: %r"%type(d))
+        
         set.__init__(self, ids)
         self.all = all
-        self.success_only=success_only
+        if not (success or failure):
+            raise ValueError("Must depend on at least one of successes or failures!")
+        self.success=success
+        self.failure = failure
     
     def check(self, completed, failed=None):
-        if failed is not None and not self.success_only:
-            completed = completed.union(failed)
+        """check whether our dependencies have been met."""
         if len(self) == 0:
             return True
+        against = set()
+        if self.success:
+            against = completed
+        if failed is not None and self.failure:
+            against = against.union(failed)
         if self.all:
-            return self.issubset(completed)
+            return self.issubset(against)
         else:
-            return not self.isdisjoint(completed)
+            return not self.isdisjoint(against)
     
-    def unreachable(self, failed):
-        if len(self) == 0 or len(failed) == 0 or not self.success_only:
+    def unreachable(self, completed, failed=None):
+        """return whether this dependency has become impossible."""
+        if len(self) == 0:
             return False
-        # print self, self.success_only, self.all, failed
+        against = set()
+        if not self.success:
+            against = completed
+        if failed is not None and not self.failure:
+            against = against.union(failed)
         if self.all:
-            return not self.isdisjoint(failed)
+            return not self.isdisjoint(against)
         else:
-            return self.issubset(failed)
+            return self.issubset(against)
         
     
     def as_dict(self):
@@ -151,9 +175,10 @@ class Dependency(set):
         return dict(
             dependencies=list(self),
             all=self.all,
-            success_only=self.success_only,
+            success=self.success,
+            failure=self.failure
         )
-    
+
 
 __all__ = ['depend', 'require', 'dependent', 'Dependency']
 

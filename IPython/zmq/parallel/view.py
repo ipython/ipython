@@ -10,13 +10,20 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import warnings
+from contextlib import contextmanager
+
+import zmq
+
 from IPython.testing import decorators as testdec
 from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, Instance
 
 from IPython.external.decorator import decorator
 
-from .asyncresult import AsyncResult
-from .dependency import Dependency
+from . import map as Map
+from . import util
+from .asyncresult import AsyncResult, AsyncMapResult
+from .dependency import Dependency, dependent
 from .remotefunction import ParallelFunction, parallel, remote
 
 #-----------------------------------------------------------------------------
@@ -24,25 +31,16 @@ from .remotefunction import ParallelFunction, parallel, remote
 #-----------------------------------------------------------------------------
 
 @decorator
-def myblock(f, self, *args, **kwargs):
-    """override client.block with self.block during a call"""
-    block = self.client.block
-    self.client.block = self.block
-    try:
-        ret = f(self, *args, **kwargs)
-    finally:
-        self.client.block = block
-    return ret
-
-@decorator
 def save_ids(f, self, *args, **kwargs):
     """Keep our history and outstanding attributes up to date after a method call."""
     n_previous = len(self.client.history)
-    ret = f(self, *args, **kwargs)
-    nmsgs = len(self.client.history) - n_previous
-    msg_ids = self.client.history[-nmsgs:]
-    self.history.extend(msg_ids)
-    map(self.outstanding.add, msg_ids)
+    try:
+        ret = f(self, *args, **kwargs)
+    finally:
+        nmsgs = len(self.client.history) - n_previous
+        msg_ids = self.client.history[-nmsgs:]
+        self.history.extend(msg_ids)
+        map(self.outstanding.add, msg_ids)
     return ret
 
 @decorator
@@ -71,27 +69,54 @@ class View(HasTraits):
     """Base View class for more convenint apply(f,*args,**kwargs) syntax via attributes.
     
     Don't use this class, use subclasses.
+    
+    Methods
+    -------
+    
+    spin
+        flushes incoming results and registration state changes
+        control methods spin, and requesting `ids` also ensures up to date
+    
+    wait
+        wait on one or more msg_ids
+    
+    execution methods
+        apply
+        legacy: execute, run
+    
+    data movement
+        push, pull, scatter, gather
+    
+    query methods
+        get_result, queue_status, purge_results, result_status
+    
+    control methods
+        abort, shutdown
+    
     """
     block=Bool(False)
-    bound=Bool(False)
-    track=Bool(False)
+    track=Bool(True)
     history=List()
     outstanding = Set()
     results = Dict()
     client = Instance('IPython.zmq.parallel.client.Client')
     
+    _socket = Instance('zmq.Socket')
     _ntargets = Int(1)
-    _balanced = Bool(False)
-    _default_names = List(['block', 'bound', 'track'])
+    _flag_names = List(['block', 'track'])
     _targets = Any()
+    _idents = Any()
     
-    def __init__(self, client=None, targets=None):
-        super(View, self).__init__(client=client)
-        self._targets = targets
+    def __init__(self, client=None, socket=None, targets=None):
+        super(View, self).__init__(client=client, _socket=socket)
         self._ntargets = 1 if isinstance(targets, (int,type(None))) else len(targets)
         self.block = client.block
         
-        for name in self._default_names:
+        self._idents, self._targets = self.client._build_targets(targets)
+        if targets is None or isinstance(targets, int):
+            self._targets = targets
+        for name in self._flag_names:
+            # set flags, if they haven't been set yet
             setattr(self, name, getattr(self, name, None))
         
         assert not self.__class__ is View, "Don't use base View objects, use subclasses"
@@ -111,51 +136,97 @@ class View(HasTraits):
     def targets(self, value):
         raise AttributeError("Cannot set View `targets` after construction!")
     
-    @property
-    def balanced(self):
-        return self._balanced
-
-    @balanced.setter
-    def balanced(self, value):
-        raise AttributeError("Cannot set View `balanced` after construction!")
-    
-    def _defaults(self, *excludes):
-        """return dict of our default attributes, excluding names given."""
-        d = dict(balanced=self._balanced, targets=self._targets)
-        for name in self._default_names:
-            if name not in excludes:
-                d[name] = getattr(self, name)
-        return d
-    
     def set_flags(self, **kwargs):
         """set my attribute flags by keyword.
         
-        A View is a wrapper for the Client's apply method, but
-        with attributes that specify keyword arguments, those attributes
-        can be set by keyword argument with this method.
+        Views determine behavior with a few attributes (`block`, `track`, etc.).
+        These attributes can be set all at once by name with this method.
         
         Parameters
         ----------
         
         block : bool
             whether to wait for results
-        bound : bool
-            whether to pass the client's Namespace as the first argument
-            to functions called via `apply`.
         track : bool
             whether to create a MessageTracker to allow the user to 
             safely edit after arrays and buffers during non-copying
             sends.
         """
-        for key in kwargs:
-            if key not in self._default_names:
-                raise KeyError("Invalid name: %r"%key)
-        for name in ('block', 'bound'):
-            if name in kwargs:
-                setattr(self, name, kwargs[name])
+        for name, value in kwargs.iteritems():
+            if name not in self._flag_names:
+                raise KeyError("Invalid name: %r"%name)
+            else:
+                setattr(self, name, value)
     
+    @contextmanager
+    def temp_flags(self, **kwargs):
+        """temporarily set flags, for use in `with` statements.
+        
+        See set_flags for permanent setting of flags
+        
+        Examples
+        --------
+        
+        >>> view.track=False
+        ...
+        >>> with view.temp_flags(track=True):
+        ...    ar = view.apply(dostuff, my_big_array)
+        ...    ar.tracker.wait() # wait for send to finish
+        >>> view.track
+        False
+        
+        """
+        # preflight: save flags, and set temporaries
+        saved_flags = {}
+        for f in self._flag_names:
+            saved_flags[f] = getattr(self, f)
+        self.set_flags(**kwargs)
+        # yield to the with-statement block
+        yield
+        # postflight: restore saved flags
+        self.set_flags(**saved_flags)
+        
+        
     #----------------------------------------------------------------
-    # wrappers for client methods:
+    # apply
+    #----------------------------------------------------------------
+    
+    @sync_results
+    @save_ids
+    def _really_apply(self, f, args, kwargs, block=None, **options):
+        """wrapper for client.send_apply_message"""
+        raise NotImplementedError("Implement in subclasses")
+    
+    def apply(self, f, *args, **kwargs):
+        """calls f(*args, **kwargs) on remote engines, returning the result.
+        
+        This method sets all apply flags via this View's attributes.
+        
+        if self.block is False:
+            returns AsyncResult
+        else:
+            returns actual result of f(*args, **kwargs)
+        """
+        return self._really_apply(f, args, kwargs)
+
+    def apply_async(self, f, *args, **kwargs):
+        """calls f(*args, **kwargs) on remote engines in a nonblocking manner.
+        
+        returns AsyncResult
+        """
+        return self._really_apply(f, args, kwargs, block=False)
+
+    @spin_after
+    def apply_sync(self, f, *args, **kwargs):
+        """calls f(*args, **kwargs) on remote engines in a blocking manner,
+         returning the result.
+        
+        returns: actual result of f(*args, **kwargs)
+        """
+        return self._really_apply(f, args, kwargs, block=True)
+
+    #----------------------------------------------------------------
+    # wrappers for client and control methods
     #----------------------------------------------------------------
     @sync_results
     def spin(self):
@@ -163,82 +234,29 @@ class View(HasTraits):
         self.client.spin()
     
     @sync_results
-    @save_ids
-    def apply(self, f, *args, **kwargs):
-        """calls f(*args, **kwargs) on remote engines, returning the result.
+    def wait(self, jobs=None, timeout=-1):
+        """waits on one or more `jobs`, for up to `timeout` seconds.
         
-        This method sets all of `client.apply`'s keyword arguments via this
-        View's attributes.
+        Parameters
+        ----------
         
-        if self.block is False:
-            returns AsyncResult
-        else:
-            returns actual result of f(*args, **kwargs)
+        jobs : int, str, or list of ints and/or strs, or one or more AsyncResult objects
+                ints are indices to self.history
+                strs are msg_ids
+                default: wait on all outstanding messages
+        timeout : float
+                a time in seconds, after which to give up.
+                default is -1, which means no timeout
+        
+        Returns
+        -------
+        
+        True : when all msg_ids are done
+        False : timeout reached, some msg_ids still outstanding
         """
-        return self.client.apply(f, args, kwargs, **self._defaults())
-
-    @save_ids
-    def apply_async(self, f, *args, **kwargs):
-        """calls f(*args, **kwargs) on remote engines in a nonblocking manner.
-        
-        returns AsyncResult
-        """
-        d = self._defaults('block', 'bound')
-        return self.client.apply(f,args,kwargs, block=False, bound=False, **d)
-
-    @spin_after
-    @save_ids
-    def apply_sync(self, f, *args, **kwargs):
-        """calls f(*args, **kwargs) on remote engines in a blocking manner,
-         returning the result.
-        
-        returns: actual result of f(*args, **kwargs)
-        """
-        d = self._defaults('block', 'bound', 'track')
-        return self.client.apply(f,args,kwargs, block=True, bound=False, **d)
-
-    # @sync_results
-    # @save_ids
-    # def apply_bound(self, f, *args, **kwargs):
-    #     """calls f(*args, **kwargs) bound to engine namespace(s).
-    #     
-    #     if self.block is False:
-    #         returns msg_id
-    #     else:
-    #         returns actual result of f(*args, **kwargs)
-    #     
-    #     This method has access to the targets' namespace via globals()
-    #     
-    #     """
-    #     d = self._defaults('bound')
-    #     return self.client.apply(f, args, kwargs, bound=True, **d)
-    # 
-    @sync_results
-    @save_ids
-    def apply_async_bound(self, f, *args, **kwargs):
-        """calls f(*args, **kwargs) bound to engine namespace(s) 
-        in a nonblocking manner.
-        
-        The first argument to `f` will be the Engine's Namespace
-        
-        returns: AsyncResult
-        
-        """
-        d = self._defaults('block', 'bound')
-        return self.client.apply(f, args, kwargs, block=False, bound=True, **d)
-
-    @spin_after
-    @save_ids
-    def apply_sync_bound(self, f, *args, **kwargs):
-        """calls f(*args, **kwargs) bound to engine namespace(s), waiting for the result.
-        
-        The first argument to `f` will be the Engine's Namespace
-        
-        returns: actual result of f(*args, **kwargs)
-        
-        """
-        d = self._defaults('block', 'bound')
-        return self.client.apply(f, args, kwargs, block=True, bound=True, **d)
+        if jobs is None:
+            jobs = self.history
+        return self.client.wait(jobs, timeout)
     
     def abort(self, jobs=None, block=None):
         """Abort jobs on my engines.
@@ -318,6 +336,7 @@ class View(HasTraits):
         """Parallel version of `itertools.imap`.
         
         See `self.map` for details.
+        
         """
         
         return iter(self.map_async(f,*sequences, **kwargs))
@@ -326,14 +345,15 @@ class View(HasTraits):
     # Decorators
     #-------------------------------------------------------------------
     
-    def remote(self, bound=False, block=True):
+    def remote(self, block=True, **flags):
         """Decorator for making a RemoteFunction"""
-        return remote(self.client, bound=bound, targets=self._targets, block=block, balanced=self._balanced)
+        block = self.block if block is None else block
+        return remote(self, block=block, **flags)
     
-    def parallel(self, dist='b', bound=False, block=None):
+    def parallel(self, dist='b', block=None, **flags):
         """Decorator for making a ParallelFunction"""
         block = self.block if block is None else block
-        return parallel(self.client, bound=bound, targets=self._targets, block=block, balanced=self._balanced)
+        return parallel(self, dist=dist, block=block, **flags)
 
 @testdec.skip_doctest
 class DirectView(View):
@@ -355,14 +375,65 @@ class DirectView(View):
     
     """
     
-    def __init__(self, client=None, targets=None):
-        super(DirectView, self).__init__(client=client, targets=targets)
-        self._balanced = False
+    def __init__(self, client=None, socket=None, targets=None):
+        super(DirectView, self).__init__(client=client, socket=socket, targets=targets)
+        
+    
+    @sync_results
+    @save_ids
+    def _really_apply(self, f, args=None, kwargs=None, block=None, track=None):
+        """calls f(*args, **kwargs) on remote engines, returning the result.
+        
+        This method sets all of `apply`'s flags via this View's attributes.
+        
+        Parameters
+        ----------
+        
+        f : callable
+        
+        args : list [default: empty]
+        
+        kwargs : dict [default: empty]
+        
+        block : bool [default: self.block]
+            whether to block 
+        track : bool [default: self.track]
+            whether to ask zmq to track the message, for safe non-copying sends
+        
+        Returns
+        -------
+        
+        if self.block is False:
+            returns AsyncResult
+        else:
+            returns actual result of f(*args, **kwargs) on the engine(s)
+            This will be a list of self.targets is also a list (even length 1), or
+            the single result if self.targets is an integer engine id
+        """
+        args = [] if args is None else args
+        kwargs = {} if kwargs is None else kwargs
+        block = self.block if block is None else block
+        track = self.track if track is None else track
+        msg_ids = []
+        trackers = []
+        for ident in self._idents:
+            msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
+                                    ident=ident)
+            if track:
+                trackers.append(msg['tracker'])
+            msg_ids.append(msg['msg_id'])
+        tracker = None if track is False else zmq.MessageTracker(*trackers)
+        ar = AsyncResult(self.client, msg_ids, fname=f.__name__, targets=self._targets, tracker=tracker)
+        if block:
+            try:
+                return ar.get()
+            except KeyboardInterrupt:
+                pass
+        return ar
     
     @spin_after
-    @save_ids
     def map(self, f, *sequences, **kwargs):
-        """view.map(f, *sequences, block=self.block, bound=self.bound) => list|AsyncMapResult
+        """view.map(f, *sequences, block=self.block) => list|AsyncMapResult
         
         Parallel version of builtin `map`, using this View's `targets`.
         
@@ -380,8 +451,6 @@ class DirectView(View):
             the sequences to be distributed and passed to `f`
         block : bool
             whether to wait for the result or not [default self.block]
-        bound : bool
-            whether to pass the client's Namespace as the first argument to `f`
         
         Returns
         -------
@@ -396,70 +465,140 @@ class DirectView(View):
                 the result of map(f,*sequences)
         """
         
-        block = kwargs.get('block', self.block)
-        bound = kwargs.get('bound', self.bound)
+        block = kwargs.pop('block', self.block)
         for k in kwargs.keys():
-            if k not in ['block', 'bound']:
+            if k not in ['block', 'track']:
                 raise TypeError("invalid keyword arg, %r"%k)
         
         assert len(sequences) > 0, "must have some sequences to map onto!"
-        pf = ParallelFunction(self.client, f, block=block, bound=bound,
-                        targets=self._targets, balanced=False)
+        pf = ParallelFunction(self, f, block=block, **kwargs)
         return pf.map(*sequences)
     
-    @sync_results
-    @save_ids
     def execute(self, code, block=None):
-        """execute some code on my targets."""
+        """Executes `code` on `targets` in blocking or nonblocking manner.
         
-        block = block if block is not None else self.block
+        ``execute`` is always `bound` (affects engine namespace)
         
-        return self.client.execute(code, block=block, targets=self._targets)
+        Parameters
+        ----------
+        
+        code : str
+                the code string to be executed
+        block : bool
+                whether or not to wait until done to return
+                default: self.block
+        """
+        return self._really_apply(util._execute, args=(code,), block=block)
     
-    @sync_results
-    @save_ids
-    def run(self, fname, block=None):
-        """execute the code in a file on my targets."""
+    def run(self, filename, block=None):
+        """Execute contents of `filename` on my engine(s). 
         
-        block = block if block is not None else self.block
+        This simply reads the contents of the file and calls `execute`.
         
-        return self.client.run(fname, block=block, targets=self._targets)
+        Parameters
+        ----------
+        
+        filename : str
+                The path to the file
+        targets : int/str/list of ints/strs
+                the engines on which to execute
+                default : all
+        block : bool
+                whether or not to wait until done
+                default: self.block
+        
+        """
+        with open(filename, 'r') as f:
+            # add newline in case of trailing indented whitespace
+            # which will cause SyntaxError
+            code = f.read()+'\n'
+        return self.execute(code, block=block)
     
     def update(self, ns):
-        """update remote namespace with dict `ns`"""
-        return self.client.push(ns, targets=self._targets, block=self.block)
+        """update remote namespace with dict `ns`
+        
+        See `push` for details.
+        """
+        return self.push(ns, block=self.block, track=self.track)
     
-    def push(self, ns, block=None):
-        """update remote namespace with dict `ns`"""
+    def push(self, ns, block=None, track=None):
+        """update remote namespace with dict `ns`
+        
+        Parameters
+        ----------
+        
+        ns : dict
+            dict of keys with which to update engine namespace(s)
+        block : bool [default : self.block]
+            whether to wait to be notified of engine receipt
+        
+        """
         
         block = block if block is not None else self.block
-        
-        return self.client.push(ns, targets=self._targets, block=block)
+        track = track if track is not None else self.track
+        # applier = self.apply_sync if block else self.apply_async
+        if not isinstance(ns, dict):
+            raise TypeError("Must be a dict, not %s"%type(ns))
+        return self._really_apply(util._push, (ns,),block=block, track=track)
 
     def get(self, key_s):
         """get object(s) by `key_s` from remote namespace
-        will return one object if it is a key.
-        It also takes a list of keys, and will return a list of objects."""
+        
+        see `pull` for details.
+        """
         # block = block if block is not None else self.block
-        return self.client.pull(key_s, block=True, targets=self._targets)
+        return self.pull(key_s, block=True)
     
-    @sync_results
-    @save_ids
-    def pull(self, key_s, block=True):
-        """get object(s) by `key_s` from remote namespace
+    def pull(self, names, block=True):
+        """get object(s) by `name` from remote namespace
+        
         will return one object if it is a key.
-        It also takes a list of keys, and will return a list of objects."""
+        can also take a list of keys, in which case it will return a list of objects.
+        """
         block = block if block is not None else self.block
-        return self.client.pull(key_s, block=block, targets=self._targets)
+        applier = self.apply_sync if block else self.apply_async
+        if isinstance(names, basestring):
+            pass
+        elif isinstance(names, (list,tuple,set)):
+            for key in names:
+                if not isinstance(key, basestring):
+                    raise TypeError("keys must be str, not type %r"%type(key))
+        else:
+            raise TypeError("names must be strs, not %r"%names)
+        return applier(util._pull, names)
     
-    def scatter(self, key, seq, dist='b', flatten=False, block=None):
+    def scatter(self, key, seq, dist='b', flatten=False, block=None, track=None):
         """
         Partition a Python sequence and send the partitions to a set of engines.
         """
         block = block if block is not None else self.block
+        track = track if track is not None else self.track
+        targets = self._targets
+        mapObject = Map.dists[dist]()
+        nparts = len(targets)
+        msg_ids = []
+        trackers = []
+        for index, engineid in enumerate(targets):
+            push = self.client[engineid].push
+            partition = mapObject.getPartition(seq, index, nparts)
+            if flatten and len(partition) == 1:
+                r = push({key: partition[0]}, block=False, track=track)
+            else:
+                r = push({key: partition},block=False, track=track)
+            msg_ids.extend(r.msg_ids)
+            if track:
+                trackers.append(r._tracker)
         
-        return self.client.scatter(key, seq, dist=dist, flatten=flatten,
-                    targets=self._targets, block=block)
+        if track:
+            tracker = zmq.MessageTracker(*trackers)
+        else:
+            tracker = None
+        
+        r = AsyncResult(self.client, msg_ids, fname='scatter', targets=targets, tracker=tracker)
+        if block:
+            r.wait()
+        else:
+            return r
     
     @sync_results
     @save_ids
@@ -468,8 +607,20 @@ class DirectView(View):
         Gather a partitioned sequence on a set of engines as a single local seq.
         """
         block = block if block is not None else self.block
+        mapObject = Map.dists[dist]()
+        msg_ids = []
+        for index, engineid in enumerate(self._targets):
+            
+            msg_ids.extend(self.client[engineid].pull(key, block=False).msg_ids)
         
-        return self.client.gather(key, dist=dist, targets=self._targets, block=block)
+        r = AsyncMapResult(self.client, msg_ids, mapObject, fname='gather')
+        
+        if block:
+            try:
+                return r.get()
+            except KeyboardInterrupt:
+                pass
+        return r
     
     def __getitem__(self, key):
         return self.get(key)
@@ -523,22 +674,25 @@ class LoadBalancedView(View):
     
     Load-balanced views can be created with the client's `view` method:
     
-    >>> v = client.view(balanced=True)
+    >>> v = client.load_balanced_view()
     
     or targets can be specified, to restrict the potential destinations:
     
-    >>> v = client.view([1,3],balanced=True)
+    >>> v = client.client.load_balanced_view(([1,3])
     
     which would restrict loadbalancing to between engines 1 and 3.
     
     """
     
-    _default_names = ['block', 'bound', 'follow', 'after', 'timeout']
+    _flag_names = ['block', 'track', 'follow', 'after', 'timeout']
     
-    def __init__(self, client=None, targets=None):
-        super(LoadBalancedView, self).__init__(client=client, targets=targets)
+    def __init__(self, client=None, socket=None, targets=None):
+        super(LoadBalancedView, self).__init__(client=client, socket=socket, targets=targets)
         self._ntargets = 1
-        self._balanced = True
+        self._task_scheme=client._task_scheme
+        if targets is None:
+            self._targets = None
+            self._idents=[]
     
     def _validate_dependency(self, dep):
         """validate a dependency.
@@ -549,7 +703,7 @@ class LoadBalancedView(View):
             return True
         elif isinstance(dep, (list,set, tuple)):
             for d in dep:
-                if not isinstance(d, str, AsyncResult):
+                if not isinstance(d, (str, AsyncResult)):
                     return False
         elif isinstance(dep, dict):
             if set(dep.keys()) != set(Dependency().as_dict().keys()):
@@ -561,7 +715,21 @@ class LoadBalancedView(View):
                     return False
         else:
             return False
+        
+        return True
                 
+    def _render_dependency(self, dep):
+        """helper for building jsonable dependencies from various input forms."""
+        if isinstance(dep, Dependency):
+            return dep.as_dict()
+        elif isinstance(dep, AsyncResult):
+            return dep.msg_ids
+        elif dep is None:
+            return []
+        else:
+            # pass to Dependency constructor
+            return list(Dependency(dep))
+
     def set_flags(self, **kwargs):
         """set my attribute flags by keyword.
         
@@ -574,19 +742,28 @@ class LoadBalancedView(View):
         
         block : bool
             whether to wait for results
-        bound : bool
-            whether to pass the client's Namespace as the first argument
-            to functions called via `apply`.
         track : bool
             whether to create a MessageTracker to allow the user to 
             safely edit after arrays and buffers during non-copying
             sends.
-        follow : Dependency, list, msg_id, AsyncResult
-            the location dependencies of tasks
-        after : Dependency, list, msg_id, AsyncResult
-            the time dependencies of tasks
-        timeout : int,None
-            the timeout to be used for tasks
+        #
+        after : Dependency or collection of msg_ids
+            Only for load-balanced execution (targets=None)
+            Specify a list of msg_ids as a time-based dependency.
+            This job will only be run *after* the dependencies
+            have been met.
+
+        follow : Dependency or collection of msg_ids
+            Only for load-balanced execution (targets=None)
+            Specify a list of msg_ids as a location-based dependency.
+            This job will only be run on an engine where this dependency
+            is met.
+
+        timeout : float/int or None
+            Only for load-balanced execution (targets=None)
+            Specify an amount of time (in seconds) for the scheduler to
+            wait for dependencies to be met before failing with a
+            DependencyTimeout.
         """
         
         super(LoadBalancedView, self).set_flags(**kwargs)
@@ -599,23 +776,101 @@ class LoadBalancedView(View):
                     raise ValueError("Invalid dependency: %r"%value)
         if 'timeout' in kwargs:
             t = kwargs['timeout']
-            if not isinstance(t, (int, long, float, None)):
+            if not isinstance(t, (int, long, float, type(None))):
                 raise TypeError("Invalid type for timeout: %r"%type(t))
             if t is not None:
                 if t < 0:
                     raise ValueError("Invalid timeout: %s"%t)
             self.timeout = t
-                
+    
+    @sync_results
+    @save_ids
+    def _really_apply(self, f, args=None, kwargs=None, block=None, track=None,
+                                        after=None, follow=None, timeout=None):
+        """calls f(*args, **kwargs) on a remote engine, returning the result.
+        
+        This method temporarily sets all of `apply`'s flags for a single call.
+        
+        Parameters
+        ----------
+        
+        f : callable
+        
+        args : list [default: empty]
+        
+        kwargs : dict [default: empty]
+        
+        block : bool [default: self.block]
+            whether to block 
+        track : bool [default: self.track]
+            whether to ask zmq to track the message, for safe non-copying sends
+            
+        !!!!!! TODO: THE REST HERE  !!!!
+        
+        Returns
+        -------
+        
+        if self.block is False:
+            returns AsyncResult
+        else:
+            returns actual result of f(*args, **kwargs) on the engine(s)
+            This will be a list of self.targets is also a list (even length 1), or
+            the single result if self.targets is an integer engine id
+        """
+
+        # validate whether we can run
+        if self._socket.closed:
+            msg = "Task farming is disabled"
+            if self._task_scheme == 'pure':
+                msg += " because the pure ZMQ scheduler cannot handle"
+                msg += " disappearing engines."
+            raise RuntimeError(msg)
+        
+        if self._task_scheme == 'pure':
+            # pure zmq scheme doesn't support dependencies
+            msg = "Pure ZMQ scheduler doesn't support dependencies"
+            if (follow or after):
+                # hard fail on DAG dependencies
+                raise RuntimeError(msg)
+            if isinstance(f, dependent):
+                # soft warn on functional dependencies
+                warnings.warn(msg, RuntimeWarning)
+        
+        # build args
+        args = [] if args is None else args
+        kwargs = {} if kwargs is None else kwargs
+        block = self.block if block is None else block
+        track = self.track if track is None else track
+        after = self.after if after is None else after
+        follow = self.follow if follow is None else follow
+        timeout = self.timeout if timeout is None else timeout
+        after = self._render_dependency(after)
+        follow = self._render_dependency(follow)
+        subheader = dict(after=after, follow=follow, timeout=timeout, targets=self._idents)
+        
+        msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
+                                subheader=subheader)
+        tracker = None if track is False else msg['tracker']
+        
+        ar = AsyncResult(self.client, msg['msg_id'], fname=f.__name__, targets=None, tracker=tracker)
+        
+        if block:
+            try:
+                return ar.get()
+            except KeyboardInterrupt:
+                pass
+        return ar
+        
     @spin_after
     @save_ids
     def map(self, f, *sequences, **kwargs):
-        """view.map(f, *sequences, block=self.block, bound=self.bound, chunk_size=1) => list|AsyncMapResult
+        """view.map(f, *sequences, block=self.block, chunksize=1) => list|AsyncMapResult
         
         Parallel version of builtin `map`, load-balanced by this View.
         
-        `block`, `bound`, and `chunk_size` can be specified by keyword only.
+        `block`, and `chunksize` can be specified by keyword only.
         
-        Each `chunk_size` elements will be a separate task, and will be
+        Each `chunksize` elements will be a separate task, and will be
         load-balanced. This lets individual elements be available for iteration
         as soon as they arrive.
         
@@ -628,13 +883,11 @@ class LoadBalancedView(View):
             the sequences to be distributed and passed to `f`
         block : bool
             whether to wait for the result or not [default self.block]
-        bound : bool
-            whether to pass the client's Namespace as the first argument to `f`
         track : bool
             whether to create a MessageTracker to allow the user to 
             safely edit after arrays and buffers during non-copying
             sends.
-        chunk_size : int
+        chunksize : int
             how many elements should be in each task [default 1]
         
         Returns
@@ -652,19 +905,16 @@ class LoadBalancedView(View):
         
         # default
         block = kwargs.get('block', self.block)
-        bound = kwargs.get('bound', self.bound)
-        chunk_size = kwargs.get('chunk_size', 1)
+        chunksize = kwargs.get('chunksize', 1)
         
         keyset = set(kwargs.keys())
-        extra_keys = keyset.difference_update(set(['block', 'bound', 'chunk_size']))
+        extra_keys = keyset.difference_update(set(['block', 'chunksize']))
         if extra_keys:
             raise TypeError("Invalid kwargs: %s"%list(extra_keys))
         
         assert len(sequences) > 0, "must have some sequences to map onto!"
         
-        pf = ParallelFunction(self.client, f, block=block, bound=bound, 
-                                targets=self._targets, balanced=True,
-                                chunk_size=chunk_size)
+        pf = ParallelFunction(self, f, block=block,  chunksize=chunksize)
         return pf.map(*sequences)
     
 __all__ = ['LoadBalancedView', 'DirectView']

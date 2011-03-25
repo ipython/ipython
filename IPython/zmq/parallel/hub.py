@@ -890,13 +890,9 @@ class Hub(LoggingFactory):
     
     def shutdown_request(self, client_id, msg):
         """handle shutdown request."""
-        # s = self.context.socket(zmq.XREQ)
-        # s.connect(self.client_connections['mux'])
-        # time.sleep(0.1)
-        # for eid,ec in self.engines.iteritems():
-        #     self.session.send(s, 'shutdown_request', content=dict(restart=False), ident=ec.queue)
-        # time.sleep(1)
         self.session.send(self.query, 'shutdown_reply', content={'status': 'ok'}, ident=client_id)
+        # also notify other clients of shutdown
+        self.session.send(self.notifier, 'shutdown_notice', content={'status': 'ok'})
         dc = ioloop.DelayedCallback(lambda : self._shutdown(), 1000, self.loop)
         dc.start()
     

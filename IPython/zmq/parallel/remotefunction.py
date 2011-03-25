@@ -1,4 +1,4 @@
-"""Remote Functions and decorators for the client."""
+"""Remote Functions and decorators for Views."""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
 #
@@ -22,33 +22,33 @@ from .asyncresult import AsyncMapResult
 #-----------------------------------------------------------------------------
 
 @testdec.skip_doctest
-def remote(client, bound=False, block=None, targets=None, balanced=None):
+def remote(view, block=None, **flags):
     """Turn a function into a remote function.
     
     This method can be used for map:
     
-    In [1]: @remote(client,block=True)
+    In [1]: @remote(view,block=True)
        ...: def func(a):
        ...:    pass
     """
     
     def remote_function(f):
-        return RemoteFunction(client, f, bound, block, targets, balanced)
+        return RemoteFunction(view, f, block=block, **flags)
     return remote_function
 
 @testdec.skip_doctest
-def parallel(client, dist='b', bound=False, block=None, targets='all', balanced=None):
+def parallel(view, dist='b', block=None, **flags):
     """Turn a function into a parallel remote function.
     
     This method can be used for map:
     
-    In [1]: @parallel(client,block=True)
+    In [1]: @parallel(view, block=True)
        ...: def func(a):
        ...:    pass
     """
     
     def parallel_function(f):
-        return ParallelFunction(client, f, dist, bound, block, targets, balanced)
+        return ParallelFunction(view, f, dist=dist, block=block, **flags)
     return parallel_function
 
 #--------------------------------------------------------------------------
@@ -61,44 +61,32 @@ class RemoteFunction(object):
     Parameters
     ----------
     
-    client : Client instance
-        The client to be used to connect to engines
+    view : View instance
+        The view to be used for execution
     f : callable
         The function to be wrapped into a remote function
-    bound : bool [default: False]
-        Whether the affect the remote namespace when called
     block : bool [default: None]
         Whether to wait for results or not.  The default behavior is
-        to use the current `block` attribute of `client`
-    targets : valid target list [default: all]
-        The targets on which to execute.
-    balanced : bool
-        Whether to load-balance with the Task scheduler or not
+        to use the current `block` attribute of `view`
+    
+    **flags : remaining kwargs are passed to View.temp_flags
     """
     
-    client = None # the remote connection
+    view = None # the remote connection
     func = None # the wrapped function
     block = None # whether to block
-    bound = None # whether to affect the namespace
-    targets = None # where to execute
-    balanced = None # whether to load-balance
+    flags = None # dict of extra kwargs for temp_flags
     
-    def __init__(self, client, f, bound=False, block=None, targets=None, balanced=None):
-        self.client = client
+    def __init__(self, view, f, block=None, **flags):
+        self.view = view
         self.func = f
         self.block=block
-        self.bound=bound
-        self.targets=targets
-        if balanced is None:
-            if targets is None:
-                balanced = True
-            else:
-                balanced = False
-        self.balanced = balanced
+        self.flags=flags
     
     def __call__(self, *args, **kwargs):
-        return self.client.apply(self.func, args=args, kwargs=kwargs,
-                block=self.block, targets=self.targets, bound=self.bound, balanced=self.balanced)
+        block = self.view.block if self.block is None else self.block
+        with self.view.temp_flags(block=block, **self.flags):
+            return self.view.apply(self.func, *args, **kwargs)
     
 
 class ParallelFunction(RemoteFunction):
@@ -111,51 +99,57 @@ class ParallelFunction(RemoteFunction):
     Parameters
     ----------
     
-    client : Client instance
-        The client to be used to connect to engines
+    view : View instance
+        The view to be used for execution
     f : callable
         The function to be wrapped into a remote function
-    bound : bool [default: False]
-        Whether the affect the remote namespace when called
+    dist : str [default: 'b']
+        The key for which mapObject to use to distribute sequences
+        options are:
+          * 'b' : use contiguous chunks in order
+          * 'r' : use round-robin striping
     block : bool [default: None]
         Whether to wait for results or not.  The default behavior is
-        to use the current `block` attribute of `client`
-    targets : valid target list [default: all]
-        The targets on which to execute.
-    balanced : bool
-        Whether to load-balance with the Task scheduler or not
-    chunk_size : int or None
+        to use the current `block` attribute of `view`
+    chunksize : int or None
         The size of chunk to use when breaking up sequences in a load-balanced manner
+    **flags : remaining kwargs are passed to View.temp_flags
     """
-    def __init__(self, client, f, dist='b', bound=False, block=None, targets='all', balanced=None, chunk_size=None):
-        super(ParallelFunction, self).__init__(client,f,bound,block,targets,balanced)
-        self.chunk_size = chunk_size
+    
+    chunksize=None
+    mapObject=None
+    
+    def __init__(self, view, f, dist='b', block=None, chunksize=None, **flags):
+        super(ParallelFunction, self).__init__(view, f, block=block, **flags)
+        self.chunksize = chunksize
         
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
     
     def __call__(self, *sequences):
+        # check that the length of sequences match
         len_0 = len(sequences[0])
         for s in sequences:
             if len(s)!=len_0:
                 msg = 'all sequences must have equal length, but %i!=%i'%(len_0,len(s))
                 raise ValueError(msg)
-        
-        if self.balanced:
-            if self.chunk_size:
-                nparts = len_0/self.chunk_size + int(len_0%self.chunk_size > 0)
+        balanced = 'Balanced' in self.view.__class__.__name__
+        if balanced:
+            if self.chunksize:
+                nparts = len_0/self.chunksize + int(len_0%self.chunksize > 0)
             else:
                 nparts = len_0
-            targets = [self.targets]*nparts
+            targets = [None]*nparts
         else:
-            if self.chunk_size:
-                warnings.warn("`chunk_size` is ignored when `balanced=False", UserWarning)
+            if self.chunksize:
+                warnings.warn("`chunksize` is ignored unless load balancing", UserWarning)
             # multiplexed:
-            targets = self.client._build_targets(self.targets)[-1]
+            targets = self.view.targets
             nparts = len(targets)
         
         msg_ids = []
         # my_f = lambda *a: map(self.func, *a)
+        client = self.view.client
         for index, t in enumerate(targets):
             args = []
             for seq in sequences:
@@ -173,12 +167,15 @@ class ParallelFunction(RemoteFunction):
                 args = [self.func]+args
             else:
                 f=self.func
-            ar = self.client.apply(f, args=args, block=False, bound=self.bound, 
-                        targets=t, balanced=self.balanced)
+            
+            view = self.view if balanced else client[t]
+            with view.temp_flags(block=False, **self.flags):
+                ar = view.apply(f, *args)
             
             msg_ids.append(ar.msg_ids[0])
         
-        r = AsyncMapResult(self.client, msg_ids, self.mapObject, fname=self.func.__name__)
+        r = AsyncMapResult(self.view.client, msg_ids, self.mapObject, fname=self.func.__name__)
+        
         if self.block:
             try:
                 return r.get()

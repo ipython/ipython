@@ -18,13 +18,14 @@ Non-copying sends and numpy arrays
 ----------------------------------
 
 When numpy arrays are passed as arguments to apply or via data-movement methods, they are not
-copied.  This means that you must be careful if you are sending an array that you intend to work on.
-PyZMQ does allow you to track when a message has been sent so you can know when it is safe to edit the buffer, but
-IPython only allows for this.
+copied. This means that you must be careful if you are sending an array that you intend to work
+on. PyZMQ does allow you to track when a message has been sent so you can know when it is safe
+to edit the buffer, but IPython only allows for this.
 
-It is also important to note that the non-copying receive of a message is *read-only*.  That
-means that if you intend to work in-place on an array that you have sent or received, you must copy
-it.  This is true for both numpy arrays sent to engines and numpy arrays retrieved as results.
+It is also important to note that the non-copying receive of a message is *read-only*. That
+means that if you intend to work in-place on an array that you have sent or received, you must
+copy it. This is true for both numpy arrays sent to engines and numpy arrays retrieved as
+results.
 
 The following will fail:
 
@@ -69,6 +70,24 @@ The :attr:`ndarray.flags.writeable` flag will tell you if you can write to an ar
     In [6]: _.flags.writeable
     Out[6]: False
 
+If you want to safely edit an array in-place after *sending* it, you must use the `track=True` flag.  IPython always performs non-copying sends of arrays, which return immediately.  You
+must instruct IPython track those messages *at send time* in order to know for sure that the send has completed.  AsyncResults have a :attr:`sent` property, and :meth:`wait_on_send` method
+for checking and waiting for 0MQ to finish with a buffer.
+
+.. sourcecode:: ipython
+
+    In [5]: A = numpy.random.random((1024,1024))
+    
+    In [6]: view.track=True
+    
+    In [7]: ar = view.apply_async(lambda x: 2*x, A)
+    
+    In [8]: ar.sent
+    Out[8]: False
+    
+    In [9]: ar.wait_on_send() # blocks until sent is True
+
+
 What is sendable?
 -----------------
 
@@ -83,6 +102,61 @@ buffer without copying - and reconstruct the object on the other side in your ow
 possible that the object reconstruction will become extensible, so you can add your own
 non-copying types, but this does not yet exist.
 
+Closures
+********
+
+Just about anything in Python is pickleable. The one notable exception is objects (generally
+functions) with *closures*. Closures can be a complicated topic, but the basic principal is that
+functions that refer to variables in their parent scope have closures.
+
+An example of a function that uses a closure:
+
+.. sourcecode:: python
+
+    def f(a):
+        def inner():
+            # inner will have a closure
+            return a
+        return echo
+    
+    f1 = f(1)
+    f2 = f(2)
+    f1() # returns 1
+    f2() # returns 2
+
+f1 and f2 will have closures referring to the scope in which `inner` was defined, because they
+use the variable 'a'. As a result, you would not be able to send ``f1`` or ``f2`` with IPython.
+Note that you *would* be able to send `f`. This is only true for interactively defined
+functions (as are often used in decorators), and only when there are variables used inside the
+inner function, that are defined in the outer function. If the names are *not* in the outer
+function, then there will not be a closure, and the generated function will look in
+``globals()`` for the name:
+
+.. sourcecode:: python
+
+    def g(b):
+        # note that `b` is not referenced in inner's scope
+        def inner():
+            # this inner will *not* have a closure
+            return a
+        return echo
+    g1 = g(1)
+    g2 = g(2)
+    g1() # raises NameError on 'a'
+    a=5
+    g2() # returns 5
+
+`g1` and `g2` *will* be sendable with IPython, and will treat the engine's namespace as
+globals().  The :meth:`pull` method is implemented based on this principal.  If we did not
+provide pull, you could implement it yourself with `apply`, by simply returning objects out
+of the global namespace:
+
+.. sourcecode:: ipython
+
+    In [10]: view.apply(lambda : a)
+    
+    # is equivalent to
+    In [11]: view.pull('a')
 
 Running Code
 ============
@@ -94,7 +168,9 @@ Client method, called `apply`.
 Apply
 -----
 
-The principal method of remote execution is :meth:`apply`, of Client and View objects.  The Client provides the full execution and communication API for engines via its apply method.
+The principal method of remote execution is :meth:`apply`, of View objects. The Client provides
+the full execution and communication API for engines via its low-level
+:meth:`send_apply_message` method.
 
 f : function
     The fuction to be called remotely
@@ -102,8 +178,6 @@ args : tuple/list
     The positional arguments passed to `f`
 kwargs : dict
     The keyword arguments passed to `f`
-bound : bool (default: False)
-    Whether to pass the Engine(s) Namespace as the first argument to `f`.
 block : bool (default: self.block)
     Whether to wait for the result, or return immediately.
     False:
@@ -135,8 +209,6 @@ balanced : bool, default None
     If `balanced` and `targets` are both specified, the task will
     be assigne to *one* of the targets by the scheduler.
     
-The following arguments are only used when balanced is True:
-
 after : Dependency or collection of msg_ids
     Only for load-balanced execution (targets=None)
     Specify a list of msg_ids as a time-based dependency.
@@ -158,11 +230,11 @@ timeout : float/int or None
 execute and run
 ---------------
 
-For executing strings of Python code, Clients also provide an :meth:`execute` and a :meth:`run`
-method, which rather than take functions and arguments, take simple strings. `execute` simply
-takes a string of Python code to execute, and sends it to the Engine(s). `run` is the same as
-`execute`, but for a *file*, rather than a string. It is simply a wrapper that does something
-very similar to ``execute(open(f).read())``.
+For executing strings of Python code, :class:`DirectView`s also provide an :meth:`execute` and a
+:meth:`run` method, which rather than take functions and arguments, take simple strings.
+`execute` simply takes a string of Python code to execute, and sends it to the Engine(s). `run`
+is the same as `execute`, but for a *file*, rather than a string. It is simply a wrapper that
+does something very similar to ``execute(open(f).read())``.
 
 .. note::
 
@@ -172,43 +244,24 @@ Views
 =====
 
 The principal extension of the :class:`~parallel.client.Client` is the
-:class:`~parallel.view.View` class. The client is a fairly stateless object with respect to
-execution patterns, where you must specify everything about the execution as keywords to each
-call to :meth:`apply`. For users who want to more conveniently specify various options for
-several similar calls, we have the :class:`~parallel.view.View` objects. The basic principle of
-the views is to encapsulate the keyword arguments to :meth:`client.apply` as attributes,
-allowing users to specify them once and apply to any subsequent calls until the attribute is
-changed.
+:class:`~parallel.view.View` class. The client
 
 Two of apply's keyword arguments are set at the construction of the View, and are immutable for
 a given View: `balanced` and `targets`. `balanced` determines whether the View will be a
 :class:`.LoadBalancedView` or a :class:`.DirectView`, and `targets` will be the View's `targets`
 attribute.  Attempts to change this will raise errors.
 
-Views are cached by targets+balanced combinations, so requesting a view multiple times will always return the *same object*, not create a new one:
+Views are cached by targets/class, so requesting a view multiple times will always return the
+*same object*, not create a new one:
 
 .. sourcecode:: ipython
 
-    In [3]: v1 = rc.view([1,2,3], balanced=True)
-    In [4]: v2 = rc.view([1,2,3], balanced=True)
+    In [3]: v1 = rc.load_balanced_view([1,2,3])
+    In [4]: v2 = rc.load_balanced_view([1,2,3])
 
     In [5]: v2 is v1
     Out[5]: True
 
-
-A :class:`View` always uses its `targets` attribute, and it will use its `bound`
-and `block` attributes in its :meth:`apply` method, but the suffixed :meth:`apply_x`
-methods allow overriding `bound` and `block` for a single call.
-
-==================  ==========  ==========
-method              block       bound
-==================  ==========  ==========
-apply               self.block  self.bound
-apply_sync          True        False
-apply_async         False       False
-apply_sync_bound    True        True
-apply_async_bound   False       True
-==================  ==========  ==========
 
 DirectView
 ----------
@@ -379,24 +432,26 @@ interactive session - you must poll the 0MQ sockets for incoming messages.  Note
 this polling *does not* actually make any network requests.  It simply performs a `select`
 operation, to check if messages are already in local memory, waiting to be handled.
 
-The method that handles incoming messages is :meth:`spin`.  This method flushes any waiting messages on the various incoming sockets, and updates the state of the Client.
+The method that handles incoming messages is :meth:`spin`. This method flushes any waiting
+messages on the various incoming sockets, and updates the state of the Client.
 
-If you need to wait for particular results to finish, you can use the :meth:`barrier` method,
+If you need to wait for particular results to finish, you can use the :meth:`wait` method,
 which will call :meth:`spin` until the messages are no longer outstanding. Anything that
 represents a collection of messages, such as a list of msg_ids or one or more AsyncResult
-objects, can be passed as argument to barrier. A timeout can be specified, which will prevent
-the barrier from blocking for more than a specified time, but the default behavior is to wait
+objects, can be passed as argument to wait. A timeout can be specified, which will prevent
+the call from blocking for more than a specified time, but the default behavior is to wait
 forever.
 
 
 
 The client also has an `outstanding` attribute - a ``set`` of msg_ids that are awaiting replies.
-This is the default if barrier is called with no arguments - i.e. barrier on *all* outstanding messages.
+This is the default if wait is called with no arguments - i.e. wait on *all* outstanding
+messages.
 
 
 .. note::
 
-    TODO barrier example
+    TODO wait example
 
 Map
 ===

@@ -27,14 +27,14 @@ filestring = 'pi200m.ascii.%(i)02dof20'
 files = [filestring % {'i':i} for i in range(1,16)]
 
 # Connect to the IPython cluster
-c = client.Client(profile='edison')
-c.run('pidigits.py')
+c = client.Client()
+c[:].run('pidigits.py')
 
 # the number of engines
 n = len(c)
 id0 = c.ids[0]
 v = c[:]
-v.set_flags(bound=True,block=True)
+v.block=True
 # fetch the pi-files
 print "downloading %i files of pi"%n
 v.map(fetch_pi_file, files[:n])

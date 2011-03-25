@@ -1,8 +1,9 @@
 from IPython.zmq.parallel.client import *
 
 client = Client()
+view = client[:]
 
-@remote(client, block=True)
+@view.remote(block=True)
 def square(a):
     """return square of a number"""
     return a*a
@@ -21,7 +22,7 @@ squares2 = [ r.get() for r in arlist ]
 
 # now the more convenient @parallel decorator, which has a map method:
 
-@parallel(client, block=False)
+@view.parallel(block=False)
 def psquare(a):
     """return square of a number"""
     return a*a

@@ -89,7 +89,7 @@ same machine as the Hub, but can be run anywhere from local threads or on remote
 The controller also provides a single point of contact for users who wish to
 utilize the engines connected to the controller. There are different ways of
 working with a controller. In IPython, all of these models are implemented via
-the client's :meth:`.Client.apply` method, with various arguments, or
+the client's :meth:`.View.apply` method, with various arguments, or
 constructing :class:`.View` objects to represent subsets of engines. The two
 primary models for interacting with engines are:
 
@@ -124,12 +124,13 @@ themselves block when user code is run, the schedulers hide that from the user t
 a fully asynchronous interface to a set of engines.
 
 
-IPython client
---------------
+IPython client and views
+------------------------
 
-There is one primary object, the :class:`~.parallel.client.Client`, for connecting to a
-controller. For each model, there is a corresponding view. These views allow users to
-interact with a set of engines through the interface. Here are the two default views:
+There is one primary object, the :class:`~.parallel.client.Client`, for connecting to a cluster.
+For each execution model, there is a corresponding :class:`~.parallel.view.View`. These views
+allow users to interact with a set of engines through the interface. Here are the two default
+views:
 
 * The :class:`DirectView` class for explicit addressing.
 * The :class:`LoadBalancedView` class for destination-agnostic scheduling.
@@ -212,7 +213,7 @@ everything is working correctly, try the following commands:
 	In [4]: c.ids
 	Out[4]: set([0, 1, 2, 3])
 	
-	In [5]: c.apply(lambda : "Hello, World", targets='all', block=True)
+	In [5]: c[:].apply_sync(lambda : "Hello, World")
 	Out[5]: [ 'Hello, World', 'Hello, World', 'Hello, World', 'Hello, World' ]
 
 
@@ -234,10 +235,10 @@ then you would connect to it with:
     In [2]: c = client.Client(sshserver='myhub.example.com')
 
 Where 'myhub.example.com' is the url or IP address of the machine on
-which the Hub process is running.
+which the Hub process is running (or another machine that has direct access to the Hub's ports).
 
 You are now ready to learn more about the :ref:`Direct
-<parallelmultiengine>` and :ref:`LoadBalanced <paralleltask>` interfaces to the
+<parallel_multiengine>` and :ref:`LoadBalanced <parallel_task>` interfaces to the
 controller.
 
 .. [ZeroMQ] ZeroMQ.  http://www.zeromq.org

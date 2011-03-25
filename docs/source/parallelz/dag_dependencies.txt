@@ -45,7 +45,7 @@ A possible sequence of events for this workflow:
 
 
 Further, taking failures into account, assuming all dependencies are run with the default
-`success_only=True`, the following cases would occur for each node's failure:
+`success=True,failure=False`, the following cases would occur for each node's failure:
 
 0. fails: all other tasks fail as Impossible
 1. 2 can still succeed, but 3,4 are unreachable
@@ -111,7 +111,8 @@ on which it depends:
 
 .. sourcecode:: ipython
 
-    In [5]: c = client.Client()
+    In [5]: rc = client.Client()
+    In [5]: view = rc.load_balanced_view()
     
     In [6]: results = {}
     
@@ -120,13 +121,13 @@ on which it depends:
        ...:     # leading into this one as dependencies
        ...:     deps = [ results[n] for n in G.predecessors(node) ]
        ...:     # submit and store AsyncResult object
-       ...:     results[node] = client.apply(jobs[node], after=deps, block=False)
+       ...:     results[node] = view.apply_with_flags(jobs[node], after=deps, block=False)
 
 Now that we have submitted all the jobs, we can wait for the results:
 
 .. sourcecode:: ipython
 
-    In [8]: [ r.get() for r in results.values() ]
+    In [8]: view.wait(results.values())
 
 Now, at least we know that all the jobs ran and did not fail (``r.get()`` would have
 raised an error if a task failed).  But we don't know that the ordering was properly

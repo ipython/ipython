@@ -15,10 +15,9 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from types import FunctionType
 import copy
-
-from IPython.zmq.parallel.dependency import dependent
+import sys
+from types import FunctionType
 
 import codeutil
 
@@ -67,12 +66,22 @@ class CannedFunction(CannedObject):
         self._checkType(f)    
         self.code = f.func_code
         self.defaults = f.func_defaults
+        self.module = f.__module__ or '__main__'
         self.__name__ = f.__name__
     
     def _checkType(self, obj):
         assert isinstance(obj, FunctionType), "Not a function type"
     
     def getObject(self, g=None):
+        # try to load function back into its module:
+        if not self.module.startswith('__'):
+            try:
+                __import__(self.module)
+            except ImportError:
+                pass
+            else:
+                g = sys.modules[self.module].__dict__
+            
         if g is None:
             g = globals()
         newFunc = FunctionType(self.code, g, self.__name__, self.defaults)
@@ -82,8 +91,9 @@ class CannedFunction(CannedObject):
 # Functions
 #-------------------------------------------------------------------------------
 
-
 def can(obj):
+    # import here to prevent module-level circular imports
+    from IPython.zmq.parallel.dependency import dependent
     if isinstance(obj, dependent):
         keys = ('f','df')
         return CannedObject(obj, keys=keys)

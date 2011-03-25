@@ -170,7 +170,7 @@ class Kernel(SessionFactory):
         
         content = dict(status='ok')
         reply_msg = self.session.send(stream, 'abort_reply', content=content, 
-                parent=parent, ident=ident)[0]
+                parent=parent, ident=ident)
         self.log.debug(str(reply_msg))
     
     def shutdown_request(self, stream, ident, parent):
@@ -184,10 +184,7 @@ class Kernel(SessionFactory):
             content['status'] = 'ok'
         msg = self.session.send(stream, 'shutdown_reply',
                                 content=content, parent=parent, ident=ident)
-        # msg = self.session.send(self.pub_socket, 'shutdown_reply',
-        #                         content, parent, ident)
-        # print >> sys.__stdout__, msg
-        # time.sleep(0.2)
+        self.log.debug(str(msg))
         dc = ioloop.DelayedCallback(lambda : sys.exit(0), 1000, self.loop)
         dc.start()
     
@@ -295,7 +292,7 @@ class Kernel(SessionFactory):
             content = parent[u'content']
             bufs = parent[u'buffers']
             msg_id = parent['header']['msg_id']
-            bound = content.get('bound', False)
+            # bound = parent['header'].get('bound', False)
         except:
             self.log.error("Got bad msg: %s"%parent, exc_info=True)
             return
@@ -314,16 +311,12 @@ class Kernel(SessionFactory):
             working = self.user_ns
             # suffix = 
             prefix = "_"+str(msg_id).replace("-","")+"_"
-            # if bound:
-            #     
-            # else:
-            #     working = dict()
-            #     suffix = prefix = "_" # prevent keyword collisions with lambda
+            
             f,args,kwargs = unpack_apply_message(bufs, working, copy=False)
-            if bound:
-                bound_ns = Namespace(working)
-                args = [bound_ns]+list(args)
-            # if f.fun
+            # if bound:
+            #     bound_ns = Namespace(working)
+            #     args = [bound_ns]+list(args)
+
             fname = getattr(f, '__name__', 'f')
             
             fname = prefix+"f"
@@ -341,8 +334,8 @@ class Kernel(SessionFactory):
             finally:
                 for key in ns.iterkeys():
                     working.pop(key)
-            if bound:
-                working.update(bound_ns)
+            # if bound:
+            #     working.update(bound_ns)
             
             packed_result,buf = serialize_object(result)
             result_buf = [packed_result]+buf
@@ -364,9 +357,12 @@ class Kernel(SessionFactory):
         
         reply_msg = self.session.send(stream, u'apply_reply', reply_content, 
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
-
-        # if reply_msg['content']['status'] == u'error':
-        #     self.abort_queues()
+        
+        # flush i/o
+        # should this be before reply_msg is sent, like in the single-kernel code, 
+        # or should nothing get in the way of real results?
+        sys.stdout.flush()
+        sys.stderr.flush()
     
     def dispatch_queue(self, stream, msg):
         self.control_stream.flush()

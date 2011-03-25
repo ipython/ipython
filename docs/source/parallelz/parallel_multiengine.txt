@@ -1,4 +1,4 @@
-.. _parallelmultiengine:
+.. _parallel_multiengine:
 
 ==========================
 IPython's Direct interface
@@ -9,7 +9,7 @@ IPython engines. The basic idea behind the multiengine interface is that the
 capabilities of each engine are directly and explicitly exposed to the user.
 Thus, in the multiengine interface, each engine is given an id that is used to
 identify the engine and give it work to do. This interface is very intuitive
-and is designed with interactive usage in mind, and is thus the best place for
+and is designed with interactive usage in mind, and is the best place for
 new users of IPython to begin.
 
 Starting the IPython controller and engines
@@ -91,9 +91,7 @@ DirectView's :meth:`map` method:
 
     In [62]: serial_result = map(lambda x:x**10, range(32))
     
-    In [63]: dview.block = True
-    
-    In [66]: parallel_result = dview.map(lambda x: x**10, range(32))
+    In [63]: parallel_result = dview.map_sync(lambda x: x**10, range(32))
 
     In [67]: serial_result==parallel_result
     Out[67]: True
@@ -103,8 +101,7 @@ DirectView's :meth:`map` method:
 
     The :class:`DirectView`'s version of :meth:`map` does
     not do dynamic load balancing. For a load balanced version, use a
-    :class:`LoadBalancedView`, or a :class:`ParallelFunction` with
-    `balanced=True`.
+    :class:`LoadBalancedView`.
 
 .. seealso::
     
@@ -119,7 +116,7 @@ two decorators:
 
 .. sourcecode:: ipython
 
-    In [10]: @rc.remote(block=True, targets='all')
+    In [10]: @dview.remote(block=True)
         ...: def getpid():
         ...:     import os
         ...:     return os.getpid()
@@ -128,7 +125,7 @@ two decorators:
     In [11]: getpid()
     Out[11]: [12345, 12346, 12347, 12348]
 
-A ``@parallel`` decorator creates parallel functions, that break up an element-wise
+The ``@parallel`` decorator creates parallel functions, that break up an element-wise
 operations and distribute them, reconstructing the result.
 
 .. sourcecode:: ipython
@@ -137,13 +134,13 @@ operations and distribute them, reconstructing the result.
     
     In [13]: A = np.random.random((64,48))
     
-    In [14]: @rc.parallel(block=True, targets='all')
+    In [14]: @dview.parallel(block=True)
         ...: def pmul(A,B):
         ...:     return A*B
     
     In [15]: C_local = A*A
     
-    In [16]: C_remote_partial = pmul(A,A)
+    In [16]: C_remote = pmul(A,A)
     
     In [17]: (C_local == C_remote).all()
     Out[17]: True
@@ -159,38 +156,36 @@ Calling Python functions
 The most basic type of operation that can be performed on the engines is to
 execute Python code or call Python functions. Executing Python code can be
 done in blocking or non-blocking mode (non-blocking is default) using the
-:meth:`execute` method, and calling functions can be done via the
+:meth:`.View.execute` method, and calling functions can be done via the
 :meth:`.View.apply` method.
 
 apply
 -----
 
 The main method for doing remote execution (in fact, all methods that
-communicate with the engines are built on top of it), is :meth:`Client.apply`.
-Ideally, :meth:`apply` would have the signature ``apply(f,*args,**kwargs)``,
-which would call ``f(*args,**kwargs)`` remotely.  However, since :class:`Clients`
-require some more options, they cannot easily provide this interface.
-Instead, they provide the signature:
+communicate with the engines are built on top of it), is :meth:`View.apply`.
+
+We strive to provide the cleanest interface we can, so `apply` has the following
+signature:
 
 .. sourcecode:: python
 
-    c.apply(f, args=None, kwargs=None, bound=True, block=None, targets=None,
-                    after=None, follow=None, timeout=None)
+    view.apply(f, *args, **kwargs)
 
-Where various behavior is controlled via keyword arguments. This means that in the client,
-you must pass `args` as a tuple, and `kwargs` as a dict.
+There are various ways to call functions with IPython, and these flags are set as
+attributes of the View.  The ``DirectView`` has just two of these flags:
 
-In order to provide the nicer interface, we have :class:`View` classes, which wrap
-:meth:`Client.apply` by using attributes and extra :meth:`apply_x` methods to determine
-the extra keyword arguments.  This means that the views can have the desired pattern:
+dv.block : bool
+    whether to wait for the result, or return an :class:`AsyncResult` object
+    immediately
+dv.track : bool
+    whether to instruct pyzmq to track when 
+    This is primarily useful for non-copying sends of numpy arrays that you plan to
+    edit in-place.  You need to know when it becomes safe to edit the buffer
+    without corrupting the message.
 
-.. sourcecode:: python
 
-    v.apply(f, *args, **kwargs)
-
-
-For instance, performing index-access on a client creates a
-:class:`.DirectView`.
+Creating a view is simple: index-access on a client creates a :class:`.DirectView`.
 
 .. sourcecode:: ipython
 
@@ -198,23 +193,9 @@ For instance, performing index-access on a client creates a
     Out[4]: <DirectView [1, 2]>
 
     In [5]: view.apply<tab>
-    view.apply  view.apply_async  view.apply_async_bound  view.apply_sync  view.apply_sync_bound
+    view.apply  view.apply_async  view.apply_sync  view.apply_with_flags
 
-A :class:`DirectView` always uses its `targets` attribute, and it will use its `bound`
-and `block` attributes in its :meth:`apply` method, but the suffixed :meth:`apply_x`
-methods allow specifying `bound` and `block` via the different methods.
-
-==================  ==========  ==========
-method              block       bound
-==================  ==========  ==========
-apply               self.block  self.bound
-apply_sync          True        False
-apply_async         False       False
-apply_sync_bound    True        True
-apply_async_bound   False       True
-==================  ==========  ==========
-
-For explanation of these values, read on.
+For convenience, you can set block temporarily for a single call with the extra sync/async methods.
 
 Blocking execution
 ------------------
@@ -232,63 +213,29 @@ blocks until the engines are done executing the command:
 
     In [5]: dview['b'] = 10
 
-    In [6]: dview.apply_sync(lambda x: a+b+x, 27)
+    In [6]: dview.apply(lambda x: a+b+x, 27)
     Out[6]: [42, 42, 42, 42]
 
-Python commands can be executed on specific engines by calling execute using the ``targets``
-keyword argument in :meth:`client.execute`, or creating a :class:`DirectView` instance by
-index-access to the client:
+You can also select blocking execution on a call-by-call basis with the :meth:`apply_sync`
+method:
+
+    In [7]: dview.block=False
+
+    In [8]: dview.apply_sync(lambda x: a+b+x, 27)
+    Out[8]: [42, 42, 42, 42]
+
+Python commands can be executed as strings on specific engines by using a View's ``execute``
+method:
 
 .. sourcecode:: ipython
 
-    In [6]: rc.execute('c=a+b', targets=[0,2])
+    In [6]: rc[::2].execute('c=a+b')
 
-    In [7]: rc[1::2].execute('c=a-b') # shorthand for rc.execute('c=a-b',targets=[1,3])
+    In [7]: rc[1::2].execute('c=a-b')
 
-    In [8]: rc[:]['c'] # shorthand for rc.pull('c',targets='all')
+    In [8]: rc[:]['c'] # shorthand for rc[:].pull('c', block=True)
     Out[8]: [15, -5, 15, -5]
 
-.. note::
-
-    Note that every call to ``rc.<meth>(...,targets=x)`` can be made via
-    ``rc[<x>].<meth>(...)``, which constructs a View object. The only place
-    where this differs in in :meth:`apply`. The :class:`Client` takes many
-    arguments to apply, so it requires `args` and `kwargs` to be passed as
-    individual arguments. Extended options such as `bound`,`targets`, and
-    `block` are controlled by the attributes of the :class:`View` objects, so
-    they can provide the much more convenient
-    :meth:`View.apply(f,*args,**kwargs)`, which simply calls
-    ``f(*args,**kwargs)`` remotely.
-
-Bound and unbound execution
----------------------------
-
-The previous example also shows one of the most important things about the IPython
-engines: they have a persistent user namespaces. The :meth:`apply` method can
-be run in either a bound or unbound manner.
-
-When applying a function in a `bound` manner, the first argument to that function
-will be the Engine's namespace, which is a :class:`Namespace` object, a dictionary
-also providing attribute-access to keys.
-
-In all (unbound and bound) execution
-
-.. sourcecode:: ipython
-
-    In [9]: dview['b'] = 5 # assign b to 5 everywhere
-    
-    In [10]: v0 = rc[0]
-    
-    # multiply b*2 inplace
-    In [12]: v0.apply_sync_bound(lambda ns: ns.b*=2)
-    
-    # b is still available in globals during unbound execution
-    In [13]: v0.apply_sync(lambda a: a*b, 3)
-    Out[13]: 30
-
-`bound=True` specifies that the engine's namespace is to be passed as the first argument when
-the function is called, and the default `bound=False` specifies that the normal behavior, but
-the engine's namespace will be available as the globals() when the function is called.
 
 Non-blocking execution
 ----------------------
@@ -351,22 +298,24 @@ local Python/IPython session:
 .. Note::
 
     Note the import inside the function. This is a common model, to ensure
-    that the appropriate modules are imported where the task is run.
+    that the appropriate modules are imported where the task is run. You can
+    also manually import modules into the engine(s) namespace(s) via 
+    :meth:`view.execute('import numpy')`.
 
 Often, it is desirable to wait until a set of :class:`AsyncResult` objects
-are done. For this, there is a the method :meth:`barrier`. This method takes a
+are done. For this, there is a the method :meth:`wait`. This method takes a
 tuple of :class:`AsyncResult` objects (or `msg_ids` or indices to the client's History),
 and blocks until all of the associated results are ready:
 
 .. sourcecode:: ipython
 
-    In [72]: rc.block=False
+    In [72]: dview.block=False
 
     # A trivial list of AsyncResults objects
     In [73]: pr_list = [dview.apply_async(wait, 3) for i in range(10)]
 
     # Wait until all of them are done
-    In [74]: rc.barrier(pr_list)
+    In [74]: dview.wait(pr_list)
 
     # Then, their results are ready using get() or the `.r` attribute
     In [75]: pr_list[0].get()
@@ -374,12 +323,12 @@ and blocks until all of the associated results are ready:
     
 
 
-The ``block`` keyword argument and attributes
----------------------------------------------
+The ``block`` attribute
+-----------------------
 
-Most client methods(like :meth:`apply`) accept
+Many View methods(excluding :meth:`apply`) accept
 ``block`` as a keyword argument. As we have seen above, these
-keyword arguments control the blocking mode. The :class:`Client` class also has 
+keyword arguments control the blocking mode. The :class:`View` class also has 
 a :attr:`block` attribute that controls the default behavior when the keyword
 argument is not provided. Thus the following logic is used for :attr:`block`:
 
@@ -387,37 +336,33 @@ argument is not provided. Thus the following logic is used for :attr:`block`:
 * Keyword argument, if provided override the instance attributes for
   the duration of a single call.
   
-DirectView objects also have a ``bound`` attribute, which is used in the same way.
-
 The following examples demonstrate how to use the instance attributes:
 
 .. sourcecode:: ipython
 
-    In [17]: rc.block = False
+    In [17]: dview.block = False
 
-    In [18]: ar = rc.apply(lambda : 10, targets=[0,2])
+    In [18]: ar = dview.apply(lambda : 10)
 
     In [19]: ar.get()
-    Out[19]: [10,10]
+    Out[19]: [10, 10, 10, 10]
 
-    In [21]: rc.block = True
+    In [21]: dview.block = True
 
     # Note targets='all' means all engines
-    In [22]: rc.apply(lambda : 42, targets='all')
+    In [22]: dview.apply(lambda : 42)
     Out[22]: [42, 42, 42, 42]
 
-The :attr:`block`, :attr:`bound`, and :attr:`targets` instance attributes of the
+The :attr:`block` and :attr:`targets` instance attributes of the
 :class:`.DirectView` also determine the behavior of the parallel magic commands.
-
 
 Parallel magic commands
 -----------------------
 
 .. warning::
 
-    The magics have not been changed to work with the zeromq system. ``%px``
-    and ``%autopx`` do work, but ``%result`` does not. %px and %autopx *do
-    not* print stdin/out.
+    The magics have not been changed to work with the zeromq system. The
+    magics do work, but *do not* print stdin/out like they used to in IPython.kernel.
 
 We provide a few IPython magic commands (``%px``, ``%autopx`` and ``%result``)
 that make it more pleasant to execute Python commands on the engines
@@ -428,6 +373,9 @@ Python command on the engines specified by the :attr:`targets` attribute of the
 
 .. sourcecode:: ipython
 
+    # load the parallel magic extension:
+    In [21]: %load_ext parallelmagic
+    
     # Create a DirectView for all targets
     In [22]: dv = rc[:]
     
@@ -512,7 +460,7 @@ Moving Python objects around
 In addition to calling functions and executing code on engines, you can
 transfer Python objects to and from your IPython session and the engines. In
 IPython, these operations are called :meth:`push` (sending an object to the
-engines) and :meth:`pull` (getting an object from the engines). 
+engines) and :meth:`pull` (getting an object from the engines).
 
 Basic push and pull
 -------------------
@@ -521,23 +469,19 @@ Here are some examples of how you use :meth:`push` and :meth:`pull`:
 
 .. sourcecode:: ipython
 
-    In [38]: rc.push(dict(a=1.03234,b=3453))
+    In [38]: dview.push(dict(a=1.03234,b=3453))
     Out[38]: [None,None,None,None]
 
-    In [39]: rc.pull('a')
+    In [39]: dview.pull('a')
     Out[39]: [ 1.03234, 1.03234, 1.03234, 1.03234]
 
-    In [40]: rc.pull('b',targets=0)
+    In [40]: rc[0].pull('b')
     Out[40]: 3453
 
-    In [41]: rc.pull(('a','b'))
+    In [41]: dview.pull(('a','b'))
     Out[41]: [ [1.03234, 3453], [1.03234, 3453], [1.03234, 3453], [1.03234, 3453] ]
     
-    # zmq client does not have zip_pull
-    In [42]: rc.zip_pull(('a','b'))
-    Out[42]: [(1.03234, 1.03234, 1.03234, 1.03234), (3453, 3453, 3453, 3453)]
-
-    In [43]: rc.push(dict(c='speed'))
+    In [43]: dview.push(dict(c='speed'))
     Out[43]: [None,None,None,None]
 
 In non-blocking mode :meth:`push` and :meth:`pull` also return
@@ -545,9 +489,7 @@ In non-blocking mode :meth:`push` and :meth:`pull` also return
 
 .. sourcecode:: ipython
 
-    In [47]: rc.block=False
-
-    In [48]: ar = rc.pull('a')
+    In [48]: ar = dview.pull('a', block=False)
 
     In [49]: ar.get()
     Out[49]: [1.03234, 1.03234, 1.03234, 1.03234]
@@ -562,8 +504,6 @@ dictionary-style access by key and methods such as :meth:`get` and
 appear as a local dictionary. Underneath, these methods call :meth:`apply`:
 
 .. sourcecode:: ipython
-
-    In [50]: dview.block=True
 
     In [51]: dview['a']=['foo','bar']
 
@@ -606,7 +546,7 @@ basic effect using :meth:`scatter` and :meth:`gather`:
 
     In [66]: dview.scatter('x',range(64))
 
-    In [67]: px y = [i**10 for i in x]
+    In [67]: %px y = [i**10 for i in x]
     Parallel execution on engines: [0, 1, 2, 3]
     Out[67]: 
 
@@ -633,37 +573,54 @@ more other types of exceptions. Here is how it works:
     In [77]: dview.execute('1/0')
     ---------------------------------------------------------------------------
     CompositeError                            Traceback (most recent call last)
-    /Users/minrk/<ipython-input-10-5d56b303a66c> in <module>()
-    ----> 1 dview.execute('1/0')
+    /home/you/<ipython-input-10-15c2c22dec39> in <module>()
+    ----> 1 dview.execute('1/0', block=True)
 
-    ...
-    
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in apply(self, f, args, kwargs, bound, block, targets, balanced, after, follow, timeout)
-       1012                 raise ValueError(msg)
-       1013         else:
-    -> 1014             return self._apply_direct(f, args, kwargs, **options)
-       1015 
-       1016     def _apply_balanced(self, f, args, kwargs, bound=None, block=None, targets=None,
+    /path/to/site-packages/IPython/zmq/parallel/view.py in execute(self, code, block)
+        460                 default: self.block
+        461         """
+    --> 462         return self.apply_with_flags(util._execute, args=(code,), block=block)
+        463 
+        464     def run(self, filename, block=None):
 
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in _apply_direct(self, f, args, kwargs, bound, block, targets)
-       1100         if block:
-       1101             try:
-    -> 1102                 return ar.get()
-       1103             except KeyboardInterrupt:
-       1104                 return ar
+    /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
-         78                 return self._result
-         79             else:
-    ---> 80                 raise self._exception
-         81         else:
-         82             raise error.TimeoutError("Result not ready.")
+    /path/to/site-packages/IPython/zmq/parallel/view.py in sync_results(f, self, *args, **kwargs)
+         46 def sync_results(f, self, *args, **kwargs):
+         47     """sync relevant results from self.client to our results attribute."""
+    ---> 48     ret = f(self, *args, **kwargs)
+         49     delta = self.outstanding.difference(self.client.outstanding)
+         50     completed = self.outstanding.intersection(delta)
+
+    /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
+
+    /path/to/site-packages/IPython/zmq/parallel/view.py in save_ids(f, self, *args, **kwargs)
+         35     n_previous = len(self.client.history)
+         36     try:
+    ---> 37         ret = f(self, *args, **kwargs)
+         38     finally:
+         39         nmsgs = len(self.client.history) - n_previous
+
+    /path/to/site-packages/IPython/zmq/parallel/view.py in apply_with_flags(self, f, args, kwargs, block, track)
+        398         if block:
+        399             try:
+    --> 400                 return ar.get()
+        401             except KeyboardInterrupt:
+        402                 pass
+
+    /path/to/site-packages/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+         87                 return self._result
+         88             else:
+    ---> 89                 raise self._exception
+         90         else:
+         91             raise error.TimeoutError("Result not ready.")
 
     CompositeError: one or more exceptions from call to method: _execute
     [0:apply]: ZeroDivisionError: integer division or modulo by zero
     [1:apply]: ZeroDivisionError: integer division or modulo by zero
     [2:apply]: ZeroDivisionError: integer division or modulo by zero
     [3:apply]: ZeroDivisionError: integer division or modulo by zero
+
 
 Notice how the error message printed when :exc:`CompositeError` is raised has
 information about the individual exceptions that were raised on each engine.
@@ -672,7 +629,7 @@ If you want, you can even raise one of these original exceptions:
 .. sourcecode:: ipython
 
     In [80]: try:
-       ....:     rc.execute('1/0')
+       ....:     dview.execute('1/0')
        ....: except client.CompositeError, e:
        ....:     e.raise_exception()
        ....:     
@@ -697,57 +654,50 @@ instance:
 
 .. sourcecode:: ipython
 
-    In [81]: rc.execute('1/0')
+    In [81]: dview.execute('1/0')
     ---------------------------------------------------------------------------
     CompositeError                            Traceback (most recent call last)
-    /Users/minrk/<ipython-input-5-b0c7a2b62c52> in <module>()
-    ----> 1 rc.execute('1/0')
+    /home/you/<ipython-input-10-15c2c22dec39> in <module>()
+    ----> 1 dview.execute('1/0', block=True)
 
-    /Users/minrk/<string> in execute(self, code, targets, block)
+    /path/to/site-packages/IPython/zmq/parallel/view.py in execute(self, code, block)
+        460                 default: self.block
+        461         """
+    --> 462         return self.apply_with_flags(util._execute, args=(code,), block=block)
+        463 
+        464     def run(self, filename, block=None):
 
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in defaultblock(f, self, *args, **kwargs)
-         88     self.block = block
-         89     try:
-    ---> 90         ret = f(self, *args, **kwargs)
-         91     finally:
-         92         self.block = saveblock
+    /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in execute(self, code, targets, block)
-        855                 default: self.block
-        856         """
-    --> 857         result = self.apply(_execute, (code,), targets=targets, block=block, bound=True, balanced=False)
-        858         if not block:
-        859             return result
+    /path/to/site-packages/IPython/zmq/parallel/view.py in sync_results(f, self, *args, **kwargs)
+         46 def sync_results(f, self, *args, **kwargs):
+         47     """sync relevant results from self.client to our results attribute."""
+    ---> 48     ret = f(self, *args, **kwargs)
+         49     delta = self.outstanding.difference(self.client.outstanding)
+         50     completed = self.outstanding.intersection(delta)
 
-    /Users/minrk/<string> in apply(self, f, args, kwargs, bound, block, targets, balanced, after, follow, timeout)
+    /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in defaultblock(f, self, *args, **kwargs)
-         88     self.block = block
-         89     try:
-    ---> 90         ret = f(self, *args, **kwargs)
-         91     finally:
-         92         self.block = saveblock
+    /path/to/site-packages/IPython/zmq/parallel/view.py in save_ids(f, self, *args, **kwargs)
+         35     n_previous = len(self.client.history)
+         36     try:
+    ---> 37         ret = f(self, *args, **kwargs)
+         38     finally:
+         39         nmsgs = len(self.client.history) - n_previous
 
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in apply(self, f, args, kwargs, bound, block, targets, balanced, after, follow, timeout)
-       1012                 raise ValueError(msg)
-       1013         else:
-    -> 1014             return self._apply_direct(f, args, kwargs, **options)
-       1015 
-       1016     def _apply_balanced(self, f, args, kwargs, bound=None, block=None, targets=None,
+    /path/to/site-packages/IPython/zmq/parallel/view.py in apply_with_flags(self, f, args, kwargs, block, track)
+        398         if block:
+        399             try:
+    --> 400                 return ar.get()
+        401             except KeyboardInterrupt:
+        402                 pass
 
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.pyc in _apply_direct(self, f, args, kwargs, bound, block, targets)
-       1100         if block:
-       1101             try:
-    -> 1102                 return ar.get()
-       1103             except KeyboardInterrupt:
-       1104                 return ar
-
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
-         78                 return self._result
-         79             else:
-    ---> 80                 raise self._exception
-         81         else:
-         82             raise error.TimeoutError("Result not ready.")
+    /path/to/site-packages/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+         87                 return self._result
+         88             else:
+    ---> 89                 raise self._exception
+         90         else:
+         91             raise error.TimeoutError("Result not ready.")
 
     CompositeError: one or more exceptions from call to method: _execute
     [0:apply]: ZeroDivisionError: integer division or modulo by zero
@@ -815,14 +765,18 @@ instance:
     ZeroDivisionError: integer division or modulo by zero
     
 
+.. note::
+
+    TODO: The above tracebacks are not up to date
+
 
 All of this same error handling magic even works in non-blocking mode:
 
 .. sourcecode:: ipython
 
-    In [83]: rc.block=False
+    In [83]: dview.block=False
 
-    In [84]: ar = rc.execute('1/0')
+    In [84]: ar = dview.execute('1/0')
 
     In [85]: ar.get()
     ---------------------------------------------------------------------------

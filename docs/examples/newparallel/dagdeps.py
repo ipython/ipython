@@ -53,12 +53,12 @@ def make_bintree(levels):
     add_children(G, root, levels, 2)
     return G
 
-def submit_jobs(client, G, jobs):
+def submit_jobs(view, G, jobs):
     """Submit jobs via client where G describes the time dependencies."""
     results = {}
     for node in nx.topological_sort(G):
-        deps = [ results[n] for n in G.predecessors(node) ]
-        results[node] = client.apply(jobs[node], after=deps)
+        with view.temp_flags(after=[ results[n] for n in G.predecessors(node) ]):
+            results[node] = view.apply(jobs[node])
     return results
 
 def validate_tree(G, results):
@@ -76,7 +76,7 @@ def main(nodes, edges):
     in-degree on the y (just for spread).  All arrows must
     point at least slightly to the right if the graph is valid.
     """
-    import pylab
+    from matplotlib import pyplot as plt
     from matplotlib.dates import date2num
     from matplotlib.cm import gist_rainbow
     print "building DAG"
@@ -88,10 +88,11 @@ def main(nodes, edges):
         jobs[node] = randomwait
     
     client = cmod.Client()
+    view = client.load_balanced_view()
     print "submitting %i tasks with %i dependencies"%(nodes,edges)
-    results = submit_jobs(client, G, jobs)
+    results = submit_jobs(view, G, jobs)
     print "waiting for results"
-    client.barrier()
+    view.wait()
     print "done"
     for node in G:
         md = results[node].metadata
@@ -107,13 +108,13 @@ def main(nodes, edges):
     xmax,ymax = map(max, (x,y))
     xscale = xmax-xmin
     yscale = ymax-ymin
-    pylab.xlim(xmin-xscale*.1,xmax+xscale*.1)
-    pylab.ylim(ymin-yscale*.1,ymax+yscale*.1)
+    plt.xlim(xmin-xscale*.1,xmax+xscale*.1)
+    plt.ylim(ymin-yscale*.1,ymax+yscale*.1)
     return G,results
 
 if __name__ == '__main__':
-    import pylab
+    from matplotlib import pyplot as plt
     # main(5,10)
     main(32,96)
-    pylab.show()
+    plt.show()
     

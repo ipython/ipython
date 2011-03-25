@@ -316,3 +316,39 @@ def unpack_apply_message(bufs, g=None, copy=True):
     
     return f,args,kwargs
 
+#--------------------------------------------------------------------------
+# helpers for implementing old MEC API via view.apply
+#--------------------------------------------------------------------------
+
+def interactive(f):
+    """decorator for making functions appear as interactively defined.
+    This results in the function being linked to the user_ns as globals()
+    instead of the module globals().
+    """
+    f.__module__ = '__main__'
+    return f
+
+@interactive
+def _push(ns):
+    """helper method for implementing `client.push` via `client.apply`"""
+    globals().update(ns)
+
+@interactive
+def _pull(keys):
+    """helper method for implementing `client.pull` via `client.apply`"""
+    user_ns = globals()
+    if isinstance(keys, (list,tuple, set)):
+        for key in keys:
+            if not user_ns.has_key(key):
+                raise NameError("name '%s' is not defined"%key)
+        return map(user_ns.get, keys)
+    else:
+        if not user_ns.has_key(keys):
+            raise NameError("name '%s' is not defined"%keys)
+        return user_ns.get(keys)
+
+@interactive
+def _execute(code):
+    """helper method for implementing `client.execute` via `client.apply`"""
+    exec code in globals()
+

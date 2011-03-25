@@ -1,5 +1,16 @@
 """test serialization with newserialized"""
 
+#-------------------------------------------------------------------------------
+#  Copyright (C) 2011  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+# Imports
+#-------------------------------------------------------------------------------
+
 from unittest import TestCase
 
 from IPython.testing.parametric import parametric
@@ -82,6 +93,16 @@ class CanningTestCase(TestCase):
         # test non-copying:
         a[2] = 1e9
         self.assertTrue((a==final).all())
-        
+    
+    def test_uncan_function_globals(self):
+        """test that uncanning a module function restores it into its module"""
+        from re import search
+        cf = can(search)
+        csearch = uncan(cf)
+        self.assertEqual(csearch.__module__, search.__module__)
+        self.assertNotEqual(csearch('asd', 'asdf'), None)
+        csearch = uncan(cf, dict(a=5))
+        self.assertEqual(csearch.__module__, search.__module__)
+        self.assertNotEqual(csearch('asd', 'asdf'), None)
         
         

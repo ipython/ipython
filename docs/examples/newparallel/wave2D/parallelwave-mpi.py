@@ -30,17 +30,19 @@ from numpy import exp, zeros, newaxis, sqrt
 from IPython.external import argparse
 from IPython.zmq.parallel.client import Client, Reference
 
-def setup_partitioner(ns, index, num_procs, gnum_cells, parts):
+def setup_partitioner(index, num_procs, gnum_cells, parts):
     """create a partitioner in the engine namespace"""
+    global partitioner
     p = MPIRectPartitioner2D(my_id=index, num_procs=num_procs)
     p.redim(global_num_cells=gnum_cells, num_parts=parts)
     p.prepare_communication()
     # put the partitioner into the global namespace:
-    ns.partitioner=p
+    partitioner=p
 
-def setup_solver(ns, *args, **kwargs):
+def setup_solver(*args, **kwargs):
     """create a WaveSolver in the engine namespace"""
-    ns.solver = WaveSolver(*args, **kwargs)
+    global solver
+    solver = WaveSolver(*args, **kwargs)
 
 def wave_saver(u, x, y, t):
     """save the wave log"""
@@ -146,11 +148,11 @@ if __name__ == '__main__':
     # setup remote partitioner
     # note that Reference means that the argument passed to setup_partitioner will be the
     # object named 'my_id' in the engine's namespace
-    view.apply_sync_bound(setup_partitioner, Reference('my_id'), num_procs, grid, partition)
+    view.apply_sync(setup_partitioner, Reference('my_id'), num_procs, grid, partition)
     # wait for initial communication to complete
     view.execute('mpi.barrier()')
     # setup remote solvers
-    view.apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
+    view.apply_sync(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
 
     # lambda for calling solver.solve:
     _solve = lambda *args, **kwargs: solver.solve(*args, **kwargs)
@@ -172,7 +174,7 @@ if __name__ == '__main__':
     
     impl['inner'] = 'vectorized'
     # setup new solvers
-    view.apply_sync_bound(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
+    view.apply_sync(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
     view.execute('mpi.barrier()')
     
     # run again with numpy vectorized inner-implementation

@@ -1,4 +1,4 @@
-"""A semi-synchronous Client for the ZMQ controller"""
+"""A semi-synchronous Client for the ZMQ cluster"""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
 #
@@ -31,57 +31,26 @@ from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
 from . import error
-from . import map as Map
 from . import util
 from . import streamsession as ss
 from .asyncresult import AsyncResult, AsyncMapResult, AsyncHubResult
 from .clusterdir import ClusterDir, ClusterDirError
 from .dependency import Dependency, depend, require, dependent
 from .remotefunction import remote, parallel, ParallelFunction, RemoteFunction
-from .util import ReverseDict, validate_url, disambiguate_url
 from .view import DirectView, LoadBalancedView
-
-#--------------------------------------------------------------------------
-# helpers for implementing old MEC API via client.apply
-#--------------------------------------------------------------------------
-
-def _push(user_ns, **ns):
-    """helper method for implementing `client.push` via `client.apply`"""
-    user_ns.update(ns)
-
-def _pull(user_ns, keys):
-    """helper method for implementing `client.pull` via `client.apply`"""
-    if isinstance(keys, (list,tuple, set)):
-        for key in keys:
-            if not user_ns.has_key(key):
-                raise NameError("name '%s' is not defined"%key)
-        return map(user_ns.get, keys)
-    else:
-        if not user_ns.has_key(keys):
-            raise NameError("name '%s' is not defined"%keys)
-        return user_ns.get(keys)
-
-def _clear(user_ns):
-    """helper method for implementing `client.clear` via `client.apply`"""
-    user_ns.clear()
-
-def _execute(user_ns, code):
-    """helper method for implementing `client.execute` via `client.apply`"""
-    exec code in user_ns
-    
 
 #--------------------------------------------------------------------------
 # Decorators for Client methods
 #--------------------------------------------------------------------------
 
 @decorator
-def spinfirst(f, self, *args, **kwargs):
+def spin_first(f, self, *args, **kwargs):
     """Call spin() to sync state prior to calling the method."""
     self.spin()
     return f(self, *args, **kwargs)
 
 @decorator
-def defaultblock(f, self, *args, **kwargs):
+def default_block(f, self, *args, **kwargs):
     """Default to self.block; preserve self.block."""
     block = kwargs.get('block',None)
     block = self.block if block is None else block
@@ -151,7 +120,7 @@ class Metadata(dict):
         
 
 class Client(HasTraits):
-    """A semi-synchronous client to the IPython ZMQ controller
+    """A semi-synchronous client to the IPython ZMQ cluster
     
     Parameters
     ----------
@@ -193,11 +162,11 @@ class Client(HasTraits):
         flag for whether to use paramiko instead of shell ssh for tunneling.
         [default: True on win32, False else]
     
-    #------- exec authentication args -------
-    # If even localhost is untrusted, you can have some protection against
-    # unauthorized execution by using a key.  Messages are still sent
-    # as cleartext, so if someone can snoop your loopback traffic this will
-    # not help against malicious attacks.
+    ------- exec authentication args -------
+    If even localhost is untrusted, you can have some protection against
+    unauthorized execution by using a key.  Messages are still sent
+    as cleartext, so if someone can snoop your loopback traffic this will
+    not help against malicious attacks.
     
     exec_key : str
         an authentication key or file containing a key
@@ -207,7 +176,7 @@ class Client(HasTraits):
     Attributes
     ----------
     
-    ids : set of int engine IDs
+    ids : list of int engine IDs
         requesting the ids attribute always synchronizes
         the registration state. To request ids without synchronization,
         use semi-private _ids attributes.
@@ -234,15 +203,18 @@ class Client(HasTraits):
         flushes incoming results and registration state changes
         control methods spin, and requesting `ids` also ensures up to date
     
-    barrier
+    wait
         wait on one or more msg_ids
     
     execution methods
         apply
         legacy: execute, run
     
+    data movement
+        push, pull, scatter, gather
+    
     query methods
-        queue_status, get_result, purge
+        queue_status, get_result, purge, result_status
     
     control methods
         abort, shutdown
@@ -264,23 +236,25 @@ class Client(HasTraits):
     _ssh=Bool(False)
     _context = Instance('zmq.Context')
     _config = Dict()
-    _engines=Instance(ReverseDict, (), {})
+    _engines=Instance(util.ReverseDict, (), {})
     # _hub_socket=Instance('zmq.Socket')
     _query_socket=Instance('zmq.Socket')
     _control_socket=Instance('zmq.Socket')
     _iopub_socket=Instance('zmq.Socket')
     _notification_socket=Instance('zmq.Socket')
-    _apply_socket=Instance('zmq.Socket')
-    _mux_ident=Str()
-    _task_ident=Str()
+    _mux_socket=Instance('zmq.Socket')
+    _task_socket=Instance('zmq.Socket')
     _task_scheme=Str()
     _balanced_views=Dict()
     _direct_views=Dict()
     _closed = False
+    _ignored_control_replies=Int(0)
+    _ignored_hub_replies=Int(0)
     
     def __init__(self, url_or_file=None, profile='default', cluster_dir=None, ipython_dir=None,
             context=None, username=None, debug=False, exec_key=None,
             sshserver=None, sshkey=None, password=None, paramiko=None,
+            timeout=10
             ):
         super(Client, self).__init__(debug=debug, profile=profile)
         if context is None:
@@ -292,11 +266,11 @@ class Client(HasTraits):
         if self._cd is not None:
             if url_or_file is None:
                 url_or_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
-        assert url_or_file is not None, "I can't find enough information to connect to a controller!"\
+        assert url_or_file is not None, "I can't find enough information to connect to a hub!"\
             " Please specify at least one of url_or_file or profile."
         
         try:
-            validate_url(url_or_file)
+            util.validate_url(url_or_file)
         except AssertionError:
             if not os.path.exists(url_or_file):
                 if self._cd:
@@ -316,7 +290,7 @@ class Client(HasTraits):
         sshserver=cfg['ssh']
         url = cfg['url']
         location = cfg.setdefault('location', None)
-        cfg['url'] = disambiguate_url(cfg['url'], location)
+        cfg['url'] = util.disambiguate_url(cfg['url'], location)
         url = cfg['url']
         
         self._config = cfg
@@ -351,10 +325,11 @@ class Client(HasTraits):
         
         self._notification_handlers = {'registration_notification' : self._register_engine,
                                     'unregistration_notification' : self._unregister_engine,
+                                    'shutdown_notification' : lambda msg: self.close(),
                                     }
         self._queue_handlers = {'execute_reply' : self._handle_execute_reply,
                                 'apply_reply' : self._handle_apply_reply}
-        self._connect(sshserver, ssh_kwargs)
+        self._connect(sshserver, ssh_kwargs, timeout)
         
     def __del__(self):
         """cleanup sockets, but _not_ context."""
@@ -378,22 +353,6 @@ class Client(HasTraits):
                 pass
         self._cd = None
     
-    @property
-    def ids(self):
-        """Always up-to-date ids property."""
-        self._flush_notifications()
-        # always copy:
-        return list(self._ids)
-        
-    def close(self):
-        if self._closed:
-            return
-        snames = filter(lambda n: n.endswith('socket'), dir(self))
-        for socket in map(lambda name: getattr(self, name), snames):
-            if isinstance(socket, zmq.Socket) and not socket.closed:
-                socket.close()
-        self._closed = True
-    
     def _update_engines(self, engines):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
         for k,v in engines.iteritems():
@@ -402,16 +361,15 @@ class Client(HasTraits):
             self._ids.append(eid)
         self._ids = sorted(self._ids)
         if sorted(self._engines.keys()) != range(len(self._engines)) and \
-                        self._task_scheme == 'pure' and self._task_ident:
+                        self._task_scheme == 'pure' and self._task_socket:
             self._stop_scheduling_tasks()
     
     def _stop_scheduling_tasks(self):
         """Stop scheduling tasks because an engine has been unregistered
         from a pure ZMQ scheduler.
         """
-        self._task_ident = ''
-        # self._task_socket.close()
-        # self._task_socket = None
+        self._task_socket.close()
+        self._task_socket = None
         msg = "An engine has been unregistered, and we are using pure " +\
               "ZMQ task scheduling.  Task farming will be disabled."
         if self.outstanding:
@@ -434,8 +392,8 @@ class Client(HasTraits):
             targets = [targets]
         return [self._engines[t] for t in targets], list(targets)
     
-    def _connect(self, sshserver, ssh_kwargs):
-        """setup all our socket connections to the controller. This is called from
+    def _connect(self, sshserver, ssh_kwargs, timeout):
+        """setup all our socket connections to the cluster. This is called from
         __init__."""
         
         # Maybe allow reconnecting?
@@ -444,13 +402,16 @@ class Client(HasTraits):
         self._connected=True
 
         def connect_socket(s, url):
-            url = disambiguate_url(url, self._config['location'])
+            url = util.disambiguate_url(url, self._config['location'])
             if self._ssh:
                 return tunnel.tunnel_connection(s, url, sshserver, **ssh_kwargs)
             else:
                 return s.connect(url)
             
         self.session.send(self._query_socket, 'connection_request')
+        r,w,x = zmq.select([self._query_socket],[],[], timeout)
+        if not r:
+            raise error.TimeoutError("Hub connection request timed out")
         idents,msg = self.session.recv(self._query_socket,mode=0)
         if self.debug:
             pprint(msg)
@@ -458,18 +419,15 @@ class Client(HasTraits):
         content = msg.content
         self._config['registration'] = dict(content)
         if content.status == 'ok':
-            self._apply_socket = self._context.socket(zmq.XREP)
-            self._apply_socket.setsockopt(zmq.IDENTITY, self.session.session)
             if content.mux:
-                # self._mux_socket = self._context.socket(zmq.XREQ)
-                self._mux_ident = 'mux'
-                connect_socket(self._apply_socket, content.mux)
+                self._mux_socket = self._context.socket(zmq.XREQ)
+                self._mux_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                connect_socket(self._mux_socket, content.mux)
             if content.task:
                 self._task_scheme, task_addr = content.task
-                # self._task_socket = self._context.socket(zmq.XREQ)
-                # self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)
-                connect_socket(self._apply_socket, task_addr)
-                self._task_ident = 'task'
+                self._task_socket = self._context.socket(zmq.XREQ)
+                self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                connect_socket(self._task_socket, task_addr)
             if content.notification:
                 self._notification_socket = self._context.socket(zmq.SUB)
                 connect_socket(self._notification_socket, content.notification)
@@ -488,8 +446,6 @@ class Client(HasTraits):
                 self._iopub_socket.setsockopt(zmq.IDENTITY, self.session.session)
                 connect_socket(self._iopub_socket, content.iopub)
             self._update_engines(dict(content.engines))
-            # give XREP apply_socket some time to connect
-            time.sleep(0.25)
         else:
             self._connected = False
             raise Exception("Failed to connect!")
@@ -499,7 +455,7 @@ class Client(HasTraits):
     #--------------------------------------------------------------------------
     
     def _unwrap_exception(self, content):
-        """unwrap exception, and remap engineid to int."""
+        """unwrap exception, and remap engine_id to int."""
         e = error.unwrap_exception(content)
         # print e.traceback
         if e.engine_info:
@@ -545,7 +501,7 @@ class Client(HasTraits):
             
             self._handle_stranded_msgs(eid, uuid)
                 
-        if self._task_ident and self._task_scheme == 'pure':
+        if self._task_socket and self._task_scheme == 'pure':
             self._stop_scheduling_tasks()
     
     def _handle_stranded_msgs(self, eid, uuid):
@@ -622,7 +578,7 @@ class Client(HasTraits):
         if content['status'] == 'ok':
             self.results[msg_id] = util.unserialize_object(msg['buffers'])[0]
         elif content['status'] == 'aborted':
-            self.results[msg_id] = error.AbortedTask(msg_id)
+            self.results[msg_id] = error.TaskAborted(msg_id)
         elif content['status'] == 'resubmitted':
             # TODO: handle resubmission
             pass
@@ -665,11 +621,25 @@ class Client(HasTraits):
         in the ZMQ queue.
         
         Currently: ignore them."""
+        if self._ignored_control_replies <= 0:
+            return
         msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
+            self._ignored_control_replies -= 1
             if self.debug:
                 pprint(msg)
             msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+    
+    def _flush_ignored_control(self):
+        """flush ignored control replies"""
+        while self._ignored_control_replies > 0:
+            self.session.recv(self._control_socket)
+            self._ignored_control_replies -= 1
+    
+    def _flush_ignored_hub_replies(self):
+        msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
+        while msg is not None:
+            msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
     
     def _flush_iopub(self, sock):
         """Flush replies from the iopub channel waiting
@@ -718,11 +688,27 @@ class Client(HasTraits):
         if not isinstance(key, (int, slice, tuple, list, xrange)):
             raise TypeError("key by int/slice/iterable of ints only, not %s"%(type(key)))
         else:
-            return self.view(key, balanced=False)
+            return self._get_view(key, balanced=False)
     
     #--------------------------------------------------------------------------
     # Begin public methods
     #--------------------------------------------------------------------------
+    
+    @property
+    def ids(self):
+        """Always up-to-date ids property."""
+        self._flush_notifications()
+        # always copy:
+        return list(self._ids)
+        
+    def close(self):
+        if self._closed:
+            return
+        snames = filter(lambda n: n.endswith('socket'), dir(self))
+        for socket in map(lambda name: getattr(self, name), snames):
+            if isinstance(socket, zmq.Socket) and not socket.closed:
+                socket.close()
+        self._closed = True
     
     def spin(self):
         """Flush any registration notifications and execution results
@@ -730,14 +716,18 @@ class Client(HasTraits):
         """
         if self._notification_socket:
             self._flush_notifications()
-        if self._apply_socket:
-            self._flush_results(self._apply_socket)
+        if self._mux_socket:
+            self._flush_results(self._mux_socket)
+        if self._task_socket:
+            self._flush_results(self._task_socket)
         if self._control_socket:
             self._flush_control(self._control_socket)
         if self._iopub_socket:
             self._flush_iopub(self._iopub_socket)
+        if self._query_socket:
+            self._flush_ignored_hub_replies()
     
-    def barrier(self, jobs=None, timeout=-1):
+    def wait(self, jobs=None, timeout=-1):
         """waits on one or more `jobs`, for up to `timeout` seconds.
         
         Parameters
@@ -786,8 +776,8 @@ class Client(HasTraits):
     # Control methods
     #--------------------------------------------------------------------------
     
-    @spinfirst
-    @defaultblock
+    @spin_first
+    @default_block
     def clear(self, targets=None, block=None):
         """Clear the namespace in target(s)."""
         targets = self._build_targets(targets)[0]
@@ -795,18 +785,21 @@ class Client(HasTraits):
             self.session.send(self._control_socket, 'clear_request', content={}, ident=t)
         error = False
         if self.block:
+            self._flush_ignored_control()
             for i in range(len(targets)):
                 idents,msg = self.session.recv(self._control_socket,0)
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
                     error = self._unwrap_exception(msg['content'])
+        else:
+            self._ignored_control_replies += len(targets)
         if error:
             raise error
         
     
-    @spinfirst
-    @defaultblock
+    @spin_first
+    @default_block
     def abort(self, jobs=None, targets=None, block=None):
         """Abort specific jobs from the execution queues of target(s).
         
@@ -839,35 +832,41 @@ class Client(HasTraits):
                     content=content, ident=t)
         error = False
         if self.block:
+            self._flush_ignored_control()
             for i in range(len(targets)):
                 idents,msg = self.session.recv(self._control_socket,0)
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
                     error = self._unwrap_exception(msg['content'])
+        else:
+            self._ignored_control_replies += len(targets)
         if error:
             raise error
     
-    @spinfirst
-    @defaultblock
-    def shutdown(self, targets=None, restart=False, controller=False, block=None):
-        """Terminates one or more engine processes, optionally including the controller."""
-        if controller:
+    @spin_first
+    @default_block
+    def shutdown(self, targets=None, restart=False, hub=False, block=None):
+        """Terminates one or more engine processes, optionally including the hub."""
+        if hub:
             targets = 'all'
         targets = self._build_targets(targets)[0]
         for t in targets:
             self.session.send(self._control_socket, 'shutdown_request', 
                         content={'restart':restart},ident=t)
         error = False
-        if block or controller:
+        if block or hub:
+            self._flush_ignored_control()
             for i in range(len(targets)):
-                idents,msg = self.session.recv(self._control_socket,0)
+                idents,msg = self.session.recv(self._control_socket, 0)
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
                     error = self._unwrap_exception(msg['content'])
+        else:
+            self._ignored_control_replies += len(targets)
         
-        if controller:
+        if hub:
             time.sleep(0.25)
             self.session.send(self._query_socket, 'shutdown_request')
             idents,msg = self.session.recv(self._query_socket, 0)
@@ -883,8 +882,8 @@ class Client(HasTraits):
     # Execution methods
     #--------------------------------------------------------------------------
     
-    @defaultblock
-    def execute(self, code, targets='all', block=None):
+    @default_block
+    def _execute(self, code, targets='all', block=None):
         """Executes `code` on `targets` in blocking or nonblocking manner.
         
         ``execute`` is always `bound` (affects engine namespace)
@@ -901,33 +900,7 @@ class Client(HasTraits):
                 whether or not to wait until done to return
                 default: self.block
         """
-        result = self.apply(_execute, (code,), targets=targets, block=block, bound=True, balanced=False)
-        if not block:
-            return result
-    
-    def run(self, filename, targets='all', block=None):
-        """Execute contents of `filename` on engine(s). 
-        
-        This simply reads the contents of the file and calls `execute`.
-        
-        Parameters
-        ----------
-        
-        filename : str
-                The path to the file
-        targets : int/str/list of ints/strs
-                the engines on which to execute
-                default : all
-        block : bool
-                whether or not to wait until done
-                default: self.block
-        
-        """
-        with open(filename, 'r') as f:
-            # add newline in case of trailing indented whitespace
-            # which will cause SyntaxError
-            code = f.read()+'\n'
-        return self.execute(code, targets=targets, block=block)
+        return self[targets].execute(code, block=block)
     
     def _maybe_raise(self, result):
         """wrapper for maybe raising an exception if apply failed."""
@@ -936,287 +909,113 @@ class Client(HasTraits):
         
         return result
     
-    def _build_dependency(self, dep):
-        """helper for building jsonable dependencies from various input forms"""
-        if isinstance(dep, Dependency):
-            return dep.as_dict()
-        elif isinstance(dep, AsyncResult):
-            return dep.msg_ids
-        elif dep is None:
-            return []
-        else:
-            # pass to Dependency constructor
-            return list(Dependency(dep))
+    def send_apply_message(self, socket, f, args=None, kwargs=None, subheader=None, track=False,
+                            ident=None):
+        """construct and send an apply message via a socket.
         
-    @defaultblock
-    def apply(self, f, args=None, kwargs=None, bound=False, block=None,
-                        targets=None, balanced=None,
-                        after=None, follow=None, timeout=None,
-                        track=False):
-        """Call `f(*args, **kwargs)` on a remote engine(s), returning the result.
-        
-        This is the central execution command for the client.
-        
-        Parameters
-        ----------
-        
-        f : function
-            The fuction to be called remotely
-        args : tuple/list
-            The positional arguments passed to `f`
-        kwargs : dict
-            The keyword arguments passed to `f`
-        bound : bool (default: False)
-            Whether to pass the Engine(s) Namespace as the first argument to `f`.
-        block : bool (default: self.block)
-            Whether to wait for the result, or return immediately.
-            False:
-                returns AsyncResult
-            True:
-                returns actual result(s) of f(*args, **kwargs)
-                if multiple targets:
-                    list of results, matching `targets`
-        track : bool
-            whether to track non-copying sends.
-            [default False]
-
-        targets : int,list of ints, 'all', None
-            Specify the destination of the job.
-            if None:
-                Submit via Task queue for load-balancing.
-            if 'all':
-                Run on all active engines
-            if list:
-                Run on each specified engine
-            if int:
-                Run on single engine
-            Note:
-                that if `balanced=True`, and `targets` is specified,
-                then the load-balancing will be limited to balancing
-                among `targets`.
-
-        balanced : bool, default None
-            whether to load-balance.  This will default to True
-            if targets is unspecified, or False if targets is specified.
-
-            If `balanced` and `targets` are both specified, the task will
-            be assigne to *one* of the targets by the scheduler.
-
-        The following arguments are only used when balanced is True:
-
-        after : Dependency or collection of msg_ids
-            Only for load-balanced execution (targets=None)
-            Specify a list of msg_ids as a time-based dependency.
-            This job will only be run *after* the dependencies
-            have been met.
-
-        follow : Dependency or collection of msg_ids
-            Only for load-balanced execution (targets=None)
-            Specify a list of msg_ids as a location-based dependency.
-            This job will only be run on an engine where this dependency
-            is met.
-
-        timeout : float/int or None
-            Only for load-balanced execution (targets=None)
-            Specify an amount of time (in seconds) for the scheduler to
-            wait for dependencies to be met before failing with a
-            DependencyTimeout.
-        
-        Returns
-        -------
-        
-        if block is False:
-            return AsyncResult wrapping msg_ids
-            output of AsyncResult.get() is identical to that of `apply(...block=True)`
-        else:
-            if single target (or balanced):
-                return result of `f(*args, **kwargs)`
-            else:
-                return list of results, matching `targets`
+        This is the principal method with which all engine execution is performed by views.
         """
+                            
         assert not self._closed, "cannot use me anymore, I'm closed!"
         # defaults:
-        block = block if block is not None else self.block
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
+        subheader = subheader if subheader is not None else {}
         
-        if not self._ids:
-            # flush notification socket if no engines yet
-            any_ids = self.ids
-            if not any_ids:
-                raise error.NoEnginesRegistered("Can't execute without any connected engines.")
-        
-        if balanced is None:
-            if targets is None:
-                # default to balanced if targets unspecified
-                balanced = True
-            else:
-                # otherwise default to multiplexing
-                balanced = False
-        
-        if targets is None and balanced is False:
-            # default to all if *not* balanced, and targets is unspecified
-            targets = 'all'
-        
-        # enforce types of f,args,kwrags
+        # validate arguments
         if not callable(f):
             raise TypeError("f must be callable, not %s"%type(f))
         if not isinstance(args, (tuple, list)):
             raise TypeError("args must be tuple or list, not %s"%type(args))
         if not isinstance(kwargs, dict):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
+        if not isinstance(subheader, dict):
+            raise TypeError("subheader must be dict, not %s"%type(subheader))
         
-        options  = dict(bound=bound, block=block, targets=targets, track=track)
+        if not self._ids:
+            # flush notification socket if no engines yet
+            any_ids = self.ids
+            if not any_ids:
+                raise error.NoEnginesRegistered("Can't execute without any connected engines.")
+                # enforce types of f,args,kwargs
         
-        if balanced:
-            return self._apply_balanced(f, args, kwargs, timeout=timeout, 
-                                        after=after, follow=follow, **options)
-        elif follow or after or timeout:
-                msg = "follow, after, and timeout args are only used for"
-                msg += " load-balanced execution."
-                raise ValueError(msg)
-        else:
-            return self._apply_direct(f, args, kwargs, **options)
-    
-    def _apply_balanced(self, f, args, kwargs, bound=None, block=None, targets=None,
-                            after=None, follow=None, timeout=None, track=None):
-        """call f(*args, **kwargs) remotely in a load-balanced manner.
-        
-        This is a private method, see `apply` for details.
-        Not to be called directly!
-        """
-        
-        loc = locals()
-        for name in ('bound', 'block', 'track'):
-            assert loc[name] is not None, "kwarg %r must be specified!"%name
-        
-        if not self._task_ident:
-            msg = "Task farming is disabled"
-            if self._task_scheme == 'pure':
-                msg += " because the pure ZMQ scheduler cannot handle"
-                msg += " disappearing engines."
-            raise RuntimeError(msg)
-        
-        if self._task_scheme == 'pure':
-            # pure zmq scheme doesn't support dependencies
-            msg = "Pure ZMQ scheduler doesn't support dependencies"
-            if (follow or after):
-                # hard fail on DAG dependencies
-                raise RuntimeError(msg)
-            if isinstance(f, dependent):
-                # soft warn on functional dependencies
-                warnings.warn(msg, RuntimeWarning)
-        
-        # defaults:
-        args = args if args is not None else []
-        kwargs = kwargs if kwargs is not None else {}
-        
-        if targets:
-            idents,_ = self._build_targets(targets)
-        else:
-            idents = []
-        
-        after = self._build_dependency(after)
-        follow = self._build_dependency(follow)
-        subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents)
         bufs = util.pack_apply_message(f,args,kwargs)
-        content = dict(bound=bound)
         
-        msg = self.session.send(self._apply_socket, "apply_request", ident=self._task_ident,
-                content=content, buffers=bufs, subheader=subheader, track=track)
+        msg = self.session.send(socket, "apply_request", buffers=bufs, ident=ident,
+                            subheader=subheader, track=track)
+        
         msg_id = msg['msg_id']
         self.outstanding.add(msg_id)
+        if ident:
+            # possibly routed to a specific engine
+            if isinstance(ident, list):
+                ident = ident[-1]
+            if ident in self._engines.values():
+                # save for later, in case of engine death
+                self._outstanding_dict[ident].add(msg_id)
         self.history.append(msg_id)
         self.metadata[msg_id]['submitted'] = datetime.now()
-        tracker = None if track is False else msg['tracker']
-        ar = AsyncResult(self, [msg_id], fname=f.__name__, targets=targets, tracker=tracker)
-        if block:
-            try:
-                return ar.get()
-            except KeyboardInterrupt:
-                return ar
-        else:
-            return ar
-    
-    def _apply_direct(self, f, args, kwargs, bound=None, block=None, targets=None,
-                                        track=None):
-        """Then underlying method for applying functions to specific engines
-        via the MUX queue.
         
-        This is a private method, see `apply` for details.
-        Not to be called directly!
-        """
-        
-        if not self._mux_ident:
-            msg = "Multiplexing is disabled"
-            raise RuntimeError(msg)
-        
-        loc = locals()
-        for name in ('bound', 'block', 'targets', 'track'):
-            assert loc[name] is not None, "kwarg %r must be specified!"%name
-        
-        idents,targets = self._build_targets(targets)
-        
-        subheader = {}
-        content = dict(bound=bound)
-        bufs = util.pack_apply_message(f,args,kwargs)
-        
-        msg_ids = []
-        trackers = []
-        for ident in idents:
-            msg = self.session.send(self._apply_socket, "apply_request", 
-                    content=content, buffers=bufs, ident=[self._mux_ident, ident], subheader=subheader,
-                    track=track)
-            if track:
-                trackers.append(msg['tracker'])
-            msg_id = msg['msg_id']
-            self.outstanding.add(msg_id)
-            self._outstanding_dict[ident].add(msg_id)
-            self.history.append(msg_id)
-            msg_ids.append(msg_id)
-        
-        tracker = None if track is False else zmq.MessageTracker(*trackers)
-        ar = AsyncResult(self, msg_ids, fname=f.__name__, targets=targets, tracker=tracker)
-        
-        if block:
-            try:
-                return ar.get()
-            except KeyboardInterrupt:
-                return ar
-        else:
-            return ar
-    
+        return msg
+
     #--------------------------------------------------------------------------
     # construct a View object
     #--------------------------------------------------------------------------
     
-    @defaultblock
-    def remote(self, bound=False, block=None, targets=None, balanced=None):
-        """Decorator for making a RemoteFunction"""
-        return remote(self, bound=bound, targets=targets, block=block, balanced=balanced)
-    
-    @defaultblock
-    def parallel(self, dist='b', bound=False, block=None, targets=None, balanced=None):
-        """Decorator for making a ParallelFunction"""
-        return parallel(self, bound=bound, targets=targets, block=block, balanced=balanced)
-    
     def _cache_view(self, targets, balanced):
         """save views, so subsequent requests don't create new objects."""
         if balanced:
+            # validate whether we can run
+            if not self._task_socket:
+                msg = "Task farming is disabled"
+                if self._task_scheme == 'pure':
+                    msg += " because the pure ZMQ scheduler cannot handle"
+                    msg += " disappearing engines."
+                raise RuntimeError(msg)
+            socket = self._task_socket
             view_class = LoadBalancedView
             view_cache = self._balanced_views
         else:
+            socket = self._mux_socket
             view_class = DirectView
             view_cache = self._direct_views
         
         # use str, since often targets will be a list
         key = str(targets)
         if key not in view_cache:
-            view_cache[key] = view_class(client=self, targets=targets)
+            view_cache[key] = view_class(client=self, socket=socket, targets=targets)
         
         return view_cache[key]
     
-    def view(self, targets=None, balanced=None):
+    def load_balanced_view(self, targets=None):
+        """construct a DirectView object.
+        
+        If no arguments are specified, create a LoadBalancedView
+        using all engines.
+        
+        Parameters
+        ----------
+        
+        targets: list,slice,int,etc. [default: use all engines]
+            The subset of engines across which to load-balance
+        """
+        return self._get_view(targets, balanced=True)
+    
+    def direct_view(self, targets='all'):
+        """construct a DirectView object.
+        
+        If no targets are specified, create a DirectView
+        using all engines.
+        
+        Parameters
+        ----------
+        
+        targets: list,slice,int,etc. [default: use all engines]
+            The engines to use for the View
+        """
+        return self._get_view(targets, balanced=False)
+    
+    def _get_view(self, targets, balanced):
         """Method for constructing View objects.
         
         If no arguments are specified, create a LoadBalancedView
@@ -1234,9 +1033,7 @@ class Client(HasTraits):
         
         """
         
-        balanced = (targets is None) if balanced is None else balanced
-        
-        if targets is None:
+        if targets in (None,'all'):
             if balanced:
                 return self._cache_view(None,True)
             else:
@@ -1261,20 +1058,20 @@ class Client(HasTraits):
             raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
     
     #--------------------------------------------------------------------------
-    # Data movement
+    # Data movement (TO BE REMOVED)
     #--------------------------------------------------------------------------
     
-    @defaultblock
-    def push(self, ns, targets='all', block=None, track=False):
+    @default_block
+    def _push(self, ns, targets='all', block=None, track=False):
         """Push the contents of `ns` into the namespace on `target`"""
         if not isinstance(ns, dict):
             raise TypeError("Must be a dict, not %s"%type(ns))
-        result = self.apply(_push, kwargs=ns, targets=targets, block=block, bound=True, balanced=False, track=track)
+        result = self.apply(util._push, kwargs=ns, targets=targets, block=block, bound=True, balanced=False, track=track)
         if not block:
             return result
     
-    @defaultblock
-    def pull(self, keys, targets='all', block=None):
+    @default_block
+    def _pull(self, keys, targets='all', block=None):
         """Pull objects from `target`'s namespace by `keys`"""
         if isinstance(keys, basestring):
             pass
@@ -1284,64 +1081,15 @@ class Client(HasTraits):
                     raise TypeError("keys must be str, not type %r"%type(key))
         else:
             raise TypeError("keys must be strs, not %r"%keys)
-        result = self.apply(_pull, (keys,), targets=targets, block=block, bound=True, balanced=False)
+        result = self.apply(util._pull, (keys,), targets=targets, block=block, bound=True, balanced=False)
         return result
-    
-    @defaultblock
-    def scatter(self, key, seq, dist='b', flatten=False, targets='all', block=None, track=False):
-        """
-        Partition a Python sequence and send the partitions to a set of engines.
-        """
-        targets = self._build_targets(targets)[-1]
-        mapObject = Map.dists[dist]()
-        nparts = len(targets)
-        msg_ids = []
-        trackers = []
-        for index, engineid in enumerate(targets):
-            partition = mapObject.getPartition(seq, index, nparts)
-            if flatten and len(partition) == 1:
-                r = self.push({key: partition[0]}, targets=engineid, block=False, track=track)
-            else:
-                r = self.push({key: partition}, targets=engineid, block=False, track=track)
-            msg_ids.extend(r.msg_ids)
-            if track:
-                trackers.append(r._tracker)
-        
-        if track:
-            tracker = zmq.MessageTracker(*trackers)
-        else:
-            tracker = None
-        
-        r = AsyncResult(self, msg_ids, fname='scatter', targets=targets, tracker=tracker)
-        if block:
-            r.wait()
-        else:
-            return r
-    
-    @defaultblock
-    def gather(self, key, dist='b', targets='all', block=None):
-        """
-        Gather a partitioned sequence on a set of engines as a single local seq.
-        """
-        
-        targets = self._build_targets(targets)[-1]
-        mapObject = Map.dists[dist]()
-        msg_ids = []
-        for index, engineid in enumerate(targets):
-            msg_ids.extend(self.pull(key, targets=engineid,block=False).msg_ids)
-        
-        r = AsyncMapResult(self, msg_ids, mapObject, fname='gather')
-        if block:
-            return r.get()
-        else:
-            return r
     
     #--------------------------------------------------------------------------
     # Query methods
     #--------------------------------------------------------------------------
     
-    @spinfirst
-    @defaultblock
+    @spin_first
+    @default_block
     def get_result(self, indices_or_msg_ids=None, block=None):
         """Retrieve a result by msg_id or history index, wrapped in an AsyncResult object.
         
@@ -1406,7 +1154,7 @@ class Client(HasTraits):
         
         return ar
     
-    @spinfirst
+    @spin_first
     def result_status(self, msg_ids, status_only=True):
         """Check on the status of the result(s) of the apply request with `msg_ids`.
         
@@ -1505,7 +1253,7 @@ class Client(HasTraits):
         error.collect_exceptions(failures, "result_status")
         return content
 
-    @spinfirst
+    @spin_first
     def queue_status(self, targets='all', verbose=False):
         """Fetch the status of engine queues.
         
@@ -1518,8 +1266,8 @@ class Client(HasTraits):
         verbose : bool
                 Whether to return lengths only, or lists of ids for each element
         """
-        targets = self._build_targets(targets)[1]
-        content = dict(targets=targets, verbose=verbose)
+        engine_ids = self._build_targets(targets)[1]
+        content = dict(targets=engine_ids, verbose=verbose)
         self.session.send(self._query_socket, "queue_request", content=content)
         idents,msg = self.session.recv(self._query_socket, 0)
         if self.debug:
@@ -1528,11 +1276,15 @@ class Client(HasTraits):
         status = content.pop('status')
         if status != 'ok':
             raise self._unwrap_exception(content)
-        return util.rekey(content)
+        content = util.rekey(content)
+        if isinstance(targets, int):
+            return content[targets]
+        else:
+            return content
         
-    @spinfirst
+    @spin_first
     def purge_results(self, jobs=[], targets=[]):
-        """Tell the controller to forget results.
+        """Tell the Hub to forget results.
         
         Individual results can be purged by msg_id, or the entire
         history of specific targets can be purged.
@@ -1540,11 +1292,11 @@ class Client(HasTraits):
         Parameters
         ----------
         
-        jobs : str or list of strs or AsyncResult objects
+        jobs : str or list of str or AsyncResult objects
                 the msg_ids whose results should be forgotten.
         targets : int/str/list of ints/strs
                 The targets, by uuid or int_id, whose entire history is to be purged.
-                Use `targets='all'` to scrub everything from the controller's memory.
+                Use `targets='all'` to scrub everything from the Hub's memory.
                 
                 default : None
         """

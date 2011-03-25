@@ -238,7 +238,7 @@ class TaskScheduler(SessionFactory):
             msg = self.session.unpack_message(msg, copy=False, content=False)
             parent = msg['header']
             idents = [idents[0],engine]+idents[1:]
-            print (idents)
+            # print (idents)
             try:
                 raise error.EngineError("Engine %r died while running task %r"%(engine, msg_id))
             except:
@@ -277,8 +277,9 @@ class TaskScheduler(SessionFactory):
         # time dependencies
         after = Dependency(header.get('after', []))
         if after.all:
-            after.difference_update(self.all_completed)
-            if not after.success_only:
+            if after.success:
+                after.difference_update(self.all_completed)
+            if after.failure:
                 after.difference_update(self.all_failed)
         if after.check(self.all_completed, self.all_failed):
             # recast as empty set, if `after` already met,
@@ -302,7 +303,7 @@ class TaskScheduler(SessionFactory):
                 self.depending[msg_id] = args
                 return self.fail_unreachable(msg_id, error.InvalidDependency)
             # check if unreachable:
-            if dep.unreachable(self.all_failed):
+            if dep.unreachable(self.all_completed, self.all_failed):
                 self.depending[msg_id] = args
                 return self.fail_unreachable(msg_id)
         
@@ -379,7 +380,11 @@ class TaskScheduler(SessionFactory):
                 if follow.all:
                     # check follow for impossibility
                     dests = set()
-                    relevant = self.all_completed if follow.success_only else self.all_done
+                    relevant = set()
+                    if follow.success:
+                        relevant = self.all_completed
+                    if follow.failure:
+                        relevant = relevant.union(self.all_failed)
                     for m in follow.intersection(relevant):
                         dests.add(self.destinations[m])
                     if len(dests) > 1:
@@ -514,11 +519,8 @@ class TaskScheduler(SessionFactory):
         
         for msg_id in jobs:
             raw_msg, targets, after, follow, timeout = self.depending[msg_id]
-            # if dep_id in after:
-            #     if after.all and (success or not after.success_only):
-            #         after.remove(dep_id)
             
-            if after.unreachable(self.all_failed) or follow.unreachable(self.all_failed):
+            if after.unreachable(self.all_completed, self.all_failed) or follow.unreachable(self.all_completed, self.all_failed):
                 self.fail_unreachable(msg_id)
             
             elif after.check(self.all_completed, self.all_failed): # time deps met, maybe run

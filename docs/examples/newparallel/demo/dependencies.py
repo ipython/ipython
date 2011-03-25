@@ -31,7 +31,7 @@ def getpid2():
     import os
     return os.getpid()
 
-view = client[None]
+view = client.load_balanced_view()
 view.block=True
 
 # will run on anything:
@@ -58,29 +58,41 @@ successes = [ view.apply_async(wait, 1).msg_ids[0] for i in range(len(client.ids
 failures = [ view.apply_async(wait_and_fail, 1).msg_ids[0] for i in range(len(client.ids)) ]
 
 mixed = [failures[0],successes[0]]
-d1a = Dependency(mixed, mode='any', success_only=False) # yes
-d1b = Dependency(mixed, mode='any', success_only=True) # yes
-d2a = Dependency(mixed, mode='all', success_only=False) # yes after / no follow
-d2b = Dependency(mixed, mode='all', success_only=True) # no
-d3 = Dependency(failures, mode='any', success_only=True) # no
-d4 = Dependency(failures, mode='any', success_only=False) # yes
-d5 = Dependency(failures, mode='all', success_only=False) # yes after / no follow
-d6 = Dependency(successes, mode='all', success_only=False) # yes after / no follow
+d1a = Dependency(mixed, all=False, failure=True) # yes
+d1b = Dependency(mixed, all=False) # yes
+d2a = Dependency(mixed, all=True, failure=True) # yes after / no follow
+d2b = Dependency(mixed, all=True) # no
+d3 = Dependency(failures, all=False) # no
+d4 = Dependency(failures, all=False, failure=True) # yes
+d5 = Dependency(failures, all=True, failure=True) # yes after / no follow
+d6 = Dependency(successes, all=True, failure=True) # yes after / no follow
 
-client.block = False
-
-r1a = client.apply(getpid, after=d1a)
-r1b = client.apply(getpid, follow=d1b)
-r2a = client.apply(getpid, after=d2b, follow=d2a)
-r2b = client.apply(getpid, after=d2a, follow=d2b)
-r3 = client.apply(getpid, after=d3)
-r4a = client.apply(getpid, after=d4)
-r4b = client.apply(getpid, follow=d4)
-r4c = client.apply(getpid, after=d3, follow=d4)
-r5 = client.apply(getpid, after=d5)
-r5b = client.apply(getpid, follow=d5, after=d3)
-r6 = client.apply(getpid, follow=d6)
-r6b = client.apply(getpid, after=d6, follow=d2b)
+view.block = False
+flags = view.temp_flags
+with flags(after=d1a):
+    r1a = view.apply(getpid)
+with flags(follow=d1b):
+    r1b = view.apply(getpid)
+with flags(after=d2b, follow=d2a):
+    r2a = view.apply(getpid)
+with flags(after=d2a, follow=d2b):
+    r2b = view.apply(getpid)
+with flags(after=d3):
+    r3 = view.apply(getpid)
+with flags(after=d4):
+    r4a = view.apply(getpid)
+with flags(follow=d4):
+    r4b = view.apply(getpid)
+with flags(after=d3, follow=d4):
+    r4c = view.apply(getpid)
+with flags(after=d5):
+    r5 = view.apply(getpid)
+with flags(follow=d5, after=d3):
+    r5b = view.apply(getpid)
+with flags(follow=d6):
+    r6 = view.apply(getpid)
+with flags(after=d6, follow=d2b):
+    r6b = view.apply(getpid)
 
 def should_fail(f):
     try:

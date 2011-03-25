@@ -135,7 +135,7 @@ calculation can also be run by simply typing the commands from
     # We simply pass Client the name of the cluster profile we
     # are using.
     In [2]: c = client.Client(profile='mycluster')
-    In [3]: view = c.view(balanced=True)
+    In [3]: view = c.load_balanced_view()
 
     In [3]: c.ids
     Out[3]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
@@ -166,11 +166,11 @@ calculation can also be run by simply typing the commands from
      'pi200m.ascii.15of20']
     
     # download the data files if they don't already exist:
-    In [8]: c.map(fetch_pi_file, files)
+    In [8]: v.map(fetch_pi_file, files)
     
     # This is the parallel calculation using the Client.map method 
     # which applies compute_two_digit_freqs to each file in files in parallel.
-    In [9]: freqs_all = c.map(compute_two_digit_freqs, files)
+    In [9]: freqs_all = v.map(compute_two_digit_freqs, files)
 
     # Add up the frequencies from each engine.
     In [10]: freqs = reduce_freqs(freqs_all)

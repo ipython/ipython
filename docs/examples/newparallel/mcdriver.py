@@ -49,7 +49,7 @@ c = client.Client(profile=cluster_profile)
 
 # A LoadBalancedView is an interface to the engines that provides dynamic load 
 # balancing at the expense of not knowing which engine will execute the code.
-view = c.view()
+view = c.load_balanced_view()
 
 # Initialize the common code on the engines. This Python module has the
 # price_options function that prices the options.
@@ -75,7 +75,7 @@ print "Submitted tasks: ", len(async_results)
 sys.stdout.flush()
 
 # Block until all tasks are completed.
-c.barrier(async_results)
+c.wait(async_results)
 t2 = time.time()
 t = t2-t1
 

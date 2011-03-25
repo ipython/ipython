@@ -12,12 +12,17 @@
 
 import time
 
+from zmq import MessageTracker
+
 from IPython.external.decorator import decorator
 from . import error
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+# global empty tracker that's always done:
+finished_tracker = MessageTracker()
 
 @decorator
 def check_ready(f, self, *args, **kwargs):
@@ -36,18 +41,26 @@ class AsyncResult(object):
     msg_ids = None
     _targets = None
     _tracker = None
+    _single_result = False
     
     def __init__(self, client, msg_ids, fname='unknown', targets=None, tracker=None):
-        self._client = client
         if isinstance(msg_ids, basestring):
+            # always a list
             msg_ids = [msg_ids]
+        if tracker is None:
+            # default to always done
+            tracker = finished_tracker
+        self._client = client
         self.msg_ids = msg_ids
         self._fname=fname
         self._targets = targets
         self._tracker = tracker
         self._ready = False
         self._success = None
-        self._single_result = len(msg_ids) == 1
+        if len(msg_ids) == 1:
+            self._single_result = not isinstance(targets, (list, tuple))
+        else:
+            self._single_result = False
     
     def __repr__(self):
         if self._ready:
@@ -99,7 +112,7 @@ class AsyncResult(object):
         """
         if self._ready:
             return
-        self._ready = self._client.barrier(self.msg_ids, timeout)
+        self._ready = self._client.wait(self.msg_ids, timeout)
         if self._ready:
             try:
                 results = map(self._client.results.get, self.msg_ids)
@@ -149,10 +162,9 @@ class AsyncResult(object):
         return dict(zip(engine_ids,results))
     
     @property
-    @check_ready
     def result(self):
         """result property wrapper for `get(timeout=0)`."""
-        return self._result
+        return self.get()
     
     # abbreviated alias:
     r = result
@@ -169,7 +181,7 @@ class AsyncResult(object):
     @property
     def result_dict(self):
         """result property as a dict."""
-        return self.get_dict(0)
+        return self.get_dict()
     
     def __dict__(self):
         return self.get_dict(0)
@@ -181,11 +193,17 @@ class AsyncResult(object):
 
     @property
     def sent(self):
-        """check whether my messages have been sent"""
-        if self._tracker is None:
-            return True
-        else:
-            return self._tracker.done
+        """check whether my messages have been sent."""
+        return self._tracker.done
+    
+    def wait_for_send(self, timeout=-1):
+        """wait for pyzmq send to complete.
+        
+        This is necessary when sending arrays that you intend to edit in-place.
+        `timeout` is in seconds, and will raise TimeoutError if it is reached
+        before the send completes.
+        """
+        return self._tracker.wait(timeout)
 
     #-------------------------------------
     # dict-access
@@ -285,7 +303,7 @@ class AsyncHubResult(AsyncResult):
         if self._ready:
             return
         local_ids = filter(lambda msg_id: msg_id in self._client.outstanding, self.msg_ids)
-        local_ready = self._client.barrier(local_ids, timeout)
+        local_ready = self._client.wait(local_ids, timeout)
         if local_ready:
             remote_ids = filter(lambda msg_id: msg_id not in self._client.results, self.msg_ids)
             if not remote_ids:
