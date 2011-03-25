@@ -365,7 +365,14 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def _parse_args(self, args):
         """self.parser->self.parsed_data"""
-        self.parsed_data, self.extra_args = self.parser.parse_known_args(args)
+        # decode sys.argv to support unicode command-line options
+        uargs = []
+        for a in args:
+            if isinstance(a, str):
+                # don't decode if we already got unicode
+                a = a.decode(sys.stdin.encoding)
+            uargs.append(a)
+        self.parsed_data, self.extra_args = self.parser.parse_known_args(uargs)
 
     def _convert_to_config(self):
         """self.parsed_data->self.config"""

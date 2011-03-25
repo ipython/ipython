@@ -31,7 +31,7 @@ from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn
 from IPython.utils.text import num_ini_spaces
-from IPython.utils.traitlets import Int, Str, CBool
+from IPython.utils.traitlets import Int, Str, CBool, Unicode
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -59,9 +59,9 @@ raw_input_original = raw_input
 class TerminalInteractiveShell(InteractiveShell):
 
     autoedit_syntax = CBool(False, config=True)
-    banner = Str('')
-    banner1 = Str(default_banner, config=True)
-    banner2 = Str('', config=True)
+    banner = Unicode('')
+    banner1 = Unicode(default_banner, config=True)
+    banner2 = Unicode('', config=True)
     confirm_exit = CBool(True, config=True)
     # This display_banner only controls whether or not self.show_banner()
     # is called when mainloop/interact are called.  The default is False
@@ -71,8 +71,8 @@ class TerminalInteractiveShell(InteractiveShell):
     display_banner = CBool(False) # This isn't configurable!
     embedded = CBool(False)
     embedded_active = CBool(False)
-    editor = Str(get_default_editor(), config=True)
-    pager = Str('less', config=True)
+    editor = Unicode(get_default_editor(), config=True)
+    pager = Unicode('less', config=True)
 
     screen_length = Int(0, config=True)
     term_title = CBool(False, config=True)
