@@ -109,6 +109,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                          QtCore.Qt.Key_A : QtCore.Qt.Key_Home,
                          QtCore.Qt.Key_P : QtCore.Qt.Key_Up,
                          QtCore.Qt.Key_N : QtCore.Qt.Key_Down,
+                         QtCore.Qt.Key_H : QtCore.Qt.Key_Backspace,
                          QtCore.Qt.Key_D : QtCore.Qt.Key_Delete, }
     if not sys.platform == 'darwin':
         # On OS X, Ctrl-E already does the right thing, whereas End moves the
@@ -592,7 +593,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._set_font(font)
 
     def change_font_size(self, delta):
-        """Change the font size by the specified amount (in points).
+        """ Change the font size by the specified amount (in points).
         """
         font = self.font
         font.setPointSize(font.pointSize() + delta)
@@ -963,6 +964,20 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                     self._page_control.setFocus()
                 intercepted = True
 
+            elif key == QtCore.Qt.Key_U:
+                if self._in_buffer(position):
+                    start_line = cursor.blockNumber()
+                    if start_line == self._get_prompt_cursor().blockNumber():
+                        offset = len(self._prompt)
+                    else:
+                        offset = len(self._continuation_prompt)
+                    cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
+                                        QtGui.QTextCursor.KeepAnchor)
+                    cursor.movePosition(QtGui.QTextCursor.Right,
+                                        QtGui.QTextCursor.KeepAnchor, offset)
+                    cursor.removeSelectedText()
+                intercepted = True
+
             elif key == QtCore.Qt.Key_Y:
                 self.paste()
                 intercepted = True
@@ -1016,9 +1031,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         else:
             if shift_down:
-                anchormode=QtGui.QTextCursor.KeepAnchor
+                anchormode = QtGui.QTextCursor.KeepAnchor
             else:
-                anchormode=QtGui.QTextCursor.MoveAnchor
+                anchormode = QtGui.QTextCursor.MoveAnchor
             
             if key == QtCore.Qt.Key_Escape:
                 self._keyboard_quit()
@@ -1049,9 +1064,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 if line > self._get_prompt_cursor().blockNumber() and \
                         col == len(self._continuation_prompt):
                     self._control.moveCursor(QtGui.QTextCursor.PreviousBlock, 
-                                    mode=anchormode)
+                                             mode=anchormode)
                     self._control.moveCursor(QtGui.QTextCursor.EndOfBlock, 
-                                    mode=anchormode)
+                                             mode=anchormode)
                     intercepted = True
 
                 # Regular left movement
