@@ -71,6 +71,15 @@ class InteractiveShellTestCase(unittest.TestCase):
         newlen = len(ip.user_ns['Out'])
         self.assertEquals(oldlen, newlen)
         #also test the default caching behavior
-        a = ip.run_cell('1')
+        ip.run_cell('1')
         newlen = len(ip.user_ns['Out'])
         self.assertEquals(oldlen+1, newlen)
+    
+    def test_In_variable(self):
+        "Verify that In variable grows with user input (GH-284)"
+        ip = get_ipython()
+        oldlen = len(ip.user_ns['In'])
+        ip.run_cell('1;')
+        newlen = len(ip.user_ns['In'])
+        self.assertEquals(oldlen+1, newlen)
+        self.assertEquals(ip.user_ns['In'][-1],'1;')
