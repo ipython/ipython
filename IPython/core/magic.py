@@ -25,7 +25,6 @@ import shutil
 import re
 import time
 import textwrap
-import types
 from cStringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
@@ -834,7 +833,7 @@ Currently the magic system has the following functions:\n"""
         
           - For {},[],(): their length.
 
-          - For numpy and Numeric arrays, a summary with shape, number of
+          - For numpy arrays, a summary with shape, number of
           elements, typecode and size in memory.
 
           - Everything else: a string representation, snipping their middle if
@@ -867,7 +866,7 @@ Currently the magic system has the following functions:\n"""
         # if we have variables, move on...
 
         # for these types, show len() instead of data:
-        seq_types = [types.DictType,types.ListType,types.TupleType]
+        seq_types = ['dict', 'list', 'tuple']
 
         # for numpy/Numeric arrays, display summary info
         try:
@@ -926,7 +925,7 @@ Currently the magic system has the following functions:\n"""
         for vname,var,vtype in zip(varnames,varlist,typelist):
             print itpl(vformat),
             if vtype in seq_types:
-                print len(var)
+                print "n="+str(len(var))
             elif vtype in [array_type,ndarray_type]:
                 vshape = str(var.shape).replace(',','').replace(' ','x')[1:-1]
                 if vtype==ndarray_type:
