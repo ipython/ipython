@@ -307,7 +307,64 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 
+class KeyValueConfigLoader(CommandLineConfigLoader):
+    """A config loader that loads key value pairs from the command line.
+
+    This allows command line options to be gives in the following form::
+    
+        ipython Global.profile="foo" InteractiveShell.autocall=False
+    """
+
+    def __init__(self, argv=None):
+        """Create a key value pair config loader.
+
+        Parameters
+        ----------
+        argv : list
+            A list that has the form of sys.argv[1:] which has unicode
+            elements of the form u"key=value". If this is None (default),
+            then sys.argv[1:] will be used.
+
+        Returns
+        -------
+        config : Config
+            The resulting Config object.
+
+        Examples
+        --------
+
+            >>> from IPython.config.loader import KeyValueConfigLoader
+            >>> cl = KeyValueConfigLoader()
+            >>> cl.load_config(["foo='bar'","A.name='brian'","B.number=0"])
+            {'A': {'name': 'brian'}, 'B': {'number': 0}, 'foo': 'bar'}
+        """
+        if argv == None:
+            argv = sys.argv[1:]
+        self.argv = argv
+
+    def load_config(self, argv=None):
+        """Parse the configuration and generate the Config object.
+
+        Parameters
+        ----------
+        argv : list, optional
+            A list that has the form of sys.argv[1:] which has unicode
+            elements of the form u"key=value". If this is None (default),
+            then self.argv will be used. 
+        """
+        self.clear()
+        if argv is None:
+            argv = self.argv
+        for item in argv:
+            pair = tuple(item.split("="))
+            if len(pair) == 2:
+                exec_str = 'self.config.' + pair[0] + '=' + pair[1]
+                exec exec_str in locals(), globals()
+        return self.config
+
+
 class ArgParseConfigLoader(CommandLineConfigLoader):
+    """A loader that uses the argparse module to load from the command line."""
 
     def __init__(self, argv=None, *parser_args, **parser_kw):
         """Create a config loader for use with argparse.
@@ -326,6 +383,11 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         parser_kw : dict
           A tuple of keyword arguments that will be passed to the
           constructor of :class:`argparse.ArgumentParser`.
+
+        Returns
+        -------
+        config : Config
+            The resulting Config object.
         """
         super(CommandLineConfigLoader, self).__init__()
         if argv == None:
@@ -337,8 +399,8 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         kwargs.update(parser_kw)
         self.parser_kw = kwargs
 
-    def load_config(self, args=None):
-        """Parse command line arguments and return as a Struct.
+    def load_config(self, argv=None):
+        """Parse command line arguments and return as a Config object.
 
         Parameters
         ----------
@@ -348,10 +410,10 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
           arguments from. If not given, the instance's self.argv attribute
           (given at construction time) is used."""
         self.clear()
-        if args is None:
-            args = self.argv
+        if argv is None:
+            argv = self.argv
         self._create_parser()
-        self._parse_args(args)
+        self._parse_args(argv)
         self._convert_to_config()
         return self.config
 
