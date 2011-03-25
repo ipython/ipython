@@ -30,6 +30,7 @@ backends = {'tk': 'TkAgg',
             'wx': 'WXAgg',
             'qt': 'Qt4Agg', # qt3 not supported
             'qt4': 'Qt4Agg',
+            'osx': 'MacOSX',
             'inline' : 'module://IPython.zmq.pylab.backend_inline'}
 
 #-----------------------------------------------------------------------------

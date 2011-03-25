@@ -3371,7 +3371,7 @@ Defaulting color scheme to 'NoColor'"""
         Parameters
         ----------
         guiname : optional
-          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk' or
+          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk', 'osx' or
           'tk').  If given, the corresponding Matplotlib backend is used,
           otherwise matplotlib's default (which you can override in your
           matplotlib config file) is used.
