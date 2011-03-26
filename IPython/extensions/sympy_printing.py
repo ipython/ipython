@@ -15,13 +15,19 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from IPython.lib.latextools import latex_to_png
+from IPython.testing import decorators as dec
 
-from sympy import pretty, latex
+try:
+    from sympy import pretty, latex
+except ImportError:
+    pass
+
 
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
 #-----------------------------------------------------------------------------
 
+@dec.skipif_not_sympy
 def print_basic_unicode(o, p, cycle):
     """A function to pretty print sympy Basic objects."""
     if cycle:
@@ -32,6 +38,7 @@ def print_basic_unicode(o, p, cycle):
     p.text(out)
 
 
+@dec.skipif_not_sympy
 def print_png(o):
     """A funciton to display sympy expression using LaTex -> PNG."""
     s = latex(o, mode='inline')
@@ -44,7 +51,7 @@ def print_png(o):
 
 _loaded = False
 
-
+@dec.skipif_not_sympy
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     global _loaded
