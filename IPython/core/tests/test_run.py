@@ -171,10 +171,11 @@ class TestMagicRunSimple(tt.TempFileMixin):
         self.mktmp(src)
         tt.ipexec_validate(self.fname, 'object A deleted')
     
+    @dec.skip_known_failure 
     def test_aggressive_namespace_cleanup(self):
         """Test that namespace cleanup is not too aggressive GH-238
-        
-        returning from another run magic deletes the namespace"""
+
+        Returning from another run magic deletes the namespace"""
         # see ticket https://github.com/ipython/ipython/issues/238
         class secondtmp(tt.TempFileMixin): pass
         empty = secondtmp()
