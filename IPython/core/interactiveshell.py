@@ -737,7 +737,7 @@ class InteractiveShell(Configurable, Magic):
         else:
             # fallback to our internal debugger
             pm = lambda : self.InteractiveTB.debugger(force=True)
-        self.history_saving_wrapper(pm)()
+        pm()
 
     #-------------------------------------------------------------------------
     # Things related to IPython's various namespaces
@@ -1249,26 +1249,6 @@ class InteractiveShell(Configurable, Magic):
     def init_history(self):
         """Sets up the command history, and starts regular autosaves."""
         self.history_manager = HistoryManager(shell=self, config=self.config)
-
-    def history_saving_wrapper(self, func):
-        """ Wrap func for readline history saving
-
-        Convert func into callable that saves & restores
-        history around the call """
-
-        if self.has_readline:
-            from IPython.utils import rlineimpl as readline
-        else:
-            return func
-
-        def wrapper():
-            self.save_history()
-            try:
-                func()
-            finally:
-                self.reload_history()
-        return wrapper
-    
 
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
@@ -2062,7 +2042,7 @@ class InteractiveShell(Configurable, Magic):
                     # raised in user code.  It would be nice if there were
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
-                    self.run_cell(thefile.read())
+                    self.run_cell(thefile.read(), store_history=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
