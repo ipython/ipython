@@ -10,6 +10,7 @@ boolean and _outputfile variable used in IPython.utils.
 """
 
 import sys
+import warnings
 
 try:
     from readline import *
@@ -51,7 +52,11 @@ if sys.platform == 'darwin' and have_readline:
     if status == 0 and len(result) > 0:
         # we are bound to libedit - new in Leopard
         _rl.parse_and_bind("bind ^I rl_complete")
-        print "Leopard libedit detected."
+        warnings.warn("Leopard libedit detected - readline will not be well behaved "
+            "including some crashes on tab completion, and incorrect history navigation. "
+            "It is highly recommended that you install readline, "
+            "which is easy_installable with: 'easy_install readline'",
+            RuntimeWarning)
         uses_libedit = True
 
 
