@@ -274,6 +274,14 @@ def doctest_time():
     In [10]: %time None
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.00 s
+    
+    In [11]: def f(kmjy):
+       ....:    %time print 2*kmjy
+       
+    In [12]: f(3)
+    6
+    CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+    Wall time: 0.00 s
     """
 
 

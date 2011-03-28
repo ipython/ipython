@@ -22,6 +22,7 @@ import __future__
 import abc
 import atexit
 import codeop
+import inspect
 import os
 import re
 import sys
@@ -1740,9 +1741,14 @@ class InteractiveShell(Configurable, Magic):
             error("Magic function `%s` not found." % magic_name)
         else:
             magic_args = self.var_expand(magic_args,1)
+            # Grab local namespace if we need it:
+            if getattr(fn, "needs_local_scope", False):
+                self._magic_locals = sys._getframe(1).f_locals
             with nested(self.builtin_trap,):
                 result = fn(magic_args)
-                return result
+            # Ensure we're not keeping object references around:
+            self._magic_locals = {}
+            return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 
