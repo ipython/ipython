@@ -44,6 +44,10 @@ class OutStream(object):
         else:
             data = self._buffer.getvalue()
             if data:
+                # Make sure that we're handling unicode
+                if not isinstance(data, unicode):
+                    enc = sys.stdin.encoding or sys.getdefaultencoding()
+                    data = data.decode(enc, 'replace')
                 content = {u'name':self.name, u'data':data}
                 msg = self.session.send(self.pub_socket, u'stream',
                                         content=content,
