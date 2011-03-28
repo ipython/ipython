@@ -1728,10 +1728,6 @@ class InteractiveShell(Configurable, Magic):
         valid Python code you can type at the interpreter, including loops and
         compound statements.
         """
-        # Save the scope of the call so magic functions like %time can
-        # evaluate expressions in it.
-        self._magic_locals = inspect.stack()[1][0].f_locals
-        
         args = arg_s.split(' ',1)
         magic_name = args[0]
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
@@ -1745,9 +1741,14 @@ class InteractiveShell(Configurable, Magic):
             error("Magic function `%s` not found." % magic_name)
         else:
             magic_args = self.var_expand(magic_args,1)
+            # Grab local namespace if we need it:
+            if getattr(fn, "needs_local_scope", False):
+                self._magic_locals = sys._getframe(1).f_locals
             with nested(self.builtin_trap,):
                 result = fn(magic_args)
-                return result
+            # Ensure we're not keeping object references around:
+            self._magic_locals = {}
+            return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 

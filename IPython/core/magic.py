@@ -85,6 +85,10 @@ def compress_dhist(dh):
 
     return newhead + tail        
 
+def needs_local_scope(func):
+    """Decorator to mark magic functions which need to local scope to run."""
+    func.needs_local_scope = True
+    return func
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -1863,6 +1867,7 @@ Currently the magic system has the following functions:\n"""
             print "Compiler time: %.2f s" % tc
 
     @testdec.skip_doctest
+    @needs_local_scope
     def magic_time(self,parameter_s = ''):
         """Time execution of a Python statement or expression.
 
