@@ -70,9 +70,10 @@ class Frontend(object):
        self.msg_header = self.km.session.msg_header()     
        
        self.completer = completer.ClientCompleter(self,self.session,self.request_socket)
-       rlcompleter.readline.parse_and_bind('tab: complete')
-       rlcompleter.readline.parse_and_bind('set show-all-if-ambiguous on')
        rlcompleter.readline.set_completer(self.completer.complete)
+       rlcompleter.readline.parse_and_bind("tab: complete")
+       rlcompleter.readline.parse_and_bind('set show-all-if-ambiguous on')
+       
        history_path = os.path.expanduser('~/.ipython/history')
        if os.path.isfile(history_path):
            rlcompleter.readline.read_history_file(history_path)
@@ -131,27 +132,29 @@ class Frontend(object):
 
         See parent class :meth:`execute` docstring for full details.
        """
-       msg_id = self.km.xreq_channel.execute(source, hidden)
-       #timer to debug
-       time.sleep(0.5)
-       if self.km.xreq_channel.was_called():
-           self.msg_xreq =  self.km.xreq_channel.get_msg()
-           print self.msg_xreq
-           if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"] :
-               if self.msg_xreq["content"]["status"] == 'ok' :
-		   if self.msg_xreq["msg_type"] == "complete_reply" :
-		      print self.msg_xreq["content"]["matches"]
+       self.km.xreq_channel.execute(source, hidden)
+       self.handle_xreq_channel()
+
+   def handle_xreq_channel(self):
+       # Give the kernel up to 0.5s to respond
+       for i in range(5):
+	   if self.km.xreq_channel.was_called():
+	      self.msg_xreq =  self.km.xreq_channel.get_msg()
+	      if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"] :
+		 if self.msg_xreq["content"]["status"] == 'ok' :
+		    if self.msg_xreq["msg_type"] == "complete_reply" :
+		       print self.msg_xreq["content"]["matches"]
 		        
-	           if self.msg_xreq["msg_type"] == "execute_reply" :
-		      self.prompt_count = self.msg_xreq["content"]["execution_count"]
+	            if self.msg_xreq["msg_type"] == "execute_reply" :
+		       self.handle_sub_channel()
+		       self.prompt_count = self.msg_xreq["content"]["execution_count"]
 		   
-		   self.handle_sub_channel()
-               else:
-                   print >> sys.stderr, "Error executing: ", source
-                   print >> sys.stderr, "Status in the kernel: ", self.msg_xreq["content"]["status"]
-           #print msg_xreq
-       else:
-           print >> sys.stderr, "Kernel is busy!"
+                 else:
+                     print >> sys.stderr, "Error executing: ",self.msg_xreq ##traceback no implemented yet here
+                     print >> sys.stderr, "Status in the kernel: ", self.msg_xreq["content"]["status"]
+                     break
+	   time.sleep(0.1)
+	     
 
 
    def handle_sub_channel(self):

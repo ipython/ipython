@@ -18,10 +18,10 @@ class SubSocketChannel2p(SubSocketChannel):
       self.queue.put(Message(msg))
         
     def get_msg(self):
-      return self.queue.get()
+      return self.queue.get(timeout=0.1)
     
     def was_called(self):
-      return not self.queue.empty()
+      return self.queue.not_empty()
 
 class XReqSocketChannel2p(XReqSocketChannel):
    #---------------------------------------------------------------------------
@@ -29,16 +29,15 @@ class XReqSocketChannel2p(XReqSocketChannel):
    #---------------------------------------------------------------------------
     _msg = None
     _called = False
+    queue = Queue(-1)
     def call_handlers(self, msg):
-        self._called = True
-        self._msg = Message(msg)
+        self.queue.put(Message(msg))
         
     def get_msg(self):
-       self._called = False
-       return self._msg
+      return self.queue.get(timeout=0.1)
     
     def was_called(self):
-       return self._called
+      return self.queue.not_empty()
        
 class RepSocketChannel2p(RepSocketChannel):
    #---------------------------------------------------------------------------
