@@ -19,8 +19,8 @@ of IPython only need the Python standard library, but much of its more advanced
 functionality requires extra packages.
 
 Officially, IPython requires Python version 2.6 or 2.7.  An experimental port
-of IPython to Python 3.x has been started, and is available at
-http://github.com/takowl/ipython/tree/ipython-py3k.
+of IPython to Python 3.x is being developed at
+http://github.com/ipython/ipython-py3k.
 
     
 Instant running
