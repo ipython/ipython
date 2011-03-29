@@ -127,7 +127,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             return
 
         if self.has_readline:
-            self.set_completer()
+            self.set_readline_completer()
 
         # self.banner is auto computed
         if header:
