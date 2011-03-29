@@ -67,13 +67,12 @@ class Frontend(object):
        self.request_socket = self.km.xreq_channel.socket
        self.sub_socket = self.km.sub_channel.socket
        self.reply_socket = self.km.rep_channel.socket
-            
+       self.msg_header = self.km.session.msg_header()     
        
        self.completer = completer.ClientCompleter(self,self.session,self.request_socket)
-       rlcompleter.readline.parse_and_bind("tab: complete")
+       rlcompleter.readline.parse_and_bind('tab: complete')
        rlcompleter.readline.parse_and_bind('set show-all-if-ambiguous on')
-       rlcompleter.Completer = self.completer.complete
-       
+       rlcompleter.readline.set_completer(self.completer.complete)
        history_path = os.path.expanduser('~/.ipython/history')
        if os.path.isfile(history_path):
            rlcompleter.readline.read_history_file(history_path)
@@ -82,26 +81,31 @@ class Frontend(object):
 
        self.messages = {}
 
-       self.prompt_count = self.km.xreq_channel.execute('', silent=True)
+       self.prompt_count = 0 #self.km.xreq_channel.execute('', silent=True)
        self.backgrounded = 0
        self._splitter = InputSplitter()
-        
+       self.code = ""
+       
    def interact(self):
        """ let you get input from console using inputsplitter, then
        while you enter code it can indent and set index id to any input
 
        """    
+       
        try:
-           self._splitter.push(raw_input('In[%i]:'%self.prompt_count))
+           self._splitter.push(raw_input('In[%i]:'%self.prompt_count+self.code))
            while self._splitter.push_accepts_more():
-              code = raw_input('.....:'+' '*self._splitter.indent_spaces)
-              self._splitter.push(' '*self._splitter.indent_spaces+code)
+              self.code = raw_input('.....:'+' '*self._splitter.indent_spaces)
+              self._splitter.push(' '*self._splitter.indent_spaces+self.code)
+           self._execute(self._splitter.source,False)
+           self._splitter.reset()
        except  KeyboardInterrupt:
            print('\nKeyboardInterrupt\n')
            pass
-       else:
-           self._execute(self._splitter.source,False)
-           self._splitter.reset()
+       #else:
+           #self._execute(self._splitter.source,False)
+           #self._splitter.reset()
+          
        
    def start(self):
        """ init a bucle that call interact method to get code.
@@ -128,28 +132,24 @@ class Frontend(object):
         See parent class :meth:`execute` docstring for full details.
        """
        msg_id = self.km.xreq_channel.execute(source, hidden)
-       self.handle_xrep_channel()
-       
-#       while self.km.rep_channel.was_called() :
-#            msg_rep = self.km.rep_channel.get_msg()
-#            print "rep hadler not implemented yet"
-        
-
-       
-#       self.km.xreq_channel.execute('', silent=True)
-   def handle_xrep_channel(self):
-       msg_header = self.km.session.msg_header()
+       #timer to debug
+       time.sleep(0.5)
        if self.km.xreq_channel.was_called():
-           msg_xreq =  self.km.xreq_channel.get_msg()
-           if msg_header["session"] == msg_xreq["parent_header"]["session"] :
-               if msg_xreq["content"]["status"] == 'ok' :
-                   self.handle_sub_channel()
-
+           self.msg_xreq =  self.km.xreq_channel.get_msg()
+           print self.msg_xreq
+           if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"] :
+               if self.msg_xreq["content"]["status"] == 'ok' :
+		   if self.msg_xreq["msg_type"] == "complete_reply" :
+		      print self.msg_xreq["content"]["matches"]
+		        
+	           if self.msg_xreq["msg_type"] == "execute_reply" :
+		      self.prompt_count = self.msg_xreq["content"]["execution_count"]
+		   
+		   self.handle_sub_channel()
                else:
                    print >> sys.stderr, "Error executing: ", source
-                   print >> sys.stderr, "Status in the kernel: ", msg_xreq["content"]["status"]
-           self.prompt_count = msg_xreq["content"]["execution_count"]
-           print msg_xreq
+                   print >> sys.stderr, "Status in the kernel: ", self.msg_xreq["content"]["status"]
+           #print msg_xreq
        else:
            print >> sys.stderr, "Kernel is busy!"
 
@@ -168,7 +168,7 @@ class Frontend(object):
        """
        while self.km.sub_channel.was_called():
            sub_msg = self.km.sub_channel.get_msg()
-           if  msg_header["username"] == sub_msg['parent_header']['username'] and self.km.session.session == sub_msg['parent_header']['session']:
+           if  self.msg_header["username"] == sub_msg['parent_header']['username'] and self.km.session.session == sub_msg['parent_header']['session']:
                if sub_msg['msg_type'] == 'status' :
                     if sub_msg["content"]["execution_state"] == "busy" :
                         pass
@@ -177,12 +177,13 @@ class Frontend(object):
                   if sub_msg["content"]["name"] == "stdout":
                     print >> sys.stdout,sub_msg["content"]["data"]
                     sys.stdout.flush()
-               if sub_msg["content"]["name"] == "stderr" :
+                  if sub_msg["content"]["name"] == "stderr" :
                     print >> sys.stderr,sub_msg["content"]["data"]
                     sys.stderr.flush()
                 
                if sub_msg['msg_type'] == 'pyout' :
                     print >> sys.stdout,"Out[%i]:"%sub_msg["content"]["execution_count"], sub_msg["content"]["data"]
+                    #print >> sys.stdout,"Out[%i]:"%self.msg_xreq["content"]["execution_count"], sub_msg["content"]["data"]
                     sys.stdout.flush()
 
        
