@@ -18,10 +18,10 @@ import os
 
 from IPython.utils.pickleutil import can, uncan
 
-from IPython.zmq.parallel import dependency as dmod
-from IPython.zmq.parallel.util import interactive
+from IPython.parallel import dependency as dmod
+from IPython.parallel.util import interactive
 
-from IPython.zmq.parallel.tests import add_engines
+from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase
 
 def setup():

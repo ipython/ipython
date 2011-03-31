@@ -15,13 +15,13 @@ from tempfile import mktemp
 
 import zmq
 
-from IPython.zmq.parallel import client as clientmod
-from IPython.zmq.parallel import error
-from IPython.zmq.parallel.asyncresult import AsyncResult, AsyncHubResult, AsyncMapResult
-from IPython.zmq.parallel.view import LoadBalancedView, DirectView
-from IPython.zmq.parallel.util import interactive
+from IPython import parallel  as pmod
+from IPython.parallel import error
+from IPython.parallel.asyncresult import AsyncResult, AsyncHubResult, AsyncMapResult
+from IPython.parallel.view import LoadBalancedView, DirectView
+from IPython.parallel.util import interactive
 
-from IPython.zmq.parallel.tests import add_engines
+from IPython.parallel.tests import add_engines
 
 from .clienttest import ClusterTestCase, segfault, wait, skip_without
 
@@ -129,7 +129,7 @@ class TestView(ClusterTestCase):
 
     def test_get_result(self):
         """test getting results from the Hub."""
-        c = clientmod.Client(profile='iptest')
+        c = pmod.Client(profile='iptest')
         # self.add_engines(1)
         t = c.ids[-1]
         v = c[t]
@@ -154,7 +154,7 @@ class TestView(ClusterTestCase):
                 """)
         v = self.client[-1]
         v.run(tmpfile, block=True)
-        self.assertEquals(v.apply_sync(lambda f: f(), clientmod.Reference('g')), 5)
+        self.assertEquals(v.apply_sync(lambda f: f(), pmod.Reference('g')), 5)
 
     def test_apply_tracked(self):
         """test tracking for apply"""
@@ -206,7 +206,7 @@ class TestView(ClusterTestCase):
     def test_remote_reference(self):
         v = self.client[-1]
         v['a'] = 123
-        ra = clientmod.Reference('a')
+        ra = pmod.Reference('a')
         b = v.apply_sync(lambda x: x, ra)
         self.assertEquals(b, 123)
 

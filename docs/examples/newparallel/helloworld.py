@@ -2,9 +2,9 @@
 A Distributed Hello world
 Ken Kinder <ken@kenkinder.com>
 """
-from IPython.zmq.parallel import client
+from IPython.parallel import Client
 
-rc = client.Client()
+rc = Client()
 
 def sleep_and_echo(t, msg):
     import time

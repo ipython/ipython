@@ -105,7 +105,7 @@ class View(HasTraits):
     history=List()
     outstanding = Set()
     results = Dict()
-    client = Instance('IPython.zmq.parallel.client.Client')
+    client = Instance('IPython.parallel.client.Client')
     
     _socket = Instance('zmq.Socket')
     _flag_names = List(['targets', 'block', 'track'])

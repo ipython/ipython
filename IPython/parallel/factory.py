@@ -22,8 +22,8 @@ from IPython.config.configurable import Configurable
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Str,Int,Instance, CUnicode, CStr
 
-import IPython.zmq.parallel.streamsession as ss
-from IPython.zmq.parallel.entry_point import select_random_ports
+import IPython.parallel.streamsession as ss
+from IPython.parallel.entry_point import select_random_ports
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -37,7 +37,7 @@ class LoggingFactory(Configurable):
     
 
 class SessionFactory(LoggingFactory):
-    """The Base factory from which every factory in IPython.zmq.parallel inherits"""
+    """The Base factory from which every factory in IPython.parallel inherits"""
     
     packer = Str('',config=True)
     unpacker = Str('',config=True)
@@ -48,7 +48,7 @@ class SessionFactory(LoggingFactory):
     exec_key = CUnicode('',config=True)
     # not configurable:
     context = Instance('zmq.Context', (), {})
-    session = Instance('IPython.zmq.parallel.streamsession.StreamSession')
+    session = Instance('IPython.parallel.streamsession.StreamSession')
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
     def _loop_default(self):
         return IOLoop.instance()

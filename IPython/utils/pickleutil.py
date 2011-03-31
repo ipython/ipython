@@ -93,7 +93,7 @@ class CannedFunction(CannedObject):
 
 def can(obj):
     # import here to prevent module-level circular imports
-    from IPython.zmq.parallel.dependency import dependent
+    from IPython.parallel.dependency import dependent
     if isinstance(obj, dependent):
         keys = ('f','df')
         return CannedObject(obj, keys=keys)

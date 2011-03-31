@@ -133,7 +133,8 @@ class SQLiteDB(BaseDB):
         sqlite3.register_converter('bufs', _convert_bufs)
         # connect to the db
         dbfile = os.path.join(self.location, self.filename)
-        self._db = sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES)
+        self._db = sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES, cached_statements=16)
+        # print dir(self._db)
         
         self._db.execute("""CREATE TABLE IF NOT EXISTS %s 
                 (msg_id text PRIMARY KEY,

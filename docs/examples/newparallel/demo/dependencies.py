@@ -1,6 +1,4 @@
-from IPython.zmq.parallel import error
-from IPython.zmq.parallel.dependency import Dependency
-from IPython.zmq.parallel.client import *
+from IPython.parallel import *
 
 client = Client()
 

@@ -28,7 +28,7 @@ import time
 from numpy import exp, zeros, newaxis, sqrt
 
 from IPython.external import argparse
-from IPython.zmq.parallel.client import Client, Reference
+from IPython.parallel.client import Client, Reference
 
 def setup_partitioner(comm, addrs, index, num_procs, gnum_cells, parts):
     """create a partitioner in the engine namespace"""

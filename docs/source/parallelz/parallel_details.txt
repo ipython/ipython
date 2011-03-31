@@ -43,7 +43,7 @@ The following will fail:
     ...
     RemoteError: RuntimeError(array is not writeable)
     Traceback (most recent call last):
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 329, in apply_request
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 329, in apply_request
         exec code in working, working
       File "<string>", line 1, in <module>
       File "<ipython-input-14-736187483856>", line 2, in setter
@@ -178,7 +178,10 @@ args : tuple/list
     The positional arguments passed to `f`
 kwargs : dict
     The keyword arguments passed to `f`
-block : bool (default: self.block)
+
+flags for all views:
+
+block : bool (default: view.block)
     Whether to wait for the result, or return immediately.
     False:
         returns AsyncResult
@@ -186,29 +189,23 @@ block : bool (default: self.block)
         returns actual result(s) of f(*args, **kwargs)
         if multiple targets:
             list of results, matching `targets`
-track : bool
+track : bool [default view.track]
     whether to track non-copying sends.
-    [default False]
 
-targets : int,list of ints, 'all', None
+targets : int,list of ints, 'all', None [default view.targets]
     Specify the destination of the job.
-    if None:
-        Submit via Task queue for load-balancing.
-    if 'all':
+    if 'all' or None:
         Run on all active engines
     if list:
         Run on each specified engine
     if int:
         Run on single engine
-    Not eht
 
-balanced : bool, default None
-    whether to load-balance.  This will default to True
-    if targets is unspecified, or False if targets is specified.
-    
-    If `balanced` and `targets` are both specified, the task will
-    be assigne to *one* of the targets by the scheduler.
-    
+Note that LoadBalancedView uses targets to restrict possible destinations.  LoadBalanced calls
+will always execute in just one location.
+
+flags only in LoadBalancedViews:
+
 after : Dependency or collection of msg_ids
     Only for load-balanced execution (targets=None)
     Specify a list of msg_ids as a time-based dependency.
@@ -243,24 +240,8 @@ does something very similar to ``execute(open(f).read())``.
 Views
 =====
 
-The principal extension of the :class:`~parallel.client.Client` is the
+The principal extension of the :class:`~parallel.Client` is the
 :class:`~parallel.view.View` class. The client
-
-Two of apply's keyword arguments are set at the construction of the View, and are immutable for
-a given View: `balanced` and `targets`. `balanced` determines whether the View will be a
-:class:`.LoadBalancedView` or a :class:`.DirectView`, and `targets` will be the View's `targets`
-attribute.  Attempts to change this will raise errors.
-
-Views are cached by targets/class, so requesting a view multiple times will always return the
-*same object*, not create a new one:
-
-.. sourcecode:: ipython
-
-    In [3]: v1 = rc.load_balanced_view([1,2,3])
-    In [4]: v2 = rc.load_balanced_view([1,2,3])
-
-    In [5]: v2 is v1
-    Out[5]: True
 
 
 DirectView
@@ -312,14 +293,12 @@ are always the same as:
     Out[3]: <DirectView [0,2]>
 
 Also note that the slice is evaluated at the time of construction of the DirectView, so the 
-targets will not change over time if engines are added/removed from the cluster.  Requesting
-two views with the same slice at different times will *not* necessarily return the same View
-if the number of engines has changed.
+targets will not change over time if engines are added/removed from the cluster.
 
 Execution via DirectView
 ************************
 
-The DirectView is the simplest way to work with one or more engines directly (hence the name).  
+The DirectView is the simplest way to work with one or more engines directly (hence the name).
 
 
 Data movement via DirectView
@@ -359,6 +338,15 @@ between engines, MPI should be used:
     In [60]: dview.gather('a')
     Out[60]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
+Push and pull
+-------------
+
+push
+
+pull
+
+
+
 
     
 LoadBalancedView
@@ -370,10 +358,6 @@ The :class:`.LoadBalancedView`
 Data Movement
 =============
 
-push
-
-pull
-
 Reference
 
 Results
@@ -383,7 +367,7 @@ AsyncResults are the primary class
 
 get_result
 
-results,metadata
+results, metadata
 
 Querying the Hub
 ================

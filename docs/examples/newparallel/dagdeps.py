@@ -8,7 +8,7 @@ Authors
 """
 import networkx as nx
 from random import randint, random
-from IPython.zmq.parallel import client as cmod
+from IPython import parallel
 
 def randomwait():
     import time
@@ -87,7 +87,7 @@ def main(nodes, edges):
     for node in G:
         jobs[node] = randomwait
     
-    client = cmod.Client()
+    client = parallel.Client()
     view = client.load_balanced_view()
     print "submitting %i tasks with %i dependencies"%(nodes,edges)
     results = submit_jobs(view, G, jobs)

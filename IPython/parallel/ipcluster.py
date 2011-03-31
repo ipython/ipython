@@ -56,7 +56,7 @@ def strip_args(flags, args=sys.argv[1:]):
 
 def launch_process(mod, args):
     """Launch a controller or engine in a subprocess."""
-    code = "from IPython.zmq.parallel.%s import launch_new_instance;launch_new_instance()"%mod
+    code = "from IPython.parallel.%s import launch_new_instance;launch_new_instance()"%mod
     arguments = [ sys.executable, '-c', code ] + args
     blackholew = file(os.devnull, 'w')
     blackholer = file(os.devnull, 'r')

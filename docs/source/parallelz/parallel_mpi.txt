@@ -123,11 +123,11 @@ using our :func:`psum` function:
 
 .. sourcecode:: ipython
 
-    In [1]: from IPython.zmq.parallel import client
+    In [1]: from IPython.parallel import Client
     
     In [2]: %load_ext parallel_magic
     
-    In [3]: c = client.Client(profile='mpi')
+    In [3]: c = Client(profile='mpi')
     
     In [4]: view = c[:]
     

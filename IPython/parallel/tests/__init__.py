@@ -15,7 +15,7 @@ import tempfile
 import time
 from subprocess import Popen, PIPE, STDOUT
 
-from IPython.zmq.parallel import client
+from IPython.parallel import client
 
 processes = []
 blackhole = tempfile.TemporaryFile()

@@ -27,14 +27,14 @@ our :ref:`introduction <ip1par>` to using IPython for parallel computing.
 Creating a ``Client`` instance
 ==============================
 
-The first step is to import the IPython :mod:`IPython.zmq.parallel.client`
+The first step is to import the IPython :mod:`IPython.parallel`
 module and then create a :class:`.Client` instance:
 
 .. sourcecode:: ipython
 
-    In [1]: from IPython.zmq.parallel import client
+    In [1]: from IPython.parallel import Client
     
-    In [2]: rc = client.Client()
+    In [2]: rc = Client()
 
 This form assumes that the default connection information (stored in
 :file:`ipcontroller-client.json` found in :file:`IPYTHON_DIR/clusterz_default/security`) is
@@ -44,9 +44,9 @@ file to the client machine, or enter its contents as arguments to the Client con
 .. sourcecode:: ipython
 
     # If you have copied the json connector file from the controller:
-    In [2]: rc = client.Client('/path/to/ipcontroller-client.json')
+    In [2]: rc = Client('/path/to/ipcontroller-client.json')
     # or to connect with a specific profile you have set up:
-    In [3]: rc = client.Client(profile='mpi')
+    In [3]: rc = Client(profile='mpi')
     
 
 To make sure there are engines connected to the controller, users can get a list
@@ -286,7 +286,7 @@ local Python/IPython session:
     /home/you/<ipython-input-45-7cd858bbb8e0> in <module>()
     ----> 1 ar.get(1)
 
-    /path/to/site-packages/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+    /path/to/site-packages/IPython/parallel/asyncresult.pyc in get(self, timeout)
          62                 raise self._exception
          63         else:
     ---> 64             raise error.TimeoutError("Result not ready.")
@@ -320,17 +320,17 @@ and blocks until all of the associated results are ready:
     # Then, their results are ready using get() or the `.r` attribute
     In [75]: pr_list[0].get()
     Out[75]: [2.9982571601867676, 2.9982588291168213, 2.9987530708312988, 2.9990990161895752]
-    
 
 
-The ``block`` attribute
------------------------
 
-Many View methods(excluding :meth:`apply`) accept
-``block`` as a keyword argument. As we have seen above, these
-keyword arguments control the blocking mode. The :class:`View` class also has 
-a :attr:`block` attribute that controls the default behavior when the keyword
-argument is not provided. Thus the following logic is used for :attr:`block`:
+The ``block`` and ``targets`` keyword arguments and attributes
+--------------------------------------------------------------
+
+Most DirectView methods (excluding :meth:`apply` and :meth:`map`) accept ``block`` and
+``targets`` as keyword arguments. As we have seen above, these keyword arguments control the
+blocking mode and which engines the command is applied to. The :class:`View` class also has
+:attr:`block` and :attr:`targets` attributes that control the default behavior when the keyword
+arguments are not provided. Thus the following logic is used for :attr:`block` and :attr:`targets`:
 
 * If no keyword argument is provided, the instance attributes are used.
 * Keyword argument, if provided override the instance attributes for
@@ -340,16 +340,19 @@ The following examples demonstrate how to use the instance attributes:
 
 .. sourcecode:: ipython
 
+    In [16]: dview.targets = [0,2]
+    
     In [17]: dview.block = False
 
     In [18]: ar = dview.apply(lambda : 10)
 
     In [19]: ar.get()
-    Out[19]: [10, 10, 10, 10]
+    Out[19]: [10, 10]
 
+    In [16]: dview.targets = v.client.ids # all engines (4)
+    
     In [21]: dview.block = True
 
-    # Note targets='all' means all engines
     In [22]: dview.apply(lambda : 42)
     Out[22]: [42, 42, 42, 42]
 
@@ -428,7 +431,7 @@ on the engines given by the :attr:`targets` attribute:
     Type %autopx to disable
 
     In [32]: max_evals = []
-    <IPython.zmq.parallel.asyncresult.AsyncResult object at 0x17b8a70>
+    <IPython.parallel.asyncresult.AsyncResult object at 0x17b8a70>
 
     In [33]: for i in range(100):
        ....:     a = numpy.random.rand(10,10)
@@ -437,7 +440,7 @@ on the engines given by the :attr:`targets` attribute:
        ....:     max_evals.append(evals[0].real)
        ....:
        ....:
-    <IPython.zmq.parallel.asyncresult.AsyncResult object at 0x17af8f0>
+    <IPython.parallel.asyncresult.AsyncResult object at 0x17af8f0>
 
     In [34]: %autopx
     Auto Parallel Disabled
@@ -576,7 +579,7 @@ more other types of exceptions. Here is how it works:
     /home/you/<ipython-input-10-15c2c22dec39> in <module>()
     ----> 1 dview.execute('1/0', block=True)
 
-    /path/to/site-packages/IPython/zmq/parallel/view.py in execute(self, code, block)
+    /path/to/site-packages/IPython/parallel/view.py in execute(self, code, block)
         460                 default: self.block
         461         """
     --> 462         return self.apply_with_flags(util._execute, args=(code,), block=block)
@@ -585,7 +588,7 @@ more other types of exceptions. Here is how it works:
 
     /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-    /path/to/site-packages/IPython/zmq/parallel/view.py in sync_results(f, self, *args, **kwargs)
+    /path/to/site-packages/IPython/parallel/view.py in sync_results(f, self, *args, **kwargs)
          46 def sync_results(f, self, *args, **kwargs):
          47     """sync relevant results from self.client to our results attribute."""
     ---> 48     ret = f(self, *args, **kwargs)
@@ -594,21 +597,21 @@ more other types of exceptions. Here is how it works:
 
     /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-    /path/to/site-packages/IPython/zmq/parallel/view.py in save_ids(f, self, *args, **kwargs)
+    /path/to/site-packages/IPython/parallel/view.py in save_ids(f, self, *args, **kwargs)
          35     n_previous = len(self.client.history)
          36     try:
     ---> 37         ret = f(self, *args, **kwargs)
          38     finally:
          39         nmsgs = len(self.client.history) - n_previous
 
-    /path/to/site-packages/IPython/zmq/parallel/view.py in apply_with_flags(self, f, args, kwargs, block, track)
+    /path/to/site-packages/IPython/parallel/view.py in apply_with_flags(self, f, args, kwargs, block, track)
         398         if block:
         399             try:
     --> 400                 return ar.get()
         401             except KeyboardInterrupt:
         402                 pass
 
-    /path/to/site-packages/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+    /path/to/site-packages/IPython/parallel/asyncresult.pyc in get(self, timeout)
          87                 return self._result
          88             else:
     ---> 89                 raise self._exception
@@ -660,7 +663,7 @@ instance:
     /home/you/<ipython-input-10-15c2c22dec39> in <module>()
     ----> 1 dview.execute('1/0', block=True)
 
-    /path/to/site-packages/IPython/zmq/parallel/view.py in execute(self, code, block)
+    /path/to/site-packages/IPython/parallel/view.py in execute(self, code, block)
         460                 default: self.block
         461         """
     --> 462         return self.apply_with_flags(util._execute, args=(code,), block=block)
@@ -669,7 +672,7 @@ instance:
 
     /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-    /path/to/site-packages/IPython/zmq/parallel/view.py in sync_results(f, self, *args, **kwargs)
+    /path/to/site-packages/IPython/parallel/view.py in sync_results(f, self, *args, **kwargs)
          46 def sync_results(f, self, *args, **kwargs):
          47     """sync relevant results from self.client to our results attribute."""
     ---> 48     ret = f(self, *args, **kwargs)
@@ -678,21 +681,21 @@ instance:
 
     /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-    /path/to/site-packages/IPython/zmq/parallel/view.py in save_ids(f, self, *args, **kwargs)
+    /path/to/site-packages/IPython/parallel/view.py in save_ids(f, self, *args, **kwargs)
          35     n_previous = len(self.client.history)
          36     try:
     ---> 37         ret = f(self, *args, **kwargs)
          38     finally:
          39         nmsgs = len(self.client.history) - n_previous
 
-    /path/to/site-packages/IPython/zmq/parallel/view.py in apply_with_flags(self, f, args, kwargs, block, track)
+    /path/to/site-packages/IPython/parallel/view.py in apply_with_flags(self, f, args, kwargs, block, track)
         398         if block:
         399             try:
     --> 400                 return ar.get()
         401             except KeyboardInterrupt:
         402                 pass
 
-    /path/to/site-packages/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+    /path/to/site-packages/IPython/parallel/asyncresult.pyc in get(self, timeout)
          87                 return self._result
          88             else:
     ---> 89                 raise self._exception
@@ -706,7 +709,7 @@ instance:
     [3:apply]: ZeroDivisionError: integer division or modulo by zero
     
     In [82]: %debug
-    > /Users/minrk/dev/ip/mine/IPython/zmq/parallel/asyncresult.py(80)get()
+    > /path/to/site-packages/IPython/parallel/asyncresult.py(80)get()
          79             else:
     ---> 80                 raise self._exception
          81         else:
@@ -723,10 +726,10 @@ instance:
     ipdb> e.print_tracebacks()
     [0:apply]: 
     Traceback (most recent call last):
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 332, in apply_request
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 332, in apply_request
         exec code in working, working
       File "<string>", line 1, in <module>
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.py", line 69, in _execute
+      File "/path/to/site-packages/IPython/parallel/client.py", line 69, in _execute
         exec code in globals()
       File "<string>", line 1, in <module>
     ZeroDivisionError: integer division or modulo by zero
@@ -734,10 +737,10 @@ instance:
 
     [1:apply]: 
     Traceback (most recent call last):
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 332, in apply_request
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 332, in apply_request
         exec code in working, working
       File "<string>", line 1, in <module>
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.py", line 69, in _execute
+      File "/path/to/site-packages/IPython/parallel/client.py", line 69, in _execute
         exec code in globals()
       File "<string>", line 1, in <module>
     ZeroDivisionError: integer division or modulo by zero
@@ -745,10 +748,10 @@ instance:
 
     [2:apply]: 
     Traceback (most recent call last):
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 332, in apply_request
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 332, in apply_request
         exec code in working, working
       File "<string>", line 1, in <module>
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.py", line 69, in _execute
+      File "/path/to/site-packages/IPython/parallel/client.py", line 69, in _execute
         exec code in globals()
       File "<string>", line 1, in <module>
     ZeroDivisionError: integer division or modulo by zero
@@ -756,10 +759,10 @@ instance:
 
     [3:apply]: 
     Traceback (most recent call last):
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/streamkernel.py", line 332, in apply_request
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 332, in apply_request
         exec code in working, working
       File "<string>", line 1, in <module>
-      File "/Users/minrk/dev/ip/mine/IPython/zmq/parallel/client.py", line 69, in _execute
+      File "/path/to/site-packages/IPython/parallel/client.py", line 69, in _execute
         exec code in globals()
       File "<string>", line 1, in <module>
     ZeroDivisionError: integer division or modulo by zero
@@ -784,7 +787,7 @@ All of this same error handling magic even works in non-blocking mode:
     /Users/minrk/<ipython-input-3-8531eb3d26fb> in <module>()
     ----> 1 ar.get()
 
-    /Users/minrk/dev/ip/mine/IPython/zmq/parallel/asyncresult.pyc in get(self, timeout)
+    /path/to/site-packages/IPython/parallel/asyncresult.pyc in get(self, timeout)
          78                 return self._result
          79             else:
     ---> 80                 raise self._exception

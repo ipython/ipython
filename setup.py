@@ -215,10 +215,10 @@ if 'setuptools' in sys.modules:
             'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
             'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
             'pycolor = IPython.utils.PyColorize:main',
-            'ipcontrollerz = IPython.zmq.parallel.ipcontrollerapp:launch_new_instance',
-            'ipenginez = IPython.zmq.parallel.ipengineapp:launch_new_instance',
-            'iploggerz = IPython.zmq.parallel.iploggerapp:launch_new_instance',
-            'ipclusterz = IPython.zmq.parallel.ipclusterapp:launch_new_instance',
+            'ipcontrollerz = IPython.parallel.ipcontrollerapp:launch_new_instance',
+            'ipenginez = IPython.parallel.ipengineapp:launch_new_instance',
+            'iploggerz = IPython.parallel.iploggerapp:launch_new_instance',
+            'ipclusterz = IPython.parallel.ipclusterapp:launch_new_instance',
             'iptest = IPython.testing.iptest:main',
             'irunner = IPython.lib.irunner:main'
         ]

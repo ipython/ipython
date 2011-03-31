@@ -57,7 +57,7 @@ The IPython architecture consists of four components:
 * The IPython schedulers.
 * The controller client.
 
-These components live in the :mod:`IPython.zmq.parallel` package and are
+These components live in the :mod:`IPython.parallel` package and are
 installed with IPython.  They do, however, have additional dependencies
 that must be installed.  For more information, see our
 :ref:`installation documentation <install_index>`.
@@ -127,7 +127,7 @@ a fully asynchronous interface to a set of engines.
 IPython client and views
 ------------------------
 
-There is one primary object, the :class:`~.parallel.client.Client`, for connecting to a cluster.
+There is one primary object, the :class:`~.parallel.Client`, for connecting to a cluster.
 For each execution model, there is a corresponding :class:`~.parallel.view.View`. These views
 allow users to interact with a set of engines through the interface. Here are the two default
 views:
@@ -206,9 +206,9 @@ everything is working correctly, try the following commands:
 
 .. sourcecode:: ipython
 
-	In [1]: from IPython.zmq.parallel import client
+	In [1]: from IPython.parallel import Client
 	
-	In [2]: c = client.Client()
+	In [2]: c = Client()
 	
 	In [4]: c.ids
 	Out[4]: set([0, 1, 2, 3])
@@ -224,7 +224,7 @@ name, create the client like this:
 
 .. sourcecode:: ipython
 
-    In [2]: c = client.Client('/path/to/my/ipcontroller-client.json')
+    In [2]: c = Client('/path/to/my/ipcontroller-client.json')
 
 Remember, a client needs to be able to see the Hub's ports to connect. So if they are on a
 different machine, you may need to use an ssh server to tunnel access to that machine,
@@ -232,7 +232,7 @@ then you would connect to it with:
 
 .. sourcecode:: ipython
 
-    In [2]: c = client.Client(sshserver='myhub.example.com')
+    In [2]: c = Client(sshserver='myhub.example.com')
 
 Where 'myhub.example.com' is the url or IP address of the machine on
 which the Hub process is running (or another machine that has direct access to the Hub's ports).

@@ -13,6 +13,8 @@
 #-----------------------------------------------------------------------------
 
 
-from IPython.zmq.parallel.ipclusterapp import launch_new_instance
+from IPython.parallel.iploggerapp import launch_new_instance
 
 launch_new_instance()
+
+

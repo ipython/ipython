@@ -12,9 +12,9 @@
 #-------------------------------------------------------------------------------
 
 
-from IPython.zmq.parallel.error import TimeoutError
+from IPython.parallel.error import TimeoutError
 
-from IPython.zmq.parallel.tests import add_engines
+from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase
 
 def setup():

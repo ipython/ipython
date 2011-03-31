@@ -16,10 +16,10 @@ from tempfile import mktemp
 
 import zmq
 
-from IPython.zmq.parallel import client as clientmod
-from IPython.zmq.parallel import error
-from IPython.zmq.parallel.asyncresult import AsyncResult, AsyncHubResult
-from IPython.zmq.parallel.view import LoadBalancedView, DirectView
+from IPython.parallel import client as clientmod
+from IPython.parallel import error
+from IPython.parallel.asyncresult import AsyncResult, AsyncHubResult
+from IPython.parallel.view import LoadBalancedView, DirectView
 
 from clienttest import ClusterTestCase, segfault, wait, add_engines
 
@@ -60,6 +60,15 @@ class TestClient(ClusterTestCase):
         self.assert_(isinstance(v, DirectView))
         self.assertEquals(v.targets, targets[-1])
         self.assertRaises(TypeError, lambda : self.client[None])
+    
+    def test_lbview_targets(self):
+        """test load_balanced_view targets"""
+        v = self.client.load_balanced_view()
+        self.assertEquals(v.targets, None)
+        v = self.client.load_balanced_view(-1)
+        self.assertEquals(v.targets, [self.client.ids[-1]])
+        v = self.client.load_balanced_view('all')
+        self.assertEquals(v.targets, self.client.ids)
     
     def test_targets(self):
         """test various valid targets arguments"""

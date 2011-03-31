@@ -1,3 +1,3 @@
-from IPython.zmq.parallel.client import Client
+from IPython.parallel.client import Client
 
 client = Client()

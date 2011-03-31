@@ -11,7 +11,7 @@ and some engines using something like::
     ipclusterz start -n 4
 """
 import sys
-from IPython.zmq.parallel import client, error
+from IPython.parallel import Client, error
 import time
 import BeautifulSoup # this isn't necessary, but it helps throw the dependency error earlier
 
@@ -39,7 +39,7 @@ class DistributedSpider(object):
     pollingDelay = 0.5
     
     def __init__(self, site):
-        self.client = client.Client()
+        self.client = Client()
         self.view = self.client.load_balanced_view()
         self.mux = self.client[:]
         

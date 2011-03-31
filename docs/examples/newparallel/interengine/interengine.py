@@ -1,9 +1,9 @@
 import sys
 
-from IPython.zmq.parallel import client
+from IPython.parallel import Client
 
 
-rc = client.Client()
+rc = Client()
 rc.block=True
 view = rc[:]
 view.run('communicator.py')

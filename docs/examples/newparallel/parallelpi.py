@@ -16,7 +16,7 @@ and the files used will be downloaded if they are not in the working directory
 of the IPython engines.
 """ 
 
-from IPython.zmq.parallel import client
+from IPython.parallel import Client
 from matplotlib import pyplot as plt
 import numpy as np
 from pidigits import *
@@ -27,7 +27,7 @@ filestring = 'pi200m.ascii.%(i)02dof20'
 files = [filestring % {'i':i} for i in range(1,16)]
 
 # Connect to the IPython cluster
-c = client.Client()
+c = Client()
 c[:].run('pidigits.py')
 
 # the number of engines

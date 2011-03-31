@@ -64,15 +64,15 @@ except ImportError:
 
 
 ipclusterz_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.zmq.parallel.ipclusterapp'
+    'IPython.parallel.ipclusterapp'
 ))
 
 ipenginez_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.zmq.parallel.ipengineapp'
+    'IPython.parallel.ipengineapp'
 ))
 
 ipcontrollerz_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.zmq.parallel.ipcontrollerapp'
+    'IPython.parallel.ipcontrollerapp'
 ))
 
 #-----------------------------------------------------------------------------

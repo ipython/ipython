@@ -32,7 +32,7 @@ def cleanup(controller, engines):
 if __name__ == '__main__':
 
     # Start controller in separate process
-    cont = Popen(['python', '-m', 'IPython.zmq.parallel.ipcontrollerapp'])
+    cont = Popen(['python', '-m', 'IPython.parallel.ipcontrollerapp'])
     print('Started controller')
 
     # "Submit jobs"

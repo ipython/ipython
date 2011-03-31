@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# encoding: utf-8
-
+"""The IPython ZMQ-based parallel computing interface."""
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2009  The IPython Development Team
+#  Copyright (C) 2011 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -12,7 +10,16 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import zmq
 
-from IPython.zmq.parallel.ipcontrollerapp import launch_new_instance
+if zmq.__version__ < '2.1.3':
+    raise ImportError("IPython.parallel requires pyzmq/0MQ >= 2.1.3, you appear to have %s"%zmq.__version__)
 
-launch_new_instance()
+from .asyncresult import *
+from .client import Client
+from .dependency import *
+from .remotefunction import *
+from .view import *
+from IPython.utils.pickleutil import Reference
+
+

@@ -18,7 +18,7 @@ except:
 import zmq
 from zmq.core.poll import _poll as poll
 from zmq.devices import ThreadDevice
-from IPython.zmq.parallel import streamsession as ss
+from IPython.parallel import streamsession as ss
 
 
 class QueueStream(object):

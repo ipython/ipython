@@ -1,6 +1,6 @@
 import time
 import numpy as np
-from IPython.zmq.parallel import client as clientmod
+from IPython import parallel
 
 nlist = map(int, np.logspace(2,9,16,base=2))
 nlist2 = map(int, np.logspace(2,8,15,base=2))
@@ -14,7 +14,7 @@ def echo(s=''):
     return s
 
 def time_throughput(nmessages, t=0, f=wait):
-    client = clientmod.Client()
+    client = parallel.Client()
     view = client[None]
     # do one ping before starting timing
     if f is echo:

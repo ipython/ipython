@@ -7,7 +7,7 @@
 
 import sys
 import time
-from IPython.zmq.parallel import client
+from IPython.parallel import Client
 import numpy as np
 from mcpricer import price_options
 from matplotlib import pyplot as plt
@@ -45,7 +45,7 @@ sigma_vals = np.linspace(min_sigma, max_sigma, n_sigmas)
 
 # The Client is used to setup the calculation and works with all
 # engines.
-c = client.Client(profile=cluster_profile)
+c = Client(profile=cluster_profile)
 
 # A LoadBalancedView is an interface to the engines that provides dynamic load 
 # balancing at the expense of not knowing which engine will execute the code.

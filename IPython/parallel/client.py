@@ -24,7 +24,6 @@ import zmq
 # from zmq.eventloop import ioloop, zmqstream
 
 from IPython.utils.path import get_ipython_dir
-from IPython.utils.pickleutil import Reference
 from IPython.utils.traitlets import (HasTraits, Int, Instance, CUnicode, 
                                     Dict, List, Bool, Str, Set)
 from IPython.external.decorator import decorator
@@ -33,10 +32,8 @@ from IPython.external.ssh import tunnel
 from . import error
 from . import util
 from . import streamsession as ss
-from .asyncresult import AsyncResult, AsyncMapResult, AsyncHubResult
+from .asyncresult import AsyncResult, AsyncHubResult
 from .clusterdir import ClusterDir, ClusterDirError
-from .dependency import Dependency, depend, require, dependent
-from .remotefunction import remote, parallel, ParallelFunction, RemoteFunction
 from .view import DirectView, LoadBalancedView
 
 #--------------------------------------------------------------------------
@@ -985,7 +982,7 @@ class Client(HasTraits):
         targets: list,slice,int,etc. [default: use all engines]
             The subset of engines across which to load-balance
         """
-        if targets is None:
+        if targets is not None:
             targets = self._build_targets(targets)[1]
         return LoadBalancedView(client=self, socket=self._task_socket, targets=targets)
     
@@ -1278,16 +1275,4 @@ class Client(HasTraits):
             raise self._unwrap_exception(content)
 
 
-__all__ = [ 'Client', 
-            'depend', 
-            'require', 
-            'remote',
-            'parallel',
-            'RemoteFunction',
-            'ParallelFunction',
-            'DirectView',
-            'LoadBalancedView',
-            'AsyncResult',
-            'AsyncMapResult',
-            'Reference'
-            ]
+__all__ = [ 'Client' ]

@@ -32,15 +32,15 @@ our :ref:`introduction <ip1par>` to using IPython for parallel computing.
 Creating a ``Client`` instance
 ==============================
 
-The first step is to import the IPython :mod:`IPython.zmq.parallel.client`
+The first step is to import the IPython :mod:`IPython.parallel.client`
 module and then create a :class:`.Client` instance, and we will also be using
 a :class:`LoadBalancedView`, here called `lview`:
 
 .. sourcecode:: ipython
 
-    In [1]: from IPython.zmq.parallel import client
+    In [1]: from IPython.parallel import Client
 
-    In [2]: rc = client.Client()
+    In [2]: rc = Client()
     
 
 This form assumes that the controller was started on localhost with default
@@ -50,9 +50,9 @@ argument to the constructor:
 .. sourcecode:: ipython
 
     # for a visible LAN controller listening on an external port:
-    In [2]: rc = client.Client('tcp://192.168.1.16:10101')
+    In [2]: rc = Client('tcp://192.168.1.16:10101')
     # or to connect with a specific profile you have set up:
-    In [3]: rc = client.Client(profile='mpi')
+    In [3]: rc = Client(profile='mpi')
 
 For load-balanced execution, we will make use of a :class:`LoadBalancedView` object, which can
 be constructed via the client's :meth:`load_balanced_view` method:
@@ -132,7 +132,7 @@ Functional Dependencies
 
 Functional dependencies are used to determine whether a given engine is capable of running
 a particular task.  This is implemented via a special :class:`Exception` class, 
-:class:`UnmetDependency`, found in `IPython.zmq.parallel.error`.  Its use is very simple: 
+:class:`UnmetDependency`, found in `IPython.parallel.error`.  Its use is very simple: 
 if a task fails with an UnmetDependency exception, then the scheduler, instead of relaying
 the error up to the client like any other error, catches the error, and submits the task
 to a different engine.  This will repeat indefinitely, and a task will never be submitted
@@ -145,7 +145,7 @@ There are two decorators and a class used for functional dependencies:
 
 .. sourcecode:: ipython
 
-    In [9]: from IPython.zmq.parallel.dependency import depend, require, dependent
+    In [9]: from IPython.parallel.dependency import depend, require, dependent
 
 @require
 ********
@@ -399,10 +399,10 @@ The :class:`LoadBalancedView` has many more powerful features that allow quite a
 of flexibility in how tasks are defined and run. The next places to look are
 in the following classes:
 
-* :class:`IPython.zmq.parallel.view.LoadBalancedView`
-* :class:`IPython.zmq.parallel.client.AsyncResult`
-* :meth:`IPython.zmq.parallel.view.LoadBalancedView.apply`
-* :mod:`IPython.zmq.parallel.dependency`
+* :class:`IPython.parallel.view.LoadBalancedView`
+* :class:`IPython.parallel.asyncresult.AsyncResult`
+* :meth:`IPython.parallel.view.LoadBalancedView.apply`
+* :mod:`IPython.parallel.dependency`
 
 The following is an overview of how to use these classes together:
 

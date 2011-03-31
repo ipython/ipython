@@ -71,7 +71,7 @@ class Kernel(SessionFactory):
     control_stream = Instance(zmqstream.ZMQStream)
     task_stream = Instance(zmqstream.ZMQStream)
     iopub_stream = Instance(zmqstream.ZMQStream)
-    client = Instance('IPython.zmq.parallel.client.Client')
+    client = Instance('IPython.parallel.client.Client')
     
     # internals
     shell_streams = List()

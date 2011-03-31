@@ -10,8 +10,8 @@ import sys
 
 argv = sys.argv
 
-from IPython.zmq.parallel.engine import EngineFactory
-from IPython.zmq.parallel.ipengineapp import launch_new_instance
+from IPython.parallel.engine import EngineFactory
+from IPython.parallel.ipengineapp import launch_new_instance
 
 ns = {}
 

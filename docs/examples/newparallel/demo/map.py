@@ -1,4 +1,4 @@
-from IPython.zmq.parallel.client import *
+from IPython.parallel import *
 
 client = Client()
 view = client[:]

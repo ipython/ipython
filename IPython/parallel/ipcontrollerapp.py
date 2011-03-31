@@ -30,13 +30,13 @@ from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
 from IPython.config.loader import Config
-from IPython.zmq.parallel import factory
-from IPython.zmq.parallel.controller import ControllerFactory
-from IPython.zmq.parallel.clusterdir import (
+from IPython.parallel import factory
+from IPython.parallel.controller import ControllerFactory
+from IPython.parallel.clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )
-from IPython.zmq.parallel.util import disambiguate_ip_address, split_url
+from IPython.parallel.util import disambiguate_ip_address, split_url
 # from IPython.kernel.fcutil import FCServiceFactory, FURLError
 from IPython.utils.traitlets import Instance, Unicode
 
@@ -117,11 +117,11 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
         ## Hub Config:
         paa('--mongodb', 
             dest='HubFactory.db_class', action='store_const',
-            const='IPython.zmq.parallel.mongodb.MongoDB', 
+            const='IPython.parallel.mongodb.MongoDB', 
             help='Use MongoDB for task storage [default: in-memory]')
         paa('--sqlite', 
             dest='HubFactory.db_class', action='store_const',
-            const='IPython.zmq.parallel.sqlitedb.SQLiteDB', 
+            const='IPython.parallel.sqlitedb.SQLiteDB', 
             help='Use SQLite3 for DB task storage [default: in-memory]')
         paa('--hb',
             type=int, dest='HubFactory.hb', nargs=2,

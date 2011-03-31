@@ -136,11 +136,11 @@ class HubFactory(RegistrationFactory):
     
     monitor_url = CStr('')
     
-    db_class = CStr('IPython.zmq.parallel.dictdb.DictDB', config=True)
+    db_class = CStr('IPython.parallel.dictdb.DictDB', config=True)
     
     # not configurable
-    db = Instance('IPython.zmq.parallel.dictdb.BaseDB')
-    heartmonitor = Instance('IPython.zmq.parallel.heartmonitor.HeartMonitor')
+    db = Instance('IPython.parallel.dictdb.BaseDB')
+    heartmonitor = Instance('IPython.parallel.heartmonitor.HeartMonitor')
     subconstructors = List()
     _constructed = Bool(False)
     

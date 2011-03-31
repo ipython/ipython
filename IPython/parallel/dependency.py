@@ -67,7 +67,7 @@ class dependent(object):
 @interactive
 def _require(*names):
     """Helper for @require decorator."""
-    from IPython.zmq.parallel.error import UnmetDependency
+    from IPython.parallel.error import UnmetDependency
     user_ns = globals()
     for name in names:
         if name in user_ns:

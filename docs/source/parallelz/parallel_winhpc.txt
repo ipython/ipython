@@ -236,9 +236,9 @@ will need to edit the following attributes in the file
     # Set these at the top of the file to tell ipclusterz to use the
     # Windows HPC job scheduler.
     c.Global.controller_launcher = \
-        'IPython.zmq.parallel.launcher.WindowsHPCControllerLauncher'
+        'IPython.parallel.launcher.WindowsHPCControllerLauncher'
     c.Global.engine_launcher = \
-        'IPython.zmq.parallel.launcher.WindowsHPCEngineSetLauncher'
+        'IPython.parallel.launcher.WindowsHPCEngineSetLauncher'
 
     # Set these to the host name of the scheduler (head node) of your cluster.
     c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'
@@ -301,7 +301,7 @@ apply it to each element of an array of integers in parallel using the
 
 .. sourcecode:: ipython
 
-    In [1]: from IPython.zmq.parallel.client import *
+    In [1]: from IPython.parallel import *
 
     In [2]: c = MultiEngineClient(profile='mycluster')
 

@@ -13,7 +13,7 @@
 #-----------------------------------------------------------------------------
 
 
-from IPython.zmq.parallel.iploggerapp import launch_new_instance
+from IPython.parallel.ipengineapp import launch_new_instance
 
 launch_new_instance()
 
