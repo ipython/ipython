@@ -185,35 +185,3 @@ def test_win32():
 def test_osx():
     nt.assert_not_equals(sys.platform,'darwin',"This test can't run under osx")
 
-
-# Verify that the same decorators work for methods.
-# Note: this code is identical to that in test_decorators_trial, but that one
-# uses twisted's unittest, not the one from the stdlib, which we are using
-# here. While somewhat redundant, we want to check both with the stdlib and
-# with twisted, so the duplication is OK.
-class TestDecoratorsTrial(unittest.TestCase):
-    
-    @dec.skip()
-    def test_deliberately_broken(self):
-        """A deliberately broken test - we want to skip this one."""
-        1/0
-
-    @dec.skip('Testing the skip decorator')
-    def test_deliberately_broken2(self):
-        """Another deliberately broken test - we want to skip this one."""
-        1/0
-
-    @dec.skip_linux
-    def test_linux(self):
-        self.assertNotEquals(sys.platform, 'linux2',
-                             "This test can't run under linux")
-
-    @dec.skip_win32
-    def test_win32(self):
-        self.assertNotEquals(sys.platform, 'win32',
-                             "This test can't run under windows")
-
-    @dec.skip_osx
-    def test_osx(self):
-        self.assertNotEquals(sys.platform, 'darwin',
-                             "This test can't run under osx")
