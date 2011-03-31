@@ -286,7 +286,7 @@ def module_not_available(module):
     except ImportError:
         mod_not_avail = True
 
-    yield mod_not_avail
+    return mod_not_avail
 
 #-----------------------------------------------------------------------------
 # Decorators for public use
