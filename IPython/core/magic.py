@@ -2072,6 +2072,26 @@ Currently the magic system has the following functions:\n"""
             f.write(cmds.encode("utf-8"))
         print 'The following commands were written to file `%s`:' % fname
         print cmds
+    
+    def magic_pastebin(self, parameter_s = ''):
+        """Upload code to the 'Lodge it' paste bin, returning the URL."""
+        pbserver = ServerProxy('http://paste.pocoo.org/xmlrpc/')
+        code = self.extract_input_lines(parameter_s)
+        if not code:
+            try:
+                codeobj = eval(parameter_s, self.shell.user_ns)
+            except Exception:
+                codeobj = None
+            if isinstance(codeobj, str):
+                code = codeobj
+            elif isinstance(codeobj, Macro):
+                code = codeobj.value
+            else:
+                print parameter_s, ("was not recognised as a history range, nor"
+                                    " as a string or macro.")
+                return
+        id = pbserver.pastes.newPaste("python", code)
+        return "http://paste.pocoo.org/show/" + id
 
     def _edit_macro(self,mname,macro):
         """open an editor with the macro data in a file"""
