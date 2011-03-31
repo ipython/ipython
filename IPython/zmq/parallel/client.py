@@ -245,8 +245,6 @@ class Client(HasTraits):
     _mux_socket=Instance('zmq.Socket')
     _task_socket=Instance('zmq.Socket')
     _task_scheme=Str()
-    _balanced_views=Dict()
-    _direct_views=Dict()
     _closed = False
     _ignored_control_replies=Int(0)
     _ignored_hub_replies=Int(0)
@@ -389,7 +387,20 @@ class Client(HasTraits):
             else:
                 raise TypeError("%r not valid str target, must be 'all'"%(targets))
         elif isinstance(targets, int):
+            if targets < 0:
+                targets = self.ids[targets]
+            if targets not in self.ids:
+                raise IndexError("No such engine: %i"%targets)
             targets = [targets]
+        
+        if isinstance(targets, slice):
+            indices = range(len(self._ids))[targets]
+            ids = self.ids
+            targets = [ ids[i] for i in indices ]
+        
+        if not isinstance(targets, (tuple, list, xrange)):
+            raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
+            
         return [self._engines[t] for t in targets], list(targets)
     
     def _connect(self, sshserver, ssh_kwargs, timeout):
@@ -688,7 +699,7 @@ class Client(HasTraits):
         if not isinstance(key, (int, slice, tuple, list, xrange)):
             raise TypeError("key by int/slice/iterable of ints only, not %s"%(type(key)))
         else:
-            return self._get_view(key, balanced=False)
+            return self.direct_view(key)
     
     #--------------------------------------------------------------------------
     # Begin public methods
@@ -962,31 +973,6 @@ class Client(HasTraits):
     # construct a View object
     #--------------------------------------------------------------------------
     
-    def _cache_view(self, targets, balanced):
-        """save views, so subsequent requests don't create new objects."""
-        if balanced:
-            # validate whether we can run
-            if not self._task_socket:
-                msg = "Task farming is disabled"
-                if self._task_scheme == 'pure':
-                    msg += " because the pure ZMQ scheduler cannot handle"
-                    msg += " disappearing engines."
-                raise RuntimeError(msg)
-            socket = self._task_socket
-            view_class = LoadBalancedView
-            view_cache = self._balanced_views
-        else:
-            socket = self._mux_socket
-            view_class = DirectView
-            view_cache = self._direct_views
-        
-        # use str, since often targets will be a list
-        key = str(targets)
-        if key not in view_cache:
-            view_cache[key] = view_class(client=self, socket=socket, targets=targets)
-        
-        return view_cache[key]
-    
     def load_balanced_view(self, targets=None):
         """construct a DirectView object.
         
@@ -999,7 +985,9 @@ class Client(HasTraits):
         targets: list,slice,int,etc. [default: use all engines]
             The subset of engines across which to load-balance
         """
-        return self._get_view(targets, balanced=True)
+        if targets is None:
+            targets = self._build_targets(targets)[1]
+        return LoadBalancedView(client=self, socket=self._task_socket, targets=targets)
     
     def direct_view(self, targets='all'):
         """construct a DirectView object.
@@ -1013,49 +1001,11 @@ class Client(HasTraits):
         targets: list,slice,int,etc. [default: use all engines]
             The engines to use for the View
         """
-        return self._get_view(targets, balanced=False)
-    
-    def _get_view(self, targets, balanced):
-        """Method for constructing View objects.
-        
-        If no arguments are specified, create a LoadBalancedView
-        using all engines.  If only `targets` specified, it will
-        be a DirectView.  This method is the underlying implementation
-        of ``client.__getitem__``.
-        
-        Parameters
-        ----------
-        
-        targets: list,slice,int,etc. [default: use all engines]
-            The engines to use for the View
-        balanced : bool [default: False if targets specified, True else]
-            whether to build a LoadBalancedView or a DirectView
-        
-        """
-        
-        if targets in (None,'all'):
-            if balanced:
-                return self._cache_view(None,True)
-            else:
-                targets = slice(None)
-        
-        if isinstance(targets, int):
-            if targets < 0:
-                targets = self.ids[targets]
-            if targets not in self.ids:
-                raise IndexError("No such engine: %i"%targets)
-            return self._cache_view(targets, balanced)
-        
-        if isinstance(targets, slice):
-            indices = range(len(self.ids))[targets]
-            ids = sorted(self._ids)
-            targets = [ ids[i] for i in indices ]
-        
-        if isinstance(targets, (tuple, list, xrange)):
-            _,targets = self._build_targets(list(targets))
-            return self._cache_view(targets, balanced)
-        else:
-            raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
+        single = isinstance(targets, int)
+        targets = self._build_targets(targets)[1]
+        if single:
+            targets = targets[0]
+        return DirectView(client=self, socket=self._mux_socket, targets=targets)
     
     #--------------------------------------------------------------------------
     # Data movement (TO BE REMOVED)

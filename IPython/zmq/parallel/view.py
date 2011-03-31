@@ -10,13 +10,16 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import imp
+import sys
 import warnings
 from contextlib import contextmanager
+from types import ModuleType
 
 import zmq
 
 from IPython.testing import decorators as testdec
-from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, Instance
+from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, Instance, CFloat
 
 from IPython.external.decorator import decorator
 
@@ -94,48 +97,36 @@ class View(HasTraits):
         abort, shutdown
     
     """
+    # flags
     block=Bool(False)
     track=Bool(True)
+    targets = Any()
+    
     history=List()
     outstanding = Set()
     results = Dict()
     client = Instance('IPython.zmq.parallel.client.Client')
     
     _socket = Instance('zmq.Socket')
-    _ntargets = Int(1)
-    _flag_names = List(['block', 'track'])
+    _flag_names = List(['targets', 'block', 'track'])
     _targets = Any()
     _idents = Any()
     
-    def __init__(self, client=None, socket=None, targets=None):
+    def __init__(self, client=None, socket=None, **flags):
         super(View, self).__init__(client=client, _socket=socket)
-        self._ntargets = 1 if isinstance(targets, (int,type(None))) else len(targets)
         self.block = client.block
         
-        self._idents, self._targets = self.client._build_targets(targets)
-        if targets is None or isinstance(targets, int):
-            self._targets = targets
-        for name in self._flag_names:
-            # set flags, if they haven't been set yet
-            setattr(self, name, getattr(self, name, None))
+        self.set_flags(**flags)
         
         assert not self.__class__ is View, "Don't use base View objects, use subclasses"
         
 
     def __repr__(self):
-        strtargets = str(self._targets)
+        strtargets = str(self.targets)
         if len(strtargets) > 16:
             strtargets = strtargets[:12]+'...]'
         return "<%s %s>"%(self.__class__.__name__, strtargets)
 
-    @property
-    def targets(self):
-        return self._targets
-
-    @targets.setter
-    def targets(self, value):
-        raise AttributeError("Cannot set View `targets` after construction!")
-    
     def set_flags(self, **kwargs):
         """set my attribute flags by keyword.
         
@@ -182,9 +173,11 @@ class View(HasTraits):
             saved_flags[f] = getattr(self, f)
         self.set_flags(**kwargs)
         # yield to the with-statement block
-        yield
-        # postflight: restore saved flags
-        self.set_flags(**saved_flags)
+        try:
+            yield
+        finally:
+            # postflight: restore saved flags
+            self.set_flags(**saved_flags)
         
         
     #----------------------------------------------------------------
@@ -258,7 +251,7 @@ class View(HasTraits):
             jobs = self.history
         return self.client.wait(jobs, timeout)
     
-    def abort(self, jobs=None, block=None):
+    def abort(self, jobs=None, targets=None, block=None):
         """Abort jobs on my engines.
         
         Parameters
@@ -269,16 +262,18 @@ class View(HasTraits):
             else: abort specific msg_id(s).
         """
         block = block if block is not None else self.block
-        return self.client.abort(jobs=jobs, targets=self._targets, block=block)
+        targets = targets if targets is not None else self.targets
+        return self.client.abort(jobs=jobs, targets=targets, block=block)
 
-    def queue_status(self, verbose=False):
+    def queue_status(self, targets=None, verbose=False):
         """Fetch the Queue status of my engines"""
-        return self.client.queue_status(targets=self._targets, verbose=verbose)
+        targets = targets if targets is not None else self.targets
+        return self.client.queue_status(targets=targets, verbose=verbose)
     
     def purge_results(self, jobs=[], targets=[]):
         """Instruct the controller to forget specific results."""
         if targets is None or targets == 'all':
-            targets = self._targets
+            targets = self.targets
         return self.client.purge_results(jobs=jobs, targets=targets)
     
     @spin_after
@@ -377,11 +372,104 @@ class DirectView(View):
     
     def __init__(self, client=None, socket=None, targets=None):
         super(DirectView, self).__init__(client=client, socket=socket, targets=targets)
+    
+    @property
+    def importer(self):
+        """sync_imports(local=True) as a property.
         
+        See sync_imports for details.
+
+        In [10]: with v.importer:
+           ....:     import numpy
+           ....:     
+        importing numpy on engine(s)
+        
+        """
+        return self.sync_imports(True)
+    
+    @contextmanager
+    def sync_imports(self, local=True):
+        """Context Manager for performing simultaneous local and remote imports.
+        
+        'import x as y' will *not* work.  The 'as y' part will simply be ignored.
+        
+        >>> with view.sync_imports():
+        ...    from numpy import recarray
+        importing recarray from numpy on engine(s)
+        
+        """
+        import __builtin__
+        local_import = __builtin__.__import__
+        modules = set()
+        results = []
+        @util.interactive
+        def remote_import(name, fromlist, level):
+            """the function to be passed to apply, that actually performs the import
+            on the engine, and loads up the user namespace.
+            """
+            import sys
+            user_ns = globals()
+            mod = __import__(name, fromlist=fromlist, level=level)
+            if fromlist:
+                for key in fromlist:
+                    user_ns[key] = getattr(mod, key)
+            else:
+                user_ns[name] = sys.modules[name]
+        
+        def view_import(name, globals={}, locals={}, fromlist=[], level=-1):
+            """the drop-in replacement for __import__, that optionally imports
+            locally as well.
+            """
+            # don't override nested imports
+            save_import = __builtin__.__import__
+            __builtin__.__import__ = local_import
+            
+            if imp.lock_held():
+                # this is a side-effect import, don't do it remotely, or even
+                # ignore the local effects
+                return local_import(name, globals, locals, fromlist, level)
+            
+            imp.acquire_lock()
+            if local:
+                mod = local_import(name, globals, locals, fromlist, level)
+            else:
+                raise NotImplementedError("remote-only imports not yet implemented")
+            imp.release_lock()
+            
+            key = name+':'+','.join(fromlist or [])
+            if level == -1 and key not in modules:
+                modules.add(key)
+                if fromlist:
+                    print "importing %s from %s on engine(s)"%(','.join(fromlist), name)
+                else:
+                    print "importing %s on engine(s)"%name
+                results.append(self.apply_async(remote_import, name, fromlist, level))
+            # restore override
+            __builtin__.__import__ = save_import
+                
+            return mod
+        
+        # override __import__
+        __builtin__.__import__ = view_import
+        try:
+            # enter the block
+            yield
+        except ImportError:
+            if not local:
+                # ignore import errors if not doing local imports
+                pass
+        finally:
+            # always restore __import__
+            __builtin__.__import__ = local_import
+        
+        for r in results:
+            # raise possible remote ImportErrors here
+            r.get()
+            
     
     @sync_results
     @save_ids
-    def _really_apply(self, f, args=None, kwargs=None, block=None, track=None):
+    def _really_apply(self, f, args=None, kwargs=None, targets=None, block=None, track=None):
         """calls f(*args, **kwargs) on remote engines, returning the result.
         
         This method sets all of `apply`'s flags via this View's attributes.
@@ -395,6 +483,8 @@ class DirectView(View):
         
         kwargs : dict [default: empty]
         
+        targets : target list [default: self.targets]
+            where to run
         block : bool [default: self.block]
             whether to block 
         track : bool [default: self.track]
@@ -414,16 +504,19 @@ class DirectView(View):
         kwargs = {} if kwargs is None else kwargs
         block = self.block if block is None else block
         track = self.track if track is None else track
+        targets = self.targets if targets is None else targets
+        
+        _idents = self.client._build_targets(targets)[0]
         msg_ids = []
         trackers = []
-        for ident in self._idents:
+        for ident in _idents:
             msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
                                     ident=ident)
             if track:
                 trackers.append(msg['tracker'])
             msg_ids.append(msg['msg_id'])
         tracker = None if track is False else zmq.MessageTracker(*trackers)
-        ar = AsyncResult(self.client, msg_ids, fname=f.__name__, targets=self._targets, tracker=tracker)
+        ar = AsyncResult(self.client, msg_ids, fname=f.__name__, targets=targets, tracker=tracker)
         if block:
             try:
                 return ar.get()
@@ -474,7 +567,7 @@ class DirectView(View):
         pf = ParallelFunction(self, f, block=block, **kwargs)
         return pf.map(*sequences)
     
-    def execute(self, code, block=None):
+    def execute(self, code, targets=None, block=None):
         """Executes `code` on `targets` in blocking or nonblocking manner.
         
         ``execute`` is always `bound` (affects engine namespace)
@@ -488,9 +581,9 @@ class DirectView(View):
                 whether or not to wait until done to return
                 default: self.block
         """
-        return self._really_apply(util._execute, args=(code,), block=block)
+        return self._really_apply(util._execute, args=(code,), block=block, targets=targets)
     
-    def run(self, filename, block=None):
+    def run(self, filename, targets=None, block=None):
         """Execute contents of `filename` on my engine(s). 
         
         This simply reads the contents of the file and calls `execute`.
@@ -512,7 +605,7 @@ class DirectView(View):
             # add newline in case of trailing indented whitespace
             # which will cause SyntaxError
             code = f.read()+'\n'
-        return self.execute(code, block=block)
+        return self.execute(code, block=block, targets=targets)
     
     def update(self, ns):
         """update remote namespace with dict `ns`
@@ -521,7 +614,7 @@ class DirectView(View):
         """
         return self.push(ns, block=self.block, track=self.track)
     
-    def push(self, ns, block=None, track=None):
+    def push(self, ns, targets=None, block=None, track=None):
         """update remote namespace with dict `ns`
         
         Parameters
@@ -536,10 +629,11 @@ class DirectView(View):
         
         block = block if block is not None else self.block
         track = track if track is not None else self.track
+        targets = targets if targets is not None else self.targets
         # applier = self.apply_sync if block else self.apply_async
         if not isinstance(ns, dict):
             raise TypeError("Must be a dict, not %s"%type(ns))
-        return self._really_apply(util._push, (ns,),block=block, track=track)
+        return self._really_apply(util._push, (ns,), block=block, track=track, targets=targets)
 
     def get(self, key_s):
         """get object(s) by `key_s` from remote namespace
@@ -549,13 +643,14 @@ class DirectView(View):
         # block = block if block is not None else self.block
         return self.pull(key_s, block=True)
     
-    def pull(self, names, block=True):
+    def pull(self, names, targets=None, block=True):
         """get object(s) by `name` from remote namespace
         
         will return one object if it is a key.
         can also take a list of keys, in which case it will return a list of objects.
         """
         block = block if block is not None else self.block
+        targets = targets if targets is not None else self.targets
         applier = self.apply_sync if block else self.apply_async
         if isinstance(names, basestring):
             pass
@@ -565,26 +660,27 @@ class DirectView(View):
                     raise TypeError("keys must be str, not type %r"%type(key))
         else:
             raise TypeError("names must be strs, not %r"%names)
-        return applier(util._pull, names)
+        return self._really_apply(util._pull, (names,), block=block, targets=targets)
     
-    def scatter(self, key, seq, dist='b', flatten=False, block=None, track=None):
+    def scatter(self, key, seq, dist='b', flatten=False, targets=None, block=None, track=None):
         """
         Partition a Python sequence and send the partitions to a set of engines.
         """
         block = block if block is not None else self.block
         track = track if track is not None else self.track
-        targets = self._targets
+        targets = targets if targets is not None else self.targets
+        
         mapObject = Map.dists[dist]()
         nparts = len(targets)
         msg_ids = []
         trackers = []
         for index, engineid in enumerate(targets):
-            push = self.client[engineid].push
             partition = mapObject.getPartition(seq, index, nparts)
             if flatten and len(partition) == 1:
-                r = push({key: partition[0]}, block=False, track=track)
+                ns = {key: partition[0]}
             else:
-                r = push({key: partition},block=False, track=track)
+                ns = {key: partition}
+            r = self.push(ns, block=False, track=track, targets=engineid)
             msg_ids.extend(r.msg_ids)
             if track:
                 trackers.append(r._tracker)
@@ -602,16 +698,17 @@ class DirectView(View):
     
     @sync_results
     @save_ids
-    def gather(self, key, dist='b', block=None):
+    def gather(self, key, dist='b', targets=None, block=None):
         """
         Gather a partitioned sequence on a set of engines as a single local seq.
         """
         block = block if block is not None else self.block
+        targets = targets if targets is not None else self.targets
         mapObject = Map.dists[dist]()
         msg_ids = []
-        for index, engineid in enumerate(self._targets):
-            
-            msg_ids.extend(self.client[engineid].pull(key, block=False).msg_ids)
+        
+        for index, engineid in enumerate(targets):
+            msg_ids.extend(self.pull(key, block=False, targets=engineid).msg_ids)
         
         r = AsyncMapResult(self.client, msg_ids, mapObject, fname='gather')
         
@@ -628,15 +725,17 @@ class DirectView(View):
     def __setitem__(self,key, value):
         self.update({key:value})
     
-    def clear(self, block=False):
+    def clear(self, targets=None, block=False):
         """Clear the remote namespaces on my engines."""
         block = block if block is not None else self.block
-        return self.client.clear(targets=self._targets, block=block)
+        targets = targets if targets is not None else self.targets
+        return self.client.clear(targets=targets, block=block)
     
-    def kill(self, block=True):
+    def kill(self, targets=None, block=True):
         """Kill my engines."""
         block = block if block is not None else self.block
-        return self.client.kill(targets=self._targets, block=block)
+        targets = targets if targets is not None else self.targets
+        return self.client.kill(targets=targets, block=block)
     
     #----------------------------------------
     # activate for %px,%autopx magics
@@ -684,15 +783,16 @@ class LoadBalancedView(View):
     
     """
     
-    _flag_names = ['block', 'track', 'follow', 'after', 'timeout']
+    follow=Any()
+    after=Any()
+    timeout=CFloat()
     
-    def __init__(self, client=None, socket=None, targets=None):
-        super(LoadBalancedView, self).__init__(client=client, socket=socket, targets=targets)
-        self._ntargets = 1
+    _task_scheme = Any()
+    _flag_names = List(['targets', 'block', 'track', 'follow', 'after', 'timeout'])
+    
+    def __init__(self, client=None, socket=None, **flags):
+        super(LoadBalancedView, self).__init__(client=client, socket=socket, **flags)
         self._task_scheme=client._task_scheme
-        if targets is None:
-            self._targets = None
-            self._idents=[]
     
     def _validate_dependency(self, dep):
         """validate a dependency.
@@ -786,7 +886,8 @@ class LoadBalancedView(View):
     @sync_results
     @save_ids
     def _really_apply(self, f, args=None, kwargs=None, block=None, track=None,
-                                        after=None, follow=None, timeout=None):
+                                        after=None, follow=None, timeout=None,
+                                        targets=None):
         """calls f(*args, **kwargs) on a remote engine, returning the result.
         
         This method temporarily sets all of `apply`'s flags for a single call.
@@ -844,9 +945,16 @@ class LoadBalancedView(View):
         after = self.after if after is None else after
         follow = self.follow if follow is None else follow
         timeout = self.timeout if timeout is None else timeout
+        targets = self.targets if targets is None else targets
+        
+        if targets is None:
+            idents = []
+        else:
+            idents = self.client._build_targets(targets)[0]
+        
         after = self._render_dependency(after)
         follow = self._render_dependency(follow)
-        subheader = dict(after=after, follow=follow, timeout=timeout, targets=self._idents)
+        subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents)
         
         msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
                                 subheader=subheader)
@@ -916,5 +1024,5 @@ class LoadBalancedView(View):
         
         pf = ParallelFunction(self, f, block=block,  chunksize=chunksize)
         return pf.map(*sequences)
-    
+
 __all__ = ['LoadBalancedView', 'DirectView']

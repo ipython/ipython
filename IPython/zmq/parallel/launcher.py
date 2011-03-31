@@ -48,9 +48,9 @@ from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
 from .factory import LoggingFactory
 
-# load winhpcjob from IPython.kernel
+# load winhpcjob only on Windows
 try:
-    from IPython.kernel.winhpcjob import (
+    from .winhpcjob import (
         IPControllerTask, IPEngineTask,
         IPControllerJob, IPEngineSetJob
     )

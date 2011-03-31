@@ -285,3 +285,17 @@ class TestView(ClusterTestCase):
             self.assertFalse(view.block)
         self.assertTrue(view.block)
     
+    def test_importer(self):
+        view = self.client[-1]
+        view.clear(block=True)
+        with view.importer:
+            import re
+        
+        @interactive
+        def findall(pat, s):
+            # this globals() step isn't necessary in real code
+            # only to prevent a closure in the test
+            return globals()['re'].findall(pat, s)
+        
+        self.assertEquals(view.apply_sync(findall, '\w+', 'hello world'), 'hello world'.split())
+    

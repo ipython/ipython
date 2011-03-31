@@ -6,6 +6,8 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+from types import ModuleType
+
 from .asyncresult import AsyncResult
 from .error import UnmetDependency
 from .util import interactive
@@ -76,7 +78,7 @@ def _require(*names):
             raise UnmetDependency(name)
     return True
 
-def require(*names):
+def require(*mods):
     """Simple decorator for requiring names to be importable.
     
     Examples
@@ -87,6 +89,16 @@ def require(*names):
        ...:     import numpy
        ...:     return numpy.linalg.norm(a,2)
     """
+    names = []
+    for mod in mods:
+        if isinstance(mod, ModuleType):
+            mod = mod.__name__
+        
+        if isinstance(mod, basestring):
+            names.append(mod)
+        else:
+            raise TypeError("names must be modules or module names, not %s"%type(mod))
+    
     return depend(_require, *names)
 
 class Dependency(set):

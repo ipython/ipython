@@ -61,15 +61,6 @@ class TestClient(ClusterTestCase):
         self.assertEquals(v.targets, targets[-1])
         self.assertRaises(TypeError, lambda : self.client[None])
     
-    def test_view_cache(self):
-        """test that multiple view requests return the same object"""
-        v = self.client[:2]
-        v2 =self.client[:2]
-        self.assertTrue(v is v2)
-        v = self.client.load_balanced_view()
-        v2 = self.client.load_balanced_view(targets=None)
-        self.assertTrue(v is v2)
-    
     def test_targets(self):
         """test various valid targets arguments"""
         build = self.client._build_targets
