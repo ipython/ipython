@@ -178,6 +178,7 @@ def main():
     application = NotebookApplication()
     http_server = httpserver.HTTPServer(application)
     http_server.listen(options.options.port)
+    print "IPython Notebook running at: http://127.0.0.1:8888"
     ioloop.IOLoop.instance().start()
 
 
