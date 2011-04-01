@@ -51,3 +51,10 @@ class Macro(object):
     def __getstate__(self):
         """ needed for safe pickling via %store """
         return {'value': self.value}
+    
+    def __add__(self, other):
+        if isinstance(other, Macro):
+            return Macro(self.value + other.value)
+        elif isinstance(other, basestring):
+            return Macro(self.value + other)
+        raise TypeError
