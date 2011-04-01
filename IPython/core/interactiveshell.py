@@ -2068,7 +2068,7 @@ class InteractiveShell(Configurable, Magic):
                     # raised in user code.  It would be nice if there were
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
-                    self.run_cell(thefile.read())
+                    self.run_cell(thefile.read(), store_history=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
