@@ -1963,7 +1963,7 @@ Currently the magic system has the following functions:\n"""
 
     @testdec.skip_doctest
     def magic_macro(self,parameter_s = ''):
-        """Define a macro for future re-execution. It can take ranges of history,
+        """Define a macro for future re-execution. It accepts ranges of history,
         filenames or string objects.
 
         Usage:\\
