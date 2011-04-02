@@ -13,6 +13,8 @@ from datetime import datetime
 
 import sqlite3
 
+from zmq.eventloop import ioloop
+
 from IPython.utils.traitlets import CUnicode, CStr, Instance, List
 from .dictdb import BaseDB
 from .util import ISO8601
@@ -114,6 +116,13 @@ class SQLiteDB(BaseDB):
             else:
                 self.location = '.'
         self._init_db()
+        
+        # register db commit as 2s periodic callback
+        # to prevent clogging pipes
+        # assumes we are being run in a zmq ioloop app
+        loop = ioloop.IOLoop.instance()
+        pc = ioloop.PeriodicCallback(self._db.commit, 2000, loop)
+        pc.start()
     
     def _defaults(self):
         """create an empty record"""
@@ -133,7 +142,9 @@ class SQLiteDB(BaseDB):
         sqlite3.register_converter('bufs', _convert_bufs)
         # connect to the db
         dbfile = os.path.join(self.location, self.filename)
-        self._db = sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES, cached_statements=16)
+        self._db = sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES, 
+            # isolation_level = None)#,
+             cached_statements=64)
         # print dir(self._db)
         
         self._db.execute("""CREATE TABLE IF NOT EXISTS %s 
@@ -218,7 +229,7 @@ class SQLiteDB(BaseDB):
         line = self._dict_to_list(d)
         tups = '(%s)'%(','.join(['?']*len(line)))
         self._db.execute("INSERT INTO %s VALUES %s"%(self.table, tups), line)
-        self._db.commit()
+        # self._db.commit()
     
     def get_record(self, msg_id):
         """Get a specific Task Record, by msg_id."""
@@ -240,19 +251,19 @@ class SQLiteDB(BaseDB):
         query += ', '.join(sets)
         query += ' WHERE msg_id == %r'%msg_id
         self._db.execute(query, values)
-        self._db.commit()
+        # self._db.commit()
     
     def drop_record(self, msg_id):
         """Remove a record from the DB."""
         self._db.execute("""DELETE FROM %s WHERE mgs_id==?"""%self.table, (msg_id,))
-        self._db.commit()
+        # self._db.commit()
     
     def drop_matching_records(self, check):
         """Remove a record from the DB."""
         expr,args = self._render_expression(check)
         query = "DELETE FROM %s WHERE %s"%(self.table, expr)
         self._db.execute(query,args)
-        self._db.commit()
+        # self._db.commit()
         
     def find_records(self, check, id_only=False):
         """Find records matching a query dict."""

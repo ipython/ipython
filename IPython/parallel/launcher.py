@@ -904,7 +904,7 @@ class PBSEngineSetLauncher(PBSLauncher):
 
     def start(self, n, cluster_dir):
         """Start n engines by profile or cluster_dir."""
-        self.log.info('Starting %n engines with PBSEngineSetLauncher: %r' % (n, self.args))
+        self.log.info('Starting %i engines with PBSEngineSetLauncher: %r' % (n, self.args))
         return super(PBSEngineSetLauncher, self).start(n, cluster_dir)
 
 #SGE is very similar to PBS
@@ -942,7 +942,7 @@ class SGEEngineSetLauncher(SGELauncher):
 
     def start(self, n, cluster_dir):
         """Start n engines by profile or cluster_dir."""
-        self.log.info('Starting %n engines with SGEEngineSetLauncher: %r' % (n, self.args))
+        self.log.info('Starting %i engines with SGEEngineSetLauncher: %r' % (n, self.args))
         return super(SGEEngineSetLauncher, self).start(n, cluster_dir)
 
 

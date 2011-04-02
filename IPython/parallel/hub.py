@@ -45,6 +45,30 @@ def _printer(*args, **kwargs):
     print (args)
     print (kwargs)
 
+def empty_record():
+    """Return an empty dict with all record keys."""
+    return {
+        'msg_id' : None,
+        'header' : None,
+        'content': None,
+        'buffers': None,
+        'submitted': None,
+        'client_uuid' : None,
+        'engine_uuid' : None,
+        'started': None,
+        'completed': None,
+        'resubmitted': None,
+        'result_header' : None,
+        'result_content' : None,
+        'result_buffers' : None,
+        'queue' : None,
+        'pyin' : None,
+        'pyout': None,
+        'pyerr': None,
+        'stdout': '',
+        'stderr': '',
+    }
+    
 def init_record(msg):
     """Initialize a TaskRecord based on a request."""
     header = msg['header']
@@ -283,6 +307,7 @@ class Hub(LoggingFactory):
     tasks=Dict() # pending msg_ids submitted as tasks, keyed by client_id
     completed=Dict() # completed msg_ids keyed by engine_id
     all_completed=Set() # completed msg_ids keyed by engine_id
+    dead_engines=Set() # completed msg_ids keyed by engine_id
     # mia=None
     incoming_registrations=Dict()
     registration_timeout=Int()
@@ -531,9 +556,21 @@ class Hub(LoggingFactory):
         record['client_uuid'] = client_id
         record['queue'] = 'mux'
 
+        try:
+            # it's posible iopub arrived first:
+            existing = self.db.get_record(msg_id)
+            for key,evalue in existing.iteritems():
+                rvalue = record[key]
+                if evalue and rvalue and evalue != rvalue:
+                    self.log.error("conflicting initial state for record: %s:%s <> %s"%(msg_id, rvalue, evalue))
+                elif evalue and not rvalue:
+                    record[key] = evalue
+            self.db.update_record(msg_id, record)
+        except KeyError:
+            self.db.add_record(msg_id, record)
+        
         self.pending.add(msg_id)
         self.queues[eid].append(msg_id)
-        self.db.add_record(msg_id, record)
     
     def save_queue_result(self, idents, msg):
         if len(idents) < 2:
@@ -551,7 +588,7 @@ class Hub(LoggingFactory):
         eid = self.by_ident.get(queue_id, None)
         if eid is None:
             self.log.error("queue::unknown engine %r is sending a reply: "%queue_id)
-            self.log.debug("queue::       %s"%msg[2:])
+            # self.log.debug("queue::       %s"%msg[2:])
             return
         
         parent = msg['parent_header']
@@ -604,7 +641,18 @@ class Hub(LoggingFactory):
         header = msg['header']
         msg_id = header['msg_id']
         self.pending.add(msg_id)
-        self.db.add_record(msg_id, record)
+        try:
+            # it's posible iopub arrived first:
+            existing = self.db.get_record(msg_id)
+            for key,evalue in existing.iteritems():
+                rvalue = record[key]
+                if evalue and rvalue and evalue != rvalue:
+                    self.log.error("conflicting initial state for record: %s:%s <> %s"%(msg_id, rvalue, evalue))
+                elif evalue and not rvalue:
+                    record[key] = evalue
+            self.db.update_record(msg_id, record)
+        except KeyError:
+            self.db.add_record(msg_id, record)
     
     def save_task_result(self, idents, msg):
         """save the result of a completed task."""
@@ -704,9 +752,10 @@ class Hub(LoggingFactory):
         # ensure msg_id is in db
         try:
             rec = self.db.get_record(msg_id)
-        except:
-            self.log.error("iopub::IOPub message has invalid parent", exc_info=True)
-            return
+        except KeyError:
+            rec = empty_record()
+            rec['msg_id'] = msg_id
+            self.db.add_record(msg_id, rec)
         # stream
         d = {}
         if msg_type == 'stream':
@@ -734,7 +783,8 @@ class Hub(LoggingFactory):
         content.update(self.client_info)
         jsonable = {}
         for k,v in self.keytable.iteritems():
-            jsonable[str(k)] = v
+            if v not in self.dead_engines:
+                jsonable[str(k)] = v
         content['engines'] = jsonable
         self.session.send(self.query, 'connection_reply', content, parent=msg, ident=client_id)
     
@@ -812,15 +862,20 @@ class Hub(LoggingFactory):
             return
         self.log.info("registration::unregister_engine(%s)"%eid)
         # print (eid)
-        content=dict(id=eid, queue=self.engines[eid].queue)
-        self.ids.remove(eid)
-        uuid = self.keytable.pop(eid)
-        ec = self.engines.pop(eid)
-        self.hearts.pop(ec.heartbeat)
-        self.by_ident.pop(ec.queue)
-        self.completed.pop(eid)
-        self._handle_stranded_msgs(eid, uuid)
-            ############## TODO: HANDLE IT ################
+        uuid = self.keytable[eid]
+        content=dict(id=eid, queue=uuid)
+        self.dead_engines.add(uuid)
+        # self.ids.remove(eid)
+        # uuid = self.keytable.pop(eid)
+        # 
+        # ec = self.engines.pop(eid)
+        # self.hearts.pop(ec.heartbeat)
+        # self.by_ident.pop(ec.queue)
+        # self.completed.pop(eid)
+        handleit = lambda : self._handle_stranded_msgs(eid, uuid)
+        dc = ioloop.DelayedCallback(handleit, self.registration_timeout, self.loop)
+        dc.start()
+        ############## TODO: HANDLE IT ################
         
         if self.notifier:
             self.session.send(self.notifier, "unregistration_notification", content=content)
@@ -833,7 +888,7 @@ class Hub(LoggingFactory):
         that the result failed and later receive the actual result.
         """
         
-        outstanding = self.queues.pop(eid)
+        outstanding = self.queues[eid]
         
         for msg_id in outstanding:
             self.pending.remove(msg_id)
