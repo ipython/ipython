@@ -276,6 +276,14 @@ class View(HasTraits):
             targets = self.targets
         return self.client.purge_results(jobs=jobs, targets=targets)
     
+    def shutdown(self, targets=None, restart=False, hub=False, block=None):
+        """Terminates one or more engine processes, optionally including the hub.
+        """
+        block = self.block if block is None else block
+        if targets is None or targets == 'all':
+            targets = self.targets
+        return self.client.shutdown(targets=targets, restart=restart, hub=hub, block=block)
+    
     @spin_after
     def get_result(self, indices_or_msg_ids=None):
         """return one or more results, specified by history index or msg_id.
