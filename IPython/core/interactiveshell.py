@@ -140,17 +140,29 @@ class ReadlineNoRecord(object):
         
     def __enter__(self):
         if self._nested_level == 0:
+            self.orig_length = self.current_length()
             self.readline_tail = self.get_readline_tail()
         self._nested_level += 1
         
     def __exit__(self, type, value, traceback):
         self._nested_level -= 1
         if self._nested_level == 0:
-            if self.get_readline_tail() != self.readline_tail:
+            # Try clipping the end if it's got longer
+            e = self.current_length() - self.orig_length
+            if e > 0:
+                for _ in range(e):
+                    self.shell.readline.remove_history_item(self.orig_length)
+            
+            # If it still doesn't match, just reload readline history.
+            if self.current_length() != self.orig_length \
+                or self.get_readline_tail() != self.readline_tail:
                 self.shell.refill_readline_hist()
         # Returning False will cause exceptions to propagate
         return False
-        
+    
+    def current_length(self):
+        return self.shell.readline.get_current_history_length()
+    
     def get_readline_tail(self, n=10):
         """Get the last n items in readline history."""
         end = self.shell.readline.get_current_history_length() + 1
