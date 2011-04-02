@@ -5,9 +5,13 @@
     <meta charset="utf-8">
 
     <title>IPython Notebook</title>
+
     <link rel="stylesheet" href="static/css/notebook.css" type="text/css" />
-    <link rel="stylesheet" href="static/jquery/css/jquery.wijmo-open.1.1.3.css" type="text/css" />
+
     <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
+    <!-- <link rel="stylesheet" href="static/jquery/css/themes/rocket/jquery-wijmo.css" type="text/css" /> -->
+    <!-- <link rel="stylesheet" href="static/jquery/css/themes/smoothness/jquery-ui-1.8.11.custom.css" type="text/css" /> -->
+
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" charset="utf-8"></script>
 
 </head>
@@ -18,59 +22,55 @@
     <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
 </div>
 
+
 <div id="tools">
 
-<ul id="main_menu">
-    <li><a>Cell</a>
-        <ul>
-            <li><a>Run</a></li>
-            <li><a>Move up</a></li>
-            <li><a>Move down</a></li>
-            <li><a>Delete</a></li>
-        </ul>
-    </li>
-    <li><a>Kernel</a>
-        <ul>
-            <li><a>Interrupt</a></li>
-            <li><a>Restart</a></li>
-        </ul>
-    </li>
-    <li><a>Help</a>
-        <ul>
-            <li><a>Notebook help</a></li>
-            <li></li>
-            <li><a href="http://docs.python.org" target="_blank">Python Docs</a></li>
-            <li><a href="http://ipython.github.com/ipython-doc/dev/index.html" target="_blank">IPython Docs</a></li>
-            <li><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy Docs</a></li>
-            <li><a href="http://docs.scipy.org/doc/scipy/reference/" target="_blank">SciPy Docs</a></li>
-            <li><a href="http://docs.sympy.org/dev/index.html" target="_blank">SymPy Docs</a></li>
-        </ul>
-    </li>
-</ul>
-
-<div id="toolbar">
-    <span id="main_toolbar">
-        <span id="move_cell">
-            <button id="move_up">Move up</button>
-            <button id="move_down">Move down</button>
+<div id="menu_tabs">
+    <ul>
+        <li><a href="#cell_tab">Cell</a></li>
+        <li><a href="#kernel_tab">Kernel</a></li>
+        <li><a href="#help_tab">Help</a></li>
+    </ul>
+    <div id="cell_tab">
+        <span id="cell_toolbar">
+            <span id="move_cell">
+                <button id="move_up">Move up</button>
+                <button id="move_down">Move down</button>
+            </span>
+            <span id="insert_delete">
+                <button id="insert_cell_before">Before</button>
+                <button id="insert_cell_after">After</button>
+                <button id="delete_cell">Delete</button>
+            </span>
+            <span id="cell_type">
+                <button id="to_code">Code</button>
+                <button id="to_text">Text</button>
+            </span>
+            <span id="sort">
+                <button id="sort_cells">Sort</button>
+            </span>
+            <span id="toggle">
+                <button id="collapse">Collapse</button>
+                <button id="expand">Expand</button>
+            </span>
         </span>
-        <span id="insert_delete">
-            <button id="insert_cell_before">Before</button>
-            <button id="insert_cell_after">After</button>
-            <button id="delete_cell">Delete</button>
+    </div>
+    <div id="kernel_tab">
+        <span id="kernel_toolbar">
+            <button>Interrupt</button>
+            <button>Restart</button>
         </span>
-        <span id="cell_type">
-            <button id="to_code">Code</button>
-            <button id="to_text">Text</button>
+    </div>
+    <div id="help_tab">
+        <span id="help_toolbar">
+            <button><a href="http://docs.python.org" target="_blank">Python</a></button>
+            <button><a href="http://ipython.github.com/ipython-doc/dev/index.html" target="_blank">IPython</a></button>
+            <button><a href="http://matplotlib.sourceforge.net/" target="_blank">Matplotlib</a></button>
+            <button><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a></button>
+            <button><a href="http://docs.scipy.org/doc/scipy/reference/" target="_blank">SciPy</a></button>
+            <button><a href="http://docs.sympy.org/dev/index.html" target="_blank">SymPy</a></button>
         </span>
-        <span id="sort">
-            <button id="sort_cells">Sort</button>
-        </span>
-        <span id="toggle">
-            <button id="collapse">Collapse</button>
-            <button id="expand">Expand</button>
-        </span>
-    </span>
+    </div>
 </div>
 
 </div>
@@ -78,9 +78,8 @@
 <div class="notebook"></div>
 
 <script src="static/jquery/js/jquery-1.5.1.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/jquery/js/jquery-ui-1.8.10.custom.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/jquery/js/jquery-ui-1.8.11.custom.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/jquery/js/jquery.autogrow.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/jquery/js/jquery.wijmo-open.1.1.3.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/notebook.js" type="text/javascript" charset="utf-8"></script>
 
 </body>
