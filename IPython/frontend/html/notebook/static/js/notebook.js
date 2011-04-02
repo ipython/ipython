@@ -793,9 +793,13 @@ $(document).ready(function () {
         }
     });
 
-    $("ul#main_menu").wijmenu({animation:{animated: "slide", duration: 100, easing: null}});
     IPYTHON.notebook = new Notebook('div.notebook');
     IPYTHON.notebook.insert_code_cell_after();
+
+    $("#menu_tabs").tabs();
+
+    $("#help_toolbar").buttonset();
+    $("#kernel_toolbar").buttonset();
 
     $("#move_cell").buttonset();
     $("#move_up").button("option", "icons", {primary:"ui-icon-arrowthick-1-n"});
