@@ -118,6 +118,11 @@ class Config(dict):
         return type(self)(copy.deepcopy(self.items()))
 
     def __getitem__(self, key):
+        # We cannot use directly self._is_section_key, because it triggers
+        # infinite recursion on top of PyPy. Instead, we manually fish the
+        # bound method.
+        is_section_key = self.__class__._is_section_key.__get__(self)
+        
         # Because we use this for an exec namespace, we need to delegate
         # the lookup of names in __builtin__ to itself.  This means
         # that you can't have section or attribute names that are 
@@ -126,7 +131,7 @@ class Config(dict):
             return getattr(__builtin__, key)
         except AttributeError:
             pass
-        if self._is_section_key(key):
+        if is_section_key(key):
             try:
                 return dict.__getitem__(self, key)
             except KeyError:
