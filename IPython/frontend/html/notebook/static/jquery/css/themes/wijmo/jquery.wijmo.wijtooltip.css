@@ -70,7 +70,7 @@ padding:0.4em;
 .wijmo-wijtooltip-arrow-tr .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-tc .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-tl .wijmo-wijtooltip-pointer-inner {
     border-bottom-color: inherit;
     border-bottom-style: solid;
-    border-bottom-width: 10px;
+    border-bottom-width: 10px;    
     bottom: -14px;
 	*font-size:0;line-height:0;
 }
@@ -78,12 +78,16 @@ padding:0.4em;
 .wijmo-wijtooltip-arrow-tr .wijmo-wijtooltip-pointer-inner {
     border-left: 12px solid transparent;
     border-right: 0 none;
+    +border-style:dashed;
+    _border-style:dashed;
     right: 2px;
 }
 
 .wijmo-wijtooltip-arrow-tc .wijmo-wijtooltip-pointer-inner {
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
+    +border-style:dashed;
+    _border-style:dashed;
     left: -8px;
 }
 
@@ -92,6 +96,8 @@ padding:0.4em;
     border-right-style: solid;
     border-right-color: inherit;
     border-right-width: 12px;
+    +border-style:dashed;
+    _border-style:dashed;
     left: 2px;
 }
 
@@ -134,19 +140,25 @@ padding:0.4em;
     border-top-style: solid;
     border-top-color: inherit;
     border-top-width: 12px;
+    +border-style:dashed;
+    _border-style:dashed;
     bottom: 2px;
 }
 
 .wijmo-wijtooltip-arrow-rc .wijmo-wijtooltip-pointer-inner {
     border-bottom: 8px solid transparent;
     border-top: 8px solid transparent;
+    +border-style:dashed;
+    _border-style:dashed;
     bottom: -8px;
 }
 
 .wijmo-wijtooltip-arrow-rt .wijmo-wijtooltip-pointer-inner {
-        border-bottom-style: solid;
+    border-bottom-style: solid;
     border-bottom-color: inherit;
     border-bottom-width: 12px;
+    +border-style:dashed;
+    _border-style:dashed;
     border-top: 0 none;
     top: 2px;
 }
@@ -187,6 +199,8 @@ padding:0.4em;
 
 .wijmo-wijtooltip-arrow-br .wijmo-wijtooltip-pointer-inner {
     border-left: 12px solid transparent;
+    +border-style:dashed;
+    _border-style:dashed;
     border-right: 0 none;
     right: 2px;
 }
@@ -194,12 +208,16 @@ padding:0.4em;
 .wijmo-wijtooltip-arrow-bc .wijmo-wijtooltip-pointer-inner {
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
+    +border-style:dashed;
+    _border-style:dashed;
     left: -8px;
 }
 
 .wijmo-wijtooltip-arrow-bl .wijmo-wijtooltip-pointer-inner {
     border-left: 0 none;
     border-right: 12px solid transparent;
+    +border-style:dashed;
+    _border-style:dashed;
     left: 2px;
 }
 
@@ -239,12 +257,16 @@ padding:0.4em;
 .wijmo-wijtooltip-arrow-lb .wijmo-wijtooltip-pointer-inner {
     border-bottom: 0 none;
     border-top: 12px solid transparent;
+    +border-style:dashed;
+    _border-style:dashed;
     bottom: 2px;
 }
 
 .wijmo-wijtooltip-arrow-lc .wijmo-wijtooltip-pointer-inner {
     border-bottom: 8px solid transparent;
     border-top: 8px solid transparent;
+    +border-style:dashed;
+    _border-style:dashed;
     bottom: -8px;
 }
 
@@ -252,6 +274,8 @@ padding:0.4em;
     border-bottom-style: solid;
     border-bottom-color: inherit;
     border-bottom-width: 12px;
+    +border-style:dashed;
+    _border-style:dashed;
     border-top: 0 none;
     top: 2px;
 }
