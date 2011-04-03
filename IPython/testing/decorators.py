@@ -319,7 +319,7 @@ skipif_not_numpy = skipif(module_not_available('numpy'),"This test requires nump
 
 skipif_not_sympy = skipif(module_not_available('sympy'),"This test requires sympy")
 
-skip_known_failure = knownfailureif(True,'This test is known to fail')
+skip_known_failure = skip('This test is known to fail')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
