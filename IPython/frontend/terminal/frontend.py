@@ -27,6 +27,7 @@ import cPickle as pickle
 import code
 import zmq
 import rlcompleter
+import readline
 import time
 
 
@@ -70,9 +71,9 @@ class Frontend(object):
        self.msg_header = self.km.session.msg_header()     
        
        self.completer = completer.ClientCompleter(self,self.session,self.request_socket)
-       rlcompleter.readline.set_completer(self.completer.complete)
-       rlcompleter.readline.parse_and_bind("tab: complete")
-       rlcompleter.readline.parse_and_bind('set show-all-if-ambiguous on')
+       readline.set_completer(self.completer.complete)
+       readline.parse_and_bind("tab: complete")
+       readline.parse_and_bind('set show-all-if-ambiguous on')
        
        history_path = os.path.expanduser('~/.ipython/history')
        if os.path.isfile(history_path):
@@ -134,12 +135,14 @@ class Frontend(object):
        """
        self.km.xreq_channel.execute(source, hidden)
        self.handle_xreq_channel()
+       self.handle_rep_channel()
 
    def handle_xreq_channel(self):
        # Give the kernel up to 0.5s to respond
        for i in range(5):
 	   if self.km.xreq_channel.was_called():
 	      self.msg_xreq =  self.km.xreq_channel.get_msg()
+	      #print self.msg_xreq
 	      if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"] :
 		 if self.msg_xreq["content"]["status"] == 'ok' :
 		    if self.msg_xreq["msg_type"] == "complete_reply" :
@@ -186,8 +189,19 @@ class Frontend(object):
                 
                if sub_msg['msg_type'] == 'pyout' :
                     print >> sys.stdout,"Out[%i]:"%sub_msg["content"]["execution_count"], sub_msg["content"]["data"]
-                    #print >> sys.stdout,"Out[%i]:"%self.msg_xreq["content"]["execution_count"], sub_msg["content"]["data"]
                     sys.stdout.flush()
+
+   def handle_rep_channel(self):
+       """ Method to capture raw_input
+       """
+       if self.km.rep_channel.was_called() :
+	  self.msg_rep = self.km.rep_channel.get_msg()
+	  #print self.msg_rep
+	  if self.msg_header["session"] == self.msg_rep["parent_header"]["session"] :
+	     raw_data = raw_input(self.msg_rep["content"]["prompt"])
+	     self.km.rep_channel.input(raw_data)
+	     
+       
 
        
 def start_frontend():
