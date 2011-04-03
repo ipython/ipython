@@ -119,6 +119,7 @@ def find_packages():
     add_package(packages, 'external.pexpect')
     add_package(packages, 'external.pyparsing')
     add_package(packages, 'external.simplegeneric')
+    add_package(packages, 'external.ssh')
     add_package(packages, 'external.validate')
     add_package(packages, 'kernel')
     add_package(packages, 'frontend')
