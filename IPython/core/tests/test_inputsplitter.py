@@ -342,9 +342,14 @@ class InputSplitterTestCase(unittest.TestCase):
                        [['for i in range(10):'
                          '  x=i**2']],
 
-                       [['for i in range(10):'
+                       [['for i in range(10):',
                          '  x=i**2'],
                         ['z = 1']],
+                        
+                       [['for i in range(10):',
+                         '  x=i**2'],
+                        ['z = 1'],
+                        ['a = None']],
 
                        [['"asdf"']],
 
