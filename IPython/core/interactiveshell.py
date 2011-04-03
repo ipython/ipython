@@ -131,6 +131,45 @@ class SeparateStr(Str):
 
 class MultipleInstanceError(Exception):
     pass
+    
+class ReadlineNoRecord(object):
+    """Context manager to execute some code, then reload readline history
+    so that interactive input to the code doesn't appear when pressing up."""
+    def __init__(self, shell):
+        self.shell = shell
+        self._nested_level = 0
+        
+    def __enter__(self):
+        if self._nested_level == 0:
+            self.orig_length = self.current_length()
+            self.readline_tail = self.get_readline_tail()
+        self._nested_level += 1
+        
+    def __exit__(self, type, value, traceback):
+        self._nested_level -= 1
+        if self._nested_level == 0:
+            # Try clipping the end if it's got longer
+            e = self.current_length() - self.orig_length
+            if e > 0:
+                for _ in range(e):
+                    self.shell.readline.remove_history_item(self.orig_length)
+            
+            # If it still doesn't match, just reload readline history.
+            if self.current_length() != self.orig_length \
+                or self.get_readline_tail() != self.readline_tail:
+                self.shell.refill_readline_hist()
+        # Returning False will cause exceptions to propagate
+        return False
+    
+    def current_length(self):
+        return self.shell.readline.get_current_history_length()
+    
+    def get_readline_tail(self, n=10):
+        """Get the last n items in readline history."""
+        end = self.shell.readline.get_current_history_length() + 1
+        start = max(end-n, 1)
+        ghi = self.shell.readline.get_history_item
+        return [ghi(x) for x in range(start, end)]
 
 
 #-----------------------------------------------------------------------------
@@ -738,7 +777,9 @@ class InteractiveShell(Configurable, Magic):
         else:
             # fallback to our internal debugger
             pm = lambda : self.InteractiveTB.debugger(force=True)
-        self.history_saving_wrapper(pm)()
+        
+        with self.readline_no_record:
+            pm()
 
     #-------------------------------------------------------------------------
     # Things related to IPython's various namespaces
@@ -1251,26 +1292,6 @@ class InteractiveShell(Configurable, Magic):
         """Sets up the command history, and starts regular autosaves."""
         self.history_manager = HistoryManager(shell=self, config=self.config)
 
-    def history_saving_wrapper(self, func):
-        """ Wrap func for readline history saving
-
-        Convert func into callable that saves & restores
-        history around the call """
-
-        if self.has_readline:
-            from IPython.utils import rlineimpl as readline
-        else:
-            return func
-
-        def wrapper():
-            self.save_history()
-            try:
-                func()
-            finally:
-                self.reload_history()
-        return wrapper
-    
-
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
     #-------------------------------------------------------------------------
@@ -1551,17 +1572,21 @@ class InteractiveShell(Configurable, Magic):
             # otherwise we end up with a monster history after a while:
             readline.set_history_length(self.history_length)
             
-            stdin_encoding = sys.stdin.encoding or "utf-8"
-            
-            # Load the last 1000 lines from history
-            for _, _, cell in self.history_manager.get_tail(1000,
-                                                include_latest=True):
-                if cell.strip(): # Ignore blank lines
-                    for line in cell.splitlines():
-                        readline.add_history(line.encode(stdin_encoding))
+            self.refill_readline_hist()
+            self.readline_no_record = ReadlineNoRecord(self)
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
+        
+    def refill_readline_hist(self):
+        # Load the last 1000 lines from history
+        self.readline.clear_history()
+        stdin_encoding = sys.stdin.encoding or "utf-8"
+        for _, _, cell in self.history_manager.get_tail(1000,
+                                                        include_latest=True):
+            if cell.strip(): # Ignore blank lines
+                for line in cell.splitlines():
+                    self.readline.add_history(line.encode(stdin_encoding))
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.

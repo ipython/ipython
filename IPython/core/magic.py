@@ -1605,90 +1605,89 @@ Currently the magic system has the following functions:\n"""
         # every single object ever created.
         sys.modules[main_mod_name] = main_mod
         
-        stats = None
         try:
-            #self.shell.save_history()
-
-            if opts.has_key('p'):
-                stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
-            else:
-                if opts.has_key('d'):
-                    deb = debugger.Pdb(self.shell.colors)
-                    # reset Breakpoint state, which is moronically kept
-                    # in a class
-                    bdb.Breakpoint.next = 1
-                    bdb.Breakpoint.bplist = {}
-                    bdb.Breakpoint.bpbynumber = [None]
-                    # Set an initial breakpoint to stop execution
-                    maxtries = 10
-                    bp = int(opts.get('b',[1])[0])
-                    checkline = deb.checkline(filename,bp)
-                    if not checkline:
-                        for bp in range(bp+1,bp+maxtries+1):
-                            if deb.checkline(filename,bp):
-                                break
-                        else:
-                            msg = ("\nI failed to find a valid line to set "
-                                   "a breakpoint\n"
-                                   "after trying up to line: %s.\n"
-                                   "Please set a valid breakpoint manually "
-                                   "with the -b option." % bp)
-                            error(msg)
-                            return
-                    # if we find a good linenumber, set the breakpoint
-                    deb.do_break('%s:%s' % (filename,bp))
-                    # Start file run
-                    print "NOTE: Enter 'c' at the",
-                    print "%s prompt to start your script." % deb.prompt
-                    try:
-                        deb.run('execfile("%s")' % filename,prog_ns)
-                        
-                    except:
-                        etype, value, tb = sys.exc_info()
-                        # Skip three frames in the traceback: the %run one,
-                        # one inside bdb.py, and the command-line typed by the
-                        # user (run by exec in pdb itself).
-                        self.shell.InteractiveTB(etype,value,tb,tb_offset=3)
+            stats = None
+            with self.readline_no_record:
+                if opts.has_key('p'):
+                    stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
                 else:
-                    if runner is None:
-                        runner = self.shell.safe_execfile
-                    if opts.has_key('t'):
-                        # timed execution
-                        try:
-                            nruns = int(opts['N'][0])
-                            if nruns < 1:
-                                error('Number of runs must be >=1')
+                    if opts.has_key('d'):
+                        deb = debugger.Pdb(self.shell.colors)
+                        # reset Breakpoint state, which is moronically kept
+                        # in a class
+                        bdb.Breakpoint.next = 1
+                        bdb.Breakpoint.bplist = {}
+                        bdb.Breakpoint.bpbynumber = [None]
+                        # Set an initial breakpoint to stop execution
+                        maxtries = 10
+                        bp = int(opts.get('b',[1])[0])
+                        checkline = deb.checkline(filename,bp)
+                        if not checkline:
+                            for bp in range(bp+1,bp+maxtries+1):
+                                if deb.checkline(filename,bp):
+                                    break
+                            else:
+                                msg = ("\nI failed to find a valid line to set "
+                                       "a breakpoint\n"
+                                       "after trying up to line: %s.\n"
+                                       "Please set a valid breakpoint manually "
+                                       "with the -b option." % bp)
+                                error(msg)
                                 return
-                        except (KeyError):
-                            nruns = 1
-                        if nruns == 1:
-                            t0 = clock2()
-                            runner(filename,prog_ns,prog_ns,
-                                   exit_ignore=exit_ignore)
-                            t1 = clock2()
-                            t_usr = t1[0]-t0[0]
-                            t_sys = t1[1]-t0[1]
-                            print "\nIPython CPU timings (estimated):"
-                            print "  User  : %10s s." % t_usr
-                            print "  System: %10s s." % t_sys
-                        else:
-                            runs = range(nruns)
-                            t0 = clock2()
-                            for nr in runs:
+                        # if we find a good linenumber, set the breakpoint
+                        deb.do_break('%s:%s' % (filename,bp))
+                        # Start file run
+                        print "NOTE: Enter 'c' at the",
+                        print "%s prompt to start your script." % deb.prompt
+                        try:
+                            deb.run('execfile("%s")' % filename,prog_ns)
+                            
+                        except:
+                            etype, value, tb = sys.exc_info()
+                            # Skip three frames in the traceback: the %run one,
+                            # one inside bdb.py, and the command-line typed by the
+                            # user (run by exec in pdb itself).
+                            self.shell.InteractiveTB(etype,value,tb,tb_offset=3)
+                    else:
+                        if runner is None:
+                            runner = self.shell.safe_execfile
+                        if opts.has_key('t'):
+                            # timed execution
+                            try:
+                                nruns = int(opts['N'][0])
+                                if nruns < 1:
+                                    error('Number of runs must be >=1')
+                                    return
+                            except (KeyError):
+                                nruns = 1
+                            if nruns == 1:
+                                t0 = clock2()
                                 runner(filename,prog_ns,prog_ns,
                                        exit_ignore=exit_ignore)
-                            t1 = clock2()
-                            t_usr = t1[0]-t0[0]
-                            t_sys = t1[1]-t0[1]
-                            print "\nIPython CPU timings (estimated):"
-                            print "Total runs performed:",nruns
-                            print "  Times : %10s    %10s" % ('Total','Per run')
-                            print "  User  : %10s s, %10s s." % (t_usr,t_usr/nruns)
-                            print "  System: %10s s, %10s s." % (t_sys,t_sys/nruns)
-                            
-                    else:
-                        # regular execution
-                        runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+                                t1 = clock2()
+                                t_usr = t1[0]-t0[0]
+                                t_sys = t1[1]-t0[1]
+                                print "\nIPython CPU timings (estimated):"
+                                print "  User  : %10s s." % t_usr
+                                print "  System: %10s s." % t_sys
+                            else:
+                                runs = range(nruns)
+                                t0 = clock2()
+                                for nr in runs:
+                                    runner(filename,prog_ns,prog_ns,
+                                           exit_ignore=exit_ignore)
+                                t1 = clock2()
+                                t_usr = t1[0]-t0[0]
+                                t_sys = t1[1]-t0[1]
+                                print "\nIPython CPU timings (estimated):"
+                                print "Total runs performed:",nruns
+                                print "  Times : %10s    %10s" % ('Total','Per run')
+                                print "  User  : %10s s, %10s s." % (t_usr,t_usr/nruns)
+                                print "  System: %10s s, %10s s." % (t_sys,t_sys/nruns)
+                                
+                        else:
+                            # regular execution
+                            runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
 
                 if opts.has_key('i'):
                     self.shell.user_ns['__name__'] = __name__save
@@ -1725,8 +1724,6 @@ Currently the magic system has the following functions:\n"""
                 # added.  Otherwise it will trap references to objects
                 # contained therein.
                 del sys.modules[main_mod_name]
-
-            #self.shell.reload_history()
                 
         return stats
 
