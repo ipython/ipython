@@ -2030,7 +2030,7 @@ Currently the magic system has the following functions:\n"""
         
         #print 'rng',ranges  # dbg
         try:
-            lines = self._get_some_code(codefrom, 'r' in opts)
+            lines = self.shell._get_some_code(codefrom, 'r' in opts)
         except (ValueError, TypeError) as e:
             print e.args[0]
             return
@@ -2069,7 +2069,7 @@ Currently the magic system has the following functions:\n"""
                 print 'Operation cancelled.'
                 return
         try:
-            cmds = self._get_some_code(codefrom, 'r' in opts)
+            cmds = self.shell._get_some_code(codefrom, 'r' in opts)
         except (TypeError, ValueError) as e:
             print e.args[0]
             return
@@ -2080,38 +2080,11 @@ Currently the magic system has the following functions:\n"""
             f.write(cmds)
         print 'The following commands were written to file `%s`:' % fname
         print cmds
-        
-    def _get_some_code(self, target, raw=True):
-        """Utility function to get a code string, either from a range of
-        history lines, a filename, or an expression evaluating to a string or a
-        Macro in the user namespace.
-        
-        ValueError is raised if none are found, and TypeError if it evaluates to
-        an object of another type. In each case, .args[0] is a printable
-        message."""
-        code = self.extract_input_lines(target, raw=raw)  # Grab history        
-        if code:
-            return code
-        if os.path.isfile(target):                        # Read file
-            return open(target, "r").read()
-        
-        try:                                              # User namespace
-            codeobj = eval(target, self.shell.user_ns)
-        except Exception:
-            raise ValueError(("'%s' was not found in history, as a file, nor in"
-                                " the user namespace.") % target)
-        if isinstance(codeobj, basestring):
-            return codeobj
-        elif isinstance(codeobj, Macro):
-            return codeobj.value
-            
-        raise TypeError("%s is neither a string nor a macro." % target,
-                        codeobj)
     
     def magic_pastebin(self, parameter_s = ''):
         """Upload code to the 'Lodge it' paste bin, returning the URL."""
         try:
-            code = self._get_some_code(parameter_s)
+            code = self.shell._get_some_code(parameter_s)
         except (ValueError, TypeError) as e:
             print e.args[0]
             return

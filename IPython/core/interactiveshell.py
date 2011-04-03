@@ -50,6 +50,7 @@ from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
+from IPython.core.macro import Macro
 from IPython.core.magic import Magic
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
@@ -2503,6 +2504,48 @@ class InteractiveShell(Configurable, Magic):
     def show_usage(self):
         """Show a usage message"""
         page.page(IPython.core.usage.interactive_usage)
+        
+    def _get_some_code(self, target, raw=True):
+        """Get a code string from history, file, or a string or macro.
+        
+        This is mainly used by magic functions. 
+        
+        Parameters
+        ----------
+        target : str
+          A string specifying code to retrieve. This will be tried respectively
+          as: ranges of input history, a filename, and an expression evaluating
+          to a string or Macro in the user namespace.
+        raw : bool
+          If true (default), retrieve raw history. Has no effect on the other
+          retrieval mechanisms.
+        
+        Returns
+        -------
+        A string of code.
+        
+        ValueError is raised if nothing is found, and TypeError if it evaluates
+        to an object of another type. In each case, .args[0] is a printable
+        message.
+        """
+        code = self.extract_input_lines(target, raw=raw)  # Grab history        
+        if code:
+            return code
+        if os.path.isfile(target):                        # Read file
+            return open(target, "r").read()
+        
+        try:                                              # User namespace
+            codeobj = eval(target, self.user_ns)
+        except Exception:
+            raise ValueError(("'%s' was not found in history, as a file, nor in"
+                                " the user namespace.") % target)
+        if isinstance(codeobj, basestring):
+            return codeobj
+        elif isinstance(codeobj, Macro):
+            return codeobj.value
+            
+        raise TypeError("%s is neither a string nor a macro." % target,
+                        codeobj)
 
     #-------------------------------------------------------------------------
     # Things related to IPython exiting
