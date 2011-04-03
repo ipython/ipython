@@ -20,6 +20,7 @@ from __future__ import absolute_import
 import __builtin__
 import __future__
 import abc
+import ast
 import atexit
 import codeop
 import inspect
@@ -2098,6 +2099,87 @@ class InteractiveShell(Configurable, Magic):
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
+                
+    def run_cell_NODE(self, cell, store_history=True):
+        """Run a complete IPython cell.
+        
+        Parameters
+        ----------
+        cell : str
+          The code (including IPython code such as %magic functions) to run.
+        store_history : bool
+          If True, the raw and translated cell will be stored in IPython's
+          history. For user code calling back into IPython's machinery, this
+          should be set to False.
+        """
+        raw_cell = cell
+        with self.builtin_trap:
+            cell = self.prefilter_manager.prefilter_lines(cell)
+            
+            # Store raw and processed history
+            if store_history:
+                self.history_manager.store_inputs(self.execution_count, 
+                                                  cell, raw_cell)
+
+            self.logger.log(cell, raw_cell)
+            
+            with self.display_trap:
+                try:
+                    nodes = self.input_splitter.ast_nodes(cell)
+                except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
+                    # Case 1
+                    self.showsyntaxerror(filename)
+                    return None
+                    
+                interactivity = 1       # Last node to be run interactive
+                if len(cell.splitlines()) == 1:
+                    interactivity = 2   # Single line; run fully interactive
+
+                self.run_ast_nodes(nodes, interactivity)
+                
+        if store_history:
+            # Write output to the database. Does nothing unless
+            # history output logging is enabled.
+            self.history_manager.store_output(self.execution_count)
+            # Each cell is a *single* input, regardless of how many lines it has
+            self.execution_count += 1
+            
+    def run_ast_nodes(self, nodelist, interactivity=1):
+        """Run a sequence of AST nodes. The execution mode depends on the
+        interactivity parameter.
+        
+        Parameters
+        ----------
+        nodelist : list
+          A sequence of AST nodes to run.
+        interactivity : int
+          At 0, all nodes are run in 'exec' mode. At '1', the last node alone
+          is run in interactive mode (so the result of an expression is shown).
+          At 2, all nodes are run in interactive mode.
+        """
+        if not nodelist:
+            return
+        
+        if interactivity == 0:
+            to_run_exec, to_run_interactive = nodelist, []
+        elif interactivity == 1:
+            to_run_exec, to_run_interactive = nodelist[:-1], nodelist[-1:]
+        else:
+            to_run_exec, to_run_interactive = [], nodelist
+            
+        if to_run_exec:
+            mod = ast.Module(to_run_exec)
+            name = "<ipython-prompt-%d-exec>" % self.execution_count
+            self.code_to_run = code = compile(mod, name, "exec")
+            if self.run_code(code) == 1:
+                return
+                
+        if to_run_interactive:
+            mod = ast.Interactive(to_run_interactive)
+            name = "<ipython-prompt-%d-interactive>" % self.execution_count
+            self.code_to_run = code = compile(mod, name, "single")
+            return self.run_code(code)
+        
 
     def run_cell(self, cell, store_history=True):
         """Run the contents of an entire multiline 'cell' of code, and store it
