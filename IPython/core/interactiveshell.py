@@ -2505,7 +2505,7 @@ class InteractiveShell(Configurable, Magic):
         """Show a usage message"""
         page.page(IPython.core.usage.interactive_usage)
         
-    def _get_some_code(self, target, raw=True):
+    def find_user_code(self, target, raw=True):
         """Get a code string from history, file, or a string or macro.
         
         This is mainly used by magic functions. 
@@ -2514,8 +2514,8 @@ class InteractiveShell(Configurable, Magic):
         ----------
         target : str
           A string specifying code to retrieve. This will be tried respectively
-          as: ranges of input history, a filename, and an expression evaluating
-          to a string or Macro in the user namespace.
+          as: ranges of input history (see %history for syntax), a filename, or
+          an expression evaluating to a string or Macro in the user namespace.
         raw : bool
           If true (default), retrieve raw history. Has no effect on the other
           retrieval mechanisms.
