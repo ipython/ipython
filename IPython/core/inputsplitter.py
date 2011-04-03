@@ -445,9 +445,13 @@ class InputSplitter(object):
                 if not self._full_dedent:
                     return False
             else:
-                nblocks = len(split_blocks(''.join(self._buffer)))
-                if nblocks==1:
+                try:
+                    nodes = self.ast_nodes()
+                except Exception:
                     return False
+                else:
+                    if len(nodes) == 1:
+                        return False
 
         # When input is complete, then termination is marked by an extra blank
         # line at the end.
@@ -535,6 +539,23 @@ class InputSplitter(object):
         # python syntax, feed it back a second time through the AST-based
         # splitter, which is more accurate than ours.
         return split_blocks(''.join(blocks))
+    
+    def ast_nodes(self, lines=None):
+        """Turn the lines into a list of AST nodes.
+        
+        Parameters
+        ----------
+        lines : str
+          A (possibly multiline) string of Python code. If None (default), it
+          will use the InputSplitter's current code buffer.
+          
+        Returns
+        -------
+        A list of AST (abstract syntax tree) nodes representing the code.
+        """
+        if lines is None:
+            lines = u"".join(self._buffer)
+        return ast.parse(lines).body
 
     #------------------------------------------------------------------------
     # Private interface
