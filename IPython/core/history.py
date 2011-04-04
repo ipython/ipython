@@ -454,7 +454,7 @@ range_re = re.compile(r"""
 ((?P<sep>[\-:])
  ((?P<endsess>~?\d+)/)?
  (?P<end>\d+))?
-""", re.VERBOSE)
+$""", re.VERBOSE)
 
 def extract_hist_ranges(ranges_str):
     """Turn a string of history ranges into 3-tuples of (session, start, stop).

@@ -1960,7 +1960,8 @@ Currently the magic system has the following functions:\n"""
 
     @testdec.skip_doctest
     def magic_macro(self,parameter_s = ''):
-        """Define a set of input lines as a macro for future re-execution.
+        """Define a macro for future re-execution. It accepts ranges of history,
+        filenames or string objects.
 
         Usage:\\
           %macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
@@ -2012,12 +2013,8 @@ Currently the magic system has the following functions:\n"""
         You can view a macro's contents by explicitly printing it with:
         
           'print macro_name'.
-
-        For one-off cases which DON'T contain magic function calls in them you
-        can obtain similar results by explicitly executing slices from your
-        input history with:
-
-          In [60]: exec In[44:48]+In[49]"""
+          
+        """
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
         if not args:   # List existing macros
@@ -2026,18 +2023,22 @@ Currently the magic system has the following functions:\n"""
         if len(args) == 1:
             raise UsageError(
                 "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
-        name, ranges = args[0], " ".join(args[1:])
+        name, codefrom = args[0], " ".join(args[1:])
         
         #print 'rng',ranges  # dbg
-        lines = self.extract_input_lines(ranges,'r' in opts)
+        try:
+            lines = self.shell.find_user_code(codefrom, 'r' in opts)
+        except (ValueError, TypeError) as e:
+            print e.args[0]
+            return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
-        print 'Macro contents:'
+        print '=== Macro contents: ==='
         print macro,
 
     def magic_save(self,parameter_s = ''):
-        """Save a set of lines to a given filename.
+        """Save a set of lines or a macro to a given filename.
 
         Usage:\\
           %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
@@ -2056,7 +2057,7 @@ Currently the magic system has the following functions:\n"""
         it asks for confirmation before overwriting existing files."""
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
-        fname,ranges = args[0], " ".join(args[1:])
+        fname, codefrom = args[0], " ".join(args[1:])
         if not fname.endswith('.py'):
             fname += '.py'
         if os.path.isfile(fname):
@@ -2064,12 +2065,29 @@ Currently the magic system has the following functions:\n"""
             if ans.lower() not in ['y','yes']:
                 print 'Operation cancelled.'
                 return
-        cmds = self.extract_input_lines(ranges, 'r' in opts)
+        try:
+            cmds = self.shell.find_user_code(codefrom, 'r' in opts)
+        except (TypeError, ValueError) as e:
+            print e.args[0]
+            return
+        if isinstance(cmds, unicode):
+            cmds = cmds.encode("utf-8")
         with open(fname,'w') as f:
             f.write("# coding: utf-8\n")
-            f.write(cmds.encode("utf-8"))
+            f.write(cmds)
         print 'The following commands were written to file `%s`:' % fname
         print cmds
+    
+    def magic_pastebin(self, parameter_s = ''):
+        """Upload code to the 'Lodge it' paste bin, returning the URL."""
+        try:
+            code = self.shell.find_user_code(parameter_s)
+        except (ValueError, TypeError) as e:
+            print e.args[0]
+            return
+        pbserver = ServerProxy('http://paste.pocoo.org/xmlrpc/')
+        id = pbserver.pastes.newPaste("python", code)
+        return "http://paste.pocoo.org/show/" + id
 
     def _edit_macro(self,mname,macro):
         """open an editor with the macro data in a file"""
