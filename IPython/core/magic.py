@@ -2030,7 +2030,7 @@ Currently the magic system has the following functions:\n"""
         
         #print 'rng',ranges  # dbg
         try:
-            lines = self.shell._get_some_code(codefrom, 'r' in opts)
+            lines = self.shell.find_user_code(codefrom, 'r' in opts)
         except (ValueError, TypeError) as e:
             print e.args[0]
             return
@@ -2069,7 +2069,7 @@ Currently the magic system has the following functions:\n"""
                 print 'Operation cancelled.'
                 return
         try:
-            cmds = self.shell._get_some_code(codefrom, 'r' in opts)
+            cmds = self.shell.find_user_code(codefrom, 'r' in opts)
         except (TypeError, ValueError) as e:
             print e.args[0]
             return
@@ -2084,7 +2084,7 @@ Currently the magic system has the following functions:\n"""
     def magic_pastebin(self, parameter_s = ''):
         """Upload code to the 'Lodge it' paste bin, returning the URL."""
         try:
-            code = self.shell._get_some_code(parameter_s)
+            code = self.shell.find_user_code(parameter_s)
         except (ValueError, TypeError) as e:
             print e.args[0]
             return
