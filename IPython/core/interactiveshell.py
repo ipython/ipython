@@ -2100,7 +2100,7 @@ class InteractiveShell(Configurable, Magic):
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
                 
-    def run_cell_NODE(self, cell, store_history=True):
+    def run_cell(self, cell, store_history=True):
         """Run a complete IPython cell.
         
         Parameters
@@ -2123,19 +2123,22 @@ class InteractiveShell(Configurable, Magic):
 
             self.logger.log(cell, raw_cell)
             
+            cell_name = self.compile.cache(cell, self.execution_count)
+            
             with self.display_trap:
                 try:
                     code_ast = ast.parse(cell)
                 except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
                     # Case 1
-                    self.showsyntaxerror(filename)
+                    self.showsyntaxerror()
+                    self.execution_count += 1
                     return None
                     
                 interactivity = 1       # Last node to be run interactive
                 if len(cell.splitlines()) == 1:
                     interactivity = 2   # Single line; run fully interactive
 
-                self.run_ast_nodes(code_ast.body, interactivity)
+                self.run_ast_nodes(code_ast.body, cell_name, interactivity)
                 
         if store_history:
             # Write output to the database. Does nothing unless
@@ -2144,7 +2147,7 @@ class InteractiveShell(Configurable, Magic):
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
             
-    def run_ast_nodes(self, nodelist, interactivity=1):
+    def run_ast_nodes(self, nodelist, cell_name, interactivity=1):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
         
@@ -2167,128 +2170,19 @@ class InteractiveShell(Configurable, Magic):
         else:
             to_run_exec, to_run_interactive = [], nodelist
             
+        exec_count = self.execution_count
         if to_run_exec:
             mod = ast.Module(to_run_exec)
-            name = "<ipython-prompt-%d-exec>" % self.execution_count
-            self.code_to_run = code = compile(mod, name, "exec")
+            self.code_to_run = code = self.compile(mod, cell_name, "exec")
             if self.run_code(code) == 1:
                 return
                 
         if to_run_interactive:
             mod = ast.Interactive(to_run_interactive)
-            name = "<ipython-prompt-%d-interactive>" % self.execution_count
-            self.code_to_run = code = compile(mod, name, "single")
+            self.code_to_run = code = self.compile(mod, cell_name, "single")
             return self.run_code(code)
-        
-
-    def run_cell(self, cell, store_history=True):
-        """Run the contents of an entire multiline 'cell' of code, and store it
-        in the history.
-
-        The cell is split into separate blocks which can be executed
-        individually.  Then, based on how many blocks there are, they are
-        executed as follows:
-
-        - A single block: 'single' mode. If it is also a single line, dynamic
-        transformations, including automagic and macros, will be applied.
-
-        If there's more than one block, it depends:
-
-        - if the last one is no more than two lines long, run all but the last
-        in 'exec' mode and the very last one in 'single' mode.  This makes it
-        easy to type simple expressions at the end to see computed values.  -
-        otherwise (last one is also multiline), run all in 'exec' mode
-
-        When code is executed in 'single' mode, :func:`sys.displayhook` fires,
-        results are displayed and output prompts are computed.  In 'exec' mode,
-        no results are displayed unless :func:`print` is called explicitly;
-        this mode is more akin to running a script.
-
-        Parameters
-        ----------
-        cell : str
-          A single or multiline string.
-        """
-        # Store the untransformed code
-        raw_cell = cell
-        
-        # Code transformation and execution must take place with our
-        # modifications to builtins.
-        with self.builtin_trap:
-            
-            # We need to break up the input into executable blocks that can
-            # be runin 'single' mode, to provide comfortable user behavior.
-            blocks = self.input_splitter.split_blocks(cell)
-            
-            if not blocks:   # Blank cell
-                return
-            
-            # We only do dynamic transforms on a single line. But a macro
-            # can be expanded to several lines, so we need to split it
-            # into input blocks again.
-            if len(cell.splitlines()) <= 1:
-                cell = self.prefilter_manager.prefilter_line(blocks[0])
-                blocks = self.input_splitter.split_blocks(cell)
-
-            # Store the 'ipython' version of the cell as well, since
-            # that's what needs to go into the translated history and get
-            # executed (the original cell may contain non-python syntax).
-            cell = ''.join(blocks)
-
-            # Store raw and processed history
-            if store_history:
-                self.history_manager.store_inputs(self.execution_count, 
-                                                  cell, raw_cell)
-
-            self.logger.log(cell, raw_cell)
-
-            # All user code execution should take place with our
-            # modified displayhook.
-            with self.display_trap:
-                # Single-block input should behave like an interactive prompt
-                if len(blocks) == 1:
-                    out = self.run_source(blocks[0])
-                    # Write output to the database. Does nothing unless
-                    # history output logging is enabled.
-                    if store_history:
-                        self.history_manager.store_output(self.execution_count)
-                        # Since we return here, we need to update the
-                        # execution count
-                        self.execution_count += 1
-                    return out
-
-                # In multi-block input, if the last block is a simple (one-two
-                # lines) expression, run it in single mode so it produces output.
-                # Otherwise just run it all in 'exec' mode.  This seems like a
-                # reasonable usability design.
-                last = blocks[-1]
-                last_nlines = len(last.splitlines())
-                
-                if last_nlines < 2:
-                    # Here we consider the cell split between 'body' and 'last',
-                    # store all history and execute 'body', and if successful, then
-                    # proceed to execute 'last'.
-
-                    # Get the main body to run as a cell
-                    ipy_body = ''.join(blocks[:-1])
-                    retcode = self.run_source(ipy_body, symbol='exec',
-                                              post_execute=False)
-                    if retcode==0:
-                        # Last expression compiled as 'single' so it
-                        # produces output
-                        self.run_source(last)
-                else:
-                    # Run the whole cell as one entity, storing both raw and
-                    # processed input in history
-                    self.run_source(cell, symbol='exec')
-
-        # Write output to the database. Does nothing unless
-        # history output logging is enabled.
-        if store_history:
-            self.history_manager.store_output(self.execution_count)
-            # Each cell is a *single* input, regardless of how many lines it has
-            self.execution_count += 1
-
+    
+    
     # PENDING REMOVAL: this method is slated for deletion, once our new
     # input logic has been 100% moved to frontends and is stable.
     def runlines(self, lines, clean=False):
@@ -2378,7 +2272,8 @@ class InteractiveShell(Configurable, Magic):
             print 'encoding', self.stdin_encoding  # dbg
         
         try:
-            code = self.compile(usource, symbol, self.execution_count)
+            code_name = self.compile.cache(usource, self.execution_count)
+            code = self.compile(usource, code_name, symbol)
         except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
             # Case 1
             self.showsyntaxerror(filename)
