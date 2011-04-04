@@ -43,9 +43,7 @@ def run(tests):
     for pre, post in tests:
         global num_tests
         num_tests += 1        
-        ip.runlines(pre)
-        ip.runlines('_i')  # Not sure why I need this...
-        actual = ip.user_ns['_i']
+        actual = ip.prefilter_manager.prefilter_lines(pre)
         if actual != None:
             actual = actual.rstrip('\n')
         if actual != post:
