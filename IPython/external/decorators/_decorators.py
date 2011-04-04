@@ -20,15 +20,8 @@ import warnings
 #from numpy.testing.utils import \
 #        WarningManager, WarningMessage
 # Our version:
-try:
-    from numpy.testing.utils import WarningManager, WarningMessage
-except ImportError:
-    from _numpy_testing_utils import WarningManager, WarningMessage
-
-try:
-    from numpy.testing.noseclasses import KnownFailure, KnownFailureTest
-except ImportError:
-    from _numpy_testing_noseclasses import KnownFailure, KnownFailureTest
+from _numpy_testing_utils import WarningManager
+from _numpy_testing_noseclasses import KnownFailureTest
 
 # End IPython changes
 
