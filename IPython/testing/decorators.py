@@ -24,9 +24,10 @@ Lightweight testing that remains unittest-compatible.
   recognize it as such.  This will make it easier to migrate away from Nose if
   we ever need/want to while maintaining very lightweight tests.
 
-NOTE: This file contains IPython-specific decorators and imports the
-numpy.testing.decorators file, which we've copied verbatim.  Any of our own
-code will be added at the bottom if we end up extending this.
+NOTE: This file contains IPython-specific decorators. Using the machinery in
+IPython.external.decorators, we import either numpy.testing.decorators if numpy is
+available, OR use equivalent code in IPython.external._decorators, which
+we've copied verbatim from numpy.
 
 Authors
 -------
@@ -319,7 +320,7 @@ skipif_not_numpy = skipif(module_not_available('numpy'),"This test requires nump
 
 skipif_not_sympy = skipif(module_not_available('sympy'),"This test requires sympy")
 
-skip_known_failure = skip('This test is known to fail')
+skip_known_failure = knownfailureif(True,'This test is known to fail')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
