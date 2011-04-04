@@ -446,11 +446,11 @@ class InputSplitter(object):
                     return False
             else:
                 try:
-                    nodes = self.ast_nodes()
+                    code_ast = ast.parse(u''.join(self._buffer))
                 except Exception:
                     return False
                 else:
-                    if len(nodes) == 1:
+                    if len(code_ast.body) == 1:
                         return False
 
         # When input is complete, then termination is marked by an extra blank
@@ -539,23 +539,6 @@ class InputSplitter(object):
         # python syntax, feed it back a second time through the AST-based
         # splitter, which is more accurate than ours.
         return split_blocks(''.join(blocks))
-    
-    def ast_nodes(self, lines=None):
-        """Turn the lines into a list of AST nodes.
-        
-        Parameters
-        ----------
-        lines : str
-          A (possibly multiline) string of Python code. If None (default), it
-          will use the InputSplitter's current code buffer.
-          
-        Returns
-        -------
-        A list of AST (abstract syntax tree) nodes representing the code.
-        """
-        if lines is None:
-            lines = u"".join(self._buffer)
-        return ast.parse(lines).body
 
     #------------------------------------------------------------------------
     # Private interface

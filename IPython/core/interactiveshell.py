@@ -2125,7 +2125,7 @@ class InteractiveShell(Configurable, Magic):
             
             with self.display_trap:
                 try:
-                    nodes = self.input_splitter.ast_nodes(cell)
+                    code_ast = ast.parse(cell)
                 except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
                     # Case 1
                     self.showsyntaxerror(filename)
@@ -2135,7 +2135,7 @@ class InteractiveShell(Configurable, Magic):
                 if len(cell.splitlines()) == 1:
                     interactivity = 2   # Single line; run fully interactive
 
-                self.run_ast_nodes(nodes, interactivity)
+                self.run_ast_nodes(code_ast.body, interactivity)
                 
         if store_history:
             # Write output to the database. Does nothing unless
