@@ -14,18 +14,15 @@ function name, setup and teardown functions and so on - see
 
 """
 import warnings
-import sys
 
 # IPython changes: make this work if numpy not available
 # Original code:
 #from numpy.testing.utils import \
 #        WarningManager, WarningMessage
 # Our version:
-try:
-    from numpy.testing.utils import WarningManager, WarningMessage
-except ImportError:
-    from _numpy_testing_utils import WarningManager, WarningMessage
-    
+from _numpy_testing_utils import WarningManager
+from _numpy_testing_noseclasses import KnownFailureTest
+
 # End IPython changes
 
 def slow(t):
@@ -34,7 +31,7 @@ def slow(t):
 
     The exact definition of a slow test is obviously both subjective and
     hardware-dependent, but in general any individual test that requires more
-    than a second or two should be labeled as slow (the whole suite consits of
+    than a second or two should be labeled as slow (the whole suite consists of
     thousands of tests, so even a second is significant).
 
     Parameters
@@ -172,7 +169,6 @@ def skipif(skip_condition, msg=None):
 
     return skip_decorator
 
-
 def knownfailureif(fail_condition, msg=None):
     """
     Make function raise KnownFailureTest exception if given condition is true.
@@ -216,7 +212,6 @@ def knownfailureif(fail_condition, msg=None):
         # Local import to avoid a hard nose dependency and only incur the
         # import time overhead at actual test-time.
         import nose
-        from noseclasses import KnownFailureTest
         def knownfailer(*args, **kwargs):
             if fail_val():
                 raise KnownFailureTest, msg
@@ -255,7 +250,6 @@ def deprecated(conditional=True):
         # Local import to avoid a hard nose dependency and only incur the
         # import time overhead at actual test-time.
         import nose
-        from noseclasses import KnownFailureTest
 
         def _deprecated_imp(*args, **kwargs):
             # Poor man's replacement for the with statement

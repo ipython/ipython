@@ -15,8 +15,14 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from IPython.lib.latextools import latex_to_png
+from IPython.testing import decorators as dec
+# use @dec.skipif_not_sympy to skip tests requiring sympy
 
-from sympy import pretty, latex
+try:
+    from sympy import pretty, latex
+except ImportError:
+    pass
+
 
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
@@ -43,7 +49,6 @@ def print_png(o):
     return png
 
 _loaded = False
-
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""

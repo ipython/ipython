@@ -53,6 +53,7 @@ from IPython.utils.sysinfo import sys_info
 
 from IPython.testing import globalipapp
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
+from IPython.external.decorators import KnownFailure
 
 pjoin = path.join
 
@@ -357,7 +358,7 @@ def run_iptest():
 
     # Construct list of plugins, omitting the existing doctest plugin, which
     # ours replaces (and extends).
-    plugins = [IPythonDoctest(make_exclude())]
+    plugins = [IPythonDoctest(make_exclude()), KnownFailure()]
     for p in nose.plugins.builtin.plugins:
         plug = p()
         if plug.name == 'doctest':

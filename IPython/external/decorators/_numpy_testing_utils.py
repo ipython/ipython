@@ -1,14 +1,10 @@
-# IPython: modified copy of numpy.testing.utils, so numpy.testing.decorators
-# works without numpy being installed.
+# IPython: modified copy of numpy.testing.utils, so
+# IPython.external._decorators works without numpy being installed.
 """
 Utility function to facilitate testing.
 """
 
-import os
 import sys
-import re
-import operator
-import types
 import warnings
 
 # The following two classes are copied from python 2.6 warnings module (context
