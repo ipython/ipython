@@ -12,8 +12,6 @@ Authors
 """
 import time
 
-from mpi4py import MPI
-mpi = MPI.COMM_WORLD
 from numpy import exp, zeros, newaxis, sqrt, arange
 
 def iseq(start=0, stop=None, inc=1):

@@ -199,8 +199,8 @@ and engines:
     c.Global.controller_launcher = 'IPython.parallel.launcher.PBSControllerLauncher'
     c.Global.engine_launcher = 'IPython.parallel.launcher.PBSEngineSetLauncher'
 
-To use this mode, you first need to create a PBS script template that will be
-used to start the engines. Here is a sample PBS script template:
+IPython does provide simple default batch templates for PBS and SGE, but you may need
+to specify your own. Here is a sample PBS script template:
 
 .. sourcecode:: bash
 
@@ -208,7 +208,7 @@ used to start the engines. Here is a sample PBS script template:
     #PBS -j oe
     #PBS -l walltime=00:10:00
     #PBS -l nodes=${n/4}:ppn=4
-    #PBS -q parallel
+    #PBS -q $queue
 
     cd $$PBS_O_WORKDIR
     export PATH=$$HOME/usr/local/bin
@@ -225,11 +225,12 @@ There are a few important points about this template:
    expressions like ``${n/4}`` in the template to indicate the number of 
    nodes. There will always be a ${n} and ${cluster_dir} variable passed to the template.
    These allow the batch system to know how many engines, and where the configuration
-   files reside.
+   files reside. The same is true for the batch queue, with the template variable ``$queue``.
 
 3. Because ``$`` is a special character used by the template engine, you must  
    escape any ``$`` by using ``$$``.  This is important when referring to 
-   environment variables in the template.
+   environment variables in the template, or in SGE, where the config lines start
+   with ``#$``, which will have to be ``#$$``.
 
 4. Any options to :command:`ipenginez` can be given in the batch script 
    template, or in :file:`ipenginez_config.py`.
@@ -245,7 +246,7 @@ The controller template should be similar, but simpler:
     #PBS -j oe
     #PBS -l walltime=00:10:00
     #PBS -l nodes=1:ppn=4
-    #PBS -q parallel
+    #PBS -q $queue
 
     cd $$PBS_O_WORKDIR
     export PATH=$$HOME/usr/local/bin
@@ -258,14 +259,22 @@ Once you have created these scripts, save them with names like
 
 .. sourcecode:: python
 
-    with open("pbs.engine.template") as f:
-        c.PBSEngineSetLauncher.batch_template = f.read()
+    c.PBSEngineSetLauncher.batch_template_file = "pbs.engine.template"
     
-    with open("pbs.controller.template") as f:
-        c.PBSControllerLauncher.batch_template = f.read()
+    c.PBSControllerLauncher.batch_template_file = "pbs.controller.template"
         
 
 Alternately, you can just define the templates as strings inside :file:`ipclusterz_config`.
+
+Whether you are using your own templates or our defaults, the extra configurables available are
+the number of engines to launch (``$n``, and the batch system queue to which the jobs are to be
+submitted (``$queue``)). These are configurables, and can be specified in
+:file:`ipclusterz_config`:
+
+.. sourcecode:: python
+
+    c.PBSLauncher.queue = 'veryshort.q'
+    c.PBSEngineSetLauncher.n = 64
 
 Note that assuming you are running PBS on a multi-node cluster, the Controller's default behavior
 of listening only on localhost is likely too restrictive.  In this case, also assuming the

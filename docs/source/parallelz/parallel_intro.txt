@@ -217,10 +217,16 @@ everything is working correctly, try the following commands:
 	Out[5]: [ 'Hello, World', 'Hello, World', 'Hello, World', 'Hello, World' ]
 
 
-When a client is created with no arguments, the client tries to find the corresponding
-JSON file in the local `~/.ipython/clusterz_default/security` directory. If it finds it,
-you are set. If you have put the JSON file in a different location or it has a different
-name, create the client like this:
+When a client is created with no arguments, the client tries to find the corresponding JSON file
+in the local `~/.ipython/clusterz_default/security` directory. Or if you specified a profile,
+you can use that with the Client.  This should cover most cases:
+
+.. sourcecode:: ipython
+
+    In [2]: c = Client(profile='myprofile')
+
+If you have put the JSON file in a different location or it has a different name, create the
+client like this:
 
 .. sourcecode:: ipython
 
@@ -236,6 +242,9 @@ then you would connect to it with:
 
 Where 'myhub.example.com' is the url or IP address of the machine on
 which the Hub process is running (or another machine that has direct access to the Hub's ports).
+
+The SSH server may already be specified in ipcontroller-client.json, if the controller was
+instructed at its launch time.
 
 You are now ready to learn more about the :ref:`Direct
 <parallel_multiengine>` and :ref:`LoadBalanced <parallel_task>` interfaces to the

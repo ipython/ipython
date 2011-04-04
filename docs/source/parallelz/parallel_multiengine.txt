@@ -193,7 +193,7 @@ Creating a view is simple: index-access on a client creates a :class:`.DirectVie
     Out[4]: <DirectView [1, 2]>
 
     In [5]: view.apply<tab>
-    view.apply  view.apply_async  view.apply_sync  view.apply_with_flags
+    view.apply  view.apply_async  view.apply_sync
 
 For convenience, you can set block temporarily for a single call with the extra sync/async methods.
 
@@ -233,7 +233,7 @@ method:
 
     In [7]: rc[1::2].execute('c=a-b')
 
-    In [8]: rc[:]['c'] # shorthand for rc[:].pull('c', block=True)
+    In [8]: dview['c'] # shorthand for dview.pull('c', block=True)
     Out[8]: [15, -5, 15, -5]
 
 
@@ -478,7 +478,7 @@ Here are some examples of how you use :meth:`push` and :meth:`pull`:
     In [39]: dview.pull('a')
     Out[39]: [ 1.03234, 1.03234, 1.03234, 1.03234]
 
-    In [40]: rc[0].pull('b')
+    In [40]: dview.pull('b', targets=0)
     Out[40]: 3453
 
     In [41]: dview.pull(('a','b'))
@@ -551,12 +551,53 @@ basic effect using :meth:`scatter` and :meth:`gather`:
 
     In [67]: %px y = [i**10 for i in x]
     Parallel execution on engines: [0, 1, 2, 3]
-    Out[67]: 
+    Out[67]:
 
     In [68]: y = dview.gather('y')
 
     In [69]: print y
     [0, 1, 1024, 59049, 1048576, 9765625, 60466176, 282475249, 1073741824,...]
+
+Remote imports
+--------------
+
+Sometimes you will want to import packages both in your interactive session
+and on your remote engines.  This can be done with the :class:`ContextManager`
+created by a DirectView's :meth:`sync_imports` method:
+
+.. sourcecode:: ipython
+
+    In [69]: with dview.sync_imports():
+        ...:     import numpy
+    importing numpy on engine(s)
+
+Any imports made inside the block will also be performed on the view's engines.
+sync_imports also takes a `local` boolean flag that defaults to True, which specifies
+whether the local imports should also be performed.  However, support for `local=False`
+has not been implemented, so only packages that can be imported locally will work
+this way.
+
+You can also specify imports via the ``@require`` decorator.  This is a decorator
+designed for use in Dependencies, but can be used to handle remote imports as well.
+Modules or module names passed to ``@require`` will be imported before the decorated
+function is called.  If they cannot be imported, the decorated function will never
+execution, and will fail with an UnmetDependencyError.
+
+.. sourcecode:: ipython
+
+    In [69]: from IPython.parallel import require
+
+    In [70]: @requre('re'):
+        ...: def findall(pat, x):
+        ...:     # re is guaranteed to be available
+        ...:     return re.findall(pat, x)
+          
+    # you can also pass modules themselves, that you already have locally:
+    In [71]: @requre(time):
+        ...: def wait(t):
+        ...:     time.sleep(t)
+        ...:     return t
+
 
 Parallel exceptions
 -------------------

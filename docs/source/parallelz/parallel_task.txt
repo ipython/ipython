@@ -158,11 +158,10 @@ you specify are importable:
 
     In [10]: @require('numpy', 'zmq')
         ...: def myfunc():
-        ...:     import numpy,zmq
         ...:     return dostuff()
 
 Now, any time you apply :func:`myfunc`, the task will only run on a machine that has
-numpy and pyzmq available.
+numpy and pyzmq available, and when :func:`myfunc` is called, numpy and zmq will be imported.
 
 @depend
 *******

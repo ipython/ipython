@@ -24,7 +24,7 @@ c = get_config()
 # - SGEControllerLauncher
 # - WindowsHPCControllerLauncher
 # c.Global.controller_launcher = 'IPython.parallel.launcher.LocalControllerLauncher'
-c.Global.controller_launcher = 'IPython.parallel.launcher.PBSControllerLauncher'
+# c.Global.controller_launcher = 'IPython.parallel.launcher.PBSControllerLauncher'
 
 # Options are:
 # - LocalEngineSetLauncher
@@ -156,6 +156,9 @@ c.Global.controller_launcher = 'IPython.parallel.launcher.PBSControllerLauncher'
 
 # If for some reason the Controller and Engines have different options above, they
 # can be set as c.PBSControllerLauncher.<option> etc.
+
+# PBS and SGE have default templates, but you can specify your own, either as strings
+# or from files, as described here:
 
 # The batch submission script used to start the controller. This is where
 # environment variables would be setup, etc. This string is interpreted using
