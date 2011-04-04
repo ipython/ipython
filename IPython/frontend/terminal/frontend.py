@@ -26,8 +26,8 @@ import uuid
 import cPickle as pickle
 import code
 import zmq
-import rlcompleter
 import readline
+import rlcompleter
 import time
 
 
@@ -44,7 +44,9 @@ from IPython.utils import PyColorize
 from IPython.core.inputsplitter import InputSplitter
 from IPython.frontend.terminal.kernelmanager import KernelManager2p as KernelManager
 from IPython.zmq.session import Session
-from IPython.zmq import completer
+from IPython.frontend.terminal.completer import ClientCompleter2p #my own completer
+from IPython.zmq.completer import ClientCompleter #old completer not working
+
 #-----------------------------------------------------------------------------
 # Network Constants
 #-----------------------------------------------------------------------------
@@ -68,13 +70,13 @@ class Frontend(object):
        self.request_socket = self.km.xreq_channel.socket
        self.sub_socket = self.km.sub_channel.socket
        self.reply_socket = self.km.rep_channel.socket
-       self.msg_header = self.km.session.msg_header()     
-       
-       self.completer = completer.ClientCompleter(self,self.session,self.request_socket)
-       readline.set_completer(self.completer.complete)
+       self.msg_header = self.km.session.msg_header()
+       self.completer = ClientCompleter2p(self,self.km)
+       #self.completer = ClientCompleter()#old completer
        readline.parse_and_bind("tab: complete")
        readline.parse_and_bind('set show-all-if-ambiguous on')
-       
+       readline.set_completer(self.completer.complete)
+
        history_path = os.path.expanduser('~/.ipython/history')
        if os.path.isfile(history_path):
            rlcompleter.readline.read_history_file(history_path)
@@ -84,7 +86,7 @@ class Frontend(object):
        self.messages = {}
 
        self.prompt_count = 0 #self.km.xreq_channel.execute('', silent=True)
-       self.backgrounded = 0
+       #self.backgrounded = 0
        self._splitter = InputSplitter()
        self.code = ""
        
@@ -128,6 +130,7 @@ class Frontend(object):
                        sys.exit()
                    elif answer == 'n':
                        break
+
    def _execute(self, source, hidden = True):
        """ Execute 'source'. If 'hidden', do not show any output.
 
@@ -145,8 +148,8 @@ class Frontend(object):
 	      #print self.msg_xreq
 	      if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"] :
 		 if self.msg_xreq["content"]["status"] == 'ok' :
-		    if self.msg_xreq["msg_type"] == "complete_reply" :
-		       print self.msg_xreq["content"]["matches"]
+		    #if self.msg_xreq["msg_type"] == "complete_reply" :
+		       #print self.msg_xreq["content"]["matches"]
 		        
 	            if self.msg_xreq["msg_type"] == "execute_reply" :
 		       self.handle_sub_channel()
