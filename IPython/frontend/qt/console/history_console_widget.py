@@ -152,6 +152,16 @@ class HistoryConsoleWidget(ConsoleWidget):
             history = prefix
         self.input_buffer = history
 
+    def history_tail(self, n=10):
+        """ Get the local history list.
+
+        Parameters
+        ----------
+        n : int
+            The (maximum) number of history items to get.
+        """
+        return self._history[-n:]
+        
     #---------------------------------------------------------------------------
     # 'HistoryConsoleWidget' protected interface
     #---------------------------------------------------------------------------

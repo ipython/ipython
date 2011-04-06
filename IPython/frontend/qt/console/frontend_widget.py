@@ -88,9 +88,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     custom_restart = Bool(False)
     custom_restart_kernel_died = QtCore.Signal(float)
     custom_restart_requested = QtCore.Signal()
-   
-    # Emitted when an 'execute_reply' has been received from the kernel and
-    # processed by the FrontendWidget.
+
+    # Emitted when a user-visible 'execute_reply' has been received from the
+    # kernel and processed by the FrontendWidget. Contains the response message.
     executed = QtCore.Signal(object)
 
     # Emitted when an exit request has been received from the kernel.
