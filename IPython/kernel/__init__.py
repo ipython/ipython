@@ -1,25 +1,10 @@
-# encoding: utf-8
-"""The IPython1 kernel.
+"""IPython.kernel has been replaced by IPython.parallel.
 
-The IPython kernel actually refers to three things:
+The previous version of IPython's parallel library was located at this
+location (IPython.kernel). It has been moved to the IPython.parallel
+subpackage and has been refactored to use zeromq/pyzmq instead of twisted.
 
- * The IPython Engine
- * The IPython Controller
- * Clients to the IPython Controller
-
-The kernel module implements the engine, controller and client and all the 
-network protocols needed for the various entities to talk to each other.
-
-An end user should probably begin by looking at the `client.py` module
-if they need blocking clients or in `asyncclient.py` if they want asynchronous,
-deferred/Twisted using clients.
+Please see INSERT URL for further details.
 """
-__docformat__ = "restructuredtext en"
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-from IPython.kernel.error import TaskRejectError
+raise ImportError(__doc__)
