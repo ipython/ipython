@@ -63,15 +63,15 @@ except ImportError:
 #-----------------------------------------------------------------------------
 
 
-ipclusterz_cmd_argv = pycmd2argv(get_ipython_module_path(
+ipcluster_cmd_argv = pycmd2argv(get_ipython_module_path(
     'IPython.parallel.ipclusterapp'
 ))
 
-ipenginez_cmd_argv = pycmd2argv(get_ipython_module_path(
+ipengine_cmd_argv = pycmd2argv(get_ipython_module_path(
     'IPython.parallel.ipengineapp'
 ))
 
-ipcontrollerz_cmd_argv = pycmd2argv(get_ipython_module_path(
+ipcontroller_cmd_argv = pycmd2argv(get_ipython_module_path(
     'IPython.parallel.ipcontrollerapp'
 ))
 
@@ -304,7 +304,7 @@ class LocalProcessLauncher(BaseLauncher):
 class LocalControllerLauncher(LocalProcessLauncher):
     """Launch a controller as a regular external process."""
 
-    controller_cmd = List(ipcontrollerz_cmd_argv, config=True)
+    controller_cmd = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
     controller_args = List(['--log-to-file','--log-level', str(logging.INFO)], config=True)
 
@@ -322,7 +322,7 @@ class LocalControllerLauncher(LocalProcessLauncher):
 class LocalEngineLauncher(LocalProcessLauncher):
     """Launch a single engine as a regular externall process."""
 
-    engine_cmd = List(ipenginez_cmd_argv, config=True)
+    engine_cmd = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
     engine_args = List(
         ['--log-to-file','--log-level', str(logging.INFO)], config=True
@@ -443,7 +443,7 @@ class MPIExecLauncher(LocalProcessLauncher):
 class MPIExecControllerLauncher(MPIExecLauncher):
     """Launch a controller using mpiexec."""
 
-    controller_cmd = List(ipcontrollerz_cmd_argv, config=True)
+    controller_cmd = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
     controller_args = List(['--log-to-file','--log-level', str(logging.INFO)], config=True)
     n = Int(1, config=False)
@@ -462,7 +462,7 @@ class MPIExecControllerLauncher(MPIExecLauncher):
 
 class MPIExecEngineSetLauncher(MPIExecLauncher):
 
-    program = List(ipenginez_cmd_argv, config=True)
+    program = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
     program_args = List(
         ['--log-to-file','--log-level', str(logging.INFO)], config=True
@@ -531,13 +531,13 @@ class SSHLauncher(LocalProcessLauncher):
 
 class SSHControllerLauncher(SSHLauncher):
 
-    program = List(ipcontrollerz_cmd_argv, config=True)
+    program = List(ipcontroller_cmd_argv, config=True)
     # Command line arguments to ipcontroller.
     program_args = List(['-r', '--log-to-file','--log-level', str(logging.INFO)], config=True)
 
 
 class SSHEngineLauncher(SSHLauncher):
-    program = List(ipenginez_cmd_argv, config=True)
+    program = List(ipengine_cmd_argv, config=True)
     # Command line arguments for ipengine.
     program_args = List(
         ['--log-to-file','--log-level', str(logging.INFO)], config=True
@@ -883,9 +883,9 @@ class PBSControllerLauncher(PBSLauncher):
     batch_file_name = CUnicode(u'pbs_controller', config=True)
     default_template= CUnicode("""#!/bin/sh
 #PBS -V
-#PBS -N ipcontrollerz
+#PBS -N ipcontroller
 %s --log-to-file --cluster-dir $cluster_dir
-"""%(' '.join(ipcontrollerz_cmd_argv)))
+"""%(' '.join(ipcontroller_cmd_argv)))
 
     def start(self, cluster_dir):
         """Start the controller by profile or cluster_dir."""
@@ -898,9 +898,9 @@ class PBSEngineSetLauncher(PBSLauncher):
     batch_file_name = CUnicode(u'pbs_engines', config=True)
     default_template= CUnicode(u"""#!/bin/sh
 #PBS -V
-#PBS -N ipenginez
+#PBS -N ipengine
 %s --cluster-dir $cluster_dir
-"""%(' '.join(ipenginez_cmd_argv)))
+"""%(' '.join(ipengine_cmd_argv)))
 
     def start(self, n, cluster_dir):
         """Start n engines by profile or cluster_dir."""
@@ -922,9 +922,9 @@ class SGEControllerLauncher(SGELauncher):
     batch_file_name = CUnicode(u'sge_controller', config=True)
     default_template= CUnicode(u"""#$$ -V
 #$$ -S /bin/sh
-#$$ -N ipcontrollerz
+#$$ -N ipcontroller
 %s --log-to-file --cluster-dir $cluster_dir
-"""%(' '.join(ipcontrollerz_cmd_argv)))
+"""%(' '.join(ipcontroller_cmd_argv)))
 
     def start(self, cluster_dir):
         """Start the controller by profile or cluster_dir."""
@@ -936,9 +936,9 @@ class SGEEngineSetLauncher(SGELauncher):
     batch_file_name = CUnicode(u'sge_engines', config=True)
     default_template = CUnicode("""#$$ -V
 #$$ -S /bin/sh
-#$$ -N ipenginez
+#$$ -N ipengine
 %s --cluster-dir $cluster_dir
-"""%(' '.join(ipenginez_cmd_argv)))
+"""%(' '.join(ipengine_cmd_argv)))
 
     def start(self, n, cluster_dir):
         """Start n engines by profile or cluster_dir."""
@@ -954,7 +954,7 @@ class SGEEngineSetLauncher(SGELauncher):
 class IPClusterLauncher(LocalProcessLauncher):
     """Launch the ipcluster program in an external process."""
 
-    ipcluster_cmd = List(ipclusterz_cmd_argv, config=True)
+    ipcluster_cmd = List(ipcluster_cmd_argv, config=True)
     # Command line arguments to pass to ipcluster.
     ipcluster_args = List(
         ['--clean-logs', '--log-to-file', '--log-level', str(logging.INFO)], config=True)

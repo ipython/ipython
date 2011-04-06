@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""A simple logger object that consolidates messages incoming from ipclusterz processes."""
+"""A simple logger object that consolidates messages incoming from ipcluster processes."""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team

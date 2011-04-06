@@ -11,12 +11,12 @@ Because of this, there are many different possibilities.
 
 Broadly speaking, there are two ways of going about starting a controller and engines:
 
-* In an automated manner using the :command:`ipclusterz` command.
-* In a more manual way using the :command:`ipcontrollerz` and 
-  :command:`ipenginez` commands.
+* In an automated manner using the :command:`ipcluster` command.
+* In a more manual way using the :command:`ipcontroller` and 
+  :command:`ipengine` commands.
 
 This document describes both of these methods. We recommend that new users
-start with the :command:`ipclusterz` command as it simplifies many common usage
+start with the :command:`ipcluster` command as it simplifies many common usage
 cases.
 
 General considerations
@@ -30,29 +30,29 @@ matter which method you use to start your IPython cluster.
 Let's say that you want to start the controller on ``host0`` and engines on
 hosts ``host1``-``hostn``. The following steps are then required:
 
-1. Start the controller on ``host0`` by running :command:`ipcontrollerz` on
+1. Start the controller on ``host0`` by running :command:`ipcontroller` on
    ``host0``.
 2. Move the JSON file (:file:`ipcontroller-engine.json`) created by the 
    controller from ``host0`` to hosts ``host1``-``hostn``.
 3. Start the engines on hosts ``host1``-``hostn`` by running 
-   :command:`ipenginez`.  This command has to be told where the JSON file 
+   :command:`ipengine`.  This command has to be told where the JSON file 
    (:file:`ipcontroller-engine.json`) is located.
 
 At this point, the controller and engines will be connected. By default, the JSON files
-created by the controller are put into the :file:`~/.ipython/clusterz_default/security`
+created by the controller are put into the :file:`~/.ipython/cluster_default/security`
 directory. If the engines share a filesystem with the controller, step 2 can be skipped as
 the engines will automatically look at that location.
 
 The final step required to actually use the running controller from a client is to move
 the JSON file :file:`ipcontroller-client.json` from ``host0`` to any host where clients
-will be run. If these file are put into the :file:`~/.ipython/clusterz_default/security`
+will be run. If these file are put into the :file:`~/.ipython/cluster_default/security`
 directory of the client's host, they will be found automatically. Otherwise, the full path
 to them has to be passed to the client's constructor.
 
-Using :command:`ipclusterz`
+Using :command:`ipcluster`
 ===========================
 
-The :command:`ipclusterz` command provides a simple way of starting a
+The :command:`ipcluster` command provides a simple way of starting a
 controller and engines in the following situations:
 
 1. When the controller and engines are all run on localhost. This is useful
@@ -67,24 +67,24 @@ controller and engines in the following situations:
 
 .. note::
 
-    Currently :command:`ipclusterz` requires that the
+    Currently :command:`ipcluster` requires that the
     :file:`~/.ipython/cluster_<profile>/security` directory live on a shared filesystem that is
     seen by both the controller and engines. If you don't have a shared file
-    system you will need to use :command:`ipcontrollerz` and
-    :command:`ipenginez` directly.
+    system you will need to use :command:`ipcontroller` and
+    :command:`ipengine` directly.
 
-Under the hood, :command:`ipclusterz` just uses :command:`ipcontrollerz`
-and :command:`ipenginez` to perform the steps described above.
+Under the hood, :command:`ipcluster` just uses :command:`ipcontroller`
+and :command:`ipengine` to perform the steps described above.
 
-The simplest way to use ipclusterz requires no configuration, and will
+The simplest way to use ipcluster requires no configuration, and will
 launch a controller and a number of engines on the local machine. For instance, 
 to start one controller and 4 engines on localhost, just do::
 
-    $ ipclusterz start -n 4
+    $ ipcluster start -n 4
 
 To see other command line options for the local mode, do::
 
-    $ ipclusterz -h
+    $ ipcluster -h
 
 
 Configuring an IPython cluster
@@ -92,25 +92,25 @@ Configuring an IPython cluster
 
 Cluster configurations are stored as `profiles`.  You can create a new profile with::
 
-    $ ipclusterz create -p myprofile
+    $ ipcluster create -p myprofile
 
-This will create the directory :file:`IPYTHONDIR/clusterz_myprofile`, and populate it
+This will create the directory :file:`IPYTHONDIR/cluster_myprofile`, and populate it
 with the default configuration files for the three IPython cluster commands. Once
-you edit those files, you can continue to call ipclusterz/ipcontrollerz/ipenginez
+you edit those files, you can continue to call ipcluster/ipcontroller/ipengine
 with no arguments beyond ``-p myprofile``, and any configuration will be maintained.
 
 There is no limit to the number of profiles you can have, so you can maintain a profile for each
 of your common use cases. The default profile will be used whenever the
-profile argument is not specified, so edit :file:`IPYTHONDIR/clusterz_default/*_config.py` to
+profile argument is not specified, so edit :file:`IPYTHONDIR/cluster_default/*_config.py` to
 represent your most common use case.
 
 The configuration files are loaded with commented-out settings and explanations,
 which should cover most of the available possibilities.
 
-Using various batch systems with :command:`ipclusterz`
+Using various batch systems with :command:`ipcluster`
 ------------------------------------------------------
 
-:command:`ipclusterz` has a notion of Launchers that can start controllers
+:command:`ipcluster` has a notion of Launchers that can start controllers
 and engines with various remote execution schemes.  Currently supported
 models include `mpiexec`, PBS-style (Torque, SGE), and Windows HPC Server.
 
@@ -120,7 +120,7 @@ models include `mpiexec`, PBS-style (Torque, SGE), and Windows HPC Server.
     users can subclass and configure them to fit their own system that we
     have not yet supported (such as Condor)
 
-Using :command:`ipclusterz` in mpiexec/mpirun mode
+Using :command:`ipcluster` in mpiexec/mpirun mode
 --------------------------------------------------
 
 
@@ -132,11 +132,11 @@ The mpiexec/mpirun mode is useful if you:
 
 If these are satisfied, you can create a new profile::
 
-    $ ipclusterz create -p mpi
+    $ ipcluster create -p mpi
 
-and edit the file :file:`IPYTHONDIR/clusterz_mpi/ipclusterz_config.py`.
+and edit the file :file:`IPYTHONDIR/cluster_mpi/ipcluster_config.py`.
 
-There, instruct ipclusterz to use the MPIExec launchers by adding the lines:
+There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
 .. sourcecode:: python
 
@@ -144,7 +144,7 @@ There, instruct ipclusterz to use the MPIExec launchers by adding the lines:
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
-    $ ipclusterz start -n 4 -p mpi
+    $ ipcluster start -n 4 -p mpi
 
 This does the following:
 
@@ -166,7 +166,7 @@ On newer MPI implementations (such as OpenMPI), this will work even if you
 don't make any calls to MPI or call :func:`MPI_Init`. However, older MPI
 implementations actually require each process to call :func:`MPI_Init` upon
 starting. The easiest way of having this done is to install the mpi4py
-[mpi4py]_ package and then specify the ``c.MPI.use`` option in :file:`ipenginez_config.py`:
+[mpi4py]_ package and then specify the ``c.MPI.use`` option in :file:`ipengine_config.py`:
 
 .. sourcecode:: python
 
@@ -177,21 +177,21 @@ having problems with this, you will likely have to use a custom Python
 executable that itself calls :func:`MPI_Init` at the appropriate time.
 Fortunately, mpi4py comes with such a custom Python executable that is easy to
 install and use. However, this custom Python executable approach will not work
-with :command:`ipclusterz` currently.
+with :command:`ipcluster` currently.
 
 More details on using MPI with IPython can be found :ref:`here <parallelmpi>`.
 
 
-Using :command:`ipclusterz` in PBS mode
+Using :command:`ipcluster` in PBS mode
 ---------------------------------------
 
 The PBS mode uses the Portable Batch System [PBS]_ to start the engines. 
 
 As usual, we will start by creating a fresh profile::
 
-    $ ipclusterz create -p pbs
+    $ ipcluster create -p pbs
 
-And in :file:`ipclusterz_config.py`, we will select the PBS launchers for the controller
+And in :file:`ipcluster_config.py`, we will select the PBS launchers for the controller
 and engines:
 
 .. sourcecode:: python
@@ -213,7 +213,7 @@ to specify your own. Here is a sample PBS script template:
     cd $$PBS_O_WORKDIR
     export PATH=$$HOME/usr/local/bin
     export PYTHONPATH=$$HOME/usr/local/lib/python2.7/site-packages
-    /usr/local/bin/mpiexec -n ${n} ipenginez --cluster_dir=${cluster_dir}
+    /usr/local/bin/mpiexec -n ${n} ipengine --cluster_dir=${cluster_dir}
 
 There are a few important points about this template:
 
@@ -232,8 +232,8 @@ There are a few important points about this template:
    environment variables in the template, or in SGE, where the config lines start
    with ``#$``, which will have to be ``#$$``.
 
-4. Any options to :command:`ipenginez` can be given in the batch script 
-   template, or in :file:`ipenginez_config.py`.
+4. Any options to :command:`ipengine` can be given in the batch script 
+   template, or in :file:`ipengine_config.py`.
 
 5. Depending on the configuration of you system, you may have to set 
    environment variables in the script template.
@@ -251,11 +251,11 @@ The controller template should be similar, but simpler:
     cd $$PBS_O_WORKDIR
     export PATH=$$HOME/usr/local/bin
     export PYTHONPATH=$$HOME/usr/local/lib/python2.7/site-packages
-    ipcontrollerz --cluster_dir=${cluster_dir}
+    ipcontroller --cluster_dir=${cluster_dir}
 
 
 Once you have created these scripts, save them with names like
-:file:`pbs.engine.template`. Now you can load them into the :file:`ipclusterz_config` with:
+:file:`pbs.engine.template`. Now you can load them into the :file:`ipcluster_config` with:
 
 .. sourcecode:: python
 
@@ -264,12 +264,12 @@ Once you have created these scripts, save them with names like
     c.PBSControllerLauncher.batch_template_file = "pbs.controller.template"
         
 
-Alternately, you can just define the templates as strings inside :file:`ipclusterz_config`.
+Alternately, you can just define the templates as strings inside :file:`ipcluster_config`.
 
 Whether you are using your own templates or our defaults, the extra configurables available are
 the number of engines to launch (``$n``, and the batch system queue to which the jobs are to be
 submitted (``$queue``)). These are configurables, and can be specified in
-:file:`ipclusterz_config`:
+:file:`ipcluster_config`:
 
 .. sourcecode:: python
 
@@ -279,7 +279,7 @@ submitted (``$queue``)). These are configurables, and can be specified in
 Note that assuming you are running PBS on a multi-node cluster, the Controller's default behavior
 of listening only on localhost is likely too restrictive.  In this case, also assuming the
 nodes are safely behind a firewall, you can simply instruct the Controller to listen for
-connections on all its interfaces, by adding in :file:`ipcontrollerz_config`:
+connections on all its interfaces, by adding in :file:`ipcontroller_config`:
 
 .. sourcecode:: python
 
@@ -287,9 +287,9 @@ connections on all its interfaces, by adding in :file:`ipcontrollerz_config`:
 
 You can now run the cluster with::
 
-    $ ipclusterz start -p pbs -n 128
+    $ ipcluster start -p pbs -n 128
 
-Additional configuration options can be found in the PBS section of :file:`ipclusterz_config`.
+Additional configuration options can be found in the PBS section of :file:`ipcluster_config`.
 
 .. note::
 
@@ -298,12 +298,12 @@ Additional configuration options can be found in the PBS section of :file:`ipclu
     and with further configuration in similar batch systems like Condor.
 
 
-Using :command:`ipclusterz` in SSH mode
+Using :command:`ipcluster` in SSH mode
 ---------------------------------------
 
 
-The SSH mode uses :command:`ssh` to execute :command:`ipenginez` on remote
-nodes and :command:`ipcontrollerz` can be run remotely as well, or on localhost.
+The SSH mode uses :command:`ssh` to execute :command:`ipengine` on remote
+nodes and :command:`ipcontroller` can be run remotely as well, or on localhost.
 
 .. note::
 
@@ -312,9 +312,9 @@ nodes and :command:`ipcontrollerz` can be run remotely as well, or on localhost.
 
 As usual, we start by creating a clean profile::
 
-    $ ipclusterz create -p ssh
+    $ ipcluster create -p ssh
 
-To use this mode, select the SSH launchers in :file:`ipclusterz_config.py`:
+To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
 .. sourcecode:: python
 
@@ -331,9 +331,9 @@ The controller's remote location and configuration can be specified:
     # c.SSHControllerLauncher.hostname = 'controller.example.com'
     # c.SSHControllerLauncher.user = os.environ.get('USER','username')
 
-    # Set the arguments to be passed to ipcontrollerz
-    # note that remotely launched ipcontrollerz will not get the contents of 
-    # the local ipcontrollerz_config.py unless it resides on the *remote host*
+    # Set the arguments to be passed to ipcontroller
+    # note that remotely launched ipcontroller will not get the contents of 
+    # the local ipcontroller_config.py unless it resides on the *remote host*
     # in the location specified by the --cluster_dir argument.
     # c.SSHControllerLauncher.program_args = ['-r', '-ip', '0.0.0.0', '--cluster_dir', '/path/to/cd']
 
@@ -357,46 +357,46 @@ on that host.
 * The `engines` dict, where the keys are the host we want to run engines on and
   the value is the number of engines to run on that host.
 * on host3, the value is a tuple, where the number of engines is first, and the arguments
-  to be passed to :command:`ipenginez` are the second element.
+  to be passed to :command:`ipengine` are the second element.
 
 For engines without explicitly specified arguments, the default arguments are set in
 a single location:
 
 .. sourcecode:: python
 
-    c.SSHEngineSetLauncher.engine_args = ['--cluster_dir', '/path/to/clusterz_ssh']
+    c.SSHEngineSetLauncher.engine_args = ['--cluster_dir', '/path/to/cluster_ssh']
 
-Current limitations of the SSH mode of :command:`ipclusterz` are:
+Current limitations of the SSH mode of :command:`ipcluster` are:
 
 * Untested on Windows. Would require a working :command:`ssh` on Windows.
   Also, we are using shell scripts to setup and execute commands on remote
   hosts.
 * No file movement - 
 
-Using the :command:`ipcontrollerz` and :command:`ipenginez` commands
+Using the :command:`ipcontroller` and :command:`ipengine` commands
 ====================================================================
 
-It is also possible to use the :command:`ipcontrollerz` and :command:`ipenginez`
+It is also possible to use the :command:`ipcontroller` and :command:`ipengine`
 commands to start your controller and engines. This approach gives you full
 control over all aspects of the startup process.
 
 Starting the controller and engine on your local machine
 --------------------------------------------------------
 
-To use :command:`ipcontrollerz` and :command:`ipenginez` to start things on your
+To use :command:`ipcontroller` and :command:`ipengine` to start things on your
 local machine, do the following.
 
 First start the controller::
 
-    $ ipcontrollerz
+    $ ipcontroller
     
 Next, start however many instances of the engine you want using (repeatedly)
 the command::
 
-    $ ipenginez
+    $ ipengine
 
 The engines should start and automatically connect to the controller using the
-JSON files in :file:`~/.ipython/clusterz_default/security`. You are now ready to use the
+JSON files in :file:`~/.ipython/cluster_default/security`. You are now ready to use the
 controller and engines from IPython.
 
 .. warning:: 
@@ -418,18 +418,18 @@ Starting the controller and engines on different hosts
 When the controller and engines are running on different hosts, things are
 slightly more complicated, but the underlying ideas are the same:
 
-1. Start the controller on a host using :command:`ipcontrollerz`.
+1. Start the controller on a host using :command:`ipcontroller`.
 2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/cluster_<profile>/security` on
    the controller's host to the host where the engines will run.
-3. Use :command:`ipenginez` on the engine's hosts to start the engines.
+3. Use :command:`ipengine` on the engine's hosts to start the engines.
 
-The only thing you have to be careful of is to tell :command:`ipenginez` where
+The only thing you have to be careful of is to tell :command:`ipengine` where
 the :file:`ipcontroller-engine.json` file is located. There are two ways you
 can do this:
 
 * Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/cluster_<profile>/security`
   directory on the engine's host, where it will be found automatically.
-* Call :command:`ipenginez` with the ``--file=full_path_to_the_file``
+* Call :command:`ipengine` with the ``--file=full_path_to_the_file``
   flag.
 
 The ``--file`` flag works like this::
@@ -455,7 +455,7 @@ any point in the future.
 To do this, the only thing you have to do is specify the `-r` flag, so that
 the connection information in the JSON files remains accurate::
 
-    $ ipcontrollerz -r
+    $ ipcontroller -r
 
 Then, just copy the JSON files over the first time and you are set. You can
 start and stop the controller and engines any many times as you want in the
@@ -478,7 +478,7 @@ IPython and can be found in the directory :file:`~/.ipython/cluster_<profile>/lo
 Sending the log files to us will often help us to debug any problems.
 
 
-Configuring `ipcontrollerz`
+Configuring `ipcontroller`
 ---------------------------
 
 Ports and addresses
@@ -493,7 +493,7 @@ Database Backend
 
     
 
-Configuring `ipenginez`
+Configuring `ipengine`
 -----------------------
 
 .. note::

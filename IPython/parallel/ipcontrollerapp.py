@@ -48,7 +48,7 @@ from IPython.utils.traitlets import Instance, Unicode
 
 
 #: The default config file name for this application
-default_config_file_name = u'ipcontrollerz_config.py'
+default_config_file_name = u'ipcontroller_config.py'
 
 
 _description = """Start the IPython controller for parallel computing.
@@ -57,7 +57,7 @@ The IPython controller provides a gateway between the IPython engines and
 clients. The controller needs to be started before the engines and can be
 configured using command line options or using a cluster directory. Cluster
 directories contain config, log and security files and are usually located in
-your ipython directory and named as "clusterz_<profile>". See the --profile
+your ipython directory and named as "cluster_<profile>". See the --profile
 and --cluster-dir options for details.
 """
 
@@ -251,7 +251,7 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
 
 class IPControllerApp(ApplicationWithClusterDir):
 
-    name = u'ipcontrollerz'
+    name = u'ipcontroller'
     description = _description
     command_line_loader = IPControllerAppConfigLoader
     default_config_file_name = default_config_file_name

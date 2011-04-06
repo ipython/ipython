@@ -13,7 +13,7 @@
 
 from unittest import TestCase
 
-from IPython.testing.parametric import parametric
+from IPython.testing.decorators import parametric
 from IPython.utils import newserialized as ns
 from IPython.utils.pickleutil import can, uncan, CannedObject, CannedFunction
 from IPython.parallel.tests.clienttest import skip_without

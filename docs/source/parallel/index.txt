@@ -4,9 +4,19 @@
 Using IPython for parallel computing
 ====================================
 
-The twisted-based :mod:`IPython.kernel` has been removed, in favor of
-the new 0MQ-based :mod:`IPython.parallel`, whose merge into master is imminent.
+.. toctree::
+   :maxdepth: 2
 
-Until that code is merged, it can be found in the `newparallel branch 
-<https://github.com/ipython/ipython/tree/newparallel>`_, and its draft documentation can be
-found `here <http://minrk.github.com/ipython-doc/newparallel>`_.
+   parallel_intro.txt
+   parallel_process.txt
+   parallel_multiengine.txt
+   parallel_task.txt
+   parallel_mpi.txt
+   parallel_security.txt
+   parallel_winhpc.txt
+   parallel_demos.txt
+   dag_dependencies.txt
+   parallel_details.txt
+   parallel_transition.txt
+
+

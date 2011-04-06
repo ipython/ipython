@@ -37,7 +37,7 @@ from IPython.parallel.clusterdir import (
 #-----------------------------------------------------------------------------
 
 
-default_config_file_name = u'ipclusterz_config.py'
+default_config_file_name = u'ipcluster_config.py'
 
 
 _description = """\
@@ -47,9 +47,9 @@ An IPython cluster consists of 1 controller and 1 or more engines.
 This command automates the startup of these processes using a wide
 range of startup methods (SSH, local processes, PBS, mpiexec,
 Windows HPC Server 2008). To start a cluster with 4 engines on your
-local host simply do 'ipclusterz start -n 4'. For more complex usage 
-you will typically do 'ipclusterz create -p mycluster', then edit
-configuration files, followed by 'ipclusterz start -p mycluster -n 4'.
+local host simply do 'ipcluster start -n 4'. For more complex usage 
+you will typically do 'ipcluster create -p mycluster', then edit
+configuration files, followed by 'ipcluster start -p mycluster -n 4'.
 """
 
 
@@ -108,9 +108,9 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             title='ipcluster subcommands',
             description=
             """ipcluster has a variety of subcommands. The general way of 
-            running ipcluster is 'ipclusterz <cmd> [options]'. To get help
-            on a particular subcommand do 'ipclusterz <cmd> -h'."""
-            # help="For more help, type 'ipclusterz <cmd> -h'",
+            running ipcluster is 'ipcluster <cmd> [options]'. To get help
+            on a particular subcommand do 'ipcluster <cmd> -h'."""
+            # help="For more help, type 'ipcluster <cmd> -h'",
         )
 
         # The "list" subcommand parser
@@ -123,7 +123,7 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             """List all available clusters, by cluster directory, that can
             be found in the current working directly or in the ipython
             directory. Cluster directories are named using the convention
-            'clusterz_<profile>'."""
+            'cluster_<profile>'."""
         )
 
         # The "create" subcommand parser
@@ -136,13 +136,13 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             """Create an ipython cluster directory by its profile name or 
             cluster directory path. Cluster directories contain 
             configuration, log and security related files and are named 
-            using the convention 'clusterz_<profile>'. By default they are
+            using the convention 'cluster_<profile>'. By default they are
             located in your ipython directory. Once created, you will
             probably need to edit the configuration files in the cluster
             directory to configure your cluster. Most users will create a
             cluster directory by profile name, 
-            'ipclusterz create -p mycluster', which will put the directory
-            in '<ipython_dir>/clusterz_mycluster'. 
+            'ipcluster create -p mycluster', which will put the directory
+            in '<ipython_dir>/cluster_mycluster'. 
             """
         )
         paa = parser_create.add_argument
@@ -162,10 +162,10 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             """Start an ipython cluster by its profile name or cluster 
             directory. Cluster directories contain configuration, log and
             security related files and are named using the convention
-            'clusterz_<profile>' and should be creating using the 'start'
+            'cluster_<profile>' and should be creating using the 'start'
             subcommand of 'ipcluster'. If your cluster directory is in 
             the cwd or the ipython directory, you can simply refer to it
-            using its profile name, 'ipclusterz start -n 4 -p <profile>`,
+            using its profile name, 'ipcluster start -n 4 -p <profile>`,
             otherwise use the '--cluster-dir' option.
             """
         )
@@ -200,9 +200,9 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             description=
             """Stop a running ipython cluster by its profile name or cluster 
             directory. Cluster directories are named using the convention
-            'clusterz_<profile>'. If your cluster directory is in 
+            'cluster_<profile>'. If your cluster directory is in 
             the cwd or the ipython directory, you can simply refer to it
-            using its profile name, 'ipclusterz stop -p <profile>`, otherwise
+            using its profile name, 'ipcluster stop -p <profile>`, otherwise
             use the '--cluster-dir' option.
             """
         )
@@ -223,10 +223,10 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
             by profile name or cluster directory.
             Cluster directories contain configuration, log and
             security related files and are named using the convention
-            'clusterz_<profile>' and should be creating using the 'start'
+            'cluster_<profile>' and should be creating using the 'start'
             subcommand of 'ipcluster'. If your cluster directory is in 
             the cwd or the ipython directory, you can simply refer to it
-            using its profile name, 'ipclusterz engines -n 4 -p <profile>`,
+            using its profile name, 'ipcluster engines -n 4 -p <profile>`,
             otherwise use the '--cluster-dir' option.
             """
         )
@@ -249,7 +249,7 @@ class IPClusterAppConfigLoader(ClusterDirConfigLoader):
 
 class IPClusterApp(ApplicationWithClusterDir):
 
-    name = u'ipclusterz'
+    name = u'ipcluster'
     description = _description
     usage = None
     command_line_loader = IPClusterAppConfigLoader
@@ -286,8 +286,8 @@ class IPClusterApp(ApplicationWithClusterDir):
             except ClusterDirError:
                 raise ClusterDirError(
                     "Could not find a cluster directory. A cluster dir must "
-                    "be created before running 'ipclusterz start'.  Do "
-                    "'ipclusterz create -h' or 'ipclusterz list -h' for more "
+                    "be created before running 'ipcluster start'.  Do "
+                    "'ipcluster create -h' or 'ipcluster list -h' for more "
                     "information about creating and listing cluster dirs."
                 )
         elif subcommand=='engines':
@@ -297,8 +297,8 @@ class IPClusterApp(ApplicationWithClusterDir):
             except ClusterDirError:
                 raise ClusterDirError(
                     "Could not find a cluster directory. A cluster dir must "
-                    "be created before running 'ipclusterz start'.  Do "
-                    "'ipclusterz create -h' or 'ipclusterz list -h' for more "
+                    "be created before running 'ipcluster start'.  Do "
+                    "'ipcluster create -h' or 'ipcluster list -h' for more "
                     "information about creating and listing cluster dirs."
                 )
 
@@ -322,9 +322,9 @@ class IPClusterApp(ApplicationWithClusterDir):
             files = os.listdir(path)
             for f in files:
                 full_path = os.path.join(path, f)
-                if os.path.isdir(full_path) and f.startswith('clusterz_'):
+                if os.path.isdir(full_path) and f.startswith('cluster_'):
                     profile = full_path.split('_')[-1]
-                    start_cmd = 'ipclusterz start -p %s -n 4' % profile
+                    start_cmd = 'ipcluster start -p %s -n 4' % profile
                     print start_cmd + " ==> " + full_path
 
     def pre_construct(self):
@@ -498,7 +498,7 @@ class IPClusterApp(ApplicationWithClusterDir):
         else:
             self.log.critical(
                 'Cluster is already running with [pid=%s]. '
-                'use "ipclusterz stop" to stop the cluster.' % pid
+                'use "ipcluster stop" to stop the cluster.' % pid
             )
             # Here I exit with a unusual exit status that other processes
             # can watch for to learn how I existed.
@@ -506,7 +506,7 @@ class IPClusterApp(ApplicationWithClusterDir):
 
         # Now log and daemonize
         self.log.info(
-            'Starting ipclusterz with [daemon=%r]' % config.Global.daemonize
+            'Starting ipcluster with [daemon=%r]' % config.Global.daemonize
         )
         # TODO: Get daemonize working on Windows or as a Windows Server.
         if config.Global.daemonize:

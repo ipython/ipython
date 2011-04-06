@@ -130,7 +130,7 @@ way.
 There is exactly one key per cluster - it must be the same everywhere. Typically, the
 controller creates this key, and stores it in the private connection files
 `ipython-{engine|client}.json`. These files are typically stored in the
-`~/.ipython/clusterz_<profile>/security` directory, and are maintained as readable only by
+`~/.ipython/cluster_<profile>/security` directory, and are maintained as readable only by
 the owner, just as is common practice with a user's keys in their `.ssh` directory.
 
 .. warning::

@@ -40,7 +40,7 @@ from IPython.utils.importstring import import_item
 #-----------------------------------------------------------------------------
 
 #: The default config file name for this application
-default_config_file_name = u'ipenginez_config.py'
+default_config_file_name = u'ipengine_config.py'
 
 
 mpi4py_init = """from mpi4py import MPI as mpi
@@ -64,7 +64,7 @@ IPython engines run in parallel and perform computations on behalf of a client
 and controller. A controller needs to be started before the engines. The
 engine can be configured using command line options or using a cluster
 directory. Cluster directories contain config, log and security files and are
-usually located in your ipython directory and named as "clusterz_<profile>".
+usually located in your ipython directory and named as "cluster_<profile>".
 See the --profile and --cluster-dir options for details.
 """
 
@@ -124,7 +124,7 @@ class IPEngineAppConfigLoader(ClusterDirConfigLoader):
 
 class IPEngineApp(ApplicationWithClusterDir):
 
-    name = u'ipenginez'
+    name = u'ipengine'
     description = _description
     command_line_loader = IPEngineAppConfigLoader
     default_config_file_name = default_config_file_name

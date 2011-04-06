@@ -22,9 +22,9 @@ Starting the IPython controller and engines
 
 To follow along with this tutorial, you will need to start the IPython
 controller and four IPython engines. The simplest way of doing this is to use
-the :command:`ipclusterz` command::
+the :command:`ipcluster` command::
 
-	$ ipclusterz start -n 4
+	$ ipcluster start -n 4
 	
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <ip1par>` to using IPython for parallel computing.
@@ -321,16 +321,16 @@ Schedulers
 There are a variety of valid ways to determine where jobs should be assigned in a 
 load-balancing situation.  In IPython, we support several standard schemes, and
 even make it easy to define your own.  The scheme can be selected via the ``--scheme``
-argument to :command:`ipcontrollerz`, or in the :attr:`HubFactory.scheme` attribute
+argument to :command:`ipcontroller`, or in the :attr:`HubFactory.scheme` attribute
 of a controller config object.
 
 The built-in routing schemes:
 
 To select one of these schemes, simply do::
 
-    $ ipcontrollerz --scheme <schemename>
+    $ ipcontroller --scheme <schemename>
     for instance:
-    $ ipcontrollerz --scheme lru
+    $ ipcontroller --scheme lru
 
 lru: Least Recently Used
 

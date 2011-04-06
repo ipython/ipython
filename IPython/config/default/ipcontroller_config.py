@@ -25,112 +25,156 @@ c = get_config()
 # be imported in the controller for pickling to work.
 # c.Global.import_statements = ['import math']
 
-# Reuse the controller's FURL files. If False, FURL files are regenerated
+# Reuse the controller's JSON files. If False, JSON files are regenerated
 # each time the controller is run. If True, they will be reused, *but*, you
 # also must set the network ports by hand. If set, this will override the
 # values set for the client and engine connections below.
-# c.Global.reuse_furls = True
+# c.Global.reuse_files = True
 
-# Enable SSL encryption on all connections to the controller. If set, this
-# will override the values set for the client and engine connections below.
+# Enable exec_key authentication on all messages. Default is True
 # c.Global.secure = True
 
 # The working directory for the process. The application will use os.chdir
 # to change to this directory before starting.
 # c.Global.work_dir = os.getcwd()
 
+# The log url for logging to an `iploggerz` application.  This will override
+# log-to-file.
+# c.Global.log_url = 'tcp://127.0.0.1:20202'
+
+# The specific external IP that is used to disambiguate multi-interface URLs.
+# The default behavior is to guess from external IPs gleaned from `socket`.
+# c.Global.location = '192.168.1.123'
+
+# The ssh server remote clients should use to connect to this controller.
+# It must be a machine that can see the interface specified in client_ip.
+# The default for client_ip is localhost, in which case the sshserver must
+# be an external IP of the controller machine.
+# c.Global.sshserver = 'controller.example.com'
+
+# the url to use for registration.  If set, this overrides engine-ip,
+# engine-transport client-ip,client-transport, and regport.
+# c.RegistrationFactory.url = 'tcp://*:12345'
+
+# the port to use for registration.  Clients and Engines both use this
+# port for registration.
+# c.RegistrationFactory.regport = 10101
+
 #-----------------------------------------------------------------------------
-# Configure the client services
+# Configure the Task Scheduler
 #-----------------------------------------------------------------------------
 
-# Basic client service config attributes
+# The routing scheme. 'pure' will use the pure-ZMQ scheduler. Any other 
+# value will use a Python scheduler with various routing schemes.
+# python schemes are: lru, weighted, random, twobin. Default is 'weighted'.
+# Note that the pure ZMQ scheduler does not support many features, such as
+# dying engines, dependencies, or engine-subset load-balancing.
+# c.ControllerFactory.scheme = 'pure'
+
+# The pure ZMQ scheduler can limit the number of outstanding tasks per engine
+# by using the ZMQ HWM option.  This allows engines with long-running tasks
+# to not steal too many tasks from other engines. The default is 0, which
+# means agressively distribute messages, never waiting for them to finish.
+# c.ControllerFactory.hwm = 1
+
+# Whether to use Threads or Processes to start the Schedulers.  Threads will
+# use less resources, but potentially reduce throughput. Default is to 
+# use processes.  Note that the a Python scheduler will always be in a Process.
+# c.ControllerFactory.usethreads
+
+#-----------------------------------------------------------------------------
+# Configure the Hub
+#-----------------------------------------------------------------------------
+
+# Which class to use for the db backend.  Currently supported are DictDB (the
+# default), and MongoDB. Uncomment this line to enable MongoDB, which will
+# slow-down the Hub's responsiveness, but also reduce its memory footprint.
+# c.HubFactory.db_class = 'IPython.parallel.mongodb.MongoDB'
+
+# The heartbeat ping frequency.  This is the frequency (in ms) at which the
+# Hub pings engines for heartbeats.  This determines how quickly the Hub
+# will react to engines coming and going.  A lower number means faster response
+# time, but more network activity.  The default is 100ms
+# c.HubFactory.ping = 100
+
+# HubFactory queue port pairs, to set by name: mux, iopub, control, task.  Set
+# each as a tuple of length 2 of ints.  The default is to find random
+# available ports
+# c.HubFactory.mux = (10102,10112)
+
+#-----------------------------------------------------------------------------
+# Configure the client connections
+#-----------------------------------------------------------------------------
+
+# Basic client connection config attributes
 
 # The network interface the controller will listen on for client connections.
-# This should be an IP address or hostname of the controller's host. The empty
-# string means listen on all interfaces.
-# c.FCClientServiceFactory.ip = ''
+# This should be an IP address or interface on the controller. An asterisk
+# means listen on all interfaces. The transport can be any transport
+# supported by zeromq (tcp,epgm,pgm,ib,ipc):
+# c.HubFactory.client_ip = '*'
+# c.HubFactory.client_transport = 'tcp'
 
-# The TCP/IP port the controller will listen on for client connections. If 0
-# a random port will be used. If the controller's host has a firewall running
-# it must allow incoming traffic on this port.
-# c.FCClientServiceFactory.port = 0
-
-# The client learns how to connect to the controller by looking at the
-# location field embedded in the FURL. If this field is empty, all network
-# interfaces that the controller is listening on will be listed. To have the
-# client connect on a particular interface, list it here.
-# c.FCClientServiceFactory.location = ''
-
-# Use SSL encryption for the client connection.
-# c.FCClientServiceFactory.secure =  True
-
-# Reuse the client FURL each time the controller is started. If set, you must
-# also pick a specific network port above (FCClientServiceFactory.port).
-# c.FCClientServiceFactory.reuse_furls = False
+# individual client ports to configure by name: query_port, notifier_port
+# c.HubFactory.query_port = 12345
 
 #-----------------------------------------------------------------------------
-# Configure the engine services
+# Configure the engine connections
 #-----------------------------------------------------------------------------
 
-# Basic config attributes for the engine services.
+# Basic config attributes for the engine connections.
 
 # The network interface the controller will listen on for engine connections.
-# This should be an IP address or hostname of the controller's host. The empty
-# string means listen on all interfaces.
-# c.FCEngineServiceFactory.ip = ''
+# This should be an IP address or interface on the controller. An asterisk
+# means listen on all interfaces. The transport can be any transport
+# supported by zeromq (tcp,epgm,pgm,ib,ipc):
+# c.HubFactory.engine_ip = '*'
+# c.HubFactory.engine_transport = 'tcp'
 
-# The TCP/IP port the controller will listen on for engine connections. If 0
-# a random port will be used. If the controller's host has a firewall running
-# it must allow incoming traffic on this port.
-# c.FCEngineServiceFactory.port = 0
-
-# The engine learns how to connect to the controller by looking at the
-# location field embedded in the FURL. If this field is empty, all network
-# interfaces that the controller is listening on will be listed. To have the
-# client connect on a particular interface, list it here.
-# c.FCEngineServiceFactory.location = ''
-
-# Use SSL encryption for the engine connection.
-# c.FCEngineServiceFactory.secure = True
-
-# Reuse the client FURL each time the controller is started. If set, you must
-# also pick a specific network port above (FCClientServiceFactory.port).
-# c.FCEngineServiceFactory.reuse_furls = False
+# set the engine heartbeat ports to use:
+# c.HubFactory.hb = (10303,10313)
 
 #-----------------------------------------------------------------------------
-# Developer level configuration attributes
+# Configure the TaskRecord database backend
 #-----------------------------------------------------------------------------
 
-# You shouldn't have to modify anything in this section. These attributes
-# are more for developers who want to change the behavior of the controller
-# at a fundamental level.
+# For memory/persistance reasons, tasks can be stored out-of-memory in a database.
+# Currently, only sqlite and mongodb are supported as backends, but the interface
+# is fairly simple, so advanced developers could write their own backend.
 
-# c.FCClientServiceFactory.cert_file = u'ipcontroller-client.pem'
+# ----- in-memory configuration --------
+# this line restores the default behavior: in-memory storage of all results.
+# c.HubFactory.db_class = 'IPython.parallel.dictdb.DictDB'
 
-# default_client_interfaces = Config()
-# default_client_interfaces.Task.interface_chain = [
-#     'IPython.kernel.task.ITaskController',
-#     'IPython.kernel.taskfc.IFCTaskController'
-# ]
-# 
-# default_client_interfaces.Task.furl_file = u'ipcontroller-tc.furl'
-# 
-# default_client_interfaces.MultiEngine.interface_chain = [
-#     'IPython.kernel.multiengine.IMultiEngine',
-#     'IPython.kernel.multienginefc.IFCSynchronousMultiEngine'
-# ]
-# 
-# default_client_interfaces.MultiEngine.furl_file = u'ipcontroller-mec.furl'
-# 
-# c.FCEngineServiceFactory.interfaces = default_client_interfaces
+# ----- sqlite configuration --------
+# use this line to activate sqlite:
+# c.HubFactory.db_class = 'IPython.parallel.sqlitedb.SQLiteDB'
 
-# c.FCEngineServiceFactory.cert_file = u'ipcontroller-engine.pem'
+# You can specify the name of the db-file.  By default, this will be located
+# in the active cluster_dir, e.g. ~/.ipython/clusterz_default/tasks.db
+# c.SQLiteDB.filename = 'tasks.db'
 
-# default_engine_interfaces = Config()
-# default_engine_interfaces.Default.interface_chain = [
-#     'IPython.kernel.enginefc.IFCControllerBase'
-# ]
-# 
-# default_engine_interfaces.Default.furl_file = u'ipcontroller-engine.furl'
-# 
-# c.FCEngineServiceFactory.interfaces = default_engine_interfaces
+# You can also specify the location of the db-file, if you want it to be somewhere
+# other than the cluster_dir.
+# c.SQLiteDB.location = '/scratch/'
+
+# This will specify the name of the table for the controller to use.  The default
+# behavior is to use the session ID of the SessionFactory object (a uuid). Overriding
+# this will result in results persisting for multiple sessions.
+# c.SQLiteDB.table = 'results'
+
+# ----- mongodb configuration --------
+# use this line to activate mongodb:
+# c.HubFactory.db_class = 'IPython.parallel.mongodb.MongoDB'
+
+# You can specify the args and kwargs pymongo will use when creating the Connection.
+# For more information on what these options might be, see pymongo documentation.
+# c.MongoDB.connection_kwargs = {}
+# c.MongoDB.connection_args = []
+
+# This will specify the name of the mongo database for the controller to use.  The default
+# behavior is to use the session ID of the SessionFactory object (a uuid). Overriding
+# this will result in task results persisting through multiple sessions.
+# c.MongoDB.database = 'ipythondb'
+
+

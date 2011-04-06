@@ -185,6 +185,7 @@ def make_exclude():
 
     if not have['zmq']:
         exclusions.append(ipjoin('zmq'))
+        exclusions.append(ipjoin('parallel'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':

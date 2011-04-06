@@ -110,7 +110,7 @@ results. The code to run this calculation in parallel is contained in
 :file:`docs/examples/newparallel/parallelpi.py`. This code can be run in parallel
 using IPython by following these steps:
 
-1. Use :command:`ipclusterz` to start 15 engines. We used an 8 core (2 quad 
+1. Use :command:`ipcluster` to start 15 engines. We used an 8 core (2 quad 
    core CPUs) cluster with hyperthreading enabled which makes the 8 cores 
    looks like 16 (1 controller + 15 engines) in the OS. However, the maximum
    speedup we can observe is still only 8x.
@@ -230,7 +230,7 @@ plot using Matplotlib.
 .. literalinclude:: ../../examples/newparallel/mcdriver.py
    :language: python
 
-To use this code, start an IPython cluster using :command:`ipclusterz`, open
+To use this code, start an IPython cluster using :command:`ipcluster`, open
 IPython in the pylab mode with the file :file:`mcdriver.py` in your current
 working directory and then type:
 

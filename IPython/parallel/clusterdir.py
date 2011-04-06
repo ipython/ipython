@@ -138,8 +138,8 @@ class ClusterDir(Configurable):
 
     def copy_all_config_files(self, path=None, overwrite=False):
         """Copy all config files into the active cluster directory."""
-        for f in [u'ipcontrollerz_config.py', u'ipenginez_config.py',
-                  u'ipclusterz_config.py']:
+        for f in [u'ipcontroller_config.py', u'ipengine_config.py',
+                  u'ipcluster_config.py']:
             self.copy_config_file(f, path=path, overwrite=overwrite)
 
     @classmethod
@@ -164,11 +164,11 @@ class ClusterDir(Configurable):
             The path (directory) to put the cluster directory in.
         profile : str
             The name of the profile.  The name of the cluster directory will
-            be "clusterz_<profile>".
+            be "cluster_<profile>".
         """
         if not os.path.isdir(path):
             raise ClusterDirError('Directory not found: %s' % path)
-        cluster_dir = os.path.join(path, u'clusterz_' + profile)
+        cluster_dir = os.path.join(path, u'cluster_' + profile)
         return ClusterDir(location=cluster_dir)
 
     @classmethod
@@ -190,9 +190,9 @@ class ClusterDir(Configurable):
             The IPython directory to use.
         profile : unicode or str
             The name of the profile.  The name of the cluster directory
-            will be "clusterz_<profile>".
+            will be "cluster_<profile>".
         """
-        dirname = u'clusterz_' + profile
+        dirname = u'cluster_' + profile
         cluster_dir_paths = os.environ.get('IPCLUSTER_DIR_PATH','')
         if cluster_dir_paths:
             cluster_dir_paths = cluster_dir_paths.split(':')

@@ -17,9 +17,9 @@ Starting the IPython controller and engines
 
 To follow along with this tutorial, you will need to start the IPython
 controller and four IPython engines. The simplest way of doing this is to use
-the :command:`ipclusterz` command::
+the :command:`ipcluster` command::
 
-    $ ipclusterz start -n 4
+    $ ipcluster start -n 4
     
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <ip1par>` to using IPython for parallel computing.
@@ -37,7 +37,7 @@ module and then create a :class:`.Client` instance:
     In [2]: rc = Client()
 
 This form assumes that the default connection information (stored in
-:file:`ipcontroller-client.json` found in :file:`IPYTHON_DIR/clusterz_default/security`) is
+:file:`ipcontroller-client.json` found in :file:`IPYTHON_DIR/cluster_default/security`) is
 accurate. If the controller was started on a remote machine, you must copy that connection
 file to the client machine, or enter its contents as arguments to the Client constructor:
 

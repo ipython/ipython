@@ -144,25 +144,25 @@ in parallel on the engines from within the IPython shell using an appropriate
 client. This includes the ability to interact with, plot and visualize data
 from the engines.
 
-IPython has a command line program called :command:`ipclusterz` that automates
+IPython has a command line program called :command:`ipcluster` that automates
 all aspects of starting the controller and engines on the compute nodes.
-:command:`ipclusterz` has full support for the Windows HPC job scheduler,
-meaning that :command:`ipclusterz` can use this job scheduler to start the
+:command:`ipcluster` has full support for the Windows HPC job scheduler,
+meaning that :command:`ipcluster` can use this job scheduler to start the
 controller and engines. In our experience, the Windows HPC job scheduler is
 particularly well suited for interactive applications, such as IPython. Once
-:command:`ipclusterz` is configured properly, a user can start an IPython
+:command:`ipcluster` is configured properly, a user can start an IPython
 cluster from their local workstation almost instantly, without having to log
 on to the head node (as is typically required by Unix based job schedulers).
 This enables a user to move seamlessly between serial and parallel
 computations.
 
-In this section we show how to use :command:`ipclusterz` to start an IPython
+In this section we show how to use :command:`ipcluster` to start an IPython
 cluster using the Windows HPC Server 2008 job scheduler. To make sure that
-:command:`ipclusterz` is installed and working properly, you should first try
+:command:`ipcluster` is installed and working properly, you should first try
 to start an IPython cluster on your local host. To do this, open a Windows
 Command Prompt and type the following command::
 
-    ipclusterz start -n 2
+    ipcluster start -n 2
 
 You should see a number of messages printed to the screen, ending with 
 "IPython cluster: started". The result should look something like the following
@@ -174,12 +174,12 @@ At this point, the controller and two engines are running on your local host.
 This configuration is useful for testing and for situations where you want to
 take advantage of multiple cores on your local computer. 
 
-Now that we have confirmed that :command:`ipclusterz` is working properly, we
+Now that we have confirmed that :command:`ipcluster` is working properly, we
 describe how to configure and run an IPython cluster on an actual compute
 cluster running Windows HPC Server 2008. Here is an outline of the needed
 steps:
 
-1. Create a cluster profile using: ``ipclusterz create -p mycluster``
+1. Create a cluster profile using: ``ipcluster create -p mycluster``
 
 2. Edit configuration files in the directory :file:`.ipython\\cluster_mycluster`
 
@@ -191,7 +191,7 @@ Creating a cluster profile
 In most cases, you will have to create a cluster profile to use IPython on a
 cluster. A cluster profile is a name (like "mycluster") that is associated
 with a particular cluster configuration. The profile name is used by
-:command:`ipclusterz` when working with the cluster.
+:command:`ipcluster` when working with the cluster.
 
 Associated with each cluster profile is a cluster directory. This cluster
 directory is a specially named directory (typically located in the
@@ -204,10 +204,10 @@ security keys. The naming convention for cluster directories is:
 To create a new cluster profile (named "mycluster") and the associated cluster
 directory, type the following command at the Windows Command Prompt::
 
-    ipclusterz create -p mycluster
+    ipcluster create -p mycluster
 
 The output of this command is shown in the screenshot below. Notice how
-:command:`ipclusterz` prints out the location of the newly created cluster
+:command:`ipcluster` prints out the location of the newly created cluster
 directory.
 
 .. image:: ipcluster_create.*
@@ -218,19 +218,19 @@ Configuring a cluster profile
 Next, you will need to configure the newly created cluster profile by editing
 the following configuration files in the cluster directory:
 
-* :file:`ipclusterz_config.py`
+* :file:`ipcluster_config.py`
 * :file:`ipcontroller_config.py`
 * :file:`ipengine_config.py`
 
-When :command:`ipclusterz` is run, these configuration files are used to 
+When :command:`ipcluster` is run, these configuration files are used to 
 determine how the engines and controller will be started. In most cases,
 you will only have to set a few of the attributes in these files.
 
-To configure :command:`ipclusterz` to use the Windows HPC job scheduler, you
+To configure :command:`ipcluster` to use the Windows HPC job scheduler, you
 will need to edit the following attributes in the file
-:file:`ipclusterz_config.py`::
+:file:`ipcluster_config.py`::
 
-    # Set these at the top of the file to tell ipclusterz to use the
+    # Set these at the top of the file to tell ipcluster to use the
     # Windows HPC job scheduler.
     c.Global.controller_launcher = \
         'IPython.parallel.launcher.WindowsHPCControllerLauncher'
@@ -257,15 +257,15 @@ Starting the cluster profile
 Once a cluster profile has been configured, starting an IPython cluster using
 the profile is simple::
 
-    ipclusterz start -p mycluster -n 32
+    ipcluster start -p mycluster -n 32
 
-The ``-n`` option tells :command:`ipclusterz` how many engines to start (in
+The ``-n`` option tells :command:`ipcluster` how many engines to start (in
 this case 32). Stopping the cluster is as simple as typing Control-C.
 
 Using the HPC Job Manager
 -------------------------
 
-When ``ipclusterz start`` is run the first time, :command:`ipclusterz` creates
+When ``ipcluster start`` is run the first time, :command:`ipcluster` creates
 two XML job description files in the cluster directory:
 
 * :file:`ipcontroller_job.xml`
@@ -273,8 +273,8 @@ two XML job description files in the cluster directory:
 
 Once these files have been created, they can be imported into the HPC Job
 Manager application. Then, the controller and engines for that profile can be
-started using the HPC Job Manager directly, without using :command:`ipclusterz`.
-However, anytime the cluster profile is re-configured, ``ipclusterz start``
+started using the HPC Job Manager directly, without using :command:`ipcluster`.
+However, anytime the cluster profile is re-configured, ``ipcluster start``
 must be run again to regenerate the XML job description files. The
 following screenshot shows what the HPC Job Manager interface looks like
 with a running IPython cluster.

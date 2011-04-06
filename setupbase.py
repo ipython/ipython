@@ -127,6 +127,7 @@ def find_packages():
     add_package(packages, 'frontend.qt.console', tests=True)
     add_package(packages, 'frontend.terminal', tests=True)    
     add_package(packages, 'lib', tests=True)
+    add_package(packages, 'parallel', tests=True)
     add_package(packages, 'quarantine', tests=True)
     add_package(packages, 'scripts')
     add_package(packages, 'testing', tests=True)
@@ -134,7 +135,6 @@ def find_packages():
     add_package(packages, 'utils', tests=True)
     add_package(packages, 'zmq')
     add_package(packages, 'zmq.pylab')
-    add_package(packages, 'parallel')
     return packages
 
 #---------------------------------------------------------------------------
@@ -265,10 +265,10 @@ def find_scripts():
     parallel_scripts = pjoin('IPython','parallel','scripts')
     main_scripts = pjoin('IPython','scripts')
     scripts = [
-               pjoin(parallel_scripts, 'ipenginez'),
-               pjoin(parallel_scripts, 'ipcontrollerz'),
-               pjoin(parallel_scripts, 'ipclusterz'),
-               pjoin(parallel_scripts, 'iploggerz'),
+               pjoin(parallel_scripts, 'ipengine'),
+               pjoin(parallel_scripts, 'ipcontroller'),
+               pjoin(parallel_scripts, 'ipcluster'),
+               pjoin(parallel_scripts, 'iplogger'),
                pjoin(main_scripts, 'ipython'),
                pjoin(main_scripts, 'ipython-qtconsole'),
                pjoin(main_scripts, 'pycolor'),
