@@ -363,11 +363,151 @@ Reference
 Results
 =======
 
-AsyncResults are the primary class
+AsyncResults
+------------
 
-get_result
+Our primary representation is the AsyncResult object, based on the object of the same name in
+the built-in :mod:`multiprocessing.pool` module. Our version provides a superset of that
+interface.
 
-results, metadata
+The basic principle of the AsyncResult is the encapsulation of one or more results not yet completed.  Execution methods (including data movement, such as push/pull) will all return
+AsyncResults when `block=False`.
+
+The mp.pool.AsyncResult interface
+---------------------------------
+
+The basic interface of the AsyncResult is exactly that of the AsyncResult in :mod:`multiprocessing.pool`, and consists of four methods:
+
+.. AsyncResult spec directly from docs.python.org
+
+.. class:: AsyncResult
+
+   The stdlib AsyncResult spec
+   
+   .. method:: wait([timeout])
+
+      Wait until the result is available or until *timeout* seconds pass. This
+      method always returns ``None``.
+
+   .. method:: ready()
+
+      Return whether the call has completed.
+
+   .. method:: successful()
+
+      Return whether the call completed without raising an exception.  Will
+      raise :exc:`AssertionError` if the result is not ready.
+
+   .. method:: get([timeout])
+
+      Return the result when it arrives.  If *timeout* is not ``None`` and the
+      result does not arrive within *timeout* seconds then
+      :exc:`TimeoutError` is raised.  If the remote call raised
+      an exception then that exception will be reraised as a :exc:`RemoteError`
+      by :meth:`get`.
+
+
+While an AsyncResult is not done, you can check on it with its :meth:`ready` method, which will
+return whether the AR is done. You can also wait on an AsyncResult with its :meth:`wait` method.
+This method blocks until the result arrives. If you don't want to wait forever, you can pass a
+timeout (in seconds) as an argument to :meth:`wait`. :meth:`wait` will *always return None*, and
+should never raise an error.
+
+:meth:`ready` and :meth:`wait` are insensitive to the success or failure of the call. After a
+result is done, :meth:`successful` will tell you whether the call completed without raising an
+exception.
+
+If you actually want the result of the call, you can use :meth:`get`. Initially, :meth:`get`
+behaves just like :meth:`wait`, in that it will block until the result is ready, or until a
+timeout is met. However, unlike :meth:`wait`, :meth:`get` will raise a :exc:`TimeoutError` if
+the timeout is reached and the result is still not ready. If the result arrives before the
+timeout is reached, then :meth:`get` will return the result itself if no exception was raised,
+and will raise an exception if there was.
+
+Here is where we start to expand on the multiprocessing interface. Rather than raising the
+original exception, a RemoteError will be raised, encapsulating the remote exception with some
+metadata. If the AsyncResult represents multiple calls (e.g. any time `targets` is plural), then
+a CompositeError, a subclass of RemoteError, will be raised.
+
+.. seealso::
+
+    For more information on remote exceptions, see :ref:`the section in the Direct Interface
+    <Parallel_exceptions>`.
+
+Extended interface
+******************
+
+
+Other extensions of the AsyncResult interface include convenience wrappers for :meth:`get`.
+AsyncResults have a property, :attr:`result`, with the short alias :attr:`r`, which simply call
+:meth:`get`. Since our object is designed for representing *parallel* results, it is expected
+that many calls (any of those submitted via DirectView) will map results to engine IDs. We
+provide a :meth:`get_dict`, which is also a wrapper on :meth:`get`, which returns a dictionary
+of the individual results, keyed by engine ID.
+
+You can also prevent a submitted job from actually executing, via the AsyncResult's :meth:`abort` method.  This will instruct engines to not execute the job when it arrives.
+
+The larger extension of the AsyncResult API is the :attr:`metadata` attribute.  The metadata
+is a dictionary (with attribute access) that contains, logically enough, metadata about the
+execution.
+
+Metadata keys:
+
+timestamps
+
+submitted
+    When the task left the Client
+started
+    When the task started execution on the engine
+completed
+    When execution finished on the engine
+received
+    When the result arrived on the Client
+    
+    note that it is not known when the result arrived in 0MQ on the client, only when it
+    arrived in Python via :meth:`Client.spin`, so in interactive use, this may not be
+    strictly informative.
+
+Information about the engine
+
+engine_id
+    The integer id
+engine_uuid
+    The UUID of the engine
+
+output of the call
+
+pyerr
+    Python exception, if there was one
+pyout
+    Python output
+stderr
+    stderr stream
+stdout
+    stdout (e.g. print) stream
+
+And some extended information
+
+status
+    either 'ok' or 'error'
+msg_id
+    The UUID of the message
+after
+    For tasks: the time-based msg_id dependencies
+follow
+    For tasks: the location-based msg_id dependencies
+
+While in most cases, the Clients that submitted a request will be the ones using the results,
+other Clients can also request results directly from the Hub. This is done via the Client's
+:meth:`get_result` method. This method will *always* return an AsyncResult object. If the call
+was not submitted by the client, then it will be a subclass, called :class:`AsyncHubResult`.
+These behave in the same way as an AsyncResult, but if the result is not ready, waiting on an
+AsyncHubResult polls the Hub, which is much more expensive than the passive polling used
+in regular AsyncResults.
+
+
+The Client keeps track of all results
+history, results, metadata
 
 Querying the Hub
 ================
@@ -382,7 +522,11 @@ queue_status
 
 result_status
 
+    check on results
+
 purge_results
+
+    forget results (conserve resources)
 
 Controlling the Engines
 =======================

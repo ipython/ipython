@@ -80,19 +80,16 @@ These packages provide a powerful and cost-effective approach to numerical and
 scientific computing on Windows. The following dependencies are needed to run
 IPython on Windows:
 
-* Python 2.5 or 2.6 (http://www.python.org)
+* Python 2.6 or 2.7 (http://www.python.org)
 * pywin32 (http://sourceforge.net/projects/pywin32/)
 * PyReadline (https://launchpad.net/pyreadline)
-* zope.interface and Twisted (http://twistedmatrix.com)
-* Foolcap (http://foolscap.lothar.com/trac)
-* pyOpenSSL (https://launchpad.net/pyopenssl)
+* pyzmq (http://github.com/zeromq/pyzmq/downloads)
 * IPython (http://ipython.scipy.org)
 
 In addition, the following dependencies are needed to run the demos described
 in this document.
 
 * NumPy and SciPy (http://www.scipy.org)
-* wxPython (http://www.wxpython.org)
 * Matplotlib (http://matplotlib.sourceforge.net/)
 
 The easiest way of obtaining these dependencies is through the Enthought
@@ -109,7 +106,7 @@ need to follow:
 1. Install all of the packages listed above, either individually or using EPD
    on the head node, compute nodes and user workstations.
 
-2. Make sure that :file:`C:\\Python25` and :file:`C:\\Python25\\Scripts` are
+2. Make sure that :file:`C:\\Python27` and :file:`C:\\Python27\\Scripts` are
    in the system :envvar:`%PATH%` variable on each node.
 
 3. Install the latest development version of IPython. This can be done by
@@ -123,7 +120,7 @@ opening a Windows Command Prompt and typing ``ipython``. This will
 start IPython's interactive shell and you should see something like the
 following screenshot:
 
-.. image:: ../parallel/ipython_shell.*
+.. image:: ipython_shell.*
 
 Starting an IPython cluster
 ===========================
@@ -171,7 +168,7 @@ You should see a number of messages printed to the screen, ending with
 "IPython cluster: started". The result should look something like the following
 screenshot:
 
-.. image:: ../parallel/ipcluster_start.*
+.. image:: ipcluster_start.*
 
 At this point, the controller and two engines are running on your local host.
 This configuration is useful for testing and for situations where you want to
@@ -213,7 +210,7 @@ The output of this command is shown in the screenshot below. Notice how
 :command:`ipclusterz` prints out the location of the newly created cluster
 directory.
 
-.. image:: ../parallel/ipcluster_create.*
+.. image:: ipcluster_create.*
 
 Configuring a cluster profile
 -----------------------------
@@ -282,7 +279,7 @@ must be run again to regenerate the XML job description files. The
 following screenshot shows what the HPC Job Manager interface looks like
 with a running IPython cluster.
 
-.. image:: ../parallel/hpc_job_manager.*
+.. image:: hpc_job_manager.*
 
 Performing a simple interactive parallel computation
 ====================================================
@@ -333,5 +330,5 @@ The :meth:`map` method has the same signature as Python's builtin :func:`map`
 function, but runs the calculation in parallel. More involved examples of using
 :class:`MultiEngineClient` are provided in the examples that follow.
 
-.. image:: ../parallel/mec_simple.*
+.. image:: mec_simple.*
 

@@ -80,8 +80,8 @@ arrays and buffers, there is also a `track` flag, which instructs PyZMQ to produ
 
 The result of a non-blocking call to `apply` is now an AsyncResult_ object, described below.
 
-MultiEngine
-===========
+MultiEngine to DirectView
+=========================
 
 The multiplexing interface previously provided by the MultiEngineClient is now provided by the
 DirectView. Once you have a Client connected, you can create a DirectView with index-access
@@ -131,8 +131,8 @@ the natural return value is the actual Python objects. It is no longer the recom
 to use stdout as your results, due to stream decoupling and the asynchronous nature of how the
 stdout streams are handled in the new system.
 
-Task
-====
+Task to LoadBalancedView
+========================
 
 Load-Balancing has changed more than Multiplexing.  This is because there is no longer a notion
 of a StringTask or a MapTask, there are simply Python functions to call.  Tasks are now
@@ -203,18 +203,8 @@ the engine beyond the duration of the task.
     LoadBalancedView.
 
 
-.. _AsyncResult:
 
-PendingResults
-==============
-
-Since we no longer use Twisted, we also lose the use of Deferred objects. The results of
-non-blocking calls were represented as PendingDeferred or PendingResult objects. The object used
-for this in the new code is an AsyncResult object. The AsyncResult object is based on the object
-of the same name in the built-in :py-mod:`multiprocessing.pool` module. Our version provides a
-superset of that interface.
-
-Some things that behave the same:
+There are still some things that behave the same as IPython.kernel:
 
 .. sourcecode:: ipython
 
@@ -224,7 +214,7 @@ Some things that behave the same:
     Out[6]: [5, 5]
 
     # new
-    In [5]: ar = rc[0,1].pull('a', block=False)
+    In [5]: ar = dview.pull('a', targets=[0,1], block=False)
     In [6]: ar.r
     Out[6]: [5, 5]
 
