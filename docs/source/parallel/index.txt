@@ -1,0 +1,12 @@
+.. _parallel_index:
+
+====================================
+Using IPython for parallel computing
+====================================
+
+The twisted-based :mod:`IPython.kernel` has been removed, in favor of
+the new 0MQ-based :mod:`IPython.parallel`, whose merge into master is imminent.
+
+Until that code is merged, it can be found in the `newparallel branch 
+<https://github.com/ipython/ipython/tree/newparallel>`_, and its draft documentation can be
+found `here <http://minrk.github.com/ipython-doc/newparallel>`_.

@@ -19,6 +19,7 @@ Contents
    whatsnew/index.txt
    install/index.txt
    interactive/index.txt
+   parallel/index.txt
    config/index.txt
    development/index.txt
    api/index.txt

@@ -120,6 +120,7 @@ def find_packages():
     add_package(packages, 'external.pyparsing')
     add_package(packages, 'external.simplegeneric')
     add_package(packages, 'external.validate')
+    add_package(packages, 'kernel')
     add_package(packages, 'frontend')
     add_package(packages, 'frontend.qt')
     add_package(packages, 'frontend.qt.console', tests=True)
@@ -259,11 +260,11 @@ def find_scripts():
     """
     Find IPython's scripts.
     """
-    kernel_scripts = pjoin('IPython','kernel','scripts')
+    # kernel_scripts = pjoin('IPython','kernel','scripts')
     main_scripts = pjoin('IPython','scripts')
-    scripts = [pjoin(kernel_scripts, 'ipengine'),
-               pjoin(kernel_scripts, 'ipcontroller'),
-               pjoin(kernel_scripts, 'ipcluster'),
+    scripts = [# pjoin(kernel_scripts, 'ipengine'),
+               # pjoin(kernel_scripts, 'ipcontroller'),
+               # pjoin(kernel_scripts, 'ipcluster'),
                pjoin(main_scripts, 'ipython'),
                pjoin(main_scripts, 'ipython-qtconsole'),
                pjoin(main_scripts, 'pycolor'),
@@ -296,8 +297,6 @@ def check_for_dependencies():
     """
     from setupext.setupext import (
         print_line, print_raw, print_status,
-        check_for_zopeinterface, check_for_twisted,
-        check_for_foolscap, check_for_pyopenssl,
         check_for_sphinx, check_for_pygments,
         check_for_nose, check_for_pexpect
     )
@@ -311,10 +310,6 @@ def check_for_dependencies():
     print_raw("")
     print_raw("OPTIONAL DEPENDENCIES")
 
-    check_for_zopeinterface()
-    check_for_twisted()
-    check_for_foolscap()
-    check_for_pyopenssl()
     check_for_sphinx()
     check_for_pygments()
     check_for_nose()

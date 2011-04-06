@@ -35,7 +35,7 @@ class NotificationCenter(object):
     --------
     Here is a simple example of how to use this::
 
-        import IPython.kernel.core.notification as notification
+        import IPython.util.notification as notification
         def callback(ntype, theSender, args={}):
             print ntype,theSender,args
 
