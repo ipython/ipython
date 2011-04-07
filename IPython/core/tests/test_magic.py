@@ -379,6 +379,21 @@ def test_xmode():
     for i in range(3):
         _ip.magic("xmode")
     nt.assert_equal(_ip.InteractiveTB.mode, xmode)
+    
+def test_reset_hard():
+    monitor = []
+    class A(object):
+        def __del__(self):
+            monitor.append(1)
+        def __repr__(self):
+            return "<A instance>"
+            
+    _ip.user_ns["a"] = A()
+    _ip.run_cell("a")
+    
+    nt.assert_equal(monitor, [])
+    _ip.magic_reset("-f")
+    nt.assert_equal(monitor, [1])
 
 def doctest_who():
     """doctest for %who

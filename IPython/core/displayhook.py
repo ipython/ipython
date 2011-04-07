@@ -319,6 +319,9 @@ class DisplayHook(Configurable):
             except: pass
         self.shell.user_ns['_oh'].clear()
         
+        # Release our own references to objects:
+        self._, self.__, self.___ = '', '', ''
+        
         if '_' not in __builtin__.__dict__:
             self.shell.user_ns.update({'_':None,'__':None, '___':None})
         import gc

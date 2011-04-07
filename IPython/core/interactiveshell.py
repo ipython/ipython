@@ -1045,6 +1045,9 @@ class InteractiveShell(Configurable, Magic):
         """
         # Clear histories
         self.history_manager.reset(new_session)
+        
+        # Flush cached output items
+        self.displayhook.flush()
 
         # Reset counter used to index all histories
         self.execution_count = 0
@@ -1069,6 +1072,10 @@ class InteractiveShell(Configurable, Magic):
         # Restore the default and user aliases
         self.alias_manager.clear_aliases()
         self.alias_manager.init_aliases()
+        
+        # Flush the private list of module references kept for script
+        # execution protection
+        self.clear_main_mod_cache()
 
     def reset_selective(self, regex=None):
         """Clear selective variables from internal namespaces based on a
