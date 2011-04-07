@@ -392,7 +392,7 @@ def test_reset_hard():
     _ip.run_cell("a")
     
     nt.assert_equal(monitor, [])
-    _ip.magic_reset("-hf")
+    _ip.magic_reset("-f")
     nt.assert_equal(monitor, [1])
 
 def doctest_who():

@@ -971,10 +971,10 @@ Currently the magic system has the following functions:\n"""
         ----------
           -f : force reset without asking for confirmation.
           
-          -h : 'Hard' reset: gives you a new session and removes all
-          references to objects from the current session. By default, we
-          do a 'soft' reset, which only clears out your namespace, and
-          leaves input and output history around.
+          -s : 'Soft' reset: Only clears your namespace, leaving history intact.
+          References to objects may be kept. By default (without this option),
+          we do a 'hard' reset, giving you a new session and removing all
+          references to objects from the current session.
         
         Examples
         --------
@@ -988,8 +988,8 @@ Currently the magic system has the following functions:\n"""
 
         In [9]: %reset -f
 
-        In [10]: 'a' in _ip.user_ns
-        Out[10]: False
+        In [1]: 'a' in _ip.user_ns
+        Out[1]: False
         """
         opts, args = self.parse_options(parameter_s,'fh')
         if 'f' in opts:
@@ -1000,14 +1000,16 @@ Currently the magic system has the following functions:\n"""
         if not ans:
             print 'Nothing done.'
             return
-            
-        if 'h' in opts:                     # Hard reset
-            self.shell.reset(new_session = True)
-            
-        else:                               # Soft reset
+        
+        if 's' in opts:                     # Soft reset
             user_ns = self.shell.user_ns
             for i in self.magic_who_ls():
                 del(user_ns[i])
+            
+        else:                     # Hard reset
+            self.shell.reset(new_session = True)
+            
+        
 
     def magic_reset_selective(self, parameter_s=''):
         """Resets the namespace by removing names defined by the user.
