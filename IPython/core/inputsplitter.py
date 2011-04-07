@@ -166,78 +166,6 @@ def get_input_encoding():
 # Classes and functions for normal Python syntax handling
 #-----------------------------------------------------------------------------
 
-# HACK!  This implementation, written by Robert K a while ago using the
-# compiler module, is more robust than the other one below, but it expects its
-# input to be pure python (no ipython syntax).  For now we're using it as a
-# second-pass splitter after the first pass transforms the input to pure
-# python.
-
-def split_blocks(python):
-    """ Split multiple lines of code into discrete commands that can be
-    executed singly.
-
-    Parameters
-    ----------
-    python : str
-        Pure, exec'able Python code.
-
-    Returns
-    -------
-    commands : list of str
-        Separate commands that can be exec'ed independently.
-    """
-    # compiler.parse treats trailing spaces after a newline as a
-    # SyntaxError.  This is different than codeop.CommandCompiler, which
-    # will compile the trailng spaces just fine.  We simply strip any
-    # trailing whitespace off.  Passing a string with trailing whitespace
-    # to exec will fail however.  There seems to be some inconsistency in
-    # how trailing whitespace is handled, but this seems to work.
-    python_ori = python # save original in case we bail on error
-    python = python.strip()
-
-    # The compiler module will parse the code into an abstract syntax tree.
-    # This has a bug with str("a\nb"), but not str("""a\nb""")!!!
-    try:
-        code_ast = ast.parse(python)
-    except:
-        return [python_ori]
-
-    # Uncomment to help debug the ast tree
-    # for n in code_ast.body:
-    #     print n.lineno,'->',n
-
-    # Each separate command is available by iterating over ast.node. The
-    # lineno attribute is the line number (1-indexed) beginning the commands
-    # suite.
-    # lines ending with ";" yield a Discard Node that doesn't have a lineno
-    # attribute.  These nodes can and should be discarded.  But there are
-    # other situations that cause Discard nodes that shouldn't be discarded.
-    # We might eventually discover other cases where lineno is None and have
-    # to put in a more sophisticated test.
-    linenos = [x.lineno-1 for x in code_ast.body if x.lineno is not None]
-
-    # When we finally get the slices, we will need to slice all the way to
-    # the end even though we don't have a line number for it. Fortunately,
-    # None does the job nicely.
-    linenos.append(None)
-
-    # Same problem at the other end: sometimes the ast tree has its
-    # first complete statement not starting on line 0. In this case
-    # we might miss part of it.  This fixes ticket 266993.  Thanks Gael!
-    linenos[0] = 0
-
-    lines = python.splitlines()
-
-    # Create a list of atomic commands.
-    cmds = []
-    for i, j in zip(linenos[:-1], linenos[1:]):
-        cmd = lines[i:j]
-        if cmd:
-            cmds.append('\n'.join(cmd)+'\n')
-
-    return cmds
-
-
 class InputSplitter(object):
     """An object that can split Python source input in executable blocks.
 
@@ -445,96 +373,18 @@ class InputSplitter(object):
                 if not self._full_dedent:
                     return False
             else:
-                nblocks = len(split_blocks(''.join(self._buffer)))
-                if nblocks==1:
+                try:
+                    code_ast = ast.parse(u''.join(self._buffer))
+                except Exception:
                     return False
+                else:
+                    if len(code_ast.body) == 1:
+                        return False
 
         # When input is complete, then termination is marked by an extra blank
         # line at the end.
         last_line = self.source.splitlines()[-1]
         return bool(last_line and not last_line.isspace())
-        
-    def split_blocks(self, lines):
-        """Split a multiline string into multiple input blocks.
-
-        Note: this method starts by performing a full reset().
-        
-        Parameters
-        ----------
-        lines : str
-          A possibly multiline string.
-
-        Returns
-        -------
-        blocks : list
-          A list of strings, each possibly multiline.  Each string corresponds
-          to a single block that can be compiled in 'single' mode (unless it
-          has a syntax error)."""
-
-        # This code is fairly delicate.  If you make any changes here, make
-        # absolutely sure that you do run the full test suite and ALL tests
-        # pass.
-
-        self.reset()
-        blocks = []
-        
-        # Reversed copy so we can use pop() efficiently and consume the input
-        # as a stack
-        lines = lines.splitlines()[::-1]
-        # Outer loop over all input
-        while lines:
-            #print 'Current lines:', lines  # dbg
-            # Inner loop to build each block
-            while True:
-                # Safety exit from inner loop
-                if not lines:
-                    break
-                # Grab next line but don't push it yet
-                next_line = lines.pop()
-                # Blank/empty lines are pushed as-is
-                if not next_line or next_line.isspace():
-                    self.push(next_line)
-                    continue
-
-                # Check indentation changes caused by the *next* line
-                indent_spaces, _full_dedent = self._find_indent(next_line)
-
-                # If the next line causes a dedent, it can be for two differnt
-                # reasons: either an explicit de-dent by the user or a
-                # return/raise/pass statement.  These MUST be handled
-                # separately:
-                #
-                # 1. the first case is only detected when the actual explicit
-                # dedent happens, and that would be the *first* line of a *new*
-                # block.  Thus, we must put the line back into the input buffer
-                # so that it starts a new block on the next pass.
-                #
-                # 2. the second case is detected in the line before the actual
-                # dedent happens, so , we consume the line and we can break out
-                # to start a new block.
-
-                # Case 1, explicit dedent causes a break.
-                # Note: check that we weren't on the very last line, else we'll
-                # enter an infinite loop adding/removing the last line.
-                if  _full_dedent and lines and not next_line.startswith(' '):
-                    lines.append(next_line)
-                    break
-                
-                # Otherwise any line is pushed
-                self.push(next_line)
-
-                # Case 2, full dedent with full block ready:
-                if _full_dedent or \
-                       self.indent_spaces==0 and not self.push_accepts_more():
-                    break
-            # Form the new block with the current source input
-            blocks.append(self.source_reset())
-            
-        #return blocks
-        # HACK!!! Now that our input is in blocks but guaranteed to be pure
-        # python syntax, feed it back a second time through the AST-based
-        # splitter, which is more accurate than ours.
-        return split_blocks(''.join(blocks))
 
     #------------------------------------------------------------------------
     # Private interface

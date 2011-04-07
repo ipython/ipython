@@ -56,7 +56,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEquals(ip.user_ns['x'], 2)
         self.assertEquals(ip.user_ns['y'], 3)
 
-    @dec.skip_known_failure
     def test_multiline_string_cells(self):
         "Code sprinkled with multiline strings should execute (GH-306)"
         ip = get_ipython()

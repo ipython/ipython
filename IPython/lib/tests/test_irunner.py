@@ -97,10 +97,10 @@ In [7]: autocall 0
 Automatic calling is: OFF
 
 In [8]: cos pi
-   File "<ipython-input-8-6bd7313dd9a9>", line 1
+   File "<ipython-input-8-586f1104ea44>", line 1
      cos pi
           ^
-SyntaxError: invalid syntax
+SyntaxError: unexpected EOF while parsing
 
 
 In [9]: cos(pi)
