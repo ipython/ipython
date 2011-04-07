@@ -967,12 +967,15 @@ Currently the magic system has the following functions:\n"""
     def magic_reset(self, parameter_s=''):
         """Resets the namespace by removing all names defined by the user.
 
-        Input/Output history are left around in case you need them.
-
         Parameters
         ----------
           -f : force reset without asking for confirmation.
-
+          
+          -h : 'Hard' reset: gives you a new session and removes all
+          references to objects from the current session. By default, we
+          do a 'soft' reset, which only clears out your namespace, and
+          leaves input and output history around.
+        
         Examples
         --------
         In [6]: a = 1
@@ -988,8 +991,8 @@ Currently the magic system has the following functions:\n"""
         In [10]: 'a' in _ip.user_ns
         Out[10]: False
         """
-
-        if parameter_s == '-f':
+        opts, args = self.parse_options(parameter_s,'fh')
+        if 'f' in opts:
             ans = True
         else:
             ans = self.shell.ask_yes_no(
@@ -997,13 +1000,14 @@ Currently the magic system has the following functions:\n"""
         if not ans:
             print 'Nothing done.'
             return
-        user_ns = self.shell.user_ns
-        for i in self.magic_who_ls():
-            del(user_ns[i])
             
-        # Also flush the private list of module references kept for script
-        # execution protection
-        self.shell.clear_main_mod_cache()
+        if 'h' in opts:                     # Hard reset
+            self.shell.reset(new_session = True)
+            
+        else:                               # Soft reset
+            user_ns = self.shell.user_ns
+            for i in self.magic_who_ls():
+                del(user_ns[i])
 
     def magic_reset_selective(self, parameter_s=''):
         """Resets the namespace by removing names defined by the user.
