@@ -991,7 +991,7 @@ Currently the magic system has the following functions:\n"""
         In [1]: 'a' in _ip.user_ns
         Out[1]: False
         """
-        opts, args = self.parse_options(parameter_s,'fh')
+        opts, args = self.parse_options(parameter_s,'sh')
         if 'f' in opts:
             ans = True
         else:
