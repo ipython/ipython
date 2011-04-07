@@ -140,7 +140,7 @@ There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
 .. sourcecode:: python
 
-    c.Global.engine_launcher = 'IPython.parallel.launcher.MPIExecEngineSetLauncher'
+    c.Global.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
@@ -155,7 +155,7 @@ If you have a reason to also start the Controller with mpi, you can specify:
 
 .. sourcecode:: python
 
-    c.Global.controller_launcher = 'IPython.parallel.launcher.MPIExecControllerLauncher'
+    c.Global.controller_launcher = 'IPython.parallel.apps.launcher.MPIExecControllerLauncher'
 
 .. note::
 
@@ -196,8 +196,8 @@ and engines:
 
 .. sourcecode:: python
 
-    c.Global.controller_launcher = 'IPython.parallel.launcher.PBSControllerLauncher'
-    c.Global.engine_launcher = 'IPython.parallel.launcher.PBSEngineSetLauncher'
+    c.Global.controller_launcher = 'IPython.parallel.apps.launcher.PBSControllerLauncher'
+    c.Global.engine_launcher = 'IPython.parallel.apps.launcher.PBSEngineSetLauncher'
 
 IPython does provide simple default batch templates for PBS and SGE, but you may need
 to specify your own. Here is a sample PBS script template:
@@ -318,9 +318,9 @@ To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
 .. sourcecode:: python
 
-    c.Global.engine_launcher = 'IPython.parallel.launcher.SSHEngineSetLauncher'
+    c.Global.engine_launcher = 'IPython.parallel.apps.launcher.SSHEngineSetLauncher'
     # and if the Controller is also to be remote:
-    c.Global.controller_launcher = 'IPython.parallel.launcher.SSHControllerLauncher'
+    c.Global.controller_launcher = 'IPython.parallel.apps.launcher.SSHControllerLauncher'
     
 
 The controller's remote location and configuration can be specified:

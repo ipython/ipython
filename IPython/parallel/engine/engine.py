@@ -22,11 +22,12 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.utils.traitlets import Instance, Str, Dict, Int, Type, CFloat
 # from IPython.utils.localinterfaces import LOCALHOST 
 
-from . import heartmonitor
-from .factory import RegistrationFactory
+from IPython.parallel.controller.heartmonitor import Heart
+from IPython.parallel.factory import RegistrationFactory
+from IPython.parallel.streamsession import Message
+from IPython.parallel.util import disambiguate_url
+
 from .streamkernel import Kernel
-from .streamsession import Message
-from .util import disambiguate_url
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""
@@ -129,7 +130,7 @@ class EngineFactory(RegistrationFactory):
                     loop=loop, user_ns = self.user_ns, logname=self.log.name)
             self.kernel.start()
             hb_addrs = [ disambiguate_url(addr, self.location) for addr in hb_addrs ]
-            heart = heartmonitor.Heart(*map(str, hb_addrs), heart_id=identity)
+            heart = Heart(*map(str, hb_addrs), heart_id=identity)
             # ioloop.DelayedCallback(heart.start, 1000, self.loop).start()
             heart.start()
             

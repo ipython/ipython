@@ -13,6 +13,6 @@
 #-----------------------------------------------------------------------------
 
 
-from IPython.parallel.ipcontrollerapp import launch_new_instance
+from IPython.parallel.apps.ipcontrollerapp import launch_new_instance
 
 launch_new_instance()

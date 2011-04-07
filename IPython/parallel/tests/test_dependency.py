@@ -18,7 +18,7 @@ import os
 
 from IPython.utils.pickleutil import can, uncan
 
-from IPython.parallel import dependency as dmod
+import IPython.parallel as pmod
 from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
@@ -27,7 +27,7 @@ from .clienttest import ClusterTestCase
 def setup():
     add_engines(1)
 
-@dmod.require('time')
+@pmod.require('time')
 def wait(n):
     time.sleep(n)
     return n
@@ -65,7 +65,7 @@ class DependencyTest(ClusterTestCase):
     def test_require_imports(self):
         """test that @require imports names"""
         @self.cancan
-        @dmod.require('urllib')
+        @pmod.require('urllib')
         @interactive
         def encode(dikt):
             return urllib.urlencode(dikt)
@@ -73,13 +73,13 @@ class DependencyTest(ClusterTestCase):
         self.assertEquals(encode(dict(a=5)), 'a=5')
     
     def test_success_only(self):
-        dep = dmod.Dependency(mixed, success=True, failure=False)
+        dep = pmod.Dependency(mixed, success=True, failure=False)
         self.assertUnmet(dep)
         self.assertUnreachable(dep)
         dep.all=False
         self.assertMet(dep)
         self.assertReachable(dep)
-        dep = dmod.Dependency(completed, success=True, failure=False)
+        dep = pmod.Dependency(completed, success=True, failure=False)
         self.assertMet(dep)
         self.assertReachable(dep)
         dep.all=False
@@ -87,13 +87,13 @@ class DependencyTest(ClusterTestCase):
         self.assertReachable(dep)
 
     def test_failure_only(self):
-        dep = dmod.Dependency(mixed, success=False, failure=True)
+        dep = pmod.Dependency(mixed, success=False, failure=True)
         self.assertUnmet(dep)
         self.assertUnreachable(dep)
         dep.all=False
         self.assertMet(dep)
         self.assertReachable(dep)
-        dep = dmod.Dependency(completed, success=False, failure=True)
+        dep = pmod.Dependency(completed, success=False, failure=True)
         self.assertUnmet(dep)
         self.assertUnreachable(dep)
         dep.all=False

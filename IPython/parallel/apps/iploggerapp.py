@@ -20,7 +20,7 @@ import sys
 
 import zmq
 
-from IPython.parallel.clusterdir import (
+from .clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )

@@ -17,7 +17,7 @@ from zmq.eventloop import ioloop
 
 from IPython.utils.traitlets import CUnicode, CStr, Instance, List
 from .dictdb import BaseDB
-from .util import ISO8601
+from IPython.parallel.util import ISO8601
 
 #-----------------------------------------------------------------------------
 # SQLite operators, adapters, and converters

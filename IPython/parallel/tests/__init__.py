@@ -15,7 +15,7 @@ import tempfile
 import time
 from subprocess import Popen, PIPE, STDOUT
 
-from IPython.parallel import client
+from IPython.parallel import Client
 
 processes = []
 blackhole = tempfile.TemporaryFile()
@@ -27,14 +27,14 @@ def setup():
     processes.append(cp)
     time.sleep(.5)
     add_engines(1)
-    c = client.Client(profile='iptest')
+    c = Client(profile='iptest')
     while not c.ids:
         time.sleep(.1)
         c.spin()
     c.close()
 
 def add_engines(n=1, profile='iptest'):
-    rc = client.Client(profile=profile)
+    rc = Client(profile=profile)
     base = len(rc)
     eps = []
     for i in range(n):

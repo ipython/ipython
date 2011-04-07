@@ -15,7 +15,7 @@ import time
 from zmq import MessageTracker
 
 from IPython.external.decorator import decorator
-from . import error
+from IPython.parallel import error
 
 #-----------------------------------------------------------------------------
 # Classes

@@ -89,7 +89,7 @@ c = get_config()
 # Which class to use for the db backend.  Currently supported are DictDB (the
 # default), and MongoDB. Uncomment this line to enable MongoDB, which will
 # slow-down the Hub's responsiveness, but also reduce its memory footprint.
-# c.HubFactory.db_class = 'IPython.parallel.mongodb.MongoDB'
+# c.HubFactory.db_class = 'IPython.parallel.controller.mongodb.MongoDB'
 
 # The heartbeat ping frequency.  This is the frequency (in ms) at which the
 # Hub pings engines for heartbeats.  This determines how quickly the Hub
@@ -144,11 +144,11 @@ c = get_config()
 
 # ----- in-memory configuration --------
 # this line restores the default behavior: in-memory storage of all results.
-# c.HubFactory.db_class = 'IPython.parallel.dictdb.DictDB'
+# c.HubFactory.db_class = 'IPython.parallel.controller.dictdb.DictDB'
 
 # ----- sqlite configuration --------
 # use this line to activate sqlite:
-# c.HubFactory.db_class = 'IPython.parallel.sqlitedb.SQLiteDB'
+# c.HubFactory.db_class = 'IPython.parallel.controller.sqlitedb.SQLiteDB'
 
 # You can specify the name of the db-file.  By default, this will be located
 # in the active cluster_dir, e.g. ~/.ipython/clusterz_default/tasks.db
@@ -165,7 +165,7 @@ c = get_config()
 
 # ----- mongodb configuration --------
 # use this line to activate mongodb:
-# c.HubFactory.db_class = 'IPython.parallel.mongodb.MongoDB'
+# c.HubFactory.db_class = 'IPython.parallel.controller.mongodb.MongoDB'
 
 # You can specify the args and kwargs pymongo will use when creating the Connection.
 # For more information on what these options might be, see pymongo documentation.

@@ -22,16 +22,17 @@ import sys
 import zmq
 from zmq.eventloop import ioloop
 
-from IPython.parallel.clusterdir import (
+from .clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )
 from IPython.zmq.log import EnginePUBHandler
 
 from IPython.parallel import factory
-from IPython.parallel.engine import EngineFactory
-from IPython.parallel.streamkernel import Kernel
+from IPython.parallel.engine.engine import EngineFactory
+from IPython.parallel.engine.streamkernel import Kernel
 from IPython.parallel.util import disambiguate_url
+
 from IPython.utils.importstring import import_item
 
 

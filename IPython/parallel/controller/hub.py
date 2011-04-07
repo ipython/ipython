@@ -27,12 +27,11 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
 
-from .entry_point import select_random_ports
-from .factory import RegistrationFactory, LoggingFactory
+from IPython.parallel import error
+from IPython.parallel.factory import RegistrationFactory, LoggingFactory
+from IPython.parallel.util import select_random_ports, validate_url_container, ISO8601
 
-from . import error
 from .heartmonitor import HeartMonitor
-from .util import validate_url_container, ISO8601
 
 #-----------------------------------------------------------------------------
 # Code
@@ -160,11 +159,11 @@ class HubFactory(RegistrationFactory):
     
     monitor_url = CStr('')
     
-    db_class = CStr('IPython.parallel.dictdb.DictDB', config=True)
+    db_class = CStr('IPython.parallel.controller.dictdb.DictDB', config=True)
     
     # not configurable
-    db = Instance('IPython.parallel.dictdb.BaseDB')
-    heartmonitor = Instance('IPython.parallel.heartmonitor.HeartMonitor')
+    db = Instance('IPython.parallel.controller.dictdb.BaseDB')
+    heartmonitor = Instance('IPython.parallel.controller.heartmonitor.HeartMonitor')
     subconstructors = List()
     _constructed = Bool(False)
     

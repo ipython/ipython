@@ -431,7 +431,7 @@ on the engines given by the :attr:`targets` attribute:
     Type %autopx to disable
 
     In [32]: max_evals = []
-    <IPython.parallel.asyncresult.AsyncResult object at 0x17b8a70>
+    <IPython.parallel.AsyncResult object at 0x17b8a70>
 
     In [33]: for i in range(100):
        ....:     a = numpy.random.rand(10,10)
@@ -440,7 +440,7 @@ on the engines given by the :attr:`targets` attribute:
        ....:     max_evals.append(evals[0].real)
        ....:
        ....:
-    <IPython.parallel.asyncresult.AsyncResult object at 0x17af8f0>
+    <IPython.parallel.AsyncResult object at 0x17af8f0>
 
     In [34]: %autopx
     Auto Parallel Disabled

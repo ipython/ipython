@@ -26,7 +26,7 @@ from zmq.eventloop import ioloop
 
 from IPython.external.argparse import ArgumentParser, SUPPRESS
 from IPython.utils.importstring import import_item
-from IPython.parallel.clusterdir import (
+from .clusterdir import (
     ApplicationWithClusterDir, ClusterDirConfigLoader,
     ClusterDirError, PIDFileError
 )

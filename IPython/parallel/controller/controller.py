@@ -14,7 +14,6 @@ This is a collection of one Hub and several Schedulers.
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-import logging
 from multiprocessing import Process
 
 import zmq
@@ -23,7 +22,7 @@ from zmq.devices import ProcessMonitoredQueue
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Int, CStr, Instance, List, Bool
 
-from .entry_point import signal_children
+from IPython.parallel.util import signal_children
 from .hub import Hub, HubFactory
 from .scheduler import launch_scheduler
 

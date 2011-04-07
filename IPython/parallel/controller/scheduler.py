@@ -36,11 +36,11 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.external.decorator import decorator
 from IPython.utils.traitlets import Instance, Dict, List, Set
 
-from . import error
-from .dependency import Dependency
-from .entry_point import connect_logger, local_logger
-from .factory import SessionFactory
+from IPython.parallel import error
+from IPython.parallel.factory import SessionFactory
+from IPython.parallel.util import connect_logger, local_logger
 
+from .dependency import Dependency
 
 @decorator
 def logged(f,self,*args,**kwargs):

@@ -29,11 +29,12 @@ from IPython.utils.traitlets import (HasTraits, Int, Instance, CUnicode,
 from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
-from . import error
-from . import util
-from . import streamsession as ss
+from IPython.parallel import error
+from IPython.parallel import streamsession as ss
+from IPython.parallel import util
+
 from .asyncresult import AsyncResult, AsyncHubResult
-from .clusterdir import ClusterDir, ClusterDirError
+from IPython.parallel.apps.clusterdir import ClusterDir, ClusterDirError
 from .view import DirectView, LoadBalancedView
 
 #--------------------------------------------------------------------------

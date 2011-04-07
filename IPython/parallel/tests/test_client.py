@@ -16,10 +16,10 @@ from tempfile import mktemp
 
 import zmq
 
-from IPython.parallel import client as clientmod
+from IPython.parallel.client import client as clientmod
 from IPython.parallel import error
-from IPython.parallel.asyncresult import AsyncResult, AsyncHubResult
-from IPython.parallel.view import LoadBalancedView, DirectView
+from IPython.parallel import AsyncResult, AsyncHubResult
+from IPython.parallel import LoadBalancedView, DirectView
 
 from clienttest import ClusterTestCase, segfault, wait, add_engines
 

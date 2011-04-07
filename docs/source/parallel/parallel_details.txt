@@ -241,7 +241,7 @@ Views
 =====
 
 The principal extension of the :class:`~parallel.Client` is the
-:class:`~parallel.view.View` class. The client
+:class:`~parallel.View` class. The client
 
 
 DirectView

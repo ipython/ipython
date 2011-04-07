@@ -34,7 +34,7 @@ try:
 except ImportError:
     pexpect = None
 
-from IPython.parallel.entry_point import select_random_ports
+from IPython.parallel.util import select_random_ports
 
 #-----------------------------------------------------------------------------
 # Code

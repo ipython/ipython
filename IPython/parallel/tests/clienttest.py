@@ -10,8 +10,6 @@
 import sys
 import tempfile
 import time
-from signal import SIGINT
-from multiprocessing import Process
 
 from nose import SkipTest
 
@@ -21,9 +19,7 @@ from zmq.tests import BaseZMQTestCase
 from IPython.external.decorator import decorator
 
 from IPython.parallel import error
-from IPython.parallel.client import Client
-from IPython.parallel.ipcluster import launch_process
-from IPython.parallel.entry_point import select_random_ports
+from IPython.parallel import Client
 from IPython.parallel.tests import processes,add_engines
 
 # simple tasks for use in apply tests

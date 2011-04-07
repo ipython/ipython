@@ -23,8 +23,8 @@ c = get_config()
 # - PBSControllerLauncher
 # - SGEControllerLauncher
 # - WindowsHPCControllerLauncher
-# c.Global.controller_launcher = 'IPython.parallel.launcher.LocalControllerLauncher'
-# c.Global.controller_launcher = 'IPython.parallel.launcher.PBSControllerLauncher'
+# c.Global.controller_launcher = 'IPython.parallel.apps.launcher.LocalControllerLauncher'
+# c.Global.controller_launcher = 'IPython.parallel.apps.launcher.PBSControllerLauncher'
 
 # Options are:
 # - LocalEngineSetLauncher
@@ -32,7 +32,7 @@ c = get_config()
 # - PBSEngineSetLauncher
 # - SGEEngineSetLauncher
 # - WindowsHPCEngineSetLauncher
-# c.Global.engine_launcher = 'IPython.parallel.launcher.LocalEngineSetLauncher'
+# c.Global.engine_launcher = 'IPython.parallel.apps.launcher.LocalEngineSetLauncher'
 
 #-----------------------------------------------------------------------------
 # Global configuration

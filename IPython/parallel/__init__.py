@@ -12,14 +12,15 @@
 
 import zmq
 
-if zmq.__version__ < '2.1.3':
-    raise ImportError("IPython.parallel requires pyzmq/0MQ >= 2.1.3, you appear to have %s"%zmq.__version__)
+if zmq.__version__ < '2.1.4':
+    raise ImportError("IPython.parallel requires pyzmq/0MQ >= 2.1.4, you appear to have %s"%zmq.__version__)
 
-from .asyncresult import *
-from .client import Client
-from .dependency import *
-from .remotefunction import *
-from .view import *
 from IPython.utils.pickleutil import Reference
+
+from .client.asyncresult import *
+from .client.client import Client
+from .client.remotefunction import *
+from .client.view import *
+from .controller.dependency import *
 
 

@@ -215,19 +215,19 @@ if 'setuptools' in sys.modules:
             'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
             'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
             'pycolor = IPython.utils.PyColorize:main',
-            'ipcontroller = IPython.parallel.ipcontrollerapp:launch_new_instance',
-            'ipengine = IPython.parallel.ipengineapp:launch_new_instance',
-            'iplogger = IPython.parallel.iploggerapp:launch_new_instance',
-            'ipcluster = IPython.parallel.ipclusterapp:launch_new_instance',
+            'ipcontroller = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
+            'ipengine = IPython.parallel.apps.ipengineapp:launch_new_instance',
+            'iplogger = IPython.parallel.apps.iploggerapp:launch_new_instance',
+            'ipcluster = IPython.parallel.apps.ipclusterapp:launch_new_instance',
             'iptest = IPython.testing.iptest:main',
             'irunner = IPython.lib.irunner:main'
         ]
     }
     setup_args['extras_require'] = dict(
+        parallel = 'pyzmq>=2.1.4',
         zmq = 'pyzmq>=2.0.10.1',
         doc='Sphinx>=0.3',
         test='nose>=0.10.1',
-        security='pyOpenSSL>=0.6'
     )
 else:
     # If we are running without setuptools, call this function which will

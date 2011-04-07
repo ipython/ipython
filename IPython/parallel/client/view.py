@@ -23,10 +23,11 @@ from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, 
 
 from IPython.external.decorator import decorator
 
+from IPython.parallel import util
+from IPython.parallel.controller.dependency import Dependency, dependent
+
 from . import map as Map
-from . import util
 from .asyncresult import AsyncResult, AsyncMapResult
-from .dependency import Dependency, dependent
 from .remotefunction import ParallelFunction, parallel, remote
 
 #-----------------------------------------------------------------------------
@@ -68,6 +69,7 @@ def spin_after(f, self, *args, **kwargs):
 # Classes
 #-----------------------------------------------------------------------------
 
+@testdec.skip_doctest
 class View(HasTraits):
     """Base View class for more convenint apply(f,*args,**kwargs) syntax via attributes.
     
@@ -105,7 +107,7 @@ class View(HasTraits):
     history=List()
     outstanding = Set()
     results = Dict()
-    client = Instance('IPython.parallel.client.Client')
+    client = Instance('IPython.parallel.Client')
     
     _socket = Instance('zmq.Socket')
     _flag_names = List(['targets', 'block', 'track'])
@@ -386,11 +388,6 @@ class DirectView(View):
         """sync_imports(local=True) as a property.
         
         See sync_imports for details.
-
-        In [10]: with v.importer:
-           ....:     import numpy
-           ....:     
-        importing numpy on engine(s)
         
         """
         return self.sync_imports(True)

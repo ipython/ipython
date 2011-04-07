@@ -22,25 +22,18 @@ import time
 from code import CommandCompiler
 from datetime import datetime
 from pprint import pprint
-from signal import SIGTERM, SIGKILL
 
 # System library imports.
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
-from IPython.core import ultratb
 from IPython.utils.traitlets import Instance, List, Int, Dict, Set, Str
 from IPython.zmq.completer import KernelCompleter
-from IPython.zmq.iostream import OutStream
-from IPython.zmq.displayhook import DisplayHook
 
-from . import heartmonitor
-from .client import Client
-from .error import wrap_exception
-from .factory import SessionFactory
-from .streamsession import StreamSession
-from .util import serialize_object, unpack_apply_message, ISO8601, Namespace
+from IPython.parallel.error import wrap_exception
+from IPython.parallel.factory import SessionFactory
+from IPython.parallel.util import serialize_object, unpack_apply_message, ISO8601
 
 def printer(*args):
     pprint(args, stream=sys.__stdout__)
@@ -71,7 +64,7 @@ class Kernel(SessionFactory):
     control_stream = Instance(zmqstream.ZMQStream)
     task_stream = Instance(zmqstream.ZMQStream)
     iopub_stream = Instance(zmqstream.ZMQStream)
-    client = Instance('IPython.parallel.client.Client')
+    client = Instance('IPython.parallel.Client')
     
     # internals
     shell_streams = List()
@@ -427,63 +420,4 @@ class Kernel(SessionFactory):
         #     if idle:
         #         # don't busywait
         #         time.sleep(1e-3)
-
-def make_kernel(int_id, identity, control_addr, shell_addrs, iopub_addr, hb_addrs, 
-                client_addr=None, loop=None, context=None, key=None,
-                out_stream_factory=OutStream, display_hook_factory=DisplayHook):
-    """NO LONGER IN USE"""
-    # create loop, context, and session:
-    if loop is None:
-        loop = ioloop.IOLoop.instance()
-    if context is None:
-        context = zmq.Context()
-    c = context
-    session = StreamSession(key=key)
-    # print (session.key)
-    # print (control_addr, shell_addrs, iopub_addr, hb_addrs)
-    
-    # create Control Stream
-    control_stream = zmqstream.ZMQStream(c.socket(zmq.PAIR), loop)
-    control_stream.setsockopt(zmq.IDENTITY, identity)
-    control_stream.connect(control_addr)
-    
-    # create Shell Streams (MUX, Task, etc.):
-    shell_streams = []
-    for addr in shell_addrs:
-        stream = zmqstream.ZMQStream(c.socket(zmq.PAIR), loop)
-        stream.setsockopt(zmq.IDENTITY, identity)
-        stream.connect(addr)
-        shell_streams.append(stream)
-    
-    # create iopub stream:
-    iopub_stream = zmqstream.ZMQStream(c.socket(zmq.PUB), loop)
-    iopub_stream.setsockopt(zmq.IDENTITY, identity)
-    iopub_stream.connect(iopub_addr)
-    
-    # Redirect input streams and set a display hook.
-    if out_stream_factory:
-        sys.stdout = out_stream_factory(session, iopub_stream, u'stdout')
-        sys.stdout.topic = 'engine.%i.stdout'%int_id
-        sys.stderr = out_stream_factory(session, iopub_stream, u'stderr')
-        sys.stderr.topic = 'engine.%i.stderr'%int_id
-    if display_hook_factory:
-        sys.displayhook = display_hook_factory(session, iopub_stream)
-        sys.displayhook.topic = 'engine.%i.pyout'%int_id
-    
-    
-    # launch heartbeat
-    heart = heartmonitor.Heart(*map(str, hb_addrs), heart_id=identity)
-    heart.start()
-    
-    # create (optional) Client
-    if client_addr:
-        client = Client(client_addr, username=identity)
-    else:
-        client = None
-    
-    kernel = Kernel(id=int_id, session=session, control_stream=control_stream,
-            shell_streams=shell_streams, iopub_stream=iopub_stream, 
-            client=client, loop=loop)
-    kernel.start()
-    return loop, c, kernel
 

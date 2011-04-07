@@ -17,8 +17,8 @@ import zmq
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
-from IPython.parallel.asyncresult import AsyncResult, AsyncHubResult, AsyncMapResult
-from IPython.parallel.view import LoadBalancedView, DirectView
+from IPython.parallel import AsyncResult, AsyncHubResult, AsyncMapResult
+from IPython.parallel import LoadBalancedView, DirectView
 from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines

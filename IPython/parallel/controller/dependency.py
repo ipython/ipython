@@ -8,9 +8,9 @@
 
 from types import ModuleType
 
-from .asyncresult import AsyncResult
-from .error import UnmetDependency
-from .util import interactive
+from IPython.parallel.client.asyncresult import AsyncResult
+from IPython.parallel.error import UnmetDependency
+from IPython.parallel.util import interactive
 
 class depend(object):
     """Dependency decorator, for use with tasks.

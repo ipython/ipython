@@ -12,15 +12,14 @@ and hearts are tracked based on their XREQ identities.
 
 from __future__ import print_function
 import time
-import logging
 import uuid
 
 import zmq
-from zmq.devices import ProcessDevice,ThreadDevice
+from zmq.devices import ProcessDevice, ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
 from IPython.utils.traitlets import Set, Instance, CFloat, Bool
-from .factory import LoggingFactory
+from IPython.parallel.factory import LoggingFactory
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.

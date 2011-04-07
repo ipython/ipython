@@ -30,9 +30,9 @@ from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
 from IPython.config.loader import Config
+
 from IPython.parallel import factory
-from IPython.parallel.controller import ControllerFactory
-from IPython.parallel.clusterdir import (
+from .clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )
@@ -40,6 +40,7 @@ from IPython.parallel.util import disambiguate_ip_address, split_url
 # from IPython.kernel.fcutil import FCServiceFactory, FURLError
 from IPython.utils.traitlets import Instance, Unicode
 
+from IPython.parallel.controller.controller import ControllerFactory
 
 
 #-----------------------------------------------------------------------------
@@ -117,11 +118,11 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
         ## Hub Config:
         paa('--mongodb', 
             dest='HubFactory.db_class', action='store_const',
-            const='IPython.parallel.mongodb.MongoDB', 
+            const='IPython.parallel.controller.mongodb.MongoDB', 
             help='Use MongoDB for task storage [default: in-memory]')
         paa('--sqlite', 
             dest='HubFactory.db_class', action='store_const',
-            const='IPython.parallel.sqlitedb.SQLiteDB', 
+            const='IPython.parallel.controller.sqlitedb.SQLiteDB',
             help='Use SQLite3 for DB task storage [default: in-memory]')
         paa('--hb',
             type=int, dest='HubFactory.hb', nargs=2,

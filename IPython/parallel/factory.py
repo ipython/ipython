@@ -23,7 +23,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Str,Int,Instance, CUnicode, CStr
 
 import IPython.parallel.streamsession as ss
-from IPython.parallel.entry_point import select_random_ports
+from IPython.parallel.util import select_random_ports
 
 #-----------------------------------------------------------------------------
 # Classes

@@ -21,7 +21,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 from IPython.utils.traitlets import Int, Str, Instance, List
 
-from .factory import LoggingFactory
+from IPython.parallel.factory import LoggingFactory
 
 #-----------------------------------------------------------------------------
 # Classes

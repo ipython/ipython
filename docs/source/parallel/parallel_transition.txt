@@ -1,8 +1,8 @@
 .. _parallel_transition:
 
-============================================================
-Transitioning from IPython.kernel to IPython.zmq.newparallel
-============================================================
+=====================================================
+Transitioning from IPython.kernel to IPython.parallel
+=====================================================
 
 
 We have rewritten our parallel computing tools to use 0MQ_ and Tornado_.  The redesign
@@ -39,8 +39,8 @@ Creating a Client
 Creating a client with default settings has not changed much, though the extended options have.
 One significant change is that there are no longer multiple Client classes to represent the
 various execution models. There is just one low-level Client object for connecting to the
-cluster, and View objects are created from that Client that provide the different interfaces
-for execution.
+cluster, and View objects are created from that Client that provide the different interfaces for
+execution.
 
 
 To create a new client, and set up the default direct and load-balanced objects:
@@ -124,8 +124,6 @@ argument.
     DirectView.
 
 
-
-
 The other major difference is the use of :meth:`apply`. When remote work is simply functions,
 the natural return value is the actual Python objects. It is no longer the recommended pattern
 to use stdout as your results, due to stream decoupling and the asynchronous nature of how the
@@ -203,6 +201,25 @@ the engine beyond the duration of the task.
     LoadBalancedView.
 
 
+PendingResults to AsyncResults
+------------------------------
+
+With the departure from Twisted, we no longer have the :class:`Deferred` class for representing
+unfinished results. For this, we have an AsyncResult object, based on the object of the same
+name in the built-in :mod:`multiprocessing.pool` module. Our version provides a superset of that
+interface.
+
+However, unlike in IPython.kernel, we do not have PendingDeferred, PendingResult, or TaskResult
+objects. Simply this one object, the AsyncResult. Every asynchronous (`block=False`) call
+returns one.
+
+The basic methods of an AsyncResult are:
+
+.. sourcecode:: python
+
+    AsyncResult.wait([timeout]): # wait for the result to arrive
+    AsyncResult.get([timeout]): # wait for the result to arrive, and then return it
+    AsyncResult.metadata: # dict of extra information about execution.
 
 There are still some things that behave the same as IPython.kernel:
 
@@ -217,5 +234,12 @@ There are still some things that behave the same as IPython.kernel:
     In [5]: ar = dview.pull('a', targets=[0,1], block=False)
     In [6]: ar.r
     Out[6]: [5, 5]
+
+The ``.r`` or ``.result`` property simply calls :meth:`get`, waiting for and returning the
+result.
+
+.. seealso::
+
+    :ref:`AsyncResult details <AsyncResult>`
 
 

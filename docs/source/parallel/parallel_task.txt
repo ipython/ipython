@@ -32,7 +32,7 @@ our :ref:`introduction <ip1par>` to using IPython for parallel computing.
 Creating a ``Client`` instance
 ==============================
 
-The first step is to import the IPython :mod:`IPython.parallel.client`
+The first step is to import the IPython :mod:`IPython.parallel`
 module and then create a :class:`.Client` instance, and we will also be using
 a :class:`LoadBalancedView`, here called `lview`:
 
@@ -145,7 +145,7 @@ There are two decorators and a class used for functional dependencies:
 
 .. sourcecode:: ipython
 
-    In [9]: from IPython.parallel.dependency import depend, require, dependent
+    In [9]: from IPython.parallel import depend, require, dependent
 
 @require
 ********
@@ -398,10 +398,10 @@ The :class:`LoadBalancedView` has many more powerful features that allow quite a
 of flexibility in how tasks are defined and run. The next places to look are
 in the following classes:
 
-* :class:`IPython.parallel.view.LoadBalancedView`
-* :class:`IPython.parallel.asyncresult.AsyncResult`
-* :meth:`IPython.parallel.view.LoadBalancedView.apply`
-* :mod:`IPython.parallel.dependency`
+* :class:`~IPython.parallel.client.view.LoadBalancedView`
+* :class:`~IPython.parallel.client.asyncresult.AsyncResult`
+* :meth:`~IPython.parallel.client.view.LoadBalancedView.apply`
+* :mod:`~IPython.parallel.controller.dependency`
 
 The following is an overview of how to use these classes together:
 

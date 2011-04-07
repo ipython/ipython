@@ -128,7 +128,7 @@ IPython client and views
 ------------------------
 
 There is one primary object, the :class:`~.parallel.Client`, for connecting to a cluster.
-For each execution model, there is a corresponding :class:`~.parallel.view.View`. These views
+For each execution model, there is a corresponding :class:`~.parallel.View`. These views
 allow users to interact with a set of engines through the interface. Here are the two default
 views:
 

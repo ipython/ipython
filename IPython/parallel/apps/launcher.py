@@ -46,7 +46,7 @@ from IPython.utils.traitlets import Any, Str, Int, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
-from .factory import LoggingFactory
+from IPython.parallel.factory import LoggingFactory
 
 # load winhpcjob only on Windows
 try:
@@ -64,15 +64,15 @@ except ImportError:
 
 
 ipcluster_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.parallel.ipclusterapp'
+    'IPython.parallel.apps.ipclusterapp'
 ))
 
 ipengine_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.parallel.ipengineapp'
+    'IPython.parallel.apps.ipengineapp'
 ))
 
 ipcontroller_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.parallel.ipcontrollerapp'
+    'IPython.parallel.apps.ipcontrollerapp'
 ))
 
 #-----------------------------------------------------------------------------
