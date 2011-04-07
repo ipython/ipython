@@ -7,6 +7,7 @@ Authors
 -------
 * Robert Kern
 * Fernando Perez
+* Thomas Kluyver
 """
 
 # Note: though it might be more natural to name this module 'compiler', that

@@ -2134,9 +2134,9 @@ class InteractiveShell(Configurable, Magic):
                     self.execution_count += 1
                     return None
                     
-                interactivity = 1       # Last node to be run interactive
+                interactivity = 'last'      # Last node to be run interactive
                 if len(cell.splitlines()) == 1:
-                    interactivity = 2   # Single line; run fully interactive
+                    interactivity = 'all'   # Single line; run fully interactive
 
                 self.run_ast_nodes(code_ast.body, cell_name, interactivity)
                 
@@ -2147,7 +2147,7 @@ class InteractiveShell(Configurable, Magic):
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
             
-    def run_ast_nodes(self, nodelist, cell_name, interactivity=1):
+    def run_ast_nodes(self, nodelist, cell_name, interactivity='last'):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
         
@@ -2155,20 +2155,25 @@ class InteractiveShell(Configurable, Magic):
         ----------
         nodelist : list
           A sequence of AST nodes to run.
-        interactivity : int
-          At 0, all nodes are run in 'exec' mode. At '1', the last node alone
-          is run in interactive mode (so the result of an expression is shown).
-          At 2, all nodes are run in interactive mode.
+        cell_name : str
+          Will be passed to the compiler as the filename of the cell. Typically
+          the value returned by ip.compile.cache(cell).
+        interactivity : str
+          'all', 'last' or 'none', specifying which nodes should be run
+          interactively (displaying output from expressions). Other values for
+          this parameter will raise a ValueError.
         """
         if not nodelist:
             return
         
-        if interactivity == 0:
+        if interactivity == 'none':
             to_run_exec, to_run_interactive = nodelist, []
-        elif interactivity == 1:
+        elif interactivity == 'last':
             to_run_exec, to_run_interactive = nodelist[:-1], nodelist[-1:]
-        else:
+        elif interactivity == 'all':
             to_run_exec, to_run_interactive = [], nodelist
+        else:
+            raise ValueError("Interactivity was %r" % interactivity)
             
         exec_count = self.execution_count
         if to_run_exec:
