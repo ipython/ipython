@@ -25,18 +25,19 @@ blackhole = tempfile.TemporaryFile()
 # nose setup/teardown
 
 def setup():
-    cp = Popen('ipcontroller --profile iptest -r --log-level 10 --log-to-file'.split(), stdout=blackhole, stderr=STDOUT)
+    cp = Popen('ipcontroller --profile iptest -r --log-level 10 --log-to-file --usethreads'.split(), stdout=blackhole, stderr=STDOUT)
+    processes.append(cp)
     engine_json = os.path.join(get_ipython_dir(), 'cluster_iptest', 'security', 'ipcontroller-engine.json')
     client_json = os.path.join(get_ipython_dir(), 'cluster_iptest', 'security', 'ipcontroller-client.json')
-    while not os.path.exists(engine_json) and not os.path.exists(client_json):
+    tic = time.time()
+    while not os.path.exists(engine_json) or not os.path.exists(client_json):
+        if cp.poll() is not None:
+            print cp.poll()
+            raise RuntimeError("The test controller failed to start.")
+        elif time.time()-tic > 10:
+            raise RuntimeError("Timeout waiting for the test controller to start.")
         time.sleep(0.1)
-    processes.append(cp)
     add_engines(1)
-    c = Client(profile='iptest')
-    while not c.ids:
-        time.sleep(.1)
-        c.spin()
-    c.close()
 
 def add_engines(n=1, profile='iptest'):
     rc = Client(profile=profile)
@@ -47,7 +48,12 @@ def add_engines(n=1, profile='iptest'):
         # ep.start()
         processes.append(ep)
         eps.append(ep)
+    tic = time.time()
     while len(rc) < base+n:
+        if any([ ep.poll() is not None for ep in eps ]):
+            raise RuntimeError("A test engine failed to start.")
+        elif time.time()-tic > 10:
+            raise RuntimeError("Timeout waiting for engines to connect.")
         time.sleep(.1)
         rc.spin()
     rc.close()
