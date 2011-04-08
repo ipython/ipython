@@ -105,6 +105,7 @@ have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['pexpect'] = test_for('pexpect')
 have['zmq'] = test_for('zmq', '2.0.10')
+have['pymongo'] = test_for('pymongo')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -186,6 +187,9 @@ def make_exclude():
     if not have['zmq']:
         exclusions.append(ipjoin('zmq'))
         exclusions.append(ipjoin('parallel'))
+    
+    if not have['pymongo']:
+        exclusions.append(ipjoin('parallel', 'controller', 'mongodb'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
