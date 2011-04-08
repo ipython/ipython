@@ -411,14 +411,14 @@ class HistoryManager(Configurable):
             self.writeout_cache()
         
     def _writeout_input_cache(self):
-        for line in self.db_input_cache:
-            with self.db:
+        with self.db:
+            for line in self.db_input_cache:
                 self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
                                 (self.session_number,)+line)
     
     def _writeout_output_cache(self):
-        for line in self.db_output_cache:
-            with self.db:
+        with self.db:
+            for line in self.db_output_cache:
                 self.db.execute("INSERT INTO output_history VALUES (?, ?, ?)",
                                 (self.session_number,)+line)
     
@@ -432,7 +432,7 @@ class HistoryManager(Configurable):
                   "database. History logging moved to new session",
                                             self.session_number)
             try: # Try writing to the new session. If this fails, don't recurse
-                self.writeout_cache()
+                self._writeout_input_cache()
             except sqlite3.IntegrityError:
                 pass
         finally:
