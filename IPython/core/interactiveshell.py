@@ -1287,11 +1287,12 @@ class InteractiveShell(Configurable, Magic):
             return 'not found'  # so callers can take other action
 
     def object_inspect(self, oname):
-        info = self._object_find(oname)
-        if info.found:
-            return self.inspector.info(info.obj, oname, info=info)
-        else:
-            return oinspect.object_info(name=oname, found=False)
+        with self.builtin_trap:
+            info = self._object_find(oname)
+            if info.found:
+                return self.inspector.info(info.obj, oname, info=info)
+            else:
+                return oinspect.object_info(name=oname, found=False)
 
     #-------------------------------------------------------------------------
     # Things related to history management
