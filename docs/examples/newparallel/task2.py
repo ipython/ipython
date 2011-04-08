@@ -1,50 +1,50 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from IPython.kernel import client
+from IPython.parallel import Client
 import time
 import sys
 flush = sys.stdout.flush
 
-tc = client.TaskClient()
-mec = client.MultiEngineClient()
+rc = Client()
+v = rc.load_balanced_view()
+mux = rc[:]
 
-mec.execute('import time')
 
 for i in range(24):
-    tc.run(client.StringTask('time.sleep(1)'))
+    v.apply(time.sleep, 1)
 
 for i in range(6):
     time.sleep(1.0)
     print "Queue status (vebose=False)"
-    print tc.queue_status()
+    print v.queue_status(verbose=False)
     flush()
     
 for i in range(24):
-    tc.run(client.StringTask('time.sleep(1)'))
+    v.apply(time.sleep, 1)
 
 for i in range(6):
     time.sleep(1.0)
     print "Queue status (vebose=True)"
-    print tc.queue_status(True)
+    print v.queue_status(verbose=True)
     flush()
 
 for i in range(12):
-    tc.run(client.StringTask('time.sleep(2)'))
+    v.apply(time.sleep, 2)
 
 print "Queue status (vebose=True)"
-print tc.queue_status(True)
+print v.queue_status(verbose=True)
 flush()
 
-qs = tc.queue_status(True)
-sched = qs['scheduled']
+# qs = v.queue_status(verbose=True)
+# queued = qs['scheduled']
 
-for tid in sched[-4:]:
-    tc.abort(tid)
+for msg_id in v.history[-4:]:
+    v.abort(msg_id)
 
 for i in range(6):
     time.sleep(1.0)
     print "Queue status (vebose=True)"
-    print tc.queue_status(True)
+    print v.queue_status(verbose=True)
     flush()
 

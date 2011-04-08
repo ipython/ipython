@@ -1,9 +1,9 @@
 """Example of how to use pylab to plot parallel data.
 
 The idea here is to run matplotlib is the same IPython session
-as an ipython RemoteController client.  That way matplotlib
+as an ipython parallel Client.  That way matplotlib
 can be used to plot parallel data that is gathered using
-RemoteController.  
+a DirectView.  
 
 To run this example, first start the IPython controller and 4
 engines::
@@ -20,12 +20,15 @@ example.
 
 import numpy as N
 from pylab import *
-from IPython.kernel import client
+from IPython.parallel import Client
 
-# Get an IPython1 client
-rc = client.MultiEngineClient()
-rc.get_ids()
-rc.activate()
+# load the parallel magic
+%load_ext parallelmagic
+
+# Get an IPython Client
+rc = Client()
+v = rc[:]
+v.activate()
 
 # Create random arrays on the engines
 # This is to simulate arrays that you have calculated in parallel
@@ -35,12 +38,12 @@ rc.activate()
 %px x = N.random.standard_normal(10000)
 %px y = N.random.standard_normal(10000)
 
-%px print x[0:10]
-%px print y[0:10]
+print v.apply_async(lambda : x[0:10]).get_dict()
+print v.apply_async(lambda : y[0:10]).get_dict()
 
 # Bring back the data
-x_local = rc.gather('x')
-y_local = rc.gather('y')
+x_local = v.gather('x', block=True)
+y_local = v.gather('y', block=True)
 
 # Make a scatter plot of the gathered data
 plot(x_local, y_local,'ro')
