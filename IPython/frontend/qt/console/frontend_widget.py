@@ -355,7 +355,13 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # line as string, later we can pass False to format_call and
             # syntax-highlight it ourselves for nicer formatting in the
             # calltip.
-            call_info, doc = call_tip(rep['content'], format_call=True)
+            if rep['content']['ismagic']:
+                # Don't generate a call-tip for magics. Ideally, we should
+                # generate a tooltip, but not on ( like we do for actual
+                # callables.
+                call_info, doc = None, None
+            else:
+                call_info, doc = call_tip(rep['content'], format_call=True)
             if call_info or doc:
                 self._call_tip_widget.show_call_info(call_info, doc)
 
