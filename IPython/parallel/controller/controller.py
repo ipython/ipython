@@ -66,13 +66,13 @@ class ControllerFactory(HubFactory):
         children = self.children
         mq = import_item(self.mq_class)
         
-        maybe_inproc = 'inproc://monitor' if self.usethreads else self.monitor_url
+        # maybe_inproc = 'inproc://monitor' if self.usethreads else self.monitor_url
         # IOPub relay (in a Process)
         q = mq(zmq.PUB, zmq.SUB, zmq.PUB, 'N/A','iopub')
         q.bind_in(self.client_info['iopub'])
         q.bind_out(self.engine_info['iopub'])
         q.setsockopt_out(zmq.SUBSCRIBE, '')
-        q.connect_mon(maybe_inproc)
+        q.connect_mon(self.monitor_url)
         q.daemon=True
         children.append(q)
 
@@ -81,7 +81,7 @@ class ControllerFactory(HubFactory):
         q.bind_in(self.client_info['mux'])
         q.setsockopt_in(zmq.IDENTITY, 'mux')
         q.bind_out(self.engine_info['mux'])
-        q.connect_mon(maybe_inproc)
+        q.connect_mon(self.monitor_url)
         q.daemon=True
         children.append(q)
 
@@ -90,7 +90,7 @@ class ControllerFactory(HubFactory):
         q.bind_in(self.client_info['control'])
         q.setsockopt_in(zmq.IDENTITY, 'control')
         q.bind_out(self.engine_info['control'])
-        q.connect_mon(maybe_inproc)
+        q.connect_mon(self.monitor_url)
         q.daemon=True
         children.append(q)
         # Task Queue (in a Process)
@@ -101,7 +101,7 @@ class ControllerFactory(HubFactory):
             q.bind_in(self.client_info['task'][1])
             q.setsockopt_in(zmq.IDENTITY, 'task')
             q.bind_out(self.engine_info['task'])
-            q.connect_mon(maybe_inproc)
+            q.connect_mon(self.monitor_url)
             q.daemon=True
             children.append(q)
         elif self.scheme == 'none':
