@@ -23,7 +23,8 @@ class OutStream(object):
 
     # The time interval between automatic flushes, in seconds.
     flush_interval = 0.05
-    
+    topic=None
+
     def __init__(self, session, pub_socket, name):
         self.session = session
         self.pub_socket = pub_socket
@@ -49,10 +50,10 @@ class OutStream(object):
                     enc = sys.stdin.encoding or sys.getdefaultencoding()
                     data = data.decode(enc, 'replace')
                 content = {u'name':self.name, u'data':data}
-                msg = self.session.send(self.pub_socket, u'stream',
-                                        content=content,
-                                        parent=self.parent_header)
+                msg = self.session.send(self.pub_socket, u'stream', content=content,
+                                       parent=self.parent_header, ident=self.topic)
                 logger.debug(msg)
+
                 self._buffer.close()
                 self._new_buffer()
 

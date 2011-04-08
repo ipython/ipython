@@ -82,7 +82,7 @@ warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
 # Logic for skipping doctests
 #-----------------------------------------------------------------------------
 
-def test_for(mod):
+def test_for(mod, min_version=None):
     """Test to see if mod is importable."""
     try:
         __import__(mod)
@@ -91,7 +91,10 @@ def test_for(mod):
         # importable.
         return False
     else:
-        return True
+        if min_version:
+            return sys.modules[mod].__version__ >= min_version
+        else:
+            return True
 
 # Global dict where we can store information on what we have and what we don't
 # have available at test run time
@@ -101,6 +104,8 @@ have['curses'] = test_for('_curses')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['pexpect'] = test_for('pexpect')
+have['zmq'] = test_for('zmq', '2.0.10')
+have['pymongo'] = test_for('pymongo')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -178,6 +183,13 @@ def make_exclude():
     if not have['pexpect']:
         exclusions.extend([ipjoin('scripts', 'irunner'),
                            ipjoin('lib', 'irunner')])
+
+    if not have['zmq']:
+        exclusions.append(ipjoin('zmq'))
+        exclusions.append(ipjoin('parallel'))
+    
+    if not have['pymongo']:
+        exclusions.append(ipjoin('parallel', 'controller', 'mongodb'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
@@ -274,7 +286,10 @@ def make_runners():
     # Packages to be tested via nose, that only depend on the stdlib
     nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
                      'scripts', 'testing', 'utils' ]
-
+    
+    if have['zmq']:
+        nose_pkg_names.append('parallel')
+    
     # For debugging this code, only load quick stuff
     #nose_pkg_names = ['core', 'extensions']  # dbg
 

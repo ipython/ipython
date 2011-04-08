@@ -119,6 +119,7 @@ def find_packages():
     add_package(packages, 'external.pexpect')
     add_package(packages, 'external.pyparsing')
     add_package(packages, 'external.simplegeneric')
+    add_package(packages, 'external.ssh')
     add_package(packages, 'external.validate')
     add_package(packages, 'kernel')
     add_package(packages, 'frontend')
@@ -126,6 +127,8 @@ def find_packages():
     add_package(packages, 'frontend.qt.console', tests=True)
     add_package(packages, 'frontend.terminal', tests=True)    
     add_package(packages, 'lib', tests=True)
+    add_package(packages, 'parallel', tests=True, scripts=True, 
+                                    others=['apps','engine','client','controller'])
     add_package(packages, 'quarantine', tests=True)
     add_package(packages, 'scripts')
     add_package(packages, 'testing', tests=True)
@@ -260,11 +263,13 @@ def find_scripts():
     """
     Find IPython's scripts.
     """
-    # kernel_scripts = pjoin('IPython','kernel','scripts')
+    parallel_scripts = pjoin('IPython','parallel','scripts')
     main_scripts = pjoin('IPython','scripts')
-    scripts = [# pjoin(kernel_scripts, 'ipengine'),
-               # pjoin(kernel_scripts, 'ipcontroller'),
-               # pjoin(kernel_scripts, 'ipcluster'),
+    scripts = [
+               pjoin(parallel_scripts, 'ipengine'),
+               pjoin(parallel_scripts, 'ipcontroller'),
+               pjoin(parallel_scripts, 'ipcluster'),
+               pjoin(parallel_scripts, 'iplogger'),
                pjoin(main_scripts, 'ipython'),
                pjoin(main_scripts, 'ipython-qtconsole'),
                pjoin(main_scripts, 'pycolor'),
@@ -298,7 +303,8 @@ def check_for_dependencies():
     from setupext.setupext import (
         print_line, print_raw, print_status,
         check_for_sphinx, check_for_pygments,
-        check_for_nose, check_for_pexpect
+        check_for_nose, check_for_pexpect,
+        check_for_pyzmq
     )
     print_line()
     print_raw("BUILDING IPYTHON")
@@ -314,6 +320,7 @@ def check_for_dependencies():
     check_for_pygments()
     check_for_nose()
     check_for_pexpect()
+    check_for_pyzmq()
 
 
 def record_commit_info(pkg_dir, build_cmd=build_py):

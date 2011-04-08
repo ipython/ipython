@@ -60,7 +60,7 @@ from .importstring import import_item
 
 ClassTypes = (ClassType, type)
 
-SequenceTypes = (ListType, TupleType)
+SequenceTypes = (ListType, TupleType, set, frozenset)
 
 #-----------------------------------------------------------------------------
 # Basic classes
@@ -1018,7 +1018,7 @@ class List(Instance):
     """An instance of a Python list."""
 
     def __init__(self, default_value=None, allow_none=True, **metadata):
-        """Create a list trait type from a list or tuple.
+        """Create a list trait type from a list, set, or tuple.
 
         The default value is created by doing ``list(default_value)``, 
         which creates a copy of the ``default_value``.
@@ -1031,6 +1031,26 @@ class List(Instance):
             raise TypeError('default value of List was %s' % default_value)
 
         super(List,self).__init__(klass=list, args=args, 
+                                  allow_none=allow_none, **metadata)
+
+
+class Set(Instance):
+    """An instance of a Python set."""
+
+    def __init__(self, default_value=None, allow_none=True, **metadata):
+        """Create a set trait type from a set, list, or tuple.
+
+        The default value is created by doing ``set(default_value)``, 
+        which creates a copy of the ``default_value``.
+        """
+        if default_value is None:
+            args = ((),)
+        elif isinstance(default_value, SequenceTypes):
+            args = (default_value,)
+        else:
+            raise TypeError('default value of Set was %s' % default_value)
+
+        super(Set,self).__init__(klass=set, args=args, 
                                   allow_none=allow_none, **metadata)
 
 

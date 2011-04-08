@@ -56,16 +56,6 @@ def check_for_ipython():
         print_status("IPython", IPython.__version__)
         return True
 
-def check_for_pyopenssl():
-    try:
-        import OpenSSL
-    except ImportError:
-        print_status('OpenSSL', "Not found (required if you want security in the parallel computing capabilities)")
-        return False
-    else:
-        print_status('OpenSSL', OpenSSL.__version__)    
-        return True
-
 def check_for_sphinx():
     try:
         import sphinx
@@ -136,4 +126,17 @@ def check_for_simplejson():
         print_status("simplejson","yes")
         return True
 
-        
+def check_for_pyzmq():
+    try:
+        import zmq
+    except ImportError:
+        print_status('pyzmq', "no (required for qtconsole and parallel computing capabilities)")
+        return False
+    else:
+        if zmq.__version__ < '2.0.10':
+            print_status('pyzmq', "no (require >= 2.0.10 for qtconsole and parallel computing capabilities)")
+            
+        else:
+            print_status("pyzmq", zmq.__version__)
+            return True
+
