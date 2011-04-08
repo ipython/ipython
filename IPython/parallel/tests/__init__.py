@@ -24,6 +24,7 @@ blackhole = tempfile.TemporaryFile()
 
 def setup():
     cp = Popen('ipcontroller --profile iptest -r --log-level 10 --log-to-file'.split(), stdout=blackhole, stderr=STDOUT)
+    time.sleep(1)
     processes.append(cp)
     time.sleep(.5)
     add_engines(1)
