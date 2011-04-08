@@ -184,16 +184,15 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     [ target_update(*t) for t in to_update ]
     
 #---------------------------------------------------------------------------
-# Find all the packages, package data, scripts and data_files
+# Find all the packages, package data, and data_files
 #---------------------------------------------------------------------------
 
 packages = find_packages()
 package_data = find_package_data()
-scripts = find_scripts()
 data_files = find_data_files()
 
 #---------------------------------------------------------------------------
-# Handle dependencies and setuptools specific things
+# Handle scripts, dependencies, and setuptools specific things
 #---------------------------------------------------------------------------
 
 # For some commands, use setuptools.  Note that we do NOT list install here!
@@ -211,17 +210,7 @@ setuptools_extra_args = {}
 if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
-        'console_scripts': [
-            'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
-            'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
-            'pycolor = IPython.utils.PyColorize:main',
-            'ipcontroller = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
-            'ipengine = IPython.parallel.apps.ipengineapp:launch_new_instance',
-            'iplogger = IPython.parallel.apps.iploggerapp:launch_new_instance',
-            'ipcluster = IPython.parallel.apps.ipclusterapp:launch_new_instance',
-            'iptest = IPython.testing.iptest:main',
-            'irunner = IPython.lib.irunner:main'
-        ]
+        'console_scripts': find_scripts(True)
     }
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.4',
@@ -229,11 +218,23 @@ if 'setuptools' in sys.modules:
         doc='Sphinx>=0.3',
         test='nose>=0.10.1',
     )
+    
+    # Script to be run by the windows binary installer after the default setup
+    # routine, to add shortcuts and similar windows-only things.  Windows
+    # post-install scripts MUST reside in the scripts/ dir, otherwise distutils
+    # doesn't find them.
+    if 'bdist_wininst' in sys.argv:
+        if len(sys.argv) > 2 and \
+               ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
+            print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
+            sys.exit(1)
+        setup_args['scripts'] = [pjoin('scripts','ipython_win_post_install.py')]
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.
     check_for_dependencies()
+    setup_args['scripts'] = find_scripts(False)
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
@@ -242,7 +243,6 @@ else:
 setup_args['cmdclass'] = {'build_py': record_commit_info('IPython')}
 setup_args['packages'] = packages
 setup_args['package_data'] = package_data
-setup_args['scripts'] = scripts
 setup_args['data_files'] = data_files
 setup_args.update(setuptools_extra_args)
 

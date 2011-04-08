@@ -259,36 +259,42 @@ def make_man_update_target(manpage):
 # Find scripts
 #---------------------------------------------------------------------------
 
-def find_scripts():
-    """
-    Find IPython's scripts.
-    """
-    parallel_scripts = pjoin('IPython','parallel','scripts')
-    main_scripts = pjoin('IPython','scripts')
-    scripts = [
-               pjoin(parallel_scripts, 'ipengine'),
-               pjoin(parallel_scripts, 'ipcontroller'),
-               pjoin(parallel_scripts, 'ipcluster'),
-               pjoin(parallel_scripts, 'iplogger'),
-               pjoin(main_scripts, 'ipython'),
-               pjoin(main_scripts, 'ipython-qtconsole'),
-               pjoin(main_scripts, 'pycolor'),
-               pjoin(main_scripts, 'irunner'),
-               pjoin(main_scripts, 'iptest')
-              ]
+def find_scripts(entry_points=False):
+    """Find IPython's scripts.
     
-    # Script to be run by the windows binary installer after the default setup
-    # routine, to add shortcuts and similar windows-only things.  Windows
-    # post-install scripts MUST reside in the scripts/ dir, otherwise distutils
-    # doesn't find them.
-    if 'bdist_wininst' in sys.argv:
-        if len(sys.argv) > 2 and \
-               ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
-            print("ERROR: bdist_wininst must be run alone. Exiting.",
-                  file=sys.stderr)
-            sys.exit(1)
-        scripts.append(pjoin('scripts','ipython_win_post_install.py'))
-
+    if entry_points is True:
+        return setuptools entry_point-style definitions
+    else:
+        return file paths of plain scripts [default]
+    
+    """
+    if entry_points:
+        scripts = [
+            'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
+            'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
+            'pycolor = IPython.utils.PyColorize:main',
+            'ipcontroller = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
+            'ipengine = IPython.parallel.apps.ipengineapp:launch_new_instance',
+            'iplogger = IPython.parallel.apps.iploggerapp:launch_new_instance',
+            'ipcluster = IPython.parallel.apps.ipclusterapp:launch_new_instance',
+            'iptest = IPython.testing.iptest:main',
+            'irunner = IPython.lib.irunner:main'
+        ]
+    else:
+        parallel_scripts = pjoin('IPython','parallel','scripts')
+        main_scripts = pjoin('IPython','scripts')
+        scripts = [
+                   pjoin(parallel_scripts, 'ipengine'),
+                   pjoin(parallel_scripts, 'ipcontroller'),
+                   pjoin(parallel_scripts, 'ipcluster'),
+                   pjoin(parallel_scripts, 'iplogger'),
+                   pjoin(main_scripts, 'ipython'),
+                   pjoin(main_scripts, 'ipython-qtconsole'),
+                   pjoin(main_scripts, 'pycolor'),
+                   pjoin(main_scripts, 'irunner'),
+                   pjoin(main_scripts, 'iptest')
+                  ]
+    
     return scripts
 
 #---------------------------------------------------------------------------
