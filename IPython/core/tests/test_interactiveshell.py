@@ -64,7 +64,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.run_cell('tmp=1;"""a\nb"""\n')
         self.assertEquals(ip.user_ns['tmp'], 1)
 
-    @dec.skip_known_failure
     def test_dont_cache_with_semicolon(self):
         "Ending a line with semicolon should not cache the returned object (GH-307)"
         ip = get_ipython()
