@@ -380,8 +380,9 @@ class Kernel(SessionFactory):
             self.aborted.remove(msg_id)
             # is it safe to assume a msg_id will not be resubmitted?
             reply_type = msg['msg_type'].split('_')[0] + '_reply'
-            reply_msg = self.session.send(stream, reply_type, 
-                        content={'status' : 'aborted'}, parent=msg, ident=idents)
+            status = {'status' : 'aborted'}
+            reply_msg = self.session.send(stream, reply_type, subheader=status,
+                        content=status, parent=msg, ident=idents)
             return
         handler = self.shell_handlers.get(msg['msg_type'], None)
         if handler is None:
