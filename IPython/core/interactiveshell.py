@@ -1442,7 +1442,6 @@ class InteractiveShell(Configurable, Magic):
                 sys.last_type = etype
                 sys.last_value = value
                 sys.last_traceback = tb
-    
                 if etype in self.custom_exceptions:
                     # FIXME: Old custom traceback objects may just return a
                     # string, in that case we just put it into a list
@@ -1458,11 +1457,10 @@ class InteractiveShell(Configurable, Magic):
                     else:
                         stb = self.InteractiveTB.structured_traceback(etype,
                                                 value, tb, tb_offset=tb_offset)
-                        # FIXME: the pdb calling should be done by us, not by
-                        # the code computing the traceback.
-                        if self.InteractiveTB.call_pdb:
-                            # pdb mucks up readline, fix it back
-                            self.set_readline_completer()
+                        
+                        if self.call_pdb:
+                            # drop into debugger
+                            self.debugger(force=True)
 
                 # Actually show the traceback
                 self._showtraceback(etype, value, stb)
