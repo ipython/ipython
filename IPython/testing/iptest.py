@@ -104,7 +104,7 @@ have['curses'] = test_for('_curses')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['pexpect'] = test_for('pexpect')
-have['zmq'] = test_for('zmq', '2.0.10')
+have['zmq'] = test_for('zmq', '2.1.4')
 have['pymongo'] = test_for('pymongo')
 
 #-----------------------------------------------------------------------------
