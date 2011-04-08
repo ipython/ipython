@@ -764,8 +764,10 @@ class Hub(LoggingFactory):
             
         elif msg_type == 'pyerr':
             d['pyerr'] = content
+        elif msg_type == 'pyin':
+            d['pyin'] = content['code']
         else:
-            d[msg_type] = content['data']
+            d[msg_type] = content.get('data', '')
         
         self.db.update_record(msg_id, d)
         

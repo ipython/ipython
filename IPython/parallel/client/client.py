@@ -674,8 +674,10 @@ class Client(HasTraits):
                 md[name] = s + content['data']
             elif msg_type == 'pyerr':
                 md.update({'pyerr' : self._unwrap_exception(content)})
+            elif msg_type == 'pyin':
+                md.update({'pyin' : content['code']})
             else:
-                md.update({msg_type : content['data']})
+                md.update({msg_type : content.get('data', '')})
             
             # reduntant?
             self.metadata[msg_id] = md

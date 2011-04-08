@@ -113,6 +113,9 @@ class IPEngineAppConfigLoader(ClusterDirConfigLoader):
         paa('-c',
             type=str, dest='Global.extra_exec_lines',
             help='specify a command to be run at startup')
+        paa('-s',
+            type=unicode, dest='Global.extra_exec_file',
+            help='specify a script to be run at startup')
         
         factory.add_session_arguments(self.parser)
         factory.add_registration_arguments(self.parser)
@@ -142,6 +145,7 @@ class IPEngineApp(ApplicationWithClusterDir):
         # Global config attributes
         self.default_config.Global.exec_lines = []
         self.default_config.Global.extra_exec_lines = ''
+        self.default_config.Global.extra_exec_file = u''
 
         # Configuration related to the controller
         # This must match the filename (path not included) that the controller
@@ -167,6 +171,10 @@ class IPEngineApp(ApplicationWithClusterDir):
         self.find_url_file()
         if self.master_config.Global.extra_exec_lines:
             self.master_config.Global.exec_lines.append(self.master_config.Global.extra_exec_lines)
+        if self.master_config.Global.extra_exec_file:
+            enc = sys.getfilesystemencoding() or 'utf8'
+            cmd="execfile(%r)"%self.master_config.Global.extra_exec_file.encode(enc)
+            self.master_config.Global.exec_lines.append(cmd)
 
     # def find_key_file(self):
     #     """Set the key file.
