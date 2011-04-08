@@ -39,8 +39,15 @@ def printer(*args):
     pprint(args, stream=sys.__stdout__)
 
 
-class _Passer:
-    """Empty class that implements `send()` that does nothing."""
+class _Passer(zmqstream.ZMQStream):
+    """Empty class that implements `send()` that does nothing.
+    
+    Subclass ZMQStream for StreamSession typechecking
+    
+    """
+    def __init__(self, *args, **kwargs):
+        pass
+    
     def send(self, *args, **kwargs):
         pass
     send_multipart = send

@@ -89,6 +89,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     custom_restart_kernel_died = QtCore.Signal(float)
     custom_restart_requested = QtCore.Signal()
 
+    # Emitted when a user visible 'execute_request' has been submitted to the
+    # kernel from the FrontendWidget. Contains the code to be executed.
+    executing = QtCore.Signal(object)
+
     # Emitted when a user-visible 'execute_reply' has been received from the
     # kernel and processed by the FrontendWidget. Contains the response message.
     executed = QtCore.Signal(object)
@@ -182,6 +186,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         msg_id = self.kernel_manager.xreq_channel.execute(source, hidden)
         self._request_info['execute'] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
+        if not hidden:
+            self.executing.emit(source)
         
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
