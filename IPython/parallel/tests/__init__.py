@@ -11,10 +11,12 @@
 # Imports
 #-------------------------------------------------------------------------------
 
+import os
 import tempfile
 import time
 from subprocess import Popen, PIPE, STDOUT
 
+from IPython.utils.path import get_ipython_dir
 from IPython.parallel import Client
 
 processes = []
@@ -24,9 +26,11 @@ blackhole = tempfile.TemporaryFile()
 
 def setup():
     cp = Popen('ipcontroller --profile iptest -r --log-level 10 --log-to-file'.split(), stdout=blackhole, stderr=STDOUT)
-    time.sleep(1)
+    engine_json = os.path.join(get_ipython_dir(), 'cluster_iptest', 'security', 'ipcontroller-engine.json')
+    client_json = os.path.join(get_ipython_dir(), 'cluster_iptest', 'security', 'ipcontroller-client.json')
+    while not os.path.exists(engine_json) and not os.path.exists(client_json):
+        time.sleep(0.1)
     processes.append(cp)
-    time.sleep(.5)
     add_engines(1)
     c = Client(profile='iptest')
     while not c.ids:
