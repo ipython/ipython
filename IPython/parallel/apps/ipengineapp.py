@@ -22,7 +22,7 @@ import sys
 import zmq
 from zmq.eventloop import ioloop
 
-from .clusterdir import (
+from IPython.parallel.apps.clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )

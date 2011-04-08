@@ -26,7 +26,8 @@ from zmq.eventloop import ioloop
 
 from IPython.external.argparse import ArgumentParser, SUPPRESS
 from IPython.utils.importstring import import_item
-from .clusterdir import (
+
+from IPython.parallel.apps.clusterdir import (
     ApplicationWithClusterDir, ClusterDirConfigLoader,
     ClusterDirError, PIDFileError
 )
@@ -260,9 +261,9 @@ class IPClusterApp(ApplicationWithClusterDir):
     def create_default_config(self):
         super(IPClusterApp, self).create_default_config()
         self.default_config.Global.controller_launcher = \
-            'IPython.parallel.launcher.LocalControllerLauncher'
+            'IPython.parallel.apps.launcher.LocalControllerLauncher'
         self.default_config.Global.engine_launcher = \
-            'IPython.parallel.launcher.LocalEngineSetLauncher'
+            'IPython.parallel.apps.launcher.LocalEngineSetLauncher'
         self.default_config.Global.n = 2
         self.default_config.Global.delay = 2
         self.default_config.Global.reset_config = False

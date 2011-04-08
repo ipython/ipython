@@ -32,7 +32,8 @@ from zmq.utils import jsonapi as json
 from IPython.config.loader import Config
 
 from IPython.parallel import factory
-from .clusterdir import (
+
+from IPython.parallel.apps.clusterdir import (
     ApplicationWithClusterDir,
     ClusterDirConfigLoader
 )
