@@ -648,7 +648,7 @@ class DirectView(View):
         # block = block if block is not None else self.block
         return self.pull(key_s, block=True)
     
-    def pull(self, names, targets=None, block=True):
+    def pull(self, names, targets=None, block=None):
         """get object(s) by `name` from remote namespace
         
         will return one object if it is a key.
@@ -766,7 +766,7 @@ class DirectView(View):
         else:
             pmagic = ip.plugin_manager.get_plugin('parallelmagic')
             if pmagic is not None:
-                pmagic.active_multiengine_client = self
+                pmagic.active_view = self
             else:
                 print "You must first load the parallelmagic extension " \
                       "by doing '%load_ext parallelmagic'"

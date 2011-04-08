@@ -14,7 +14,9 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import ast
 import new
+import re
 
 from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Bool, Any, Instance
@@ -26,15 +28,15 @@ from IPython.testing import decorators as testdec
 #-----------------------------------------------------------------------------
 
 
-NO_ACTIVE_MULTIENGINE_CLIENT = """
-Use activate() on a MultiEngineClient object to activate it for magics.
+NO_ACTIVE_VIEW = """
+Use activate() on a DirectView object to activate it for magics.
 """
 
 
 class ParalleMagic(Plugin):
     """A component to manage the %result, %px and %autopx magics."""
 
-    active_multiengine_client = Any()
+    active_view = Any()
     verbose = Bool(False, config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
@@ -54,7 +56,7 @@ class ParalleMagic(Plugin):
     def magic_result(self, ipself, parameter_s=''):
         """Print the result of command i on all engines..
 
-        To use this a :class:`MultiEngineClient` instance must be created 
+        To use this a :class:`DirectView` instance must be created 
         and then activated by calling its :meth:`activate` method.
 
         Then you can do the following::
@@ -71,22 +73,22 @@ class ParalleMagic(Plugin):
             [0] In [6]: a = 10
             [1] In [6]: a = 10
         """
-        if self.active_multiengine_client is None:
-            print NO_ACTIVE_MULTIENGINE_CLIENT
+        if self.active_view is None:
+            print NO_ACTIVE_VIEW
             return
 
         try:
             index = int(parameter_s)
         except:
             index = None
-        result = self.active_multiengine_client.get_result(index)
+        result = self.active_view.get_result(index)
         return result
 
     @testdec.skip_doctest
     def magic_px(self, ipself, parameter_s=''):
         """Executes the given python command in parallel.
 
-        To use this a :class:`MultiEngineClient` instance must be created 
+        To use this a :class:`DirectView` instance must be created 
         and then activated by calling its :meth:`activate` method.
         
         Then you can do the following::
@@ -99,18 +101,18 @@ class ParalleMagic(Plugin):
             [1] In [7]: a = 5
         """
 
-        if self.active_multiengine_client is None:
-            print NO_ACTIVE_MULTIENGINE_CLIENT
+        if self.active_view is None:
+            print NO_ACTIVE_VIEW
             return
-        print "Parallel execution on engines: %s" % self.active_multiengine_client.targets
-        result = self.active_multiengine_client.execute(parameter_s)
+        print "Parallel execution on engines: %s" % self.active_view.targets
+        result = self.active_view.execute(parameter_s)
         return result
 
     @testdec.skip_doctest
     def magic_autopx(self, ipself, parameter_s=''):
         """Toggles auto parallel mode.
 
-        To use this a :class:`MultiEngineClient` instance must be created 
+        To use this a :class:`DirectView` instance must be created 
         and then activated by calling its :meth:`activate` method. Once this
         is called, all commands typed at the command line are send to
         the engines to be executed in parallel. To control which engine
@@ -137,67 +139,89 @@ class ParalleMagic(Plugin):
             self._enable_autopx()
 
     def _enable_autopx(self):
-        """Enable %autopx mode by saving the original run_source and installing 
-        pxrun_source.
+        """Enable %autopx mode by saving the original run_cell and installing 
+        pxrun_cell.
         """
-        if self.active_multiengine_client is None:
-            print NO_ACTIVE_MULTIENGINE_CLIENT
+        if self.active_view is None:
+            print NO_ACTIVE_VIEW
             return
 
-        self._original_run_source = self.shell.run_source
-        self.shell.run_source = new.instancemethod(
-            self.pxrun_source, self.shell, self.shell.__class__
+        self._original_run_cell = self.shell.run_cell
+        self.shell.run_cell = new.instancemethod(
+            self.pxrun_cell, self.shell, self.shell.__class__
         )
         self.autopx = True
         print "%autopx enabled"
     
     def _disable_autopx(self):
-        """Disable %autopx by restoring the original InteractiveShell.run_source.
+        """Disable %autopx by restoring the original InteractiveShell.run_cell.
         """
         if self.autopx:
-            self.shell.run_source = self._original_run_source
+            self.shell.run_cell = self._original_run_cell
             self.autopx = False
             print "%autopx disabled"
 
-    def pxrun_source(self, ipself, source, filename=None,
-                   symbol='single', post_execute=True):
-
-        # We need to ensure that the source is unicode from here on.
-        if type(source)==str:
-            usource = source.decode(ipself.stdin_encoding)
-        else:
-            usource = source
-
-        if 0:  # dbg
-            print 'Source:', repr(source)  # dbg
-            print 'USource:', repr(usource)  # dbg
-            print 'type:', type(source) # dbg
-            print 'encoding', ipself.stdin_encoding  # dbg
+    def pxrun_cell(self, ipself, cell, store_history=True):
+        """drop-in replacement for InteractiveShell.run_cell.
         
-        try:
-            code = ipself.compile(usource, symbol, ipself.execution_count)
-        except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
-            # Case 1
-            ipself.showsyntaxerror(filename)
-            return None
+        This executes code remotely, instead of in the local namespace.
+        """
+        raw_cell = cell
+        with ipself.builtin_trap:
+            cell = ipself.prefilter_manager.prefilter_lines(cell)
+        
+            # Store raw and processed history
+            if store_history:
+                ipself.history_manager.store_inputs(ipself.execution_count, 
+                                                  cell, raw_cell)
 
-        if code is None:
-            # Case 2
-            return True
+            # ipself.logger.log(cell, raw_cell)
+        
+            cell_name = ipself.compile.cache(cell, ipself.execution_count)
+        
+            try:
+                code_ast = ast.parse(cell, filename=cell_name)
+            except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
+                # Case 1
+                ipself.showsyntaxerror()
+                ipself.execution_count += 1
+                return None
+            except NameError:
+                pass
 
-        # Case 3
-        # Because autopx is enabled, we now call executeAll or disable autopx if
-        # %autopx or autopx has been called
-        if 'get_ipython().magic("%autopx' in source or 'get_ipython().magic("autopx' in source:
+        if store_history:
+            # Write output to the database. Does nothing unless
+            # history output logging is enabled.
+            ipself.history_manager.store_output(ipself.execution_count)
+            # Each cell is a *single* input, regardless of how many lines it has
+            ipself.execution_count += 1
+        print cell
+        
+        if re.search(r'get_ipython\(\)\.magic\(u?"%?autopx', cell):
             self._disable_autopx()
             return False
         else:
             try:
-                result = self.active_multiengine_client.execute(source)
+                result = self.active_view.execute(cell, block=False)
             except:
                 ipself.showtraceback()
-            else:
-                print result.__repr__()
+                return False
+            
+            if self.active_view.block:
+                try:
+                    result.get()
+                except:
+                    ipself.showtraceback()
+                else:
+                    targets = self.active_view.targets
+                    if isinstance(targets, int):
+                        targets = [targets]
+                    if targets == 'all':
+                        targets = self.active_view.client.ids
+                    stdout = [s.rstrip() for s in result.stdout]
+                    if any(stdout):
+                        for i,eid in enumerate(targets):
+                            print '[stdout:%i]'%eid, stdout[i]
             return False
 
 
