@@ -29,7 +29,7 @@ IPython requires Python 2.4 or newer.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008-2010 The IPython Development Team
+#       Copyright (C) 2008-2011 The IPython Development Team
 #       Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in

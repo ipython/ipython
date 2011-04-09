@@ -2,7 +2,7 @@
 """Release data for the IPython project."""
 
 #*****************************************************************************
-#       Copyright (C) 2008-2010  The IPython Development Team
+#       Copyright (C) 2008-2011  The IPython Development Team
 #       Copyright (C) 2001-2008 Fernando Perez <fperez@colorado.edu>
 #       Copyright (c) 2001 Janko Hauser <jhauser@zscout.de> and Nathaniel Gray
 #       <n8gray@caltech.edu>
@@ -20,10 +20,11 @@ name = 'ipython'
 # because bdist_rpm does not accept dashes (an RPM) convention, and
 # bdist_deb does not accept underscores (a Debian convention).
 
-development = True    # change this to False to do a release
+#development = True    # During development
+development = False    # For releases
 version_base = '0.10.2'
 extra_ver = None  # Default
-extra_ver = 'rc1'  # Use for release candidates and similar
+#extra_ver = 'rc1'  # Use for release candidates and similar
 
 if development:
     if extra_ver == None:
