@@ -218,6 +218,11 @@ if 'setuptools' in sys.modules:
         doc='Sphinx>=0.3',
         test='nose>=0.10.1',
     )
+    requires = setup_args.setdefault('install_requires', [])
+    if sys.platform == 'darwin':
+        requires.append('readline')
+    elif sys.platform.startswith('win'):
+        requires.append('pyreadline')
     
     # Script to be run by the windows binary installer after the default setup
     # routine, to add shortcuts and similar windows-only things.  Windows
