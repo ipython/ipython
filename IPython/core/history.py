@@ -13,11 +13,13 @@
 from __future__ import print_function
 
 # Stdlib imports
+import atexit
 import datetime
 import json
 import os
 import re
 import sqlite3
+import threading
 
 from collections import defaultdict
 
@@ -76,6 +78,10 @@ class HistoryManager(Configurable):
     db_input_cache = List()
     db_output_cache = List()
     
+    # History saving in separate thread
+    save_thread = Instance('IPython.core.history.HistorySavingThread')
+    save_flag = Instance(threading._Event)
+    
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
     # history update, we populate the user's namespace with these, shifted as
@@ -119,6 +125,10 @@ class HistoryManager(Configurable):
             else:
                 # The hist_file is probably :memory: or something else.
                 raise
+                
+        self.save_flag = threading.Event()
+        self.save_thread = HistorySavingThread(self)
+        self.save_thread.start()
 
         self.new_session()
 
@@ -376,7 +386,7 @@ class HistoryManager(Configurable):
         self.db_input_cache.append((line_num, source, source_raw))
         # Trigger to flush cache and write to DB.
         if len(self.db_input_cache) >= self.db_cache_size:
-            self.writeout_cache()
+            self.save_flag.set()
 
         # update the auto _i variables
         self._iii = self._ii
@@ -408,43 +418,68 @@ class HistoryManager(Configurable):
         
         self.db_output_cache.append((line_num, output))
         if self.db_cache_size <= 1:
-            self.writeout_cache()
-        
-    def _writeout_input_cache(self):
-        with self.db:
+            self.save_flag.set()
+    
+    def _writeout_input_cache(self, conn):
+        with conn:
             for line in self.db_input_cache:
-                self.db.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
+                conn.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
                                 (self.session_number,)+line)
     
-    def _writeout_output_cache(self):
-        with self.db:
+    def _writeout_output_cache(self, conn):
+        with conn:
             for line in self.db_output_cache:
-                self.db.execute("INSERT INTO output_history VALUES (?, ?, ?)",
+                conn.execute("INSERT INTO output_history VALUES (?, ?, ?)",
                                 (self.session_number,)+line)
     
-    def writeout_cache(self):
+    def writeout_cache(self, conn=None):
         """Write any entries in the cache to the database."""
+        if conn is None:
+            conn = self.db
         try:
-            self._writeout_input_cache()
+            self._writeout_input_cache(conn)
         except sqlite3.IntegrityError:
             self.new_session()
             print("ERROR! Session/line number was not unique in",
                   "database. History logging moved to new session",
                                             self.session_number)
             try: # Try writing to the new session. If this fails, don't recurse
-                self._writeout_input_cache()
+                self._writeout_input_cache(conn)
             except sqlite3.IntegrityError:
                 pass
         finally:
             self.db_input_cache = []
             
         try:
-            self._writeout_output_cache()
+            self._writeout_output_cache(conn)
         except sqlite3.IntegrityError:
             print("!! Session/line number for output was not unique",
                   "in database. Output will not be stored.")
         finally:
             self.db_output_cache = []
+
+
+class HistorySavingThread(threading.Thread):
+    daemon = True
+    stop_now = False
+    def __init__(self, history_manager):
+        super(HistorySavingThread, self).__init__()
+        self.history_manager = history_manager
+        atexit.register(self.stop)
+        
+    def run(self):
+        # We need a separate db connection per thread:
+        self.db = sqlite3.connect(self.history_manager.hist_file)
+        while True:
+            self.history_manager.save_flag.wait()
+            self.history_manager.save_flag.clear()
+            self.history_manager.writeout_cache(self.db)
+            if self.stop_now:
+                return
+        
+    def stop(self):
+        self.stop_now = True
+        self.history_manager.save_flag.set()
 
         
 # To match, e.g. ~5/8-~2/3
