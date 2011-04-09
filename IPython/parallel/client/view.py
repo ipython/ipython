@@ -765,11 +765,11 @@ class DirectView(View):
             print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
         else:
             pmagic = ip.plugin_manager.get_plugin('parallelmagic')
-            if pmagic is not None:
-                pmagic.active_view = self
-            else:
-                print "You must first load the parallelmagic extension " \
-                      "by doing '%load_ext parallelmagic'"
+            if pmagic is None:
+                ip.magic_load_ext('parallelmagic')
+                pmagic = ip.plugin_manager.get_plugin('parallelmagic')
+
+            pmagic.active_view = self
 
 
 @testdec.skip_doctest

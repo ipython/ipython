@@ -2211,15 +2211,20 @@ class InteractiveShell(Configurable, Magic):
             
         exec_count = self.execution_count
         if to_run_exec:
-            mod = ast.Module(to_run_exec)
-            self.code_to_run = code = self.compile(mod, cell_name, "exec")
-            if self.run_code(code) == 1:
-                return
-                
+            for i, node in enumerate(to_run_exec):
+                mod = ast.Module([node])
+                self.code_to_run = code = self.compile(mod, cell_name+str(i), "exec")
+                if self.run_code(code) == 1:
+                    return 1
+
         if to_run_interactive:
-            mod = ast.Interactive(to_run_interactive)
-            self.code_to_run = code = self.compile(mod, cell_name, "single")
-            return self.run_code(code)
+            for i, node in enumerate(to_run_interactive):
+                mod = ast.Interactive([node])
+                self.code_to_run = code = self.compile(mod, cell_name, "single")
+                if self.run_code(code) == 1:
+                    return 1
+
+        return 0
     
     
     # PENDING REMOVAL: this method is slated for deletion, once our new
@@ -2336,11 +2341,17 @@ class InteractiveShell(Configurable, Magic):
         When an exception occurs, self.showtraceback() is called to display a
         traceback.
 
-        Return value: a flag indicating whether the code to be run completed
-        successfully:
+        Parameters
+        ----------
+        code_obj : code object
+          A compiled code object, to be executed
+        post_execute : bool [default: True]
+          whether to call post_execute hooks after this particular execution.
 
-          - 0: successful execution.
-          - 1: an error occurred.
+        Returns
+        -------
+        0 : successful execution.
+        1 : an error occurred.
         """
 
         # Set our own excepthook in case the user code tries to call it

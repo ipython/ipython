@@ -15,12 +15,10 @@
 #-----------------------------------------------------------------------------
 
 import ast
-import new
 import re
 
 from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Bool, Any, Instance
-from IPython.utils.autoattr import auto_attr
 from IPython.testing import decorators as testdec
 
 #-----------------------------------------------------------------------------
@@ -146,10 +144,12 @@ class ParalleMagic(Plugin):
             print NO_ACTIVE_VIEW
             return
 
+        # override run_cell and run_code
         self._original_run_cell = self.shell.run_cell
-        self.shell.run_cell = new.instancemethod(
-            self.pxrun_cell, self.shell, self.shell.__class__
-        )
+        self.shell.run_cell = self.pxrun_cell
+        self._original_run_code = self.shell.run_code
+        self.shell.run_code = self.pxrun_code
+
         self.autopx = True
         print "%autopx enabled"
     
@@ -158,14 +158,43 @@ class ParalleMagic(Plugin):
         """
         if self.autopx:
             self.shell.run_cell = self._original_run_cell
+            self.shell.run_code = self._original_run_code
             self.autopx = False
             print "%autopx disabled"
 
-    def pxrun_cell(self, ipself, cell, store_history=True):
+    def _maybe_display_output(self, result):
+        """Maybe display the output of a parallel result.
+
+        If self.active_view.block is True, wait for the result
+        and display the result.  Otherwise, this is a noop.
+        """
+        if self.active_view.block:
+            try:
+                result.get()
+            except:
+                self.shell.showtraceback()
+                return True
+            else:
+                targets = self.active_view.targets
+                if isinstance(targets, int):
+                    targets = [targets]
+                if targets == 'all':
+                    targets = self.active_view.client.ids
+                stdout = [s.rstrip() for s in result.stdout]
+                if any(stdout):
+                    for i,eid in enumerate(targets):
+                        print '[stdout:%i]'%eid, stdout[i]
+        return False
+
+
+    def pxrun_cell(self, cell, store_history=True):
         """drop-in replacement for InteractiveShell.run_cell.
         
         This executes code remotely, instead of in the local namespace.
+
+        See InteractiveShell.run_cell for details.
         """
+        ipself = self.shell
         raw_cell = cell
         with ipself.builtin_trap:
             cell = ipself.prefilter_manager.prefilter_lines(cell)
@@ -187,6 +216,7 @@ class ParalleMagic(Plugin):
                 ipself.execution_count += 1
                 return None
             except NameError:
+                # ignore name errors, because we don't know the remote keys
                 pass
 
         if store_history:
@@ -195,7 +225,6 @@ class ParalleMagic(Plugin):
             ipself.history_manager.store_output(ipself.execution_count)
             # Each cell is a *single* input, regardless of how many lines it has
             ipself.execution_count += 1
-        print cell
         
         if re.search(r'get_ipython\(\)\.magic\(u?"%?autopx', cell):
             self._disable_autopx()
@@ -206,23 +235,32 @@ class ParalleMagic(Plugin):
             except:
                 ipself.showtraceback()
                 return False
-            
-            if self.active_view.block:
-                try:
-                    result.get()
-                except:
-                    ipself.showtraceback()
-                else:
-                    targets = self.active_view.targets
-                    if isinstance(targets, int):
-                        targets = [targets]
-                    if targets == 'all':
-                        targets = self.active_view.client.ids
-                    stdout = [s.rstrip() for s in result.stdout]
-                    if any(stdout):
-                        for i,eid in enumerate(targets):
-                            print '[stdout:%i]'%eid, stdout[i]
+            else:
+                return self._maybe_display_output(result)
+
+    def pxrun_code(self, code_obj, post_execute=True):
+        """drop-in replacement for InteractiveShell.run_code.
+
+        This executes code remotely, instead of in the local namespace.
+
+        See InteractiveShell.run_code for details.
+        """
+        ipself = self.shell
+        # check code object for the autopx magic
+        if 'get_ipython' in code_obj.co_names and 'magic' in code_obj.co_names and \
+            any( [ isinstance(c, basestring) and 'autopx' in c for c in code_obj.co_consts ]):
+            self._disable_autopx()
             return False
+        else:
+            try:
+                result = self.active_view.execute(code_obj, block=False)
+            except:
+                ipself.showtraceback()
+                return False
+            else:
+                return self._maybe_display_output(result)
+
+
 
 
 _loaded = False
