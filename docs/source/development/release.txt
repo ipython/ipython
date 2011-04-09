@@ -10,8 +10,14 @@ Our release process is currently not very formal and could be improved.
 Most of the release process is automated by the :file:`release` script in the
 :file:`tools` directory.  This is just a handy reminder for the release manager.
 
-#. First, run :file:`build_release`, which does all the file checking and
-   building that the real release script will do.  This will let you do test
+#. For writing release notes, this will cleanly show who contributed as author
+   of commits (get the previous release name from the tag list with ``git
+   tag``)::
+
+   git log --pretty=format:"* %an" PREV_RELEASE... | sort | uniq
+
+#. Run :file:`build_release`, which does all the file checking and building
+   that the real release script will do.  This will let you do test
    installations, check that the build procedure runs OK, etc.  You may want to
    disable a few things like multi-version RPM building while testing, because
    otherwise the build takes really long.
@@ -22,11 +28,19 @@ Most of the release process is automated by the :file:`release` script in the
 #. Update the website with announcements and links to the updated changes.txt
    in html form. Remember to put a short note both on the news page of the 
    site and on Launcphad.
-
+   
 #. Drafting a short release announcement with i) highlights and ii) a link to
    the html version of the :ref:`Whats new <whatsnew_index>` section of the 
    documentation.
 
-#. Make sure that the released version of the docs is live on the site.
+#. Make sure that the released version of the docs is live on the site.  For
+   this we are now using the gh-pages system:
+
+   - Make a static directory for the final copy of the release docs.
+   - Update the :file:`index.rst` file and run :file:`build_index.py` to update
+     the html version.
+   - Update the ``stable`` symlink to point to the released version.
+   - Run ``git add`` for all the new files and commit.
+   - Run ``git push`` to update the public version of the docs on gh-pages.
 
 #. Celebrate!
