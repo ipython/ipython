@@ -1050,7 +1050,7 @@ class InteractiveShell(Configurable, Magic):
         self.displayhook.flush()
 
         # Reset counter used to index all histories
-        self.execution_count = 0
+        self.execution_count = 1
         
         # Restore the user namespaces to minimal usability
         for ns in self.ns_refs_table:
@@ -1076,6 +1076,10 @@ class InteractiveShell(Configurable, Magic):
         # Flush the private list of module references kept for script
         # execution protection
         self.clear_main_mod_cache()
+        
+        # If this is run from interactive code, we don't want run_cell to bump
+        # up the execution_count
+        self.increment_exec_count = False
 
     def reset_selective(self, regex=None):
         """Clear selective variables from internal namespaces based on a
@@ -2121,6 +2125,7 @@ class InteractiveShell(Configurable, Magic):
           should be set to False.
         """
         raw_cell = cell
+        self.increment_exec_count = True
         with self.builtin_trap:
             cell = self.prefilter_manager.prefilter_lines(cell)
             
@@ -2139,7 +2144,8 @@ class InteractiveShell(Configurable, Magic):
                 except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
                     # Case 1
                     self.showsyntaxerror()
-                    self.execution_count += 1
+                    if store_history and self.increment_exec_count:
+                        self.execution_count += 1
                     return None
                     
                 interactivity = 'last'      # Last node to be run interactive
@@ -2153,7 +2159,8 @@ class InteractiveShell(Configurable, Magic):
             # history output logging is enabled.
             self.history_manager.store_output(self.execution_count)
             # Each cell is a *single* input, regardless of how many lines it has
-            self.execution_count += 1
+            if self.increment_exec_count:
+                self.execution_count += 1
             
     def run_ast_nodes(self, nodelist, cell_name, interactivity='last'):
         """Run a sequence of AST nodes. The execution mode depends on the
