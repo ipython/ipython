@@ -1045,12 +1045,12 @@ class InteractiveShell(Configurable, Magic):
         """
         # Clear histories
         self.history_manager.reset(new_session)
+        # Reset counter used to index all histories
+        if new_session:
+            self.execution_count = 1
         
         # Flush cached output items
         self.displayhook.flush()
-
-        # Reset counter used to index all histories
-        self.execution_count = 0
         
         # Restore the user namespaces to minimal usability
         for ns in self.ns_refs_table:
