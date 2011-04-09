@@ -1007,7 +1007,7 @@ Currently the magic system has the following functions:\n"""
                 del(user_ns[i])
             
         else:                     # Hard reset
-            self.shell.reset(new_session = True)
+            self.shell.reset(new_session = False)
             
         
 

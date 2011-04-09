@@ -164,15 +164,15 @@ class HistoryManager(Configurable):
     def reset(self, new_session=True):
         """Clear the session history, releasing all object references, and
         optionally open a new session."""
-        if self.session_number:
-            self.end_session()
-        self.input_hist_parsed[:] = [""]
-        self.input_hist_raw[:] = [""]
         self.output_hist.clear()
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwd()]
         
         if new_session:
+            if self.session_number:
+                self.end_session()
+            self.input_hist_parsed[:] = [""]
+            self.input_hist_raw[:] = [""]
             self.new_session()
     
     ## -------------------------------
