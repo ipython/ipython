@@ -688,14 +688,16 @@ class AutoMagicChecker(PrefilterChecker):
         check_esc_chars. This just checks for automagic.  Also, before
         triggering the magic handler, make sure that there is nothing in the
         user namespace which could shadow it."""
-        if not self.shell.automagic or not hasattr(self.shell,'magic_'+line_info.ifun):
+        ifun = line_info.ifun
+        is_potential_quitter = ifun in ('exit()', 'quit()', 'Exit()', 'Quit()') and line_info.the_rest == ''
+        if not self.shell.automagic or (not hasattr(self.shell,'magic_'+ifun) and not is_potential_quitter):
             return None
 
         # We have a likely magic method.  Make sure we should actually call it.
         if line_info.continue_prompt and not self.prefilter_manager.multi_line_specials:
             return None
 
-        head = line_info.ifun.split('.',1)[0]
+        head = ifun.split('(', 1)[0].split('.',1)[0]
         if is_shadowed(head, self.shell):
             return None
 
@@ -869,6 +871,10 @@ class MagicHandler(PrefilterHandler):
         """Execute magic functions."""
         ifun    = line_info.ifun
         the_rest = line_info.the_rest
+        if ifun.lower() == 'quit()' or ifun.lower() == 'exit()':
+            ifun = ifun[:-2]
+            self.shell.auto_rewrite_input(ifun)
+
         cmd = '%sget_ipython().magic(%s)' % (line_info.pre_whitespace,
                                    make_quoted_expr(ifun + " " + the_rest))
         return cmd
