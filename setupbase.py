@@ -310,7 +310,7 @@ def check_for_dependencies():
         print_line, print_raw, print_status,
         check_for_sphinx, check_for_pygments,
         check_for_nose, check_for_pexpect,
-        check_for_pyzmq
+        check_for_pyzmq, check_for_readline
     )
     print_line()
     print_raw("BUILDING IPYTHON")
@@ -327,7 +327,7 @@ def check_for_dependencies():
     check_for_nose()
     check_for_pexpect()
     check_for_pyzmq()
-
+    check_for_readline()
 
 def record_commit_info(pkg_dir, build_cmd=build_py):
     """ Return extended build command class for recording commit

@@ -140,3 +140,18 @@ def check_for_pyzmq():
             print_status("pyzmq", zmq.__version__)
             return True
 
+def check_for_readline():
+    try:
+        import readline
+    except ImportError:
+        try:
+            import pyreadline
+        except ImportError:
+            print_status('readline', "no (required for good interactive behavior)")
+            return False
+        else:
+            print_status('readline', "yes pyreadline-"+pyreadline.release.version)
+            return True
+    else:
+        print_status('readline', "yes")
+        return True
