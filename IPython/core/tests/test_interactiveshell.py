@@ -41,7 +41,9 @@ class InteractiveShellTestCase(unittest.TestCase):
         """Just make sure we don't get a horrible error with a blank
         cell of input. Yes, I did overlook that."""
         ip = get_ipython()
+        old_xc = ip.execution_count
         ip.run_cell('')
+        self.assertEquals(ip.execution_count, old_xc)
 
     def test_run_cell_multiline(self):
         """Multi-block, multi-line cells must execute correctly.

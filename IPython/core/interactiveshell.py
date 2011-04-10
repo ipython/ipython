@@ -2118,6 +2118,9 @@ class InteractiveShell(Configurable, Magic):
           history. For user code calling back into IPython's machinery, this
           should be set to False.
         """
+        if not cell.strip():
+            return
+        
         raw_cell = cell
         with self.builtin_trap:
             cell = self.prefilter_manager.prefilter_lines(cell)
