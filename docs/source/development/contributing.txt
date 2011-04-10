@@ -40,13 +40,43 @@ generating release notes is as painless and accurate as possible.
   committing something that is completely (or almost so) a third-party
   contribution, do the commit as::
   
-    $ git commit --author="Someone Else"
+    $ git commit --author="Someone Else <who@somewhere.com>"
 
   This way it will show that name separately in the log, which makes it even
   easier to spot. Obviously we often rework third party contributions
-  extensively ,but this is still good to keep in mind for cases when we don't
+  extensively, but this is still good to keep in mind for cases when we don't
   touch the code too much.
 
 
 .. [Git] The Git version control system. 
 .. [Github.com] Github.com. http://github.com
+
+
+Commit messages
+===============
+
+Good commit messages are very important; they provide a verbal account of what
+happened that is often invaluable for anyone trying to undestand the intent of
+a commit later on (including the original author!).  And git's log command is a
+very versatile and powerful tool, capable of extracting a lot of information
+from the commit logs, so it's important that these logs actually have useful
+information in them.
+
+In short, a commit message should have the form::
+
+  One line summary.
+        <THIS LINE MUST BE LEFT BLANK>
+  More detailed description of what was done, using multiple lines and even
+  more than one paragraph if needed.  For very simple commits this may not be
+  necessary, but non-trivial ones should always have it.
+
+  Closes gh-NNN.  # if the commit closes issue NNN on github.
+
+This format is understood by many git tools that expect a *single line*
+summary, so please do respect it.
+
+An excellent reference on commits message is `this blog post`_, please take a
+moment to read it (it's short but very informative).
+
+.. _this blog post: http://who-t.blogspot.com/2009/12/on-commit-messages.html
+
