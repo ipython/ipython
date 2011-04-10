@@ -2118,7 +2118,7 @@ class InteractiveShell(Configurable, Magic):
           history. For user code calling back into IPython's machinery, this
           should be set to False.
         """
-        if not raw_cell.strip():
+        if (not raw_cell) or raw_cell.isspace():
             return
         
         for line in raw_cell.splitlines():
