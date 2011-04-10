@@ -881,7 +881,7 @@ class MagicHandler(PrefilterHandler):
             # will make clear that the input was rewritten, and individual
             # magics should print a useful error message that show how to call.
             the_rest = ''
-            self.shell.auto_rewrite_input(ifun)
+            self.shell.auto_rewrite_input(ESC_MAGIC + ifun)
 
         cmd = '%sget_ipython().magic(%s)' % (line_info.pre_whitespace,
                                    make_quoted_expr(ifun + " " + the_rest))
