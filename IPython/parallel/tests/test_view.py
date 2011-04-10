@@ -10,8 +10,10 @@
 # Imports
 #-------------------------------------------------------------------------------
 
+import sys
 import time
 from tempfile import mktemp
+from StringIO import StringIO
 
 import zmq
 
@@ -300,3 +302,112 @@ class TestView(ClusterTestCase):
         
         self.assertEquals(view.apply_sync(findall, '\w+', 'hello world'), 'hello world'.split())
     
+    # parallel magic tests
+    
+    def test_magic_px_blocking(self):
+        ip = get_ipython()
+        v = self.client[-1]
+        v.activate()
+        v.block=True
+
+        ip.magic_px('a=5')
+        self.assertEquals(v['a'], 5)
+        ip.magic_px('a=10')
+        self.assertEquals(v['a'], 10)
+        sio = StringIO()
+        savestdout = sys.stdout
+        sys.stdout = sio
+        ip.magic_px('print a')
+        sys.stdout = savestdout
+        sio.read()
+        self.assertTrue('[stdout:%i]'%v.targets in sio.buf)
+        self.assertRaisesRemote(ZeroDivisionError, ip.magic_px, '1/0')
+
+    def test_magic_px_nonblocking(self):
+        ip = get_ipython()
+        v = self.client[-1]
+        v.activate()
+        v.block=False
+
+        ip.magic_px('a=5')
+        self.assertEquals(v['a'], 5)
+        ip.magic_px('a=10')
+        self.assertEquals(v['a'], 10)
+        sio = StringIO()
+        savestdout = sys.stdout
+        sys.stdout = sio
+        ip.magic_px('print a')
+        sys.stdout = savestdout
+        sio.read()
+        self.assertFalse('[stdout:%i]'%v.targets in sio.buf)
+        ip.magic_px('1/0')
+        ar = v.get_result(-1)
+        self.assertRaisesRemote(ZeroDivisionError, ar.get)
+    
+    def test_magic_autopx_blocking(self):
+        ip = get_ipython()
+        v = self.client[-1]
+        v.activate()
+        v.block=True
+
+        sio = StringIO()
+        savestdout = sys.stdout
+        sys.stdout = sio
+        ip.magic_autopx()
+        ip.run_cell('\n'.join(('a=5','b=10','c=0')))
+        ip.run_cell('print b')
+        ip.run_cell("b/c")
+        ip.run_code(compile('b*=2', '', 'single'))
+        ip.magic_autopx()
+        sys.stdout = savestdout
+        sio.read()
+        output = sio.buf.strip()
+        self.assertTrue(output.startswith('%autopx enabled'))
+        self.assertTrue(output.endswith('%autopx disabled'))
+        self.assertTrue('RemoteError: ZeroDivisionError' in output)
+        ar = v.get_result(-2)
+        self.assertEquals(v['a'], 5)
+        self.assertEquals(v['b'], 20)
+        self.assertRaisesRemote(ZeroDivisionError, ar.get)
+
+    def test_magic_autopx_nonblocking(self):
+        ip = get_ipython()
+        v = self.client[-1]
+        v.activate()
+        v.block=False
+
+        sio = StringIO()
+        savestdout = sys.stdout
+        sys.stdout = sio
+        ip.magic_autopx()
+        ip.run_cell('\n'.join(('a=5','b=10','c=0')))
+        ip.run_cell('print b')
+        ip.run_cell("b/c")
+        ip.run_code(compile('b*=2', '', 'single'))
+        ip.magic_autopx()
+        sys.stdout = savestdout
+        sio.read()
+        output = sio.buf.strip()
+        self.assertTrue(output.startswith('%autopx enabled'))
+        self.assertTrue(output.endswith('%autopx disabled'))
+        self.assertFalse('ZeroDivisionError' in output)
+        ar = v.get_result(-2)
+        self.assertEquals(v['a'], 5)
+        self.assertEquals(v['b'], 20)
+        self.assertRaisesRemote(ZeroDivisionError, ar.get)
+    
+    def test_magic_result(self):
+        ip = get_ipython()
+        v = self.client[-1]
+        v.activate()
+        v['a'] = 111
+        ra = v['a']
+        
+        ar = ip.magic_result()
+        self.assertEquals(ar.msg_ids, [v.history[-1]])
+        self.assertEquals(ar.get(), 111)
+        ar = ip.magic_result('-2')
+        self.assertEquals(ar.msg_ids, [v.history[-2]])
+        
+
+

@@ -34,7 +34,7 @@ Use activate() on a DirectView object to activate it for magics.
 class ParalleMagic(Plugin):
     """A component to manage the %result, %px and %autopx magics."""
 
-    active_view = Any()
+    active_view = Instance('IPython.parallel.client.view.DirectView')
     verbose = Bool(False, config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
@@ -103,8 +103,10 @@ class ParalleMagic(Plugin):
             print NO_ACTIVE_VIEW
             return
         print "Parallel execution on engines: %s" % self.active_view.targets
-        result = self.active_view.execute(parameter_s)
-        return result
+        result = self.active_view.execute(parameter_s, block=False)
+        if self.active_view.block:
+            result.get()
+            self._maybe_display_output(result)
 
     @testdec.skip_doctest
     def magic_autopx(self, ipself, parameter_s=''):
@@ -123,9 +125,13 @@ class ParalleMagic(Plugin):
             %autopx to enabled
 
             In [26]: a = 10
-            <Results List>
-            [0] In [8]: a = 10
-            [1] In [8]: a = 10
+            Parallel execution on engines: [0,1,2,3]
+            In [27]: print a
+            Parallel execution on engines: [0,1,2,3]
+            [stdout:0] 10
+            [stdout:1] 10
+            [stdout:2] 10
+            [stdout:3] 10
 
 
             In [27]: %autopx
@@ -168,23 +174,15 @@ class ParalleMagic(Plugin):
         If self.active_view.block is True, wait for the result
         and display the result.  Otherwise, this is a noop.
         """
-        if self.active_view.block:
-            try:
-                result.get()
-            except:
-                self.shell.showtraceback()
-                return True
-            else:
-                targets = self.active_view.targets
-                if isinstance(targets, int):
-                    targets = [targets]
-                if targets == 'all':
-                    targets = self.active_view.client.ids
-                stdout = [s.rstrip() for s in result.stdout]
-                if any(stdout):
-                    for i,eid in enumerate(targets):
-                        print '[stdout:%i]'%eid, stdout[i]
-        return False
+        targets = self.active_view.targets
+        if isinstance(targets, int):
+            targets = [targets]
+        if targets == 'all':
+            targets = self.active_view.client.ids
+        stdout = [s.rstrip() for s in result.stdout]
+        if any(stdout):
+            for i,eid in enumerate(targets):
+                print '[stdout:%i]'%eid, stdout[i]
 
 
     def pxrun_cell(self, cell, store_history=True):
@@ -234,9 +232,17 @@ class ParalleMagic(Plugin):
                 result = self.active_view.execute(cell, block=False)
             except:
                 ipself.showtraceback()
-                return False
+                return True
             else:
-                return self._maybe_display_output(result)
+                if self.active_view.block:
+                    try:
+                        result.get()
+                    except:
+                        self.shell.showtraceback()
+                        return True
+                    else:
+                        self._maybe_display_output(result)
+                return False
 
     def pxrun_code(self, code_obj, post_execute=True):
         """drop-in replacement for InteractiveShell.run_code.
@@ -256,9 +262,17 @@ class ParalleMagic(Plugin):
                 result = self.active_view.execute(code_obj, block=False)
             except:
                 ipself.showtraceback()
-                return False
+                return True
             else:
-                return self._maybe_display_output(result)
+                if self.active_view.block:
+                    try:
+                        result.get()
+                    except:
+                        self.shell.showtraceback()
+                        return True
+                    else:
+                        self._maybe_display_output(result)
+                return False
 
 
 
