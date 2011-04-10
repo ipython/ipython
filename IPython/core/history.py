@@ -471,6 +471,12 @@ class HistoryManager(Configurable):
 
 
 class HistorySavingThread(threading.Thread):
+    """This thread takes care of writing history to the database, so that
+    the UI isn't held up while that happens.
+    
+    It waits for the HistoryManager's save_flag to be set, then writes out
+    the history cache. The main thread is responsible for setting the flag when
+    the cache size reaches a defined threshold."""
     daemon = True
     stop_now = False
     def __init__(self, history_manager):
@@ -483,14 +489,20 @@ class HistorySavingThread(threading.Thread):
         self.db = sqlite3.connect(self.history_manager.hist_file)
         while True:
             self.history_manager.save_flag.wait()
-            self.history_manager.save_flag.clear()
-            self.history_manager.writeout_cache(self.db)
             if self.stop_now:
                 return
+            self.history_manager.save_flag.clear()
+            self.history_manager.writeout_cache(self.db)
         
     def stop(self):
+        """This can be called from the main thread to safely stop this thread.
+        
+        Note that it does not attempt to write out remaining history before
+        exiting. That should be done by calling the HistoryManager's
+        end_session method."""
         self.stop_now = True
         self.history_manager.save_flag.set()
+        self.join()
 
         
 # To match, e.g. ~5/8-~2/3
