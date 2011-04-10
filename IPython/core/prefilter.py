@@ -689,8 +689,11 @@ class AutoMagicChecker(PrefilterChecker):
         triggering the magic handler, make sure that there is nothing in the
         user namespace which could shadow it."""
         ifun = line_info.ifun
-        is_potential_quitter = ifun in ('exit()', 'quit()', 'Exit()', 'Quit()') and line_info.the_rest == ''
-        if not self.shell.automagic or (not hasattr(self.shell,'magic_'+ifun) and not is_potential_quitter):
+        # Try to recover if someone mistakenly tries to call quit(),
+        # exit(), Exit(), guiref()... magicname plus paren...
+        is_magic_w_paren = hasattr(self.shell, 'magic_' + ifun.split('(', 1)[0])
+        if not self.shell.automagic or (not hasattr(self.shell,'magic_'+ifun)
+                                        and not is_magic_w_paren):
             return None
 
         # We have a likely magic method.  Make sure we should actually call it.
@@ -871,8 +874,13 @@ class MagicHandler(PrefilterHandler):
         """Execute magic functions."""
         ifun    = line_info.ifun
         the_rest = line_info.the_rest
-        if ifun.lower() == 'quit()' or ifun.lower() == 'exit()':
-            ifun = ifun[:-2]
+        # Try to accomodate magic calls with erroneous parens
+        if '(' in ifun:
+            ifun = ifun.split('(', 1)[0]
+            # Just ignore anything after the open paren. The auto_rewrite_input
+            # will make clear that the input was rewritten, and individual
+            # magics should print a useful error message that show how to call.
+            the_rest = ''
             self.shell.auto_rewrite_input(ifun)
 
         cmd = '%sget_ipython().magic(%s)' % (line_info.pre_whitespace,
