@@ -192,13 +192,42 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push("    x = (1+\n    2)")
         self.assertEqual(isp.indent_spaces, 4)
 
-    def test_dedent(self):
+    def test_dedent_pass(self):
         isp = self.isp # shorthand
-        isp.push('if 1:')
+        # should NOT cause dedent
+        isp.push('if 1:\n    passes = 5')
         self.assertEqual(isp.indent_spaces, 4)
-        isp.push('    pass')
+        isp.push('if 1:\n     pass')
         self.assertEqual(isp.indent_spaces, 0)
-        
+        isp.push('if 1:\n     pass   ')
+        self.assertEqual(isp.indent_spaces, 0)
+
+    def test_dedent_raise(self):
+        isp = self.isp # shorthand
+        # should NOT cause dedent
+        isp.push('if 1:\n    raised = 4')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('if 1:\n     raise TypeError()')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     raise')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     raise      ')
+        self.assertEqual(isp.indent_spaces, 0)
+
+    def test_dedent_return(self):
+        isp = self.isp # shorthand
+        # should NOT cause dedent
+        isp.push('if 1:\n    returning = 4')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('if 1:\n     return 5 + 493')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     return')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     return      ')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     return(0)')
+        self.assertEqual(isp.indent_spaces, 0)
+
     def test_push(self):
         isp = self.isp
         self.assertTrue(isp.push('x=1'))

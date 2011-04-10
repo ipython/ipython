@@ -103,7 +103,13 @@ ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
 # while developing.
 
 # compiled regexps for autoindent management
-dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
+dedent_re = re.compile('|'.join([
+    r'^\s+raise(\s.*)?$', # raise statement (+ space + other stuff, maybe)
+    r'^\s+raise\([^\)]*\).*$', # wacky raise with immediate open paren
+    r'^\s+return(\s.*)?$', # normal return (+ space + other stuff, maybe)
+    r'^\s+return\([^\)]*\).*$', # wacky return with immediate open paren
+    r'^\s+pass\s*$' # pass (optionally followed by trailing spaces)
+]))
 ini_spaces_re = re.compile(r'^([ \t\r\f\v]+)')
 
 # regexp to match pure comment lines so we don't accidentally insert 'if 1:'
