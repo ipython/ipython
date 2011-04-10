@@ -19,6 +19,7 @@ class HistoryConsoleWidget(ConsoleWidget):
 
         # HistoryConsoleWidget protected variables.
         self._history = []
+        self._history_edits = {}
         self._history_index = 0
         self._history_prefix = ''
 
@@ -41,6 +42,9 @@ class HistoryConsoleWidget(ConsoleWidget):
             history = history.rstrip()
             if history and (not self._history or self._history[-1] != history):
                 self._history.append(history)
+
+            # Emulate readline: reset all history edits.
+            self._history_edits = {}
 
             # Move the history index to the most recent item.
             self._history_index = len(self._history)
@@ -113,7 +117,7 @@ class HistoryConsoleWidget(ConsoleWidget):
     #---------------------------------------------------------------------------
 
     def history_previous(self, prefix=''):
-        """ If possible, set the input buffer to a previous item in the history.
+        """ If possible, set the input buffer to a previous history item.
 
         Parameters:
         -----------
@@ -123,40 +127,42 @@ class HistoryConsoleWidget(ConsoleWidget):
         index = self._history_index
         while index > 0:
             index -= 1
-            history = self._history[index]
+            history = self._get_edited_history(index)
             if history.startswith(prefix):
                 break
         else:
             history = None
         
         if history is not None:
+            self._set_edited_input_buffer(history)
             self._history_index = index
-            self.input_buffer = history
 
     def history_next(self, prefix=''):
-        """ Set the input buffer to a subsequent item in the history, or to the
-        original search prefix if there is no such item.
+        """ If possible, set the input buffer to a subsequent history item.
 
         Parameters:
         -----------
         prefix : str, optional
             If specified, search for an item with this prefix.
         """
-        while self._history_index < len(self._history) - 1:
-            self._history_index += 1
-            history = self._history[self._history_index]
+        index = self._history_index
+        while self._history_index < len(self._history):
+            index += 1
+            history = self._get_edited_history(index)
             if history.startswith(prefix):
                 break
         else:
-            self._history_index = len(self._history)
-            history = prefix
-        self.input_buffer = history
+            history = None
+
+        if history is not None:
+            self._set_edited_input_buffer(history)
+            self._history_index = index
 
     def history_tail(self, n=10):
         """ Get the local history list.
 
-        Parameters
-        ----------
+        Parameters:
+        -----------
         n : int
             The (maximum) number of history items to get.
         """
@@ -166,8 +172,23 @@ class HistoryConsoleWidget(ConsoleWidget):
     # 'HistoryConsoleWidget' protected interface
     #---------------------------------------------------------------------------
 
+    def _get_edited_history(self, index):
+        """ Retrieves a history item, possibly with temporary edits.
+        """
+        if index in self._history_edits:
+            return self._history_edits[index]
+        return self._history[index]
+
+    def _set_edited_input_buffer(self, source):
+        """ Sets the input buffer to 'source', saving the current input buffer
+            as a temporary history edit.
+        """
+        self._history_edits[self._history_index] = self.input_buffer
+        self.input_buffer = source
+
     def _set_history(self, history):
         """ Replace the current history with a sequence of history items.
         """
         self._history = list(history)
+        self._history_edits = {}
         self._history_index = len(self._history)
