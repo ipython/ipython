@@ -22,6 +22,7 @@ import sqlite3
 import threading
 
 from collections import defaultdict
+from contextlib import nested
 
 # Our own packages
 from IPython.config.configurable import Configurable
@@ -127,6 +128,8 @@ class HistoryManager(Configurable):
                 raise
                 
         self.save_flag = threading.Event()
+        self.db_input_cache_lock = threading.Lock()
+        self.db_output_cache_lock = threading.Lock()
         self.save_thread = HistorySavingThread(self)
         self.save_thread.start()
 
@@ -383,10 +386,11 @@ class HistoryManager(Configurable):
         self.input_hist_parsed.append(source)
         self.input_hist_raw.append(source_raw)
         
-        self.db_input_cache.append((line_num, source, source_raw))
-        # Trigger to flush cache and write to DB.
-        if len(self.db_input_cache) >= self.db_cache_size:
-            self.save_flag.set()
+        with self.db_input_cache_lock:
+            self.db_input_cache.append((line_num, source, source_raw))
+            # Trigger to flush cache and write to DB.
+            if len(self.db_input_cache) >= self.db_cache_size:
+                self.save_flag.set()
 
         # update the auto _i variables
         self._iii = self._ii
@@ -416,7 +420,8 @@ class HistoryManager(Configurable):
             return
         output = json.dumps(self.output_hist_reprs[line_num])
         
-        self.db_output_cache.append((line_num, output))
+        with self.db_output_cache_lock:
+            self.db_output_cache.append((line_num, output))
         if self.db_cache_size <= 1:
             self.save_flag.set()
     
@@ -436,27 +441,30 @@ class HistoryManager(Configurable):
         """Write any entries in the cache to the database."""
         if conn is None:
             conn = self.db
-        try:
-            self._writeout_input_cache(conn)
-        except sqlite3.IntegrityError:
-            self.new_session()
-            print("ERROR! Session/line number was not unique in",
-                  "database. History logging moved to new session",
-                                            self.session_number)
-            try: # Try writing to the new session. If this fails, don't recurse
+            
+        with self.db_input_cache_lock:
+            try:
                 self._writeout_input_cache(conn)
             except sqlite3.IntegrityError:
-                pass
-        finally:
-            self.db_input_cache = []
-            
-        try:
-            self._writeout_output_cache(conn)
-        except sqlite3.IntegrityError:
-            print("!! Session/line number for output was not unique",
-                  "in database. Output will not be stored.")
-        finally:
-            self.db_output_cache = []
+                self.new_session()
+                print("ERROR! Session/line number was not unique in",
+                      "database. History logging moved to new session",
+                                                self.session_number)
+                try: # Try writing to the new session. If this fails, don't recurse
+                    self._writeout_input_cache(conn)
+                except sqlite3.IntegrityError:
+                    pass
+            finally:
+                self.db_input_cache = []
+
+        with self.db_output_cache_lock:
+            try:
+                self._writeout_output_cache(conn)
+            except sqlite3.IntegrityError:
+                print("!! Session/line number for output was not unique",
+                      "in database. Output will not be stored.")
+            finally:
+                self.db_output_cache = []
 
 
 class HistorySavingThread(threading.Thread):
