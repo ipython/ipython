@@ -126,7 +126,8 @@ class TestClient(ClusterTestCase):
         self.assertEquals(sorted(qs.keys()), ['completed', 'queue', 'tasks'])
         allqs = self.client.queue_status()
         self.assertTrue(isinstance(allqs, dict))
-        self.assertEquals(sorted(allqs.keys()), self.client.ids)
+        self.assertEquals(sorted(allqs.keys()), sorted(self.client.ids + ['unassigned']))
+        unassigned = allqs.pop('unassigned')
         for eid,qs in allqs.items():
             self.assertTrue(isinstance(qs, dict))
             self.assertEquals(sorted(qs.keys()), ['completed', 'queue', 'tasks'])

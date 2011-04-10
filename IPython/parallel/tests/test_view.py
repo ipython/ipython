@@ -74,7 +74,7 @@ class TestView(ClusterTestCase):
         r = ar.get()
         self.assertEquals(r, nengines*[data])
         self.client[:].push(dict(a=10,b=20))
-        r = self.client[:].pull(('a','b'))
+        r = self.client[:].pull(('a','b'), block=True)
         self.assertEquals(r, nengines*[[10,20]])
     
     def test_push_pull_function(self):
@@ -83,10 +83,11 @@ class TestView(ClusterTestCase):
             return 2.0*x
         
         t = self.client.ids[-1]
-        self.client[t].block=True
-        push = self.client[t].push
-        pull = self.client[t].pull
-        execute = self.client[t].execute
+        v = self.client[t]
+        v.block=True
+        push = v.push
+        pull = v.pull
+        execute = v.execute
         push({'testf':testf})
         r = pull('testf')
         self.assertEqual(r(1.0), testf(1.0))
