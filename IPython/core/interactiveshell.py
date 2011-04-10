@@ -2106,24 +2106,28 @@ class InteractiveShell(Configurable, Magic):
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
                 
-    def run_cell(self, cell, store_history=True):
+    def run_cell(self, raw_cell, store_history=True):
         """Run a complete IPython cell.
         
         Parameters
         ----------
-        cell : str
+        raw_cell : str
           The code (including IPython code such as %magic functions) to run.
         store_history : bool
           If True, the raw and translated cell will be stored in IPython's
           history. For user code calling back into IPython's machinery, this
           should be set to False.
         """
-        if not cell.strip():
+        if not raw_cell.strip():
             return
         
-        raw_cell = cell
+        for line in raw_cell.splitlines():
+            self.input_splitter.push(line)
+        cell = self.input_splitter.source_reset()
+        
         with self.builtin_trap:
-            cell = self.prefilter_manager.prefilter_lines(cell)
+            if len(cell.splitlines()) == 1:
+                cell = self.prefilter_manager.prefilter_lines(cell)
             
             # Store raw and processed history
             if store_history:

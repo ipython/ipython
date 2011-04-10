@@ -89,5 +89,5 @@ class InteractiveShellTestCase(unittest.TestCase):
         
     def test_magic_names_in_string(self):
         ip = get_ipython()
-        ip.run_cell('"""\n%exit\n"""')
-        self.assertEquals(ip.user_ns['In'][-1], '\n%exit\n')
+        ip.run_cell('a = """\n%exit\n"""')
+        self.assertEquals(ip.user_ns['a'], '\n%exit\n')
