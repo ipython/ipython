@@ -702,6 +702,26 @@ class AutoMagicChecker(PrefilterChecker):
         return self.prefilter_manager.get_handler_by_name('magic')
 
 
+class QuitterChecker(PrefilterChecker):
+
+    priority = Int(701, config=True)
+
+    quitter_pattern = re.compile('([qQ]uit|[eE]xit)\([^\)]*\)')
+
+    def check(self, line_info):
+        # Pattern match against a small set of builtins that IPython removes
+        # related to quitting, in case user is call()ing them.
+        ifun = line_info.ifun
+        the_rest = line_info.the_rest
+        is_quitter = self.quitter_pattern.match(ifun + the_rest) is not None
+        if not is_quitter:
+            return None
+        head = ifun.split('(', 1)[0]
+        if is_shadowed(head, self.shell):
+            return None
+        else:
+            return self.prefilter_manager.get_handler_by_name('quitter')
+
 class AliasChecker(PrefilterChecker):
 
     priority = Int(800, config=True)
@@ -867,11 +887,28 @@ class MagicHandler(PrefilterHandler):
 
     def handle(self, line_info):
         """Execute magic functions."""
-        ifun    = line_info.ifun
+        ifun = line_info.ifun
         the_rest = line_info.the_rest
+        return self.magic_command(line_info, ifun + " " + the_rest)
+
+    def magic_command(self, line_info, magic_str):
+        # So that we don't duplicate code in derived class, just in case
+        # this ever changes.
         cmd = '%sget_ipython().magic(%s)' % (line_info.pre_whitespace,
-                                   make_quoted_expr(ifun + " " + the_rest))
+                                             make_quoted_expr(magic_str))
         return cmd
+
+
+class QuitterHandler(MagicHandler):
+
+    handler_name = Str('quitter')
+    esc_strings = List([])
+
+    def handle(self, line_info):
+        """Execute magic function to quit."""
+        ifun = line_info.ifun.split('(', 1)[0]
+        self.shell.auto_rewrite_input(ESC_MAGIC + ifun)
+        return self.magic_command(line_info, ifun)
 
 
 class AutoHandler(PrefilterHandler):
@@ -1008,6 +1045,7 @@ _default_checkers = [
     EscCharsChecker,
     AssignmentChecker,
     AutoMagicChecker,
+    QuitterChecker,
     AliasChecker,
     PythonOpsChecker,
     AutocallChecker
@@ -1019,6 +1057,7 @@ _default_handlers = [
     ShellEscapeHandler,
     MacroHandler,
     MagicHandler,
+    QuitterHandler,
     AutoHandler,
     HelpHandler,
     EmacsHandler
