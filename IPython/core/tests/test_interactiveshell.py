@@ -86,3 +86,8 @@ class InteractiveShellTestCase(unittest.TestCase):
         newlen = len(ip.user_ns['In'])
         self.assertEquals(oldlen+1, newlen)
         self.assertEquals(ip.user_ns['In'][-1],'1;')
+        
+    def test_magic_names_in_string(self):
+        ip = get_ipython()
+        ip.run_cell('"""\n%exit\n"""')
+        self.assertEquals(ip.user_ns['In'][-1], '\n%exit\n')
