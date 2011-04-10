@@ -33,10 +33,15 @@ class RunnerTestCase(unittest.TestCase):
         out_l = [l for l in out.splitlines() if l and not l.isspace()]
         mismatch  = 0
         if len(output_l) != len(out_l):
-            print "\n".join(output_l)
-            print "==================="
-            print "\n".join(out_l)
-            self.fail('mismatch in number of lines')
+            message = ("Mismatch in number of lines\n\n"
+                       "Expected:\n"
+                       "~~~~~~~~~\n"
+                       "%s\n\n"
+                       "Got:\n"
+                       "~~~~~~~~~\n"
+                       "%s"
+                       ) % ("\n".join(output_l), "\n".join(out_l))
+            self.fail(message)
         for n in range(len(output_l)):
             # Do a line-by-line comparison
             ol1 = output_l[n].strip()
