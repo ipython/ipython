@@ -22,7 +22,6 @@ import sqlite3
 import threading
 
 from collections import defaultdict
-from contextlib import nested
 
 # Our own packages
 from IPython.config.configurable import Configurable
