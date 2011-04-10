@@ -42,8 +42,9 @@ def run(tests):
     transformed (i.e. ipython's notion of _i)"""
     for pre, post in tests:
         global num_tests
-        num_tests += 1        
-        actual = ip.prefilter_manager.prefilter_lines(pre)
+        num_tests += 1
+        with ip.shell.builtin_trap:
+            actual = ip.prefilter_manager.prefilter_lines(pre)
         if actual != None:
             actual = actual.rstrip('\n')
         if actual != post:
@@ -169,4 +170,10 @@ def test_handlers():
         ])
     ip.magic('autocall 1')
 
+    for quit_str in ['quit', 'Quit', 'exit', 'Exit']:
+        run([
+            ("%s()" % quit_str,  'get_ipython().magic(u"%s")' % quit_str),
+            ("%s(  )" % quit_str,  'get_ipython().magic(u"%s")' % quit_str),
+            ("%s(0)" % quit_str,  'get_ipython().magic(u"%s")' % quit_str),
+        ])
     nt.assert_equals(failures, [])
