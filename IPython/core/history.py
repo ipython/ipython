@@ -80,6 +80,7 @@ class HistoryManager(Configurable):
     
     # History saving in separate thread
     save_thread = Instance('IPython.core.history.HistorySavingThread')
+    # N.B. Event is a function returning an instance of _Event.
     save_flag = Instance(threading._Event)
     
     # Private interface
