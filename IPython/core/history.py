@@ -152,10 +152,13 @@ class HistoryManager(Configurable):
                         PRIMARY KEY (session, line))""")
         self.db.commit()
     
-    def new_session(self):
+    def new_session(self, conn=None):
         """Get a new session number."""
-        with self.db:
-            cur = self.db.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
+        if conn is None:
+            conn = self.db
+        
+        with conn:
+            cur = conn.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
                             NULL, "") """, (datetime.datetime.now(),))
             self.session_number = cur.lastrowid
             
@@ -446,7 +449,7 @@ class HistoryManager(Configurable):
             try:
                 self._writeout_input_cache(conn)
             except sqlite3.IntegrityError:
-                self.new_session()
+                self.new_session(conn)
                 print("ERROR! Session/line number was not unique in",
                       "database. History logging moved to new session",
                                                 self.session_number)
