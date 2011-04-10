@@ -33,6 +33,9 @@ class RunnerTestCase(unittest.TestCase):
         out_l = [l for l in out.splitlines() if l and not l.isspace()]
         mismatch  = 0
         if len(output_l) != len(out_l):
+            print "\n".join(output_l)
+            print "==================="
+            print "\n".join(out_l)
             self.fail('mismatch in number of lines')
         for n in range(len(output_l)):
             # Do a line-by-line comparison
