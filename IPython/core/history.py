@@ -486,13 +486,17 @@ class HistorySavingThread(threading.Thread):
         
     def run(self):
         # We need a separate db connection per thread:
-        self.db = sqlite3.connect(self.history_manager.hist_file)
-        while True:
-            self.history_manager.save_flag.wait()
-            if self.stop_now:
-                return
-            self.history_manager.save_flag.clear()
-            self.history_manager.writeout_cache(self.db)
+        try:
+            self.db = sqlite3.connect(self.history_manager.hist_file)
+            while True:
+                self.history_manager.save_flag.wait()
+                if self.stop_now:
+                    return
+                self.history_manager.save_flag.clear()
+                self.history_manager.writeout_cache(self.db)
+        except Exception as e:
+            print(("The history saving thread hit an unexpected error (%s)."
+                   "History will not be written to the database.") % repr(e))
         
     def stop(self):
         """This can be called from the main thread to safely stop this thread.
