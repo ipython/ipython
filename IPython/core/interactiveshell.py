@@ -443,12 +443,6 @@ class InteractiveShell(Configurable, Magic):
         # ipython names that may develop later.
         self.meta = Struct()
 
-        # Object variable to store code object waiting execution.  This is
-        # used mainly by the multithreaded shells, but it can come in handy in
-        # other situations.  No need to use a Queue here, since it's a single
-        # item which gets cleared once run.
-        self.code_to_run = None
-
         # Temporary files used for various purposes.  Deleted at exit.
         self.tempfiles = []
 
@@ -2210,21 +2204,20 @@ class InteractiveShell(Configurable, Magic):
             raise ValueError("Interactivity was %r" % interactivity)
             
         exec_count = self.execution_count
-        if to_run_exec:
-            for i, node in enumerate(to_run_exec):
-                mod = ast.Module([node])
-                self.code_to_run = code = self.compile(mod, cell_name+str(i), "exec")
-                if self.run_code(code) == 1:
-                    return 1
+        
+        for i, node in enumerate(to_run_exec):
+            mod = ast.Module([node])
+            code = self.compile(mod, cell_name, "exec")
+            if self.run_code(code):
+                return True
 
-        if to_run_interactive:
-            for i, node in enumerate(to_run_interactive):
-                mod = ast.Interactive([node])
-                self.code_to_run = code = self.compile(mod, cell_name, "single")
-                if self.run_code(code) == 1:
-                    return 1
+        for i, node in enumerate(to_run_interactive):
+            mod = ast.Interactive([node])
+            code = self.compile(mod, cell_name, "single")
+            if self.run_code(code):
+                return True
 
-        return 0
+        return False
     
     
     # PENDING REMOVAL: this method is slated for deletion, once our new
@@ -2321,13 +2314,8 @@ class InteractiveShell(Configurable, Magic):
             return True
 
         # Case 3
-        # We store the code object so that threaded shells and
-        # custom exception handlers can access all this info if needed.
-        # The source corresponding to this can be obtained from the
-        # buffer attribute as '\n'.join(self.buffer).
-        self.code_to_run = code
         # now actually execute the code object
-        if self.run_code(code) == 0:
+        if not self.run_code(code):
             return False
         else:
             return None
@@ -2350,8 +2338,8 @@ class InteractiveShell(Configurable, Magic):
 
         Returns
         -------
-        0 : successful execution.
-        1 : an error occurred.
+        False : successful execution.
+        True : an error occurred.
         """
 
         # Set our own excepthook in case the user code tries to call it
@@ -2384,8 +2372,6 @@ class InteractiveShell(Configurable, Magic):
             if softspace(sys.stdout, 0):
                 print
 
-        # Flush out code object which has been run (and source)
-        self.code_to_run = None
         return outflag
         
     # For backwards compatibility
