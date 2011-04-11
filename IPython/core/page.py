@@ -110,7 +110,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
         print strng
         return
     # chop off the topmost part of the string we don't want to see
-    str_lines = strng.split(os.linesep)[start:]
+    str_lines = strng.splitlines()[start:]
     str_toprint = os.linesep.join(str_lines)
     num_newlines = len(str_lines)
     len_str = len(str_toprint)
