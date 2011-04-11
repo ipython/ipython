@@ -894,7 +894,7 @@ class AutoHandler(PrefilterHandler):
             return line
 
         force_auto = isinstance(obj, IPyAutocall)
-        auto_rewrite = True
+        auto_rewrite = getattr(obj, 'rewrite', True)
         
         if pre == ESC_QUOTE:
             # Auto-quote splitting on whitespace

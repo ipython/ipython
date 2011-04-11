@@ -39,6 +39,7 @@ from IPython.core import prefilter
 from IPython.core import shadowns
 from IPython.core import ultratb
 from IPython.core.alias import AliasManager
+from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.compilerop import CachingCompiler
 from IPython.core.display_trap import DisplayTrap
@@ -198,6 +199,9 @@ class InteractiveShell(Configurable, Magic):
     display_pub_class = Type(DisplayPublisher)
 
     exit_now = CBool(False)
+    exiter = Instance(ExitAutocall)
+    def _exiter_default(self):
+        return ExitAutocall(self)
     # Monotonically increasing execution counter
     execution_count = Int(1)
     filename = Unicode("<ipython console>")
@@ -1023,6 +1027,9 @@ class InteractiveShell(Configurable, Magic):
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
+        
+        ns['exit'] = self.exiter
+        ns['quit'] = self.exiter
 
         # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who

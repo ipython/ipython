@@ -24,6 +24,7 @@ from IPython.core.interactiveshell import (
     InteractiveShell, InteractiveShellABC
 )
 from IPython.core import page
+from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
@@ -104,6 +105,10 @@ class ZMQInteractiveShell(InteractiveShell):
 
     displayhook_class = Type(ZMQDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
+    
+    exiter = Instance(ZMQExitAutocall)
+    def _exiter_default(self):
+        return ZMQExitAutocall(self)
 
     keepkernel_on_exit = None
 
@@ -592,16 +597,5 @@ class ZMQInteractiveShell(InteractiveShell):
             text=content
         )
         self.payload_manager.write_payload(payload)
-        
-    def magic_Exit(self, parameter_s=''):
-        """Exit IPython. If the -k option is provided, the kernel will be left
-        running. Otherwise, it will shutdown without prompting.
-        """
-        opts,args = self.parse_options(parameter_s,'k')
-        self.shell.keepkernel_on_exit = opts.has_key('k')
-        self.shell.ask_exit()
-
-    # Add aliases as magics so all common forms work: exit, quit, Exit, Quit.
-    magic_exit = magic_quit = magic_Quit = magic_Exit
 
 InteractiveShellABC.register(ZMQInteractiveShell)

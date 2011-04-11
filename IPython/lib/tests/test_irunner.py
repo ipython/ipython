@@ -77,7 +77,7 @@ for i in range(5):
 
 print "that's all folks!"
 
-%Exit
+exit
 """
         output = """\
 In [1]: print 'hello, this is python'
@@ -124,7 +124,7 @@ In [11]: print "that's all folks!"
 that's all folks!
 
 
-In [12]: %Exit
+In [12]: exit
 """
         runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)
