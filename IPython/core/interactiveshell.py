@@ -1028,8 +1028,8 @@ class InteractiveShell(Configurable, Magic):
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
         
-        for n in ['exit', 'Exit', 'quit', 'Quit']:
-            ns[n] = self.exiter
+        ns['exit'] = self.exiter
+        ns['quit'] = self.exiter
 
         # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who
