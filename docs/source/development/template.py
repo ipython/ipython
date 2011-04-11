@@ -6,7 +6,7 @@ is the docstring shown when some does 'import foo;foo?' in IPython, so it
 should be reasonably useful and informative.
 """
 #-----------------------------------------------------------------------------
-# Copyright (c) 2010, IPython Development Team.
+# Copyright (c) 2011, the IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
