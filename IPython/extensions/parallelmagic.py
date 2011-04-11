@@ -185,17 +185,21 @@ class ParalleMagic(Plugin):
                 print '[stdout:%i]'%eid, stdout[i]
 
 
-    def pxrun_cell(self, cell, store_history=True):
+    def pxrun_cell(self, raw_cell, store_history=True):
         """drop-in replacement for InteractiveShell.run_cell.
         
         This executes code remotely, instead of in the local namespace.
 
         See InteractiveShell.run_cell for details.
         """
+        
+        if (not raw_cell) or raw_cell.isspace():
+            return
+        
         ipself = self.shell
-        raw_cell = cell
+        
         with ipself.builtin_trap:
-            cell = ipself.prefilter_manager.prefilter_lines(cell)
+            cell = ipself.prefilter_manager.prefilter_lines(raw_cell)
         
             # Store raw and processed history
             if store_history:
@@ -244,7 +248,7 @@ class ParalleMagic(Plugin):
                         self._maybe_display_output(result)
                 return False
 
-    def pxrun_code(self, code_obj, post_execute=True):
+    def pxrun_code(self, code_obj):
         """drop-in replacement for InteractiveShell.run_code.
 
         This executes code remotely, instead of in the local namespace.
