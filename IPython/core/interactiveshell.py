@@ -39,6 +39,7 @@ from IPython.core import prefilter
 from IPython.core import shadowns
 from IPython.core import ultratb
 from IPython.core.alias import AliasManager
+from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.compilerop import CachingCompiler
 from IPython.core.display_trap import DisplayTrap
@@ -1023,6 +1024,10 @@ class InteractiveShell(Configurable, Magic):
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
+        
+        exiter = ExitAutocall(self)
+        for n in ['exit', 'Exit', 'quit', 'Quit']:
+            ns[n] = exiter
 
         # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who

@@ -2503,14 +2503,6 @@ Defaulting color scheme to 'NoColor'"""
         ptformatter.pprint = bool(1 - ptformatter.pprint)
         print 'Pretty printing has been turned', \
               ['OFF','ON'][ptformatter.pprint]
-                
-    def magic_Exit(self, parameter_s=''):
-        """Exit IPython."""
-
-        self.shell.ask_exit()
-
-    # Add aliases as magics so all common forms work: exit, quit, Exit, Quit.
-    magic_exit = magic_quit = magic_Quit = magic_Exit
 
     #......................................................................
     # Functions to implement unix shell-type things
