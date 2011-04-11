@@ -21,7 +21,7 @@ from IPython.lib.pylabtools import figure_to_svg
 # Functions
 #-----------------------------------------------------------------------------
 
-def show(close=False):
+def show(close=True):
     """Show all figures as SVG payloads sent to the IPython clients.
 
     Parameters
@@ -57,8 +57,6 @@ def flush_svg():
     prior code execution, there had been any calls to draw_if_interactive.
     """
     if show._draw_called:
-        # Show is called with the default close=False here, otherwise, the
-        # Figure will be closed and not available for future plotting.
         show()
         show._draw_called = False
 
