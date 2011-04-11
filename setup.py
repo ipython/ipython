@@ -62,7 +62,7 @@ from setupbase import (
     check_for_dependencies,
     record_commit_info,
 )
-from setupext.setupext import check_for_readline
+from setupext import setupext
 
 isfile = os.path.isfile
 pjoin = os.path.join
@@ -220,9 +220,10 @@ if 'setuptools' in sys.modules:
         test='nose>=0.10.1',
     )
     requires = setup_args.setdefault('install_requires', [])
-    if not check_for_readline():
+    setupext.display_status = False
+    if not setupext.check_for_readline():
         if sys.platform == 'darwin':
-                requires.append('readline')
+            requires.append('readline')
         elif sys.platform.startswith('win'):
             requires.append('pyreadline')
         else:
