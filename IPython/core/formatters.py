@@ -52,7 +52,8 @@ class DisplayFormatter(Configurable):
             SVGFormatter,
             PNGFormatter,
             LatexFormatter,
-            JSONFormatter
+            JSONFormatter,
+            JavascriptFormatter
         ]
         d = {}
         for cls in formatter_classes:
@@ -220,15 +221,14 @@ class BaseFormatter(Configurable):
             obj_id = id(obj)
             try:
                 obj_class = getattr(obj, '__class__', None) or type(obj)
-                if hasattr(obj_class, self.print_method):
-                    printer = getattr(obj_class, self.print_method)
-                    return printer(obj)
+                # First try to find registered singleton printers for the type.
                 try:
                     printer = self.singleton_printers[obj_id]
                 except (TypeError, KeyError):
                     pass
                 else:
                     return printer(obj)
+                # Next look for type_printers.
                 for cls in pretty._get_mro(obj_class):
                     if cls in self.type_printers:
                         return self.type_printers[cls](obj)
@@ -236,6 +236,10 @@ class BaseFormatter(Configurable):
                         printer = self._in_deferred_types(cls)
                         if printer is not None:
                             return printer(obj)
+                # Finally look for special method names.
+                if hasattr(obj_class, self.print_method):
+                    printer = getattr(obj_class, self.print_method)
+                    return printer(obj)
                 return None
             except Exception:
                 pass
@@ -442,66 +446,80 @@ class HTMLFormatter(BaseFormatter):
     """An HTML formatter.
 
     To define the callables that compute the HTML representation of your
-    objects, define a :meth:`__html__` method or use the :meth:`for_type`
+    objects, define a :meth:`_repr_html_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
     """
     format_type = Str('text/html')
 
-    print_method = Str('__html__')
+    print_method = Str('_repr_html_')
 
 
 class SVGFormatter(BaseFormatter):
     """An SVG formatter.
 
     To define the callables that compute the SVG representation of your
-    objects, define a :meth:`__svg__` method or use the :meth:`for_type`
+    objects, define a :meth:`_repr_svg_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
     """
     format_type = Str('image/svg+xml')
 
-    print_method = Str('__svg__')
+    print_method = Str('_repr_svg_')
 
 
 class PNGFormatter(BaseFormatter):
     """A PNG formatter.
 
     To define the callables that compute the PNG representation of your
-    objects, define a :meth:`__png__` method or use the :meth:`for_type`
+    objects, define a :meth:`_repr_png_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
-    this. The raw data should be the base64 encoded raw png data.
+    this.
+
+    The raw data should be the base64 encoded raw png data.
     """
     format_type = Str('image/png')
 
-    print_method = Str('__png__')
+    print_method = Str('_repr_png_')
 
 
 class LatexFormatter(BaseFormatter):
     """A LaTeX formatter.
 
     To define the callables that compute the LaTeX representation of your
-    objects, define a :meth:`__latex__` method or use the :meth:`for_type`
+    objects, define a :meth:`_repr_latex_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
     """
     format_type = Str('text/latex')
 
-    print_method = Str('__latex__')
+    print_method = Str('_repr_latex_')
 
 
 class JSONFormatter(BaseFormatter):
     """A JSON string formatter.
 
     To define the callables that compute the JSON string representation of
-    your objects, define a :meth:`__json__` method or use the :meth:`for_type`
+    your objects, define a :meth:`_repr_json_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
     """
     format_type = Str('application/json')
 
-    print_method = Str('__json__')
+    print_method = Str('_repr_json_')
 
+
+class JavascriptFormatter(BaseFormatter):
+    """A Javascript formatter.
+
+    To define the callables that compute the Javascript representation of
+    your objects, define a :meth:`_repr_javascript_` method or use the 
+    :meth:`for_type` or :meth:`for_type_by_name` methods to register functions
+    that handle this.
+    """
+    format_type = Str('application/javascript')
+
+    print_method = Str('_repr_javascript_')
 
 FormatterABC.register(BaseFormatter)
 FormatterABC.register(PlainTextFormatter)
@@ -510,6 +528,7 @@ FormatterABC.register(SVGFormatter)
 FormatterABC.register(PNGFormatter)
 FormatterABC.register(LatexFormatter)
 FormatterABC.register(JSONFormatter)
+FormatterABC.register(JavascriptFormatter)
 
 
 def format_display_data(obj, include=None, exclude=None):

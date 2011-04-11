@@ -458,7 +458,7 @@ Python objects can simply be passed to these functions and the appropriate
 representations will be displayed in the console as long as the objects know
 how to compute those representations. The easiest way of teaching objects how
 to format themselves in various representations is to define special methods
-such as: ``__html``, ``__svg__`` and ``__png__``. IPython's display formatters
+such as: ``_repr_html_``, ``_repr_svg_`` and ``_repr_png_``. IPython's display formatters
 can also be given custom formatter functions for various types::
 
     In [6]: ip = get_ipython()

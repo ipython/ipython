@@ -119,4 +119,12 @@ def display_json(*objs):
     display(*objs, include=['text/plain','application/json'])
 
 
+def display_javascript(*objs):
+    """Display the Javascript representation of an object.
 
+    Parameters
+    ----------
+    objs : tuple of objects
+        The Python objects to display.
+    """
+    display(*objs, include=['text/plain','application/javascript'])
