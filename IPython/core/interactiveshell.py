@@ -272,7 +272,7 @@ class InteractiveShell(Configurable, Magic):
     history_manager = Instance('IPython.core.history.HistoryManager')
 
     # Private interface
-    _post_execute = set()
+    _post_execute = Instance(dict)
 
     def __init__(self, config=None, ipython_dir=None,
                  user_ns=None, user_global_ns=None,
@@ -461,6 +461,9 @@ class InteractiveShell(Configurable, Magic):
 
         # Indentation management
         self.indent_current_nsp = 0
+
+        # Dict to track post-execution functions that have been registered
+        self._post_execute = {}
 
     def init_environment(self):
         """Any changes we need to make to the user's environment."""
@@ -657,7 +660,7 @@ class InteractiveShell(Configurable, Magic):
         """
         if not callable(func):
             raise ValueError('argument %s must be callable' % func)
-        self._post_execute.add(func)
+        self._post_execute[func] = True
 
     #-------------------------------------------------------------------------
     # Things related to the "main" module
@@ -1784,7 +1787,7 @@ class InteractiveShell(Configurable, Magic):
             # Grab local namespace if we need it:
             if getattr(fn, "needs_local_scope", False):
                 self._magic_locals = sys._getframe(1).f_locals
-            with nested(self.builtin_trap,):
+            with self.builtin_trap:
                 result = fn(magic_args)
             # Ensure we're not keeping object references around:
             self._magic_locals = {}
@@ -2001,7 +2004,7 @@ class InteractiveShell(Configurable, Magic):
 
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
-        with nested(self.builtin_trap,):
+        with self.builtin_trap:
             exec cmd in self.user_global_ns, self.user_ns
 
     def ev(self, expr):
@@ -2009,7 +2012,7 @@ class InteractiveShell(Configurable, Magic):
 
         Returns the result of evaluation
         """
-        with nested(self.builtin_trap,):
+        with self.builtin_trap:
             return eval(expr, self.user_global_ns, self.user_ns)
 
     def safe_execfile(self, fname, *where, **kw):
@@ -2148,8 +2151,8 @@ class InteractiveShell(Configurable, Magic):
             with self.display_trap:
                 try:
                     code_ast = ast.parse(cell, filename=cell_name)
-                except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
-                    # Case 1
+                except (OverflowError, SyntaxError, ValueError, TypeError,
+                        MemoryError):
                     self.showsyntaxerror()
                     self.execution_count += 1
                     return None
@@ -2159,6 +2162,17 @@ class InteractiveShell(Configurable, Magic):
                     interactivity = 'all'   # Single line; run fully interactive
 
                 self.run_ast_nodes(code_ast.body, cell_name, interactivity)
+
+                # Execute any registered post-execution functions.
+                for func, status in self._post_execute.iteritems():
+                    if not status:
+                        continue
+                    try:
+                        func()
+                    except:
+                        self.showtraceback()
+                        # Deactivate failing function
+                        self._post_execute[func] = False
                 
         if store_history:
             # Write output to the database. Does nothing unless
@@ -2254,8 +2268,7 @@ class InteractiveShell(Configurable, Magic):
             if more:
                 self.push_line('\n')
 
-    def run_source(self, source, filename=None,
-                   symbol='single', post_execute=True):
+    def run_source(self, source, filename=None, symbol='single'):
         """Compile and run some source in the interpreter.
 
         Arguments are as for compile_command().
@@ -2290,12 +2303,6 @@ class InteractiveShell(Configurable, Magic):
         else:
             usource = source
 
-        if False:  # dbg
-            print 'Source:', repr(source)  # dbg
-            print 'USource:', repr(usource)  # dbg
-            print 'type:', type(source) # dbg
-            print 'encoding', self.stdin_encoding  # dbg
-        
         try:
             code_name = self.compile.cache(usource, self.execution_count)
             code = self.compile(usource, code_name, symbol)
@@ -2315,7 +2322,7 @@ class InteractiveShell(Configurable, Magic):
         # buffer attribute as '\n'.join(self.buffer).
         self.code_to_run = code
         # now actually execute the code object
-        if self.run_code(code, post_execute) == 0:
+        if self.run_code(code) == 0:
             return False
         else:
             return None
@@ -2323,7 +2330,7 @@ class InteractiveShell(Configurable, Magic):
     # For backwards compatibility
     runsource = run_source
     
-    def run_code(self, code_obj, post_execute=True):
+    def run_code(self, code_obj):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2365,22 +2372,6 @@ class InteractiveShell(Configurable, Magic):
             outflag = 0
             if softspace(sys.stdout, 0):
                 print
-
-        # Execute any registered post-execution functions.  Here, any errors
-        # are reported only minimally and just on the terminal, because the
-        # main exception channel may be occupied with a user traceback.
-        # FIXME: we need to think this mechanism a little more carefully.
-        if post_execute:
-            for func in self._post_execute:
-                try:
-                    func()
-                except:
-                    head = '[ ERROR ] Evaluating post_execute function: %s' % \
-                           func
-                    print >> io.Term.cout, head
-                    print >> io.Term.cout, self._simple_error()
-                    print >> io.Term.cout, 'Removing from post_execute'
-                    self._post_execute.remove(func)
 
         # Flush out code object which has been run (and source)
         self.code_to_run = None
