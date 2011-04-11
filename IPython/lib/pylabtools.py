@@ -77,6 +77,11 @@ def figsize(sizex, sizey):
 
 def figure_to_svg(fig):
     """Convert a figure to svg for inline display."""
+    # When there's an empty figure, we shouldn't return anything, otherwise we
+    # get big blank areas in the qt console.
+    if not fig.axes:
+        return
+
     fc = fig.get_facecolor()
     ec = fig.get_edgecolor()
     fig.set_facecolor('white')
@@ -240,7 +245,6 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
         
         # The old pastefig function has been replaced by display
         # Always add this svg formatter so display works.
-        from IPython.zmq.pylab.backend_inline import figure_to_svg
         from IPython.core.display import display, display_svg
         svg_formatter = shell.display_formatter.formatters['image/svg+xml']
         svg_formatter.for_type_by_name(

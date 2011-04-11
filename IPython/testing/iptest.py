@@ -101,11 +101,12 @@ def test_for(mod, min_version=None):
 have = {}
 
 have['curses'] = test_for('_curses')
+have['matplotlib'] = test_for('matplotlib')
+have['pexpect'] = test_for('pexpect')
+have['pymongo'] = test_for('pymongo')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
-have['pexpect'] = test_for('pexpect')
 have['zmq'] = test_for('zmq', '2.1.4')
-have['pymongo'] = test_for('pymongo')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -190,6 +191,11 @@ def make_exclude():
     
     if not have['pymongo']:
         exclusions.append(ipjoin('parallel', 'controller', 'mongodb'))
+
+    if not have['matplotlib']:
+        exclusions.extend([ipjoin('lib', 'pylabtools'),
+                           ipjoin('lib', 'pylabtools',
+                                  'tests', 'test_pylabtools')])
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
