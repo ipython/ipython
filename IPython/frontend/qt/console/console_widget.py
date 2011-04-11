@@ -652,13 +652,13 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         pass
 
-    def _up_pressed(self):
+    def _up_pressed(self, shift_modifier):
         """ Called when the up key is pressed. Returns whether to continue
             processing the event.
         """
         return True
 
-    def _down_pressed(self):
+    def _down_pressed(self, shift_modifier):
         """ Called when the down key is pressed. Returns whether to continue
             processing the event.
         """
@@ -1040,14 +1040,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Up:
-                if self._reading or not self._up_pressed():
+                if self._reading or not self._up_pressed(shift_down):
                     intercepted = True
                 else:
                     prompt_line = self._get_prompt_cursor().blockNumber()
                     intercepted = cursor.blockNumber() <= prompt_line
 
             elif key == QtCore.Qt.Key_Down:
-                if self._reading or not self._down_pressed():
+                if self._reading or not self._down_pressed(shift_down):
                     intercepted = True
                 else:
                     end_line = self._get_end_cursor().blockNumber()

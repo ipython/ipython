@@ -2,6 +2,7 @@
 from IPython.external.qt import QtGui
 
 # Local imports
+from IPython.utils.traitlets import Bool
 from console_widget import ConsoleWidget
 
 
@@ -9,6 +10,13 @@ class HistoryConsoleWidget(ConsoleWidget):
     """ A ConsoleWidget that keeps a history of the commands that have been
         executed and provides a readline-esque interface to this history.
     """
+
+    #------ Configuration ------------------------------------------------------
+
+    # If enabled, the input buffer will become "locked" to history movement when
+    # an edit is made to a multi-line input buffer. To override the lock, use
+    # Shift in conjunction with the standard history cycling keys.
+    history_lock = Bool(False, config=True)
     
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -55,12 +63,15 @@ class HistoryConsoleWidget(ConsoleWidget):
     # 'ConsoleWidget' abstract interface
     #---------------------------------------------------------------------------
 
-    def _up_pressed(self):
+    def _up_pressed(self, shift_modifier):
         """ Called when the up key is pressed. Returns whether to continue
             processing the event.
         """
         prompt_cursor = self._get_prompt_cursor()
         if self._get_cursor().blockNumber() == prompt_cursor.blockNumber():
+            # Bail out if we're locked.
+            if self._history_locked() and not shift_modifier:
+                return False
 
             # Set a search prefix based on the cursor position.
             col = self._get_input_buffer_cursor_column()
@@ -88,21 +99,24 @@ class HistoryConsoleWidget(ConsoleWidget):
 
         return True
 
-    def _down_pressed(self):
+    def _down_pressed(self, shift_modifier):
         """ Called when the down key is pressed. Returns whether to continue
             processing the event.
         """
         end_cursor = self._get_end_cursor()
         if self._get_cursor().blockNumber() == end_cursor.blockNumber():
+            # Bail out if we're locked.
+            if self._history_locked() and not shift_modifier:
+                return False
 
             # Perform the search.
-            self.history_next(self._history_prefix)
+            replaced = self.history_next(self._history_prefix)
 
             # Emulate readline: keep the cursor position fixed for a prefix
             # search. (We don't need to move the cursor to the end of the buffer
             # in the other case because this happens automatically when the
             # input buffer is set.)
-            if self._history_prefix:
+            if self._history_prefix and replaced:
                 cursor = self._get_prompt_cursor()
                 cursor.movePosition(QtGui.QTextCursor.Right, 
                                     n=len(self._history_prefix))
@@ -123,19 +137,26 @@ class HistoryConsoleWidget(ConsoleWidget):
         -----------
         prefix : str, optional
             If specified, search for an item with this prefix.
+
+        Returns:
+        --------
+        Whether the input buffer was changed.
         """
         index = self._history_index
+        replace = False
         while index > 0:
             index -= 1
             history = self._get_edited_history(index)
             if history.startswith(prefix):
+                replace = True
                 break
-        else:
-            history = None
         
-        if history is not None:
-            self._set_edited_input_buffer(history)
+        if replace:
+            self._store_edits()
             self._history_index = index
+            self.input_buffer = history
+
+        return replace
 
     def history_next(self, prefix=''):
         """ If possible, set the input buffer to a subsequent history item.
@@ -144,19 +165,26 @@ class HistoryConsoleWidget(ConsoleWidget):
         -----------
         prefix : str, optional
             If specified, search for an item with this prefix.
+
+        Returns:
+        --------
+        Whether the input buffer was changed.
         """
         index = self._history_index
+        replace = False
         while self._history_index < len(self._history):
             index += 1
             history = self._get_edited_history(index)
             if history.startswith(prefix):
+                replace = True
                 break
-        else:
-            history = None
-
-        if history is not None:
-            self._set_edited_input_buffer(history)
+            
+        if replace:
+            self._store_edits()
             self._history_index = index
+            self.input_buffer = history
+
+        return replace
 
     def history_tail(self, n=10):
         """ Get the local history list.
@@ -172,19 +200,23 @@ class HistoryConsoleWidget(ConsoleWidget):
     # 'HistoryConsoleWidget' protected interface
     #---------------------------------------------------------------------------
 
+    def _history_locked(self):
+        """ Returns whether history movement is locked.
+        """
+        return (self.history_lock and 
+                (self._get_edited_history(self._history_index) != 
+                 self.input_buffer) and
+                (self._get_prompt_cursor().blockNumber() !=
+                 self._get_end_cursor().blockNumber()))
+
     def _get_edited_history(self, index):
         """ Retrieves a history item, possibly with temporary edits.
         """
         if index in self._history_edits:
             return self._history_edits[index]
+        elif index == len(self._history):
+            return unicode()
         return self._history[index]
-
-    def _set_edited_input_buffer(self, source):
-        """ Sets the input buffer to 'source', saving the current input buffer
-            as a temporary history edit.
-        """
-        self._history_edits[self._history_index] = self.input_buffer
-        self.input_buffer = source
 
     def _set_history(self, history):
         """ Replace the current history with a sequence of history items.
@@ -192,3 +224,11 @@ class HistoryConsoleWidget(ConsoleWidget):
         self._history = list(history)
         self._history_edits = {}
         self._history_index = len(self._history)
+
+    def _store_edits(self):
+        """ If there are edits to the current input buffer, store them.
+        """
+        current = self.input_buffer
+        if self._history_index == len(self._history) or \
+                self._history[self._history_index] != current:
+            self._history_edits[self._history_index] = current
