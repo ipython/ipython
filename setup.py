@@ -62,6 +62,7 @@ from setupbase import (
     check_for_dependencies,
     record_commit_info,
 )
+from setupext.setupext import check_for_readline
 
 isfile = os.path.isfile
 pjoin = os.path.join
@@ -219,10 +220,14 @@ if 'setuptools' in sys.modules:
         test='nose>=0.10.1',
     )
     requires = setup_args.setdefault('install_requires', [])
-    if sys.platform == 'darwin':
-        requires.append('readline')
-    elif sys.platform.startswith('win'):
-        requires.append('pyreadline')
+    if not check_for_readline():
+        if sys.platform == 'darwin':
+                requires.append('readline')
+        elif sys.platform.startswith('win'):
+            requires.append('pyreadline')
+        else:
+            pass
+            # do we want to install readline here?
     
     # Script to be run by the windows binary installer after the default setup
     # routine, to add shortcuts and similar windows-only things.  Windows
