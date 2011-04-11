@@ -23,10 +23,10 @@ def setUp():
 def test_history():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
-        # Make a new :memory: DB.
         hist_manager_ori = ip.history_manager
+        hist_file = os.path.join(tmpdir, 'history.sqlite')
         try:
-            ip.history_manager = HistoryManager(shell=ip, hist_file=':memory:')
+            ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
             hist = ['a=1', 'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
@@ -38,10 +38,7 @@ def test_history():
             
             nt.assert_equal(ip.history_manager.input_hist_raw, [''] + hist)
             
-            # Check lines were written to DB
-            c = ip.history_manager.db.execute("SELECT source_raw FROM history")
-            nt.assert_equal([x for x, in c], hist)
-              
+            
             # New session
             ip.history_manager.reset()
             newcmds = ["z=5","class X(object):\n    pass", "k='p'"]
@@ -83,6 +80,7 @@ def test_history():
             # Duplicate line numbers - check that it doesn't crash, and
             # gets a new session
             ip.history_manager.store_inputs(1, "rogue")
+            ip.history_manager.writeout_cache()
             nt.assert_equal(ip.history_manager.session_number, 3)
         finally:
             # Restore history manager
