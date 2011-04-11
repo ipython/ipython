@@ -199,6 +199,9 @@ class InteractiveShell(Configurable, Magic):
     display_pub_class = Type(DisplayPublisher)
 
     exit_now = CBool(False)
+    exiter = Instance(ExitAutocall)
+    def _exiter_default(self):
+        return ExitAutocall(self)
     # Monotonically increasing execution counter
     execution_count = Int(1)
     filename = Unicode("<ipython console>")
@@ -1025,9 +1028,8 @@ class InteractiveShell(Configurable, Magic):
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
         
-        exiter = ExitAutocall(self)
         for n in ['exit', 'Exit', 'quit', 'Quit']:
-            ns[n] = exiter
+            ns[n] = self.exiter
 
         # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who
