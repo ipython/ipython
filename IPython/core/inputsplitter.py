@@ -310,7 +310,7 @@ class InputSplitter(object):
 
         self._update_indent(lines)
         try:
-            self.code = self._compile(source)
+            self.code = self._compile(source, symbol="exec")
         # Invalid syntax can produce any of a number of different errors from
         # inside the compiler, so we have to catch them all.  Syntax errors
         # immediately produce a 'ready' block, so the invalid Python can be
