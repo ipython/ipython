@@ -2336,38 +2336,6 @@ class InteractiveShell(Configurable, Magic):
     # For backwards compatibility
     runcode = run_code
 
-    # PENDING REMOVAL: this method is slated for deletion, once our new
-    # input logic has been 100% moved to frontends and is stable.
-    def push_line(self, line):
-        """Push a line to the interpreter.
-
-        The line should not have a trailing newline; it may have
-        internal newlines.  The line is appended to a buffer and the
-        interpreter's run_source() method is called with the
-        concatenated contents of the buffer as source.  If this
-        indicates that the command was executed or invalid, the buffer
-        is reset; otherwise, the command is incomplete, and the buffer
-        is left as it was after the line was appended.  The return
-        value is 1 if more input is required, 0 if the line was dealt
-        with in some way (this is the same as run_source()).
-        """
-
-        # autoindent management should be done here, and not in the
-        # interactive loop, since that one is only seen by keyboard input.  We
-        # need this done correctly even for code run via runlines (which uses
-        # push).
-
-        #print 'push line: <%s>' % line  # dbg
-        self.buffer.append(line)
-        full_source = '\n'.join(self.buffer)
-        more = self.run_source(full_source, self.filename)
-        if not more:
-            self.history_manager.store_inputs(self.execution_count,
-                                        '\n'.join(self.buffer_raw), full_source)
-            self.reset_buffer()
-            self.execution_count += 1
-        return more
-
     def reset_buffer(self):
         """Reset the input buffer."""
         self.buffer[:] = []
