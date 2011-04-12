@@ -2150,12 +2150,9 @@ class InteractiveShell(Configurable, Magic):
                     self.showsyntaxerror()
                     self.execution_count += 1
                     return None
-                    
-                interactivity = 'last'      # Last node to be run interactive
-                if len(cell.splitlines()) == 1:
-                    interactivity = 'all'   # Single line; run fully interactive
 
-                self.run_ast_nodes(code_ast.body, cell_name, interactivity)
+                self.run_ast_nodes(code_ast.body, cell_name,
+                                                    interactivity="last_expr")
 
                 # Execute any registered post-execution functions.
                 for func, status in self._post_execute.iteritems():
@@ -2175,7 +2172,7 @@ class InteractiveShell(Configurable, Magic):
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
             
-    def run_ast_nodes(self, nodelist, cell_name, interactivity='last'):
+    def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr'):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
         
@@ -2187,12 +2184,20 @@ class InteractiveShell(Configurable, Magic):
           Will be passed to the compiler as the filename of the cell. Typically
           the value returned by ip.compile.cache(cell).
         interactivity : str
-          'all', 'last' or 'none', specifying which nodes should be run
-          interactively (displaying output from expressions). Other values for
-          this parameter will raise a ValueError.
+          'all', 'last', 'last_expr' or 'none', specifying which nodes should be
+          run interactively (displaying output from expressions). 'last_expr'
+          will run the last node interactively only if it is an expression (i.e.
+          expressions in loops or other blocks are not displayed. Other values
+          for this parameter will raise a ValueError.
         """
         if not nodelist:
             return
+        
+        if interactivity == 'last_expr':
+            if isinstance(nodelist[-1], ast.Expr):
+                interactivity = "last"
+            else:
+                interactivity = "none"
         
         if interactivity == 'none':
             to_run_exec, to_run_interactive = nodelist, []

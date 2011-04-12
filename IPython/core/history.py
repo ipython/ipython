@@ -15,13 +15,10 @@ from __future__ import print_function
 # Stdlib imports
 import atexit
 import datetime
-import json
 import os
 import re
 import sqlite3
 import threading
-
-from collections import defaultdict
 
 # Our own packages
 from IPython.config.configurable import Configurable
@@ -56,11 +53,10 @@ class HistoryManager(Configurable):
             return []
 
     # A dict of output history, keyed with ints from the shell's
-    # execution count. If there are several outputs from one command,
-    # only the last one is stored.
+    # execution count.
     output_hist = Dict()
-    # Contains all outputs, in lists of reprs.
-    output_hist_reprs = Instance(defaultdict, args=(list,))
+    # The text/plain repr of outputs.
+    output_hist_reprs = Dict()
 
     # String holding the path to the history file
     hist_file = Unicode(config=True)
@@ -92,11 +88,10 @@ class HistoryManager(Configurable):
     _ii = Unicode(u'')
     _iii = Unicode(u'')
 
-    # A set with all forms of the exit command, so that we don't store them in
-    # the history (it's annoying to rewind the first entry and land on an exit
-    # call).
-    _exit_commands = Instance(set, args=(['Quit', 'quit', 'Exit', 'exit',
-        '%Quit', '%quit', '%Exit', '%exit'],))
+    # A regex matching all forms of the exit command, so that we don't store
+    # them in the history (it's annoying to rewind the first entry and land on
+    # an exit call).
+    _exit_re = re.compile(r"(exit|quit)(\s*\(.*\))?$")
 
     def __init__(self, shell, config=None, **traits):
         """Create a new history manager associated with a shell instance.
@@ -218,9 +213,7 @@ class HistoryManager(Configurable):
         cur = self.db.execute("SELECT session, line, %s FROM %s " %\
                                 (toget, sqlfrom) + sql, params)
         if output:    # Regroup into 3-tuples, and parse JSON
-            loads = lambda out: json.loads(out) if out else None
-            return ((ses, lin, (inp, loads(out))) \
-                                        for ses, lin, inp, out in cur)
+            return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
         
     
@@ -383,7 +376,7 @@ class HistoryManager(Configurable):
         source_raw = source_raw.rstrip('\n')
             
         # do not store exit/quit commands
-        if source_raw.strip() in self._exit_commands:
+        if self._exit_re.match(source_raw.strip()):
             return
         
         self.input_hist_parsed.append(source)
@@ -419,9 +412,9 @@ class HistoryManager(Configurable):
         line_num : int
           The line number from which to save outputs
         """
-        if (not self.db_log_output) or not self.output_hist_reprs[line_num]:
+        if (not self.db_log_output) or (line_num not in self.output_hist_reprs):
             return
-        output = json.dumps(self.output_hist_reprs[line_num])
+        output = self.output_hist_reprs[line_num]
         
         with self.db_output_cache_lock:
             self.db_output_cache.append((line_num, output))
@@ -696,7 +689,7 @@ def magic_history(self, parameter_s = ''):
                 inline = "\n... ".join(inline.splitlines()) + "\n..."
         print(inline, file=outfile)
         if get_output and output:
-            print("\n".join(output), file=outfile)
+            print(output, file=outfile)
 
     if close_at_end:
         outfile.close()

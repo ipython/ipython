@@ -33,7 +33,7 @@ def test_history():
             
             ip.history_manager.db_log_output = True
             # Doesn't match the input, but we'll just check it's stored.
-            ip.history_manager.output_hist_reprs[3].append("spam")
+            ip.history_manager.output_hist_reprs[3] = "spam"
             ip.history_manager.store_output(3)
             
             nt.assert_equal(ip.history_manager.input_hist_raw, [''] + hist)
@@ -53,7 +53,7 @@ def test_history():
             # Check get_hist_tail
             gothist = ip.history_manager.get_tail(4, output=True,
                                                     include_latest=True)
-            expected = [(1, 3, (hist[-1], ["spam"])),
+            expected = [(1, 3, (hist[-1], "spam")),
                         (2, 1, (newcmds[0], None)),
                         (2, 2, (newcmds[1], None)),
                         (2, 3, (newcmds[2], None)),]
@@ -68,7 +68,7 @@ def test_history():
             gothist = ip.history_manager.search("*test*")
             nt.assert_equal(list(gothist), [(1,2,hist[1])] )
             gothist = ip.history_manager.search("b*", output=True)
-            nt.assert_equal(list(gothist), [(1,3,(hist[2],["spam"]))] )
+            nt.assert_equal(list(gothist), [(1,3,(hist[2],"spam"))] )
             
             # Cross testing: check that magic %save can get previous session.
             testfilename = os.path.realpath(os.path.join(tmpdir, "test.py"))
