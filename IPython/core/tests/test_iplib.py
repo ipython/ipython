@@ -237,10 +237,10 @@ SystemExit: (2, u'Mode = exit')
     """
 
 
-def test_runlines():
+def test_run_cell():
     import textwrap
-    ip.runlines(['a = 10', 'a+=1'])
-    ip.runlines('assert a == 11\nassert 1')
+    ip.run_cell('a = 10\na+=1')
+    ip.run_cell('assert a == 11\nassert 1')
 
     nt.assert_equals(ip.user_ns['a'], 11)
     complex = textwrap.dedent("""
@@ -260,7 +260,7 @@ def test_runlines():
     
     """)
     # Simply verifies that this kind of input is run
-    ip.runlines(complex)
+    ip.run_cell(complex)
     
 
 def test_db():

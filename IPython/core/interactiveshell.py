@@ -2224,52 +2224,6 @@ class InteractiveShell(Configurable, Magic):
 
         return False
     
-    
-    # PENDING REMOVAL: this method is slated for deletion, once our new
-    # input logic has been 100% moved to frontends and is stable.
-    def runlines(self, lines, clean=False):
-        """Run a string of one or more lines of source.
-
-        This method is capable of running a string containing multiple source
-        lines, as if they had been entered at the IPython prompt.  Since it
-        exposes IPython's processing machinery, the given strings can contain
-        magic calls (%magic), special shell access (!cmd), etc.
-        """
-        
-        if not isinstance(lines, (list, tuple)):
-            lines = lines.splitlines()
-
-        if clean:
-            lines = self._cleanup_ipy_script(lines)
-
-        # We must start with a clean buffer, in case this is run from an
-        # interactive IPython session (via a magic, for example).
-        self.reset_buffer()
-
-        # Since we will prefilter all lines, store the user's raw input too
-        # before we apply any transformations
-        self.buffer_raw[:] = [ l+'\n' for l in lines]
-        
-        more = False
-        prefilter_lines = self.prefilter_manager.prefilter_lines
-        with nested(self.builtin_trap, self.display_trap):
-            for line in lines:
-                # skip blank lines so we don't mess up the prompt counter, but
-                # do NOT skip even a blank line if we are in a code block (more
-                # is true)
-            
-                if line or more:
-                    more = self.push_line(prefilter_lines(line, more))
-                    # IPython's run_source returns None if there was an error
-                    # compiling the code.  This allows us to stop processing
-                    # right away, so the user gets the error message at the
-                    # right place.
-                    if more is None:
-                        break
-            # final newline in case the input didn't have it, so that the code
-            # actually does get executed
-            if more:
-                self.push_line('\n')
 
     def run_source(self, source, filename=None, symbol='single'):
         """Compile and run some source in the interpreter.
