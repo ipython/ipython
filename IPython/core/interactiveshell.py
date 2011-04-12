@@ -427,14 +427,6 @@ class InteractiveShell(Configurable, Magic):
 
         # command compiler
         self.compile = CachingCompiler()
-        
-        # User input buffers
-        # NOTE: these variables are slated for full removal, once we are 100%
-        # sure that the new execution logic is solid.  We will delte runlines,
-        # push_line and these buffers, as all input will be managed by the
-        # frontends via an inputsplitter instance.
-        self.buffer = []
-        self.buffer_raw = []
 
         # Make an empty namespace, which extension writers can rely on both
         # existing and NEVER being used by ipython itself.  This gives them a
@@ -1374,7 +1366,7 @@ class InteractiveShell(Configurable, Magic):
             print 'Exception type :',etype
             print 'Exception value:',value
             print 'Traceback      :',tb
-            print 'Source code    :','\n'.join(self.buffer)
+            #print 'Source code    :','\n'.join(self.buffer)
 
         if handler is None: handler = dummy_handler
 
@@ -2318,7 +2310,6 @@ class InteractiveShell(Configurable, Magic):
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
         except SystemExit:
-            self.reset_buffer()
             self.showtraceback(exception_only=True)
             warn("To exit: use any of 'exit', 'quit', %Exit or Ctrl-D.", level=1)
         except self.custom_exceptions:
@@ -2335,15 +2326,6 @@ class InteractiveShell(Configurable, Magic):
         
     # For backwards compatibility
     runcode = run_code
-
-    def reset_buffer(self):
-        """Reset the input buffer."""
-        self.buffer[:] = []
-        self.buffer_raw[:] = []
-        self.input_splitter.reset()
-
-    # For backwards compatibility
-    resetbuffer = reset_buffer
 
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab

@@ -383,10 +383,6 @@ class PrefilterManager(Configurable):
             # previously typed some whitespace that started a continuation
             # prompt, he can break out of that loop with just an empty line.
             # This is how the default python prompt works.
-
-            # Only return if the accumulated input buffer was just whitespace!
-            if ''.join(self.shell.buffer).isspace():
-                self.shell.buffer[:] = []
             return ''
 
         # At this point, we invoke our transformers.
@@ -791,14 +787,7 @@ class PrefilterHandler(Configurable):
         if (continue_prompt and
             self.shell.autoindent and
             line.isspace() and
-            
-            (0 < abs(len(line) - self.shell.indent_current_nsp) <= 2
-             or
-             not self.shell.buffer
-             or
-             (self.shell.buffer[-1]).isspace()
-             )
-            ):
+            0 < abs(len(line) - self.shell.indent_current_nsp) <= 2):
             line = ''
 
         return line
