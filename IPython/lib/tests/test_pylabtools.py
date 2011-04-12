@@ -46,7 +46,8 @@ def test_figure_to_svg():
     plt.close('all')
 
     # simple check for at least svg-looking output
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
     ax.plot([1,2,3])
     plt.draw()
     svg = pt.figure_to_svg(fig)[:100].lower()
