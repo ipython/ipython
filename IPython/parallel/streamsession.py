@@ -27,18 +27,6 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 from .util import ISO8601
 
-# packer priority: jsonlib[2], cPickle, simplejson/json, pickle
-json_name = '' if not jsonapi.jsonmod else jsonapi.jsonmod.__name__
-if json_name in ('jsonlib', 'jsonlib2'):
-    use_json = True
-elif json_name:
-    if cPickle is None:
-        use_json = True
-    else:
-        use_json = False
-else:
-    use_json = False
-
 def squash_unicode(obj):
     if isinstance(obj,dict):
         for key in obj.keys():
@@ -58,12 +46,8 @@ json_unpacker = lambda s: squash_unicode(jsonapi.loads(s))
 pickle_packer = lambda o: pickle.dumps(o,-1)
 pickle_unpacker = pickle.loads
 
-if use_json:
-    default_packer = json_packer
-    default_unpacker = json_unpacker
-else:
-    default_packer = pickle_packer
-    default_unpacker = pickle_unpacker
+default_packer = json_packer
+default_unpacker = json_unpacker
 
 
 DELIM="<IDS|MSG>"
