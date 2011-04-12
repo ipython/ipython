@@ -2253,7 +2253,7 @@ class InteractiveShell(Configurable, Magic):
                 sys.excepthook = old_excepthook
         except SystemExit:
             self.showtraceback(exception_only=True)
-            warn("To exit: use any of 'exit', 'quit', %Exit or Ctrl-D.", level=1)
+            warn("To exit: use 'exit', 'quit', or Ctrl-D.", level=1)
         except self.custom_exceptions:
             etype,value,tb = sys.exc_info()
             self.CustomTB(etype,value,tb)
