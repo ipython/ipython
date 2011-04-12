@@ -282,7 +282,6 @@ class DisplayHook(Configurable):
         """Log the output."""
         if self.shell.logger.log_output:
             self.shell.logger.log_write(format_dict['text/plain'], 'output')
-        # This is a defaultdict of lists, so we can always append
         self.shell.history_manager.output_hist_reprs[self.prompt_count] = \
                                                     format_dict['text/plain']
 
