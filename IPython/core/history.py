@@ -88,11 +88,10 @@ class HistoryManager(Configurable):
     _ii = Unicode(u'')
     _iii = Unicode(u'')
 
-    # A set with all forms of the exit command, so that we don't store them in
-    # the history (it's annoying to rewind the first entry and land on an exit
-    # call).
-    _exit_commands = Instance(set, args=(['Quit', 'quit', 'Exit', 'exit',
-        '%Quit', '%quit', '%Exit', '%exit'],))
+    # A regex matching all forms of the exit command, so that we don't store
+    # them in the history (it's annoying to rewind the first entry and land on
+    # an exit call).
+    _exit_re = re.compile(r"(exit|quit)(\s*\(.*\))?$")
 
     def __init__(self, shell, config=None, **traits):
         """Create a new history manager associated with a shell instance.
@@ -377,7 +376,7 @@ class HistoryManager(Configurable):
         source_raw = source_raw.rstrip('\n')
             
         # do not store exit/quit commands
-        if source_raw.strip() in self._exit_commands:
+        if self._exit_re.match(source_raw.strip()):
             return
         
         self.input_hist_parsed.append(source)
