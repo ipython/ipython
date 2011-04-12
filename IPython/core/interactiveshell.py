@@ -2216,64 +2216,6 @@ class InteractiveShell(Configurable, Magic):
 
         return False
     
-
-    def run_source(self, source, filename=None, symbol='single'):
-        """Compile and run some source in the interpreter.
-
-        Arguments are as for compile_command().
-
-        One several things can happen:
-
-        1) The input is incorrect; compile_command() raised an
-        exception (SyntaxError or OverflowError).  A syntax traceback
-        will be printed by calling the showsyntaxerror() method.
-
-        2) The input is incomplete, and more input is required;
-        compile_command() returned None.  Nothing happens.
-
-        3) The input is complete; compile_command() returned a code
-        object.  The code is executed by calling self.run_code() (which
-        also handles run-time exceptions, except for SystemExit).
-
-        The return value is:
-
-          - True in case 2
-
-          - False in the other cases, unless an exception is raised, where
-          None is returned instead.  This can be used by external callers to
-          know whether to continue feeding input or not.
-
-        The return value can be used to decide whether to use sys.ps1 or
-        sys.ps2 to prompt the next line."""
-
-        # We need to ensure that the source is unicode from here on.
-        if type(source)==str:
-            usource = source.decode(self.stdin_encoding)
-        else:
-            usource = source
-
-        try:
-            code_name = self.compile.cache(usource, self.execution_count)
-            code = self.compile(usource, code_name, symbol)
-        except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
-            # Case 1
-            self.showsyntaxerror(filename)
-            return None
-
-        if code is None:
-            # Case 2
-            return True
-
-        # Case 3
-        # now actually execute the code object
-        if not self.run_code(code):
-            return False
-        else:
-            return None
-
-    # For backwards compatibility
-    runsource = run_source
-    
     def run_code(self, code_obj):
         """Execute a code object.
 
