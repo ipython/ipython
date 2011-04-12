@@ -238,6 +238,12 @@ class InputSplitterTestCase(unittest.TestCase):
         for line in ['  x=1', '# a comment', '  y=2']:
             self.assertTrue(isp.push(line))
             
+    def test_push3(self):
+        isp = self.isp
+        isp.push('if True:')
+        isp.push('  a = 1')
+        self.assertFalse(isp.push('b = [1,'))
+            
     def test_replace_mode(self):
         isp = self.isp
         isp.input_mode = 'cell'
