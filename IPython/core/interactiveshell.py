@@ -2354,34 +2354,6 @@ class InteractiveShell(Configurable, Magic):
             s.startswith('finally')):
             return True
 
-    def _cleanup_ipy_script(self, script):
-        """Make a script safe for self.runlines()
-
-        Currently, IPython is lines based, with blocks being detected by
-        empty lines.  This is a problem for block based scripts that may
-        not have empty lines after blocks.  This script adds those empty
-        lines to make scripts safe for running in the current line based
-        IPython.
-        """
-        res = []
-        lines = script.splitlines()
-        level = 0
-
-        for l in lines:
-            lstripped = l.lstrip()
-            stripped = l.strip()                
-            if not stripped:
-                continue
-            newlevel = len(l) - len(lstripped)                    
-            if level > 0 and newlevel == 0 and \
-                   not self._is_secondary_block_start(stripped): 
-                # add empty line
-                res.append('')
-            res.append(l)
-            level = newlevel
-
-        return '\n'.join(res) + '\n'
-
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------
