@@ -2345,15 +2345,6 @@ class InteractiveShell(Configurable, Magic):
     # For backwards compatibility
     resetbuffer = reset_buffer
 
-    def _is_secondary_block_start(self, s):
-        if not s.endswith(':'):
-            return False
-        if (s.startswith('elif') or 
-            s.startswith('else') or 
-            s.startswith('except') or
-            s.startswith('finally')):
-            return True
-
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------
