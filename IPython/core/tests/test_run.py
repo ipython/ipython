@@ -151,7 +151,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "def f(): return foo()")
         self.mktmp(src)
         _ip.magic('run %s' % self.fname)
-        _ip.runlines('t = isinstance(f(), foo)')
+        _ip.run_cell('t = isinstance(f(), foo)')
         nt.assert_true(_ip.user_ns['t'])
 
     # We have to skip these in win32 because getoutputerr() crashes,
@@ -188,7 +188,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "       print i;break\n" % empty.fname)
         self.mktmp(src)
         _ip.magic('run %s' % self.fname)
-        _ip.runlines('ip == get_ipython()')
+        _ip.run_cell('ip == get_ipython()')
         tt.assert_equals(_ip.user_ns['i'], 5)
 
     @dec.skip_win32

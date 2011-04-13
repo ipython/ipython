@@ -427,14 +427,6 @@ class InteractiveShell(Configurable, Magic):
 
         # command compiler
         self.compile = CachingCompiler()
-        
-        # User input buffers
-        # NOTE: these variables are slated for full removal, once we are 100%
-        # sure that the new execution logic is solid.  We will delte runlines,
-        # push_line and these buffers, as all input will be managed by the
-        # frontends via an inputsplitter instance.
-        self.buffer = []
-        self.buffer_raw = []
 
         # Make an empty namespace, which extension writers can rely on both
         # existing and NEVER being used by ipython itself.  This gives them a
@@ -1374,7 +1366,7 @@ class InteractiveShell(Configurable, Magic):
             print 'Exception type :',etype
             print 'Exception value:',value
             print 'Traceback      :',tb
-            print 'Source code    :','\n'.join(self.buffer)
+            #print 'Source code    :','\n'.join(self.buffer)
 
         if handler is None: handler = dummy_handler
 
@@ -2224,110 +2216,6 @@ class InteractiveShell(Configurable, Magic):
 
         return False
     
-    
-    # PENDING REMOVAL: this method is slated for deletion, once our new
-    # input logic has been 100% moved to frontends and is stable.
-    def runlines(self, lines, clean=False):
-        """Run a string of one or more lines of source.
-
-        This method is capable of running a string containing multiple source
-        lines, as if they had been entered at the IPython prompt.  Since it
-        exposes IPython's processing machinery, the given strings can contain
-        magic calls (%magic), special shell access (!cmd), etc.
-        """
-        
-        if not isinstance(lines, (list, tuple)):
-            lines = lines.splitlines()
-
-        if clean:
-            lines = self._cleanup_ipy_script(lines)
-
-        # We must start with a clean buffer, in case this is run from an
-        # interactive IPython session (via a magic, for example).
-        self.reset_buffer()
-
-        # Since we will prefilter all lines, store the user's raw input too
-        # before we apply any transformations
-        self.buffer_raw[:] = [ l+'\n' for l in lines]
-        
-        more = False
-        prefilter_lines = self.prefilter_manager.prefilter_lines
-        with nested(self.builtin_trap, self.display_trap):
-            for line in lines:
-                # skip blank lines so we don't mess up the prompt counter, but
-                # do NOT skip even a blank line if we are in a code block (more
-                # is true)
-            
-                if line or more:
-                    more = self.push_line(prefilter_lines(line, more))
-                    # IPython's run_source returns None if there was an error
-                    # compiling the code.  This allows us to stop processing
-                    # right away, so the user gets the error message at the
-                    # right place.
-                    if more is None:
-                        break
-            # final newline in case the input didn't have it, so that the code
-            # actually does get executed
-            if more:
-                self.push_line('\n')
-
-    def run_source(self, source, filename=None, symbol='single'):
-        """Compile and run some source in the interpreter.
-
-        Arguments are as for compile_command().
-
-        One several things can happen:
-
-        1) The input is incorrect; compile_command() raised an
-        exception (SyntaxError or OverflowError).  A syntax traceback
-        will be printed by calling the showsyntaxerror() method.
-
-        2) The input is incomplete, and more input is required;
-        compile_command() returned None.  Nothing happens.
-
-        3) The input is complete; compile_command() returned a code
-        object.  The code is executed by calling self.run_code() (which
-        also handles run-time exceptions, except for SystemExit).
-
-        The return value is:
-
-          - True in case 2
-
-          - False in the other cases, unless an exception is raised, where
-          None is returned instead.  This can be used by external callers to
-          know whether to continue feeding input or not.
-
-        The return value can be used to decide whether to use sys.ps1 or
-        sys.ps2 to prompt the next line."""
-
-        # We need to ensure that the source is unicode from here on.
-        if type(source)==str:
-            usource = source.decode(self.stdin_encoding)
-        else:
-            usource = source
-
-        try:
-            code_name = self.compile.cache(usource, self.execution_count)
-            code = self.compile(usource, code_name, symbol)
-        except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
-            # Case 1
-            self.showsyntaxerror(filename)
-            return None
-
-        if code is None:
-            # Case 2
-            return True
-
-        # Case 3
-        # now actually execute the code object
-        if not self.run_code(code):
-            return False
-        else:
-            return None
-
-    # For backwards compatibility
-    runsource = run_source
-    
     def run_code(self, code_obj):
         """Execute a code object.
 
@@ -2364,9 +2252,8 @@ class InteractiveShell(Configurable, Magic):
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
         except SystemExit:
-            self.reset_buffer()
             self.showtraceback(exception_only=True)
-            warn("To exit: use any of 'exit', 'quit', %Exit or Ctrl-D.", level=1)
+            warn("To exit: use 'exit', 'quit', or Ctrl-D.", level=1)
         except self.custom_exceptions:
             etype,value,tb = sys.exc_info()
             self.CustomTB(etype,value,tb)
@@ -2381,84 +2268,6 @@ class InteractiveShell(Configurable, Magic):
         
     # For backwards compatibility
     runcode = run_code
-
-    # PENDING REMOVAL: this method is slated for deletion, once our new
-    # input logic has been 100% moved to frontends and is stable.
-    def push_line(self, line):
-        """Push a line to the interpreter.
-
-        The line should not have a trailing newline; it may have
-        internal newlines.  The line is appended to a buffer and the
-        interpreter's run_source() method is called with the
-        concatenated contents of the buffer as source.  If this
-        indicates that the command was executed or invalid, the buffer
-        is reset; otherwise, the command is incomplete, and the buffer
-        is left as it was after the line was appended.  The return
-        value is 1 if more input is required, 0 if the line was dealt
-        with in some way (this is the same as run_source()).
-        """
-
-        # autoindent management should be done here, and not in the
-        # interactive loop, since that one is only seen by keyboard input.  We
-        # need this done correctly even for code run via runlines (which uses
-        # push).
-
-        #print 'push line: <%s>' % line  # dbg
-        self.buffer.append(line)
-        full_source = '\n'.join(self.buffer)
-        more = self.run_source(full_source, self.filename)
-        if not more:
-            self.history_manager.store_inputs(self.execution_count,
-                                        '\n'.join(self.buffer_raw), full_source)
-            self.reset_buffer()
-            self.execution_count += 1
-        return more
-
-    def reset_buffer(self):
-        """Reset the input buffer."""
-        self.buffer[:] = []
-        self.buffer_raw[:] = []
-        self.input_splitter.reset()
-
-    # For backwards compatibility
-    resetbuffer = reset_buffer
-
-    def _is_secondary_block_start(self, s):
-        if not s.endswith(':'):
-            return False
-        if (s.startswith('elif') or 
-            s.startswith('else') or 
-            s.startswith('except') or
-            s.startswith('finally')):
-            return True
-
-    def _cleanup_ipy_script(self, script):
-        """Make a script safe for self.runlines()
-
-        Currently, IPython is lines based, with blocks being detected by
-        empty lines.  This is a problem for block based scripts that may
-        not have empty lines after blocks.  This script adds those empty
-        lines to make scripts safe for running in the current line based
-        IPython.
-        """
-        res = []
-        lines = script.splitlines()
-        level = 0
-
-        for l in lines:
-            lstripped = l.lstrip()
-            stripped = l.strip()                
-            if not stripped:
-                continue
-            newlevel = len(l) - len(lstripped)                    
-            if level > 0 and newlevel == 0 and \
-                   not self._is_secondary_block_start(stripped): 
-                # add empty line
-                res.append('')
-            res.append(l)
-            level = newlevel
-
-        return '\n'.join(res) + '\n'
 
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab

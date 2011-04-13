@@ -246,7 +246,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
                     self.write('\nKeyboardInterrupt\n')
-                    self.resetbuffer()
+                    self.input_splitter.reset()
                     more = False
                 except KeyboardInterrupt:
                     pass

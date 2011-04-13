@@ -241,7 +241,7 @@ class Kernel(Configurable):
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,
-            # because the runlines() call above directly fires off exception
+            # because the run_cell() call above directly fires off exception
             # reporting.  This code, therefore, is only active in the scenario
             # where runlines itself has an unhandled exception.  We need to
             # uniformize this, for all exception construction to come from a
