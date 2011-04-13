@@ -48,6 +48,8 @@ from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
 from IPython.parallel.factory import LoggingFactory
 
+from .win32support import forward_read_events
+
 # load winhpcjob only on Windows
 try:
     from .winhpcjob import (
@@ -57,7 +59,7 @@ try:
 except ImportError:
     pass
 
-
+WINDOWS = os.name == 'nt'
 #-----------------------------------------------------------------------------
 # Paths to the kernel apps
 #-----------------------------------------------------------------------------
@@ -251,9 +253,14 @@ class LocalProcessLauncher(BaseLauncher):
                 env=os.environ,
                 cwd=self.work_dir
             )
-            
-            self.loop.add_handler(self.process.stdout.fileno(), self.handle_stdout, self.loop.READ)
-            self.loop.add_handler(self.process.stderr.fileno(), self.handle_stderr, self.loop.READ)
+            if WINDOWS:
+                self.stdout = forward_read_events(self.process.stdout)
+                self.stderr = forward_read_events(self.process.stderr)
+            else:
+                self.stdout = self.process.stdout.fileno()
+                self.stderr = self.process.stderr.fileno()
+            self.loop.add_handler(self.stdout, self.handle_stdout, self.loop.READ)
+            self.loop.add_handler(self.stderr, self.handle_stderr, self.loop.READ)
             self.poller = ioloop.PeriodicCallback(self.poll, self.poll_frequency, self.loop)
             self.poller.start()
             self.notify_start(self.process.pid)
@@ -277,7 +284,10 @@ class LocalProcessLauncher(BaseLauncher):
     # callbacks, etc:
     
     def handle_stdout(self, fd, events):
-        line = self.process.stdout.readline()
+        if WINDOWS:
+            line = self.stdout.recv()
+        else:
+            line = self.process.stdout.readline()
         # a stopped process will be readable but return empty strings
         if line:
             self.log.info(line[:-1])
@@ -285,7 +295,10 @@ class LocalProcessLauncher(BaseLauncher):
             self.poll()
     
     def handle_stderr(self, fd, events):
-        line = self.process.stderr.readline()
+        if WINDOWS:
+            line = self.stderr.recv()
+        else:
+            line = self.process.stderr.readline()
         # a stopped process will be readable but return empty strings
         if line:
             self.log.error(line[:-1])
@@ -296,8 +309,8 @@ class LocalProcessLauncher(BaseLauncher):
         status = self.process.poll()
         if status is not None:
             self.poller.stop()
-            self.loop.remove_handler(self.process.stdout.fileno())
-            self.loop.remove_handler(self.process.stderr.fileno())
+            self.loop.remove_handler(self.stdout)
+            self.loop.remove_handler(self.stderr)
             self.notify_stop(dict(exit_code=status, pid=self.process.pid))
         return status
 
@@ -588,7 +601,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
 
 # This is only used on Windows.
 def find_job_cmd():
-    if os.name=='nt':
+    if WINDOWS:
         try:
             return find_cmd('job')
         except (FindCmdError, ImportError):
