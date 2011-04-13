@@ -34,6 +34,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 # local imports
 from IPython.external.decorator import decorator
+from IPython.config.loader import Config
 from IPython.utils.traitlets import Instance, Dict, List, Set
 
 from IPython.parallel import error
@@ -557,9 +558,12 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname=
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
     
+    if config:
+        # unwrap dict back into Config
+        config = Config(config)
+
     ctx = zmq.Context()
     loop = ioloop.IOLoop()
-    print (in_addr, out_addr, mon_addr, not_addr)
     ins = ZMQStream(ctx.socket(zmq.XREP),loop)
     ins.setsockopt(zmq.IDENTITY, identity)
     ins.bind(in_addr)
