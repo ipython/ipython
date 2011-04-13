@@ -25,6 +25,7 @@ from signal import SIGINT, SIGTERM
 try:
     from signal import SIGKILL
 except ImportError:
+    # windows
     SIGKILL=SIGTERM
 
 from subprocess import Popen, PIPE, STDOUT
@@ -60,6 +61,14 @@ except ImportError:
     pass
 
 WINDOWS = os.name == 'nt'
+
+if WINDOWS:
+    try:
+        # >= 2.7, 3.2
+        from signal import CTRL_C_EVENT as SIGINT
+    except ImportError:
+        pass
+
 #-----------------------------------------------------------------------------
 # Paths to the kernel apps
 #-----------------------------------------------------------------------------
