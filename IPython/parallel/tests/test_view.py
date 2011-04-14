@@ -25,33 +25,37 @@ from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
 
-from .clienttest import ClusterTestCase, segfault, wait, skip_without
+from .clienttest import ClusterTestCase, crash, wait, skip_without
 
 def setup():
     add_engines(3)
 
 class TestView(ClusterTestCase):
     
-    def test_segfault_task(self):
+    def test_crash_task(self):
         """test graceful handling of engine death (balanced)"""
         # self.add_engines(1)
-        ar = self.client[-1].apply_async(segfault)
+        ar = self.client[-1].apply_async(crash)
         self.assertRaisesRemote(error.EngineError, ar.get)
         eid = ar.engine_id
-        while eid in self.client.ids:
+        tic = time.time()
+        while eid in self.client.ids and time.time()-tic < 5:
             time.sleep(.01)
             self.client.spin()
+        self.assertFalse(eid in self.client.ids, "Engine should have died")
     
-    def test_segfault_mux(self):
+    def test_crash_mux(self):
         """test graceful handling of engine death (direct)"""
         # self.add_engines(1)
         eid = self.client.ids[-1]
-        ar = self.client[eid].apply_async(segfault)
+        ar = self.client[eid].apply_async(crash)
         self.assertRaisesRemote(error.EngineError, ar.get)
         eid = ar.engine_id
-        while eid in self.client.ids:
+        tic = time.time()
+        while eid in self.client.ids and time.time()-tic < 5:
             time.sleep(.01)
             self.client.spin()
+        self.assertFalse(eid in self.client.ids, "Engine should have died")
     
     def test_push_pull(self):
         """test pushing and pulling"""
