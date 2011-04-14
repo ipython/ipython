@@ -156,11 +156,11 @@ def main():
     egroup = kgroup.add_mutually_exclusive_group()
     egroup.add_argument('--pure', action='store_true', help = \
                         'use a pure Python kernel instead of an IPython kernel')
-    egroup.add_argument('--pylab', type=str, metavar='GUI', nargs='?', 
+    egroup.add_argument('--pylab', type=str, metavar='GUI', nargs='?',
                        const='auto', help = \
         "Pre-load matplotlib and numpy for interactive use. If GUI is not \
          given, the GUI backend is matplotlib's, otherwise use one of: \
-         ['tk', 'gtk', 'qt', 'wx', 'inline'].")
+         ['tk', 'gtk', 'qt', 'wx', 'inline_svg', 'inline_png'].")
 
     wgroup = parser.add_argument_group('widget options')
     wgroup.add_argument('--paging', type=str, default='inside',

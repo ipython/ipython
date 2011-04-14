@@ -31,7 +31,9 @@ backends = {'tk': 'TkAgg',
             'qt': 'Qt4Agg', # qt3 not supported
             'qt4': 'Qt4Agg',
             'osx': 'MacOSX',
-            'inline' : 'module://IPython.zmq.pylab.backend_inline'}
+            'inline' : 'module://IPython.zmq.pylab.backend_inline_svg',
+            'inline_svg' : 'module://IPython.zmq.pylab.backend_inline_svg',
+            'inline_png' : 'module://IPython.zmq.pylab.backend_inline_png' }
 
 #-----------------------------------------------------------------------------
 # Matplotlib utilities
@@ -75,8 +77,8 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def figure_to_svg(fig):
-    """Convert a figure to svg for inline display."""
+def print_figure(fig, format):
+    """Convert a figure to a serialized format for inline display."""
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
     if not fig.axes:
@@ -88,12 +90,14 @@ def figure_to_svg(fig):
     fig.set_edgecolor('white')
     try:
         string_io = StringIO()
-        fig.canvas.print_figure(string_io, format='svg')
-        svg = string_io.getvalue()
+        fig.canvas.print_figure(string_io, format=format, dpi=72)
+        data = string_io.getvalue()
     finally:
         fig.set_facecolor(fc)
         fig.set_edgecolor(ec)
-    return svg
+    if format == 'png':
+        data = data.encode('base64')
+    return data
 
 
 # We need a little factory function here to create the closure where
@@ -149,7 +153,7 @@ def find_gui_and_backend(gui=None):
     Parameters
     ----------
     gui : str
-        Can be one of ('tk','gtk','wx','qt','qt4','inline').
+        Can be one of ('tk','gtk','wx','qt','qt4','inline','inline_svg','inline_png').
 
     Returns
     -------
@@ -215,19 +219,22 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
 
     if shell is not None:
         exec s in shell.user_ns_hidden
-        # If using our svg payload backend, register the post-execution
+        # If using our inline payload backend, register the post-execution
         # function that will pick up the results for display.  This can only be
         # done with access to the real shell object.
-        if backend == backends['inline']:
-            from IPython.zmq.pylab.backend_inline import flush_svg
+        if backend in (backends['inline_svg'], backends['inline_png']):
             from matplotlib import pyplot
-            shell.register_post_execute(flush_svg)
+            def flush_image():
+                if pyplot.show._draw_called:
+                    pyplot.show()
+                    pyplot.show._draw_called = False
+            shell.register_post_execute(flush_image)
             # The typical default figure size is too large for inline use,
             # so we shrink the figure size to 6x4, and tweak fonts to
             # make that fit.  This is configurable via Global.pylab_inline_rc,
             # or rather it will be once the zmq kernel is hooked up to
             # the config system.
-            
+
             default_rc = {
                 'figure.figsize': (6.0,4.0),
                 # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
@@ -238,23 +245,34 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             rc = getattr(shell.config.Global, 'pylab_inline_rc', default_rc)
             pyplot.rcParams.update(rc)
             shell.config.Global.pylab_inline_rc = rc
-            
+
             # Add 'figsize' to pyplot and to the user's namespace
             user_ns['figsize'] = pyplot.figsize = figsize
             shell.user_ns_hidden['figsize'] = figsize
-        
-        # The old pastefig function has been replaced by display
-        # Always add this svg formatter so display works.
-        from IPython.core.display import display, display_svg
-        svg_formatter = shell.display_formatter.formatters['image/svg+xml']
-        svg_formatter.for_type_by_name(
-            'matplotlib.figure','Figure',figure_to_svg
-        )
-        # Add display and display_png to the user's namespace
+
+        if backend == backends['inline_png']:
+            # The old pastefig function has been replaced by display
+            # Always add this png formatter so display works.
+            from IPython.core.display import display, display_png
+            png_formatter = shell.display_formatter.formatters['image/png']
+            png_formatter.for_type_by_name(
+                'matplotlib.figure','Figure',lambda fig: print_figure(fig, 'png')
+            )
+            user_ns['display_png'] = display_png
+            shell.user_ns_hidden['display_png'] = display_png
+        else:
+            # The old pastefig function has been replaced by display
+            # Always add this svg formatter so display works.
+            from IPython.core.display import display, display_svg
+            svg_formatter = shell.display_formatter.formatters['image/svg+xml']
+            svg_formatter.for_type_by_name(
+                'matplotlib.figure','Figure',lambda fig: print_figure(fig, 'svg')
+            )
+            user_ns['display_svg'] = display_svg
+            shell.user_ns_hidden['display_svg'] = display_svg
+        # Add display to the user's namespace
         user_ns['display'] = display
         shell.user_ns_hidden['display'] = display
-        user_ns['display_svg'] = display_svg
-        shell.user_ns_hidden['display_svg'] = display_svg
         user_ns['getfigs'] = getfigs
         shell.user_ns_hidden['getfigs'] = getfigs
 
@@ -294,6 +312,6 @@ def pylab_activate(user_ns, gui=None, import_all=True):
     print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.""" % backend
-    
+
     return gui
 

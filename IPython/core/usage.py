@@ -471,11 +471,13 @@ For further details, see ``IPython.core.formatters``.
 Inline matplotlib graphics
 ==========================
 
-The IPython console is capable of displaying matplotlib figures inline, in SVG
-format.  If started with the ``--pylab inline`` flag, then all figures are
-rendered inline automatically.  If started with ``--pylab`` or ``--pylab <your
-backend>``, then a GUI backend will be used, but IPython's ``display()`` and
-``getfigs()`` functions can be used to view plots inline::
+The IPython console is capable of displaying matplotlib figures
+inline, in SVG or PNG format.  If started with the ``--pylab
+inline_svg`` or ``--pylab inline_png`` flags, then all figures are
+rendered inline automatically.  If started with ``--pylab`` or
+``--pylab <your backend>``, then a GUI backend will be used, but
+IPython's ``display()`` and ``getfigs()`` functions can be used to
+view plots inline::
 
     In [9]: display(*getfigs())    # display all figures inline
 

@@ -612,11 +612,11 @@ def main():
     """ The IPython kernel main entry point.
     """
     parser = make_argument_parser()
-    parser.add_argument('--pylab', type=str, metavar='GUI', nargs='?', 
+    parser.add_argument('--pylab', type=str, metavar='GUI', nargs='?',
                         const='auto', help = \
 "Pre-load matplotlib and numpy for interactive use. If GUI is not \
 given, the GUI backend is matplotlib's, otherwise use one of: \
-['tk', 'gtk', 'qt', 'wx', 'inline'].")
+['tk', 'gtk', 'qt', 'wx', 'inline_svg', 'inline_png'].")
     parser.add_argument('--colors',
         type=str, dest='colors',
         help="Set the color scheme (NoColor, Linux, and LightBG).",
@@ -629,6 +629,8 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
         'qt' : QtKernel,
         'qt4': QtKernel,
         'inline': Kernel,
+        'inline_svg': Kernel,
+        'inline_png': Kernel,
         'wx' : WxKernel,
         'tk' : TkKernel,
         'gtk': GTKKernel,
