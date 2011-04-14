@@ -85,8 +85,8 @@ class TestClient(ClusterTestCase):
         v.push(dict(a=5))
         v.pull('a')
         id0 = self.client.ids[-1]
-        self.client.clear(targets=id0)
-        self.client[:-1].pull('a')
+        self.client.clear(targets=id0, block=True)
+        a = self.client[:-1].get('a')
         self.assertRaisesRemote(NameError, self.client[id0].get, 'a')
         self.client.clear(block=True)
         for i in self.client.ids:

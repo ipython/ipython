@@ -93,6 +93,8 @@ class ClusterTestCase(BaseZMQTestCase):
     def setUp(self):
         BaseZMQTestCase.setUp(self)
         self.client = self.connect_client()
+        # start every test with clean engine namespaces:
+        self.client.clear(block=True)
         self.base_engine_count=len(self.client.ids)
         self.engines=[]
     

@@ -298,7 +298,8 @@ class TestView(ClusterTestCase):
         def findall(pat, s):
             # this globals() step isn't necessary in real code
             # only to prevent a closure in the test
-            return globals()['re'].findall(pat, s)
+            re = globals()['re']
+            return re.findall(pat, s)
         
         self.assertEquals(view.apply_sync(findall, '\w+', 'hello world'), 'hello world'.split())
     
