@@ -1059,17 +1059,13 @@ class InteractiveShell(Configurable, Magic):
         # Restore the user namespaces to minimal usability
         for ns in self.ns_refs_table:
             ns.clear()
-            
-        # In some situations, e.g. testing, our fake main module has a __dict__
-        # separate from the user_ns: if so, we need to clear it manually.
-        if self.user_ns is not self.user_ns_mod.__dict__:
-            self.user_ns_mod.__dict__.clear()
 
         # The main execution namespaces must be cleared very carefully,
         # skipping the deletion of the builtin-related keys, because doing so
         # would cause errors in many object's __del__ methods.
         for ns in [self.user_ns, self.user_global_ns]:
             drop_keys = set(ns.keys())
+            drop_keys.discard('__name__')
             drop_keys.discard('__builtin__')
             drop_keys.discard('__builtins__')
             for k in drop_keys:
@@ -1077,6 +1073,11 @@ class InteractiveShell(Configurable, Magic):
                                         
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
+        
+        # In some situations, e.g. testing, our fake main module has a __dict__
+        # separate from the user_ns: if so, we need to clear it manually.
+        if self.user_ns is not self.user_ns_mod.__dict__:
+            init_fakemod_dict(self.user_ns_mod, self.user_ns)
 
         # Restore the default and user aliases
         self.alias_manager.clear_aliases()
