@@ -202,5 +202,6 @@ class TestMagicRunSimple(tt.TempFileMixin):
 ARGV 1-: [u'C-first']
 ARGV 1-: [u'C-second']
 tclass.py: deleting object: C-first
+tclass.py: deleting object: C-second
 """
         tt.ipexec_validate(self.fname, out)

@@ -10,10 +10,11 @@ import sys
 class C(object):
     def __init__(self,name):
         self.name = name
+        self.flush_stdout = sys.stdout.flush
         
     def __del__(self):
         print 'tclass.py: deleting object:',self.name
-        sys.stdout.flush()
+        self.flush_stdout()
 
 try:
     name = sys.argv[1]

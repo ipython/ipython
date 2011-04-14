@@ -1038,10 +1038,8 @@ class InteractiveShell(Configurable, Magic):
         self.user_ns.update(ns)
 
     def reset(self, new_session=True):
-        """Clear all internal namespaces.
-
-        Note that this is much more aggressive than %reset, since it clears
-        fully all namespaces, as well as all input/output lists.
+        """Clear all internal namespaces, and attempt to release references to
+        user objects.
         
         If new_session is True, a new history session will be opened.
         """
@@ -1078,6 +1076,9 @@ class InteractiveShell(Configurable, Magic):
         # Flush the private list of module references kept for script
         # execution protection
         self.clear_main_mod_cache()
+        
+        # Clear out the namespace from the last %run
+        self.new_main_mod()
 
     def reset_selective(self, regex=None):
         """Clear selective variables from internal namespaces based on a
