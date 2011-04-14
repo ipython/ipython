@@ -822,7 +822,15 @@ class InteractiveShell(Configurable, Magic):
 
         # Assign namespaces
         # This is the namespace where all normal user variables live
-        self.user_ns = user_ns
+        
+        self.user_ns_mod = FakeModule(user_ns)
+        if type(user_ns) == dict:
+            # In the normal case, we replace user_ns with a module dict, so that
+            # user-defined objects are in the __main__ module, and can be pickled.
+            self.user_ns = self.user_ns_mod.__dict__
+        else:
+            # Otherwise, we will need to manually update it after execution.
+            self.user_ns = user_ns
         self.user_global_ns = user_global_ns
 
         # An auxiliary namespace that checks what parts of the user_ns were
@@ -962,7 +970,7 @@ class InteractiveShell(Configurable, Magic):
         except KeyError:
             raise KeyError('user_ns dictionary MUST have a "__name__" key')
         else:
-            sys.modules[main_name] = FakeModule(self.user_ns)
+            sys.modules[main_name] = self.user_ns_mod
 
     def init_user_ns(self):
         """Initialize all user-visible namespaces to their minimum defaults.
@@ -1051,6 +1059,11 @@ class InteractiveShell(Configurable, Magic):
         # Restore the user namespaces to minimal usability
         for ns in self.ns_refs_table:
             ns.clear()
+            
+        # In some situations, e.g. testing, our fake main module has a __dict__
+        # separate from the user_ns: if so, we need to clear it manually.
+        if self.user_ns is not self.user_ns_mod.__dict__:
+            self.user_ns_mod.__dict__.clear()
 
         # The main execution namespaces must be cleared very carefully,
         # skipping the deletion of the builtin-related keys, because doing so
@@ -2145,7 +2158,13 @@ class InteractiveShell(Configurable, Magic):
 
                 self.run_ast_nodes(code_ast.body, cell_name,
                                                     interactivity="last_expr")
-
+                
+                # In the normal case, user_ns is the __dict__ of the
+                # corresponding module. But e.g. in tests, it isn't, so we need
+                # to copy the contents across.
+                if self.user_ns is not self.user_ns_mod.__dict__:
+                    init_fakemod_dict(self.user_ns_mod, self.user_ns)
+                
                 # Execute any registered post-execution functions.
                 for func, status in self._post_execute.iteritems():
                     if not status:
