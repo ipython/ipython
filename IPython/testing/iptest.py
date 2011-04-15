@@ -199,8 +199,7 @@ def make_exclude():
 
     if not have['matplotlib']:
         exclusions.extend([ipjoin('lib', 'pylabtools'),
-                           ipjoin('lib', 'pylabtools',
-                                  'tests', 'test_pylabtools')])
+                           ipjoin('lib', 'tests', 'test_pylabtools')])
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
