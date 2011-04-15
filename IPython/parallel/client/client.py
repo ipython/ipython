@@ -364,6 +364,11 @@ class Client(HasTraits):
         """Turn valid target IDs or 'all' into two lists:
         (int_ids, uuids).
         """
+        if not self._ids:
+            # flush notification socket if no engines yet, just in case
+            if not self.ids:
+                raise error.NoEnginesRegistered("Can't build targets without any engines")
+        
         if targets is None:
             targets = self._ids
         elif isinstance(targets, str):
@@ -374,7 +379,7 @@ class Client(HasTraits):
         elif isinstance(targets, int):
             if targets < 0:
                 targets = self.ids[targets]
-            if targets not in self.ids:
+            if targets not in self._ids:
                 raise IndexError("No such engine: %i"%targets)
             targets = [targets]
         
@@ -909,13 +914,6 @@ class Client(HasTraits):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
         if not isinstance(subheader, dict):
             raise TypeError("subheader must be dict, not %s"%type(subheader))
-        
-        if not self._ids:
-            # flush notification socket if no engines yet
-            any_ids = self.ids
-            if not any_ids:
-                raise error.NoEnginesRegistered("Can't execute without any connected engines.")
-                # enforce types of f,args,kwargs
         
         bufs = util.pack_apply_message(f,args,kwargs)
         
