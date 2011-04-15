@@ -82,6 +82,9 @@ class ipnsdict(dict):
         # namespace in doctests that call '_'.
         self.protect_underscore = False
         
+        # We set this so that the tests don't clash with __main__
+        self["__name__"] = "__test_main__"
+        
     def clear(self):
         dict.clear(self)
         self.update(self._savedict)
@@ -158,7 +161,7 @@ def start_ipython():
     # Create and initialize our test-friendly IPython instance.
     shell = TerminalInteractiveShell.instance(config=config, 
                                               user_ns=ipnsdict(),
-                                              user_global_ns={}
+                                              user_global_ns={'__name__':'__test_main__'}
                                               )
 
     # A few more tweaks needed for playing nicely with doctests...
