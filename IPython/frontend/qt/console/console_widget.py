@@ -849,6 +849,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         layout.documentSizeChanged.connect(self._adjust_scrollbars)
 
         # Configure the control.
+        control.setAttribute(QtCore.Qt.WA_InputMethodEnabled, True)
         control.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         control.setReadOnly(True)
         control.setUndoRedoEnabled(False)
@@ -1557,7 +1558,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._control.document().setMaximumBlockCount(0)
         self._control.setUndoRedoEnabled(True)
 
+        # Work around bug in QPlainTextEdit: input method is not re-enabled
+        # when read-only is disabled.
         self._control.setReadOnly(False)
+        self._control.setAttribute(QtCore.Qt.WA_InputMethodEnabled, True)
+
         self._control.moveCursor(QtGui.QTextCursor.End)
         self._executing = False
         self._prompt_started_hook()
