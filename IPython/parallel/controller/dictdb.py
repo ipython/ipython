@@ -103,9 +103,9 @@ class DictDB(BaseDB):
                 return False
         return True
         
-    def _match(self, check, id_only=True):
+    def _match(self, check):
         """Find all the matches for a check dict."""
-        matches = {}
+        matches = []
         tests = {}
         for k,v in check.iteritems():
             if isinstance(v, dict):
@@ -113,14 +113,18 @@ class DictDB(BaseDB):
             else:
                 tests[k] = lambda o: o==v
         
-        for msg_id, rec in self._records.iteritems():
+        for rec in self._records.itervalues():
             if self._match_one(rec, tests):
-                matches[msg_id] = rec
-        if id_only:
-            return matches.keys()
-        else:
-            return matches
-            
+                matches.append(rec)
+        return matches
+    
+    def _extract_subdict(self, rec, keys):
+        """extract subdict of keys"""
+        d = {}
+        d['msg_id'] = rec['msg_id']
+        for key in keys:
+            d[key] = rec[key]
+        return d
     
     def add_record(self, msg_id, rec):
         """Add a new Task Record, by msg_id."""
@@ -140,7 +144,7 @@ class DictDB(BaseDB):
     
     def drop_matching_records(self, check):
         """Remove a record from the DB."""
-        matches = self._match(check, id_only=True)
+        matches = self._match(check)
         for m in matches:
             del self._records[m]
         
@@ -149,7 +153,28 @@ class DictDB(BaseDB):
         del self._records[msg_id]
         
     
-    def find_records(self, check, id_only=False):
-        """Find records matching a query dict."""
-        matches = self._match(check, id_only)
-        return matches
+    def find_records(self, check, keys=None):
+        """Find records matching a query dict, optionally extracting subset of keys.
+        
+        Returns dict keyed by msg_id of matching records.
+        
+        Parameters
+        ----------
+        
+        check: dict
+            mongodb-style query argument
+        keys: list of strs [optional]
+            if specified, the subset of keys to extract.  msg_id will *always* be
+            included.
+        """
+        matches = self._match(check)
+        if keys:
+            return [ self._extract_subdict(rec, keys) for rec in matches ]
+        else:
+            return matches
+        
+    
+    def get_history(self):
+        """get all msg_ids, ordered by time submitted."""
+        msg_ids = self._records.keys()
+        return sorted(msg_ids, key=lambda m: self._records[m]['submitted'])

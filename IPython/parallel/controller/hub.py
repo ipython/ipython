@@ -27,9 +27,8 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
 
-from IPython.parallel import error
+from IPython.parallel import error, util
 from IPython.parallel.factory import RegistrationFactory, LoggingFactory
-from IPython.parallel.util import select_random_ports, validate_url_container, ISO8601
 
 from .heartmonitor import HeartMonitor
 
@@ -76,7 +75,7 @@ def init_record(msg):
         'header' : header,
         'content': msg['content'],
         'buffers': msg['buffers'],
-        'submitted': datetime.strptime(header['date'], ISO8601),
+        'submitted': datetime.strptime(header['date'], util.ISO8601),
         'client_uuid' : None,
         'engine_uuid' : None,
         'started': None,
@@ -119,32 +118,32 @@ class HubFactory(RegistrationFactory):
     # port-pairs for monitoredqueues:
     hb = Instance(list, config=True)
     def _hb_default(self):
-        return select_random_ports(2)
+        return util.select_random_ports(2)
     
     mux = Instance(list, config=True)
     def _mux_default(self):
-        return select_random_ports(2)
+        return util.select_random_ports(2)
     
     task = Instance(list, config=True)
     def _task_default(self):
-        return select_random_ports(2)
+        return util.select_random_ports(2)
     
     control = Instance(list, config=True)
     def _control_default(self):
-        return select_random_ports(2)
+        return util.select_random_ports(2)
     
     iopub = Instance(list, config=True)
     def _iopub_default(self):
-        return select_random_ports(2)
+        return util.select_random_ports(2)
     
     # single ports:
     mon_port = Instance(int, config=True)
     def _mon_port_default(self):
-        return select_random_ports(1)[0]
+        return util.select_random_ports(1)[0]
     
     notifier_port = Instance(int, config=True)
     def _notifier_port_default(self):
-        return select_random_ports(1)[0]
+        return util.select_random_ports(1)[0]
     
     ping = Int(1000, config=True) # ping frequency
     
@@ -344,11 +343,11 @@ class Hub(LoggingFactory):
         # validate connection dicts:
         for k,v in self.client_info.iteritems():
             if k == 'task':
-                validate_url_container(v[1])
+                util.validate_url_container(v[1])
             else:
-                validate_url_container(v)
-        # validate_url_container(self.client_info)
-        validate_url_container(self.engine_info)
+                util.validate_url_container(v)
+        # util.validate_url_container(self.client_info)
+        util.validate_url_container(self.engine_info)
         
         # register our callbacks
         self.query.on_recv(self.dispatch_query)
@@ -369,6 +368,8 @@ class Hub(LoggingFactory):
         
         self.query_handlers = {'queue_request': self.queue_status,
                                 'result_request': self.get_results,
+                                'history_request': self.get_history,
+                                'db_request': self.db_query,
                                 'purge_request': self.purge_results,
                                 'load_request': self.check_load,
                                 'resubmit_request': self.resubmit_task,
@@ -606,10 +607,10 @@ class Hub(LoggingFactory):
             return
         # update record anyway, because the unregistration could have been premature
         rheader = msg['header']
-        completed = datetime.strptime(rheader['date'], ISO8601)
+        completed = datetime.strptime(rheader['date'], util.ISO8601)
         started = rheader.get('started', None)
         if started is not None:
-            started = datetime.strptime(started, ISO8601)
+            started = datetime.strptime(started, util.ISO8601)
         result = {
             'result_header' : rheader,
             'result_content': msg['content'],
@@ -618,7 +619,10 @@ class Hub(LoggingFactory):
         }
 
         result['result_buffers'] = msg['buffers']
-        self.db.update_record(msg_id, result)
+        try:
+            self.db.update_record(msg_id, result)
+        except Exception:
+            self.log.error("DB Error updating record %r"%msg_id, exc_info=True)
         
             
     #--------------------- Task Queue Traffic ------------------------------
@@ -653,6 +657,8 @@ class Hub(LoggingFactory):
             self.db.update_record(msg_id, record)
         except KeyError:
             self.db.add_record(msg_id, record)
+        except Exception:
+            self.log.error("DB Error saving task request %r"%msg_id, exc_info=True)
     
     def save_task_result(self, idents, msg):
         """save the result of a completed task."""
@@ -685,10 +691,10 @@ class Hub(LoggingFactory):
                 self.completed[eid].append(msg_id)
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
-            completed = datetime.strptime(header['date'], ISO8601)
+            completed = datetime.strptime(header['date'], util.ISO8601)
             started = header.get('started', None)
             if started is not None:
-                started = datetime.strptime(started, ISO8601)
+                started = datetime.strptime(started, util.ISO8601)
             result = {
                 'result_header' : header,
                 'result_content': msg['content'],
@@ -698,7 +704,10 @@ class Hub(LoggingFactory):
             }
 
             result['result_buffers'] = msg['buffers']
-            self.db.update_record(msg_id, result)
+            try:
+                self.db.update_record(msg_id, result)
+            except Exception:
+                self.log.error("DB Error saving task request %r"%msg_id, exc_info=True)
             
         else:
             self.log.debug("task::unknown task %s finished"%msg_id)
@@ -723,7 +732,11 @@ class Hub(LoggingFactory):
         
         self.tasks[eid].append(msg_id)
         # self.pending[msg_id][1].update(received=datetime.now(),engine=(eid,engine_uuid))
-        self.db.update_record(msg_id, dict(engine_uuid=engine_uuid))
+        try:
+            self.db.update_record(msg_id, dict(engine_uuid=engine_uuid))
+        except Exception:
+            self.log.error("DB Error saving task destination %r"%msg_id, exc_info=True)
+            
     
     def mia_task_request(self, idents, msg):
         raise NotImplementedError
@@ -772,7 +785,10 @@ class Hub(LoggingFactory):
         else:
             d[msg_type] = content.get('data', '')
         
-        self.db.update_record(msg_id, d)
+        try:
+            self.db.update_record(msg_id, d)
+        except Exception:
+            self.log.error("DB Error saving iopub message %r"%msg_id, exc_info=True)
         
     
             
@@ -904,11 +920,15 @@ class Hub(LoggingFactory):
             # build a fake header:
             header = {}
             header['engine'] = uuid
-            header['date'] = datetime.now().strftime(ISO8601)
+            header['date'] = datetime.now()
             rec = dict(result_content=content, result_header=header, result_buffers=[])
             rec['completed'] = header['date']
             rec['engine_uuid'] = uuid
-            self.db.update_record(msg_id, rec)
+            try:
+                self.db.update_record(msg_id, rec)
+            except Exception:
+                self.log.error("DB Error handling stranded msg %r"%msg_id, exc_info=True)
+                
     
     def finish_registration(self, heart):
         """Second half of engine registration, called after our HeartMonitor
@@ -1017,7 +1037,10 @@ class Hub(LoggingFactory):
         msg_ids = content.get('msg_ids', [])
         reply = dict(status='ok')
         if msg_ids == 'all':
-            self.db.drop_matching_records(dict(completed={'$ne':None}))
+            try:
+                self.db.drop_matching_records(dict(completed={'$ne':None}))
+            except Exception:
+                reply = error.wrap_exception()
         else:
             for msg_id in msg_ids:
                 if msg_id in self.all_completed:
@@ -1044,13 +1067,34 @@ class Hub(LoggingFactory):
                     break
                 msg_ids = self.completed.pop(eid)
                 uid = self.engines[eid].queue
-                self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
+                try:
+                    self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
+                except Exception:
+                    reply = error.wrap_exception()
+                    break
         
         self.session.send(self.query, 'purge_reply', content=reply, ident=client_id)
     
     def resubmit_task(self, client_id, msg, buffers):
         """Resubmit a task."""
         raise NotImplementedError
+    
+    def _extract_record(self, rec):
+        """decompose a TaskRecord dict into subsection of reply for get_result"""
+        io_dict = {}
+        for key in 'pyin pyout pyerr stdout stderr'.split():
+                io_dict[key] = rec[key]
+        content = { 'result_content': rec['result_content'],
+                            'header': rec['header'],
+                            'result_header' : rec['result_header'],
+                            'io' : io_dict,
+                          }
+        if rec['result_buffers']:
+            buffers = map(str, rec['result_buffers'])
+        else:
+            buffers = []
+        
+        return content, buffers
     
     def get_results(self, client_id, msg):
         """Get the result of 1 or more messages."""
@@ -1064,25 +1108,28 @@ class Hub(LoggingFactory):
         content['completed'] = completed
         buffers = []
         if not statusonly:
-            content['results'] = {}
-            records = self.db.find_records(dict(msg_id={'$in':msg_ids}))
+            try:
+                matches = self.db.find_records(dict(msg_id={'$in':msg_ids}))
+                # turn match list into dict, for faster lookup
+                records = {}
+                for rec in matches:
+                    records[rec['msg_id']] = rec
+            except Exception:
+                content = error.wrap_exception()
+                self.session.send(self.query, "result_reply", content=content, 
+                                                    parent=msg, ident=client_id)
+                return
+        else:
+            records = {}
         for msg_id in msg_ids:
             if msg_id in self.pending:
                 pending.append(msg_id)
-            elif msg_id in self.all_completed:
+            elif msg_id in self.all_completed or msg_id in records:
                 completed.append(msg_id)
                 if not statusonly:
-                    rec = records[msg_id]
-                    io_dict = {}
-                    for key in 'pyin pyout pyerr stdout stderr'.split():
-                            io_dict[key] = rec[key]
-                    content[msg_id] = { 'result_content': rec['result_content'],
-                                        'header': rec['header'],
-                                        'result_header' : rec['result_header'],
-                                        'io' : io_dict,
-                                      }
-                    if rec['result_buffers']:
-                        buffers.extend(map(str, rec['result_buffers']))
+                    c,bufs = self._extract_record(records[msg_id])
+                    content[msg_id] = c
+                    buffers.extend(bufs)
             else:
                 try:
                     raise KeyError('No such message: '+msg_id)
@@ -1090,6 +1137,57 @@ class Hub(LoggingFactory):
                     content = error.wrap_exception()
                 break
         self.session.send(self.query, "result_reply", content=content, 
+                                            parent=msg, ident=client_id,
+                                            buffers=buffers)
+
+    def get_history(self, client_id, msg):
+        """Get a list of all msg_ids in our DB records"""
+        try:
+            msg_ids = self.db.get_history()
+        except Exception as e:
+            content = error.wrap_exception()
+        else:
+            content = dict(status='ok', history=msg_ids)
+        
+        self.session.send(self.query, "history_reply", content=content, 
+                                            parent=msg, ident=client_id)
+
+    def db_query(self, client_id, msg):
+        """Perform a raw query on the task record database."""
+        content = msg['content']
+        query = content.get('query', {})
+        keys = content.get('keys', None)
+        query = util.extract_dates(query)
+        buffers = []
+        empty = list()
+        
+        try:
+            records = self.db.find_records(query, keys)
+        except Exception as e:
+            content = error.wrap_exception()
+        else:
+            # extract buffers from reply content:
+            if keys is not None:
+                buffer_lens = [] if 'buffers' in keys else None
+                result_buffer_lens = [] if 'result_buffers' in keys else None
+            else:
+                buffer_lens = []
+                result_buffer_lens = []
+            
+            for rec in records:
+                # buffers may be None, so double check
+                if buffer_lens is not None:
+                    b = rec.pop('buffers', empty) or empty
+                    buffer_lens.append(len(b))
+                    buffers.extend(b)
+                if result_buffer_lens is not None:
+                    rb = rec.pop('result_buffers', empty) or empty
+                    result_buffer_lens.append(len(rb))
+                    buffers.extend(rb)
+            content = dict(status='ok', records=records, buffer_lens=buffer_lens,
+                                    result_buffer_lens=result_buffer_lens)
+        
+        self.session.send(self.query, "db_reply", content=content, 
                                             parent=msg, ident=client_id,
                                             buffers=buffers)
 

@@ -17,6 +17,7 @@ import re
 import stat
 import socket
 import sys
+from datetime import datetime
 from signal import signal, SIGINT, SIGABRT, SIGTERM
 try:
     from signal import SIGKILL
@@ -41,6 +42,7 @@ from IPython.zmq.log import EnginePUBHandler
 
 # globals
 ISO8601="%Y-%m-%dT%H:%M:%S.%f"
+ISO8601_RE=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+$")
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -98,6 +100,18 @@ class ReverseDict(dict):
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
+def extract_dates(obj):
+    """extract ISO8601 dates from unpacked JSON"""
+    if isinstance(obj, dict):
+        for k,v in obj.iteritems():
+            obj[k] = extract_dates(v)
+    elif isinstance(obj, list):
+        obj = [ extract_dates(o) for o in obj ]
+    elif isinstance(obj, basestring):
+        if ISO8601_RE.match(obj):
+            obj = datetime.strptime(obj, ISO8601)
+    return obj
 
 def validate_url(url):
     """validate a url for zeromq"""
@@ -460,3 +474,4 @@ def local_logger(logname, loglevel=logging.DEBUG):
     handler.setLevel(loglevel)
     logger.addHandler(handler)
     logger.setLevel(loglevel)
+

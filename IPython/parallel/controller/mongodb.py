@@ -22,9 +22,9 @@ from .dictdb import BaseDB
 class MongoDB(BaseDB):
     """MongoDB TaskRecord backend."""
     
-    connection_args = List(config=True)
-    connection_kwargs = Dict(config=True)
-    database = CUnicode(config=True)
+    connection_args = List(config=True) # args passed to pymongo.Connection
+    connection_kwargs = Dict(config=True) # kwargs passed to pymongo.Connection
+    database = CUnicode(config=True) # name of the mongodb database
     _table = Dict()
     
     def __init__(self, **kwargs):
@@ -37,13 +37,14 @@ class MongoDB(BaseDB):
     
     def _binary_buffers(self, rec):
         for key in ('buffers', 'result_buffers'):
-            if key in rec:
+            if rec.get(key, None):
                 rec[key] = map(Binary, rec[key])
+        return rec
     
     def add_record(self, msg_id, rec):
         """Add a new Task Record, by msg_id."""
         # print rec
-        rec = _binary_buffers(rec)
+        rec = self._binary_buffers(rec)
         obj_id = self._records.insert(rec)
         self._table[msg_id] = obj_id
     
@@ -53,7 +54,7 @@ class MongoDB(BaseDB):
     
     def update_record(self, msg_id, rec):
         """Update the data in an existing record."""
-        rec = _binary_buffers(rec)
+        rec = self._binary_buffers(rec)
         obj_id = self._table[msg_id]
         self._records.update({'_id':obj_id}, {'$set': rec})
     
@@ -66,15 +67,30 @@ class MongoDB(BaseDB):
         obj_id = self._table.pop(msg_id)
         self._records.remove(obj_id)
     
-    def find_records(self, check, id_only=False):
-        """Find records matching a query dict."""
-        matches = list(self._records.find(check))
-        if id_only:
-            return [ rec['msg_id'] for rec in matches ]
-        else:
-            data = {}
-            for rec in matches:
-                data[rec['msg_id']] = rec
-            return data
+    def find_records(self, check, keys=None):
+        """Find records matching a query dict, optionally extracting subset of keys.
+        
+        Returns list of matching records.
+        
+        Parameters
+        ----------
+        
+        check: dict
+            mongodb-style query argument
+        keys: list of strs [optional]
+            if specified, the subset of keys to extract.  msg_id will *always* be
+            included.
+        """
+        if keys and 'msg_id' not in keys:
+            keys.append('msg_id')
+        matches = list(self._records.find(check,keys))
+        for rec in matches:
+            rec.pop('_id')
+        return matches
+
+    def get_history(self):
+        """get all msg_ids, ordered by time submitted."""
+        cursor = self._records.find({},{'msg_id':1}).sort('submitted')
+        return [ rec['msg_id'] for rec in cursor ]
 
 

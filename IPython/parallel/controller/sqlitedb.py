@@ -24,7 +24,7 @@ from IPython.parallel.util import ISO8601
 #-----------------------------------------------------------------------------
 
 operators = {
- '$lt' : lambda a,b: "%s < ?",
+ '$lt' : "<",
  '$gt' : ">",
  # null is handled weird with ==,!=
  '$eq' : "IS",
@@ -124,10 +124,11 @@ class SQLiteDB(BaseDB):
         pc = ioloop.PeriodicCallback(self._db.commit, 2000, loop)
         pc.start()
     
-    def _defaults(self):
+    def _defaults(self, keys=None):
         """create an empty record"""
         d = {}
-        for key in self._keys:
+        keys = self._keys if keys is None else keys
+        for key in keys:
             d[key] = None
         return d
     
@@ -168,9 +169,6 @@ class SQLiteDB(BaseDB):
                 stdout text,
                 stderr text)
                 """%self.table)
-        # self._db.execute("""CREATE TABLE IF NOT EXISTS %s_buffers 
-        #         (msg_id text, result integer, buffer blob)
-        #         """%self.table)
         self._db.commit()
     
     def _dict_to_list(self, d):
@@ -178,10 +176,11 @@ class SQLiteDB(BaseDB):
         
         return [ d[key] for key in self._keys ]
     
-    def _list_to_dict(self, line):
+    def _list_to_dict(self, line, keys=None):
         """Inverse of dict_to_list"""
-        d = self._defaults()
-        for key,value in zip(self._keys, line):
+        keys = self._keys if keys is None else keys
+        d = self._defaults(keys)
+        for key,value in zip(keys, line):
             d[key] = value
         
         return d
@@ -249,13 +248,14 @@ class SQLiteDB(BaseDB):
             sets.append('%s = ?'%key)
             values.append(rec[key])
         query += ', '.join(sets)
-        query += ' WHERE msg_id == %r'%msg_id
+        query += ' WHERE msg_id == ?'
+        values.append(msg_id)
         self._db.execute(query, values)
         # self._db.commit()
     
     def drop_record(self, msg_id):
         """Remove a record from the DB."""
-        self._db.execute("""DELETE FROM %s WHERE mgs_id==?"""%self.table, (msg_id,))
+        self._db.execute("""DELETE FROM %s WHERE msg_id==?"""%self.table, (msg_id,))
         # self._db.commit()
     
     def drop_matching_records(self, check):
@@ -265,20 +265,48 @@ class SQLiteDB(BaseDB):
         self._db.execute(query,args)
         # self._db.commit()
         
-    def find_records(self, check, id_only=False):
-        """Find records matching a query dict."""
-        req = 'msg_id' if id_only else '*'
+    def find_records(self, check, keys=None):
+        """Find records matching a query dict, optionally extracting subset of keys.
+        
+        Returns list of matching records.
+        
+        Parameters
+        ----------
+        
+        check: dict
+            mongodb-style query argument
+        keys: list of strs [optional]
+            if specified, the subset of keys to extract.  msg_id will *always* be
+            included.
+        """
+        if keys:
+            bad_keys = [ key for key in keys if key not in self._keys ]
+            if bad_keys:
+                raise KeyError("Bad record key(s): %s"%bad_keys)
+        
+        if keys:
+            # ensure msg_id is present and first:
+            if 'msg_id' in keys:
+                keys.remove('msg_id')
+            keys.insert(0, 'msg_id')
+            req = ', '.join(keys)
+        else:
+            req = '*'
         expr,args = self._render_expression(check)
         query = """SELECT %s FROM %s WHERE %s"""%(req, self.table, expr)
         cursor = self._db.execute(query, args)
         matches = cursor.fetchall()
-        if id_only:
-            return [ m[0] for m in matches ]
-        else:
-            records = {}
-            for line in matches:
-                rec = self._list_to_dict(line)
-                records[rec['msg_id']] = rec
-            return records
+        records = []
+        for line in matches:
+            rec = self._list_to_dict(line, keys)
+            records.append(rec)
+        return records
+    
+    def get_history(self):
+        """get all msg_ids, ordered by time submitted."""
+        query = """SELECT msg_id FROM %s ORDER by submitted ASC"""%self.table
+        cursor = self._db.execute(query)
+        # will be a list of length 1 tuples
+        return [ tup[0] for tup in cursor.fetchall()]
 
 __all__ = ['SQLiteDB']

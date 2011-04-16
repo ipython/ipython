@@ -28,6 +28,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 from .util import ISO8601
 
 def squash_unicode(obj):
+    """coerce unicode back to bytestrings."""
     if isinstance(obj,dict):
         for key in obj.keys():
             obj[key] = squash_unicode(obj[key])
@@ -40,7 +41,14 @@ def squash_unicode(obj):
         obj = obj.encode('utf8')
     return obj
 
-json_packer = jsonapi.dumps
+def _date_default(obj):
+    if isinstance(obj, datetime):
+        return obj.strftime(ISO8601)
+    else:
+        raise TypeError("%r is not JSON serializable"%obj)
+
+_default_key = 'on_unknown' if jsonapi.jsonmod.__name__ == 'jsonlib' else 'default'
+json_packer = lambda obj: jsonapi.dumps(obj, **{_default_key:_date_default})
 json_unpacker = lambda s: squash_unicode(jsonapi.loads(s))
 
 pickle_packer = lambda o: pickle.dumps(o,-1)

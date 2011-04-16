@@ -1215,5 +1215,78 @@ class Client(HasTraits):
         if content['status'] != 'ok':
             raise self._unwrap_exception(content)
 
+    @spin_first
+    def hub_history(self):
+        """Get the Hub's history
+        
+        Just like the Client, the Hub has a history, which is a list of msg_ids.
+        This will contain the history of all clients, and, depending on configuration,
+        may contain history across multiple cluster sessions.
+        
+        Any msg_id returned here is a valid argument to `get_result`.
+        
+        Returns
+        -------
+        
+        msg_ids : list of strs
+                list of all msg_ids, ordered by task submission time.
+        """
+        
+        self.session.send(self._query_socket, "history_request", content={})
+        idents, msg = self.session.recv(self._query_socket, 0)
+        
+        if self.debug:
+            pprint(msg)
+        content = msg['content']
+        if content['status'] != 'ok':
+            raise self._unwrap_exception(content)
+        else:
+            return content['history']
+
+    @spin_first
+    def db_query(self, query, keys=None):
+        """Query the Hub's TaskRecord database
+        
+        This will return a list of task record dicts that match `query`
+        
+        Parameters
+        ----------
+        
+        query : mongodb query dict
+            The search dict. See mongodb query docs for details.
+        keys : list of strs [optional]
+            THe subset of keys to be returned.  The default is to fetch everything.
+            'msg_id' will *always* be included.
+        """
+        content = dict(query=query, keys=keys)
+        self.session.send(self._query_socket, "db_request", content=content)
+        idents, msg = self.session.recv(self._query_socket, 0)
+        if self.debug:
+            pprint(msg)
+        content = msg['content']
+        if content['status'] != 'ok':
+            raise self._unwrap_exception(content)
+        
+        records = content['records']
+        buffer_lens = content['buffer_lens']
+        result_buffer_lens = content['result_buffer_lens']
+        buffers = msg['buffers']
+        has_bufs = buffer_lens is not None
+        has_rbufs = result_buffer_lens is not None
+        for i,rec in enumerate(records):
+            # relink buffers
+            if has_bufs:
+                blen = buffer_lens[i]
+                rec['buffers'], buffers = buffers[:blen],buffers[blen:]
+            if has_rbufs:
+                blen = result_buffer_lens[i]
+                rec['result_buffers'], buffers = buffers[:blen],buffers[blen:]
+            # turn timestamps back into times
+            for key in 'submitted started completed resubmitted'.split():
+                maybedate = rec.get(key, None)
+                if maybedate and util.ISO8601_RE.match(maybedate):
+                    rec[key] = datetime.strptime(maybedate, util.ISO8601)
+            
+        return records
 
 __all__ = [ 'Client' ]
