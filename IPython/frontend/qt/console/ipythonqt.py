@@ -166,18 +166,18 @@ def main():
     wgroup.add_argument('--paging', type=str, default='inside',
                         choices = ['inside', 'hsplit', 'vsplit', 'none'],
                         help='set the paging style [default inside]')
-    wgroup.add_argument('--rich', action='store_true',
-                        help='enable rich text support')
+    wgroup.add_argument('--plain', action='store_true',
+                        help='disable rich text support')
     wgroup.add_argument('--gui-completion', action='store_true',
                         help='use a GUI widget for tab completion')
     wgroup.add_argument('--style', type=str,
                         choices = list(get_all_styles()),
-                        help='specify a pygments style for by name.')
+                        help='specify a pygments style for by name')
     wgroup.add_argument('--stylesheet', type=str,
-                        help="path to a custom CSS stylesheet.")
-    wgroup.add_argument('--colors', type=str,
-                        help="Set the color scheme (LightBG,Linux,NoColor). This is guessed\
-                        based on the pygments style if not set.")
+                        help='path to a custom CSS stylesheet')
+    wgroup.add_argument('--colors', type=str, help = \
+        "Set the color scheme (LightBG,Linux,NoColor). This is guessed \
+         based on the pygments style if not set.")
 
     args = parser.parse_args()
 
@@ -224,20 +224,22 @@ def main():
         kernel_manager.start_kernel(**kwargs)
     kernel_manager.start_channels()
 
-    local_kernel = (not args.existing) or args.ip in LOCAL_IPS
     # Create the widget.
     app = QtGui.QApplication([])
+    local_kernel = (not args.existing) or args.ip in LOCAL_IPS
     if args.pure:
-        kind = 'rich' if args.rich else 'plain'
-        widget = FrontendWidget(kind=kind, paging=args.paging, local_kernel=local_kernel)
-    elif args.rich or args.pylab:
-        widget = RichIPythonWidget(paging=args.paging, local_kernel=local_kernel)
-    else:
+        kind = 'plain' if args.plain else 'rich'
+        widget = FrontendWidget(kind=kind, paging=args.paging, 
+                                local_kernel=local_kernel)
+    elif args.plain:
         widget = IPythonWidget(paging=args.paging, local_kernel=local_kernel)
+    else:
+        widget = RichIPythonWidget(paging=args.paging, 
+                                   local_kernel=local_kernel)
     widget.gui_completion = args.gui_completion
     widget.kernel_manager = kernel_manager
 
-    # configure the style:
+    # Configure the style.
     if not args.pure: # only IPythonWidget supports styles
         if args.style:
             widget.syntax_style = args.style
