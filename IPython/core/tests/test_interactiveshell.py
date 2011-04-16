@@ -102,6 +102,14 @@ class InteractiveShellTestCase(unittest.TestCase):
         from cPickle import dumps
         res = dumps(ip.user_ns["w"])
         self.assertTrue(isinstance(res, bytes))
+        
+    def test_global_ns(self):
+        ip = get_ipython()
+        ip.run_cell("a = 10")
+        ip.run_cell(("def f(x):"
+                     "    return x + a"))
+        ip.run_cell("b = f(12)")
+        self.assertEqual(ip.user_ns["b"], 22)
 
 
 
