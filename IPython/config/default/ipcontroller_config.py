@@ -71,11 +71,11 @@ c = get_config()
 # dying engines, dependencies, or engine-subset load-balancing.
 # c.ControllerFactory.scheme = 'pure'
 
-# The pure ZMQ scheduler can limit the number of outstanding tasks per engine
-# by using the ZMQ HWM option.  This allows engines with long-running tasks
+# The Python scheduler can limit the number of outstanding tasks per engine
+# by using an HWM option.  This allows engines with long-running tasks
 # to not steal too many tasks from other engines. The default is 0, which
 # means agressively distribute messages, never waiting for them to finish.
-# c.ControllerFactory.hwm = 1
+# c.TaskScheduler.hwm = 0
 
 # Whether to use Threads or Processes to start the Schedulers.  Threads will
 # use less resources, but potentially reduce throughput. Default is to 
