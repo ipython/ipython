@@ -38,7 +38,6 @@ class AsyncResultTest(ClusterTestCase):
 
     def test_get_after_done(self):
         ar = self.client[-1].apply_async(lambda : 42)
-        self.assertFalse(ar.ready())
         ar.wait()
         self.assertTrue(ar.ready())
         self.assertEquals(ar.get(), 42)

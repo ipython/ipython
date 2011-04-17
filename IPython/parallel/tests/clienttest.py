@@ -20,7 +20,8 @@ from IPython.external.decorator import decorator
 
 from IPython.parallel import error
 from IPython.parallel import Client
-from IPython.parallel.tests import processes,add_engines
+
+from IPython.parallel.tests import launchers, add_engines
 
 # simple tasks for use in apply tests
 
@@ -112,8 +113,8 @@ class ClusterTestCase(BaseZMQTestCase):
     def tearDown(self):
         # self.client.clear(block=True)
         # close fds:
-        for e in filter(lambda e: e.poll() is not None, processes):
-            processes.remove(e)
+        for e in filter(lambda e: e.poll() is not None, launchers):
+            launchers.remove(e)
         
         # allow flushing of incoming messages to prevent crash on socket close
         self.client.wait(timeout=2)

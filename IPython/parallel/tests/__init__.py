@@ -14,21 +14,46 @@
 import os
 import tempfile
 import time
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen
 
 from IPython.utils.path import get_ipython_dir
 from IPython.parallel import Client
+from IPython.parallel.apps.launcher import (LocalProcessLauncher,
+                                                  ipengine_cmd_argv,
+                                                  ipcontroller_cmd_argv,
+                                                  SIGKILL)
 
-processes = []
-blackhole = tempfile.TemporaryFile()
+# globals
+launchers = []
+blackhole = open(os.devnull, 'w')
+
+# Launcher class
+class TestProcessLauncher(LocalProcessLauncher):
+    """subclass LocalProcessLauncher, to prevent extra sockets and threads being created on Windows"""
+    def start(self):
+        if self.state == 'before':
+            self.process = Popen(self.args,
+                stdout=blackhole, stderr=blackhole,
+                env=os.environ,
+                cwd=self.work_dir
+            )
+            self.notify_start(self.process.pid)
+            self.poll = self.process.poll
+        else:
+            s = 'The process was already started and has state: %r' % self.state
+            raise ProcessStateError(s)
 
 # nose setup/teardown
 
 def setup():
-    cp = Popen('ipcontroller --profile iptest -r --log-level 10 --log-to-file --usethreads'.split(), stdout=blackhole, stderr=STDOUT)
-    processes.append(cp)
-    engine_json = os.path.join(get_ipython_dir(), 'cluster_iptest', 'security', 'ipcontroller-engine.json')
-    client_json = os.path.join(get_ipython_dir(), 'cluster_iptest', 'security', 'ipcontroller-client.json')
+    cp = TestProcessLauncher()
+    cp.cmd_and_args = ipcontroller_cmd_argv + \
+                ['--profile', 'iptest', '--log-level', '99', '-r', '--usethreads']
+    cp.start()
+    launchers.append(cp)
+    cluster_dir = os.path.join(get_ipython_dir(), 'cluster_iptest')
+    engine_json = os.path.join(cluster_dir, 'security', 'ipcontroller-engine.json')
+    client_json = os.path.join(cluster_dir, 'security', 'ipcontroller-client.json')
     tic = time.time()
     while not os.path.exists(engine_json) or not os.path.exists(client_json):
         if cp.poll() is not None:
@@ -44,9 +69,10 @@ def add_engines(n=1, profile='iptest'):
     base = len(rc)
     eps = []
     for i in range(n):
-        ep = Popen(['ipengine']+ ['--profile', profile, '--log-level', '10', '--log-to-file'], stdout=blackhole, stderr=STDOUT)
-        # ep.start()
-        processes.append(ep)
+        ep = TestProcessLauncher()
+        ep.cmd_and_args = ipengine_cmd_argv + ['--profile', profile, '--log-level', '99']
+        ep.start()
+        launchers.append(ep)
         eps.append(ep)
     tic = time.time()
     while len(rc) < base+n:
@@ -61,11 +87,11 @@ def add_engines(n=1, profile='iptest'):
 
 def teardown():
     time.sleep(1)
-    while processes:
-        p = processes.pop()
+    while launchers:
+        p = launchers.pop()
         if p.poll() is None:
             try:
-                p.terminate()
+                p.stop()
             except Exception, e:
                 print e
                 pass
@@ -73,8 +99,9 @@ def teardown():
             time.sleep(.25)
         if p.poll() is None:
             try:
-                print 'killing'
-                p.kill()
+                print 'cleaning up test process...'
+                p.signal(SIGKILL)
             except:
                 print "couldn't shutdown process: ", p
+    blackhole.close()
     

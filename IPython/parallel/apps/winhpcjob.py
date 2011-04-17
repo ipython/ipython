@@ -16,8 +16,6 @@ Job and task components for writing .xml files that the Windows HPC Server
 # Imports
 #-----------------------------------------------------------------------------
 
-from __future__ import with_statement
-
 import os
 import re
 import uuid

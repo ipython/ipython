@@ -21,12 +21,20 @@ import os
 import re
 import stat
 
+# signal imports, handling various platforms, versions
+
 from signal import SIGINT, SIGTERM
 try:
     from signal import SIGKILL
 except ImportError:
-    # windows
+    # Windows
     SIGKILL=SIGTERM
+
+try:
+    # Windows >= 2.7, 3.2
+    from signal import CTRL_C_EVENT as SIGINT
+except ImportError:
+    pass
 
 from subprocess import Popen, PIPE, STDOUT
 try:
@@ -51,23 +59,9 @@ from IPython.parallel.factory import LoggingFactory
 
 from .win32support import forward_read_events
 
-# load winhpcjob only on Windows
-try:
-    from .winhpcjob import (
-        IPControllerTask, IPEngineTask,
-        IPControllerJob, IPEngineSetJob
-    )
-except ImportError:
-    pass
+from .winhpcjob import IPControllerTask, IPEngineTask, IPControllerJob, IPEngineSetJob
 
 WINDOWS = os.name == 'nt'
-
-if WINDOWS:
-    try:
-        # >= 2.7, 3.2
-        from signal import CTRL_C_EVENT as SIGINT
-    except ImportError:
-        pass
 
 #-----------------------------------------------------------------------------
 # Paths to the kernel apps
@@ -282,11 +276,19 @@ class LocalProcessLauncher(BaseLauncher):
 
     def signal(self, sig):
         if self.state == 'running':
-            self.process.send_signal(sig)
+            if WINDOWS and sig != SIGINT:
+                # use Windows tree-kill for better child cleanup
+                check_output(['taskkill', '-pid', str(self.process.pid), '-t', '-f'])
+            else:
+                self.process.send_signal(sig)
 
     def interrupt_then_kill(self, delay=2.0):
         """Send INT, wait a delay and then send KILL."""
-        self.signal(SIGINT)
+        try:
+            self.signal(SIGINT)
+        except Exception:
+            self.log.debug("interrupt failed")
+            pass
         self.killer  = ioloop.DelayedCallback(lambda : self.signal(SIGKILL), delay*1000, self.loop)
         self.killer.start()
 
