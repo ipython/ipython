@@ -75,8 +75,8 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def figure_to_svg(fig):
-    """Convert a figure to svg for inline display."""
+def print_figure(fig, fmt='png'):
+    """Convert a figure to svg or png for inline display."""
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
     if not fig.axes:
@@ -88,12 +88,15 @@ def figure_to_svg(fig):
     fig.set_edgecolor('white')
     try:
         string_io = StringIO()
-        fig.canvas.print_figure(string_io, format='svg')
-        svg = string_io.getvalue()
+        # use 72 dpi to match QTConsole's dpi
+        fig.canvas.print_figure(string_io, format=fmt, dpi=72)
+        data = string_io.getvalue()
     finally:
         fig.set_facecolor(fc)
         fig.set_edgecolor(ec)
-    return svg
+    if fmt == 'png':
+        data = data.encode('base64')
+    return data
 
 
 # We need a little factory function here to create the closure where
@@ -199,6 +202,30 @@ def activate_matplotlib(backend):
     pylab.draw_if_interactive = flag_calls(pylab.draw_if_interactive)
 
 
+def _select_figure_format(shell, fmt):
+    """Select figure format for inline backend, either 'png' or 'svg'.
+    
+    Using this method ensures only one figure format is active at a time.
+    """
+    from matplotlib.figure import Figure
+    from IPython.zmq.pylab import backend_inline
+    
+    svg_formatter = shell.display_formatter.formatters['image/svg+xml']
+    png_formatter = shell.display_formatter.formatters['image/png']
+    
+    if fmt=='png':
+        svg_formatter.type_printers.pop(Figure, None)
+        png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
+    elif fmt=='svg':
+        png_formatter.type_printers.pop(Figure, None)
+        svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
+    else:
+        raise ValueError("supported formats are: 'png', 'svg', not %r"%fmt)
+    
+    # set the format to be used in the backend()
+    backend_inline._figure_format = fmt
+    
+
 def import_pylab(user_ns, backend, import_all=True, shell=None):
     """Import the standard pylab symbols into user_ns."""
 
@@ -219,9 +246,9 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
         # function that will pick up the results for display.  This can only be
         # done with access to the real shell object.
         if backend == backends['inline']:
-            from IPython.zmq.pylab.backend_inline import flush_svg
+            from IPython.zmq.pylab.backend_inline import flush_figures
             from matplotlib import pyplot
-            shell.register_post_execute(flush_svg)
+            shell.register_post_execute(flush_figures)
             # The typical default figure size is too large for inline use,
             # so we shrink the figure size to 6x4, and tweak fonts to
             # make that fit.  This is configurable via Global.pylab_inline_rc,
@@ -242,19 +269,22 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             # Add 'figsize' to pyplot and to the user's namespace
             user_ns['figsize'] = pyplot.figsize = figsize
             shell.user_ns_hidden['figsize'] = figsize
+            
+            # Setup the default figure format
+            fmt = getattr(shell.config.Global, 'inline_figure_format', 'png')
+            def select_figure_format(fmt):
+                """select the figure image format (png or svg)."""
+                return _select_figure_format(shell, fmt)
+            select_figure_format(fmt)
+            # add select_figure_format to user_ns
+            user_ns['select_figure_format'] = select_figure_format
+            shell.user_ns_hidden['select_figure_format'] = select_figure_format
         
         # The old pastefig function has been replaced by display
-        # Always add this svg formatter so display works.
-        from IPython.core.display import display, display_svg
-        svg_formatter = shell.display_formatter.formatters['image/svg+xml']
-        svg_formatter.for_type_by_name(
-            'matplotlib.figure','Figure',figure_to_svg
-        )
-        # Add display and display_png to the user's namespace
+        from IPython.core.display import display
+        # Add display to the user's namespace
         user_ns['display'] = display
         shell.user_ns_hidden['display'] = display
-        user_ns['display_svg'] = display_svg
-        shell.user_ns_hidden['display_svg'] = display_svg
         user_ns['getfigs'] = getfigs
         shell.user_ns_hidden['getfigs'] = getfigs
 
