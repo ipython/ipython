@@ -66,8 +66,9 @@ with no external dependencies.  However, some Python distributions
 (particularly on Windows and OS X), don't come with a working :mod:`readline`
 module.  The IPython shell will work without :mod:`readline`, but will lack
 many features that users depend on, such as tab completion and command line
-editing.  See below for details of how to make sure you have a working
-:mod:`readline`.
+editing.  If you install IPython with :mod:`setuptools`, (e.g. with `easy_install`),
+then the appropriate :mod:`readline` for your platform will be installed.
+See below for details of how to make sure you have a working :mod:`readline`.
 
 Installation using easy_install
 -------------------------------
@@ -86,7 +87,7 @@ Installation from source
 
 If you don't want to use :command:`easy_install`, or don't have it installed,
 just grab the latest stable build of IPython from `here
-<http://ipython.scipy.org/dist/>`_.  Then do the following:
+<https://github.com/ipython/ipython/downloads>`_.  Then do the following:
 
 .. code-block:: bash
 
@@ -107,7 +108,7 @@ use any of the following alternatives:
 
 1. Install using :command:`easy_install`.
 
-2. Install using our binary ``.exe`` Windows installer, which can be found at
+2. Install using our binary ``.exe`` Windows installer, which can be found
    `here <http://ipython.scipy.org/dist/>`_
 
 3. Install from source, but using :mod:`setuptools` (``python setupegg.py
@@ -135,12 +136,12 @@ Installing the development version
 ----------------------------------
 
 It is also possible to install the development version of IPython from our
-`Bazaar <http://bazaar-vcs.org/>`_ source code repository.  To do this you will
-need to have Bazaar installed on your system.  Then just do:
+`Git <http://git-scm.com/>`_ source code repository.  To do this you will
+need to have Git installed on your system.  Then just do:
 
 .. code-block:: bash
 
-    $ bzr branch lp:ipython
+    $ git clone https://github.com/ipython/ipython.git
     $ cd ipython
     $ python setup.py install
 
@@ -161,7 +162,7 @@ just do:
 
 .. code-block:: bash
 
-    $ bzr pull
+    $ git pull
 
 Basic optional dependencies
 ===========================
@@ -187,6 +188,10 @@ common situations where you won't have a working :mod:`readline` module:
 
 * If you are running Windows, which doesn't have a :mod:`readline` module.
 
+When IPython is installed with :mod:`setuptools`, (e.g. with `easy_install`),
+readline is added as a dependency on OS X, and PyReadline on Windows, and will
+be installed on your system.  However, if you do not use setuptools, you may
+have to install one of these packages yourself.
 
 On OS X, the built-in Python doesn't not have :mod:`readline` because of
 license issues.  Starting with OS X 10.5 (Leopard), Apple's built-in Python has
@@ -220,8 +225,7 @@ wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard).
 On Windows, you will need the PyReadline module. PyReadline is a separate,
 Windows only implementation of readline that uses native Windows calls through
 :mod:`ctypes`. The easiest way of installing PyReadline is you use the binary
-installer available `here <http://ipython.scipy.org/dist/>`_. The :mod:`ctypes`
-module, which comes with Python 2.5 and greater, is required by PyReadline.
+installer available `here <https://launchpad.net/pyreadline/+download>`_.
 
 nose
 ----
@@ -257,8 +261,10 @@ iptest command:
 pexpect
 -------
 
-The `pexpect <http://www.noah.org/wiki/Pexpect>`_ package is used in IPython's
-:command:`irunner` script.  On Unix platforms (including OS X), just do:
+The pexpect package is used in IPython's :command:`irunner` script, as well as
+for managing subprocesses [pexpect]_. IPython now includes a version of pexpect
+in :mod:`IPython.external`, but if you have installed pexpect, IPython will use
+that instead. On Unix platforms (including OS X), just do:
 
 .. code-block:: bash
 
@@ -318,11 +324,9 @@ pygments
 --------
 
 The syntax-highlighting in ``ipython-qtconsole`` is done with the pygments project, 
-which is easy_install-able.
+which is easy_install-able [pygments]_.
 
-.. [Twisted] Twisted matrix.  http://twistedmatrix.org
-.. [ZopeInterface] http://pypi.python.org/pypi/zope.interface
-.. [Foolscap] Foolscap network protocol.  http://foolscap.lothar.com/trac
-.. [pyOpenSSL] pyOpenSSL.  http://pyopenssl.sourceforge.net
 .. [ZeroMQ] ZeroMQ.  http://www.zeromq.org
 .. [paramiko] paramiko. https://github.com/robey/paramiko
+.. [pygments] Pygments syntax highlighting. http://pygments.org
+.. [pexpect] Pexpect. http://www.noah.org/wiki/Pexpect
