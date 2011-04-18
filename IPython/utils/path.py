@@ -310,8 +310,10 @@ def get_ipython_dir():
         if ipdir is None:
             # not using XDG
             ipdir = home_ipdir
-    
-    return ipdir.decode(fs_encoding)
+            
+    if isinstance(ipdir, bytes):
+        return ipdir.decode(fs_encoding)
+    return ipdir
 
 
 def get_ipython_package_dir():
