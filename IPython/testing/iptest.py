@@ -106,7 +106,10 @@ have['pexpect'] = test_for('pexpect')
 have['pymongo'] = test_for('pymongo')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
-have['zmq'] = test_for('zmq', '2.1.4')
+if os.name == 'nt':
+    have['zmq'] = test_for('zmq', '2.1dev')
+else:
+    have['zmq'] = test_for('zmq', '2.1.4')
 have['qt'] = test_for('IPython.external.qt')
 
 #-----------------------------------------------------------------------------

@@ -10,9 +10,15 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
 import zmq
 
-if zmq.__version__ < '2.1.4':
+
+if os.name == 'nt':
+    if zmq.__version__ < '2.1dev':
+        raise ImportError("On Windows, IPython.parallel depends on bugfixes only "
+        "in current git master of pyzmq, you appear to have %s"%zmq.__version__)
+elif zmq.__version__ < '2.1.4':
     raise ImportError("IPython.parallel requires pyzmq/0MQ >= 2.1.4, you appear to have %s"%zmq.__version__)
 
 from IPython.utils.pickleutil import Reference
