@@ -22,9 +22,7 @@ Authors:
 
 from copy import deepcopy
 import datetime
-from weakref import WeakValueDictionary
 
-from IPython.utils.importstring import import_item
 from loader import Config
 from IPython.utils.traitlets import HasTraits, Instance
 from IPython.utils.text import indent
@@ -152,13 +150,18 @@ class Configurable(HasTraits):
 
     @classmethod
     def class_get_help(cls):
+        """Get the help string for this class in ReST format."""
         cls_traits = cls.class_traits(config=True)
         final_help = []
-        final_help.append('%s options' % cls.__name__)
-        final_help.append(len(final_help[0])*'-')
+        final_help.append(u'%s options' % cls.__name__)
+        final_help.append(len(final_help[0])*u'-')
         for k, v in cls_traits.items():
             help = v.get_metadata('help')
-            final_help.append(k + " : " + v.__class__.__name__)
+            shortname = v.get_metadata('shortname')
+            header = "%s.%s : %s" % (cls.__name__, k, v.__class__.__name__)
+            if shortname is not None:
+                header += " (shortname=" + shortname + ")"
+            final_help.append(header)
             if help is not None:
                 final_help.append(indent(help))
         return '\n'.join(final_help)

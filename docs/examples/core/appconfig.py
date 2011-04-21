@@ -1,10 +1,10 @@
 import sys
 
 from IPython.config.configurable import Configurable
+from IPython.config.application import Application
 from IPython.utils.traitlets import (
     Bool, Unicode, Int, Float, List
 )
-from IPython.config.loader import KeyValueConfigLoader
 
 class Foo(Configurable):
 
@@ -18,35 +18,19 @@ class Bar(Configurable):
     enabled = Bool(True, config=True, shortname="bar-enabled", help="Enable bar.")
 
 
-class MyApp(Configurable):
+class MyApp(Application):
 
-    app_name = Unicode(u'myapp', config=True, shortname="myapp", help="The app name.")
+    app_name = Unicode(u'myapp')
     running = Bool(False, config=True, shortname="running", help="Is the app running?")
     classes = List([Bar, Foo])
-
-    def __init__(self, **kwargs):
-        Configurable.__init__(self, **kwargs)
-        self.classes.insert(0, self.__class__)
-
-    def print_help(self):
-        for cls in self.classes:
-            cls.class_print_help()
-            print
-
-    def parse_command_line(self, argv=None):
-        if argv is None:
-            argv = sys.argv[1:]
-        if '-h' in argv or '--h' in argv:
-            self.print_help()
-            sys.exit(1)
-        loader = KeyValueConfigLoader(argv=argv, classes=self.classes)
-        config = loader.load_config()
-        self.config = config
+    config_file = Unicode(u'', config=True, shortname="config-file", help="Load this config file")
 
 
 def main():
     app = MyApp()
     app.parse_command_line()
+    if app.config_file:
+        app.load_config_file(app.config_file)
     print "app.config:"
     print app.config
 
