@@ -214,7 +214,7 @@ class InteractiveShell(Configurable, Magic):
     # We can't do this yet because even runlines uses the autoindent.
     autoindent = CBool(True, config=True, help=
         """
-        Should IPython indent code entered interactively.
+        Autoindent IPython code entered interactively.
         """
     )
     automagic = CBool(True, config=True, help=
@@ -222,12 +222,37 @@ class InteractiveShell(Configurable, Magic):
         Enable magic commands to be called without the leading %.
         """
     )
-    cache_size = Int(1000, config=True)
-    color_info = CBool(True, config=True)
+    cache_size = Int(1000, config=True, help=
+        """
+        Set the size of the output cache.  The default is 1000, you can
+        change it permanently in your config file.  Setting it to 0 completely
+        disables the caching system, and the minimum value accepted is 20 (if
+        you provide a value less than 20, it is reset to 0 and a warning is
+        issued).  This limit is defined because otherwise you'll spend more
+        time re-flushing a too small cache than working
+        """
+    )
+    color_info = CBool(True, config=True, help=
+        """
+        Use colors for displaying information about objects. Because this
+        information is passed through a pager (like 'less'), and some pagers
+        get confused with color codes, this capability can be turned off.
+        """
+    )
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
                              default_value=get_default_colors(), config=True)
     debug = CBool(False, config=True)
-    deep_reload = CBool(False, config=True)
+    deep_reload = CBool(False, config=True, help=
+        """
+        Enable deep (recursive) reloading by default. IPython can use the
+        deep_reload module which reloads changes in modules recursively (it
+        replaces the reload() function, so you don't need to change anything to
+        use it). deep_reload() forces a full reload of modules whose code may
+        have changed, which the default reload() function does not.  When
+        deep_reload is off, IPython will use the normal reload(), but
+        deep_reload will still be available as dreload().
+        """
+    )
     display_formatter = Instance(DisplayFormatter)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
@@ -245,12 +270,28 @@ class InteractiveShell(Configurable, Magic):
     # interactive statements or whole blocks.
     input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                               (), {})
-    logstart = CBool(False, config=True)
-    logfile = Unicode('', config=True)
-    logappend = Unicode('', config=True)
+    logstart = CBool(False, config=True, help=
+        """
+        Start logging to the default log file.
+        """
+    )
+    logfile = Unicode('', config=True, help=
+        """
+        The name of the logfile to use.
+        """
+    )
+    logappend = Unicode('', config=True, help=
+        """
+        Start logging to the given file in append mode.
+        """
+    )
     object_info_string_level = Enum((0,1,2), default_value=0,
                                     config=True)
-    pdb = CBool(False, config=True)
+    pdb = CBool(False, config=True, help=
+        """
+        Automatically call the pdb debugger after every exception.
+        """
+    )
 
     profile = Unicode('', config=True)
     prompt_in1 = Str('In [\\#]: ', config=True)

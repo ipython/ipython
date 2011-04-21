@@ -27,6 +27,7 @@ from weakref import WeakValueDictionary
 from IPython.utils.importstring import import_item
 from loader import Config
 from IPython.utils.traitlets import HasTraits, Instance
+from IPython.utils.text import indent
 
 
 #-----------------------------------------------------------------------------
@@ -137,3 +138,33 @@ class Configurable(HasTraits):
                         # shared by all instances, effectively making it a class attribute.
                         setattr(self, k, deepcopy(config_value))
 
+    @classmethod
+    def class_get_shortnames(cls):
+        """Return the shortname to fullname dict for config=True traits."""
+        cls_traits = cls.class_traits(config=True)
+        shortnames = {}
+        for k, v in cls_traits.items():
+            shortname = v.get_metadata('shortname')
+            if shortname is not None:
+                longname = cls.__name__ + '.' + k
+                shortnames[shortname] = longname
+        return shortnames
+
+    @classmethod
+    def class_get_help(cls):
+        cls_traits = cls.class_traits(config=True)
+        final_help = []
+        final_help.append('%s options' % cls.__name__)
+        final_help.append(len(final_help[0])*'-')
+        for k, v in cls_traits.items():
+            help = v.get_metadata('help')
+            final_help.append(k + " : " + v.__class__.__name__)
+            if help is not None:
+                final_help.append(indent(help))
+        return '\n'.join(final_help)
+
+    @classmethod
+    def class_print_help(cls):
+        print cls.class_get_help()
+
+            

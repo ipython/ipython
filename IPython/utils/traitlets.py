@@ -515,6 +515,48 @@ class HasTraits(object):
             for n in names:
                 self._add_notifiers(handler, n)
 
+    @classmethod
+    def class_trait_names(cls, **metadata):
+        """Get a list of all the names of this classes traits.
+
+        This method is just like the :meth:`trait_names` method, but is unbound.
+        """
+        return cls.class_traits(**metadata).keys()
+
+    @classmethod
+    def class_traits(cls, **metadata):
+        """Get a list of all the traits of this class.
+
+        This method is just like the :meth:`traits` method, but is unbound.
+
+        The TraitTypes returned don't know anything about the values
+        that the various HasTrait's instances are holding.
+
+        This follows the same algorithm as traits does and does not allow
+        for any simple way of specifying merely that a metadata name
+        exists, but has any value.  This is because get_metadata returns
+        None if a metadata key doesn't exist.
+        """
+        traits = dict([memb for memb in getmembers(cls) if \
+                     isinstance(memb[1], TraitType)])
+
+        if len(metadata) == 0:
+            return traits
+
+        for meta_name, meta_eval in metadata.items():
+            if type(meta_eval) is not FunctionType:
+                metadata[meta_name] = _SimpleTest(meta_eval)
+
+        result = {}
+        for name, trait in traits.items():
+            for meta_name, meta_eval in metadata.items():
+                if not meta_eval(trait.get_metadata(meta_name)):
+                    break
+            else:
+                result[name] = trait
+
+        return result
+
     def trait_names(self, **metadata):
         """Get a list of all the names of this classes traits."""
         return self.traits(**metadata).keys()

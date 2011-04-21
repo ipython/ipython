@@ -315,7 +315,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         ipython Global.profile="foo" InteractiveShell.autocall=False
     """
 
-    def __init__(self, argv=None):
+    def __init__(self, argv=None, classes=None):
         """Create a key value pair config loader.
 
         Parameters
@@ -324,6 +324,9 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             A list that has the form of sys.argv[1:] which has unicode
             elements of the form u"key=value". If this is None (default),
             then sys.argv[1:] will be used.
+        class : (list, tuple) of Configurables
+            A sequence of Configurable classes that will be used to map
+            shortnames to longnames.
 
         Returns
         -------
@@ -338,11 +341,14 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             >>> cl.load_config(["foo='bar'","A.name='brian'","B.number=0"])
             {'A': {'name': 'brian'}, 'B': {'number': 0}, 'foo': 'bar'}
         """
-        if argv == None:
+        if argv is None:
             argv = sys.argv[1:]
+        if classes is None:
+            classes = () 
         self.argv = argv
+        self.classes = classes
 
-    def load_config(self, argv=None):
+    def load_config(self, argv=None, classes=None):
         """Parse the configuration and generate the Config object.
 
         Parameters
@@ -350,16 +356,47 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         argv : list, optional
             A list that has the form of sys.argv[1:] which has unicode
             elements of the form u"key=value". If this is None (default),
-            then self.argv will be used. 
+            then self.argv will be used.
+        class : (list, tuple) of Configurables
+            A sequence of Configurable classes that will be used to map
+            shortnames to longnames.
         """
         self.clear()
         if argv is None:
             argv = self.argv
+        if classes is None:
+            classes = self.classes
+
+        # print argv
+
+        shortnames = {}
+        for cls in classes:
+            sn = cls.class_get_shortnames()
+            # Check for duplicate shortnames and raise if found.
+            for k, v in sn.items():
+                if k in shortnames:
+                    raise KeyError(
+                        "duplicate shortname: %s and %s both use the shortname: %s" %\
+                        (v, shortnames[k], k)
+                    )
+            shortnames.update(sn)
+
+        # print shortnames
+
         for item in argv:
             pair = tuple(item.split("="))
             if len(pair) == 2:
-                exec_str = 'self.config.' + pair[0] + '=' + pair[1]
-                exec exec_str in locals(), globals()
+                lhs = pair[0]
+                rhs = pair[1]
+                # Substitute longnames for shortnames.
+                if lhs in shortnames:
+                    lhs = shortnames[lhs]
+                exec_str = 'self.config.' + lhs + '=' + rhs
+                try:
+                    exec exec_str in locals(), globals()
+                except (NameError, SyntaxError):
+                    exec_str = 'self.config.' + lhs + '="' + rhs + '"'
+                    exec exec_str in locals(), globals()
         return self.config
 
 
