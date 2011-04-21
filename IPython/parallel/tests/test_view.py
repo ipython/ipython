@@ -1,4 +1,5 @@
 """test View objects"""
+# -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
 #
@@ -32,7 +33,7 @@ def setup():
 
 class TestView(ClusterTestCase):
     
-    def test_crash_task(self):
+    def test_z_crash_task(self):
         """test graceful handling of engine death (balanced)"""
         # self.add_engines(1)
         ar = self.client[-1].apply_async(crash)
@@ -44,7 +45,7 @@ class TestView(ClusterTestCase):
             self.client.spin()
         self.assertFalse(eid in self.client.ids, "Engine should have died")
     
-    def test_crash_mux(self):
+    def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
         # self.add_engines(1)
         eid = self.client.ids[-1]
@@ -413,6 +414,39 @@ class TestView(ClusterTestCase):
         self.assertEquals(ar.get(), 111)
         ar = ip.magic_result('-2')
         self.assertEquals(ar.msg_ids, [v.history[-2]])
+    
+    def test_unicode_execute(self):
+        """test executing unicode strings"""
+        v = self.client[-1]
+        v.block=True
+        code=u"a=u'é'"
+        v.execute(code)
+        self.assertEquals(v['a'], u'é')
+        
+    def test_unicode_apply_result(self):
+        """test unicode apply results"""
+        v = self.client[-1]
+        r = v.apply_sync(lambda : u'é')
+        self.assertEquals(r, u'é')
+    
+    def test_unicode_apply_arg(self):
+        """test passing unicode arguments to apply"""
+        v = self.client[-1]
+        
+        @interactive
+        def check_unicode(a, check):
+            assert isinstance(a, unicode), "%r is not unicode"%a
+            assert isinstance(check, bytes), "%r is not bytes"%check
+            assert a.encode('utf8') == check, "%s != %s"%(a,check)
+        
+        for s in [ u'é', u'ßø®∫','asdf'.decode() ]:
+            try:
+                v.apply_sync(check_unicode, s, s.encode('utf8'))
+            except error.RemoteError as e:
+                if e.ename == 'AssertionError':
+                    self.fail(e.evalue)
+                else:
+                    raise e
         
 
 
