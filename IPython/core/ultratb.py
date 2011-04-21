@@ -325,8 +325,8 @@ class TBTools(object):
 
         # Output stream to write to.  Note that we store the original value in
         # a private attribute and then make the public ostream a property, so
-        # that we can delay accessing io.Term.cout until runtime.  The way
-        # things are written now, the Term.cout object is dynamically managed
+        # that we can delay accessing io.stdout until runtime.  The way
+        # things are written now, the io.stdout object is dynamically managed
         # so a reference to it should NEVER be stored statically.  This
         # property approach confines this detail to a single location, and all
         # subclasses can simply access self.ostream for writing.
@@ -349,12 +349,12 @@ class TBTools(object):
         Valid values are:
         
         - None: the default, which means that IPython will dynamically resolve
-        to io.Term.cout.  This ensures compatibility with most tools, including
+        to io.stdout.  This ensures compatibility with most tools, including
         Windows (where plain stdout doesn't recognize ANSI escapes).
 
         - Any object with 'write' and 'flush' attributes.
         """
-        return io.Term.cout if self._ostream is None else self._ostream
+        return io.stdout if self._ostream is None else self._ostream
 
     def _set_ostream(self, val):
         assert val is None or (hasattr(val, 'write') and hasattr(val, 'flush'))

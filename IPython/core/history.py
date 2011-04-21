@@ -22,10 +22,9 @@ import threading
 
 # Our own packages
 from IPython.config.configurable import Configurable
-import IPython.utils.io
 
 from IPython.testing import decorators as testdec
-from IPython.utils.io import ask_yes_no
+from IPython.utils import io
 from IPython.utils.traitlets import Bool, Dict, Instance, Int, List, Unicode
 from IPython.utils.warn import warn
 
@@ -630,12 +629,12 @@ def magic_history(self, parameter_s = ''):
     try:
         outfname = opts['f']
     except KeyError:
-        outfile = IPython.utils.io.Term.cout  # default
+        outfile = io.stdout  # default
         # We don't want to close stdout at the end!
         close_at_end = False
     else:
         if os.path.exists(outfname):
-            if not ask_yes_no("File %r exists. Overwrite?" % outfname): 
+            if not io.ask_yes_no("File %r exists. Overwrite?" % outfname): 
                 print('Aborting.')
                 return
 

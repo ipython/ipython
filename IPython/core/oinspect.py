@@ -31,7 +31,7 @@ from itertools import izip_longest
 from IPython.core import page
 from IPython.external.Itpl import itpl
 from IPython.utils import PyColorize
-import IPython.utils.io
+from IPython.utils import io
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
@@ -300,7 +300,7 @@ class Inspector:
         if output is None:
             self.noinfo('definition header',oname)
         else:
-            print >>IPython.utils.io.Term.cout, header,self.format(output),
+            print >>io.stdout, header,self.format(output),
 
     def pdoc(self,obj,oname='',formatter = None):
         """Print the docstring for any object.

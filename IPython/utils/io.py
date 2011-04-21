@@ -26,13 +26,21 @@ from IPython.external.Itpl import itpl, printpl
 
 class IOStream:
 
-    def __init__(self,stream,fallback):
+    def __init__(self,stream, fallback=None):
         if not hasattr(stream,'write') or not hasattr(stream,'flush'):
-            stream = fallback
+            if fallback is not None:
+                stream = fallback
+            else:
+                raise ValueError("fallback required, but not specified")
         self.stream = stream
         self._swrite = stream.write
-        self.flush = stream.flush
-
+        
+        # clone all methods not overridden:
+        def clone(meth):
+            return not hasattr(self, meth) and not meth.startswith('_')
+        for meth in filter(clone, dir(stream)):
+            setattr(self, meth, getattr(stream, meth))
+    
     def write(self,data):
         try:
             self._swrite(data)
@@ -46,11 +54,21 @@ class IOStream:
                 # if we get here, something is seriously broken.
                 print('ERROR - failed to write data to stream:', self.stream,
                       file=sys.stderr)
+    
+    def writelines(self, lines):
+        if isinstance(lines, basestring):
+            lines = [lines]
+        for line in lines:
+            self.write(line)
 
     # This class used to have a writeln method, but regular files and streams
     # in Python don't have this method. We need to keep this completely
     # compatible so we removed it.
 
+    @property
+    def closed(self):
+        return self.stream.closed
+    
     def close(self):
         pass
 
@@ -65,10 +83,15 @@ class IOTerm:
     # In the future, having IPython channel all its I/O operations through
     # this class will make it easier to embed it into other environments which
     # are not a normal terminal (such as a GUI-based shell)
-    def __init__(self, cin=None, cout=None, cerr=None):
-        self.cin  = IOStream(cin, sys.stdin)
-        self.cout = IOStream(cout, sys.stdout)
-        self.cerr = IOStream(cerr, sys.stderr)
+    def __init__(self, stdin=None, stdout=None, stderr=None):
+        self.stdin  = IOStream(stdin, sys.stdin)
+        self.stdout = IOStream(stdout, sys.stdout)
+        self.stderr = IOStream(stderr, sys.stderr)
+
+# setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
+stdin = IOStream(sys.stdin)
+stdout = IOStream(sys.stdout)
+stderr = IOStream(sys.stderr)
 
 
 class Tee(object):
