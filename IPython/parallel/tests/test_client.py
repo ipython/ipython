@@ -12,6 +12,7 @@
 #-------------------------------------------------------------------------------
 
 import time
+from datetime import datetime
 from tempfile import mktemp
 
 import zmq
@@ -146,3 +147,68 @@ class TestClient(ClusterTestCase):
     def test_result_status(self):
         pass
         # to be written
+    
+    def test_db_query_dt(self):
+        """test db query by date"""
+        hist = self.client.hub_history()
+        middle = self.client.db_query({'msg_id' : hist[len(hist)/2]})[0]
+        tic = middle['submitted']
+        before = self.client.db_query({'submitted' : {'$lt' : tic}})
+        after = self.client.db_query({'submitted' : {'$gte' : tic}})
+        self.assertEquals(len(before)+len(after),len(hist))
+        for b in before:
+            self.assertTrue(b['submitted'] < tic)
+        for a in after:
+            self.assertTrue(a['submitted'] >= tic)
+        same = self.client.db_query({'submitted' : tic})
+        for s in same:
+            self.assertTrue(s['submitted'] == tic)
+    
+    def test_db_query_keys(self):
+        """test extracting subset of record keys"""
+        found = self.client.db_query({'msg_id': {'$ne' : ''}},keys=['submitted', 'completed'])
+        for rec in found:
+            self.assertEquals(set(rec.keys()), set(['msg_id', 'submitted', 'completed']))
+    
+    def test_db_query_msg_id(self):
+        """ensure msg_id is always in db queries"""
+        found = self.client.db_query({'msg_id': {'$ne' : ''}},keys=['submitted', 'completed'])
+        for rec in found:
+            self.assertTrue('msg_id' in rec.keys())
+        found = self.client.db_query({'msg_id': {'$ne' : ''}},keys=['submitted'])
+        for rec in found:
+            self.assertTrue('msg_id' in rec.keys())
+        found = self.client.db_query({'msg_id': {'$ne' : ''}},keys=['msg_id'])
+        for rec in found:
+            self.assertTrue('msg_id' in rec.keys())
+    
+    def test_db_query_in(self):
+        """test db query with '$in','$nin' operators"""
+        hist = self.client.hub_history()
+        even = hist[::2]
+        odd = hist[1::2]
+        recs = self.client.db_query({ 'msg_id' : {'$in' : even}})
+        found = [ r['msg_id'] for r in recs ]
+        self.assertEquals(set(even), set(found))
+        recs = self.client.db_query({ 'msg_id' : {'$nin' : even}})
+        found = [ r['msg_id'] for r in recs ]
+        self.assertEquals(set(odd), set(found))
+    
+    def test_hub_history(self):
+        hist = self.client.hub_history()
+        recs = self.client.db_query({ 'msg_id' : {"$ne":''}})
+        recdict = {}
+        for rec in recs:
+            recdict[rec['msg_id']] = rec
+        
+        latest = datetime(1984,1,1)
+        for msg_id in hist:
+            rec = recdict[msg_id]
+            newt = rec['submitted']
+            self.assertTrue(newt >= latest)
+            latest = newt
+        ar = self.client[-1].apply_async(lambda : 1)
+        ar.get()
+        time.sleep(0.25)
+        self.assertEquals(self.client.hub_history()[-1:],ar.msg_ids)
+    
