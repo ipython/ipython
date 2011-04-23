@@ -205,9 +205,9 @@ class IPControllerAppConfigLoader(ClusterDirConfigLoader):
             help='Use threads instead of processes for the schedulers',
             )
         paa('--hwm',
-            dest='ControllerFactory.hwm', type=int,
-            help='specify the High Water Mark (HWM) for the downstream '
-            'socket in the pure ZMQ scheduler. This is the maximum number '
+            dest='TaskScheduler.hwm', type=int,
+            help='specify the High Water Mark (HWM) '
+            'in the Python scheduler. This is the maximum number '
             'of allowed outstanding tasks on each engine.',
             )
         

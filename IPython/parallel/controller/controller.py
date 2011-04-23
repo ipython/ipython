@@ -35,8 +35,6 @@ class ControllerFactory(HubFactory):
     """Configurable for setting up a Hub and Schedulers."""
     
     usethreads = Bool(False, config=True)
-    # pure-zmq downstream HWM
-    hwm = Int(0, config=True)
     
     # internal
     children = List()
@@ -97,7 +95,6 @@ class ControllerFactory(HubFactory):
         if self.scheme == 'pure':
             self.log.warn("task::using pure XREQ Task scheduler")
             q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
-            q.setsockopt_out(zmq.HWM, self.hwm)
             q.bind_in(self.client_info['task'][1])
             q.setsockopt_in(zmq.IDENTITY, 'task')
             q.bind_out(self.engine_info['task'])
