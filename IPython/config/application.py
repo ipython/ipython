@@ -19,11 +19,12 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from copy import deepcopy
+import logging
 import sys
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import SingletonConfigurable
 from IPython.utils.traitlets import (
-    Unicode, List
+    Unicode, List, Int
 )
 from IPython.config.loader import (
     KeyValueConfigLoader, PyFileConfigLoader
@@ -34,7 +35,7 @@ from IPython.config.loader import (
 #-----------------------------------------------------------------------------
 
 
-class Application(Configurable):
+class Application(SingletonConfigurable):
 
     # The name of the application, will usually match the name of the command
     # line application
@@ -51,11 +52,32 @@ class Application(Configurable):
     # The version string of this application.
     version = Unicode(u'0.0')
 
+    log_level = Int(logging.WARN, config=True, shortname="log_level")
+
     def __init__(self, **kwargs):
-        Configurable.__init__(self, **kwargs)
+        SingletonConfigurable.__init__(self, **kwargs)
         # Add my class to self.classes so my attributes appear in command line
         # options.
         self.classes.insert(0, self.__class__)
+        self.init_logging()
+
+    def init_logging(self):
+        """Start logging for this application.
+
+        The default is to log to stdout using a StreaHandler. The log level
+        starts at loggin.WARN, but this can be adjusted by setting the 
+        ``log_level`` attribute.
+        """
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(self.log_level)
+        self._log_handler = logging.StreamHandler()
+        self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
+        self._log_handler.setFormatter(self._log_formatter)
+        self.log.addHandler(self._log_handler)
+
+    def _log_level_changed(self, name, old, new):
+        """Adjust the log level when log_level is set."""
+        self.log.setLevel(new)
 
     def print_help(self):
         """Print the help for each Configurable class in self.classes."""
