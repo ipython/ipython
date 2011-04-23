@@ -232,3 +232,9 @@ class SingletonConfigurable(Configurable):
                 'Multiple incompatible subclass instances of '
                 '%s are being created.' % cls.__name__
             )
+
+    @classmethod
+    def initialized(cls):
+        """Has an instance been created?"""
+        return hasattr(cls, "_instance") and cls._instance is not None
+

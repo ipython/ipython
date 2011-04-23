@@ -152,17 +152,21 @@ class TestSingletonConfigurable(TestCase):
     def test_instance(self):
         from IPython.config.configurable import SingletonConfigurable
         class Foo(SingletonConfigurable): pass
+        self.assertEquals(Foo.initialized(), False)
         foo = Foo.instance()
+        self.assertEquals(Foo.initialized(), True)
         self.assertEquals(foo, Foo.instance())
         self.assertEquals(SingletonConfigurable._instance, None)
 
     def test_inheritance(self):
-
         class Bar(SingletonConfigurable): pass
         class Bam(Bar): pass
+        self.assertEquals(Bar.initialized(), False)
+        self.assertEquals(Bam.initialized(), False)
         bam = Bam.instance()
         bam == Bar.instance()
+        self.assertEquals(Bar.initialized(), True)
+        self.assertEquals(Bam.initialized(), True)
         self.assertEquals(bam, Bam._instance)
         self.assertEquals(bam, Bar._instance)
         self.assertEquals(SingletonConfigurable._instance, None)
-        

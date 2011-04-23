@@ -31,7 +31,7 @@ import tempfile
 import types
 from contextlib import nested
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
 from IPython.core import history as ipcorehist
 from IPython.core import page
@@ -132,9 +132,7 @@ class SeparateStr(Str):
         value = value.replace('\\n','\n')
         return super(SeparateStr, self).validate(obj, value)
 
-class MultipleInstanceError(Exception):
-    pass
-    
+
 class ReadlineNoRecord(object):
     """Context manager to execute some code, then reload readline history
     so that interactive input to the code doesn't appear when pressing up."""
@@ -194,7 +192,7 @@ called (even if no arguments are present). The default is '1'.
 # Main IPython class
 #-----------------------------------------------------------------------------
 
-class InteractiveShell(Configurable, Magic):
+class InteractiveShell(SingletonConfigurable, Magic):
     """An enhanced, interactive shell for Python."""
 
     _instance = None
@@ -426,31 +424,6 @@ class InteractiveShell(Configurable, Magic):
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
-
-    @classmethod
-    def instance(cls, *args, **kwargs):
-        """Returns a global InteractiveShell instance."""
-        if cls._instance is None:
-            inst = cls(*args, **kwargs)
-            # Now make sure that the instance will also be returned by
-            # the subclasses instance attribute.
-            for subclass in cls.mro():
-                if issubclass(cls, subclass) and \
-                       issubclass(subclass, InteractiveShell):
-                    subclass._instance = inst
-                else:
-                    break
-        if isinstance(cls._instance, cls):
-            return cls._instance
-        else:
-            raise MultipleInstanceError(
-                'Multiple incompatible subclass instances of '
-                'InteractiveShell are being created.'
-            )
-
-    @classmethod
-    def initialized(cls):
-        return hasattr(cls, "_instance")
 
     def get_ipython(self):
         """Return the currently running IPython instance."""
