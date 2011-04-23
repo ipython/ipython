@@ -22,10 +22,15 @@ Authors:
 
 from unittest import TestCase
 
-from IPython.config.configurable import Configurable, ConfigurableError
-from IPython.utils.traitlets import (
-    TraitError, Int, Float, Str
+from IPython.config.configurable import (
+    Configurable, 
+    SingletonConfigurable
 )
+
+from IPython.utils.traitlets import (
+    Int, Float, Str
+)
+
 from IPython.config.loader import Config
 
 
@@ -57,7 +62,7 @@ class Bar(Foo):
     c = Float(config=True, shortname="c", help="The string c.")
 
 
-class TestConfigurableConfig(TestCase):
+class TestConfigurable(TestCase):
 
     def test_default(self):
         c1 = Configurable()
@@ -141,3 +146,23 @@ class TestConfigurableConfig(TestCase):
     def test_help(self):
         self.assertEquals(MyConfigurable.class_get_help(), mc_help)
 
+
+class TestSingletonConfigurable(TestCase):
+
+    def test_instance(self):
+        from IPython.config.configurable import SingletonConfigurable
+        class Foo(SingletonConfigurable): pass
+        foo = Foo.instance()
+        self.assertEquals(foo, Foo.instance())
+        self.assertEquals(SingletonConfigurable._instance, None)
+
+    def test_inheritance(self):
+
+        class Bar(SingletonConfigurable): pass
+        class Bam(Bar): pass
+        bam = Bam.instance()
+        bam == Bar.instance()
+        self.assertEquals(bam, Bam._instance)
+        self.assertEquals(bam, Bar._instance)
+        self.assertEquals(SingletonConfigurable._instance, None)
+        

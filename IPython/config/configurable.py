@@ -37,6 +37,9 @@ class ConfigurableError(Exception):
     pass
 
 
+class MultipleInstanceError(ConfigurableError):
+    pass
+
 #-----------------------------------------------------------------------------
 # Configurable implementation
 #-----------------------------------------------------------------------------
@@ -170,4 +173,62 @@ class Configurable(HasTraits):
     def class_print_help(cls):
         print cls.class_get_help()
 
-            
+
+class SingletonConfigurable(Configurable):
+    """A configurable that only allows one instance.
+
+    This class is for classes that should only have one instance of itself
+    or *any* subclass. To create and retrieve such a class use the
+    :meth:`SingletonConfigurable.instance` method.
+    """
+
+    _instance = None
+
+    @classmethod
+    def instance(cls, *args, **kwargs):
+        """Returns a global instance of this class.
+
+        This method create a new instance if none have previously been created
+        and returns a previously created instance is one already exists.
+
+        The arguments and keyword arguments passed to this method are passed
+        on to the :meth:`__init__` method of the class upon instantiation.
+
+        Examples
+        --------
+
+        Create a singleton class using instance, and retrieve it::
+
+            >>> from IPython.config.configurable import SingletonConfigurable
+            >>> class Foo(SingletonConfigurable): pass
+            >>> foo = Foo.instance()
+            >>> foo == Foo.instance()
+            True
+
+        Create a subclass that is retrived using the base class instance::
+
+            >>> class Bar(SingletonConfigurable): pass
+            >>> class Bam(Bar): pass
+            >>> bam = Bam.instance()
+            >>> bam == Bar.instance()
+            True
+        """
+        # Create and save the instance
+        if cls._instance is None:
+            inst = cls(*args, **kwargs)
+            # Now make sure that the instance will also be returned by
+            # the subclasses instance attribute.
+            for subclass in cls.mro():
+                if issubclass(cls, subclass) and \
+                issubclass(subclass, SingletonConfigurable) and \
+                subclass != SingletonConfigurable:
+                    subclass._instance = inst
+                else:
+                    break
+        if isinstance(cls._instance, cls):
+            return cls._instance
+        else:
+            raise MultipleInstanceError(
+                'Multiple incompatible subclass instances of '
+                '%s are being created.' % cls.__name__
+            )

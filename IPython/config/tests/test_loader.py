@@ -117,7 +117,6 @@ class TestKeyValueCL(TestCase):
     def test_basic(self):
         cl = KeyValueConfigLoader()
         argv = [s.strip('c.') for s in pyfile.split('\n')[2:-1]]
-        print argv
         config = cl.load_config(argv)
         self.assertEquals(config.a, 10)
         self.assertEquals(config.b, 20)
