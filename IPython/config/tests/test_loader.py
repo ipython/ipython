@@ -24,6 +24,8 @@ import os
 from tempfile import mkstemp
 from unittest import TestCase
 
+from IPython.utils.traitlets import Int, Unicode
+from IPython.config.configurable import Configurable
 from IPython.config.loader import (
     Config,
     PyFileConfigLoader,
@@ -122,6 +124,24 @@ class TestKeyValueCL(TestCase):
         self.assertEquals(config.Foo.Bar.value, 10)
         self.assertEquals(config.Foo.Bam.value, range(10))
         self.assertEquals(config.D.C.value, 'hi there')
+
+    def test_shortname(self):
+        class Foo(Configurable):
+            i = Int(0, config=True, shortname="i")
+            s = Unicode('hi', config=True, shortname="s")
+        cl = KeyValueConfigLoader()
+        config = cl.load_config(["i=20", "s=there"], classes=[Foo])
+        self.assertEquals(config.Foo.i, 20)
+        self.assertEquals(config.Foo.s, "there")
+
+    def test_duplicate(self):
+        class Foo(Configurable):
+            i = Int(0, config=True, shortname="i")
+        class Bar(Configurable):
+            i = Int(0, config=True, shortname="i")
+        cl = KeyValueConfigLoader()
+        self.assertRaises(KeyError, cl.load_config, ["i=20", "s=there"], classes=[Foo, Bar])
+
 
 class TestConfig(TestCase):
 

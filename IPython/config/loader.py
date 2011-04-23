@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# coding: utf-8
 """A simple configuration system.
 
 Authors
@@ -20,7 +18,6 @@ Authors
 #-----------------------------------------------------------------------------
 
 import __builtin__
-import os
 import sys
 
 from IPython.external import argparse
@@ -324,7 +321,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             A list that has the form of sys.argv[1:] which has unicode
             elements of the form u"key=value". If this is None (default),
             then sys.argv[1:] will be used.
-        class : (list, tuple) of Configurables
+        classes : (list, tuple) of Configurables
             A sequence of Configurable classes that will be used to map
             shortnames to longnames.
 
@@ -357,31 +354,31 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             A list that has the form of sys.argv[1:] which has unicode
             elements of the form u"key=value". If this is None (default),
             then self.argv will be used.
-        class : (list, tuple) of Configurables
+        classes : (list, tuple) of Configurables
             A sequence of Configurable classes that will be used to map
             shortnames to longnames.
         """
+        from IPython.config.configurable import Configurable
+
         self.clear()
         if argv is None:
             argv = self.argv
         if classes is None:
             classes = self.classes
 
-        # print argv
-
+        # Create the mapping between shortnames and longnames.
         shortnames = {}
         for cls in classes:
-            sn = cls.class_get_shortnames()
-            # Check for duplicate shortnames and raise if found.
-            for k, v in sn.items():
-                if k in shortnames:
-                    raise KeyError(
-                        "duplicate shortname: %s and %s both use the shortname: %s" %\
-                        (v, shortnames[k], k)
-                    )
-            shortnames.update(sn)
-
-        # print shortnames
+            if issubclass(cls, Configurable):
+                sn = cls.class_get_shortnames()
+                # Check for duplicate shortnames and raise if found.
+                for k, v in sn.items():
+                    if k in shortnames:
+                        raise KeyError(
+                            'Duplicate shortname: both %s and %s use the shortname: "%s"' %\
+                            (v, shortnames[k], k)
+                        )
+                shortnames.update(sn)
 
         for item in argv:
             pair = tuple(item.split("="))
@@ -393,8 +390,14 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     lhs = shortnames[lhs]
                 exec_str = 'self.config.' + lhs + '=' + rhs
                 try:
+                    # Try to see if regular Python syntax will work. This
+                    # won't handle strings as the quote marks are removed
+                    # by the system shell.
                     exec exec_str in locals(), globals()
                 except (NameError, SyntaxError):
+                    # This case happens if the rhs is a string but without
+                    # the quote marks.  We add the quote marks and see if
+                    # it succeeds. If it still fails, we let it raise.
                     exec_str = 'self.config.' + lhs + '="' + rhs + '"'
                     exec exec_str in locals(), globals()
         return self.config
