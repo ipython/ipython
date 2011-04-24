@@ -36,6 +36,7 @@ from IPython.config.loader import (
 
 
 class Application(SingletonConfigurable):
+    """A singleton application with full configuration support."""
 
     # The name of the application, will usually match the name of the command
     # line application
@@ -98,6 +99,7 @@ class Application(SingletonConfigurable):
         print self.version
 
     def update_config(self, config):
+        """Fire the traits events when the config is updated."""
         # Save a copy of the current config.
         newconfig = deepcopy(self.config)
         # Merge the new config into the current one.

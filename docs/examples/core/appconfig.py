@@ -7,6 +7,27 @@ system works. The main classes are:
 * IPython.config.configurable.SingletonConfigurable
 * IPython.config.loader.Config
 * IPython.config.application.Application
+
+To see the command line option help, run this program from the command line::
+
+    $ python appconfig.py -h
+
+To make one of your classes configurable (from the command line and config
+files) inherit from Configurable and declare class attributes as traits (see
+classes Foo and Bar below). To make the traits configurable, you will need
+to set the following options:
+
+* ``config``: set to ``True`` to make the attribute configurable.
+* ``shortname``: by default, configurable attributes are set using the syntax
+  "Classname.attributename". At the command line, this is a bit verbose, so
+  we allow "shortnames" to be declared. Setting a shortname is optional, but
+  when you do this, you can set the option at the command line using the
+  syntax: "shortname=value".
+* ``help``: set the help string to display a help message when the ``-h``
+  option is given at the command line. The help string should be valid ReST.
+
+When the config attribute of an Application is updated, it will fire all of
+the trait's events for all of the config=True attributes.
 """
 
 import sys
@@ -17,7 +38,11 @@ from IPython.utils.traitlets import (
     Bool, Unicode, Int, Float, List
 )
 
+
 class Foo(Configurable):
+    """A class that has configurable, typed attributes.
+
+    """
 
     i = Int(0, config=True, shortname='i', help="The integer i.")
     j = Int(1, config=True, shortname='j', help="The integer j.")
@@ -39,9 +64,11 @@ class MyApp(Application):
                    help="Load this config file")
 
     def init_foo(self):
+        # Pass config to other classes for them to inherit the config.
         self.foo = Foo(config=self.config)
 
     def init_bar(self):
+        # Pass config to other classes for them to inherit the config.
         self.bar = Bar(config=self.config)
 
 
