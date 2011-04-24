@@ -24,7 +24,7 @@ import sys
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.utils.traitlets import (
-    Unicode, List, Int
+    Unicode, List, Int, Enum
 )
 from IPython.config.loader import (
     KeyValueConfigLoader, PyFileConfigLoader
@@ -52,7 +52,10 @@ class Application(SingletonConfigurable):
     # The version string of this application.
     version = Unicode(u'0.0')
 
-    log_level = Int(logging.WARN, config=True, shortname="log_level")
+    # The log level for the application
+    log_level = Enum((0,10,20,30,40,50), default_value=logging.WARN,
+                     config=True, shortname="log_level",
+                     help="Set the log level (0,10,20,30,40,50).")
 
     def __init__(self, **kwargs):
         SingletonConfigurable.__init__(self, **kwargs)
@@ -105,8 +108,7 @@ class Application(SingletonConfigurable):
 
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
-        if argv is None:
-            argv = sys.argv[1:]
+        argv = sys.argv[1:] if argv is None else argv
 
         if '-h' in argv or '--h' in argv:
             self.print_description()

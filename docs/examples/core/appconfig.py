@@ -1,3 +1,14 @@
+"""A simple example of how to use IPython.config.application.Application.
+
+This should serve as a simple example that shows how the IPython config
+system works. The main classes are:
+
+* IPython.config.configurable.Configurable
+* IPython.config.configurable.SingletonConfigurable
+* IPython.config.loader.Config
+* IPython.config.application.Application
+"""
+
 import sys
 
 from IPython.config.configurable import Configurable
@@ -15,15 +26,24 @@ class Foo(Configurable):
 
 class Bar(Configurable):
 
-    enabled = Bool(True, config=True, shortname="bar-enabled", help="Enable bar.")
+    enabled = Bool(True, config=True, shortname="enabled", help="Enable bar.")
 
 
 class MyApp(Application):
 
     app_name = Unicode(u'myapp')
-    running = Bool(False, config=True, shortname="running", help="Is the app running?")
+    running = Bool(False, config=True, shortname="running",
+                   help="Is the app running?")
     classes = List([Bar, Foo])
-    config_file = Unicode(u'', config=True, shortname="config-file", help="Load this config file")
+    config_file = Unicode(u'', config=True, shortname="config_file",
+                   help="Load this config file")
+
+    def init_foo(self):
+        self.foo = Foo(config=self.config)
+
+    def init_bar(self):
+        self.bar = Bar(config=self.config)
+
 
 
 def main():
@@ -31,6 +51,8 @@ def main():
     app.parse_command_line()
     if app.config_file:
         app.load_config_file(app.config_file)
+    app.init_foo()
+    app.init_bar()
     print "app.config:"
     print app.config
 
