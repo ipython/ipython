@@ -38,8 +38,19 @@ class KernelHandler(web.RequestHandler):
 
     def post(self):
         kernel_id = self.application.start_kernel()
-        self.application.start_session(kernel_id)
         self.write(json.dumps(kernel_id))
+
+
+class KernelActionHandler(web.RequestHandler):
+
+    def get(self, kernel_id):
+        # TODO: figure out a better way of handling RPC style calls.
+        if self.request.arguments.has_key('interrupt'):
+            self.application.interrupt_kernel(kernel_id)
+        if self.request.arguments.has_key('restart'):
+            new_kernel_id = self.application.restart_kernel(kernel_id)
+            self.write(json.dumps(new_kernel_id))
+        logging.info(repr(self.request.arguments))
 
 
 class ZMQStreamRouter(object):
@@ -56,6 +67,12 @@ class ZMQStreamRouter(object):
 
     def unregister_client(self, client_id):
         del self._clients[client_id]
+
+    def copy_clients(self, router):
+        # Copy the clients of another router.
+        for client_id, client in router._clients.items():
+            client.router = self
+            self._clients[client_id] = client
 
 
 class IOPubStreamRouter(ZMQStreamRouter):
@@ -159,6 +176,7 @@ class NotebookApplication(web.Application):
         handlers = [
             (r"/", MainHandler),
             (r"/kernels", KernelHandler),
+            (r"/kernels/%s/actions" % _kernel_id_regex, KernelActionHandler),
             (r"/kernels/%s/iopub" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='iopub')),
             (r"/kernels/%s/shell" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='shell')),
             (r"/notebooks", NotebookRootHandler),
@@ -186,7 +204,36 @@ class NotebookApplication(web.Application):
     def start_kernel(self):
         kernel_id = self.kernel_manager.start_kernel()
         logging.info("Kernel started: %s" % kernel_id)
+        self.start_session(kernel_id)
         return kernel_id
+
+    def interrupt_kernel(self, kernel_id):
+        self.kernel_manager.interrupt_kernel(kernel_id)
+        logging.info("Kernel interrupted: %s" % kernel_id)
+
+    def restart_kernel(self, kernel_id):
+        # Create the new kernel first so we can move the clients over.
+        new_kernel_id = self.start_kernel()
+
+        # Copy the clients over to the new routers.
+        old_iopub_router = self.get_router(kernel_id, 'iopub')
+        old_shell_router = self.get_router(kernel_id, 'shell')
+        new_iopub_router = self.get_router(new_kernel_id, 'iopub')
+        new_shell_router = self.get_router(new_kernel_id, 'shell')
+        new_iopub_router.copy_clients(old_iopub_router)
+        new_shell_router.copy_clients(old_shell_router)
+
+        # Now shutdown the old session and the kernel.
+        # TODO: This causes a hard crash in ZMQStream.close, which sets
+        # self.socket to None to hastily. We will need to fix this in PyZMQ
+        # itself. For now, we just leave the old kernel running :(
+        # sm = self.kernel_manager.get_session_manager(kernel_id)
+        # session_id = self._session_dict[kernel_id]
+        # sm.stop_session(session_id)
+        # self.kernel_manager.kill_kernel(kernel_id)
+
+        logging.info("Kernel restarted")
+        return new_kernel_id
 
     def start_session(self, kernel_id):
         sm = self.kernel_manager.get_session_manager(kernel_id)
