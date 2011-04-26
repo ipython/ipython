@@ -481,6 +481,8 @@ Message type: ``object_info_reply``::
     # can also be a string like 'Magic function' or 'System alias'
     'type_name' : str,
 
+    # The string form of the object, possibly truncated for length if 
+    # detail_level is 0
     'string_form' : str,
 
     # For objects with a __class__ attribute this will be set
