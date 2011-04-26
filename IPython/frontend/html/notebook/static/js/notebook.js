@@ -92,7 +92,6 @@ var Notebook = function (selector) {
     this.element.scroll();
     this.element.data("notebook", this);
     this.next_prompt_number = 1;
-    this.next_kernel_number = 0;
     this.kernel = null;
     this.msg_cell_map = {};
     this.bind_events();
@@ -429,20 +428,13 @@ Notebook.prototype.expand = function (index) {
 // Kernel related things
 
 Notebook.prototype.start_kernel = function () {
-    this.kernel = new Kernel("kernel" + this.next_kernel_number);
-    this.next_kernel_number = this.next_kernel_number + 1;
+    this.kernel = new Kernel();
     this.kernel.start_kernel(this._kernel_started, this);
 };
 
 
 Notebook.prototype._kernel_started = function () {
     console.log("Kernel started: ", this.kernel.kernel_id);
-    this.kernel.start_session(this._session_started, this);
-};
-
-
-Notebook.prototype._session_started = function () {
-    console.log("Session started: ", this.kernel.session_id);
     var that = this;
 
     this.kernel.shell_channel.onmessage = function (e) {
@@ -711,11 +703,10 @@ TextCell.prototype.config_mathjax = function () {
 //============================================================================
 
 
-var Kernel = function (kernel_id) {
-    this.kernel_id = kernel_id;
+var Kernel = function () {
+    this.kernel_id = null;
     this.base_url = "/kernels";
-    this.kernel_url = this.base_url + "/" + this.kernel_id
-    this.session_id = null;
+    this.kernel_url = null;
 };
 
 
@@ -734,32 +725,26 @@ Kernel.prototype.get_msg = function (msg_type, content) {
 }
 
 Kernel.prototype.start_kernel = function (callback, context) {
-    $.post(this.kernel_url, function () {
-        callback.call(context);
-    });
+    var that = this;
+    $.post(this.base_url,
+        function (kernel_id) {
+            that._handle_start_kernel(kernel_id, callback, context);
+        }, 
+        'json'
+    );
 };
 
 
-Kernel.prototype.start_session = function (callback, context) {
-    var that = this;
-    $.post(this.kernel_url + "/sessions",
-        function (session_id) {
-            that._handle_start_session(session_id, callback, context);
-        },
-        'json');
-}
-
-
-Kernel.prototype._handle_start_session = function (session_id, callback, context) {
-    this.session_id = session_id;
-    this.session_url = this.kernel_url + "/sessions/" + this.session_id;
+Kernel.prototype._handle_start_kernel = function (kernel_id, callback, context) {
+    this.kernel_id = kernel_id;
+    this.kernel_url = this.base_url + "/" + this.kernel_id;
     this._start_channels();
     callback.call(context);
 };
 
 
 Kernel.prototype._start_channels = function () {
-    var ws_url = "ws://127.0.0.1:8888" + this.session_url;
+    var ws_url = "ws://127.0.0.1:8888" + this.kernel_url;
     this.shell_channel = new WebSocket(ws_url + "/shell");
     this.iopub_channel = new WebSocket(ws_url + "/iopub");
 }
