@@ -1,5 +1,6 @@
 import signal
 import sys
+import uuid
 
 from IPython.zmq.ipkernel import launch_kernel
 from session import SessionManager
@@ -30,9 +31,8 @@ class KernelManager(object):
         else:
             return False
 
-    def start_kernel(self, kernel_id):
-        if kernel_id in self._kernels:
-            raise DuplicateKernelError("Kernel already exists: %s" % kernel_id)
+    def start_kernel(self):
+        kernel_id = str(uuid.uuid4())
         (process, shell_port, iopub_port, stdin_port, hb_port) = launch_kernel(pylab='inline')
         d = dict(
             process = process,

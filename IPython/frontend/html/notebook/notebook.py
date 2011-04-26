@@ -3,6 +3,8 @@ import json
 import logging
 import os
 import urllib
+import uuid
+from Queue import Queue
 
 import zmq
 
@@ -21,8 +23,7 @@ from kernelmanager import KernelManager
 
 options.define("port", default=8888, help="run on the given port", type=int)
 
-_session_id_regex = r"(?P<session_id>\w+-\w+-\w+-\w+-\w+)"
-_kernel_id_regex = r"(?P<kernel_id>\w+)"
+_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 
 
 class MainHandler(web.RequestHandler):
@@ -30,79 +31,79 @@ class MainHandler(web.RequestHandler):
         self.render('notebook.html')
 
 
-class BaseKernelHandler(object):
-
-    def get_kernel(self):
-        return self.application.kernel_manager
-
-    def get_session(self, kernel_id):
-        km = self.get_kernel()
-        sm = km.get_session_manager(kernel_id)
-        return sm
-
-
-class KernelHandler(web.RequestHandler, BaseKernelHandler):
+class KernelHandler(web.RequestHandler):
 
     def get(self):
-        self.write(json.dumps(self.get_kernel().kernel_ids))
+        self.write(json.dumps(self.application.kernel_ids))
 
-    def post(self, *args, **kwargs):
-        kernel_id = kwargs['kernel_id']
-        self.get_kernel().start_kernel(kernel_id)
-        logging.info("Starting kernel: %s" % kernel_id)
+    def post(self):
+        kernel_id = self.application.start_kernel()
+        self.application.start_session(kernel_id)
         self.write(json.dumps(kernel_id))
 
 
-class SessionHandler(web.RequestHandler, BaseKernelHandler):
+class ZMQStreamRouter(object):
 
-    def get(self, *args, **kwargs):
-        kernel_id = kwargs['kernel_id']
-        self.write(json.dumps(self.get_session(kernel_id).session_ids))
-
-    def post(self, *args, **kwargs):
-        kernel_id = kwargs['kernel_id']
-        sm = self.get_session(kernel_id)
-        session_id = sm.start_session()
-        logging.info("Starting session: %s, %s" % (kernel_id, session_id))
-        self.write(json.dumps(session_id))
-
-
-class ZMQStreamHandler(websocket.WebSocketHandler, BaseKernelHandler):
-
-    stream_name = ''
-
-    def open(self, *args, **kwargs):
-        kernel_id = kwargs['kernel_id']
-        session_id = kwargs['session_id']
-        logging.info("Connection open: %s, %s" % (kernel_id,session_id))
-        sm = self.get_session(kernel_id)
-        method_name = "get_%s_stream" % self.stream_name
-        method = getattr(sm, method_name)
-        self.zmq_stream = method(session_id)
+    def __init__(self, zmq_stream):
+        self.zmq_stream = zmq_stream
+        self._clients = {}
         self.zmq_stream.on_recv(self._on_zmq_reply)
 
-    def on_message(self, msg):
-        logging.info("Message received: %r, %r" % (msg, self.__class__))
-        logging.info(self.zmq_stream)
-        self.zmq_stream.send_unicode(msg)
+    def register_client(self, client):
+        client_id = uuid.uuid4()
+        self._clients[client_id] = client
+        return client_id
 
-    def on_close(self):
-        self.zmq_stream.close()
+    def unregister_client(self, client_id):
+        del self._clients[client_id]
+
+
+class IOPubStreamRouter(ZMQStreamRouter):
 
     def _on_zmq_reply(self, msg_list):
-        for msg in msg_list:
-            logging.info("Message reply: %r" % msg)
-            self.write_message(msg)
+        for client_id, client in self._clients.items():
+            for msg in msg_list:
+                client.write_message(msg)
+
+    def forward_unicode(self, client_id, msg):
+        # This is a SUB stream that we should never write to.
+        pass
 
 
-class IOPubStreamHandler(ZMQStreamHandler):
+class ShellStreamRouter(ZMQStreamRouter):
 
-    stream_name = 'iopub'
+    def __init__(self, zmq_stream):
+        ZMQStreamRouter.__init__(self, zmq_stream)
+        self._request_queue = Queue()
+
+    def _on_zmq_reply(self, msg_list):
+        client_id = self._request_queue.get(block=False)
+        client = self._clients.get(client_id)
+        if client is not None:
+            for msg in msg_list:
+                client.write_message(msg)
+
+    def forward_unicode(self, client_id, msg):
+        self._request_queue.put(client_id)
+        self.zmq_stream.send_unicode(msg)
 
 
-class ShellStreamHandler(ZMQStreamHandler):
+class ZMQStreamHandler(websocket.WebSocketHandler):
 
-    stream_name = 'shell'
+    def initialize(self, stream_name):
+        self.stream_name = stream_name
+
+    def open(self, kernel_id):
+        self.router = self.application.get_router(kernel_id, self.stream_name)
+        self.client_id = self.router.register_client(self)
+        logging.info("Connection open: %s, %s" % (kernel_id, self.client_id))
+
+    def on_message(self, msg):
+        self.router.forward_unicode(self.client_id, msg)
+
+    def on_close(self):
+        self.router.unregister_client(self.client_id)
+        logging.info("Connection closed: %s" % self.client_id)
 
 
 class NotebookRootHandler(web.RequestHandler):
@@ -157,10 +158,9 @@ class NotebookApplication(web.Application):
     def __init__(self):
         handlers = [
             (r"/", MainHandler),
-            (r"/kernels/%s" % (_kernel_id_regex,), KernelHandler),
-            (r"/kernels/%s/sessions" % (_kernel_id_regex,), SessionHandler),
-            (r"/kernels/%s/sessions/%s/iopub" % (_kernel_id_regex,_session_id_regex), IOPubStreamHandler),
-            (r"/kernels/%s/sessions/%s/shell" % (_kernel_id_regex,_session_id_regex), ShellStreamHandler),
+            (r"/kernels", KernelHandler),
+            (r"/kernels/%s/iopub" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='iopub')),
+            (r"/kernels/%s/shell" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='shell')),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/([^/]+)", NotebookHandler)
         ]
@@ -169,8 +169,46 @@ class NotebookApplication(web.Application):
             static_path=os.path.join(os.path.dirname(__file__), "static"),
         )
         web.Application.__init__(self, handlers, **settings)
+
         self.context = zmq.Context()
         self.kernel_manager = KernelManager(self.context)
+        self._session_dict = {}
+        self._routers = {}
+
+    #-------------------------------------------------------------------------
+    # Methods for managing kernels and sessions
+    #-------------------------------------------------------------------------
+
+    @property
+    def kernel_ids(self):
+        return self.kernel_manager.kernel_ids
+
+    def start_kernel(self):
+        kernel_id = self.kernel_manager.start_kernel()
+        logging.info("Kernel started: %s" % kernel_id)
+        return kernel_id
+
+    def start_session(self, kernel_id):
+        sm = self.kernel_manager.get_session_manager(kernel_id)
+        session_id = sm.start_session()
+        self._session_dict[kernel_id] = session_id
+        iopub_stream = sm.get_iopub_stream(session_id)
+        shell_stream = sm.get_shell_stream(session_id)
+        iopub_router = IOPubStreamRouter(iopub_stream)
+        shell_router = ShellStreamRouter(shell_stream)
+        self._routers[(kernel_id, session_id, 'iopub')] = iopub_router
+        self._routers[(kernel_id, session_id, 'shell')] = shell_router
+        logging.info("Session started: %s, %s" % (kernel_id, session_id))
+
+    def stop_session(self, kernel_id):
+        # TODO: finish this!
+        sm = self.kernel_manager.get_session_manager(kernel_id)
+        session_id = self._session_dict[kernel_id]
+
+    def get_router(self, kernel_id, stream_name):
+        session_id = self._session_dict[kernel_id]
+        router = self._routers[(kernel_id, session_id, stream_name)]
+        return router
 
 
 def main():
