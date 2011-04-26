@@ -102,7 +102,7 @@ var Notebook = function (selector) {
 Notebook.prototype.bind_events = function () {
     var that = this;
     $(document).keydown(function (event) {
-        // console.log(event);
+        console.log(event);
         if (event.which == 38 && event.shiftKey) {
             event.preventDefault();
             that.select_prev();
@@ -758,10 +758,25 @@ Kernel.prototype.execute = function (code) {
         user_expressions : {}
     };
     var msg = this.get_msg("execute_request", content);
-
     this.shell_channel.send(JSON.stringify(msg));
     return msg.header.msg_id;
 }
+
+
+Kernel.prototype.interrupt = function () {
+    $.get(this.kernel_url + "/actions?interrupt=true");
+};
+
+
+Kernel.prototype.restart = function () {
+    url = this.kernel_url + "/actions?restart=true"
+    var that = this;
+    $.getJSON(url, function (kernel_id) {
+        console.log("Kernel restarted: " + kernel_id);
+        that.kernel_id = kernel_id;
+        that.kernel_url = that.base_url + "/" + that.kernel_id;
+    });
+};
 
 
 //============================================================================
@@ -784,7 +799,10 @@ $(document).ready(function () {
     $("#menu_tabs").tabs();
 
     $("#help_toolbar").buttonset();
+
     $("#kernel_toolbar").buttonset();
+    $("#interrupt_kernel").click(function () {IPYTHON.notebook.kernel.interrupt();});
+    $("#restart_kernel").click(function () {IPYTHON.notebook.kernel.restart();});
 
     $("#move_cell").buttonset();
     $("#move_up").button("option", "icons", {primary:"ui-icon-arrowthick-1-n"});
