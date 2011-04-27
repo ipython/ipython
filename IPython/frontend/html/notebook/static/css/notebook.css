@@ -85,6 +85,25 @@ div#toolbar {
     padding: 5px;
 }
 
+span#kernel_status {
+    position: absolute;
+    top: 12%;
+    right: 10px;
+	font-weight: bold;
+}
+
+.status_idle {
+    color: gray;
+}
+
+.status_busy {
+    color: red;
+}
+
+.status_restarting {
+    color: black;
+}
+
 div.notebook {
     width: 790px;
     height: 650px;  /*We might have to detect window height for this*/
