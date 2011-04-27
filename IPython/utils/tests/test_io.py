@@ -15,6 +15,7 @@
 import sys
 
 from cStringIO import StringIO
+from subprocess import Popen, PIPE
 
 import nose.tools as nt
 
@@ -59,3 +60,12 @@ class TeeTestCase(dec.ParametricTestCase):
         for chan in ['stdout', 'stderr']:
             for check in ['close', 'del']:
                 yield self.tchan(chan, check)
+
+def test_io_init():
+    """Test that io.stdin/out/err exist at startup"""
+    for name in ('stdin', 'stdout', 'stderr'):
+        p = Popen([sys.executable, '-c', "from IPython.utils import io;print io.%s.__class__"%name],
+                    stdout=PIPE)
+        p.wait()
+        classname = p.stdout.read().strip()
+        nt.assert_equals(classname, 'IPython.utils.io.IOStream')

@@ -98,9 +98,9 @@ class DisplayPublisher(Configurable):
             the data.
         """
         from IPython.utils import io
-        # The default is to simply write the plain text data using io.Term.
+        # The default is to simply write the plain text data using io.stdout.
         if data.has_key('text/plain'):
-            print(data['text/plain'], file=io.Term.cout)
+            print(data['text/plain'], file=io.stdout)
 
 
 def publish_display_data(self, source, data, metadata=None):
