@@ -37,7 +37,6 @@ from IPython.core.splitinput import split_user_input
 from IPython.core import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool, Instance
-import IPython.utils.io
 from IPython.utils.text import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
 
