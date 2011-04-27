@@ -764,18 +764,18 @@ Kernel.prototype.execute = function (code) {
 
 
 Kernel.prototype.interrupt = function () {
-    $.get(this.kernel_url + "/actions?interrupt=true");
+    $.post(this.kernel_url + "/interrupt");
 };
 
 
 Kernel.prototype.restart = function () {
-    url = this.kernel_url + "/actions?restart=true"
+    url = this.kernel_url + "/restart"
     var that = this;
-    $.getJSON(url, function (kernel_id) {
+    $.post(url, function (kernel_id) {
         console.log("Kernel restarted: " + kernel_id);
         that.kernel_id = kernel_id;
         that.kernel_url = that.base_url + "/" + that.kernel_id;
-    });
+    }, 'json');
 };
 
 
