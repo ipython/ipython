@@ -24,7 +24,7 @@ from kernelmanager import KernelManager
 options.define("port", default=8888, help="run on the given port", type=int)
 
 _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
-
+_kernel_action_regex = r"(?P<action>restart|interrupt)"
 
 class MainHandler(web.RequestHandler):
     def get(self):
@@ -43,14 +43,13 @@ class KernelHandler(web.RequestHandler):
 
 class KernelActionHandler(web.RequestHandler):
 
-    def get(self, kernel_id):
+    def post(self, kernel_id, action):
         # TODO: figure out a better way of handling RPC style calls.
-        if self.request.arguments.has_key('interrupt'):
+        if action == 'interrupt':
             self.application.interrupt_kernel(kernel_id)
-        if self.request.arguments.has_key('restart'):
+        if action == 'restart':
             new_kernel_id = self.application.restart_kernel(kernel_id)
             self.write(json.dumps(new_kernel_id))
-        logging.info(repr(self.request.arguments))
 
 
 class ZMQStreamRouter(object):
@@ -176,7 +175,7 @@ class NotebookApplication(web.Application):
         handlers = [
             (r"/", MainHandler),
             (r"/kernels", KernelHandler),
-            (r"/kernels/%s/actions" % _kernel_id_regex, KernelActionHandler),
+            (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
             (r"/kernels/%s/iopub" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='iopub')),
             (r"/kernels/%s/shell" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='shell')),
             (r"/notebooks", NotebookRootHandler),
