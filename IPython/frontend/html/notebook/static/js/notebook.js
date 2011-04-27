@@ -102,7 +102,7 @@ var Notebook = function (selector) {
 Notebook.prototype.bind_events = function () {
     var that = this;
     $(document).keydown(function (event) {
-        console.log(event);
+        // console.log(event);
         if (event.which == 38 && event.shiftKey) {
             event.preventDefault();
             that.select_prev();
@@ -458,6 +458,12 @@ Notebook.prototype._kernel_started = function () {
         } else if (msg_type === "pyout" || msg_type === "display_data") {
             cell.expand();
             cell.append_display_data(reply.content.data);
+        } else if (msg_type === "status") {
+            if (reply.content.execution_state === "busy") {
+                that.kernel.status_busy();
+            } else if (reply.content.execution_state === "idle") {
+                that.kernel.status_idle();
+            };
         };
     };
 };
@@ -769,15 +775,39 @@ Kernel.prototype.interrupt = function () {
 
 
 Kernel.prototype.restart = function () {
+    this.status_restarting();
     url = this.kernel_url + "/restart"
     var that = this;
     $.post(url, function (kernel_id) {
         console.log("Kernel restarted: " + kernel_id);
         that.kernel_id = kernel_id;
         that.kernel_url = that.base_url + "/" + that.kernel_id;
+        that.status_idle();
     }, 'json');
 };
 
+
+Kernel.prototype.status_busy = function () {
+    $("#kernel_status").removeClass("status_idle");
+    $("#kernel_status").removeClass("status_restarting");
+    $("#kernel_status").addClass("status_busy");
+    $("#kernel_status").text("Busy");
+};
+
+
+Kernel.prototype.status_idle = function () {
+    $("#kernel_status").removeClass("status_busy");
+    $("#kernel_status").removeClass("status_restarting");
+    $("#kernel_status").addClass("status_idle");
+    $("#kernel_status").text("Idle");
+};
+
+Kernel.prototype.status_restarting = function () {
+    $("#kernel_status").removeClass("status_busy");
+    $("#kernel_status").removeClass("status_idle");
+    $("#kernel_status").addClass("status_restarting");
+    $("#kernel_status").text("Restarting");
+};
 
 //============================================================================
 // On document ready
@@ -803,6 +833,7 @@ $(document).ready(function () {
     $("#kernel_toolbar").buttonset();
     $("#interrupt_kernel").click(function () {IPYTHON.notebook.kernel.interrupt();});
     $("#restart_kernel").click(function () {IPYTHON.notebook.kernel.restart();});
+    $("#kernel_status").addClass("status_idle");
 
     $("#move_cell").buttonset();
     $("#move_up").button("option", "icons", {primary:"ui-icon-arrowthick-1-n"});
