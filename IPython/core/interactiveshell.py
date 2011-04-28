@@ -1596,7 +1596,7 @@ class InteractiveShell(Configurable, Magic):
                                                         include_latest=True):
             if cell.strip(): # Ignore blank lines
                 for line in cell.splitlines():
-                    self.readline.add_history(line.encode(stdin_encoding))
+                    self.readline.add_history(line.encode(stdin_encoding, 'replace'))
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
