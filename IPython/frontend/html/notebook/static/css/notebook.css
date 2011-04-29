@@ -66,7 +66,7 @@ pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
 body {
     background-color: white;
-    font-size: 10pt;
+    font-size: 11pt;
 
     /* This makes sure that the body covers the entire window and needs to
        be in a different element than the display: box in wrapper below */
@@ -97,18 +97,14 @@ div#wrapper {
 }
 
 span#ipython_notebook h1 {
-    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    font-size: 32pt;
+    font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    font-size: 26pt;
     padding: 10px;
     margin: 10px;
 }
 
-div#toolbar {
-    width: 100%;
-    border-bottom-width: 2px;
-    border-bottom-style: solid;
-    border-bottom-color: black;
-    padding: 5px;
+div#tools {
+    font-size: 9pt;
 }
 
 span#kernel_status {
@@ -154,7 +150,6 @@ div.notebook {
 
 div.cell {
     width: 100%;
-/*    margin: 10px;*/
     padding: 5px;
     position: relative;
     display: table;
@@ -179,10 +174,6 @@ div.prompt {
 }
 
 div.input {
-    display: table-row;
-    padding: 0px;
-    margin: 0px;
-
     display: box;
     box-orient: horizontal;
 
@@ -206,9 +197,6 @@ textarea.input_area {
     padding: 0px;
     margin: 0px;
     overflow: auto;
-    font-weight: normal;
-    font-style: normal;
-/*    width: 650px;*/
     outline: none;
     resize: none;
     
@@ -221,9 +209,14 @@ textarea.input_area {
 }
 
 div.output {
-    display: table-row;
-    padding: 0px;
-    margin: 0px;
+    display: box;
+    box-orient: horizontal;
+
+    display: -webkit-box;
+    -webkit-box-orient: horizontal;
+
+    display: -moz-box;
+    -moz-box-orient: horizontal;
 }
 
 div.output_prompt {
@@ -233,10 +226,7 @@ div.output_prompt {
 div.output_area {
     text-align: left;
     font-family: Menlo, "Courier New", Courier, mono;
-    padding: 0px;
-    margin: 0px;
     display: table-cell;
-/*    width:  650px;*/
 }
 
 div.text_cell {
@@ -245,25 +235,24 @@ div.text_cell {
 
 textarea.text_cell_input {
     font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    font-size: inherit;
+    font-size: 12pt;
     outline: none;
     resize: none;
     width:  inherit;
     border-style: none;
-    padding: 0;
-    margin: 0;
+    padding: 0px;
+    margin: 0px;
     color: black;
 }
 
 div.text_cell_render {
     font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    font-size: inherit;
+    font-size: 12pt;
     outline: none;
     resize: none;
     width:  inherit;
     border-style: none;
-    padding: 0;
-    margin: 0;
+    padding: 5px;
     color: black;
 }
 
