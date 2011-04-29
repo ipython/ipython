@@ -616,7 +616,7 @@ def main():
                         const='auto', help = \
 "Pre-load matplotlib and numpy for interactive use. If GUI is not \
 given, the GUI backend is matplotlib's, otherwise use one of: \
-['tk', 'gtk', 'qt', 'wx', 'inline'].")
+['tk', 'gtk', 'qt', 'wx', 'osx', 'inline'].")
     parser.add_argument('--colors',
         type=str, dest='colors',
         help="Set the color scheme (NoColor, Linux, and LightBG).",
@@ -629,6 +629,7 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
         'qt' : QtKernel,
         'qt4': QtKernel,
         'inline': Kernel,
+        'osx': TkKernel,
         'wx' : WxKernel,
         'tk' : TkKernel,
         'gtk': GTKKernel,
