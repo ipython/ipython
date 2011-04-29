@@ -511,14 +511,13 @@ class InteractiveShell(Configurable, Magic):
     def init_io(self):
         # This will just use sys.stdout and sys.stderr. If you want to
         # override sys.stdout and sys.stderr themselves, you need to do that
-        # *before* instantiating this class, because Term holds onto 
+        # *before* instantiating this class, because io holds onto 
         # references to the underlying streams.
         if sys.platform == 'win32' and self.has_readline:
-            Term = io.IOTerm(cout=self.readline._outputfile,
-                             cerr=self.readline._outputfile)
+            io.stdout = io.stderr = io.IOStream(self.readline._outputfile)
         else:
-            Term = io.IOTerm()
-        io.Term = Term
+            io.stdout = io.IOStream(sys.stdout)
+            io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
         # TODO: This is a pass for now because the prompts are managed inside
@@ -1477,7 +1476,7 @@ class InteractiveShell(Configurable, Magic):
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        print >> io.Term.cout, self.InteractiveTB.stb2text(stb)
+        print >> io.stdout, self.InteractiveTB.stb2text(stb)
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
@@ -1597,7 +1596,7 @@ class InteractiveShell(Configurable, Magic):
                                                         include_latest=True):
             if cell.strip(): # Ignore blank lines
                 for line in cell.splitlines():
-                    self.readline.add_history(line.encode(stdin_encoding))
+                    self.readline.add_history(line.encode(stdin_encoding, 'replace'))
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
@@ -1931,7 +1930,7 @@ class InteractiveShell(Configurable, Magic):
             # plain ascii works better w/ pyreadline, on some machines, so
             # we use it and only print uncolored rewrite if we have unicode
             rw = str(rw)
-            print >> IPython.utils.io.Term.cout, rw
+            print >> io.stdout, rw
         except UnicodeEncodeError:
             print "------> " + cmd
             
@@ -2325,12 +2324,12 @@ class InteractiveShell(Configurable, Magic):
     # TODO:  This should be removed when Term is refactored.
     def write(self,data):
         """Write a string to the default output"""
-        io.Term.cout.write(data)
+        io.stdout.write(data)
 
     # TODO:  This should be removed when Term is refactored.
     def write_err(self,data):
         """Write a string to the default error output"""
-        io.Term.cerr.write(data)
+        io.stderr.write(data)
 
     def ask_yes_no(self,prompt,default=True):
         if self.quiet:

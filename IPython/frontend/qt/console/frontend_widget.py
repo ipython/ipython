@@ -435,7 +435,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Attempts to execute file with 'path'. If 'hidden', no output is
             shown.
         """
-        self.execute('execfile("%s")' % path, hidden=hidden)
+        self.execute('execfile(%r)' % path, hidden=hidden)
 
     def interrupt_kernel(self):
         """ Attempts to interrupt the running kernel.

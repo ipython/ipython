@@ -10,8 +10,6 @@
 import re
 import sys
 
-import IPython.utils.io
-
 coding_declaration = re.compile(r"#\s*coding[:=]\s*([-\w.]+)")
 
 class Macro(object):

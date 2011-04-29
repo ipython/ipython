@@ -8,8 +8,10 @@
 
 # Standard library imports
 from collections import namedtuple
+import os.path
 import re
 from subprocess import Popen
+import sys
 from textwrap import dedent
 
 # System library imports
@@ -233,6 +235,10 @@ class IPythonWidget(FrontendWidget):
     def execute_file(self, path, hidden=False):
         """ Reimplemented to use the 'run' magic.
         """
+        # Use forward slashes on Windows to avoid escaping each separator.
+        if sys.platform == 'win32':
+            path = os.path.normpath(path).replace('\\', '/')
+
         self.execute('%%run %s' % path, hidden=hidden)
 
     #---------------------------------------------------------------------------

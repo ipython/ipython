@@ -53,7 +53,6 @@ from IPython.lib.pylabtools import mpl_runner
 from IPython.external.Itpl import itpl, printpl
 from IPython.testing import decorators as testdec
 from IPython.utils.io import file_read, nlprint
-import IPython.utils.io
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title

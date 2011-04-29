@@ -28,11 +28,32 @@ from types import MethodType
 # our own
 from . import tools
 
+from IPython.utils import io
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
+class StreamProxy(io.IOStream):
+    """Proxy for sys.stdout/err.  This will request the stream *at call time*
+    allowing for nose's Capture plugin's redirection of sys.stdout/err.
+    
+    Parameters
+    ----------
+    name : str
+        The name of the stream. This will be requested anew at every call
+    """
+    
+    def __init__(self, name):
+        self.name=name
+    
+    @property
+    def stream(self):
+        return getattr(sys, self.name)
+    
+    def flush(self):
+        self.stream.flush()
 
 # Hack to modify the %run command so we can sync the user's namespace with the
 # test globals.  Once we move over to a clean magic system, this will be done
@@ -191,5 +212,9 @@ def start_ipython():
     get_ipython = _ip.get_ipython
     __builtin__._ip = _ip
     __builtin__.get_ipython = get_ipython
+    
+    # To avoid extra IPython messages during testing, suppress io.stdout/stderr
+    io.stdout = StreamProxy('stdout')
+    io.stderr = StreamProxy('stderr')
 
     return _ip

@@ -405,15 +405,17 @@ IPython will show long blocks of text from many sources using a builtin pager.
 You can control where this pager appears with the ``--paging`` command-line
 flag:
 
-- default: it is overlaid on top of the main terminal.  You must quit the pager
-  to get back to the terminal (similar to how a pager such as ``less`` or
-  ``more`` works).
+- ``inside`` [default]: the pager is overlaid on top of the main terminal. You
+  must quit the pager to get back to the terminal (similar to how a pager such
+  as ``less`` or ``more`` works).
 
-- vertical: the console is made double-tall, and the pager appears on the
+- ``vsplit``: the console is made double-tall, and the pager appears on the
   bottom area when needed.  You can view its contents while using the terminal.
 
-- horizontal: the console is made double-wide, and the pager appears on the
+- ``hsplit``: the console is made double-wide, and the pager appears on the
   right area when needed.  You can view its contents while using the terminal.
+
+- ``none``: the console never pages output.
 
 If you use the vertical or horizontal paging modes, you can navigate between
 terminal and pager as follows:
@@ -424,7 +426,6 @@ terminal and pager as follows:
 
 In all cases, the ``q`` or ``Escape`` keys quit the pager (when used with the
 focus on the pager area).
-
 
 Running subprocesses
 ====================
