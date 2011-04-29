@@ -116,6 +116,7 @@ Notebook.prototype.bind_events = function () {
             if (cell instanceof CodeCell) {
                 event.preventDefault();
                 cell.clear_output();
+                cell.hide_output_prompt();
                 var msg_id = that.kernel.execute(cell.get_code());
                 that.msg_cell_map[msg_id] = cell.cell_id;
                 if (cell_index === (that.ncells()-1)) {
@@ -456,6 +457,7 @@ Notebook.prototype._kernel_started = function () {
             cell.expand();
             cell.append_stream(reply.content.data + "\n");
         } else if (msg_type === "pyout" || msg_type === "display_data") {
+            cell.show_output_prompt();
             cell.expand();
             cell.append_display_data(reply.content.data);
         } else if (msg_type === "status") {
@@ -623,6 +625,14 @@ CodeCell.prototype.set_output_prompt = function (number) {
     var n = number || ' ';
     this.output_prompt_number = n
     this.element.find('div.output_prompt').html('Out[' + n + ']:');
+};
+
+CodeCell.prototype.hide_output_prompt = function () {
+    this.element.find('div.output_prompt').hide();
+};
+
+CodeCell.prototype.show_output_prompt = function () {
+    this.element.find('div.output_prompt').show();
 };
 
 
