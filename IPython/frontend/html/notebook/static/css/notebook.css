@@ -67,6 +67,33 @@ pre, code, kbd, samp { font-family: monospace, sans-serif; }
 body {
     background-color: white;
     font-size: 10pt;
+
+    /* This makes sure that the body covers the entire window and needs to
+       be in a different element than the display: box in wrapper below */
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+}
+
+div#wrapper {
+    display: box;
+    box-orient: vertical;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+
+    display: -moz-box;
+    -moz-box-orient: vertical;
+
+    /* This is needed to make sure the wrapper fills the body */
+    width: 100%;
+    height: 100%;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
 }
 
 span#ipython_notebook h1 {
@@ -78,7 +105,6 @@ span#ipython_notebook h1 {
 
 div#toolbar {
     width: 100%;
-    height: auto;
     border-bottom-width: 2px;
     border-bottom-style: solid;
     border-bottom-color: black;
@@ -105,22 +131,36 @@ span#kernel_status {
 }
 
 div.notebook {
-    width: 790px;
-    height: 650px;  /*We might have to detect window height for this*/
-    overflow: auto;
-    margin-left: auto;
-    margin-right: auto;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    /* This is a trick from Google Docs. We set the height artificially low
+       and set overflow-y: auto to force scrolling of this dev when needed,
+       but prevent the browser window from scrolling. Crazy hack */
+    height: 15px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 5px;
+/*    padding-top: 5px;*/
+/*    padding-bottom: 5px;*/
     background-color: white;
+
+    /* Allow the notebook div to take up the rest of the vertical space */
+    box-flex: 1;
+    -webkit-box-flex: 1;
+    -moz-box-flex: 1;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
 }
 
 div.cell {
-    width: 740px;
-    margin: 5px auto 5px 5px;
+    width: 100%;
+/*    margin: 10px;*/
     padding: 5px;
     position: relative;
     display: table;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
 }
 
 div.code_cell {
@@ -142,6 +182,15 @@ div.input {
     display: table-row;
     padding: 0px;
     margin: 0px;
+
+    display: box;
+    box-orient: horizontal;
+
+    display: -webkit-box;
+    -webkit-box-orient: horizontal;
+
+    display: -moz-box;
+    -moz-box-orient: horizontal;
 }
 
 div.input_prompt {
@@ -159,9 +208,16 @@ textarea.input_area {
     overflow: auto;
     font-weight: normal;
     font-style: normal;
-    width: 650px;
+/*    width: 650px;*/
     outline: none;
     resize: none;
+    
+    box-flex: 1;
+    -webkit-box-flex: 1;
+    -moz-box-flex: 1;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
 }
 
 div.output {
@@ -180,7 +236,7 @@ div.output_area {
     padding: 0px;
     margin: 0px;
     display: table-cell;
-    width:  650px;
+/*    width:  650px;*/
 }
 
 div.text_cell {
