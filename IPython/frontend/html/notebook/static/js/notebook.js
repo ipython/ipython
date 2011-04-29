@@ -546,21 +546,14 @@ CodeCell.prototype = new Cell();
 
 
 CodeCell.prototype.create_element = function () {
-    var cell =  $('<div></div>').addClass('cell code_cell')
-    var input = $('<div></div>').addClass('input').append(
-                    $('<div/>').addClass('prompt input_prompt')
-                ).append(
-                    $('<textarea/>').addClass('input_area').
-                    attr('rows',1).
-                    attr('cols',80).
-                    attr('wrap','hard').
-                    autoGrow()
-                );
-    var output = $('<div></div>').addClass('output').append(
-                    $('<div/>').addClass('prompt output_prompt')
-                ).append(
-                    $('<div/>').addClass('output_area')
-                );
+    var cell =  $('<div></div>').addClass('cell code_cell');
+    var input = $('<div></div>').addClass('input');
+    input.append($('<div/>').addClass('prompt input_prompt'));
+    var input_textarea = $('<textarea/>').addClass('input_textarea').attr('rows',1).attr('wrap','hard').autoGrow();
+    input.append($('<div/>').addClass('input_area').append(input_textarea));
+    var output = $('<div></div>').addClass('output');
+    output.append($('<div/>').addClass('prompt output_prompt'));
+    output.append($('<div/>').addClass('output_area'));
     cell.append(input).append(output);
     this.element = cell;
     this.collapse()
@@ -635,11 +628,18 @@ CodeCell.prototype.show_output_prompt = function () {
     this.element.find('div.output_prompt').show();
 };
 
-
 CodeCell.prototype.get_code = function () {
     return this.element.find("textarea.input_area").val();
 };
 
+
+CodeCell.prototype.toJSON = function () {
+    return {
+        code : this.get_code(),
+        cell_type : 'code',
+        prompt_number : this.input_prompt_number
+    };
+};
 //============================================================================
 // TextCell
 //============================================================================
