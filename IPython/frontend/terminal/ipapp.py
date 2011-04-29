@@ -443,7 +443,7 @@ class IPythonApp(Application):
         if hasattr(config.Global, 'classic'):
             if config.Global.classic:
                 config.InteractiveShell.cache_size = 0
-                config.PlainTextFormatter.pprint = 0
+                config.PlainTextFormatter.pprint = False
                 config.InteractiveShell.prompt_in1 = '>>> '
                 config.InteractiveShell.prompt_in2 = '... '
                 config.InteractiveShell.prompt_out = ''
