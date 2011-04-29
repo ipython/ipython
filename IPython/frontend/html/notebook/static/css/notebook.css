@@ -104,7 +104,7 @@ span#ipython_notebook h1 {
 }
 
 div#tools {
-    font-size: 9pt;
+    font-size: 10pt;
 }
 
 span#kernel_status {
@@ -168,7 +168,7 @@ div.prompt {
     width: 80px;
     padding: 0px;
     margin: 0px;
-    font-family: Menlo, "Courier New", Courier, mono;
+    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
     font-weight: normal;
     font-style: normal;
 }
@@ -190,7 +190,7 @@ div.input_prompt {
 
 textarea.input_area {
     text-align: left;
-    font-family: Menlo, "Courier New", Courier, mono;
+    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
     font-size: inherit;
     border-style: none;
     display: table-cell;
@@ -225,7 +225,7 @@ div.output_prompt {
 
 div.output_area {
     text-align: left;
-    font-family: Menlo, "Courier New", Courier, mono;
+    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
     display: table-cell;
 }
 
