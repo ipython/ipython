@@ -1049,7 +1049,8 @@ class InteractiveShell(Configurable, Magic):
             self.execution_count = 1
         
         # Flush cached output items
-        self.displayhook.flush()
+        if self.displayhook.do_full_cache:
+            self.displayhook.flush()
         
         # Restore the user namespaces to minimal usability
         for ns in self.ns_refs_table:
