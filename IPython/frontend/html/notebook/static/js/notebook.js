@@ -1,26 +1,6 @@
 var IPYTHON = {};
 
 
-
-// $.get("/notebooks/number2.nb",function (data, status, xhr) {console.log(data);});
-// 
-// settings = {
-//   processData : false,
-//   cache : false,
-//   type : "DELETE",
-//   success : function (data, status, xhr) {console.log(data);}
-// }
-// $.ajax("/notebooks/number2.nb",settings)
-// 
-// settings = {
-//   processData : false,
-//   cache : false,
-//   type : "PUT",
-//   success : function (data, status, xhr) {console.log(data);}
-// }
-// $.ajax("/notebooks/number2.nb",settings)
-
-
 //============================================================================
 // Utilities
 //============================================================================
@@ -82,6 +62,7 @@ function fixConsole(txt) {
     return txt.trim()
 }
 
+
 //============================================================================
 // Notebook
 //============================================================================
@@ -94,6 +75,10 @@ var Notebook = function (selector) {
     this.next_prompt_number = 1;
     this.kernel = null;
     this.msg_cell_map = {};
+    this.filename = null;
+    this.notebook_load_re = /%notebook load/
+    this.notebook_save_re = /%notebook save/
+    this.notebook_filename_re = /(\w)+.ipynb/
     this.bind_events();
     this.start_kernel();
 };
@@ -113,12 +98,29 @@ Notebook.prototype.bind_events = function () {
             // The focus is not quite working here.
             var cell = that.selected_cell();
             var cell_index = that.find_cell_index(cell);
+            // TODO: the logic here needs to be moved into appropriate
+            // methods of Notebook.
             if (cell instanceof CodeCell) {
                 event.preventDefault();
                 cell.clear_output();
                 cell.hide_output_prompt();
-                var msg_id = that.kernel.execute(cell.get_code());
-                that.msg_cell_map[msg_id] = cell.cell_id;
+                var code = cell.get_code();
+                if (that.notebook_load_re.test(code)) {
+                    var code_parts = code.split(' ');
+                    if (code_parts.length === 3) {
+                        that.load_notebook(code_parts[2]);
+                    };
+                } else if (that.notebook_save_re.test(code)) {
+                    var code_parts = code.split(' ');
+                    if (code_parts.length === 3) {
+                        that.save_notebook(code_parts[2]);
+                    } else {
+                        that.save_notebook()
+                    };
+                } else {
+                    var msg_id = that.kernel.execute(cell.get_code());
+                    that.msg_cell_map[msg_id] = cell.cell_id;
+                };
                 if (cell_index === (that.ncells()-1)) {
                     that.insert_code_cell_after();
                 } else {
@@ -129,7 +131,7 @@ Notebook.prototype.bind_events = function () {
             event.preventDefault();
             var cell = that.selected_cell();
             if (cell instanceof CodeCell) {
-                var ta = cell.element.find("textarea.input_area");
+                var ta = cell.element.find("textarea.input_textarea");
                 ta.val(ta.val() + "    ");
             };
         };
@@ -386,8 +388,7 @@ Notebook.prototype.text_to_code = function (index) {
     if (source_cell instanceof TextCell) {
         this.insert_code_cell_after(i);
         var target_cell = this.cells()[i+1];
-        var text = source_element.find("textarea.text_cell_input").val();
-        target_cell.element.find("textarea.input_area").val(text);
+        target_cell.set_code(source_cell.get_text());
         source_element.remove();
     };
 };
@@ -401,12 +402,9 @@ Notebook.prototype.code_to_text = function (index) {
     if (source_cell instanceof CodeCell) {
         this.insert_text_cell_after(i);
         var target_cell = this.cells()[i+1];
-        var text = source_element.find("textarea.input_area").val();
+        var text = source_cell.get_code();
         if (text === "") {text = target_cell.placeholder;};
-        target_cell.element.find("textarea.text_cell_input").val(text);
-        target_cell.element.find("textarea.text_cell_input").html(text);
-        target_cell.element.find("div.text_cell_render").html(text);
-
+        target_cell.set_text(text);
         source_element.remove();
     };
 };
@@ -474,6 +472,94 @@ Notebook.prototype._kernel_started = function () {
 Notebook.prototype._handle_execute_reply = function (reply, cell) {
     cell.set_prompt(reply.content.execution_count);
 };
+
+
+// Persistance and loading
+
+
+Notebook.prototype.fromJSON = function (data) {
+    var ncells = this.ncells();
+    for (var i=0; i<ncells; i++) {
+        // Always delete cell 0 as they get renumbered as they are deleted.
+        this.delete_cell(0);
+    };
+    var new_cells = data.cells;
+    ncells = new_cells.length;
+    var cell_data = null;
+    for (var i=0; i<ncells; i++) {
+        cell_data = new_cells[i];
+        if (cell_data.cell_type == 'code') {
+            this.insert_code_cell_after();
+            this.selected_cell().fromJSON(cell_data);
+        } else if (cell_data.cell_type === 'text') {
+            this.insert_text_cell_after();
+            this.selected_cell().fromJSON(cell_data);
+        };
+    };
+};
+
+
+Notebook.prototype.toJSON = function () {
+    var cells = this.cells();
+    var ncells = cells.length;
+    cell_array = new Array(ncells);
+    for (var i=0; i<ncells; i++) {
+        cell_array[i] = cells[i].toJSON();
+    };
+    json = {
+        cells : cell_array
+    };
+    return json
+};
+
+
+Notebook.prototype.test_filename = function (filename) {
+    if (this.notebook_filename_re.test(filename)) {
+        return true;
+    } else {
+        var bad_filename = $('<div/>');
+        bad_filename.html(
+            "The filename you entered (" + filename + ") is not valid. Notebook filenames must have the following form: foo.ipynb"
+        );
+        bad_filename.dialog({title: 'Invalid filename', modal: true});
+        return false;
+    };
+};
+
+Notebook.prototype.save_notebook = function (filename) {
+    this.filename = filename || this.filename || '';
+    if (this.filename === '') {
+        var no_filename = $('<div/>');
+        no_filename.html(
+            "This notebook has no filename, please specify a filename of the form: foo.ipynb"
+        );
+        no_filename.dialog({title: 'Missing filename', modal: true});
+        return;
+    }
+    if (!this.test_filename(this.filename)) {return;}
+    var thedata = this.toJSON();
+    var settings = {
+      processData : false,
+      cache : false,
+      type : "PUT",
+      data : JSON.stringify(thedata),
+      success : function (data, status, xhr) {console.log(data);}
+    };
+    $.ajax("/notebooks/" + this.filename, settings);
+};
+
+
+Notebook.prototype.load_notebook = function (filename) {
+    if (!this.test_filename(filename)) {return;}
+    var that = this;
+    $.getJSON("/notebooks/" + filename,
+        function (data, status, xhr) {
+            that.fromJSON(data);
+            that.filename = filename;
+            that.kernel.restart();
+        }
+    );
+}
 
 
 //============================================================================
@@ -620,16 +706,32 @@ CodeCell.prototype.set_output_prompt = function (number) {
     this.element.find('div.output_prompt').html('Out[' + n + ']:');
 };
 
+
 CodeCell.prototype.hide_output_prompt = function () {
     this.element.find('div.output_prompt').hide();
 };
+
 
 CodeCell.prototype.show_output_prompt = function () {
     this.element.find('div.output_prompt').show();
 };
 
+
 CodeCell.prototype.get_code = function () {
-    return this.element.find("textarea.input_area").val();
+    return this.element.find("textarea.input_textarea").val();
+};
+
+
+CodeCell.prototype.set_code = function (code) {
+    return this.element.find("textarea.input_textarea").val(code);
+};
+
+
+CodeCell.prototype.fromJSON = function (data) {
+    if (data.cell_type === 'code') {
+        this.set_code(data.code);
+        this.set_input_prompt(data.prompt_number);
+    };
 };
 
 
@@ -640,6 +742,7 @@ CodeCell.prototype.toJSON = function () {
         prompt_number : this.input_prompt_number
     };
 };
+
 //============================================================================
 // TextCell
 //============================================================================
@@ -713,6 +816,32 @@ TextCell.prototype.config_mathjax = function () {
     text_cell.trigger("focusout");
 };
 
+
+TextCell.prototype.get_text = function() {
+    return this.element.find("textarea.text_cell_input").val();
+};
+
+
+TextCell.prototype.set_text = function(text) {
+    this.element.find("textarea.text_cell_input").val(text);
+    this.element.find("textarea.text_cell_input").html(text);
+    this.element.find("div.text_cell_render").html(text);
+};
+
+
+TextCell.prototype.fromJSON = function (data) {
+    if (data.cell_type === 'text') {
+        this.set_text(data.text);
+    };
+}
+
+
+TextCell.prototype.toJSON = function () {
+    return {
+        cell_type : 'text',
+        text : this.get_text(),
+    };
+};
 
 //============================================================================
 // On document ready

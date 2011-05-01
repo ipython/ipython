@@ -126,7 +126,7 @@ class NotebookRootHandler(web.RequestHandler):
 
     def get(self):
         files = os.listdir(os.getcwd())
-        files = [file for file in files if file.endswith(".nb")]
+        files = [file for file in files if file.endswith(".ipynb")]
         self.write(json.dumps(files))
 
 
@@ -135,7 +135,9 @@ class NotebookHandler(web.RequestHandler):
     SUPPORTED_METHODS = ("GET", "DELETE", "PUT")
 
     def find_path(self, filename):
-        filename = urllib.unquote(filename) + ".nb"
+        filename = urllib.unquote(filename)
+        if not filename.endswith('.ipynb'):
+            raise web.HTTPError(400)
         path = os.path.join(os.getcwd(), filename)
         return path
 
