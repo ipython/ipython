@@ -231,7 +231,7 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         # If using pythonw, stdin, stdout, and stderr are invalid. Popen will
         # fail unless they are suitably redirected. We don't read from the
         # pipes, but they must exist.
-        redirect = PIPE if sys.executable.endswith('pythonw.exe') else None
+        redirect = PIPE if executable.endswith('pythonw.exe') else None
 
         if independent:
             proc = Popen(arguments, 
