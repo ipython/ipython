@@ -551,7 +551,7 @@ class GTKKernel(Kernel):
 #-----------------------------------------------------------------------------
 
 def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
-                  independent=False, pylab=False, colors=None):
+                  executable=None, independent=False, pylab=False, colors=None):
     """Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -570,6 +570,9 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     hb_port : int, optional
         The port to use for the hearbeat REP channel.
+
+    executable : str, optional (default sys.executable)
+        The Python executable to use for the kernel process.
 
     independent : bool, optional (default False) 
         If set, the kernel process is guaranteed to survive if this process
@@ -605,7 +608,7 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         extra_arguments.append(colors)
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
                               xrep_port, pub_port, req_port, hb_port, 
-                              independent, extra_arguments)
+                              executable, independent, extra_arguments)
 
 
 def main():

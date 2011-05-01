@@ -155,7 +155,7 @@ def make_default_main(kernel_factory):
 
 
 def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
-                       independent=False, extra_arguments=[]):
+                       executable=None, independent=False, extra_arguments=[]):
     """ Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -174,6 +174,9 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     hb_port : int, optional
         The port to use for the hearbeat REP channel.
+
+    executable : str, optional (default sys.executable)
+        The Python executable to use for the kernel process.
 
     independent : bool, optional (default False) 
         If set, the kernel process is guaranteed to survive if this process
@@ -212,7 +215,9 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         hb_port = ports.pop(0)
 
     # Build the kernel launch command.
-    arguments = [ sys.executable, '-c', code, '--xrep', str(xrep_port), 
+    if executable is None:
+        executable = sys.executable
+    arguments = [ executable, '-c', code, '--xrep', str(xrep_port), 
                   '--pub', str(pub_port), '--req', str(req_port),
                   '--hb', str(hb_port) ]
     arguments.extend(extra_arguments)
