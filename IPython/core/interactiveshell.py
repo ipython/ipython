@@ -818,17 +818,44 @@ class InteractiveShell(Configurable, Magic):
         # that if you need to access the built-in namespace directly, you
         # should start with "import __builtin__" (note, no 's') which will
         # definitely give you a module. Yeah, it's somewhat confusing:-(.
+                                                            
+        # We must ensure that __builtin__ (without the final 's') is always
+        # available and pointing to the __builtin__ *module*.  For more details:
+        # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
+        
+        separate_user_ns = True
+        if user_ns is None:
+            user_ns = {}
+            separate_user_ns = False
+        
+        # Set __name__ to __main__ to better match the behavior of the
+        # normal interpreter.
+        user_ns.setdefault('__name__','__main__')
+        user_ns.setdefault('__builtin__',__builtin__)
+        user_ns.setdefault('__builtins__',__builtin__)
 
-        # These routines return properly built dicts as needed by the rest of
-        # the code, and can also be used by extension writers to generate
-        # properly initialized namespaces.
-        user_ns, user_global_ns = self.make_user_namespaces(user_ns,
-                                                            user_global_ns)
+        if (user_global_ns is not None) and \
+                        not isinstance(user_global_ns, dict):
+            raise TypeError("user_global_ns must be a true dict; got %r"
+                            % type(user_global_ns))
 
         # Assign namespaces
-        # This is the namespace where all normal user variables live
-        self.user_ns = user_ns
-        self.user_global_ns = user_global_ns
+        # user_ns the namespace where all normal user variables live
+        self.user_ns_mod = FakeModule(user_ns)
+        if not separate_user_ns:
+            # In the normal case, we replace user_ns with a module dict, so that
+            # user-defined objects are in the __main__ module, and can be pickled.
+            self.user_ns = self.user_ns_mod.__dict__
+        else:
+            # Otherwise, we will need to manually update it after execution.
+            self.user_ns = user_ns
+            
+        # The global namespace will normally be identical to the user namespace.
+        # The exceptions are certain embedding cases.
+        if user_global_ns is None:
+            self.user_global_ns = self.user_ns
+        else:
+            self.user_global_ns = user_global_ns
 
         # An auxiliary namespace that checks what parts of the user_ns were
         # loaded at startup, so we can list later only variables defined in
@@ -871,8 +898,8 @@ class InteractiveShell(Configurable, Magic):
 
         # A table holding all the namespaces IPython deals with, so that
         # introspection facilities can search easily.
-        self.ns_table = {'user':user_ns,
-                         'user_global':user_global_ns,
+        self.ns_table = {'user':self.user_ns,
+                         'user_global':self.user_global_ns,
                          'internal':self.internal_ns,
                          'builtin':__builtin__.__dict__
                          }
@@ -885,65 +912,7 @@ class InteractiveShell(Configurable, Magic):
         # clears them manually and carefully.
         self.ns_refs_table = [ self.user_ns_hidden,
                                self.internal_ns, self._main_ns_cache ]
-
-    def make_user_namespaces(self, user_ns=None, user_global_ns=None):
-        """Return a valid local and global user interactive namespaces.
-
-        This builds a dict with the minimal information needed to operate as a
-        valid IPython user namespace, which you can pass to the various
-        embedding classes in ipython. The default implementation returns the
-        same dict for both the locals and the globals to allow functions to
-        refer to variables in the namespace. Customized implementations can
-        return different dicts. The locals dictionary can actually be anything
-        following the basic mapping protocol of a dict, but the globals dict
-        must be a true dict, not even a subclass. It is recommended that any
-        custom object for the locals namespace synchronize with the globals
-        dict somehow.
-
-        Raises TypeError if the provided globals namespace is not a true dict.
-
-        Parameters
-        ----------
-        user_ns : dict-like, optional
-            The current user namespace. The items in this namespace should
-            be included in the output. If None, an appropriate blank
-            namespace should be created.
-        user_global_ns : dict, optional
-            The current user global namespace. The items in this namespace
-            should be included in the output. If None, an appropriate
-            blank namespace should be created.
-
-        Returns
-        -------
-            A pair of dictionary-like object to be used as the local namespace
-            of the interpreter and a dict to be used as the global namespace.
-        """
-
-
-        # We must ensure that __builtin__ (without the final 's') is always
-        # available and pointing to the __builtin__ *module*.  For more details:
-        # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-
-        if user_ns is None:
-            # Set __name__ to __main__ to better match the behavior of the
-            # normal interpreter.
-            user_ns = {'__name__'     :'__main__',
-                       '__builtin__' : __builtin__,
-                       '__builtins__' : __builtin__,
-                      }
-        else:
-            user_ns.setdefault('__name__','__main__')
-            user_ns.setdefault('__builtin__',__builtin__)
-            user_ns.setdefault('__builtins__',__builtin__)
-
-        if user_global_ns is None:
-            user_global_ns = user_ns
-        if type(user_global_ns) is not dict:
-            raise TypeError("user_global_ns must be a true dict; got %r"
-                % type(user_global_ns))
-
-        return user_ns, user_global_ns
-
+    
     def init_sys_modules(self):
         # We need to insert into sys.modules something that looks like a
         # module but which accesses the IPython namespace, for shelve and
@@ -967,7 +936,7 @@ class InteractiveShell(Configurable, Magic):
         except KeyError:
             raise KeyError('user_ns dictionary MUST have a "__name__" key')
         else:
-            sys.modules[main_name] = FakeModule(self.user_ns)
+            sys.modules[main_name] = self.user_ns_mod
 
     def init_user_ns(self):
         """Initialize all user-visible namespaces to their minimum defaults.
@@ -1061,6 +1030,7 @@ class InteractiveShell(Configurable, Magic):
         # would cause errors in many object's __del__ methods.
         for ns in [self.user_ns, self.user_global_ns]:
             drop_keys = set(ns.keys())
+            drop_keys.discard('__name__')
             drop_keys.discard('__builtin__')
             drop_keys.discard('__builtins__')
             for k in drop_keys:
@@ -1068,6 +1038,11 @@ class InteractiveShell(Configurable, Magic):
                                         
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
+        
+        # In some situations, e.g. testing, our fake main module has a __dict__
+        # separate from the user_ns: if so, we need to clear it manually.
+        if self.user_ns is not self.user_ns_mod.__dict__:
+            init_fakemod_dict(self.user_ns_mod, self.user_ns)
 
         # Restore the default and user aliases
         self.alias_manager.clear_aliases()
@@ -2152,7 +2127,13 @@ class InteractiveShell(Configurable, Magic):
 
                 self.run_ast_nodes(code_ast.body, cell_name,
                                                     interactivity="last_expr")
-
+                
+                # In the normal case, user_ns is the __dict__ of the
+                # corresponding module. But e.g. in tests, it isn't, so we need
+                # to copy the contents across.
+                if self.user_ns is not self.user_ns_mod.__dict__:
+                    init_fakemod_dict(self.user_ns_mod, self.user_ns)
+                
                 # Execute any registered post-execution functions.
                 for func, status in self._post_execute.iteritems():
                     if not status:

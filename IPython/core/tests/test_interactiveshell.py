@@ -91,3 +91,25 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip = get_ipython()
         ip.run_cell('a = """\n%exit\n"""')
         self.assertEquals(ip.user_ns['a'], '\n%exit\n')
+        
+    def test_can_pickle(self):
+        ip = get_ipython()
+        ip.run_cell(("class Mylist(list):\n"
+                     "    def __init__(self,x=[]):\n"
+                     "        list.__init__(self,x)"))
+        ip.run_cell("w=Mylist([1,2,3])")
+        
+        from cPickle import dumps
+        res = dumps(ip.user_ns["w"])
+        self.assertTrue(isinstance(res, bytes))
+        
+    def test_global_ns(self):
+        ip = get_ipython()
+        ip.run_cell("a = 10")
+        ip.run_cell(("def f(x):"
+                     "    return x + a"))
+        ip.run_cell("b = f(12)")
+        self.assertEqual(ip.user_ns["b"], 22)
+
+
+
