@@ -123,7 +123,12 @@ Notebook.prototype.bind_events = function () {
                 if (cell_index === (that.ncells()-1)) {
                     that.insert_code_cell_after();
                 } else {
-                    that.select(cell_index+1);
+                    // Select the next cell if it is a CodeCell, but not
+                    // if it is a TextCell.
+                    var next_cell = that.cells()[cell_index+1];
+                    if (!(next_cell instanceof TextCell)) {
+                        that.select(cell_index+1);
+                    };
                 };
             }
         } else if (event.which == 9) {
