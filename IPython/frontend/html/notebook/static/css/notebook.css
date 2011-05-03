@@ -287,11 +287,24 @@ div.text_cell_render {
     color: black;
 }
 
-div.text_cell_render em {
-    font-style: italic;
-}
+div.text_cell_render em {font-style: italic;}
+div.text_cell_render strong {font-weight: bold;}
+div.text_cell_render u {text-decoration: underline;}
+div.text_cell_render :link { text-decoration: underline }
+div.text_cell_render :visited { text-decoration: underline }
+div.text_cell_render h1 {font-size: 2.0em; margin: .67em 0; font-weight: bold;}
+div.text_cell_render h2 {font-size: 1.5em; margin: .75em 0; font-weight: bold;}
+div.text_cell_render h3 {font-size: 1.17em; margin: .83em 0; font-weight: bold;}
+div.text_cell_render h4 {margin: 1.12em 0; font-weight: bold;}
+div.text_cell_render h5 {font-size: .83em; margin: 1.5em 0; font-weight: bold;}
+div.text_cell_render h6 {font-size: .75em; margin: 1.67em 0; font-weight: bold;}
+div.text_cell_render ul {list-style:disc; margin-left: 40px;}
+div.text_cell_render ul ul {list-style:square; margin-left: 40px;}
+div.text_cell_render ul ul ul {list-style:circle; margin-left: 40px;}
+div.text_cell_render ol {list-style:upper-roman; margin-left: 40px;}
+div.text_cell_render ol ol {list-style:upper-alpha;}
+div.text_cell_render ol ol ol {list-style:decimal;}
+div.text_cell_render ol ol ol ol {list-style:lower-alpha;}
+div.text_cell_render ol ol ol ol ol {list-style:lower-roman;}
 
-div.text_cell_render strong {
-    font-weight: bold;
-}
 
