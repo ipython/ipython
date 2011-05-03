@@ -12,8 +12,13 @@
     <!-- <link rel="stylesheet" href="static/jquery/css/themes/rocket/jquery-wijmo.css" type="text/css" /> -->
     <!-- <link rel="stylesheet" href="static/jquery/css/themes/smoothness/jquery-ui-1.8.11.custom.css" type="text/css" /> -->
 
-    <!-- <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" charset="utf-8"></script> -->
-    <script type="text/javascript" src="static/mathjax/MathJax.js?config=TeX-AMS_HTML" charset="utf-8"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" charset="utf-8"></script>
+    <script type="text/javascript">
+    if (typeof MathJax == 'undefined') {
+        console.log("Trying to load local copy of MathJax");
+        document.write(unescape("%3Cscript type='text/javascript' src='static/mathjax/MathJax.js%3Fconfig=TeX-AMS_HTML' charset='utf-8'%3E%3C/script%3E"));
+    }
+    </script>
 
 </head>
 
