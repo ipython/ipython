@@ -447,25 +447,29 @@ Notebook.prototype._kernel_started = function () {
 
     this.kernel.iopub_channel.onmessage = function (e) {
         reply = $.parseJSON(e.data);
+        var content = reply.content;
         console.log(reply);
         var msg_type = reply.msg_type;
         var cell = that.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "stream") {
             cell.expand();
-            cell.append_stream(reply.content.data + "\n");
+            cell.append_stream(content.data + "\n");
         } else if (msg_type === "display_data") {
             cell.expand();
-            cell.append_display_data(reply.content.data);
+            cell.append_display_data(content.data);
         } else if (msg_type === "pyout") {
             cell.expand();
-            cell.append_pyout(reply.content.data, reply.content.execution_count)
+            cell.append_pyout(content.data, content.execution_count)
+        } else if (msg_type === "pyerr") {
+            cell.expand();
+            cell.append_pyerr(content.ename, content.evalue, content.traceback);
         } else if (msg_type === "status") {
-            if (reply.content.execution_state === "busy") {
+            if (content.execution_state === "busy") {
                 that.kernel.status_busy();
-            } else if (reply.content.execution_state === "idle") {
+            } else if (content.execution_state === "idle") {
                 that.kernel.status_idle();
             };
-        };
+        }
     };
 };
 
@@ -652,6 +656,16 @@ CodeCell.prototype.append_pyout = function (data, n) {
     if (data["text/latex"] !== undefined) {
         MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
     };
+};
+
+CodeCell.prototype.append_pyerr = function (ename, evalue, tb) {
+    var s = '';
+    var len = tb.length;
+    for (var i=0; i<len; i++) {
+        s = s + tb[i] + '\n';
+    }
+    s = s + '\n';
+    this.append_stream(s);
 };
 
 
