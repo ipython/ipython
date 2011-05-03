@@ -596,21 +596,34 @@ Message type: ``history_request``::
       # If True, return the raw input history, else the transformed input.
       'raw' : bool,
 
-      # This parameter can be one of: A number,  a pair of numbers, None
-      # If not given, last 40 are returned.
-      #  - number n: return the last n entries.
-      #  - pair n1, n2: return entries in the range(n1, n2).
-      #  - None: return all history
-      'index' : n or (n1, n2) or None,
+      # So far, this can be 'range', 'tail' or 'search'.
+      'hist_access_type' : str,
+      
+      # If hist_access_type is 'range', get a range of input cells. session can
+      # be a positive session number, or a negative number to count back from
+      # the current session.
+      'session' : int,
+      # start and stop are line numbers within that session.
+      'start' : int,
+      'stop' : int,
+      
+      # If hist_access_type is 'tail', get the last n cells.
+      'n' : int,
+      
+      # If hist_access_type is 'search', get cells matching the specified glob
+      # pattern (with * and ? as wildcards).
+      'pattern' : str,
+      
     }
 
 Message type: ``history_reply``::
 
     content = {
-      # A dict with prompt numbers as keys and either (input, output) or input
-      # as the value depending on whether output was True or False,
-      # respectively.
-      'history' : dict,
+      # A list of 3 tuples, either:
+      # (session, line_number, input) or
+      # (session, line_number, (input, output)),
+      # depending on whether output was False or True, respectively.
+      'history' : list,
     }
 
 
