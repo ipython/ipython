@@ -580,6 +580,23 @@ var Cell = function (notebook) {
 };
 
 
+Cell.prototype.grow = function(element) {
+    // Grow the cell by hand. This is used upon reloading from JSON, when the
+    // autogrow handler is not called.
+    var dom = element.get(0);
+    var lines_count = 0;
+    // modified split rule from
+    // http://stackoverflow.com/questions/2035910/how-to-get-the-number-of-lines-in-a-textarea/2036424#2036424
+    var lines = dom.value.split(/\r|\r\n|\n/);
+    lines_count = lines.length;
+    if (lines_count >= 1) {
+        dom.rows = lines_count;
+    } else {
+        dom.rows = 1;
+    }
+};
+
+
 Cell.prototype.select = function () {
     this.element.addClass('ui-widget-content ui-corner-all');
     this.selected = true;
@@ -657,6 +674,7 @@ CodeCell.prototype.append_pyout = function (data, n) {
         MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
     };
 };
+
 
 CodeCell.prototype.append_pyerr = function (ename, evalue, tb) {
     var s = '';
@@ -752,6 +770,7 @@ CodeCell.prototype.fromJSON = function (data) {
     if (data.cell_type === 'code') {
         this.set_code(data.code);
         this.set_input_prompt(data.prompt_number);
+        this.grow(this.element.find("textarea.input_textarea"));
     };
 };
 
@@ -853,6 +872,7 @@ TextCell.prototype.set_text = function(text) {
 TextCell.prototype.fromJSON = function (data) {
     if (data.cell_type === 'text') {
         this.set_text(data.text);
+        this.grow(this.element.find("textarea.text_cell_input"));
     };
 }
 
