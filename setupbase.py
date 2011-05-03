@@ -120,9 +120,11 @@ def find_packages():
     add_package(packages, 'external.ssh')
     add_package(packages, 'kernel')
     add_package(packages, 'frontend')
+    add_package(packages, 'frontend.html')
+    add_package(packages, 'frontend.html.notebook')
     add_package(packages, 'frontend.qt')
     add_package(packages, 'frontend.qt.console', tests=True)
-    add_package(packages, 'frontend.terminal', tests=True)    
+    add_package(packages, 'frontend.terminal', tests=True)
     add_package(packages, 'lib', tests=True)
     add_package(packages, 'parallel', tests=True, scripts=True, 
                                     others=['apps','engine','client','controller'])
@@ -146,9 +148,21 @@ def find_package_data():
     """
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
+    
+    # walk notebook resources:
+    cwd = os.getcwd()
+    os.chdir(os.path.join('IPython', 'frontend', 'html', 'notebook'))
+    static_walk = list(os.walk('static'))
+    os.chdir(cwd)
+    static_data = []
+    for parent, dirs, files in static_walk:
+        for f in files:
+            static_data.append(os.path.join(parent, f))
+    
     package_data = {
         'IPython.config.profile' : ['README', '*/*.py'],
         'IPython.testing' : ['*.txt'],
+        'IPython.frontend.html.notebook' : ['templates/*']+static_data
     }
     return package_data
 
