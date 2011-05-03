@@ -2,8 +2,15 @@
 Development version
 ================================================
 
+The changes listed here are a brief summary of the substantial work on IPython
+since the 0.10.x release series. For more details, please consult the actual
+source.
+
 Main `ipython` branch
 =====================
+
+Refactoring
+-----------
 
 As of the 0.11 version of IPython, a signifiant portion of the core has been
 refactored.  This refactoring is founded on a number of new abstractions.
@@ -20,11 +27,24 @@ these classes, but for now our :ref:`configuration documentation
 <config_overview>` contains a high level overview of the concepts that these
 classes express.
 
-The changes listed here are a brief summary of the recent work on IPython.
-For more details, please consult the actual source.
+ZMQ architecture
+----------------
+
+There is a new GUI framework for IPython, based on a client-server model in
+which multiple clients can communicate with one IPython kernel, using the
+ZeroMQ messaging framework. There is already a Qt console client, which can
+be started by calling ``ipython-qtconsole``. The protocol is :ref:`documented
+<messaging>`.
+
+The parallel computing framework has also been rewritten using ZMQ. The
+protocol is described :ref:`here <parallel_messages>`, and the code is in the
+new :mod:`IPython.parallel` module.
 
 New features
 ------------
+
+* The input history is now written to an SQLite database. The API for
+  retrieving items from the history has also been redesigned.
 
 * The :mod:`IPython.extensions.pretty` extension has been moved out of
   quarantine and fully updated to the new extension API.
@@ -135,22 +155,6 @@ New features
 * For developers :mod:`IPython.lib.inputhook` provides a simple interface
   for managing the event loops in their interactive GUI applications.
   Examples can be found in our :file:`docs/examples/lib` directory.
-
-Bug fixes
----------
-
-* Previously, the latex Sphinx docs were in a single chapter.  This has been
-  fixed by adding a sixth argument of True to the ``latex_documents``
-  attribute of :file:`conf.py`.
-
-* The ``psum`` example in the MPI documentation has been updated to mpi4py
-  version 1.1.0.  Thanks to J. Thomas for this fix.
-
-* The top-level, zero-install :file:`ipython.py` script has been updated to 
-  the new application launching API.
-
-* Keyboard interrupts now work with GUI support enabled across all platforms
-  and all GUI toolkits reliably.
 
 Backwards incompatible changes
 ------------------------------
