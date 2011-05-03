@@ -103,7 +103,6 @@ Notebook.prototype.bind_events = function () {
             if (cell instanceof CodeCell) {
                 event.preventDefault();
                 cell.clear_output();
-                cell.hide_output_prompt();
                 var code = cell.get_code();
                 if (that.notebook_load_re.test(code)) {
                     var code_parts = code.split(' ');
@@ -442,7 +441,7 @@ Notebook.prototype._kernel_started = function () {
         var msg_type = reply.msg_type;
         var cell = that.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
-            cell.set_prompt(reply.content.execution_count);
+            cell.set_input_prompt(reply.content.execution_count);
         };
     };
 
@@ -454,10 +453,12 @@ Notebook.prototype._kernel_started = function () {
         if (msg_type === "stream") {
             cell.expand();
             cell.append_stream(reply.content.data + "\n");
-        } else if (msg_type === "pyout" || msg_type === "display_data") {
-            cell.show_output_prompt();
+        } else if (msg_type === "display_data") {
             cell.expand();
             cell.append_display_data(reply.content.data);
+        } else if (msg_type === "pyout") {
+            cell.expand();
+            cell.append_pyout(reply.content.data, reply.content.execution_count)
         } else if (msg_type === "status") {
             if (reply.content.execution_state === "busy") {
                 that.kernel.status_busy();
@@ -466,11 +467,6 @@ Notebook.prototype._kernel_started = function () {
             };
         };
     };
-};
-
-
-Notebook.prototype._handle_execute_reply = function (reply, cell) {
-    cell.set_prompt(reply.content.execution_count);
 };
 
 
@@ -624,7 +620,6 @@ Cell.prototype.create_element = function () {};
 var CodeCell = function (notebook) {
     Cell.apply(this, arguments);
     this.input_prompt_number = ' ';
-    this.output_prompt_number = ' ';
 };
 
 
@@ -638,46 +633,77 @@ CodeCell.prototype.create_element = function () {
     var input_textarea = $('<textarea/>').addClass('input_textarea').attr('rows',1).attr('wrap','hard').autogrow();
     input.append($('<div/>').addClass('input_area').append(input_textarea));
     var output = $('<div></div>').addClass('output');
-    output.append($('<div/>').addClass('prompt output_prompt'));
-    output.append($('<div/>').addClass('output_area'));
     cell.append(input).append(output);
     this.element = cell;
     this.collapse()
 };
 
 
-CodeCell.prototype.append_stream = function (data) {
-    var data_list = data.split("\n");
-    console.log(data_list);
-    if (data_list.length > 0) {
-        for (var i=0; i<data_list.length; i++) {
-            console.log(i, data_list[i]);
-            var toinsert = $("<div/>").
-                append(
-                    $("<pre/>").append(fixConsole(data_list[i]))
-                );
-            this.element.find("div.output_area").append(toinsert);
-        };
-    }
-};
-
-
-CodeCell.prototype.append_display_data = function (data) {
-    if (data["image/svg+xml"] !== undefined) {
-        this.append_svg(data["image/svg+xml"]);
-    } else if (data["text/plain"] !== undefined) {
-        console.log(data["text/plain"]);
-        this.append_stream(data["text/plain"]);
+CodeCell.prototype.append_pyout = function (data, n) {
+    var toinsert = $("<div/>").addClass("output_area output_pyout");
+    toinsert.append($('<div/>').
+        addClass('prompt output_prompt').
+        html('Out[' + n + ']:')
+    );
+    this.append_display_data(data, toinsert);
+    toinsert.children().last().addClass("box_flex1");
+    this.element.find("div.output").append(toinsert);
+    // If we just output latex, typeset it.
+    if (data["text/latex"] !== undefined) {
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
     };
 };
 
-CodeCell.prototype.append_svg = function (svg) {
-    this.element.find("div.output_area").append(svg);
+
+CodeCell.prototype.append_display_data = function (data, element) {
+    if (data["text/latex"] !== undefined) {
+        this.append_latex(data["text/latex"], element);
+        // If it is undefined, then we just appended to div.output, which
+        // makes the latex visible and we can typeset it. The typesetting
+        // has to be done after the latex is on the page.
+        if (element === undefined) {
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+        };
+    } else if (data["image/svg+xml"] !== undefined) {
+        this.append_svg(data["image/svg+xml"], element);
+    } else if (data["text/plain"] !== undefined) {
+        this.append_stream(data["text/plain"], element);
+    };
+    return element;
 };
 
 
+CodeCell.prototype.append_stream = function (data, element) {
+    element = element || this.element.find("div.output");
+    var toinsert = $("<div/>").addClass("output_area output_stream");
+    toinsert.append($("<pre/>").html(fixConsole(data)));
+    element.append(toinsert);
+    return element;
+};
+
+
+CodeCell.prototype.append_svg = function (svg, element) {
+    element = element || this.element.find("div.output");
+    var toinsert = $("<div/>").addClass("output_area output_svg");
+    toinsert.append(svg);
+    element.append(toinsert);
+    return element;
+};
+
+
+CodeCell.prototype.append_latex = function (latex, element) {
+    // This method cannot do the typesetting because the latex first has to
+    // be on the page.
+    element = element || this.element.find("div.output");
+    var toinsert = $("<div/>").addClass("output_area output_latex");
+    toinsert.append(latex);
+    element.append(toinsert);
+    return element;
+}
+
+
 CodeCell.prototype.clear_output = function () {
-    this.element.find("div.output_area").html("");
+    this.element.find("div.output").html("");
 };
 
 
@@ -691,32 +717,10 @@ CodeCell.prototype.expand = function () {
 };
 
 
-CodeCell.prototype.set_prompt = function (number) {
-    this.set_input_prompt(number);
-    this.set_output_prompt(number);
-};
-
 CodeCell.prototype.set_input_prompt = function (number) {
     var n = number || ' ';
     this.input_prompt_number = n
     this.element.find('div.input_prompt').html('In&nbsp;[' + n + ']:');
-};
-
-
-CodeCell.prototype.set_output_prompt = function (number) {
-    var n = number || ' ';
-    this.output_prompt_number = n
-    this.element.find('div.output_prompt').html('Out[' + n + ']:');
-};
-
-
-CodeCell.prototype.hide_output_prompt = function () {
-    this.element.find('div.output_prompt').hide();
-};
-
-
-CodeCell.prototype.show_output_prompt = function () {
-    this.element.find('div.output_prompt').show();
 };
 
 
@@ -962,7 +966,8 @@ $(document).ready(function () {
         tex2jax: {
             inlineMath: [ ['$','$'], ["\\(","\\)"] ],
             displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-        }
+        },
+        displayAlign: 'left' // Change this to 'center' to center equations.
     });
 
     IPYTHON.notebook = new Notebook('div.notebook');
