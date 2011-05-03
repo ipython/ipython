@@ -272,6 +272,7 @@ def find_scripts(entry_points=False):
         scripts = [
             'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
             'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
+            'ipython-notebook = IPython.frontend.html.notebook.notebook:main',
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
             'ipengine = IPython.parallel.apps.ipengineapp:launch_new_instance',
@@ -290,6 +291,7 @@ def find_scripts(entry_points=False):
                    pjoin(parallel_scripts, 'iplogger'),
                    pjoin(main_scripts, 'ipython'),
                    pjoin(main_scripts, 'ipython-qtconsole'),
+                   pjoin(main_scripts, 'ipython-notebook'),
                    pjoin(main_scripts, 'pycolor'),
                    pjoin(main_scripts, 'irunner'),
                    pjoin(main_scripts, 'iptest')

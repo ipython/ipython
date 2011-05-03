@@ -39,7 +39,7 @@ def print_basic_unicode(o, p, cycle):
 
 
 def print_png(o):
-    """A funciton to display sympy expression using LaTex -> PNG."""
+    """A function to display sympy expression using LaTex -> PNG."""
     s = latex(o, mode='inline')
     # mathtext does not understand certain latex flags, so we try to replace
     # them with suitable subs.
@@ -47,6 +47,13 @@ def print_png(o):
     s = s.replace('\\overline', '\\bar')
     png = latex_to_png(s, encode=True)
     return png
+
+
+def print_latex(o):
+    """A function to generate the latex representation of sympy expressions."""
+    s = latex(o, mode='equation', itex=True)
+    return s
+
 
 _loaded = False
 
@@ -65,6 +72,14 @@ def load_ipython_extension(ip):
         png_formatter = ip.display_formatter.formatters['image/png']
         png_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_png
+        )
+
+        latex_formatter = ip.display_formatter.formatters['text/latex']
+        latex_formatter.for_type_by_name(
+            'sympy.core.basic', 'Basic', print_latex
+        )
+        latex_formatter.for_type_by_name(
+            'sympy.matrices.matrices', 'Matrix', print_latex
         )
         _loaded = True
 

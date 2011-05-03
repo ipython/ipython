@@ -635,7 +635,7 @@ CodeCell.prototype.create_element = function () {
     var cell =  $('<div></div>').addClass('cell code_cell');
     var input = $('<div></div>').addClass('input');
     input.append($('<div/>').addClass('prompt input_prompt'));
-    var input_textarea = $('<textarea/>').addClass('input_textarea').attr('rows',1).attr('wrap','hard').autoGrow();
+    var input_textarea = $('<textarea/>').addClass('input_textarea').attr('rows',1).attr('wrap','hard').autogrow();
     input.append($('<div/>').addClass('input_area').append(input_textarea));
     var output = $('<div></div>').addClass('output');
     output.append($('<div/>').addClass('prompt output_prompt'));
@@ -652,8 +652,11 @@ CodeCell.prototype.append_stream = function (data) {
     if (data_list.length > 0) {
         for (var i=0; i<data_list.length; i++) {
             console.log(i, data_list[i]);
-            var toinsert = fixConsole(data_list[i]);
-            this.element.find("div.output_area").append($("<p>").append(toinsert));
+            var toinsert = $("<div/>").
+                append(
+                    $("<pre/>").append(fixConsole(data_list[i]))
+                );
+            this.element.find("div.output_area").append(toinsert);
         };
     }
 };
@@ -764,7 +767,7 @@ TextCell.prototype.create_element = function () {
                    addClass('text_cell_input').
                    attr('rows',1).
                    attr('cols',80).
-                   autoGrow()
+                   autogrow()
                ).append(
                    $('<div></div>').addClass('text_cell_render')
                )
