@@ -298,8 +298,8 @@ class XReqSocketChannel(ZmqSocketChannel):
         -------
         The msg_id of the message sent.
         """
-        content = dict(n=n, raw=raw, output=output)
-        msg = self.session.msg('history_tail_request', content)
+        content = dict(n=n, raw=raw, output=output, hist_access_type='tail')
+        msg = self.session.msg('history_request', content)
         self._queue_request(msg)
         return msg['header']['msg_id']
 
