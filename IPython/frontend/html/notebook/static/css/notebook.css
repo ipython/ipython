@@ -136,7 +136,7 @@ div.notebook {
     height: 15px;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 5px;
+    padding: 0px 40px;
     background-color: white;
     font-size: 12pt;
 
@@ -153,6 +153,8 @@ div.notebook {
 div.cell {
     width: 100%;
     padding: 5px;
+    /* This acts as a spacer between cells, that is outside the border */
+    margin: 15px 0px 15px 0px;
     position: relative;
 
     box-sizing: border-box;
@@ -166,6 +168,9 @@ div.cell {
     box-orient: vertical;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
+
+/*    border-width: 1px;*/
+/*    border-style: solid;*/
 }
 
 div.code_cell {
@@ -187,6 +192,13 @@ div.input {
     box-orient: horizontal;
     -webkit-box-orient: horizontal;
     -moz-box-orient: horizontal;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+
+/*    border-width: 1px;*/
+/*    border-style: solid;*/
 }
 
 div.input_prompt {
@@ -217,6 +229,9 @@ textarea.input_textarea {
 }
 
 div.output {
+    /* This is a spacer between the input and output of each cell */
+    margin-top: 15px;
+
     display: box;
     display: -webkit-box;
     display: -moz-box;
@@ -224,6 +239,13 @@ div.output {
     box-orient: vertical;
     -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+
+/*    border-width: 1px;*/
+/*    border-style: solid;*/
 }
 
 div.output_pyout {
