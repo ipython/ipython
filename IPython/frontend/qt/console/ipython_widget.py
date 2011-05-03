@@ -160,7 +160,7 @@ class IPythonWidget(FrontendWidget):
             else:
                 super(IPythonWidget, self)._handle_execute_reply(msg)
 
-    def _handle_history_tail_reply(self, msg):
+    def _handle_history_reply(self, msg):
         """ Implemented to handle history tail replies, which are only supported
             by the IPython kernel.
         """

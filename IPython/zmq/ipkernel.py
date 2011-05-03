@@ -348,7 +348,7 @@ class Kernel(Configurable):
         else:
             hist = []
         content = {'history' : list(hist)}
-        msg = self.session.send(self.reply_socket, 'history_tail_reply',
+        msg = self.session.send(self.reply_socket, 'history_reply',
                                 content, parent, ident)
         logger.debug(str(msg))
 
