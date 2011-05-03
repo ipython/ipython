@@ -29,7 +29,7 @@ time, mark, audio, video {
   margin: 0;
   padding: 0;
   border: 0;
-  font-size: 100%;
+/*  font-size: 100%;*/
   font: inherit;
   vertical-align: baseline;
 }
@@ -62,12 +62,16 @@ input, select { vertical-align: middle; }
    en.wikipedia.org/wiki/MediaWiki_talk:Common.css/Archive_11#Teletype_style_fix_for_Chrome */
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
-
+pre {
+    text-align: left;
+    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
+    font-size: 12pt;
+}
 
 body {
     background-color: white;
-    font-size: 11pt;
-
+    /* This won't propagate to all children so we also set it below */
+    font-size: 12pt;
     /* This makes sure that the body covers the entire window and needs to
        be in a different element than the display: box in wrapper below */
     position: absolute;
@@ -79,12 +83,11 @@ body {
 
 div#wrapper {
     display: box;
-    box-orient: vertical;
-
     display: -webkit-box;
-    -webkit-box-orient: vertical;
-
     display: -moz-box;
+
+    box-orient: vertical;
+    -webkit-box-orient: vertical;
     -moz-box-orient: vertical;
 
     /* This is needed to make sure the wrapper fills the body */
@@ -104,7 +107,7 @@ span#ipython_notebook h1 {
 }
 
 div#tools {
-    font-size: 10pt;
+    font-size: 11pt;
 }
 
 span#kernel_status {
@@ -134,9 +137,8 @@ div.notebook {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 5px;
-/*    padding-top: 5px;*/
-/*    padding-bottom: 5px;*/
     background-color: white;
+    font-size: 12pt;
 
     /* Allow the notebook div to take up the rest of the vertical space */
     box-flex: 1;
@@ -152,10 +154,18 @@ div.cell {
     width: 100%;
     padding: 5px;
     position: relative;
-    display: table;
+
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
+
+    display: box;
+    display: -webkit-box;
+    display: -moz-box;
+
+    box-orient: vertical;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
 }
 
 div.code_cell {
@@ -163,24 +173,19 @@ div.code_cell {
 }
 
 div.prompt {
-    vertical-align: top;
-    display: table-cell;
-    width: 80px;
+    width: 90px;
     padding: 0px;
     margin: 0px;
     font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
-    font-weight: normal;
-    font-style: normal;
 }
 
 div.input {
     display: box;
-    box-orient: horizontal;
-
     display: -webkit-box;
-    -webkit-box-orient: horizontal;
-
     display: -moz-box;
+
+    box-orient: horizontal;
+    -webkit-box-orient: horizontal;
     -moz-box-orient: horizontal;
 }
 
@@ -192,6 +197,7 @@ div.input_area {
     box-flex: 1;
     -webkit-box-flex: 1;
     -moz-box-flex: 1;
+
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -201,9 +207,8 @@ textarea.input_textarea {
     width: 100%;
     text-align: left;
     font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
-    font-size: inherit;
+    font-size: 12pt;
     border-style: none;
-    display: table-cell;
     padding: 0px;
     margin: 0px;
     overflow: auto;
@@ -213,12 +218,21 @@ textarea.input_textarea {
 
 div.output {
     display: box;
-    box-orient: horizontal;
-
     display: -webkit-box;
-    -webkit-box-orient: horizontal;
-
     display: -moz-box;
+
+    box-orient: vertical;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+}
+
+div.output_pyout {
+    display: box;
+    display: -webkit-box;
+    display: -moz-box;
+    
+    box-orient: horizontal;
+    -webkit-box-orient: horizontal;
     -moz-box-orient: horizontal;
 }
 
@@ -228,8 +242,19 @@ div.output_prompt {
 
 div.output_area {
     text-align: left;
+    color: black;
     font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
-    display: table-cell;
+    font-size: 12pt;
+}
+
+div.output_latex {
+    font-size: 13pt;
+}
+
+.box_flex1 {
+    box-flex: 1;
+    -webkit-box-flex: 1;
+    -moz-box-flex: 1;
 }
 
 div.text_cell {
@@ -237,8 +262,10 @@ div.text_cell {
 }
 
 textarea.text_cell_input {
-    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    font-size: 12pt;
+    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
+/*    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/
+    /* Slightly bigger than the rest of the notebook */
+    font-size: 13pt;
     outline: none;
     resize: none;
     width:  inherit;
@@ -250,7 +277,8 @@ textarea.text_cell_input {
 
 div.text_cell_render {
     font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    font-size: 12pt;
+    /* Slightly bigger than the rest of the notebook */
+    font-size: 13pt;
     outline: none;
     resize: none;
     width:  inherit;
