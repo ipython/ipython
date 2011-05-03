@@ -212,7 +212,7 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to make a history request.
         """
         super(IPythonWidget, self)._started_channels()
-        self.kernel_manager.xreq_channel.history_tail(1000)
+        self.kernel_manager.xreq_channel.history(hist_access_type='tail', n=1000)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
