@@ -48,6 +48,13 @@ def print_png(o):
     png = latex_to_png(s)
     return png
 
+
+def print_latex(o):
+    """A function to generate the latex representation of sympy expressions."""
+    s = latex(o, mode='equation', itex=True)
+    return s
+
+
 _loaded = False
 
 def load_ipython_extension(ip):
@@ -70,6 +77,14 @@ def load_ipython_extension(ip):
 
         png_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_png
+        )
+
+        latex_formatter = ip.display_formatter.formatters['text/latex']
+        latex_formatter.for_type_by_name(
+            'sympy.core.basic', 'Basic', print_latex
+        )
+        latex_formatter.for_type_by_name(
+            'sympy.matrices.matrices', 'Matrix', print_latex
         )
         _loaded = True
 
