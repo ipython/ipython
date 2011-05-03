@@ -967,7 +967,10 @@ $(document).ready(function () {
             inlineMath: [ ['$','$'], ["\\(","\\)"] ],
             displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
         },
-        displayAlign: 'left' // Change this to 'center' to center equations.
+        displayAlign: 'left', // Change this to 'center' to center equations.
+        "HTML-CSS": {
+            styles: {'.MathJax_Display': {"margin": 0}}
+        }
     });
 
     IPYTHON.notebook = new Notebook('div.notebook');
