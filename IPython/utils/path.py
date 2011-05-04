@@ -18,6 +18,7 @@ import os
 import sys
 
 import IPython
+from IPython.utils import warn
 from IPython.utils.process import system
 from IPython.utils.importstring import import_item
 
@@ -398,4 +399,24 @@ def target_update(target,deps,cmd):
 
     if target_outdated(target,deps):
         system(cmd)
+
+def check_for_old_config(ipython_dir=None):
+    """Check for old config files, and present a warning if they exist.
+    
+    A link to the docs of the new config is included in the message.
+    
+    This should mitigate confusion with the transition to the new
+    config system in 0.11.
+    """
+    if ipython_dir is None:
+        ipython_dir = get_ipython_dir()
+    
+    old_configs = ['ipy_user_conf.py', 'ipythonrc']
+    for cfg in old_configs:
+        f = os.path.join(ipython_dir, cfg)
+        if os.path.exists(f):
+            warn.warn("""Found old IPython config file %r.
+    The IPython configuration system has changed as of 0.11, and this file will be ignored.
+    See http://ipython.github.com/ipython-doc/dev/config for details on the new config system.
+    The current default config file is 'ipython_config.py'"""%f)
 
