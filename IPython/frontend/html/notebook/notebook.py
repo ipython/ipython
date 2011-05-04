@@ -265,6 +265,8 @@ def main():
     http_server = httpserver.HTTPServer(application)
     http_server.listen(options.options.port)
     print "IPython Notebook running at: http://127.0.0.1:8888"
+    print "The github master of tornado is required to run this server:"
+    print "    https://github.com/facebook/tornado/tree/master/tornado"
     ioloop.IOLoop.instance().start()
 
 
