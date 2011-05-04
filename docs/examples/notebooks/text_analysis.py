@@ -258,7 +258,8 @@ def plot_graph(wgraph, pos=None):
     width = rescale_arr(np.array(width, dtype=float), 1, 15)
         
     # Create figure
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     fig.subplots_adjust(0,0,1)
     nx.draw_networkx_nodes(wgraph, pos, node_size=sizes, node_color=degrees,
                            alpha=0.8)
@@ -289,7 +290,9 @@ def plot_word_histogram(freqs, show=10, title=None):
     words = [i[0] for i in show_f]
     counts = [i[1] for i in show_f]
 
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
     if n_words<=20:
         # Only show bars and x labels for small histograms, they don't make
         # sense otherwise
