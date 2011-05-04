@@ -52,6 +52,7 @@ def print_png(o):
 def print_latex(o):
     """A function to generate the latex representation of sympy expressions."""
     s = latex(o, mode='equation', itex=True)
+    s = s.replace('\\dag','\\dagger')
     return s
 
 
