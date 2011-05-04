@@ -186,6 +186,9 @@ class StreamSession(object):
         elif isinstance(content, bytes):
             # content is already packed, as in a relayed message
             pass
+        elif isinstance(content, unicode):
+            # should be bytes, but JSON often spits out unicode
+            content = content.encode('utf8')
         else:
             raise TypeError("Content incorrect type: %s"%type(content))
 

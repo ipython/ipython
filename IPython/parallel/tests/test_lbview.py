@@ -36,7 +36,7 @@ class TestLoadBalancedView(ClusterTestCase):
         """test graceful handling of engine death (balanced)"""
         # self.add_engines(1)
         ar = self.view.apply_async(crash)
-        self.assertRaisesRemote(error.EngineError, ar.get)
+        self.assertRaisesRemote(error.EngineError, ar.get, 10)
         eid = ar.engine_id
         tic = time.time()
         while eid in self.client.ids and time.time()-tic < 5:
