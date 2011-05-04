@@ -2130,7 +2130,20 @@ class InteractiveShell(Configurable, Magic):
         
         with self.builtin_trap:
             if len(cell.splitlines()) == 1:
-                cell = self.prefilter_manager.prefilter_lines(cell)
+                try:
+                    cell = self.prefilter_manager.prefilter_lines(cell)
+                except Exception:
+                    # don't allow prefilter errors to crash IPython, because
+                    # user code can be involved (e.g. aliases)
+                    self.showtraceback()
+                    if store_history:
+                        self.history_manager.store_inputs(self.execution_count, 
+                                                          cell, raw_cell)
+
+                    self.logger.log(cell, raw_cell)
+                    self.execution_count += 1
+                    
+                    return
             
             # Store raw and processed history
             if store_history:

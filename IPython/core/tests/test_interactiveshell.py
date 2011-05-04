@@ -91,3 +91,9 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip = get_ipython()
         ip.run_cell('a = """\n%exit\n"""')
         self.assertEquals(ip.user_ns['a'], '\n%exit\n')
+    
+    def test_alias_crash(self):
+        """Errors in prefilter can't crash IPython"""
+        ip = get_ipython()
+        ip.run_cell('%alias parts echo first %s second %s')
+        ip.run_cell('parts 1')
