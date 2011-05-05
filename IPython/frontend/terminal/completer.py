@@ -43,7 +43,10 @@ class ClientCompleter2p(object):
            self.matches = []
            print('WARNING: Kernel timeout on tab completion.')
         #print self.matches
-        return self.matches
+	try:
+	    return self.matches[state]
+	except IndexError:
+	    return None
         
         
         
