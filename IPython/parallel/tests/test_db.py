@@ -15,10 +15,7 @@
 import tempfile
 import time
 
-import uuid
-
 from datetime import datetime, timedelta
-from random import choice, randint
 from unittest import TestCase
 
 from nose import SkipTest
@@ -157,6 +154,13 @@ class TestDictBackend(TestCase):
         self.db.update_record(msg_id, dict(completed=datetime.now()))
         rec = self.db.get_record(msg_id)
         self.assertTrue(isinstance(rec['completed'], datetime))
+
+    def test_drop_matching(self):
+        msg_ids = self.load_records(10)
+        query = {'msg_id' : {'$in':msg_ids}}
+        self.db.drop_matching_records(query)
+        recs = self.db.find_records(query)
+        self.assertTrue(len(recs)==0)
             
 class TestSQLiteBackend(TestDictBackend):
     def create_db(self):
@@ -164,19 +168,3 @@ class TestSQLiteBackend(TestDictBackend):
     
     def tearDown(self):
         self.db._db.close()
-
-# optional MongoDB test
-try:
-    from IPython.parallel.controller.mongodb import MongoDB
-except ImportError:
-    pass
-else:
-    class TestMongoBackend(TestDictBackend):
-        def create_db(self):
-            try:
-                return MongoDB(database='iptestdb')
-            except Exception:
-                raise SkipTest("Couldn't connect to mongodb instance")
-            
-        def tearDown(self):
-            self.db._connection.drop_database('iptestdb')

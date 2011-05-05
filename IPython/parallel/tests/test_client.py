@@ -235,3 +235,10 @@ class TestClient(ClusterTestCase):
     def test_resubmit_badkey(self):
         """ensure KeyError on resubmit of nonexistant task"""
         self.assertRaisesRemote(KeyError, self.client.resubmit, ['invalid'])
+
+    def test_purge_results(self):
+        hist = self.client.hub_history()
+        self.client.purge_results(hist)
+        newhist = self.client.hub_history()
+        self.assertTrue(len(newhist) == 0)
+

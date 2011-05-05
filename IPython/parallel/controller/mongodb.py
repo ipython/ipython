@@ -6,12 +6,10 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-from datetime import datetime
-
 from pymongo import Connection
 from pymongo.binary import Binary
 
-from IPython.utils.traitlets import Dict, List, CUnicode
+from IPython.utils.traitlets import Dict, List, CUnicode, CStr, Instance
 
 from .dictdb import BaseDB
 
@@ -25,15 +23,20 @@ class MongoDB(BaseDB):
     connection_args = List(config=True) # args passed to pymongo.Connection
     connection_kwargs = Dict(config=True) # kwargs passed to pymongo.Connection
     database = CUnicode(config=True) # name of the mongodb database
-    _table = Dict()
+
+    _connection = Instance(Connection) # pymongo connection
     
     def __init__(self, **kwargs):
         super(MongoDB, self).__init__(**kwargs)
-        self._connection = Connection(*self.connection_args, **self.connection_kwargs)
+        if self._connection is None:
+            self._connection = Connection(*self.connection_args, **self.connection_kwargs)
         if not self.database:
             self.database = self.session
         self._db = self._connection[self.database]
         self._records = self._db['task_records']
+        self._records.ensure_index('msg_id', unique=True)
+        self._records.ensure_index('submitted') # for sorting history
+        # for rec in self._records.find
     
     def _binary_buffers(self, rec):
         for key in ('buffers', 'result_buffers'):
@@ -45,18 +48,21 @@ class MongoDB(BaseDB):
         """Add a new Task Record, by msg_id."""
         # print rec
         rec = self._binary_buffers(rec)
-        obj_id = self._records.insert(rec)
-        self._table[msg_id] = obj_id
+        self._records.insert(rec)
     
     def get_record(self, msg_id):
         """Get a specific Task Record, by msg_id."""
-        return self._records.find_one(self._table[msg_id])
+        r = self._records.find_one({'msg_id': msg_id})
+        if not r:
+            # r will be '' if nothing is found
+            raise KeyError(msg_id)
+        return r
     
     def update_record(self, msg_id, rec):
         """Update the data in an existing record."""
         rec = self._binary_buffers(rec)
-        obj_id = self._table[msg_id]
-        self._records.update({'_id':obj_id}, {'$set': rec})
+
+        self._records.update({'msg_id':msg_id}, {'$set': rec})
     
     def drop_matching_records(self, check):
         """Remove a record from the DB."""
@@ -64,8 +70,7 @@ class MongoDB(BaseDB):
         
     def drop_record(self, msg_id):
         """Remove a record from the DB."""
-        obj_id = self._table.pop(msg_id)
-        self._records.remove(obj_id)
+        self._records.remove({'msg_id':msg_id})
     
     def find_records(self, check, keys=None):
         """Find records matching a query dict, optionally extracting subset of keys.

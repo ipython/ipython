@@ -199,6 +199,7 @@ def make_exclude():
     
     if not have['pymongo']:
         exclusions.append(ipjoin('parallel', 'controller', 'mongodb'))
+        exclusions.append(ipjoin('parallel', 'tests', 'test_mongodb'))
 
     if not have['matplotlib']:
         exclusions.extend([ipjoin('lib', 'pylabtools'),

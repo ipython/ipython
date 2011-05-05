@@ -1066,36 +1066,34 @@ class Hub(LoggingFactory):
             except Exception:
                 reply = error.wrap_exception()
         else:
-            for msg_id in msg_ids:
-                if msg_id in self.all_completed:
-                    self.db.drop_record(msg_id)
-                else:
-                    if msg_id in self.pending:
-                        try:
-                            raise IndexError("msg pending: %r"%msg_id)
-                        except:
-                            reply = error.wrap_exception()
-                    else:
-                        try:
-                            raise IndexError("No such msg: %r"%msg_id)
-                        except:
-                            reply = error.wrap_exception()
-                    break
-            eids = content.get('engine_ids', [])
-            for eid in eids:
-                if eid not in self.engines:
-                    try:
-                        raise IndexError("No such engine: %i"%eid)
-                    except:
-                        reply = error.wrap_exception()
-                    break
-                msg_ids = self.completed.pop(eid)
-                uid = self.engines[eid].queue
+            pending = filter(lambda m: m in self.pending, msg_ids)
+            if pending:
                 try:
-                    self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
+                    raise IndexError("msg pending: %r"%pending[0])
+                except:
+                    reply = error.wrap_exception()
+            else:
+                try:
+                    self.db.drop_matching_records(dict(msg_id={'$in':msg_ids}))
                 except Exception:
                     reply = error.wrap_exception()
-                    break
+
+            if reply['status'] == 'ok':
+                eids = content.get('engine_ids', [])
+                for eid in eids:
+                    if eid not in self.engines:
+                        try:
+                            raise IndexError("No such engine: %i"%eid)
+                        except:
+                            reply = error.wrap_exception()
+                        break
+                    msg_ids = self.completed.pop(eid)
+                    uid = self.engines[eid].queue
+                    try:
+                        self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
+                    except Exception:
+                        reply = error.wrap_exception()
+                        break
         
         self.session.send(self.query, 'purge_reply', content=reply, ident=client_id)
     
