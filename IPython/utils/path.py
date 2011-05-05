@@ -418,4 +418,6 @@ def check_for_old_config(ipython_dir=None):
             warn.warn("""Found old IPython config file %r.
     The IPython configuration system has changed as of 0.11, and this file will be ignored.
     See http://ipython.github.com/ipython-doc/dev/config for details on the new config system.
-    The current default config file is 'ipython_config.py'"""%f)
+    The current default config file is 'ipython_config.py', where you can suppress these
+    warnings with `Global.ignore_old_config = True`."""%f)
+
