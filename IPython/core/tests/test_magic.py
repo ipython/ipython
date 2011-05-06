@@ -394,6 +394,22 @@ def test_reset_hard():
     nt.assert_equal(monitor, [])
     _ip.magic_reset("-f")
     nt.assert_equal(monitor, [1])
+    
+class TestXdel(tt.TempFileMixin):
+    def test_xdel(self):
+        """Test that references from %run are cleared by xdel."""
+        src = ("class A(object):\n"
+               "    monitor = []\n"
+               "    def __del__(self):\n"
+               "        self.monitor.append(1)\n"
+               "a = A()\n")
+        self.mktmp(src)
+        _ip.magic("run %s" % self.fname)
+        _ip.run_cell("a")
+        monitor = _ip.user_ns["A"].monitor
+        nt.assert_equal(monitor, [])
+        _ip.magic("xdel a")
+        nt.assert_equal(monitor, [1])
 
 def doctest_who():
     """doctest for %who
