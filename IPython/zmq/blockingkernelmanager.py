@@ -31,11 +31,12 @@ from .kernelmanager import (KernelManager, SubSocketChannel,
 class BlockingSubSocketChannel(SubSocketChannel):
 
     def __init__(self, context, session, address=None):
-        super(BlockingSubSocketChannel, self).__init__(context, session, address)
+        super(BlockingSubSocketChannel, self).__init__(context, session,
+                                                       address)
         self._in_queue = Queue()
 
     def call_handlers(self, msg):
-        io.rprint('[[Sub]]', msg)  # dbg
+        #io.rprint('[[Sub]]', msg) # dbg
         self._in_queue.put(msg)
 
     def msg_ready(self):
@@ -59,16 +60,17 @@ class BlockingSubSocketChannel(SubSocketChannel):
                 break
         return msgs
 
-    
 
 class BlockingXReqSocketChannel(XReqSocketChannel):
 
     def __init__(self, context, session, address=None):
-        super(BlockingXReqSocketChannel, self).__init__(context, session, address)
+        super(BlockingXReqSocketChannel, self).__init__(context, session,
+                                                        address)
         self._in_queue = Queue()
 
     def call_handlers(self, msg):
-        io.rprint('[[XReq]]', msg)  # dbg
+        #io.rprint('[[XReq]]', msg) # dbg
+        self._in_queue.put(msg)
 
     def msg_ready(self):
         """Is there a message that has been received?"""
@@ -90,19 +92,24 @@ class BlockingXReqSocketChannel(XReqSocketChannel):
             except Empty:
                 break
         return msgs
+    
 
 class BlockingRepSocketChannel(RepSocketChannel):
+    
     def call_handlers(self, msg):
-        io.rprint('[[Rep]]', msg)  # dbg
+        #io.rprint('[[Rep]]', msg) # dbg
+        pass
 
 
 class BlockingHBSocketChannel(HBSocketChannel):
+    
     # This kernel needs rapid monitoring capabilities
     time_to_dead = 0.2
 
     def call_handlers(self, since_last_heartbeat):
-        io.rprint('[[Heart]]', since_last_heartbeat) # dbg
-    
+        #io.rprint('[[Heart]]', since_last_heartbeat) # dbg
+        pass
+
 
 class BlockingKernelManager(KernelManager):
     
