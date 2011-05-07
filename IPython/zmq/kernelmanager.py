@@ -835,8 +835,15 @@ class KernelManager(HasTraits):
             except OSError, e:
                 # In Windows, we will get an Access Denied error if the process
                 # has already terminated. Ignore it.
-                if not (sys.platform == 'win32' and e.winerror == 5):
-                    raise
+                if sys.platform == 'win32':
+                    if e.winerror != 5:
+                        raise
+                # On Unix, we may get an ESRCH error if the process has already
+                # terminated. Ignore it.
+                else:
+                    from errno import ESRCH
+                    if e.errno != ESRCH:
+                        raise
             self.kernel = None
         else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")
