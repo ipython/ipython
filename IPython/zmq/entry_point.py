@@ -23,6 +23,7 @@ from iostream import OutStream
 from parentpoller import ParentPollerUnix, ParentPollerWindows
 from session import Session
 
+
 def bind_port(socket, ip, port):
     """ Binds the specified ZMQ socket. If the port is zero, a random port is
     chosen. Returns the port that was bound.
@@ -155,6 +156,7 @@ def make_default_main(kernel_factory):
 
 
 def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
+                       stdin=None, stdout=None, stderr=None,
                        executable=None, independent=False, extra_arguments=[]):
     """ Launches a localhost kernel, binding to the specified ports.
 
@@ -174,6 +176,9 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     hb_port : int, optional
         The port to use for the hearbeat REP channel.
+
+    stdin, stdout, stderr : optional (default None)
+        Standards streams, as defined in subprocess.Popen.
 
     executable : str, optional (default sys.executable)
         The Python executable to use for the kernel process.
@@ -231,12 +236,19 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         # If using pythonw, stdin, stdout, and stderr are invalid. Popen will
         # fail unless they are suitably redirected. We don't read from the
         # pipes, but they must exist.
-        redirect = PIPE if executable.endswith('pythonw.exe') else None
+        if executable.endswith('pythonw.exe'):
+            redirect = True
+            _stdin = PIPE if stdin is None else stdin
+            _stdout = PIPE if stdout is None else stdout
+            _stderr = PIPE if stderr is None else stderr
+        else:
+            redirect = False
+            _stdin, _stdout, _stderr = stdin, stdout, stderr
 
         if independent:
             proc = Popen(arguments, 
                          creationflags=512, # CREATE_NEW_PROCESS_GROUP
-                         stdout=redirect, stderr=redirect, stdin=redirect)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
         else:
             from _subprocess import DuplicateHandle, GetCurrentProcess, \
                 DUPLICATE_SAME_ACCESS
@@ -245,21 +257,26 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                                      True, # Inheritable by new processes.
                                      DUPLICATE_SAME_ACCESS)
             proc = Popen(arguments + ['--parent', str(int(handle))],
-                         stdout=redirect, stderr=redirect, stdin=redirect)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
 
         # Attach the interrupt event to the Popen objet so it can be used later.
         proc.win32_interrupt_event = interrupt_event
 
         # Clean up pipes created to work around Popen bug.
-        if redirect is not None:
-            proc.stdout.close()
-            proc.stderr.close()
-            proc.stdin.close()
+        if redirect:
+            if stdin is None:
+                proc.stdin.close()
+            if stdout is None:
+                proc.stdout.close()
+            if stderr is None:
+                proc.stderr.close()
 
     else:
         if independent:
-            proc = Popen(arguments, preexec_fn=lambda: os.setsid())
+            proc = Popen(arguments, preexec_fn=lambda: os.setsid(),
+                         stdin=stdin, stdout=stdout, stderr=stderr)
         else:
-            proc = Popen(arguments + ['--parent'])
+            proc = Popen(arguments + ['--parent'],
+                         stdin=stdin, stdout=stdout, stderr=stderr)
 
     return proc, xrep_port, pub_port, req_port, hb_port
