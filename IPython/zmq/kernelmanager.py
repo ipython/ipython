@@ -34,7 +34,7 @@ from zmq.eventloop import ioloop
 from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
-from session import Session
+from session import Session, Message
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -282,15 +282,13 @@ class XReqSocketChannel(ZmqSocketChannel):
         self._queue_request(msg)
         return msg['header']['msg_id']
 
-    def history(self, index=None, raw=False, output=True):
+    def history_tail(self, n=10, raw=True, output=False):
         """Get the history list.
 
         Parameters
         ----------
-        index : n or (n1, n2) or None
-            If n, then the last entries. If a tuple, then all in
-            range(n1, n2). If None, then all entries. Raises IndexError if
-            the format of index is incorrect.
+        n : int
+            The number of lines of history to get.
         raw : bool
             If True, return the raw input.
         output : bool
@@ -300,8 +298,8 @@ class XReqSocketChannel(ZmqSocketChannel):
         -------
         The msg_id of the message sent.
         """
-        content = dict(index=index, raw=raw, output=output)
-        msg = self.session.msg('history_request', content)
+        content = dict(n=n, raw=raw, output=output)
+        msg = self.session.msg('history_tail_request', content)
         self._queue_request(msg)
         return msg['header']['msg_id']
 
@@ -331,7 +329,7 @@ class XReqSocketChannel(ZmqSocketChannel):
             self._handle_recv()
 
     def _handle_recv(self):
-        msg = self.socket.recv_json()
+        ident,msg = self.session.recv(self.socket, 0)
         self.call_handlers(msg)
 
     def _handle_send(self):
@@ -340,7 +338,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         except Empty:
             pass
         else:
-            self.socket.send_json(msg)
+            self.session.send(self.socket,msg)
         if self.command_queue.empty():
             self.drop_io_state(POLLOUT)
 
@@ -425,12 +423,14 @@ class SubSocketChannel(ZmqSocketChannel):
         # Get all of the messages we can
         while True:
             try:
-                msg = self.socket.recv_json(zmq.NOBLOCK)
+                ident,msg = self.session.recv(self.socket)
             except zmq.ZMQError:
                 # Check the errno?
                 # Will this trigger POLLERR?
                 break
             else:
+                if msg is None:
+                    break
                 self.call_handlers(msg)
 
     def _flush(self):
@@ -487,7 +487,7 @@ class RepSocketChannel(ZmqSocketChannel):
             self._handle_recv()
 
     def _handle_recv(self):
-        msg = self.socket.recv_json()
+        ident,msg = self.session.recv(self.socket, 0)
         self.call_handlers(msg)
 
     def _handle_send(self):
@@ -496,7 +496,7 @@ class RepSocketChannel(ZmqSocketChannel):
         except Empty:
             pass
         else:
-            self.socket.send_json(msg)
+            self.session.send(self.socket,msg)
         if self.msg_queue.empty():
             self.drop_io_state(POLLOUT)
 
@@ -547,7 +547,7 @@ class HBSocketChannel(ZmqSocketChannel):
                 request_time = time.time()
                 try:
                     #io.rprint('Ping from HB channel') # dbg
-                    self.socket.send_json('ping')
+                    self.socket.send(b'ping')
                 except zmq.ZMQError, e:
                     #io.rprint('*** HB Error:', e) # dbg
                     if e.errno == zmq.EFSM:
@@ -559,7 +559,7 @@ class HBSocketChannel(ZmqSocketChannel):
                 else:
                     while True:
                         try:
-                            self.socket.recv_json(zmq.NOBLOCK)
+                            self.socket.recv(zmq.NOBLOCK)
                         except zmq.ZMQError, e:
                             #io.rprint('*** HB Error 2:', e) # dbg
                             if e.errno == zmq.EAGAIN:
@@ -721,6 +721,9 @@ class KernelManager(HasTraits):
         -----------
         ipython : bool, optional (default True)
              Whether to use an IPython kernel instead of a plain Python kernel.
+
+        **kw : optional
+             See respective options for IPython and Python kernels.
         """
         xreq, sub, rep, hb = self.xreq_address, self.sub_address, \
             self.rep_address, self.hb_address
@@ -772,30 +775,39 @@ class KernelManager(HasTraits):
             if self.has_kernel:
                 self.kill_kernel()
     
-    def restart_kernel(self, now=False):
-        """Restarts a kernel with the same arguments that were used to launch
-        it. If the old kernel was launched with random ports, the same ports
-        will be used for the new kernel.
+    def restart_kernel(self, now=False, **kw):
+        """Restarts a kernel with the arguments that were used to launch it.
+        
+        If the old kernel was launched with random ports, the same ports will be
+        used for the new kernel.
 
         Parameters
         ----------
         now : bool, optional
-          If True, the kernel is forcefully restarted *immediately*, without
-          having a chance to do any cleanup action.  Otherwise the kernel is
-          given 1s to clean up before a forceful restart is issued.
+            If True, the kernel is forcefully restarted *immediately*, without
+            having a chance to do any cleanup action.  Otherwise the kernel is
+            given 1s to clean up before a forceful restart is issued.
 
-          In all cases the kernel is restarted, the only difference is whether
-          it is given a chance to perform a clean shutdown or not.
+            In all cases the kernel is restarted, the only difference is whether
+            it is given a chance to perform a clean shutdown or not.
+
+        **kw : optional
+            Any options specified here will replace those used to launch the
+            kernel.
         """
         if self._launch_args is None:
             raise RuntimeError("Cannot restart the kernel. "
                                "No previous call to 'start_kernel'.")
         else:
+            # Stop currently running kernel.
             if self.has_kernel:
                 if now:
                     self.kill_kernel()
                 else:
                     self.shutdown_kernel(restart=True)
+
+            # Start new kernel.
+            self._launch_args.update(kw)
             self.start_kernel(**self._launch_args)
 
             # FIXME: Messages get dropped in Windows due to probable ZMQ bug
@@ -899,7 +911,8 @@ class KernelManager(HasTraits):
 
     @property
     def hb_channel(self):
-        """Get the REP socket channel object to handle stdin (raw_input)."""
+        """Get the heartbeat socket channel object to check that the
+        kernel is alive."""
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(self.context, 
                                                        self.session,

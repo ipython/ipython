@@ -4,6 +4,8 @@ from session import extract_header
 
 class DisplayHook(object):
 
+    topic=None
+
     def __init__(self, session, pub_socket):
         self.session = session
         self.pub_socket = pub_socket
@@ -14,9 +16,8 @@ class DisplayHook(object):
             return
 
         __builtin__._ = obj
-        msg = self.session.msg(u'pyout', {u'data':repr(obj)},
-                               parent=self.parent_header)
-        self.pub_socket.send_json(msg)
+        msg = self.session.send(self.pub_socket, u'pyout', {u'data':repr(obj)},
+                               parent=self.parent_header, ident=self.topic)
 
     def set_parent(self, parent):
         self.parent_header = extract_header(parent)

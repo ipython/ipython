@@ -11,7 +11,7 @@ Overview
 
 ::
 
-   git clone git@github.com/your-user-name/ipython.git
+   git clone git@github.com:your-user-name/ipython.git
    cd ipython
    git remote add upstream git://github.com/ipython/ipython.git
 

@@ -33,7 +33,15 @@ class RunnerTestCase(unittest.TestCase):
         out_l = [l for l in out.splitlines() if l and not l.isspace()]
         mismatch  = 0
         if len(output_l) != len(out_l):
-            self.fail('mismatch in number of lines')
+            message = ("Mismatch in number of lines\n\n"
+                       "Expected:\n"
+                       "~~~~~~~~~\n"
+                       "%s\n\n"
+                       "Got:\n"
+                       "~~~~~~~~~\n"
+                       "%s"
+                       ) % ("\n".join(output_l), "\n".join(out_l))
+            self.fail(message)
         for n in range(len(output_l)):
             # Do a line-by-line comparison
             ol1 = output_l[n].strip()
@@ -69,7 +77,7 @@ for i in range(5):
 
 print "that's all folks!"
 
-%Exit
+exit
 """
         output = """\
 In [1]: print 'hello, this is python'
@@ -97,10 +105,10 @@ In [7]: autocall 0
 Automatic calling is: OFF
 
 In [8]: cos pi
-   File "<ipython-input-8-6bd7313dd9a9>", line 1
+   File "<ipython-input-8-586f1104ea44>", line 1
      cos pi
           ^
-SyntaxError: invalid syntax
+SyntaxError: unexpected EOF while parsing
 
 
 In [9]: cos(pi)
@@ -116,7 +124,7 @@ In [11]: print "that's all folks!"
 that's all folks!
 
 
-In [12]: %Exit
+In [12]: exit
 """
         runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)

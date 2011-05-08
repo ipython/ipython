@@ -18,19 +18,19 @@ from __future__ import print_function
 # Stdlib
 import inspect
 import os
-import re
 
 # Our own
 from IPython.core.interactiveshell import (
     InteractiveShell, InteractiveShellABC
 )
 from IPython.core import page
+from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displayhook import DisplayHook
+from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
 from IPython.core.payloadpage import install_payload_page
 from IPython.utils import io
 from IPython.utils.path import get_py_filename
-from IPython.utils.text import StringTypes
 from IPython.utils.traitlets import Instance, Type, Dict
 from IPython.utils.warn import warn
 from IPython.zmq.session import extract_header
@@ -48,6 +48,7 @@ install_payload_page()
 #-----------------------------------------------------------------------------
 
 class ZMQDisplayHook(DisplayHook):
+    """A displayhook subclass that publishes data using ZeroMQ."""
 
     session = Instance(Session)
     pub_socket = Instance('zmq.Socket')
@@ -65,20 +66,50 @@ class ZMQDisplayHook(DisplayHook):
         if self.do_full_cache:
             self.msg['content']['execution_count'] = self.prompt_count
 
-    def write_result_repr(self, result_repr, extra_formats):
-        self.msg['content']['data'] = result_repr
-        self.msg['content']['extra_formats'] = extra_formats
+    def write_format_data(self, format_dict):
+        self.msg['content']['data'] = format_dict
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
-        self.pub_socket.send_json(self.msg)
+        self.session.send(self.pub_socket, self.msg)
         self.msg = None
+
+
+class ZMQDisplayPublisher(DisplayPublisher):
+    """A display publisher that publishes data using a ZeroMQ PUB socket."""
+
+    session = Instance(Session)
+    pub_socket = Instance('zmq.Socket')
+    parent_header = Dict({})
+
+    def set_parent(self, parent):
+        """Set the parent for outbound messages."""
+        self.parent_header = extract_header(parent)
+
+    def publish(self, source, data, metadata=None):
+        if metadata is None:
+            metadata = {}
+        self._validate_data(source, data, metadata)
+        content = {}
+        content['source'] = source
+        content['data'] = data
+        content['metadata'] = metadata
+        self.session.send(
+            self.pub_socket, u'display_data', content,
+            parent=self.parent_header
+        )
 
 
 class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
 
     displayhook_class = Type(ZMQDisplayHook)
+    display_pub_class = Type(ZMQDisplayPublisher)
+    
+    exiter = Instance(ZMQExitAutocall)
+    def _exiter_default(self):
+        return ZMQExitAutocall(self)
+
     keepkernel_on_exit = None
 
     def init_environment(self):
@@ -126,10 +157,9 @@ class ZMQInteractiveShell(InteractiveShell):
         }
 
         dh = self.displayhook
-        exc_msg = dh.session.msg(u'pyerr', exc_content, dh.parent_header)
         # Send exception info over pub socket for other clients than the caller
         # to pick up
-        dh.pub_socket.send_json(exc_msg)
+        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', exc_content, dh.parent_header)
 
         # FIXME - Hack: store exception info in shell object.  Right now, the
         # caller is reading this info after the fact, we need to fix this logic
@@ -179,6 +209,8 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # Shorthands
         shell = self.shell
+        disp_formatter = self.shell.display_formatter
+        ptformatter = disp_formatter.formatters['text/plain']
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.
         dstore = shell.meta.setdefault('doctest_mode', Struct())
@@ -186,16 +218,19 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # save a few values we'll need to recover later
         mode = save_dstore('mode', False)
-        save_dstore('rc_pprint', shell.pprint)
+        save_dstore('rc_pprint', ptformatter.pprint)
+        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
         save_dstore('xmode', shell.InteractiveTB.mode)
         
         if mode == False:
             # turn on
-            shell.pprint = False
+            ptformatter.pprint = False
+            disp_formatter.plain_text_only = True
             shell.magic_xmode('Plain')
         else:
             # turn off
-            shell.pprint = dstore.rc_pprint
+            ptformatter.pprint = dstore.rc_pprint
+            disp_formatter.plain_text_only = dstore.rc_plain_text_only
             shell.magic_xmode(dstore.xmode)
 
         # Store new mode and inform on console
@@ -401,9 +436,10 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # by default this is done with temp files, except when the given
         # arg is a filename
-        use_temp = 1
+        use_temp = True
 
-        if re.match(r'\d',args):
+        data = ''
+        if args[0].isdigit():
             # Mode where user specifies ranges of lines, like in %macro.
             # This means that you can't edit files whose names begin with
             # numbers this way. Tough.
@@ -411,16 +447,15 @@ class ZMQInteractiveShell(InteractiveShell):
             data = ''.join(self.extract_input_slices(ranges,opts_r))
         elif args.endswith('.py'):
             filename = make_filename(args)
-            data = ''
-            use_temp = 0
+            use_temp = False
         elif args:
             try:
                 # Load the parameter given as a variable. If not a string,
                 # process it as an object instead (below)
 
                 #print '*** args',args,'type',type(args)  # dbg
-                data = eval(args,self.shell.user_ns)
-                if not type(data) in StringTypes:
+                data = eval(args, self.shell.user_ns)
+                if not isinstance(data, basestring):
                     raise DataIsObject
 
             except (NameError,SyntaxError):
@@ -430,13 +465,11 @@ class ZMQInteractiveShell(InteractiveShell):
                     warn("Argument given (%s) can't be found as a variable "
                          "or as a filename." % args)
                     return
-
-                data = ''
-                use_temp = 0
+                use_temp = False
+                
             except DataIsObject:
-
                 # macros have a special edit function
-                if isinstance(data,Macro):
+                if isinstance(data, Macro):
                     self._edit_macro(args,data)
                     return
                                 
@@ -475,9 +508,7 @@ class ZMQInteractiveShell(InteractiveShell):
                             warn('The file `%s` where `%s` was defined cannot '
                                  'be read.' % (filename,data))
                             return
-                use_temp = 0
-        else:
-            data = ''
+                use_temp = False
 
         if use_temp:
             filename = self.shell.mktempfile(data)
@@ -566,16 +597,5 @@ class ZMQInteractiveShell(InteractiveShell):
             text=content
         )
         self.payload_manager.write_payload(payload)
-        
-    def magic_Exit(self, parameter_s=''):
-        """Exit IPython. If the -k option is provided, the kernel will be left
-        running. Otherwise, it will shutdown without prompting.
-        """
-        opts,args = self.parse_options(parameter_s,'k')
-        self.shell.keepkernel_on_exit = opts.has_key('k')
-        self.shell.ask_exit()
-
-    # Add aliases as magics so all common forms work: exit, quit, Exit, Quit.
-    magic_exit = magic_quit = magic_Quit = magic_Exit
 
 InteractiveShellABC.register(ZMQInteractiveShell)

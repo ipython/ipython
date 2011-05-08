@@ -2,7 +2,7 @@
 """
 
 # System library imports.
-from PyQt4 import QtCore, QtGui, QtSvg
+from IPython.external.qt import QtCore, QtGui, QtSvg
 
 
 def save_svg(string, parent=None):
@@ -10,8 +10,8 @@ def save_svg(string, parent=None):
 
     Parameters:
     -----------
-    string : str
-        A Python string or QString containing a SVG document.
+    string : basestring
+        A Python string containing a SVG document.
 
     parent : QWidget, optional
         The parent to use for the file dialog.
@@ -40,15 +40,14 @@ def svg_to_clipboard(string):
 
     Parameters:
     -----------
-    string : str
-        A Python string or QString containing a SVG document.
+    string : basestring
+        A Python string containing a SVG document.
     """
-    if isinstance(string, basestring):
-        bytes = QtCore.QByteArray(string)
-    else:
-        bytes = string.toAscii()
+    if isinstance(string, unicode):
+        string = string.encode('utf-8')
+
     mime_data = QtCore.QMimeData()
-    mime_data.setData('image/svg+xml', bytes)
+    mime_data.setData('image/svg+xml', string)
     QtGui.QApplication.clipboard().setMimeData(mime_data)
         
 def svg_to_image(string, size=None):
@@ -56,8 +55,8 @@ def svg_to_image(string, size=None):
 
     Parameters:
     -----------
-    string : str
-        A Python string or QString containing a SVG document.
+    string : basestring
+        A Python string containing a SVG document.
 
     size : QSize, optional
         The size of the image that is produced. If not specified, the SVG
@@ -72,12 +71,10 @@ def svg_to_image(string, size=None):
     --------
     A QImage of format QImage.Format_ARGB32.
     """
-    if isinstance(string, basestring):
-        bytes = QtCore.QByteArray.fromRawData(string) # shallow copy
-    else:
-        bytes = string.toAscii()
+    if isinstance(string, unicode):
+        string = string.encode('utf-8')
 
-    renderer = QtSvg.QSvgRenderer(bytes)
+    renderer = QtSvg.QSvgRenderer(QtCore.QByteArray(string))
     if not renderer.isValid():
         raise ValueError('Invalid SVG data.')
 

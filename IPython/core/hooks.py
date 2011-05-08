@@ -45,7 +45,6 @@ import os, bisect
 import sys
 
 from IPython.core.error import TryNext
-import IPython.utils.io
 
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
@@ -154,33 +153,6 @@ class CommandChainDispatcher:
         Handy if the objects are not callable.
         """
         return iter(self.chain)
-
-
-def result_display(self,arg):
-    """ Default display hook.
-    
-    Called for displaying the result to the user.
-    """
-    
-    if self.pprint:
-        try:
-            out = pformat(arg)
-        except:
-            # Work around possible bugs in pformat
-            out = repr(arg)
-        if '\n' in out:
-            # So that multi-line strings line up with the left column of
-            # the screen, instead of having the output prompt mess up
-            # their first line.                
-            IPython.utils.io.Term.cout.write('\n')
-        print >>IPython.utils.io.Term.cout, out
-    else:
-        # By default, the interactive prompt uses repr() to display results,
-        # so we should honor this.  Users who'd rather use a different
-        # mechanism can easily override this hook.
-        print >>IPython.utils.io.Term.cout, repr(arg)
-    # the default display hook doesn't manipulate the value to put in history
-    return None 
 
 
 def input_prefilter(self,line):     

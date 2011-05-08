@@ -188,10 +188,10 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             action='store_false', dest='InteractiveShell.pdb',
             help="Disable auto calling the pdb debugger after every exception.")
         paa('--pprint',
-            action='store_true', dest='InteractiveShell.pprint',
+            action='store_true', dest='PlainTextFormatter.pprint',
             help="Enable auto pretty printing of results.")
         paa('--no-pprint',
-            action='store_false', dest='InteractiveShell.pprint',
+            action='store_false', dest='PlainTextFormatter.pprint',
             help="Disable auto auto pretty printing of results.")
         paa('--prompt-in1','-pi1',
             type=str, dest='InteractiveShell.prompt_in1',
@@ -299,7 +299,7 @@ class IPAppConfigLoader(BaseAppConfigLoader):
             nargs='?', const='auto', metavar='gui-mode',
             help="Pre-load matplotlib and numpy for interactive use. "+
             "If no value is given, the gui backend is matplotlib's, else use "+
-            "one of:  ['tk', 'qt', 'wx', 'gtk'].")
+            "one of:  ['tk', 'qt', 'wx', 'gtk', 'osx'].")
 
         # Legacy GUI options.  Leave them in for backwards compatibility, but the
         # 'thread' names are really a misnomer now.
@@ -443,7 +443,7 @@ class IPythonApp(Application):
         if hasattr(config.Global, 'classic'):
             if config.Global.classic:
                 config.InteractiveShell.cache_size = 0
-                config.InteractiveShell.pprint = 0
+                config.PlainTextFormatter.pprint = False
                 config.InteractiveShell.prompt_in1 = '>>> '
                 config.InteractiveShell.prompt_in2 = '... '
                 config.InteractiveShell.prompt_out = ''
@@ -570,7 +570,7 @@ class IPythonApp(Application):
                     try:
                         self.log.info("Running code in user namespace: %s" %
                                       line)
-                        self.shell.run_cell(line)
+                        self.shell.run_cell(line, store_history=False)
                     except:
                         self.log.warn("Error in executing line in user "
                                       "namespace: %s" % line)
@@ -615,7 +615,7 @@ class IPythonApp(Application):
             try:
                 self.log.info("Running code given at command line (-c): %s" %
                               line)
-                self.shell.run_cell(line)
+                self.shell.run_cell(line, store_history=False)
             except:
                 self.log.warn("Error in executing line in user namespace: %s" %
                               line)

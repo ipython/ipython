@@ -50,16 +50,19 @@ the ``I`` in IPython.  The following are some example usage cases for IPython:
 Architecture overview
 =====================
 
-The IPython architecture consists of three components:
+The IPython architecture consists of four components:
 
 * The IPython engine.
-* The IPython controller.
-* Various controller clients.
+* The IPython hub.
+* The IPython schedulers.
+* The controller client.
 
-These components live in the :mod:`IPython.kernel` package and are
+These components live in the :mod:`IPython.parallel` package and are
 installed with IPython.  They do, however, have additional dependencies
 that must be installed.  For more information, see our
 :ref:`installation documentation <install_index>`.
+
+.. TODO: include zmq in install_index
 
 IPython engine
 ---------------
@@ -77,95 +80,111 @@ to the user.
 IPython controller
 ------------------
 
-The IPython controller provides an interface for working with a set of
-engines. At an general level, the controller is a process to which
-IPython engines can connect. For each connected engine, the controller
-manages a queue. All actions that can be performed on the engine go
-through this queue. While the engines themselves block when user code is
-run, the controller hides that from the user to provide a fully
-asynchronous interface to a set of engines. 
-
-.. note::
-
-    Because the controller listens on a network port for engines to 
-    connect to it, it must be started *before* any engines are started.  
+The IPython controller processes provide an interface for working with a set of engines.
+At a general level, the controller is a collection of processes to which IPython engines
+and clients can connect. The controller is composed of a :class:`Hub` and a collection of
+:class:`Schedulers`. These Schedulers are typically run in separate processes but on the
+same machine as the Hub, but can be run anywhere from local threads or on remote machines.
 
 The controller also provides a single point of contact for users who wish to
 utilize the engines connected to the controller. There are different ways of
-working with a controller. In IPython these ways correspond to different
-interfaces that the controller is adapted to. Currently we have two default
-interfaces to the controller:
+working with a controller. In IPython, all of these models are implemented via
+the client's :meth:`.View.apply` method, with various arguments, or
+constructing :class:`.View` objects to represent subsets of engines. The two
+primary models for interacting with engines are:
 
-* The MultiEngine interface, which provides the simplest possible way of
-  working with engines interactively.
-* The Task interface, which presents the engines as a load balanced
-  task farming system.
+* A **Direct** interface, where engines are addressed explicitly.
+* A **LoadBalanced** interface, where the Scheduler is trusted with assigning work to
+  appropriate engines.
 
-Advanced users can easily add new custom interfaces to enable other
+Advanced users can readily extend the View models to enable other
 styles of parallelism. 
 
 .. note:: 
 
-	A single controller and set of engines can be accessed 
-	through multiple interfaces simultaneously.  This opens the
-	door for lots of interesting things.  
+    A single controller and set of engines can be used with multiple models
+    simultaneously. This opens the door for lots of interesting things.
 
-Controller clients
-------------------
 
-For each controller interface, there is a corresponding client. These
-clients allow users to interact with a set of engines through the
-interface.  Here are the two default clients:
+The Hub
+*******
 
-* The :class:`MultiEngineClient` class.
-* The :class:`TaskClient` class.
+The center of an IPython cluster is the Hub. This is the process that keeps
+track of engine connections, schedulers, clients, as well as all task requests and
+results. The primary role of the Hub is to facilitate queries of the cluster state, and
+minimize the necessary information required to establish the many connections involved in
+connecting new clients and engines.
+
+
+Schedulers
+**********
+
+All actions that can be performed on the engine go through a Scheduler. While the engines
+themselves block when user code is run, the schedulers hide that from the user to provide
+a fully asynchronous interface to a set of engines.
+
+
+IPython client and views
+------------------------
+
+There is one primary object, the :class:`~.parallel.Client`, for connecting to a cluster.
+For each execution model, there is a corresponding :class:`~.parallel.View`. These views
+allow users to interact with a set of engines through the interface. Here are the two default
+views:
+
+* The :class:`DirectView` class for explicit addressing.
+* The :class:`LoadBalancedView` class for destination-agnostic scheduling.
 
 Security
 --------
 
-By default (as long as `pyOpenSSL` is installed) all network connections
-between the controller and engines and the controller and clients are secure.
-What does this mean? First of all, all of the connections will be encrypted
-using SSL. Second, the connections are authenticated. We handle authentication
-in a capability based security model [Capability]_. In this model, a
-"capability (known in some systems as a key) is a communicable, unforgeable
-token of authority". Put simply, a capability is like a key to your house. If
-you have the key to your house, you can get in. If not, you can't.
+IPython uses ZeroMQ for networking, which has provided many advantages, but
+one of the setbacks is its utter lack of security [ZeroMQ]_. By default, no IPython
+connections are encrypted, but open ports only listen on localhost. The only
+source of security for IPython is via ssh-tunnel. IPython supports both shell
+(`openssh`) and `paramiko` based tunnels for connections.  There is a key necessary
+to submit requests, but due to the lack of encryption, it does not provide
+significant security if loopback traffic is compromised.
 
 In our architecture, the controller is the only process that listens on
-network ports, and is thus responsible to creating these keys. In IPython,
-these keys are known as Foolscap URLs, or FURLs, because of the underlying
-network protocol we are using. As a user, you don't need to know anything
-about the details of these FURLs, other than that when the controller starts,
-it saves a set of FURLs to files named :file:`something.furl`. The default
-location of these files is the :file:`~./ipython/security` directory.
+network ports, and is thus the main point of vulnerability. The standard model
+for secure connections is to designate that the controller listen on
+localhost, and use ssh-tunnels to connect clients and/or
+engines.
 
-To connect and authenticate to the controller an engine or client simply needs
-to present an appropriate FURL (that was originally created by the controller)
-to the controller. Thus, the FURL files need to be copied to a location where
+To connect and authenticate to the controller an engine or client needs
+some information that the controller has stored in a JSON file.
+Thus, the JSON files need to be copied to a location where
 the clients and engines can find them. Typically, this is the
-:file:`~./ipython/security` directory on the host where the client/engine is
-running (which could be a different host than the controller). Once the FURL
-files are copied over, everything should work fine.
+:file:`~/.ipython/cluster_default/security` directory on the host where the 
+client/engine is running (which could be a different host than the controller). 
+Once the JSON files are copied over, everything should work fine.
 
-Currently, there are three FURL files that the controller creates:
+Currently, there are two JSON files that the controller creates:
 
-ipcontroller-engine.furl
-    This FURL file is the key that gives an engine the ability to connect
+ipcontroller-engine.json
+    This JSON file has the information necessary for an engine to connect
     to a controller.
 
-ipcontroller-tc.furl
-    This FURL file is the key that a :class:`TaskClient` must use to
-    connect to the task interface of a controller.
-    
-ipcontroller-mec.furl
-    This FURL file is the key that a :class:`MultiEngineClient` must use
-    to connect to the multiengine interface of a controller.
+ipcontroller-client.json
+    The client's connection information.  This may not differ from the engine's,
+    but since the controller may listen on different ports for clients and
+    engines, it is stored separately.
 
-More details of how these FURL files are used are given below.
+More details of how these JSON files are used are given below.
 
 A detailed description of the security model and its implementation in IPython
 can be found :ref:`here <parallelsecurity>`.
+
+.. warning::
+
+    Even at its most secure, the Controller listens on ports on localhost, and
+    every time you make a tunnel, you open a localhost port on the connecting
+    machine that points to the Controller. If localhost on the Controller's
+    machine, or the machine of any client or engine, is untrusted, then your
+    Controller is insecure. There is no way around this with ZeroMQ.
+
+
 
 Getting Started
 ===============
@@ -176,7 +195,7 @@ simply start a controller and engines on a single host using the
 :command:`ipcluster` command. To start a controller and 4 engines on your
 localhost, just do::
 
-    $ ipcluster local -n 4
+    $ ipcluster start -n 4
 
 More details about starting the IPython controller and engines can be found
 :ref:`here <parallel_process>`
@@ -187,51 +206,48 @@ everything is working correctly, try the following commands:
 
 .. sourcecode:: ipython
 
-	In [1]: from IPython.kernel import client
+	In [1]: from IPython.parallel import Client
 	
-	In [2]: mec = client.MultiEngineClient()
+	In [2]: c = Client()
 	
-	In [4]: mec.get_ids()
-	Out[4]: [0, 1, 2, 3]
+	In [4]: c.ids
+	Out[4]: set([0, 1, 2, 3])
 	
-	In [5]: mec.execute('print "Hello World"')
-	Out[5]: 
-	<Results List>
-	[0] In [1]: print "Hello World"
-	[0] Out[1]: Hello World
+	In [5]: c[:].apply_sync(lambda : "Hello, World")
+	Out[5]: [ 'Hello, World', 'Hello, World', 'Hello, World', 'Hello, World' ]
 
-	[1] In [1]: print "Hello World"
-	[1] Out[1]: Hello World
 
-	[2] In [1]: print "Hello World"
-	[2] Out[1]: Hello World
+When a client is created with no arguments, the client tries to find the corresponding JSON file
+in the local `~/.ipython/cluster_default/security` directory. Or if you specified a profile,
+you can use that with the Client.  This should cover most cases:
 
-	[3] In [1]: print "Hello World"
-	[3] Out[1]: Hello World
+.. sourcecode:: ipython
 
-Remember, a client also needs to present a FURL file to the controller. How
-does this happen? When a multiengine client is created with no arguments, the
-client tries to find the corresponding FURL file in the local
-:file:`~./ipython/security` directory. If it finds it, you are set. If you
-have put the FURL file in a different location or it has a different name,
-create the client like this::
+    In [2]: c = Client(profile='myprofile')
 
-    mec = client.MultiEngineClient('/path/to/my/ipcontroller-mec.furl')
+If you have put the JSON file in a different location or it has a different name, create the
+client like this:
 
-Same thing hold true of creating a task client::
+.. sourcecode:: ipython
 
-    tc = client.TaskClient('/path/to/my/ipcontroller-tc.furl')
+    In [2]: c = Client('/path/to/my/ipcontroller-client.json')
 
-You are now ready to learn more about the :ref:`MultiEngine
-<parallelmultiengine>` and :ref:`Task <paralleltask>` interfaces to the
+Remember, a client needs to be able to see the Hub's ports to connect. So if they are on a
+different machine, you may need to use an ssh server to tunnel access to that machine,
+then you would connect to it with:
+
+.. sourcecode:: ipython
+
+    In [2]: c = Client(sshserver='myhub.example.com')
+
+Where 'myhub.example.com' is the url or IP address of the machine on
+which the Hub process is running (or another machine that has direct access to the Hub's ports).
+
+The SSH server may already be specified in ipcontroller-client.json, if the controller was
+instructed at its launch time.
+
+You are now ready to learn more about the :ref:`Direct
+<parallel_multiengine>` and :ref:`LoadBalanced <parallel_task>` interfaces to the
 controller.
 
-.. note:: 
-
-    Don't forget that the engine, multiengine client and task client all have
-    *different* furl files. You must move *each* of these around to an
-    appropriate location so that the engines and clients can use them to
-    connect to the controller.
-
-.. [Capability] Capability-based security, http://en.wikipedia.org/wiki/Capability-based_security
-
+.. [ZeroMQ] ZeroMQ.  http://www.zeromq.org

@@ -25,11 +25,19 @@ from IPython.utils.importstring import import_item
 # Code
 #-----------------------------------------------------------------------------
 
+fs_encoding = sys.getfilesystemencoding()
+
+def _cast_unicode(s, enc=None):
+    """Turn 8-bit strings into unicode."""
+    if isinstance(s, bytes):
+        enc = enc or sys.getdefaultencoding()
+        return s.decode(enc)
+    return s
+
 
 def _get_long_path_name(path):
     """Dummy no-op."""
     return path
-
 
 if sys.platform == 'win32':
     def _get_long_path_name(path):
@@ -170,16 +178,26 @@ def get_home_dir():
         root=os.path.abspath(root).rstrip('\\')
         if isdir(os.path.join(root, '_ipython')):
             os.environ["IPYKITROOT"] = root
-        return root.decode(sys.getfilesystemencoding())
+        return _cast_unicode(root, fs_encoding)
 
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
         try:
             homedir = env['HOME']
         except KeyError:
-            raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
+            # Last-ditch attempt at finding a suitable $HOME, on systems where
+            # it may not be defined in the environment but the system shell
+            # still knows it - reported once as:
+            # https://github.com/ipython/ipython/issues/154
+            from subprocess import Popen, PIPE
+            homedir = Popen('echo $HOME', shell=True, 
+                            stdout=PIPE).communicate()[0].strip()
+            if homedir:
+                return _cast_unicode(homedir, fs_encoding)
+            else:
+                raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
         else:
-            return homedir.decode(sys.getfilesystemencoding())
+            return _cast_unicode(homedir, fs_encoding)
     elif os.name == 'nt':
         # Now for win9x, XP, Vista, 7?
         # For some strange reason all of these return 'nt' for os.name.
@@ -193,7 +211,7 @@ def get_home_dir():
             pass
         else:
             if isdir(homedir):
-                return homedir.decode(sys.getfilesystemencoding())
+                return _cast_unicode(homedir, fs_encoding)
 
         # Now look for a local home directory
         try:
@@ -202,7 +220,7 @@ def get_home_dir():
             pass
         else:
             if isdir(homedir):
-                return homedir.decode(sys.getfilesystemencoding())
+                return _cast_unicode(homedir, fs_encoding)
 
         # Now the users profile directory
         try:
@@ -211,7 +229,7 @@ def get_home_dir():
             pass
         else:
             if isdir(homedir):
-                return homedir.decode(sys.getfilesystemencoding())
+                return _cast_unicode(homedir, fs_encoding)
 
         # Use the registry to get the 'My Documents' folder.
         try:
@@ -226,7 +244,7 @@ def get_home_dir():
             pass
         else:
             if isdir(homedir):
-                return homedir.decode(sys.getfilesystemencoding())
+                return _cast_unicode(homedir, fs_encoding)
 
         # A user with a lot of unix tools in win32 may have defined $HOME.
         # Try this as a last ditch option.
@@ -236,16 +254,34 @@ def get_home_dir():
             pass
         else:
             if isdir(homedir):
-                return homedir.decode(sys.getfilesystemencoding())
+                return _cast_unicode(homedir, fs_encoding)
 
         # If all else fails, raise HomeDirError
         raise HomeDirError('No valid home directory could be found')
     elif os.name == 'dos':
         # Desperate, may do absurd things in classic MacOS. May work under DOS.
-        return 'C:\\'.decode(sys.getfilesystemencoding())
+        return u'C:\\'
     else:
         raise HomeDirError('No valid home directory could be found for your OS')
 
+def get_xdg_dir():
+    """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
+    
+    This is only for posix (Linux,Unix,OS X, etc) systems.
+    """
+
+    isdir = os.path.isdir
+    env = os.environ
+    
+    if os.name == 'posix':
+        # Linux, Unix, AIX, OS X
+        # use ~/.config if not set OR empty
+        xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
+        if xdg and isdir(xdg):
+            return _cast_unicode(xdg, fs_encoding)
+    
+    return None
+    
 
 def get_ipython_dir():
     """Get the IPython directory for this platform and user.
@@ -253,21 +289,41 @@ def get_ipython_dir():
     This uses the logic in `get_home_dir` to find the home directory
     and the adds .ipython to the end of the path.
     """
+    
+    env = os.environ
+    pjoin = os.path.join
+    exists = os.path.exists
+    
     ipdir_def = '.ipython'
+    xdg_def = 'ipython'
+    
     home_dir = get_home_dir()
+    xdg_dir = get_xdg_dir()
     # import pdb; pdb.set_trace()  # dbg
-    ipdir = os.environ.get(
-        'IPYTHON_DIR', os.environ.get(
-            'IPYTHONDIR', os.path.join(home_dir, ipdir_def)
-        )
-    )
-    return ipdir.decode(sys.getfilesystemencoding())
+    ipdir = env.get('IPYTHON_DIR', env.get('IPYTHONDIR', None))
+    if ipdir is None:
+        # not set explicitly, use XDG_CONFIG_HOME or HOME
+        home_ipdir = pjoin(home_dir, ipdir_def)
+        if xdg_dir:
+            # use XDG, as long as the user isn't already
+            # using $HOME/.ipython and *not* XDG/ipython
+            
+            xdg_ipdir = pjoin(xdg_dir, xdg_def)
+        
+            if exists(xdg_ipdir) or not exists(home_ipdir):
+                ipdir = xdg_ipdir
+        
+        if ipdir is None:
+            # not using XDG
+            ipdir = home_ipdir
+
+    return _cast_unicode(ipdir, fs_encoding)
 
 
 def get_ipython_package_dir():
     """Get the base directory where IPython itself is installed."""
     ipdir = os.path.dirname(IPython.__file__)
-    return ipdir.decode(sys.getfilesystemencoding())
+    return _cast_unicode(ipdir, fs_encoding)
 
 
 def get_ipython_module_path(module_str):
@@ -282,7 +338,7 @@ def get_ipython_module_path(module_str):
     mod = import_item(module_str)
     the_path = mod.__file__.replace('.pyc', '.py')
     the_path = the_path.replace('.pyo', '.py')
-    return the_path.decode(sys.getfilesystemencoding())
+    return _cast_unicode(the_path, fs_encoding)
 
 
 def expand_path(s):

@@ -2,6 +2,10 @@
 Getting started with Windows HPC Server 2008
 ============================================
 
+.. note::
+
+    Not adapted to zmq yet
+
 Introduction
 ============
 
@@ -76,19 +80,16 @@ These packages provide a powerful and cost-effective approach to numerical and
 scientific computing on Windows. The following dependencies are needed to run
 IPython on Windows:
 
-* Python 2.5 or 2.6 (http://www.python.org)
+* Python 2.6 or 2.7 (http://www.python.org)
 * pywin32 (http://sourceforge.net/projects/pywin32/)
 * PyReadline (https://launchpad.net/pyreadline)
-* zope.interface and Twisted (http://twistedmatrix.com)
-* Foolcap (http://foolscap.lothar.com/trac)
-* pyOpenSSL (https://launchpad.net/pyopenssl)
+* pyzmq (http://github.com/zeromq/pyzmq/downloads)
 * IPython (http://ipython.scipy.org)
 
 In addition, the following dependencies are needed to run the demos described
 in this document.
 
 * NumPy and SciPy (http://www.scipy.org)
-* wxPython (http://www.wxpython.org)
 * Matplotlib (http://matplotlib.sourceforge.net/)
 
 The easiest way of obtaining these dependencies is through the Enthought
@@ -105,7 +106,7 @@ need to follow:
 1. Install all of the packages listed above, either individually or using EPD
    on the head node, compute nodes and user workstations.
 
-2. Make sure that :file:`C:\\Python25` and :file:`C:\\Python25\\Scripts` are
+2. Make sure that :file:`C:\\Python27` and :file:`C:\\Python27\\Scripts` are
    in the system :envvar:`%PATH%` variable on each node.
 
 3. Install the latest development version of IPython. This can be done by
@@ -232,9 +233,9 @@ will need to edit the following attributes in the file
     # Set these at the top of the file to tell ipcluster to use the
     # Windows HPC job scheduler.
     c.Global.controller_launcher = \
-        'IPython.kernel.launcher.WindowsHPCControllerLauncher'
+        'IPython.parallel.apps.launcher.WindowsHPCControllerLauncher'
     c.Global.engine_launcher = \
-        'IPython.kernel.launcher.WindowsHPCEngineSetLauncher'
+        'IPython.parallel.apps.launcher.WindowsHPCEngineSetLauncher'
 
     # Set these to the host name of the scheduler (head node) of your cluster.
     c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'
@@ -297,9 +298,9 @@ apply it to each element of an array of integers in parallel using the
 
 .. sourcecode:: ipython
 
-    In [1]: from IPython.kernel.client import *
+    In [1]: from IPython.parallel import *
 
-    In [2]: mec = MultiEngineClient(profile='mycluster')
+    In [2]: c = MultiEngineClient(profile='mycluster')
 
     In [3]: mec.get_ids()
     Out[3]: [0, 1, 2, 3, 4, 5, 67, 8, 9, 10, 11, 12, 13, 14]

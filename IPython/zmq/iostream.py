@@ -8,6 +8,13 @@ from session import extract_header, Message
 from IPython.utils import io
 
 #-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+# Module-level logger
+logger =  logging.getLogger(__name__)
+
+#-----------------------------------------------------------------------------
 # Stream classes
 #-----------------------------------------------------------------------------
 
@@ -16,7 +23,8 @@ class OutStream(object):
 
     # The time interval between automatic flushes, in seconds.
     flush_interval = 0.05
-    _logger =  logging.getLogger()
+    topic=None
+
     def __init__(self, session, pub_socket, name):
         self.session = session
         self.pub_socket = pub_socket
@@ -37,12 +45,15 @@ class OutStream(object):
         else:
             data = self._buffer.getvalue()
             if data:
+                # Make sure that we're handling unicode
+                if not isinstance(data, unicode):
+                    enc = sys.stdin.encoding or sys.getdefaultencoding()
+                    data = data.decode(enc, 'replace')
                 content = {u'name':self.name, u'data':data}
-                msg = self.session.msg(u'stream', content=content,
-                                       parent=self.parent_header)
-                self._logger.debug(msg)
-                self.pub_socket.send_json(msg)
-                
+                msg = self.session.send(self.pub_socket, u'stream', content=content,
+                                       parent=self.parent_header, ident=self.topic)
+                logger.debug(msg)
+
                 self._buffer.close()
                 self._new_buffer()
 

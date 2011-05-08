@@ -1,9 +1,15 @@
 """Tests for the Formatters.
 """
 
+from math import pi
+
+try:
+    import numpy
+except:
+    numpy = None
 import nose.tools as nt
 
-from IPython.core.formatters import FormatterABC, DefaultFormatter
+from IPython.core.formatters import FormatterABC, PlainTextFormatter
 
 class A(object):
     def __repr__(self):
@@ -17,7 +23,7 @@ def foo_printer(obj, pp, cycle):
     pp.text('foo')
 
 def test_pretty():
-    f = DefaultFormatter()
+    f = PlainTextFormatter()
     f.for_type(A, foo_printer)
     nt.assert_equals(f(A()), 'foo')
     nt.assert_equals(f(B()), 'foo')
@@ -26,5 +32,43 @@ def test_pretty():
     nt.assert_equals(f(B()), 'B()')
 
 def test_deferred():
-    f = DefaultFormatter()
+    f = PlainTextFormatter()
+
+def test_precision():
+    """test various values for float_precision."""
+    f = PlainTextFormatter()
+    nt.assert_equals(f(pi), repr(pi))
+    f.float_precision = 0
+    if numpy:
+        po = numpy.get_printoptions()
+        nt.assert_equals(po['precision'], 0)
+    nt.assert_equals(f(pi), '3')
+    f.float_precision = 2
+    if numpy:
+        po = numpy.get_printoptions()
+        nt.assert_equals(po['precision'], 2)
+    nt.assert_equals(f(pi), '3.14')
+    f.float_precision = '%g'
+    if numpy:
+        po = numpy.get_printoptions()
+        nt.assert_equals(po['precision'], 2)
+    nt.assert_equals(f(pi), '3.14159')
+    f.float_precision = '%e'
+    nt.assert_equals(f(pi), '3.141593e+00')
+    f.float_precision = ''
+    if numpy:
+        po = numpy.get_printoptions()
+        nt.assert_equals(po['precision'], 8)
+    nt.assert_equals(f(pi), repr(pi))
+
+def test_bad_precision():
+    """test various invalid values for float_precision."""
+    f = PlainTextFormatter()
+    def set_fp(p):
+        f.float_precision=p
+    nt.assert_raises(ValueError, set_fp, '%')
+    nt.assert_raises(ValueError, set_fp, '%.3f%i')
+    nt.assert_raises(ValueError, set_fp, 'foo')
+    nt.assert_raises(ValueError, set_fp, -1)
+
 

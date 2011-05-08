@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """Tests for the inputsplitter module.
+
+Authors
+-------
+* Fernando Perez
+* Robert Kern
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
@@ -187,13 +192,42 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push("    x = (1+\n    2)")
         self.assertEqual(isp.indent_spaces, 4)
 
-    def test_dedent(self):
+    def test_dedent_pass(self):
         isp = self.isp # shorthand
-        isp.push('if 1:')
+        # should NOT cause dedent
+        isp.push('if 1:\n    passes = 5')
         self.assertEqual(isp.indent_spaces, 4)
-        isp.push('    pass')
+        isp.push('if 1:\n     pass')
         self.assertEqual(isp.indent_spaces, 0)
-        
+        isp.push('if 1:\n     pass   ')
+        self.assertEqual(isp.indent_spaces, 0)
+
+    def test_dedent_raise(self):
+        isp = self.isp # shorthand
+        # should NOT cause dedent
+        isp.push('if 1:\n    raised = 4')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('if 1:\n     raise TypeError()')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     raise')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     raise      ')
+        self.assertEqual(isp.indent_spaces, 0)
+
+    def test_dedent_return(self):
+        isp = self.isp # shorthand
+        # should NOT cause dedent
+        isp.push('if 1:\n    returning = 4')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('if 1:\n     return 5 + 493')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     return')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     return      ')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     return(0)')
+        self.assertEqual(isp.indent_spaces, 0)
+
     def test_push(self):
         isp = self.isp
         self.assertTrue(isp.push('x=1'))
@@ -203,6 +237,12 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertFalse(isp.push('if 1:'))
         for line in ['  x=1', '# a comment', '  y=2']:
             self.assertTrue(isp.push(line))
+            
+    def test_push3(self):
+        isp = self.isp
+        isp.push('if True:')
+        isp.push('  a = 1')
+        self.assertFalse(isp.push('b = [1,'))
             
     def test_replace_mode(self):
         isp = self.isp
@@ -254,6 +294,17 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertTrue(isp.push_accepts_more())
         isp.push('')
         self.assertFalse(isp.push_accepts_more())
+        
+    def test_push_accepts_more5(self):
+        # In cell mode, inputs must be fed in whole blocks, so skip this test
+        if self.isp.input_mode == 'cell': return
+
+        isp = self.isp
+        isp.push('try:')
+        isp.push('    a = 5')
+        isp.push('except:')
+        isp.push('    raise')
+        self.assertTrue(isp.push_accepts_more())
 
     def test_continuation(self):
         isp = self.isp
@@ -270,87 +321,10 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push('run foo')
         self.assertFalse(isp.push_accepts_more())
 
-    def check_split(self, block_lines, compile=True):
-        blocks = assemble(block_lines)
-        lines = ''.join(blocks)
-        oblock = self.isp.split_blocks(lines)
-        self.assertEqual(oblock, blocks)
-        if compile:
-            for block in blocks:
-                self.isp._compile(block)
-
-    def test_split(self):
-        # All blocks of input we want to test in a list.  The format for each
-        # block is a list of lists, with each inner lists consisting of all the
-        # lines (as single-lines) that should make up a sub-block.
-
-        # Note: do NOT put here sub-blocks that don't compile, as the
-        # check_split() routine makes a final verification pass to check that
-        # each sub_block, as returned by split_blocks(), does compile
-        # correctly.
-        all_blocks = [ [['x=1']],
-
-                       [['x=1'],
-                        ['y=2']],
-
-                       [['x=1',
-                         '# a comment'],
-                        ['y=11']],
-
-                       [['if 1:',
-                         '  x=1'],
-                        ['y=3']],
-
-                       [['def f(x):',
-                         '  return x'],
-                        ['x=1']],
-
-                       [['def f(x):',
-                         '  x+=1',
-                         '  ',
-                         '  return x'],
-                        ['x=1']],
-
-                       [['def f(x):',
-                         '  if x>0:',
-                         '    y=1',
-                         '  # a comment',
-                         '  else:',
-                         '    y=4',
-                         ' ',
-                         '  return y'],
-                        ['x=1'],
-                        ['if 1:',
-                         '  y=11'] ],
-                       
-                       [['for i in range(10):'
-                         '  x=i**2']],
-
-                       [['for i in range(10):'
-                         '  x=i**2'],
-                        ['z = 1']],
-                       ]
-        for block_lines in all_blocks:
-            self.check_split(block_lines)
-        
-    def test_split_syntax_errors(self):
-        # Block splitting with invalid syntax
-        all_blocks = [ [['a syntax error']],
-            
-                       [['x=1',
-                         'another syntax error']],
-
-                       [['for i in range(10):'
-                         '  yet another error']],
-                       
-                       ]
-        for block_lines in all_blocks:
-            self.check_split(block_lines, compile=False)
-
     def test_unicode(self):
         self.isp.push(u"Pérez")
         self.isp.push(u'\xc3\xa9')
-        self.isp.push("u'\xc3\xa9'")
+        self.isp.push(u"u'\xc3\xa9'")
 
 class InteractiveLoopTestCase(unittest.TestCase):
     """Tests for an interactive loop like a python shell.
@@ -414,15 +388,15 @@ def transform_checker(tests, func):
 
 syntax = \
   dict(assign_system =
-       [('a =! ls', 'a = get_ipython().getoutput("ls")'),
-        ('b = !ls', 'b = get_ipython().getoutput("ls")'),
+       [('a =! ls', 'a = get_ipython().getoutput(u"ls")'),
+        ('b = !ls', 'b = get_ipython().getoutput(u"ls")'),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
         ],
 
        assign_magic =
-       [('a =% who', 'a = get_ipython().magic("who")'),
-        ('b = %who', 'b = get_ipython().magic("who")'),
+       [('a =% who', 'a = get_ipython().magic(u"who")'),
+        ('b = %who', 'b = get_ipython().magic(u"who")'),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
         ],
@@ -449,29 +423,29 @@ syntax = \
 
        # System calls
        escaped_shell =
-       [ ('!ls', 'get_ipython().system("ls")'),
+       [ ('!ls', 'get_ipython().system(u"ls")'),
          # Double-escape shell, this means to capture the output of the
          # subprocess and return it
-         ('!!ls', 'get_ipython().getoutput("ls")'),
+         ('!!ls', 'get_ipython().getoutput(u"ls")'),
          ],
 
        # Help/object info
        escaped_help =
        [ ('?', 'get_ipython().show_usage()'),
-         ('?x1', 'get_ipython().magic("pinfo x1")'),
-         ('??x2', 'get_ipython().magic("pinfo2 x2")'),
-         ('x3?', 'get_ipython().magic("pinfo x3")'),
-         ('x4??', 'get_ipython().magic("pinfo2 x4")'),
-         ('%hist?', 'get_ipython().magic("pinfo %hist")'),
-         ('f*?', 'get_ipython().magic("psearch f*")'),
-         ('ax.*aspe*?', 'get_ipython().magic("psearch ax.*aspe*")'),
+         ('?x1', 'get_ipython().magic(u"pinfo x1")'),
+         ('??x2', 'get_ipython().magic(u"pinfo2 x2")'),
+         ('x3?', 'get_ipython().magic(u"pinfo x3")'),
+         ('x4??', 'get_ipython().magic(u"pinfo2 x4")'),
+         ('%hist?', 'get_ipython().magic(u"pinfo %hist")'),
+         ('f*?', 'get_ipython().magic(u"psearch f*")'),
+         ('ax.*aspe*?', 'get_ipython().magic(u"psearch ax.*aspe*")'),
          ],
 
        # Explicit magic calls
        escaped_magic =
-       [ ('%cd', 'get_ipython().magic("cd")'),
-         ('%cd /home', 'get_ipython().magic("cd /home")'),
-         ('    %magic', '    get_ipython().magic("magic")'),
+       [ ('%cd', 'get_ipython().magic(u"cd")'),
+         ('%cd /home', 'get_ipython().magic(u"cd /home")'),
+         ('    %magic', '    get_ipython().magic(u"magic")'),
          ],
        
        # Quoting with separate arguments

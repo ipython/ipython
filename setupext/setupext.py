@@ -18,29 +18,35 @@ from textwrap import fill
 
 display_status=True
 
-if display_status:
-    def print_line(char='='):
-        print char * 76
+def check_display(f):
+    """decorator to allow display methods to be muted by mod.display_status"""
+    def maybe_display(*args, **kwargs):
+        if display_status:
+            return f(*args, **kwargs)
+    return maybe_display
 
-    def print_status(package, status):
-        initial_indent = "%22s: " % package
-        indent = ' ' * 24
-        print fill(str(status), width=76,
-                   initial_indent=initial_indent,
-                   subsequent_indent=indent)
+@check_display
+def print_line(char='='):
+    print char * 76
 
-    def print_message(message):
-        indent = ' ' * 24 + "* "
-        print fill(str(message), width=76,
-                   initial_indent=indent,
-                   subsequent_indent=indent)
+@check_display
+def print_status(package, status):
+    initial_indent = "%22s: " % package
+    indent = ' ' * 24
+    print fill(str(status), width=76,
+               initial_indent=initial_indent,
+               subsequent_indent=indent)
 
-    def print_raw(section):
-        print section
-else:
-    def print_line(*args, **kwargs):
-        pass
-    print_status = print_message = print_raw = print_line
+@check_display
+def print_message(message):
+    indent = ' ' * 24 + "* "
+    print fill(str(message), width=76,
+               initial_indent=indent,
+               subsequent_indent=indent)
+
+@check_display
+def print_raw(section):
+    print section
 
 #-------------------------------------------------------------------------------
 # Tests for specific packages
@@ -54,55 +60,6 @@ def check_for_ipython():
         return False
     else:
         print_status("IPython", IPython.__version__)
-        return True
-
-def check_for_zopeinterface():
-    try:
-        import zope.interface
-    except ImportError:
-        print_status("zope.Interface", "Not found (required for parallel computing capabilities)")
-        return False
-    else:
-        print_status("Zope.Interface","yes")
-        return True
-        
-def check_for_twisted():
-    try:
-        import twisted
-    except ImportError:
-        print_status("Twisted", "Not found (required for parallel computing capabilities)")
-        return False
-    else:
-        major = twisted.version.major
-        minor = twisted.version.minor
-        micro = twisted.version.micro
-        print_status("Twisted", twisted.version.short())
-        if not ((major==2 and minor>=5 and micro>=0) or \
-                major>=8):
-            print_message("WARNING: IPython requires Twisted 2.5.0 or greater, you have version %s"%twisted.version.short())
-            print_message("Twisted is required for parallel computing capabilities")
-            return False
-        else:
-            return True
-
-def check_for_foolscap():
-    try:
-        import foolscap
-    except ImportError:
-        print_status('Foolscap', "Not found (required for parallel computing capabilities)")
-        return False
-    else:
-        print_status('Foolscap', foolscap.__version__)
-        return True
-
-def check_for_pyopenssl():
-    try:
-        import OpenSSL
-    except ImportError:
-        print_status('OpenSSL', "Not found (required if you want security in the parallel computing capabilities)")
-        return False
-    else:
-        print_status('OpenSSL', OpenSSL.__version__)    
         return True
 
 def check_for_sphinx():
@@ -175,4 +132,32 @@ def check_for_simplejson():
         print_status("simplejson","yes")
         return True
 
-        
+def check_for_pyzmq():
+    try:
+        import zmq
+    except ImportError:
+        print_status('pyzmq', "no (required for qtconsole and parallel computing capabilities)")
+        return False
+    else:
+        if zmq.__version__ < '2.0.10':
+            print_status('pyzmq', "no (require >= 2.0.10 for qtconsole and parallel computing capabilities)")
+            
+        else:
+            print_status("pyzmq", zmq.__version__)
+            return True
+
+def check_for_readline():
+    try:
+        import readline
+    except ImportError:
+        try:
+            import pyreadline
+        except ImportError:
+            print_status('readline', "no (required for good interactive behavior)")
+            return False
+        else:
+            print_status('readline', "yes pyreadline-"+pyreadline.release.version)
+            return True
+    else:
+        print_status('readline', "yes")
+        return True

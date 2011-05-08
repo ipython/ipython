@@ -46,6 +46,7 @@ env = os.environ
 TEST_FILE_PATH = split(abspath(__file__))[0]
 TMP_TEST_DIR = tempfile.mkdtemp()
 HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
+XDG_TEST_DIR = join(HOME_TEST_DIR, "xdg_test_dir")
 IP_TEST_DIR = join(HOME_TEST_DIR,'.ipython')
 #
 # Setup/teardown functions/decorators
@@ -59,6 +60,7 @@ def setup():
     # Do not mask exceptions here.  In particular, catching WindowsError is a
     # problem because that exception is only defined on Windows...
     os.makedirs(IP_TEST_DIR)
+    os.makedirs(os.path.join(XDG_TEST_DIR, 'ipython'))
 
 
 def teardown():
@@ -191,6 +193,7 @@ def test_get_home_dir_7():
     env["HOMESHARE"] = abspath(HOME_TEST_DIR)
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+
     
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
@@ -236,9 +239,93 @@ def test_get_ipython_dir_2():
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
+    env.pop('XDG_CONFIG_HOME', None)
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join("someplace", ".ipython"))
 
+@with_environment
+def test_get_ipython_dir_3():
+    """test_get_ipython_dir_3, use XDG if defined, and .ipython doesn't exist."""
+    path.get_home_dir = lambda : "someplace"
+    os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env['XDG_CONFIG_HOME'] = XDG_TEST_DIR
+    ipdir = path.get_ipython_dir()
+    nt.assert_equal(ipdir, os.path.join(XDG_TEST_DIR, "ipython"))
+
+@with_environment
+def test_get_ipython_dir_4():
+    """test_get_ipython_dir_4, use XDG if both exist."""
+    path.get_home_dir = lambda : HOME_TEST_DIR
+    os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env['XDG_CONFIG_HOME'] = XDG_TEST_DIR
+    xdg_ipdir = os.path.join(XDG_TEST_DIR, "ipython")
+    ipdir = path.get_ipython_dir()
+    nt.assert_equal(ipdir, xdg_ipdir)
+
+@with_environment
+def test_get_ipython_dir_5():
+    """test_get_ipython_dir_5, use .ipython if exists and XDG defined, but doesn't exist."""
+    os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env['XDG_CONFIG_HOME'] = XDG_TEST_DIR
+    os.rmdir(os.path.join(XDG_TEST_DIR, 'ipython'))
+    ipdir = path.get_ipython_dir()
+    nt.assert_equal(ipdir, IP_TEST_DIR)
+
+@with_environment
+def test_get_ipython_dir_6():
+    """test_get_ipython_dir_6, use XDG if defined and neither exist."""
+    path.get_home_dir = lambda : 'somehome'
+    path.get_xdg_dir = lambda : 'somexdg'
+    os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    xdg_ipdir = os.path.join("somexdg", "ipython")
+    ipdir = path.get_ipython_dir()
+    nt.assert_equal(ipdir, xdg_ipdir)
+
+@with_environment
+def test_get_xdg_dir_1():
+    """test_get_xdg_dir_1, check xdg_dir"""
+    reload(path)
+    path.get_home_dir = lambda : 'somewhere'
+    os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env.pop('XDG_CONFIG_HOME', None)
+    
+    nt.assert_equal(path.get_xdg_dir(), os.path.join('somewhere', '.config'))
+
+
+@with_environment
+def test_get_xdg_dir_1():
+    """test_get_xdg_dir_1, check nonexistant xdg_dir"""
+    reload(path)
+    path.get_home_dir = lambda : HOME_TEST_DIR
+    os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env.pop('XDG_CONFIG_HOME', None)
+    nt.assert_equal(path.get_xdg_dir(), None)
+
+@with_environment
+def test_get_xdg_dir_2():
+    """test_get_xdg_dir_2, check xdg_dir default to ~/.config"""
+    reload(path)
+    path.get_home_dir = lambda : HOME_TEST_DIR
+    os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env.pop('XDG_CONFIG_HOME', None)
+    cfgdir=os.path.join(path.get_home_dir(), '.config')
+    os.makedirs(cfgdir)
+    
+    nt.assert_equal(path.get_xdg_dir(), cfgdir)
 
 def test_filefind():
     """Various tests for filefind"""

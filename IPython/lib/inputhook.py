@@ -28,6 +28,7 @@ GUI_QT = 'qt'
 GUI_QT4 = 'qt4'
 GUI_GTK = 'gtk'
 GUI_TK = 'tk'
+GUI_OSX = 'osx'
 
 #-----------------------------------------------------------------------------
 # Utility classes
@@ -310,6 +311,7 @@ def enable_gui(gui=None):
     one.
     """
     guis = {None: clear_inputhook,
+            GUI_OSX: lambda app=False: None,
             GUI_TK: enable_tk,
             GUI_GTK: enable_gtk,
             GUI_WX: enable_wx,

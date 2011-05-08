@@ -2,6 +2,47 @@
  0.10 series
 =============
 
+Release 0.10.2
+==============
+
+IPython 0.10.2 was released April 9, 2011.  This is a minor bugfix release that
+preserves backward compatibility.  At this point, all IPython development
+resources are focused on the 0.11 series that includes a complete architectural
+restructuring of the project as well as many new capabilities, so this is
+likely to be the last release of the 0.10.x series.  We have tried to fix all
+major bugs in this series so that it remains a viable platform for those not
+ready yet to transition to the 0.11 and newer codebase (since that will require
+some porting effort, as a number of APIs have changed).
+
+Thus, we are not opening a 0.10.3 active development branch yet, but if the
+user community requires new patches and is willing to maintain/release such a
+branch, we'll be happy to host it on the IPython github repositories.
+
+Highlights of this release:
+
+- The main one is the closing of github ticket #185, a major regression we had
+  in 0.10.1 where pylab mode with GTK (or gthread) was not working correctly,
+  hence plots were blocking with GTK.  Since this is the default matplotlib
+  backend on Unix systems, this was a major annoyance for many users.  Many
+  thanks to Paul Ivanov for helping resolve this issue.
+  
+- Fix IOError bug on Windows when used with -gthread.
+- Work robustly if $HOME is missing from environment.
+- Better POSIX support in ssh scripts (remove bash-specific idioms).
+- Improved support for non-ascii characters in log files.
+- Work correctly in environments where GTK can be imported but not started
+  (such as a linux text console without X11).
+  
+For this release we merged 24 commits, contributed by the following people
+(please let us know if we ommitted your name and we'll gladly fix this in the
+notes for the future):
+
+* Fernando Perez
+* MinRK
+* Paul Ivanov
+* Pieter Cristiaan de Groot
+* TvrtkoM
+
 Release 0.10.1
 ==============
 

@@ -108,13 +108,27 @@ def find_packages():
     add_package(packages, 'deathrow', tests=True)
     add_package(packages, 'extensions')
     add_package(packages, 'external')
+    add_package(packages, 'external.argparse')
+    add_package(packages, 'external.configobj')
+    add_package(packages, 'external.decorator')
+    add_package(packages, 'external.decorators')
+    add_package(packages, 'external.guid')
+    add_package(packages, 'external.Itpl')
+    add_package(packages, 'external.mglob')
+    add_package(packages, 'external.path')
+    add_package(packages, 'external.pexpect')
+    add_package(packages, 'external.pyparsing')
+    add_package(packages, 'external.simplegeneric')
+    add_package(packages, 'external.ssh')
+    add_package(packages, 'external.validate')
+    add_package(packages, 'kernel')
     add_package(packages, 'frontend')
     add_package(packages, 'frontend.qt')
     add_package(packages, 'frontend.qt.console', tests=True)
     add_package(packages, 'frontend.terminal', tests=True)    
-    add_package(packages, 'kernel', config=False, tests=True, scripts=True)
-    add_package(packages, 'kernel.core', config=False, tests=True)
     add_package(packages, 'lib', tests=True)
+    add_package(packages, 'parallel', tests=True, scripts=True, 
+                                    others=['apps','engine','client','controller'])
     add_package(packages, 'quarantine', tests=True)
     add_package(packages, 'scripts')
     add_package(packages, 'testing', tests=True)
@@ -122,6 +136,7 @@ def find_packages():
     add_package(packages, 'utils', tests=True)
     add_package(packages, 'zmq')
     add_package(packages, 'zmq.pylab')
+    add_package(packages, 'zmq.gui')
     return packages
 
 #---------------------------------------------------------------------------
@@ -213,13 +228,7 @@ def find_data_files():
     data_files = [ (manpagebase, manpages),
                    (pjoin(docdirbase, 'extensions'), igridhelpfiles),
                    ] + manual_files + example_files
-                 
-    ## import pprint  # dbg
-    ## print('*'*80)
-    ## print('data files')
-    ## pprint.pprint(data_files)
-    ## print('*'*80)
-    
+
     return data_files
 
 
@@ -251,34 +260,42 @@ def make_man_update_target(manpage):
 # Find scripts
 #---------------------------------------------------------------------------
 
-def find_scripts():
-    """
-    Find IPython's scripts.
-    """
-    kernel_scripts = pjoin('IPython','kernel','scripts')
-    main_scripts = pjoin('IPython','scripts')
-    scripts = [pjoin(kernel_scripts, 'ipengine'),
-               pjoin(kernel_scripts, 'ipcontroller'),
-               pjoin(kernel_scripts, 'ipcluster'),
-               pjoin(main_scripts, 'ipython'),
-               pjoin(main_scripts, 'ipython-qtconsole'),
-               pjoin(main_scripts, 'pycolor'),
-               pjoin(main_scripts, 'irunner'),
-               pjoin(main_scripts, 'iptest')
-              ]
+def find_scripts(entry_points=False):
+    """Find IPython's scripts.
     
-    # Script to be run by the windows binary installer after the default setup
-    # routine, to add shortcuts and similar windows-only things.  Windows
-    # post-install scripts MUST reside in the scripts/ dir, otherwise distutils
-    # doesn't find them.
-    if 'bdist_wininst' in sys.argv:
-        if len(sys.argv) > 2 and \
-               ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
-            print("ERROR: bdist_wininst must be run alone. Exiting.",
-                  file=sys.stderr)
-            sys.exit(1)
-        scripts.append(pjoin('scripts','ipython_win_post_install.py'))
-
+    if entry_points is True:
+        return setuptools entry_point-style definitions
+    else:
+        return file paths of plain scripts [default]
+    
+    """
+    if entry_points:
+        scripts = [
+            'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
+            'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
+            'pycolor = IPython.utils.PyColorize:main',
+            'ipcontroller = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
+            'ipengine = IPython.parallel.apps.ipengineapp:launch_new_instance',
+            'iplogger = IPython.parallel.apps.iploggerapp:launch_new_instance',
+            'ipcluster = IPython.parallel.apps.ipclusterapp:launch_new_instance',
+            'iptest = IPython.testing.iptest:main',
+            'irunner = IPython.lib.irunner:main'
+        ]
+    else:
+        parallel_scripts = pjoin('IPython','parallel','scripts')
+        main_scripts = pjoin('IPython','scripts')
+        scripts = [
+                   pjoin(parallel_scripts, 'ipengine'),
+                   pjoin(parallel_scripts, 'ipcontroller'),
+                   pjoin(parallel_scripts, 'ipcluster'),
+                   pjoin(parallel_scripts, 'iplogger'),
+                   pjoin(main_scripts, 'ipython'),
+                   pjoin(main_scripts, 'ipython-qtconsole'),
+                   pjoin(main_scripts, 'pycolor'),
+                   pjoin(main_scripts, 'irunner'),
+                   pjoin(main_scripts, 'iptest')
+                  ]
+    
     return scripts
 
 #---------------------------------------------------------------------------
@@ -292,10 +309,9 @@ def check_for_dependencies():
     """
     from setupext.setupext import (
         print_line, print_raw, print_status,
-        check_for_zopeinterface, check_for_twisted,
-        check_for_foolscap, check_for_pyopenssl,
         check_for_sphinx, check_for_pygments,
-        check_for_nose, check_for_pexpect
+        check_for_nose, check_for_pexpect,
+        check_for_pyzmq, check_for_readline
     )
     print_line()
     print_raw("BUILDING IPYTHON")
@@ -307,15 +323,12 @@ def check_for_dependencies():
     print_raw("")
     print_raw("OPTIONAL DEPENDENCIES")
 
-    check_for_zopeinterface()
-    check_for_twisted()
-    check_for_foolscap()
-    check_for_pyopenssl()
     check_for_sphinx()
     check_for_pygments()
     check_for_nose()
     check_for_pexpect()
-
+    check_for_pyzmq()
+    check_for_readline()
 
 def record_commit_info(pkg_dir, build_cmd=build_py):
     """ Return extended build command class for recording commit

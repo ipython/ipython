@@ -32,11 +32,11 @@ import re
 from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
 from IPython.config.configurable import Configurable
+from IPython.core.macro import Macro
 from IPython.core.splitinput import split_user_input
 from IPython.core import page
 
 from IPython.utils.traitlets import List, Int, Any, Str, CBool, Bool, Instance
-import IPython.utils.io
 from IPython.utils.text import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
 
@@ -382,10 +382,6 @@ class PrefilterManager(Configurable):
             # previously typed some whitespace that started a continuation
             # prompt, he can break out of that loop with just an empty line.
             # This is how the default python prompt works.
-
-            # Only return if the accumulated input buffer was just whitespace!
-            if ''.join(self.shell.buffer).isspace():
-                self.shell.buffer[:] = []
             return ''
 
         # At this point, we invoke our transformers.
@@ -598,6 +594,18 @@ class ShellEscapeChecker(PrefilterChecker):
             return self.prefilter_manager.get_handler_by_name('shell')
 
 
+class MacroChecker(PrefilterChecker):
+    
+    priority = Int(250, config=True)
+    
+    def check(self, line_info):
+        obj = self.shell.user_ns.get(line_info.ifun)
+        if isinstance(obj, Macro):
+            return self.prefilter_manager.get_handler_by_name('macro')
+        else:
+            return None
+
+
 class IPyAutocallChecker(PrefilterChecker):
 
     priority = Int(300, config=True)
@@ -778,14 +786,7 @@ class PrefilterHandler(Configurable):
         if (continue_prompt and
             self.shell.autoindent and
             line.isspace() and
-            
-            (0 < abs(len(line) - self.shell.indent_current_nsp) <= 2
-             or
-             not self.shell.buffer
-             or
-             (self.shell.buffer[-1]).isspace()
-             )
-            ):
+            0 < abs(len(line) - self.shell.indent_current_nsp) <= 2):
             line = ''
 
         return line
@@ -837,6 +838,16 @@ class ShellEscapeHandler(PrefilterHandler):
         return line_out
 
 
+class MacroHandler(PrefilterHandler):
+    handler_name = Str("macro")
+    
+    def handle(self, line_info):
+        obj = self.shell.user_ns.get(line_info.ifun)
+        pre_space = line_info.pre_whitespace
+        line_sep = "\n" + pre_space
+        return pre_space + line_sep.join(obj.value.splitlines())
+
+
 class MagicHandler(PrefilterHandler):
 
     handler_name = Str('magic')
@@ -871,7 +882,7 @@ class AutoHandler(PrefilterHandler):
             return line
 
         force_auto = isinstance(obj, IPyAutocall)
-        auto_rewrite = True
+        auto_rewrite = getattr(obj, 'rewrite', True)
         
         if pre == ESC_QUOTE:
             # Auto-quote splitting on whitespace
@@ -979,6 +990,7 @@ _default_transformers = [
 _default_checkers = [
     EmacsChecker,
     ShellEscapeChecker,
+    MacroChecker,
     IPyAutocallChecker,
     MultiLineMagicChecker,
     EscCharsChecker,
@@ -993,6 +1005,7 @@ _default_handlers = [
     PrefilterHandler,
     AliasHandler,
     ShellEscapeHandler,
+    MacroHandler,
     MagicHandler,
     AutoHandler,
     HelpHandler,

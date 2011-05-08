@@ -38,6 +38,28 @@ from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
 #-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+# Module-level logger
+logger = logging.getLogger(__name__)
+
+# FIXME: this needs to be done more cleanly later, once we have proper
+# configuration support.  This is a library, so it shouldn't set a stream
+# handler, see:
+# http://docs.python.org/library/logging.html#configuring-logging-for-a-library
+# But this lets us at least do developer debugging for now by manually turning
+# it on/off.  And once we have full config support, the client entry points
+# will select their logging handlers, as well as passing to this library the
+# logging level.
+
+if 0:  # dbg - set to 1 to actually see the messages.
+    logger.addHandler(logging.StreamHandler())
+    logger.setLevel(logging.DEBUG)
+
+# /FIXME
+
+#-----------------------------------------------------------------------------
 # Main kernel class
 #-----------------------------------------------------------------------------
 
@@ -81,8 +103,6 @@ class Kernel(Configurable):
     _recorded_ports = None
 
 
-    _logger = logging.getLogger()
-
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
 
@@ -94,13 +114,15 @@ class Kernel(Configurable):
         self.shell = ZMQInteractiveShell.instance()
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.pub_socket
+        self.shell.display_pub.session = self.session
+        self.shell.display_pub.pub_socket = self.pub_socket
 
         # TMP - hack while developing
         self.shell._reply_content = None
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
-                      'object_info_request', 'history_request',
+                      'object_info_request', 'history_tail_request',
                       'connect_request', 'shutdown_request']
         self.handlers = {}
         for msg_type in msg_types:
@@ -109,36 +131,33 @@ class Kernel(Configurable):
     def do_one_iteration(self):
         """Do one iteration of the kernel's evaluation loop.
         """
-        try:
-            ident = self.reply_socket.recv(zmq.NOBLOCK)
-        except zmq.ZMQError, e:
-            if e.errno == zmq.EAGAIN:
-                return
-            else:
-                raise
+        ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
+        if msg is None:
+            return
+        
         # This assert will raise in versions of zeromq 2.0.7 and lesser.
         # We now require 2.0.8 or above, so we can uncomment for safety.
-        assert self.reply_socket.rcvmore(), "Missing message part."
-        msg = self.reply_socket.recv_json()
+        # print(ident,msg, file=sys.__stdout__)
+        assert ident is not None, "Missing message part."
         
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
         # Eventually we'll move these from stdout to a logger.
-        self._logger.debug('\n*** MESSAGE TYPE:'+str(msg['msg_type'])+'***')
-        self._logger.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
+        logger.debug('\n*** MESSAGE TYPE:'+str(msg['msg_type'])+'***')
+        logger.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
 
         # Find and call actual handler for message
         handler = self.handlers.get(msg['msg_type'], None)
         if handler is None:
-            self._logger.error("UNKNOWN MESSAGE TYPE:" +str(msg))
+            logger.error("UNKNOWN MESSAGE TYPE:" +str(msg))
         else:
             handler(ident, msg)
             
         # Check whether we should exit, in case the incoming message set the
         # exit flag on
         if self.shell.exit_now:
-            self._logger.debug('\nExiting IPython kernel...')
+            logger.debug('\nExiting IPython kernel...')
             # We do a normal, clean exit, which allows any actions registered
             # via atexit (such as history saving) to take place.
             sys.exit(0)
@@ -171,25 +190,23 @@ class Kernel(Configurable):
     def _publish_pyin(self, code, parent):
         """Publish the code request on the pyin stream."""
 
-        pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
-        self.pub_socket.send_json(pyin_msg)
+        pyin_msg = self.session.send(self.pub_socket, u'pyin',{u'code':code}, parent=parent)
 
     def execute_request(self, ident, parent):
         
-        status_msg = self.session.msg(
+        status_msg = self.session.send(self.pub_socket,
             u'status',
             {u'execution_state':u'busy'},
             parent=parent
         )
-        self.pub_socket.send_json(status_msg)
         
         try:
             content = parent[u'content']
             code = content[u'code']
             silent = content[u'silent'] 
         except:
-            self._logger.error("Got bad msg: ")
-            self._logger.error(str(Message(parent)))
+            logger.error("Got bad msg: ")
+            logger.error(str(Message(parent)))
             return
 
         shell = self.shell # we'll need this a lot here
@@ -201,6 +218,7 @@ class Kernel(Configurable):
 
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
+        shell.display_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 
@@ -223,7 +241,7 @@ class Kernel(Configurable):
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,
-            # because the runlines() call above directly fires off exception
+            # because the run_cell() call above directly fires off exception
             # reporting.  This code, therefore, is only active in the scenario
             # where runlines itself has an unhandled exception.  We need to
             # uniformize this, for all exception construction to come from a
@@ -265,10 +283,6 @@ class Kernel(Configurable):
         # it to sit in memory until the next execute_request comes in.
         shell.payload_manager.clear_payload()
 
-        # Send the reply.
-        reply_msg = self.session.msg(u'execute_reply', reply_content, parent)
-        self._logger.debug(str(reply_msg))
-
         # Flush output before sending the reply.
         sys.stdout.flush()
         sys.stderr.flush()
@@ -278,17 +292,19 @@ class Kernel(Configurable):
         if self._execute_sleep:
             time.sleep(self._execute_sleep)
         
-        self.reply_socket.send(ident, zmq.SNDMORE)
-        self.reply_socket.send_json(reply_msg)
+        # Send the reply.
+        reply_msg = self.session.send(self.reply_socket, u'execute_reply',
+                                      reply_content, parent, ident=ident)
+        logger.debug(str(reply_msg))
+
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
-        status_msg = self.session.msg(
+        status_msg = self.session.send(self.pub_socket,
             u'status',
             {u'execution_state':u'idle'},
             parent=parent
         )
-        self.pub_socket.send_json(status_msg)
 
     def complete_request(self, ident, parent):
         txt, matches = self._complete(parent)
@@ -297,7 +313,7 @@ class Kernel(Configurable):
                    'status' : 'ok'}
         completion_msg = self.session.send(self.reply_socket, 'complete_reply',
                                            matches, parent, ident)
-        self._logger.debug(str(completion_msg))
+        logger.debug(str(completion_msg))
 
     def object_info_request(self, ident, parent):
         object_info = self.shell.object_inspect(parent['content']['oname'])
@@ -305,17 +321,19 @@ class Kernel(Configurable):
         oinfo = json_clean(object_info)
         msg = self.session.send(self.reply_socket, 'object_info_reply',
                                 oinfo, parent, ident)
-        self._logger.debug(msg)
+        logger.debug(msg)
 
-    def history_request(self, ident, parent):
-        output = parent['content']['output']
-        index = parent['content']['index']
+    def history_tail_request(self, ident, parent):
+        # We need to pull these out, as passing **kwargs doesn't work with
+        # unicode keys before Python 2.6.5.
+        n = parent['content']['n']
         raw = parent['content']['raw']
-        hist = self.shell.get_history(index=index, raw=raw, output=output)
-        content = {'history' : hist}
-        msg = self.session.send(self.reply_socket, 'history_reply',
+        output = parent['content']['output']
+        hist = self.shell.history_manager.get_tail(n, raw=raw, output=output)
+        content = {'history' : list(hist)}
+        msg = self.session.send(self.reply_socket, 'history_tail_reply',
                                 content, parent, ident)
-        self._logger.debug(str(msg))
+        logger.debug(str(msg))
 
     def connect_request(self, ident, parent):
         if self._recorded_ports is not None:
@@ -324,7 +342,7 @@ class Kernel(Configurable):
             content = {}
         msg = self.session.send(self.reply_socket, 'connect_reply',
                                 content, parent, ident)
-        self._logger.debug(msg)
+        logger.debug(msg)
 
     def shutdown_request(self, ident, parent):
         self.shell.exit_now = True
@@ -337,22 +355,19 @@ class Kernel(Configurable):
 
     def _abort_queue(self):
         while True:
-            try:
-                ident = self.reply_socket.recv(zmq.NOBLOCK)
-            except zmq.ZMQError, e:
-                if e.errno == zmq.EAGAIN:
-                    break
+            ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
+            if msg is None:
+                break
             else:
-                assert self.reply_socket.rcvmore(), \
+                assert ident is not None, \
                        "Unexpected missing message part."
-                msg = self.reply_socket.recv_json()
-            self._logger.debug("Aborting:\n"+str(Message(msg)))
+
+            logger.debug("Aborting:\n"+str(Message(msg)))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
-            reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
-            self._logger.debug(reply_msg)
-            self.reply_socket.send(ident,zmq.SNDMORE)
-            self.reply_socket.send_json(reply_msg)
+            reply_msg = self.session.send(self.reply_socket, reply_type, 
+                    {'status' : 'aborted'}, msg, ident=ident)
+            logger.debug(reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.1)
@@ -364,16 +379,15 @@ class Kernel(Configurable):
 
         # Send the input request.
         content = dict(prompt=prompt)
-        msg = self.session.msg(u'input_request', content, parent)
-        self.req_socket.send_json(msg)
+        msg = self.session.send(self.req_socket, u'input_request', content, parent)
 
         # Await a response.
-        reply = self.req_socket.recv_json()
+        ident, reply = self.session.recv(self.req_socket, 0)
         try:
             value = reply['content']['value']
         except:
-            self._logger.error("Got bad raw_input reply: ")
-            self._logger.error(str(Message(parent)))
+            logger.error("Got bad raw_input reply: ")
+            logger.error(str(Message(parent)))
             value = ''
         return value
     
@@ -425,9 +439,9 @@ class Kernel(Configurable):
         """
         # io.rprint("Kernel at_shutdown") # dbg
         if self._shutdown_message is not None:
-            self.reply_socket.send_json(self._shutdown_message)
-            self.pub_socket.send_json(self._shutdown_message)
-            self._logger.debug(str(self._shutdown_message))
+            self.session.send(self.reply_socket, self._shutdown_message)
+            self.session.send(self.pub_socket, self._shutdown_message)
+            logger.debug(str(self._shutdown_message))
             # A very short sleep to give zmq time to flush its message buffers
             # before Python truly shuts down.
             time.sleep(0.01)
@@ -537,7 +551,7 @@ class GTKKernel(Kernel):
 #-----------------------------------------------------------------------------
 
 def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
-                  independent=False, pylab=False, colors=None):
+                  executable=None, independent=False, pylab=False, colors=None):
     """Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -556,6 +570,9 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     hb_port : int, optional
         The port to use for the hearbeat REP channel.
+
+    executable : str, optional (default sys.executable)
+        The Python executable to use for the kernel process.
 
     independent : bool, optional (default False) 
         If set, the kernel process is guaranteed to survive if this process
@@ -591,7 +608,7 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         extra_arguments.append(colors)
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
                               xrep_port, pub_port, req_port, hb_port, 
-                              independent, extra_arguments)
+                              executable, independent, extra_arguments)
 
 
 def main():
@@ -602,7 +619,7 @@ def main():
                         const='auto', help = \
 "Pre-load matplotlib and numpy for interactive use. If GUI is not \
 given, the GUI backend is matplotlib's, otherwise use one of: \
-['tk', 'gtk', 'qt', 'wx', 'inline'].")
+['tk', 'gtk', 'qt', 'wx', 'osx', 'inline'].")
     parser.add_argument('--colors',
         type=str, dest='colors',
         help="Set the color scheme (NoColor, Linux, and LightBG).",
@@ -615,6 +632,7 @@ given, the GUI backend is matplotlib's, otherwise use one of: \
         'qt' : QtKernel,
         'qt4': QtKernel,
         'inline': Kernel,
+        'osx': TkKernel,
         'wx' : WxKernel,
         'tk' : TkKernel,
         'gtk': GTKKernel,

@@ -25,7 +25,7 @@ the "pysh" shortcut in start menu.
 If you want to use the features of sh profile as your defaults (which
 might be a good idea if you use other profiles a lot of the time but
 still want the convenience of sh profile), add ``import ipy_profile_sh``
-to your ~/.ipython/ipy_user_conf.py.
+to your $IPYTHON_DIR/ipy_user_conf.py.
 
 The 'sh' profile is different from the default profile in that:
 

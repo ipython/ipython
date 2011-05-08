@@ -118,6 +118,11 @@ class Config(dict):
         return type(self)(copy.deepcopy(self.items()))
 
     def __getitem__(self, key):
+        # We cannot use directly self._is_section_key, because it triggers
+        # infinite recursion on top of PyPy. Instead, we manually fish the
+        # bound method.
+        is_section_key = self.__class__._is_section_key.__get__(self)
+        
         # Because we use this for an exec namespace, we need to delegate
         # the lookup of names in __builtin__ to itself.  This means
         # that you can't have section or attribute names that are 
@@ -126,7 +131,7 @@ class Config(dict):
             return getattr(__builtin__, key)
         except AttributeError:
             pass
-        if self._is_section_key(key):
+        if is_section_key(key):
             try:
                 return dict.__getitem__(self, key)
             except KeyError:
@@ -285,7 +290,9 @@ class PyFileConfigLoader(FileConfigLoader):
             return self.config
 
         namespace = dict(load_subconfig=load_subconfig, get_config=get_config)
-        execfile(self.full_filename, namespace)
+        fs_encoding = sys.getfilesystemencoding() or 'ascii'
+        conf_filename = self.full_filename.encode(fs_encoding)
+        execfile(conf_filename, namespace)
 
     def _convert_to_config(self):
         if self.data is None:
@@ -325,6 +332,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             argv = sys.argv[1:]
         self.argv = argv
         self.parser_args = parser_args
+        self.version = parser_kw.pop("version", None)
         kwargs = dict(argument_default=argparse.SUPPRESS)
         kwargs.update(parser_kw)
         self.parser_kw = kwargs
@@ -361,8 +369,16 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         raise NotImplementedError("subclasses must implement _add_arguments")
 
     def _parse_args(self, args):
-        """self.parser->self.parsed_data""" 
-        self.parsed_data, self.extra_args = self.parser.parse_known_args(args)
+        """self.parser->self.parsed_data"""
+        # decode sys.argv to support unicode command-line options
+        uargs = []
+        for a in args:
+            if isinstance(a, str):
+                # don't decode if we already got unicode
+                a = a.decode(sys.stdin.encoding or 
+                                            sys.getdefaultencoding())
+            uargs.append(a)
+        self.parsed_data, self.extra_args = self.parser.parse_known_args(uargs)
 
     def _convert_to_config(self):
         """self.parsed_data->self.config"""

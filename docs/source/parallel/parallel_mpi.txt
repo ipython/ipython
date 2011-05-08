@@ -4,6 +4,11 @@
 Using MPI with IPython
 =======================
 
+.. note::
+
+    Not adapted to zmq yet
+    This is out of date wrt ipcluster in general as well
+
 Often, a parallel algorithm will require moving data between the engines. One
 way of accomplishing this is by doing a pull and then a push using the
 multiengine client. However, this will be slow as all the data has to go
@@ -70,10 +75,10 @@ files for the engines are in place. We also have built in support for
 PyTrilinos [PyTrilinos]_, which can be used (assuming is installed) by
 starting the engines with::
 
-    	mpiexec -n 4 ipengine --mpi=pytrilinos
+    $ mpiexec -n 4 ipengine --mpi=pytrilinos
 
 Automatic starting using PBS and :command:`ipcluster`
------------------------------------------------------
+------------------------------------------------------
 
 The :command:`ipcluster` command also has built-in integration with PBS. For
 more information on this approach, see our documentation on :ref:`ipcluster
@@ -103,9 +108,14 @@ distributed array. Save the following text in a file called :file:`psum.py`:
             op=MPI.SUM)
         return rcvBuf
 
-Now, start an IPython cluster in the same directory as :file:`psum.py`::
+Now, start an IPython cluster::
 
-    $ ipcluster mpiexec -n 4
+    $ ipcluster start -p mpi -n 4
+    
+.. note::
+
+    It is assumed here that the mpi profile has been set up, as described :ref:`here
+    <parallel_process>`.
 
 Finally, connect to the cluster and use this function interactively. In this
 case, we create a random array on each engine and sum up all the random arrays
@@ -113,63 +123,27 @@ using our :func:`psum` function:
 
 .. sourcecode:: ipython
 
-    In [1]: from IPython.kernel import client
+    In [1]: from IPython.parallel import Client
     
-    In [2]: mec = client.MultiEngineClient()
+    In [2]: %load_ext parallel_magic
     
-    In [3]: mec.activate()
+    In [3]: c = Client(profile='mpi')
     
-    In [4]: px import numpy as np
-    Parallel execution on engines: all
-    Out[4]: 
-    <Results List>
-    [0] In [13]: import numpy as np
-    [1] In [13]: import numpy as np
-    [2] In [13]: import numpy as np
-    [3] In [13]: import numpy as np
+    In [4]: view = c[:]
+    
+    In [5]: view.activate()
+    
+    # run the contents of the file on each engine:
+    In [6]: view.run('psum.py')
     
     In [6]: px a = np.random.rand(100)
-    Parallel execution on engines: all
-    Out[6]: 
-    <Results List>
-    [0] In [15]: a = np.random.rand(100)
-    [1] In [15]: a = np.random.rand(100)
-    [2] In [15]: a = np.random.rand(100)
-    [3] In [15]: a = np.random.rand(100)
-    
-    In [7]: px from psum import psum
-    Parallel execution on engines: all
-    Out[7]: 
-    <Results List>
-    [0] In [16]: from psum import psum
-    [1] In [16]: from psum import psum
-    [2] In [16]: from psum import psum
-    [3] In [16]: from psum import psum
+    Parallel execution on engines: [0,1,2,3]
     
     In [8]: px s = psum(a)
-    Parallel execution on engines: all
-    Out[8]: 
-    <Results List>
-    [0] In [17]: s = psum(a)
-    [1] In [17]: s = psum(a)
-    [2] In [17]: s = psum(a)
-    [3] In [17]: s = psum(a)
+    Parallel execution on engines: [0,1,2,3]
     
-    In [9]: px print s
-    Parallel execution on engines: all
-    Out[9]: 
-    <Results List>
-    [0] In [18]: print s
-    [0] Out[18]: 187.451545803
-    
-    [1] In [18]: print s
-    [1] Out[18]: 187.451545803
-    
-    [2] In [18]: print s
-    [2] Out[18]: 187.451545803
-
-    [3] In [18]: print s
-    [3] Out[18]: 187.451545803
+    In [9]: view['s']
+    Out[9]: [187.451545803,187.451545803,187.451545803,187.451545803]
 
 Any Python code that makes calls to MPI can be used in this manner, including
 compiled C, C++ and Fortran libraries that have been exposed to Python.

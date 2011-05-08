@@ -25,10 +25,10 @@ import shutil
 import re
 import time
 import textwrap
-import types
 from cStringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
+from xmlrpclib import ServerProxy
 
 # cProfile was added in Python2.5
 try:
@@ -53,11 +53,10 @@ from IPython.lib.pylabtools import mpl_runner
 from IPython.external.Itpl import itpl, printpl
 from IPython.testing import decorators as testdec
 from IPython.utils.io import file_read, nlprint
-import IPython.utils.io
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
-from IPython.utils.text import LSString, SList, StringTypes, format_screen
+from IPython.utils.text import LSString, SList, format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
@@ -86,6 +85,10 @@ def compress_dhist(dh):
 
     return newhead + tail        
 
+def needs_local_scope(func):
+    """Decorator to mark magic functions which need to local scope to run."""
+    func.needs_local_scope = True
+    return func
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -165,14 +168,15 @@ python-profiler package from non-free.""")
         out.sort()
         return out
     
-    def extract_input_slices(self,slices,raw=False):
+    def extract_input_lines(self, range_str, raw=False):
         """Return as a string a set of input history slices.
 
         Inputs:
 
-          - slices: the set of slices is given as a list of strings (like
-          ['1','4:8','9'], since this function is for use by magic functions
-          which get their arguments as strings.
+          - range_str: the set of slices is given as a string, like 
+          "~5/6-~4/2 4:8 9", since this function is for use by magic functions
+          which get their arguments as strings. The number before the / is the
+          session number: ~n goes n back from the current session.
 
         Optional inputs:
 
@@ -184,24 +188,9 @@ python-profiler package from non-free.""")
         N:M -> standard python form, means including items N...(M-1).
 
         N-M -> include items N..M (closed endpoint)."""
-
-        if raw:
-            hist = self.shell.input_hist_raw
-        else:
-            hist = self.shell.input_hist
-
-        cmds = []
-        for chunk in slices:
-            if ':' in chunk:
-                ini,fin = map(int,chunk.split(':'))
-            elif '-' in chunk:
-                ini,fin = map(int,chunk.split('-'))
-                fin += 1
-            else:
-                ini = int(chunk)
-                fin = ini+1
-            cmds.append(hist[ini:fin])
-        return cmds
+        lines = self.shell.history_manager.\
+                                    get_range_by_str(range_str, raw=raw)
+        return "\n".join(x for _, _, x in lines)
             
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
@@ -395,7 +384,7 @@ to 'mydir', if it exists.
 
 You can define your own magic functions to extend the system. See the supplied
 ipythonrc and example-magic.py files for details (in your ipython
-configuration directory, typically $HOME/.ipython/).
+configuration directory, typically $HOME/.config/ipython on Linux or $HOME/.ipython elsewhere).
 
 You can also define your own aliased names for magic functions. In your
 ipythonrc file, placing a line like:
@@ -575,10 +564,19 @@ Currently the magic system has the following functions:\n"""
         self.shell._inspect('pinfo', parameter_s, detail_level=1,
                             namespaces=namespaces)
 
+    @testdec.skip_doctest
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
-        If the object is a class, print the constructor information."""
+        If the object is a class, print the constructor information.
+        
+        Examples
+        --------
+        ::
+        
+          In [3]: %pdef urllib.urlopen
+          urllib.urlopen(url, data=None, proxies=None)
+        """
         self._inspect('pdef',parameter_s, namespaces)
 
     def magic_pdoc(self, parameter_s='', namespaces=None):
@@ -727,11 +725,31 @@ Currently the magic system has the following functions:\n"""
         except:
             shell.showtraceback()
         
+    @testdec.skip_doctest
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
 
         If arguments are given, only variables of types matching these
-        arguments are returned."""
+        arguments are returned.
+
+        Examples
+        --------
+
+        Define two variables and list them with who_ls::
+
+          In [1]: alpha = 123
+
+          In [2]: beta = 'test'
+
+          In [3]: %who_ls
+          Out[3]: ['alpha', 'beta']
+
+          In [4]: %who_ls int
+          Out[4]: ['alpha']
+
+          In [5]: %who_ls str
+          Out[5]: ['beta']
+        """
 
         user_ns = self.shell.user_ns
         internal_ns = self.shell.internal_ns
@@ -743,11 +761,12 @@ Currently the magic system has the following functions:\n"""
         typelist = parameter_s.split()
         if typelist:
             typeset = set(typelist)
-            out = [i for i in out if type(i).__name__ in typeset]
+            out = [i for i in out if type(user_ns[i]).__name__ in typeset]
 
         out.sort()
         return out
         
+    @testdec.skip_doctest
     def magic_who(self, parameter_s=''):
         """Print all interactive variables, with some minimal formatting.
 
@@ -769,7 +788,26 @@ Currently the magic system has the following functions:\n"""
         file and things which are internal to IPython.
 
         This is deliberate, as typically you may load many modules and the
-        purpose of %who is to show you only what you've manually defined."""
+        purpose of %who is to show you only what you've manually defined.
+
+        Examples
+        --------
+
+        Define two variables and list them with who::
+
+          In [1]: alpha = 123
+
+          In [2]: beta = 'test'
+
+          In [3]: %who
+          alpha   beta
+
+          In [4]: %who int
+          alpha
+
+          In [5]: %who str
+          beta
+        """
 
         varlist = self.magic_who_ls(parameter_s)
         if not varlist:
@@ -789,6 +827,7 @@ Currently the magic system has the following functions:\n"""
                 print
         print
 
+    @testdec.skip_doctest
     def magic_whos(self, parameter_s=''):
         """Like %who, but gives some extra information about each variable.
 
@@ -798,11 +837,27 @@ Currently the magic system has the following functions:\n"""
         
           - For {},[],(): their length.
 
-          - For numpy and Numeric arrays, a summary with shape, number of
+          - For numpy arrays, a summary with shape, number of
           elements, typecode and size in memory.
 
           - Everything else: a string representation, snipping their middle if
-          too long."""
+          too long.
+
+        Examples
+        --------
+
+        Define two variables and list them with whos::
+
+          In [1]: alpha = 123
+
+          In [2]: beta = 'test'
+
+          In [3]: %whos
+          Variable   Type        Data/Info
+          --------------------------------
+          alpha      int         123
+          beta       str         test
+        """
         
         varnames = self.magic_who_ls(parameter_s)
         if not varnames:
@@ -815,7 +870,7 @@ Currently the magic system has the following functions:\n"""
         # if we have variables, move on...
 
         # for these types, show len() instead of data:
-        seq_types = [types.DictType,types.ListType,types.TupleType]
+        seq_types = ['dict', 'list', 'tuple']
 
         # for numpy/Numeric arrays, display summary info
         try:
@@ -874,7 +929,7 @@ Currently the magic system has the following functions:\n"""
         for vname,var,vtype in zip(varnames,varlist,typelist):
             print itpl(vformat),
             if vtype in seq_types:
-                print len(var)
+                print "n="+str(len(var))
             elif vtype in [array_type,ndarray_type]:
                 vshape = str(var.shape).replace(',','').replace(' ','x')[1:-1]
                 if vtype==ndarray_type:
@@ -911,12 +966,15 @@ Currently the magic system has the following functions:\n"""
     def magic_reset(self, parameter_s=''):
         """Resets the namespace by removing all names defined by the user.
 
-        Input/Output history are left around in case you need them.
-
         Parameters
         ----------
-          -y : force reset without asking for confirmation.
-
+          -f : force reset without asking for confirmation.
+          
+          -s : 'Soft' reset: Only clears your namespace, leaving history intact.
+          References to objects may be kept. By default (without this option),
+          we do a 'hard' reset, giving you a new session and removing all
+          references to objects from the current session.
+        
         Examples
         --------
         In [6]: a = 1
@@ -929,11 +987,11 @@ Currently the magic system has the following functions:\n"""
 
         In [9]: %reset -f
 
-        In [10]: 'a' in _ip.user_ns
-        Out[10]: False
+        In [1]: 'a' in _ip.user_ns
+        Out[1]: False
         """
-
-        if parameter_s == '-f':
+        opts, args = self.parse_options(parameter_s,'sf')
+        if 'f' in opts:
             ans = True
         else:
             ans = self.shell.ask_yes_no(
@@ -941,13 +999,16 @@ Currently the magic system has the following functions:\n"""
         if not ans:
             print 'Nothing done.'
             return
-        user_ns = self.shell.user_ns
-        for i in self.magic_who_ls():
-            del(user_ns[i])
+        
+        if 's' in opts:                     # Soft reset
+            user_ns = self.shell.user_ns
+            for i in self.magic_who_ls():
+                del(user_ns[i])
             
-        # Also flush the private list of module references kept for script
-        # execution protection
-        self.shell.clear_main_mod_cache()
+        else:                     # Hard reset
+            self.shell.reset(new_session = False)
+            
+        
 
     def magic_reset_selective(self, parameter_s=''):
         """Resets the namespace by removing names defined by the user.
@@ -1106,19 +1167,19 @@ Currently the magic system has the following functions:\n"""
                 logger.timestamp = False
 
             if log_raw_input:
-                input_hist = self.shell.input_hist_raw
+                input_hist = self.shell.history_manager.input_hist_raw
             else:
-                input_hist = self.shell.input_hist
+                input_hist = self.shell.history_manager.input_hist_parsed
                 
             if log_output:
                 log_write = logger.log_write
-                output_hist = self.shell.output_hist
+                output_hist = self.shell.history_manager.output_hist
                 for n in range(1,len(input_hist)-1):
                     log_write(input_hist[n].rstrip())
                     if n in output_hist:
                         log_write(repr(output_hist[n]),'output')
             else:
-                logger.log_write(input_hist[1:])
+                logger.log_write(''.join(input_hist[1:]))
             if timestamp:
                 # re-enable timestamping
                 logger.timestamp = True
@@ -1549,90 +1610,89 @@ Currently the magic system has the following functions:\n"""
         # every single object ever created.
         sys.modules[main_mod_name] = main_mod
         
-        stats = None
         try:
-            self.shell.save_hist()
-
-            if opts.has_key('p'):
-                stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
-            else:
-                if opts.has_key('d'):
-                    deb = debugger.Pdb(self.shell.colors)
-                    # reset Breakpoint state, which is moronically kept
-                    # in a class
-                    bdb.Breakpoint.next = 1
-                    bdb.Breakpoint.bplist = {}
-                    bdb.Breakpoint.bpbynumber = [None]
-                    # Set an initial breakpoint to stop execution
-                    maxtries = 10
-                    bp = int(opts.get('b',[1])[0])
-                    checkline = deb.checkline(filename,bp)
-                    if not checkline:
-                        for bp in range(bp+1,bp+maxtries+1):
-                            if deb.checkline(filename,bp):
-                                break
-                        else:
-                            msg = ("\nI failed to find a valid line to set "
-                                   "a breakpoint\n"
-                                   "after trying up to line: %s.\n"
-                                   "Please set a valid breakpoint manually "
-                                   "with the -b option." % bp)
-                            error(msg)
-                            return
-                    # if we find a good linenumber, set the breakpoint
-                    deb.do_break('%s:%s' % (filename,bp))
-                    # Start file run
-                    print "NOTE: Enter 'c' at the",
-                    print "%s prompt to start your script." % deb.prompt
-                    try:
-                        deb.run('execfile("%s")' % filename,prog_ns)
-                        
-                    except:
-                        etype, value, tb = sys.exc_info()
-                        # Skip three frames in the traceback: the %run one,
-                        # one inside bdb.py, and the command-line typed by the
-                        # user (run by exec in pdb itself).
-                        self.shell.InteractiveTB(etype,value,tb,tb_offset=3)
+            stats = None
+            with self.readline_no_record:
+                if opts.has_key('p'):
+                    stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
                 else:
-                    if runner is None:
-                        runner = self.shell.safe_execfile
-                    if opts.has_key('t'):
-                        # timed execution
-                        try:
-                            nruns = int(opts['N'][0])
-                            if nruns < 1:
-                                error('Number of runs must be >=1')
+                    if opts.has_key('d'):
+                        deb = debugger.Pdb(self.shell.colors)
+                        # reset Breakpoint state, which is moronically kept
+                        # in a class
+                        bdb.Breakpoint.next = 1
+                        bdb.Breakpoint.bplist = {}
+                        bdb.Breakpoint.bpbynumber = [None]
+                        # Set an initial breakpoint to stop execution
+                        maxtries = 10
+                        bp = int(opts.get('b',[1])[0])
+                        checkline = deb.checkline(filename,bp)
+                        if not checkline:
+                            for bp in range(bp+1,bp+maxtries+1):
+                                if deb.checkline(filename,bp):
+                                    break
+                            else:
+                                msg = ("\nI failed to find a valid line to set "
+                                       "a breakpoint\n"
+                                       "after trying up to line: %s.\n"
+                                       "Please set a valid breakpoint manually "
+                                       "with the -b option." % bp)
+                                error(msg)
                                 return
-                        except (KeyError):
-                            nruns = 1
-                        if nruns == 1:
-                            t0 = clock2()
-                            runner(filename,prog_ns,prog_ns,
-                                   exit_ignore=exit_ignore)
-                            t1 = clock2()
-                            t_usr = t1[0]-t0[0]
-                            t_sys = t1[1]-t0[1]
-                            print "\nIPython CPU timings (estimated):"
-                            print "  User  : %10s s." % t_usr
-                            print "  System: %10s s." % t_sys
-                        else:
-                            runs = range(nruns)
-                            t0 = clock2()
-                            for nr in runs:
+                        # if we find a good linenumber, set the breakpoint
+                        deb.do_break('%s:%s' % (filename,bp))
+                        # Start file run
+                        print "NOTE: Enter 'c' at the",
+                        print "%s prompt to start your script." % deb.prompt
+                        try:
+                            deb.run('execfile("%s")' % filename,prog_ns)
+                            
+                        except:
+                            etype, value, tb = sys.exc_info()
+                            # Skip three frames in the traceback: the %run one,
+                            # one inside bdb.py, and the command-line typed by the
+                            # user (run by exec in pdb itself).
+                            self.shell.InteractiveTB(etype,value,tb,tb_offset=3)
+                    else:
+                        if runner is None:
+                            runner = self.shell.safe_execfile
+                        if opts.has_key('t'):
+                            # timed execution
+                            try:
+                                nruns = int(opts['N'][0])
+                                if nruns < 1:
+                                    error('Number of runs must be >=1')
+                                    return
+                            except (KeyError):
+                                nruns = 1
+                            if nruns == 1:
+                                t0 = clock2()
                                 runner(filename,prog_ns,prog_ns,
                                        exit_ignore=exit_ignore)
-                            t1 = clock2()
-                            t_usr = t1[0]-t0[0]
-                            t_sys = t1[1]-t0[1]
-                            print "\nIPython CPU timings (estimated):"
-                            print "Total runs performed:",nruns
-                            print "  Times : %10s    %10s" % ('Total','Per run')
-                            print "  User  : %10s s, %10s s." % (t_usr,t_usr/nruns)
-                            print "  System: %10s s, %10s s." % (t_sys,t_sys/nruns)
-                            
-                    else:
-                        # regular execution
-                        runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+                                t1 = clock2()
+                                t_usr = t1[0]-t0[0]
+                                t_sys = t1[1]-t0[1]
+                                print "\nIPython CPU timings (estimated):"
+                                print "  User  : %10s s." % t_usr
+                                print "  System: %10s s." % t_sys
+                            else:
+                                runs = range(nruns)
+                                t0 = clock2()
+                                for nr in runs:
+                                    runner(filename,prog_ns,prog_ns,
+                                           exit_ignore=exit_ignore)
+                                t1 = clock2()
+                                t_usr = t1[0]-t0[0]
+                                t_sys = t1[1]-t0[1]
+                                print "\nIPython CPU timings (estimated):"
+                                print "Total runs performed:",nruns
+                                print "  Times : %10s    %10s" % ('Total','Per run')
+                                print "  User  : %10s s, %10s s." % (t_usr,t_usr/nruns)
+                                print "  System: %10s s, %10s s." % (t_sys,t_sys/nruns)
+                                
+                        else:
+                            # regular execution
+                            runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
 
                 if opts.has_key('i'):
                     self.shell.user_ns['__name__'] = __name__save
@@ -1669,8 +1729,6 @@ Currently the magic system has the following functions:\n"""
                 # added.  Otherwise it will trap references to objects
                 # contained therein.
                 del sys.modules[main_mod_name]
-
-            self.shell.reload_hist()
                 
         return stats
 
@@ -1812,6 +1870,7 @@ Currently the magic system has the following functions:\n"""
             print "Compiler time: %.2f s" % tc
 
     @testdec.skip_doctest
+    @needs_local_scope
     def magic_time(self,parameter_s = ''):
         """Time execution of a Python statement or expression.
 
@@ -1877,17 +1936,18 @@ Currently the magic system has the following functions:\n"""
             tc = clock()-t0
         # skew measurement as little as possible
         glob = self.shell.user_ns
+        locs = self._magic_locals
         clk = clock2
         wtime = time.time
         # time execution
         wall_st = wtime()
         if mode=='eval':
             st = clk()
-            out = eval(code,glob)
+            out = eval(code, glob, locs)
             end = clk()
         else:
             st = clk()
-            exec code in glob
+            exec code in glob, locs
             end = clk()
             out = None
         wall_end = wtime()
@@ -1905,7 +1965,8 @@ Currently the magic system has the following functions:\n"""
 
     @testdec.skip_doctest
     def magic_macro(self,parameter_s = ''):
-        """Define a set of input lines as a macro for future re-execution.
+        """Define a macro for future re-execution. It accepts ranges of history,
+        filenames or string objects.
 
         Usage:\\
           %macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
@@ -1924,9 +1985,7 @@ Currently the magic system has the following functions:\n"""
         you had typed them. You just type 'name' at the prompt and the code
         executes.
 
-        The notation for indicating number ranges is: n1-n2 means 'use line
-        numbers n1,...n2' (the endpoint is included).  That is, '5-7' means
-        using the lines numbered 5,6 and 7.
+        The syntax for indicating input ranges is described in %history.
 
         Note: as a 'hidden' feature, you can also use traditional python slice
         notation, where N:M means numbers N through M-1.
@@ -1959,33 +2018,32 @@ Currently the magic system has the following functions:\n"""
         You can view a macro's contents by explicitly printing it with:
         
           'print macro_name'.
-
-        For one-off cases which DON'T contain magic function calls in them you
-        can obtain similar results by explicitly executing slices from your
-        input history with:
-
-          In [60]: exec In[44:48]+In[49]"""
+          
+        """
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
-        if not args:
-            macs = [k for k,v in self.shell.user_ns.items() if isinstance(v, Macro)]
-            macs.sort()
-            return macs
+        if not args:   # List existing macros
+            return sorted(k for k,v in self.shell.user_ns.iteritems() if\
+                                                        isinstance(v, Macro))
         if len(args) == 1:
             raise UsageError(
                 "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
-        name,ranges = args[0], args[1:]
+        name, codefrom = args[0], " ".join(args[1:])
         
         #print 'rng',ranges  # dbg
-        lines = self.extract_input_slices(ranges,opts.has_key('r'))
+        try:
+            lines = self.shell.find_user_code(codefrom, 'r' in opts)
+        except (ValueError, TypeError) as e:
+            print e.args[0]
+            return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
-        print 'Macro contents:'
+        print '=== Macro contents: ==='
         print macro,
 
     def magic_save(self,parameter_s = ''):
-        """Save a set of lines to a given filename.
+        """Save a set of lines or a macro to a given filename.
 
         Usage:\\
           %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
@@ -1997,15 +2055,14 @@ Currently the magic system has the following functions:\n"""
           Python.  If this option is given, the raw input as typed as the
           command line is used instead.
 
-        This function uses the same syntax as %macro for line extraction, but
-        instead of creating a macro it saves the resulting string to the
-        filename you specify.
+        This function uses the same syntax as %history for input ranges, 
+        then saves the lines to the filename you specify.
 
         It adds a '.py' extension to the file if you don't do so yourself, and
         it asks for confirmation before overwriting existing files."""
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
-        fname,ranges = args[0], args[1:]
+        fname, codefrom = args[0], " ".join(args[1:])
         if not fname.endswith('.py'):
             fname += '.py'
         if os.path.isfile(fname):
@@ -2013,12 +2070,29 @@ Currently the magic system has the following functions:\n"""
             if ans.lower() not in ['y','yes']:
                 print 'Operation cancelled.'
                 return
-        cmds = ''.join(self.extract_input_slices(ranges,opts.has_key('r')))
-        f = file(fname,'w')
-        f.write(cmds)
-        f.close()
+        try:
+            cmds = self.shell.find_user_code(codefrom, 'r' in opts)
+        except (TypeError, ValueError) as e:
+            print e.args[0]
+            return
+        if isinstance(cmds, unicode):
+            cmds = cmds.encode("utf-8")
+        with open(fname,'w') as f:
+            f.write("# coding: utf-8\n")
+            f.write(cmds)
         print 'The following commands were written to file `%s`:' % fname
         print cmds
+    
+    def magic_pastebin(self, parameter_s = ''):
+        """Upload code to the 'Lodge it' paste bin, returning the URL."""
+        try:
+            code = self.shell.find_user_code(parameter_s)
+        except (ValueError, TypeError) as e:
+            print e.args[0]
+            return
+        pbserver = ServerProxy('http://paste.pocoo.org/xmlrpc/')
+        id = pbserver.pastes.newPaste("python", code)
+        return "http://paste.pocoo.org/show/" + id
 
     def _edit_macro(self,mname,macro):
         """open an editor with the macro data in a file"""
@@ -2088,15 +2162,17 @@ Currently the magic system has the following functions:\n"""
         Arguments:
 
         If arguments are given, the following possibilites exist:
+        
+        - If the argument is a filename, IPython will load that into the
+        editor. It will execute its contents with execfile() when you exit,
+        loading any code in the file into your interactive namespace.
 
-        - The arguments are numbers or pairs of colon-separated numbers (like
-        1 4:8 9). These are interpreted as lines of previous input to be
-        loaded into the editor. The syntax is the same of the %macro command.
+        - The arguments are ranges of input history,  e.g. "7 ~1/4-6".
+        The syntax is the same as in the %history magic.
 
-        - If the argument doesn't start with a number, it is evaluated as a
-        variable and its contents loaded into the editor. You can thus edit
-        any string which contains python code (including the result of
-        previous edits).
+        - If the argument is a string variable, its contents are loaded
+        into the editor. You can thus edit any string which contains
+        python code (including the result of previous edits).
 
         - If the argument is the name of an object (other than a string),
         IPython will try to locate the file where it was defined and open the
@@ -2112,11 +2188,6 @@ Currently the magic system has the following functions:\n"""
         editors (like kedit and gedit up to Gnome 2.8) do not understand the
         '+NUMBER' parameter necessary for this feature. Good editors like
         (X)Emacs, vi, jed, pico and joe all do.
-
-        - If the argument is not found as a variable, IPython will look for a
-        file with that name (adding .py if necessary) and load it into the
-        editor. It will execute its contents with execfile() when you exit,
-        loading any code in the file into your interactive namespace.
 
         After executing your code, %edit will return as output the code you
         typed in the editor (except when it was an existing file). This way
@@ -2200,13 +2271,13 @@ Currently the magic system has the following functions:\n"""
 
         opts,args = self.parse_options(parameter_s,'prxn:')
         # Set a few locals from the options for convenience:
-        opts_p = opts.has_key('p')
-        opts_r = opts.has_key('r')
+        opts_prev = 'p' in opts
+        opts_raw = 'r' in opts
         
         # Default line number value
         lineno = opts.get('n',None)
 
-        if opts_p:
+        if opts_prev:
             args = '_%s' % last_call[0]
             if not self.shell.user_ns.has_key(args):
                 args = last_call[1]
@@ -2215,90 +2286,83 @@ Currently the magic system has the following functions:\n"""
         # let it be clobbered by successive '-p' calls.
         try:
             last_call[0] = self.shell.displayhook.prompt_count
-            if not opts_p:
+            if not opts_prev:
                 last_call[1] = parameter_s
         except:
             pass
 
         # by default this is done with temp files, except when the given
         # arg is a filename
-        use_temp = 1
+        use_temp = True
 
-        if re.match(r'\d',args):
-            # Mode where user specifies ranges of lines, like in %macro.
-            # This means that you can't edit files whose names begin with
-            # numbers this way. Tough.
-            ranges = args.split()
-            data = ''.join(self.extract_input_slices(ranges,opts_r))
-        elif args.endswith('.py'):
+        data = ''
+        if args.endswith('.py'):
             filename = make_filename(args)
-            data = ''
-            use_temp = 0
+            use_temp = False
         elif args:
-            try:
-                # Load the parameter given as a variable. If not a string,
-                # process it as an object instead (below)
-
-                #print '*** args',args,'type',type(args)  # dbg
-                data = eval(args,self.shell.user_ns)
-                if not type(data) in StringTypes:
-                    raise DataIsObject
-
-            except (NameError,SyntaxError):
-                # given argument is not a variable, try as a filename
-                filename = make_filename(args)
-                if filename is None:
-                    warn("Argument given (%s) can't be found as a variable "
-                         "or as a filename." % args)
-                    return
-
-                data = ''
-                use_temp = 0
-            except DataIsObject:
-
-                # macros have a special edit function
-                if isinstance(data,Macro):
-                    self._edit_macro(args,data)
-                    return
-                                
-                # For objects, try to edit the file where they are defined
+            # Mode where user specifies ranges of lines, like in %macro.
+            data = self.extract_input_lines(args, opts_raw)
+            if not data:
                 try:
-                    filename = inspect.getabsfile(data)
-                    if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
-                        # class created by %edit? Try to find source
-                        # by looking for method definitions instead, the
-                        # __module__ in those classes is FakeModule.
-                        attrs = [getattr(data, aname) for aname in dir(data)]
-                        for attr in attrs:
-                            if not inspect.ismethod(attr):
-                                continue
-                            filename = inspect.getabsfile(attr)
-                            if filename and 'fakemodule' not in filename.lower():
-                                # change the attribute to be the edit target instead
-                                data = attr 
-                                break
-                    
-                    datafile = 1
-                except TypeError:
+                    # Load the parameter given as a variable. If not a string,
+                    # process it as an object instead (below)
+
+                    #print '*** args',args,'type',type(args)  # dbg
+                    data = eval(args, self.shell.user_ns)
+                    if not isinstance(data, basestring):
+                        raise DataIsObject
+
+                except (NameError,SyntaxError):
+                    # given argument is not a variable, try as a filename
                     filename = make_filename(args)
-                    datafile = 1
-                    warn('Could not find file where `%s` is defined.\n'
-                         'Opening a file named `%s`' % (args,filename))
-                # Now, make sure we can actually read the source (if it was in
-                # a temp file it's gone by now).
-                if datafile:
+                    if filename is None:
+                        warn("Argument given (%s) can't be found as a variable "
+                             "or as a filename." % args)
+                        return
+                    use_temp = False
+                
+                except DataIsObject:
+                    # macros have a special edit function
+                    if isinstance(data, Macro):
+                        self._edit_macro(args,data)
+                        return
+                                    
+                    # For objects, try to edit the file where they are defined
                     try:
-                        if lineno is None:
-                            lineno = inspect.getsourcelines(data)[1]
-                    except IOError:
+                        filename = inspect.getabsfile(data)
+                        if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
+                            # class created by %edit? Try to find source
+                            # by looking for method definitions instead, the
+                            # __module__ in those classes is FakeModule.
+                            attrs = [getattr(data, aname) for aname in dir(data)]
+                            for attr in attrs:
+                                if not inspect.ismethod(attr):
+                                    continue
+                                filename = inspect.getabsfile(attr)
+                                if filename and 'fakemodule' not in filename.lower():
+                                    # change the attribute to be the edit target instead
+                                    data = attr 
+                                    break
+                        
+                        datafile = 1
+                    except TypeError:
                         filename = make_filename(args)
-                        if filename is None:
-                            warn('The file `%s` where `%s` was defined cannot '
-                                 'be read.' % (filename,data))
-                            return
-                use_temp = 0
-        else:
-            data = ''
+                        datafile = 1
+                        warn('Could not find file where `%s` is defined.\n'
+                             'Opening a file named `%s`' % (args,filename))
+                    # Now, make sure we can actually read the source (if it was in
+                    # a temp file it's gone by now).
+                    if datafile:
+                        try:
+                            if lineno is None:
+                                lineno = inspect.getsourcelines(data)[1]
+                        except IOError:
+                            filename = make_filename(args)
+                            if filename is None:
+                                warn('The file `%s` where `%s` was defined cannot '
+                                     'be read.' % (filename,data))
+                                return
+                    use_temp = False
 
         if use_temp:
             filename = self.shell.mktempfile(data)
@@ -2321,12 +2385,13 @@ Currently the magic system has the following functions:\n"""
         if args.strip() == 'pasted_block':
             self.shell.user_ns['pasted_block'] = file_read(filename)
         
-        if opts.has_key('x'):  # -x prevents actual execution
+        if 'x' in opts:  # -x prevents actual execution
             print
         else:
             print 'done. Executing edited code...'
-            if opts_r:
-                self.shell.run_cell(file_read(filename))
+            if opts_raw:
+                self.shell.run_cell(file_read(filename),
+                                                    store_history=False)
             else:
                 self.shell.safe_execfile(filename,self.shell.user_ns,
                                          self.shell.user_ns)
@@ -2366,7 +2431,14 @@ Currently the magic system has the following functions:\n"""
 
         Currently implemented schemes: NoColor, Linux, LightBG.
 
-        Color scheme names are not case-sensitive."""
+        Color scheme names are not case-sensitive.
+        
+        Examples
+        --------
+        To get a plain black and white terminal::
+        
+          %colors nocolor
+        """
 
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
@@ -2424,20 +2496,12 @@ Defaulting color scheme to 'NoColor'"""
         else:
             shell.inspector.set_active_scheme('NoColor')
                 
-    def magic_Pprint(self, parameter_s=''):
+    def magic_pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
-        
-        self.shell.pprint = 1 - self.shell.pprint
+        ptformatter = self.shell.display_formatter.formatters['text/plain']
+        ptformatter.pprint = bool(1 - ptformatter.pprint)
         print 'Pretty printing has been turned', \
-              ['OFF','ON'][self.shell.pprint]
-                
-    def magic_Exit(self, parameter_s=''):
-        """Exit IPython."""
-
-        self.shell.ask_exit()
-
-    # Add aliases as magics so all common forms work: exit, quit, Exit, Quit.
-    magic_exit = magic_quit = magic_Quit = magic_Exit
+              ['OFF','ON'][ptformatter.pprint]
 
     #......................................................................
     # Functions to implement unix shell-type things
@@ -2603,11 +2667,21 @@ Defaulting color scheme to 'NoColor'"""
             db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
-        
+    
+    @testdec.skip_doctest    
     def magic_pwd(self, parameter_s = ''):
-        """Return the current working directory path."""
+        """Return the current working directory path.
+        
+        Examples
+        --------
+        ::
+        
+          In [9]: pwd
+          Out[9]: '/home/tsuser/sprint/ipython'
+        """
         return os.getcwd()
-
+    
+    @testdec.skip_doctest
     def magic_cd(self, parameter_s=''):
         """Change the current working directory.
 
@@ -2638,7 +2712,15 @@ Defaulting color scheme to 'NoColor'"""
         since the default prompts do not display path information.
         
         Note that !cd doesn't work for this purpose because the shell where
-        !command runs is immediately discarded after executing 'command'."""
+        !command runs is immediately discarded after executing 'command'.
+        
+        Examples
+        --------
+        ::
+        
+          In [10]: cd parent/child
+          /home/tsuser/parent/child
+        """
 
         parameter_s = parameter_s.strip()
         #bkms = self.shell.persist.get("bookmarks",{})
@@ -2959,38 +3041,6 @@ Defaulting color scheme to 'NoColor'"""
         if parameter_s:
             return self.shell.getoutput(parameter_s)
 
-    def magic_r(self, parameter_s=''):
-        """Repeat previous input.
-
-        Note: Consider using the more powerfull %rep instead!
-        
-        If given an argument, repeats the previous command which starts with
-        the same string, otherwise it just repeats the previous input.
-
-        Shell escaped commands (with ! as first character) are not recognized
-        by this system, only pure python code and magic commands.
-        """
-
-        start = parameter_s.strip()
-        esc_magic = ESC_MAGIC
-        # Identify magic commands even if automagic is on (which means
-        # the in-memory version is different from that typed by the user).
-        if self.shell.automagic:
-            start_magic = esc_magic+start
-        else:
-            start_magic = start
-        # Look through the input history in reverse
-        for n in range(len(self.shell.input_hist)-2,0,-1):
-            input = self.shell.input_hist[n]
-            # skip plain 'r' lines so we don't recurse to infinity
-            if input != '_ip.magic("r")\n' and \
-                   (input.startswith(start) or input.startswith(start_magic)):
-                #print 'match',`input`  # dbg
-                print 'Executing:',input,
-                self.shell.run_cell(input)
-                return
-        print 'No previous input matching `%s` found.' % start
-
     
     def magic_bookmark(self, parameter_s=''):
         """Manage IPython's bookmark system.
@@ -3163,6 +3213,8 @@ Defaulting color scheme to 'NoColor'"""
         shell = self.shell
         oc = shell.displayhook
         meta = shell.meta
+        disp_formatter = self.shell.display_formatter
+        ptformatter = disp_formatter.formatters['text/plain']
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.
         dstore = meta.setdefault('doctest_mode',Struct())
@@ -3170,12 +3222,13 @@ Defaulting color scheme to 'NoColor'"""
 
         # save a few values we'll need to recover later
         mode = save_dstore('mode',False)
-        save_dstore('rc_pprint',shell.pprint)
+        save_dstore('rc_pprint',ptformatter.pprint)
         save_dstore('xmode',shell.InteractiveTB.mode)
         save_dstore('rc_separate_out',shell.separate_out)
         save_dstore('rc_separate_out2',shell.separate_out2)
         save_dstore('rc_prompts_pad_left',shell.prompts_pad_left)
         save_dstore('rc_separate_in',shell.separate_in)
+        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
 
         if mode == False:
             # turn on
@@ -3191,7 +3244,8 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.pad_left = oc.prompt2.pad_left = \
                                   oc.prompt_out.pad_left = False
 
-            shell.pprint = False
+            ptformatter.pprint = False
+            disp_formatter.plain_text_only = True
             
             shell.magic_xmode('Plain')
         else:
@@ -3208,7 +3262,8 @@ Defaulting color scheme to 'NoColor'"""
             oc.prompt1.pad_left = oc.prompt2.pad_left = \
                          oc.prompt_out.pad_left = dstore.rc_prompts_pad_left
 
-            shell.pprint = dstore.rc_pprint
+            ptformatter.pprint = dstore.rc_pprint
+            disp_formatter.plain_text_only = dstore.rc_plain_text_only
 
             shell.magic_xmode(dstore.xmode)
 
@@ -3335,7 +3390,7 @@ Defaulting color scheme to 'NoColor'"""
         Parameters
         ----------
         guiname : optional
-          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk' or
+          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk', 'osx' or
           'tk').  If given, the corresponding Matplotlib backend is used,
           otherwise matplotlib's default (which you can override in your
           matplotlib config file) is used.
@@ -3363,5 +3418,52 @@ Defaulting color scheme to 'NoColor'"""
 
         See %xmode for changing exception reporting modes."""
         self.shell.showtraceback()
+    
+    @testdec.skip_doctest
+    def magic_precision(self, s=''):
+        """Set floating point precision for pretty printing.
+        
+        Can set either integer precision or a format string.
+        
+        If numpy has been imported and precision is an int,
+        numpy display precision will also be set, via ``numpy.set_printoptions``.
+        
+        If no argument is given, defaults will be restored.
+        
+        Examples
+        --------
+        ::
+        
+            In [1]: from math import pi
+        
+            In [2]: %precision 3
+            Out[2]: '%.3f'
+        
+            In [3]: pi
+            Out[3]: 3.142
+        
+            In [4]: %precision %i
+            Out[4]: '%i'
+        
+            In [5]: pi
+            Out[5]: 3
+        
+            In [6]: %precision %e
+            Out[6]: '%e'
+        
+            In [7]: pi**10
+            Out[7]: 9.364805e+04
+        
+            In [8]: %precision
+            Out[8]: '%r'
+        
+            In [9]: pi**10
+            Out[9]: 93648.047476082982
+        
+        """
+        
+        ptformatter = self.shell.display_formatter.formatters['text/plain']
+        ptformatter.float_precision = s
+        return ptformatter.float_format
 
 # end Magic

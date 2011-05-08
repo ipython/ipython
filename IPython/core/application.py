@@ -69,10 +69,19 @@ class BaseAppConfigLoader(ArgParseConfigLoader):
             dest="Global.log_level",type=int,
             help='Set the log level (0,10,20,30,40,50).  Default is 30.',
             metavar='Global.log_level')
+            
+    def _add_version(self, parser):
+        """Add the --version option to the parser."""
+        parser.add_argument('--version', action="version",
+                                                version=self.version)
 
     def _add_arguments(self):
         self._add_ipython_dir(self.parser)
         self._add_log_level(self.parser)
+        try:  # Old versions of argparse don't have a version action
+            self._add_version(self.parser)
+        except Exception:
+            pass
 
 
 class Application(object):
@@ -105,7 +114,7 @@ class Application(object):
     default_log_level = logging.WARN
     #: Set by --profile option
     profile_name = None
-    #: User's ipython directory, typically ~/.ipython/
+    #: User's ipython directory, typically ~/.ipython or ~/.config/ipython/
     ipython_dir = None
     #: Internal defaults, implemented in code.
     default_config = None
@@ -344,18 +353,22 @@ class Application(object):
         # our shipped copies of builtin profiles even if they don't have them
         # in their local ipython directory.
         prof_dir = os.path.join(get_ipython_package_dir(), 'config', 'profile')
-        self.config_file_paths = (os.getcwd(), self.ipython_dir, prof_dir)
+        self.config_file_paths = (os.getcwdu(), self.ipython_dir, prof_dir)
 
     def pre_load_file_config(self):
         """Do actions before the config file is loaded."""
         pass
 
-    def load_file_config(self):
+    def load_file_config(self, suppress_errors=True):
         """Load the config file.
         
         This tries to load the config file from disk.  If successful, the
         ``CONFIG_FILE`` config variable is set to the resolved config file
         location.  If not successful, an empty config is used.
+        
+        By default, errors in loading config are handled, and a warning
+        printed on screen. For testing, the suppress_errors option is set
+        to False, so errors will make tests fail.
         """
         self.log.debug("Attempting to load config file: %s" %
                        self.config_file_name)
@@ -371,6 +384,8 @@ class Application(object):
                                self.config_file_name, exc_info=True)
             self.file_config = Config()
         except:
+            if not suppress_errors:     # For testing purposes
+                raise
             self.log.warn("Error loading config file: %s" %
                           self.config_file_name, exc_info=True)
             self.file_config = Config()

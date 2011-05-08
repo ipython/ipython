@@ -5,7 +5,7 @@
 import inspect
 
 # System library imports.
-from PyQt4 import QtCore, QtGui
+from IPython.external.qt import QtCore, QtGui
 
 # IPython imports.
 from IPython.utils.traitlets import HasTraits, TraitType

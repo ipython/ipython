@@ -81,14 +81,14 @@ c = get_config()
 
 # c.InteractiveShell.pdb = False
 
-# c.InteractiveShell.pprint = True
-
 # c.InteractiveShell.prompt_in1 = 'In [\#]: '
 # c.InteractiveShell.prompt_in2 = '   .\D.: '
 # c.InteractiveShell.prompt_out = 'Out[\#]: '
 # c.InteractiveShell.prompts_pad_left = True
 
 # c.InteractiveShell.quiet = False
+
+# c.InteractiveShell.history_length = 10000
 
 # Readline 
 # c.InteractiveShell.readline_use = True
@@ -127,6 +127,12 @@ c = get_config()
 # c.InteractiveShell.xmode = 'Context'
 
 #-----------------------------------------------------------------------------
+# Formatter and display options
+#-----------------------------------------------------------------------------
+
+# c.PlainTextFormatter.pprint = True
+
+#-----------------------------------------------------------------------------
 # PrefilterManager options
 #-----------------------------------------------------------------------------
 
@@ -142,3 +148,14 @@ c = get_config()
 # c.AliasManager.user_aliases = [
 #     ('foo', 'echo Hi')
 # ]
+
+#-----------------------------------------------------------------------------
+# HistoryManager options
+#-----------------------------------------------------------------------------
+
+# Enable logging output as well as input to the database.
+# c.HistoryManager.db_log_output = False
+
+# Only write to the database every n commands - this can save disk
+# access (and hence power) over the default of writing on every command.
+# c.HistoryManager.db_cache_size = 0

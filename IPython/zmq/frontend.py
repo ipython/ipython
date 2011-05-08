@@ -92,10 +92,10 @@ class Console(code.InteractiveConsole):
 
     def recv_output(self):
         while True:
-            omsg = self.session.recv(self.sub_socket)
-            if omsg is None:
+            ident,msg = self.session.recv(self.sub_socket)
+            if msg is None:
                 break
-            self.handle_output(omsg)
+            self.handle_output(Message(msg))
 
     def handle_reply(self, rep):
         # Handle any side effects on output channels
@@ -114,9 +114,10 @@ class Console(code.InteractiveConsole):
                 print >> sys.stderr, ab
 
     def recv_reply(self):
-        rep = self.session.recv(self.request_socket)
-        self.handle_reply(rep)
-        return rep
+        ident,rep = self.session.recv(self.request_socket)
+        mrep = Message(rep)
+        self.handle_reply(mrep)
+        return mrep
 
     def runcode(self, code):
         # We can't pickle code objects, so fetch the actual source

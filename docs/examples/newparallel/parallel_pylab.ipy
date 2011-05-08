@@ -1,0 +1,49 @@
+"""Example of how to use pylab to plot parallel data.
+
+The idea here is to run matplotlib is the same IPython session
+as an ipython parallel Client.  That way matplotlib
+can be used to plot parallel data that is gathered using
+a DirectView.  
+
+To run this example, first start the IPython controller and 4
+engines::
+
+    ipcluster -n 4
+
+Then start ipython in pylab mode::
+
+    ipython -pylab
+    
+Then a simple "run parallel_pylab.ipy" in IPython will run the
+example. 
+"""
+
+import numpy as N
+from pylab import *
+from IPython.parallel import Client
+
+# load the parallel magic
+%load_ext parallelmagic
+
+# Get an IPython Client
+rc = Client()
+v = rc[:]
+v.activate()
+
+# Create random arrays on the engines
+# This is to simulate arrays that you have calculated in parallel
+# on the engines.
+# Anymore that length 10000 arrays, matplotlib starts to be slow
+%px import numpy as N
+%px x = N.random.standard_normal(10000)
+%px y = N.random.standard_normal(10000)
+
+print v.apply_async(lambda : x[0:10]).get_dict()
+print v.apply_async(lambda : y[0:10]).get_dict()
+
+# Bring back the data
+x_local = v.gather('x', block=True)
+y_local = v.gather('y', block=True)
+
+# Make a scatter plot of the gathered data
+plot(x_local, y_local,'ro')

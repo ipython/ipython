@@ -7,6 +7,7 @@ Authors
 -------
 * Robert Kern
 * Fernando Perez
+* Thomas Kluyver
 """
 
 # Note: though it might be more natural to name this module 'compiler', that
@@ -38,8 +39,10 @@ import time
 
 def code_name(code, number=0):
     """ Compute a (probably) unique name for code for caching.
+    
+    This now expects code to be unicode.
     """
-    hash_digest = hashlib.md5(code).hexdigest()
+    hash_digest = hashlib.md5(code.encode("utf-8")).hexdigest()
     # Include the number and 12 characters of the hash in the name.  It's
     # pretty much impossible that in a single session we'll have collisions
     # even with truncated hashes, and the full one makes tracebacks too long
@@ -49,12 +52,12 @@ def code_name(code, number=0):
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class CachingCompiler(object):
+class CachingCompiler(codeop.Compile):
     """A compiler that caches code compiled from interactive statements.
     """
 
     def __init__(self):
-        self._compiler = codeop.CommandCompiler()
+        codeop.Compile.__init__(self)
         
         # This is ugly, but it must be done this way to allow multiple
         # simultaneous ipython instances to coexist.  Since Python itself
@@ -79,35 +82,30 @@ class CachingCompiler(object):
     def compiler_flags(self):
         """Flags currently active in the compilation process.
         """
-        return self._compiler.compiler.flags
+        return self.flags
         
-    def __call__(self, code, symbol, number=0):
-        """Compile some code while caching its contents such that the inspect
-        module can find it later.
-
+    def cache(self, code, number=0):
+        """Make a name for a block of code, and cache the code.
+        
         Parameters
         ----------
         code : str
-          Source code to be compiled, one or more lines.
-
-        symbol : str
-          One of 'single', 'exec' or 'eval' (see the builtin ``compile``
-          documentation for further details on these fields).
-
-        number : int, optional
-          An integer argument identifying the code, useful for informational
-          purposes in tracebacks (typically it will be the IPython prompt
-          number).
+          The Python source code to cache.
+        number : int
+          A number which forms part of the code's name. Used for the execution
+          counter.
+          
+        Returns
+        -------
+        The name of the cached code (as a string). Pass this as the filename
+        argument to compilation, so that tracebacks are correctly hooked up.
         """
         name = code_name(code, number)
-        code_obj = self._compiler(code, name, symbol)
         entry = (len(code), time.time(),
                  [line+'\n' for line in code.splitlines()], name)
-        # Cache the info both in the linecache (a global cache used internally
-        # by most of Python's inspect/traceback machinery), and in our cache
         linecache.cache[name] = entry
         linecache._ipython_cache[name] = entry
-        return code_obj
+        return name
 
     def check_cache(self, *args):
         """Call linecache.checkcache() safely protecting our cached values.

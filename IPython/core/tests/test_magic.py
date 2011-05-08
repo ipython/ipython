@@ -62,7 +62,7 @@ def doctest_hist_f():
 
     In [10]: tfile = tempfile.mktemp('.py','tmp-ipython-')
 
-    In [11]: %hist -n -f $tfile 3
+    In [11]: %hist -nl -f $tfile 3
 
     In [13]: import os; os.unlink(tfile)
     """
@@ -80,7 +80,7 @@ def doctest_hist_r():
 
     In [2]: x=1
 
-    In [3]: %hist -r 2
+    In [3]: %hist -rl 2
     x=1 # random
     %hist -r 2
     """
@@ -150,29 +150,38 @@ def doctest_hist_op():
     <...s instance at ...>
     >>> 
     """
+  
+def test_macro():
+    ip = get_ipython()
+    ip.history_manager.reset()   # Clear any existing history.
+    cmds = ["a=1", "def b():\n  return a**2", "print(a,b())"]
+    for i, cmd in enumerate(cmds, start=1):
+        ip.history_manager.store_inputs(i, cmd)
+    ip.magic("macro test 1-3")
+    nt.assert_equal(ip.user_ns["test"].value, "\n".join(cmds)+"\n")
+    
+    # List macros.
+    assert "test" in ip.magic("macro")
 
-def test_shist():
-    # Simple tests of ShadowHist class - test generator.
-    import os, shutil, tempfile
-
-    from IPython.utils import pickleshare
-    from IPython.core.history import ShadowHist
-    
-    tfile = tempfile.mktemp('','tmp-ipython-')
-    
-    db = pickleshare.PickleShareDB(tfile)
-    s = ShadowHist(db, get_ipython())
-    s.add('hello')
-    s.add('world')
-    s.add('hello')
-    s.add('hello')
-    s.add('karhu')
-
-    yield nt.assert_equals,s.all(),[(1, 'hello'), (2, 'world'), (3, 'karhu')]
-    
-    yield nt.assert_equal,s.get(2),'world'
-    
-    shutil.rmtree(tfile)
+def test_macro_run():
+    """Test that we can run a multi-line macro successfully."""
+    ip = get_ipython()
+    ip.history_manager.reset()
+    cmds = ["a=10", "a+=1", "print a", "%macro test 2-3"]
+    for cmd in cmds:
+        ip.run_cell(cmd)
+    nt.assert_equal(ip.user_ns["test"].value, "a+=1\nprint a\n")
+    original_stdout = sys.stdout
+    new_stdout = StringIO()
+    sys.stdout = new_stdout
+    try:
+        ip.run_cell("test")
+        nt.assert_true("12" in new_stdout.getvalue())
+        ip.run_cell("test")
+        nt.assert_true("13" in new_stdout.getvalue())
+    finally:
+        sys.stdout = original_stdout
+        new_stdout.close()
 
     
 # XXX failing for now, until we get clearcmd out of quarantine.  But we should
@@ -265,6 +274,14 @@ def doctest_time():
     In [10]: %time None
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.00 s
+    
+    In [11]: def f(kmjy):
+       ....:    %time print 2*kmjy
+       
+    In [12]: f(3)
+    6
+    CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+    Wall time: 0.00 s
     """
 
 
@@ -284,9 +301,9 @@ def test_parse_options():
     
 def test_dirops():
     """Test various directory handling operations."""
-    curpath = lambda :os.path.splitdrive(os.getcwd())[1].replace('\\','/')
+    curpath = lambda :os.path.splitdrive(os.getcwdu())[1].replace('\\','/')
 
-    startdir = os.getcwd()
+    startdir = os.getcwdu()
     ipdir = _ip.ipython_dir
     try:
         _ip.magic('cd "%s"' % ipdir)
@@ -362,3 +379,62 @@ def test_xmode():
     for i in range(3):
         _ip.magic("xmode")
     nt.assert_equal(_ip.InteractiveTB.mode, xmode)
+    
+def test_reset_hard():
+    monitor = []
+    class A(object):
+        def __del__(self):
+            monitor.append(1)
+        def __repr__(self):
+            return "<A instance>"
+            
+    _ip.user_ns["a"] = A()
+    _ip.run_cell("a")
+    
+    nt.assert_equal(monitor, [])
+    _ip.magic_reset("-f")
+    nt.assert_equal(monitor, [1])
+
+def doctest_who():
+    """doctest for %who
+    
+    In [1]: %reset -f
+    
+    In [2]: alpha = 123
+    
+    In [3]: beta = 'beta'
+    
+    In [4]: %who int
+    alpha
+    
+    In [5]: %who str
+    beta
+    
+    In [6]: %whos
+    Variable   Type    Data/Info
+    ----------------------------
+    alpha      int     123
+    beta       str     beta
+    
+    In [7]: %who_ls
+    Out[7]: ['alpha', 'beta']
+    """
+
+def doctest_precision():
+    """doctest for %precision
+    
+    In [1]: f = get_ipython().shell.display_formatter.formatters['text/plain']
+    
+    In [2]: %precision 5
+    Out[2]: '%.5f'
+    
+    In [3]: f.float_format
+    Out[3]: '%.5f'
+    
+    In [4]: %precision %e
+    Out[4]: '%e'
+    
+    In [5]: f(3.1415927)
+    Out[5]: '3.141593e+00'
+    """
+

@@ -1,9 +1,5 @@
 """ A FrontendWidget that emulates the interface of the console IPython and
     supports the additional functionality provided by the IPython kernel.
-
-    TODO: Add support for retrieving the system default editor. Requires code
-          paths for Windows (use the registry), Mac OS (use LaunchServices), and
-          Linux (use the xdg system).
 """
 
 #-----------------------------------------------------------------------------
@@ -12,18 +8,20 @@
 
 # Standard library imports
 from collections import namedtuple
+import os.path
 import re
 from subprocess import Popen
+import sys
 from textwrap import dedent
 
 # System library imports
-from PyQt4 import QtCore, QtGui
+from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter, \
     transform_ipy_prompt
 from IPython.core.usage import default_gui_banner
-from IPython.utils.traitlets import Bool, Str
+from IPython.utils.traitlets import Bool, Str, Unicode
 from frontend_widget import FrontendWidget
 from styles import (default_light_style_sheet,  default_light_syntax_style,
                     default_dark_style_sheet, default_dark_syntax_style,
@@ -56,24 +54,24 @@ class IPythonWidget(FrontendWidget):
     # an editor is needed for a file. This overrides 'editor' and 'editor_line'
     # settings.
     custom_edit = Bool(False)
-    custom_edit_requested = QtCore.pyqtSignal(object, object)
+    custom_edit_requested = QtCore.Signal(object, object)
 
     # A command for invoking a system text editor. If the string contains a
     # {filename} format specifier, it will be used. Otherwise, the filename will
     # be appended to the end the command.
-    editor = Str('default', config=True)
+    editor = Unicode('default', config=True)
 
     # The editor command to use when a specific line number is requested. The
     # string should contain two format specifiers: {line} and {filename}. If
     # this parameter is not specified, the line number option to the %edit magic
     # will be ignored.
-    editor_line = Str(config=True)
+    editor_line = Unicode(config=True)
 
     # A CSS stylesheet. The stylesheet can contain classes for:
     #     1. Qt: QPlainTextEdit, QFrame, QWidget, etc
     #     2. Pygments: .c, .k, .o, etc (see PygmentsHighlighter)
     #     3. IPython: .error, .in-prompt, .out-prompt, etc
-    style_sheet = Str(config=True)
+    style_sheet = Unicode(config=True)
     
     # If not empty, use this Pygments style for syntax highlighting. Otherwise,
     # the style sheet is queried for Pygments style information.
@@ -162,12 +160,12 @@ class IPythonWidget(FrontendWidget):
             else:
                 super(IPythonWidget, self)._handle_execute_reply(msg)
 
-    def _handle_history_reply(self, msg):
-        """ Implemented to handle history replies, which are only supported by
-            the IPython kernel.
+    def _handle_history_tail_reply(self, msg):
+        """ Implemented to handle history tail replies, which are only supported
+            by the IPython kernel.
         """
-        history_dict = msg['content']['history']
-        items = [ history_dict[key] for key in sorted(history_dict.keys()) ]
+        history_items = msg['content']['history']
+        items = [ line.rstrip() for _, _, line in history_items ]
         self._set_history(items)
 
     def _handle_pyout(self, msg):
@@ -176,16 +174,45 @@ class IPythonWidget(FrontendWidget):
         if not self._hidden and self._is_from_this_session(msg):
             content = msg['content']
             prompt_number = content['execution_count']
-            self._append_plain_text(self.output_sep)
-            self._append_html(self._make_out_prompt(prompt_number))
-            self._append_plain_text(content['data']+self.output_sep2)
+            data = content['data']
+            if data.has_key('text/html'):
+                self._append_plain_text(self.output_sep)
+                self._append_html(self._make_out_prompt(prompt_number))
+                html = data['text/html']
+                self._append_plain_text('\n')
+                self._append_html(html + self.output_sep2)
+            elif data.has_key('text/plain'):
+                self._append_plain_text(self.output_sep)
+                self._append_html(self._make_out_prompt(prompt_number))
+                text = data['text/plain']
+                self._append_plain_text(text + self.output_sep2)
+
+    def _handle_display_data(self, msg):
+        """ The base handler for the ``display_data`` message.
+        """
+        # For now, we don't display data from other frontends, but we 
+        # eventually will as this allows all frontends to monitor the display
+        # data. But we need to figure out how to handle this in the GUI.
+        if not self._hidden and self._is_from_this_session(msg):
+            source = msg['content']['source']
+            data = msg['content']['data']
+            metadata = msg['content']['metadata']
+            # In the regular IPythonWidget, we simply print the plain text
+            # representation.
+            if data.has_key('text/html'):
+                html = data['text/html']
+                self._append_html(html)
+            elif data.has_key('text/plain'):
+                text = data['text/plain']
+                self._append_plain_text(text)
+            # This newline seems to be needed for text and html output.
+            self._append_plain_text(u'\n')
 
     def _started_channels(self):
         """ Reimplemented to make a history request.
         """
         super(IPythonWidget, self)._started_channels()
-        # FIXME: Disabled until history requests are properly implemented.
-        #self.kernel_manager.xreq_channel.history(raw=True, output=False)
+        self.kernel_manager.xreq_channel.history_tail(1000)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
@@ -195,7 +222,7 @@ class IPythonWidget(FrontendWidget):
         """ Copy the currently selected text to the clipboard, removing prompts
             if possible.
         """
-        text = unicode(self._control.textCursor().selection().toPlainText())
+        text = self._control.textCursor().selection().toPlainText()
         if text:
             lines = map(transform_ipy_prompt, text.splitlines())
             text = '\n'.join(lines)
@@ -208,6 +235,10 @@ class IPythonWidget(FrontendWidget):
     def execute_file(self, path, hidden=False):
         """ Reimplemented to use the 'run' magic.
         """
+        # Use forward slashes on Windows to avoid escaping each separator.
+        if sys.platform == 'win32':
+            path = os.path.normpath(path).replace('\\', '/')
+
         self.execute('%%run %s' % path, hidden=hidden)
 
     #---------------------------------------------------------------------------
@@ -293,7 +324,7 @@ class IPythonWidget(FrontendWidget):
 
         # Load code from the %loadpy magic, if necessary.
         if self._code_to_load is not None:
-            self.input_buffer = dedent(unicode(self._code_to_load).rstrip())
+            self.input_buffer = dedent(self._code_to_load.rstrip())
             self._code_to_load = None
 
     def _show_interpreter_prompt_for_reply(self, msg):
@@ -307,7 +338,7 @@ class IPythonWidget(FrontendWidget):
             block = self._previous_prompt_obj.block
 
             # Make sure the prompt block has not been erased.
-            if block.isValid() and not block.text().isEmpty():
+            if block.isValid() and block.text():
 
                 # Remove the old prompt and insert a new prompt.
                 cursor = QtGui.QTextCursor(block)
@@ -442,7 +473,7 @@ class IPythonWidget(FrontendWidget):
         else:
             self._page(item['text'], html=False)
 
-    #------ Trait change handlers ---------------------------------------------
+    #------ Trait change handlers --------------------------------------------
 
     def _style_sheet_changed(self):
         """ Set the style sheets of the underlying widgets.
@@ -452,7 +483,7 @@ class IPythonWidget(FrontendWidget):
         if self._page_control:
             self._page_control.document().setDefaultStyleSheet(self.style_sheet)
 
-        bg_color = self._control.palette().background().color()
+        bg_color = self._control.palette().window().color()
         self._ansi_processor.set_background_color(bg_color)
 
     def _syntax_style_changed(self):
@@ -462,4 +493,4 @@ class IPythonWidget(FrontendWidget):
             self._highlighter.set_style(self.syntax_style)
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
-        
+

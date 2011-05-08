@@ -51,7 +51,7 @@ An interactive Python session::
 
     >>> from IPython.utils.path import get_ipython_dir
     >>> get_ipython_dir()
-    '/home/fperez/.ipython'
+    '/home/fperez/.config/ipython'
 
 An IPython session:
 
@@ -133,6 +133,30 @@ docutils (the machinery to process reStructuredText):
    In the past IPython used epydoc so currently many docstrings still use
    epydoc conventions.  We will update them as we go, but all new code should
    be documented using the NumPy standard.
+   
+Building and uploading
+======================
+The built docs are stored in a separate repository. Through some github magic,
+they're automatically exposed as a website. It works like this:
+
+* You will need to have sphinx and latex installed. In Ubuntu, install
+  ``texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended``.
+  Install the latest version of sphinx from PyPI (``pip install sphinx``).
+* Ensure that the development version of IPython is the first in your system
+  path. You can either use a virtualenv, or modify your PYTHONPATH.
+* Switch into the docs directory, and run ``make gh-pages``. This will build
+  your updated docs as html and pdf, then automatically check out the latest
+  version of the docs repository, copy the built docs into it, and commit your
+  changes.
+* Open the built docs in a web browser, and check that they're as expected.
+* (When building the docs for a new tagged release, you will have to add its link to
+  index.rst, then run ``python build_index.py`` to update index.html. Commit the 
+  change.)
+* Upload the docs with ``git push``. This only works if you have write access to
+  the docs repository.
+* If you are building a version that is not the current dev branch, nor a tagged release,
+  then you must run gh-pages.py directly with ``python gh-pages.py <version>``, and *not*
+  with ``make gh-pages``.
 
 .. [reStructuredText] reStructuredText.  http://docutils.sourceforge.net/rst.html
 .. [Sphinx] Sphinx. http://sphinx.pocoo.org/

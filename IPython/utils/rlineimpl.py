@@ -10,6 +10,7 @@ boolean and _outputfile variable used in IPython.utils.
 """
 
 import sys
+import warnings
 
 try:
     from readline import *
@@ -20,8 +21,20 @@ except ImportError:
         from pyreadline import *
         import pyreadline as _rl
         have_readline = True
-    except ImportError:    
+    except ImportError:
         have_readline = False
+
+if have_readline and hasattr(_rl, 'rlmain'):
+    # patch add_history to allow for strings in pyreadline <= 1.5:
+    # fix copied from pyreadline 1.6
+    import pyreadline
+    if pyreadline.release.version <= '1.5':
+        def add_history(line):
+            """add a line to the history buffer."""
+            from pyreadline import lineobj
+            if not isinstance(line, lineobj.TextLine):
+                line = lineobj.TextLine(line)
+            return _rl.add_history(line)
 
 if sys.platform == 'win32' and have_readline:
     try:
@@ -51,7 +64,11 @@ if sys.platform == 'darwin' and have_readline:
     if status == 0 and len(result) > 0:
         # we are bound to libedit - new in Leopard
         _rl.parse_and_bind("bind ^I rl_complete")
-        print "Leopard libedit detected."
+        warnings.warn("Leopard libedit detected - readline will not be well behaved "
+            "including some crashes on tab completion, and incorrect history navigation. "
+            "It is highly recommended that you install readline, "
+            "which is easy_installable with: 'easy_install readline'",
+            RuntimeWarning)
         uses_libedit = True
 
 

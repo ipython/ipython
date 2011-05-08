@@ -9,7 +9,7 @@ somewhere and run ipython.py) and development. """
 
 # Ensure that the imported IPython is the local one, not a system-wide one
 import os, sys
-this_dir = os.path.dirname(os.path.abspath(__file__))
+this_dir = os.path.dirname(sys.argv[0])
 sys.path.insert(0, this_dir)
 
 # Now proceed with execution

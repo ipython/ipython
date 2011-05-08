@@ -1,15 +1,15 @@
-.. _parallelmultiengine:
+.. _parallel_multiengine:
 
-===============================
-IPython's multiengine interface
-===============================
+==========================
+IPython's Direct interface
+==========================
 
-The multiengine interface represents one possible way of working with a set of
+The direct, or multiengine, interface represents one possible way of working with a set of
 IPython engines. The basic idea behind the multiengine interface is that the
 capabilities of each engine are directly and explicitly exposed to the user.
 Thus, in the multiengine interface, each engine is given an id that is used to
 identify the engine and give it work to do. This interface is very intuitive
-and is designed with interactive usage in mind, and is thus the best place for
+and is designed with interactive usage in mind, and is the best place for
 new users of IPython to begin.
 
 Starting the IPython controller and engines
@@ -19,437 +19,451 @@ To follow along with this tutorial, you will need to start the IPython
 controller and four IPython engines. The simplest way of doing this is to use
 the :command:`ipcluster` command::
 
-	$ ipcluster local -n 4
-	
+    $ ipcluster start -n 4
+    
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <ip1par>` to using IPython for parallel computing.
 
-Creating a ``MultiEngineClient`` instance
-=========================================
+Creating a ``Client`` instance
+==============================
 
-The first step is to import the IPython :mod:`IPython.kernel.client` module
-and then create a :class:`MultiEngineClient` instance:
-
-.. sourcecode:: ipython
-
-	In [1]: from IPython.kernel import client
-	
-	In [2]: mec = client.MultiEngineClient()
-
-This form assumes that the :file:`ipcontroller-mec.furl` is in the
-:file:`~./ipython/security` directory on the client's host. If not, the
-location of the FURL file must be given as an argument to the
-constructor:
+The first step is to import the IPython :mod:`IPython.parallel`
+module and then create a :class:`.Client` instance:
 
 .. sourcecode:: ipython
 
-    In [2]: mec = client.MultiEngineClient('/path/to/my/ipcontroller-mec.furl')
+    In [1]: from IPython.parallel import Client
+    
+    In [2]: rc = Client()
 
-To make sure there are engines connected to the controller, use can get a list
+This form assumes that the default connection information (stored in
+:file:`ipcontroller-client.json` found in :file:`IPYTHON_DIR/cluster_default/security`) is
+accurate. If the controller was started on a remote machine, you must copy that connection
+file to the client machine, or enter its contents as arguments to the Client constructor:
+
+.. sourcecode:: ipython
+
+    # If you have copied the json connector file from the controller:
+    In [2]: rc = Client('/path/to/ipcontroller-client.json')
+    # or to connect with a specific profile you have set up:
+    In [3]: rc = Client(profile='mpi')
+    
+
+To make sure there are engines connected to the controller, users can get a list
 of engine ids:
 
 .. sourcecode:: ipython
 
-	In [3]: mec.get_ids()
-	Out[3]: [0, 1, 2, 3]
+    In [3]: rc.ids
+    Out[3]: [0, 1, 2, 3]
 
 Here we see that there are four engines ready to do work for us.
+
+For direct execution, we will make use of a :class:`DirectView` object, which can be
+constructed via list-access to the client:
+
+.. sourcecode:: ipython
+
+    In [4]: dview = rc[:] # use all engines
+
+.. seealso::
+
+    For more information, see the in-depth explanation of :ref:`Views <parallel_details>`.
+
 
 Quick and easy parallelism
 ==========================
 
 In many cases, you simply want to apply a Python function to a sequence of
-objects, but *in parallel*. The multiengine interface provides two simple ways
-of accomplishing this: a parallel version of :func:`map` and ``@parallel``
-function decorator.
+objects, but *in parallel*. The client interface provides a simple way
+of accomplishing this: using the DirectView's :meth:`~DirectView.map` method.
 
 Parallel map
 ------------
 
 Python's builtin :func:`map` functions allows a function to be applied to a
 sequence element-by-element. This type of code is typically trivial to
-parallelize. In fact, the multiengine interface in IPython already has a
-parallel version of :meth:`map` that works just like its serial counterpart:
+parallelize. In fact, since IPython's interface is all about functions anyway,
+you can just use the builtin :func:`map` with a :class:`RemoteFunction`, or a 
+DirectView's :meth:`map` method:
 
 .. sourcecode:: ipython
 
-	In [63]: serial_result = map(lambda x:x**10, range(32))
+    In [62]: serial_result = map(lambda x:x**10, range(32))
+    
+    In [63]: parallel_result = dview.map_sync(lambda x: x**10, range(32))
 
-	In [64]: parallel_result = mec.map(lambda x:x**10, range(32))
+    In [67]: serial_result==parallel_result
+    Out[67]: True
 
-	In [65]: serial_result==parallel_result
-	Out[65]: True
 
 .. note::
 
-    The multiengine interface version of :meth:`map` does not do any load
-    balancing.  For a load balanced version, see the task interface.
+    The :class:`DirectView`'s version of :meth:`map` does
+    not do dynamic load balancing. For a load balanced version, use a
+    :class:`LoadBalancedView`.
 
 .. seealso::
+    
+    :meth:`map` is implemented via :class:`ParallelFunction`.
 
-    The :meth:`map` method has a number of options that can be controlled by
-    the :meth:`mapper` method.  See its docstring for more information.
+Remote function decorators
+--------------------------
 
-Parallel function decorator
----------------------------
-
-Parallel functions are just like normal function, but they can be called on
-sequences and *in parallel*. The multiengine interface provides a decorator
-that turns any Python function into a parallel function:
+Remote functions are just like normal functions, but when they are called,
+they execute on one or more engines, rather than locally. IPython provides
+two decorators:
 
 .. sourcecode:: ipython
 
-    In [10]: @mec.parallel()
-       ....: def f(x):
-       ....:     return 10.0*x**4
-       ....: 
+    In [10]: @dview.remote(block=True)
+        ...: def getpid():
+        ...:     import os
+        ...:     return os.getpid()
+        ...: 
 
-    In [11]: f(range(32))    # this is done in parallel
-    Out[11]: 
-    [0.0,10.0,160.0,...]
+    In [11]: getpid()
+    Out[11]: [12345, 12346, 12347, 12348]
 
-See the docstring for the :meth:`parallel` decorator for options.
+The ``@parallel`` decorator creates parallel functions, that break up an element-wise
+operations and distribute them, reconstructing the result.
 
-Running Python commands
-=======================
+.. sourcecode:: ipython
+
+    In [12]: import numpy as np
+    
+    In [13]: A = np.random.random((64,48))
+    
+    In [14]: @dview.parallel(block=True)
+        ...: def pmul(A,B):
+        ...:     return A*B
+    
+    In [15]: C_local = A*A
+    
+    In [16]: C_remote = pmul(A,A)
+    
+    In [17]: (C_local == C_remote).all()
+    Out[17]: True
+
+.. seealso::
+
+    See the docstrings for the :func:`parallel` and :func:`remote` decorators for
+    options.
+
+Calling Python functions
+========================
 
 The most basic type of operation that can be performed on the engines is to
-execute Python code. Executing Python code can be done in blocking or
-non-blocking mode (blocking is default) using the :meth:`execute` method.
+execute Python code or call Python functions. Executing Python code can be
+done in blocking or non-blocking mode (non-blocking is default) using the
+:meth:`.View.execute` method, and calling functions can be done via the
+:meth:`.View.apply` method.
+
+apply
+-----
+
+The main method for doing remote execution (in fact, all methods that
+communicate with the engines are built on top of it), is :meth:`View.apply`.
+
+We strive to provide the cleanest interface we can, so `apply` has the following
+signature:
+
+.. sourcecode:: python
+
+    view.apply(f, *args, **kwargs)
+
+There are various ways to call functions with IPython, and these flags are set as
+attributes of the View.  The ``DirectView`` has just two of these flags:
+
+dv.block : bool
+    whether to wait for the result, or return an :class:`AsyncResult` object
+    immediately
+dv.track : bool
+    whether to instruct pyzmq to track when 
+    This is primarily useful for non-copying sends of numpy arrays that you plan to
+    edit in-place.  You need to know when it becomes safe to edit the buffer
+    without corrupting the message.
+
+
+Creating a view is simple: index-access on a client creates a :class:`.DirectView`.
+
+.. sourcecode:: ipython
+
+    In [4]: view = rc[1:3]
+    Out[4]: <DirectView [1, 2]>
+
+    In [5]: view.apply<tab>
+    view.apply  view.apply_async  view.apply_sync
+
+For convenience, you can set block temporarily for a single call with the extra sync/async methods.
 
 Blocking execution
 ------------------
 
-In blocking mode, the :class:`MultiEngineClient` object (called ``mec`` in
+In blocking mode, the :class:`.DirectView` object (called ``dview`` in
 these examples) submits the command to the controller, which places the
-command in the engines' queues for execution. The :meth:`execute` call then
+command in the engines' queues for execution. The :meth:`apply` call then
 blocks until the engines are done executing the command:
 
 .. sourcecode:: ipython
 
-	# The default is to run on all engines
-	In [4]: mec.execute('a=5')
-	Out[4]: 
-	<Results List>
-	[0] In [1]: a=5
-	[1] In [1]: a=5
-	[2] In [1]: a=5
-	[3] In [1]: a=5
+    In [2]: dview = rc[:] # A DirectView of all engines
+    In [3]: dview.block=True
+    In [4]: dview['a'] = 5
 
-	In [5]: mec.execute('b=10')
-	Out[5]: 
-	<Results List>
-	[0] In [2]: b=10
-	[1] In [2]: b=10
-	[2] In [2]: b=10
-	[3] In [2]: b=10
+    In [5]: dview['b'] = 10
 
-Python commands can be executed on specific engines by calling execute using
-the ``targets`` keyword argument:
+    In [6]: dview.apply(lambda x: a+b+x, 27)
+    Out[6]: [42, 42, 42, 42]
 
-.. sourcecode:: ipython
+You can also select blocking execution on a call-by-call basis with the :meth:`apply_sync`
+method:
 
-	In [6]: mec.execute('c=a+b',targets=[0,2])
-	Out[6]: 
-	<Results List>
-	[0] In [3]: c=a+b
-	[2] In [3]: c=a+b
+    In [7]: dview.block=False
 
+    In [8]: dview.apply_sync(lambda x: a+b+x, 27)
+    Out[8]: [42, 42, 42, 42]
 
-	In [7]: mec.execute('c=a-b',targets=[1,3])
-	Out[7]: 
-	<Results List>
-	[1] In [3]: c=a-b
-	[3] In [3]: c=a-b
-
-
-	In [8]: mec.execute('print c')
-	Out[8]: 
-	<Results List>
-	[0] In [4]: print c
-	[0] Out[4]: 15
-
-	[1] In [4]: print c
-	[1] Out[4]: -5
-
-	[2] In [4]: print c
-	[2] Out[4]: 15
-
-	[3] In [4]: print c
-	[3] Out[4]: -5
-
-This example also shows one of the most important things about the IPython
-engines: they have a persistent user namespaces. The :meth:`execute` method
-returns a Python ``dict`` that contains useful information:
+Python commands can be executed as strings on specific engines by using a View's ``execute``
+method:
 
 .. sourcecode:: ipython
 
-	In [9]: result_dict = mec.execute('d=10; print d')
+    In [6]: rc[::2].execute('c=a+b')
 
-	In [10]: for r in result_dict:
-	   ....:     print r
-	   ....:     
-	   ....:     
-	{'input': {'translated': 'd=10; print d', 'raw': 'd=10; print d'}, 'number': 5, 'id': 0, 'stdout': '10\n'}
-	{'input': {'translated': 'd=10; print d', 'raw': 'd=10; print d'}, 'number': 5, 'id': 1, 'stdout': '10\n'}
-	{'input': {'translated': 'd=10; print d', 'raw': 'd=10; print d'}, 'number': 5, 'id': 2, 'stdout': '10\n'}
-	{'input': {'translated': 'd=10; print d', 'raw': 'd=10; print d'}, 'number': 5, 'id': 3, 'stdout': '10\n'}
+    In [7]: rc[1::2].execute('c=a-b')
+
+    In [8]: dview['c'] # shorthand for dview.pull('c', block=True)
+    Out[8]: [15, -5, 15, -5]
+
 
 Non-blocking execution
 ----------------------
 
-In non-blocking mode, :meth:`execute` submits the command to be executed and
-then returns a :class:`PendingResult` object immediately. The
-:class:`PendingResult` object gives you a way of getting a result at a later
-time through its :meth:`get_result` method or :attr:`r` attribute. This allows
-you to quickly submit long running commands without blocking your local
-Python/IPython session:
+In non-blocking mode, :meth:`apply` submits the command to be executed and
+then returns a :class:`AsyncResult` object immediately. The
+:class:`AsyncResult` object gives you a way of getting a result at a later
+time through its :meth:`get` method.
+
+.. Note::
+
+    The :class:`AsyncResult` object provides a superset of the interface in 
+    :py:class:`multiprocessing.pool.AsyncResult`.  See the 
+    `official Python documentation <http://docs.python.org/library/multiprocessing#multiprocessing.pool.AsyncResult>`_
+    for more.
+
+
+This allows you to quickly submit long running commands without blocking your
+local Python/IPython session:
+
+.. sourcecode:: ipython
+    
+    # define our function
+    In [6]: def wait(t):
+       ...:     import time
+       ...:     tic = time.time()
+       ...:     time.sleep(t)
+       ...:     return time.time()-tic
+    
+    # In non-blocking mode
+    In [7]: ar = dview.apply_async(wait, 2)
+
+    # Now block for the result
+    In [8]: ar.get()
+    Out[8]: [2.0006198883056641, 1.9997570514678955, 1.9996809959411621, 2.0003249645233154]
+
+    # Again in non-blocking mode
+    In [9]: ar = dview.apply_async(wait, 10)
+
+    # Poll to see if the result is ready
+    In [10]: ar.ready()
+    Out[10]: False
+    
+    # ask for the result, but wait a maximum of 1 second:
+    In [45]: ar.get(1)
+    ---------------------------------------------------------------------------
+    TimeoutError                              Traceback (most recent call last)
+    /home/you/<ipython-input-45-7cd858bbb8e0> in <module>()
+    ----> 1 ar.get(1)
+
+    /path/to/site-packages/IPython/parallel/asyncresult.pyc in get(self, timeout)
+         62                 raise self._exception
+         63         else:
+    ---> 64             raise error.TimeoutError("Result not ready.")
+         65 
+         66     def ready(self):
+
+    TimeoutError: Result not ready.
+
+.. Note::
+
+    Note the import inside the function. This is a common model, to ensure
+    that the appropriate modules are imported where the task is run. You can
+    also manually import modules into the engine(s) namespace(s) via 
+    :meth:`view.execute('import numpy')`.
+
+Often, it is desirable to wait until a set of :class:`AsyncResult` objects
+are done. For this, there is a the method :meth:`wait`. This method takes a
+tuple of :class:`AsyncResult` objects (or `msg_ids` or indices to the client's History),
+and blocks until all of the associated results are ready:
 
 .. sourcecode:: ipython
 
-	# In blocking mode
-	In [6]: mec.execute('import time')
-	Out[6]:
-	<Results List>
-	[0] In [1]: import time
-	[1] In [1]: import time
-	[2] In [1]: import time
-	[3] In [1]: import time
+    In [72]: dview.block=False
 
-	# In non-blocking mode
-	In [7]: pr = mec.execute('time.sleep(10)',block=False)
+    # A trivial list of AsyncResults objects
+    In [73]: pr_list = [dview.apply_async(wait, 3) for i in range(10)]
 
-	# Now block for the result
-	In [8]: pr.get_result()
-	Out[8]:
-	<Results List>
-	[0] In [2]: time.sleep(10)
-	[1] In [2]: time.sleep(10)
-	[2] In [2]: time.sleep(10)
-	[3] In [2]: time.sleep(10)
+    # Wait until all of them are done
+    In [74]: dview.wait(pr_list)
 
-	# Again in non-blocking mode
-	In [9]: pr = mec.execute('time.sleep(10)',block=False)
+    # Then, their results are ready using get() or the `.r` attribute
+    In [75]: pr_list[0].get()
+    Out[75]: [2.9982571601867676, 2.9982588291168213, 2.9987530708312988, 2.9990990161895752]
 
-	# Poll to see if the result is ready
-	In [10]: pr.get_result(block=False)
-
-	# A shorthand for get_result(block=True)
-	In [11]: pr.r
-	Out[11]:
-	<Results List>
-	[0] In [3]: time.sleep(10)
-	[1] In [3]: time.sleep(10)
-	[2] In [3]: time.sleep(10)
-	[3] In [3]: time.sleep(10)
-
-Often, it is desirable to wait until a set of :class:`PendingResult` objects
-are done. For this, there is a the method :meth:`barrier`. This method takes a
-tuple of :class:`PendingResult` objects and blocks until all of the associated
-results are ready:
-
-.. sourcecode:: ipython
-
-	In [72]: mec.block=False
-
-	# A trivial list of PendingResults objects
-	In [73]: pr_list = [mec.execute('time.sleep(3)') for i in range(10)]
-
-	# Wait until all of them are done
-	In [74]: mec.barrier(pr_list)
-
-	# Then, their results are ready using get_result or the r attribute
-	In [75]: pr_list[0].r
-	Out[75]: 
-	<Results List>
-	[0] In [20]: time.sleep(3)
-	[1] In [19]: time.sleep(3)
-	[2] In [20]: time.sleep(3)
-	[3] In [19]: time.sleep(3)
 
 
 The ``block`` and ``targets`` keyword arguments and attributes
 --------------------------------------------------------------
 
-Most methods in the multiengine interface (like :meth:`execute`) accept
-``block`` and ``targets`` as keyword arguments. As we have seen above, these
-keyword arguments control the blocking mode and which engines the command is
-applied to. The :class:`MultiEngineClient` class also has :attr:`block` and
-:attr:`targets` attributes that control the default behavior when the keyword
-arguments are not provided. Thus the following logic is used for :attr:`block`
-and :attr:`targets`:
+Most DirectView methods (excluding :meth:`apply` and :meth:`map`) accept ``block`` and
+``targets`` as keyword arguments. As we have seen above, these keyword arguments control the
+blocking mode and which engines the command is applied to. The :class:`View` class also has
+:attr:`block` and :attr:`targets` attributes that control the default behavior when the keyword
+arguments are not provided. Thus the following logic is used for :attr:`block` and :attr:`targets`:
 
 * If no keyword argument is provided, the instance attributes are used.
-* Keyword argument, if provided override the instance attributes.
-
+* Keyword argument, if provided override the instance attributes for
+  the duration of a single call.
+  
 The following examples demonstrate how to use the instance attributes:
 
 .. sourcecode:: ipython
 
-	In [16]: mec.targets = [0,2]
+    In [16]: dview.targets = [0,2]
+    
+    In [17]: dview.block = False
 
-	In [17]: mec.block = False
+    In [18]: ar = dview.apply(lambda : 10)
 
-	In [18]: pr = mec.execute('a=5')
+    In [19]: ar.get()
+    Out[19]: [10, 10]
 
-	In [19]: pr.r
-	Out[19]: 
-	<Results List>
-	[0] In [6]: a=5
-	[2] In [6]: a=5
+    In [16]: dview.targets = v.client.ids # all engines (4)
+    
+    In [21]: dview.block = True
 
-	# Note targets='all' means all engines
-	In [20]: mec.targets = 'all'
+    In [22]: dview.apply(lambda : 42)
+    Out[22]: [42, 42, 42, 42]
 
-	In [21]: mec.block = True
-
-	In [22]: mec.execute('b=10; print b')
-	Out[22]: 
-	<Results List>
-	[0] In [7]: b=10; print b
-	[0] Out[7]: 10
-
-	[1] In [6]: b=10; print b
-	[1] Out[6]: 10
-
-	[2] In [7]: b=10; print b
-	[2] Out[7]: 10
-
-	[3] In [6]: b=10; print b
-	[3] Out[6]: 10
-
-The :attr:`block` and :attr:`targets` instance attributes also determine the
-behavior of the parallel magic commands.
-
+The :attr:`block` and :attr:`targets` instance attributes of the
+:class:`.DirectView` also determine the behavior of the parallel magic commands.
 
 Parallel magic commands
 -----------------------
 
+.. warning::
+
+    The magics have not been changed to work with the zeromq system. The
+    magics do work, but *do not* print stdin/out like they used to in IPython.kernel.
+
 We provide a few IPython magic commands (``%px``, ``%autopx`` and ``%result``)
 that make it more pleasant to execute Python commands on the engines
 interactively. These are simply shortcuts to :meth:`execute` and
-:meth:`get_result`. The ``%px`` magic executes a single Python command on the
-engines specified by the :attr:`targets` attribute of the
-:class:`MultiEngineClient` instance (by default this is ``'all'``):
+:meth:`get_result` of the :class:`DirectView`. The ``%px`` magic executes a single 
+Python command on the engines specified by the :attr:`targets` attribute of the
+:class:`DirectView` instance:
 
 .. sourcecode:: ipython
 
-	# Make this MultiEngineClient active for parallel magic commands
-	In [23]: mec.activate()
+    # load the parallel magic extension:
+    In [21]: %load_ext parallelmagic
+    
+    # Create a DirectView for all targets
+    In [22]: dv = rc[:]
+    
+    # Make this DirectView active for parallel magic commands
+    In [23]: dv.activate()
 
-	In [24]: mec.block=True
+    In [24]: dv.block=True
 
-	In [25]: import numpy
+    In [25]: import numpy
 
-	In [26]: %px import numpy
-	Executing command on Controller
-	Out[26]:
-	<Results List>
-	[0] In [8]: import numpy
-	[1] In [7]: import numpy
-	[2] In [8]: import numpy
-	[3] In [7]: import numpy
+    In [26]: %px import numpy
+    Parallel execution on engines: [0, 1, 2, 3]
 
+    In [27]: %px a = numpy.random.rand(2,2)
+    Parallel execution on engines: [0, 1, 2, 3]
 
-	In [27]: %px a = numpy.random.rand(2,2)
-	Executing command on Controller
-	Out[27]:
-	<Results List>
-	[0] In [9]: a = numpy.random.rand(2,2)
-	[1] In [8]: a = numpy.random.rand(2,2)
-	[2] In [9]: a = numpy.random.rand(2,2)
-	[3] In [8]: a = numpy.random.rand(2,2)
+    In [28]: %px ev = numpy.linalg.eigvals(a)
+    Parallel execution on engines: [0, 1, 2, 3]
 
+    In [28]: dv['ev']
+    Out[28]: [ array([ 1.09522024, -0.09645227]), 
+               array([ 1.21435496, -0.35546712]), 
+               array([ 0.72180653,  0.07133042]), 
+               array([  1.46384341e+00,   1.04353244e-04])
+             ]
 
-	In [28]: %px print numpy.linalg.eigvals(a)
-	Executing command on Controller
-	Out[28]:
-	<Results List>
-	[0] In [10]: print numpy.linalg.eigvals(a)
-	[0] Out[10]: [ 1.28167017  0.14197338]
-
-	[1] In [9]: print numpy.linalg.eigvals(a)
-	[1] Out[9]: [-0.14093616  1.27877273]
-
-	[2] In [10]: print numpy.linalg.eigvals(a)
-	[2] Out[10]: [-0.37023573  1.06779409]
-
-	[3] In [9]: print numpy.linalg.eigvals(a)
-	[3] Out[9]: [ 0.83664764 -0.25602658]
-
-The ``%result`` magic gets and prints the stdin/stdout/stderr of the last
-command executed on each engine. It is simply a shortcut to the
+The ``%result`` magic gets the most recent result, or takes an argument
+specifying the index of the result to be requested. It is simply a shortcut to the
 :meth:`get_result` method:
 
 .. sourcecode:: ipython
-
-	In [29]: %result
-	Out[29]:
-	<Results List>
-	[0] In [10]: print numpy.linalg.eigvals(a)
-	[0] Out[10]: [ 1.28167017  0.14197338]
-
-	[1] In [9]: print numpy.linalg.eigvals(a)
-	[1] Out[9]: [-0.14093616  1.27877273]
-
-	[2] In [10]: print numpy.linalg.eigvals(a)
-	[2] Out[10]: [-0.37023573  1.06779409]
-
-	[3] In [9]: print numpy.linalg.eigvals(a)
-	[3] Out[9]: [ 0.83664764 -0.25602658]
+    
+    In [29]: dv.apply_async(lambda : ev)
+    
+    In [30]: %result
+    Out[30]: [ [ 1.28167017  0.14197338],
+                [-0.14093616  1.27877273],
+                [-0.37023573  1.06779409],
+                [ 0.83664764 -0.25602658] ]
 
 The ``%autopx`` magic switches to a mode where everything you type is executed
 on the engines given by the :attr:`targets` attribute:
 
 .. sourcecode:: ipython
 
-	In [30]: mec.block=False
+    In [30]: dv.block=False
 
-	In [31]: %autopx
-	Auto Parallel Enabled
-	Type %autopx to disable
+    In [31]: %autopx
+    Auto Parallel Enabled
+    Type %autopx to disable
 
-	In [32]: max_evals = []
-	<IPython.kernel.multiengineclient.PendingResult object at 0x17b8a70>
+    In [32]: max_evals = []
+    <IPython.parallel.AsyncResult object at 0x17b8a70>
 
-	In [33]: for i in range(100):
-	   ....:     a = numpy.random.rand(10,10)
-	   ....:     a = a+a.transpose()
-	   ....:     evals = numpy.linalg.eigvals(a)
-	   ....:     max_evals.append(evals[0].real)
-	   ....:
-	   ....:
-	<IPython.kernel.multiengineclient.PendingResult object at 0x17af8f0>
+    In [33]: for i in range(100):
+       ....:     a = numpy.random.rand(10,10)
+       ....:     a = a+a.transpose()
+       ....:     evals = numpy.linalg.eigvals(a)
+       ....:     max_evals.append(evals[0].real)
+       ....:
+       ....:
+    <IPython.parallel.AsyncResult object at 0x17af8f0>
 
-	In [34]: %autopx
-	Auto Parallel Disabled
+    In [34]: %autopx
+    Auto Parallel Disabled
 
-	In [35]: mec.block=True
+    In [35]: dv.block=True
 
-	In [36]: px print "Average max eigenvalue is: ", sum(max_evals)/len(max_evals)
-	Executing command on Controller
-	Out[36]:
-	<Results List>
-	[0] In [13]: print "Average max eigenvalue is: ", sum(max_evals)/len(max_evals)
-	[0] Out[13]: Average max eigenvalue is:  10.1387247332
-
-	[1] In [12]: print "Average max eigenvalue is: ", sum(max_evals)/len(max_evals)
-	[1] Out[12]: Average max eigenvalue is:  10.2076902286
-
-	[2] In [13]: print "Average max eigenvalue is: ", sum(max_evals)/len(max_evals)
-	[2] Out[13]: Average max eigenvalue is:  10.1891484655
-
-	[3] In [12]: print "Average max eigenvalue is: ", sum(max_evals)/len(max_evals)
-	[3] Out[12]: Average max eigenvalue is:  10.1158837784
+    In [36]: px ans= "Average max eigenvalue is: %f"%(sum(max_evals)/len(max_evals))
+    Parallel execution on engines: [0, 1, 2, 3]
+    
+    In [37]: dv['ans']
+    Out[37]: [ 'Average max eigenvalue is:  10.1387247332',
+               'Average max eigenvalue is:  10.2076902286',
+               'Average max eigenvalue is:  10.1891484655',
+               'Average max eigenvalue is:  10.1158837784',]
 
 
 Moving Python objects around
 ============================
 
-In addition to executing code on engines, you can transfer Python objects to
-and from your IPython session and the engines. In IPython, these operations
-are called :meth:`push` (sending an object to the engines) and :meth:`pull`
-(getting an object from the engines).
+In addition to calling functions and executing code on engines, you can
+transfer Python objects to and from your IPython session and the engines. In
+IPython, these operations are called :meth:`push` (sending an object to the
+engines) and :meth:`pull` (getting an object from the engines).
 
 Basic push and pull
 -------------------
@@ -458,112 +472,46 @@ Here are some examples of how you use :meth:`push` and :meth:`pull`:
 
 .. sourcecode:: ipython
 
-	In [38]: mec.push(dict(a=1.03234,b=3453))
-	Out[38]: [None, None, None, None]
+    In [38]: dview.push(dict(a=1.03234,b=3453))
+    Out[38]: [None,None,None,None]
 
-	In [39]: mec.pull('a')
-	Out[39]: [1.03234, 1.03234, 1.03234, 1.03234]
+    In [39]: dview.pull('a')
+    Out[39]: [ 1.03234, 1.03234, 1.03234, 1.03234]
 
-	In [40]: mec.pull('b',targets=0)
-	Out[40]: [3453]
+    In [40]: dview.pull('b', targets=0)
+    Out[40]: 3453
 
-	In [41]: mec.pull(('a','b'))
-	Out[41]: [[1.03234, 3453], [1.03234, 3453], [1.03234, 3453], [1.03234, 3453]]
-
-	In [42]: mec.zip_pull(('a','b'))
-	Out[42]: [(1.03234, 1.03234, 1.03234, 1.03234), (3453, 3453, 3453, 3453)]
-
-	In [43]: mec.push(dict(c='speed'))
-	Out[43]: [None, None, None, None]
-
-	In [44]: %px print c
-	Executing command on Controller
-	Out[44]: 
-	<Results List>
-	[0] In [14]: print c
-	[0] Out[14]: speed
-
-	[1] In [13]: print c
-	[1] Out[13]: speed
-
-	[2] In [14]: print c
-	[2] Out[14]: speed
-
-	[3] In [13]: print c
-	[3] Out[13]: speed
+    In [41]: dview.pull(('a','b'))
+    Out[41]: [ [1.03234, 3453], [1.03234, 3453], [1.03234, 3453], [1.03234, 3453] ]
+    
+    In [43]: dview.push(dict(c='speed'))
+    Out[43]: [None,None,None,None]
 
 In non-blocking mode :meth:`push` and :meth:`pull` also return
-:class:`PendingResult` objects:
+:class:`AsyncResult` objects:
 
 .. sourcecode:: ipython
 
-	In [47]: mec.block=False
+    In [48]: ar = dview.pull('a', block=False)
 
-	In [48]: pr = mec.pull('a')
-
-	In [49]: pr.r
-	Out[49]: [1.03234, 1.03234, 1.03234, 1.03234]
-
-
-Push and pull for functions
----------------------------
-
-Functions can also be pushed and pulled using :meth:`push_function` and
-:meth:`pull_function`:
-
-.. sourcecode:: ipython
-
-    In [52]: mec.block=True
-
-	In [53]: def f(x):
-	   ....:     return 2.0*x**4
-	   ....: 
-
-	In [54]: mec.push_function(dict(f=f))
-	Out[54]: [None, None, None, None]
-
-	In [55]: mec.execute('y = f(4.0)')
-	Out[55]: 
-	<Results List>
-	[0] In [15]: y = f(4.0)
-	[1] In [14]: y = f(4.0)
-	[2] In [15]: y = f(4.0)
-	[3] In [14]: y = f(4.0)
-
-
-	In [56]: px print y
-	Executing command on Controller
-	Out[56]: 
-	<Results List>
-	[0] In [16]: print y
-	[0] Out[16]: 512.0
-
-	[1] In [15]: print y
-	[1] Out[15]: 512.0
-
-	[2] In [16]: print y
-	[2] Out[16]: 512.0
-
-	[3] In [15]: print y
-	[3] Out[15]: 512.0
+    In [49]: ar.get()
+    Out[49]: [1.03234, 1.03234, 1.03234, 1.03234]
 
 
 Dictionary interface
 --------------------
 
-As a shorthand to :meth:`push` and :meth:`pull`, the
-:class:`MultiEngineClient` class implements some of the Python dictionary
-interface. This make the remote namespaces of the engines appear as a local
-dictionary. Underneath, this uses :meth:`push` and :meth:`pull`:
+Since a Python namespace is just a :class:`dict`, :class:`DirectView` objects provide
+dictionary-style access by key and methods such as :meth:`get` and
+:meth:`update` for convenience. This make the remote namespaces of the engines
+appear as a local dictionary. Underneath, these methods call :meth:`apply`:
 
 .. sourcecode:: ipython
 
-	In [50]: mec.block=True
+    In [51]: dview['a']=['foo','bar']
 
-	In [51]: mec['a']=['foo','bar']
-
-	In [52]: mec['a']
-	Out[52]: [['foo', 'bar'], ['foo', 'bar'], ['foo', 'bar'], ['foo', 'bar']]
+    In [52]: dview['a']
+    Out[52]: [ ['foo', 'bar'], ['foo', 'bar'], ['foo', 'bar'], ['foo', 'bar'] ]
 
 Scatter and gather
 ------------------
@@ -571,35 +519,21 @@ Scatter and gather
 Sometimes it is useful to partition a sequence and push the partitions to
 different engines. In MPI language, this is know as scatter/gather and we
 follow that terminology. However, it is important to remember that in
-IPython's :class:`MultiEngineClient` class, :meth:`scatter` is from the
+IPython's :class:`Client` class, :meth:`scatter` is from the
 interactive IPython session to the engines and :meth:`gather` is from the
 engines back to the interactive IPython session. For scatter/gather operations
 between engines, MPI should be used:
 
 .. sourcecode:: ipython
 
-	In [58]: mec.scatter('a',range(16))
-	Out[58]: [None, None, None, None]
+    In [58]: dview.scatter('a',range(16))
+    Out[58]: [None,None,None,None]
 
-	In [59]: px print a
-	Executing command on Controller
-	Out[59]: 
-	<Results List>
-	[0] In [17]: print a
-	[0] Out[17]: [0, 1, 2, 3]
+    In [59]: dview['a']
+    Out[59]: [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ]
 
-	[1] In [16]: print a
-	[1] Out[16]: [4, 5, 6, 7]
-
-	[2] In [17]: print a
-	[2] Out[17]: [8, 9, 10, 11]
-
-	[3] In [16]: print a
-	[3] Out[16]: [12, 13, 14, 15]
-
-
-	In [60]: mec.gather('a')
-	Out[60]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    In [60]: dview.gather('a')
+    Out[60]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
 Other things to look at
 =======================
@@ -613,23 +547,57 @@ basic effect using :meth:`scatter` and :meth:`gather`:
 
 .. sourcecode:: ipython
 
-	In [66]: mec.scatter('x',range(64))
-	Out[66]: [None, None, None, None]
+    In [66]: dview.scatter('x',range(64))
 
-	In [67]: px y = [i**10 for i in x]
-	Executing command on Controller
-	Out[67]: 
-	<Results List>
-	[0] In [19]: y = [i**10 for i in x]
-	[1] In [18]: y = [i**10 for i in x]
-	[2] In [19]: y = [i**10 for i in x]
-	[3] In [18]: y = [i**10 for i in x]
+    In [67]: %px y = [i**10 for i in x]
+    Parallel execution on engines: [0, 1, 2, 3]
+    Out[67]:
 
+    In [68]: y = dview.gather('y')
 
-	In [68]: y = mec.gather('y')
+    In [69]: print y
+    [0, 1, 1024, 59049, 1048576, 9765625, 60466176, 282475249, 1073741824,...]
 
-	In [69]: print y
-	[0, 1, 1024, 59049, 1048576, 9765625, 60466176, 282475249, 1073741824,...]
+Remote imports
+--------------
+
+Sometimes you will want to import packages both in your interactive session
+and on your remote engines.  This can be done with the :class:`ContextManager`
+created by a DirectView's :meth:`sync_imports` method:
+
+.. sourcecode:: ipython
+
+    In [69]: with dview.sync_imports():
+        ...:     import numpy
+    importing numpy on engine(s)
+
+Any imports made inside the block will also be performed on the view's engines.
+sync_imports also takes a `local` boolean flag that defaults to True, which specifies
+whether the local imports should also be performed.  However, support for `local=False`
+has not been implemented, so only packages that can be imported locally will work
+this way.
+
+You can also specify imports via the ``@require`` decorator.  This is a decorator
+designed for use in Dependencies, but can be used to handle remote imports as well.
+Modules or module names passed to ``@require`` will be imported before the decorated
+function is called.  If they cannot be imported, the decorated function will never
+execution, and will fail with an UnmetDependencyError.
+
+.. sourcecode:: ipython
+
+    In [69]: from IPython.parallel import require
+
+    In [70]: @requre('re'):
+        ...: def findall(pat, x):
+        ...:     # re is guaranteed to be available
+        ...:     return re.findall(pat, x)
+          
+    # you can also pass modules themselves, that you already have locally:
+    In [71]: @requre(time):
+        ...: def wait(t):
+        ...:     time.sleep(t)
+        ...:     return t
+
 
 Parallel exceptions
 -------------------
@@ -637,40 +605,66 @@ Parallel exceptions
 In the multiengine interface, parallel commands can raise Python exceptions,
 just like serial commands. But, it is a little subtle, because a single
 parallel command can actually raise multiple exceptions (one for each engine
-the command was run on). To express this idea, the MultiEngine interface has a
+the command was run on). To express this idea, we have a
 :exc:`CompositeError` exception class that will be raised in most cases. The
 :exc:`CompositeError` class is a special type of exception that wraps one or
 more other types of exceptions. Here is how it works:
 
 .. sourcecode:: ipython
 
-	In [76]: mec.block=True
+    In [76]: dview.block=True
 
-	In [77]: mec.execute('1/0')
-	---------------------------------------------------------------------------
-	CompositeError                            Traceback (most recent call last)
+    In [77]: dview.execute('1/0')
+    ---------------------------------------------------------------------------
+    CompositeError                            Traceback (most recent call last)
+    /home/you/<ipython-input-10-15c2c22dec39> in <module>()
+    ----> 1 dview.execute('1/0', block=True)
 
-	/ipython1-client-r3021/docs/examples/<ipython console> in <module>()
+    /path/to/site-packages/IPython/parallel/view.py in execute(self, code, block)
+        460                 default: self.block
+        461         """
+    --> 462         return self.apply_with_flags(util._execute, args=(code,), block=block)
+        463 
+        464     def run(self, filename, block=None):
 
-	/ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in execute(self, lines, targets, block)
-	    432         targets, block = self._findTargetsAndBlock(targets, block)
-	    433         result = blockingCallFromThread(self.smultiengine.execute, lines,
-	--> 434             targets=targets, block=block)
-	    435         if block:
-	    436             result = ResultList(result)
+    /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-	/ipython1-client-r3021/ipython1/kernel/twistedutil.pyc in blockingCallFromThread(f, *a, **kw)
-	     72             result.raiseException()
-	     73         except Exception, e:
-	---> 74             raise e
-	     75     return result
-	     76 
+    /path/to/site-packages/IPython/parallel/view.py in sync_results(f, self, *args, **kwargs)
+         46 def sync_results(f, self, *args, **kwargs):
+         47     """sync relevant results from self.client to our results attribute."""
+    ---> 48     ret = f(self, *args, **kwargs)
+         49     delta = self.outstanding.difference(self.client.outstanding)
+         50     completed = self.outstanding.intersection(delta)
 
-	CompositeError: one or more exceptions from call to method: execute
-	[0:execute]: ZeroDivisionError: integer division or modulo by zero
-	[1:execute]: ZeroDivisionError: integer division or modulo by zero
-	[2:execute]: ZeroDivisionError: integer division or modulo by zero
-	[3:execute]: ZeroDivisionError: integer division or modulo by zero
+    /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
+
+    /path/to/site-packages/IPython/parallel/view.py in save_ids(f, self, *args, **kwargs)
+         35     n_previous = len(self.client.history)
+         36     try:
+    ---> 37         ret = f(self, *args, **kwargs)
+         38     finally:
+         39         nmsgs = len(self.client.history) - n_previous
+
+    /path/to/site-packages/IPython/parallel/view.py in apply_with_flags(self, f, args, kwargs, block, track)
+        398         if block:
+        399             try:
+    --> 400                 return ar.get()
+        401             except KeyboardInterrupt:
+        402                 pass
+
+    /path/to/site-packages/IPython/parallel/asyncresult.pyc in get(self, timeout)
+         87                 return self._result
+         88             else:
+    ---> 89                 raise self._exception
+         90         else:
+         91             raise error.TimeoutError("Result not ready.")
+
+    CompositeError: one or more exceptions from call to method: _execute
+    [0:apply]: ZeroDivisionError: integer division or modulo by zero
+    [1:apply]: ZeroDivisionError: integer division or modulo by zero
+    [2:apply]: ZeroDivisionError: integer division or modulo by zero
+    [3:apply]: ZeroDivisionError: integer division or modulo by zero
+
 
 Notice how the error message printed when :exc:`CompositeError` is raised has
 information about the individual exceptions that were raised on each engine.
@@ -678,25 +672,25 @@ If you want, you can even raise one of these original exceptions:
 
 .. sourcecode:: ipython
 
-	In [80]: try:
-	   ....:     mec.execute('1/0')
-	   ....: except client.CompositeError, e:
-	   ....:     e.raise_exception()
-	   ....:     
-	   ....:     
-	---------------------------------------------------------------------------
-	ZeroDivisionError                         Traceback (most recent call last)
+    In [80]: try:
+       ....:     dview.execute('1/0')
+       ....: except client.CompositeError, e:
+       ....:     e.raise_exception()
+       ....:     
+       ....:     
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
 
-	/ipython1-client-r3021/docs/examples/<ipython console> in <module>()
+    /ipython1-client-r3021/docs/examples/<ipython console> in <module>()
 
-	/ipython1-client-r3021/ipython1/kernel/error.pyc in raise_exception(self, excid)
-	    156             raise IndexError("an exception with index %i does not exist"%excid)
-	    157         else:
-	--> 158             raise et, ev, etb
-	    159 
-	    160 def collect_exceptions(rlist, method):
+    /ipython1-client-r3021/ipython1/kernel/error.pyc in raise_exception(self, excid)
+        156             raise IndexError("an exception with index %i does not exist"%excid)
+        157         else:
+    --> 158             raise et, ev, etb
+        159 
+        160 def collect_exceptions(rlist, method):
 
-	ZeroDivisionError: integer division or modulo by zero
+    ZeroDivisionError: integer division or modulo by zero
 
 If you are working in IPython, you can simple type ``%debug`` after one of
 these :exc:`CompositeError` exceptions is raised, and inspect the exception
@@ -704,132 +698,146 @@ instance:
 
 .. sourcecode:: ipython
 
-	In [81]: mec.execute('1/0')
-	---------------------------------------------------------------------------
-	CompositeError                            Traceback (most recent call last)
+    In [81]: dview.execute('1/0')
+    ---------------------------------------------------------------------------
+    CompositeError                            Traceback (most recent call last)
+    /home/you/<ipython-input-10-15c2c22dec39> in <module>()
+    ----> 1 dview.execute('1/0', block=True)
 
-	/ipython1-client-r3021/docs/examples/<ipython console> in <module>()
+    /path/to/site-packages/IPython/parallel/view.py in execute(self, code, block)
+        460                 default: self.block
+        461         """
+    --> 462         return self.apply_with_flags(util._execute, args=(code,), block=block)
+        463 
+        464     def run(self, filename, block=None):
 
-	/ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in execute(self, lines, targets, block)
-	    432         targets, block = self._findTargetsAndBlock(targets, block)
-	    433         result = blockingCallFromThread(self.smultiengine.execute, lines,
-	--> 434             targets=targets, block=block)
-	    435         if block:
-	    436             result = ResultList(result)
+    /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-	/ipython1-client-r3021/ipython1/kernel/twistedutil.pyc in blockingCallFromThread(f, *a, **kw)
-	     72             result.raiseException()
-	     73         except Exception, e:
-	---> 74             raise e
-	     75     return result
-	     76 
+    /path/to/site-packages/IPython/parallel/view.py in sync_results(f, self, *args, **kwargs)
+         46 def sync_results(f, self, *args, **kwargs):
+         47     """sync relevant results from self.client to our results attribute."""
+    ---> 48     ret = f(self, *args, **kwargs)
+         49     delta = self.outstanding.difference(self.client.outstanding)
+         50     completed = self.outstanding.intersection(delta)
 
-	CompositeError: one or more exceptions from call to method: execute
-	[0:execute]: ZeroDivisionError: integer division or modulo by zero
-	[1:execute]: ZeroDivisionError: integer division or modulo by zero
-	[2:execute]: ZeroDivisionError: integer division or modulo by zero
-	[3:execute]: ZeroDivisionError: integer division or modulo by zero
+    /home/you/<string> in apply_with_flags(self, f, args, kwargs, block, track)
 
-	In [82]: %debug
-	> 
-	
-	/ipython1-client-r3021/ipython1/kernel/twistedutil.py(74)blockingCallFromThread()
-	     73         except Exception, e:
-	---> 74             raise e
-	     75     return result
+    /path/to/site-packages/IPython/parallel/view.py in save_ids(f, self, *args, **kwargs)
+         35     n_previous = len(self.client.history)
+         36     try:
+    ---> 37         ret = f(self, *args, **kwargs)
+         38     finally:
+         39         nmsgs = len(self.client.history) - n_previous
 
-	# With the debugger running, e is the exceptions instance.  We can tab complete
-	# on it and see the extra methods that are available.
-	ipdb> e.
-	e.__class__         e.__getitem__       e.__new__           e.__setstate__      e.args
-	e.__delattr__       e.__getslice__      e.__reduce__        e.__str__           e.elist
-	e.__dict__          e.__hash__          e.__reduce_ex__     e.__weakref__       e.message
-	e.__doc__           e.__init__          e.__repr__          e._get_engine_str   e.print_tracebacks
-	e.__getattribute__  e.__module__        e.__setattr__       e._get_traceback    e.raise_exception
-	ipdb> e.print_tracebacks()
-	[0:execute]: 
-	---------------------------------------------------------------------------
-	ZeroDivisionError                         Traceback (most recent call last)
+    /path/to/site-packages/IPython/parallel/view.py in apply_with_flags(self, f, args, kwargs, block, track)
+        398         if block:
+        399             try:
+    --> 400                 return ar.get()
+        401             except KeyboardInterrupt:
+        402                 pass
 
-	/ipython1-client-r3021/docs/examples/<string> in <module>()
+    /path/to/site-packages/IPython/parallel/asyncresult.pyc in get(self, timeout)
+         87                 return self._result
+         88             else:
+    ---> 89                 raise self._exception
+         90         else:
+         91             raise error.TimeoutError("Result not ready.")
 
-	ZeroDivisionError: integer division or modulo by zero
+    CompositeError: one or more exceptions from call to method: _execute
+    [0:apply]: ZeroDivisionError: integer division or modulo by zero
+    [1:apply]: ZeroDivisionError: integer division or modulo by zero
+    [2:apply]: ZeroDivisionError: integer division or modulo by zero
+    [3:apply]: ZeroDivisionError: integer division or modulo by zero
+    
+    In [82]: %debug
+    > /path/to/site-packages/IPython/parallel/asyncresult.py(80)get()
+         79             else:
+    ---> 80                 raise self._exception
+         81         else:
+    
+    
+    # With the debugger running, e is the exceptions instance.  We can tab complete
+    # on it and see the extra methods that are available.
+    ipdb> e.
+    e.__class__         e.__getitem__       e.__new__           e.__setstate__      e.args
+    e.__delattr__       e.__getslice__      e.__reduce__        e.__str__           e.elist
+    e.__dict__          e.__hash__          e.__reduce_ex__     e.__weakref__       e.message
+    e.__doc__           e.__init__          e.__repr__          e._get_engine_str   e.print_tracebacks
+    e.__getattribute__  e.__module__        e.__setattr__       e._get_traceback    e.raise_exception
+    ipdb> e.print_tracebacks()
+    [0:apply]: 
+    Traceback (most recent call last):
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 332, in apply_request
+        exec code in working, working
+      File "<string>", line 1, in <module>
+      File "/path/to/site-packages/IPython/parallel/client.py", line 69, in _execute
+        exec code in globals()
+      File "<string>", line 1, in <module>
+    ZeroDivisionError: integer division or modulo by zero
 
-	[1:execute]: 
-	---------------------------------------------------------------------------
-	ZeroDivisionError                         Traceback (most recent call last)
 
-	/ipython1-client-r3021/docs/examples/<string> in <module>()
+    [1:apply]: 
+    Traceback (most recent call last):
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 332, in apply_request
+        exec code in working, working
+      File "<string>", line 1, in <module>
+      File "/path/to/site-packages/IPython/parallel/client.py", line 69, in _execute
+        exec code in globals()
+      File "<string>", line 1, in <module>
+    ZeroDivisionError: integer division or modulo by zero
 
-	ZeroDivisionError: integer division or modulo by zero
 
-	[2:execute]: 
-	---------------------------------------------------------------------------
-	ZeroDivisionError                         Traceback (most recent call last)
+    [2:apply]: 
+    Traceback (most recent call last):
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 332, in apply_request
+        exec code in working, working
+      File "<string>", line 1, in <module>
+      File "/path/to/site-packages/IPython/parallel/client.py", line 69, in _execute
+        exec code in globals()
+      File "<string>", line 1, in <module>
+    ZeroDivisionError: integer division or modulo by zero
 
-	/ipython1-client-r3021/docs/examples/<string> in <module>()
 
-	ZeroDivisionError: integer division or modulo by zero
-
-	[3:execute]: 
-	---------------------------------------------------------------------------
-	ZeroDivisionError                         Traceback (most recent call last)
-
-	/ipython1-client-r3021/docs/examples/<string> in <module>()
-
-	ZeroDivisionError: integer division or modulo by zero
+    [3:apply]: 
+    Traceback (most recent call last):
+      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 332, in apply_request
+        exec code in working, working
+      File "<string>", line 1, in <module>
+      File "/path/to/site-packages/IPython/parallel/client.py", line 69, in _execute
+        exec code in globals()
+      File "<string>", line 1, in <module>
+    ZeroDivisionError: integer division or modulo by zero
+    
 
 .. note::
 
-    The above example appears to be broken right now because of a change in 
-    how we are using Twisted.
+    TODO: The above tracebacks are not up to date
+
 
 All of this same error handling magic even works in non-blocking mode:
 
 .. sourcecode:: ipython
 
-	In [83]: mec.block=False
+    In [83]: dview.block=False
 
-	In [84]: pr = mec.execute('1/0')
+    In [84]: ar = dview.execute('1/0')
 
-	In [85]: pr.r
-	---------------------------------------------------------------------------
-	CompositeError                            Traceback (most recent call last)
+    In [85]: ar.get()
+    ---------------------------------------------------------------------------
+    CompositeError                            Traceback (most recent call last)
+    /Users/minrk/<ipython-input-3-8531eb3d26fb> in <module>()
+    ----> 1 ar.get()
 
-	/ipython1-client-r3021/docs/examples/<ipython console> in <module>()
+    /path/to/site-packages/IPython/parallel/asyncresult.pyc in get(self, timeout)
+         78                 return self._result
+         79             else:
+    ---> 80                 raise self._exception
+         81         else:
+         82             raise error.TimeoutError("Result not ready.")
 
-	/ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in _get_r(self)
-	    170 
-	    171     def _get_r(self):
-	--> 172         return self.get_result(block=True)
-	    173 
-	    174     r = property(_get_r)
-
-	/ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in get_result(self, default, block)
-	    131                 return self.result
-	    132         try:
-	--> 133             result = self.client.get_pending_deferred(self.result_id, block)
-	    134         except error.ResultNotCompleted:
-	    135             return default
-
-	/ipython1-client-r3021/ipython1/kernel/multiengineclient.pyc in get_pending_deferred(self, deferredID, block)
-	    385 
-	    386     def get_pending_deferred(self, deferredID, block):
-	--> 387         return blockingCallFromThread(self.smultiengine.get_pending_deferred, deferredID, block)
-	    388 
-	    389     def barrier(self, pendingResults):
-
-	/ipython1-client-r3021/ipython1/kernel/twistedutil.pyc in blockingCallFromThread(f, *a, **kw)
-	     72             result.raiseException()
-	     73         except Exception, e:
-	---> 74             raise e
-	     75     return result
-	     76 
-
-	CompositeError: one or more exceptions from call to method: execute
-	[0:execute]: ZeroDivisionError: integer division or modulo by zero
-	[1:execute]: ZeroDivisionError: integer division or modulo by zero
-	[2:execute]: ZeroDivisionError: integer division or modulo by zero
-	[3:execute]: ZeroDivisionError: integer division or modulo by zero
-
+    CompositeError: one or more exceptions from call to method: _execute
+    [0:apply]: ZeroDivisionError: integer division or modulo by zero
+    [1:apply]: ZeroDivisionError: integer division or modulo by zero
+    [2:apply]: ZeroDivisionError: integer division or modulo by zero
+    [3:apply]: ZeroDivisionError: integer division or modulo by zero
 

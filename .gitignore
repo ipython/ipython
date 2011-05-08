@@ -1,8 +1,10 @@
 build
 ./dist
 docs/dist
-docs/build/*
+docs/build
+docs/_build
 docs/source/api/generated
+docs/gh-pages
 *.py[co]
 build
 *.egg-info

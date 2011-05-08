@@ -30,9 +30,10 @@ IPython: an enhanced interactive Python shell.
     command line, simply because they are not practical here. Look into your
     ipython_config.py configuration file for details on those.
 
-    This file typically installed in the $HOME/.ipython directory.  For Windows
-    users, $HOME resolves to C:\\Documents and Settings\\YourUserName in most
-    instances.
+    This file is typically installed in the IPYTHON_DIR directory. For Linux
+    users, this will be $HOME/.config/ipython, and for other users it will be
+    $HOME/.ipython.  For Windows users, $HOME resolves to C:\\Documents and
+    Settings\\YourUserName in most instances.
 
     In IPython's documentation, we will refer to this directory as IPYTHON_DIR,
     you can change its default location by setting any path you want in this
@@ -404,15 +405,17 @@ IPython will show long blocks of text from many sources using a builtin pager.
 You can control where this pager appears with the ``--paging`` command-line
 flag:
 
-- default: it is overlaid on top of the main terminal.  You must quit the pager
-  to get back to the terminal (similar to how a pager such as ``less`` or
-  ``more`` works).
+- ``inside`` [default]: the pager is overlaid on top of the main terminal. You
+  must quit the pager to get back to the terminal (similar to how a pager such
+  as ``less`` or ``more`` works).
 
-- vertical: the console is made double-tall, and the pager appears on the
+- ``vsplit``: the console is made double-tall, and the pager appears on the
   bottom area when needed.  You can view its contents while using the terminal.
 
-- horizontal: the console is made double-wide, and the pager appears on the
+- ``hsplit``: the console is made double-wide, and the pager appears on the
   right area when needed.  You can view its contents while using the terminal.
+
+- ``none``: the console never pages output.
 
 If you use the vertical or horizontal paging modes, you can navigate between
 terminal and pager as follows:
@@ -423,7 +426,6 @@ terminal and pager as follows:
 
 In all cases, the ``q`` or ``Escape`` keys quit the pager (when used with the
 focus on the pager area).
-
 
 Running subprocesses
 ====================
@@ -441,6 +443,31 @@ We have provided as magics ``%less`` to page files (aliased to ``%more``),
 most common commands you'd want to call in your subshell and that would cause
 problems if invoked via ``!cmd``, but you need to be aware of this limitation.
 
+Display
+=======
+
+The IPython console can now display objects in a variety of formats, including
+HTML, PNG and SVG. This is accomplished using the display functions in
+``IPython.core.display``::
+
+    In [4]: from IPython.core.display import display, display_html
+
+    In [5]: from IPython.core.display import display_png, display_svg
+
+Python objects can simply be passed to these functions and the appropriate
+representations will be displayed in the console as long as the objects know
+how to compute those representations. The easiest way of teaching objects how
+to format themselves in various representations is to define special methods
+such as: ``__html``, ``__svg__`` and ``__png__``. IPython's display formatters
+can also be given custom formatter functions for various types::
+
+    In [6]: ip = get_ipython()
+
+    In [7]: html_formatter = ip.display_formatter.formatters['text/html']
+
+    In [8]: html_formatter.for_type(Foo, foo_to_html)
+
+For further details, see ``IPython.core.formatters``.
 
 Inline matplotlib graphics
 ==========================
@@ -448,10 +475,14 @@ Inline matplotlib graphics
 The IPython console is capable of displaying matplotlib figures inline, in SVG
 format.  If started with the ``--pylab inline`` flag, then all figures are
 rendered inline automatically.  If started with ``--pylab`` or ``--pylab <your
-backend>``, then a GUI backend will be used, but the ``pastefig()`` function is
-added to the global and ``plt`` namespaces.  You can paste any figure that is
-currently open in a window with this function; type ``pastefig?`` for
-additional details."""
+backend>``, then a GUI backend will be used, but IPython's ``display()`` and
+``getfigs()`` functions can be used to view plots inline::
+
+    In [9]: display(*getfigs())    # display all figures inline
+
+    In[10]: display(*getfigs(1,2)) # display figures 1 and 2 inline
+"""
+
 
 quick_guide = """\
 ?         -> Introduction and overview of IPython's features.

@@ -7,7 +7,7 @@ import time
 
 # System library imports
 from pygments.lexers import PythonLexer
-from PyQt4 import QtCore, QtGui
+from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
@@ -32,13 +32,13 @@ class FrontendHighlighter(PygmentsHighlighter):
         self._frontend = frontend
         self.highlighting_on = False
 
-    def highlightBlock(self, qstring):
+    def highlightBlock(self, string):
         """ Highlight a block of text. Reimplemented to highlight selectively.
         """
         if not self.highlighting_on:
             return
 
-        # The input to this function is unicode string that may contain
+        # The input to this function is a unicode string that may contain
         # paragraph break characters, non-breaking spaces, etc. Here we acquire
         # the string as plain text so we can compare it.
         current_block = self.currentBlock()
@@ -53,11 +53,11 @@ class FrontendHighlighter(PygmentsHighlighter):
         # Don't highlight the part of the string that contains the prompt.
         if string.startswith(prompt):
             self._current_offset = len(prompt)
-            qstring.remove(0, len(prompt))
+            string = string[len(prompt):]
         else:
             self._current_offset = 0
 
-        PygmentsHighlighter.highlightBlock(self, qstring)
+        PygmentsHighlighter.highlightBlock(self, string)
 
     def rehighlightBlock(self, block):
         """ Reimplemented to temporarily enable highlighting if disabled.
@@ -81,20 +81,24 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     # An option and corresponding signal for overriding the default kernel
     # interrupt behavior.
     custom_interrupt = Bool(False)
-    custom_interrupt_requested = QtCore.pyqtSignal()
+    custom_interrupt_requested = QtCore.Signal()
 
     # An option and corresponding signals for overriding the default kernel
     # restart behavior.
     custom_restart = Bool(False)
-    custom_restart_kernel_died = QtCore.pyqtSignal(float)
-    custom_restart_requested = QtCore.pyqtSignal()
-   
-    # Emitted when an 'execute_reply' has been received from the kernel and
-    # processed by the FrontendWidget.
-    executed = QtCore.pyqtSignal(object)
+    custom_restart_kernel_died = QtCore.Signal(float)
+    custom_restart_requested = QtCore.Signal()
+
+    # Emitted when a user visible 'execute_request' has been submitted to the
+    # kernel from the FrontendWidget. Contains the code to be executed.
+    executing = QtCore.Signal(object)
+
+    # Emitted when a user-visible 'execute_reply' has been received from the
+    # kernel and processed by the FrontendWidget. Contains the response message.
+    executed = QtCore.Signal(object)
 
     # Emitted when an exit request has been received from the kernel.
-    exit_requested = QtCore.pyqtSignal()
+    exit_requested = QtCore.Signal()
     
     # Protected class variables.
     _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
@@ -143,8 +147,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         document = self._control.document()
         document.contentsChange.connect(self._document_contents_change)
         
-        # set flag for whether we are connected via localhost
-        self._local_kernel = kw.get('local_kernel', FrontendWidget._local_kernel)
+        # Set flag for whether we are connected via localhost.
+        self._local_kernel = kw.get('local_kernel', 
+                                    FrontendWidget._local_kernel)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
@@ -153,7 +158,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def copy(self):
         """ Copy the currently selected text to the clipboard, removing prompts.
         """
-        text = unicode(self._control.textCursor().selection().toPlainText())
+        text = self._control.textCursor().selection().toPlainText()
         if text:
             lines = map(transform_classic_prompt, text.splitlines())
             text = '\n'.join(lines)
@@ -181,6 +186,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         msg_id = self.kernel_manager.xreq_channel.execute(source, hidden)
         self._request_info['execute'] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
+        if not hidden:
+            self.executing.emit(source)
         
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
@@ -192,6 +199,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
         """
+        # Flush all state from the input splitter so the next round of
+        # reading input starts with a clean buffer.
+        self._input_splitter.reset()
+
         if not self._reading:
             self._highlighter.highlighting_on = False
 
@@ -344,7 +355,13 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # line as string, later we can pass False to format_call and
             # syntax-highlight it ourselves for nicer formatting in the
             # calltip.
-            call_info, doc = call_tip(rep['content'], format_call=True)
+            if rep['content']['ismagic']:
+                # Don't generate a call-tip for magics. Ideally, we should
+                # generate a tooltip, but not on ( like we do for actual
+                # callables.
+                call_info, doc = None, None
+            else:
+                call_info, doc = call_tip(rep['content'], format_call=True)
             if call_info or doc:
                 self._call_tip_widget.show_call_info(call_info, doc)
 
@@ -352,7 +369,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle display hook output.
         """
         if not self._hidden and self._is_from_this_session(msg):
-            self._append_plain_text(msg['content']['data'] + '\n')
+            self._append_plain_text(msg['content']['data']['text/plain'] + '\n')
 
     def _handle_stream(self, msg):
         """ Handle stdout, stderr, and stdin.
@@ -383,7 +400,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 title = self.window().windowTitle()
                 if not msg['content']['restart']:
                     reply = QtGui.QMessageBox.question(self, title,
-                        "Kernel has been shutdown permanently. Close the Console?",
+                        "Kernel has been shutdown permanently. "
+                        "Close the Console?",
                         QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
                         sys.exit(0)
@@ -417,7 +435,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Attempts to execute file with 'path'. If 'hidden', no output is
             shown.
         """
-        self.execute('execfile("%s")' % path, hidden=hidden)
+        self.execute('execfile(%r)' % path, hidden=hidden)
 
     def interrupt_kernel(self):
         """ Attempts to interrupt the running kernel.
@@ -491,7 +509,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Decide if it makes sense to show a call tip
         cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.Left)
-        if cursor.document().characterAt(cursor.position()).toAscii() != '(':
+        if cursor.document().characterAt(cursor.position()) != '(':
             return False
         context = self._get_context(cursor)
         if not context:
@@ -534,7 +552,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.StartOfBlock, 
                             QtGui.QTextCursor.KeepAnchor)
-        text = unicode(cursor.selection().toPlainText())
+        text = cursor.selection().toPlainText()
         return self._completion_lexer.get_context(text)
 
     def _process_execute_abort(self, msg):

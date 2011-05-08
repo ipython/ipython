@@ -24,9 +24,10 @@ Lightweight testing that remains unittest-compatible.
   recognize it as such.  This will make it easier to migrate away from Nose if
   we ever need/want to while maintaining very lightweight tests.
 
-NOTE: This file contains IPython-specific decorators and imports the
-numpy.testing.decorators file, which we've copied verbatim.  Any of our own
-code will be added at the bottom if we end up extending this.
+NOTE: This file contains IPython-specific decorators. Using the machinery in
+IPython.external.decorators, we import either numpy.testing.decorators if numpy is
+available, OR use equivalent code in IPython.external._decorators, which
+we've copied verbatim from numpy.
 
 Authors
 -------
@@ -274,19 +275,19 @@ def onlyif(condition, msg):
 
 #-----------------------------------------------------------------------------
 # Utility functions for decorators
-def numpy_not_available():
-    """Can numpy be imported?  Returns true if numpy does NOT import.
+def module_not_available(module):
+    """Can module be imported?  Returns true if module does NOT import.
 
-    This is used to make a decorator to skip tests that require numpy to be
+    This is used to make a decorator to skip tests that require module to be
     available, but delay the 'import numpy' to test execution time.
     """
     try:
-        import numpy
-        np_not_avail = False
+        mod = __import__(module)
+        mod_not_avail = False
     except ImportError:
-        np_not_avail = True
+        mod_not_avail = True
 
-    return np_not_avail
+    return mod_not_avail
 
 #-----------------------------------------------------------------------------
 # Decorators for public use
@@ -315,9 +316,11 @@ skip_if_not_osx = skipif(sys.platform != 'darwin',
                          "This test only runs under OSX")
 
 # Other skip decorators
-skipif_not_numpy = skipif(numpy_not_available,"This test requires numpy")
+skipif_not_numpy = skipif(module_not_available('numpy'),"This test requires numpy")
 
-skip_known_failure = skip('This test is known to fail')
+skipif_not_sympy = skipif(module_not_available('sympy'),"This test requires sympy")
+
+skip_known_failure = knownfailureif(True,'This test is known to fail')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions

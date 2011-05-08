@@ -102,3 +102,6 @@ gitwash-update:
 
 nightly: dist
 	rsync -avH --delete dist/ ipython:www/doc/nightly
+
+gh-pages: html pdf
+	python gh-pages.py

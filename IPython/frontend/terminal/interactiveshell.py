@@ -23,21 +23,19 @@ import sys
 
 from IPython.core.error import TryNext
 from IPython.core.usage import interactive_usage, default_banner
-from IPython.core.inputlist import InputList
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.pylabtools import pylab_activate
+from IPython.testing import decorators as testdec
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn
 from IPython.utils.text import num_ini_spaces
-from IPython.utils.traitlets import Int, Str, CBool
-
+from IPython.utils.traitlets import Int, Str, CBool, Unicode
 
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
-
 
 def get_default_editor():
     try:
@@ -54,18 +52,16 @@ def get_default_editor():
 # overwrites it (like wx.py.PyShell does)
 raw_input_original = raw_input
 
-
 #-----------------------------------------------------------------------------
 # Main class
 #-----------------------------------------------------------------------------
 
-
 class TerminalInteractiveShell(InteractiveShell):
 
     autoedit_syntax = CBool(False, config=True)
-    banner = Str('')
-    banner1 = Str(default_banner, config=True)
-    banner2 = Str('', config=True)
+    banner = Unicode('')
+    banner1 = Unicode(default_banner, config=True)
+    banner2 = Unicode('', config=True)
     confirm_exit = CBool(True, config=True)
     # This display_banner only controls whether or not self.show_banner()
     # is called when mainloop/interact are called.  The default is False
@@ -75,8 +71,8 @@ class TerminalInteractiveShell(InteractiveShell):
     display_banner = CBool(False) # This isn't configurable!
     embedded = CBool(False)
     embedded_active = CBool(False)
-    editor = Str(get_default_editor(), config=True)
-    pager = Str('less', config=True)
+    editor = Unicode(get_default_editor(), config=True)
+    pager = Unicode('less', config=True)
 
     screen_length = Int(0, config=True)
     term_title = CBool(False, config=True)
@@ -189,10 +185,6 @@ class TerminalInteractiveShell(InteractiveShell):
         
         with nested(self.builtin_trap, self.display_trap):
 
-            # if you run stuff with -c <cmd>, raw hist is not updated
-            # ensure that it's in sync
-            self.history_manager.sync_inputs()
-
             while 1:
                 try:
                     self.interact(display_banner=display_banner)
@@ -254,7 +246,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
                     self.write('\nKeyboardInterrupt\n')
-                    self.resetbuffer()
+                    self.input_splitter.reset()
                     more = False
                 except KeyboardInterrupt:
                     pass
@@ -289,67 +281,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
         # Turn off the exit flag, so the mainloop can be restarted if desired
         self.exit_now = False
-
-    def raw_input(self, prompt='', continue_prompt=False):
-        """Write a prompt and read a line.
-
-        The returned line does not include the trailing newline.
-        When the user enters the EOF key sequence, EOFError is raised.
-
-        Optional inputs:
-
-          - prompt(''): a string to be printed to prompt the user.
-
-          - continue_prompt(False): whether this line is the first one or a
-          continuation in a sequence of inputs.
-        """
-        # Code run by the user may have modified the readline completer state.
-        # We must ensure that our completer is back in place.
-
-        if self.has_readline:
-            self.set_readline_completer()
-        
-        try:
-            line = raw_input_original(prompt).decode(self.stdin_encoding)
-        except ValueError:
-            warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
-                 " or sys.stdout.close()!\nExiting IPython!")
-            self.ask_exit()
-            return ""
-
-        # Try to be reasonably smart about not re-indenting pasted input more
-        # than necessary.  We do this by trimming out the auto-indent initial
-        # spaces, if the user's actual input started itself with whitespace.
-        if self.autoindent:
-            if num_ini_spaces(line) > self.indent_current_nsp:
-                line = line[self.indent_current_nsp:]
-                self.indent_current_nsp = 0
-            
-        # store the unfiltered input before the user has any chance to modify
-        # it.
-        if line.strip():
-            if continue_prompt:
-                if self.has_readline and self.readline_use:
-                    histlen = self.readline.get_current_history_length()
-                    if histlen > 1:
-                        newhist = self.input_hist_raw[-1].rstrip()
-                        self.readline.remove_history_item(histlen-1)
-                        self.readline.replace_history_item(histlen-2,
-                                        newhist.encode(self.stdin_encoding))
-            else:
-                self.input_hist_raw.append('%s\n' % line)                
-        elif not continue_prompt:
-            self.input_hist_raw.append('\n')
-        try:
-            lineout = self.prefilter_manager.prefilter_lines(line,continue_prompt)
-        except:
-            # blanket except, in case a user-defined prefilter crashes, so it
-            # can't take all of ipython with it.
-            self.showtraceback()
-            return ''
-        else:
-            return lineout
-
 
     def raw_input(self, prompt=''):
         """Write a prompt and read a line.
@@ -517,6 +448,7 @@ class TerminalInteractiveShell(InteractiveShell):
         self.shell.set_autoindent()
         print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
 
+    @testdec.skip_doctest
     def magic_cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
         
@@ -546,6 +478,17 @@ class TerminalInteractiveShell(InteractiveShell):
         See also
         --------
         paste: automatically pull code from clipboard.
+        
+        Examples
+        --------
+        ::
+        
+          In [8]: %cpaste
+          Pasting code; enter '--' alone on the line to stop.
+          :>>> a = ["world!", "Hello"]
+          :>>> print " ".join(sorted(a))
+          :--
+          Hello world!
         """
         
         opts,args = self.parse_options(parameter_s,'rs:',mode='string')

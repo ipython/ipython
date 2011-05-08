@@ -235,6 +235,9 @@ This class hierarchy and configuration file accomplishes the following:
   configuration file.  Because :class:`Foo` is the parent of :class:`Bar`
   it doesn't know anything about the :attr:`othervalue` attribute.
 
+
+.. _ipython_dir:
+
 Configuration file location
 ===========================
 
@@ -246,11 +249,19 @@ this directory is determined by the following algorithm:
 
 * If not, the value returned by :func:`IPython.utils.path.get_ipython_dir`
   is used. This function will first look at the :envvar:`IPYTHON_DIR`
-  environment variable and then default to the directory
-  :file:`$HOME/.ipython`.
+  environment variable and then default to a platform-specific default.
+
+On posix systems (Linux, Unix, etc.), IPython respects the ``$XDG_CONFIG_HOME``
+part of the `XDG Base Directory`_ specification. If ``$XDG_CONFIG_HOME`` is
+defined and exists ( ``XDG_CONFIG_HOME`` has a default interpretation of
+:file:`$HOME/.config`), then IPython's config directory will be located in
+:file:`$XDG_CONFIG_HOME/ipython`.  If users still have an IPython directory
+in :file:`$HOME/.ipython`, then that will be used. in preference to the 
+system default.
 
 For most users, the default value will simply be something like 
-:file:`$HOME/.ipython`.
+:file:`$HOME/.config/ipython` on Linux, or :file:`$HOME/.ipython`
+elsewhere.
 
 Once the location of the IPython directory has been determined, you need to
 know what filename to use for the configuration file. The basic idea is that
@@ -327,3 +338,5 @@ Here are the main requirements we wanted our configuration system to have:
   dynamic language and you don't always know everything that needs to be
   configured when a program starts.
 
+
+.. _`XDG Base Directory`: http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html

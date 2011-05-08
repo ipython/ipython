@@ -29,10 +29,10 @@ c = get_config()
 # c.Global.connect_delay = 0.1
 # c.Global.connect_max_tries = 15
 
-# By default, the engine will look for the controller's FURL file in its own
-# cluster directory. Sometimes, the FURL file will be elsewhere and this 
-# attribute can be set to the full path of the FURL file.
-# c.Global.furl_file = u''
+# By default, the engine will look for the controller's JSON file in its own
+# cluster directory. Sometimes, the JSON file will be elsewhere and this 
+# attribute can be set to the full path of the JSON file.
+# c.Global.url_file = u'/path/to/my/ipcontroller-engine.json'
 
 # The working directory for the process. The application will use os.chdir
 # to change to this directory before starting.
@@ -78,12 +78,7 @@ c = get_config()
 
 # You should not have to change these attributes.
 
-# c.Global.shell_class = 'IPython.kernel.core.interpreter.Interpreter'
-
-# c.Global.furl_file_name = u'ipcontroller-engine.furl'
-
-
-
+# c.Global.url_file_name = u'ipcontroller-engine.furl'
 
 
 

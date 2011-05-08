@@ -15,5 +15,8 @@ Using IPython for parallel computing
    parallel_security.txt
    parallel_winhpc.txt
    parallel_demos.txt
+   dag_dependencies.txt
+   parallel_details.txt
+   parallel_transition.txt
 
 

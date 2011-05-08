@@ -481,6 +481,8 @@ Message type: ``object_info_reply``::
     # can also be a string like 'Magic function' or 'System alias'
     'type_name' : str,
 
+    # The string form of the object, possibly truncated for length if 
+    # detail_level is 0
     'string_form' : str,
 
     # For objects with a __class__ attribute this will be set
@@ -689,16 +691,49 @@ Message type: ``stream``::
 
     content = {
         # The name of the stream is one of 'stdin', 'stdout', 'stderr'
-    'name' : str,
+        'name' : str,
     
-    # The data is an arbitrary string to be written to that stream
-    'data' : str,
+        # The data is an arbitrary string to be written to that stream
+        'data' : str,
     }
 
 When a kernel receives a raw_input call, it should also broadcast it on the pub
 socket with the names 'stdin' and 'stdin_reply'.  This will allow other clients
 to monitor/display kernel interactions and possibly replay them to their user
 or otherwise expose them.
+
+Display Data
+------------
+
+This type of message is used to bring back data that should be diplayed (text,
+html, svg, etc.) in the frontends. This data is published to all frontends.
+Each message can have multiple representations of the data; it is up to the
+frontend to decide which to use and how. A single message should contain all
+possible representations of the same information. Each representation should
+be a JSON'able data structure, and should be a valid MIME type.
+
+Some questions remain about this design:
+
+* Do we use this message type for pyout/displayhook? Probably not, because
+  the displayhook also has to handle the Out prompt display. On the other hand
+  we could put that information into the metadata secion.
+
+Message type: ``display_data``::
+
+    content = {
+
+        # Who create the data
+        'source' : str,
+
+        # The data dict contains key/value pairs, where the kids are MIME
+        # types and the values are the raw data of the representation in that
+        # format. The data dict must minimally contain the ``text/plain``
+        # MIME type which is used as a backup representation.        
+        'data' : dict,
+
+        # Any metadata that describes the data
+        'metadata' : dict
+    }
 
 Python inputs
 -------------
@@ -708,8 +743,7 @@ These messages are the re-broadcast of the ``execute_request``.
 Message type: ``pyin``::
 
     content = {
-        # Source code to be executed, one or more lines
-    'code' : str
+        'code' : str  # Source code to be executed, one or more lines
     }
 
 Python outputs
@@ -740,20 +774,18 @@ any JSON object and depends on the format. It is often, but not always a string.
 Message type: ``pyout``::
 
     content = {
-        # The data is typically the repr() of the object. It should be displayed
-        # as monospaced text.
-        'data' : str,
-    
+
         # The counter for this execution is also provided so that clients can
         # display it, since IPython automatically creates variables called _N
         # (for prompt N).
         'execution_count' : int,
+        
+        # The data dict contains key/value pairs, where the kids are MIME
+        # types and the values are the raw data of the representation in that
+        # format. The data dict must minimally contain the ``text/plain``
+        # MIME type which is used as a backup representation.
+        'data' : dict,
 
-        # Any extra formats.
-        # The tuples are of the form (ID, type, data).
-        'extra_formats' : [
-           [str, str, object]
-        ]
     }
     
 Python errors

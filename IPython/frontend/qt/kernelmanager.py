@@ -2,7 +2,7 @@
 """
 
 # System library imports.
-from PyQt4 import QtCore
+from IPython.external.qt import QtCore
 
 # IPython imports.
 from IPython.utils.traitlets import Type
@@ -14,10 +14,10 @@ from util import MetaQObjectHasTraits, SuperQObject
 class SocketChannelQObject(SuperQObject):
 
     # Emitted when the channel is started.
-    started = QtCore.pyqtSignal()
+    started = QtCore.Signal()
 
     # Emitted when the channel is stopped.
-    stopped = QtCore.pyqtSignal()
+    stopped = QtCore.Signal()
 
     #---------------------------------------------------------------------------
     # 'ZmqSocketChannel' interface
@@ -39,16 +39,17 @@ class SocketChannelQObject(SuperQObject):
 class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
 
     # Emitted when any message is received.
-    message_received = QtCore.pyqtSignal(object)
+    message_received = QtCore.Signal(object)
 
     # Emitted when a reply has been received for the corresponding request
     # type.
-    execute_reply = QtCore.pyqtSignal(object)
-    complete_reply = QtCore.pyqtSignal(object)
-    object_info_reply = QtCore.pyqtSignal(object)
+    execute_reply = QtCore.Signal(object)
+    complete_reply = QtCore.Signal(object)
+    object_info_reply = QtCore.Signal(object)
+    history_tail_reply = QtCore.Signal(object)
 
     # Emitted when the first reply comes back.
-    first_reply = QtCore.pyqtSignal()
+    first_reply = QtCore.Signal()
 
     # Used by the first_reply signal logic to determine if a reply is the 
     # first.
@@ -87,26 +88,29 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
 class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
 
     # Emitted when any message is received.
-    message_received = QtCore.pyqtSignal(object)
+    message_received = QtCore.Signal(object)
 
     # Emitted when a message of type 'stream' is received.
-    stream_received = QtCore.pyqtSignal(object)
+    stream_received = QtCore.Signal(object)
 
     # Emitted when a message of type 'pyin' is received.
-    pyin_received = QtCore.pyqtSignal(object)
+    pyin_received = QtCore.Signal(object)
 
     # Emitted when a message of type 'pyout' is received.
-    pyout_received = QtCore.pyqtSignal(object)
+    pyout_received = QtCore.Signal(object)
 
     # Emitted when a message of type 'pyerr' is received.
-    pyerr_received = QtCore.pyqtSignal(object)
+    pyerr_received = QtCore.Signal(object)
+
+    # Emitted when a message of type 'display_data' is received
+    display_data_received = QtCore.Signal(object)
 
     # Emitted when a crash report message is received from the kernel's
     # last-resort sys.excepthook.
-    crash_received = QtCore.pyqtSignal(object)
+    crash_received = QtCore.Signal(object)
 
     # Emitted when a shutdown is noticed.
-    shutdown_reply_received = QtCore.pyqtSignal(object)
+    shutdown_reply_received = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
     # 'SubSocketChannel' interface
@@ -117,7 +121,6 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
         """
         # Emit the generic signal.
         self.message_received.emit(msg)
-        
         # Emit signals for specialized message types.
         msg_type = msg['msg_type']
         signal = getattr(self, msg_type + '_received', None)
@@ -136,10 +139,10 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
 class QtRepSocketChannel(SocketChannelQObject, RepSocketChannel):
 
     # Emitted when any message is received.
-    message_received = QtCore.pyqtSignal(object)
+    message_received = QtCore.Signal(object)
 
     # Emitted when an input request is received.
-    input_requested = QtCore.pyqtSignal(object)
+    input_requested = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
     # 'RepSocketChannel' interface
@@ -160,7 +163,7 @@ class QtRepSocketChannel(SocketChannelQObject, RepSocketChannel):
 class QtHBSocketChannel(SocketChannelQObject, HBSocketChannel):
 
     # Emitted when the kernel has died.
-    kernel_died = QtCore.pyqtSignal(object)
+    kernel_died = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
     # 'HBSocketChannel' interface
@@ -180,10 +183,10 @@ class QtKernelManager(KernelManager, SuperQObject):
     __metaclass__ = MetaQObjectHasTraits
 
     # Emitted when the kernel manager has started listening.
-    started_channels = QtCore.pyqtSignal()
+    started_channels = QtCore.Signal()
 
     # Emitted when the kernel manager has stopped listening.
-    stopped_channels = QtCore.pyqtSignal()
+    stopped_channels = QtCore.Signal()
 
     # Use Qt-specific channel classes that emit signals.
     sub_channel_class = Type(QtSubSocketChannel)

@@ -4,7 +4,7 @@
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de>
 #  Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
-#  Copyright (C) 2008-2010  The IPython Development Team
+#  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -20,8 +20,10 @@ from __future__ import absolute_import
 import __builtin__
 import __future__
 import abc
+import ast
 import atexit
 import codeop
+import inspect
 import os
 import re
 import sys
@@ -37,17 +39,20 @@ from IPython.core import prefilter
 from IPython.core import shadowns
 from IPython.core import ultratb
 from IPython.core.alias import AliasManager
+from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.compilerop import CachingCompiler
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
+from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import TryNext, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
+from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
-from IPython.core.inputlist import InputList
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
+from IPython.core.macro import Macro
 from IPython.core.magic import Magic
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
@@ -55,11 +60,11 @@ from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io
-from IPython.utils import pickleshare
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
+from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
@@ -129,6 +134,51 @@ class SeparateStr(Str):
 
 class MultipleInstanceError(Exception):
     pass
+    
+class ReadlineNoRecord(object):
+    """Context manager to execute some code, then reload readline history
+    so that interactive input to the code doesn't appear when pressing up."""
+    def __init__(self, shell):
+        self.shell = shell
+        self._nested_level = 0
+        
+    def __enter__(self):
+        if self._nested_level == 0:
+            try:
+                self.orig_length = self.current_length()
+                self.readline_tail = self.get_readline_tail()
+            except (AttributeError, IndexError):   # Can fail with pyreadline
+                self.orig_length, self.readline_tail = 999999, []
+        self._nested_level += 1
+        
+    def __exit__(self, type, value, traceback):
+        self._nested_level -= 1
+        if self._nested_level == 0:
+            # Try clipping the end if it's got longer
+            try:
+                e = self.current_length() - self.orig_length
+                if e > 0:
+                    for _ in range(e):
+                        self.shell.readline.remove_history_item(self.orig_length)
+                
+                # If it still doesn't match, just reload readline history.
+                if self.current_length() != self.orig_length \
+                    or self.get_readline_tail() != self.readline_tail:
+                    self.shell.refill_readline_hist()
+            except (AttributeError, IndexError):
+                pass
+        # Returning False will cause exceptions to propagate
+        return False
+    
+    def current_length(self):
+        return self.shell.readline.get_current_history_length()
+    
+    def get_readline_tail(self, n=10):
+        """Get the last n items in readline history."""
+        end = self.shell.readline.get_current_history_length() + 1
+        start = max(end-n, 1)
+        ghi = self.shell.readline.get_history_item
+        return [ghi(x) for x in range(start, end)]
 
 
 #-----------------------------------------------------------------------------
@@ -150,11 +200,17 @@ class InteractiveShell(Configurable, Magic):
                              default_value=get_default_colors(), config=True)
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True)
+    display_formatter = Instance(DisplayFormatter)
     displayhook_class = Type(DisplayHook)
+    display_pub_class = Type(DisplayPublisher)
+
     exit_now = CBool(False)
+    exiter = Instance(ExitAutocall)
+    def _exiter_default(self):
+        return ExitAutocall(self)
     # Monotonically increasing execution counter
     execution_count = Int(1)
-    filename = Str("<ipython console>")
+    filename = Unicode("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
 
     # Input splitter, to split entire cells of input into either individual
@@ -162,20 +218,21 @@ class InteractiveShell(Configurable, Magic):
     input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                               (), {})
     logstart = CBool(False, config=True)
-    logfile = Str('', config=True)
-    logappend = Str('', config=True)
+    logfile = Unicode('', config=True)
+    logappend = Unicode('', config=True)
     object_info_string_level = Enum((0,1,2), default_value=0,
                                     config=True)
     pdb = CBool(False, config=True)
 
-    pprint = CBool(True, config=True)
-    profile = Str('', config=True)
+    profile = Unicode('', config=True)
     prompt_in1 = Str('In [\\#]: ', config=True)
     prompt_in2 = Str('   .\\D.: ', config=True)
     prompt_out = Str('Out[\\#]: ', config=True)
     prompts_pad_left = CBool(True, config=True)
     quiet = CBool(False, config=True)
 
+    history_length = Int(10000, config=True)
+    
     # The readline stuff will eventually be moved to the terminal subclass
     # but for now, we can't do that as readline is welded in everywhere.
     readline_use = CBool(True, config=True)
@@ -187,7 +244,8 @@ class InteractiveShell(Configurable, Magic):
             '"\C-l": clear-screen',
             'set show-all-if-ambiguous on',
             '"\C-o": tab-insert',
-            '"\M-i": "    "',
+            # See bug gh-58 - with \M-i enabled, chars 0x9000-0x9fff
+            # crash IPython.
             '"\M-o": "\d\d\d\d"',
             '"\M-I": "\d\d\d\d"',
             '"\C-r": reverse-search-history',
@@ -220,7 +278,7 @@ class InteractiveShell(Configurable, Magic):
     history_manager = Instance('IPython.core.history.HistoryManager')
 
     # Private interface
-    _post_execute = set()
+    _post_execute = Instance(dict)
 
     def __init__(self, config=None, ipython_dir=None,
                  user_ns=None, user_global_ns=None,
@@ -245,6 +303,11 @@ class InteractiveShell(Configurable, Magic):
         # is what we want to do.
         self.save_sys_module_state()
         self.init_sys_modules()
+        
+        # While we're trying to have each part of the code directly access what
+        # it needs without keeping redundant references to objects, we have too
+        # much legacy code that expects ip.db to exist.
+        self.db = PickleShareDB(os.path.join(self.ipython_dir, 'db'))
 
         self.init_history()
         self.init_encoding()
@@ -283,6 +346,8 @@ class InteractiveShell(Configurable, Magic):
         self.init_io()
         self.init_traceback_handlers(custom_exceptions)
         self.init_prompts()
+        self.init_display_formatter()
+        self.init_display_pub()
         self.init_displayhook()
         self.init_reload_doctest()
         self.init_magics()
@@ -368,14 +433,6 @@ class InteractiveShell(Configurable, Magic):
 
         # command compiler
         self.compile = CachingCompiler()
-        
-        # User input buffers
-        # NOTE: these variables are slated for full removal, once we are 100%
-        # sure that the new execution logic is solid.  We will delte runlines,
-        # push_line and these buffers, as all input will be managed by the
-        # frontends via an inputsplitter instance.
-        self.buffer = []
-        self.buffer_raw = []
 
         # Make an empty namespace, which extension writers can rely on both
         # existing and NEVER being used by ipython itself.  This gives them a
@@ -383,12 +440,6 @@ class InteractiveShell(Configurable, Magic):
         # their extensions may require, without fear of collisions with other
         # ipython names that may develop later.
         self.meta = Struct()
-
-        # Object variable to store code object waiting execution.  This is
-        # used mainly by the multithreaded shells, but it can come in handy in
-        # other situations.  No need to use a Queue here, since it's a single
-        # item which gets cleared once run.
-        self.code_to_run = None
 
         # Temporary files used for various purposes.  Deleted at exit.
         self.tempfiles = []
@@ -402,6 +453,9 @@ class InteractiveShell(Configurable, Magic):
 
         # Indentation management
         self.indent_current_nsp = 0
+
+        # Dict to track post-execution functions that have been registered
+        self._post_execute = {}
 
     def init_environment(self):
         """Any changes we need to make to the user's environment."""
@@ -457,20 +511,25 @@ class InteractiveShell(Configurable, Magic):
     def init_io(self):
         # This will just use sys.stdout and sys.stderr. If you want to
         # override sys.stdout and sys.stderr themselves, you need to do that
-        # *before* instantiating this class, because Term holds onto 
+        # *before* instantiating this class, because io holds onto 
         # references to the underlying streams.
         if sys.platform == 'win32' and self.has_readline:
-            Term = io.IOTerm(cout=self.readline._outputfile,
-                             cerr=self.readline._outputfile)
+            io.stdout = io.stderr = io.IOStream(self.readline._outputfile)
         else:
-            Term = io.IOTerm()
-        io.Term = Term
+            io.stdout = io.IOStream(sys.stdout)
+            io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
         # TODO: This is a pass for now because the prompts are managed inside
         # the DisplayHook. Once there is a separate prompt manager, this 
         # will initialize that object and all prompt related information.
         pass
+
+    def init_display_formatter(self):
+        self.display_formatter = DisplayFormatter(config=self.config)
+
+    def init_display_pub(self):
+        self.display_pub = self.display_pub_class(config=self.config)
 
     def init_displayhook(self):
         # Initialize displayhook, set in/out prompts and printing system
@@ -592,7 +651,7 @@ class InteractiveShell(Configurable, Magic):
         """
         if not callable(func):
             raise ValueError('argument %s must be callable' % func)
-        self._post_execute.add(func)
+        self._post_execute[func] = True
 
     #-------------------------------------------------------------------------
     # Things related to the "main" module
@@ -718,7 +777,9 @@ class InteractiveShell(Configurable, Magic):
         else:
             # fallback to our internal debugger
             pm = lambda : self.InteractiveTB.debugger(force=True)
-        self.history_saving_wrapper(pm)()
+        
+        with self.readline_no_record:
+            pm()
 
     #-------------------------------------------------------------------------
     # Things related to IPython's various namespaces
@@ -947,19 +1008,22 @@ class InteractiveShell(Configurable, Magic):
             warn('help() not available - check site.py')
 
         # make global variables for user access to the histories
-        ns['_ih'] = self.input_hist
-        ns['_oh'] = self.output_hist
-        ns['_dh'] = self.dir_hist
+        ns['_ih'] = self.history_manager.input_hist_parsed
+        ns['_oh'] = self.history_manager.output_hist
+        ns['_dh'] = self.history_manager.dir_hist
 
         ns['_sh'] = shadowns
 
         # user aliases to input and output histories.  These shouldn't show up
         # in %who, as they can have very large reprs.
-        ns['In']  = self.input_hist
-        ns['Out'] = self.output_hist
+        ns['In']  = self.history_manager.input_hist_parsed
+        ns['Out'] = self.history_manager.output_hist
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
+        
+        ns['exit'] = self.exiter
+        ns['quit'] = self.exiter
 
         # Sync what we've added so far to user_ns_hidden so these aren't seen
         # by %who
@@ -972,17 +1036,21 @@ class InteractiveShell(Configurable, Magic):
         # Finally, update the real user's namespace
         self.user_ns.update(ns)
 
-    def reset(self):
-        """Clear all internal namespaces.
-
-        Note that this is much more aggressive than %reset, since it clears
-        fully all namespaces, as well as all input/output lists.
+    def reset(self, new_session=True):
+        """Clear all internal namespaces, and attempt to release references to
+        user objects.
+        
+        If new_session is True, a new history session will be opened.
         """
         # Clear histories
-        self.history_manager.reset()
-
+        self.history_manager.reset(new_session)
         # Reset counter used to index all histories
-        self.execution_count = 0
+        if new_session:
+            self.execution_count = 1
+        
+        # Flush cached output items
+        if self.displayhook.do_full_cache:
+            self.displayhook.flush()
         
         # Restore the user namespaces to minimal usability
         for ns in self.ns_refs_table:
@@ -1004,6 +1072,13 @@ class InteractiveShell(Configurable, Magic):
         # Restore the default and user aliases
         self.alias_manager.clear_aliases()
         self.alias_manager.init_aliases()
+        
+        # Flush the private list of module references kept for script
+        # execution protection
+        self.clear_main_mod_cache()
+        
+        # Clear out the namespace from the last %run
+        self.new_main_mod()
 
     def reset_selective(self, regex=None):
         """Clear selective variables from internal namespaces based on a
@@ -1215,51 +1290,20 @@ class InteractiveShell(Configurable, Magic):
             return 'not found'  # so callers can take other action
 
     def object_inspect(self, oname):
-        info = self._object_find(oname)
-        if info.found:
-            return self.inspector.info(info.obj, oname, info=info)
-        else:
-            return oinspect.object_info(name=oname, found=False)
+        with self.builtin_trap:
+            info = self._object_find(oname)
+            if info.found:
+                return self.inspector.info(info.obj, oname, info=info)
+            else:
+                return oinspect.object_info(name=oname, found=False)
 
     #-------------------------------------------------------------------------
     # Things related to history management
     #-------------------------------------------------------------------------
 
     def init_history(self):
-        self.history_manager = HistoryManager(shell=self)
-
-    def save_hist(self):
-        """Save input history to a file (via readline library)."""
-        self.history_manager.save_hist()
-
-    # For backwards compatibility
-    savehist = save_hist
-        
-    def reload_hist(self):
-        """Reload the input history from disk file."""
-        self.history_manager.reload_hist()
-
-    # For backwards compatibility
-    reloadhist = reload_hist
-
-    def history_saving_wrapper(self, func):
-        """ Wrap func for readline history saving
-
-        Convert func into callable that saves & restores
-        history around the call """
-
-        if self.has_readline:
-            from IPython.utils import rlineimpl as readline
-        else:
-            return func
-
-        def wrapper():
-            self.save_hist()
-            try:
-                func()
-            finally:
-                readline.read_history_file(self.histfile)
-        return wrapper
+        """Sets up the command history, and starts regular autosaves."""
+        self.history_manager = HistoryManager(shell=self, config=self.config)
 
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
@@ -1329,7 +1373,7 @@ class InteractiveShell(Configurable, Magic):
             print 'Exception type :',etype
             print 'Exception value:',value
             print 'Traceback      :',tb
-            print 'Source code    :','\n'.join(self.buffer)
+            #print 'Source code    :','\n'.join(self.buffer)
 
         if handler is None: handler = dummy_handler
 
@@ -1401,7 +1445,6 @@ class InteractiveShell(Configurable, Magic):
                 sys.last_type = etype
                 sys.last_value = value
                 sys.last_traceback = tb
-    
                 if etype in self.custom_exceptions:
                     # FIXME: Old custom traceback objects may just return a
                     # string, in that case we just put it into a list
@@ -1417,11 +1460,10 @@ class InteractiveShell(Configurable, Magic):
                     else:
                         stb = self.InteractiveTB.structured_traceback(etype,
                                                 value, tb, tb_offset=tb_offset)
-                        # FIXME: the pdb calling should be done by us, not by
-                        # the code computing the traceback.
-                        if self.InteractiveTB.call_pdb:
-                            # pdb mucks up readline, fix it back
-                            self.set_readline_completer()
+                        
+                        if self.call_pdb:
+                            # drop into debugger
+                            self.debugger(force=True)
 
                 # Actually show the traceback
                 self._showtraceback(etype, value, stb)
@@ -1435,7 +1477,7 @@ class InteractiveShell(Configurable, Magic):
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        print >> io.Term.cout, self.InteractiveTB.stb2text(stb)
+        print >> io.stdout, self.InteractiveTB.stb2text(stb)
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
@@ -1488,8 +1530,6 @@ class InteractiveShell(Configurable, Magic):
             self.has_readline = False
             self.readline = None
             # Set a number of methods that depend on readline to be no-op
-            self.save_hist = no_op
-            self.reload_hist = no_op
             self.set_readline_completer = no_op
             self.set_custom_completer = no_op
             self.set_completer_frame = no_op
@@ -1541,19 +1581,23 @@ class InteractiveShell(Configurable, Magic):
             delims = delims.replace(ESC_MAGIC, '')
             readline.set_completer_delims(delims)
             # otherwise we end up with a monster history after a while:
-            readline.set_history_length(1000)
-            try:
-                #print '*** Reading readline history'  # dbg
-                readline.read_history_file(self.histfile)
-            except IOError:
-                pass  # It doesn't exist yet.
-
-            # If we have readline, we want our history saved upon ipython
-            # exiting. 
-            atexit.register(self.save_hist)
+            readline.set_history_length(self.history_length)
+            
+            self.refill_readline_hist()
+            self.readline_no_record = ReadlineNoRecord(self)
 
         # Configure auto-indent for all platforms
         self.set_autoindent(self.autoindent)
+        
+    def refill_readline_hist(self):
+        # Load the last 1000 lines from history
+        self.readline.clear_history()
+        stdin_encoding = sys.stdin.encoding or "utf-8"
+        for _, _, cell in self.history_manager.get_tail(1000,
+                                                        include_latest=True):
+            if cell.strip(): # Ignore blank lines
+                for line in cell.splitlines():
+                    self.readline.add_history(line.encode(stdin_encoding, 'replace'))
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
@@ -1723,7 +1767,7 @@ class InteractiveShell(Configurable, Magic):
         args = arg_s.split(' ',1)
         magic_name = args[0]
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-
+        
         try:
             magic_args = args[1]
         except IndexError:
@@ -1733,9 +1777,14 @@ class InteractiveShell(Configurable, Magic):
             error("Magic function `%s` not found." % magic_name)
         else:
             magic_args = self.var_expand(magic_args,1)
-            with nested(self.builtin_trap,):
+            # Grab local namespace if we need it:
+            if getattr(fn, "needs_local_scope", False):
+                self._magic_locals = sys._getframe(1).f_locals
+            with self.builtin_trap:
                 result = fn(magic_args)
-                return result
+            # Ensure we're not keeping object references around:
+            self._magic_locals = {}
+            return result
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython 
@@ -1882,7 +1931,7 @@ class InteractiveShell(Configurable, Magic):
             # plain ascii works better w/ pyreadline, on some machines, so
             # we use it and only print uncolored rewrite if we have unicode
             rw = str(rw)
-            print >> IPython.utils.io.Term.cout, rw
+            print >> io.stdout, rw
         except UnicodeEncodeError:
             print "------> " + cmd
             
@@ -1948,7 +1997,7 @@ class InteractiveShell(Configurable, Magic):
 
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
-        with nested(self.builtin_trap,):
+        with self.builtin_trap:
             exec cmd in self.user_global_ns, self.user_ns
 
     def ev(self, expr):
@@ -1956,7 +2005,7 @@ class InteractiveShell(Configurable, Magic):
 
         Returns the result of evaluation
         """
-        with nested(self.builtin_trap,):
+        with self.builtin_trap:
             return eval(expr, self.user_global_ns, self.user_ns)
 
     def safe_execfile(self, fname, *where, **kw):
@@ -1980,7 +2029,6 @@ class InteractiveShell(Configurable, Magic):
         kw.setdefault('exit_ignore', False)
 
         fname = os.path.abspath(os.path.expanduser(fname))
-
         # Make sure we have a .py file
         if not fname.endswith('.py'):
             warn('File must end with .py to be run using execfile: <%s>' % fname)
@@ -1997,6 +2045,11 @@ class InteractiveShell(Configurable, Magic):
         # behavior of running a script from the system command line, where
         # Python inserts the script's directory into sys.path
         dname = os.path.dirname(fname)
+        
+        if isinstance(fname, unicode):
+            # execfile uses default encoding instead of filesystem encoding
+            # so unicode filenames will fail
+            fname = fname.encode(sys.getfilesystemencoding() or sys.getdefaultencoding())
 
         with prepended_to_syspath(dname):
             try:
@@ -2051,256 +2104,142 @@ class InteractiveShell(Configurable, Magic):
                     # raised in user code.  It would be nice if there were
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
-                    self.run_cell(thefile.read())
+                    self.run_cell(thefile.read(), store_history=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
-
-    def run_cell(self, cell):
-        """Run the contents of an entire multiline 'cell' of code.
-
-        The cell is split into separate blocks which can be executed
-        individually.  Then, based on how many blocks there are, they are
-        executed as follows:
-
-        - A single block: 'single' mode.
-
-        If there's more than one block, it depends:
-
-        - if the last one is no more than two lines long, run all but the last
-        in 'exec' mode and the very last one in 'single' mode.  This makes it
-        easy to type simple expressions at the end to see computed values.  -
-        otherwise (last one is also multiline), run all in 'exec' mode
-
-        When code is executed in 'single' mode, :func:`sys.displayhook` fires,
-        results are displayed and output prompts are computed.  In 'exec' mode,
-        no results are displayed unless :func:`print` is called explicitly;
-        this mode is more akin to running a script.
-
+                
+    def run_cell(self, raw_cell, store_history=True):
+        """Run a complete IPython cell.
+        
         Parameters
         ----------
-        cell : str
-          A single or multiline string.
+        raw_cell : str
+          The code (including IPython code such as %magic functions) to run.
+        store_history : bool
+          If True, the raw and translated cell will be stored in IPython's
+          history. For user code calling back into IPython's machinery, this
+          should be set to False.
         """
-        
-        # We need to break up the input into executable blocks that can be run
-        # in 'single' mode, to provide comfortable user behavior.
-        blocks = self.input_splitter.split_blocks(cell)
-        
-        if not blocks:
+        if (not raw_cell) or raw_cell.isspace():
             return
-
-        # Store the 'ipython' version of the cell as well, since that's what
-        # needs to go into the translated history and get executed (the
-        # original cell may contain non-python syntax).
-        ipy_cell = ''.join(blocks)
-
-        # Store raw and processed history
-        self.history_manager.store_inputs(ipy_cell, cell)
-
-        self.logger.log(ipy_cell, cell)
-        # dbg code!!!
-        if 0:
-            def myapp(self, val):  # dbg
-                import traceback as tb
-                stack = ''.join(tb.format_stack())
-                print 'Value:', val
-                print 'Stack:\n', stack
-                list.append(self, val)
-
-            import new
-            self.input_hist.append = types.MethodType(myapp, self.input_hist)
-        # End dbg
-
-        # All user code execution must happen with our context managers active
-        with nested(self.builtin_trap, self.display_trap):
-
-            # Single-block input should behave like an interactive prompt
-            if len(blocks) == 1:
-                # since we return here, we need to update the execution count
-                out = self.run_one_block(blocks[0])
-                self.execution_count += 1
-                return out
-
-            # In multi-block input, if the last block is a simple (one-two
-            # lines) expression, run it in single mode so it produces output.
-            # Otherwise just feed the whole thing to run_code.  This seems like
-            # a reasonable usability design.
-            last = blocks[-1]
-            last_nlines = len(last.splitlines())
-
-            # Note: below, whenever we call run_code, we must sync history
-            # ourselves, because run_code is NOT meant to manage history at all.
-            if last_nlines < 2:
-                # Here we consider the cell split between 'body' and 'last',
-                # store all history and execute 'body', and if successful, then
-                # proceed to execute 'last'.
-
-                # Get the main body to run as a cell
-                ipy_body = ''.join(blocks[:-1])
-                retcode = self.run_source(ipy_body, symbol='exec',
-                                          post_execute=False)
-                if retcode==0:
-                    # And the last expression via runlines so it produces output
-                    self.run_one_block(last)
-            else:
-                # Run the whole cell as one entity, storing both raw and
-                # processed input in history
-                self.run_source(ipy_cell, symbol='exec')
-
-        # Each cell is a *single* input, regardless of how many lines it has
-        self.execution_count += 1
-
-    def run_one_block(self, block):
-        """Run a single interactive block.
-
-        If the block is single-line, dynamic transformations are applied to it
-        (like automagics, autocall and alias recognition).
-        """
-        if len(block.splitlines()) <= 1:
-            out = self.run_single_line(block)
-        else:
-            out = self.run_code(block)
-        return out
-
-    def run_single_line(self, line):
-        """Run a single-line interactive statement.
-
-        This assumes the input has been transformed to IPython syntax by
-        applying all static transformations (those with an explicit prefix like
-        % or !), but it will further try to apply the dynamic ones.
-
-        It does not update history.
-        """
-        tline = self.prefilter_manager.prefilter_line(line)
-        return self.run_source(tline)
-
-    # PENDING REMOVAL: this method is slated for deletion, once our new
-    # input logic has been 100% moved to frontends and is stable.
-    def runlines(self, lines, clean=False):
-        """Run a string of one or more lines of source.
-
-        This method is capable of running a string containing multiple source
-        lines, as if they had been entered at the IPython prompt.  Since it
-        exposes IPython's processing machinery, the given strings can contain
-        magic calls (%magic), special shell access (!cmd), etc.
-        """
         
-        if isinstance(lines, (list, tuple)):
-            lines = '\n'.join(lines)
-
-        if clean:
-            lines = self._cleanup_ipy_script(lines)
-
-        # We must start with a clean buffer, in case this is run from an
-        # interactive IPython session (via a magic, for example).
-        self.reset_buffer()
-        lines = lines.splitlines()
-
-        # Since we will prefilter all lines, store the user's raw input too
-        # before we apply any transformations
-        self.buffer_raw[:] = [ l+'\n' for l in lines]
+        for line in raw_cell.splitlines():
+            self.input_splitter.push(line)
+        cell = self.input_splitter.source_reset()
         
-        more = False
-        prefilter_lines = self.prefilter_manager.prefilter_lines
-        with nested(self.builtin_trap, self.display_trap):
-            for line in lines:
-                # skip blank lines so we don't mess up the prompt counter, but
-                # do NOT skip even a blank line if we are in a code block (more
-                # is true)
+        with self.builtin_trap:
+            if len(cell.splitlines()) == 1:
+                cell = self.prefilter_manager.prefilter_lines(cell)
             
-                if line or more:
-                    more = self.push_line(prefilter_lines(line, more))
-                    # IPython's run_source returns None if there was an error
-                    # compiling the code.  This allows us to stop processing
-                    # right away, so the user gets the error message at the
-                    # right place.
-                    if more is None:
-                        break
-            # final newline in case the input didn't have it, so that the code
-            # actually does get executed
-            if more:
-                self.push_line('\n')
+            # Store raw and processed history
+            if store_history:
+                self.history_manager.store_inputs(self.execution_count, 
+                                                  cell, raw_cell)
 
-    def run_source(self, source, filename=None,
-                   symbol='single', post_execute=True):
-        """Compile and run some source in the interpreter.
+            self.logger.log(cell, raw_cell)
+            
+            cell_name = self.compile.cache(cell, self.execution_count)
+            
+            with self.display_trap:
+                try:
+                    code_ast = ast.parse(cell, filename=cell_name)
+                except (OverflowError, SyntaxError, ValueError, TypeError,
+                        MemoryError):
+                    self.showsyntaxerror()
+                    self.execution_count += 1
+                    return None
 
-        Arguments are as for compile_command().
+                self.run_ast_nodes(code_ast.body, cell_name,
+                                                    interactivity="last_expr")
 
-        One several things can happen:
-
-        1) The input is incorrect; compile_command() raised an
-        exception (SyntaxError or OverflowError).  A syntax traceback
-        will be printed by calling the showsyntaxerror() method.
-
-        2) The input is incomplete, and more input is required;
-        compile_command() returned None.  Nothing happens.
-
-        3) The input is complete; compile_command() returned a code
-        object.  The code is executed by calling self.run_code() (which
-        also handles run-time exceptions, except for SystemExit).
-
-        The return value is:
-
-          - True in case 2
-
-          - False in the other cases, unless an exception is raised, where
-          None is returned instead.  This can be used by external callers to
-          know whether to continue feeding input or not.
-
-        The return value can be used to decide whether to use sys.ps1 or
-        sys.ps2 to prompt the next line."""
-
-        # We need to ensure that the source is unicode from here on.
-        if type(source)==str:
-            usource = source.decode(self.stdin_encoding)
-        else:
-            usource = source
-
-        if 0:  # dbg
-            print 'Source:', repr(source)  # dbg
-            print 'USource:', repr(usource)  # dbg
-            print 'type:', type(source) # dbg
-            print 'encoding', self.stdin_encoding  # dbg
+                # Execute any registered post-execution functions.
+                for func, status in self._post_execute.iteritems():
+                    if not status:
+                        continue
+                    try:
+                        func()
+                    except:
+                        self.showtraceback()
+                        # Deactivate failing function
+                        self._post_execute[func] = False
+                
+        if store_history:
+            # Write output to the database. Does nothing unless
+            # history output logging is enabled.
+            self.history_manager.store_output(self.execution_count)
+            # Each cell is a *single* input, regardless of how many lines it has
+            self.execution_count += 1
+            
+    def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr'):
+        """Run a sequence of AST nodes. The execution mode depends on the
+        interactivity parameter.
         
-        try:
-            code = self.compile(usource, symbol, self.execution_count)
-        except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
-            # Case 1
-            self.showsyntaxerror(filename)
-            return None
-
-        if code is None:
-            # Case 2
-            return True
-
-        # Case 3
-        # We store the code object so that threaded shells and
-        # custom exception handlers can access all this info if needed.
-        # The source corresponding to this can be obtained from the
-        # buffer attribute as '\n'.join(self.buffer).
-        self.code_to_run = code
-        # now actually execute the code object
-        if self.run_code(code, post_execute) == 0:
-            return False
+        Parameters
+        ----------
+        nodelist : list
+          A sequence of AST nodes to run.
+        cell_name : str
+          Will be passed to the compiler as the filename of the cell. Typically
+          the value returned by ip.compile.cache(cell).
+        interactivity : str
+          'all', 'last', 'last_expr' or 'none', specifying which nodes should be
+          run interactively (displaying output from expressions). 'last_expr'
+          will run the last node interactively only if it is an expression (i.e.
+          expressions in loops or other blocks are not displayed. Other values
+          for this parameter will raise a ValueError.
+        """
+        if not nodelist:
+            return
+        
+        if interactivity == 'last_expr':
+            if isinstance(nodelist[-1], ast.Expr):
+                interactivity = "last"
+            else:
+                interactivity = "none"
+        
+        if interactivity == 'none':
+            to_run_exec, to_run_interactive = nodelist, []
+        elif interactivity == 'last':
+            to_run_exec, to_run_interactive = nodelist[:-1], nodelist[-1:]
+        elif interactivity == 'all':
+            to_run_exec, to_run_interactive = [], nodelist
         else:
-            return None
+            raise ValueError("Interactivity was %r" % interactivity)
+            
+        exec_count = self.execution_count
+        
+        for i, node in enumerate(to_run_exec):
+            mod = ast.Module([node])
+            code = self.compile(mod, cell_name, "exec")
+            if self.run_code(code):
+                return True
 
-    # For backwards compatibility
-    runsource = run_source
+        for i, node in enumerate(to_run_interactive):
+            mod = ast.Interactive([node])
+            code = self.compile(mod, cell_name, "single")
+            if self.run_code(code):
+                return True
+
+        return False
     
-    def run_code(self, code_obj, post_execute=True):
+    def run_code(self, code_obj):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
         traceback.
 
-        Return value: a flag indicating whether the code to be run completed
-        successfully:
+        Parameters
+        ----------
+        code_obj : code object
+          A compiled code object, to be executed
+        post_execute : bool [default: True]
+          whether to call post_execute hooks after this particular execution.
 
-          - 0: successful execution.
-          - 1: an error occurred.
+        Returns
+        -------
+        False : successful execution.
+        True : an error occurred.
         """
 
         # Set our own excepthook in case the user code tries to call it
@@ -2314,15 +2253,14 @@ class InteractiveShell(Configurable, Magic):
         try:
             try:
                 self.hooks.pre_run_code_hook()
-                #rprint('Running code') # dbg
+                #rprint('Running code', repr(code_obj)) # dbg
                 exec code_obj in self.user_global_ns, self.user_ns
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
         except SystemExit:
-            self.reset_buffer()
             self.showtraceback(exception_only=True)
-            warn("To exit: use any of 'exit', 'quit', %Exit or Ctrl-D.", level=1)
+            warn("To exit: use 'exit', 'quit', or Ctrl-D.", level=1)
         except self.custom_exceptions:
             etype,value,tb = sys.exc_info()
             self.CustomTB(etype,value,tb)
@@ -2333,106 +2271,10 @@ class InteractiveShell(Configurable, Magic):
             if softspace(sys.stdout, 0):
                 print
 
-        # Execute any registered post-execution functions.  Here, any errors
-        # are reported only minimally and just on the terminal, because the
-        # main exception channel may be occupied with a user traceback.
-        # FIXME: we need to think this mechanism a little more carefully.
-        if post_execute:
-            for func in self._post_execute:
-                try:
-                    func()
-                except:
-                    head = '[ ERROR ] Evaluating post_execute function: %s' % \
-                           func
-                    print >> io.Term.cout, head
-                    print >> io.Term.cout, self._simple_error()
-                    print >> io.Term.cout, 'Removing from post_execute'
-                    self._post_execute.remove(func)
-
-        # Flush out code object which has been run (and source)
-        self.code_to_run = None
         return outflag
         
     # For backwards compatibility
     runcode = run_code
-
-    # PENDING REMOVAL: this method is slated for deletion, once our new
-    # input logic has been 100% moved to frontends and is stable.
-    def push_line(self, line):
-        """Push a line to the interpreter.
-
-        The line should not have a trailing newline; it may have
-        internal newlines.  The line is appended to a buffer and the
-        interpreter's run_source() method is called with the
-        concatenated contents of the buffer as source.  If this
-        indicates that the command was executed or invalid, the buffer
-        is reset; otherwise, the command is incomplete, and the buffer
-        is left as it was after the line was appended.  The return
-        value is 1 if more input is required, 0 if the line was dealt
-        with in some way (this is the same as run_source()).
-        """
-
-        # autoindent management should be done here, and not in the
-        # interactive loop, since that one is only seen by keyboard input.  We
-        # need this done correctly even for code run via runlines (which uses
-        # push).
-
-        #print 'push line: <%s>' % line  # dbg
-        self.buffer.append(line)
-        full_source = '\n'.join(self.buffer)
-        more = self.run_source(full_source, self.filename)
-        if not more:
-            self.history_manager.store_inputs('\n'.join(self.buffer_raw),
-                                              full_source)
-            self.reset_buffer()
-            self.execution_count += 1
-        return more
-
-    def reset_buffer(self):
-        """Reset the input buffer."""
-        self.buffer[:] = []
-        self.buffer_raw[:] = []
-        self.input_splitter.reset()
-
-    # For backwards compatibility
-    resetbuffer = reset_buffer
-
-    def _is_secondary_block_start(self, s):
-        if not s.endswith(':'):
-            return False
-        if (s.startswith('elif') or 
-            s.startswith('else') or 
-            s.startswith('except') or
-            s.startswith('finally')):
-            return True
-
-    def _cleanup_ipy_script(self, script):
-        """Make a script safe for self.runlines()
-
-        Currently, IPython is lines based, with blocks being detected by
-        empty lines.  This is a problem for block based scripts that may
-        not have empty lines after blocks.  This script adds those empty
-        lines to make scripts safe for running in the current line based
-        IPython.
-        """
-        res = []
-        lines = script.splitlines()
-        level = 0
-
-        for l in lines:
-            lstripped = l.lstrip()
-            stripped = l.strip()                
-            if not stripped:
-                continue
-            newlevel = len(l) - len(lstripped)                    
-            if level > 0 and newlevel == 0 and \
-                   not self._is_secondary_block_start(stripped): 
-                # add empty line
-                res.append('')
-            res.append(l)
-            level = newlevel
-
-        return '\n'.join(res) + '\n'
 
     #-------------------------------------------------------------------------
     # Things related to GUI support and pylab
@@ -2454,12 +2296,11 @@ class InteractiveShell(Configurable, Magic):
         The global namespace for expansion is always the user's interactive
         namespace.
         """
-
-        return str(ItplNS(cmd,
-                          self.user_ns,  # globals
+        res = ItplNS(cmd, self.user_ns,  # globals
                           # Skip our own frame in searching for locals:
                           sys._getframe(depth+1).f_locals # locals
-                          ))
+                          )
+        return str(res).decode(res.codec)
 
     def mktempfile(self, data=None, prefix='ipython_edit_'):
         """Make a new tempfile and return its filename.
@@ -2484,12 +2325,12 @@ class InteractiveShell(Configurable, Magic):
     # TODO:  This should be removed when Term is refactored.
     def write(self,data):
         """Write a string to the default output"""
-        io.Term.cout.write(data)
+        io.stdout.write(data)
 
     # TODO:  This should be removed when Term is refactored.
     def write_err(self,data):
         """Write a string to the default error output"""
-        io.Term.cerr.write(data)
+        io.stderr.write(data)
 
     def ask_yes_no(self,prompt,default=True):
         if self.quiet:
@@ -2499,6 +2340,48 @@ class InteractiveShell(Configurable, Magic):
     def show_usage(self):
         """Show a usage message"""
         page.page(IPython.core.usage.interactive_usage)
+        
+    def find_user_code(self, target, raw=True):
+        """Get a code string from history, file, or a string or macro.
+        
+        This is mainly used by magic functions. 
+        
+        Parameters
+        ----------
+        target : str
+          A string specifying code to retrieve. This will be tried respectively
+          as: ranges of input history (see %history for syntax), a filename, or
+          an expression evaluating to a string or Macro in the user namespace.
+        raw : bool
+          If true (default), retrieve raw history. Has no effect on the other
+          retrieval mechanisms.
+        
+        Returns
+        -------
+        A string of code.
+        
+        ValueError is raised if nothing is found, and TypeError if it evaluates
+        to an object of another type. In each case, .args[0] is a printable
+        message.
+        """
+        code = self.extract_input_lines(target, raw=raw)  # Grab history        
+        if code:
+            return code
+        if os.path.isfile(target):                        # Read file
+            return open(target, "r").read()
+        
+        try:                                              # User namespace
+            codeobj = eval(target, self.user_ns)
+        except Exception:
+            raise ValueError(("'%s' was not found in history, as a file, nor in"
+                                " the user namespace.") % target)
+        if isinstance(codeobj, basestring):
+            return codeobj
+        elif isinstance(codeobj, Macro):
+            return codeobj.value
+            
+        raise TypeError("%s is neither a string nor a macro." % target,
+                        codeobj)
 
     #-------------------------------------------------------------------------
     # Things related to IPython exiting
@@ -2520,9 +2403,12 @@ class InteractiveShell(Configurable, Magic):
                 os.unlink(tfile)
             except OSError:
                 pass
-
+        
+        # Close the history session (this stores the end time and line count)
+        self.history_manager.end_session()
+        
         # Clear all user namespaces to release all references cleanly.
-        self.reset()
+        self.reset(new_session=False)
 
         # Run user hooks
         self.hooks.shutdown_hook()

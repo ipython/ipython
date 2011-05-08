@@ -9,16 +9,16 @@ install all of its dependencies.
 
 
 Please let us know if you have problems installing IPython or any of its
-dependencies. Officially, IPython requires Python version 2.5 or 2.6.  We
-have *not* yet started to port IPython to Python 3.0.
+dependencies. Officially, IPython requires Python version 2.6 or 2.7.  There
+is an experimental port of IPython for Python3 `on GitHub 
+<https://github.com/ipython/ipython-py3k>`_
 
 .. warning::
 
-    Officially, IPython supports Python versions 2.5 and 2.6.
+    Officially, IPython supports Python versions 2.6 and 2.7.
 
-    IPython 0.10 has only been well tested with Python 2.5 and 2.6.  Parts of
-    it may work with Python 2.4, but we do not officially support Python 2.4
-    anymore.  If you need to use 2.4, you can still run IPython 0.9.
+    IPython 0.11 has a hard syntax dependency on 2.6, and will no longer work
+    on Python <= 2.5.
 
 Some of the installation approaches use the :mod:`setuptools` package and its
 :command:`easy_install` command line program.  In many scenarios, this provides
@@ -38,9 +38,9 @@ optional dependencies:
 
 .. code-block:: bash
 
-    $ easy_install ipython[kernel,security,test]
+    $ easy_install ipython[zmq,test]
 
-This will get Twisted, zope.interface and Foolscap, which are needed for
+This will get pyzmq, which is needed for
 IPython's parallel computing features as well as the nose package, which will
 enable you to run IPython's test suite.  
 
@@ -66,8 +66,9 @@ with no external dependencies.  However, some Python distributions
 (particularly on Windows and OS X), don't come with a working :mod:`readline`
 module.  The IPython shell will work without :mod:`readline`, but will lack
 many features that users depend on, such as tab completion and command line
-editing.  See below for details of how to make sure you have a working
-:mod:`readline`.
+editing.  If you install IPython with :mod:`setuptools`, (e.g. with `easy_install`),
+then the appropriate :mod:`readline` for your platform will be installed.
+See below for details of how to make sure you have a working :mod:`readline`.
 
 Installation using easy_install
 -------------------------------
@@ -86,7 +87,7 @@ Installation from source
 
 If you don't want to use :command:`easy_install`, or don't have it installed,
 just grab the latest stable build of IPython from `here
-<http://ipython.scipy.org/dist/>`_.  Then do the following:
+<https://github.com/ipython/ipython/downloads>`_.  Then do the following:
 
 .. code-block:: bash
 
@@ -107,7 +108,7 @@ use any of the following alternatives:
 
 1. Install using :command:`easy_install`.
 
-2. Install using our binary ``.exe`` Windows installer, which can be found at
+2. Install using our binary ``.exe`` Windows installer, which can be found
    `here <http://ipython.scipy.org/dist/>`_
 
 3. Install from source, but using :mod:`setuptools` (``python setupegg.py
@@ -135,12 +136,12 @@ Installing the development version
 ----------------------------------
 
 It is also possible to install the development version of IPython from our
-`Bazaar <http://bazaar-vcs.org/>`_ source code repository.  To do this you will
-need to have Bazaar installed on your system.  Then just do:
+`Git <http://git-scm.com/>`_ source code repository.  To do this you will
+need to have Git installed on your system.  Then just do:
 
 .. code-block:: bash
 
-    $ bzr branch lp:ipython
+    $ git clone https://github.com/ipython/ipython.git
     $ cd ipython
     $ python setup.py install
 
@@ -161,7 +162,7 @@ just do:
 
 .. code-block:: bash
 
-    $ bzr pull
+    $ git pull
 
 Basic optional dependencies
 ===========================
@@ -187,6 +188,10 @@ common situations where you won't have a working :mod:`readline` module:
 
 * If you are running Windows, which doesn't have a :mod:`readline` module.
 
+When IPython is installed with :mod:`setuptools`, (e.g. with `easy_install`),
+readline is added as a dependency on OS X, and PyReadline on Windows, and will
+be installed on your system.  However, if you do not use setuptools, you may
+have to install one of these packages yourself.
 
 On OS X, the built-in Python doesn't not have :mod:`readline` because of
 license issues.  Starting with OS X 10.5 (Leopard), Apple's built-in Python has
@@ -220,9 +225,7 @@ wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard).
 On Windows, you will need the PyReadline module. PyReadline is a separate,
 Windows only implementation of readline that uses native Windows calls through
 :mod:`ctypes`. The easiest way of installing PyReadline is you use the binary
-installer available `here <http://ipython.scipy.org/dist/>`_. The :mod:`ctypes`
-module, which comes with Python 2.5 and greater, is required by PyReadline. It
-is available for Python 2.4 at http://python.net/crew/theller/ctypes.
+installer available `here <https://launchpad.net/pyreadline/+download>`_.
 
 nose
 ----
@@ -258,8 +261,10 @@ iptest command:
 pexpect
 -------
 
-The `pexpect <http://www.noah.org/wiki/Pexpect>`_ package is used in IPython's
-:command:`irunner` script.  On Unix platforms (including OS X), just do:
+The pexpect package is used in IPython's :command:`irunner` script, as well as
+for managing subprocesses [pexpect]_. IPython now includes a version of pexpect
+in :mod:`IPython.external`, but if you have installed pexpect, IPython will use
+that instead. On Unix platforms (including OS X), just do:
 
 .. code-block:: bash
 
@@ -267,91 +272,61 @@ The `pexpect <http://www.noah.org/wiki/Pexpect>`_ package is used in IPython's
 
 Windows users are out of luck as pexpect does not run there.
 
-Dependencies for IPython.kernel (parallel computing)
-====================================================
+Dependencies for IPython.parallel (parallel computing)
+======================================================
 
-The IPython kernel provides a nice architecture for parallel computing.  The
+:mod:`IPython.kernel` has been replaced by :mod:`IPython.parallel`, 
+which uses ZeroMQ for all communication.
+
+IPython.parallel provides a nice architecture for parallel computing.  The
 main focus of this architecture is on interactive parallel computing.  These
-features require a number of additional packages:
-
-* zope.interface (yep, we use interfaces)
-* Twisted (asynchronous networking framework)
-* Foolscap (a nice, secure network protocol)
-* pyOpenSSL (security for network connections)
+features require just one package: pyzmq.  See the next section for pyzmq
+details.
 
 On a Unix style platform (including OS X), if you want to use
 :mod:`setuptools`, you can just do:
 
 .. code-block:: bash
 
-    $ easy_install ipython[kernel]    # the first three
-    $ easy_install ipython[security]  # pyOpenSSL
+    $ easy_install ipython[zmq]    # will include pyzmq
 
-zope.interface and Twisted
---------------------------
+Security in IPython.parallel is provided by SSH tunnels.  By default, Linux
+and OSX clients will use the shell ssh command, but on Windows, we also
+support tunneling with paramiko [paramiko]_.
 
-Twisted [Twisted]_ and zope.interface [ZopeInterface]_ are used for networking
-related things. On Unix style platforms (including OS X), the simplest way of
-getting the these is to use :command:`easy_install`:
+Dependencies for IPython.zmq
+============================
 
-.. code-block:: bash
+pyzmq
+-----
 
-    $ easy_install zope.interface
-    $ easy_install Twisted
+IPython 0.11 introduced some new functionality, including a two-process
+execution model using ZeroMQ for communication [ZeroMQ]_. The Python bindings
+to ZeroMQ are found in the pyzmq project, which is easy_install-able once you
+have ZeroMQ installed (or even if you don't).
 
-Of course, you can also download the source tarballs from the Twisted website
-[Twisted]_ and the 
-`zope.interface page at PyPI <http://pypi.python.org/pypi/zope.interface>`_ 
-and do the usual ``python setup.py install`` if you prefer.
+IPython.zmq depends on pyzmq >= 2.0.10.1, but IPython.parallel requires the more
+recent 2.1.4.  2.1.4 also has binary releases for OSX and Windows, that do not
+require prior installation of libzmq.
 
-Windows is a bit different. For zope.interface and Twisted, simply get the
-latest binary ``.exe`` installer from the Twisted website. This installer
-includes both zope.interface and Twisted and should just work.
+Dependencies for ipython-qtconsole (new GUI)
+============================================
 
-Foolscap
+PyQt
+----
+
+Also with 0.11, a new GUI was added using the work in :mod:`IPython.zmq`,
+which can be launched with ``ipython-qtconsole``. The GUI is built on PyQt ,
+which can be installed from the 
+`PyQt website <http://www.riverbankcomputing.co.uk/>`_.
+
+pygments
 --------
 
-Foolscap [Foolscap]_ uses Twisted to provide a very nice secure RPC protocol that we use to implement our parallel computing features.
+The syntax-highlighting in ``ipython-qtconsole`` is done with the pygments project, 
+which is easy_install-able [pygments]_.
 
-On all platforms a simple:
-
-.. code-block:: bash
-
-    $ easy_install foolscap
-
-should work.  You can also download the source tarballs from the `Foolscap
-website <http://foolscap.lothar.com/trac>`_ and do ``python setup.py install``
-if you prefer.
-
-pyOpenSSL
----------
-
-IPython does not work with version 0.7 of pyOpenSSL [pyOpenSSL]_. It is known
-to work with version 0.6 and will likely work with the more recent 0.8 and 0.9
-versions. There are a couple of options for getting this:
-
-1. Most Linux distributions have packages for pyOpenSSL.
-2. The built-in Python 2.5 on OS X 10.5 already has it installed.
-3. There are source tarballs on the pyOpenSSL website.  On Unix-like
-   platforms, these can be built using ``python seutp.py install``.
-4. There is also a binary ``.exe`` Windows installer on the 
-   `pyOpenSSL website <http://pyopenssl.sourceforge.net/>`_.
-
-Dependencies for IPython.frontend (the IPython GUI)
-===================================================
-
-wxPython
---------
-
-Starting with IPython 0.9, IPython has a new :mod:`IPython.frontend` package
-that has a nice wxPython based IPython GUI. As you would expect, this GUI
-requires wxPython. Most Linux distributions have wxPython packages available
-and the built-in Python on OS X comes with wxPython preinstalled. For Windows,
-a binary installer is available on the `wxPython website
-<http://www.wxpython.org/>`_.
-
-.. [Twisted] Twisted matrix.  http://twistedmatrix.org
-.. [ZopeInterface] http://pypi.python.org/pypi/zope.interface
-.. [Foolscap] Foolscap network protocol.  http://foolscap.lothar.com/trac
-.. [pyOpenSSL] pyOpenSSL.  http://pyopenssl.sourceforge.net
-
+.. [ZeroMQ] ZeroMQ.  http://www.zeromq.org
+.. [paramiko] paramiko. https://github.com/robey/paramiko
+.. [pygments] Pygments syntax highlighting. http://pygments.org
+.. [pexpect] Pexpect. http://www.noah.org/wiki/Pexpect

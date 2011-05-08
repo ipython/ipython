@@ -19,7 +19,6 @@ import __main__
 import os
 import re
 import shutil
-import types
 
 from IPython.external.path import path
 
@@ -29,8 +28,6 @@ from IPython.utils.data import flatten
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
-
-StringTypes = types.StringTypes
 
 
 def unquote_ends(istr):
@@ -285,6 +282,7 @@ def make_quoted_expr(s):
     tail = ''
     tailpadding = ''
     raw  = ''
+    ucode = 'u'
     if "\\" in s:
         raw = 'r'
         if s.endswith('\\'):
@@ -301,7 +299,7 @@ def make_quoted_expr(s):
     else:
         # give up, backslash-escaped string will do
         return '"%s"' % esc_quotes(s)
-    res = raw + quote + s + tailpadding + quote + tail
+    res = ucode + raw + quote + s + tailpadding + quote + tail
     return res
 
 
@@ -325,7 +323,7 @@ def qw(words,flat=0,sep=None,maxsplit=-1):
     ['a', 'b', '1', '2', 'm', 'n', 'p', 'q']
     """
 
-    if type(words) in StringTypes:
+    if isinstance(words, basestring):
         return [word.strip() for word in words.split(sep,maxsplit)
                 if word and not word.isspace() ]
     if flat:
@@ -345,7 +343,7 @@ def qw_lol(indata):
     We need this to make sure the modules_some keys *always* end up as a
     list of lists."""
 
-    if type(indata) in StringTypes:
+    if isinstance(indata, basestring):
         return [qw(indata)]
     else:
         return qw(indata)
