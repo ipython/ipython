@@ -573,7 +573,8 @@ class HBSocketChannel(ZmqSocketChannel):
                                 # list, poll is working correctly even if it
                                 # returns quickly. Note: poll timeout is in
                                 # milliseconds.
-                                self.poller.poll(1000*until_dead)
+                                if until_dead > 0.0:
+                                    self.poller.poll(1000 * until_dead)
                             
                                 since_last_heartbeat = time.time()-request_time
                                 if since_last_heartbeat > self.time_to_dead:
