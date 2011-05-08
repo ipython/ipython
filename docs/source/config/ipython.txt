@@ -13,7 +13,7 @@ The default configuration file for the :command:`ipython` command line applicati
 is :file:`ipython_config.py`.  By setting the attributes in this file, you
 can configure the application.   A sample is provided in
 :mod:`IPython.config.default.ipython_config`.  Simply copy this file to your
-IPython directory to start using it.
+:ref:`IPython directory <ipython_dir>` to start using it.
 
 Most configuration attributes that this file accepts are associated with
 classes that are subclasses of :class:`~IPython.core.component.Component`.
