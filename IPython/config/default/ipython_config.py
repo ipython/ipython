@@ -16,7 +16,7 @@ c = get_config()
 # c.Global.log_level = 20
 
 # This should be a list of importable Python modules that have an
-# load_in_ipython(ip) method.  This method gets called when the extension
+# load_ipython_extension(ip) method.  This method gets called when the extension
 # is loaded.  You can put your extensions anywhere they can be imported
 # but we add the extensions subdir of the ipython directory to sys.path
 # during extension loading, so you can put them there as well.
