@@ -37,7 +37,7 @@ from IPython.config.loader import (
     PyFileConfigLoader
 )
 from IPython.lib import inputhook
-from IPython.utils.path import filefind, get_ipython_dir
+from IPython.utils.path import filefind, get_ipython_dir, check_for_old_config
 from IPython.core import usage
 
 #-----------------------------------------------------------------------------
@@ -635,6 +635,8 @@ class IPythonApp(Application):
                 self.shell.showtraceback()
 
     def start_app(self):
+        if not getattr(self.master_config.Global, 'ignore_old_config', False):
+            check_for_old_config(self.ipython_dir)
         if self.master_config.Global.interact:
             self.log.debug("Starting IPython's mainloop...")
             self.shell.mainloop()

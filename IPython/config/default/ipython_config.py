@@ -11,6 +11,10 @@ c = get_config()
 
 # c.Global.nosep = True
 
+# If you still use multiple versions of IPytho on the same machine,
+# set this to True to suppress warnings about old configuration files
+# c.Global.ignore_old_config = False
+
 # Set this to determine the detail of what is logged at startup.
 # The default is 30 and possible values are 0,10,20,30,40,50.
 # c.Global.log_level = 20
