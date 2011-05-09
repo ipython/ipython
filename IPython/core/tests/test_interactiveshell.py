@@ -20,7 +20,10 @@ Authors
 #-----------------------------------------------------------------------------
 # stdlib
 import unittest
+from cStringIO import StringIO
+
 from IPython.testing import decorators as dec
+from IPython.utils import io
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -91,3 +94,16 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip = get_ipython()
         ip.run_cell('a = """\n%exit\n"""')
         self.assertEquals(ip.user_ns['a'], '\n%exit\n')
+    
+    def test_alias_crash(self):
+        """Errors in prefilter can't crash IPython"""
+        ip = get_ipython()
+        ip.run_cell('%alias parts echo first %s second %s')
+        # capture stderr:
+        save_err = io.stderr
+        io.stderr = StringIO()
+        ip.run_cell('parts 1')
+        err = io.stderr.getvalue()
+        io.stderr = save_err
+        self.assertEquals(err.split(':')[0], 'ERROR')
+
