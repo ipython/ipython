@@ -592,9 +592,14 @@ class ZMQInteractiveShell(InteractiveShell):
             content = response.read()
         else:
             content = open(arg_s).read()
+        self.set_next_input(content)
+    
+    def set_next_input(self, text):
+        """Send the specified text to the frontend to be presented at the next
+        input cell."""
         payload = dict(
-            source='IPython.zmq.zmqshell.ZMQInteractiveShell.magic_loadpy', 
-            text=content
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input', 
+            text=text
         )
         self.payload_manager.write_payload(payload)
 
