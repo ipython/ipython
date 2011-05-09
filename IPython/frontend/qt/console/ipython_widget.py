@@ -91,7 +91,7 @@ class IPythonWidget(FrontendWidget):
     _PromptBlock = namedtuple('_PromptBlock', ['block', 'length', 'number'])
     _payload_source_edit = zmq_shell_source + '.edit_magic'
     _payload_source_exit = zmq_shell_source + '.ask_exit'
-    _payload_source_loadpy = zmq_shell_source + '.magic_loadpy'
+    _payload_source_next_input = zmq_shell_source + '.set_next_input'
     _payload_source_page = 'IPython.zmq.page.page'
 
     #---------------------------------------------------------------------------
@@ -107,7 +107,7 @@ class IPythonWidget(FrontendWidget):
             self._payload_source_edit : self._handle_payload_edit,
             self._payload_source_exit : self._handle_payload_exit,
             self._payload_source_page : self._handle_payload_page,
-            self._payload_source_loadpy : self._handle_payload_loadpy }
+            self._payload_source_next_input : self._handle_payload_next_input }
         self._previous_prompt_obj = None
         self._keep_kernel_on_exit = None
 
@@ -459,9 +459,9 @@ class IPythonWidget(FrontendWidget):
         self._keep_kernel_on_exit = item['keepkernel']
         self.exit_requested.emit()
 
-    def _handle_payload_loadpy(self, item):
-        # Simple save the text of the .py file for later. The text is written
-        # to the buffer when _prompt_started_hook is called.
+    def _handle_payload_next_input(self, item):
+        # Simply store the text for now. It is written to the buffer when
+        # _show_interpreter_prompt is called.
         self._code_to_load = item['text']
 
     def _handle_payload_page(self, item):
