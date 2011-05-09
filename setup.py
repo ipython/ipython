@@ -58,6 +58,7 @@ from setupbase import (
     find_packages, 
     find_package_data, 
     find_scripts,
+    find_gui_scripts,
     find_data_files,
     check_for_dependencies,
     record_commit_info,
@@ -211,7 +212,8 @@ setuptools_extra_args = {}
 if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
-        'console_scripts': find_scripts(True)
+        'console_scripts': find_scripts(True),
+        'gui_scripts': find_gui_scripts(True),
     }
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.4',
@@ -245,7 +247,7 @@ else:
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.
     check_for_dependencies()
-    setup_args['scripts'] = find_scripts(False)
+    setup_args['scripts'] = find_scripts(False) + find_gui_scripts(False)
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
