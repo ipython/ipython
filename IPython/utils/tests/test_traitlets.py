@@ -27,7 +27,7 @@ from unittest import TestCase
 from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any,
     Int, Long, Float, Complex, Str, Unicode, TraitError,
-    Undefined, Type, This, Instance, TCPAddress
+    Undefined, Type, This, Instance, TCPAddress, List
 )
 
 
@@ -739,3 +739,41 @@ class TestTCPAddress(TraitTestBase):
     _default_value = ('127.0.0.1',0)
     _good_values = [('localhost',0),('192.168.0.1',1000),('www.google.com',80)]
     _bad_values = [(0,0),('localhost',10.0),('localhost',-1)]
+
+class TypedListTrait(HasTraits):
+    
+    value = List(Int)
+
+class TestTypedList(TraitTestBase):
+    
+    obj = TypedListTrait()
+    
+    _default_value = []
+    _good_values = [[], [1], range(10)]
+    _bad_values = [10, [1,'a'], 'a', (1,2)]
+
+class LengthTypedListTrait(HasTraits):
+    
+    value = List([Int])
+
+class TestLengthTypedList(TraitTestBase):
+    
+    obj = LengthTypedListTrait()
+    
+    _default_value = None
+    _good_values = [[1], None,[0]]
+    _bad_values = [10, [1,2], (1,),['a'], []]
+
+
+class MultiTypedListTrait(HasTraits):
+    
+    value = List((Int, Str))
+
+class TestMultiTypedList(TraitTestBase):
+    
+    obj = MultiTypedListTrait()
+    
+    _default_value = None
+    _good_values = [[1,'a'], [2,'b']]
+    _bad_values = [[],10, 'a', [1,'a',3], ['a',1]]
+
