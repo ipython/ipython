@@ -22,6 +22,7 @@ from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.traitlets import Bool, Enum, Int
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
+from kill_ring import QtKillRing
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -173,6 +174,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._filter_drag = False
         self._filter_resize = False
         self._html_exporter = HtmlExporter(self._control)
+        self._kill_ring = QtKillRing(self._control)
         self._prompt = ''
         self._prompt_html = None
         self._prompt_pos = 0
@@ -953,7 +955,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                         cursor.movePosition(QtGui.QTextCursor.Right,
                                             QtGui.QTextCursor.KeepAnchor,
                                             len(self._continuation_prompt))
-                    cursor.removeSelectedText()
+                    self._kill_ring.kill_cursor(cursor)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_L:
@@ -976,11 +978,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                                         QtGui.QTextCursor.KeepAnchor)
                     cursor.movePosition(QtGui.QTextCursor.Right,
                                         QtGui.QTextCursor.KeepAnchor, offset)
-                    cursor.removeSelectedText()
+                    self._kill_ring.kill_cursor(cursor)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Y:
-                self.paste()
+                self._keep_cursor_in_buffer()
+                self._kill_ring.yank()
                 intercepted = True
 
             elif key in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
@@ -1005,16 +1008,20 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self._set_cursor(self._get_word_end_cursor(position))
                 intercepted = True
 
+            elif key == QtCore.Qt.Key_Y:
+                self._kill_ring.rotate()
+                intercepted = True
+
             elif key == QtCore.Qt.Key_Backspace:
                 cursor = self._get_word_start_cursor(position)
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
-                cursor.removeSelectedText()
+                self._kill_ring.kill_cursor(cursor)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_D:
                 cursor = self._get_word_end_cursor(position)
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
-                cursor.removeSelectedText()
+                self._kill_ring.kill_cursor(cursor)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Delete:
