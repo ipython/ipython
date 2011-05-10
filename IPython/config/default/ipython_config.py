@@ -97,14 +97,14 @@ c = get_config()
 # Readline 
 # c.InteractiveShell.readline_use = True
 
+# be careful with meta-key ('\M-<x>') bindings, because
+# they conflict with 8-bit encodings (e.g. UTF8)
+
 # c.InteractiveShell.readline_parse_and_bind = [
 #     'tab: complete',
 #     '"\C-l": possible-completions',
 #     'set show-all-if-ambiguous on',
 #     '"\C-o": tab-insert',
-#     '"\M-i": "    "',
-#     '"\M-o": "\d\d\d\d"',
-#     '"\M-I": "\d\d\d\d"',
 #     '"\C-r": reverse-search-history',
 #     '"\C-s": forward-search-history',
 #     '"\C-p": history-search-backward',

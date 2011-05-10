@@ -239,15 +239,13 @@ class InteractiveShell(Configurable, Magic):
     readline_merge_completions = CBool(True, config=True)
     readline_omit__names = Enum((0,1,2), default_value=2, config=True)
     readline_remove_delims = Str('-/~', config=True)
+    # don't use \M- bindings by default, because they
+    # conflict with 8-bit encodings. See gh-58,gh-88
     readline_parse_and_bind = List([
             'tab: complete',
             '"\C-l": clear-screen',
             'set show-all-if-ambiguous on',
             '"\C-o": tab-insert',
-            # See bug gh-58 - with \M-i enabled, chars 0x9000-0x9fff
-            # crash IPython.
-            '"\M-o": "\d\d\d\d"',
-            '"\M-I": "\d\d\d\d"',
             '"\C-r": reverse-search-history',
             '"\C-s": forward-search-history',
             '"\C-p": history-search-backward',
