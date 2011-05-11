@@ -21,6 +21,7 @@ import os
 import re
 import signal
 
+from subprocess import check_call, CalledProcessError, PIPE
 import zmq
 from zmq.eventloop import ioloop
 
@@ -497,13 +498,17 @@ class IPClusterApp(ApplicationWithClusterDir):
         except PIDFileError:
             pass
         else:
-            self.log.critical(
-                'Cluster is already running with [pid=%s]. '
-                'use "ipcluster stop" to stop the cluster.' % pid
-            )
-            # Here I exit with a unusual exit status that other processes
-            # can watch for to learn how I existed.
-            self.exit(ALREADY_STARTED)
+            if self.check_pid(pid):
+                self.log.critical(
+                    'Cluster is already running with [pid=%s]. '
+                    'use "ipcluster stop" to stop the cluster.' % pid
+                )
+                # Here I exit with a unusual exit status that other processes
+                # can watch for to learn how I existed.
+                self.exit(ALREADY_STARTED)
+            else:
+                self.remove_pid_file()
+                
 
         # Now log and daemonize
         self.log.info(
@@ -526,7 +531,8 @@ class IPClusterApp(ApplicationWithClusterDir):
                 pass
             else:
                 raise
-        self.remove_pid_file()
+        finally:
+            self.remove_pid_file()
 
     def start_app_engines(self):
         """Start the app for the start subcommand."""
@@ -563,23 +569,41 @@ class IPClusterApp(ApplicationWithClusterDir):
             pid = self.get_pid_from_file()
         except PIDFileError:
             self.log.critical(
-                'Problem reading pid file, cluster is probably not running.'
+                'Could not read pid file, cluster is probably not running.'
             )
             # Here I exit with a unusual exit status that other processes
             # can watch for to learn how I existed.
+            self.remove_pid_file()
             self.exit(ALREADY_STOPPED)
-        else:
-            if os.name=='posix':
-                sig = config.Global.signal
-                self.log.info(
-                    "Stopping cluster [pid=%r] with [signal=%r]" % (pid, sig)
-                )
+        
+        if not self.check_pid(pid):
+            self.log.critical(
+                'Cluster [pid=%r] is not running.' % pid
+            )
+            self.remove_pid_file()
+            # Here I exit with a unusual exit status that other processes
+            # can watch for to learn how I existed.
+            self.exit(ALREADY_STOPPED)
+            
+        elif os.name=='posix':
+            sig = config.Global.signal
+            self.log.info(
+                "Stopping cluster [pid=%r] with [signal=%r]" % (pid, sig)
+            )
+            try:
                 os.kill(pid, sig)
-            elif os.name=='nt':
-                # As of right now, we don't support daemonize on Windows, so
-                # stop will not do anything. Minimally, it should clean up the
-                # old .pid files.
+            except OSError:
+                self.log.error("Stopping cluster failed, assuming already dead.",
+                    exc_info=True)
                 self.remove_pid_file()
+        elif os.name=='nt':
+            try:
+                # kill the whole tree
+                p = check_call(['taskkill', '-pid', str(pid), '-t', '-f'], stdout=PIPE,stderr=PIPE)
+            except (CalledProcessError, OSError):
+                self.log.error("Stopping cluster failed, assuming already dead.",
+                    exc_info=True)
+            self.remove_pid_file()
 
 
 def launch_new_instance():
