@@ -108,7 +108,7 @@ In [8]: cos pi
    File "<ipython-input-8-586f1104ea44>", line 1
      cos pi
           ^
-SyntaxError: unexpected EOF while parsing
+SyntaxError: invalid syntax
 
 
 In [9]: cos(pi)
