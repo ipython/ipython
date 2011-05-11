@@ -590,7 +590,8 @@ class HBSocketChannel(ZmqSocketChannel):
                                 # list, poll is working correctly even if it
                                 # returns quickly. Note: poll timeout is in
                                 # milliseconds.
-                                self.poller.poll(1000*until_dead)
+                                if until_dead > 0.0:
+                                    self.poller.poll(1000 * until_dead)
                             
                                 since_last_heartbeat = time.time()-request_time
                                 if since_last_heartbeat > self.time_to_dead:
@@ -852,8 +853,15 @@ class KernelManager(HasTraits):
             except OSError, e:
                 # In Windows, we will get an Access Denied error if the process
                 # has already terminated. Ignore it.
-                if not (sys.platform == 'win32' and e.winerror == 5):
-                    raise
+                if sys.platform == 'win32':
+                    if e.winerror != 5:
+                        raise
+                # On Unix, we may get an ESRCH error if the process has already
+                # terminated. Ignore it.
+                else:
+                    from errno import ESRCH
+                    if e.errno != ESRCH:
+                        raise
             self.kernel = None
         else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")

@@ -23,6 +23,7 @@ from iostream import OutStream
 from parentpoller import ParentPollerUnix, ParentPollerWindows
 from session import Session
 
+
 def bind_port(socket, ip, port):
     """ Binds the specified ZMQ socket. If the port is zero, a random port is
     chosen. Returns the port that was bound.
@@ -51,6 +52,10 @@ def make_argument_parser():
                         help='set the REQ channel port [default: random]')
     parser.add_argument('--hb', type=int, metavar='PORT', default=0,
                         help='set the heartbeat port [default: random]')
+    parser.add_argument('--no-stdout', action='store_true',
+                        help='redirect stdout to the null device')
+    parser.add_argument('--no-stderr', action='store_true',
+                        help='redirect stderr to the null device')
 
     if sys.platform == 'win32':
         parser.add_argument('--interrupt', type=int, metavar='HANDLE', 
@@ -71,13 +76,13 @@ def make_kernel(namespace, kernel_factory,
     """ Creates a kernel, redirects stdout/stderr, and installs a display hook
     and exception handler.
     """
-    # If running under pythonw.exe, the interpreter will crash if more than 4KB
-    # of data is written to stdout or stderr. This is a bug that has been with
-    # Python for a very long time; see http://bugs.python.org/issue706263.
-    if sys.executable.endswith('pythonw.exe'):
+    # Re-direct stdout/stderr, if necessary.
+    if namespace.no_stdout or namespace.no_stderr:
         blackhole = file(os.devnull, 'w')
-        sys.stdout = sys.stderr = blackhole
-        sys.__stdout__ = sys.__stderr__ = blackhole 
+        if namespace.no_stdout:
+            sys.stdout = sys.__stdout__ = blackhole
+        if namespace.no_stderr:
+            sys.stderr = sys.__stderr__ = blackhole
 
     # Install minimal exception handling
     sys.excepthook = FormattedTB(mode='Verbose', color_scheme='NoColor', 
@@ -155,6 +160,7 @@ def make_default_main(kernel_factory):
 
 
 def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
+                       stdin=None, stdout=None, stderr=None,
                        executable=None, independent=False, extra_arguments=[]):
     """ Launches a localhost kernel, binding to the specified ports.
 
@@ -174,6 +180,9 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     hb_port : int, optional
         The port to use for the hearbeat REP channel.
+
+    stdin, stdout, stderr : optional (default None)
+        Standards streams, as defined in subprocess.Popen.
 
     executable : str, optional (default sys.executable)
         The Python executable to use for the kernel process.
@@ -228,15 +237,35 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         interrupt_event = ParentPollerWindows.create_interrupt_event()
         arguments += [ '--interrupt', str(int(interrupt_event)) ]
 
-        # If using pythonw, stdin, stdout, and stderr are invalid. Popen will
-        # fail unless they are suitably redirected. We don't read from the
-        # pipes, but they must exist.
-        redirect = PIPE if executable.endswith('pythonw.exe') else None
+        # If this process in running on pythonw, stdin, stdout, and stderr are
+        # invalid. Popen will fail unless they are suitably redirected. We don't
+        # read from the pipes, but they must exist.
+        if sys.executable.endswith('pythonw.exe'):
+            redirect = True
+            _stdin = PIPE if stdin is None else stdin
+            _stdout = PIPE if stdout is None else stdout
+            _stderr = PIPE if stderr is None else stderr
+        else:
+            redirect = False
+            _stdin, _stdout, _stderr = stdin, stdout, stderr
 
+        # If the kernel is running on pythonw and stdout/stderr are not been
+        # re-directed, it will crash when more than 4KB of data is written to
+        # stdout or stderr. This is a bug that has been with Python for a very
+        # long time; see http://bugs.python.org/issue706263.
+        # A cleaner solution to this problem would be to pass os.devnull to
+        # Popen directly. Unfortunately, that does not work.
+        if executable.endswith('pythonw.exe'):
+            if stdout is None:
+                arguments.append('--no-stdout')
+            if stderr is None:
+                arguments.append('--no-stderr')
+
+        # Launch the kernel process.
         if independent:
             proc = Popen(arguments, 
                          creationflags=512, # CREATE_NEW_PROCESS_GROUP
-                         stdout=redirect, stderr=redirect, stdin=redirect)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
         else:
             from _subprocess import DuplicateHandle, GetCurrentProcess, \
                 DUPLICATE_SAME_ACCESS
@@ -245,21 +274,26 @@ def base_launch_kernel(code, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
                                      True, # Inheritable by new processes.
                                      DUPLICATE_SAME_ACCESS)
             proc = Popen(arguments + ['--parent', str(int(handle))],
-                         stdout=redirect, stderr=redirect, stdin=redirect)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
 
         # Attach the interrupt event to the Popen objet so it can be used later.
         proc.win32_interrupt_event = interrupt_event
 
         # Clean up pipes created to work around Popen bug.
-        if redirect is not None:
-            proc.stdout.close()
-            proc.stderr.close()
-            proc.stdin.close()
+        if redirect:
+            if stdin is None:
+                proc.stdin.close()
+            if stdout is None:
+                proc.stdout.close()
+            if stderr is None:
+                proc.stderr.close()
 
     else:
         if independent:
-            proc = Popen(arguments, preexec_fn=lambda: os.setsid())
+            proc = Popen(arguments, preexec_fn=lambda: os.setsid(),
+                         stdin=stdin, stdout=stdout, stderr=stderr)
         else:
-            proc = Popen(arguments + ['--parent'])
+            proc = Popen(arguments + ['--parent'],
+                         stdin=stdin, stdout=stdout, stderr=stderr)
 
     return proc, xrep_port, pub_port, req_port, hb_port
