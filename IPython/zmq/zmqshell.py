@@ -575,24 +575,6 @@ class ZMQInteractiveShell(InteractiveShell):
         """Show a basic reference about the GUI console."""
         from IPython.core.usage import gui_reference
         page.page(gui_reference, auto_html=True)
-
-    def magic_loadpy(self, arg_s):
-        """Load a .py python script into the GUI console.
-
-        This magic command can either take a local filename or a url::
-
-        %loadpy myscript.py
-        %loadpy http://www.example.com/myscript.py
-        """
-        if not arg_s.endswith('.py'):
-            raise ValueError('%%load only works with .py files: %s' % arg_s)
-        if arg_s.startswith('http'):
-            import urllib2
-            response = urllib2.urlopen(arg_s)
-            content = response.read()
-        else:
-            content = open(arg_s).read()
-        self.set_next_input(content)
     
     def set_next_input(self, text):
         """Send the specified text to the frontend to be presented at the next

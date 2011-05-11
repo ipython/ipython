@@ -2093,6 +2093,24 @@ Currently the magic system has the following functions:\n"""
         pbserver = ServerProxy('http://paste.pocoo.org/xmlrpc/')
         id = pbserver.pastes.newPaste("python", code)
         return "http://paste.pocoo.org/show/" + id
+        
+    def magic_loadpy(self, arg_s):
+        """Load a .py python script into the GUI console.
+
+        This magic command can either take a local filename or a url::
+
+        %loadpy myscript.py
+        %loadpy http://www.example.com/myscript.py
+        """
+        if not arg_s.endswith('.py'):
+            raise ValueError('%%load only works with .py files: %s' % arg_s)
+        if arg_s.startswith('http'):
+            import urllib2
+            response = urllib2.urlopen(arg_s)
+            content = response.read()
+        else:
+            content = open(arg_s).read()
+        self.set_next_input(content)
 
     def _edit_macro(self,mname,macro):
         """open an editor with the macro data in a file"""
