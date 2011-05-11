@@ -408,20 +408,11 @@ class TestXdel(tt.TempFileMixin):
         _ip.magic("run %s" % self.fname)
         # ... as does the displayhook.
         _ip.run_cell("a")
-        a = _ip.user_ns["a"]
+        
         monitor = _ip.user_ns["A"].monitor
         nt.assert_equal(monitor, [])
+        
         _ip.magic("xdel a")
-        
-        # The testing framework stores extra references - we kill those
-        # here. See IPython.testing.globalipapp.ipnsdict.
-        _ip.user_ns.killrefs(a)
-        del a
-        
-        # For some reason the test doesn't pass if this is removed.
-        # TODO: Work out why, and improve the test.
-        f = sys._getframe()
-        print f.f_locals
         
         # Check that a's __del__ method has been called.
         nt.assert_equal(monitor, [1])

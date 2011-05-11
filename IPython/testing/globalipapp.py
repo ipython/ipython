@@ -133,14 +133,15 @@ class ipnsdict(dict):
         # ipython.
         self['__builtins__'] = __builtin__
         
-    def killrefs(self, obj):
-        """For part of the testing, we need to be able to remove
-        references to an object, which would otherwise be kept in
-        _savedict."""
-        todel = [n for n, o in self._savedict.iteritems() if o is obj]
-        for n in todel:
-            del self._savedict[n]
-        
+    def __delitem__(self, key):
+        """Part of the test suite checks that we can release all
+        references to an object. So we need to make sure that we're not
+        keeping a reference in _savedict."""
+        dict.__delitem__(self, key)
+        try:
+            del self._savedict[key]
+        except KeyError:
+            pass
 
 
 def get_ipython():
