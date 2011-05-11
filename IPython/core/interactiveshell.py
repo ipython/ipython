@@ -2152,7 +2152,7 @@ class InteractiveShell(Configurable, Magic):
             
                 with self.display_trap:
                     try:
-                        code_ast = ast.parse(cell, filename=cell_name)
+                        code_ast = ast.parse(cell+'\n', filename=cell_name)
                     except (OverflowError, SyntaxError, ValueError, TypeError,
                             MemoryError):
                         self.showsyntaxerror()
