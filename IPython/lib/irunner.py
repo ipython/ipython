@@ -263,7 +263,8 @@ class InteractiveRunner(object):
 
         # Leave the child ready for more input later on, otherwise select just
         # hangs on the second invocation.
-        c.send('\n')
+        if c.isalive():
+            c.send('\n')
         
         # Return any requested output
         if get_output:
