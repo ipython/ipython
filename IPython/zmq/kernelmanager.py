@@ -282,24 +282,41 @@ class XReqSocketChannel(ZmqSocketChannel):
         self._queue_request(msg)
         return msg['header']['msg_id']
 
-    def history_tail(self, n=10, raw=True, output=False):
-        """Get the history list.
+    def history(self, raw=True, output=False, hist_access_type='range', **kwargs):
+        """Get entries from the history list.
 
         Parameters
         ----------
-        n : int
-            The number of lines of history to get.
         raw : bool
             If True, return the raw input.
         output : bool
             If True, then return the output as well.
+        hist_access_type : str
+            'range' (fill in session, start and stop params), 'tail' (fill in n)
+             or 'search' (fill in pattern param).
+        
+        session : int
+            For a range request, the session from which to get lines. Session
+            numbers are positive integers; negative ones count back from the
+            current session.
+        start : int
+            The first line number of a history range.
+        stop : int
+            The final (excluded) line number of a history range.
+        
+        n : int
+            The number of lines of history to get for a tail request.
+            
+        pattern : str
+            The glob-syntax pattern for a search request.
 
         Returns
         -------
         The msg_id of the message sent.
         """
-        content = dict(n=n, raw=raw, output=output)
-        msg = self.session.msg('history_tail_request', content)
+        content = dict(raw=raw, output=output, hist_access_type=hist_access_type,
+                                                                    **kwargs)
+        msg = self.session.msg('history_request', content)
         self._queue_request(msg)
         return msg['header']['msg_id']
 

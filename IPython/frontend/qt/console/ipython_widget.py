@@ -160,7 +160,7 @@ class IPythonWidget(FrontendWidget):
             else:
                 super(IPythonWidget, self)._handle_execute_reply(msg)
 
-    def _handle_history_tail_reply(self, msg):
+    def _handle_history_reply(self, msg):
         """ Implemented to handle history tail replies, which are only supported
             by the IPython kernel.
         """
@@ -212,7 +212,7 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to make a history request.
         """
         super(IPythonWidget, self)._started_channels()
-        self.kernel_manager.xreq_channel.history_tail(1000)
+        self.kernel_manager.xreq_channel.history(hist_access_type='tail', n=1000)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
