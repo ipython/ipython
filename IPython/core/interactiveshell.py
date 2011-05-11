@@ -2130,7 +2130,7 @@ class InteractiveShell(Configurable, Magic):
             prefilter_failed = False
             if len(cell.splitlines()) == 1:
                 try:
-                    cell = self.prefilter_manager.prefilter_lines(cell)
+                    cell = self.prefilter_manager.prefilter_line(cell)
                 except AliasError as e:
                     error(e)
                     prefilter_failed=True
