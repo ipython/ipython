@@ -236,7 +236,6 @@ class Kernel(Configurable):
                 shell.run_code(code)
             else:
                 # FIXME: the shell calls the exception handler itself.
-                shell._reply_content = None
                 shell.run_cell(code)
         except:
             status = u'error'
@@ -261,6 +260,8 @@ class Kernel(Configurable):
         # runlines.  We'll need to clean up this logic later.
         if shell._reply_content is not None:
             reply_content.update(shell._reply_content)
+            # reset after use
+            shell._reply_content = None
 
         # At this point, we can tell whether the main code execution succeeded
         # or not.  If it did, we proceed to evaluate user_variables/expressions
