@@ -210,9 +210,7 @@ setuptools_extra_args = {}
 
 if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
-    setuptools_extra_args['entry_points'] = {
-        'console_scripts': find_scripts(True)
-    }
+    setuptools_extra_args['entry_points'] = find_scripts(True)
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.4',
         zmq = 'pyzmq>=2.0.10.1',

@@ -346,7 +346,7 @@ twobin: Two-Bin Random
 
     **Requires numpy**
     
-     Pick two engines at random, and use the LRU of the two. This is known to be better
+    Pick two engines at random, and use the LRU of the two. This is known to be better
     than plain random in many cases, but requires a small amount of computation.
 
 leastload: Least Load

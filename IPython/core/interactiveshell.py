@@ -38,7 +38,7 @@ from IPython.core import page
 from IPython.core import prefilter
 from IPython.core import shadowns
 from IPython.core import ultratb
-from IPython.core.alias import AliasManager
+from IPython.core.alias import AliasManager, AliasError
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.compilerop import CachingCompiler
@@ -239,15 +239,13 @@ class InteractiveShell(Configurable, Magic):
     readline_merge_completions = CBool(True, config=True)
     readline_omit__names = Enum((0,1,2), default_value=2, config=True)
     readline_remove_delims = Str('-/~', config=True)
+    # don't use \M- bindings by default, because they
+    # conflict with 8-bit encodings. See gh-58,gh-88
     readline_parse_and_bind = List([
             'tab: complete',
             '"\C-l": clear-screen',
             'set show-all-if-ambiguous on',
             '"\C-o": tab-insert',
-            # See bug gh-58 - with \M-i enabled, chars 0x9000-0x9fff
-            # crash IPython.
-            '"\M-o": "\d\d\d\d"',
-            '"\M-I": "\d\d\d\d"',
             '"\C-r": reverse-search-history',
             '"\C-s": forward-search-history',
             '"\C-p": history-search-backward',
@@ -2129,9 +2127,18 @@ class InteractiveShell(Configurable, Magic):
         cell = self.input_splitter.source_reset()
         
         with self.builtin_trap:
+            prefilter_failed = False
             if len(cell.splitlines()) == 1:
-                cell = self.prefilter_manager.prefilter_lines(cell)
-            
+                try:
+                    cell = self.prefilter_manager.prefilter_line(cell)
+                except AliasError as e:
+                    error(e)
+                    prefilter_failed=True
+                except Exception:
+                    # don't allow prefilter errors to crash IPython
+                    self.showtraceback()
+                    prefilter_failed = True
+                
             # Store raw and processed history
             if store_history:
                 self.history_manager.store_inputs(self.execution_count, 
@@ -2139,30 +2146,32 @@ class InteractiveShell(Configurable, Magic):
 
             self.logger.log(cell, raw_cell)
             
-            cell_name = self.compile.cache(cell, self.execution_count)
+            if not prefilter_failed:
+                # don't run if prefilter failed
+                cell_name = self.compile.cache(cell, self.execution_count)
             
-            with self.display_trap:
-                try:
-                    code_ast = ast.parse(cell, filename=cell_name)
-                except (OverflowError, SyntaxError, ValueError, TypeError,
-                        MemoryError):
-                    self.showsyntaxerror()
-                    self.execution_count += 1
-                    return None
-
-                self.run_ast_nodes(code_ast.body, cell_name,
-                                                    interactivity="last_expr")
-
-                # Execute any registered post-execution functions.
-                for func, status in self._post_execute.iteritems():
-                    if not status:
-                        continue
+                with self.display_trap:
                     try:
-                        func()
-                    except:
-                        self.showtraceback()
-                        # Deactivate failing function
-                        self._post_execute[func] = False
+                        code_ast = ast.parse(cell, filename=cell_name)
+                    except (OverflowError, SyntaxError, ValueError, TypeError,
+                            MemoryError):
+                        self.showsyntaxerror()
+                        self.execution_count += 1
+                        return None
+            
+                    self.run_ast_nodes(code_ast.body, cell_name,
+                                                        interactivity="last_expr")
+            
+                    # Execute any registered post-execution functions.
+                    for func, status in self._post_execute.iteritems():
+                        if not status:
+                            continue
+                        try:
+                            func()
+                        except:
+                            self.showtraceback()
+                            # Deactivate failing function
+                            self._post_execute[func] = False
                 
         if store_history:
             # Write output to the database. Does nothing unless

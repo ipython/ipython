@@ -46,7 +46,7 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
     execute_reply = QtCore.Signal(object)
     complete_reply = QtCore.Signal(object)
     object_info_reply = QtCore.Signal(object)
-    history_tail_reply = QtCore.Signal(object)
+    history_reply = QtCore.Signal(object)
 
     # Emitted when the first reply comes back.
     first_reply = QtCore.Signal()

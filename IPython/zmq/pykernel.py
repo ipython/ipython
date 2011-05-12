@@ -248,6 +248,7 @@ class Kernel(HasTraits):
 #-----------------------------------------------------------------------------
 
 def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
+                  stdin=None, stdout=None, stderr=None,
                   executable=None, independent=False):
     """ Launches a localhost kernel, binding to the specified ports.
 
@@ -267,6 +268,9 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     hb_port : int, optional
         The port to use for the hearbeat REP channel.
+
+    stdin, stdout, stderr : optional (default None)
+        Standards streams, as defined in subprocess.Popen.
 
     executable : str, optional (default sys.executable)
         The Python executable to use for the kernel process.
@@ -291,8 +295,8 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
     
     return base_launch_kernel('from IPython.zmq.pykernel import main; main()',
                               xrep_port, pub_port, req_port, hb_port,
-                              executable, independent,
-                              extra_arguments=extra_arguments)
+                              stdin, stdout, stderr,
+                              executable, independent, extra_arguments)
 
 main = make_default_main(Kernel)
 

@@ -122,7 +122,7 @@ class Kernel(Configurable):
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request', 
-                      'object_info_request', 'history_tail_request',
+                      'object_info_request', 'history_request',
                       'connect_request', 'shutdown_request']
         self.handlers = {}
         for msg_type in msg_types:
@@ -323,15 +323,32 @@ class Kernel(Configurable):
                                 oinfo, parent, ident)
         logger.debug(msg)
 
-    def history_tail_request(self, ident, parent):
+    def history_request(self, ident, parent):
         # We need to pull these out, as passing **kwargs doesn't work with
         # unicode keys before Python 2.6.5.
-        n = parent['content']['n']
+        hist_access_type = parent['content']['hist_access_type']
         raw = parent['content']['raw']
         output = parent['content']['output']
-        hist = self.shell.history_manager.get_tail(n, raw=raw, output=output)
+        if hist_access_type == 'tail':
+            n = parent['content']['n']
+            hist = self.shell.history_manager.get_tail(n, raw=raw, output=output,
+                                                            include_latest=True)
+        
+        elif hist_access_type == 'range':
+            session = parent['content']['session']
+            start = parent['content']['start']
+            stop = parent['content']['stop']
+            hist = self.shell.history_manager.get_range(session, start, stop,
+                                                        raw=raw, output=output)
+        
+        elif hist_access_type == 'search':
+            pattern = parent['content']['pattern']
+            hist = self.shell.history_manager.search(pattern, raw=raw, output=output)
+        
+        else:
+            hist = []
         content = {'history' : list(hist)}
-        msg = self.session.send(self.reply_socket, 'history_tail_reply',
+        msg = self.session.send(self.reply_socket, 'history_reply',
                                 content, parent, ident)
         logger.debug(str(msg))
 
@@ -551,6 +568,7 @@ class GTKKernel(Kernel):
 #-----------------------------------------------------------------------------
 
 def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
+                  stdin=None, stdout=None, stderr=None,
                   executable=None, independent=False, pylab=False, colors=None):
     """Launches a localhost kernel, binding to the specified ports.
 
@@ -570,6 +588,9 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
 
     hb_port : int, optional
         The port to use for the hearbeat REP channel.
+
+    stdin, stdout, stderr : optional (default None)
+        Standards streams, as defined in subprocess.Popen.
 
     executable : str, optional (default sys.executable)
         The Python executable to use for the kernel process.
@@ -608,6 +629,7 @@ def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
         extra_arguments.append(colors)
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
                               xrep_port, pub_port, req_port, hb_port, 
+                              stdin, stdout, stderr,
                               executable, independent, extra_arguments)
 
 

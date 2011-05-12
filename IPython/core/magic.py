@@ -3279,7 +3279,7 @@ Defaulting color scheme to 'NoColor'"""
 
         This magic replaces IPython's threaded shells that were activated
         using the (pylab/wthread/etc.) command line flags.  GUI toolkits
-        can now be enabled, disabled and swtiched at runtime and keyboard
+        can now be enabled, disabled and changed at runtime and keyboard
         interrupts should work without any problems.  The following toolkits
         are supported:  wxPython, PyQt4, PyGTK, and Tk::
 

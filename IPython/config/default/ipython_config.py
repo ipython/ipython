@@ -11,12 +11,16 @@ c = get_config()
 
 # c.Global.nosep = True
 
+# If you still use multiple versions of IPytho on the same machine,
+# set this to True to suppress warnings about old configuration files
+# c.Global.ignore_old_config = False
+
 # Set this to determine the detail of what is logged at startup.
 # The default is 30 and possible values are 0,10,20,30,40,50.
 # c.Global.log_level = 20
 
 # This should be a list of importable Python modules that have an
-# load_in_ipython(ip) method.  This method gets called when the extension
+# load_ipython_extension(ip) method.  This method gets called when the extension
 # is loaded.  You can put your extensions anywhere they can be imported
 # but we add the extensions subdir of the ipython directory to sys.path
 # during extension loading, so you can put them there as well.
@@ -93,14 +97,14 @@ c = get_config()
 # Readline 
 # c.InteractiveShell.readline_use = True
 
+# be careful with meta-key ('\M-<x>') bindings, because
+# they conflict with 8-bit encodings (e.g. UTF8)
+
 # c.InteractiveShell.readline_parse_and_bind = [
 #     'tab: complete',
 #     '"\C-l": possible-completions',
 #     'set show-all-if-ambiguous on',
 #     '"\C-o": tab-insert',
-#     '"\M-i": "    "',
-#     '"\M-o": "\d\d\d\d"',
-#     '"\M-I": "\d\d\d\d"',
 #     '"\C-r": reverse-search-history',
 #     '"\C-s": forward-search-history',
 #     '"\C-p": history-search-backward',

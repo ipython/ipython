@@ -267,12 +267,10 @@ def find_scripts(entry_points=False):
         return setuptools entry_point-style definitions
     else:
         return file paths of plain scripts [default]
-    
     """
     if entry_points:
-        scripts = [
+        console_scripts = [
             'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
-            'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
             'ipengine = IPython.parallel.apps.ipengineapp:launch_new_instance',
@@ -281,6 +279,10 @@ def find_scripts(entry_points=False):
             'iptest = IPython.testing.iptest:main',
             'irunner = IPython.lib.irunner:main'
         ]
+        gui_scripts = [
+            'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
+        ]
+        scripts = dict(console_scripts=console_scripts, gui_scripts=gui_scripts)
     else:
         parallel_scripts = pjoin('IPython','parallel','scripts')
         main_scripts = pjoin('IPython','scripts')
@@ -294,8 +296,7 @@ def find_scripts(entry_points=False):
                    pjoin(main_scripts, 'pycolor'),
                    pjoin(main_scripts, 'irunner'),
                    pjoin(main_scripts, 'iptest')
-                  ]
-    
+        ]
     return scripts
 
 #---------------------------------------------------------------------------
