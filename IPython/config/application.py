@@ -33,6 +33,30 @@ from IPython.utils.traitlets import (
 from IPython.utils.text import indent
 
 #-----------------------------------------------------------------------------
+# Descriptions for
+#-----------------------------------------------------------------------------
+
+macro_description = """
+Flags are command-line arguments passed as '--<flag>'.
+These take no parameters, unlike regular key-value arguments.
+They are typically used for setting boolean flags, or enabling
+modes that involve setting multiple options together.
+""".strip() # trim newlines of front and back
+
+shortname_description = """
+These are commonly set parameters, given abbreviated aliases for convenience.
+They are set in the same `name=value` way as class parameters, where
+<name> is replaced by the real parameter for which it is an alias.
+""".strip() # trim newlines of front and back
+
+keyvalue_description = """
+Parameters are set from command-line arguments of the form:
+`Class.trait=value`.  Parameters will *never* be prefixed with '-'.
+This line is evaluated in Python, so simple expressions are allowed, e.g.
+    `C.a='range(3)'`   For setting C.a=[0,1,2]
+""".strip() # trim newlines of front and back
+
+#-----------------------------------------------------------------------------
 # Application class
 #-----------------------------------------------------------------------------
 
@@ -47,6 +71,11 @@ class Application(SingletonConfigurable):
     # The description of the application that is printed at the beginning
     # of the help.
     description = Unicode(u'This is an application.')
+    # default section descriptions
+    macro_description = Unicode(macro_description)
+    shortname_description = Unicode(shortname_description)
+    keyvalue_description = Unicode(keyvalue_description)
+    
 
     # A sequence of Configurable subclasses whose config=True attributes will
     # be exposed at the command line (shortnames and help).
@@ -109,9 +138,13 @@ class Application(SingletonConfigurable):
             
         print "Aliases"
         print "-------"
+        print self.shortname_description
+        print
+        
         classdict = {}
         for c in self.classes:
             classdict[c.__name__] = c
+        
         for shortname, longname in self.shortnames.iteritems():
             classname, traitname = longname.split('.',1)
             cls = classdict[classname]
@@ -130,6 +163,8 @@ class Application(SingletonConfigurable):
         
         print "Flags"
         print "-----"
+        print self.macro_description
+        print
         
         for m, cfg in self.macros.iteritems():
             print '--'+m
@@ -140,6 +175,12 @@ class Application(SingletonConfigurable):
         """Print the help for each Configurable class in self.classes."""
         self.print_macro_help()
         self.print_shortname_help()
+        if self.classes:
+            print "Class parameters"
+            print "----------------"
+            print self.keyvalue_description
+            print
+        
         for cls in self.classes:
             cls.class_print_help()
             print
