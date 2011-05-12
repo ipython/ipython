@@ -18,6 +18,7 @@ Authors
 #-----------------------------------------------------------------------------
 
 import __builtin__
+import re
 import sys
 
 from IPython.external import argparse
@@ -303,6 +304,8 @@ class CommandLineConfigLoader(ConfigLoader):
     here.
     """
 
+kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.+')
+macro_pattern = re.compile(r'\-\-\w+(\-\w)*')
 
 class KeyValueConfigLoader(CommandLineConfigLoader):
     """A config loader that loads key value pairs from the command line.
@@ -312,7 +315,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         ipython Global.profile="foo" InteractiveShell.autocall=False
     """
 
-    def __init__(self, argv=None, classes=None):
+    def __init__(self, argv=None, shortnames=None, macros=None):
         """Create a key value pair config loader.
 
         Parameters
@@ -321,9 +324,14 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             A list that has the form of sys.argv[1:] which has unicode
             elements of the form u"key=value". If this is None (default),
             then sys.argv[1:] will be used.
-        classes : (list, tuple) of Configurables
-            A sequence of Configurable classes that will be used to map
-            shortnames to longnames.
+        shortnames : dict
+            A dict of aliases for configurable traits.
+            Keys are the short aliases, Values are the resolved trait.
+            Of the form: `{'shortname' : 'Configurable.trait'}`
+        macros : dict
+            A dict of macros, keyed by str name. Vaues can be Config objects,
+            dicts, or "key=value" strings.  If Config or dict, when the macro
+            is triggered, The macro is loaded as `self.config.update(m)`.
 
         Returns
         -------
@@ -340,12 +348,11 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         """
         if argv is None:
             argv = sys.argv[1:]
-        if classes is None:
-            classes = () 
         self.argv = argv
-        self.classes = classes
+        self.shortnames = shortnames or {}
+        self.macros = macros or {}
 
-    def load_config(self, argv=None, classes=None):
+    def load_config(self, argv=None, shortnames=None, macros=None):
         """Parse the configuration and generate the Config object.
 
         Parameters
@@ -354,37 +361,28 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             A list that has the form of sys.argv[1:] which has unicode
             elements of the form u"key=value". If this is None (default),
             then self.argv will be used.
-        classes : (list, tuple) of Configurables
-            A sequence of Configurable classes that will be used to map
-            shortnames to longnames.
+        shortnames : dict
+            A dict of aliases for configurable traits.
+            Keys are the short aliases, Values are the resolved trait.
+            Of the form: `{'shortname' : 'Configurable.trait'}`
+        macros : dict
+            A dict of macros, keyed by str name. Vaues can be Config objects,
+            dicts, or "key=value" strings.  If Config or dict, when the macro
+            is triggered, The macro is loaded as `self.config.update(m)`.
         """
         from IPython.config.configurable import Configurable
 
         self.clear()
         if argv is None:
             argv = self.argv
-        if classes is None:
-            classes = self.classes
-
-        # Create the mapping between shortnames and longnames.
-        shortnames = {}
-        for cls in classes:
-            if issubclass(cls, Configurable):
-                sn = cls.class_get_shortnames()
-                # Check for duplicate shortnames and raise if found.
-                for k, v in sn.items():
-                    if k in shortnames:
-                        raise KeyError(
-                            'Duplicate shortname: both %s and %s use the shortname: "%s"' %\
-                            (v, shortnames[k], k)
-                        )
-                shortnames.update(sn)
+        if shortnames is None:
+            shortnames = self.shortnames
+        if macros is None:
+            macros = self.macros
 
         for item in argv:
-            pair = tuple(item.split("="))
-            if len(pair) == 2:
-                lhs = pair[0]
-                rhs = pair[1]
+            if kv_pattern.match(item):
+                lhs,rhs = item.split('=',1)
                 # Substitute longnames for shortnames.
                 if lhs in shortnames:
                     lhs = shortnames[lhs]
@@ -400,8 +398,25 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     # it succeeds. If it still fails, we let it raise.
                     exec_str = 'self.config.' + lhs + '="' + rhs + '"'
                     exec exec_str in locals(), globals()
+            elif macro_pattern.match(item):
+                # trim leading '--'
+                m = item[2:]
+                macro = macros.get(m, None)
+                if macro is None:
+                    raise ValueError("Unrecognized argument: %r"%item)
+                macro = macros[m]
+                if isinstance(macro, basestring):
+                    # macro is simply a 'Class.trait=value' string
+                    exec_str = 'self.config.' + macro
+                    exec exec_str in locals(), globals()
+                elif isinstance(macro, (dict, Configurable)):
+                    # update self.config with Config:
+                    self.config.update(macros[m])
+                else:
+                    raise ValueError("Invalid macro: %r"%macro)
+            else:
+                raise ValueError("Invalid argument: %r"%item)
         return self.config
-
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
     """A loader that uses the argparse module to load from the command line."""

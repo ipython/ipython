@@ -62,6 +62,15 @@ class MyApp(Application):
     classes = List([Bar, Foo])
     config_file = Unicode(u'', config=True, shortname="config_file",
                    help="Load this config file")
+    
+    shortnames = dict(i='Foo.i',j='Foo.j',name='Foo.name',
+                        enabled='Bar.enabled')
+    
+    macros = dict(enable='Bar.enabled=True', disable='Bar.enabled=False')
+    macro_help = dict(
+            enable="""Set Bar.enabled to True""",
+            disable="""Set Bar.enabled to False"""
+    )
 
     def init_foo(self):
         # Pass config to other classes for them to inherit the config.

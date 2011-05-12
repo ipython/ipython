@@ -40,26 +40,26 @@ from IPython.config.loader import Config
 
 
 class MyConfigurable(Configurable):
-    a = Int(1, config=True, shortname="a", help="The integer a.")
-    b = Float(1.0, config=True, shortname="b", help="The integer b.")
+    a = Int(1, config=True, help="The integer a.")
+    b = Float(1.0, config=True, help="The integer b.")
     c = Str('no config')
 
 
 mc_help=u"""MyConfigurable options
 ----------------------
-MyConfigurable.a : Int (shortname=a)
+MyConfigurable.a : Int
     The integer a.
-MyConfigurable.b : Float (shortname=b)
+MyConfigurable.b : Float
     The integer b."""
 
 class Foo(Configurable):
-    a = Int(0, config=True, shortname="a", help="The integer a.")
+    a = Int(0, config=True, help="The integer a.")
     b = Str('nope', config=True)
 
 
 class Bar(Foo):
-    b = Str('gotit', config=False, shortname="b", help="The string b.")
-    c = Float(config=True, shortname="c", help="The string c.")
+    b = Str('gotit', config=False, help="The string b.")
+    c = Float(config=True, help="The string c.")
 
 
 class TestConfigurable(TestCase):
@@ -134,14 +134,6 @@ class TestConfigurable(TestCase):
         self.assertEquals(c.a, 2)
         self.assertEquals(c.b, 'and')
         self.assertEquals(c.c, 20.0)
-
-    def test_shortnames(self):
-        sn = MyConfigurable.class_get_shortnames()
-        self.assertEquals(sn, {'a': 'MyConfigurable.a', 'b': 'MyConfigurable.b'})
-        sn = Foo.class_get_shortnames()
-        self.assertEquals(sn, {'a': 'Foo.a'})
-        sn = Bar.class_get_shortnames()
-        self.assertEquals(sn, {'a': 'Bar.a', 'c': 'Bar.c'})
 
     def test_help(self):
         self.assertEquals(MyConfigurable.class_get_help(), mc_help)

@@ -124,23 +124,6 @@ class TestKeyValueCL(TestCase):
         self.assertEquals(config.Foo.Bam.value, range(10))
         self.assertEquals(config.D.C.value, 'hi there')
 
-    def test_shortname(self):
-        class Foo(Configurable):
-            i = Int(0, config=True, shortname="i")
-            s = Unicode('hi', config=True, shortname="s")
-        cl = KeyValueConfigLoader()
-        config = cl.load_config(["i=20", "s=there"], classes=[Foo])
-        self.assertEquals(config.Foo.i, 20)
-        self.assertEquals(config.Foo.s, "there")
-
-    def test_duplicate(self):
-        class Foo(Configurable):
-            i = Int(0, config=True, shortname="i")
-        class Bar(Configurable):
-            i = Int(0, config=True, shortname="i")
-        cl = KeyValueConfigLoader()
-        self.assertRaises(KeyError, cl.load_config, ["i=20", "s=there"], classes=[Foo, Bar])
-
 
 class TestConfig(TestCase):
 

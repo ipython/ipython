@@ -140,18 +140,6 @@ class Configurable(HasTraits):
                         setattr(self, k, deepcopy(config_value))
 
     @classmethod
-    def class_get_shortnames(cls):
-        """Return the shortname to fullname dict for config=True traits."""
-        cls_traits = cls.class_traits(config=True)
-        shortnames = {}
-        for k, v in cls_traits.items():
-            shortname = v.get_metadata('shortname')
-            if shortname is not None:
-                longname = cls.__name__ + '.' + k
-                shortnames[shortname] = longname
-        return shortnames
-
-    @classmethod
     def class_get_help(cls):
         """Get the help string for this class in ReST format."""
         cls_traits = cls.class_traits(config=True)
@@ -160,10 +148,7 @@ class Configurable(HasTraits):
         final_help.append(len(final_help[0])*u'-')
         for k, v in cls_traits.items():
             help = v.get_metadata('help')
-            shortname = v.get_metadata('shortname')
             header = "%s.%s : %s" % (cls.__name__, k, v.__class__.__name__)
-            if shortname is not None:
-                header += " (shortname=" + shortname + ")"
             final_help.append(header)
             if help is not None:
                 final_help.append(indent(help))

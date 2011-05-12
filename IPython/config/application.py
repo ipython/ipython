@@ -23,12 +23,14 @@ import logging
 import sys
 
 from IPython.config.configurable import SingletonConfigurable
-from IPython.utils.traitlets import (
-    Unicode, List, Int, Enum
-)
 from IPython.config.loader import (
     KeyValueConfigLoader, PyFileConfigLoader
 )
+
+from IPython.utils.traitlets import (
+    Unicode, List, Int, Enum, Dict
+)
+from IPython.utils.text import indent
 
 #-----------------------------------------------------------------------------
 # Application class
@@ -55,16 +57,33 @@ class Application(SingletonConfigurable):
 
     # The log level for the application
     log_level = Enum((0,10,20,30,40,50), default_value=logging.WARN,
-                     config=True, shortname="log_level",
+                     config=True,
                      help="Set the log level (0,10,20,30,40,50).")
+    
+    # the shortname map for configurables
+    shortnames = Dict(dict(log_level='Application.log_level'))
+    
+    # macros for loading Configurables or store_const style flags
+    # macros are loaded from this dict by '--key' flags
+    macros = Dict()
+    # macro_help dict keys must match macros
+    macro_help = Dict()
+    
 
     def __init__(self, **kwargs):
         SingletonConfigurable.__init__(self, **kwargs)
         # Add my class to self.classes so my attributes appear in command line
         # options.
         self.classes.insert(0, self.__class__)
+        
+        # check that macro_help has the right keys
+        # there is probably a better way to do this that doesn't use 2 dicts
+        keys = set(self.macros.keys())
+        badkeys = keys.difference_update(set(self.macro_help.keys()))
+        if badkeys:
+            raise KeyError("macro %r has no help in `macro_help`!"%badkeys.pop())
         self.init_logging()
-
+    
     def init_logging(self):
         """Start logging for this application.
 
@@ -82,9 +101,45 @@ class Application(SingletonConfigurable):
     def _log_level_changed(self, name, old, new):
         """Adjust the log level when log_level is set."""
         self.log.setLevel(new)
-
+    
+    def print_shortname_help(self):
+        """print the shortname part of the help"""
+        if not self.shortnames:
+            return
+            
+        print "Aliases"
+        print "-------"
+        classdict = {}
+        for c in self.classes:
+            classdict[c.__name__] = c
+        for shortname, longname in self.shortnames.iteritems():
+            classname, traitname = longname.split('.',1)
+            cls = classdict[classname]
+            
+            trait = cls.class_traits(config=True)[traitname]
+            help = trait.get_metadata('help')
+            print shortname, "(%s)"%longname, ':', trait.__class__.__name__
+            if help:
+                print indent(help)
+        print
+    
+    def print_macro_help(self):
+        """print the the macro part of the help"""
+        if not self.macros:
+            return
+        
+        print "Flags"
+        print "-----"
+        
+        for m, cfg in self.macros.iteritems():
+            print '--'+m
+            print indent(self.macro_help[m])
+        print
+    
     def print_help(self):
         """Print the help for each Configurable class in self.classes."""
+        self.print_macro_help()
+        self.print_shortname_help()
         for cls in self.classes:
             cls.class_print_help()
             print
@@ -112,7 +167,7 @@ class Application(SingletonConfigurable):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
 
-        if '-h' in argv or '--h' in argv:
+        if '-h' in argv or '--help' in argv:
             self.print_description()
             self.print_help()
             sys.exit(1)
@@ -121,7 +176,8 @@ class Application(SingletonConfigurable):
             self.print_version()
             sys.exit(1)
 
-        loader = KeyValueConfigLoader(argv=argv, classes=self.classes)
+        loader = KeyValueConfigLoader(argv=argv, shortnames=self.shortnames,
+                                        macros=self.macros)
         config = loader.load_config()
         self.update_config(config)
 

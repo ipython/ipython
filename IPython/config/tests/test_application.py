@@ -35,14 +35,14 @@ from IPython.utils.traitlets import (
 
 class Foo(Configurable):
 
-    i = Int(0, config=True, shortname='i', help="The integer i.")
-    j = Int(1, config=True, shortname='j', help="The integer j.")
-    name = Unicode(u'Brian', config=True, shortname='name', help="First name.")
+    i = Int(0, config=True, help="The integer i.")
+    j = Int(1, config=True, help="The integer j.")
+    name = Unicode(u'Brian', config=True, help="First name.")
 
 
 class Bar(Configurable):
 
-    enabled = Bool(True, config=True, shortname="enabled", help="Enable bar.")
+    enabled = Bool(True, config=True, help="Enable bar.")
 
 
 class MyApp(Application):
@@ -54,6 +54,15 @@ class MyApp(Application):
     config_file = Unicode(u'', config=True, shortname="config_file",
                    help="Load this config file")
 
+    shortnames = dict(i='Foo.i',j='Foo.j',name='Foo.name',
+                    enabled='Bar.enabled', log_level='MyApp.log_level')
+    
+    macros = dict(enable='Bar.enabled=True', disable='Bar.enabled=False')
+
+    macro_help = dict(
+            enable="""Enable bar""",
+            disable="""Disable bar"""
+    )
     def init_foo(self):
         self.foo = Foo(config=self.config)
 
@@ -88,3 +97,12 @@ class TestApplication(TestCase):
         self.assertEquals(app.foo.j, 10)
         self.assertEquals(app.bar.enabled, False)
 
+    def test_macro(self):
+        app = MyApp()
+        app.parse_command_line(["--disable"])
+        app.init_bar()
+        self.assertEquals(app.bar.enabled, False)
+        app.parse_command_line(["--enable"])
+        app.init_bar()
+        self.assertEquals(app.bar.enabled, True)
+    
