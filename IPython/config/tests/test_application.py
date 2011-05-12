@@ -57,7 +57,7 @@ class MyApp(Application):
     shortnames = dict(i='Foo.i',j='Foo.j',name='Foo.name',
                     enabled='Bar.enabled', log_level='MyApp.log_level')
     
-    macros = dict(enable='Bar.enabled=True', disable='Bar.enabled=False')
+    macros = dict(enable={'Bar': {'enabled' : True}}, disable={'Bar': {'enabled' : False}})
 
     macro_help = dict(
             enable="""Enable bar""",

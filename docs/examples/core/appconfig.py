@@ -44,29 +44,29 @@ class Foo(Configurable):
 
     """
 
-    i = Int(0, config=True, shortname='i', help="The integer i.")
-    j = Int(1, config=True, shortname='j', help="The integer j.")
-    name = Unicode(u'Brian', config=True, shortname='name', help="First name.")
+    i = Int(0, config=True, help="The integer i.")
+    j = Int(1, config=True, help="The integer j.")
+    name = Unicode(u'Brian', config=True, help="First name.")
 
 
 class Bar(Configurable):
 
-    enabled = Bool(True, config=True, shortname="enabled", help="Enable bar.")
+    enabled = Bool(True, config=True, help="Enable bar.")
 
 
 class MyApp(Application):
 
     app_name = Unicode(u'myapp')
-    running = Bool(False, config=True, shortname="running",
+    running = Bool(False, config=True,
                    help="Is the app running?")
     classes = List([Bar, Foo])
-    config_file = Unicode(u'', config=True, shortname="config_file",
+    config_file = Unicode(u'', config=True,
                    help="Load this config file")
     
-    shortnames = dict(i='Foo.i',j='Foo.j',name='Foo.name',
+    shortnames = dict(i='Foo.i',j='Foo.j',name='Foo.name', running='MyApp.running',
                         enabled='Bar.enabled')
     
-    macros = dict(enable='Bar.enabled=True', disable='Bar.enabled=False')
+    macros = dict(enable={'Bar': {'enabled' : True}}, disable={'Bar': {'enabled' : False}})
     macro_help = dict(
             enable="""Set Bar.enabled to True""",
             disable="""Set Bar.enabled to False"""
@@ -91,6 +91,7 @@ def main():
     app.init_bar()
     print "app.config:"
     print app.config
+    print app.bar.enabled
 
 
 if __name__ == "__main__":

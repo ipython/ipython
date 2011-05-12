@@ -405,11 +405,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 if macro is None:
                     raise ValueError("Unrecognized argument: %r"%item)
                 macro = macros[m]
-                if isinstance(macro, basestring):
-                    # macro is simply a 'Class.trait=value' string
-                    exec_str = 'self.config.' + macro
-                    exec exec_str in locals(), globals()
-                elif isinstance(macro, (dict, Configurable)):
+                if isinstance(macro, (dict, Configurable)):
                     # update self.config with Config:
                     self.config.update(macros[m])
                 else:
