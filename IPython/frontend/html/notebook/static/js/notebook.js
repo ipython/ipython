@@ -659,12 +659,12 @@ CodeCell.prototype = new Cell();
 
 
 CodeCell.prototype.create_element = function () {
-    var cell =  $('<div></div>').addClass('cell code_cell');
-    var input = $('<div></div>').addClass('input');
-    input.append($('<div/>').addClass('prompt input_prompt'));
-    var input_textarea = $('<textarea/>').addClass('input_textarea').attr('rows',1).attr('wrap','hard').autogrow();
-    input.append($('<div/>').addClass('input_area').append(input_textarea));
-    var output = $('<div></div>').addClass('output');
+    var cell =  $('<div></div>').addClass('cell code_cell vbox border-box-sizing');
+    var input = $('<div></div>').addClass('input hbox border-box-sizing');
+    input.append($('<div/>').addClass('prompt input_prompt monospace-font'));
+    var input_textarea = $('<textarea/>').addClass('input_textarea monospace-font').attr('rows',1).attr('wrap','hard').autogrow();
+    input.append($('<div/>').addClass('input_area box-flex1 border-box-sizing').append(input_textarea));
+    var output = $('<div></div>').addClass('output vbox border-box-sizing');
     cell.append(input).append(output);
     this.element = cell;
     this.collapse()
@@ -672,7 +672,7 @@ CodeCell.prototype.create_element = function () {
 
 
 CodeCell.prototype.append_pyout = function (data, n) {
-    var toinsert = $("<div/>").addClass("output_area output_pyout");
+    var toinsert = $("<div/>").addClass("output_area output_pyout hbox monospace-font");
     toinsert.append($('<div/>').
         addClass('prompt output_prompt').
         html('Out[' + n + ']:')
@@ -718,8 +718,8 @@ CodeCell.prototype.append_display_data = function (data, element) {
 
 CodeCell.prototype.append_stream = function (data, element) {
     element = element || this.element.find("div.output");
-    var toinsert = $("<div/>").addClass("output_area output_stream");
-    toinsert.append($("<pre/>").html(fixConsole(data)));
+    var toinsert = $("<div/>").addClass("output_area output_stream monospace-font");
+    toinsert.append($("<pre/>").addClass("monospace-font").html(fixConsole(data)));
     element.append(toinsert);
     return element;
 };
@@ -738,7 +738,7 @@ CodeCell.prototype.append_latex = function (latex, element) {
     // This method cannot do the typesetting because the latex first has to
     // be on the page.
     element = element || this.element.find("div.output");
-    var toinsert = $("<div/>").addClass("output_area output_latex");
+    var toinsert = $("<div/>").addClass("output_area output_latex monospace-font");
     toinsert.append(latex);
     element.append(toinsert);
     return element;
@@ -812,7 +812,7 @@ TextCell.prototype.create_element = function () {
     var cell = $("<div>").addClass('cell text_cell').
                append(
                    $("<textarea>" + this.placeholder + "</textarea>").
-                   addClass('text_cell_input').
+                   addClass('text_cell_input monospace-font').
                    attr('rows',1).
                    attr('cols',80).
                    autogrow()
@@ -1006,6 +1006,9 @@ Kernel.prototype.status_restarting = function () {
 
 
 $(document).ready(function () {
+
+    $('div#wrapper').addClass('vbox border-box-sizing')
+    $('div.notebook').addClass('box-flex1 border-box-sizing')
 
     MathJax.Hub.Config({
         tex2jax: {

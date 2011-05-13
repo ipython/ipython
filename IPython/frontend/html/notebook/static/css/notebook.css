@@ -58,16 +58,6 @@ hr { display: block; height: 1px; border: 0; border-top: 1px solid #ccc; margin:
 
 input, select { vertical-align: middle; }
 
-/* Normalize monospace sizing:
-   en.wikipedia.org/wiki/MediaWiki_talk:Common.css/Archive_11#Teletype_style_fix_for_Chrome */
-pre, code, kbd, samp { font-family: monospace, sans-serif; }
-
-pre {
-    text-align: left;
-    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
-    font-size: 12pt;
-}
-
 body {
     background-color: white;
     /* This won't propagate to all children so we also set it below */
@@ -82,21 +72,9 @@ body {
 }
 
 div#wrapper {
-    display: box;
-    display: -webkit-box;
-    display: -moz-box;
-
-    box-orient: vertical;
-    -webkit-box-orient: vertical;
-    -moz-box-orient: vertical;
-
     /* This is needed to make sure the wrapper fills the body */
     width: 100%;
     height: 100%;
-
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
 }
 
 span#ipython_notebook h1 {
@@ -139,15 +117,12 @@ div.notebook {
     padding: 0px 40px;
     background-color: white;
     font-size: 12pt;
+}
 
-    /* Allow the notebook div to take up the rest of the vertical space */
-    box-flex: 1;
-    -webkit-box-flex: 1;
-    -moz-box-flex: 1;
-
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
+.monospace-font {
+    font-family: monospace;
+/*    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;*/
+    font-size: 12pt;
 }
 
 div.cell {
@@ -156,21 +131,6 @@ div.cell {
     /* This acts as a spacer between cells, that is outside the border */
     margin: 15px 0px 15px 0px;
     position: relative;
-
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-
-    display: box;
-    display: -webkit-box;
-    display: -moz-box;
-
-    box-orient: vertical;
-    -webkit-box-orient: vertical;
-    -moz-box-orient: vertical;
-
-/*    border-width: 1px;*/
-/*    border-style: solid;*/
 }
 
 div.code_cell {
@@ -181,45 +141,15 @@ div.prompt {
     width: 90px;
     padding: 0px;
     margin: 0px;
-    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
-}
-
-div.input {
-    display: box;
-    display: -webkit-box;
-    display: -moz-box;
-
-    box-orient: horizontal;
-    -webkit-box-orient: horizontal;
-    -moz-box-orient: horizontal;
-
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-
-/*    border-width: 1px;*/
-/*    border-style: solid;*/
 }
 
 div.input_prompt {
     color: blue;
 }
 
-div.input_area {
-    box-flex: 1;
-    -webkit-box-flex: 1;
-    -moz-box-flex: 1;
-
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-}
-
 textarea.input_textarea {
     width: 100%;
     text-align: left;
-    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
-    font-size: 12pt;
     border-style: none;
     padding: 0px;
     margin: 0px;
@@ -231,31 +161,6 @@ textarea.input_textarea {
 div.output {
     /* This is a spacer between the input and output of each cell */
     margin-top: 15px;
-
-    display: box;
-    display: -webkit-box;
-    display: -moz-box;
-
-    box-orient: vertical;
-    -webkit-box-orient: vertical;
-    -moz-box-orient: vertical;
-
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-
-/*    border-width: 1px;*/
-/*    border-style: solid;*/
-}
-
-div.output_pyout {
-    display: box;
-    display: -webkit-box;
-    display: -moz-box;
-    
-    box-orient: horizontal;
-    -webkit-box-orient: horizontal;
-    -moz-box-orient: horizontal;
 }
 
 div.output_prompt {
@@ -265,27 +170,19 @@ div.output_prompt {
 div.output_area {
     text-align: left;
     color: black;
-    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
-    font-size: 12pt;
 }
 
 div.output_latex {
+    /* Slightly bigger than the rest of the notebook */
     font-size: 13pt;
 }
 
-.box_flex1 {
-    box-flex: 1;
-    -webkit-box-flex: 1;
-    -moz-box-flex: 1;
-}
 
 div.text_cell {
     background-color: white;
 }
 
 textarea.text_cell_input {
-    font-family: Monaco, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
-/*    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/
     /* Slightly bigger than the rest of the notebook */
     font-size: 13pt;
     outline: none;
