@@ -30,7 +30,6 @@ import readline
 import rlcompleter
 import time
 
-
 #-----------------------------------------------------------------------------
 # Imports from ipython
 #-----------------------------------------------------------------------------
@@ -149,10 +148,12 @@ class Frontend(object):
 	            if self.msg_xreq["msg_type"] == "execute_reply" :
 		       self.handle_sub_channel()
 		       self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
-		   
+		       
                  else:
-                     print >> sys.stderr, "Error executing: ",self.msg_xreq ##traceback no implemented yet here
-                     print >> sys.stderr, "Status in the kernel: ", self.msg_xreq["content"]["status"]
+		     etb = self.msg_xreq["content"]["traceback"]
+		     print >> sys.stderr, etb[0]
+		     print >> sys.stderr, etb[1]
+		     print >> sys.stderr, etb[2]
                      break
 	   time.sleep(0.1)
 	     
