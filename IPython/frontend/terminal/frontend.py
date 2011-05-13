@@ -44,8 +44,7 @@ from IPython.utils import PyColorize
 from IPython.core.inputsplitter import InputSplitter
 from IPython.frontend.terminal.kernelmanager import KernelManager2p as KernelManager
 from IPython.zmq.session import Session
-from IPython.frontend.terminal.completer import ClientCompleter2p #my own completer
-from IPython.zmq.completer import ClientCompleter #old completer not working
+from IPython.frontend.terminal.completer import ClientCompleter2p 
 
 #-----------------------------------------------------------------------------
 # Network Constants
@@ -72,7 +71,6 @@ class Frontend(object):
        self.reply_socket = self.km.rep_channel.socket
        self.msg_header = self.km.session.msg_header()
        self.completer = ClientCompleter2p(self,self.km)
-       #self.completer = ClientCompleter()#old completer
        readline.parse_and_bind("tab: complete")
        readline.parse_and_bind('set show-all-if-ambiguous on')
        readline.set_completer(self.completer.complete)
@@ -85,11 +83,15 @@ class Frontend(object):
 
        self.messages = {}
 
-       self.prompt_count = 0 #self.km.xreq_channel.execute('', silent=True)
-       #self.backgrounded = 0
        self._splitter = InputSplitter()
        self.code = ""
-       
+ 
+       self.prompt_count = 0 
+       self._get_initail_promt()
+ 
+   def _get_initail_promt(self):
+       self._execute('', hidden=True)
+   
    def interact(self):
        """ let you get input from console using inputsplitter, then
        while you enter code it can indent and set index id to any input
@@ -106,9 +108,6 @@ class Frontend(object):
        except  KeyboardInterrupt:
            print('\nKeyboardInterrupt\n')
            pass
-       #else:
-           #self._execute(self._splitter.source,False)
-           #self._splitter.reset()
           
        
    def start(self):
@@ -145,15 +144,11 @@ class Frontend(object):
        for i in range(5):
 	   if self.km.xreq_channel.was_called():
 	      self.msg_xreq =  self.km.xreq_channel.get_msg()
-	      #print self.msg_xreq
 	      if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"] :
 		 if self.msg_xreq["content"]["status"] == 'ok' :
-		    #if self.msg_xreq["msg_type"] == "complete_reply" :
-		       #print self.msg_xreq["content"]["matches"]
-		        
 	            if self.msg_xreq["msg_type"] == "execute_reply" :
 		       self.handle_sub_channel()
-		       self.prompt_count = self.msg_xreq["content"]["execution_count"]
+		       self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
 		   
                  else:
                      print >> sys.stderr, "Error executing: ",self.msg_xreq ##traceback no implemented yet here
@@ -199,7 +194,6 @@ class Frontend(object):
        """
        if self.km.rep_channel.was_called() :
 	  self.msg_rep = self.km.rep_channel.get_msg()
-	  #print self.msg_rep
 	  if self.msg_header["session"] == self.msg_rep["parent_header"]["session"] :
 	     raw_data = raw_input(self.msg_rep["content"]["prompt"])
 	     self.km.rep_channel.input(raw_data)
