@@ -191,7 +191,7 @@ class Frontend(object):
                     sys.stderr.flush()
                 
                if sub_msg['msg_type'] == 'pyout' :
-                    print >> sys.stdout,"Out[%i]:"%sub_msg["content"]["execution_count"], sub_msg["content"]["data"]
+                    print >> sys.stdout,"Out[%i]:"%sub_msg["content"]["execution_count"], sub_msg["content"]["data"]["text/plain"]
                     sys.stdout.flush()
 
    def handle_rep_channel(self):
