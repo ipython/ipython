@@ -154,6 +154,7 @@ class Frontend(object):
 		     print >> sys.stderr, etb[0]
 		     print >> sys.stderr, etb[1]
 		     print >> sys.stderr, etb[2]
+		     self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
                      break
 	   time.sleep(0.1)
 	     
