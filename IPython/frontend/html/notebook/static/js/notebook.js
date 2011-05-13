@@ -557,13 +557,19 @@ Notebook.prototype.save_notebook = function (filename) {
 Notebook.prototype.load_notebook = function (filename) {
     if (!this.test_filename(filename)) {return;}
     var that = this;
-    $.getJSON("/notebooks/" + filename,
-        function (data, status, xhr) {
-            that.fromJSON(data);
-            that.filename = filename;
-            that.kernel.restart();
-        }
-    );
+    // We do the call with settings so we can set cache to false.
+    var settings = {
+      processData : false,
+      cache : false,
+      type : "GET",
+      dataType : "json",
+      success : function (data, status, xhr) {
+          that.fromJSON(data);
+          that.filename = filename;
+          that.kernel.restart();
+      }
+    };
+    $.ajax("/notebooks/" + filename, settings);
 }
 
 
