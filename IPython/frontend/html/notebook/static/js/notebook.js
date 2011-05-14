@@ -131,13 +131,6 @@ Notebook.prototype.bind_events = function () {
                     };
                 };
             }
-        } else if (event.which == 9) {
-            event.preventDefault();
-            var cell = that.selected_cell();
-            if (cell instanceof CodeCell) {
-                var ta = cell.element.find("textarea.input_textarea");
-                ta.val(ta.val() + "    ");
-            };
         };
     });
 };
@@ -442,7 +435,7 @@ Notebook.prototype._kernel_started = function () {
 
     this.kernel.shell_channel.onmessage = function (e) {
         reply = $.parseJSON(e.data);
-        console.log(reply);
+        // console.log(reply);
         var msg_type = reply.msg_type;
         var cell = that.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
@@ -453,7 +446,7 @@ Notebook.prototype._kernel_started = function () {
     this.kernel.iopub_channel.onmessage = function (e) {
         reply = $.parseJSON(e.data);
         var content = reply.content;
-        console.log(reply);
+        // console.log(reply);
         var msg_type = reply.msg_type;
         var cell = that.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "stream") {
@@ -650,8 +643,9 @@ Cell.prototype.create_element = function () {};
 
 
 var CodeCell = function (notebook) {
-    Cell.apply(this, arguments);
+    this.code_mirror = null;
     this.input_prompt_number = ' ';
+    Cell.apply(this, arguments);
 };
 
 
@@ -662,12 +656,23 @@ CodeCell.prototype.create_element = function () {
     var cell =  $('<div></div>').addClass('cell code_cell vbox border-box-sizing');
     var input = $('<div></div>').addClass('input hbox border-box-sizing');
     input.append($('<div/>').addClass('prompt input_prompt monospace-font'));
-    var input_textarea = $('<textarea/>').addClass('input_textarea monospace-font').attr('rows',1).attr('wrap','hard').autogrow();
-    input.append($('<div/>').addClass('input_area box-flex1 border-box-sizing').append(input_textarea));
+    var input_area = $('<div/>').addClass('input_area box-flex1 border-box-sizing');
+    this.code_mirror = CodeMirror(input_area.get(0), {
+        indentUnit : 4,
+        enterMode : 'flat',
+        tabMode: 'shift'
+    });
+    input.append(input_area);
     var output = $('<div></div>').addClass('output vbox border-box-sizing');
     cell.append(input).append(output);
     this.element = cell;
     this.collapse()
+};
+
+
+CodeCell.prototype.select = function () {
+    Cell.prototype.select.apply(this);
+    this.code_mirror.focus();
 };
 
 
@@ -768,12 +773,12 @@ CodeCell.prototype.set_input_prompt = function (number) {
 
 
 CodeCell.prototype.get_code = function () {
-    return this.element.find("textarea.input_textarea").val();
+    return this.code_mirror.getValue();
 };
 
 
 CodeCell.prototype.set_code = function (code) {
-    return this.element.find("textarea.input_textarea").val(code);
+    return this.code_mirror.setValue(code);
 };
 
 
@@ -781,7 +786,6 @@ CodeCell.prototype.fromJSON = function (data) {
     if (data.cell_type === 'code') {
         this.set_code(data.code);
         this.set_input_prompt(data.prompt_number);
-        this.grow(this.element.find("textarea.input_textarea"));
     };
 };
 

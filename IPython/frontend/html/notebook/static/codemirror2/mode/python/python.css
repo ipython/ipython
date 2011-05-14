@@ -1,0 +1,23 @@
+span.py-delimiter,
+span.py-special {color: #666666;}
+
+span.py-operator {color: #AA22FF; font-weight: bold;}
+
+span.py-error {background-color: #000000; color: #FF0000;}
+
+span.py-keyword {color: #008000; font-weight: bold;}
+
+span.py-number {color: #666666;}
+
+span.py-identifier,
+span.py-func {color: #000000;}
+
+span.py-type {color: #008000;}
+span.py-decorator {color: #AA22FF;}
+
+span.py-comment {color: #408080; font-style: italic;}
+
+span.py-string,
+span.py-bytes,
+span.py-raw,
+span.py-unicode {color: #BA2121;}
