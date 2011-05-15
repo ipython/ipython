@@ -41,9 +41,9 @@ from IPython.core.interactiveshell import get_default_colors
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.core.inputsplitter import InputSplitter
-from IPython.frontend.terminal.kernelmanager import KernelManager2p as KernelManager
+from IPython.frontend.zmqterminal.kernelmanager import KernelManager2p as KernelManager
 from IPython.zmq.session import Session
-from IPython.frontend.terminal.completer import ClientCompleter2p 
+from IPython.frontend.zmqterminal.completer import ClientCompleter2p 
 
 #-----------------------------------------------------------------------------
 # Network Constants
