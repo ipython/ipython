@@ -124,7 +124,7 @@ class Frontend(object):
                while True:
                    answer = raw_input('\nDo you really want to exit ([y]/n)?')
                    if answer == 'y' or answer == '' :
-		       self.km.shutdown_kernel()
+                       self.km.shutdown_kernel()
                        sys.exit()
                    elif answer == 'n':
                        break
@@ -141,23 +141,22 @@ class Frontend(object):
    def handle_xreq_channel(self):
        # Give the kernel up to 0.5s to respond
        for i in range(5):
-	   if self.km.xreq_channel.was_called():
-	      self.msg_xreq =  self.km.xreq_channel.get_msg()
-	      if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"] :
-		 if self.msg_xreq["content"]["status"] == 'ok' :
-	            if self.msg_xreq["msg_type"] == "execute_reply" :
-		       self.handle_sub_channel()
-		       self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
-		       
+           if self.km.xreq_channel.was_called():
+              self.msg_xreq =  self.km.xreq_channel.get_msg()
+              if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"] :
+                 if self.msg_xreq["content"]["status"] == 'ok' :
+                    if self.msg_xreq["msg_type"] == "execute_reply" :
+                       self.handle_sub_channel()
+                       self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
+                       
                  else:
-		     etb = self.msg_xreq["content"]["traceback"]
-		     print >> sys.stderr, etb[0]
-		     print >> sys.stderr, etb[1]
-		     print >> sys.stderr, etb[2]
-		     self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
+                     etb = self.msg_xreq["content"]["traceback"]
+                     print >> sys.stderr, etb[0]
+                     print >> sys.stderr, etb[1]
+                     print >> sys.stderr, etb[2]
+                     self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
                      break
-	   time.sleep(0.1)
-	     
+           time.sleep(0.1)
 
 
    def handle_sub_channel(self):
@@ -195,11 +194,11 @@ class Frontend(object):
        """ Method to capture raw_input
        """
        if self.km.rep_channel.was_called() :
-	  self.msg_rep = self.km.rep_channel.get_msg()
-	  if self.msg_header["session"] == self.msg_rep["parent_header"]["session"] :
-	     raw_data = raw_input(self.msg_rep["content"]["prompt"])
-	     self.km.rep_channel.input(raw_data)
-	     
+          self.msg_rep = self.km.rep_channel.get_msg()
+          if self.msg_header["session"] == self.msg_rep["parent_header"]["session"] :
+             raw_data = raw_input(self.msg_rep["content"]["prompt"])
+             self.km.rep_channel.input(raw_data)
+             
        
 
        
