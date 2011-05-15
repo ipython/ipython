@@ -51,9 +51,9 @@ from IPython.frontend.zmqterminal.completer import ClientCompleter2p
 
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 class Frontend(object):
-   """ this class is a simple frontend to ipython-zmq 
+   """This class is a simple frontend to ipython-zmq 
        
-      NOTE: this class use kernelmanager to manipulate sockets
+      NOTE: this class uses kernelmanager to manipulate sockets
       
       Parameters:
       -----------
@@ -62,7 +62,7 @@ class Frontend(object):
         
    """
 
-   def __init__(self,kernelmanager):
+   def __init__(self, kernelmanager):
        self.km = kernelmanager
        self.session = kernelmanager.session
        self.request_socket = self.km.xreq_channel.socket
@@ -78,23 +78,22 @@ class Frontend(object):
        if os.path.isfile(history_path):
            rlcompleter.readline.read_history_file(history_path)
        else:
-           print("history file can not be readed.")   
+           print("history file cannot be read.")   
 
        self.messages = {}
 
        self._splitter = IPythonInputSplitter()
        self.code = ""
  
-       self.prompt_count = 0 
-       self._get_initail_promt()
+       self.prompt_count = 0
+       self._get_initial_prompt()
  
-   def _get_initail_promt(self):
+   def _get_initial_prompt(self):
        self._execute('', hidden=True)
    
    def interact(self):
-       """ let you get input from console using inputsplitter, then
+       """Gets input from console using inputsplitter, then
        while you enter code it can indent and set index id to any input
-
        """    
        
        try:
@@ -104,19 +103,19 @@ class Frontend(object):
               self._splitter.push(' '*self._splitter.indent_spaces+self.code)
            self._execute(self._splitter.source,False)
            self._splitter.reset()
-       except  KeyboardInterrupt:
+       except KeyboardInterrupt:
            print('\nKeyboardInterrupt\n')
            pass
           
        
    def start(self):
-       """ init a bucle that call interact method to get code.
-       
+       """Start the interaction loop, calling the .interact() method for each
+       input cell.
        """
        while True:
            try:
                self.interact()
-           except  KeyboardInterrupt:
+           except KeyboardInterrupt:
                 print('\nKeyboardInterrupt\n')
                 pass
            except EOFError:
@@ -162,18 +161,17 @@ class Frontend(object):
    def handle_sub_channel(self):
        """ Method to procces subscribe channel's messages
 
-           this method read a message and procces the content
-           in differents outputs like stdout, stderr, pyout
-           and status
+           This method reads a message and processes the content in different
+           outputs like stdout, stderr, pyout and status
 
            Arguments:
            sub_msg:  message receive from kernel in the sub socket channel
                      capture by kernel manager.
-
        """
        while self.km.sub_channel.was_called():
            sub_msg = self.km.sub_channel.get_msg()
-           if  self.msg_header["username"] == sub_msg['parent_header']['username'] and self.km.session.session == sub_msg['parent_header']['session']:
+           if self.msg_header["username"] == sub_msg['parent_header']['username'] and \
+                self.km.session.session == sub_msg['parent_header']['session']:
                if sub_msg['msg_type'] == 'status' :
                     if sub_msg["content"]["execution_state"] == "busy" :
                         pass
