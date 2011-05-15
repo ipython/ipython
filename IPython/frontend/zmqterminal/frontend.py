@@ -40,7 +40,7 @@ Int, Str, CBool, CaselessStrEnum, Enum, List, Unicode
 from IPython.core.interactiveshell import get_default_colors
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
-from IPython.core.inputsplitter import InputSplitter
+from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.frontend.zmqterminal.kernelmanager import KernelManager2p as KernelManager
 from IPython.zmq.session import Session
 from IPython.frontend.zmqterminal.completer import ClientCompleter2p 
@@ -82,7 +82,7 @@ class Frontend(object):
 
        self.messages = {}
 
-       self._splitter = InputSplitter()
+       self._splitter = IPythonInputSplitter()
        self.code = ""
  
        self.prompt_count = 0 
