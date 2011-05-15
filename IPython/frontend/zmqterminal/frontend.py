@@ -277,6 +277,9 @@ def start_frontend():
     frontend=Frontend(kernel_manager)
     return frontend
 
+def main():
+    frontend=start_frontend()
+    frontend.start()
+
 if __name__ == "__main__" :
-     frontend=start_frontend()
-     frontend.start()
+    main() 
