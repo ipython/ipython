@@ -571,7 +571,7 @@ class Inspector:
             # Flush the source cache because inspect can return out-of-date
             # source
             linecache.checkcache()
-            source_success = False
+            source = None
             try:
                 try:
                     src = getsource(obj,binary_file)
@@ -581,10 +581,11 @@ class Inspector:
                 if src is not None:
                     source = self.format(src)
                     out['source'] = source.rstrip()
-                    source_success = True
             except Exception:
-                if ds:
-                    out['docstring'] = ds
+                pass
+                
+            if ds and source is None:
+                out['docstring'] = ds
                 
 
         # Constructor docstring for classes
