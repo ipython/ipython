@@ -292,6 +292,7 @@ you can skip using Dependency objects, and just pass msg_ids or AsyncResult obje
 
 
 
+
 Impossible Dependencies
 ***********************
 
@@ -312,6 +313,27 @@ The basic cases that are checked:
 
     This analysis has not been proven to be rigorous, so it is likely possible for tasks
     to become impossible to run in obscure situations, so a timeout may be a good choice.
+
+
+Retries and Resubmit
+====================
+
+Retries
+-------
+
+Another flag for tasks is `retries`.  This is an integer, specifying how many times
+a task should be resubmitted after failure.  This is useful for tasks that should still run
+if their engine was shutdown, or may have some statistical chance of failing.  The default
+is to not retry tasks.
+
+Resubmit
+--------
+
+Sometimes you may want to re-run a task. This could be because it failed for some reason, and
+you have fixed the error, or because you want to restore the cluster to an interrupted state.
+For this, the :class:`Client` has a :meth:`rc.resubmit` method.  This simply takes one or more
+msg_ids, and returns an :class:`AsyncHubResult` for the result(s).  You cannot resubmit
+a task that is pending - only those that have finished, either successful or unsuccessful.
 
 .. _parallel_schedulers:
 
@@ -389,6 +411,8 @@ Disabled features when using the ZMQ Scheduler:
 .. note::
 
     TODO: performance comparisons
+
+
 
 
 More details

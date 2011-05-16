@@ -1317,9 +1317,11 @@ class Client(HasTraits):
         query : mongodb query dict
             The search dict. See mongodb query docs for details.
         keys : list of strs [optional]
-            THe subset of keys to be returned.  The default is to fetch everything.
+            The subset of keys to be returned.  The default is to fetch everything but buffers.
             'msg_id' will *always* be included.
         """
+        if isinstance(keys, basestring):
+            keys = [keys]
         content = dict(query=query, keys=keys)
         self.session.send(self._query_socket, "db_request", content=content)
         idents, msg = self.session.recv(self._query_socket, 0)
