@@ -88,12 +88,22 @@ Notebook.prototype.bind_events = function () {
     var that = this;
     $(document).keydown(function (event) {
         // console.log(event);
-        if (event.which == 38 && event.shiftKey) {
-            event.preventDefault();
-            that.select_prev();
-        } else if (event.which == 40 && event.shiftKey) {
-            event.preventDefault();
-            that.select_next();
+        if (event.which == 38) {
+            var cell = that.selected_cell();
+            if (cell instanceof CodeCell) {
+                if (cell.at_top()) {
+                    event.preventDefault();
+                    that.select_prev();                    
+                };
+            };
+        } else if (event.which == 40) {
+            var cell = that.selected_cell();
+            if (cell instanceof CodeCell) {
+                if (cell.at_bottom()) {
+                    event.preventDefault();
+                    that.select_next();                    
+                };
+            };
         } else if (event.which == 13 && event.shiftKey) {
             // The focus is not quite working here.
             var cell = that.selected_cell();
@@ -779,6 +789,26 @@ CodeCell.prototype.get_code = function () {
 
 CodeCell.prototype.set_code = function (code) {
     return this.code_mirror.setValue(code);
+};
+
+
+CodeCell.prototype.at_top = function () {
+    var cursor = this.code_mirror.getCursor();
+    if (cursor.line === 0) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+
+CodeCell.prototype.at_bottom = function () {
+    var cursor = this.code_mirror.getCursor();
+    if (cursor.line === (this.code_mirror.lineCount()-1)) {
+        return true;
+    } else {
+        return false;
+    }
 };
 
 
