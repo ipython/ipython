@@ -88,23 +88,19 @@ Notebook.prototype.bind_events = function () {
     var that = this;
     $(document).keydown(function (event) {
         // console.log(event);
-        if (event.which == 38) {
+        if (event.which === 38) {
             var cell = that.selected_cell();
-            if (cell instanceof CodeCell) {
-                if (cell.at_top()) {
-                    event.preventDefault();
-                    that.select_prev();                    
-                };
+            if (cell.at_top()) {
+                event.preventDefault();
+                that.select_prev();
             };
-        } else if (event.which == 40) {
+        } else if (event.which === 40) {
             var cell = that.selected_cell();
-            if (cell instanceof CodeCell) {
-                if (cell.at_bottom()) {
-                    event.preventDefault();
-                    that.select_next();                    
-                };
+            if (cell.at_bottom()) {
+                event.preventDefault();
+                that.select_next();
             };
-        } else if (event.which == 13 && event.shiftKey) {
+        } else if (event.which === 13 && event.shiftKey) {
             // The focus is not quite working here.
             var cell = that.selected_cell();
             var cell_index = that.find_cell_index(cell);
@@ -130,17 +126,15 @@ Notebook.prototype.bind_events = function () {
                     var msg_id = that.kernel.execute(cell.get_code());
                     that.msg_cell_map[msg_id] = cell.cell_id;
                 };
-                if (cell_index === (that.ncells()-1)) {
-                    that.insert_code_cell_after();
-                } else {
-                    // Select the next cell if it is a CodeCell, but not
-                    // if it is a TextCell.
-                    var next_cell = that.cells()[cell_index+1];
-                    if (!(next_cell instanceof TextCell)) {
-                        that.select(cell_index+1);
-                    };
-                };
+            } else if (cell instanceof TextCell) {
+                event.preventDefault();
+                cell.render();
             }
+            if (cell_index === (that.ncells()-1)) {
+                that.insert_code_cell_after();
+            } else {
+                that.select(cell_index+1);
+            };
         };
     });
 };
@@ -413,6 +407,7 @@ Notebook.prototype.code_to_text = function (index) {
         if (text === "") {text = target_cell.placeholder;};
         target_cell.set_text(text);
         source_element.remove();
+        target_cell.edit();
     };
 };
 
@@ -836,6 +831,7 @@ CodeCell.prototype.toJSON = function () {
 var TextCell = function (notebook) {
     Cell.apply(this, arguments);
     this.placeholder = "Type <strong>HTML</strong> and LaTeX: $\\alpha^2$"
+    this.rendered = false;
 };
 
 
@@ -851,41 +847,63 @@ TextCell.prototype.create_element = function () {
                    attr('cols',80).
                    autogrow()
                ).append(
-                   $('<div></div>').addClass('text_cell_render')
+                   // The tabindex=-1 makes this div focusable.
+                   $('<div></div>').addClass('text_cell_render').attr('tabindex','-1')
                )
     this.element = cell;
 };
 
 
+TextCell.prototype.bind_events = function () {
+    Cell.prototype.bind_events.apply(this);
+    var that = this;
+    this.element.keydown(function (event) {
+        if (event.which === 13) {
+            if (that.rendered) {
+                that.edit();
+                event.preventDefault();
+            };
+        };
+    });
+};
+
+
 TextCell.prototype.select = function () {
-    this.edit();
     Cell.prototype.select.apply(this);
+    var output = this.element.find("div.text_cell_render");
+    output.trigger('focus');
 };
 
 
 TextCell.prototype.edit = function () {
-    var text_cell = this.element;
-    var input = text_cell.find("textarea.text_cell_input");
-    var output = text_cell.find("div.text_cell_render");  
-    output.hide();
-    input.show().trigger('focus');
+    if (this.rendered === true) {
+        var text_cell = this.element;
+        var input = text_cell.find("textarea.text_cell_input");
+        var output = text_cell.find("div.text_cell_render");  
+        output.hide();
+        input.show().trigger('focus');
+        this.rendered = false;
+    };
 };
 
 
 TextCell.prototype.render = function () {
-    var text_cell = this.element;
-    var input = text_cell.find("textarea.text_cell_input");
-    var output = text_cell.find("div.text_cell_render");    
-    var text = input.val();
-    if (text === "") {
-        text = this.placeholder;
-        input.val(text);
+    if (this.rendered === false) {
+        var text_cell = this.element;
+        var input = text_cell.find("textarea.text_cell_input");
+        var output = text_cell.find("div.text_cell_render");    
+        var text = input.val();
+        if (text === "") {
+            text = this.placeholder;
+            input.val(text);
+        };
+        output.html(text)
+        input.html(text);
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+        input.hide();
+        output.show();
+        this.rendered = true;
     };
-    output.html(text)
-    input.html(text);
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-    input.hide();
-    output.show();
 };
 
 
@@ -911,6 +929,24 @@ TextCell.prototype.set_text = function(text) {
     this.element.find("textarea.text_cell_input").val(text);
     this.element.find("textarea.text_cell_input").html(text);
     this.element.find("div.text_cell_render").html(text);
+};
+
+
+TextCell.prototype.at_top = function () {
+    if (this.rendered) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+
+TextCell.prototype.at_bottom = function () {
+    if (this.rendered) {
+        return true;
+    } else {
+        return false;
+    }
 };
 
 
