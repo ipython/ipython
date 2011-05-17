@@ -44,6 +44,10 @@ class Call(object):
 
     def method(self, x, z=2):
         """Some method's docstring"""
+        
+class OldStyle:
+    """An old-style class for testing."""
+    pass
 
 def f(x, y=2, *a, **kw):
     """A simple function."""
@@ -117,3 +121,11 @@ def test_info():
     nt.assert_equal(i['class_docstring'], Call.__doc__)
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
     nt.assert_equal(i['call_docstring'], c.__call__.__doc__)
+    
+    # Test old-style classes, which for example may not have an __init__ method.
+    i = inspector.info(OldStyle)
+    nt.assert_equal(i['type_name'], 'classobj')
+    
+    i = inspector.info(OldStyle())
+    nt.assert_equal(i['type_name'], 'instance')
+    nt.assert_equal(i['docstring'], OldStyle.__doc__)

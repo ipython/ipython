@@ -662,7 +662,10 @@ class Inspector:
         # from its __call__ method.
         
         if inspect.isclass(obj):
-            callable_obj = obj.__init__
+            try:
+                callable_obj = obj.__init__
+            except AttributeError:
+                callable_obj = None
         elif callable(obj):
             callable_obj = obj
         else:
