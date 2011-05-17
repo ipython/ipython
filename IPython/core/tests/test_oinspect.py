@@ -87,3 +87,33 @@ def test_calltip_function2():
 
 def test_calltip_builtin():
     check_calltip(sum, 'sum', None, sum.__doc__)
+    
+def test_info():
+    "Check that Inspector.info fills out various fields as expected."
+    i = inspector.info(Call, oname='Call')
+    nt.assert_equal(i['type_name'], 'type')
+    nt.assert_equal(i['base_class'], "<type 'type'>")
+    nt.assert_equal(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'>")
+    fname = __file__
+    if fname.endswith(".pyc"):
+        fname = fname[:-1]
+    nt.assert_equal(i['file'], fname)
+    nt.assert_equal(i['definition'], 'Call(self, *a, **kw)\n')
+    nt.assert_equal(i['docstring'], Call.__doc__)
+    nt.assert_is(i['source'], None)
+    nt.assert_true(i['isclass'])
+    nt.assert_equal(i['init_definition'], "Call(self, x, y=1)\n")
+    nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
+    
+    i = inspector.info(Call, detail_level=1)
+    nt.assert_is_not(i['source'], None)
+    nt.assert_is(i['docstring'], None)
+    
+    c = Call(1)
+    c.__doc__ = "Modified instance docstring"
+    i = inspector.info(c)
+    nt.assert_equal(i['type_name'], 'Call')
+    nt.assert_equal(i['docstring'], "Modified instance docstring")
+    nt.assert_equal(i['class_docstring'], Call.__doc__)
+    nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
+    nt.assert_equal(i['call_docstring'], c.__call__.__doc__)
