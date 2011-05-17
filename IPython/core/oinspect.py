@@ -18,7 +18,6 @@ __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
 import __builtin__
-import StringIO
 import inspect
 import linecache
 import os
@@ -75,7 +74,7 @@ info_fields = ['type_name', 'base_class', 'string_form', 'namespace',
                'call_def', 'call_docstring',
                # These won't be printed but will be used to determine how to
                # format the object
-               'ismagic', 'isalias', 'argspec', 'found', 'name',
+               'ismagic', 'isalias', 'isclass', 'argspec', 'found', 'name'
                ]
 
 
@@ -227,16 +226,6 @@ def call_tip(oinfo, format_call=True):
 
     return call_line, doc
 
-#****************************************************************************
-# Class definitions
-
-class myStringIO(StringIO.StringIO):
-    """Adds a writeln method to normal StringIO."""
-    def writeln(self,*arg,**kw):
-        """Does a write() and then a write('\n')"""
-        self.write(*arg,**kw)
-        self.write('\n')
-
 
 class Inspector:
     def __init__(self, color_table=InspectColors,
@@ -377,7 +366,41 @@ class Inspector:
             # getsourcelines returns lineno with 1-offset and page() uses
             # 0-offset, so we must adjust.
             page.page(self.format(open(ofile).read()),lineno-1)
+            
+    def _format_fields(self, fields, title_width=12):
+        """Formats a list of fields for display.
+        
+        Parameters
+        ----------
+        fields : list
+          A list of 2-tuples: (field_title, field_content)
+        title_width : int
+          How many characters to pad titles to. Default 12.
+        """
+        out = []
+        header = self.__head
+        for title, content in fields:
+            if len(content.splitlines()) > 1:
+                title = header(title + ":") + "\n"
+            else:
+                title = header((title+":").ljust(title_width))
+            out.append(title + content)
+        return "\n".join(out)
 
+    # The fields to be displayed by pinfo: (fancy_name, key_in_info_dict)
+    pinfo_fields1 = [("Type", "type_name"),
+                    ("Base Class", "base_class"),
+                    ("String Form", "string_form"),
+                    ("Namespace", "namespace"),
+                    ("Length", "length"),
+                    ("File", "file"),
+                    ("Definition", "definition")]
+    
+    pinfo_fields_obj = [("Class Docstring", "class_docstring"),
+                        ("Constructor Docstring","init_docstring"),
+                        ("Call def", "call_def"),
+                        ("Call docstring", "call_docstring")]
+                    
     def pinfo(self,obj,oname='',formatter=None,info=None,detail_level=0):
         """Show detailed information about an object.
 
@@ -392,215 +415,42 @@ class Inspector:
 
         - detail_level: if set to 1, more information is given.
         """
-
-        obj_type = type(obj)
-
-        header = self.__head
-        if info is None:
-            ismagic = 0
-            isalias = 0
-            ospace = ''
-        else:
-            ismagic = info.ismagic
-            isalias = info.isalias
-            ospace = info.namespace
-        # Get docstring, special-casing aliases:
-        if isalias:
-            if not callable(obj):
-                try:
-                    ds = "Alias to the system command:\n  %s" % obj[1]
-                except:
-                    ds = "Alias: " + str(obj)
-            else:
-                ds = "Alias to " + str(obj)
-                if obj.__doc__:
-                    ds += "\nDocstring:\n" + obj.__doc__
-        else:
-            ds = getdoc(obj)
-            if ds is None:
-                ds = '<no docstring>'
-        if formatter is not None:
-            ds = formatter(ds)
-
-        # store output in a list which gets joined with \n at the end.
-        out = myStringIO()
+        info = self.info(obj, oname=oname, formatter=formatter,
+                            info=info, detail_level=detail_level)
+        displayfields = []
+        for title, key in self.pinfo_fields1:
+            field = info[key]
+            if field is not None:
+                displayfields.append((title, field.rstrip()))
         
-        string_max = 200 # max size of strings to show (snipped if longer)
-        shalf = int((string_max -5)/2)
-
-        if ismagic:
-            obj_type_name = 'Magic function'
-        elif isalias:
-            obj_type_name = 'System alias'
+        # Source or docstring, depending on detail level and whether
+        # source found.
+        if detail_level > 0 and info['source'] is not None:
+            displayfields.append(("Source", info['source']))
+        elif info['docstring'] is not None:
+            displayfields.append(("Docstring", info["docstring"]))
+        
+        # Constructor info for classes
+        if info['isclass']:
+            if info['init_definition'] or info['init_docstring']:
+                displayfields.append(("Constructor information", ""))
+                if info['init_definition'] is not None:
+                    displayfields.append((" Definition",
+                                    info['init_definition'].rstrip()))
+                if info['init_docstring'] is not None:
+                    displayfields.append((" Docstring",
+                                        indent(info['init_docstring'])))
+                                        
+        # Info for objects:
         else:
-            obj_type_name = obj_type.__name__
-        out.writeln(header('Type:\t\t')+obj_type_name)
-
-        try:
-            bclass = obj.__class__
-            out.writeln(header('Base Class:\t')+str(bclass))
-        except: pass
-
-        # String form, but snip if too long in ? form (full in ??)
-        if detail_level >= self.str_detail_level:
-            try:
-                ostr = str(obj)
-                str_head = 'String Form:'
-                if not detail_level and len(ostr)>string_max:
-                    ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
-                    ostr = ("\n" + " " * len(str_head.expandtabs())).\
-                            join(q.strip() for q in ostr.split("\n"))
-                if ostr.find('\n') > -1:
-                    # Print multi-line strings starting at the next line.
-                    str_sep = '\n'
-                else:
-                    str_sep = '\t'
-                out.writeln("%s%s%s" % (header(str_head),str_sep,ostr))
-            except:
-                pass
-
-        if ospace:
-            out.writeln(header('Namespace:\t')+ospace)
-
-        # Length (for strings and lists)
-        try:
-            length = str(len(obj))
-            out.writeln(header('Length:\t\t')+length)
-        except: pass
-
-        # Filename where object was defined
-        binary_file = False
-        try:
-            try:
-                fname = inspect.getabsfile(obj)
-            except TypeError:
-                # For an instance, the file that matters is where its class was
-                # declared.
-                if hasattr(obj,'__class__'):
-                    fname = inspect.getabsfile(obj.__class__)
-            if fname.endswith('<string>'):
-                fname = 'Dynamically generated function. No source code available.'
-            if (fname.endswith('.so') or fname.endswith('.dll')):
-                binary_file = True
-            out.writeln(header('File:\t\t')+fname)
-        except:
-            # if anything goes wrong, we don't want to show source, so it's as
-            # if the file was binary
-            binary_file = True
-
-        # reconstruct the function definition and print it:
-        defln = self._getdef(obj,oname)
-        if defln:
-            out.write(header('Definition:\t')+self.format(defln))
- 
-        # Docstrings only in detail 0 mode, since source contains them (we
-        # avoid repetitions).  If source fails, we add them back, see below.
-        if ds and detail_level == 0:
-                out.writeln(header('Docstring:\n') + indent(ds))
-                
-        # Original source code for any callable
-        if detail_level:
-            # Flush the source cache because inspect can return out-of-date
-            # source
-            linecache.checkcache()
-            source_success = False
-            try:
-                try:
-                    src = getsource(obj,binary_file)
-                except TypeError:
-                    if hasattr(obj,'__class__'):
-                        src = getsource(obj.__class__,binary_file)
-                if src is not None:
-                    source = self.format(src)
-                    out.write(header('Source:\n')+source.rstrip()+'\n')
-                    source_success = True
-            except Exception, msg:
-                pass
-            
-            if ds and not source_success:
-                out.writeln(header('Docstring [source file open failed]:\n')
-                            + indent(ds))
-
-        # Constructor docstring for classes
-        if inspect.isclass(obj):
-            # reconstruct the function definition and print it:
-            try:
-                obj_init =  obj.__init__
-            except AttributeError:
-                init_def = init_ds = None
-            else:
-                init_def = self._getdef(obj_init,oname)
-                init_ds  = getdoc(obj_init)
-                # Skip Python's auto-generated docstrings
-                if init_ds and \
-                       init_ds.startswith('x.__init__(...) initializes'):
-                    init_ds = None
-
-            if init_def or init_ds:
-                out.writeln(header('Constructor information:'))
-                if init_def:
-                    out.write(header('Definition:\t')+ self.format(init_def))
-                if init_ds:
-                    out.writeln(header('Docstring:\n') + indent(init_ds))
-        # and class docstring for instances:
-        elif obj_type is types.InstanceType or \
-                 isinstance(obj,object):
-
-            # First, check whether the instance docstring is identical to the
-            # class one, and print it separately if they don't coincide.  In
-            # most cases they will, but it's nice to print all the info for
-            # objects which use instance-customized docstrings.
-            if ds:
-                try:
-                    cls = getattr(obj,'__class__')
-                except:
-                    class_ds = None
-                else:
-                    class_ds = getdoc(cls)
-                # Skip Python's auto-generated docstrings
-                if class_ds and \
-                       (class_ds.startswith('function(code, globals[,') or \
-                   class_ds.startswith('instancemethod(function, instance,') or \
-                   class_ds.startswith('module(name[,') ):
-                    class_ds = None
-                if class_ds and ds != class_ds:
-                    out.writeln(header('Class Docstring:\n') +
-                                indent(class_ds))
-
-            # Next, try to show constructor docstrings
-            try:
-                init_ds = getdoc(obj.__init__)
-                # Skip Python's auto-generated docstrings
-                if init_ds and \
-                       init_ds.startswith('x.__init__(...) initializes'):
-                    init_ds = None
-            except AttributeError:
-                init_ds = None
-            if init_ds:
-                out.writeln(header('Constructor Docstring:\n') +
-                            indent(init_ds))
-
-            # Call form docstring for callable instances
-            if hasattr(obj,'__call__'):
-                #out.writeln(header('Callable:\t')+'Yes')
-                call_def = self._getdef(obj.__call__,oname)
-                #if call_def is None:
-                #    out.writeln(header('Call def:\t')+
-                #              'Calling definition not available.')
-                if call_def is not None:
-                    out.writeln(header('Call def:\t')+self.format(call_def))
-                call_ds = getdoc(obj.__call__)
-                # Skip Python's auto-generated docstrings
-                if call_ds and call_ds.startswith('x.__call__(...) <==> x(...)'):
-                    call_ds = None
-                if call_ds:
-                    out.writeln(header('Call docstring:\n') + indent(call_ds))
-
-        # Finally send to printer/pager
-        output = out.getvalue()
-        if output:
-            page.page(output)
-        # end pinfo
+            for title, key in self.pinfo_fields_obj:
+                field = info[key]
+                if field is not None:
+                    displayfields.append((title, field.rstrip()))
+        
+        # Finally send to printer/pager:
+        if displayfields:
+            page.page(self._format_fields(displayfields))
 
     def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
         """Compute a dict with detailed information about an object.
@@ -675,11 +525,6 @@ class Inspector:
                     ostr = ostr[:shalf] + ' <...> ' + ostr[-shalf:]
                     ostr = ("\n" + " " * len(str_head.expandtabs())).\
                             join(q.strip() for q in ostr.split("\n"))
-                if ostr.find('\n') > -1:
-                    # Print multi-line strings starting at the next line.
-                    str_sep = '\n'
-                else:
-                    str_sep = '\t'
                 out[str_head] = ostr
             except:
                 pass
@@ -727,7 +572,7 @@ class Inspector:
             # Flush the source cache because inspect can return out-of-date
             # source
             linecache.checkcache()
-            source_success = False
+            source = None
             try:
                 try:
                     src = getsource(obj,binary_file)
@@ -737,12 +582,16 @@ class Inspector:
                 if src is not None:
                     source = self.format(src)
                     out['source'] = source.rstrip()
-                    source_success = True
-            except Exception, msg:
+            except Exception:
                 pass
+                
+            if ds and source is None:
+                out['docstring'] = ds
+                
 
         # Constructor docstring for classes
         if inspect.isclass(obj):
+            out['isclass'] = True
             # reconstruct the function definition and print it:
             try:
                 obj_init =  obj.__init__
@@ -763,8 +612,7 @@ class Inspector:
                     out['init_docstring'] = init_ds
 
         # and class docstring for instances:
-        elif obj_type is types.InstanceType or \
-                 isinstance(obj, object):
+        else:
             # First, check whether the instance docstring is identical to the
             # class one, and print it separately if they don't coincide.  In
             # most cases they will, but it's nice to print all the info for
