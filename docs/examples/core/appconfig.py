@@ -35,7 +35,7 @@ import sys
 from IPython.config.configurable import Configurable
 from IPython.config.application import Application
 from IPython.utils.traitlets import (
-    Bool, Unicode, Int, Float, List
+    Bool, Unicode, Int, Float, List, Dict
 )
 
 
@@ -63,15 +63,14 @@ class MyApp(Application):
     config_file = Unicode(u'', config=True,
                    help="Load this config file")
     
-    shortnames = dict(i='Foo.i',j='Foo.j',name='Foo.name', running='MyApp.running',
-                        enabled='Bar.enabled')
+    aliases = Dict(dict(i='Foo.i',j='Foo.j',name='Foo.name', running='MyApp.running',
+                        enabled='Bar.enabled', log_level='MyApp.log_level'))
     
-    macros = dict(enable={'Bar': {'enabled' : True}}, disable={'Bar': {'enabled' : False}})
-    macro_help = dict(
-            enable="""Set Bar.enabled to True""",
-            disable="""Set Bar.enabled to False"""
-    )
-
+    flags = Dict(dict(enable=({'Bar': {'enabled' : True}}, "Enable Bar"),
+                  disable=({'Bar': {'enabled' : False}}, "Disable Bar"),
+                  debug=({'MyApp':{'log_level':10}}, "Set loglevel to DEBUG")
+            ))
+    
     def init_foo(self):
         # Pass config to other classes for them to inherit the config.
         self.foo = Foo(config=self.config)
@@ -91,7 +90,6 @@ def main():
     app.init_bar()
     print "app.config:"
     print app.config
-    print app.bar.enabled
 
 
 if __name__ == "__main__":

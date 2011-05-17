@@ -24,7 +24,7 @@ import sys
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
-    KeyValueConfigLoader, PyFileConfigLoader
+    KeyValueConfigLoader, PyFileConfigLoader, Config
 )
 
 from IPython.utils.traitlets import (
@@ -36,14 +36,14 @@ from IPython.utils.text import indent
 # Descriptions for
 #-----------------------------------------------------------------------------
 
-macro_description = """
+flag_description = """
 Flags are command-line arguments passed as '--<flag>'.
 These take no parameters, unlike regular key-value arguments.
 They are typically used for setting boolean flags, or enabling
 modes that involve setting multiple options together.
 """.strip() # trim newlines of front and back
 
-shortname_description = """
+alias_description = """
 These are commonly set parameters, given abbreviated aliases for convenience.
 They are set in the same `name=value` way as class parameters, where
 <name> is replaced by the real parameter for which it is an alias.
@@ -72,13 +72,13 @@ class Application(SingletonConfigurable):
     # of the help.
     description = Unicode(u'This is an application.')
     # default section descriptions
-    macro_description = Unicode(macro_description)
-    shortname_description = Unicode(shortname_description)
+    flag_description = Unicode(flag_description)
+    alias_description = Unicode(alias_description)
     keyvalue_description = Unicode(keyvalue_description)
     
 
     # A sequence of Configurable subclasses whose config=True attributes will
-    # be exposed at the command line (shortnames and help).
+    # be exposed at the command line.
     classes = List([])
 
     # The version string of this application.
@@ -89,14 +89,14 @@ class Application(SingletonConfigurable):
                      config=True,
                      help="Set the log level (0,10,20,30,40,50).")
     
-    # the shortname map for configurables
-    shortnames = Dict(dict(log_level='Application.log_level'))
+    # the alias map for configurables
+    aliases = Dict(dict(log_level='Application.log_level'))
     
-    # macros for loading Configurables or store_const style flags
-    # macros are loaded from this dict by '--key' flags
-    macros = Dict()
-    # macro_help dict keys must match macros
-    macro_help = Dict()
+    # flags for loading Configurables or store_const style flags
+    # flags are loaded from this dict by '--key' flags
+    # this must be a dict of two-tuples, the first element being the Config/dict
+    # and the second being the help string for the flag
+    flags = Dict()
     
 
     def __init__(self, **kwargs):
@@ -105,12 +105,11 @@ class Application(SingletonConfigurable):
         # options.
         self.classes.insert(0, self.__class__)
         
-        # check that macro_help has the right keys
-        # there is probably a better way to do this that doesn't use 2 dicts
-        keys = set(self.macros.keys())
-        badkeys = keys.difference_update(set(self.macro_help.keys()))
-        if badkeys:
-            raise KeyError("macro %r has no help in `macro_help`!"%badkeys.pop())
+        # ensure self.flags dict is valid
+        for key,value in self.flags.iteritems():
+            assert len(value) == 2, "Bad flag: %r:%s"%(key,value)
+            assert isinstance(value[0], (dict, Config)), "Bad flag: %r:%s"%(key,value)
+            assert isinstance(value[1], basestring), "Bad flag: %r:%s"%(key,value)
         self.init_logging()
     
     def init_logging(self):
@@ -131,50 +130,50 @@ class Application(SingletonConfigurable):
         """Adjust the log level when log_level is set."""
         self.log.setLevel(new)
     
-    def print_shortname_help(self):
-        """print the shortname part of the help"""
-        if not self.shortnames:
+    def print_alias_help(self):
+        """print the alias part of the help"""
+        if not self.aliases:
             return
             
         print "Aliases"
         print "-------"
-        print self.shortname_description
+        print self.alias_description
         print
         
         classdict = {}
         for c in self.classes:
             classdict[c.__name__] = c
         
-        for shortname, longname in self.shortnames.iteritems():
+        for alias, longname in self.aliases.iteritems():
             classname, traitname = longname.split('.',1)
             cls = classdict[classname]
             
             trait = cls.class_traits(config=True)[traitname]
             help = trait.get_metadata('help')
-            print shortname, "(%s)"%longname, ':', trait.__class__.__name__
+            print alias, "(%s)"%longname, ':', trait.__class__.__name__
             if help:
                 print indent(help)
         print
     
-    def print_macro_help(self):
-        """print the the macro part of the help"""
-        if not self.macros:
+    def print_flag_help(self):
+        """print the flag part of the help"""
+        if not self.flags:
             return
         
         print "Flags"
         print "-----"
-        print self.macro_description
+        print self.flag_description
         print
         
-        for m, cfg in self.macros.iteritems():
+        for m, (cfg,help) in self.flags.iteritems():
             print '--'+m
-            print indent(self.macro_help[m])
+            print indent(help)
         print
     
     def print_help(self):
         """Print the help for each Configurable class in self.classes."""
-        self.print_macro_help()
-        self.print_shortname_help()
+        self.print_flag_help()
+        self.print_alias_help()
         if self.classes:
             print "Class parameters"
             print "----------------"
@@ -216,9 +215,9 @@ class Application(SingletonConfigurable):
         if '--version' in argv:
             self.print_version()
             sys.exit(1)
-
-        loader = KeyValueConfigLoader(argv=argv, shortnames=self.shortnames,
-                                        macros=self.macros)
+        
+        loader = KeyValueConfigLoader(argv=argv, aliases=self.aliases,
+                                        flags=self.flags)
         config = loader.load_config()
         self.update_config(config)
 

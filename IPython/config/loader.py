@@ -305,7 +305,7 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.+')
-macro_pattern = re.compile(r'\-\-\w+(\-\w)*')
+flag_pattern = re.compile(r'\-\-\w+(\-\w)*')
 
 class KeyValueConfigLoader(CommandLineConfigLoader):
     """A config loader that loads key value pairs from the command line.
@@ -315,7 +315,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         ipython Global.profile="foo" InteractiveShell.autocall=False
     """
 
-    def __init__(self, argv=None, shortnames=None, macros=None):
+    def __init__(self, argv=None, aliases=None, flags=None):
         """Create a key value pair config loader.
 
         Parameters
@@ -324,14 +324,14 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             A list that has the form of sys.argv[1:] which has unicode
             elements of the form u"key=value". If this is None (default),
             then sys.argv[1:] will be used.
-        shortnames : dict
+        aliases : dict
             A dict of aliases for configurable traits.
             Keys are the short aliases, Values are the resolved trait.
-            Of the form: `{'shortname' : 'Configurable.trait'}`
-        macros : dict
-            A dict of macros, keyed by str name. Vaues can be Config objects,
-            dicts, or "key=value" strings.  If Config or dict, when the macro
-            is triggered, The macro is loaded as `self.config.update(m)`.
+            Of the form: `{'alias' : 'Configurable.trait'}`
+        flags : dict
+            A dict of flags, keyed by str name. Vaues can be Config objects,
+            dicts, or "key=value" strings.  If Config or dict, when the flag
+            is triggered, The flag is loaded as `self.config.update(m)`.
 
         Returns
         -------
@@ -349,10 +349,10 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         if argv is None:
             argv = sys.argv[1:]
         self.argv = argv
-        self.shortnames = shortnames or {}
-        self.macros = macros or {}
+        self.aliases = aliases or {}
+        self.flags = flags or {}
 
-    def load_config(self, argv=None, shortnames=None, macros=None):
+    def load_config(self, argv=None, aliases=None, flags=None):
         """Parse the configuration and generate the Config object.
 
         Parameters
@@ -361,31 +361,31 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             A list that has the form of sys.argv[1:] which has unicode
             elements of the form u"key=value". If this is None (default),
             then self.argv will be used.
-        shortnames : dict
+        aliases : dict
             A dict of aliases for configurable traits.
             Keys are the short aliases, Values are the resolved trait.
-            Of the form: `{'shortname' : 'Configurable.trait'}`
-        macros : dict
-            A dict of macros, keyed by str name. Vaues can be Config objects,
-            dicts, or "key=value" strings.  If Config or dict, when the macro
-            is triggered, The macro is loaded as `self.config.update(m)`.
+            Of the form: `{'alias' : 'Configurable.trait'}`
+        flags : dict
+            A dict of flags, keyed by str name. Values can be Config objects
+            or dicts.  When the flag is triggered, The config is loaded as 
+            `self.config.update(cfg)`.
         """
         from IPython.config.configurable import Configurable
 
         self.clear()
         if argv is None:
             argv = self.argv
-        if shortnames is None:
-            shortnames = self.shortnames
-        if macros is None:
-            macros = self.macros
+        if aliases is None:
+            aliases = self.aliases
+        if flags is None:
+            flags = self.flags
 
         for item in argv:
             if kv_pattern.match(item):
                 lhs,rhs = item.split('=',1)
-                # Substitute longnames for shortnames.
-                if lhs in shortnames:
-                    lhs = shortnames[lhs]
+                # Substitute longnames for aliases.
+                if lhs in aliases:
+                    lhs = aliases[lhs]
                 exec_str = 'self.config.' + lhs + '=' + rhs
                 try:
                     # Try to see if regular Python syntax will work. This
@@ -398,18 +398,17 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     # it succeeds. If it still fails, we let it raise.
                     exec_str = 'self.config.' + lhs + '="' + rhs + '"'
                     exec exec_str in locals(), globals()
-            elif macro_pattern.match(item):
+            elif flag_pattern.match(item):
                 # trim leading '--'
                 m = item[2:]
-                macro = macros.get(m, None)
-                if macro is None:
-                    raise ValueError("Unrecognized argument: %r"%item)
-                macro = macros[m]
-                if isinstance(macro, (dict, Configurable)):
+                cfg,_ = flags.get(m, (None,None))
+                if cfg is None:
+                    raise ValueError("Unrecognized flag: %r"%item)
+                elif isinstance(cfg, (dict, Config)):
                     # update self.config with Config:
-                    self.config.update(macros[m])
+                    self.config.update(cfg)
                 else:
-                    raise ValueError("Invalid macro: %r"%macro)
+                    raise ValueError("Invalid flag: %r"%flag)
             else:
                 raise ValueError("Invalid argument: %r"%item)
         return self.config

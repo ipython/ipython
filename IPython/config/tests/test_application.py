@@ -26,7 +26,7 @@ from IPython.config.application import (
 )
 
 from IPython.utils.traitlets import (
-    Bool, Unicode, Int, Float, List
+    Bool, Unicode, Int, Float, List, Dict
 )
 
 #-----------------------------------------------------------------------------
@@ -48,21 +48,18 @@ class Bar(Configurable):
 class MyApp(Application):
 
     app_name = Unicode(u'myapp')
-    running = Bool(False, config=True, shortname="running",
+    running = Bool(False, config=True,
                    help="Is the app running?")
     classes = List([Bar, Foo])
-    config_file = Unicode(u'', config=True, shortname="config_file",
+    config_file = Unicode(u'', config=True,
                    help="Load this config file")
 
-    shortnames = dict(i='Foo.i',j='Foo.j',name='Foo.name',
-                    enabled='Bar.enabled', log_level='MyApp.log_level')
+    aliases = Dict(dict(i='Foo.i',j='Foo.j',name='Foo.name',
+                    enabled='Bar.enabled', log_level='MyApp.log_level'))
     
-    macros = dict(enable={'Bar': {'enabled' : True}}, disable={'Bar': {'enabled' : False}})
-
-    macro_help = dict(
-            enable="""Enable bar""",
-            disable="""Disable bar"""
-    )
+    flags = Dict(dict(enable=({'Bar': {'enabled' : True}}, "Set Bar.enabled to True"),
+                  disable=({'Bar': {'enabled' : False}}, "Set Bar.enabled to False")))
+    
     def init_foo(self):
         self.foo = Foo(config=self.config)
 
@@ -97,7 +94,7 @@ class TestApplication(TestCase):
         self.assertEquals(app.foo.j, 10)
         self.assertEquals(app.bar.enabled, False)
 
-    def test_macro(self):
+    def test_alias(self):
         app = MyApp()
         app.parse_command_line(["--disable"])
         app.init_bar()
