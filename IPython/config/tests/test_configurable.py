@@ -22,10 +22,15 @@ Authors:
 
 from unittest import TestCase
 
-from IPython.config.configurable import Configurable, ConfigurableError
-from IPython.utils.traitlets import (
-    TraitError, Int, Float, Str
+from IPython.config.configurable import (
+    Configurable, 
+    SingletonConfigurable
 )
+
+from IPython.utils.traitlets import (
+    Int, Float, Str
+)
+
 from IPython.config.loader import Config
 
 
@@ -35,22 +40,29 @@ from IPython.config.loader import Config
 
 
 class MyConfigurable(Configurable):
-    a = Int(1, config=True)
-    b = Float(1.0, config=True)
+    a = Int(1, config=True, help="The integer a.")
+    b = Float(1.0, config=True, help="The integer b.")
     c = Str('no config')
 
 
+mc_help=u"""MyConfigurable options
+----------------------
+MyConfigurable.a : Int
+    The integer a.
+MyConfigurable.b : Float
+    The integer b."""
+
 class Foo(Configurable):
-    a = Int(0, config=True)
+    a = Int(0, config=True, help="The integer a.")
     b = Str('nope', config=True)
 
 
 class Bar(Foo):
-    b = Str('gotit', config=False)
-    c = Float(config=True)
+    b = Str('gotit', config=False, help="The string b.")
+    c = Float(config=True, help="The string c.")
 
 
-class TestConfigurableConfig(TestCase):
+class TestConfigurable(TestCase):
 
     def test_default(self):
         c1 = Configurable()
@@ -122,3 +134,31 @@ class TestConfigurableConfig(TestCase):
         self.assertEquals(c.a, 2)
         self.assertEquals(c.b, 'and')
         self.assertEquals(c.c, 20.0)
+
+    def test_help(self):
+        self.assertEquals(MyConfigurable.class_get_help(), mc_help)
+
+
+class TestSingletonConfigurable(TestCase):
+
+    def test_instance(self):
+        from IPython.config.configurable import SingletonConfigurable
+        class Foo(SingletonConfigurable): pass
+        self.assertEquals(Foo.initialized(), False)
+        foo = Foo.instance()
+        self.assertEquals(Foo.initialized(), True)
+        self.assertEquals(foo, Foo.instance())
+        self.assertEquals(SingletonConfigurable._instance, None)
+
+    def test_inheritance(self):
+        class Bar(SingletonConfigurable): pass
+        class Bam(Bar): pass
+        self.assertEquals(Bar.initialized(), False)
+        self.assertEquals(Bam.initialized(), False)
+        bam = Bam.instance()
+        bam == Bar.instance()
+        self.assertEquals(Bar.initialized(), True)
+        self.assertEquals(Bam.initialized(), True)
+        self.assertEquals(bam, Bam._instance)
+        self.assertEquals(bam, Bar._instance)
+        self.assertEquals(SingletonConfigurable._instance, None)

@@ -31,7 +31,7 @@ import tempfile
 import types
 from contextlib import nested
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
 from IPython.core import history as ipcorehist
 from IPython.core import page
@@ -132,9 +132,7 @@ class SeparateStr(Str):
         value = value.replace('\\n','\n')
         return super(SeparateStr, self).validate(obj, value)
 
-class MultipleInstanceError(Exception):
-    pass
-    
+
 class ReadlineNoRecord(object):
     """Context manager to execute some code, then reload readline history
     so that interactive input to the code doesn't appear when pressing up."""
@@ -181,25 +179,78 @@ class ReadlineNoRecord(object):
         return [ghi(x) for x in range(start, end)]
 
 
+_autocall_help = """
+Make IPython automatically call any callable object even if
+you didn't type explicit parentheses. For example, 'str 43' becomes 'str(43)'
+automatically. The value can be '0' to disable the feature, '1' for 'smart'
+autocall, where it is not applied if there are no more arguments on the line,
+and '2' for 'full' autocall, where all callable objects are automatically
+called (even if no arguments are present). The default is '1'.
+"""
+
 #-----------------------------------------------------------------------------
 # Main IPython class
 #-----------------------------------------------------------------------------
 
-class InteractiveShell(Configurable, Magic):
+class InteractiveShell(SingletonConfigurable, Magic):
     """An enhanced, interactive shell for Python."""
 
     _instance = None
-    autocall = Enum((0,1,2), default_value=1, config=True)
+
+    autocall = Enum((0,1,2), default_value=1, config=True, help=
+        """
+        Make IPython automatically call any callable object even if you didn't
+        type explicit parentheses. For example, 'str 43' becomes 'str(43)'
+        automatically. The value can be '0' to disable the feature, '1' for
+        'smart' autocall, where it is not applied if there are no more
+        arguments on the line, and '2' for 'full' autocall, where all callable
+        objects are automatically called (even if no arguments are present).
+        The default is '1'.
+        """
+    )
     # TODO: remove all autoindent logic and put into frontends.
     # We can't do this yet because even runlines uses the autoindent.
-    autoindent = CBool(True, config=True)
-    automagic = CBool(True, config=True)
-    cache_size = Int(1000, config=True)
-    color_info = CBool(True, config=True)
+    autoindent = CBool(True, config=True, help=
+        """
+        Autoindent IPython code entered interactively.
+        """
+    )
+    automagic = CBool(True, config=True, help=
+        """
+        Enable magic commands to be called without the leading %.
+        """
+    )
+    cache_size = Int(1000, config=True, help=
+        """
+        Set the size of the output cache.  The default is 1000, you can
+        change it permanently in your config file.  Setting it to 0 completely
+        disables the caching system, and the minimum value accepted is 20 (if
+        you provide a value less than 20, it is reset to 0 and a warning is
+        issued).  This limit is defined because otherwise you'll spend more
+        time re-flushing a too small cache than working
+        """
+    )
+    color_info = CBool(True, config=True, help=
+        """
+        Use colors for displaying information about objects. Because this
+        information is passed through a pager (like 'less'), and some pagers
+        get confused with color codes, this capability can be turned off.
+        """
+    )
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
                              default_value=get_default_colors(), config=True)
     debug = CBool(False, config=True)
-    deep_reload = CBool(False, config=True)
+    deep_reload = CBool(False, config=True, help=
+        """
+        Enable deep (recursive) reloading by default. IPython can use the
+        deep_reload module which reloads changes in modules recursively (it
+        replaces the reload() function, so you don't need to change anything to
+        use it). deep_reload() forces a full reload of modules whose code may
+        have changed, which the default reload() function does not.  When
+        deep_reload is off, IPython will use the normal reload(), but
+        deep_reload will still be available as dreload().
+        """
+    )
     display_formatter = Instance(DisplayFormatter)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
@@ -217,12 +268,28 @@ class InteractiveShell(Configurable, Magic):
     # interactive statements or whole blocks.
     input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                               (), {})
-    logstart = CBool(False, config=True)
-    logfile = Unicode('', config=True)
-    logappend = Unicode('', config=True)
+    logstart = CBool(False, config=True, help=
+        """
+        Start logging to the default log file.
+        """
+    )
+    logfile = Unicode('', config=True, help=
+        """
+        The name of the logfile to use.
+        """
+    )
+    logappend = Unicode('', config=True, help=
+        """
+        Start logging to the given file in append mode.
+        """
+    )
     object_info_string_level = Enum((0,1,2), default_value=0,
                                     config=True)
-    pdb = CBool(False, config=True)
+    pdb = CBool(False, config=True, help=
+        """
+        Automatically call the pdb debugger after every exception.
+        """
+    )
 
     profile = Unicode('', config=True)
     prompt_in1 = Str('In [\\#]: ', config=True)
@@ -355,31 +422,6 @@ class InteractiveShell(Configurable, Magic):
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
-
-    @classmethod
-    def instance(cls, *args, **kwargs):
-        """Returns a global InteractiveShell instance."""
-        if cls._instance is None:
-            inst = cls(*args, **kwargs)
-            # Now make sure that the instance will also be returned by
-            # the subclasses instance attribute.
-            for subclass in cls.mro():
-                if issubclass(cls, subclass) and \
-                       issubclass(subclass, InteractiveShell):
-                    subclass._instance = inst
-                else:
-                    break
-        if isinstance(cls._instance, cls):
-            return cls._instance
-        else:
-            raise MultipleInstanceError(
-                'Multiple incompatible subclass instances of '
-                'InteractiveShell are being created.'
-            )
-
-    @classmethod
-    def initialized(cls):
-        return hasattr(cls, "_instance")
 
     def get_ipython(self):
         """Return the currently running IPython instance."""
