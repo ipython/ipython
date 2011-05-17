@@ -39,13 +39,13 @@ def print_basic_unicode(o, p, cycle):
 
 
 def print_png(o):
-    """A funciton to display sympy expression using LaTex -> PNG."""
+    """A function to display sympy expression using LaTex -> PNG."""
     s = latex(o, mode='inline')
     # mathtext does not understand certain latex flags, so we try to replace
     # them with suitable subs.
     s = s.replace('\\operatorname','')
     s = s.replace('\\overline', '\\bar')
-    png = latex_to_png(s, encode=True)
+    png = latex_to_png(s)
     return png
 
 _loaded = False
