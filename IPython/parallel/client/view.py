@@ -18,9 +18,8 @@ from types import ModuleType
 
 import zmq
 
-from IPython.testing import decorators as testdec
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, Instance, CFloat, CInt
-
 from IPython.external.decorator import decorator
 
 from IPython.parallel import util
@@ -69,7 +68,7 @@ def spin_after(f, self, *args, **kwargs):
 # Classes
 #-----------------------------------------------------------------------------
 
-@testdec.skip_doctest
+@skip_doctest
 class View(HasTraits):
     """Base View class for more convenint apply(f,*args,**kwargs) syntax via attributes.
     
@@ -360,7 +359,7 @@ class View(HasTraits):
         block = self.block if block is None else block
         return parallel(self, dist=dist, block=block, **flags)
 
-@testdec.skip_doctest
+@skip_doctest
 class DirectView(View):
     """Direct Multiplexer View of one or more engines.
     
@@ -772,7 +771,7 @@ class DirectView(View):
             pmagic.active_view = self
 
 
-@testdec.skip_doctest
+@skip_doctest
 class LoadBalancedView(View):
     """An load-balancing View that only executes via the Task scheduler.
     

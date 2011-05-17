@@ -51,7 +51,7 @@ from IPython.core import page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
 from IPython.external.Itpl import itpl, printpl
-from IPython.testing import decorators as testdec
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split, abbrev_cwd
@@ -435,7 +435,7 @@ Currently the magic system has the following functions:\n"""
             self.shell.automagic = not self.shell.automagic
         print '\n' + Magic.auto_status[self.shell.automagic]
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_autocall(self, parameter_s = ''):
         """Make functions callable without having to type parentheses.
 
@@ -564,7 +564,7 @@ Currently the magic system has the following functions:\n"""
         self.shell._inspect('pinfo', parameter_s, detail_level=1,
                             namespaces=namespaces)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
@@ -725,7 +725,7 @@ Currently the magic system has the following functions:\n"""
         except:
             shell.showtraceback()
         
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
 
@@ -766,7 +766,7 @@ Currently the magic system has the following functions:\n"""
         out.sort()
         return out
         
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_who(self, parameter_s=''):
         """Print all interactive variables, with some minimal formatting.
 
@@ -827,7 +827,7 @@ Currently the magic system has the following functions:\n"""
                 print
         print
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_whos(self, parameter_s=''):
         """Like %who, but gives some extra information about each variable.
 
@@ -1265,7 +1265,7 @@ Currently the magic system has the following functions:\n"""
         """
         self.shell.debugger(force=True)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_prun(self, parameter_s ='',user_mode=1,
                    opts=None,arg_lst=None,prog_ns=None):
 
@@ -1438,7 +1438,7 @@ Currently the magic system has the following functions:\n"""
         else:
             return None
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_run(self, parameter_s ='',runner=None,
                   file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
@@ -1732,7 +1732,7 @@ Currently the magic system has the following functions:\n"""
                 
         return stats
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_timeit(self, parameter_s =''):
         """Time execution of a Python statement or expression
 
@@ -1869,7 +1869,7 @@ Currently the magic system has the following functions:\n"""
         if tc > tc_min:
             print "Compiler time: %.2f s" % tc
 
-    @testdec.skip_doctest
+    @skip_doctest
     @needs_local_scope
     def magic_time(self,parameter_s = ''):
         """Time execution of a Python statement or expression.
@@ -1963,7 +1963,7 @@ Currently the magic system has the following functions:\n"""
             print "Compiler : %.2f s" % tc
         return out
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_macro(self,parameter_s = ''):
         """Define a macro for future re-execution. It accepts ranges of history,
         filenames or string objects.
@@ -2127,7 +2127,7 @@ Currently the magic system has the following functions:\n"""
         """Alias to %edit."""
         return self.magic_edit(parameter_s)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_edit(self,parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
 
@@ -2524,7 +2524,7 @@ Defaulting color scheme to 'NoColor'"""
     #......................................................................
     # Functions to implement unix shell-type things
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_alias(self, parameter_s = ''):
         """Define an alias for a system command.
 
@@ -2686,7 +2686,7 @@ Defaulting color scheme to 'NoColor'"""
         finally:
             os.chdir(savedir)
     
-    @testdec.skip_doctest    
+    @skip_doctest    
     def magic_pwd(self, parameter_s = ''):
         """Return the current working directory path.
         
@@ -2699,7 +2699,7 @@ Defaulting color scheme to 'NoColor'"""
         """
         return os.getcwd()
     
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_cd(self, parameter_s=''):
         """Change the current working directory.
 
@@ -2904,7 +2904,7 @@ Defaulting color scheme to 'NoColor'"""
                 header = 'Directory history (kept in _dh)',
                 start=ini,stop=fin)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_sc(self, parameter_s=''):
         """Shell capture - execute a shell command and capture its output.
 
@@ -3328,7 +3328,7 @@ Defaulting color scheme to 'NoColor'"""
         """Reload an IPython extension by its module name."""
         self.extension_manager.reload_extension(module_str)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_install_profiles(self, s):
         """Install the default IPython profiles into the .ipython dir.
 
@@ -3386,14 +3386,14 @@ Defaulting color scheme to 'NoColor'"""
     # Pylab support: simple wrappers that activate pylab, load gui input
     # handling and modify slightly %run
 
-    @testdec.skip_doctest
+    @skip_doctest
     def _pylab_magic_run(self, parameter_s=''):
         Magic.magic_run(self, parameter_s,
                         runner=mpl_runner(self.shell.safe_execfile))
 
     _pylab_magic_run.__doc__ = magic_run.__doc__
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_pylab(self, s):
         """Load numpy and matplotlib to work interactively.
 
@@ -3437,7 +3437,7 @@ Defaulting color scheme to 'NoColor'"""
         See %xmode for changing exception reporting modes."""
         self.shell.showtraceback()
     
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_precision(self, s=''):
         """Set floating point precision for pretty printing.
         

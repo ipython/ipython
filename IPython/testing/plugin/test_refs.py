@@ -5,7 +5,6 @@
 import inspect
 
 # Our own
-from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Testing functions
@@ -38,8 +37,7 @@ def doctest_ivars():
     In [6]: zz
     Out[6]: 1
     """
-    
-#@dec.skip_doctest
+
 def doctest_refs():
     """DocTest reference holding issues when running scripts.
 

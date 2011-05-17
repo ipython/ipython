@@ -26,7 +26,7 @@ from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.pylabtools import pylab_activate
-from IPython.testing import decorators as testdec
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn
@@ -448,7 +448,7 @@ class TerminalInteractiveShell(InteractiveShell):
         self.shell.set_autoindent()
         print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
         
