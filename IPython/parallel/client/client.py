@@ -1041,6 +1041,68 @@ class Client(HasTraits):
             ar.wait()
         
         return ar
+
+    @spin_first
+    def resubmit(self, indices_or_msg_ids=None, subheader=None, block=None):
+        """Resubmit one or more tasks.
+
+        in-flight tasks may not be resubmitted.
+
+        Parameters
+        ----------
+
+        indices_or_msg_ids : integer history index, str msg_id, or list of either
+            The indices or msg_ids of indices to be retrieved
+
+        block : bool
+            Whether to wait for the result to be done
+
+        Returns
+        -------
+
+        AsyncHubResult
+            A subclass of AsyncResult that retrieves results from the Hub
+
+        """
+        block = self.block if block is None else block
+        if indices_or_msg_ids is None:
+            indices_or_msg_ids = -1
+
+        if not isinstance(indices_or_msg_ids, (list,tuple)):
+            indices_or_msg_ids = [indices_or_msg_ids]
+
+        theids = []
+        for id in indices_or_msg_ids:
+            if isinstance(id, int):
+                id = self.history[id]
+            if not isinstance(id, str):
+                raise TypeError("indices must be str or int, not %r"%id)
+            theids.append(id)
+
+        for msg_id in theids:
+            self.outstanding.discard(msg_id)
+            if msg_id in self.history:
+                self.history.remove(msg_id)
+            self.results.pop(msg_id, None)
+            self.metadata.pop(msg_id, None)
+        content = dict(msg_ids = theids)
+
+        self.session.send(self._query_socket, 'resubmit_request', content)
+
+        zmq.select([self._query_socket], [], [])
+        idents,msg = self.session.recv(self._query_socket, zmq.NOBLOCK)
+        if self.debug:
+            pprint(msg)
+        content = msg['content']
+        if content['status'] != 'ok':
+            raise self._unwrap_exception(content)
+
+        ar = AsyncHubResult(self, msg_ids=theids)
+
+        if block:
+            ar.wait()
+
+        return ar
     
     @spin_first
     def result_status(self, msg_ids, status_only=True):
@@ -1255,9 +1317,11 @@ class Client(HasTraits):
         query : mongodb query dict
             The search dict. See mongodb query docs for details.
         keys : list of strs [optional]
-            THe subset of keys to be returned.  The default is to fetch everything.
+            The subset of keys to be returned.  The default is to fetch everything but buffers.
             'msg_id' will *always* be included.
         """
+        if isinstance(keys, basestring):
+            keys = [keys]
         content = dict(query=query, keys=keys)
         self.session.send(self._query_socket, "db_request", content=content)
         idents, msg = self.session.recv(self._query_socket, 0)
