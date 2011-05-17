@@ -100,14 +100,14 @@ def test_info():
     nt.assert_equal(i['file'], fname)
     nt.assert_equal(i['definition'], 'Call(self, *a, **kw)\n')
     nt.assert_equal(i['docstring'], Call.__doc__)
-    nt.assert_is(i['source'], None)
+    nt.assert_equal(i['source'], None)
     nt.assert_true(i['isclass'])
     nt.assert_equal(i['init_definition'], "Call(self, x, y=1)\n")
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
     
     i = inspector.info(Call, detail_level=1)
-    nt.assert_is_not(i['source'], None)
-    nt.assert_is(i['docstring'], None)
+    nt.assert_not_equal(i['source'], None)
+    nt.assert_equal(i['docstring'], None)
     
     c = Call(1)
     c.__doc__ = "Modified instance docstring"
