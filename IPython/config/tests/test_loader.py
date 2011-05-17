@@ -24,9 +24,12 @@ import os
 from tempfile import mkstemp
 from unittest import TestCase
 
+from IPython.utils.traitlets import Int, Unicode
+from IPython.config.configurable import Configurable
 from IPython.config.loader import (
     Config,
-    PyFileConfigLoader, 
+    PyFileConfigLoader,
+    KeyValueConfigLoader,
     ArgParseConfigLoader,
     ConfigError
 )
@@ -38,11 +41,11 @@ from IPython.config.loader import (
 
 pyfile = """
 c = get_config()
-c.a = 10
-c.b = 20
-c.Foo.Bar.value = 10
-c.Foo.Bam.value = range(10)
-c.D.C.value = 'hi there'
+c.a=10
+c.b=20
+c.Foo.Bar.value=10
+c.Foo.Bam.value=range(10)
+c.D.C.value='hi there'
 """
 
 class TestPyFileCL(TestCase):
@@ -107,6 +110,36 @@ class TestArgParseCL(TestCase):
         self.assertEquals(config.MyClass.bar, 10)
         self.assertEquals(config.n, True)
         self.assertEquals(config.Global.bam, 'wow')
+
+
+class TestKeyValueCL(TestCase):
+
+    def test_basic(self):
+        cl = KeyValueConfigLoader()
+        argv = [s.strip('c.') for s in pyfile.split('\n')[2:-1]]
+        config = cl.load_config(argv)
+        self.assertEquals(config.a, 10)
+        self.assertEquals(config.b, 20)
+        self.assertEquals(config.Foo.Bar.value, 10)
+        self.assertEquals(config.Foo.Bam.value, range(10))
+        self.assertEquals(config.D.C.value, 'hi there')
+
+    def test_shortname(self):
+        class Foo(Configurable):
+            i = Int(0, config=True, shortname="i")
+            s = Unicode('hi', config=True, shortname="s")
+        cl = KeyValueConfigLoader()
+        config = cl.load_config(["i=20", "s=there"], classes=[Foo])
+        self.assertEquals(config.Foo.i, 20)
+        self.assertEquals(config.Foo.s, "there")
+
+    def test_duplicate(self):
+        class Foo(Configurable):
+            i = Int(0, config=True, shortname="i")
+        class Bar(Configurable):
+            i = Int(0, config=True, shortname="i")
+        cl = KeyValueConfigLoader()
+        self.assertRaises(KeyError, cl.load_config, ["i=20", "s=there"], classes=[Foo, Bar])
 
 
 class TestConfig(TestCase):

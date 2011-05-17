@@ -22,11 +22,10 @@ Authors:
 
 from copy import deepcopy
 import datetime
-from weakref import WeakValueDictionary
 
-from IPython.utils.importstring import import_item
 from loader import Config
 from IPython.utils.traitlets import HasTraits, Instance
+from IPython.utils.text import indent
 
 
 #-----------------------------------------------------------------------------
@@ -37,6 +36,9 @@ from IPython.utils.traitlets import HasTraits, Instance
 class ConfigurableError(Exception):
     pass
 
+
+class MultipleInstanceError(ConfigurableError):
+    pass
 
 #-----------------------------------------------------------------------------
 # Configurable implementation
@@ -136,4 +138,103 @@ class Configurable(HasTraits):
                         # config object. If we don't, a mutable config_value will be
                         # shared by all instances, effectively making it a class attribute.
                         setattr(self, k, deepcopy(config_value))
+
+    @classmethod
+    def class_get_shortnames(cls):
+        """Return the shortname to fullname dict for config=True traits."""
+        cls_traits = cls.class_traits(config=True)
+        shortnames = {}
+        for k, v in cls_traits.items():
+            shortname = v.get_metadata('shortname')
+            if shortname is not None:
+                longname = cls.__name__ + '.' + k
+                shortnames[shortname] = longname
+        return shortnames
+
+    @classmethod
+    def class_get_help(cls):
+        """Get the help string for this class in ReST format."""
+        cls_traits = cls.class_traits(config=True)
+        final_help = []
+        final_help.append(u'%s options' % cls.__name__)
+        final_help.append(len(final_help[0])*u'-')
+        for k, v in cls_traits.items():
+            help = v.get_metadata('help')
+            shortname = v.get_metadata('shortname')
+            header = "%s.%s : %s" % (cls.__name__, k, v.__class__.__name__)
+            if shortname is not None:
+                header += " (shortname=" + shortname + ")"
+            final_help.append(header)
+            if help is not None:
+                final_help.append(indent(help))
+        return '\n'.join(final_help)
+
+    @classmethod
+    def class_print_help(cls):
+        print cls.class_get_help()
+
+
+class SingletonConfigurable(Configurable):
+    """A configurable that only allows one instance.
+
+    This class is for classes that should only have one instance of itself
+    or *any* subclass. To create and retrieve such a class use the
+    :meth:`SingletonConfigurable.instance` method.
+    """
+
+    _instance = None
+
+    @classmethod
+    def instance(cls, *args, **kwargs):
+        """Returns a global instance of this class.
+
+        This method create a new instance if none have previously been created
+        and returns a previously created instance is one already exists.
+
+        The arguments and keyword arguments passed to this method are passed
+        on to the :meth:`__init__` method of the class upon instantiation.
+
+        Examples
+        --------
+
+        Create a singleton class using instance, and retrieve it::
+
+            >>> from IPython.config.configurable import SingletonConfigurable
+            >>> class Foo(SingletonConfigurable): pass
+            >>> foo = Foo.instance()
+            >>> foo == Foo.instance()
+            True
+
+        Create a subclass that is retrived using the base class instance::
+
+            >>> class Bar(SingletonConfigurable): pass
+            >>> class Bam(Bar): pass
+            >>> bam = Bam.instance()
+            >>> bam == Bar.instance()
+            True
+        """
+        # Create and save the instance
+        if cls._instance is None:
+            inst = cls(*args, **kwargs)
+            # Now make sure that the instance will also be returned by
+            # the subclasses instance attribute.
+            for subclass in cls.mro():
+                if issubclass(cls, subclass) and \
+                issubclass(subclass, SingletonConfigurable) and \
+                subclass != SingletonConfigurable:
+                    subclass._instance = inst
+                else:
+                    break
+        if isinstance(cls._instance, cls):
+            return cls._instance
+        else:
+            raise MultipleInstanceError(
+                'Multiple incompatible subclass instances of '
+                '%s are being created.' % cls.__name__
+            )
+
+    @classmethod
+    def initialized(cls):
+        """Has an instance been created?"""
+        return hasattr(cls, "_instance") and cls._instance is not None
 

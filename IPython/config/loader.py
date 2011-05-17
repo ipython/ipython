@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# coding: utf-8
 """A simple configuration system.
 
 Authors
@@ -20,7 +18,6 @@ Authors
 #-----------------------------------------------------------------------------
 
 import __builtin__
-import os
 import sys
 
 from IPython.external import argparse
@@ -307,7 +304,107 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 
+class KeyValueConfigLoader(CommandLineConfigLoader):
+    """A config loader that loads key value pairs from the command line.
+
+    This allows command line options to be gives in the following form::
+    
+        ipython Global.profile="foo" InteractiveShell.autocall=False
+    """
+
+    def __init__(self, argv=None, classes=None):
+        """Create a key value pair config loader.
+
+        Parameters
+        ----------
+        argv : list
+            A list that has the form of sys.argv[1:] which has unicode
+            elements of the form u"key=value". If this is None (default),
+            then sys.argv[1:] will be used.
+        classes : (list, tuple) of Configurables
+            A sequence of Configurable classes that will be used to map
+            shortnames to longnames.
+
+        Returns
+        -------
+        config : Config
+            The resulting Config object.
+
+        Examples
+        --------
+
+            >>> from IPython.config.loader import KeyValueConfigLoader
+            >>> cl = KeyValueConfigLoader()
+            >>> cl.load_config(["foo='bar'","A.name='brian'","B.number=0"])
+            {'A': {'name': 'brian'}, 'B': {'number': 0}, 'foo': 'bar'}
+        """
+        if argv is None:
+            argv = sys.argv[1:]
+        if classes is None:
+            classes = () 
+        self.argv = argv
+        self.classes = classes
+
+    def load_config(self, argv=None, classes=None):
+        """Parse the configuration and generate the Config object.
+
+        Parameters
+        ----------
+        argv : list, optional
+            A list that has the form of sys.argv[1:] which has unicode
+            elements of the form u"key=value". If this is None (default),
+            then self.argv will be used.
+        classes : (list, tuple) of Configurables
+            A sequence of Configurable classes that will be used to map
+            shortnames to longnames.
+        """
+        from IPython.config.configurable import Configurable
+
+        self.clear()
+        if argv is None:
+            argv = self.argv
+        if classes is None:
+            classes = self.classes
+
+        # Create the mapping between shortnames and longnames.
+        shortnames = {}
+        for cls in classes:
+            if issubclass(cls, Configurable):
+                sn = cls.class_get_shortnames()
+                # Check for duplicate shortnames and raise if found.
+                for k, v in sn.items():
+                    if k in shortnames:
+                        raise KeyError(
+                            'Duplicate shortname: both %s and %s use the shortname: "%s"' %\
+                            (v, shortnames[k], k)
+                        )
+                shortnames.update(sn)
+
+        for item in argv:
+            pair = tuple(item.split("="))
+            if len(pair) == 2:
+                lhs = pair[0]
+                rhs = pair[1]
+                # Substitute longnames for shortnames.
+                if lhs in shortnames:
+                    lhs = shortnames[lhs]
+                exec_str = 'self.config.' + lhs + '=' + rhs
+                try:
+                    # Try to see if regular Python syntax will work. This
+                    # won't handle strings as the quote marks are removed
+                    # by the system shell.
+                    exec exec_str in locals(), globals()
+                except (NameError, SyntaxError):
+                    # This case happens if the rhs is a string but without
+                    # the quote marks.  We add the quote marks and see if
+                    # it succeeds. If it still fails, we let it raise.
+                    exec_str = 'self.config.' + lhs + '="' + rhs + '"'
+                    exec exec_str in locals(), globals()
+        return self.config
+
+
 class ArgParseConfigLoader(CommandLineConfigLoader):
+    """A loader that uses the argparse module to load from the command line."""
 
     def __init__(self, argv=None, *parser_args, **parser_kw):
         """Create a config loader for use with argparse.
@@ -326,6 +423,11 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         parser_kw : dict
           A tuple of keyword arguments that will be passed to the
           constructor of :class:`argparse.ArgumentParser`.
+
+        Returns
+        -------
+        config : Config
+            The resulting Config object.
         """
         super(CommandLineConfigLoader, self).__init__()
         if argv == None:
@@ -337,8 +439,8 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         kwargs.update(parser_kw)
         self.parser_kw = kwargs
 
-    def load_config(self, args=None):
-        """Parse command line arguments and return as a Struct.
+    def load_config(self, argv=None):
+        """Parse command line arguments and return as a Config object.
 
         Parameters
         ----------
@@ -348,10 +450,10 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
           arguments from. If not given, the instance's self.argv attribute
           (given at construction time) is used."""
         self.clear()
-        if args is None:
-            args = self.argv
+        if argv is None:
+            argv = self.argv
         self._create_parser()
-        self._parse_args(args)
+        self._parse_args(argv)
         self._convert_to_config()
         return self.config
 
