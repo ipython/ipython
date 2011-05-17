@@ -16,6 +16,7 @@ machinery.  This should thus be thought of as scaffolding.
 from __future__ import print_function
 
 # Stdlib
+from base64 import encodestring
 import inspect
 import os
 
@@ -67,6 +68,9 @@ class ZMQDisplayHook(DisplayHook):
             self.msg['content']['execution_count'] = self.prompt_count
 
     def write_format_data(self, format_dict):
+        pngdata = format_dict.get('image/png')
+        if pngdata is not None:
+            format_dict['image/png'] = encodestring(pngdata)
         self.msg['content']['data'] = format_dict
 
     def finish_displayhook(self):
