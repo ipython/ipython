@@ -493,12 +493,17 @@ def _default_pprint(obj, p, cycle):
     p.end_group(1, '>')
 
 
-def _seq_pprinter_factory(start, end):
+def _seq_pprinter_factory(start, end, basetype):
     """
     Factory that returns a pprint function useful for sequences.  Used by
     the default pprint for tuples, dicts, lists, sets and frozensets.
     """
     def inner(obj, p, cycle):
+        typ = type(obj)
+        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
+            # If the subclass provides its own repr, use it instead.
+            return p.text(typ.__repr__(obj))
+
         if cycle:
             return p.text(start + '...' + end)
         step = len(start)
@@ -515,12 +520,17 @@ def _seq_pprinter_factory(start, end):
     return inner
 
 
-def _dict_pprinter_factory(start, end):
+def _dict_pprinter_factory(start, end, basetype=None):
     """
     Factory that returns a pprint function used by the default pprint of
     dicts and dict proxies.
     """
     def inner(obj, p, cycle):
+        typ = type(obj)
+        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
+            # If the subclass provides its own repr, use it instead.
+            return p.text(typ.__repr__(obj))
+
         if cycle:
             return p.text('{...}')
         p.begin_group(1, start)
@@ -632,12 +642,12 @@ _type_pprinters = {
     float:                      _repr_pprint,
     str:                        _repr_pprint,
     unicode:                    _repr_pprint,
-    tuple:                      _seq_pprinter_factory('(', ')'),
-    list:                       _seq_pprinter_factory('[', ']'),
-    dict:                       _dict_pprinter_factory('{', '}'),
+    tuple:                      _seq_pprinter_factory('(', ')', tuple),
+    list:                       _seq_pprinter_factory('[', ']', list),
+    dict:                       _dict_pprinter_factory('{', '}', dict),
     types.DictProxyType:        _dict_pprinter_factory('<dictproxy {', '}>'),
-    set:                        _seq_pprinter_factory('set([', '])'),
-    frozenset:                  _seq_pprinter_factory('frozenset([', '])'),
+    set:                        _seq_pprinter_factory('set([', '])', set),
+    frozenset:                  _seq_pprinter_factory('frozenset([', '])', frozenset),
     super:                      _super_pprint,
     _re_pattern_type:           _re_pattern_pprint,
     type:                       _type_pprint,
