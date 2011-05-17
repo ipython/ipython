@@ -449,6 +449,10 @@ class HTMLFormatter(BaseFormatter):
     objects, define a :meth:`_repr_html_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
+
+    The return value of this formatter should be a valid HTML snippet that
+    could be injected into an existing DOM. It should *not* include the 
+    ```<html>`` or ```<body>`` tags.
     """
     format_type = Str('text/html')
 
@@ -462,6 +466,10 @@ class SVGFormatter(BaseFormatter):
     objects, define a :meth:`_repr_svg_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
+
+    The return value of this formatter should be valid SVG enclosed in
+    ```<svg>``` tags, that could be injected into an existing DOM. It should
+    *not* include the ```<html>`` or ```<body>`` tags.
     """
     format_type = Str('image/svg+xml')
 
@@ -476,7 +484,8 @@ class PNGFormatter(BaseFormatter):
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
 
-    The raw data should be the base64 encoded raw png data.
+    The return value of this formatter should be raw PNG data, *not*
+    base64 encoded.
     """
     format_type = Str('image/png')
 
@@ -490,6 +499,9 @@ class LatexFormatter(BaseFormatter):
     objects, define a :meth:`_repr_latex_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
+
+    The return value of this formatter should be a valid LaTeX equation,
+    enclosed in either ```$``` or ```$$```.
     """
     format_type = Str('text/latex')
 
@@ -503,6 +515,8 @@ class JSONFormatter(BaseFormatter):
     your objects, define a :meth:`_repr_json_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
+
+    The return value of this formatter should be a valid JSON string.
     """
     format_type = Str('application/json')
 
@@ -516,6 +530,9 @@ class JavascriptFormatter(BaseFormatter):
     your objects, define a :meth:`_repr_javascript_` method or use the 
     :meth:`for_type` or :meth:`for_type_by_name` methods to register functions
     that handle this.
+
+    The return value of this formatter should be valid Javascript code and
+    should *not* be enclosed in ```<script>``` tags.
     """
     format_type = Str('application/javascript')
 

@@ -25,7 +25,7 @@ from base64 import encodestring
 #-----------------------------------------------------------------------------
 
 
-def latex_to_png(s, encode=True):
+def latex_to_png(s, encode=False):
     """Render a LaTeX string to PNG using matplotlib.mathtext.
 
     Parameters

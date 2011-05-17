@@ -1,9 +1,10 @@
 """Code that shows off the IPython display logic.
 """
 
+from IPython.lib.latextools import latex_to_png
 from IPython.core.display import (
     display, display_pretty, display_html,
-    display_svg, display_json
+    display_svg, display_json, display_png
 )
 
 class Circle(object):
@@ -22,3 +23,5 @@ class Circle(object):
 <circle cx="100" cy="50" r="40" stroke="black" stroke-width="2" fill="red"/>
 </svg>"""
 
+    def _repr_png_(self):
+        return latex_to_png('$\circle$')

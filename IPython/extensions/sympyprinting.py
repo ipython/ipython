@@ -45,7 +45,7 @@ def print_png(o):
     # them with suitable subs.
     s = s.replace('\\operatorname','')
     s = s.replace('\\overline', '\\bar')
-    png = latex_to_png(s, encode=True)
+    png = latex_to_png(s)
     return png
 
 _loaded = False
