@@ -14,8 +14,6 @@ class Circle(object):
     def _repr_pretty_(self, p, cycle):
         p.text(u"\u25CB")
 
-    __pretty__ = _repr_pretty_
-
     def _repr_html_(self):
         return "<h1>Cirle: radius=%s</h1>" % self.radius
 

@@ -343,8 +343,8 @@ class PlainTextFormatter(BaseFormatter):
     # something.
     enabled = Bool(True, config=False)
 
-    # Look for a __pretty__ methods to use for pretty printing.
-    print_method = Str('__pretty__')
+    # Look for a _repr_pretty_ methods to use for pretty printing.
+    print_method = Str('_repr_pretty_')
 
     # Whether to pretty-print or not.
     pprint = Bool(True, config=True)
