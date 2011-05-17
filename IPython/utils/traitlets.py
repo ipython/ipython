@@ -1117,6 +1117,63 @@ class Container(Instance):
 class List(Container):
     """An instance of a Python list."""
     klass = list
+    
+    def __init__(self, trait=None, default_value=None, minlen=0, maxlen=sys.maxint,
+                allow_none=True, **metadata):
+        """Create a List trait type from a list, set, or tuple.
+
+        The default value is created by doing ``List(default_value)``, 
+        which creates a copy of the ``default_value``.
+        
+        ``trait`` can be specified, which restricts the type of elements
+        in the container to that TraitType.
+        
+        If only one arg is given and it is not a Trait, it is taken as
+        ``default_value``:
+        
+        ``c = List([1,2,3])``
+        
+        Parameters
+        ----------
+        
+        trait : TraitType [ optional ]
+            the type for restricting the contents of the Container.  If unspecified,
+            types are not checked.
+        
+        default_value : SequenceType [ optional ]
+            The default value for the Trait.  Must be list/tuple/set, and
+            will be cast to the container type.
+        
+        minlen : Int [ default 0 ]
+            The minimum length of the input list
+        
+        maxlen : Int [ default sys.maxint ]
+            The maximum length of the input list
+        
+        allow_none : Bool [ default True ]
+            Whether to allow the value to be None
+        
+        **metadata : any
+            further keys for extensions to the Trait (e.g. config)
+        
+        """
+        self._minlen = minlen
+        self._maxlen = maxlen
+        super(List, self).__init__(trait=trait, default_value=default_value, 
+                                allow_none=allow_none, **metadata)
+        
+    def length_error(self, obj, value):
+        e = "The '%s' trait of %s instance must be of length %i <= L <= %i, but a value of %s was specified." \
+            % (self.name, class_of(obj), self._minlen, self._maxlen, value)
+        raise TraitError(e)
+    
+    def validate_elements(self, obj, value):
+        length = len(value)
+        if length < self._minlen or length > self._maxlen:
+            self.length_error(obj, value)
+        
+        return super(List, self).validate_elements(obj, value)
+    
 
 class Set(Container):
     """An instance of a Python set."""

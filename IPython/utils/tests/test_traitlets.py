@@ -752,6 +752,18 @@ class TestList(TraitTestBase):
     _good_values = [[], [1], range(10)]
     _bad_values = [10, [1,'a'], 'a', (1,2)]
 
+class LenListTrait(HasTraits):
+    
+    value = List(Int, [0], minlen=1, maxlen=2)
+
+class TestLenList(TraitTestBase):
+    
+    obj = LenListTrait()
+    
+    _default_value = [0]
+    _good_values = [[1], range(2)]
+    _bad_values = [10, [1,'a'], 'a', (1,2), [], range(3)]
+
 class TupleTrait(HasTraits):
     
     value = Tuple(Int)
