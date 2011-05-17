@@ -25,9 +25,9 @@ Authors:
 from unittest import TestCase
 
 from IPython.utils.traitlets import (
-    HasTraits, MetaHasTraits, TraitType, Any,
+    HasTraits, MetaHasTraits, TraitType, Any, CStr,
     Int, Long, Float, Complex, Str, Unicode, TraitError,
-    Undefined, Type, This, Instance, TCPAddress
+    Undefined, Type, This, Instance, TCPAddress, List, Tuple
 )
 
 
@@ -741,3 +741,74 @@ class TestTCPAddress(TraitTestBase):
     _default_value = ('127.0.0.1',0)
     _good_values = [('localhost',0),('192.168.0.1',1000),('www.google.com',80)]
     _bad_values = [(0,0),('localhost',10.0),('localhost',-1)]
+
+class ListTrait(HasTraits):
+
+    value = List(Int)
+
+class TestList(TraitTestBase):
+
+    obj = ListTrait()
+
+    _default_value = []
+    _good_values = [[], [1], range(10)]
+    _bad_values = [10, [1,'a'], 'a', (1,2)]
+
+class LenListTrait(HasTraits):
+
+    value = List(Int, [0], minlen=1, maxlen=2)
+
+class TestLenList(TraitTestBase):
+
+    obj = LenListTrait()
+
+    _default_value = [0]
+    _good_values = [[1], range(2)]
+    _bad_values = [10, [1,'a'], 'a', (1,2), [], range(3)]
+
+class TupleTrait(HasTraits):
+
+    value = Tuple(Int)
+
+class TestTupleTrait(TraitTestBase):
+
+    obj = TupleTrait()
+
+    _default_value = None
+    _good_values = [(1,), None,(0,)]
+    _bad_values = [10, (1,2), [1],('a'), ()]
+
+    def test_invalid_args(self):
+        self.assertRaises(TypeError, Tuple, 5)
+        self.assertRaises(TypeError, Tuple, default_value='hello')
+        t = Tuple(Int, CStr, default_value=(1,5))
+
+class LooseTupleTrait(HasTraits):
+
+    value = Tuple((1,2,3))
+
+class TestLooseTupleTrait(TraitTestBase):
+
+    obj = LooseTupleTrait()
+
+    _default_value = (1,2,3)
+    _good_values = [(1,), None, (0,), tuple(range(5)), tuple('hello'), ('a',5), ()]
+    _bad_values = [10, 'hello', [1], []]
+
+    def test_invalid_args(self):
+        self.assertRaises(TypeError, Tuple, 5)
+        self.assertRaises(TypeError, Tuple, default_value='hello')
+        t = Tuple(Int, CStr, default_value=(1,5))
+
+
+class MultiTupleTrait(HasTraits):
+
+    value = Tuple(Int, Str, default_value=[99,'bottles'])
+
+class TestMultiTuple(TraitTestBase):
+
+    obj = MultiTupleTrait()
+
+    _default_value = (99,'bottles')
+    _good_values = [(1,'a'), (2,'b')]
+    _bad_values = ((),10, 'a', (1,'a',3), ('a',1))
