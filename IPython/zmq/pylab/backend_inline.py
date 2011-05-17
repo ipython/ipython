@@ -10,12 +10,15 @@ import sys
 
 # Third-party imports
 import matplotlib
-from matplotlib.backends.backend_svg import new_figure_manager
+from matplotlib.backends.backend_agg import new_figure_manager
 from matplotlib._pylab_helpers import Gcf
 
 # Local imports.
 from IPython.core.displaypub import publish_display_data
-from IPython.lib.pylabtools import figure_to_svg
+from IPython.lib.pylabtools import print_figure
+
+# global config:
+_figure_format='png'
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -32,7 +35,7 @@ def show(close=True):
       removed from the internal list of figures.
     """
     for figure_manager in Gcf.get_all_fig_managers():
-        send_svg_figure(figure_manager.canvas.figure)
+        send_figure(figure_manager.canvas.figure)
     if close:
         matplotlib.pyplot.close('all')
 
@@ -50,8 +53,8 @@ def draw_if_interactive():
     show._draw_called = True
 
 
-def flush_svg():
-    """Call show, close all open figures, sending all SVG images.
+def flush_figures():
+    """Call show, close all open figures, sending all figure images.
 
     This is meant to be called automatically and will call show() if, during
     prior code execution, there had been any calls to draw_if_interactive.
@@ -61,21 +64,23 @@ def flush_svg():
         show._draw_called = False
 
 
-def send_svg_figure(fig):
-    """Draw the current figure and send it as an SVG payload.
+def send_figure(fig):
+    """Draw the current figure and send it as a PNG payload.
     """
     # For an empty figure, don't even bother calling figure_to_svg, to avoid
     # big blank spaces in the qt console
     if not fig.axes:
         return
 
-    svg = figure_to_svg(fig)
+    data = print_figure(fig, _figure_format)
+    mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
+    mime = mimetypes[_figure_format]
     # flush text streams before sending figures, helps a little with output
     # synchronization in the console (though it's a bandaid, not a real sln)
     sys.stdout.flush(); sys.stderr.flush()
     publish_display_data(
-        'IPython.zmq.pylab.backend_inline.send_svg_figure',
+        'IPython.zmq.pylab.backend_inline.send_figure',
         'Matplotlib Plot',
-        {'image/svg+xml' : svg}
+        {mime : data}
     )
 
