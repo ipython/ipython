@@ -21,7 +21,7 @@ import zmq
 from IPython import parallel  as pmod
 from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult, AsyncMapResult
-from IPython.parallel import LoadBalancedView, DirectView
+from IPython.parallel import DirectView
 from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
@@ -32,18 +32,6 @@ def setup():
     add_engines(3)
 
 class TestView(ClusterTestCase):
-    
-    def test_z_crash_task(self):
-        """test graceful handling of engine death (balanced)"""
-        # self.add_engines(1)
-        ar = self.client[-1].apply_async(crash)
-        self.assertRaisesRemote(error.EngineError, ar.get)
-        eid = ar.engine_id
-        tic = time.time()
-        while eid in self.client.ids and time.time()-tic < 5:
-            time.sleep(.01)
-            self.client.spin()
-        self.assertFalse(eid in self.client.ids, "Engine should have died")
     
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""

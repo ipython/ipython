@@ -146,7 +146,7 @@ class DictDB(BaseDB):
         """Remove a record from the DB."""
         matches = self._match(check)
         for m in matches:
-            del self._records[m]
+            del self._records[m['msg_id']]
         
     def drop_record(self, msg_id):
         """Remove a record from the DB."""

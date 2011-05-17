@@ -48,7 +48,7 @@ class TestProcessLauncher(LocalProcessLauncher):
 def setup():
     cp = TestProcessLauncher()
     cp.cmd_and_args = ipcontroller_cmd_argv + \
-                ['--profile', 'iptest', '--log-level', '99', '-r', '--usethreads']
+                ['--profile', 'iptest', '--log-level', '99', '-r']
     cp.start()
     launchers.append(cp)
     cluster_dir = os.path.join(get_ipython_dir(), 'cluster_iptest')
