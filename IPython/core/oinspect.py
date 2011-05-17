@@ -396,7 +396,8 @@ class Inspector:
                     ("File", "file"),
                     ("Definition", "definition")]
     
-    pinfo_fields_obj = [("Constructor Docstring","init_docstring"),
+    pinfo_fields_obj = [("Class Docstring", "class_docstring"),
+                        ("Constructor Docstring","init_docstring"),
                         ("Call def", "call_def"),
                         ("Call docstring", "call_docstring")]
                     
