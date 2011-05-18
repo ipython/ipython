@@ -18,7 +18,7 @@ import zmq
 from zmq.devices import ProcessDevice, ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
-from IPython.utils.traitlets import Set, Instance, CFloat, Bool
+from IPython.utils.traitlets import Set, Instance, CFloat, Bool, CStr
 from IPython.parallel.factory import LoggingFactory
 
 class Heart(object):
@@ -53,14 +53,16 @@ class HeartMonitor(LoggingFactory):
     pongstream: an XREP stream
     period: the period of the heartbeat in milliseconds"""
     
-    period=CFloat(1000, config=True) # in milliseconds
+    period=CFloat(1000, config=True,
+        help='The frequency at which the Hub pings the engines for heartbeats '
+        ' (in ms) [default: 100]',
+    )
     
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         return ioloop.IOLoop.instance()
-    debug=Bool(False)
     
     # not settable:
     hearts=Set()

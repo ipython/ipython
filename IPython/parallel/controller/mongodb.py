@@ -20,9 +20,20 @@ from .dictdb import BaseDB
 class MongoDB(BaseDB):
     """MongoDB TaskRecord backend."""
     
-    connection_args = List(config=True) # args passed to pymongo.Connection
-    connection_kwargs = Dict(config=True) # kwargs passed to pymongo.Connection
-    database = CUnicode(config=True) # name of the mongodb database
+    connection_args = List(config=True,
+        help="""Positional arguments to be passed to pymongo.Connection.  Only
+        necessary if the default mongodb configuration does not point to your
+        mongod instance.""")
+    connection_kwargs = Dict(config=True,
+        help="""Keyword arguments to be passed to pymongo.Connection.  Only
+        necessary if the default mongodb configuration does not point to your
+        mongod instance."""
+    )
+    database = CUnicode(config=True,
+        help="""The MongoDB database name to use for storing tasks for this session. If unspecified,
+        a new database will be created with the Hub's IDENT.  Specifying the database will result
+        in tasks from previous sessions being available via Clients' db_query and
+        get_result methods.""")
 
     _connection = Instance(Connection) # pymongo connection
     

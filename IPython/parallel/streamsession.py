@@ -25,7 +25,12 @@ import zmq
 from zmq.utils import jsonapi
 from zmq.eventloop.zmqstream import ZMQStream
 
+from IPython.config.configurable import Configurable
+from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import Str, CStr, CUnicode, Bool, Any
+
 from .util import ISO8601
+
 
 def squash_unicode(obj):
     """coerce unicode back to bytestrings."""
@@ -113,50 +118,72 @@ def extract_header(msg_or_header):
         h = dict(h)
     return h
 
-class StreamSession(object):
+class StreamSession(Configurable):
     """tweaked version of IPython.zmq.session.Session, for development in Parallel"""
-    debug=False
-    key=None
-    
-    def __init__(self, username=None, session=None, packer=None, unpacker=None, key=None, keyfile=None):
-        if username is None:
-            username = os.environ.get('USER','username')
-        self.username = username
-        if session is None:
-            self.session = str(uuid.uuid4())
+    debug=Bool(False, config=True, help="""Debug output in the StreamSession""")
+    packer = Str('json',config=True,
+            help="""The name of the packer for serializing messages.
+            Should be one of 'json', 'pickle', or an import name
+            for a custom serializer.""")
+    def _packer_changed(self, name, old, new):
+        if new.lower() == 'json':
+            self.pack = json_packer
+            self.unpack = json_unpacker
+        elif new.lower() == 'pickle':
+            self.pack = pickle_packer
+            self.unpack = pickle_unpacker
         else:
-            self.session = session
-        self.msg_id = str(uuid.uuid4())
-        if packer is None:
-            self.pack = default_packer
+            self.pack = import_item(new)
+
+    unpacker = Str('json',config=True,
+        help="""The name of the unpacker for unserializing messages.
+        Only used with custom functions for `packer`.""")
+    def _unpacker_changed(self, name, old, new):
+        if new.lower() == 'json':
+            self.pack = json_packer
+            self.unpack = json_unpacker
+        elif new.lower() == 'pickle':
+            self.pack = pickle_packer
+            self.unpack = pickle_unpacker
         else:
-            if not callable(packer):
-                raise TypeError("packer must be callable, not %s"%type(packer))
-            self.pack = packer
+            self.unpack = import_item(new)
         
-        if unpacker is None:
-            self.unpack = default_unpacker
-        else:
-            if not callable(unpacker):
-                raise TypeError("unpacker must be callable, not %s"%type(unpacker))
-            self.unpack = unpacker
+    session = CStr('',config=True,
+        help="""The UUID identifying this session.""")
+    def _session_default(self):
+        return str(uuid.uuid4())
+    username = CUnicode(os.environ.get('USER','username'),config=True,
+        help="""Username for the Session. Default is your system username.""")
+    key = CStr('', config=True,
+        help="""execution key, for extra authentication.""")
+
+    keyfile = CUnicode('', config=True,
+        help="""path to file containing execution key.""")
+    def _keyfile_changed(self, name, old, new):
+        with open(new, 'rb') as f:
+            self.key = f.read().strip()
+
+    pack = Any(default_packer) # the actual packer function
+    def _pack_changed(self, name, old, new):
+        if not callable(new):
+            raise TypeError("packer must be callable, not %s"%type(new))
         
-        if key is not None and keyfile is not None:
-            raise TypeError("Must specify key OR keyfile, not both")
-        if keyfile is not None:
-            with open(keyfile) as f:
-                self.key = f.read().strip()
-        else:
-            self.key = key
-        if isinstance(self.key, unicode):
-            self.key = self.key.encode('utf8')
-        # print key, keyfile, self.key
+    unpack = Any(default_unpacker) # the actual packer function
+    def _unpack_changed(self, name, old, new):
+        if not callable(new):
+            raise TypeError("packer must be callable, not %s"%type(new))
+
+    def __init__(self, **kwargs):
+        super(StreamSession, self).__init__(**kwargs)
         self.none = self.pack({})
-            
+
+    @property
+    def msg_id(self):
+        """always return new uuid"""
+        return str(uuid.uuid4())
+
     def msg_header(self, msg_type):
-        h = msg_header(self.msg_id, msg_type, self.username, self.session)
-        self.msg_id = str(uuid.uuid4())
-        return h
+        return msg_header(self.msg_id, msg_type, self.username, self.session)
 
     def msg(self, msg_type, content=None, parent=None, subheader=None):
         msg = {}
@@ -171,10 +198,10 @@ class StreamSession(object):
 
     def check_key(self, msg_or_header):
         """Check that a message's header has the right key"""
-        if self.key is None:
+        if not self.key:
             return True
         header = extract_header(msg_or_header)
-        return header.get('key', None) == self.key
+        return header.get('key', '') == self.key
             
 
     def serialize(self, msg, ident=None):
@@ -200,7 +227,7 @@ class StreamSession(object):
         elif ident is not None:
             to_send.append(ident)
         to_send.append(DELIM)
-        if self.key is not None:
+        if self.key:
             to_send.append(self.key)
         to_send.append(self.pack(msg['header']))
         to_send.append(self.pack(msg['parent_header']))
@@ -297,7 +324,7 @@ class StreamSession(object):
         if ident is not None:
             to_send.extend(ident)
         to_send.append(DELIM)
-        if self.key is not None:
+        if self.key:
             to_send.append(self.key)
         to_send.extend(msg)
         stream.send_multipart(msg, flags, copy=copy)
@@ -345,7 +372,7 @@ class StreamSession(object):
             msg will be a list of bytes or Messages, unchanged from input
             msg should be unpackable via self.unpack_message at this point.
         """
-        ikey = int(self.key is not None)
+        ikey = int(self.key != '')
         minlen = 3 + ikey
         msg = list(msg)
         idents = []
@@ -379,7 +406,7 @@ class StreamSession(object):
             or the non-copying Message object in each place (False)
         
         """
-        ikey = int(self.key is not None)
+        ikey = int(self.key != '')
         minlen = 3 + ikey
         message = {}
         if not copy:

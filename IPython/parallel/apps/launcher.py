@@ -106,7 +106,7 @@ class BaseLauncher(LoggingFactory):
     # This should not be used to set the work_dir for the actual engine
     # and controller. Instead, use their own config files or the
     # controller_args, engine_args attributes of the launchers to add
-    # the --work-dir option.
+    # the work_dir option.
     work_dir = Unicode(u'.')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
     
@@ -328,16 +328,18 @@ class LocalProcessLauncher(BaseLauncher):
 class LocalControllerLauncher(LocalProcessLauncher):
     """Launch a controller as a regular external process."""
 
-    controller_cmd = List(ipcontroller_cmd_argv, config=True)
+    controller_cmd = List(ipcontroller_cmd_argv, config=True,
+        help="""Popen command to launch ipcontroller.""")
     # Command line arguments to ipcontroller.
-    controller_args = List(['--log-to-file','--log-level', str(logging.INFO)], config=True)
+    controller_args = List(['--log-to-file','log_level=%i'%logging.INFO], config=True,
+        help="""command-line args to pass to ipcontroller""")
 
     def find_args(self):
         return self.controller_cmd + self.controller_args
 
     def start(self, cluster_dir):
         """Start the controller by cluster_dir."""
-        self.controller_args.extend(['--cluster-dir', cluster_dir])
+        self.controller_args.extend(['cluster_dir=%s'%cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
         self.log.info("Starting LocalControllerLauncher: %r" % self.args)
         return super(LocalControllerLauncher, self).start()
@@ -346,10 +348,11 @@ class LocalControllerLauncher(LocalProcessLauncher):
 class LocalEngineLauncher(LocalProcessLauncher):
     """Launch a single engine as a regular externall process."""
 
-    engine_cmd = List(ipengine_cmd_argv, config=True)
+    engine_cmd = List(ipengine_cmd_argv, config=True,
+        help="""command to launch the Engine.""")
     # Command line arguments for ipengine.
-    engine_args = List(
-        ['--log-to-file','--log-level', str(logging.INFO)], config=True
+    engine_args = List(['--log-to-file','log_level=%i'%logging.INFO], config=True,
+        help="command-line arguments to pass to ipengine"
     )
 
     def find_args(self):
@@ -357,7 +360,7 @@ class LocalEngineLauncher(LocalProcessLauncher):
 
     def start(self, cluster_dir):
         """Start the engine by cluster_dir."""
-        self.engine_args.extend(['--cluster-dir', cluster_dir])
+        self.engine_args.extend(['cluster_dir=%s'%cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
         return super(LocalEngineLauncher, self).start()
 
@@ -367,7 +370,8 @@ class LocalEngineSetLauncher(BaseLauncher):
 
     # Command line arguments for ipengine.
     engine_args = List(
-        ['--log-to-file','--log-level', str(logging.INFO)], config=True
+        ['--log-to-file','log_level=%i'%logging.INFO], config=True,
+        help="command-line arguments to pass to ipengine"
     )
     # launcher class
     launcher_class = LocalEngineLauncher
@@ -442,16 +446,18 @@ class LocalEngineSetLauncher(BaseLauncher):
 class MPIExecLauncher(LocalProcessLauncher):
     """Launch an external process using mpiexec."""
 
-    # The mpiexec command to use in starting the process.
-    mpi_cmd = List(['mpiexec'], config=True)
-    # The command line arguments to pass to mpiexec.
-    mpi_args = List([], config=True)
-    # The program to start using mpiexec.
-    program = List(['date'], config=True)
-    # The command line argument to the program.
-    program_args = List([], config=True)
-    # The number of instances of the program to start.
-    n = Int(1, config=True)
+    mpi_cmd = List(['mpiexec'], config=True,
+        help="The mpiexec command to use in starting the process."
+    )
+    mpi_args = List([], config=True,
+        help="The command line arguments to pass to mpiexec."
+    )
+    program = List(['date'], config=True,
+        help="The program to start via mpiexec.")
+    program_args = List([], config=True,
+        help="The command line argument to the program."
+    )
+    n = Int(1)
 
     def find_args(self):
         """Build self.args using all the fields."""
@@ -467,14 +473,17 @@ class MPIExecLauncher(LocalProcessLauncher):
 class MPIExecControllerLauncher(MPIExecLauncher):
     """Launch a controller using mpiexec."""
 
-    controller_cmd = List(ipcontroller_cmd_argv, config=True)
-    # Command line arguments to ipcontroller.
-    controller_args = List(['--log-to-file','--log-level', str(logging.INFO)], config=True)
-    n = Int(1, config=False)
+    controller_cmd = List(ipcontroller_cmd_argv, config=True,
+        help="Popen command to launch the Contropper"
+    )
+    controller_args = List(['--log-to-file','log_level=%i'%logging.INFO], config=True,
+        help="Command line arguments to pass to ipcontroller."
+    )
+    n = Int(1)
 
     def start(self, cluster_dir):
         """Start the controller by cluster_dir."""
-        self.controller_args.extend(['--cluster-dir', cluster_dir])
+        self.controller_args.extend(['cluster_dir=%s'%cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
         self.log.info("Starting MPIExecControllerLauncher: %r" % self.args)
         return super(MPIExecControllerLauncher, self).start(1)
@@ -486,16 +495,18 @@ class MPIExecControllerLauncher(MPIExecLauncher):
 
 class MPIExecEngineSetLauncher(MPIExecLauncher):
 
-    program = List(ipengine_cmd_argv, config=True)
-    # Command line arguments for ipengine.
-    program_args = List(
-        ['--log-to-file','--log-level', str(logging.INFO)], config=True
+    program = List(ipengine_cmd_argv, config=True,
+        help="Popen command for ipengine"
     )
-    n = Int(1, config=True)
+    program_args = List(
+        ['--log-to-file','log_level=%i'%logging.INFO], config=True,
+        help="Command line arguments for ipengine."
+    )
+    n = Int(1)
 
     def start(self, n, cluster_dir):
         """Start n engines by profile or cluster_dir."""
-        self.program_args.extend(['--cluster-dir', cluster_dir])
+        self.program_args.extend(['cluster_dir=%s'%cluster_dir])
         self.cluster_dir = unicode(cluster_dir)
         self.n = n
         self.log.info('Starting MPIExecEngineSetLauncher: %r' % self.args)
@@ -515,13 +526,20 @@ class SSHLauncher(LocalProcessLauncher):
     as well.
     """
 
-    ssh_cmd = List(['ssh'], config=True)
-    ssh_args = List(['-tt'], config=True)
-    program = List(['date'], config=True)
-    program_args = List([], config=True)
-    hostname = CUnicode('', config=True)
-    user = CUnicode('', config=True)
-    location = CUnicode('')
+    ssh_cmd = List(['ssh'], config=True,
+        help="command for starting ssh")
+    ssh_args = List(['-tt'], config=True,
+        help="args to pass to ssh")
+    program = List(['date'], config=True,
+        help="Program to launch via ssh")
+    program_args = List([], config=True,
+        help="args to pass to remote program")
+    hostname = CUnicode('', config=True,
+        help="hostname on which to launch the program")
+    user = CUnicode('', config=True,
+        help="username for ssh")
+    location = CUnicode('', config=True,
+        help="user@hostname location for ssh in one setting")
 
     def _hostname_changed(self, name, old, new):
         if self.user:
@@ -555,21 +573,26 @@ class SSHLauncher(LocalProcessLauncher):
 
 class SSHControllerLauncher(SSHLauncher):
 
-    program = List(ipcontroller_cmd_argv, config=True)
-    # Command line arguments to ipcontroller.
-    program_args = List(['-r', '--log-to-file','--log-level', str(logging.INFO)], config=True)
+    program = List(ipcontroller_cmd_argv, config=True,
+        help="remote ipcontroller command.")
+    program_args = List(['--reuse-files', '--log-to-file','log_level=%i'%logging.INFO], config=True,
+        help="Command line arguments to ipcontroller.")
 
 
 class SSHEngineLauncher(SSHLauncher):
-    program = List(ipengine_cmd_argv, config=True)
+    program = List(ipengine_cmd_argv, config=True,
+        help="remote ipengine command.")
     # Command line arguments for ipengine.
     program_args = List(
-        ['--log-to-file','--log-level', str(logging.INFO)], config=True
+        ['--log-to-file','log_level=%i'%logging.INFO], config=True,
+        help="Command line arguments to ipengine."
     )
     
 class SSHEngineSetLauncher(LocalEngineSetLauncher):
     launcher_class = SSHEngineLauncher
-    engines = Dict(config=True)
+    engines = Dict(config=True,
+        help="""dict of engines to launch.  This is a dict by hostname of ints,
+        corresponding to the number of engines to start on that host.""")
     
     def start(self, n, cluster_dir):
         """Start engines by profile or cluster_dir.
@@ -624,17 +647,19 @@ def find_job_cmd():
 
 class WindowsHPCLauncher(BaseLauncher):
 
-    # A regular expression used to get the job id from the output of the 
-    # submit_command.
-    job_id_regexp = Str(r'\d+', config=True)
-    # The filename of the instantiated job script.
-    job_file_name = CUnicode(u'ipython_job.xml', config=True)
+    job_id_regexp = Str(r'\d+', config=True,
+        help="""A regular expression used to get the job id from the output of the
+        submit_command. """
+        )
+    job_file_name = CUnicode(u'ipython_job.xml', config=True,
+        help="The filename of the instantiated job script.")
     # The full path to the instantiated job script. This gets made dynamically
     # by combining the work_dir with the job_file_name.
     job_file = CUnicode(u'')
-    # The hostname of the scheduler to submit the job to
-    scheduler = CUnicode('', config=True)
-    job_cmd = CUnicode(find_job_cmd(), config=True)
+    scheduler = CUnicode('', config=True,
+        help="The hostname of the scheduler to submit the job to.")
+    job_cmd = CUnicode(find_job_cmd(), config=True,
+        help="The command for submitting jobs.")
 
     def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(WindowsHPCLauncher, self).__init__(
@@ -702,8 +727,10 @@ class WindowsHPCLauncher(BaseLauncher):
 
 class WindowsHPCControllerLauncher(WindowsHPCLauncher):
 
-    job_file_name = CUnicode(u'ipcontroller_job.xml', config=True)
-    extra_args = List([], config=False)
+    job_file_name = CUnicode(u'ipcontroller_job.xml', config=True,
+        help="WinHPC xml job file.")
+    extra_args = List([], config=False,
+        help="extra args to pass to ipcontroller")
 
     def write_job_file(self, n):
         job = IPControllerJob(config=self.config)
@@ -713,7 +740,7 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher):
         # the controller. It is used as the base path for the stdout/stderr
         # files that the scheduler redirects to.
         t.work_directory = self.cluster_dir
-        # Add the --cluster-dir and from self.start().
+        # Add the cluster_dir and from self.start().
         t.controller_args.extend(self.extra_args)
         job.add_task(t)
 
@@ -726,15 +753,17 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher):
 
     def start(self, cluster_dir):
         """Start the controller by cluster_dir."""
-        self.extra_args = ['--cluster-dir', cluster_dir]
+        self.extra_args = ['cluster_dir=%s'%cluster_dir]
         self.cluster_dir = unicode(cluster_dir)
         return super(WindowsHPCControllerLauncher, self).start(1)
 
 
 class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
 
-    job_file_name = CUnicode(u'ipengineset_job.xml', config=True)
-    extra_args = List([], config=False)
+    job_file_name = CUnicode(u'ipengineset_job.xml', config=True,
+        help="jobfile for ipengines job")
+    extra_args = List([], config=False,
+        help="extra args to pas to ipengine")
 
     def write_job_file(self, n):
         job = IPEngineSetJob(config=self.config)
@@ -745,7 +774,7 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
             # the engine. It is used as the base path for the stdout/stderr
             # files that the scheduler redirects to.
             t.work_directory = self.cluster_dir
-            # Add the --cluster-dir and from self.start().
+            # Add the cluster_dir and from self.start().
             t.engine_args.extend(self.extra_args)
             job.add_task(t)
 
@@ -758,7 +787,7 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
 
     def start(self, n, cluster_dir):
         """Start the controller by cluster_dir."""
-        self.extra_args = ['--cluster-dir', cluster_dir]
+        self.extra_args = ['cluster_dir=%s'%cluster_dir]
         self.cluster_dir = unicode(cluster_dir)
         return super(WindowsHPCEngineSetLauncher, self).start(n)
 
@@ -782,21 +811,21 @@ class BatchSystemLauncher(BaseLauncher):
     """
 
     # Subclasses must fill these in.  See PBSEngineSet
-    # The name of the command line program used to submit jobs.
-    submit_command = List([''], config=True)
-    # The name of the command line program used to delete jobs.
-    delete_command = List([''], config=True)
-    # A regular expression used to get the job id from the output of the 
-    # submit_command.
-    job_id_regexp = CUnicode('', config=True)
-    # The string that is the batch script template itself.
-    batch_template = CUnicode('', config=True)
-    # The file that contains the batch template
-    batch_template_file = CUnicode(u'', config=True)
-    # The filename of the instantiated batch script.
-    batch_file_name = CUnicode(u'batch_script', config=True)
-    # The PBS Queue
-    queue = CUnicode(u'', config=True)
+    submit_command = List([''], config=True,
+        help="The name of the command line program used to submit jobs.")
+    delete_command = List([''], config=True,
+        help="The name of the command line program used to delete jobs.")
+    job_id_regexp = CUnicode('', config=True,
+        help="""A regular expression used to get the job id from the output of the
+        submit_command.""")
+    batch_template = CUnicode('', config=True,
+        help="The string that is the batch script template itself.")
+    batch_template_file = CUnicode(u'', config=True,
+        help="The file that contains the batch template.")
+    batch_file_name = CUnicode(u'batch_script', config=True,
+        help="The filename of the instantiated batch script.")
+    queue = CUnicode(u'', config=True,
+        help="The PBS Queue.")
     
     # not configurable, override in subclasses
     # PBS Job Array regex
@@ -891,9 +920,12 @@ class BatchSystemLauncher(BaseLauncher):
 class PBSLauncher(BatchSystemLauncher):
     """A BatchSystemLauncher subclass for PBS."""
 
-    submit_command = List(['qsub'], config=True)
-    delete_command = List(['qdel'], config=True)
-    job_id_regexp = CUnicode(r'\d+', config=True)
+    submit_command = List(['qsub'], config=True,
+        help="The PBS submit command ['qsub']")
+    delete_command = List(['qdel'], config=True,
+        help="The PBS delete command ['qsub']")
+    job_id_regexp = CUnicode(r'\d+', config=True,
+        help="Regular expresion for identifying the job ID [r'\d+']")
     
     batch_file = CUnicode(u'')
     job_array_regexp = CUnicode('#PBS\W+-t\W+[\w\d\-\$]+')
@@ -905,11 +937,12 @@ class PBSLauncher(BatchSystemLauncher):
 class PBSControllerLauncher(PBSLauncher):
     """Launch a controller using PBS."""
 
-    batch_file_name = CUnicode(u'pbs_controller', config=True)
+    batch_file_name = CUnicode(u'pbs_controller', config=True,
+        help="batch file name for the controller job.")
     default_template= CUnicode("""#!/bin/sh
 #PBS -V
 #PBS -N ipcontroller
-%s --log-to-file --cluster-dir $cluster_dir
+%s --log-to-file cluster_dir $cluster_dir
 """%(' '.join(ipcontroller_cmd_argv)))
 
     def start(self, cluster_dir):
@@ -920,11 +953,12 @@ class PBSControllerLauncher(PBSLauncher):
 
 class PBSEngineSetLauncher(PBSLauncher):
     """Launch Engines using PBS"""
-    batch_file_name = CUnicode(u'pbs_engines', config=True)
+    batch_file_name = CUnicode(u'pbs_engines', config=True,
+        help="batch file name for the engine(s) job.")
     default_template= CUnicode(u"""#!/bin/sh
 #PBS -V
 #PBS -N ipengine
-%s --cluster-dir $cluster_dir
+%s cluster_dir $cluster_dir
 """%(' '.join(ipengine_cmd_argv)))
 
     def start(self, n, cluster_dir):
@@ -944,11 +978,12 @@ class SGELauncher(PBSLauncher):
 class SGEControllerLauncher(SGELauncher):
     """Launch a controller using SGE."""
 
-    batch_file_name = CUnicode(u'sge_controller', config=True)
+    batch_file_name = CUnicode(u'sge_controller', config=True,
+        help="batch file name for the ipontroller job.")
     default_template= CUnicode(u"""#$$ -V
 #$$ -S /bin/sh
 #$$ -N ipcontroller
-%s --log-to-file --cluster-dir $cluster_dir
+%s --log-to-file cluster_dir=$cluster_dir
 """%(' '.join(ipcontroller_cmd_argv)))
 
     def start(self, cluster_dir):
@@ -958,11 +993,12 @@ class SGEControllerLauncher(SGELauncher):
 
 class SGEEngineSetLauncher(SGELauncher):
     """Launch Engines with SGE"""
-    batch_file_name = CUnicode(u'sge_engines', config=True)
+    batch_file_name = CUnicode(u'sge_engines', config=True,
+        help="batch file name for the engine(s) job.")
     default_template = CUnicode("""#$$ -V
 #$$ -S /bin/sh
 #$$ -N ipengine
-%s --cluster-dir $cluster_dir
+%s cluster_dir=$cluster_dir
 """%(' '.join(ipengine_cmd_argv)))
 
     def start(self, n, cluster_dir):
@@ -979,18 +1015,56 @@ class SGEEngineSetLauncher(SGELauncher):
 class IPClusterLauncher(LocalProcessLauncher):
     """Launch the ipcluster program in an external process."""
 
-    ipcluster_cmd = List(ipcluster_cmd_argv, config=True)
-    # Command line arguments to pass to ipcluster.
+    ipcluster_cmd = List(ipcluster_cmd_argv, config=True,
+        help="Popen command for ipcluster")
     ipcluster_args = List(
-        ['--clean-logs', '--log-to-file', '--log-level', str(logging.INFO)], config=True)
+        ['--clean-logs', '--log-to-file', 'log_level=%i'%logging.INFO], config=True,
+        help="Command line arguments to pass to ipcluster.")
     ipcluster_subcommand = Str('start')
     ipcluster_n = Int(2)
 
     def find_args(self):
-        return self.ipcluster_cmd + [self.ipcluster_subcommand] + \
-            ['-n', repr(self.ipcluster_n)] + self.ipcluster_args
+        return self.ipcluster_cmd + ['--'+self.ipcluster_subcommand] + \
+            ['n=%i'%self.ipcluster_n] + self.ipcluster_args
 
     def start(self):
         self.log.info("Starting ipcluster: %r" % self.args)
         return super(IPClusterLauncher, self).start()
 
+#-----------------------------------------------------------------------------
+# Collections of launchers
+#-----------------------------------------------------------------------------
+
+local_launchers = [
+    LocalControllerLauncher,
+    LocalEngineLauncher,
+    LocalEngineSetLauncher,
+]
+mpi_launchers = [
+    MPIExecLauncher,
+    MPIExecControllerLauncher,
+    MPIExecEngineSetLauncher,
+]
+ssh_launchers = [
+    SSHLauncher,
+    SSHControllerLauncher,
+    SSHEngineLauncher,
+    SSHEngineSetLauncher,
+]
+winhpc_launchers = [
+    WindowsHPCLauncher,
+    WindowsHPCControllerLauncher,
+    WindowsHPCEngineSetLauncher,
+]
+pbs_launchers = [
+    PBSLauncher,
+    PBSControllerLauncher,
+    PBSEngineSetLauncher,
+]
+sge_launchers = [
+    SGELauncher,
+    SGEControllerLauncher,
+    SGEEngineSetLauncher,
+]
+all_launchers = local_launchers + mpi_launchers + ssh_launchers + winhpc_launchers\
+                + pbs_launchers + sge_launchers
