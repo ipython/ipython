@@ -61,6 +61,10 @@ This line is evaluated in Python, so simple expressions are allowed, e.g.
 #-----------------------------------------------------------------------------
 
 
+class ApplicationError(Exception):
+    pass
+
+
 class Application(SingletonConfigurable):
     """A singleton application with full configuration support."""
 
@@ -111,7 +115,12 @@ class Application(SingletonConfigurable):
             assert isinstance(value[0], (dict, Config)), "Bad flag: %r:%s"%(key,value)
             assert isinstance(value[1], basestring), "Bad flag: %r:%s"%(key,value)
         self.init_logging()
-    
+
+    def _config_changed(self, name, old, new):
+        SingletonConfigurable._config_changed(self, name, old, new)
+        self.log.debug('Config changed:')
+        self.log.debug(repr(new))
+
     def init_logging(self):
         """Start logging for this application.
 
@@ -210,11 +219,11 @@ class Application(SingletonConfigurable):
         if '-h' in argv or '--help' in argv:
             self.print_description()
             self.print_help()
-            sys.exit(1)
+            self.exit(1)
 
         if '--version' in argv:
             self.print_version()
-            sys.exit(1)
+            self.exit(1)
         
         loader = KeyValueConfigLoader(argv=argv, aliases=self.aliases,
                                         flags=self.flags)
@@ -223,8 +232,10 @@ class Application(SingletonConfigurable):
 
     def load_config_file(self, filename, path=None):
         """Load a .py based config file by filename and path."""
-        # TODO: this raises IOError if filename does not exist.
         loader = PyFileConfigLoader(filename, path=path)
         config = loader.load_config()
         self.update_config(config)
 
+    def exit(self, exit_status=0):
+        self.log.debug("Exiting application: %s" % self.name)
+        sys.exit(exit_status)
