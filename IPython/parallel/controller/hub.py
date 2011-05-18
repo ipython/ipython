@@ -25,7 +25,9 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
+from IPython.utils.traitlets import (
+        HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool, Tuple
+        )
 
 from IPython.parallel import error, util
 from IPython.parallel.factory import RegistrationFactory, LoggingFactory
@@ -112,59 +114,71 @@ class EngineConnector(HasTraits):
 class HubFactory(RegistrationFactory):
     """The Configurable for setting up a Hub."""
     
-    # name of a scheduler scheme
-    scheme = Str('leastload', config=True)
-    
     # port-pairs for monitoredqueues:
-    hb = Instance(list, config=True)
+    hb = Tuple(Int,Int,config=True,
+        help="""XREQ/SUB Port pair for Engine heartbeats""")
     def _hb_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
+
+    mux = Tuple(Int,Int,config=True,
+        help="""Engine/Client Port pair for MUX queue""")
     
-    mux = Instance(list, config=True)
     def _mux_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
     
-    task = Instance(list, config=True)
+    task = Tuple(Int,Int,config=True,
+        help="""Engine/Client Port pair for Task queue""")
     def _task_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
+
+    control = Tuple(Int,Int,config=True,
+        help="""Engine/Client Port pair for Control queue""")
     
-    control = Instance(list, config=True)
     def _control_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
+
+    iopub = Tuple(Int,Int,config=True,
+        help="""Engine/Client Port pair for IOPub relay""")
     
-    iopub = Instance(list, config=True)
     def _iopub_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
     
     # single ports:
-    mon_port = Instance(int, config=True)
+    mon_port = Int(config=True,
+        help="""Monitor (SUB) port for queue traffic""")
+
     def _mon_port_default(self):
         return util.select_random_ports(1)[0]
     
-    notifier_port = Instance(int, config=True)
+    notifier_port = Int(config=True,
+        help="""PUB port for sending engine status notifications""")
+
     def _notifier_port_default(self):
         return util.select_random_ports(1)[0]
     
-    ping = Int(1000, config=True) # ping frequency
+    engine_ip = CStr('127.0.0.1', config=True,
+        help="IP on which to listen for engine connections. [default: loopback]")
+    engine_transport = CStr('tcp', config=True,
+        help="0MQ transport for engine connections. [default: tcp]")
     
-    engine_ip = CStr('127.0.0.1', config=True)
-    engine_transport = CStr('tcp', config=True)
+    client_ip = CStr('127.0.0.1', config=True,
+        help="IP on which to listen for client connections. [default: loopback]")
+    client_transport = CStr('tcp', config=True,
+        help="0MQ transport for client connections. [default : tcp]")
     
-    client_ip = CStr('127.0.0.1', config=True)
-    client_transport = CStr('tcp', config=True)
-    
-    monitor_ip = CStr('127.0.0.1', config=True)
-    monitor_transport = CStr('tcp', config=True)
+    monitor_ip = CStr('127.0.0.1', config=True,
+        help="IP on which to listen for monitor messages. [default: loopback]")
+    monitor_transport = CStr('tcp', config=True,
+        help="0MQ transport for monitor messages. [default : tcp]")
     
     monitor_url = CStr('')
     
-    db_class = CStr('IPython.parallel.controller.dictdb.DictDB', config=True)
+    db_class = CStr('IPython.parallel.controller.dictdb.DictDB', config=True,
+        help="""The class to use for the DB backend""")
     
     # not configurable
     db = Instance('IPython.parallel.controller.dictdb.BaseDB')
     heartmonitor = Instance('IPython.parallel.controller.heartmonitor.HeartMonitor')
-    subconstructors = List()
-    _constructed = Bool(False)
     
     def _ip_changed(self, name, old, new):
         self.engine_ip = new
@@ -186,24 +200,17 @@ class HubFactory(RegistrationFactory):
         self._update_monitor_url()
         # self.on_trait_change(self._sync_ips, 'ip')
         # self.on_trait_change(self._sync_transports, 'transport')
-        self.subconstructors.append(self.construct_hub)
+        # self.subconstructors.append(self.construct_hub)
     
     
     def construct(self):
-        assert not self._constructed, "already constructed!"
-        
-        for subc in self.subconstructors:
-            subc()
-        
-        self._constructed = True
-        
+        self.init_hub()
     
     def start(self):
-        assert self._constructed, "must be constructed by self.construct() first!"
         self.heartmonitor.start()
         self.log.info("Heartmonitor started")
     
-    def construct_hub(self):
+    def init_hub(self):
         """construct"""
         client_iface = "%s://%s:"%(self.client_transport, self.client_ip) + "%i"
         engine_iface = "%s://%s:"%(self.engine_transport, self.engine_ip) + "%i"
@@ -227,7 +234,7 @@ class HubFactory(RegistrationFactory):
         hrep = ctx.socket(zmq.XREP)
         hrep.bind(engine_iface % self.hb[1])
         self.heartmonitor = HeartMonitor(loop=loop, pingstream=ZMQStream(hpub,loop), pongstream=ZMQStream(hrep,loop), 
-                                period=self.ping, logname=self.log.name)
+                                config=self.config)
 
         ### Client connections ###
         # Notifier socket
@@ -248,7 +255,11 @@ class HubFactory(RegistrationFactory):
         # cdir = self.config.Global.cluster_dir
         self.db = import_item(self.db_class)(session=self.session.session, config=self.config)
         time.sleep(.25)
-
+        try:
+            scheme = self.config.TaskScheduler.scheme_name
+        except AttributeError:
+            from .scheduler import TaskScheduler
+            scheme = TaskScheduler.scheme_name.get_default_value()
         # build connection dicts
         self.engine_info = {
             'control' : engine_iface%self.control[1],
@@ -262,7 +273,7 @@ class HubFactory(RegistrationFactory):
         self.client_info = {
             'control' : client_iface%self.control[0],
             'mux': client_iface%self.mux[0],
-            'task' : (self.scheme, client_iface%self.task[0]),
+            'task' : (scheme, client_iface%self.task[0]),
             'iopub' : client_iface%self.iopub[0],
             'notification': client_iface%self.notifier_port
             }

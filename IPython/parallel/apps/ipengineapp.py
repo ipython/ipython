@@ -23,17 +23,21 @@ import zmq
 from zmq.eventloop import ioloop
 
 from IPython.parallel.apps.clusterdir import (
-    ApplicationWithClusterDir,
-    ClusterDirConfigLoader
+    ClusterDirApplication,
+    ClusterDir,
+    base_aliases,
+    # ClusterDirConfigLoader
 )
 from IPython.zmq.log import EnginePUBHandler
 
-from IPython.parallel import factory
+from IPython.config.configurable import Configurable
+from IPython.parallel.streamsession import StreamSession
 from IPython.parallel.engine.engine import EngineFactory
 from IPython.parallel.engine.streamkernel import Kernel
 from IPython.parallel.util import disambiguate_url
 
 from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import Str, Bool, Unicode, Dict, List, CStr
 
 
 #-----------------------------------------------------------------------------
@@ -43,6 +47,20 @@ from IPython.utils.importstring import import_item
 #: The default config file name for this application
 default_config_file_name = u'ipengine_config.py'
 
+_description = """Start an IPython engine for parallel computing.\n\n
+
+IPython engines run in parallel and perform computations on behalf of a client
+and controller. A controller needs to be started before the engines. The
+engine can be configured using command line options or using a cluster
+directory. Cluster directories contain config, log and security files and are
+usually located in your ipython directory and named as "cluster_<profile>".
+See the `profile` and `cluster_dir` options for details.
+"""
+
+
+#-----------------------------------------------------------------------------
+# MPI configuration
+#-----------------------------------------------------------------------------
 
 mpi4py_init = """from mpi4py import MPI as mpi
 mpi.size = mpi.COMM_WORLD.Get_size()
@@ -58,67 +76,22 @@ mpi.rank = 0
 mpi.size = 0
 """
 
+class MPI(Configurable):
+    """Configurable for MPI initialization"""
+    use = Str('', config=True,
+        help='How to enable MPI (mpi4py, pytrilinos, or empty string to disable).'
+        )
 
-_description = """Start an IPython engine for parallel computing.\n\n
+    def _on_use_changed(self, old, new):
+        # load default init script if it's not set
+        if not self.init_script:
+            self.init_script = self.default_inits.get(new, '')
 
-IPython engines run in parallel and perform computations on behalf of a client
-and controller. A controller needs to be started before the engines. The
-engine can be configured using command line options or using a cluster
-directory. Cluster directories contain config, log and security files and are
-usually located in your ipython directory and named as "cluster_<profile>".
-See the --profile and --cluster-dir options for details.
-"""
+    init_script = Str('', config=True,
+        help="Initialization code for MPI")
 
-#-----------------------------------------------------------------------------
-# Command line options
-#-----------------------------------------------------------------------------
-
-
-class IPEngineAppConfigLoader(ClusterDirConfigLoader):
-
-    def _add_arguments(self):
-        super(IPEngineAppConfigLoader, self)._add_arguments()
-        paa = self.parser.add_argument
-        # Controller config
-        paa('--file', '-f',
-            type=unicode, dest='Global.url_file',
-            help='The full location of the file containing the connection information fo '
-            'controller. If this is not given, the file must be in the '
-            'security directory of the cluster directory.  This location is '
-            'resolved using the --profile and --app-dir options.',
-            metavar='Global.url_file')
-        # MPI
-        paa('--mpi',
-            type=str, dest='MPI.use',
-            help='How to enable MPI (mpi4py, pytrilinos, or empty string to disable).',
-            metavar='MPI.use')
-        # Global config
-        paa('--log-to-file',
-            action='store_true', dest='Global.log_to_file',
-            help='Log to a file in the log directory (default is stdout)')
-        paa('--log-url',
-            dest='Global.log_url',
-            help="url of ZMQ logger, as started with iploggerz")
-        # paa('--execkey',
-        #     type=str, dest='Global.exec_key',
-        #     help='path to a file containing an execution key.',
-        #     metavar='keyfile')
-        # paa('--no-secure',
-        #     action='store_false', dest='Global.secure',
-        #     help='Turn off execution keys.')
-        # paa('--secure',
-        #     action='store_true', dest='Global.secure',
-        #     help='Turn on execution keys (default).')
-        # init command
-        paa('-c',
-            type=str, dest='Global.extra_exec_lines',
-            help='specify a command to be run at startup')
-        paa('-s',
-            type=unicode, dest='Global.extra_exec_file',
-            help='specify a script to be run at startup')
-        
-        factory.add_session_arguments(self.parser)
-        factory.add_registration_arguments(self.parser)
+    default_inits = Dict({'mpi4py' : mpi4py_init, 'pytrilinos':pytrilinos_init},
+        config=True)
 
 
 #-----------------------------------------------------------------------------
@@ -126,55 +99,52 @@ class IPEngineAppConfigLoader(ClusterDirConfigLoader):
 #-----------------------------------------------------------------------------
 
 
-class IPEngineApp(ApplicationWithClusterDir):
+class IPEngineApp(ClusterDirApplication):
 
-    name = u'ipengine'
-    description = _description
-    command_line_loader = IPEngineAppConfigLoader
+    app_name = Unicode(u'ipengine')
+    description = Unicode(_description)
     default_config_file_name = default_config_file_name
-    auto_create_cluster_dir = True
+    classes = List([ClusterDir, StreamSession, EngineFactory, Kernel, MPI])
 
-    def create_default_config(self):
-        super(IPEngineApp, self).create_default_config()
+    startup_script = Unicode(u'', config=True,
+        help='specify a script to be run at startup')
+    startup_command = Str('', config=True,
+            help='specify a command to be run at startup')
 
-        # The engine should not clean logs as we don't want to remove the
-        # active log files of other running engines.
-        self.default_config.Global.clean_logs = False
-        self.default_config.Global.secure = True
+    url_file = Unicode(u'', config=True,
+        help="""The full location of the file containing the connection information for
+        the controller. If this is not given, the file must be in the
+        security directory of the cluster directory.  This location is
+        resolved using the `profile` or `cluster_dir` options.""",
+        )
 
-        # Global config attributes
-        self.default_config.Global.exec_lines = []
-        self.default_config.Global.extra_exec_lines = ''
-        self.default_config.Global.extra_exec_file = u''
+    url_file_name = Unicode(u'ipcontroller-engine.json')
 
-        # Configuration related to the controller
-        # This must match the filename (path not included) that the controller
-        # used for the FURL file.
-        self.default_config.Global.url_file = u''
-        self.default_config.Global.url_file_name = u'ipcontroller-engine.json'
-        # If given, this is the actual location of the controller's FURL file.
-        # If not, this is computed using the profile, app_dir and furl_file_name
-        # self.default_config.Global.key_file_name = u'exec_key.key'
-        # self.default_config.Global.key_file = u''
+    aliases = Dict(dict(
+        config = 'IPEngineApp.config_file',
+        file = 'IPEngineApp.url_file',
+        c = 'IPEngineApp.startup_command',
+        s = 'IPEngineApp.startup_script',
 
-        # MPI related config attributes
-        self.default_config.MPI.use = ''
-        self.default_config.MPI.mpi4py = mpi4py_init
-        self.default_config.MPI.pytrilinos = pytrilinos_init
+        ident = 'StreamSession.session',
+        user = 'StreamSession.username',
+        exec_key = 'StreamSession.keyfile',
 
-    def post_load_command_line_config(self):
-        pass
+        url = 'EngineFactory.url',
+        ip = 'EngineFactory.ip',
+        transport = 'EngineFactory.transport',
+        port = 'EngineFactory.regport',
+        location = 'EngineFactory.location',
 
-    def pre_construct(self):
-        super(IPEngineApp, self).pre_construct()
-        # self.find_cont_url_file()
-        self.find_url_file()
-        if self.master_config.Global.extra_exec_lines:
-            self.master_config.Global.exec_lines.append(self.master_config.Global.extra_exec_lines)
-        if self.master_config.Global.extra_exec_file:
-            enc = sys.getfilesystemencoding() or 'utf8'
-            cmd="execfile(%r)"%self.master_config.Global.extra_exec_file.encode(enc)
-            self.master_config.Global.exec_lines.append(cmd)
+        timeout = 'EngineFactory.timeout',
+
+        profile = "ClusterDir.profile",
+        cluster_dir = 'ClusterDir.location',
+
+        mpi = 'MPI.use',
+
+        log_level = 'IPEngineApp.log_level',
+    ))
 
     # def find_key_file(self):
     #     """Set the key file.
@@ -198,49 +168,58 @@ class IPEngineApp(ApplicationWithClusterDir):
         Here we don't try to actually see if it exists for is valid as that
         is hadled by the connection logic.
         """
-        config = self.master_config
+        config = self.config
         # Find the actual controller key file
-        if not config.Global.url_file:
-            try_this = os.path.join(
-                config.Global.cluster_dir, 
-                config.Global.security_dir,
-                config.Global.url_file_name
+        if not self.url_file:
+            self.url_file = os.path.join(
+                self.cluster_dir.security_dir,
+                self.url_file_name
             )
-            config.Global.url_file = try_this
         
-    def construct(self):
+    def init_engine(self):
         # This is the working dir by now.
         sys.path.insert(0, '')
-        config = self.master_config
+        config = self.config
+        # print config
+        self.find_url_file()
+
         # if os.path.exists(config.Global.key_file) and config.Global.secure:
         #     config.SessionFactory.exec_key = config.Global.key_file
-        if os.path.exists(config.Global.url_file):
-            with open(config.Global.url_file) as f:
+        if os.path.exists(self.url_file):
+            with open(self.url_file) as f:
                 d = json.loads(f.read())
                 for k,v in d.iteritems():
                     if isinstance(v, unicode):
                         d[k] = v.encode()
             if d['exec_key']:
-                config.SessionFactory.exec_key = d['exec_key']
+                config.StreamSession.key = d['exec_key']
             d['url'] = disambiguate_url(d['url'], d['location'])
-            config.RegistrationFactory.url=d['url']
+            config.EngineFactory.url = d['url']
             config.EngineFactory.location = d['location']
         
-        
-        
-        config.Kernel.exec_lines = config.Global.exec_lines
-
-        self.start_mpi()
-
-        # Create the underlying shell class and EngineService
-        # shell_class = import_item(self.master_config.Global.shell_class)
         try:
-            self.engine = EngineFactory(config=config, logname=self.log.name)
+            exec_lines = config.Kernel.exec_lines
+        except AttributeError:
+            config.Kernel.exec_lines = []
+            exec_lines = config.Kernel.exec_lines
+        
+        if self.startup_script:
+            enc = sys.getfilesystemencoding() or 'utf8'
+            cmd="execfile(%r)"%self.startup_script.encode(enc)
+            exec_lines.append(cmd)
+        if self.startup_command:
+            exec_lines.append(self.startup_command)
+
+        # Create the underlying shell class and Engine
+        # shell_class = import_item(self.master_config.Global.shell_class)
+        # print self.config
+        try:
+            self.engine = EngineFactory(config=config, log=self.log)
         except:
             self.log.error("Couldn't start the Engine", exc_info=True)
             self.exit(1)
         
-        self.start_logging()
+        # self.start_logging()
 
         # Create the service hierarchy
         # self.main_service = service.MultiService()
@@ -258,22 +237,22 @@ class IPEngineApp(ApplicationWithClusterDir):
 
         # reactor.callWhenRunning(self.call_connect)
 
-
-    def start_logging(self):
-        super(IPEngineApp, self).start_logging()
-        if self.master_config.Global.log_url:
-            context = self.engine.context
-            lsock = context.socket(zmq.PUB)
-            lsock.connect(self.master_config.Global.log_url)
-            handler = EnginePUBHandler(self.engine, lsock)
-            handler.setLevel(self.log_level)
-            self.log.addHandler(handler)
-    
-    def start_mpi(self):
+    # def start_logging(self):
+    #     super(IPEngineApp, self).start_logging()
+    #     if self.master_config.Global.log_url:
+    #         context = self.engine.context
+    #         lsock = context.socket(zmq.PUB)
+    #         lsock.connect(self.master_config.Global.log_url)
+    #         handler = EnginePUBHandler(self.engine, lsock)
+    #         handler.setLevel(self.log_level)
+    #         self.log.addHandler(handler)
+    #
+    def init_mpi(self):
         global mpi
-        mpikey = self.master_config.MPI.use
-        mpi_import_statement = self.master_config.MPI.get(mpikey, None)
-        if mpi_import_statement is not None:
+        self.mpi = MPI(config=self.config)
+
+        mpi_import_statement = self.mpi.init_script
+        if mpi_import_statement:
             try:
                 self.log.info("Initializing MPI:")
                 self.log.info(mpi_import_statement)
@@ -284,7 +263,7 @@ class IPEngineApp(ApplicationWithClusterDir):
             mpi = None
 
 
-    def start_app(self):
+    def start(self):
         self.engine.start()
         try:
             self.engine.loop.start()
@@ -293,8 +272,27 @@ class IPEngineApp(ApplicationWithClusterDir):
 
 
 def launch_new_instance():
-    """Create and run the IPython controller"""
+    """Create and run the IPython engine"""
     app = IPEngineApp()
+    app.parse_command_line()
+    cl_config = app.config
+    app.init_clusterdir()
+    # app.load_config_file()
+    # print app.config
+    if app.config_file:
+        app.load_config_file(app.config_file)
+    else:
+        app.load_config_file(app.default_config_file_name, path=app.cluster_dir.location)
+
+    # command-line should *override* config file, but command-line is necessary
+    # to determine clusterdir, etc.
+    app.update_config(cl_config)
+
+    # print app.config
+    app.to_work_dir()
+    app.init_mpi()
+    app.init_engine()
+    print app.config
     app.start()
 
 

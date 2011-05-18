@@ -296,7 +296,7 @@ class Client(HasTraits):
         if username is None:
             self.session = ss.StreamSession(**key_arg)
         else:
-            self.session = ss.StreamSession(username, **key_arg)
+            self.session = ss.StreamSession(username=username, **key_arg)
         self._query_socket = self._context.socket(zmq.XREQ)
         self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:

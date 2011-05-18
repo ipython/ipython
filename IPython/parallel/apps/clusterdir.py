@@ -25,16 +25,18 @@ import sys
 
 from subprocess import Popen, PIPE
 
-from IPython.config.loader import PyFileConfigLoader
+from IPython.config.loader import PyFileConfigLoader, Config
 from IPython.config.configurable import Configurable
-from IPython.core.application import Application, BaseAppConfigLoader
+from IPython.config.application import Application
 from IPython.core.crashhandler import CrashHandler
+from IPython.core.newapplication import BaseIPythonApplication
 from IPython.core import release
 from IPython.utils.path import (
     get_ipython_package_dir,
+    get_ipython_dir,
     expand_path
 )
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, Bool, CStr, Instance, Dict
 
 #-----------------------------------------------------------------------------
 # Module errors
@@ -69,18 +71,44 @@ class ClusterDir(Configurable):
     security_dir = Unicode(u'')
     log_dir = Unicode(u'')
     pid_dir = Unicode(u'')
-    location = Unicode(u'')
 
-    def __init__(self, location=u''):
-        super(ClusterDir, self).__init__(location=location)
+    location = Unicode(u'', config=True,
+        help="""Set the cluster dir. This overrides the logic used by the
+        `profile` option.""",
+        )
+    profile = Unicode(u'default',
+        help="""The string name of the profile to be used. This determines the name
+        of the cluster dir as: cluster_<profile>. The default profile is named
+        'default'.  The cluster directory is resolve this way if the
+        `cluster_dir` option is not used.""", config=True
+        )
+
+    _location_isset = Bool(False) # flag for detecting multiply set location
+    _new_dir = Bool(False) # flag for whether a new dir was created
+
+    def __init__(self, **kwargs):
+        super(ClusterDir, self).__init__(**kwargs)
+        if not self.location:
+            self._profile_changed('profile', 'default', self.profile)
 
     def _location_changed(self, name, old, new):
+        if self._location_isset:
+            raise RuntimeError("Cannot set ClusterDir more than once.")
+        self._location_isset = True
         if not os.path.isdir(new):
             os.makedirs(new)
+            self._new_dir = True
+        # ensure config files exist:
+        self.copy_all_config_files(overwrite=False)
         self.security_dir = os.path.join(new, self.security_dir_name)
         self.log_dir = os.path.join(new, self.log_dir_name)
         self.pid_dir = os.path.join(new, self.pid_dir_name)
         self.check_dirs()
+
+    def _profile_changed(self, name, old, new):
+        if self._location_isset:
+            raise RuntimeError("ClusterDir already set.  Cannot set by profile.")
+        self.location = os.path.join(get_ipython_dir(), 'cluster_'+new)
 
     def _log_dir_changed(self, name, old, new):
         self.check_log_dir()
@@ -109,18 +137,6 @@ class ClusterDir(Configurable):
         self.check_security_dir()
         self.check_log_dir()
         self.check_pid_dir()
-
-    def load_config_file(self, filename):
-        """Load a config file from the top level of the cluster dir.
-
-        Parameters
-        ----------
-        filename : unicode or str
-            The filename only of the config file that must be located in
-            the top-level of the cluster directory.
-        """
-        loader = PyFileConfigLoader(filename, self.location)
-        return loader.load_config()
 
     def copy_config_file(self, config_file, path=None, overwrite=False):
         """Copy a default config file into the active cluster directory.
@@ -227,59 +243,6 @@ class ClusterDir(Configurable):
 
 
 #-----------------------------------------------------------------------------
-# Command line options
-#-----------------------------------------------------------------------------
-
-class ClusterDirConfigLoader(BaseAppConfigLoader):
-
-    def _add_cluster_profile(self, parser):
-        paa = parser.add_argument
-        paa('-p', '--profile',
-            dest='Global.profile',type=unicode,
-            help=
-            """The string name of the profile to be used. This determines the name
-            of the cluster dir as: cluster_<profile>. The default profile is named
-            'default'.  The cluster directory is resolve this way if the
-            --cluster-dir option is not used.""",
-            metavar='Global.profile')
-
-    def _add_cluster_dir(self, parser):
-        paa = parser.add_argument
-        paa('--cluster-dir',
-            dest='Global.cluster_dir',type=unicode,
-            help="""Set the cluster dir. This overrides the logic used by the
-            --profile option.""",
-            metavar='Global.cluster_dir')
-
-    def _add_work_dir(self, parser):
-        paa = parser.add_argument
-        paa('--work-dir',
-            dest='Global.work_dir',type=unicode,
-            help='Set the working dir for the process.',
-            metavar='Global.work_dir')
-
-    def _add_clean_logs(self, parser):
-        paa = parser.add_argument
-        paa('--clean-logs',
-            dest='Global.clean_logs', action='store_true',
-            help='Delete old log flies before starting.')
-
-    def _add_no_clean_logs(self, parser):
-        paa = parser.add_argument
-        paa('--no-clean-logs',
-            dest='Global.clean_logs', action='store_false',
-            help="Don't Delete old log flies before starting.")
-
-    def _add_arguments(self):
-        super(ClusterDirConfigLoader, self)._add_arguments()
-        self._add_cluster_profile(self.parser)
-        self._add_cluster_dir(self.parser)
-        self._add_work_dir(self.parser)
-        self._add_clean_logs(self.parser)
-        self._add_no_clean_logs(self.parser)
-
-
-#-----------------------------------------------------------------------------
 # Crash handler for this application
 #-----------------------------------------------------------------------------
 
@@ -312,8 +275,8 @@ class ClusterDirCrashHandler(CrashHandler):
     message_template = _message_template
 
     def __init__(self, app):
-        contact_name = release.authors['Brian'][0]
-        contact_email = release.authors['Brian'][1]
+        contact_name = release.authors['Min'][0]
+        contact_email = release.authors['Min'][1]
         bug_tracker = 'http://github.com/ipython/ipython/issues'
         super(ClusterDirCrashHandler,self).__init__(
             app, contact_name, contact_email, bug_tracker
@@ -323,8 +286,25 @@ class ClusterDirCrashHandler(CrashHandler):
 #-----------------------------------------------------------------------------
 # Main application
 #-----------------------------------------------------------------------------
+base_aliases = {
+    'profile' : "ClusterDir.profile",
+    'cluster_dir' : 'ClusterDir.location',
+    'log_level' : 'Application.log_level',
+    'work_dir' : 'ClusterDirApplicaiton.work_dir',
+    'log_to_file' : 'ClusterDirApplicaiton.log_to_file',
+    'clean_logs' : 'ClusterDirApplicaiton.clean_logs',
+    'log_url' : 'ClusterDirApplicaiton.log_url',
+}
 
-class ApplicationWithClusterDir(Application):
+base_flags = {
+    'debug' : ( {"Application" : {"log_level" : logging.DEBUG}}, "set loglevel to DEBUG"),
+    'clean-logs' : ( {"ClusterDirApplication" : {"clean_logs" : True}}, "cleanup old logfiles"),
+    'log-to-file' : ( {"ClusterDirApplication" : {"log_to_file" : True}}, "log to a file")
+}
+for k,v in base_flags.iteritems():
+    base_flags[k] = (Config(v[0]),v[1])
+
+class ClusterDirApplication(BaseIPythonApplication):
     """An application that puts everything into a cluster directory.
 
     Instead of looking for things in the ipython_dir, this type of application
@@ -343,22 +323,37 @@ class ApplicationWithClusterDir(Application):
     dir and named the value of the ``config_file_name`` class attribute.
     """
 
-    command_line_loader = ClusterDirConfigLoader
     crash_handler_class = ClusterDirCrashHandler
-    auto_create_cluster_dir = True
+    auto_create_cluster_dir = Bool(True, config=True,
+        help="whether to create the cluster_dir if it doesn't exist")
     # temporarily override default_log_level to INFO
     default_log_level = logging.INFO
+    cluster_dir = Instance(ClusterDir)
 
-    def create_default_config(self):
-        super(ApplicationWithClusterDir, self).create_default_config()
-        self.default_config.Global.profile = u'default'
-        self.default_config.Global.cluster_dir = u''
-        self.default_config.Global.work_dir = os.getcwd()
-        self.default_config.Global.log_to_file = False
-        self.default_config.Global.log_url = None
-        self.default_config.Global.clean_logs = False
+    work_dir = Unicode(os.getcwdu(), config=True,
+        help='Set the working dir for the process.'
+    )
+    def _work_dir_changed(self, name, old, new):
+        self.work_dir = unicode(expand_path(new))
 
-    def find_resources(self):
+    log_to_file = Bool(config=True,
+        help="whether to log to a file")
+
+    clean_logs = Bool(True, shortname='--clean-logs', config=True,
+        help="whether to cleanup old logfiles before starting")
+
+    log_url = CStr('', shortname='--log-url', config=True,
+        help="The ZMQ URL of the iplooger to aggregate logging.")
+
+    config_file = Unicode(u'', config=True,
+        help="""Path to ipcontroller configuration file.  The default is to use
+         <appname>_config.py, as found by cluster-dir."""
+    )
+
+    aliases = Dict(base_aliases)
+    flags = Dict(base_flags)
+
+    def init_clusterdir(self):
         """This resolves the cluster directory.
 
         This tries to find the cluster directory and if successful, it will
@@ -375,121 +370,53 @@ class ApplicationWithClusterDir(Application):
            ``True``, then create the new cluster dir in the IPython directory.
         4. If all fails, then raise :class:`ClusterDirError`.
         """
-
-        try:
-            cluster_dir = self.command_line_config.Global.cluster_dir
-        except AttributeError:
-            cluster_dir = self.default_config.Global.cluster_dir
-        cluster_dir = expand_path(cluster_dir)
-        try:
-            self.cluster_dir_obj = ClusterDir.find_cluster_dir(cluster_dir)
-        except ClusterDirError:
-            pass
-        else:
-            self.log.info('Using existing cluster dir: %s' % \
-                self.cluster_dir_obj.location
-            )
-            self.finish_cluster_dir()
-            return
-
-        try:
-            self.profile = self.command_line_config.Global.profile
-        except AttributeError:
-            self.profile = self.default_config.Global.profile
-        try:
-            self.cluster_dir_obj = ClusterDir.find_cluster_dir_by_profile(
-                self.ipython_dir, self.profile)
-        except ClusterDirError:
-            pass
-        else:
-            self.log.info('Using existing cluster dir: %s' % \
-                self.cluster_dir_obj.location
-            )
-            self.finish_cluster_dir()
-            return
-
-        if self.auto_create_cluster_dir:
-            self.cluster_dir_obj = ClusterDir.create_cluster_dir_by_profile(
-                self.ipython_dir, self.profile
-            )
+        self.cluster_dir = ClusterDir(config=self.config)
+        if self.cluster_dir._new_dir:
             self.log.info('Creating new cluster dir: %s' % \
-                self.cluster_dir_obj.location
-            )
-            self.finish_cluster_dir()
+                            self.cluster_dir.location)
         else:
-            raise ClusterDirError('Could not find a valid cluster directory.')
-
-    def finish_cluster_dir(self):
-        # Set the cluster directory
-        self.cluster_dir = self.cluster_dir_obj.location
-        
-        # These have to be set because they could be different from the one
-        # that we just computed.  Because command line has the highest
-        # priority, this will always end up in the master_config.
-        self.default_config.Global.cluster_dir = self.cluster_dir
-        self.command_line_config.Global.cluster_dir = self.cluster_dir
-
-    def find_config_file_name(self):
-        """Find the config file name for this application."""
-        # For this type of Application it should be set as a class attribute.
-        if not hasattr(self, 'default_config_file_name'):
-            self.log.critical("No config filename found")
-        else:
-            self.config_file_name = self.default_config_file_name
-
-    def find_config_file_paths(self):
-        # Set the search path to to the cluster directory. We should NOT
-        # include IPython.config.default here as the default config files
-        # are ALWAYS automatically moved to the cluster directory.
-        conf_dir = os.path.join(get_ipython_package_dir(), 'config', 'default')
-        self.config_file_paths = (self.cluster_dir,)
-
-    def pre_construct(self):
-        # The log and security dirs were set earlier, but here we put them
-        # into the config and log them.
-        config = self.master_config
-        sdir = self.cluster_dir_obj.security_dir
-        self.security_dir = config.Global.security_dir = sdir
-        ldir = self.cluster_dir_obj.log_dir
-        self.log_dir = config.Global.log_dir = ldir
-        pdir = self.cluster_dir_obj.pid_dir
-        self.pid_dir = config.Global.pid_dir = pdir
-        self.log.info("Cluster directory set to: %s" % self.cluster_dir)
-        config.Global.work_dir = unicode(expand_path(config.Global.work_dir))
-        # Change to the working directory. We do this just before construct
-        # is called so all the components there have the right working dir.
-        self.to_work_dir()
+            self.log.info('Using existing cluster dir: %s' % \
+                            self.cluster_dir.location)
 
     def to_work_dir(self):
-        wd = self.master_config.Global.work_dir
-        if unicode(wd) != unicode(os.getcwd()):
+        wd = self.work_dir
+        if unicode(wd) != os.getcwdu():
             os.chdir(wd)
             self.log.info("Changing to working dir: %s" % wd)
 
-    def start_logging(self):
-        # Remove old log files
-        if self.master_config.Global.clean_logs:
-            log_dir = self.master_config.Global.log_dir
-            for f in os.listdir(log_dir):
-                if re.match(r'%s-\d+\.(log|err|out)'%self.name,f):
-                # if f.startswith(self.name + u'-') and f.endswith('.log'):
-                    os.remove(os.path.join(log_dir, f))
-        # Start logging to the new log file
-        if self.master_config.Global.log_to_file:
-            log_filename = self.name + u'-' + str(os.getpid()) + u'.log'
-            logfile = os.path.join(self.log_dir, log_filename)
-            open_log_file = open(logfile, 'w')
-        elif self.master_config.Global.log_url:
-            open_log_file = None
-        else:
-            open_log_file = sys.stdout
-        if open_log_file is not None:
-            self.log.removeHandler(self._log_handler)
-            self._log_handler = logging.StreamHandler(open_log_file)
-            self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
-            self._log_handler.setFormatter(self._log_formatter)
-            self.log.addHandler(self._log_handler)
-        # log.startLogging(open_log_file)
+    def load_config_file(self, filename, path=None):
+        """Load a .py based config file by filename and path."""
+        return Application.load_config_file(self, filename, path=path)
+    #
+    # def load_default_config_file(self):
+    #     """Load a .py based config file by filename and path."""
+    #     return BaseIPythonApplication.load_config_file(self)
+
+    # disable URL-logging
+    # def init_logging(self):
+    #     # Remove old log files
+    #     if self.master_config.Global.clean_logs:
+    #         log_dir = self.master_config.Global.log_dir
+    #         for f in os.listdir(log_dir):
+    #             if re.match(r'%s-\d+\.(log|err|out)'%self.name,f):
+    #             # if f.startswith(self.name + u'-') and f.endswith('.log'):
+    #                 os.remove(os.path.join(log_dir, f))
+    #     # Start logging to the new log file
+    #     if self.master_config.Global.log_to_file:
+    #         log_filename = self.name + u'-' + str(os.getpid()) + u'.log'
+    #         logfile = os.path.join(self.log_dir, log_filename)
+    #         open_log_file = open(logfile, 'w')
+    #     elif self.master_config.Global.log_url:
+    #         open_log_file = None
+    #     else:
+    #         open_log_file = sys.stdout
+    #     if open_log_file is not None:
+    #         self.log.removeHandler(self._log_handler)
+    #         self._log_handler = logging.StreamHandler(open_log_file)
+    #         self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
+    #         self._log_handler.setFormatter(self._log_formatter)
+    #         self.log.addHandler(self._log_handler)
+    #     # log.startLogging(open_log_file)
 
     def write_pid_file(self, overwrite=False):
         """Create a .pid file in the pid_dir with my pid.
@@ -497,7 +424,7 @@ class ApplicationWithClusterDir(Application):
         This must be called after pre_construct, which sets `self.pid_dir`.
         This raises :exc:`PIDFileError` if the pid file exists already.
         """
-        pid_file = os.path.join(self.pid_dir, self.name + u'.pid')
+        pid_file = os.path.join(self.cluster_dir.pid_dir, self.name + u'.pid')
         if os.path.isfile(pid_file):
             pid = self.get_pid_from_file()
             if not overwrite:
@@ -516,7 +443,7 @@ class ApplicationWithClusterDir(Application):
         :func:`reactor.addSystemEventTrigger`. This needs to return
         ``None``.
         """
-        pid_file = os.path.join(self.pid_dir, self.name + u'.pid')
+        pid_file = os.path.join(self.cluster_dir.pid_dir, self.name + u'.pid')
         if os.path.isfile(pid_file):
             try:
                 self.log.info("Removing pid file: %s" % pid_file)
@@ -529,7 +456,7 @@ class ApplicationWithClusterDir(Application):
 
         If the  pid file doesn't exist a :exc:`PIDFileError` is raised.
         """
-        pid_file = os.path.join(self.pid_dir, self.name + u'.pid')
+        pid_file = os.path.join(self.cluster_dir.pid_dir, self.name + u'.pid')
         if os.path.isfile(pid_file):
             with open(pid_file, 'r') as f:
                 pid = int(f.read().strip())
@@ -563,4 +490,3 @@ class ApplicationWithClusterDir(Application):
                 return True
             pids = map(int, re.findall(r'^\W*\d+', output, re.MULTILINE))
             return pid in pids
-    
