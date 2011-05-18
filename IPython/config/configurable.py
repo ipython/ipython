@@ -44,7 +44,6 @@ class MultipleInstanceError(ConfigurableError):
 # Configurable implementation
 #-----------------------------------------------------------------------------
 
-
 class Configurable(HasTraits):
 
     config = Instance(Config,(),{})
@@ -151,7 +150,7 @@ class Configurable(HasTraits):
             header = "%s.%s : %s" % (cls.__name__, k, v.__class__.__name__)
             final_help.append(header)
             if help is not None:
-                final_help.append(indent(help))
+                final_help.append(indent(help, flatten=True))
         return '\n'.join(final_help)
 
     @classmethod
