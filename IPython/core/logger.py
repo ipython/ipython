@@ -69,8 +69,6 @@ class Logger(object):
             raise RuntimeError('Log file is already active: %s' %
                                self.logfname)
         
-        self.log_active = True
-
         # The parameters can override constructor defaults
         if logfname is not None: self.logfname = logfname
         if loghead is not None: self.loghead = loghead
@@ -124,6 +122,7 @@ class Logger(object):
             self.logfile.write(self.loghead)
 
         self.logfile.flush()
+        self.log_active = True
 
     def switch_log(self,val):
         """Switch logging on/off. val should be ONLY a boolean."""
