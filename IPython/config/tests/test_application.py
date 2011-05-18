@@ -47,7 +47,7 @@ class Bar(Configurable):
 
 class MyApp(Application):
 
-    app_name = Unicode(u'myapp')
+    name = Unicode(u'myapp')
     running = Bool(False, config=True,
                    help="Is the app running?")
     classes = List([Bar, Foo])
@@ -71,7 +71,7 @@ class TestApplication(TestCase):
 
     def test_basic(self):
         app = MyApp()
-        self.assertEquals(app.app_name, u'myapp')
+        self.assertEquals(app.name, u'myapp')
         self.assertEquals(app.running, False)
         self.assertEquals(app.classes, [MyApp,Bar,Foo])
         self.assertEquals(app.config_file, u'')

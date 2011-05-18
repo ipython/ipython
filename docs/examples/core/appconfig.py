@@ -56,7 +56,7 @@ class Bar(Configurable):
 
 class MyApp(Application):
 
-    app_name = Unicode(u'myapp')
+    name = Unicode(u'myapp')
     running = Bool(False, config=True,
                    help="Is the app running?")
     classes = List([Bar, Foo])
