@@ -70,7 +70,7 @@ class Application(SingletonConfigurable):
 
     # The name of the application, will usually match the name of the command
     # line application
-    app_name = Unicode(u'application')
+    name = Unicode(u'application')
 
     # The description of the application that is printed at the beginning
     # of the help.

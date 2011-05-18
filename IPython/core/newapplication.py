@@ -43,7 +43,7 @@ from IPython.utils.traitlets import Tuple, Unicode, Type
 
 class BaseIPythonApplication(Application):
 
-    app_name = Unicode(u'ipython')
+    name = Unicode(u'ipython')
     description = Unicode(u'IPython: an enhanced interactive Python shell.')
     version = Unicode(release.version)
 
@@ -56,7 +56,7 @@ class BaseIPythonApplication(Application):
         os.path.join(get_ipython_package_dir(), u'config', u'profile')
     )
 
-    config_file_paths = Tuple(Unicode)
+    config_file_paths = Tuple(Unicode, Unicode, Unicode)
     def _config_file_paths_default(self):
         return (os.getcwdu(), self.ipython_dir, self.builtin_profile_dir)
 
@@ -125,7 +125,8 @@ class BaseIPythonApplication(Application):
                 self.log.warn("Config file not found, skipping: %s" %
                                self.config_file_name, exc_info=True)
         except:
-            if not suppress_errors:     # For testing purposes
+            # For testing purposes.
+            if not suppress_errors:
                 raise
             self.log.warn("Error loading config file: %s" %
                           self.config_file_name, exc_info=True)
