@@ -161,7 +161,7 @@ class Application(SingletonConfigurable):
             help = trait.get_metadata('help')
             print alias, "(%s)"%longname, ':', trait.__class__.__name__
             if help:
-                print indent(help)
+                print indent(help, flatten=True)
         print
     
     def print_flag_help(self):
@@ -176,7 +176,7 @@ class Application(SingletonConfigurable):
         
         for m, (cfg,help) in self.flags.iteritems():
             print '--'+m
-            print indent(help)
+            print indent(help, flatten=True)
         print
     
     def print_help(self):
