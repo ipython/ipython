@@ -19,7 +19,7 @@ import re
 
 from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Bool, Any, Instance
-from IPython.testing import decorators as testdec
+from IPython.testing.skipdoctest import skip_doctest
 
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
@@ -50,7 +50,7 @@ class ParalleMagic(Plugin):
         self.shell.define_magic('px', self.magic_px)
         self.shell.define_magic('autopx', self.magic_autopx)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_result(self, ipself, parameter_s=''):
         """Print the result of command i on all engines..
 
@@ -82,7 +82,7 @@ class ParalleMagic(Plugin):
         result = self.active_view.get_result(index)
         return result
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_px(self, ipself, parameter_s=''):
         """Executes the given python command in parallel.
 
@@ -108,7 +108,7 @@ class ParalleMagic(Plugin):
             result.get()
             self._maybe_display_output(result)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_autopx(self, ipself, parameter_s=''):
         """Toggles auto parallel mode.
 

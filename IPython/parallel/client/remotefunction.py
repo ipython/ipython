@@ -12,7 +12,7 @@
 
 import warnings
 
-from IPython.testing import decorators as testdec
+from IPython.testing.skipdoctest import skip_doctest
 
 from . import map as Map
 from .asyncresult import AsyncMapResult
@@ -21,7 +21,7 @@ from .asyncresult import AsyncMapResult
 # Decorators
 #-----------------------------------------------------------------------------
 
-@testdec.skip_doctest
+@skip_doctest
 def remote(view, block=None, **flags):
     """Turn a function into a remote function.
     
@@ -36,7 +36,7 @@ def remote(view, block=None, **flags):
         return RemoteFunction(view, f, block=block, **flags)
     return remote_function
 
-@testdec.skip_doctest
+@skip_doctest
 def parallel(view, dist='b', block=None, **flags):
     """Turn a function into a parallel remote function.
     

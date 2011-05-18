@@ -292,13 +292,6 @@ def module_not_available(module):
 #-----------------------------------------------------------------------------
 # Decorators for public use
 
-skip_doctest = make_label_dec('skip_doctest',
-    """Decorator - mark a function or method for skipping its doctest.
-
-    This decorator allows you to mark a function whose docstring you wish to
-    omit from testing, while preserving the docstring for introspection, help,
-    etc.""")                              
-
 # Decorators to skip certain tests on specific platforms.
 skip_win32 = skipif(sys.platform == 'win32',
                     "This test does not run under Windows")
