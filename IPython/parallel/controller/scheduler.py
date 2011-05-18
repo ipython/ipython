@@ -35,7 +35,7 @@ from zmq.eventloop import ioloop, zmqstream
 # local imports
 from IPython.external.decorator import decorator
 from IPython.config.loader import Config
-from IPython.utils.traitlets import Instance, Dict, List, Set, Int
+from IPython.utils.traitlets import Instance, Dict, List, Set, Int, Str, Enum
 
 from IPython.parallel import error
 from IPython.parallel.factory import SessionFactory
@@ -126,7 +126,19 @@ class TaskScheduler(SessionFactory):
     
     """
     
-    hwm = Int(0, config=True) # limit number of outstanding tasks
+    hwm = Int(0, config=True, shortname='hwm',
+        help="""specify the High Water Mark (HWM) for the downstream
+        socket in the Task scheduler. This is the maximum number
+        of allowed outstanding tasks on each engine."""
+    )
+    scheme_name = Enum(('leastload', 'pure', 'lru', 'plainrandom', 'weighted', 'twobin'),
+        'leastload', config=True, shortname='scheme', allow_none=False,
+        help="""select the task scheduler scheme  [default: Python LRU]
+        Options are: 'pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'"""
+    )
+    def _scheme_name_changed(self, old, new):
+        self.log.debug("Using scheme %r"%new)
+        self.scheme = globals()[new]
     
     # input arguments:
     scheme = Instance(FunctionType, default=leastload) # function for determining the destination
@@ -622,7 +634,7 @@ class TaskScheduler(SessionFactory):
 
 
 def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname='ZMQ', 
-                            log_addr=None, loglevel=logging.DEBUG, scheme='lru',
+                            log_addr=None, loglevel=logging.DEBUG,
                             identity=b'task'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
@@ -646,7 +658,7 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname=
     nots.setsockopt(zmq.SUBSCRIBE, '')
     nots.connect(not_addr)
     
-    scheme = globals().get(scheme, None)
+    # scheme = globals().get(scheme, None)
     # setup logging
     if log_addr:
         connect_logger(logname, ctx, log_addr, root="scheduler", loglevel=loglevel)
@@ -655,7 +667,7 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname=
     
     scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
                             mon_stream=mons, notifier_stream=nots,
-                            scheme=scheme, loop=loop, logname=logname,
+                            loop=loop, logname=logname,
                             config=config)
     scheduler.start()
     try:

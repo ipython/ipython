@@ -83,9 +83,16 @@ def _convert_bufs(bs):
 class SQLiteDB(BaseDB):
     """SQLite3 TaskRecord backend."""
     
-    filename = CUnicode('tasks.db', config=True)
-    location = CUnicode('', config=True)
-    table = CUnicode("", config=True)
+    filename = CUnicode('tasks.db', config=True,
+        help="""The filename of the sqlite task database. [default: 'tasks.db']""")
+    location = CUnicode('', config=True,
+        help="""The directory containing the sqlite task database.  The default
+        is to use the cluster_dir location.""")
+    table = CUnicode("", config=True,
+        help="""The SQLite Table to use for storing tasks for this session. If unspecified,
+        a new table will be created with the Hub's IDENT.  Specifying the table will result
+        in tasks from previous sessions being available via Clients' db_query and
+        get_result methods.""")
     
     _db = Instance('sqlite3.Connection')
     _keys = List(['msg_id' ,
