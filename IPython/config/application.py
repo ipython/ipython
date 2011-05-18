@@ -210,7 +210,7 @@ class Application(SingletonConfigurable):
         newconfig._merge(config)
         # Save the combined config as self.config, which triggers the traits
         # events.
-        self.config = config
+        self.config = newconfig
 
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
