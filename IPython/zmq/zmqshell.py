@@ -48,6 +48,12 @@ install_payload_page()
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+def _encode_png(data):
+    pngdata = data.get('image/png')
+    if pngdata is not None:
+        data['image/png'] = encodestring(pngdata)
+
+
 class ZMQDisplayHook(DisplayHook):
     """A displayhook subclass that publishes data using ZeroMQ."""
 
@@ -69,8 +75,7 @@ class ZMQDisplayHook(DisplayHook):
 
     def write_format_data(self, format_dict):
         pngdata = format_dict.get('image/png')
-        if pngdata is not None:
-            format_dict['image/png'] = encodestring(pngdata)
+        _encode_png(format_dict)
         self.msg['content']['data'] = format_dict
 
     def finish_displayhook(self):
@@ -96,6 +101,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         self._validate_data(source, data, metadata)
         content = {}
         content['source'] = source
+        _encode_png(data)
         content['data'] = data
         content['metadata'] = metadata
         self.session.send(
