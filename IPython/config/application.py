@@ -33,7 +33,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.text import indent
 
 #-----------------------------------------------------------------------------
-# Descriptions for
+# Descriptions for the various sections
 #-----------------------------------------------------------------------------
 
 flag_description = """
@@ -91,7 +91,7 @@ class Application(SingletonConfigurable):
     # The log level for the application
     log_level = Enum((0,10,20,30,40,50), default_value=logging.WARN,
                      config=True,
-                     help="Set the log level (0,10,20,30,40,50).")
+                     help="Set the log level.")
     
     # the alias map for configurables
     aliases = Dict(dict(log_level='Application.log_level'))
@@ -143,11 +143,11 @@ class Application(SingletonConfigurable):
         """print the alias part of the help"""
         if not self.aliases:
             return
-            
-        print "Aliases"
-        print "-------"
-        print self.alias_description
-        print
+        
+        lines = ['Aliases']
+        lines.append('_'*len(lines[0]))
+        lines.append(self.alias_description)
+        lines.append('')
         
         classdict = {}
         for c in self.classes:
@@ -158,31 +158,38 @@ class Application(SingletonConfigurable):
             cls = classdict[classname]
             
             trait = cls.class_traits(config=True)[traitname]
-            help = trait.get_metadata('help')
-            print alias, "(%s)"%longname, ':', trait.__class__.__name__
-            if help:
-                print indent(help, flatten=True)
-        print
+            help = cls.class_get_trait_help(trait)
+            help = help.replace(longname, "%s (%s)"%(alias, longname), 1)
+            lines.append(help)
+            # header = "%s (%s) : %s"%(alias, longname, trait.__class__.__name__)
+            # lines.append(header)
+            # help = cls.class_get_trait_help(trait)
+            # if help:
+            #     lines.append(indent(help, flatten=True))
+        lines.append('')
+        print '\n'.join(lines)
     
     def print_flag_help(self):
         """print the flag part of the help"""
         if not self.flags:
             return
         
-        print "Flags"
-        print "-----"
-        print self.flag_description
-        print
+        lines = ['Flags']
+        lines.append('_'*len(lines[0]))
+        lines.append(self.flag_description)
+        lines.append('')
         
         for m, (cfg,help) in self.flags.iteritems():
-            print '--'+m
-            print indent(help, flatten=True)
-        print
+            lines.append('--'+m)
+            lines.append(indent(help, flatten=True))
+        lines.append('')
+        print '\n'.join(lines)
     
     def print_help(self):
         """Print the help for each Configurable class in self.classes."""
         self.print_flag_help()
         self.print_alias_help()
+        
         if self.classes:
             print "Class parameters"
             print "----------------"
@@ -239,3 +246,41 @@ class Application(SingletonConfigurable):
     def exit(self, exit_status=0):
         self.log.debug("Exiting application: %s" % self.name)
         sys.exit(exit_status)
+
+#-----------------------------------------------------------------------------
+# utility functions, for convenience
+#-----------------------------------------------------------------------------
+
+def boolean_flag(name, configurable, set_help='', unset_help=''):
+    """helper for building basic --trait, --no-trait flags
+    
+    Parameters
+    ----------
+    
+    name : str
+        The name of the flag.
+    configurable : str
+        The 'Class.trait' string of the trait to be set/unset with the flag
+    set_help : unicode
+        help string for --name flag
+    unset_help : unicode
+        help string for --no-name flag
+    
+    Returns
+    -------
+    
+    cfg : dict
+        A dict with two keys: 'name', and 'no-name', for setting and unsetting
+        the trait, respectively.
+    """
+    # default helpstrings
+    set_help = set_help or "set %s=True"%configurable
+    unset_help = unset_help or "set %s=False"%configurable
+    
+    cls,trait = configurable.split('.')
+    
+    setter = Config()
+    setter[cls][trait] = True
+    unsetter = Config()
+    unsetter[cls][trait] = False
+    return {name : (setter, set_help), 'no-'+name : (unsetter, unset_help)}
