@@ -145,13 +145,31 @@ class Configurable(HasTraits):
         final_help = []
         final_help.append(u'%s options' % cls.__name__)
         final_help.append(len(final_help[0])*u'-')
-        for k, v in cls_traits.items():
-            help = v.get_metadata('help')
-            header = "%s.%s : %s" % (cls.__name__, k, v.__class__.__name__)
-            final_help.append(header)
-            if help is not None:
-                final_help.append(indent(help, flatten=True))
+        for k,v in cls.class_traits(config=True).iteritems():
+            help = cls.class_get_trait_help(v)
+            final_help.append(help)
         return '\n'.join(final_help)
+    
+    @classmethod
+    def class_get_trait_help(cls, trait):
+        """Get the help string for a single """
+        lines = []
+        header = "%s.%s : %s" % (cls.__name__, trait.name, trait.__class__.__name__)
+        try:
+            dvr = repr(trait.get_default_value())
+        except Exception:
+            dvr = None # ignore defaults we can't construct
+        if dvr is not None:
+            header += ' [default: %s]'%dvr
+        lines.append(header)
+        
+        help = trait.get_metadata('help')
+        if help is not None:
+            lines.append(indent(help, flatten=True))
+        if 'Enum' in trait.__class__.__name__:
+            # include Enum choices
+            lines.append(indent('Choices: %r'%(trait.values,), flatten=True))
+        return '\n'.join(lines)
 
     @classmethod
     def class_print_help(cls):
