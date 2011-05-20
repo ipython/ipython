@@ -2023,19 +2023,6 @@ Currently the magic system has the following functions:\n"""
           'print macro_name'.
           
         """
-        # FIXME: This function has become a convoluted mess.  It needs a
-        # ground-up rewrite with clean, simple logic.
-        def make_filename(arg):
-            "Make a filename from the given args"
-            try:
-                filename = get_py_filename(arg)
-            except IOError:
-                if args.endswith('.py'):
-                    filename = arg
-                else:
-                    filename = None
-            return filename
-
         opts,args = self.parse_options(parameter_s,'r',mode='list')
         if not args:   # List existing macros
             return sorted(k for k,v in self.shell.user_ns.iteritems() if\
