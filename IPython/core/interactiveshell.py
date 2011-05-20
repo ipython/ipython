@@ -2172,7 +2172,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
             prefilter_failed = False
             if len(cell.splitlines()) == 1:
                 try:
-                    cell = self.prefilter_manager.prefilter_line(cell)
+                    # use prefilter_lines to handle trailing newlines
+                    # restore trailing newline for ast.parse
+                    cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
                 except AliasError as e:
                     error(e)
                     prefilter_failed=True

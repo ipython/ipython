@@ -106,4 +106,11 @@ class InteractiveShellTestCase(unittest.TestCase):
         err = io.stderr.getvalue()
         io.stderr = save_err
         self.assertEquals(err.split(':')[0], 'ERROR')
+    
+    def test_trailing_newline(self):
+        """test that running !(command) does not raise a SyntaxError"""
+        ip = get_ipython()
+        ip.run_cell('!(true)\n', False)
+        ip.run_cell('!(true)\n\n\n', False)
+
 
