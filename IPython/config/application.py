@@ -28,8 +28,9 @@ from IPython.config.loader import (
 )
 
 from IPython.utils.traitlets import (
-    Unicode, List, Int, Enum, Dict
+    Unicode, List, Int, Enum, Dict, Instance
 )
+from IPython.utils.importstring import import_item
 from IPython.utils.text import indent
 
 #-----------------------------------------------------------------------------
@@ -102,6 +103,14 @@ class Application(SingletonConfigurable):
     # and the second being the help string for the flag
     flags = Dict()
     
+    # subcommands for launching other applications
+    # if this is not empty, this will be a parent Application
+    # this must be a dict of two-tuples, the first element being the application class/import string
+    # and the second being the help string for the subcommand
+    subcommands = Dict()
+    # parse_command_line will initialize a subapp, if requested
+    subapp = Instance('IPython.config.application.Application', allow_none=True)
+    
 
     def __init__(self, **kwargs):
         SingletonConfigurable.__init__(self, **kwargs)
@@ -134,7 +143,23 @@ class Application(SingletonConfigurable):
         self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
         self._log_handler.setFormatter(self._log_formatter)
         self.log.addHandler(self._log_handler)
-
+    
+    def initialize(self, argv=None):
+        """Do the basic steps to configure me.
+        
+        Override in subclasses.
+        """
+        self.parse_command_line(argv)
+        
+    
+    def start(self):
+        """Start the app mainloop.
+        
+        Override in subclasses.
+        """
+        if self.subapp is not None:
+            return self.subapp.start()
+    
     def _log_level_changed(self, name, old, new):
         """Adjust the log level when log_level is set."""
         self.log.setLevel(new)
@@ -145,7 +170,7 @@ class Application(SingletonConfigurable):
             return
         
         lines = ['Aliases']
-        lines.append('_'*len(lines[0]))
+        lines.append('-'*len(lines[0]))
         lines.append(self.alias_description)
         lines.append('')
         
@@ -161,11 +186,6 @@ class Application(SingletonConfigurable):
             help = cls.class_get_trait_help(trait)
             help = help.replace(longname, "%s (%s)"%(alias, longname), 1)
             lines.append(help)
-            # header = "%s (%s) : %s"%(alias, longname, trait.__class__.__name__)
-            # lines.append(header)
-            # help = cls.class_get_trait_help(trait)
-            # if help:
-            #     lines.append(indent(help, flatten=True))
         lines.append('')
         print '\n'.join(lines)
     
@@ -175,13 +195,27 @@ class Application(SingletonConfigurable):
             return
         
         lines = ['Flags']
-        lines.append('_'*len(lines[0]))
+        lines.append('-'*len(lines[0]))
         lines.append(self.flag_description)
         lines.append('')
         
         for m, (cfg,help) in self.flags.iteritems():
             lines.append('--'+m)
             lines.append(indent(help, flatten=True))
+        lines.append('')
+        print '\n'.join(lines)
+    
+    def print_subcommands(self):
+        """print the subcommand part of the help"""
+        if not self.subcommands:
+            return
+        
+        lines = ["Subcommands"]
+        lines.append('-'*len(lines[0]))
+        for subc, cls,help in self.subcommands:
+            lines.append("%s : %s"%(subc, cls))
+            if help:
+                lines.append(indent(help, flatten=True))
         lines.append('')
         print '\n'.join(lines)
     
@@ -225,11 +259,44 @@ class Application(SingletonConfigurable):
         # Save the combined config as self.config, which triggers the traits
         # events.
         self.config = newconfig
-
+    
+    def initialize_subcommand(self, subc, argv=None):
+        """Initialize a subcommand with argv"""
+        if '-h' in subc:
+            # requested help
+            self.print_description()
+            self.print_subcommands()
+            self.exit(0)
+        subapp = self.subcommands.get(subc, None)
+        if subapp is None:
+            self.print_description()
+            print "No such subcommand: %r"%subc
+            print
+            self.print_subcommands()
+            self.exit(1)
+            
+        if isinstance(subapp, basestring):
+            subapp = import_item(subapp)
+        
+        # instantiate
+        self.subapp = subapp()
+        # and initialize subapp
+        self.subapp.initialize(argv)
+        
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
 
+        if self.subcommands:
+            # we have subcommands
+            if len(argv) == 0:
+                # none specified
+                self.print_description()
+                self.print_subcommands()
+                self.exit(1)
+            
+            return self.initialize_subcommand(argv[0], argv[1:])
+            
         if '-h' in argv or '--help' in argv or '--help-all' in argv:
             self.print_description()
             self.print_help('--help-all' in argv)
