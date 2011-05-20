@@ -226,11 +226,11 @@ class Application(SingletonConfigurable):
         if '-h' in argv or '--help' in argv:
             self.print_description()
             self.print_help()
-            self.exit(1)
+            self.exit(0)
 
         if '--version' in argv:
             self.print_version()
-            self.exit(1)
+            self.exit(0)
         
         loader = KeyValueConfigLoader(argv=argv, aliases=self.aliases,
                                         flags=self.flags)
