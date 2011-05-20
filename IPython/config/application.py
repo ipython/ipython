@@ -185,19 +185,26 @@ class Application(SingletonConfigurable):
         lines.append('')
         print '\n'.join(lines)
     
-    def print_help(self):
-        """Print the help for each Configurable class in self.classes."""
+    def print_help(self, classes=False):
+        """Print the help for each Configurable class in self.classes.
+        
+        If classes=False (the default), only flags and aliases are printed
+        """
         self.print_flag_help()
         self.print_alias_help()
         
-        if self.classes:
-            print "Class parameters"
-            print "----------------"
-            print self.keyvalue_description
-            print
+        if classes:
+            if self.classes:
+                print "Class parameters"
+                print "----------------"
+                print self.keyvalue_description
+                print
         
-        for cls in self.classes:
-            cls.class_print_help()
+            for cls in self.classes:
+                cls.class_print_help()
+                print
+        else:
+            print "To see all available configurables, use `--help-all`"
             print
 
     def print_description(self):
@@ -223,9 +230,9 @@ class Application(SingletonConfigurable):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
 
-        if '-h' in argv or '--help' in argv:
+        if '-h' in argv or '--help' in argv or '--help-all' in argv:
             self.print_description()
-            self.print_help()
+            self.print_help('--help-all' in argv)
             self.exit(0)
 
         if '--version' in argv:
