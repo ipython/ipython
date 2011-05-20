@@ -1872,22 +1872,40 @@ class InteractiveShell(SingletonConfigurable, Magic):
     # Things related to the running of system commands
     #-------------------------------------------------------------------------
 
-    def system(self, cmd):
-        """Call the given cmd in a subprocess.
+    def system_piped(self, cmd):
+        """Call the given cmd in a subprocess, piping stdout/err
 
         Parameters
         ----------
         cmd : str
-          Command to execute (can not end in '&', as bacground processes are
-          not supported.
+          Command to execute (can not end in '&', as background processes are
+          not supported.  Should not be a command that expects input
+          other than simple text.
         """
-        # We do not support backgrounding processes because we either use
-        # pexpect or pipes to read from.  Users can always just call
-        # os.system() if they really want a background process.
-        if cmd.endswith('&'):
+        if cmd.rstrip().endswith('&'):
+            # this is *far* from a rigorous test
+            # We do not support backgrounding processes because we either use
+            # pexpect or pipes to read from.  Users can always just call
+            # os.system() or use ip.system=ip.system_raw
+            # if they really want a background process.
             raise OSError("Background processes not supported.")
-
-        return system(self.var_expand(cmd, depth=2))
+        
+        # don't return the result, always return None
+        system(self.var_expand(cmd, depth=2))
+    
+    def system_raw(self, cmd):
+        """Call the given cmd in a subprocess using os.system
+        
+        Parameters
+        ----------
+        cmd : str
+          Command to execute.
+        """
+        # don't return the result, always return None
+        os.system(self.var_expand(cmd, depth=2))
+    
+    # use piped system by default, because it is better behaved
+    system = system_piped
 
     def getoutput(self, cmd, split=True):
         """Get output (possibly including stderr) from a subprocess.
@@ -1905,7 +1923,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
           manipulation of line-based output.  You can use '?' on them for
           details.
           """
-        if cmd.endswith('&'):
+        if cmd.rstrip().endswith('&'):
+            # this is *far* from a rigorous test
             raise OSError("Background processes not supported.")
         out = getoutput(self.var_expand(cmd, depth=2))
         if split:
