@@ -78,16 +78,16 @@ class TestApplication(TestCase):
 
     def test_config(self):
         app = MyApp()
-        app.parse_command_line(["i=10","Foo.j=10","enabled=False","log_level=0"])
+        app.parse_command_line(["i=10","Foo.j=10","enabled=False","log_level=50"])
         config = app.config
         self.assertEquals(config.Foo.i, 10)
         self.assertEquals(config.Foo.j, 10)
         self.assertEquals(config.Bar.enabled, False)
-        self.assertEquals(config.MyApp.log_level,0)
+        self.assertEquals(config.MyApp.log_level,50)
 
     def test_config_propagation(self):
         app = MyApp()
-        app.parse_command_line(["i=10","Foo.j=10","enabled=False","log_level=0"])
+        app.parse_command_line(["i=10","Foo.j=10","enabled=False","log_level=50"])
         app.init_foo()
         app.init_bar()
         self.assertEquals(app.foo.i, 10)
