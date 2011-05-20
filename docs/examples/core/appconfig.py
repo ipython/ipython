@@ -79,17 +79,22 @@ class MyApp(Application):
         # Pass config to other classes for them to inherit the config.
         self.bar = Bar(config=self.config)
 
+    def initialize(self, argv=None):
+        self.parse_command_line(argv)
+        if self.config_file:
+            self.load_config_file(self.config_file)
+        self.init_foo()
+        self.init_bar()
+    
+    def start(self):
+        print "app.config:"
+        print self.config
 
 
 def main():
     app = MyApp()
-    app.parse_command_line()
-    if app.config_file:
-        app.load_config_file(app.config_file)
-    app.init_foo()
-    app.init_bar()
-    print "app.config:"
-    print app.config
+    app.initialize()
+    app.start()
 
 
 if __name__ == "__main__":
