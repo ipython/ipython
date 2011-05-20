@@ -29,6 +29,7 @@ from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
+from IPython.core.magic import MacroToEdit
 from IPython.core.payloadpage import install_payload_page
 from IPython.utils import io
 from IPython.utils.path import get_py_filename
@@ -398,11 +399,14 @@ class ZMQInteractiveShell(InteractiveShell):
         starting example for further modifications.  That file also has
         general instructions on how to set a new hook for use once you've
         defined it."""
+        
+        opts,args = self.parse_options(parameter_s,'prn:')
+        
         try:
-            filename = self._find_edit_target(args, opts, last_call)
+            filename, lineno, _ = self._find_edit_target(args, opts, last_call)
         except MacroToEdit as e:
             # TODO: Implement macro editing over 2 processes.
-            print "Macro editing not yet implemented in 2-process model."
+            print("Macro editing not yet implemented in 2-process model.")
             return
 
         # Make sure we send to the client an absolute path, in case the working

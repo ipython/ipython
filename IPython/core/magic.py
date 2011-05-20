@@ -2245,7 +2245,7 @@ Currently the magic system has the following functions:\n"""
             filename = self.shell.mktempfile(data)
             print 'IPython will make a temporary file named:',filename
         
-        return filename
+        return filename, lineno, use_temp
 
     def _edit_macro(self,mname,macro):
         """open an editor with the macro data in a file"""
@@ -2407,7 +2407,7 @@ Currently the magic system has the following functions:\n"""
         opts,args = self.parse_options(parameter_s,'prxn:')
         
         try:
-            filename = self._find_edit_target(args, opts, last_call)
+            filename, lineno, is_temp = self._find_edit_target(args, opts, last_call)
         except MacroToEdit as e:
             self._edit_macro(args, e.args[0])
             return
@@ -2433,15 +2433,14 @@ Currently the magic system has the following functions:\n"""
             print
         else:
             print 'done. Executing edited code...'
-            if opts_raw:
+            if 'r' in opts:    # Untranslated IPython code
                 self.shell.run_cell(file_read(filename),
                                                     store_history=False)
             else:
                 self.shell.safe_execfile(filename,self.shell.user_ns,
                                          self.shell.user_ns)
-        
                                                      
-        if use_temp:
+        if is_temp:
             try:
                 return open(filename).read()
             except IOError,msg:
