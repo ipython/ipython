@@ -23,7 +23,7 @@ import zmq
 from zmq.eventloop import ioloop
 
 from IPython.parallel.apps.clusterdir import (
-    ClusterDirApplication,
+    ClusterApplication,
     ClusterDir,
     base_aliases,
     # ClusterDirConfigLoader
@@ -99,13 +99,16 @@ class MPI(Configurable):
 #-----------------------------------------------------------------------------
 
 
-class IPEngineApp(ClusterDirApplication):
+class IPEngineApp(ClusterApplication):
 
     app_name = Unicode(u'ipengine')
     description = Unicode(_description)
     default_config_file_name = default_config_file_name
     classes = List([ClusterDir, StreamSession, EngineFactory, Kernel, MPI])
 
+    auto_create_cluster_dir = Bool(False, config=True,
+        help="whether to create the cluster_dir if it doesn't exist")
+    
     startup_script = Unicode(u'', config=True,
         help='specify a script to be run at startup')
     startup_command = Str('', config=True,
@@ -262,7 +265,11 @@ class IPEngineApp(ClusterDirApplication):
         else:
             mpi = None
 
-
+    def initialize(self, argv=None):
+        super(IPEngineApp, self).initialize(argv)
+        self.init_mpi()
+        self.init_engine()
+    
     def start(self):
         self.engine.start()
         try:
@@ -274,25 +281,7 @@ class IPEngineApp(ClusterDirApplication):
 def launch_new_instance():
     """Create and run the IPython engine"""
     app = IPEngineApp()
-    app.parse_command_line()
-    cl_config = app.config
-    app.init_clusterdir()
-    # app.load_config_file()
-    # print app.config
-    if app.config_file:
-        app.load_config_file(app.config_file)
-    else:
-        app.load_config_file(app.default_config_file_name, path=app.cluster_dir.location)
-
-    # command-line should *override* config file, but command-line is necessary
-    # to determine clusterdir, etc.
-    app.update_config(cl_config)
-
-    # print app.config
-    app.to_work_dir()
-    app.init_mpi()
-    app.init_engine()
-    print app.config
+    app.initialize()
     app.start()
 
 

@@ -38,7 +38,7 @@ from IPython.parallel import factory
 
 from IPython.parallel.apps.clusterdir import (
     ClusterDir,
-    ClusterDirApplication,
+    ClusterApplication,
     base_flags
     # ClusterDirConfigLoader
 )
@@ -104,7 +104,7 @@ flags.update({
 
 flags.update()
 
-class IPControllerApp(ClusterDirApplication):
+class IPControllerApp(ClusterApplication):
 
     name = u'ipcontroller'
     description = _description
@@ -361,6 +361,12 @@ class IPControllerApp(ClusterDirApplication):
     #         handler.setLevel(self.log_level)
     #         self.log.addHandler(handler)
     # #
+    
+    def initialize(self, argv=None):
+        super(IPControllerApp, self).initialize(argv)
+        self.init_hub()
+        self.init_schedulers()
+    
     def start(self):
         # Start the subprocesses:
         self.factory.start()
@@ -380,27 +386,13 @@ class IPControllerApp(ClusterDirApplication):
             self.factory.loop.start()
         except KeyboardInterrupt:
             self.log.critical("Interrupted, Exiting...\n")
+            
 
 
 def launch_new_instance():
     """Create and run the IPython controller"""
     app = IPControllerApp()
-    app.parse_command_line()
-    cl_config = app.config
-    # app.load_config_file()
-    app.init_clusterdir()
-    if app.config_file:
-        app.load_config_file(app.config_file)
-    else:
-        app.load_config_file(app.default_config_file_name, path=app.cluster_dir.location)
-    # command-line should *override* config file, but command-line is necessary
-    # to determine clusterdir, etc.
-    app.update_config(cl_config)
-
-    app.to_work_dir()
-    app.init_hub()
-    app.init_schedulers()
-
+    app.initialize()
     app.start()
 
 

@@ -21,7 +21,7 @@ import sys
 import zmq
 
 from IPython.parallel.apps.clusterdir import (
-    ClusterDirApplication,
+    ClusterApplication,
     ClusterDirConfigLoader
 )
 from IPython.parallel.apps.logwatcher import LogWatcher
@@ -74,7 +74,7 @@ class IPLoggerAppConfigLoader(ClusterDirConfigLoader):
 #-----------------------------------------------------------------------------
 
 
-class IPLoggerApp(ClusterDirApplication):
+class IPLoggerApp(ClusterApplication):
 
     name = u'iploggerz'
     description = _description
