@@ -36,6 +36,9 @@ class ConfigError(Exception):
 class ConfigLoaderError(ConfigError):
     pass
 
+class ArgumentError(ConfigLoaderError):
+    pass
+
 #-----------------------------------------------------------------------------
 # Argparse fix
 #-----------------------------------------------------------------------------
@@ -403,14 +406,14 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 m = item[2:]
                 cfg,_ = flags.get(m, (None,None))
                 if cfg is None:
-                    raise ValueError("Unrecognized flag: %r"%item)
+                    raise ArgumentError("Unrecognized flag: %r"%item)
                 elif isinstance(cfg, (dict, Config)):
                     # update self.config with Config:
                     self.config.update(cfg)
                 else:
                     raise ValueError("Invalid flag: %r"%flag)
             else:
-                raise ValueError("Invalid argument: %r"%item)
+                raise ArgumentError("Invalid argument: %r"%item)
         return self.config
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
