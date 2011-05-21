@@ -24,7 +24,7 @@ import sys
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
-    KeyValueConfigLoader, PyFileConfigLoader, Config
+    KeyValueConfigLoader, PyFileConfigLoader, Config, ArgumentError
 )
 
 from IPython.utils.traitlets import (
@@ -175,8 +175,10 @@ class Application(SingletonConfigurable):
         lines.append('')
         
         classdict = {}
-        for c in self.classes:
-            classdict[c.__name__] = c
+        for cls in self.classes:
+            # include all parents in available names
+            for c in cls.mro():
+                classdict[c.__name__] = c
         
         for alias, longname in self.aliases.iteritems():
             classname, traitname = longname.split('.',1)
@@ -212,7 +214,7 @@ class Application(SingletonConfigurable):
         
         lines = ["Subcommands"]
         lines.append('-'*len(lines[0]))
-        for subc, cls,help in self.subcommands:
+        for subc, (cls,help) in self.subcommands.iteritems():
             lines.append("%s : %s"%(subc, cls))
             if help:
                 lines.append(indent(help, flatten=True))
@@ -267,14 +269,14 @@ class Application(SingletonConfigurable):
             self.print_description()
             self.print_subcommands()
             self.exit(0)
-        subapp = self.subcommands.get(subc, None)
+        subapp,help = self.subcommands.get(subc, (None,None))
         if subapp is None:
             self.print_description()
             print "No such subcommand: %r"%subc
             print
             self.print_subcommands()
             self.exit(1)
-            
+        
         if isinstance(subapp, basestring):
             subapp = import_item(subapp)
         
@@ -308,7 +310,13 @@ class Application(SingletonConfigurable):
         
         loader = KeyValueConfigLoader(argv=argv, aliases=self.aliases,
                                         flags=self.flags)
-        config = loader.load_config()
+        try:
+            config = loader.load_config()
+        except ArgumentError as e:
+            self.log.fatal(str(e))
+            self.print_description()
+            self.print_help()
+            self.exit(1)
         self.update_config(config)
 
     def load_config_file(self, filename, path=None):
