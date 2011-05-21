@@ -20,6 +20,7 @@ Authors:
 
 from copy import deepcopy
 import logging
+import re
 import sys
 
 from IPython.config.configurable import SingletonConfigurable
@@ -176,8 +177,8 @@ class Application(SingletonConfigurable):
         
         classdict = {}
         for cls in self.classes:
-            # include all parents in available names
-            for c in cls.mro():
+            # include all parents (up to, but excluding Configurable) in available names
+            for c in cls.mro()[:-3]:
                 classdict[c.__name__] = c
         
         for alias, longname in self.aliases.iteritems():
@@ -226,6 +227,7 @@ class Application(SingletonConfigurable):
         
         If classes=False (the default), only flags and aliases are printed
         """
+        self.print_subcommands()
         self.print_flag_help()
         self.print_alias_help()
         
@@ -264,11 +266,6 @@ class Application(SingletonConfigurable):
     
     def initialize_subcommand(self, subc, argv=None):
         """Initialize a subcommand with argv"""
-        if '-h' in subc:
-            # requested help
-            self.print_description()
-            self.print_subcommands()
-            self.exit(0)
         subapp,help = self.subcommands.get(subc, (None,None))
         if subapp is None:
             self.print_description()
@@ -289,15 +286,12 @@ class Application(SingletonConfigurable):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
 
-        if self.subcommands:
-            # we have subcommands
-            if len(argv) == 0:
-                # none specified
-                self.print_description()
-                self.print_subcommands()
-                self.exit(1)
-            
-            return self.initialize_subcommand(argv[0], argv[1:])
+        if self.subcommands and len(argv) > 0:
+            # we have subcommands, and one may have been specified
+            subc, subargv = argv[0], argv[1:]
+            if re.match(r'^\w(\-?\w)*$', subc):
+                # it's a subcommand, and *not* a flag or class parameter
+                return self.initialize_subcommand(subc, subargv)
             
         if '-h' in argv or '--help' in argv or '--help-all' in argv:
             self.print_description()
