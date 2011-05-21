@@ -34,7 +34,7 @@ import sys
 from IPython.config.application import Application
 from IPython.core import release, crashhandler
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
-from IPython.utils.traitlets import Tuple, Unicode, Type
+from IPython.utils.traitlets import List, Unicode, Type
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -56,9 +56,9 @@ class BaseIPythonApplication(Application):
         os.path.join(get_ipython_package_dir(), u'config', u'profile')
     )
 
-    config_file_paths = Tuple(Unicode, Unicode, Unicode)
+    config_file_paths = List(Unicode)
     def _config_file_paths_default(self):
-        return (os.getcwdu(), self.ipython_dir, self.builtin_profile_dir)
+        return [os.getcwdu(), self.ipython_dir, self.builtin_profile_dir]
 
     profile_name = Unicode(u'', config=True,
         help="""The IPython profile to use."""
