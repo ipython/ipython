@@ -971,10 +971,7 @@ class CBytes(Bytes):
         try:
             return bytes(value)
         except:
-            try:
-                return unicode(value)
-            except:
-                self.error(obj, value)
+            self.error(obj, value)
 
 
 class Unicode(TraitType):
