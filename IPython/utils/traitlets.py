@@ -952,24 +952,24 @@ class CComplex(Complex):
             self.error(obj, value)
 
 
-class Str(TraitType):
+class Bytes(TraitType):
     """A trait for strings."""
 
     default_value = ''
     info_text = 'a string'
 
     def validate(self, obj, value):
-        if isinstance(value, str):
+        if isinstance(value, bytes):
             return value
         self.error(obj, value)
 
 
-class CStr(Str):
+class CBytes(Bytes):
     """A casting version of the string trait."""
 
     def validate(self, obj, value):
         try:
-            return str(value)
+            return bytes(value)
         except:
             try:
                 return unicode(value)
@@ -986,7 +986,7 @@ class Unicode(TraitType):
     def validate(self, obj, value):
         if isinstance(value, unicode):
             return value
-        if isinstance(value, str):
+        if isinstance(value, bytes):
             return unicode(value)
         self.error(obj, value)
 
@@ -999,6 +999,11 @@ class CUnicode(Unicode):
             return unicode(value)
         except:
             self.error(obj, value)
+            
+if sys.version_info[0] < 3:
+    Str, CStr = Bytes, CBytes
+else:
+    Str, CStr = Unicode, CUnicode
 
 
 class Bool(TraitType):
