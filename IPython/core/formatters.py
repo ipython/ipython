@@ -28,7 +28,7 @@ from StringIO import StringIO
 # Our own imports
 from IPython.config.configurable import Configurable
 from IPython.lib import pretty
-from IPython.utils.traitlets import Bool, Dict, Int, Str, CStr
+from IPython.utils.traitlets import Bool, Dict, Int, Unicode, CUnicode
 
 
 #-----------------------------------------------------------------------------
@@ -191,11 +191,11 @@ class BaseFormatter(Configurable):
     returned and this format type is not used.
     """
 
-    format_type = Str('text/plain')
+    format_type = Unicode('text/plain')
 
     enabled = Bool(True, config=True)
 
-    print_method = Str('__repr__')
+    print_method = Unicode('__repr__')
 
     # The singleton printers.
     # Maps the IDs of the builtin singleton objects to the format functions.
@@ -337,14 +337,14 @@ class PlainTextFormatter(BaseFormatter):
     """
 
     # The format type of data returned.
-    format_type = Str('text/plain')
+    format_type = Unicode('text/plain')
 
     # This subclass ignores this attribute as it always need to return
     # something.
     enabled = Bool(True, config=False)
 
     # Look for a _repr_pretty_ methods to use for pretty printing.
-    print_method = Str('_repr_pretty_')
+    print_method = Unicode('_repr_pretty_')
 
     # Whether to pretty-print or not.
     pprint = Bool(True, config=True)
@@ -356,12 +356,12 @@ class PlainTextFormatter(BaseFormatter):
     max_width = Int(79, config=True)
 
     # The newline character.
-    newline = Str('\n', config=True)
+    newline = Unicode('\n', config=True)
     
     # format-string for pprinting floats
-    float_format = Str('%r')
+    float_format = Unicode('%r')
     # setter for float precision, either int or direct format-string
-    float_precision = CStr('', config=True)
+    float_precision = CUnicode('', config=True)
     
     def _float_precision_changed(self, name, old, new):
         """float_precision changed, set float_format accordingly.
@@ -454,9 +454,9 @@ class HTMLFormatter(BaseFormatter):
     could be injected into an existing DOM. It should *not* include the 
     ```<html>`` or ```<body>`` tags.
     """
-    format_type = Str('text/html')
+    format_type = Unicode('text/html')
 
-    print_method = Str('_repr_html_')
+    print_method = Unicode('_repr_html_')
 
 
 class SVGFormatter(BaseFormatter):
@@ -471,9 +471,9 @@ class SVGFormatter(BaseFormatter):
     ```<svg>``` tags, that could be injected into an existing DOM. It should
     *not* include the ```<html>`` or ```<body>`` tags.
     """
-    format_type = Str('image/svg+xml')
+    format_type = Unicode('image/svg+xml')
 
-    print_method = Str('_repr_svg_')
+    print_method = Unicode('_repr_svg_')
 
 
 class PNGFormatter(BaseFormatter):
@@ -487,9 +487,9 @@ class PNGFormatter(BaseFormatter):
     The return value of this formatter should be raw PNG data, *not*
     base64 encoded.
     """
-    format_type = Str('image/png')
+    format_type = Unicode('image/png')
 
-    print_method = Str('_repr_png_')
+    print_method = Unicode('_repr_png_')
 
 
 class LatexFormatter(BaseFormatter):
@@ -503,9 +503,9 @@ class LatexFormatter(BaseFormatter):
     The return value of this formatter should be a valid LaTeX equation,
     enclosed in either ```$``` or ```$$```.
     """
-    format_type = Str('text/latex')
+    format_type = Unicode('text/latex')
 
-    print_method = Str('_repr_latex_')
+    print_method = Unicode('_repr_latex_')
 
 
 class JSONFormatter(BaseFormatter):
@@ -518,9 +518,9 @@ class JSONFormatter(BaseFormatter):
 
     The return value of this formatter should be a valid JSON string.
     """
-    format_type = Str('application/json')
+    format_type = Unicode('application/json')
 
-    print_method = Str('_repr_json_')
+    print_method = Unicode('_repr_json_')
 
 
 class JavascriptFormatter(BaseFormatter):
@@ -534,9 +534,9 @@ class JavascriptFormatter(BaseFormatter):
     The return value of this formatter should be valid Javascript code and
     should *not* be enclosed in ```<script>``` tags.
     """
-    format_type = Str('application/javascript')
+    format_type = Unicode('application/javascript')
 
-    print_method = Str('_repr_javascript_')
+    print_method = Unicode('_repr_javascript_')
 
 FormatterABC.register(BaseFormatter)
 FormatterABC.register(PlainTextFormatter)

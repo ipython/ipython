@@ -951,7 +951,9 @@ class CComplex(Complex):
         except:
             self.error(obj, value)
 
-
+# We should always be explicit about whether we're using bytes or unicode, both
+# for Python 3 conversion and for reliable unicode behaviour on Python 2. So
+# we don't have a Str type.
 class Bytes(TraitType):
     """A trait for strings."""
 
@@ -996,11 +998,6 @@ class CUnicode(Unicode):
             return unicode(value)
         except:
             self.error(obj, value)
-            
-if sys.version_info[0] < 3:
-    Str, CStr = Bytes, CBytes
-else:
-    Str, CStr = Unicode, CUnicode
 
 
 class Bool(TraitType):

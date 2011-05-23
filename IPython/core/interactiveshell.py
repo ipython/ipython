@@ -70,7 +70,7 @@ from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import num_ini_spaces, format_screen, LSString, SList
-from IPython.utils.traitlets import (Int, Str, CBool, CaselessStrEnum, Enum,
+from IPython.utils.traitlets import (Int, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error, fatal
 import IPython.core.hooks
@@ -122,16 +122,16 @@ def get_default_colors():
         return 'Linux'
 
 
-class SeparateStr(Str):
-    """A Str subclass to validate separate_in, separate_out, etc.
+class SeparateUnicode(Unicode):
+    """A Unicode subclass to validate separate_in, separate_out, etc.
 
-    This is a Str based trait that converts '0'->'' and '\\n'->'\n'.
+    This is a Unicode based trait that converts '0'->'' and '\\n'->'\n'.
     """
 
     def validate(self, obj, value):
         if value == '0': value = ''
         value = value.replace('\\n','\n')
-        return super(SeparateStr, self).validate(obj, value)
+        return super(SeparateUnicode, self).validate(obj, value)
 
 
 class ReadlineNoRecord(object):
@@ -294,9 +294,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """
     )
 
-    prompt_in1 = Str('In [\\#]: ', config=True)
-    prompt_in2 = Str('   .\\D.: ', config=True)
-    prompt_out = Str('Out[\\#]: ', config=True)
+    prompt_in1 = Unicode('In [\\#]: ', config=True)
+    prompt_in2 = Unicode('   .\\D.: ', config=True)
+    prompt_out = Unicode('Out[\\#]: ', config=True)
     prompts_pad_left = CBool(True, config=True)
     quiet = CBool(False, config=True)
 
@@ -307,7 +307,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     readline_use = CBool(True, config=True)
     readline_merge_completions = CBool(True, config=True)
     readline_omit__names = Enum((0,1,2), default_value=2, config=True)
-    readline_remove_delims = Str('-/~', config=True)
+    readline_remove_delims = Unicode('-/~', config=True)
     # don't use \M- bindings by default, because they
     # conflict with 8-bit encodings. See gh-58,gh-88
     readline_parse_and_bind = List([
@@ -327,9 +327,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     # TODO: this part of prompt management should be moved to the frontends.
     # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
-    separate_in = SeparateStr('\n', config=True)
-    separate_out = SeparateStr('', config=True)
-    separate_out2 = SeparateStr('', config=True)
+    separate_in = SeparateUnicode('\n', config=True)
+    separate_out = SeparateUnicode('', config=True)
+    separate_out2 = SeparateUnicode('', config=True)
     wildcards_case_sensitive = CBool(True, config=True)
     xmode = CaselessStrEnum(('Context','Plain', 'Verbose'), 
                             default_value='Context', config=True)
@@ -1670,7 +1670,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # Remove some chars from the delimiters list.  If we encounter
             # unicode chars, discard them.
             delims = readline.get_completer_delims().encode("ascii", "ignore")
-            delims = delims.translate(None, self.readline_remove_delims)
+            for d in self.readline_remove_delims:
+                delims = delims.replace(d, "")
             delims = delims.replace(ESC_MAGIC, '')
             readline.set_completer_delims(delims)
             # otherwise we end up with a monster history after a while:

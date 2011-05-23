@@ -33,7 +33,7 @@ from IPython.core import ultratb
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.frontend.terminal.ipapp import load_default_config
 
-from IPython.utils.traitlets import Bool, Str, CBool, Unicode
+from IPython.utils.traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
 

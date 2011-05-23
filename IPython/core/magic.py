@@ -3472,25 +3472,25 @@ Defaulting color scheme to 'NoColor'"""
             In [1]: from math import pi
         
             In [2]: %precision 3
-            Out[2]: '%.3f'
+            Out[2]: u'%.3f'
         
             In [3]: pi
             Out[3]: 3.142
         
             In [4]: %precision %i
-            Out[4]: '%i'
+            Out[4]: u'%i'
         
             In [5]: pi
             Out[5]: 3
         
             In [6]: %precision %e
-            Out[6]: '%e'
+            Out[6]: u'%e'
         
             In [7]: pi**10
             Out[7]: 9.364805e+04
         
             In [8]: %precision
-            Out[8]: '%r'
+            Out[8]: u'%r'
         
             In [9]: pi**10
             Out[9]: 93648.047476082982

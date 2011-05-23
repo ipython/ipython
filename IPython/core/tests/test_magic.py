@@ -448,15 +448,15 @@ def doctest_precision():
     In [1]: f = get_ipython().shell.display_formatter.formatters['text/plain']
     
     In [2]: %precision 5
-    Out[2]: '%.5f'
+    Out[2]: u'%.5f'
     
     In [3]: f.float_format
-    Out[3]: '%.5f'
+    Out[3]: u'%.5f'
     
     In [4]: %precision %e
-    Out[4]: '%e'
+    Out[4]: u'%e'
     
     In [5]: f(3.1415927)
-    Out[5]: '3.141593e+00'
+    Out[5]: u'3.141593e+00'
     """
 
