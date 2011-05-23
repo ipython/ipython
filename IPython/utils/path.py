@@ -317,8 +317,8 @@ def get_ipython_dir():
         if ipdir is None:
             # not using XDG
             ipdir = home_ipdir
-    elif ipdir.startswith('~'):
-        ipdir = os.path.expanduser(ipdir).rstrip('/')
+
+    ipdir = os.path.expanduser(ipdir).rstrip('/')
 
     return _cast_unicode(ipdir, fs_encoding)
 
