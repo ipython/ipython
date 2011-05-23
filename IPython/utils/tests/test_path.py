@@ -91,7 +91,7 @@ def setup_environment():
 def teardown_environment():
     """Restore things that were remebered by the setup_environment function
     """
-    (oldenv, os.name, get_home_dir, IPython.__file__,) = oldstuff
+    (oldenv, os.name, path.get_home_dir, IPython.__file__,) = oldstuff
         
     for key in env.keys():
         if key not in oldenv:
@@ -269,6 +269,7 @@ def test_get_ipython_dir_4():
 @with_environment
 def test_get_ipython_dir_5():
     """test_get_ipython_dir_5, use .ipython if exists and XDG defined, but doesn't exist."""
+    path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
