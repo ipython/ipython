@@ -301,7 +301,7 @@ def test_get_ipython_dir_6():
 
 @with_environment
 def test_get_ipython_dir_7():
-    """test_get_ipython_dir_2, test home directory expansion on IPYTHON_DIR"""
+    """test_get_ipython_dir_7, test home directory expansion on IPYTHON_DIR"""
     home_dir = os.path.expanduser('~/')
     env['IPYTHON_DIR'] = '~/somewhere'
     ipdir = path.get_ipython_dir()
