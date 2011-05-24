@@ -15,7 +15,7 @@ import sqlite3
 
 from zmq.eventloop import ioloop
 
-from IPython.utils.traitlets import CUnicode, CStr, Instance, List
+from IPython.utils.traitlets import Unicode, Instance, List
 from .dictdb import BaseDB
 from IPython.parallel.util import ISO8601
 
@@ -83,12 +83,12 @@ def _convert_bufs(bs):
 class SQLiteDB(BaseDB):
     """SQLite3 TaskRecord backend."""
     
-    filename = CUnicode('tasks.db', config=True,
+    filename = Unicode('tasks.db', config=True,
         help="""The filename of the sqlite task database. [default: 'tasks.db']""")
-    location = CUnicode('', config=True,
+    location = Unicode('', config=True,
         help="""The directory containing the sqlite task database.  The default
         is to use the cluster_dir location.""")
-    table = CUnicode("", config=True,
+    table = Unicode("", config=True,
         help="""The SQLite Table to use for storing tasks for this session. If unspecified,
         a new table will be created with the Hub's IDENT.  Specifying the table will result
         in tasks from previous sessions being available via Clients' db_query and

@@ -26,7 +26,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 # internal:
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import (
-        HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool, Tuple
+        HasTraits, Instance, Int, Unicode, Dict, Set, Tuple, CStr
         )
 
 from IPython.parallel import error, util
@@ -105,10 +105,10 @@ class EngineConnector(HasTraits):
     heartbeat (str): identity of heartbeat XREQ socket
     """
     id=Int(0)
-    queue=Str()
-    control=Str()
-    registration=Str()
-    heartbeat=Str()
+    queue=CStr()
+    control=CStr()
+    registration=CStr()
+    heartbeat=CStr()
     pending=Set()
 
 class HubFactory(RegistrationFactory):
@@ -156,24 +156,24 @@ class HubFactory(RegistrationFactory):
     def _notifier_port_default(self):
         return util.select_random_ports(1)[0]
     
-    engine_ip = CStr('127.0.0.1', config=True,
+    engine_ip = Unicode('127.0.0.1', config=True,
         help="IP on which to listen for engine connections. [default: loopback]")
-    engine_transport = CStr('tcp', config=True,
+    engine_transport = Unicode('tcp', config=True,
         help="0MQ transport for engine connections. [default: tcp]")
     
-    client_ip = CStr('127.0.0.1', config=True,
+    client_ip = Unicode('127.0.0.1', config=True,
         help="IP on which to listen for client connections. [default: loopback]")
-    client_transport = CStr('tcp', config=True,
+    client_transport = Unicode('tcp', config=True,
         help="0MQ transport for client connections. [default : tcp]")
     
-    monitor_ip = CStr('127.0.0.1', config=True,
+    monitor_ip = Unicode('127.0.0.1', config=True,
         help="IP on which to listen for monitor messages. [default: loopback]")
-    monitor_transport = CStr('tcp', config=True,
+    monitor_transport = Unicode('tcp', config=True,
         help="0MQ transport for monitor messages. [default : tcp]")
     
-    monitor_url = CStr('')
+    monitor_url = Unicode('')
     
-    db_class = CStr('IPython.parallel.controller.dictdb.DictDB', config=True,
+    db_class = Unicode('IPython.parallel.controller.dictdb.DictDB', config=True,
         help="""The class to use for the DB backend""")
     
     # not configurable
@@ -253,7 +253,7 @@ class HubFactory(RegistrationFactory):
         # connect the db
         self.log.info('Hub using DB backend: %r'%(self.db_class.split()[-1]))
         # cdir = self.config.Global.cluster_dir
-        self.db = import_item(self.db_class)(session=self.session.session, config=self.config)
+        self.db = import_item(str(self.db_class))(session=self.session.session, config=self.config)
         time.sleep(.25)
         try:
             scheme = self.config.TaskScheduler.scheme_name

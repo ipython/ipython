@@ -28,7 +28,7 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
-from IPython.utils.traitlets import Instance, List, Int, Dict, Set, Str, CStr
+from IPython.utils.traitlets import Instance, List, Int, Dict, Set, Unicode
 from IPython.zmq.completer import KernelCompleter
 
 from IPython.parallel.error import wrap_exception
@@ -64,7 +64,7 @@ class Kernel(SessionFactory):
     #---------------------------------------------------------------------------
     
     # kwargs:
-    exec_lines = List(CStr, config=True,
+    exec_lines = List(Unicode, config=True,
         help="List of lines to execute")
 
     int_id = Int(-1)

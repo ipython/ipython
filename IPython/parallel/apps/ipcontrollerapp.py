@@ -43,7 +43,7 @@ from IPython.parallel.apps.clusterdir import (
     # ClusterDirConfigLoader
 )
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Instance, Unicode, Bool, List, CStr, Dict
+from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict
 
 # from IPython.parallel.controller.controller import ControllerFactory
 from IPython.parallel.streamsession import StreamSession
@@ -139,7 +139,7 @@ class IPControllerApp(ClusterApplication):
 
     # internal
     children = List()
-    mq_class = CStr('zmq.devices.ProcessMonitoredQueue')
+    mq_class = Unicode('zmq.devices.ProcessMonitoredQueue')
 
     def _usethreads_changed(self, name, old, new):
         self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if new else 'Process')
