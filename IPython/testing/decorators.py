@@ -49,6 +49,7 @@ Authors
 # Stdlib imports
 import inspect
 import sys
+import tempfile
 import unittest
 
 # Third-party imports
@@ -318,3 +319,15 @@ skip_known_failure = knownfailureif(True,'This test is known to fail')
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
 null_deco = lambda f: f
+
+# Some tests only run where we can use unicode paths. Note that we can't just
+# check os.path.supports_unicode_filenames, which is always False on Linux.
+try:
+    tempfile.mkdtemp(u"€")
+except UnicodeEncodeError:
+    unicode_paths = False
+else:
+    unicode_paths = True
+
+onlyif_unicode_paths = onlyif(unicode_paths, ("This test is only applicable "
+                                    "where we can use unicode in filenames."))
