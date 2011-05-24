@@ -15,6 +15,7 @@ For more details, see the ipython-zmq design
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import __builtin__
 import sys
@@ -79,9 +80,10 @@ class Frontend(object):
        """    
        
        try:
-           self._splitter.push(raw_input('In[%i]:'%self.prompt_count+self.code))
+           print()
+           self._splitter.push(raw_input(' In[%i]: '%self.prompt_count+self.code))
            while self._splitter.push_accepts_more():
-              self.code = raw_input('.....:'+' '*self._splitter.indent_spaces)
+              self.code = raw_input(' .....: '+' '*self._splitter.indent_spaces)
               self._splitter.push(' '*self._splitter.indent_spaces+self.code)
            self._execute(self._splitter.source,False)
            self._splitter.reset()
@@ -128,17 +130,12 @@ class Frontend(object):
         if msg_xreq["parent_header"]["msg_id"] == msg_id:
             if msg_xreq["content"]["status"] == 'ok' :
                 self.handle_sub_channel()
-                self.prompt_count = msg_xreq["content"]["execution_count"] + 1
                
-            else:
-                etb = msg_xreq["content"]["traceback"]
-                print >> sys.stderr, etb[0]
-                try:        # These bits aren't there for a SyntaxError
-                    print >> sys.stderr, etb[1]
-                    print >> sys.stderr, etb[2]
-                except IndexError:
-                    pass
-                self.prompt_count = msg_xreq["content"]["execution_count"] + 1
+            elif msg_xreq["content"]["status"] == 'error':
+                for frame in msg_xreq["content"]["traceback"]:
+                    print(frame, file=sys.stderr)
+            
+            self.prompt_count = msg_xreq["content"]["execution_count"] + 1
 
 
     def handle_sub_channel(self):
@@ -160,14 +157,16 @@ class Frontend(object):
 
                elif sub_msg['msg_type'] == 'stream' :
                   if sub_msg["content"]["name"] == "stdout":
-                    print >> sys.stdout, sub_msg["content"]["data"]
+                    print(sub_msg["content"]["data"], file=sys.stdout, end="")
                     sys.stdout.flush()
                   elif sub_msg["content"]["name"] == "stderr" :
-                    print >> sys.stderr, sub_msg["content"]["data"]
+                    print(sub_msg["content"]["data"], file=sys.stderr, end="")
                     sys.stderr.flush()
                 
                elif sub_msg['msg_type'] == 'pyout' :
-                    print >> sys.stdout,"Out[%i]:"%sub_msg["content"]["execution_count"], sub_msg["content"]["data"]["text/plain"]
+                    print("Out[%i]:"%sub_msg["content"]["execution_count"],
+                            sub_msg["content"]["data"]["text/plain"],
+                            file=sys.stdout)
                     sys.stdout.flush()
 
     def handle_rep_channel(self, timeout=0.1):
