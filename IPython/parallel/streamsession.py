@@ -27,7 +27,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.config.configurable import Configurable
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Str, CStr, CUnicode, Bool, Any
+from IPython.utils.traitlets import CStr, Unicode, Bool, Any
 
 from .util import ISO8601
 
@@ -121,7 +121,7 @@ def extract_header(msg_or_header):
 class StreamSession(Configurable):
     """tweaked version of IPython.zmq.session.Session, for development in Parallel"""
     debug=Bool(False, config=True, help="""Debug output in the StreamSession""")
-    packer = Str('json',config=True,
+    packer = Unicode('json',config=True,
             help="""The name of the packer for serializing messages.
             Should be one of 'json', 'pickle', or an import name
             for a custom serializer.""")
@@ -135,7 +135,7 @@ class StreamSession(Configurable):
         else:
             self.pack = import_item(new)
 
-    unpacker = Str('json',config=True,
+    unpacker = Unicode('json',config=True,
         help="""The name of the unpacker for unserializing messages.
         Only used with custom functions for `packer`.""")
     def _unpacker_changed(self, name, old, new):
@@ -151,13 +151,13 @@ class StreamSession(Configurable):
     session = CStr('',config=True,
         help="""The UUID identifying this session.""")
     def _session_default(self):
-        return str(uuid.uuid4())
-    username = CUnicode(os.environ.get('USER','username'),config=True,
+        return bytes(uuid.uuid4())
+    username = Unicode(os.environ.get('USER','username'),config=True,
         help="""Username for the Session. Default is your system username.""")
     key = CStr('', config=True,
         help="""execution key, for extra authentication.""")
 
-    keyfile = CUnicode('', config=True,
+    keyfile = Unicode('', config=True,
         help="""path to file containing execution key.""")
     def _keyfile_changed(self, name, old, new):
         with open(new, 'rb') as f:

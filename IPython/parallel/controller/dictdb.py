@@ -46,7 +46,7 @@ from datetime import datetime
 
 from IPython.config.configurable import Configurable
 
-from IPython.utils.traitlets import Dict, CUnicode
+from IPython.utils.traitlets import Dict, Unicode
 
 filters = {
  '$lt' : lambda a,b: a < b,
@@ -82,7 +82,7 @@ class CompositeFilter(object):
 class BaseDB(Configurable):
     """Empty Parent class so traitlets work on DB."""
     # base configurable traits:
-    session = CUnicode("")
+    session = Unicode("")
 
 class DictDB(BaseDB):
     """Basic in-memory dict-based object for saving Task Records.

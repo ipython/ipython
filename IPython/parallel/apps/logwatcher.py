@@ -19,7 +19,7 @@ import sys
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
-from IPython.utils.traitlets import Int, Str, Instance, List
+from IPython.utils.traitlets import Int, Unicode, Instance, List
 
 from IPython.parallel.factory import LoggingFactory
 
@@ -36,7 +36,7 @@ class LogWatcher(LoggingFactory):
     """
     # configurables
     topics = List([''], config=True)
-    url = Str('tcp://127.0.0.1:20202', config=True)
+    url = Unicode('tcp://127.0.0.1:20202', config=True)
     
     # internals
     context = Instance(zmq.Context, (), {})

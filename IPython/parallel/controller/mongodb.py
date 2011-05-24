@@ -9,7 +9,7 @@
 from pymongo import Connection
 from pymongo.binary import Binary
 
-from IPython.utils.traitlets import Dict, List, CUnicode, CStr, Instance
+from IPython.utils.traitlets import Dict, List, Unicode, Instance
 
 from .dictdb import BaseDB
 
@@ -29,7 +29,7 @@ class MongoDB(BaseDB):
         necessary if the default mongodb configuration does not point to your
         mongod instance."""
     )
-    database = CUnicode(config=True,
+    database = Unicode(config=True,
         help="""The MongoDB database name to use for storing tasks for this session. If unspecified,
         a new database will be created with the Hub's IDENT.  Specifying the database will result
         in tasks from previous sessions being available via Clients' db_query and

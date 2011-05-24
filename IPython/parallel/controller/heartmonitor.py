@@ -15,10 +15,10 @@ import time
 import uuid
 
 import zmq
-from zmq.devices import ProcessDevice, ThreadDevice
+from zmq.devices import ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
-from IPython.utils.traitlets import Set, Instance, CFloat, Bool, CStr
+from IPython.utils.traitlets import Set, Instance, CFloat
 from IPython.parallel.factory import LoggingFactory
 
 class Heart(object):
