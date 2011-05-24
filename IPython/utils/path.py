@@ -28,7 +28,6 @@ from IPython.utils.importstring import import_item
 
 fs_encoding = sys.getfilesystemencoding()
 
-
 def _cast_unicode(s, enc=None):
     """Turn 8-bit strings into unicode."""
     if isinstance(s, bytes):
@@ -55,11 +54,10 @@ if sys.platform == 'win32':
         try:
             import ctypes
         except ImportError:
-            raise ImportError('you need to have ctypes installed '
-                              'for this to work')
+            raise ImportError('you need to have ctypes installed for this to work')
         _GetLongPathName = ctypes.windll.kernel32.GetLongPathNameW
         _GetLongPathName.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p,
-            ctypes.c_uint]
+            ctypes.c_uint ]
 
         buf = ctypes.create_unicode_buffer(260)
         rv = _GetLongPathName(path, buf, 260)
@@ -90,7 +88,7 @@ def get_py_filename(name):
     if os.path.isfile(name):
         return name
     else:
-        raise IOError('File `%s` not found.' % name)
+        raise IOError,'File `%s` not found.' % name
 
 
 def filefind(filename, path_dirs=None):
@@ -109,7 +107,7 @@ def filefind(filename, path_dirs=None):
 
     Will find the file in the users home directory.  This function does not
     automatically try any paths, such as the cwd or the user's home directory.
-
+    
     Parameters
     ----------
     filename : str
@@ -120,32 +118,31 @@ def filefind(filename, path_dirs=None):
         put into a sequence and the searched.  If a sequence, walk through
         each element and join with ``filename``, calling :func:`expandvars`
         and :func:`expanduser` before testing for existence.
-
+        
     Returns
     -------
     Raises :exc:`IOError` or returns absolute path to file.
     """
-
+    
     # If paths are quoted, abspath gets confused, strip them...
     filename = filename.strip('"').strip("'")
     # If the input is an absolute path, just check it exists
     if os.path.isabs(filename) and os.path.isfile(filename):
         return filename
-
+        
     if path_dirs is None:
         path_dirs = ("",)
     elif isinstance(path_dirs, basestring):
         path_dirs = (path_dirs,)
-
+        
     for path in path_dirs:
-        if path == '.':
-            path = os.getcwd()
+        if path == '.': path = os.getcwd()
         testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)
-
-    raise IOError("File %r does not exist in any of the search paths: %r" %
-                  (filename, path_dirs))
+        
+    raise IOError("File %r does not exist in any of the search paths: %r" % 
+                  (filename, path_dirs) )
 
 
 class HomeDirError(Exception):
@@ -163,7 +160,7 @@ def get_home_dir():
       - Registry hack for My Documents
       - %HOME%: rare, but some people with unix-like setups may have defined it
     * On Dos C:\
-
+ 
     Currently only Posix and NT are implemented, a HomeDirError exception is
     raised for all other OSes.
     """
@@ -174,13 +171,12 @@ def get_home_dir():
     # first, check py2exe distribution root directory for _ipython.
     # This overrides all. Normally does not exist.
 
-    if hasattr(sys, "frozen"):  # Is frozen by py2exe
-        # libraries compressed to zip-file
-        if '\\library.zip\\' in IPython.__file__.lower():
+    if hasattr(sys, "frozen"): #Is frozen by py2exe
+        if '\\library.zip\\' in IPython.__file__.lower():#libraries compressed to zip-file
             root, rest = IPython.__file__.lower().split('library.zip')
-        else:
-            root = os.path.join(os.path.split(IPython.__file__)[0], "../../")
-        root = os.path.abspath(root).rstrip('\\')
+        else: 
+            root=os.path.join(os.path.split(IPython.__file__)[0],"../../")
+        root=os.path.abspath(root).rstrip('\\')
         if isdir(os.path.join(root, '_ipython')):
             os.environ["IPYKITROOT"] = root
         return _cast_unicode(root, fs_encoding)
@@ -195,7 +191,7 @@ def get_home_dir():
             # still knows it - reported once as:
             # https://github.com/ipython/ipython/issues/154
             from subprocess import Popen, PIPE
-            homedir = Popen('echo $HOME', shell=True,
+            homedir = Popen('echo $HOME', shell=True, 
                             stdout=PIPE).communicate()[0].strip()
             if homedir:
                 return _cast_unicode(homedir, fs_encoding)
@@ -208,7 +204,7 @@ def get_home_dir():
         # For some strange reason all of these return 'nt' for os.name.
         # First look for a network home directory. This will return the UNC
         # path (\\server\\Users\%username%) not the mapped path (Z:\). This
-        # is needed when running IPython on cluster where all paths have to
+        # is needed when running IPython on cluster where all paths have to 
         # be UNC.
         try:
             homedir = env['HOMESHARE']
@@ -220,7 +216,7 @@ def get_home_dir():
 
         # Now look for a local home directory
         try:
-            homedir = os.path.join(env['HOMEDRIVE'], env['HOMEPATH'])
+            homedir = os.path.join(env['HOMEDRIVE'],env['HOMEPATH'])
         except KeyError:
             pass
         else:
@@ -243,7 +239,7 @@ def get_home_dir():
                 wreg.HKEY_CURRENT_USER,
                 "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
             )
-            homedir = wreg.QueryValueEx(key, 'Personal')[0]
+            homedir = wreg.QueryValueEx(key,'Personal')[0]
             key.Close()
         except:
             pass
@@ -267,44 +263,41 @@ def get_home_dir():
         # Desperate, may do absurd things in classic MacOS. May work under DOS.
         return u'C:\\'
     else:
-        raise HomeDirError('No valid home directory could be found '
-                           'for your OS')
-
+        raise HomeDirError('No valid home directory could be found for your OS')
 
 def get_xdg_dir():
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
-
+    
     This is only for posix (Linux,Unix,OS X, etc) systems.
     """
 
     isdir = os.path.isdir
     env = os.environ
-
+    
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
         # use ~/.config if not set OR empty
-        xdg = env.get("XDG_CONFIG_HOME", None) or \
-              os.path.join(get_home_dir(), '.config')
+        xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
         if xdg and isdir(xdg):
             return _cast_unicode(xdg, fs_encoding)
-
+    
     return None
-
+    
 
 def get_ipython_dir():
     """Get the IPython directory for this platform and user.
-
+    
     This uses the logic in `get_home_dir` to find the home directory
     and the adds .ipython to the end of the path.
     """
-
+    
     env = os.environ
     pjoin = os.path.join
     exists = os.path.exists
-
+    
     ipdir_def = '.ipython'
     xdg_def = 'ipython'
-
+    
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
     # import pdb; pdb.set_trace()  # dbg
@@ -315,12 +308,12 @@ def get_ipython_dir():
         if xdg_dir:
             # use XDG, as long as the user isn't already
             # using $HOME/.ipython and *not* XDG/ipython
-
+            
             xdg_ipdir = pjoin(xdg_dir, xdg_def)
-
+        
             if exists(xdg_ipdir) or not exists(home_ipdir):
                 ipdir = xdg_ipdir
-
+        
         if ipdir is None:
             # not using XDG
             ipdir = home_ipdir
@@ -355,7 +348,7 @@ def expand_path(s):
     """Expand $VARS and ~names in a string, like a shell
 
     :Examples:
-
+    
        In [2]: os.environ['FOO']='test'
 
        In [3]: expand_path('variable FOO is $FOO')
@@ -366,18 +359,18 @@ def expand_path(s):
     # the $ to get (\\server\share\%username%). I think it considered $
     # alone an empty var. But, we need the $ to remains there (it indicates
     # a hidden share).
-    if os.name == 'nt':
+    if os.name=='nt':
         s = s.replace('$\\', 'IPYTHON_TEMP')
     s = os.path.expandvars(os.path.expanduser(s))
-    if os.name == 'nt':
+    if os.name=='nt':
         s = s.replace('IPYTHON_TEMP', '$\\')
     return s
 
 
-def target_outdated(target, deps):
+def target_outdated(target,deps):
     """Determine whether a target is out of date.
 
-    target_outdated(target, deps) -> 1/0
+    target_outdated(target,deps) -> 1/0
 
     deps: list of filenames which MUST exist.
     target: single filename which may or may not exist.
@@ -398,17 +391,16 @@ def target_outdated(target, deps):
     return 0
 
 
-def target_update(target, deps, cmd):
+def target_update(target,deps,cmd):
     """Update a target with a given command given a list of dependencies.
 
-    target_update(target, deps, cmd) -> runs cmd if target is outdated.
+    target_update(target,deps,cmd) -> runs cmd if target is outdated.
 
     This is just a wrapper around target_outdated() which calls the given
     command if target is outdated."""
 
-    if target_outdated(target, deps):
+    if target_outdated(target,deps):
         system(cmd)
-
 
 def check_for_old_config(ipython_dir=None):
     """Check for old config files, and present a warning if they exist.
@@ -429,4 +421,5 @@ def check_for_old_config(ipython_dir=None):
     The IPython configuration system has changed as of 0.11, and this file will be ignored.
     See http://ipython.github.com/ipython-doc/dev/config for details on the new config system.
     The current default config file is 'ipython_config.py', where you can suppress these
-    warnings with `Global.ignore_old_config = True`.""" % f)
+    warnings with `Global.ignore_old_config = True`."""%f)
+

@@ -47,15 +47,14 @@ TEST_FILE_PATH = split(abspath(__file__))[0]
 TMP_TEST_DIR = tempfile.mkdtemp()
 HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
 XDG_TEST_DIR = join(HOME_TEST_DIR, "xdg_test_dir")
-IP_TEST_DIR = join(HOME_TEST_DIR, '.ipython')
+IP_TEST_DIR = join(HOME_TEST_DIR,'.ipython')
 #
 # Setup/teardown functions/decorators
 #
 
-
 def setup():
     """Setup testenvironment for the module:
-
+    
             - Adds dummy home dir tree
     """
     # Do not mask exceptions here.  In particular, catching WindowsError is a
@@ -66,7 +65,7 @@ def setup():
 
 def teardown():
     """Teardown testenvironment for the module:
-
+    
             - Remove dummy home dir tree
     """
     # Note: we remove the parent test dir, which is the root of all test
@@ -76,10 +75,10 @@ def teardown():
 
 
 def setup_environment():
-    """Setup testenvironment for some functions that are tested
+    """Setup testenvironment for some functions that are tested 
     in this module. In particular this functions stores attributes
     and other things that we need to stub in some test functions.
-    This needs to be done on a function level and not module level because
+    This needs to be done on a function level and not module level because 
     each testfunction needs a pristine environment.
     """
     global oldstuff, platformstuff
@@ -93,7 +92,7 @@ def teardown_environment():
     """Restore things that were remebered by the setup_environment function
     """
     (oldenv, os.name, path.get_home_dir, IPython.__file__,) = oldstuff
-
+        
     for key in env.keys():
         if key not in oldenv:
             del env[key]
@@ -113,10 +112,10 @@ def test_get_home_dir_1():
     """Testcase for py2exe logic, un-compressed lib
     """
     sys.frozen = True
-
+    
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
-
+    
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
@@ -128,9 +127,8 @@ def test_get_home_dir_2():
     """
     sys.frozen = True
     #fake filename for IPython.__init__
-    IPython.__file__ = abspath(join(
-        HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
-
+    IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
+    
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
 
@@ -146,12 +144,11 @@ def test_get_home_dir_3():
 
 @with_environment
 def test_get_home_dir_4():
-    """Testcase $HOME is not set, os=='posix'.
+    """Testcase $HOME is not set, os=='posix'. 
     This should fail with HomeDirError"""
-
+    
     os.name = 'posix'
-    if 'HOME' in env:
-        del env['HOME']
+    if 'HOME' in env: del env['HOME']
     nt.assert_raises(path.HomeDirError, path.get_home_dir)
 
 
@@ -197,13 +194,13 @@ def test_get_home_dir_7():
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
-
+    
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_8():
     """Using registry hack for 'My Documents', os=='nt'
-
+    
     HOMESHARE, HOMEDRIVE, HOMEPATH, USERPROFILE and others are missing.
     """
     os.name = 'nt'
@@ -217,7 +214,6 @@ def test_get_home_dir_8():
             def Close(self):
                 pass
         return key()
-
     def QueryValueEx(x, y):
         return [abspath(HOME_TEST_DIR)]
 
@@ -239,7 +235,7 @@ def test_get_ipython_dir_1():
 @with_environment
 def test_get_ipython_dir_2():
     """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
-    path.get_home_dir = lambda: "someplace"
+    path.get_home_dir = lambda : "someplace"
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
@@ -247,11 +243,10 @@ def test_get_ipython_dir_2():
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join("someplace", ".ipython"))
 
-
 @with_environment
 def test_get_ipython_dir_3():
     """test_get_ipython_dir_3, use XDG if defined, and .ipython doesn't exist."""
-    path.get_home_dir = lambda: "someplace"
+    path.get_home_dir = lambda : "someplace"
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
@@ -259,11 +254,10 @@ def test_get_ipython_dir_3():
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(XDG_TEST_DIR, "ipython"))
 
-
 @with_environment
 def test_get_ipython_dir_4():
     """test_get_ipython_dir_4, use XDG if both exist."""
-    path.get_home_dir = lambda: HOME_TEST_DIR
+    path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
@@ -272,11 +266,10 @@ def test_get_ipython_dir_4():
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, xdg_ipdir)
 
-
 @with_environment
 def test_get_ipython_dir_5():
     """test_get_ipython_dir_5, use .ipython if exists and XDG defined, but doesn't exist."""
-    path.get_home_dir = lambda: HOME_TEST_DIR
+    path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
@@ -285,19 +278,17 @@ def test_get_ipython_dir_5():
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, IP_TEST_DIR)
 
-
 @with_environment
 def test_get_ipython_dir_6():
     """test_get_ipython_dir_6, use XDG if defined and neither exist."""
-    path.get_home_dir = lambda: 'somehome'
-    path.get_xdg_dir = lambda: 'somexdg'
+    path.get_home_dir = lambda : 'somehome'
+    path.get_xdg_dir = lambda : 'somexdg'
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     xdg_ipdir = os.path.join("somexdg", "ipython")
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, xdg_ipdir)
-
 
 @with_environment
 def test_get_ipython_dir_7():
@@ -312,12 +303,12 @@ def test_get_ipython_dir_7():
 def test_get_xdg_dir_1():
     """test_get_xdg_dir_1, check xdg_dir"""
     reload(path)
-    path.get_home_dir = lambda: 'somewhere'
+    path.get_home_dir = lambda : 'somewhere'
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
-
+    
     nt.assert_equal(path.get_xdg_dir(), os.path.join('somewhere', '.config'))
 
 
@@ -325,28 +316,26 @@ def test_get_xdg_dir_1():
 def test_get_xdg_dir_1():
     """test_get_xdg_dir_1, check nonexistant xdg_dir"""
     reload(path)
-    path.get_home_dir = lambda: HOME_TEST_DIR
+    path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
     nt.assert_equal(path.get_xdg_dir(), None)
 
-
 @with_environment
 def test_get_xdg_dir_2():
     """test_get_xdg_dir_2, check xdg_dir default to ~/.config"""
     reload(path)
-    path.get_home_dir = lambda: HOME_TEST_DIR
+    path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
-    cfgdir = os.path.join(path.get_home_dir(), '.config')
+    cfgdir=os.path.join(path.get_home_dir(), '.config')
     os.makedirs(cfgdir)
-
+    
     nt.assert_equal(path.get_xdg_dir(), cfgdir)
-
 
 def test_filefind():
     """Various tests for filefind"""
@@ -363,18 +352,18 @@ def test_get_ipython_package_dir():
 
 
 def test_get_ipython_module_path():
-    ipapp_path = path.get_ipython_module_path(
-        'IPython.frontend.terminal.ipapp')
+    ipapp_path = path.get_ipython_module_path('IPython.frontend.terminal.ipapp')
     nt.assert_true(os.path.isfile(ipapp_path))
 
 
 @dec.skip_if_not_win32
 def test_get_long_path_name_win32():
     p = path.get_long_path_name('c:\\docume~1')
-    nt.assert_equals(p, u'c:\\Documents and Settings')
+    nt.assert_equals(p,u'c:\\Documents and Settings') 
 
 
 @dec.skip_win32
 def test_get_long_path_name():
     p = path.get_long_path_name('/usr/local')
-    nt.assert_equals(p, '/usr/local')
+    nt.assert_equals(p,'/usr/local')
+
