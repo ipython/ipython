@@ -110,9 +110,10 @@ class IPControllerApp(ClusterApplication):
     description = _description
     # command_line_loader = IPControllerAppConfigLoader
     default_config_file_name = default_config_file_name
-    auto_create_cluster_dir = True
     classes = [ClusterDir, StreamSession, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
     
+    auto_create_cluster_dir = Bool(True, config=True,
+        help="Whether to create cluster_dir if it exists.")
     reuse_files = Bool(False, config=True,
         help='Whether to reuse existing json connection files [default: False]'
     )
