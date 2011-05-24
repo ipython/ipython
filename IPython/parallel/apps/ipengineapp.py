@@ -106,7 +106,7 @@ class IPEngineApp(ClusterApplication):
     default_config_file_name = default_config_file_name
     classes = List([ClusterDir, StreamSession, EngineFactory, Kernel, MPI])
 
-    auto_create_cluster_dir = Bool(False, config=True,
+    auto_create_cluster_dir = Bool(False,
         help="whether to create the cluster_dir if it doesn't exist")
     
     startup_script = Unicode(u'', config=True,
@@ -178,7 +178,6 @@ class IPEngineApp(ClusterApplication):
                 self.cluster_dir.security_dir,
                 self.url_file_name
             )
-        
     def init_engine(self):
         # This is the working dir by now.
         sys.path.insert(0, '')
