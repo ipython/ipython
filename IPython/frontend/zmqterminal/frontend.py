@@ -50,11 +50,7 @@ class Frontend(object):
 
     def __init__(self, kernelmanager):
        self.km = kernelmanager
-       self.session = kernelmanager.session
-       self.request_socket = self.km.xreq_channel.socket
-       self.sub_socket = self.km.sub_channel.socket
-       self.reply_socket = self.km.rep_channel.socket
-       self.msg_header = self.km.session.msg_header()
+       self.session_id = self.km.session.session
        self.completer = ClientCompleter2p(self, self.km)
        readline.parse_and_bind("tab: complete")
        readline.parse_and_bind('set show-all-if-ambiguous on')
@@ -119,31 +115,30 @@ class Frontend(object):
 
         See parent class :meth:`execute` docstring for full details.
         """
-        self.km.xreq_channel.execute(source, hidden)
+        msg_id = self.km.xreq_channel.execute(source, hidden)
         while not self.km.xreq_channel.msg_ready():
             try:
                 self.handle_rep_channel(timeout=0.1)
             except Empty:
                 pass
-        self.handle_xreq_channel()
+        self.handle_execute_reply(msg_id)
 
-    def handle_xreq_channel(self):   
-        self.msg_xreq =  self.km.xreq_channel.get_msg()
-        if self.msg_header["session"] == self.msg_xreq["parent_header"]["session"]:
-            if self.msg_xreq["content"]["status"] == 'ok' :
-                if self.msg_xreq["msg_type"] == "execute_reply" :
-                    self.handle_sub_channel()
-                    self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
+    def handle_execute_reply(self, msg_id):
+        msg_xreq = self.km.xreq_channel.get_msg()
+        if msg_xreq["parent_header"]["msg_id"] == msg_id:
+            if msg_xreq["content"]["status"] == 'ok' :
+                self.handle_sub_channel()
+                self.prompt_count = msg_xreq["content"]["execution_count"] + 1
                
             else:
-                etb = self.msg_xreq["content"]["traceback"]
+                etb = msg_xreq["content"]["traceback"]
                 print >> sys.stderr, etb[0]
                 try:        # These bits aren't there for a SyntaxError
                     print >> sys.stderr, etb[1]
                     print >> sys.stderr, etb[2]
                 except IndexError:
                     pass
-                self.prompt_count = self.msg_xreq["content"]["execution_count"]+1
+                self.prompt_count = msg_xreq["content"]["execution_count"] + 1
 
 
     def handle_sub_channel(self):
@@ -158,30 +153,29 @@ class Frontend(object):
        """
        while self.km.sub_channel.msg_ready():
            sub_msg = self.km.sub_channel.get_msg()
-           if self.msg_header["username"] == sub_msg['parent_header']['username'] and \
-                self.km.session.session == sub_msg['parent_header']['session']:
+           if self.session_id == sub_msg['parent_header']['session']:
                if sub_msg['msg_type'] == 'status' :
                     if sub_msg["content"]["execution_state"] == "busy" :
                         pass
 
-               if sub_msg['msg_type'] == 'stream' :
+               elif sub_msg['msg_type'] == 'stream' :
                   if sub_msg["content"]["name"] == "stdout":
-                    print >> sys.stdout,sub_msg["content"]["data"]
+                    print >> sys.stdout, sub_msg["content"]["data"]
                     sys.stdout.flush()
-                  if sub_msg["content"]["name"] == "stderr" :
-                    print >> sys.stderr,sub_msg["content"]["data"]
+                  elif sub_msg["content"]["name"] == "stderr" :
+                    print >> sys.stderr, sub_msg["content"]["data"]
                     sys.stderr.flush()
                 
-               if sub_msg['msg_type'] == 'pyout' :
+               elif sub_msg['msg_type'] == 'pyout' :
                     print >> sys.stdout,"Out[%i]:"%sub_msg["content"]["execution_count"], sub_msg["content"]["data"]["text/plain"]
                     sys.stdout.flush()
 
     def handle_rep_channel(self, timeout=0.1):
         """ Method to capture raw_input
         """
-        self.msg_rep = self.km.rep_channel.get_msg(timeout=timeout)
-        if self.msg_header["session"] == self.msg_rep["parent_header"]["session"] :
-            raw_data = raw_input(self.msg_rep["content"]["prompt"])
+        msg_rep = self.km.rep_channel.get_msg(timeout=timeout)
+        if self.session_id == msg_rep["parent_header"]["session"] :
+            raw_data = raw_input(msg_rep["content"]["prompt"])
             self.km.rep_channel.input(raw_data)
              
        

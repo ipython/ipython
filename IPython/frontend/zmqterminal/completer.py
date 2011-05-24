@@ -16,16 +16,15 @@ class ClientCompleter2p(object):
         
     def complete_request(self,text):
         line = readline.get_line_buffer()
-        #msg_id = self.km.xreq_channel.complete(text=text,line=line)#this method is not working, the code not continue
-        msg = self.km.session.send(self.km.xreq_channel.socket,
-                                'complete_request',
-                                dict(text=text, line=line))
+        cursor_pos = readline.get_endidx()
+        
         # send completion request to kernel
         # Give the kernel up to 0.5s to respond
+        msg_id = self.km.xreq_channel.complete(text=text, line=line,
+                                                        cursor_pos=cursor_pos)
+        
         msg_xreq = self.km.xreq_channel.get_msg(timeout=0.5)
-        if msg["header"]['session'] == msg_xreq["parent_header"]['session'] and \
-                        msg_xreq["content"]["status"] == 'ok' and \
-                        msg_xreq["msg_type"] == "complete_reply" :
+        if msg_xreq['parent_header']['msg_id'] == msg_id:
             return msg_xreq["content"]["matches"]
         return []
     
