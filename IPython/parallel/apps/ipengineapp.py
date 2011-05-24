@@ -37,7 +37,7 @@ from IPython.parallel.engine.streamkernel import Kernel
 from IPython.parallel.util import disambiguate_url
 
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Str, Bool, Unicode, Dict, List, CStr
+from IPython.utils.traitlets import Bool, Unicode, Dict, List, CStr
 
 
 #-----------------------------------------------------------------------------
@@ -78,7 +78,7 @@ mpi.size = 0
 
 class MPI(Configurable):
     """Configurable for MPI initialization"""
-    use = Str('', config=True,
+    use = Unicode('', config=True,
         help='How to enable MPI (mpi4py, pytrilinos, or empty string to disable).'
         )
 
@@ -87,7 +87,7 @@ class MPI(Configurable):
         if not self.init_script:
             self.init_script = self.default_inits.get(new, '')
 
-    init_script = Str('', config=True,
+    init_script = Unicode('', config=True,
         help="Initialization code for MPI")
 
     default_inits = Dict({'mpi4py' : mpi4py_init, 'pytrilinos':pytrilinos_init},
@@ -111,7 +111,7 @@ class IPEngineApp(ClusterApplication):
     
     startup_script = Unicode(u'', config=True,
         help='specify a script to be run at startup')
-    startup_command = Str('', config=True,
+    startup_command = Unicode('', config=True,
             help='specify a command to be run at startup')
 
     url_file = Unicode(u'', config=True,

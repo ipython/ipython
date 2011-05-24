@@ -51,7 +51,7 @@ from zmq.eventloop import ioloop
 
 from IPython.external import Itpl
 # from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Any, Str, Int, List, Unicode, Dict, Instance, CUnicode
+from IPython.utils.traitlets import Any, Int, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
@@ -534,11 +534,11 @@ class SSHLauncher(LocalProcessLauncher):
         help="Program to launch via ssh")
     program_args = List([], config=True,
         help="args to pass to remote program")
-    hostname = CUnicode('', config=True,
+    hostname = Unicode('', config=True,
         help="hostname on which to launch the program")
-    user = CUnicode('', config=True,
+    user = Unicode('', config=True,
         help="username for ssh")
-    location = CUnicode('', config=True,
+    location = Unicode('', config=True,
         help="user@hostname location for ssh in one setting")
 
     def _hostname_changed(self, name, old, new):
@@ -647,18 +647,18 @@ def find_job_cmd():
 
 class WindowsHPCLauncher(BaseLauncher):
 
-    job_id_regexp = Str(r'\d+', config=True,
+    job_id_regexp = Unicode(r'\d+', config=True,
         help="""A regular expression used to get the job id from the output of the
         submit_command. """
         )
-    job_file_name = CUnicode(u'ipython_job.xml', config=True,
+    job_file_name = Unicode(u'ipython_job.xml', config=True,
         help="The filename of the instantiated job script.")
     # The full path to the instantiated job script. This gets made dynamically
     # by combining the work_dir with the job_file_name.
-    job_file = CUnicode(u'')
-    scheduler = CUnicode('', config=True,
+    job_file = Unicode(u'')
+    scheduler = Unicode('', config=True,
         help="The hostname of the scheduler to submit the job to.")
-    job_cmd = CUnicode(find_job_cmd(), config=True,
+    job_cmd = Unicode(find_job_cmd(), config=True,
         help="The command for submitting jobs.")
 
     def __init__(self, work_dir=u'.', config=None, **kwargs):
@@ -727,7 +727,7 @@ class WindowsHPCLauncher(BaseLauncher):
 
 class WindowsHPCControllerLauncher(WindowsHPCLauncher):
 
-    job_file_name = CUnicode(u'ipcontroller_job.xml', config=True,
+    job_file_name = Unicode(u'ipcontroller_job.xml', config=True,
         help="WinHPC xml job file.")
     extra_args = List([], config=False,
         help="extra args to pass to ipcontroller")
@@ -760,7 +760,7 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher):
 
 class WindowsHPCEngineSetLauncher(WindowsHPCLauncher):
 
-    job_file_name = CUnicode(u'ipengineset_job.xml', config=True,
+    job_file_name = Unicode(u'ipengineset_job.xml', config=True,
         help="jobfile for ipengines job")
     extra_args = List([], config=False,
         help="extra args to pas to ipengine")
@@ -815,29 +815,29 @@ class BatchSystemLauncher(BaseLauncher):
         help="The name of the command line program used to submit jobs.")
     delete_command = List([''], config=True,
         help="The name of the command line program used to delete jobs.")
-    job_id_regexp = CUnicode('', config=True,
+    job_id_regexp = Unicode('', config=True,
         help="""A regular expression used to get the job id from the output of the
         submit_command.""")
-    batch_template = CUnicode('', config=True,
+    batch_template = Unicode('', config=True,
         help="The string that is the batch script template itself.")
-    batch_template_file = CUnicode(u'', config=True,
+    batch_template_file = Unicode(u'', config=True,
         help="The file that contains the batch template.")
-    batch_file_name = CUnicode(u'batch_script', config=True,
+    batch_file_name = Unicode(u'batch_script', config=True,
         help="The filename of the instantiated batch script.")
-    queue = CUnicode(u'', config=True,
+    queue = Unicode(u'', config=True,
         help="The PBS Queue.")
     
     # not configurable, override in subclasses
     # PBS Job Array regex
-    job_array_regexp = CUnicode('')
-    job_array_template = CUnicode('')
+    job_array_regexp = Unicode('')
+    job_array_template = Unicode('')
     # PBS Queue regex
-    queue_regexp = CUnicode('')
-    queue_template = CUnicode('')
+    queue_regexp = Unicode('')
+    queue_template = Unicode('')
     # The default batch template, override in subclasses
-    default_template = CUnicode('')
+    default_template = Unicode('')
     # The full path to the instantiated batch script.
-    batch_file = CUnicode(u'')
+    batch_file = Unicode(u'')
     # the format dict used with batch_template:
     context = Dict()
 
@@ -924,22 +924,22 @@ class PBSLauncher(BatchSystemLauncher):
         help="The PBS submit command ['qsub']")
     delete_command = List(['qdel'], config=True,
         help="The PBS delete command ['qsub']")
-    job_id_regexp = CUnicode(r'\d+', config=True,
+    job_id_regexp = Unicode(r'\d+', config=True,
         help="Regular expresion for identifying the job ID [r'\d+']")
     
-    batch_file = CUnicode(u'')
-    job_array_regexp = CUnicode('#PBS\W+-t\W+[\w\d\-\$]+')
-    job_array_template = CUnicode('#PBS -t 1-$n')
-    queue_regexp = CUnicode('#PBS\W+-q\W+\$?\w+')
-    queue_template = CUnicode('#PBS -q $queue')
+    batch_file = Unicode(u'')
+    job_array_regexp = Unicode('#PBS\W+-t\W+[\w\d\-\$]+')
+    job_array_template = Unicode('#PBS -t 1-$n')
+    queue_regexp = Unicode('#PBS\W+-q\W+\$?\w+')
+    queue_template = Unicode('#PBS -q $queue')
 
 
 class PBSControllerLauncher(PBSLauncher):
     """Launch a controller using PBS."""
 
-    batch_file_name = CUnicode(u'pbs_controller', config=True,
+    batch_file_name = Unicode(u'pbs_controller', config=True,
         help="batch file name for the controller job.")
-    default_template= CUnicode("""#!/bin/sh
+    default_template= Unicode("""#!/bin/sh
 #PBS -V
 #PBS -N ipcontroller
 %s --log-to-file cluster_dir $cluster_dir
@@ -953,9 +953,9 @@ class PBSControllerLauncher(PBSLauncher):
 
 class PBSEngineSetLauncher(PBSLauncher):
     """Launch Engines using PBS"""
-    batch_file_name = CUnicode(u'pbs_engines', config=True,
+    batch_file_name = Unicode(u'pbs_engines', config=True,
         help="batch file name for the engine(s) job.")
-    default_template= CUnicode(u"""#!/bin/sh
+    default_template= Unicode(u"""#!/bin/sh
 #PBS -V
 #PBS -N ipengine
 %s cluster_dir $cluster_dir
@@ -970,17 +970,17 @@ class PBSEngineSetLauncher(PBSLauncher):
 
 class SGELauncher(PBSLauncher):
     """Sun GridEngine is a PBS clone with slightly different syntax"""
-    job_array_regexp = CUnicode('#$$\W+-t\W+[\w\d\-\$]+')
-    job_array_template = CUnicode('#$$ -t 1-$n')
-    queue_regexp = CUnicode('#$$\W+-q\W+\$?\w+')
-    queue_template = CUnicode('#$$ -q $queue')
+    job_array_regexp = Unicode('#$$\W+-t\W+[\w\d\-\$]+')
+    job_array_template = Unicode('#$$ -t 1-$n')
+    queue_regexp = Unicode('#$$\W+-q\W+\$?\w+')
+    queue_template = Unicode('#$$ -q $queue')
 
 class SGEControllerLauncher(SGELauncher):
     """Launch a controller using SGE."""
 
-    batch_file_name = CUnicode(u'sge_controller', config=True,
+    batch_file_name = Unicode(u'sge_controller', config=True,
         help="batch file name for the ipontroller job.")
-    default_template= CUnicode(u"""#$$ -V
+    default_template= Unicode(u"""#$$ -V
 #$$ -S /bin/sh
 #$$ -N ipcontroller
 %s --log-to-file cluster_dir=$cluster_dir
@@ -993,9 +993,9 @@ class SGEControllerLauncher(SGELauncher):
 
 class SGEEngineSetLauncher(SGELauncher):
     """Launch Engines with SGE"""
-    batch_file_name = CUnicode(u'sge_engines', config=True,
+    batch_file_name = Unicode(u'sge_engines', config=True,
         help="batch file name for the engine(s) job.")
-    default_template = CUnicode("""#$$ -V
+    default_template = Unicode("""#$$ -V
 #$$ -S /bin/sh
 #$$ -N ipengine
 %s cluster_dir=$cluster_dir
@@ -1020,7 +1020,7 @@ class IPClusterLauncher(LocalProcessLauncher):
     ipcluster_args = List(
         ['--clean-logs', '--log-to-file', 'log_level=%i'%logging.INFO], config=True,
         help="Command line arguments to pass to ipcluster.")
-    ipcluster_subcommand = Str('start')
+    ipcluster_subcommand = Unicode('start')
     ipcluster_n = Int(2)
 
     def find_args(self):

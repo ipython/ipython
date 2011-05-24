@@ -36,7 +36,7 @@ from IPython.utils.path import (
     get_ipython_dir,
     expand_path
 )
-from IPython.utils.traitlets import Unicode, Bool, CStr, Instance, Dict
+from IPython.utils.traitlets import Unicode, Bool, Instance, Dict
 
 #-----------------------------------------------------------------------------
 # Module errors
@@ -360,8 +360,8 @@ class ClusterApplication(BaseIPythonApplication):
     clean_logs = Bool(False, shortname='--clean-logs', config=True,
         help="whether to cleanup old logfiles before starting")
 
-    log_url = CStr('', shortname='--log-url', config=True,
-        help="The ZMQ URL of the iplooger to aggregate logging.")
+    log_url = Unicode('', shortname='--log-url', config=True,
+        help="The ZMQ URL of the iplogger to aggregate logging.")
 
     config_file = Unicode(u'', config=True,
         help="""Path to ipcontroller configuration file.  The default is to use

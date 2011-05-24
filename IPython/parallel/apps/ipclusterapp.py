@@ -29,7 +29,7 @@ from IPython.config.application import Application, boolean_flag
 from IPython.config.loader import Config
 from IPython.core.newapplication import BaseIPythonApplication
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Int, CStr, CUnicode, Str, Bool, CFloat, Dict, List
+from IPython.utils.traitlets import Int, Unicode, Bool, CFloat, Dict, List
 
 from IPython.parallel.apps.clusterdir import (
     ClusterApplication, ClusterDirError, ClusterDir,
@@ -285,7 +285,7 @@ class IPClusterEngines(ClusterApplication):
     n = Int(2, config=True,
         help="The number of engines to start.")
 
-    engine_launcher_class = Str('LocalEngineSetLauncher',
+    engine_launcher_class = Unicode('LocalEngineSetLauncher',
         config=True,
         help="The class for launching a set of Engines."
         )
@@ -420,7 +420,7 @@ class IPClusterStart(IPClusterEngines):
     delay = CFloat(1., config=True,
         help="delay (in s) between starting the controller and the engines")
 
-    controller_launcher_class = Str('LocalControllerLauncher',
+    controller_launcher_class = Unicode('LocalControllerLauncher',
         config=True,
         help="The class for launching a Controller."
         )

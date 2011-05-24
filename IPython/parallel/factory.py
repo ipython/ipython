@@ -18,7 +18,7 @@ import os
 from zmq.eventloop.ioloop import IOLoop
 
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Str,Int,Instance, CUnicode, CStr
+from IPython.utils.traitlets import Int, Instance, Unicode
 
 import IPython.parallel.streamsession as ss
 from IPython.parallel.util import select_random_ports
@@ -29,7 +29,7 @@ from IPython.parallel.util import select_random_ports
 class LoggingFactory(Configurable):
     """A most basic class, that has a `log` (type:`Logger`) attribute, set via a `logname` Trait."""
     log = Instance('logging.Logger', ('ZMQ', logging.WARN))
-    logname = CUnicode('ZMQ')
+    logname = Unicode('ZMQ')
     def _logname_changed(self, name, old, new):
         self.log = logging.getLogger(new)
     
@@ -55,14 +55,14 @@ class SessionFactory(LoggingFactory):
 class RegistrationFactory(SessionFactory):
     """The Base Configurable for objects that involve registration."""
     
-    url = Str('', config=True,
+    url = Unicode('', config=True,
         help="""The 0MQ url used for registration. This sets transport, ip, and port
         in one variable. For example: url='tcp://127.0.0.1:12345' or
         url='epgm://*:90210'""") # url takes precedence over ip,regport,transport
-    transport = Str('tcp', config=True,
+    transport = Unicode('tcp', config=True,
         help="""The 0MQ transport for communications.  This will likely be
         the default of 'tcp', but other values include 'ipc', 'epgm', 'inproc'.""")
-    ip = Str('127.0.0.1', config=True,
+    ip = Unicode('127.0.0.1', config=True,
         help="""The IP address for registration.  This is generally either
         '127.0.0.1' for loopback only or '*' for all interfaces.
         [default: '127.0.0.1']""")
