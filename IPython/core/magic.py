@@ -3360,6 +3360,7 @@ Defaulting color scheme to 'NoColor'"""
                 shutil.copy(src, dst)
                 print "    %s" % f
 
+    @skip_doctest
     def magic_install_default_config(self, s):
         """Install IPython's default config file into the .ipython dir.
 
