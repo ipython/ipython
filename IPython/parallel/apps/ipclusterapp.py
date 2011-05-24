@@ -204,15 +204,21 @@ stop_aliases = dict(
 class IPClusterStop(ClusterApplication):
     name = u'ipcluster'
     description = stop_help
-    auto_create_cluster_dir = Bool(False,
-        help="whether to create the cluster_dir if it doesn't exist")
+    auto_create_cluster_dir = Bool(False)
     default_config_file_name = default_config_file_name
     
     signal = Int(signal.SIGINT, config=True,
         help="signal to use for stopping processes.")
         
     aliases = Dict(stop_aliases)
-
+    
+    def init_clusterdir(self):
+        try:
+            super(IPClusterStop, self).init_clusterdir()
+        except ClusterDirError as e:
+            self.log.fatal("Failed ClusterDir init: %s"%e)
+            self.exit(1)
+    
     def start(self):
         """Start the app for the stop subcommand."""
         try:
@@ -425,17 +431,6 @@ class IPClusterStart(IPClusterEngines):
     # flags = Dict(flags)
     aliases = Dict(start_aliases)
 
-    def init_clusterdir(self):
-        try:
-            super(IPClusterStart, self).init_clusterdir()
-        except ClusterDirError:
-            raise ClusterDirError(
-                "Could not find a cluster directory. A cluster dir must "
-                "be created before running 'ipcluster start'.  Do "
-                "'ipcluster create -h' or 'ipcluster list -h' for more "
-                "information about creating and listing cluster dirs."
-            )
-    
     def init_launchers(self):
         self.controller_launcher = self.build_launcher(self.controller_launcher_class)
         self.engine_launcher = self.build_launcher(self.engine_launcher_class)

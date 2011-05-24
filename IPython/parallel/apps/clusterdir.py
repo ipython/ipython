@@ -72,26 +72,31 @@ class ClusterDir(Configurable):
     log_dir = Unicode(u'')
     pid_dir = Unicode(u'')
 
-    location = Unicode(u'', config=True,
-        help="""Set the cluster dir. This overrides the logic used by the
-        `profile` option.""",
-        )
-    profile = Unicode(u'default',
-        help="""The string name of the profile to be used. This determines the name
-        of the cluster dir as: cluster_<profile>. The default profile is named
-        'default'.  The cluster directory is resolve this way if the
-        `cluster_dir` option is not used.""", config=True
-        )
     auto_create = Bool(False,
         help="""Whether to automatically create the ClusterDirectory if it does
         not exist""")
     overwrite = Bool(False,
         help="""Whether to overwrite existing config files""")
+    location = Unicode(u'', config=True,
+        help="""Set the cluster dir. This overrides the logic used by the
+        `profile` option.""",
+        )
+    profile = Unicode(u'default', config=True,
+        help="""The string name of the profile to be used. This determines the name
+        of the cluster dir as: cluster_<profile>. The default profile is named
+        'default'.  The cluster directory is resolve this way if the
+        `cluster_dir` option is not used."""
+        )
 
     _location_isset = Bool(False) # flag for detecting multiply set location
     _new_dir = Bool(False) # flag for whether a new dir was created
 
     def __init__(self, **kwargs):
+        # make sure auto_create,overwrite are set *before* location
+        for name in ('auto_create', 'overwrite'):
+            v = kwargs.pop(name, None)
+            if v is not None:
+                setattr(self, name, v)
         super(ClusterDir, self).__init__(**kwargs)
         if not self.location:
             self._profile_changed('profile', 'default', self.profile)
@@ -101,7 +106,7 @@ class ClusterDir(Configurable):
             raise RuntimeError("Cannot set ClusterDir more than once.")
         self._location_isset = True
         if not os.path.isdir(new):
-            if self.auto_create:
+            if self.auto_create:# or self.config.ClusterDir.auto_create:
                 os.makedirs(new)
                 self._new_dir = True
             else:
@@ -388,7 +393,16 @@ class ClusterApplication(BaseIPythonApplication):
            ``True``, then create the new cluster dir in the IPython directory.
         4. If all fails, then raise :class:`ClusterDirError`.
         """
-        self.cluster_dir = ClusterDir(config=self.config, auto_create=self.auto_create_cluster_dir)
+        try:
+            self.cluster_dir = ClusterDir(auto_create=self.auto_create_cluster_dir, config=self.config)
+        except ClusterDirError as e:
+            self.log.fatal("Error initializing cluster dir: %s"%e)
+            self.log.fatal("A cluster dir must be created before running this command.")
+            self.log.fatal("Do 'ipcluster create -h' or 'ipcluster list -h' for more "
+            "information about creating and listing cluster dirs."
+            )
+            self.exit(1)
+            
         if self.cluster_dir._new_dir:
             self.log.info('Creating new cluster dir: %s' % \
                             self.cluster_dir.location)
@@ -398,6 +412,7 @@ class ClusterApplication(BaseIPythonApplication):
     
     def initialize(self, argv=None):
         """initialize the app"""
+        self.init_crash_handler()
         self.parse_command_line(argv)
         cl_config = self.config
         self.init_clusterdir()
@@ -421,8 +436,7 @@ class ClusterApplication(BaseIPythonApplication):
     def load_config_file(self, filename, path=None):
         """Load a .py based config file by filename and path."""
         # use config.application.Application.load_config
-        # instead of inflexible
-        # core.newapplication.BaseIPythonApplication.load_config
+        # instead of inflexible core.newapplication.BaseIPythonApplication.load_config
         return Application.load_config_file(self, filename, path=path)
     #
     # def load_default_config_file(self):
