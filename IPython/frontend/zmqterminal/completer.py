@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 import readline
-import time
-import sys
-stdout = sys.stdout
-
-class TimeoutError(Exception):
-    pass
+from Queue import Empty
 
 class ClientCompleter2p(object):
     """Client-side completion machinery.
@@ -27,22 +22,18 @@ class ClientCompleter2p(object):
                                 dict(text=text, line=line))
         # send completion request to kernel
         # Give the kernel up to 0.5s to respond
-        for i in range(5):
-            if self.km.xreq_channel.was_called():
-                msg_xreq =  self.km.xreq_channel.get_msg()
-                if msg["header"]['session'] == msg_xreq["parent_header"]['session'] and \
-                                msg_xreq["content"]["status"] == 'ok' and \
-                                msg_xreq["msg_type"] == "complete_reply" :
-                    return msg_xreq["content"]["matches"]
-                       
-            time.sleep(0.1)
-        raise TimeoutError
+        msg_xreq = self.km.xreq_channel.get_msg(timeout=0.5)
+        if msg["header"]['session'] == msg_xreq["parent_header"]['session'] and \
+                        msg_xreq["content"]["status"] == 'ok' and \
+                        msg_xreq["msg_type"] == "complete_reply" :
+            return msg_xreq["content"]["matches"]
+        return []
     
     def complete(self, text, state):
         if state == 0:
             try:
                 self.matches = self.complete_request(text)
-            except TimeoutError:
+            except Empty:
                 print('WARNING: Kernel timeout on tab completion.')
         
         try:
