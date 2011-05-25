@@ -16,6 +16,7 @@ from __future__ import print_function
 
 # Stdlib
 from Queue import Queue, Empty
+from threading import Event
 
 # Our own
 from IPython.utils import io
@@ -95,10 +96,31 @@ class BlockingXReqSocketChannel(XReqSocketChannel):
     
 
 class BlockingRepSocketChannel(RepSocketChannel):
-    
+    def __init__(self, context, session, address=None):
+        super(BlockingRepSocketChannel, self).__init__(context, session, address)
+        self._in_queue = Queue()
+        
     def call_handlers(self, msg):
         #io.rprint('[[Rep]]', msg) # dbg
-        pass
+        self._in_queue.put(msg)
+        
+    def get_msg(self, block=True, timeout=None):
+        "Gets a message if there is one that is ready."
+        return self._in_queue.get(block, timeout)
+        
+    def get_msgs(self):
+        """Get all messages that are currently ready."""
+        msgs = []
+        while True:
+            try:
+                msgs.append(self.get_msg(block=False))
+            except Empty:
+                break
+        return msgs
+    
+    def msg_ready(self):
+        "Is there a message that has been received?"
+        return not self._in_queue.empty()
 
 
 class BlockingHBSocketChannel(HBSocketChannel):

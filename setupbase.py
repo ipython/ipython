@@ -125,7 +125,8 @@ def find_packages():
     add_package(packages, 'frontend')
     add_package(packages, 'frontend.qt')
     add_package(packages, 'frontend.qt.console', tests=True)
-    add_package(packages, 'frontend.terminal', tests=True)    
+    add_package(packages, 'frontend.terminal', tests=True)
+    add_package(packages, 'frontend.zmqterminal')
     add_package(packages, 'lib', tests=True)
     add_package(packages, 'parallel', tests=True, scripts=True, 
                                     others=['apps','engine','client','controller'])
@@ -277,7 +278,8 @@ def find_scripts(entry_points=False):
             'iplogger = IPython.parallel.apps.iploggerapp:launch_new_instance',
             'ipcluster = IPython.parallel.apps.ipclusterapp:launch_new_instance',
             'iptest = IPython.testing.iptest:main',
-            'irunner = IPython.lib.irunner:main'
+            'irunner = IPython.lib.irunner:main',
+            'ipython-zmqterminal = IPython.frontend.zmqterminal.frontend:main'
         ]
         gui_scripts = [
             'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
@@ -293,6 +295,7 @@ def find_scripts(entry_points=False):
                    pjoin(parallel_scripts, 'iplogger'),
                    pjoin(main_scripts, 'ipython'),
                    pjoin(main_scripts, 'ipython-qtconsole'),
+                   pjoin(main_scripts, 'ipython-zmqterminal'),
                    pjoin(main_scripts, 'pycolor'),
                    pjoin(main_scripts, 'irunner'),
                    pjoin(main_scripts, 'iptest')
