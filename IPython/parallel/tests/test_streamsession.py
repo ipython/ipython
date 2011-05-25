@@ -48,11 +48,11 @@ class TestSession(SessionTestCase):
         self.assertTrue(s.unpack is ss.default_unpacker)
         self.assertEquals(s.username, os.environ.get('USER', 'username'))
         
-        s = ss.StreamSession(username=None)
+        s = ss.StreamSession()
         self.assertEquals(s.username, os.environ.get('USER', 'username'))
         
-        self.assertRaises(TypeError, ss.StreamSession, packer='hi')
-        self.assertRaises(TypeError, ss.StreamSession, unpacker='hi')
+        self.assertRaises(TypeError, ss.StreamSession, pack='hi')
+        self.assertRaises(TypeError, ss.StreamSession, unpack='hi')
         u = str(uuid.uuid4())
         s = ss.StreamSession(username='carrot', session=u)
         self.assertEquals(s.session, u)

@@ -79,8 +79,8 @@ The IPython controller provides a gateway between the IPython engines and
 clients. The controller needs to be started before the engines and can be
 configured using command line options or using a cluster directory. Cluster
 directories contain config, log and security files and are usually located in
-your ipython directory and named as "cluster_<profile>". See the --profile
-and --cluster-dir options for details.
+your ipython directory and named as "cluster_<profile>". See the `profile`
+and `cluster_dir` options for details.
 """
 
 
@@ -92,14 +92,16 @@ and --cluster-dir options for details.
 flags = {}
 flags.update(base_flags)
 flags.update({
-    'usethreads' : ( {'IPControllerApp' : {'usethreads' : True}},
+    'usethreads' : ( {'IPControllerApp' : {'use_threads' : True}},
                     'Use threads instead of processes for the schedulers'),
-    'sqlitedb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.sqlitedb.SQLiteDB'}},
+    'sqlitedb' : ({'HubFactory' : Config({'db_class' : 'IPython.parallel.controller.sqlitedb.SQLiteDB'})},
                     'use the SQLiteDB backend'),
-    'mongodb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.mongodb.MongoDB'}},
+    'mongodb' : ({'HubFactory' : Config({'db_class' : 'IPython.parallel.controller.mongodb.MongoDB'})},
                     'use the MongoDB backend'),
-    'dictdb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.dictdb.DictDB'}},
+    'dictdb' : ({'HubFactory' : Config({'db_class' : 'IPython.parallel.controller.dictdb.DictDB'})},
                     'use the in-memory DictDB backend'),
+    'reuse' : ({'IPControllerApp' : Config({'reuse_files' : True})},
+                    'reuse existing json connection files')
 })
 
 flags.update()
@@ -133,7 +135,7 @@ class IPControllerApp(ClusterApplication):
         help="import statements to be run at startup.  Necessary in some environments"
     )
 
-    usethreads = Bool(False, config=True,
+    use_threads = Bool(False, config=True,
         help='Use threads instead of processes for the schedulers',
         )
 
@@ -141,7 +143,7 @@ class IPControllerApp(ClusterApplication):
     children = List()
     mq_class = Unicode('zmq.devices.ProcessMonitoredQueue')
 
-    def _usethreads_changed(self, name, old, new):
+    def _use_threads_changed(self, name, old, new):
         self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if new else 'Process')
 
     aliases = Dict(dict(
@@ -152,7 +154,7 @@ class IPControllerApp(ClusterApplication):
         reuse_files = 'IPControllerApp.reuse_files',
         secure = 'IPControllerApp.secure',
         ssh = 'IPControllerApp.ssh_server',
-        usethreads = 'IPControllerApp.usethreads',
+        use_threads = 'IPControllerApp.use_threads',
         import_statements = 'IPControllerApp.import_statements',
         location = 'IPControllerApp.location',
 
@@ -271,7 +273,7 @@ class IPControllerApp(ClusterApplication):
         mq = import_item(str(self.mq_class))
         
         hub = self.factory
-        # maybe_inproc = 'inproc://monitor' if self.usethreads else self.monitor_url
+        # maybe_inproc = 'inproc://monitor' if self.use_threads else self.monitor_url
         # IOPub relay (in a Process)
         q = mq(zmq.PUB, zmq.SUB, zmq.PUB, 'N/A','iopub')
         q.bind_in(hub.client_info['iopub'])

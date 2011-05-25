@@ -328,8 +328,8 @@ class ClusterApplication(BaseIPythonApplication):
 
     The cluster directory is resolved as follows:
 
-    * If the ``--cluster-dir`` option is given, it is used.
-    * If ``--cluster-dir`` is not given, the application directory is 
+    * If the ``cluster_dir`` option is given, it is used.
+    * If ``cluster_dir`` is not given, the application directory is
       resolve using the profile name as ``cluster_<profile>``. The search 
       path for this directory is then i) cwd if it is found there
       and ii) in ipython_dir otherwise.

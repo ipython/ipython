@@ -141,7 +141,6 @@ class EngineFactory(RegistrationFactory):
             self.kernel.start()
             hb_addrs = [ disambiguate_url(addr, self.location) for addr in hb_addrs ]
             heart = Heart(*map(str, hb_addrs), heart_id=identity)
-            # ioloop.DelayedCallback(heart.start, 1000, self.loop).start()
             heart.start()
             
             
