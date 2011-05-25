@@ -25,7 +25,6 @@ from zmq.eventloop import ioloop
 from IPython.parallel.apps.clusterdir import (
     ClusterApplication,
     ClusterDir,
-    base_aliases,
     # ClusterDirConfigLoader
 )
 from IPython.zmq.log import EnginePUBHandler
@@ -37,7 +36,7 @@ from IPython.parallel.engine.streamkernel import Kernel
 from IPython.parallel.util import disambiguate_url
 
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Bool, Unicode, Dict, List, CStr
+from IPython.utils.traitlets import Bool, Unicode, Dict, List
 
 
 #-----------------------------------------------------------------------------
@@ -122,6 +121,9 @@ class IPEngineApp(ClusterApplication):
         )
 
     url_file_name = Unicode(u'ipcontroller-engine.json')
+    log_url = Unicode('', config=True,
+        help="""The URL for the iploggerapp instance, for forwarding
+        logging to a central location.""")
 
     aliases = Dict(dict(
         config = 'IPEngineApp.config_file',
@@ -147,6 +149,7 @@ class IPEngineApp(ClusterApplication):
         mpi = 'MPI.use',
 
         log_level = 'IPEngineApp.log_level',
+        log_url = 'IPEngineApp.log_url'
     ))
 
     # def find_key_file(self):
@@ -221,33 +224,17 @@ class IPEngineApp(ClusterApplication):
             self.log.error("Couldn't start the Engine", exc_info=True)
             self.exit(1)
         
-        # self.start_logging()
-
-        # Create the service hierarchy
-        # self.main_service = service.MultiService()
-        # self.engine_service.setServiceParent(self.main_service)
-        # self.tub_service = Tub()
-        # self.tub_service.setServiceParent(self.main_service)
-        # # This needs to be called before the connection is initiated
-        # self.main_service.startService()
-
-        # This initiates the connection to the controller and calls
-        # register_engine to tell the controller we are ready to do work
-        # self.engine_connector = EngineConnector(self.tub_service)
-
-        # self.log.info("Using furl file: %s" % self.master_config.Global.furl_file)
-
-        # reactor.callWhenRunning(self.call_connect)
-
-    # def start_logging(self):
-    #     super(IPEngineApp, self).start_logging()
-    #     if self.master_config.Global.log_url:
-    #         context = self.engine.context
-    #         lsock = context.socket(zmq.PUB)
-    #         lsock.connect(self.master_config.Global.log_url)
-    #         handler = EnginePUBHandler(self.engine, lsock)
-    #         handler.setLevel(self.log_level)
-    #         self.log.addHandler(handler)
+    def forward_logging(self):
+        if self.log_url:
+            self.log.info("Forwarding logging to %s"%self.log_url)
+            context = self.engine.context
+            lsock = context.socket(zmq.PUB)
+            lsock.connect(self.log_url)
+            self.log.removeHandler(self._log_handler)
+            handler = EnginePUBHandler(self.engine, lsock)
+            handler.setLevel(self.log_level)
+            self.log.addHandler(handler)
+            self._log_handler = handler
     #
     def init_mpi(self):
         global mpi
@@ -268,6 +255,7 @@ class IPEngineApp(ClusterApplication):
         super(IPEngineApp, self).initialize(argv)
         self.init_mpi()
         self.init_engine()
+        self.forward_logging()
     
     def start(self):
         self.engine.start()

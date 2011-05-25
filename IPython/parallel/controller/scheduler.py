@@ -141,7 +141,9 @@ class TaskScheduler(SessionFactory):
         self.scheme = globals()[new]
     
     # input arguments:
-    scheme = Instance(FunctionType, default=leastload) # function for determining the destination
+    scheme = Instance(FunctionType) # function for determining the destination
+    def _scheme_default(self):
+        return leastload
     client_stream = Instance(zmqstream.ZMQStream) # client-facing stream
     engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
     notifier_stream = Instance(zmqstream.ZMQStream) # hub-facing sub stream
@@ -634,7 +636,7 @@ class TaskScheduler(SessionFactory):
 
 
 def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname='ZMQ', 
-                            log_addr=None, loglevel=logging.DEBUG,
+                            log_url=None, loglevel=logging.DEBUG,
                             identity=b'task'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
@@ -658,10 +660,10 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname=
     nots.setsockopt(zmq.SUBSCRIBE, '')
     nots.connect(not_addr)
     
-    # scheme = globals().get(scheme, None)
-    # setup logging
-    if log_addr:
-        connect_logger(logname, ctx, log_addr, root="scheduler", loglevel=loglevel)
+    # setup logging. Note that these will not work in-process, because they clobber
+    # existing loggers.
+    if log_url:
+        connect_logger(logname, ctx, log_url, root="scheduler", loglevel=loglevel)
     else:
         local_logger(logname, loglevel)
     
