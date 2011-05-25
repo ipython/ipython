@@ -418,20 +418,25 @@ class ClusterApplication(BaseIPythonApplication):
         self.init_clusterdir()
         if self.config_file:
             self.load_config_file(self.config_file)
-        else:
-            self.load_config_file(self.default_config_file_name, path=self.cluster_dir.location)
+        elif self.default_config_file_name:
+            try:
+                self.load_config_file(self.default_config_file_name, 
+                                        path=self.cluster_dir.location)
+            except IOError:
+                self.log.warn("Warning: Default config file not found")
         # command-line should *override* config file, but command-line is necessary
         # to determine clusterdir, etc.
         self.update_config(cl_config)
-        self.reinit_logging()
-
         self.to_work_dir()
+        self.reinit_logging()
         
     def to_work_dir(self):
         wd = self.work_dir
         if unicode(wd) != os.getcwdu():
             os.chdir(wd)
             self.log.info("Changing to working dir: %s" % wd)
+        # This is the working dir by now.
+        sys.path.insert(0, '')
 
     def load_config_file(self, filename, path=None):
         """Load a .py based config file by filename and path."""
