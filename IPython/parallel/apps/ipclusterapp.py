@@ -178,7 +178,7 @@ class IPClusterCreate(ClusterApplication):
     description = create_help
     auto_create_cluster_dir = Bool(True,
         help="whether to create the cluster_dir if it doesn't exist")
-    default_config_file_name = default_config_file_name
+    config_file_name = Unicode(default_config_file_name)
     
     reset = Bool(False, config=True,
         help="Whether to reset config files as part of 'create'."
@@ -210,7 +210,7 @@ class IPClusterStop(ClusterApplication):
     name = u'ipcluster'
     description = stop_help
     auto_create_cluster_dir = Bool(False)
-    default_config_file_name = default_config_file_name
+    config_file_name = Unicode(default_config_file_name)
     
     signal = Int(signal.SIGINT, config=True,
         help="signal to use for stopping processes.")
@@ -277,7 +277,7 @@ class IPClusterEngines(ClusterApplication):
     name = u'ipcluster'
     description = engines_help
     usage = None
-    default_config_file_name = default_config_file_name
+    config_file_name = Unicode(default_config_file_name)
     default_log_level = logging.INFO
     auto_create_cluster_dir = Bool(False)
     classes = List()
@@ -409,8 +409,6 @@ class IPClusterStart(IPClusterEngines):
 
     name = u'ipcluster'
     description = start_help
-    usage = None
-    default_config_file_name = default_config_file_name
     default_log_level = logging.INFO
     auto_create_cluster_dir = Bool(True, config=True,
         help="whether to create the cluster_dir if it doesn't exist")
