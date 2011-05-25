@@ -46,8 +46,7 @@ from IPython.parallel.apps.clusterdir import (
 default_config_file_name = u'ipcluster_config.py'
 
 
-_description = """\
-Start an IPython cluster for parallel computing.\n\n
+_description = """Start an IPython cluster for parallel computing.
 
 An IPython cluster consists of 1 controller and 1 or more engines.
 This command automates the startup of these processes using a wide
@@ -78,7 +77,8 @@ NO_CLUSTER = 12
 #-----------------------------------------------------------------------------
 # Main application
 #-----------------------------------------------------------------------------
-start_help = """
+start_help = """Start an IPython cluster for parallel computing
+
 Start an ipython cluster by its profile name or cluster
 directory. Cluster directories contain configuration, log and
 security related files and are named using the convention
@@ -88,7 +88,8 @@ the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster start n=4 profile=<profile>`,
 otherwise use the 'cluster_dir' option.
 """
-stop_help = """
+stop_help = """Stop a running IPython cluster
+
 Stop a running ipython cluster by its profile name or cluster
 directory. Cluster directories are named using the convention
 'cluster_<profile>'. If your cluster directory is in 
@@ -96,7 +97,8 @@ the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster stop profile=<profile>`, otherwise
 use the 'cluster_dir' option.
 """
-engines_help = """
+engines_help = """Start engines connected to an existing IPython cluster
+
 Start one or more engines to connect to an existing Cluster
 by profile name or cluster directory.
 Cluster directories contain configuration, log and
@@ -107,7 +109,8 @@ the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster engines n=4 profile=<profile>`,
 otherwise use the 'cluster_dir' option.
 """
-create_help = """
+create_help = """Create an ipcluster profile by name
+
 Create an ipython cluster directory by its profile name or
 cluster directory path. Cluster directories contain
 configuration, log and security related files and are named
@@ -119,7 +122,9 @@ cluster directory by profile name,
 `ipcluster create profile=mycluster`, which will put the directory
 in `<ipython_dir>/cluster_mycluster`.
 """
-list_help = """List all available clusters, by cluster directory, that can
+list_help = """List available cluster profiles
+
+List all available clusters, by cluster directory, that can
 be found in the current working directly or in the ipython
 directory. Cluster directories are named using the convention
 'cluster_<profile>'.
