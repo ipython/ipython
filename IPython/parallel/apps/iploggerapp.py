@@ -20,7 +20,7 @@ import sys
 
 import zmq
 
-from IPython.utils.traitlets import Bool, Dict
+from IPython.utils.traitlets import Bool, Dict, Unicode
 
 from IPython.parallel.apps.clusterdir import (
     ClusterApplication,
@@ -58,7 +58,7 @@ class IPLoggerApp(ClusterApplication):
 
     name = u'iploggerz'
     description = _description
-    default_config_file_name = default_config_file_name
+    config_file_name = Unicode(default_config_file_name)
     auto_create_cluster_dir = Bool(False)
     
     classes = [LogWatcher, ClusterDir]
