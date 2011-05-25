@@ -167,8 +167,12 @@ class Kernel(Configurable):
         """ Start the kernel main loop.
         """
         while True:
-            time.sleep(self._poll_interval)
-            self.do_one_iteration()
+            try:
+                time.sleep(self._poll_interval)
+                self.do_one_iteration()
+            except KeyboardInterrupt:
+                # Ctrl-C shouldn't crash the kernel
+                continue
 
     def record_ports(self, xrep_port, pub_port, req_port, hb_port):
         """Record the ports that this kernel is using.
