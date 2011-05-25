@@ -131,3 +131,12 @@ class BaseIPythonApplication(Application):
             self.log.warn("Error loading config file: %s" %
                           self.config_file_name, exc_info=True)
 
+    def initialize(self, argv=None):
+        self.init_crash_handler()
+        self.parse_command_line(argv)
+        cl_config = self.config
+        self.load_config_file()
+        # enforce cl-opts override configfile opts:
+        self.update_config(cl_config)
+
+
