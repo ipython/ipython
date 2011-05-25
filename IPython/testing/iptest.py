@@ -425,6 +425,8 @@ def run_iptestall():
             print 'You may wish to rerun this one individually, with:'
             print ' '.join(failed_runner.call_args)
             print
+        # Ensure that our exit code indicates failure
+        sys.exit(1)
 
 
 def main():
