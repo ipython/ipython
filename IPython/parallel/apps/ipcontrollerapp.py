@@ -148,6 +148,7 @@ class IPControllerApp(ClusterApplication):
         config = 'IPControllerApp.config_file',
         # file = 'IPControllerApp.url_file',
         log_level = 'IPControllerApp.log_level',
+        log_url = 'IPControllerApp.log_url',
         reuse_files = 'IPControllerApp.reuse_files',
         secure = 'IPControllerApp.secure',
         ssh = 'IPControllerApp.ssh_server',
@@ -221,8 +222,6 @@ class IPControllerApp(ClusterApplication):
         assert int(ports) == c.HubFactory.regport, "regport mismatch"
     
     def init_hub(self):
-        # This is the working dir by now.
-        sys.path.insert(0, '')
         c = self.config
         
         self.do_import_statements()
@@ -269,7 +268,7 @@ class IPControllerApp(ClusterApplication):
     #
     def init_schedulers(self):
         children = self.children
-        mq = import_item(self.mq_class)
+        mq = import_item(str(self.mq_class))
         
         hub = self.factory
         # maybe_inproc = 'inproc://monitor' if self.usethreads else self.monitor_url
@@ -321,8 +320,8 @@ class IPControllerApp(ClusterApplication):
             self.log.info("task::using Python %s Task scheduler"%scheme)
             sargs = (hub.client_info['task'][1], hub.engine_info['task'],
                                 hub.monitor_url, hub.client_info['notification'])
-            kwargs = dict(logname=self.log.name, loglevel=self.log_level,
-                                                            config=dict(self.config))
+            kwargs = dict(logname='scheduler', loglevel=self.log_level,
+                            log_url = self.log_url, config=dict(self.config))
             q = Process(target=launch_scheduler, args=sargs, kwargs=kwargs)
             q.daemon=True
             children.append(q)
@@ -351,20 +350,23 @@ class IPControllerApp(ClusterApplication):
             except:
                 self.log.msg("Error running statement: %s" % s)
 
-    # def start_logging(self):
-    #     super(IPControllerApp, self).start_logging()
-    #     if self.config.Global.log_url:
-    #         context = self.factory.context
-    #         lsock = context.socket(zmq.PUB)
-    #         lsock.connect(self.config.Global.log_url)
-    #         handler = PUBHandler(lsock)
-    #         handler.root_topic = 'controller'
-    #         handler.setLevel(self.log_level)
-    #         self.log.addHandler(handler)
+    def forward_logging(self):
+        if self.log_url:
+            self.log.info("Forwarding logging to %s"%self.log_url)
+            context = zmq.Context.instance()
+            lsock = context.socket(zmq.PUB)
+            lsock.connect(self.log_url)
+            handler = PUBHandler(lsock)
+            self.log.removeHandler(self._log_handler)
+            handler.root_topic = 'controller'
+            handler.setLevel(self.log_level)
+            self.log.addHandler(handler)
+            self._log_handler = handler
     # #
     
     def initialize(self, argv=None):
         super(IPControllerApp, self).initialize(argv)
+        self.forward_logging()
         self.init_hub()
         self.init_schedulers()
     
