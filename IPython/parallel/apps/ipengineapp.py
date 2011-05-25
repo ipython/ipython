@@ -102,7 +102,7 @@ class IPEngineApp(ClusterApplication):
 
     app_name = Unicode(u'ipengine')
     description = Unicode(_description)
-    default_config_file_name = default_config_file_name
+    config_file_name = Unicode(default_config_file_name)
     classes = List([ClusterDir, StreamSession, EngineFactory, Kernel, MPI])
 
     auto_create_cluster_dir = Bool(False,

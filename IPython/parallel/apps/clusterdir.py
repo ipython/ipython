@@ -36,7 +36,7 @@ from IPython.utils.path import (
     get_ipython_dir,
     expand_path
 )
-from IPython.utils.traitlets import Unicode, Bool, Instance, Dict
+from IPython.utils.traitlets import Unicode, Bool, Instance, Dict, List
 
 #-----------------------------------------------------------------------------
 # Module errors
@@ -303,12 +303,12 @@ class ClusterDirCrashHandler(CrashHandler):
 base_aliases = {
     'profile' : "ClusterDir.profile",
     'cluster_dir' : 'ClusterDir.location',
-    'auto_create' : 'ClusterDirApplication.auto_create',
     'log_level' : 'ClusterApplication.log_level',
     'work_dir' : 'ClusterApplication.work_dir',
     'log_to_file' : 'ClusterApplication.log_to_file',
     'clean_logs' : 'ClusterApplication.clean_logs',
     'log_url' : 'ClusterApplication.log_url',
+    'config' : 'ClusterApplication.config_file',
 }
 
 base_flags = {
@@ -329,7 +329,7 @@ class ClusterApplication(BaseIPythonApplication):
     The cluster directory is resolved as follows:
 
     * If the ``cluster_dir`` option is given, it is used.
-    * If ``cluster_dir`` is not given, the application directory is
+    * If ``cluster_dir`` is not given, the application directory is 
       resolve using the profile name as ``cluster_<profile>``. The search 
       path for this directory is then i) cwd if it is found there
       and ii) in ipython_dir otherwise.
@@ -357,16 +357,27 @@ class ClusterApplication(BaseIPythonApplication):
     log_to_file = Bool(config=True,
         help="whether to log to a file")
 
-    clean_logs = Bool(False, shortname='--clean-logs', config=True,
+    clean_logs = Bool(False, config=True,
         help="whether to cleanup old logfiles before starting")
 
-    log_url = Unicode('', shortname='--log-url', config=True,
+    log_url = Unicode('', config=True,
         help="The ZMQ URL of the iplogger to aggregate logging.")
 
     config_file = Unicode(u'', config=True,
-        help="""Path to ipcontroller configuration file.  The default is to use
+        help="""Path to ip<appname> configuration file.  The default is to use
          <appname>_config.py, as found by cluster-dir."""
     )
+    def _config_file_paths_default(self):
+        # don't include profile dir
+        return [ os.getcwdu(), self.ipython_dir ]
+    
+    def _config_file_changed(self, name, old, new):
+        if os.pathsep in new:
+            path, new = new.rsplit(os.pathsep)
+            self.config_file_paths.insert(0, path)
+        self.config_file_name = new
+    
+    config_file_name = Unicode('')
     
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
@@ -409,6 +420,9 @@ class ClusterApplication(BaseIPythonApplication):
         else:
             self.log.info('Using existing cluster dir: %s' % \
                             self.cluster_dir.location)
+        
+        # insert after cwd:
+        self.config_file_paths.insert(1, self.cluster_dir.location)
     
     def initialize(self, argv=None):
         """initialize the app"""
@@ -416,14 +430,7 @@ class ClusterApplication(BaseIPythonApplication):
         self.parse_command_line(argv)
         cl_config = self.config
         self.init_clusterdir()
-        if self.config_file:
-            self.load_config_file(self.config_file)
-        elif self.default_config_file_name:
-            try:
-                self.load_config_file(self.default_config_file_name, 
-                                        path=self.cluster_dir.location)
-            except IOError:
-                self.log.warn("Warning: Default config file not found")
+        self.load_config_file()
         # command-line should *override* config file, but command-line is necessary
         # to determine clusterdir, etc.
         self.update_config(cl_config)
@@ -438,17 +445,6 @@ class ClusterApplication(BaseIPythonApplication):
         # This is the working dir by now.
         sys.path.insert(0, '')
 
-    def load_config_file(self, filename, path=None):
-        """Load a .py based config file by filename and path."""
-        # use config.application.Application.load_config
-        # instead of inflexible core.newapplication.BaseIPythonApplication.load_config
-        return Application.load_config_file(self, filename, path=path)
-    #
-    # def load_default_config_file(self):
-    #     """Load a .py based config file by filename and path."""
-    #     return BaseIPythonApplication.load_config_file(self)
-
-    # disable URL-logging
     def reinit_logging(self):
         # Remove old log files
         log_dir = self.cluster_dir.log_dir

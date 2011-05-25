@@ -110,8 +110,7 @@ class IPControllerApp(ClusterApplication):
 
     name = u'ipcontroller'
     description = _description
-    # command_line_loader = IPControllerAppConfigLoader
-    default_config_file_name = default_config_file_name
+    config_file_name = Unicode(default_config_file_name)
     classes = [ClusterDir, StreamSession, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
     
     auto_create_cluster_dir = Bool(True, config=True,
