@@ -195,7 +195,7 @@ simply start a controller and engines on a single host using the
 :command:`ipcluster` command. To start a controller and 4 engines on your
 localhost, just do::
 
-    $ ipcluster start -n 4
+    $ ipcluster start n=4
 
 More details about starting the IPython controller and engines can be found
 :ref:`here <parallel_process>`

@@ -19,7 +19,7 @@ To follow along with this tutorial, you will need to start the IPython
 controller and four IPython engines. The simplest way of doing this is to use
 the :command:`ipcluster` command::
 
-    $ ipcluster start -n 4
+    $ ipcluster start n=4
     
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <ip1par>` to using IPython for parallel computing.

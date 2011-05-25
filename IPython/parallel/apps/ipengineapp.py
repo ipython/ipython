@@ -46,7 +46,7 @@ from IPython.utils.traitlets import Bool, Unicode, Dict, List
 #: The default config file name for this application
 default_config_file_name = u'ipengine_config.py'
 
-_description = """Start an IPython engine for parallel computing.\n\n
+_description = """Start an IPython engine for parallel computing.
 
 IPython engines run in parallel and perform computations on behalf of a client
 and controller. A controller needs to be started before the engines. The
