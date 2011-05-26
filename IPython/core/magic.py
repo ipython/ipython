@@ -51,7 +51,7 @@ from IPython.core import page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
 from IPython.external.Itpl import itpl, printpl
-from IPython.testing import decorators as testdec
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split, abbrev_cwd
@@ -89,6 +89,9 @@ def needs_local_scope(func):
     """Decorator to mark magic functions which need to local scope to run."""
     func.needs_local_scope = True
     return func
+    
+# Used for exception handling in magic_edit
+class MacroToEdit(ValueError): pass
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -435,7 +438,7 @@ Currently the magic system has the following functions:\n"""
             self.shell.automagic = not self.shell.automagic
         print '\n' + Magic.auto_status[self.shell.automagic]
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_autocall(self, parameter_s = ''):
         """Make functions callable without having to type parentheses.
 
@@ -564,7 +567,7 @@ Currently the magic system has the following functions:\n"""
         self.shell._inspect('pinfo', parameter_s, detail_level=1,
                             namespaces=namespaces)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
@@ -725,7 +728,7 @@ Currently the magic system has the following functions:\n"""
         except:
             shell.showtraceback()
         
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
 
@@ -766,7 +769,7 @@ Currently the magic system has the following functions:\n"""
         out.sort()
         return out
         
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_who(self, parameter_s=''):
         """Print all interactive variables, with some minimal formatting.
 
@@ -827,7 +830,7 @@ Currently the magic system has the following functions:\n"""
                 print
         print
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_whos(self, parameter_s=''):
         """Like %who, but gives some extra information about each variable.
 
@@ -1265,7 +1268,7 @@ Currently the magic system has the following functions:\n"""
         """
         self.shell.debugger(force=True)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_prun(self, parameter_s ='',user_mode=1,
                    opts=None,arg_lst=None,prog_ns=None):
 
@@ -1438,7 +1441,7 @@ Currently the magic system has the following functions:\n"""
         else:
             return None
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_run(self, parameter_s ='',runner=None,
                   file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
@@ -1732,7 +1735,7 @@ Currently the magic system has the following functions:\n"""
                 
         return stats
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_timeit(self, parameter_s =''):
         """Time execution of a Python statement or expression
 
@@ -1869,7 +1872,7 @@ Currently the magic system has the following functions:\n"""
         if tc > tc_min:
             print "Compiler time: %.2f s" % tc
 
-    @testdec.skip_doctest
+    @skip_doctest
     @needs_local_scope
     def magic_time(self,parameter_s = ''):
         """Time execution of a Python statement or expression.
@@ -1963,7 +1966,7 @@ Currently the magic system has the following functions:\n"""
             print "Compiler : %.2f s" % tc
         return out
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_macro(self,parameter_s = ''):
         """Define a macro for future re-execution. It accepts ranges of history,
         filenames or string objects.
@@ -2020,7 +2023,6 @@ Currently the magic system has the following functions:\n"""
           'print macro_name'.
           
         """
-
         opts,args = self.parse_options(parameter_s,'r',mode='list')
         if not args:   # List existing macros
             return sorted(k for k,v in self.shell.user_ns.iteritems() if\
@@ -2093,6 +2095,144 @@ Currently the magic system has the following functions:\n"""
         pbserver = ServerProxy('http://paste.pocoo.org/xmlrpc/')
         id = pbserver.pastes.newPaste("python", code)
         return "http://paste.pocoo.org/show/" + id
+        
+    def magic_loadpy(self, arg_s):
+        """Load a .py python script into the GUI console.
+
+        This magic command can either take a local filename or a url::
+
+        %loadpy myscript.py
+        %loadpy http://www.example.com/myscript.py
+        """
+        if not arg_s.endswith('.py'):
+            raise ValueError('%%load only works with .py files: %s' % arg_s)
+        if arg_s.startswith('http'):
+            import urllib2
+            response = urllib2.urlopen(arg_s)
+            content = response.read()
+        else:
+            content = open(arg_s).read()
+        self.set_next_input(content)
+        
+    def _find_edit_target(self, args, opts, last_call):
+        """Utility method used by magic_edit to find what to edit."""
+        
+        def make_filename(arg):
+            "Make a filename from the given args"
+            try:
+                filename = get_py_filename(arg)
+            except IOError:
+                # If it ends with .py but doesn't already exist, assume we want
+                # a new file. 
+                if args.endswith('.py'):
+                    filename = arg
+                else:
+                    filename = None
+            return filename
+        
+        # Set a few locals from the options for convenience:
+        opts_prev = 'p' in opts
+        opts_raw = 'r' in opts
+
+        # custom exceptions
+        class DataIsObject(Exception): pass
+        
+        # Default line number value
+        lineno = opts.get('n',None)
+
+        if opts_prev:
+            args = '_%s' % last_call[0]
+            if not self.shell.user_ns.has_key(args):
+                args = last_call[1]
+            
+        # use last_call to remember the state of the previous call, but don't
+        # let it be clobbered by successive '-p' calls.
+        try:
+            last_call[0] = self.shell.displayhook.prompt_count
+            if not opts_prev:
+                last_call[1] = parameter_s
+        except:
+            pass
+
+        # by default this is done with temp files, except when the given
+        # arg is a filename
+        use_temp = True
+
+        data = ''
+        
+        # First, see if the arguments should be a filename.
+        filename = make_filename(args)
+        if filename:
+            use_temp = False
+        elif args:
+            # Mode where user specifies ranges of lines, like in %macro.
+            data = self.extract_input_lines(args, opts_raw)
+            if not data:
+                try:
+                    # Load the parameter given as a variable. If not a string,
+                    # process it as an object instead (below)
+
+                    #print '*** args',args,'type',type(args)  # dbg
+                    data = eval(args, self.shell.user_ns)
+                    if not isinstance(data, basestring):
+                        raise DataIsObject
+
+                except (NameError,SyntaxError):
+                    # given argument is not a variable, try as a filename
+                    filename = make_filename(args)
+                    if filename is None:
+                        warn("Argument given (%s) can't be found as a variable "
+                             "or as a filename." % args)
+                        return
+                    use_temp = False
+                
+                except DataIsObject:
+                    # macros have a special edit function
+                    if isinstance(data, Macro):
+                        raise MacroToEdit(data)
+                                    
+                    # For objects, try to edit the file where they are defined
+                    try:
+                        filename = inspect.getabsfile(data)
+                        if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
+                            # class created by %edit? Try to find source
+                            # by looking for method definitions instead, the
+                            # __module__ in those classes is FakeModule.
+                            attrs = [getattr(data, aname) for aname in dir(data)]
+                            for attr in attrs:
+                                if not inspect.ismethod(attr):
+                                    continue
+                                filename = inspect.getabsfile(attr)
+                                if filename and 'fakemodule' not in filename.lower():
+                                    # change the attribute to be the edit target instead
+                                    data = attr 
+                                    break
+                        
+                        datafile = 1
+                    except TypeError:
+                        filename = make_filename(args)
+                        datafile = 1
+                        warn('Could not find file where `%s` is defined.\n'
+                             'Opening a file named `%s`' % (args,filename))
+                    # Now, make sure we can actually read the source (if it was in
+                    # a temp file it's gone by now).
+                    if datafile:
+                        try:
+                            if lineno is None:
+                                lineno = inspect.getsourcelines(data)[1]
+                        except IOError:
+                            filename = make_filename(args)
+                            if filename is None:
+                                warn('The file `%s` where `%s` was defined cannot '
+                                     'be read.' % (filename,data))
+                                return
+                    use_temp = False
+
+        if use_temp:
+            filename = self.shell.mktempfile(data)
+            print 'IPython will make a temporary file named:',filename
+        
+        return filename, lineno, use_temp
 
     def _edit_macro(self,mname,macro):
         """open an editor with the macro data in a file"""
@@ -2108,8 +2248,8 @@ Currently the magic system has the following functions:\n"""
     def magic_ed(self,parameter_s=''):
         """Alias to %edit."""
         return self.magic_edit(parameter_s)
-
-    @testdec.skip_doctest
+    
+    @skip_doctest
     def magic_edit(self,parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
 
@@ -2251,122 +2391,13 @@ Currently the magic system has the following functions:\n"""
         starting example for further modifications.  That file also has
         general instructions on how to set a new hook for use once you've
         defined it."""
-        
-        # FIXME: This function has become a convoluted mess.  It needs a
-        # ground-up rewrite with clean, simple logic.
-
-        def make_filename(arg):
-            "Make a filename from the given args"
-            try:
-                filename = get_py_filename(arg)
-            except IOError:
-                if args.endswith('.py'):
-                    filename = arg
-                else:
-                    filename = None
-            return filename
-
-        # custom exceptions
-        class DataIsObject(Exception): pass
-
         opts,args = self.parse_options(parameter_s,'prxn:')
-        # Set a few locals from the options for convenience:
-        opts_prev = 'p' in opts
-        opts_raw = 'r' in opts
         
-        # Default line number value
-        lineno = opts.get('n',None)
-
-        if opts_prev:
-            args = '_%s' % last_call[0]
-            if not self.shell.user_ns.has_key(args):
-                args = last_call[1]
-            
-        # use last_call to remember the state of the previous call, but don't
-        # let it be clobbered by successive '-p' calls.
         try:
-            last_call[0] = self.shell.displayhook.prompt_count
-            if not opts_prev:
-                last_call[1] = parameter_s
-        except:
-            pass
-
-        # by default this is done with temp files, except when the given
-        # arg is a filename
-        use_temp = True
-
-        data = ''
-        if args.endswith('.py'):
-            filename = make_filename(args)
-            use_temp = False
-        elif args:
-            # Mode where user specifies ranges of lines, like in %macro.
-            data = self.extract_input_lines(args, opts_raw)
-            if not data:
-                try:
-                    # Load the parameter given as a variable. If not a string,
-                    # process it as an object instead (below)
-
-                    #print '*** args',args,'type',type(args)  # dbg
-                    data = eval(args, self.shell.user_ns)
-                    if not isinstance(data, basestring):
-                        raise DataIsObject
-
-                except (NameError,SyntaxError):
-                    # given argument is not a variable, try as a filename
-                    filename = make_filename(args)
-                    if filename is None:
-                        warn("Argument given (%s) can't be found as a variable "
-                             "or as a filename." % args)
-                        return
-                    use_temp = False
-                
-                except DataIsObject:
-                    # macros have a special edit function
-                    if isinstance(data, Macro):
-                        self._edit_macro(args,data)
-                        return
-                                    
-                    # For objects, try to edit the file where they are defined
-                    try:
-                        filename = inspect.getabsfile(data)
-                        if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
-                            # class created by %edit? Try to find source
-                            # by looking for method definitions instead, the
-                            # __module__ in those classes is FakeModule.
-                            attrs = [getattr(data, aname) for aname in dir(data)]
-                            for attr in attrs:
-                                if not inspect.ismethod(attr):
-                                    continue
-                                filename = inspect.getabsfile(attr)
-                                if filename and 'fakemodule' not in filename.lower():
-                                    # change the attribute to be the edit target instead
-                                    data = attr 
-                                    break
-                        
-                        datafile = 1
-                    except TypeError:
-                        filename = make_filename(args)
-                        datafile = 1
-                        warn('Could not find file where `%s` is defined.\n'
-                             'Opening a file named `%s`' % (args,filename))
-                    # Now, make sure we can actually read the source (if it was in
-                    # a temp file it's gone by now).
-                    if datafile:
-                        try:
-                            if lineno is None:
-                                lineno = inspect.getsourcelines(data)[1]
-                        except IOError:
-                            filename = make_filename(args)
-                            if filename is None:
-                                warn('The file `%s` where `%s` was defined cannot '
-                                     'be read.' % (filename,data))
-                                return
-                    use_temp = False
-
-        if use_temp:
-            filename = self.shell.mktempfile(data)
-            print 'IPython will make a temporary file named:',filename
+            filename, lineno, is_temp = self._find_edit_target(args, opts, last_call)
+        except MacroToEdit as e:
+            self._edit_macro(args, e.args[0])
+            return
 
         # do actual editing here
         print 'Editing...',
@@ -2374,7 +2405,7 @@ Currently the magic system has the following functions:\n"""
         try:
             # Quote filenames that may have spaces in them
             if ' ' in filename:
-                filename = "%s" % filename
+                filename = "'%s'" % filename
             self.shell.hooks.editor(filename,lineno)
         except TryNext:
             warn('Could not open editor')
@@ -2389,15 +2420,14 @@ Currently the magic system has the following functions:\n"""
             print
         else:
             print 'done. Executing edited code...'
-            if opts_raw:
+            if 'r' in opts:    # Untranslated IPython code
                 self.shell.run_cell(file_read(filename),
                                                     store_history=False)
             else:
                 self.shell.safe_execfile(filename,self.shell.user_ns,
                                          self.shell.user_ns)
-        
                                                      
-        if use_temp:
+        if is_temp:
             try:
                 return open(filename).read()
             except IOError,msg:
@@ -2506,7 +2536,7 @@ Defaulting color scheme to 'NoColor'"""
     #......................................................................
     # Functions to implement unix shell-type things
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_alias(self, parameter_s = ''):
         """Define an alias for a system command.
 
@@ -2668,7 +2698,7 @@ Defaulting color scheme to 'NoColor'"""
         finally:
             os.chdir(savedir)
     
-    @testdec.skip_doctest    
+    @skip_doctest    
     def magic_pwd(self, parameter_s = ''):
         """Return the current working directory path.
         
@@ -2681,7 +2711,7 @@ Defaulting color scheme to 'NoColor'"""
         """
         return os.getcwd()
     
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_cd(self, parameter_s=''):
         """Change the current working directory.
 
@@ -2886,7 +2916,7 @@ Defaulting color scheme to 'NoColor'"""
                 header = 'Directory history (kept in _dh)',
                 start=ini,stop=fin)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_sc(self, parameter_s=''):
         """Shell capture - execute a shell command and capture its output.
 
@@ -3310,7 +3340,7 @@ Defaulting color scheme to 'NoColor'"""
         """Reload an IPython extension by its module name."""
         self.extension_manager.reload_extension(module_str)
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_install_profiles(self, s):
         """Install the default IPython profiles into the .ipython dir.
 
@@ -3342,6 +3372,7 @@ Defaulting color scheme to 'NoColor'"""
                 shutil.copy(src, dst)
                 print "    %s" % f
 
+    @skip_doctest
     def magic_install_default_config(self, s):
         """Install IPython's default config file into the .ipython dir.
 
@@ -3368,14 +3399,14 @@ Defaulting color scheme to 'NoColor'"""
     # Pylab support: simple wrappers that activate pylab, load gui input
     # handling and modify slightly %run
 
-    @testdec.skip_doctest
+    @skip_doctest
     def _pylab_magic_run(self, parameter_s=''):
         Magic.magic_run(self, parameter_s,
                         runner=mpl_runner(self.shell.safe_execfile))
 
     _pylab_magic_run.__doc__ = magic_run.__doc__
 
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_pylab(self, s):
         """Load numpy and matplotlib to work interactively.
 
@@ -3419,7 +3450,7 @@ Defaulting color scheme to 'NoColor'"""
         See %xmode for changing exception reporting modes."""
         self.shell.showtraceback()
     
-    @testdec.skip_doctest
+    @skip_doctest
     def magic_precision(self, s=''):
         """Set floating point precision for pretty printing.
         

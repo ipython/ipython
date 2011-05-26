@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# coding: utf-8
 """A simple configuration system.
 
 Authors
@@ -20,7 +18,7 @@ Authors
 #-----------------------------------------------------------------------------
 
 import __builtin__
-import os
+import re
 import sys
 
 from IPython.external import argparse
@@ -306,8 +304,117 @@ class CommandLineConfigLoader(ConfigLoader):
     here.
     """
 
+kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.+')
+flag_pattern = re.compile(r'\-\-\w+(\-\w)*')
+
+class KeyValueConfigLoader(CommandLineConfigLoader):
+    """A config loader that loads key value pairs from the command line.
+
+    This allows command line options to be gives in the following form::
+    
+        ipython Global.profile="foo" InteractiveShell.autocall=False
+    """
+
+    def __init__(self, argv=None, aliases=None, flags=None):
+        """Create a key value pair config loader.
+
+        Parameters
+        ----------
+        argv : list
+            A list that has the form of sys.argv[1:] which has unicode
+            elements of the form u"key=value". If this is None (default),
+            then sys.argv[1:] will be used.
+        aliases : dict
+            A dict of aliases for configurable traits.
+            Keys are the short aliases, Values are the resolved trait.
+            Of the form: `{'alias' : 'Configurable.trait'}`
+        flags : dict
+            A dict of flags, keyed by str name. Vaues can be Config objects,
+            dicts, or "key=value" strings.  If Config or dict, when the flag
+            is triggered, The flag is loaded as `self.config.update(m)`.
+
+        Returns
+        -------
+        config : Config
+            The resulting Config object.
+
+        Examples
+        --------
+
+            >>> from IPython.config.loader import KeyValueConfigLoader
+            >>> cl = KeyValueConfigLoader()
+            >>> cl.load_config(["foo='bar'","A.name='brian'","B.number=0"])
+            {'A': {'name': 'brian'}, 'B': {'number': 0}, 'foo': 'bar'}
+        """
+        if argv is None:
+            argv = sys.argv[1:]
+        self.argv = argv
+        self.aliases = aliases or {}
+        self.flags = flags or {}
+
+    def load_config(self, argv=None, aliases=None, flags=None):
+        """Parse the configuration and generate the Config object.
+
+        Parameters
+        ----------
+        argv : list, optional
+            A list that has the form of sys.argv[1:] which has unicode
+            elements of the form u"key=value". If this is None (default),
+            then self.argv will be used.
+        aliases : dict
+            A dict of aliases for configurable traits.
+            Keys are the short aliases, Values are the resolved trait.
+            Of the form: `{'alias' : 'Configurable.trait'}`
+        flags : dict
+            A dict of flags, keyed by str name. Values can be Config objects
+            or dicts.  When the flag is triggered, The config is loaded as 
+            `self.config.update(cfg)`.
+        """
+        from IPython.config.configurable import Configurable
+
+        self.clear()
+        if argv is None:
+            argv = self.argv
+        if aliases is None:
+            aliases = self.aliases
+        if flags is None:
+            flags = self.flags
+
+        for item in argv:
+            if kv_pattern.match(item):
+                lhs,rhs = item.split('=',1)
+                # Substitute longnames for aliases.
+                if lhs in aliases:
+                    lhs = aliases[lhs]
+                exec_str = 'self.config.' + lhs + '=' + rhs
+                try:
+                    # Try to see if regular Python syntax will work. This
+                    # won't handle strings as the quote marks are removed
+                    # by the system shell.
+                    exec exec_str in locals(), globals()
+                except (NameError, SyntaxError):
+                    # This case happens if the rhs is a string but without
+                    # the quote marks.  We add the quote marks and see if
+                    # it succeeds. If it still fails, we let it raise.
+                    exec_str = 'self.config.' + lhs + '="' + rhs + '"'
+                    exec exec_str in locals(), globals()
+            elif flag_pattern.match(item):
+                # trim leading '--'
+                m = item[2:]
+                cfg,_ = flags.get(m, (None,None))
+                if cfg is None:
+                    raise ValueError("Unrecognized flag: %r"%item)
+                elif isinstance(cfg, (dict, Config)):
+                    # update self.config with Config:
+                    self.config.update(cfg)
+                else:
+                    raise ValueError("Invalid flag: %r"%flag)
+            else:
+                raise ValueError("Invalid argument: %r"%item)
+        return self.config
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
+    """A loader that uses the argparse module to load from the command line."""
 
     def __init__(self, argv=None, *parser_args, **parser_kw):
         """Create a config loader for use with argparse.
@@ -326,6 +433,11 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         parser_kw : dict
           A tuple of keyword arguments that will be passed to the
           constructor of :class:`argparse.ArgumentParser`.
+
+        Returns
+        -------
+        config : Config
+            The resulting Config object.
         """
         super(CommandLineConfigLoader, self).__init__()
         if argv == None:
@@ -337,8 +449,8 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         kwargs.update(parser_kw)
         self.parser_kw = kwargs
 
-    def load_config(self, args=None):
-        """Parse command line arguments and return as a Struct.
+    def load_config(self, argv=None):
+        """Parse command line arguments and return as a Config object.
 
         Parameters
         ----------
@@ -348,10 +460,10 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
           arguments from. If not given, the instance's self.argv attribute
           (given at construction time) is used."""
         self.clear()
-        if args is None:
-            args = self.argv
+        if argv is None:
+            argv = self.argv
         self._create_parser()
-        self._parse_args(args)
+        self._parse_args(argv)
         self._convert_to_config()
         return self.config
 

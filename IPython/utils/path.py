@@ -318,6 +318,8 @@ def get_ipython_dir():
             # not using XDG
             ipdir = home_ipdir
 
+    ipdir = os.path.normpath(os.path.expanduser(ipdir))
+
     return _cast_unicode(ipdir, fs_encoding)
 
 

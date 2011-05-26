@@ -16,6 +16,7 @@ machinery.  This should thus be thought of as scaffolding.
 from __future__ import print_function
 
 # Stdlib
+from base64 import encodestring
 import inspect
 import os
 
@@ -28,6 +29,7 @@ from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
+from IPython.core.magic import MacroToEdit
 from IPython.core.payloadpage import install_payload_page
 from IPython.utils import io
 from IPython.utils.path import get_py_filename
@@ -46,6 +48,12 @@ install_payload_page()
 #-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
+
+def _encode_png(data):
+    pngdata = data.get('image/png')
+    if pngdata is not None:
+        data['image/png'] = encodestring(pngdata)
+
 
 class ZMQDisplayHook(DisplayHook):
     """A displayhook subclass that publishes data using ZeroMQ."""
@@ -67,6 +75,8 @@ class ZMQDisplayHook(DisplayHook):
             self.msg['content']['execution_count'] = self.prompt_count
 
     def write_format_data(self, format_dict):
+        pngdata = format_dict.get('image/png')
+        _encode_png(format_dict)
         self.msg['content']['data'] = format_dict
 
     def finish_displayhook(self):
@@ -92,6 +102,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         self._validate_data(source, data, metadata)
         content = {}
         content['source'] = source
+        _encode_png(data)
         content['data'] = data
         content['metadata'] = metadata
         self.session.send(
@@ -389,130 +400,14 @@ class ZMQInteractiveShell(InteractiveShell):
         general instructions on how to set a new hook for use once you've
         defined it."""
         
-        # FIXME: This function has become a convoluted mess.  It needs a
-        # ground-up rewrite with clean, simple logic.
-
-        def make_filename(arg):
-            "Make a filename from the given args"
-            try:
-                filename = get_py_filename(arg)
-            except IOError:
-                if args.endswith('.py'):
-                    filename = arg
-                else:
-                    filename = None
-            return filename
-
-        # custom exceptions
-        class DataIsObject(Exception): pass
-
         opts,args = self.parse_options(parameter_s,'prn:')
-        # Set a few locals from the options for convenience:
-        opts_p = opts.has_key('p')
-        opts_r = opts.has_key('r')
         
-        # Default line number value
-        lineno = opts.get('n',None)
-        if lineno is not None:
-            try:
-                lineno = int(lineno)
-            except:
-                warn("The -n argument must be an integer.")
-                return
-
-        if opts_p:
-            args = '_%s' % last_call[0]
-            if not self.shell.user_ns.has_key(args):
-                args = last_call[1]
-            
-        # use last_call to remember the state of the previous call, but don't
-        # let it be clobbered by successive '-p' calls.
         try:
-            last_call[0] = self.shell.displayhook.prompt_count
-            if not opts_p:
-                last_call[1] = parameter_s
-        except:
-            pass
-
-        # by default this is done with temp files, except when the given
-        # arg is a filename
-        use_temp = True
-
-        data = ''
-        if args[0].isdigit():
-            # Mode where user specifies ranges of lines, like in %macro.
-            # This means that you can't edit files whose names begin with
-            # numbers this way. Tough.
-            ranges = args.split()
-            data = ''.join(self.extract_input_slices(ranges,opts_r))
-        elif args.endswith('.py'):
-            filename = make_filename(args)
-            use_temp = False
-        elif args:
-            try:
-                # Load the parameter given as a variable. If not a string,
-                # process it as an object instead (below)
-
-                #print '*** args',args,'type',type(args)  # dbg
-                data = eval(args, self.shell.user_ns)
-                if not isinstance(data, basestring):
-                    raise DataIsObject
-
-            except (NameError,SyntaxError):
-                # given argument is not a variable, try as a filename
-                filename = make_filename(args)
-                if filename is None:
-                    warn("Argument given (%s) can't be found as a variable "
-                         "or as a filename." % args)
-                    return
-                use_temp = False
-                
-            except DataIsObject:
-                # macros have a special edit function
-                if isinstance(data, Macro):
-                    self._edit_macro(args,data)
-                    return
-                                
-                # For objects, try to edit the file where they are defined
-                try:
-                    filename = inspect.getabsfile(data)
-                    if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
-                        # class created by %edit? Try to find source
-                        # by looking for method definitions instead, the
-                        # __module__ in those classes is FakeModule.
-                        attrs = [getattr(data, aname) for aname in dir(data)]
-                        for attr in attrs:
-                            if not inspect.ismethod(attr):
-                                continue
-                            filename = inspect.getabsfile(attr)
-                            if filename and 'fakemodule' not in filename.lower():
-                                # change the attribute to be the edit target instead
-                                data = attr 
-                                break
-                    
-                    datafile = 1
-                except TypeError:
-                    filename = make_filename(args)
-                    datafile = 1
-                    warn('Could not find file where `%s` is defined.\n'
-                         'Opening a file named `%s`' % (args,filename))
-                # Now, make sure we can actually read the source (if it was in
-                # a temp file it's gone by now).
-                if datafile:
-                    try:
-                        if lineno is None:
-                            lineno = inspect.getsourcelines(data)[1]
-                    except IOError:
-                        filename = make_filename(args)
-                        if filename is None:
-                            warn('The file `%s` where `%s` was defined cannot '
-                                 'be read.' % (filename,data))
-                            return
-                use_temp = False
-
-        if use_temp:
-            filename = self.shell.mktempfile(data)
-            print('IPython will make a temporary file named:', filename)
+            filename, lineno, _ = self._find_edit_target(args, opts, last_call)
+        except MacroToEdit as e:
+            # TODO: Implement macro editing over 2 processes.
+            print("Macro editing not yet implemented in 2-process model.")
+            return
 
         # Make sure we send to the client an absolute path, in case the working
         # directory of client and kernel don't match
@@ -575,26 +470,13 @@ class ZMQInteractiveShell(InteractiveShell):
         """Show a basic reference about the GUI console."""
         from IPython.core.usage import gui_reference
         page.page(gui_reference, auto_html=True)
-
-    def magic_loadpy(self, arg_s):
-        """Load a .py python script into the GUI console.
-
-        This magic command can either take a local filename or a url::
-
-        %loadpy myscript.py
-        %loadpy http://www.example.com/myscript.py
-        """
-        if not arg_s.endswith('.py'):
-            raise ValueError('%%load only works with .py files: %s' % arg_s)
-        if arg_s.startswith('http'):
-            import urllib2
-            response = urllib2.urlopen(arg_s)
-            content = response.read()
-        else:
-            content = open(arg_s).read()
+    
+    def set_next_input(self, text):
+        """Send the specified text to the frontend to be presented at the next
+        input cell."""
         payload = dict(
-            source='IPython.zmq.zmqshell.ZMQInteractiveShell.magic_loadpy', 
-            text=content
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input', 
+            text=text
         )
         self.payload_manager.write_payload(payload)
 

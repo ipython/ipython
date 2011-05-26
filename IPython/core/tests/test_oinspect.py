@@ -44,6 +44,10 @@ class Call(object):
 
     def method(self, x, z=2):
         """Some method's docstring"""
+        
+class OldStyle:
+    """An old-style class for testing."""
+    pass
 
 def f(x, y=2, *a, **kw):
     """A simple function."""
@@ -87,3 +91,41 @@ def test_calltip_function2():
 
 def test_calltip_builtin():
     check_calltip(sum, 'sum', None, sum.__doc__)
+    
+def test_info():
+    "Check that Inspector.info fills out various fields as expected."
+    i = inspector.info(Call, oname='Call')
+    nt.assert_equal(i['type_name'], 'type')
+    nt.assert_equal(i['base_class'], "<type 'type'>")
+    nt.assert_equal(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'>")
+    fname = __file__
+    if fname.endswith(".pyc"):
+        fname = fname[:-1]
+    nt.assert_equal(i['file'], fname)
+    nt.assert_equal(i['definition'], 'Call(self, *a, **kw)\n')
+    nt.assert_equal(i['docstring'], Call.__doc__)
+    nt.assert_equal(i['source'], None)
+    nt.assert_true(i['isclass'])
+    nt.assert_equal(i['init_definition'], "Call(self, x, y=1)\n")
+    nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
+    
+    i = inspector.info(Call, detail_level=1)
+    nt.assert_not_equal(i['source'], None)
+    nt.assert_equal(i['docstring'], None)
+    
+    c = Call(1)
+    c.__doc__ = "Modified instance docstring"
+    i = inspector.info(c)
+    nt.assert_equal(i['type_name'], 'Call')
+    nt.assert_equal(i['docstring'], "Modified instance docstring")
+    nt.assert_equal(i['class_docstring'], Call.__doc__)
+    nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
+    nt.assert_equal(i['call_docstring'], c.__call__.__doc__)
+    
+    # Test old-style classes, which for example may not have an __init__ method.
+    i = inspector.info(OldStyle)
+    nt.assert_equal(i['type_name'], 'classobj')
+    
+    i = inspector.info(OldStyle())
+    nt.assert_equal(i['type_name'], 'instance')
+    nt.assert_equal(i['docstring'], OldStyle.__doc__)

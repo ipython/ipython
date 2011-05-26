@@ -18,9 +18,8 @@ from types import ModuleType
 
 import zmq
 
-from IPython.testing import decorators as testdec
-from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, Instance, CFloat
-
+from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, Instance, CFloat, CInt
 from IPython.external.decorator import decorator
 
 from IPython.parallel import util
@@ -69,7 +68,7 @@ def spin_after(f, self, *args, **kwargs):
 # Classes
 #-----------------------------------------------------------------------------
 
-@testdec.skip_doctest
+@skip_doctest
 class View(HasTraits):
     """Base View class for more convenint apply(f,*args,**kwargs) syntax via attributes.
     
@@ -360,7 +359,7 @@ class View(HasTraits):
         block = self.block if block is None else block
         return parallel(self, dist=dist, block=block, **flags)
 
-@testdec.skip_doctest
+@skip_doctest
 class DirectView(View):
     """Direct Multiplexer View of one or more engines.
     
@@ -772,7 +771,7 @@ class DirectView(View):
             pmagic.active_view = self
 
 
-@testdec.skip_doctest
+@skip_doctest
 class LoadBalancedView(View):
     """An load-balancing View that only executes via the Task scheduler.
     
@@ -791,9 +790,10 @@ class LoadBalancedView(View):
     follow=Any()
     after=Any()
     timeout=CFloat()
+    retries = CInt(0)
     
     _task_scheme = Any()
-    _flag_names = List(['targets', 'block', 'track', 'follow', 'after', 'timeout'])
+    _flag_names = List(['targets', 'block', 'track', 'follow', 'after', 'timeout', 'retries'])
     
     def __init__(self, client=None, socket=None, **flags):
         super(LoadBalancedView, self).__init__(client=client, socket=socket, **flags)
@@ -851,7 +851,7 @@ class LoadBalancedView(View):
             whether to create a MessageTracker to allow the user to 
             safely edit after arrays and buffers during non-copying
             sends.
-        #
+
         after : Dependency or collection of msg_ids
             Only for load-balanced execution (targets=None)
             Specify a list of msg_ids as a time-based dependency.
@@ -869,6 +869,9 @@ class LoadBalancedView(View):
             Specify an amount of time (in seconds) for the scheduler to
             wait for dependencies to be met before failing with a
             DependencyTimeout.
+
+        retries : int
+            Number of times a task will be retried on failure.
         """
         
         super(LoadBalancedView, self).set_flags(**kwargs)
@@ -892,7 +895,7 @@ class LoadBalancedView(View):
     @save_ids
     def _really_apply(self, f, args=None, kwargs=None, block=None, track=None,
                                         after=None, follow=None, timeout=None,
-                                        targets=None):
+                                        targets=None, retries=None):
         """calls f(*args, **kwargs) on a remote engine, returning the result.
         
         This method temporarily sets all of `apply`'s flags for a single call.
@@ -933,10 +936,11 @@ class LoadBalancedView(View):
             raise RuntimeError(msg)
         
         if self._task_scheme == 'pure':
-            # pure zmq scheme doesn't support dependencies
-            msg = "Pure ZMQ scheduler doesn't support dependencies"
-            if (follow or after):
-                # hard fail on DAG dependencies
+            # pure zmq scheme doesn't support extra features
+            msg = "Pure ZMQ scheduler doesn't support the following flags:"
+            "follow, after, retries, targets, timeout"
+            if (follow or after or retries or targets or timeout):
+                # hard fail on Scheduler flags
                 raise RuntimeError(msg)
             if isinstance(f, dependent):
                 # soft warn on functional dependencies
@@ -948,10 +952,14 @@ class LoadBalancedView(View):
         block = self.block if block is None else block
         track = self.track if track is None else track
         after = self.after if after is None else after
+        retries = self.retries if retries is None else retries
         follow = self.follow if follow is None else follow
         timeout = self.timeout if timeout is None else timeout
         targets = self.targets if targets is None else targets
         
+        if not isinstance(retries, int):
+            raise TypeError('retries must be int, not %r'%type(retries))
+
         if targets is None:
             idents = []
         else:
@@ -959,7 +967,7 @@ class LoadBalancedView(View):
         
         after = self._render_dependency(after)
         follow = self._render_dependency(follow)
-        subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents)
+        subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents, retries=retries)
         
         msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
                                 subheader=subheader)

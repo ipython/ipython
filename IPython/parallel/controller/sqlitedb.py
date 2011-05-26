@@ -27,15 +27,19 @@ operators = {
  '$lt' : "<",
  '$gt' : ">",
  # null is handled weird with ==,!=
- '$eq' : "IS",
- '$ne' : "IS NOT",
+ '$eq' : "=",
+ '$ne' : "!=",
  '$lte': "<=",
  '$gte': ">=",
- '$in' : ('IS', ' OR '),
- '$nin': ('IS NOT', ' AND '),
+ '$in' : ('=', ' OR '),
+ '$nin': ('!=', ' AND '),
  # '$all': None,
  # '$mod': None,
  # '$exists' : None
+}
+null_operators = {
+'=' : "IS NULL",
+'!=' : "IS NOT NULL",
 }
 
 def _adapt_datetime(dt):
@@ -205,17 +209,27 @@ class SQLiteDB(BaseDB):
                         raise KeyError("Unsupported operator: %r"%test)
                     if isinstance(op, tuple):
                         op, join = op
-                    expr = "%s %s ?"%(name, op)
-                    if isinstance(value, (tuple,list)):
-                        expr = '( %s )'%( join.join([expr]*len(value)) )
-                        args.extend(value)
+                    
+                    if value is None and op in null_operators:
+                            expr = "%s %s"%null_operators[op]
                     else:
-                        args.append(value)
+                        expr = "%s %s ?"%(name, op)
+                        if isinstance(value, (tuple,list)):
+                            if op in null_operators and any([v is None for v in value]):
+                                # equality tests don't work with NULL
+                                raise ValueError("Cannot use %r test with NULL values on SQLite backend"%test)
+                            expr = '( %s )'%( join.join([expr]*len(value)) )
+                            args.extend(value)
+                        else:
+                            args.append(value)
                     expressions.append(expr)
             else:
                 # it's an equality check
-                expressions.append("%s IS ?"%name)
-                args.append(sub_check)
+                if sub_check is None:
+                    expressions.append("%s IS NULL")
+                else:
+                    expressions.append("%s = ?"%name)
+                    args.append(sub_check)
         
         expr = " AND ".join(expressions)
         return expr, args

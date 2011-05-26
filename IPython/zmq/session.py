@@ -123,7 +123,7 @@ class Session(object):
             socket.send(ident, zmq.SNDMORE)
         socket.send_json(msg)
         return msg
-    
+
     def recv(self, socket, mode=zmq.NOBLOCK):
         """recv a message on a socket.
         

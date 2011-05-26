@@ -60,7 +60,8 @@ def getfigs(*fig_nums):
             f = Gcf.figs.get(num)
             if f is None:
                 print('Warning: figure %s not available.' % num)
-            figs.append(f.canvas.figure)
+            else:
+                figs.append(f.canvas.figure)
         return figs
 
 

@@ -29,12 +29,12 @@
 
     The pretty library allows developers to add pretty printing rules for their
     own objects.  This process is straightforward.  All you have to do is to
-    add a `__pretty__` method to your object and call the methods on the
+    add a `_repr_pretty_` method to your object and call the methods on the
     pretty printer passed::
 
         class MyObject(object):
 
-            def __pretty__(self, p, cycle):
+            def _repr_pretty_(self, p, cycle):
                 ...
 
     Depending on the python version you want to support you have two
@@ -42,13 +42,13 @@
     compatibility one.
 
 
-    Here the example implementation of a `__pretty__` method for a list
+    Here the example implementation of a `_repr_pretty_` method for a list
     subclass for python 2.5 and higher (python 2.5 requires the with statement
     __future__ import)::
 
         class MyList(list):
 
-            def __pretty__(self, p, cycle):
+            def _repr_pretty_(self, p, cycle):
                 if cycle:
                     p.text('MyList(...)')
                 else:
@@ -75,7 +75,7 @@
 
         class MyList(list):
 
-            def __pretty__(self, p, cycle):
+            def _repr_pretty_(self, p, cycle):
                 if cycle:
                     p.text('MyList(...)')
                 else:
@@ -164,7 +164,7 @@ class PrettyPrinter(_PrettyPrinterBase):
     """
     Baseclass for the `RepresentationPrinter` prettyprinter that is used to
     generate pretty reprs of objects.  Contrary to the `RepresentationPrinter`
-    this printer knows nothing about the default pprinters or the `__pretty__`
+    this printer knows nothing about the default pprinters or the `_repr_pretty_`
     callback method.
     """
 
@@ -330,14 +330,14 @@ class RepresentationPrinter(PrettyPrinter):
         self.begin_group()
         try:
             obj_class = getattr(obj, '__class__', None) or type(obj)
-            if hasattr(obj_class, '__pretty__'):
-                return obj_class.__pretty__(obj, self, cycle)
+            # First try to find registered singleton printers for the type.
             try:
                 printer = self.singleton_pprinters[obj_id]
             except (TypeError, KeyError):
                 pass
             else:
                 return printer(obj, self, cycle)
+            # Next look for type_printers.
             for cls in _get_mro(obj_class):
                 if cls in self.type_pprinters:
                     return self.type_pprinters[cls](obj, self, cycle)
@@ -345,6 +345,9 @@ class RepresentationPrinter(PrettyPrinter):
                     printer = self._in_deferred_types(cls)
                     if printer is not None:
                         return printer(obj, self, cycle)
+            # Finally look for special method names.
+            if hasattr(obj_class, '_repr_pretty_'):
+                return obj_class._repr_pretty_(obj, self, cycle)
             return _default_pprint(obj, self, cycle)
         finally:
             self.end_group()
@@ -493,12 +496,17 @@ def _default_pprint(obj, p, cycle):
     p.end_group(1, '>')
 
 
-def _seq_pprinter_factory(start, end):
+def _seq_pprinter_factory(start, end, basetype):
     """
     Factory that returns a pprint function useful for sequences.  Used by
     the default pprint for tuples, dicts, lists, sets and frozensets.
     """
     def inner(obj, p, cycle):
+        typ = type(obj)
+        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
+            # If the subclass provides its own repr, use it instead.
+            return p.text(typ.__repr__(obj))
+
         if cycle:
             return p.text(start + '...' + end)
         step = len(start)
@@ -515,12 +523,17 @@ def _seq_pprinter_factory(start, end):
     return inner
 
 
-def _dict_pprinter_factory(start, end):
+def _dict_pprinter_factory(start, end, basetype=None):
     """
     Factory that returns a pprint function used by the default pprint of
     dicts and dict proxies.
     """
     def inner(obj, p, cycle):
+        typ = type(obj)
+        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
+            # If the subclass provides its own repr, use it instead.
+            return p.text(typ.__repr__(obj))
+
         if cycle:
             return p.text('{...}')
         p.begin_group(1, start)
@@ -632,12 +645,12 @@ _type_pprinters = {
     float:                      _repr_pprint,
     str:                        _repr_pprint,
     unicode:                    _repr_pprint,
-    tuple:                      _seq_pprinter_factory('(', ')'),
-    list:                       _seq_pprinter_factory('[', ']'),
-    dict:                       _dict_pprinter_factory('{', '}'),
+    tuple:                      _seq_pprinter_factory('(', ')', tuple),
+    list:                       _seq_pprinter_factory('[', ']', list),
+    dict:                       _dict_pprinter_factory('{', '}', dict),
     types.DictProxyType:        _dict_pprinter_factory('<dictproxy {', '}>'),
-    set:                        _seq_pprinter_factory('set([', '])'),
-    frozenset:                  _seq_pprinter_factory('frozenset([', '])'),
+    set:                        _seq_pprinter_factory('set([', '])', set),
+    frozenset:                  _seq_pprinter_factory('frozenset([', '])', frozenset),
     super:                      _super_pprint,
     _re_pattern_type:           _re_pattern_pprint,
     type:                       _type_pprint,

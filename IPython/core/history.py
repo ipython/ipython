@@ -23,7 +23,7 @@ import threading
 # Our own packages
 from IPython.config.configurable import Configurable
 
-from IPython.testing import decorators as testdec
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 from IPython.utils.traitlets import Bool, Dict, Instance, Int, List, Unicode
 from IPython.utils.warn import warn
@@ -548,7 +548,7 @@ def _format_lineno(session, line):
         return str(line)
     return "%s#%s" % (session, line)
 
-@testdec.skip_doctest
+@skip_doctest
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
     

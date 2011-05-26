@@ -212,3 +212,33 @@ class TestClient(ClusterTestCase):
         time.sleep(0.25)
         self.assertEquals(self.client.hub_history()[-1:],ar.msg_ids)
     
+    def test_resubmit(self):
+        def f():
+            import random
+            return random.random()
+        v = self.client.load_balanced_view()
+        ar = v.apply_async(f)
+        r1 = ar.get(1)
+        ahr = self.client.resubmit(ar.msg_ids)
+        r2 = ahr.get(1)
+        self.assertFalse(r1 == r2)
+
+    def test_resubmit_inflight(self):
+        """ensure ValueError on resubmit of inflight task"""
+        v = self.client.load_balanced_view()
+        ar = v.apply_async(time.sleep,1)
+        # give the message a chance to arrive
+        time.sleep(0.2)
+        self.assertRaisesRemote(ValueError, self.client.resubmit, ar.msg_ids)
+        ar.get(2)
+
+    def test_resubmit_badkey(self):
+        """ensure KeyError on resubmit of nonexistant task"""
+        self.assertRaisesRemote(KeyError, self.client.resubmit, ['invalid'])
+
+    def test_purge_results(self):
+        hist = self.client.hub_history()
+        self.client.purge_results(hist)
+        newhist = self.client.hub_history()
+        self.assertTrue(len(newhist) == 0)
+

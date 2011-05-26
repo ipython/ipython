@@ -23,6 +23,8 @@ import re
 import shutil
 import sys
 
+from subprocess import Popen, PIPE
+
 from IPython.config.loader import PyFileConfigLoader
 from IPython.config.configurable import Configurable
 from IPython.core.application import Application, BaseAppConfigLoader
@@ -534,4 +536,31 @@ class ApplicationWithClusterDir(Application):
                 return pid
         else:
             raise PIDFileError('pid file not found: %s' % pid_file)
-
+    
+    def check_pid(self, pid):
+        if os.name == 'nt':
+            try:
+                import ctypes
+                # returns 0 if no such process (of ours) exists
+                # positive int otherwise
+                p = ctypes.windll.kernel32.OpenProcess(1,0,pid)
+            except Exception:
+                self.log.warn(
+                    "Could not determine whether pid %i is running via `OpenProcess`. "
+                    " Making the likely assumption that it is."%pid
+                )
+                return True
+            return bool(p)
+        else:
+            try:
+                p = Popen(['ps','x'], stdout=PIPE, stderr=PIPE)
+                output,_ = p.communicate()
+            except OSError:
+                self.log.warn(
+                    "Could not determine whether pid %i is running via `ps x`. "
+                    " Making the likely assumption that it is."%pid
+                )
+                return True
+            pids = map(int, re.findall(r'^\W*\d+', output, re.MULTILINE))
+            return pid in pids
+    

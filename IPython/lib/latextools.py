@@ -25,7 +25,7 @@ from base64 import encodestring
 #-----------------------------------------------------------------------------
 
 
-def latex_to_png(s, encode=True):
+def latex_to_png(s, encode=False):
     """Render a LaTeX string to PNG using matplotlib.mathtext.
 
     Parameters
@@ -45,6 +45,7 @@ def latex_to_png(s, encode=True):
         bin_data = encodestring(bin_data)
     return bin_data
 
+
 _data_uri_template_png = """<img src="data:image/png;base64,%s" alt=%s />"""
 
 def latex_to_html(s, alt='image'):
@@ -59,4 +60,51 @@ def latex_to_html(s, alt='image'):
     """
     base64_data = latex_to_png(s, encode=True)
     return _data_uri_template_png  % (base64_data, alt)
+
+
+# From matplotlib, thanks to mdboom. Once this is in matplotlib releases, we
+# will remove.
+def math_to_image(s, filename_or_obj, prop=None, dpi=None, format=None):
+    """
+    Given a math expression, renders it in a closely-clipped bounding
+    box to an image file.
+
+    *s*
+       A math expression.  The math portion should be enclosed in
+       dollar signs.
+
+    *filename_or_obj*
+       A filepath or writable file-like object to write the image data
+       to.
+
+    *prop*
+       If provided, a FontProperties() object describing the size and
+       style of the text.
+
+    *dpi*
+       Override the output dpi, otherwise use the default associated
+       with the output format.
+
+    *format*
+       The output format, eg. 'svg', 'pdf', 'ps' or 'png'.  If not
+       provided, will be deduced from the filename.
+    """
+    from matplotlib import figure
+    # backend_agg supports all of the core output formats
+    from matplotlib.backends import backend_agg
+    from matplotlib.font_manager import FontProperties
+    from matplotlib.mathtext import MathTextParser
+
+    if prop is None:
+        prop = FontProperties()
+
+    parser = MathTextParser('path')
+    width, height, depth, _, _ = parser.parse(s, dpi=72, prop=prop)
+
+    fig = figure.Figure(figsize=(width / 72.0, height / 72.0))
+    fig.text(0, depth/height, s, fontproperties=prop)
+    backend_agg.FigureCanvasAgg(fig)
+    fig.savefig(filename_or_obj, dpi=dpi, format=format)
+
+    return depth
 

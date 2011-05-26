@@ -107,7 +107,7 @@ have['pymongo'] = test_for('pymongo')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 if os.name == 'nt':
-    have['zmq'] = test_for('zmq', '2.1dev')
+    have['zmq'] = test_for('zmq', '2.1.7')
 else:
     have['zmq'] = test_for('zmq', '2.1.4')
 have['qt'] = test_for('IPython.external.qt')
@@ -199,6 +199,7 @@ def make_exclude():
     
     if not have['pymongo']:
         exclusions.append(ipjoin('parallel', 'controller', 'mongodb'))
+        exclusions.append(ipjoin('parallel', 'tests', 'test_mongodb'))
 
     if not have['matplotlib']:
         exclusions.extend([ipjoin('lib', 'pylabtools'),
@@ -424,6 +425,8 @@ def run_iptestall():
             print 'You may wish to rerun this one individually, with:'
             print ' '.join(failed_runner.call_args)
             print
+        # Ensure that our exit code indicates failure
+        sys.exit(1)
 
 
 def main():

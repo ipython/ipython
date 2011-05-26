@@ -167,8 +167,12 @@ class Kernel(Configurable):
         """ Start the kernel main loop.
         """
         while True:
-            time.sleep(self._poll_interval)
-            self.do_one_iteration()
+            try:
+                time.sleep(self._poll_interval)
+                self.do_one_iteration()
+            except KeyboardInterrupt:
+                # Ctrl-C shouldn't crash the kernel
+                io.raw_print("KeyboardInterrupt caught in kernel")
 
     def record_ports(self, xrep_port, pub_port, req_port, hb_port):
         """Record the ports that this kernel is using.
@@ -236,7 +240,6 @@ class Kernel(Configurable):
                 shell.run_code(code)
             else:
                 # FIXME: the shell calls the exception handler itself.
-                shell._reply_content = None
                 shell.run_cell(code)
         except:
             status = u'error'
@@ -261,6 +264,8 @@ class Kernel(Configurable):
         # runlines.  We'll need to clean up this logic later.
         if shell._reply_content is not None:
             reply_content.update(shell._reply_content)
+            # reset after use
+            shell._reply_content = None
 
         # At this point, we can tell whether the main code execution succeeded
         # or not.  If it did, we proceed to evaluate user_variables/expressions

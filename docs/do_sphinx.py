@@ -18,9 +18,9 @@ if sys.platform != 'win32':
     topdir = os.getcwd()
     os.chdir('build/latex')
 
-    # Change chapter style to section style: allows chapters to start on 
+    # Change chapter style to section style: allows chapters to start on
     # the current page.  Works much better for the short chapters we have.
-    # This must go in the class file rather than the preamble, so we modify 
+    # This must go in the class file rather than the preamble, so we modify
     # manual.cls at runtime.
     chapter_cmds=r'''
 % Local changes.
@@ -47,9 +47,13 @@ if sys.platform != 'win32':
     \vspace*{10\p@}
 }
 '''
+    # manual.cls in Sphinx <= 0.6.7 became sphinxmanual.cls for 1.x
+    manualcls = 'sphinxmanual.cls'
+    if not os.path.exists(manualcls):
+        manualcls = 'manual.cls'
 
     unmodified=True
-    for line in fileinput.FileInput('manual.cls',inplace=1):
+    for line in fileinput.FileInput(manualcls, inplace=True):
         if 'Support for module synopsis' in line and unmodified:
             line=chapter_cmds+line
         elif 'makechapterhead' in line:
