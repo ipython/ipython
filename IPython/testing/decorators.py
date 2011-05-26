@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Decorators for labeling test objects.
 
 Decorators that merely return a modified version of the original function
@@ -49,6 +50,7 @@ Authors
 # Stdlib imports
 import inspect
 import sys
+import tempfile
 import unittest
 
 # Third-party imports
@@ -318,3 +320,16 @@ skip_known_failure = knownfailureif(True,'This test is known to fail')
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
 null_deco = lambda f: f
+
+# Some tests only run where we can use unicode paths. Note that we can't just
+# check os.path.supports_unicode_filenames, which is always False on Linux.
+try:
+    f = tempfile.NamedTemporaryFile(prefix=u"tmp€")
+except UnicodeEncodeError:
+    unicode_paths = False
+else:
+    unicode_paths = True
+    f.close()
+
+onlyif_unicode_paths = onlyif(unicode_paths, ("This test is only applicable "
+                                    "where we can use unicode in filenames."))
