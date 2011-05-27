@@ -47,6 +47,7 @@ from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile
 
 from . import decorators as dec
+from . import skipdoctest
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -70,7 +71,7 @@ if has_nose:
 
 # The docstring for full_path doctests differently on win32 (different path
 # separator) so just skip the doctest there.  The example remains informative.
-doctest_deco = dec.skip_doctest if sys.platform == 'win32' else dec.null_deco
+doctest_deco = skipdoctest.skip_doctest if sys.platform == 'win32' else dec.null_deco
 
 @doctest_deco
 def full_path(startPath,files):
