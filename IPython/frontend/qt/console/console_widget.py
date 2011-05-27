@@ -598,7 +598,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """Change the font size by the specified amount (in points).
         """
         font = self.font
-        font.setPointSize(font.pointSize() + delta)
+        size = max(font.pointSize() + delta, 1) # minimum 1 point
+        font.setPointSize(size)
         self._set_font(font)
 
     def select_all(self):
