@@ -9,8 +9,12 @@ In addition to normal readline stuff, this module provides have_readline
 boolean and _outputfile variable used in IPython.utils.
 """
 
+import re
 import sys
+import time
 import warnings
+
+from subprocess import Popen, PIPE
 
 try:
     from readline import *
@@ -44,24 +48,29 @@ if sys.platform == 'win32' and have_readline:
         have_readline = False
 
 # Test to see if libedit is being used instead of GNU readline.
-# Thanks to Boyd Waters for this patch.
+# Thanks to Boyd Waters for the original patch.
 uses_libedit = False
 if sys.platform == 'darwin' and have_readline:
-    import commands
-    # Boyd's patch had a 'while True' here, I'm always a little worried about
-    # infinite loops with such code, so for now I'm taking a more conservative
-    # approach. See https://bugs.launchpad.net/ipython/+bug/411599.
-    for i in range(10):
-        try:
-            (status, result) = commands.getstatusoutput( "otool -L %s | grep libedit" % _rl.__file__ )
-            break
-        except IOError, (errno, strerror):
-            if errno == 4:
-                continue
-            else:
-                break
+    # Previously this used commands.getstatusoutput, which uses os.popen.
+    # Switching to subprocess.Popen, and exponential falloff for EINTR
+    # seems to make this better behaved in environments such as PyQt and gdb
+    dt = 1e-3
+    while dt < 1:
+        p = Popen(['otool', '-L', _rl.__file__], stdout=PIPE, stderr=PIPE)
+        otool,err = p.communicate()
 
-    if status == 0 and len(result) > 0:
+        if p.returncode == 4:
+            # EINTR
+            time.sleep(dt)
+            dt *= 2
+            continue
+        elif p.returncode:
+            warnings.warn("libedit detection failed: %s"%err)
+            break
+        else:
+            break
+
+    if p.returncode == 0 and re.search(r'/libedit[\.\d+]*\.dylib\s', otool):
         # we are bound to libedit - new in Leopard
         _rl.parse_and_bind("bind ^I rl_complete")
         warnings.warn("Leopard libedit detected - readline will not be well behaved "
