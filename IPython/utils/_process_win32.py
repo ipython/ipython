@@ -96,6 +96,9 @@ def _system_body(p):
         line = line.decode(enc, 'replace')
         print(line, file=sys.stderr)
 
+    # Wait to finish for returncode
+    return p.wait()
+
 
 def system(cmd):
     """Win32 version of os.system() that works with network shares.
@@ -116,7 +119,7 @@ def system(cmd):
     with AvoidUNCPath() as path:
         if path is not None:
             cmd = '"pushd %s &&"%s' % (path, cmd)
-        process_handler(cmd, _system_body)
+        return process_handler(cmd, _system_body)
 
 
 def getoutput(cmd):

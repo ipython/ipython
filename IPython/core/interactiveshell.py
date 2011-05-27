@@ -1890,8 +1890,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # if they really want a background process.
             raise OSError("Background processes not supported.")
         
-        # don't return the result, always return None
-        system(self.var_expand(cmd, depth=2))
+        # we explicitly do NOT return the subprocess status code, because
+        # a non-None value would trigger :func:`sys.displayhook` calls.
+        # Instead, we store the exit_code in user_ns.
+        self.user_ns['_exit_code'] = system(self.var_expand(cmd, depth=2))
     
     def system_raw(self, cmd):
         """Call the given cmd in a subprocess using os.system
@@ -1901,8 +1903,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         cmd : str
           Command to execute.
         """
-        # don't return the result, always return None
-        os.system(self.var_expand(cmd, depth=2))
+        # We explicitly do NOT return the subprocess status code, because
+        # a non-None value would trigger :func:`sys.displayhook` calls.
+        # Instead, we store the exit_code in user_ns.
+        self.user_ns['_exit_code'] = os.system(self.var_expand(cmd, depth=2))
     
     # use piped system by default, because it is better behaved
     system = system_piped
