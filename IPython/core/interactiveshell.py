@@ -1872,22 +1872,44 @@ class InteractiveShell(SingletonConfigurable, Magic):
     # Things related to the running of system commands
     #-------------------------------------------------------------------------
 
-    def system(self, cmd):
-        """Call the given cmd in a subprocess.
+    def system_piped(self, cmd):
+        """Call the given cmd in a subprocess, piping stdout/err
 
         Parameters
         ----------
         cmd : str
-          Command to execute (can not end in '&', as bacground processes are
-          not supported.
+          Command to execute (can not end in '&', as background processes are
+          not supported.  Should not be a command that expects input
+          other than simple text.
         """
-        # We do not support backgrounding processes because we either use
-        # pexpect or pipes to read from.  Users can always just call
-        # os.system() if they really want a background process.
-        if cmd.endswith('&'):
+        if cmd.rstrip().endswith('&'):
+            # this is *far* from a rigorous test
+            # We do not support backgrounding processes because we either use
+            # pexpect or pipes to read from.  Users can always just call
+            # os.system() or use ip.system=ip.system_raw
+            # if they really want a background process.
             raise OSError("Background processes not supported.")
-
-        return system(self.var_expand(cmd, depth=2))
+        
+        # we explicitly do NOT return the subprocess status code, because
+        # a non-None value would trigger :func:`sys.displayhook` calls.
+        # Instead, we store the exit_code in user_ns.
+        self.user_ns['_exit_code'] = system(self.var_expand(cmd, depth=2))
+    
+    def system_raw(self, cmd):
+        """Call the given cmd in a subprocess using os.system
+        
+        Parameters
+        ----------
+        cmd : str
+          Command to execute.
+        """
+        # We explicitly do NOT return the subprocess status code, because
+        # a non-None value would trigger :func:`sys.displayhook` calls.
+        # Instead, we store the exit_code in user_ns.
+        self.user_ns['_exit_code'] = os.system(self.var_expand(cmd, depth=2))
+    
+    # use piped system by default, because it is better behaved
+    system = system_piped
 
     def getoutput(self, cmd, split=True):
         """Get output (possibly including stderr) from a subprocess.
@@ -1905,7 +1927,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
           manipulation of line-based output.  You can use '?' on them for
           details.
           """
-        if cmd.endswith('&'):
+        if cmd.rstrip().endswith('&'):
+            # this is *far* from a rigorous test
             raise OSError("Background processes not supported.")
         out = getoutput(self.var_expand(cmd, depth=2))
         if split:
@@ -2172,7 +2195,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
             prefilter_failed = False
             if len(cell.splitlines()) == 1:
                 try:
-                    cell = self.prefilter_manager.prefilter_line(cell)
+                    # use prefilter_lines to handle trailing newlines
+                    # restore trailing newline for ast.parse
+                    cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
                 except AliasError as e:
                     error(e)
                     prefilter_failed=True

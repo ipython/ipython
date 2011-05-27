@@ -86,6 +86,12 @@ class TerminalInteractiveShell(InteractiveShell):
             config=config, ipython_dir=ipython_dir, user_ns=user_ns,
             user_global_ns=user_global_ns, custom_exceptions=custom_exceptions
         )
+        # use os.system instead of utils.process.system by default, except on Windows
+        if os.name == 'nt':
+            self.system = self.system_piped
+        else:
+            self.system = self.system_raw
+        
         self.init_term_title()
         self.init_usage(usage)
         self.init_banner(banner1, banner2, display_banner)

@@ -130,9 +130,7 @@ class ProcessHandler(object):
 
         Returns
         -------
-        None : we explicitly do NOT return the subprocess status code, as this
-        utility is meant to be used extensively in IPython, where any return
-        value would trigger :func:`sys.displayhook` calls.
+        int : child's exitstatus
         """
         pcmd = self._make_cmd(cmd)
         # Patterns to match on the output, for pexpect.  We read input and
@@ -181,6 +179,7 @@ class ProcessHandler(object):
             finally:
                 # Ensure the subprocess really is terminated
                 child.terminate(force=True)
+        return child.exitstatus
 
     def _make_cmd(self, cmd):
         return '%s -c "%s"' % (self.sh, cmd)
