@@ -1178,11 +1178,12 @@ Currently the magic system has the following functions:\n"""
                 log_write = logger.log_write
                 output_hist = self.shell.history_manager.output_hist
                 for n in range(1,len(input_hist)-1):
-                    log_write(input_hist[n].rstrip())
+                    log_write(input_hist[n].rstrip() + '\n')
                     if n in output_hist:
                         log_write(repr(output_hist[n]),'output')
             else:
-                logger.log_write(''.join(input_hist[1:]))
+                logger.log_write('\n'.join(input_hist[1:]))
+                logger.log_write('\n')
             if timestamp:
                 # re-enable timestamping
                 logger.timestamp = True
