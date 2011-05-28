@@ -22,10 +22,9 @@ import sys
 import zmq
 from zmq.eventloop import ioloop
 
+from IPython.core.newapplication import ProfileDir
 from IPython.parallel.apps.clusterdir import (
-    ClusterApplication,
-    ClusterDir,
-    # ClusterDirConfigLoader
+    BaseParallelApplication,
 )
 from IPython.zmq.log import EnginePUBHandler
 
@@ -53,7 +52,7 @@ and controller. A controller needs to be started before the engines. The
 engine can be configured using command line options or using a cluster
 directory. Cluster directories contain config, log and security files and are
 usually located in your ipython directory and named as "cluster_<profile>".
-See the `profile` and `cluster_dir` options for details.
+See the `profile` and `profile_dir` options for details.
 """
 
 
@@ -98,16 +97,13 @@ class MPI(Configurable):
 #-----------------------------------------------------------------------------
 
 
-class IPEngineApp(ClusterApplication):
+class IPEngineApp(BaseParallelApplication):
 
     app_name = Unicode(u'ipengine')
     description = Unicode(_description)
     config_file_name = Unicode(default_config_file_name)
-    classes = List([ClusterDir, StreamSession, EngineFactory, Kernel, MPI])
+    classes = List([ProfileDir, StreamSession, EngineFactory, Kernel, MPI])
 
-    auto_create_cluster_dir = Bool(False,
-        help="whether to create the cluster_dir if it doesn't exist")
-    
     startup_script = Unicode(u'', config=True,
         help='specify a script to be run at startup')
     startup_command = Unicode('', config=True,
@@ -117,7 +113,7 @@ class IPEngineApp(ClusterApplication):
         help="""The full location of the file containing the connection information for
         the controller. If this is not given, the file must be in the
         security directory of the cluster directory.  This location is
-        resolved using the `profile` or `cluster_dir` options.""",
+        resolved using the `profile` or `profile_dir` options.""",
         )
 
     url_file_name = Unicode(u'ipcontroller-engine.json')
@@ -126,7 +122,6 @@ class IPEngineApp(ClusterApplication):
         logging to a central location.""")
 
     aliases = Dict(dict(
-        config = 'IPEngineApp.config_file',
         file = 'IPEngineApp.url_file',
         c = 'IPEngineApp.startup_command',
         s = 'IPEngineApp.startup_script',
@@ -143,8 +138,8 @@ class IPEngineApp(ClusterApplication):
 
         timeout = 'EngineFactory.timeout',
 
-        profile = "ClusterDir.profile",
-        cluster_dir = 'ClusterDir.location',
+        profile = "IPEngineApp.profile",
+        profile_dir = 'ProfileDir.location',
 
         mpi = 'MPI.use',
 
@@ -162,7 +157,7 @@ class IPEngineApp(ClusterApplication):
     #     # Find the actual controller key file
     #     if not config.Global.key_file:
     #         try_this = os.path.join(
-    #             config.Global.cluster_dir, 
+    #             config.Global.profile_dir, 
     #             config.Global.security_dir,
     #             config.Global.key_file_name
     #         )
@@ -178,7 +173,7 @@ class IPEngineApp(ClusterApplication):
         # Find the actual controller key file
         if not self.url_file:
             self.url_file = os.path.join(
-                self.cluster_dir.security_dir,
+                self.profile_dir.security_dir,
                 self.url_file_name
             )
     def init_engine(self):

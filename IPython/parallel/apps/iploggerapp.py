@@ -20,11 +20,11 @@ import sys
 
 import zmq
 
+from IPython.core.newapplication import ProfileDir
 from IPython.utils.traitlets import Bool, Dict, Unicode
 
 from IPython.parallel.apps.clusterdir import (
-    ClusterApplication,
-    ClusterDir,
+    BaseParallelApplication,
     base_aliases
 )
 from IPython.parallel.apps.logwatcher import LogWatcher
@@ -43,7 +43,7 @@ by registering a `zmq.log.handlers.PUBHandler` with the `logging` module. The
 logger can be configured using command line options or using a cluster
 directory. Cluster directories contain config, log and security files and are
 usually located in your ipython directory and named as "cluster_<profile>".
-See the `profile` and `cluster_dir` options for details.
+See the `profile` and `profile_dir` options for details.
 """
 
 
@@ -54,14 +54,13 @@ aliases = {}
 aliases.update(base_aliases)
 aliases.update(dict(url='LogWatcher.url', topics='LogWatcher.topics'))
 
-class IPLoggerApp(ClusterApplication):
+class IPLoggerApp(BaseParallelApplication):
 
     name = u'iploggerz'
     description = _description
     config_file_name = Unicode(default_config_file_name)
-    auto_create_cluster_dir = Bool(False)
     
-    classes = [LogWatcher, ClusterDir]
+    classes = [LogWatcher, ProfileDir]
     aliases = Dict(aliases)
 
     def initialize(self, argv=None):

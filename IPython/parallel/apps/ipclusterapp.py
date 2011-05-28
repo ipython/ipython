@@ -27,12 +27,12 @@ from zmq.eventloop import ioloop
 
 from IPython.config.application import Application, boolean_flag
 from IPython.config.loader import Config
-from IPython.core.newapplication import BaseIPythonApplication
+from IPython.core.newapplication import BaseIPythonApplication, ProfileDir
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Int, Unicode, Bool, CFloat, Dict, List
 
 from IPython.parallel.apps.clusterdir import (
-    ClusterApplication, ClusterDirError, ClusterDir,
+    BaseParallelApplication,
     PIDFileError,
     base_flags, base_aliases
 )
@@ -86,7 +86,7 @@ security related files and are named using the convention
 subcommand of 'ipcluster'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster start n=4 profile=<profile>`,
-otherwise use the 'cluster_dir' option.
+otherwise use the 'profile_dir' option.
 """
 stop_help = """Stop a running IPython cluster
 
@@ -95,7 +95,7 @@ directory. Cluster directories are named using the convention
 'cluster_<profile>'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster stop profile=<profile>`, otherwise
-use the 'cluster_dir' option.
+use the 'profile_dir' option.
 """
 engines_help = """Start engines connected to an existing IPython cluster
 
@@ -107,7 +107,7 @@ security related files and are named using the convention
 subcommand of 'ipcluster'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster engines n=4 profile=<profile>`,
-otherwise use the 'cluster_dir' option.
+otherwise use the 'profile_dir' option.
 """
 create_help = """Create an ipcluster profile by name
 
@@ -142,87 +142,69 @@ class IPClusterList(BaseIPythonApplication):
     def _log_level_default(self):
         return 20
     
-    def list_cluster_dirs(self):
+    def list_profile_dirs(self):
         # Find the search paths
-        cluster_dir_paths = os.environ.get('IPCLUSTER_DIR_PATH','')
-        if cluster_dir_paths:
-            cluster_dir_paths = cluster_dir_paths.split(':')
+        profile_dir_paths = os.environ.get('IPYTHON_PROFILE_PATH','')
+        if profile_dir_paths:
+            profile_dir_paths = profile_dir_paths.split(':')
         else:
-            cluster_dir_paths = []
+            profile_dir_paths = []
         
         ipython_dir = self.ipython_dir
         
-        paths = [os.getcwd(), ipython_dir] + cluster_dir_paths
+        paths = [os.getcwd(), ipython_dir] + profile_dir_paths
         paths = list(set(paths))
 
-        self.log.info('Searching for cluster dirs in paths: %r' % paths)
+        self.log.info('Searching for cluster profiles in paths: %r' % paths)
         for path in paths:
             files = os.listdir(path)
             for f in files:
                 full_path = os.path.join(path, f)
-                if os.path.isdir(full_path) and f.startswith('cluster_'):
-                    profile = full_path.split('_')[-1]
+                if os.path.isdir(full_path) and f.startswith('profile_') and \
+                    os.path.isfile(os.path.join(full_path, 'ipcontroller_config.py')):
+                    profile = f.split('_')[-1]
                     start_cmd = 'ipcluster start profile=%s n=4' % profile
                     print start_cmd + " ==> " + full_path
     
     def start(self):
-        self.list_cluster_dirs()
+        self.list_profile_dirs()
+
+
+# `ipcluster create` will be deprecated when `ipython profile create` or equivalent exists
 
 create_flags = {}
 create_flags.update(base_flags)
-create_flags.update(boolean_flag('reset', 'IPClusterCreate.reset', 
+create_flags.update(boolean_flag('reset', 'IPClusterCreate.overwrite', 
                 "reset config files to defaults", "leave existing config files"))
 
-class IPClusterCreate(ClusterApplication):
-    name = u'ipcluster'
+class IPClusterCreate(BaseParallelApplication):
+    name = u'ipcluster-create'
     description = create_help
-    auto_create_cluster_dir = Bool(True,
-        help="whether to create the cluster_dir if it doesn't exist")
+    auto_create = Bool(True)
     config_file_name = Unicode(default_config_file_name)
-    
-    reset = Bool(False, config=True,
-        help="Whether to reset config files as part of 'create'."
-        )
     
     flags = Dict(create_flags)
     
-    aliases = Dict(dict(profile='ClusterDir.profile'))
+    aliases = Dict(dict(profile='BaseIPythonApplication.profile'))
     
-    classes = [ClusterDir]
+    classes = [ProfileDir]
     
-    def init_clusterdir(self):
-        super(IPClusterCreate, self).init_clusterdir()
-        self.log.info('Copying default config files to cluster directory '
-        '[overwrite=%r]' % (self.reset,))
-        self.cluster_dir.copy_all_config_files(overwrite=self.reset)
-    
-    def initialize(self, argv=None):
-        self.parse_command_line(argv)
-        self.init_clusterdir()
     
 stop_aliases = dict(
     signal='IPClusterStop.signal',
-    profile='ClusterDir.profile',
-    cluster_dir='ClusterDir.location',
+    profile='BaseIPythonApplication.profile',
+    profile_dir='ProfileDir.location',
 )
 
-class IPClusterStop(ClusterApplication):
+class IPClusterStop(BaseParallelApplication):
     name = u'ipcluster'
     description = stop_help
-    auto_create_cluster_dir = Bool(False)
     config_file_name = Unicode(default_config_file_name)
     
     signal = Int(signal.SIGINT, config=True,
         help="signal to use for stopping processes.")
         
     aliases = Dict(stop_aliases)
-    
-    def init_clusterdir(self):
-        try:
-            super(IPClusterStop, self).init_clusterdir()
-        except ClusterDirError as e:
-            self.log.fatal("Failed ClusterDir init: %s"%e)
-            self.exit(1)
     
     def start(self):
         """Start the app for the stop subcommand."""
@@ -272,20 +254,19 @@ engine_aliases.update(dict(
     n='IPClusterEngines.n',
     elauncher = 'IPClusterEngines.engine_launcher_class',
 ))
-class IPClusterEngines(ClusterApplication):
+class IPClusterEngines(BaseParallelApplication):
 
     name = u'ipcluster'
     description = engines_help
     usage = None
     config_file_name = Unicode(default_config_file_name)
     default_log_level = logging.INFO
-    auto_create_cluster_dir = Bool(False)
     classes = List()
     def _classes_default(self):
         from IPython.parallel.apps import launcher
         launchers = launcher.all_launchers
         eslaunchers = [ l for l in launchers if 'EngineSet' in l.__name__]
-        return [ClusterDir]+eslaunchers
+        return [ProfileDir]+eslaunchers
     
     n = Int(2, config=True,
         help="The number of engines to start.")
@@ -327,7 +308,7 @@ class IPClusterEngines(ClusterApplication):
         klass = import_item(clsname)
 
         launcher = klass(
-            work_dir=self.cluster_dir.location, config=self.config, logname=self.log.name
+            work_dir=self.profile_dir.location, config=self.config, logname=self.log.name
         )
         return launcher
     
@@ -335,7 +316,7 @@ class IPClusterEngines(ClusterApplication):
         self.log.info("Starting %i engines"%self.n)
         self.engine_launcher.start(
             self.n,
-            cluster_dir=self.cluster_dir.location
+            profile_dir=self.profile_dir.location
         )
 
     def stop_engines(self):
@@ -362,12 +343,12 @@ class IPClusterEngines(ClusterApplication):
     def start_logging(self):
         # Remove old log files of the controller and engine
         if self.clean_logs:
-            log_dir = self.cluster_dir.log_dir
+            log_dir = self.profile_dir.log_dir
             for f in os.listdir(log_dir):
                 if re.match(r'ip(engine|controller)z-\d+\.(log|err|out)',f):
                     os.remove(os.path.join(log_dir, f))
         # This will remove old log files for ipcluster itself
-        # super(IPClusterApp, self).start_logging()
+        # super(IPBaseParallelApplication, self).start_logging()
 
     def start(self):
         """Start the app for the engines subcommand."""
@@ -410,12 +391,12 @@ class IPClusterStart(IPClusterEngines):
     name = u'ipcluster'
     description = start_help
     default_log_level = logging.INFO
-    auto_create_cluster_dir = Bool(True, config=True,
-        help="whether to create the cluster_dir if it doesn't exist")
+    auto_create = Bool(True, config=True,
+        help="whether to create the profile_dir if it doesn't exist")
     classes = List()
     def _classes_default(self,):
         from IPython.parallel.apps import launcher
-        return [ClusterDir]+launcher.all_launchers
+        return [ProfileDir]+launcher.all_launchers
     
     clean_logs = Bool(True, config=True, 
         help="whether to cleanup old logs before starting")
@@ -441,7 +422,7 @@ class IPClusterStart(IPClusterEngines):
     
     def start_controller(self):
         self.controller_launcher.start(
-            cluster_dir=self.cluster_dir.location
+            profile_dir=self.profile_dir.location
         )
         
     def stop_controller(self):
@@ -504,7 +485,7 @@ class IPClusterStart(IPClusterEngines):
 
 base='IPython.parallel.apps.ipclusterapp.IPCluster'
 
-class IPClusterApp(Application):
+class IPBaseParallelApplication(Application):
     name = u'ipcluster'
     description = _description
     
@@ -530,7 +511,7 @@ class IPClusterApp(Application):
 
 def launch_new_instance():
     """Create and run the IPython cluster."""
-    app = IPClusterApp()
+    app = IPBaseParallelApplication()
     app.initialize()
     app.start()
 
