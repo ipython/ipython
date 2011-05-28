@@ -122,10 +122,16 @@ class SQLiteDB(BaseDB):
             # use session, and prefix _, since starting with # is illegal
             self.table = '_'+self.session.replace('-','_')
         if not self.location:
-            if hasattr(self.config.Global, 'cluster_dir'):
-                self.location = self.config.Global.cluster_dir
+            # get current profile
+            from IPython.core.newapplication import BaseIPythonApplication
+            if BaseIPythonApplication.initialized():
+                app = BaseIPythonApplication.instance()
+                if app.profile_dir is not None:
+                    self.location = app.profile_dir.location
+                else:
+                    self.location = u'.'
             else:
-                self.location = '.'
+                self.location = u'.'
         self._init_db()
         
         # register db commit as 2s periodic callback

@@ -17,9 +17,7 @@ The IPython controller application.
 
 from __future__ import with_statement
 
-import copy
 import os
-import logging
 import socket
 import stat
 import sys
@@ -33,14 +31,11 @@ from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
 from IPython.config.loader import Config
-
-from IPython.parallel import factory
+from IPython.core.newapplication import ProfileDir
 
 from IPython.parallel.apps.clusterdir import (
-    ClusterDir,
-    ClusterApplication,
+    BaseParallelApplication,
     base_flags
-    # ClusterDirConfigLoader
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict
@@ -48,11 +43,11 @@ from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict
 # from IPython.parallel.controller.controller import ControllerFactory
 from IPython.parallel.streamsession import StreamSession
 from IPython.parallel.controller.heartmonitor import HeartMonitor
-from IPython.parallel.controller.hub import Hub, HubFactory
+from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
 from IPython.parallel.controller.sqlitedb import SQLiteDB
 
-from IPython.parallel.util import signal_children,disambiguate_ip_address, split_url
+from IPython.parallel.util import signal_children, split_url
 
 # conditional import of MongoDB backend class
 
@@ -80,7 +75,7 @@ clients. The controller needs to be started before the engines and can be
 configured using command line options or using a cluster directory. Cluster
 directories contain config, log and security files and are usually located in
 your ipython directory and named as "cluster_<profile>". See the `profile`
-and `cluster_dir` options for details.
+and `profile_dir` options for details.
 """
 
 
@@ -106,15 +101,17 @@ flags.update({
 
 flags.update()
 
-class IPControllerApp(ClusterApplication):
+class IPControllerApp(BaseParallelApplication):
 
     name = u'ipcontroller'
     description = _description
     config_file_name = Unicode(default_config_file_name)
-    classes = [ClusterDir, StreamSession, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
+    classes = [ProfileDir, StreamSession, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
     
-    auto_create_cluster_dir = Bool(True, config=True,
-        help="Whether to create cluster_dir if it exists.")
+    # change default to True
+    auto_create = Bool(True, config=True,
+        help="""Whether to create profile dir if it doesn't exist""")
+    
     reuse_files = Bool(False, config=True,
         help='Whether to reuse existing json connection files [default: False]'
     )
@@ -146,8 +143,6 @@ class IPControllerApp(ClusterApplication):
         self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if new else 'Process')
 
     aliases = Dict(dict(
-        config = 'IPControllerApp.config_file',
-        # file = 'IPControllerApp.url_file',
         log_level = 'IPControllerApp.log_level',
         log_url = 'IPControllerApp.log_url',
         reuse_files = 'IPControllerApp.reuse_files',
@@ -172,8 +167,8 @@ class IPControllerApp(ClusterApplication):
         hwm = 'TaskScheduler.hwm',
 
 
-        profile = "ClusterDir.profile",
-        cluster_dir = 'ClusterDir.location',
+        profile = "BaseIPythonApplication.profile",
+        profile_dir = 'ProfileDir.location',
         
     ))
     flags = Dict(flags)
@@ -192,7 +187,7 @@ class IPControllerApp(ClusterApplication):
             else:
                 location = socket.gethostbyname_ex(socket.gethostname())[2][-1]
             cdict['location'] = location
-        fname = os.path.join(self.cluster_dir.security_dir, fname)
+        fname = os.path.join(self.profile_dir.security_dir, fname)
         with open(fname, 'w') as f:
             f.write(json.dumps(cdict, indent=2))
         os.chmod(fname, stat.S_IRUSR|stat.S_IWUSR)
@@ -201,7 +196,7 @@ class IPControllerApp(ClusterApplication):
         """load config from existing json connector files."""
         c = self.config
         # load from engine config
-        with open(os.path.join(self.cluster_dir.security_dir, 'ipcontroller-engine.json')) as f:
+        with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-engine.json')) as f:
             cfg = json.loads(f.read())
         key = c.StreamSession.key = cfg['exec_key']
         xport,addr = cfg['url'].split('://')
@@ -212,7 +207,7 @@ class IPControllerApp(ClusterApplication):
         self.location = cfg['location']
         
         # load client config
-        with open(os.path.join(self.cluster_dir.security_dir, 'ipcontroller-client.json')) as f:
+        with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-client.json')) as f:
             cfg = json.loads(f.read())
         assert key == cfg['exec_key'], "exec_key mismatch between engine and client keys"
         xport,addr = cfg['url'].split('://')
@@ -237,7 +232,7 @@ class IPControllerApp(ClusterApplication):
             pass
         elif self.secure:
             key = str(uuid.uuid4())
-            # keyfile = os.path.join(self.cluster_dir.security_dir, self.exec_key)
+            # keyfile = os.path.join(self.profile_dir.security_dir, self.exec_key)
             # with open(keyfile, 'w') as f:
             #     f.write(key)
             # os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
@@ -332,7 +327,7 @@ class IPControllerApp(ClusterApplication):
         """save the registration urls to files."""
         c = self.config
         
-        sec_dir = self.cluster_dir.security_dir
+        sec_dir = self.profile_dir.security_dir
         cf = self.factory
         
         with open(os.path.join(sec_dir, 'ipcontroller-engine.url'), 'w') as f:
