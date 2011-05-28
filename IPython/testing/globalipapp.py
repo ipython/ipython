@@ -132,6 +132,16 @@ class ipnsdict(dict):
         # correct for that ourselves, to ensure consitency with the 'real'
         # ipython.
         self['__builtins__'] = __builtin__
+        
+    def __delitem__(self, key):
+        """Part of the test suite checks that we can release all
+        references to an object. So we need to make sure that we're not
+        keeping a reference in _savedict."""
+        dict.__delitem__(self, key)
+        try:
+            del self._savedict[key]
+        except KeyError:
+            pass
 
 
 def get_ipython():

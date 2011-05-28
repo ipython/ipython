@@ -1119,7 +1119,49 @@ class InteractiveShell(SingletonConfigurable, Magic):
         
         # Clear out the namespace from the last %run
         self.new_main_mod()
-
+    
+    def del_var(self, varname, by_name=False):
+        """Delete a variable from the various namespaces, so that, as
+        far as possible, we're not keeping any hidden references to it.
+        
+        Parameters
+        ----------
+        varname : str
+            The name of the variable to delete.
+        by_name : bool
+            If True, delete variables with the given name in each
+            namespace. If False (default), find the variable in the user
+            namespace, and delete references to it.
+        """
+        if varname in ('__builtin__', '__builtins__'):
+            raise ValueError("Refusing to delete %s" % varname)
+        ns_refs = self.ns_refs_table + [self.user_ns,
+                self.user_global_ns, self._user_main_module.__dict__] +\
+                self._main_ns_cache.values()
+        
+        if by_name:                    # Delete by name
+            for ns in ns_refs:
+                try:
+                    del ns[varname]
+                except KeyError:
+                    pass
+        else:                         # Delete by object
+            try:
+                obj = self.user_ns[varname]
+            except KeyError:
+                raise NameError("name '%s' is not defined" % varname)
+            # Also check in output history
+            ns_refs.append(self.history_manager.output_hist)
+            for ns in ns_refs:
+                to_delete = [n for n, o in ns.iteritems() if o is obj]
+                for name in to_delete:
+                    del ns[name]
+                    
+            # displayhook keeps extra references, but not in a dictionary
+            for name in ('_', '__', '___'):
+                if getattr(self.displayhook, name) is obj:
+                    setattr(self.displayhook, name, None)
+    
     def reset_selective(self, regex=None):
         """Clear selective variables from internal namespaces based on a
         specified regular expression.
