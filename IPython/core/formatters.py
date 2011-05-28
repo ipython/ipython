@@ -28,7 +28,7 @@ from StringIO import StringIO
 # Our own imports
 from IPython.config.configurable import Configurable
 from IPython.lib import pretty
-from IPython.utils.traitlets import Bool, Dict, Int, Unicode, CUnicode
+from IPython.utils.traitlets import Bool, Dict, Int, Unicode, CUnicode, ObjectName
 
 
 #-----------------------------------------------------------------------------
@@ -195,7 +195,7 @@ class BaseFormatter(Configurable):
 
     enabled = Bool(True, config=True)
 
-    print_method = Unicode('__repr__')
+    print_method = ObjectName('__repr__')
 
     # The singleton printers.
     # Maps the IDs of the builtin singleton objects to the format functions.
@@ -344,7 +344,7 @@ class PlainTextFormatter(BaseFormatter):
     enabled = Bool(True, config=False)
 
     # Look for a _repr_pretty_ methods to use for pretty printing.
-    print_method = Unicode('_repr_pretty_')
+    print_method = ObjectName('_repr_pretty_')
 
     # Whether to pretty-print or not.
     pprint = Bool(True, config=True)
@@ -456,7 +456,7 @@ class HTMLFormatter(BaseFormatter):
     """
     format_type = Unicode('text/html')
 
-    print_method = Unicode('_repr_html_')
+    print_method = ObjectName('_repr_html_')
 
 
 class SVGFormatter(BaseFormatter):
@@ -473,7 +473,7 @@ class SVGFormatter(BaseFormatter):
     """
     format_type = Unicode('image/svg+xml')
 
-    print_method = Unicode('_repr_svg_')
+    print_method = ObjectName('_repr_svg_')
 
 
 class PNGFormatter(BaseFormatter):
@@ -489,7 +489,7 @@ class PNGFormatter(BaseFormatter):
     """
     format_type = Unicode('image/png')
 
-    print_method = Unicode('_repr_png_')
+    print_method = ObjectName('_repr_png_')
 
 
 class LatexFormatter(BaseFormatter):
@@ -505,7 +505,7 @@ class LatexFormatter(BaseFormatter):
     """
     format_type = Unicode('text/latex')
 
-    print_method = Unicode('_repr_latex_')
+    print_method = ObjectName('_repr_latex_')
 
 
 class JSONFormatter(BaseFormatter):
@@ -520,7 +520,7 @@ class JSONFormatter(BaseFormatter):
     """
     format_type = Unicode('application/json')
 
-    print_method = Unicode('_repr_json_')
+    print_method = ObjectName('_repr_json_')
 
 
 class JavascriptFormatter(BaseFormatter):
@@ -536,7 +536,7 @@ class JavascriptFormatter(BaseFormatter):
     """
     format_type = Unicode('application/javascript')
 
-    print_method = Unicode('_repr_javascript_')
+    print_method = ObjectName('_repr_javascript_')
 
 FormatterABC.register(BaseFormatter)
 FormatterABC.register(PlainTextFormatter)

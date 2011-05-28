@@ -22,12 +22,14 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 from unittest import TestCase
 
 from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes,
     Int, Long, Float, Complex, Bytes, Unicode, TraitError,
-    Undefined, Type, This, Instance, TCPAddress, List, Tuple
+    Undefined, Type, This, Instance, TCPAddress, List, Tuple,
+    ObjectName, DottedObjectName
 )
 
 
@@ -725,9 +727,40 @@ class TestUnicode(TraitTestBase):
 
     _default_value = u'unicode'
     _good_values   = ['10', '-10', '10L', '-10L', '10.1', 
-                      '-10.1', '', u'', 'string', u'string', ]
+                      '-10.1', '', u'', 'string', u'string', u"€"]
     _bad_values    = [10, -10, 10L, -10L, 10.1, -10.1, 1j,
                       [10], ['ten'], [u'ten'], {'ten': 10},(10,), None]
+
+
+class ObjectNameTrait(HasTraits):
+    value = ObjectName("abc")
+    
+class TestObjectName(TraitTestBase):
+    obj = ObjectNameTrait()
+    
+    _default_value = "abc"
+    _good_values = ["a", "gh", "g9", "g_", "_G", u"a345_"]
+    _bad_values = [1, "", u"€", "9g", "!", "#abc", "aj@", "a.b", "a()", "a[0]",
+                                                            object(), object]
+    if sys.version_info[0] < 3:
+        _bad_values.append(u"þ")
+    else:
+        _good_values.append(u"þ")  # þ=1 is valid in Python 3 (PEP 3131).
+
+
+class DottedObjectNameTrait(HasTraits):
+    value = DottedObjectName("a.b")
+
+class TestDottedObjectName(TraitTestBase):
+    obj = DottedObjectNameTrait()
+    
+    _default_value = "a.b"
+    _good_values = ["A", "y.t", "y765.__repr__", "os.path.join", u"os.path.join"]
+    _bad_values = [1, u"abc.€", "_.@", ".", ".abc", "abc.", ".abc."]
+    if sys.version_info[0] < 3:
+        _bad_values.append(u"t.þ")
+    else:
+        _good_values.append(u"t.þ")
 
 
 class TCPAddressTrait(HasTraits):

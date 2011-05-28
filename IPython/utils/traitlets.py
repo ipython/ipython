@@ -50,6 +50,7 @@ Authors:
 
 
 import inspect
+import re
 import sys
 import types
 from types import (
@@ -998,6 +999,50 @@ class CUnicode(Unicode):
             return unicode(value)
         except:
             self.error(obj, value)
+  
+            
+class ObjectName(TraitType):
+    """A string holding a valid object name in this version of Python.
+    
+    This does not check that the name exists in any scope."""
+    info_text = "a valid object identifier in Python"
+
+    if sys.version_info[0] < 3:
+        # Python 2:
+        _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
+        def isidentifier(self, s):
+            return bool(self._name_re.match(s))
+        
+        def coerce_str(self, obj, value):
+            "In Python 2, coerce ascii-only unicode to str"
+            if isinstance(value, unicode):
+                try:
+                    return str(value)
+                except UnicodeEncodeError:
+                    self.error(obj, value)
+            return value
+    
+    else:
+        # Python 3:
+        isidentifier = staticmethod(lambda s: s.isidentifier())
+        coerce_str = staticmethod(lambda _,s: s)
+    
+    def validate(self, obj, value):
+        value = self.coerce_str(obj, value)
+        
+        if isinstance(value, str) and self.isidentifier(value):
+            return value
+        self.error(obj, value)
+
+class DottedObjectName(ObjectName):
+    """A string holding a valid dotted object name in Python, such as A.b3._c"""
+    def validate(self, obj, value):
+        value = self.coerce_str(obj, value)
+        
+        if isinstance(value, str) and all(self.isidentifier(x) \
+                                                    for x in value.split('.')):
+            return value
+        self.error(obj, value)
 
 
 class Bool(TraitType):
