@@ -315,10 +315,13 @@ def unpack_apply_message(bufs, g=None, copy=True):
         if sa.data is None:
             m = bufs.pop(0)
             if sa.getTypeDescriptor() in ('buffer', 'ndarray'):
-                if copy:
-                    sa.data = buffer(m)
-                else:
-                    sa.data = m.buffer
+                # always use a buffer, until memoryviews get sorted out
+                sa.data = buffer(m)
+                # disable memoryview support
+                # if copy:
+                #     sa.data = buffer(m)
+                # else:
+                #     sa.data = m.buffer
             else:
                 if copy:
                     sa.data = m
@@ -332,10 +335,13 @@ def unpack_apply_message(bufs, g=None, copy=True):
         if sa.data is None:
             m = bufs.pop(0)
             if sa.getTypeDescriptor() in ('buffer', 'ndarray'):
-                if copy:
-                    sa.data = buffer(m)
-                else:
-                    sa.data = m.buffer
+                # always use a buffer, until memoryviews get sorted out
+                sa.data = buffer(m)
+                # disable memoryview support
+                # if copy:
+                #     sa.data = buffer(m)
+                # else:
+                #     sa.data = m.buffer
             else:
                 if copy:
                     sa.data = m
