@@ -31,7 +31,7 @@ from IPython.core.newapplication import BaseIPythonApplication, ProfileDir
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Int, Unicode, Bool, CFloat, Dict, List
 
-from IPython.parallel.apps.clusterdir import (
+from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
     PIDFileError,
     base_flags, base_aliases

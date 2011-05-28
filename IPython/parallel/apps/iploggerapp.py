@@ -23,7 +23,7 @@ import zmq
 from IPython.core.newapplication import ProfileDir
 from IPython.utils.traitlets import Bool, Dict, Unicode
 
-from IPython.parallel.apps.clusterdir import (
+from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
     base_aliases
 )

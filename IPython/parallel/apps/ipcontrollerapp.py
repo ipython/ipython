@@ -33,7 +33,7 @@ from zmq.utils import jsonapi as json
 from IPython.config.loader import Config
 from IPython.core.newapplication import ProfileDir
 
-from IPython.parallel.apps.clusterdir import (
+from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
     base_flags
 )
