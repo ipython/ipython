@@ -54,6 +54,7 @@ from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.magic import Magic
+from IPython.core.newapplication import ProfileDir
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
@@ -238,7 +239,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """
     )
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
-                             default_value=get_default_colors(), config=True)
+                             default_value=get_default_colors(), config=True,
+        help="Set the color scheme (NoColor, Linux, and LightBG)."
+    )
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True, help=
         """
@@ -291,7 +294,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """
     )
 
-    profile = Unicode('', config=True)
     prompt_in1 = Str('In [\\#]: ', config=True)
     prompt_in2 = Str('   .\\D.: ', config=True)
     prompt_out = Str('Out[\\#]: ', config=True)
@@ -342,10 +344,18 @@ class InteractiveShell(SingletonConfigurable, Magic):
     payload_manager = Instance('IPython.core.payload.PayloadManager')
     history_manager = Instance('IPython.core.history.HistoryManager')
 
+    profile_dir = Instance('IPython.core.newapplication.ProfileDir')
+    @property
+    def profile(self):
+        if self.profile_dir is not None:
+            name = os.path.basename(self.profile_dir.location)
+            return name.replace('profile_','')
+
+
     # Private interface
     _post_execute = Instance(dict)
 
-    def __init__(self, config=None, ipython_dir=None,
+    def __init__(self, config=None, ipython_dir=None, profile_dir=None,
                  user_ns=None, user_global_ns=None,
                  custom_exceptions=((), None)):
 
@@ -355,6 +365,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # These are relatively independent and stateless
         self.init_ipython_dir(ipython_dir)
+        self.init_profile_dir(profile_dir)
         self.init_instance_attrs()
         self.init_environment()
 
@@ -372,7 +383,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # While we're trying to have each part of the code directly access what
         # it needs without keeping redundant references to objects, we have too
         # much legacy code that expects ip.db to exist.
-        self.db = PickleShareDB(os.path.join(self.ipython_dir, 'db'))
+        self.db = PickleShareDB(os.path.join(self.profile_dir.location, 'db'))
 
         self.init_history()
         self.init_encoding()
@@ -457,16 +468,16 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def init_ipython_dir(self, ipython_dir):
         if ipython_dir is not None:
             self.ipython_dir = ipython_dir
-            self.config.Global.ipython_dir = self.ipython_dir
             return
 
-        if hasattr(self.config.Global, 'ipython_dir'):
-            self.ipython_dir = self.config.Global.ipython_dir
-        else:
-            self.ipython_dir = get_ipython_dir()
+        self.ipython_dir = get_ipython_dir()
 
-        # All children can just read this
-        self.config.Global.ipython_dir = self.ipython_dir
+    def init_profile_dir(self, profile_dir):
+        if profile_dir is not None:
+            self.profile_dir = profile_dir
+            return
+        self.profile_dir =\
+            ProfileDir.create_profile_dir_by_name(self.ipython_dir, 'default')
 
     def init_instance_attrs(self):
         self.more = False

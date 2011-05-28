@@ -158,8 +158,8 @@ def default_argv():
 
     return ['--quick', # so no config file is loaded
             # Other defaults to minimize side effects on stdout
-            '--colors=NoColor', '--no-term-title','--no-banner',
-            '--autocall=0']
+            'colors=NoColor', '--no-term-title','--no-banner',
+            'autocall=0']
 
 
 def default_config():
@@ -197,7 +197,7 @@ def ipexec(fname, options=None):
     
     # For these subprocess calls, eliminate all prompt printing so we only see
     # output from script execution
-    prompt_opts = ['--prompt-in1=""', '--prompt-in2=""', '--prompt-out=""']
+    prompt_opts = ['pi1=""', 'pi2=""', 'po=""']
     cmdargs = ' '.join(default_argv() + prompt_opts + options)
     
     _ip = get_ipython()

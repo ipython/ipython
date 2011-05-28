@@ -101,18 +101,15 @@ class HistoryManager(Configurable):
 
         if self.hist_file == u'':
             # No one has set the hist_file, yet.
-            if shell.profile:
-                histfname = 'history-%s' % shell.profile
-            else:
-                histfname = 'history'
-            self.hist_file = os.path.join(shell.ipython_dir, histfname + '.sqlite')
+            histfname = 'history'
+            self.hist_file = os.path.join(shell.profile_dir.location, histfname + '.sqlite')
 
         try:
             self.init_db()
         except sqlite3.DatabaseError:
             if os.path.isfile(self.hist_file):
                 # Try to move the file out of the way.
-                newpath = os.path.join(self.shell.ipython_dir, "hist-corrupt.sqlite")
+                newpath = os.path.join(self.shell.profile_dir.location, "hist-corrupt.sqlite")
                 os.rename(self.hist_file, newpath)
                 print("ERROR! History file wasn't a valid SQLite database.",
                 "It was moved to %s" % newpath, "and a new file created.")

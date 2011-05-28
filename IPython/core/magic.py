@@ -46,6 +46,7 @@ from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
 from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
+from IPython.core.newapplication import ProfileDir
 from IPython.core.macro import Macro
 from IPython.core import page
 from IPython.core.prefilter import ESC_MAGIC
@@ -533,10 +534,7 @@ Currently the magic system has the following functions:\n"""
 
     def magic_profile(self, parameter_s=''):
         """Print your currently active IPython profile."""
-        if self.shell.profile:
-            printpl('Current IPython profile: $self.shell.profile.')
-        else:
-            print 'No profile active.'
+        print self.shell.profile
 
     def magic_pinfo(self, parameter_s='', namespaces=None):
         """Provide detailed information about an object.
@@ -3373,22 +3371,16 @@ Defaulting color scheme to 'NoColor'"""
         else:
             overwrite = False
         from IPython.config import profile
-        profile_dir = os.path.split(profile.__file__)[0]
+        profile_dir = os.path.dirname(profile.__file__)
         ipython_dir = self.ipython_dir
-        files = os.listdir(profile_dir)
-
-        to_install = []
-        for f in files:
-            if f.startswith('ipython_config'):
-                src = os.path.join(profile_dir, f)
-                dst = os.path.join(ipython_dir, f)
-                if (not os.path.isfile(dst)) or overwrite:
-                    to_install.append((f, src, dst))
-        if len(to_install)>0:
-            print "Installing profiles to: ", ipython_dir
-            for (f, src, dst) in to_install:
-                shutil.copy(src, dst)
-                print "    %s" % f
+        print "Installing profiles to: %s [overwrite=%s]"(ipython_dir,overwrite)
+        for src in os.listdir(profile_dir):
+            if src.startswith('profile_'):
+                name = src.replace('profile_', '')
+                print "    %s"%name
+                pd = ProfileDir.create_profile_dir_by_name(ipython_dir, name)
+                pd.copy_config_file('ipython_config.py', path=src, 
+                                overwrite=overwrite)
 
     @skip_doctest
     def magic_install_default_config(self, s):
@@ -3404,15 +3396,9 @@ Defaulting color scheme to 'NoColor'"""
             overwrite = True
         else:
             overwrite = False
-        from IPython.config import default
-        config_dir = os.path.split(default.__file__)[0]
-        ipython_dir = self.ipython_dir
-        default_config_file_name = 'ipython_config.py'
-        src = os.path.join(config_dir, default_config_file_name)
-        dst = os.path.join(ipython_dir, default_config_file_name)
-        if (not os.path.isfile(dst)) or overwrite:
-            shutil.copy(src, dst)
-            print "Installing default config file: %s" % dst
+        pd = self.shell.profile_dir
+        print "Installing default config file in: %s" % pd.location
+        pd.copy_config_file('ipython_config.py', overwrite=overwrite)
 
     # Pylab support: simple wrappers that activate pylab, load gui input
     # handling and modify slightly %run
