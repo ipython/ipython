@@ -23,9 +23,7 @@ import zmq
 from zmq.eventloop import ioloop
 
 from IPython.core.newapplication import ProfileDir
-from IPython.parallel.apps.clusterdir import (
-    BaseParallelApplication,
-)
+from IPython.parallel.apps.baseapp import BaseParallelApplication
 from IPython.zmq.log import EnginePUBHandler
 
 from IPython.config.configurable import Configurable
