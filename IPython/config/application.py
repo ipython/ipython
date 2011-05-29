@@ -355,8 +355,6 @@ def boolean_flag(name, configurable, set_help='', unset_help=''):
     
     cls,trait = configurable.split('.')
     
-    setter = Config()
-    setter[cls][trait] = True
-    unsetter = Config()
-    unsetter[cls][trait] = False
+    setter = {cls : {trait : True}}
+    unsetter = {cls : {trait : False}}
     return {name : (setter, set_help), 'no-'+name : (unsetter, unset_help)}
