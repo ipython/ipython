@@ -274,7 +274,7 @@ class BaseIPythonApplication(Application):
     profile = Unicode(u'default', config=True,
         help="""The IPython profile to use."""
     )
-    def _profile_changes(self, name, old, new):
+    def _profile_changed(self, name, old, new):
         self.builtin_profile_dir = os.path.join(
                 get_ipython_package_dir(), u'config', u'profile', new
         )
