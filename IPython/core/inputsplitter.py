@@ -173,19 +173,13 @@ def get_input_encoding():
 #-----------------------------------------------------------------------------
 
 class InputSplitter(object):
-    """An object that can split Python source input in executable blocks.
+    """An object that can accumulate lines of Python source before execution.
 
-    This object is designed to be used in one of two basic modes:
-
-    1. By feeding it python source line-by-line, using :meth:`push`.  In this
-       mode, it will return on each push whether the currently pushed code
-       could be executed already.  In addition, it provides a method called
+    This object is designed to be fed python source line-by-line, using
+       :meth:`push`. It will return on each push whether the currently pushed
+       code could be executed already. In addition, it provides a method called
        :meth:`push_accepts_more` that can be used to query whether more input
        can be pushed into a single interactive block.
-
-    2. By calling :meth:`split_blocks` with a single, multiline Python string,
-       that is then split into blocks each of which can be executed
-       interactively as a single statement.
 
     This is a simple example of how an interactive terminal-based client can use
     this tool::
