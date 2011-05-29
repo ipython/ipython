@@ -382,7 +382,9 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             aliases = self.aliases
         if flags is None:
             flags = self.flags
-
+        
+        self.extra_args = []
+        
         for item in argv:
             if kv_pattern.match(item):
                 lhs,rhs = item.split('=',1)
@@ -414,8 +416,13 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                         self.config[sec].update(c)
                 else:
                     raise ValueError("Invalid flag: %r"%flag)
-            else:
+            elif item.startswith('-'):
+                # this shouldn't ever be valid
                 raise ArgumentError("Invalid argument: %r"%item)
+            else:
+                # keep all args that aren't valid in a list, 
+                # in case our parent knows what to do with them.
+                self.extra_args.append(item)
         return self.config
 
 class ArgParseConfigLoader(CommandLineConfigLoader):

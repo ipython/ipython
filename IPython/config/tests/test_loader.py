@@ -123,6 +123,13 @@ class TestKeyValueCL(TestCase):
         self.assertEquals(config.Foo.Bar.value, 10)
         self.assertEquals(config.Foo.Bam.value, range(10))
         self.assertEquals(config.D.C.value, 'hi there')
+    
+    def test_extra_args(self):
+        cl = KeyValueConfigLoader()
+        config = cl.load_config(['a=5', 'b', 'c=10', 'd'])
+        self.assertEquals(cl.extra_args, ['b', 'd'])
+        self.assertEquals(config.a, 5)
+        self.assertEquals(config.c, 10)
 
 
 class TestConfig(TestCase):

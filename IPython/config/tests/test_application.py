@@ -116,14 +116,20 @@ class TestApplication(TestCase):
         """test that setting flags doesn't clobber existing settings"""
         app = MyApp()
         app.parse_command_line(["Bar.b=5", "--disable"])
-        print app.config
         app.init_bar()
         self.assertEquals(app.bar.enabled, False)
         self.assertEquals(app.bar.b, 5)
         app.parse_command_line(["--enable", "Bar.b=10"])
-        print app.config
         app.init_bar()
         self.assertEquals(app.bar.enabled, True)
         self.assertEquals(app.bar.b, 10)
+    
+    def test_extra_args(self):
+        app = MyApp()
+        app.parse_command_line(['extra', "Bar.b=5", "--disable", 'args'])
+        app.init_bar()
+        self.assertEquals(app.bar.enabled, False)
+        self.assertEquals(app.bar.b, 5)
+        self.assertEquals(app.extra_args, ['extra', 'args'])
     
 
