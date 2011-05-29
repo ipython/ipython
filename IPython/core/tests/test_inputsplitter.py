@@ -434,12 +434,21 @@ syntax = \
        [ ('?', 'get_ipython().show_usage()'),
          ('?x1', 'get_ipython().magic(u"pinfo x1")'),
          ('??x2', 'get_ipython().magic(u"pinfo2 x2")'),
-         ('x3?', 'get_ipython().magic(u"pinfo x3")'),
-         ('x4??', 'get_ipython().magic(u"pinfo2 x4")'),
-         ('%hist?', 'get_ipython().magic(u"pinfo %hist")'),
-         ('f*?', 'get_ipython().magic(u"psearch f*")'),
-         ('ax.*aspe*?', 'get_ipython().magic(u"psearch ax.*aspe*")'),
+         ('?a.*s', 'get_ipython().magic(u"psearch a.*s")'),
+         ('?%hist', 'get_ipython().magic(u"pinfo %hist")'),
+         ('?abc = qwe', 'get_ipython().magic(u"pinfo abc")'),
          ],
+         
+      end_help =
+      [ ('x3?', 'get_ipython().magic(u"pinfo x3")'),
+        ('x4??', 'get_ipython().magic(u"pinfo2 x4")'),
+        ('%hist?', 'get_ipython().magic(u"pinfo %hist")'),
+        ('f*?', 'get_ipython().magic(u"psearch f*")'),
+        ('ax.*aspe*?', 'get_ipython().magic(u"psearch ax.*aspe*")'),
+        ('a = abc?', 'get_ipython().magic(u"pinfo abc")'),
+        ('a = abc.qe??', 'get_ipython().magic(u"pinfo2 abc.qe")'),
+        ('a = *.items?', 'get_ipython().magic(u"psearch *.items")'),
+        ],
 
        # Explicit magic calls
        escaped_magic =
@@ -513,7 +522,9 @@ def test_ipy_prompt():
     transform_checker(syntax['ipy_prompt'], isp.transform_ipy_prompt)
     for example in syntax_ml['ipy_prompt']:
         transform_checker(example, isp.transform_ipy_prompt)
-    
+
+def test_end_help():
+    transform_checker(syntax['end_help'], isp.transform_help_end)
 
 def test_escaped_noesc():
     transform_checker(syntax['escaped_noesc'], isp.transform_escaped)

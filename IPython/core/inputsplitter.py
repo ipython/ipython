@@ -658,6 +658,34 @@ def transform_ipy_prompt(line):
         return line
 
 
+def _make_help_call(target, esc, lspace):
+    """Prepares a pinfo(2)/psearch call from a target name and the escape
+    (i.e. ? or ??)"""
+    method  = 'pinfo2' if esc == '??' \
+                else 'psearch' if '*' in target \
+                else 'pinfo'
+        
+    tpl = '%sget_ipython().magic(u"%s %s")'
+    return tpl % (lspace, method, target)
+
+_initial_space_re = re.compile(r'\s*')
+_help_end_re = re.compile(r"""(%?
+                              [a-zA-Z_*][a-zA-Z0-9_*]*       # Variable name
+                              (.[a-zA-Z_*][a-zA-Z0-9_*]*)*   # .etc.etc
+                              )
+                              (\?\??)$                       # ? or ??""",
+                              re.VERBOSE)
+def transform_help_end(line):
+    """Translate lines with ?/?? at the end"""
+    m = _help_end_re.search(line)
+    if m is None:
+        return line
+    target = m.group(1)
+    esc = m.group(3)
+    lspace = _initial_space_re.match(line).group(0)
+    return _make_help_call(target, esc, lspace)
+
+
 class EscapedTransformer(object):
     """Class to transform lines that are explicitly escaped out."""
 
@@ -694,28 +722,8 @@ class EscapedTransformer(object):
         # A naked help line should just fire the intro help screen
         if not line_info.line[1:]:
             return 'get_ipython().show_usage()'
-
-        # There may be one or two '?' at the end, move them to the front so that
-        # the rest of the logic can assume escapes are at the start
-        l_ori = line_info
-        line = line_info.line
-        if line.endswith('?'):
-            line = line[-1] + line[:-1]
-        if line.endswith('?'):
-            line = line[-1] + line[:-1]
-        line_info = LineInfo(line)
-
-        # From here on, simply choose which level of detail to get, and
-        # special-case the psearch syntax
-        pinfo = 'pinfo' # default
-        if '*' in line_info.line:
-            pinfo = 'psearch'
-        elif line_info.esc == '??':
-            pinfo = 'pinfo2'
-
-        tpl = '%sget_ipython().magic(u"%s %s")'
-        return tpl % (line_info.lspace, pinfo,
-                      ' '.join([line_info.fpart, line_info.rest]).strip())
+        
+        return _make_help_call(line_info.fpart, line_info.esc, line_info.lspace)
 
     @staticmethod
     def _tr_magic(line_info):
@@ -756,14 +764,9 @@ class EscapedTransformer(object):
         # Get line endpoints, where the escapes can be
         line_info = LineInfo(line)
 
-        # If the escape is not at the start, only '?' needs to be special-cased.
-        # All other escapes are only valid at the start
         if not line_info.esc in self.tr:
-            if line.endswith(ESC_HELP):
-                return self._tr_help(line_info)
-            else:
-                # If we don't recognize the escape, don't modify the line
-                return line
+            # If we don't recognize the escape, don't modify the line
+            return line
 
         return self.tr[line_info.esc](line_info)
 
@@ -815,9 +818,9 @@ class IPythonInputSplitter(InputSplitter):
 
         lines_list = lines.splitlines()
 
-        transforms = [transform_escaped, transform_assign_system,
-                      transform_assign_magic, transform_ipy_prompt,
-                      transform_classic_prompt]
+        transforms = [transform_escaped, transform_help_end,
+                      transform_assign_system, transform_assign_magic,
+                      transform_ipy_prompt, transform_classic_prompt]
 
         # Transform logic
         #
