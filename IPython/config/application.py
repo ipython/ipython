@@ -112,6 +112,9 @@ class Application(SingletonConfigurable):
     # parse_command_line will initialize a subapp, if requested
     subapp = Instance('IPython.config.application.Application', allow_none=True)
     
+    # extra command-line arguments that don't set config values
+    extra_args = List(Unicode)
+    
 
     def __init__(self, **kwargs):
         SingletonConfigurable.__init__(self, **kwargs)
@@ -266,13 +269,7 @@ class Application(SingletonConfigurable):
     
     def initialize_subcommand(self, subc, argv=None):
         """Initialize a subcommand with argv"""
-        subapp,help = self.subcommands.get(subc, (None,None))
-        if subapp is None:
-            self.print_description()
-            print "No such subcommand: %r"%subc
-            print
-            self.print_subcommands()
-            self.exit(1)
+        subapp,help = self.subcommands.get(subc)
         
         if isinstance(subapp, basestring):
             subapp = import_item(subapp)
@@ -289,7 +286,7 @@ class Application(SingletonConfigurable):
         if self.subcommands and len(argv) > 0:
             # we have subcommands, and one may have been specified
             subc, subargv = argv[0], argv[1:]
-            if re.match(r'^\w(\-?\w)*$', subc):
+            if re.match(r'^\w(\-?\w)*$', subc) and subc in self.subcommands:
                 # it's a subcommand, and *not* a flag or class parameter
                 return self.initialize_subcommand(subc, subargv)
             
@@ -312,6 +309,8 @@ class Application(SingletonConfigurable):
             self.print_help()
             self.exit(1)
         self.update_config(config)
+        # store unparsed args in extra_args
+        self.extra_args = loader.extra_args
 
     def load_config_file(self, filename, path=None):
         """Load a .py based config file by filename and path."""
