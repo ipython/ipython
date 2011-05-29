@@ -1084,7 +1084,24 @@ Currently the magic system has the following functions:\n"""
                 raise TypeError('regex must be a string or compiled pattern')
             for i in self.magic_who_ls():
                 if m.search(i): 
-                    del(user_ns[i])        
+                    del(user_ns[i])
+                    
+    def magic_xdel(self, parameter_s=''):
+        """Delete a variable, trying to clear it from anywhere that
+        IPython's machinery has references to it. By default, this uses
+        the identity of the named object in the user namespace to remove
+        references held under other names. The object is also removed
+        from the output history.
+        
+        Options
+          -n : Delete the specified name from all namespaces, without
+          checking their identity.
+        """
+        opts, varname = self.parse_options(parameter_s,'n')
+        try:
+            self.shell.del_var(varname, ('n' in opts))
+        except (NameError, ValueError) as e:
+            print type(e).__name__ +": "+ str(e)
         
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
