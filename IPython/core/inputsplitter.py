@@ -665,7 +665,7 @@ def _make_help_call(target, esc, lspace):
 _initial_space_re = re.compile(r'\s*')
 _help_end_re = re.compile(r"""(%?
                               [a-zA-Z_*][a-zA-Z0-9_*]*       # Variable name
-                              (.[a-zA-Z_*][a-zA-Z0-9_*]*)*   # .etc.etc
+                              (\.[a-zA-Z_*][a-zA-Z0-9_*]*)*   # .etc.etc
                               )
                               (\?\??)$                       # ? or ??""",
                               re.VERBOSE)
@@ -812,9 +812,9 @@ class IPythonInputSplitter(InputSplitter):
 
         lines_list = lines.splitlines()
 
-        transforms = [transform_escaped, transform_help_end,
-                      transform_assign_system, transform_assign_magic,
-                      transform_ipy_prompt, transform_classic_prompt]
+        transforms = [transform_ipy_prompt, transform_classic_prompt,
+                      transform_escaped, transform_help_end,
+                      transform_assign_system, transform_assign_magic]
 
         # Transform logic
         #

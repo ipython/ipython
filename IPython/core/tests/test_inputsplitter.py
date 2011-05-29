@@ -480,7 +480,15 @@ syntax = \
          ('  /f y', '  f(y)'),
          ('/f a b', 'f(a, b)'),
          ],
-
+         
+       # Check that we transform prompts before other transforms
+       mixed =
+       [ ('In [1]: %lsmagic', 'get_ipython().magic(u"lsmagic")'),
+         ('>>> %lsmagic', 'get_ipython().magic(u"lsmagic")'),
+         ('In [2]: !ls', 'get_ipython().system(u"ls")'),
+         ('In [3]: abs?', 'get_ipython().magic(u"pinfo abs")'),
+         ('In [4]: b = %who', 'b = get_ipython().magic(u"who")'),
+         ],
        )
 
 # multiline syntax examples.  Each of these should be a list of lists, with
