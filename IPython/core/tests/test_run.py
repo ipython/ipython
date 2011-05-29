@@ -154,11 +154,6 @@ class TestMagicRunSimple(tt.TempFileMixin):
         _ip.run_cell('t = isinstance(f(), foo)')
         nt.assert_true(_ip.user_ns['t'])
 
-    # We have to skip these in win32 because getoutputerr() crashes,
-    # due to the fact that subprocess does not support close_fds when
-    # redirecting stdout/err.  So unless someone who knows more tells us how to
-    # implement getoutputerr() in win32, we're stuck avoiding these.
-    @dec.skip_win32
     def test_obj_del(self):
         """Test that object's __del__ methods are called on exit."""
         
