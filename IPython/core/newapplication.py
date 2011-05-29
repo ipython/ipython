@@ -233,13 +233,13 @@ base_aliases = dict(
 )
 
 base_flags = dict(
-    debug = ({'Application' : Config({'log_level' : logging.DEBUG})},
+    debug = ({'Application' : {'log_level' : logging.DEBUG}},
             "set log level to logging.DEBUG (maximize logging output)"),
-    quiet = ({'Application' : Config({'log_level' : logging.CRITICAL})},
+    quiet = ({'Application' : {'log_level' : logging.CRITICAL}},
             "set log level to logging.CRITICAL (minimize logging output)"),
-    init = ({'BaseIPythonApplication' : Config({
+    init = ({'BaseIPythonApplication' : {
                     'copy_config_files' : True,
-                    'auto_create' : True})
+                    'auto_create' : True}
             }, "Initialize profile with default config files")
 )
 
