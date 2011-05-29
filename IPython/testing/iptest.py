@@ -180,7 +180,7 @@ def make_exclude():
     exclusions.append(ipjoin('lib', 'inputhookgtk'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
-    # See ticket https://bugs.launchpad.net/bugs/366982
+    # See ticket https://github.com/ipython/ipython/issues/87
     if sys.platform == 'win32':
         exclusions.append(ipjoin('testing', 'plugin', 'test_exampleip'))
         exclusions.append(ipjoin('testing', 'plugin', 'dtexample'))

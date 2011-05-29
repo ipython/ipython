@@ -1,6 +1,6 @@
 """Minimal script to reproduce our nasty reference counting bug.
 
-The problem is related to https://bugs.launchpad.net/ipython/+bug/269966
+The problem is related to https://github.com/ipython/ipython/issues/141
 
 The original fix for that appeared to work, but John D. Hunter found a
 matplotlib example which, when run twice in a row, would break.  The problem
@@ -9,8 +9,8 @@ were references held by open figures to internals of Tkinter.
 This code reproduces the problem that John saw, without matplotlib.
 
 This script is meant to be called by other parts of the test suite that call it
-via %run as if it were executed interactively by the user.  As of 2009-04-13,
-test_magic.py calls it.
+via %run as if it were executed interactively by the user. As of 2011-05-29,
+test_run.py calls it.
 """
 
 #-----------------------------------------------------------------------------
