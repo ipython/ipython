@@ -25,6 +25,7 @@ import nose.tools as nt
 
 # Our own
 from IPython.core import inputsplitter as isp
+from IPython.testing import tools as tt
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -92,9 +93,7 @@ def test_spaces():
              ('\tx', 1),
              ('\t x', 2),
              ]
-    
-    for s, nsp in tests:
-        nt.assert_equal(isp.num_ini_spaces(s), nsp)
+    tt.check_pairs(isp.num_ini_spaces, tests)
 
 
 def test_remove_comments():
@@ -106,9 +105,19 @@ def test_remove_comments():
              ('line # c \nline#c2  \nline\nline #c\n\n',
               'line \nline\nline\nline \n\n'),
              ]
-
-    for inp, out in tests:
-        nt.assert_equal(isp.remove_comments(inp), out)
+    tt.check_pairs(isp.remove_comments, tests)
+        
+def test_has_comment():
+    tests = [('text', False),
+             ('text #comment', True),
+             ('text #comment\n', True),
+             ('#comment', True),
+             ('#comment\n', True),
+             ('a = "#string"', False),
+             ('a = "#string" # comment', True),
+             ('a #comment not "string"', True),
+             ]
+    tt.check_pairs(isp.has_comment, tests)
 
 
 def test_get_input_encoding():
@@ -445,9 +454,10 @@ syntax = \
         ('%hist?', 'get_ipython().magic(u"pinfo %hist")'),
         ('f*?', 'get_ipython().magic(u"psearch f*")'),
         ('ax.*aspe*?', 'get_ipython().magic(u"psearch ax.*aspe*")'),
-        ('a = abc?', 'get_ipython().magic(u"pinfo abc")'),
-        ('a = abc.qe??', 'get_ipython().magic(u"pinfo2 abc.qe")'),
-        ('a = *.items?', 'get_ipython().magic(u"psearch *.items")'),
+        ('a = abc?', 'get_ipython().magic(u"pinfo abc"); get_ipython().set_next_input(u"a = abc")'),
+        ('a = abc.qe??', 'get_ipython().magic(u"pinfo2 abc.qe"); get_ipython().set_next_input(u"a = abc.qe")'),
+        ('a = *.items?', 'get_ipython().magic(u"psearch *.items"); get_ipython().set_next_input(u"a = *.items")'),
+        ('a*2 #comment?', 'a*2 #comment?'),
         ],
 
        # Explicit magic calls
@@ -513,11 +523,11 @@ syntax_ml = \
 
 
 def test_assign_system():
-    transform_checker(syntax['assign_system'], isp.transform_assign_system)
+    tt.check_pairs(isp.transform_assign_system, syntax['assign_system'])
 
     
 def test_assign_magic():
-    transform_checker(syntax['assign_magic'], isp.transform_assign_magic)
+    tt.check_pairs(isp.transform_assign_magic, syntax['assign_magic'])
 
 
 def test_classic_prompt():
@@ -532,34 +542,34 @@ def test_ipy_prompt():
         transform_checker(example, isp.transform_ipy_prompt)
 
 def test_end_help():
-    transform_checker(syntax['end_help'], isp.transform_help_end)
+    tt.check_pairs(isp.transform_help_end, syntax['end_help'])
 
 def test_escaped_noesc():
-    transform_checker(syntax['escaped_noesc'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_noesc'])
 
 
 def test_escaped_shell():
-    transform_checker(syntax['escaped_shell'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_shell'])
 
 
 def test_escaped_help():
-    transform_checker(syntax['escaped_help'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_help'])
 
 
 def test_escaped_magic():
-    transform_checker(syntax['escaped_magic'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_magic'])
 
 
 def test_escaped_quote():
-    transform_checker(syntax['escaped_quote'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_quote'])
 
 
 def test_escaped_quote2():
-    transform_checker(syntax['escaped_quote2'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_quote2'])
 
 
 def test_escaped_paren():
-    transform_checker(syntax['escaped_paren'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_paren'])
 
 
 class IPythonInputTestCase(InputSplitterTestCase):

@@ -70,6 +70,8 @@ import ast
 import codeop
 import re
 import sys
+import tokenize
+from StringIO import StringIO
 
 # IPython modules
 from IPython.utils.text import make_quoted_expr
@@ -155,6 +157,24 @@ def remove_comments(src):
     """
 
     return re.sub('#.*', '', src)
+    
+def has_comment(src):
+    """Indicate whether an input line has (i.e. ends in, or is) a comment.
+    
+    This uses tokenize, so it can distinguish comments from # inside strings.
+    
+    Parameters
+    ----------
+    src : string
+      A single line input string.
+    
+    Returns
+    -------
+    Boolean: True if source has a comment.
+    """
+    readline = StringIO(src).readline
+    toktypes = set(t[0] for t in tokenize.generate_tokens(readline))
+    return(tokenize.COMMENT in toktypes)
 
 
 def get_input_encoding():
@@ -672,12 +692,19 @@ _help_end_re = re.compile(r"""(%?
 def transform_help_end(line):
     """Translate lines with ?/?? at the end"""
     m = _help_end_re.search(line)
-    if m is None:
+    if m is None or has_comment(line):
         return line
     target = m.group(1)
     esc = m.group(3)
     lspace = _initial_space_re.match(line).group(0)
-    return _make_help_call(target, esc, lspace)
+    newline = _make_help_call(target, esc, lspace)
+    
+    # If we're mid-command, put it back on the next prompt for the user.
+    if line.strip() != m.group(0):
+        newline += "; get_ipython().set_next_input(%s)" % \
+                                        make_quoted_expr(line.rstrip('?'))
+        
+    return newline
 
 
 class EscapedTransformer(object):
