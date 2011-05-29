@@ -408,8 +408,10 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 if cfg is None:
                     raise ArgumentError("Unrecognized flag: %r"%item)
                 elif isinstance(cfg, (dict, Config)):
-                    # update self.config with Config:
-                    self.config.update(cfg)
+                    # don't clobber whole config sections, update
+                    # each section from config:
+                    for sec,c in cfg.iteritems():
+                        self.config[sec].update(c)
                 else:
                     raise ValueError("Invalid flag: %r"%flag)
             else:

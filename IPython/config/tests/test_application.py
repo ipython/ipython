@@ -42,6 +42,7 @@ class Foo(Configurable):
 
 class Bar(Configurable):
 
+    b = Int(0, config=True, help="The integer b.")
     enabled = Bool(True, config=True, help="Enable bar.")
 
 
@@ -94,7 +95,7 @@ class TestApplication(TestCase):
         self.assertEquals(app.foo.j, 10)
         self.assertEquals(app.bar.enabled, False)
 
-    def test_alias(self):
+    def test_flags(self):
         app = MyApp()
         app.parse_command_line(["--disable"])
         app.init_bar()
@@ -103,3 +104,26 @@ class TestApplication(TestCase):
         app.init_bar()
         self.assertEquals(app.bar.enabled, True)
     
+    def test_aliases(self):
+        app = MyApp()
+        app.parse_command_line(["i=5", "j=10"])
+        app.init_foo()
+        self.assertEquals(app.foo.i, 5)
+        app.init_foo()
+        self.assertEquals(app.foo.j, 10)
+    
+    def test_flag_clobber(self):
+        """test that setting flags doesn't clobber existing settings"""
+        app = MyApp()
+        app.parse_command_line(["Bar.b=5", "--disable"])
+        print app.config
+        app.init_bar()
+        self.assertEquals(app.bar.enabled, False)
+        self.assertEquals(app.bar.b, 5)
+        app.parse_command_line(["--enable", "Bar.b=10"])
+        print app.config
+        app.init_bar()
+        self.assertEquals(app.bar.enabled, True)
+        self.assertEquals(app.bar.b, 10)
+    
+
