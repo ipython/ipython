@@ -361,9 +361,6 @@ class InputSplitter(object):
         *line-oriented* frontends, since it means that intermediate blank lines
         are not allowed in function definitions (or any other indented block).
 
-        Block-oriented frontends that have a separate keyboard event to
-        indicate execution should use the :meth:`split_blocks` method instead.
-
         If the current input produces a syntax error, this method immediately
         returns False but does *not* raise the syntax error exception, as
         typically clients will want to send invalid syntax to an execution
