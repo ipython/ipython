@@ -37,7 +37,7 @@ def test_prefilter():
 
 @dec.parametric
 def test_autocall_binops():
-    """See https://bugs.launchpad.net/ipython/+bug/315706"""
+    """See https://github.com/ipython/ipython/issues/81"""
     ip.magic('autocall 2')
     f = lambda x: x
     ip.user_ns['f'] = f

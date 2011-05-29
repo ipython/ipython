@@ -27,7 +27,7 @@ from IPython.testing import tools as tt
 
 def doctest_refbug():
     """Very nasty problem with references held by multiple runs of a script.
-    See: https://bugs.launchpad.net/ipython/+bug/269966
+    See: https://github.com/ipython/ipython/issues/141
 
     In [1]: _ip.clear_main_mod_cache()
     # random
@@ -157,8 +157,6 @@ class TestMagicRunSimple(tt.TempFileMixin):
     def test_obj_del(self):
         """Test that object's __del__ methods are called on exit."""
         
-        # This test is known to fail on win32.
-        # See ticket https://bugs.launchpad.net/bugs/366334
         src = ("class A(object):\n"
                "    def __del__(self):\n"
                "        print 'object A deleted'\n"
