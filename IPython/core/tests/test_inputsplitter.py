@@ -454,9 +454,9 @@ syntax = \
         ('%hist?', 'get_ipython().magic(u"pinfo %hist")'),
         ('f*?', 'get_ipython().magic(u"psearch f*")'),
         ('ax.*aspe*?', 'get_ipython().magic(u"psearch ax.*aspe*")'),
-        ('a = abc?', 'get_ipython().magic(u"pinfo abc"); get_ipython().set_next_input(u"a = abc")'),
-        ('a = abc.qe??', 'get_ipython().magic(u"pinfo2 abc.qe"); get_ipython().set_next_input(u"a = abc.qe")'),
-        ('a = *.items?', 'get_ipython().magic(u"psearch *.items"); get_ipython().set_next_input(u"a = *.items")'),
+        ('a = abc?', 'get_ipython().magic(u"pinfo abc", next_input=u"a = abc")'),
+        ('a = abc.qe??', 'get_ipython().magic(u"pinfo2 abc.qe", next_input=u"a = abc.qe")'),
+        ('a = *.items?', 'get_ipython().magic(u"psearch *.items", next_input=u"a = *.items")'),
         ('a*2 #comment?', 'a*2 #comment?'),
         ],
 

@@ -672,15 +672,18 @@ def transform_ipy_prompt(line):
         return line
 
 
-def _make_help_call(target, esc, lspace):
+def _make_help_call(target, esc, lspace, next_input=None):
     """Prepares a pinfo(2)/psearch call from a target name and the escape
     (i.e. ? or ??)"""
     method  = 'pinfo2' if esc == '??' \
                 else 'psearch' if '*' in target \
                 else 'pinfo'
         
-    tpl = '%sget_ipython().magic(u"%s %s")'
-    return tpl % (lspace, method, target)
+    if next_input:
+        tpl = '%sget_ipython().magic(u"%s %s", next_input=%s)'
+        return tpl % (lspace, method, target, make_quoted_expr(next_input))
+    else:
+        return '%sget_ipython().magic(u"%s %s")' % (lspace, method, target)
 
 _initial_space_re = re.compile(r'\s*')
 _help_end_re = re.compile(r"""(%?
@@ -700,11 +703,9 @@ def transform_help_end(line):
     newline = _make_help_call(target, esc, lspace)
     
     # If we're mid-command, put it back on the next prompt for the user.
-    if line.strip() != m.group(0):
-        newline += "; get_ipython().set_next_input(%s)" % \
-                                        make_quoted_expr(line.rstrip('?'))
+    next_input = line.rstrip('?') if line.strip() != m.group(0) else None
         
-    return newline
+    return _make_help_call(target, esc, lspace, next_input)
 
 
 class EscapedTransformer(object):
