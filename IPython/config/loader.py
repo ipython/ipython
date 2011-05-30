@@ -307,7 +307,7 @@ class CommandLineConfigLoader(ConfigLoader):
     here.
     """
 
-kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.+')
+kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.*')
 flag_pattern = re.compile(r'\-\-\w+(\-\w)*')
 
 class KeyValueConfigLoader(CommandLineConfigLoader):
