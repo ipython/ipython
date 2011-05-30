@@ -165,7 +165,7 @@ class Configurable(HasTraits):
         
         help = trait.get_metadata('help')
         if help is not None:
-            lines.append(indent(help, flatten=True))
+            lines.append(indent(help.strip(), flatten=True))
         if 'Enum' in trait.__class__.__name__:
             # include Enum choices
             lines.append(indent('Choices: %r'%(trait.values,), flatten=True))
