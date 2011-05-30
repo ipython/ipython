@@ -207,7 +207,7 @@ class Application(SingletonConfigurable):
         
         for m, (cfg,help) in self.flags.iteritems():
             lines.append('--'+m)
-            lines.append(indent(help, flatten=True))
+            lines.append(indent(help.strip(), flatten=True))
         lines.append('')
         print '\n'.join(lines)
     
@@ -221,7 +221,7 @@ class Application(SingletonConfigurable):
         for subc, (cls,help) in self.subcommands.iteritems():
             lines.append("%s : %s"%(subc, cls))
             if help:
-                lines.append(indent(help, flatten=True))
+                lines.append(indent(help.strip(), flatten=True))
         lines.append('')
         print '\n'.join(lines)
     
