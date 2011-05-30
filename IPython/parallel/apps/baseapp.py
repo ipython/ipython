@@ -24,7 +24,6 @@ import sys
 
 from subprocess import Popen, PIPE
 
-from IPython.config.loader import Config
 from IPython.core import release
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.newapplication import (
@@ -100,9 +99,10 @@ base_aliases.update({
 })
 
 base_flags = {
-    'log-to-file' : ({'BaseParallelApplication' : Config({
-                    'log_to_file' : True}),
-            }, "send log output to a file")
+    'log-to-file' : (
+        {'BaseParallelApplication' : {'log_to_file' : True}},
+        "send log output to a file"
+    )
 }
 base_flags.update(base_ip_flags)
 
