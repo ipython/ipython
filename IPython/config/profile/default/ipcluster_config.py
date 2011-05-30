@@ -23,8 +23,8 @@ c = get_config()
 # - PBSControllerLauncher
 # - SGEControllerLauncher
 # - WindowsHPCControllerLauncher
-# c.Global.controller_launcher = 'IPython.parallel.apps.launcher.LocalControllerLauncher'
-# c.Global.controller_launcher = 'IPython.parallel.apps.launcher.PBSControllerLauncher'
+# c.IPClusterStartApp.controller_launcher = 'IPython.parallel.apps.launcher.LocalControllerLauncher'
+# c.IPClusterStartApp.controller_launcher = 'IPython.parallel.apps.launcher.PBSControllerLauncher'
 
 # Options are:
 # - LocalEngineSetLauncher
@@ -32,25 +32,25 @@ c = get_config()
 # - PBSEngineSetLauncher
 # - SGEEngineSetLauncher
 # - WindowsHPCEngineSetLauncher
-# c.Global.engine_launcher = 'IPython.parallel.apps.launcher.LocalEngineSetLauncher'
+# c.IPClusterEnginesApp.engine_launcher = 'IPython.parallel.apps.launcher.LocalEngineSetLauncher'
 
 #-----------------------------------------------------------------------------
-# Global configuration
+# Application configuration
 #-----------------------------------------------------------------------------
 
 # The default number of engines that will be started. This is overridden by
 # the -n command line option: "ipcluster start -n 4"
-# c.Global.n = 2
+# c.IPClusterEnginesApp.n = 2
 
 # Log to a file in cluster_dir/log, otherwise just log to sys.stdout.
-# c.Global.log_to_file = False
+# c.BaseParallelApp.log_to_file = False
 
 # Remove old logs from cluster_dir/log before starting.
-# c.Global.clean_logs = True
+# c.BaseParallelApp.clean_logs = True
 
 # The working directory for the process. The application will use os.chdir
 # to change to this directory before starting.
-# c.Global.work_dir = os.getcwd()
+# c.BaseParallelApp.work_dir = os.getcwd()
 
 
 #-----------------------------------------------------------------------------
