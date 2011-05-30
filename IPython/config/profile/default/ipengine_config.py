@@ -1,24 +1,25 @@
 c = get_config()
 
 #-----------------------------------------------------------------------------
-# Global configuration
+# Application configuration
 #-----------------------------------------------------------------------------
+app = c.IPEngineApp
 
 # Start up messages are logged to stdout using the logging module.
 # These all happen before the twisted reactor is started and are
 # useful for debugging purposes. Can be (10=DEBUG,20=INFO,30=WARN,40=CRITICAL) 
 # and smaller is more verbose.
-# c.Global.log_level = 20
+# app.log_level = 20
 
 # Log to a file in cluster_dir/log, otherwise just log to sys.stdout.
-# c.Global.log_to_file = False
+# app.log_to_file = False
 
 # Remove old logs from cluster_dir/log before starting.
-# c.Global.clean_logs = True
+# app.clean_logs = True
 
 # A list of strings that will be executed in the users namespace on the engine
 # before it connects to the controller.
-# c.Global.exec_lines = ['import numpy']
+# app.exec_lines = ['import numpy']
 
 # The engine will try to connect to the controller multiple times, to allow
 # the controller time to startup and write its FURL file. These parameters 
@@ -26,17 +27,17 @@ c = get_config()
 # (connect_delay) between attemps. The actual delay between attempts gets
 # longer each time by a factor of 1.5 (delay[i] = 1.5*delay[i-1])
 # those attemps.
-# c.Global.connect_delay = 0.1
-# c.Global.connect_max_tries = 15
+# app.connect_delay = 0.1
+# app.connect_max_tries = 15
 
 # By default, the engine will look for the controller's JSON file in its own
 # cluster directory. Sometimes, the JSON file will be elsewhere and this 
 # attribute can be set to the full path of the JSON file.
-# c.Global.url_file = u'/path/to/my/ipcontroller-engine.json'
+# app.url_file = u'/path/to/my/ipcontroller-engine.json'
 
 # The working directory for the process. The application will use os.chdir
 # to change to this directory before starting.
-# c.Global.work_dir = os.getcwd()
+# app.work_dir = os.getcwd()
 
 #-----------------------------------------------------------------------------
 # MPI configuration
@@ -78,7 +79,7 @@ c = get_config()
 
 # You should not have to change these attributes.
 
-# c.Global.url_file_name = u'ipcontroller-engine.furl'
+# app.url_file_name = u'ipcontroller-engine.furl'
 
 
 
