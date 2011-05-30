@@ -217,9 +217,12 @@ def main():
         if args.pure:
             kwargs['ipython']=False
         else:
-            kwargs['colors']=colors
+            extra = []
+            if colors:
+                extra.append("colors=%s"%colors)
             if args.pylab:
-                kwargs['pylab']=args.pylab
+                extra.append("pylab=%s"%args.pylab)
+            kwargs['extra_arguments'] = extra
 
         kernel_manager.start_kernel(**kwargs)
     kernel_manager.start_channels()

@@ -759,8 +759,8 @@ class KernelManager(HasTraits):
         else:
             from pykernel import launch_kernel
         self.kernel, xrep, pub, req, _hb = launch_kernel(
-            xrep_port=xreq[1], pub_port=sub[1], 
-            req_port=rep[1], hb_port=hb[1], **kw)
+            shell_port=xreq[1], iopub_port=sub[1],
+            stdin_port=rep[1], hb_port=hb[1], **kw)
         self.xreq_address = (xreq[0], xrep)
         self.sub_address = (sub[0], pub)
         self.rep_address = (rep[0], req)
