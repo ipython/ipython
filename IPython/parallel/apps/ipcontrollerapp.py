@@ -30,7 +30,6 @@ from zmq.devices import ProcessMonitoredQueue
 from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
-from IPython.config.loader import Config
 from IPython.core.newapplication import ProfileDir
 
 from IPython.parallel.apps.baseapp import (
@@ -89,13 +88,13 @@ flags.update(base_flags)
 flags.update({
     'usethreads' : ( {'IPControllerApp' : {'use_threads' : True}},
                     'Use threads instead of processes for the schedulers'),
-    'sqlitedb' : ({'HubFactory' : Config({'db_class' : 'IPython.parallel.controller.sqlitedb.SQLiteDB'})},
+    'sqlitedb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.sqlitedb.SQLiteDB'}},
                     'use the SQLiteDB backend'),
-    'mongodb' : ({'HubFactory' : Config({'db_class' : 'IPython.parallel.controller.mongodb.MongoDB'})},
+    'mongodb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.mongodb.MongoDB'}},
                     'use the MongoDB backend'),
-    'dictdb' : ({'HubFactory' : Config({'db_class' : 'IPython.parallel.controller.dictdb.DictDB'})},
+    'dictdb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.dictdb.DictDB'}},
                     'use the in-memory DictDB backend'),
-    'reuse' : ({'IPControllerApp' : Config({'reuse_files' : True})},
+    'reuse' : ({'IPControllerApp' : {'reuse_files' : True}},
                     'reuse existing json connection files')
 })
 
