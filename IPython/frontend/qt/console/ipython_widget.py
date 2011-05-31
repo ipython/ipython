@@ -217,12 +217,12 @@ class IPythonWidget(FrontendWidget):
             # representation.
             if data.has_key('text/html'):
                 html = data['text/html']
-                self._append_html(html, before_prompt=True)
+                self._append_html(html, True)
             elif data.has_key('text/plain'):
                 text = data['text/plain']
-                self._append_plain_text(text, before_prompt=True)
+                self._append_plain_text(text, True)
             # This newline seems to be needed for text and html output.
-            self._append_plain_text(u'\n', before_prompt=True)
+            self._append_plain_text(u'\n', True)
 
     def _started_channels(self):
         """ Reimplemented to make a history request.
