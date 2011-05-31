@@ -372,14 +372,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle display hook output.
         """
         if not self._hidden and self._is_from_this_session(msg):
-            data = msg['content']['data']
-            if isinstance(data, basestring):
-                # plaintext data from pure Python kernel
-                text = data
-            else:
-                # formatted output from DisplayFormatter (IPython kernel)
-                text = data.get('text/plain', '')
-            self._append_plain_text(text + '\n')
+            text = msg['content']['data']
+            self._append_plain_text(text + '\n', before_prompt=True)
 
     def _handle_stream(self, msg):
         """ Handle stdout, stderr, and stdin.
@@ -390,7 +384,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # widget's tab width.
             text = msg['content']['data'].expandtabs(8)
             
-            self._append_plain_text(text)
+            self._append_plain_text(text, before_prompt=True)
             self._control.moveCursor(QtGui.QTextCursor.End)
 
     def _handle_shutdown_reply(self, msg):

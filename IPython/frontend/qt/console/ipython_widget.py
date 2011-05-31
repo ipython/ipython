@@ -62,16 +62,16 @@ class IPythonWidget(FrontendWidget):
     editor = Unicode(default_editor, config=True,
         help="""
         A command for invoking a system text editor. If the string contains a
-        {filename} format specifier, it will be used. Otherwise, the filename will
-        be appended to the end the command.
+        {filename} format specifier, it will be used. Otherwise, the filename
+        will be appended to the end the command.
         """)
 
     editor_line = Unicode(config=True,
         help="""
         The editor command to use when a specific line number is requested. The
         string should contain two format specifiers: {line} and {filename}. If
-        this parameter is not specified, the line number option to the %edit magic
-        will be ignored.
+        this parameter is not specified, the line number option to the %edit
+        magic will be ignored.
         """)
 
     style_sheet = Unicode(config=True,
@@ -85,8 +85,9 @@ class IPythonWidget(FrontendWidget):
 
     syntax_style = Str(config=True,
         help="""
-        If not empty, use this Pygments style for syntax highlighting. Otherwise,
-        the style sheet is queried for Pygments style information.
+        If not empty, use this Pygments style for syntax highlighting.
+        Otherwise, the style sheet is queried for Pygments style
+        information.
         """)
 
     # Prompts.
@@ -187,20 +188,20 @@ class IPythonWidget(FrontendWidget):
             prompt_number = content['execution_count']
             data = content['data']
             if data.has_key('text/html'):
-                self._append_plain_text(self.output_sep)
-                self._append_html(self._make_out_prompt(prompt_number))
+                self._append_plain_text(self.output_sep, True)
+                self._append_html(self._make_out_prompt(prompt_number), True)
                 html = data['text/html']
-                self._append_plain_text('\n')
-                self._append_html(html + self.output_sep2)
+                self._append_plain_text('\n', True)
+                self._append_html(html + self.output_sep2, True)
             elif data.has_key('text/plain'):
-                self._append_plain_text(self.output_sep)
-                self._append_html(self._make_out_prompt(prompt_number))
+                self._append_plain_text(self.output_sep, True)
+                self._append_html(self._make_out_prompt(prompt_number), True)
                 text = data['text/plain']
                 # If the repr is multiline, make sure we start on a new line,
                 # so that its lines are aligned.
                 if "\n" in text and not self.output_sep.endswith("\n"):
-                    self._append_plain_text('\n')
-                self._append_plain_text(text + self.output_sep2)
+                    self._append_plain_text('\n', True)
+                self._append_plain_text(text + self.output_sep2, True)
 
     def _handle_display_data(self, msg):
         """ The base handler for the ``display_data`` message.
@@ -216,19 +217,19 @@ class IPythonWidget(FrontendWidget):
             # representation.
             if data.has_key('text/html'):
                 html = data['text/html']
-                self._append_html(html)
+                self._append_html(html, before_prompt=True)
             elif data.has_key('text/plain'):
                 text = data['text/plain']
-                self._append_plain_text(text)
+                self._append_plain_text(text, before_prompt=True)
             # This newline seems to be needed for text and html output.
-            self._append_plain_text(u'\n')
+            self._append_plain_text(u'\n', before_prompt=True)
 
     def _started_channels(self):
         """ Reimplemented to make a history request.
         """
         super(IPythonWidget, self)._started_channels()
-        self.kernel_manager.shell_channel.history(hist_access_type='tail', n=1000)
-
+        self.kernel_manager.shell_channel.history(hist_access_type='tail',
+                                                  n=1000)
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
@@ -413,8 +414,8 @@ class IPythonWidget(FrontendWidget):
             self.custom_edit_requested.emit(filename, line)
         elif not self.editor:
             self._append_plain_text('No default editor available.\n'
-            'Specify a GUI text editor in the `IPythonWidget.editor` configurable\n'
-            'to enable the %edit magic')
+            'Specify a GUI text editor in the `IPythonWidget.editor` '
+            'configurable to enable the %edit magic')
         else:
             try:
                 filename = '"%s"' % filename
