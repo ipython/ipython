@@ -240,6 +240,7 @@ def embed(**kwargs):
     if config is None:
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
+        kwargs['config'] = config
     global _embedded_shell
     if _embedded_shell is None:
         _embedded_shell = InteractiveShellEmbed(**kwargs)
