@@ -21,6 +21,9 @@ def save_svg(string, parent=None):
     The name of the file to which the document was saved, or None if the save
     was cancelled.
     """
+    if isinstance(string, unicode):
+        string = string.encode('utf-8')
+
     dialog = QtGui.QFileDialog(parent, 'Save SVG Document')
     dialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
     dialog.setDefaultSuffix('svg')
@@ -29,7 +32,7 @@ def save_svg(string, parent=None):
         filename = dialog.selectedFiles()[0]
         f = open(filename, 'w')
         try:
-            f.write(string.encode('UTF-8'))
+            f.write(string)
         finally:
             f.close()
         return filename
