@@ -93,7 +93,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         help="""The font family to use for the console.
         On OSX this defaults to Monaco, on Windows the default is
         Consolas with fallback of Courier, and on other platforms
-        the default is Inconsolata with fallback of Monospace
+        the default is Monospace.
         """)
     def _font_family_default(self):
         if sys.platform == 'win32':
@@ -103,8 +103,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             # OSX always has Monaco, no need for a fallback
             return 'Monaco'
         else:
-            # A popular free mono font, will fallback to Monospace
-            return 'Anonymous Pro'
+            # Monospace should always exist, no need for a fallback
+            return 'Monospace'
 
     font_size = Int(config=True,
         help="""The font size. If unconfigured, Qt will be entrusted
@@ -624,8 +624,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             # OSX always has Monaco
             fallback = 'Monaco'
         else:
-            # FIXME: remove Consolas as a default on Linux once our font
-            # selections are configurable by the user.
+            # Monospace should always exist
             fallback = 'Monospace'
         font = get_font(self.font_family, fallback)
         if self.font_size:
