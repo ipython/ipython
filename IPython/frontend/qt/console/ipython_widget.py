@@ -222,7 +222,7 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to make a history request.
         """
         super(IPythonWidget, self)._started_channels()
-        self.kernel_manager.xreq_channel.history(hist_access_type='tail', n=1000)
+        self.kernel_manager.shell_channel.history(hist_access_type='tail', n=1000)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
@@ -264,7 +264,7 @@ class IPythonWidget(FrontendWidget):
         text = ''
         
         # Send the completion request to the kernel
-        msg_id = self.kernel_manager.xreq_channel.complete(
+        msg_id = self.kernel_manager.shell_channel.complete(
             text,                                    # text
             self._get_input_buffer_cursor_line(),    # line
             self._get_input_buffer_cursor_column(),  # cursor_pos
@@ -315,7 +315,7 @@ class IPythonWidget(FrontendWidget):
         """
         # If a number was not specified, make a prompt number request.
         if number is None:
-            msg_id = self.kernel_manager.xreq_channel.execute('', silent=True)
+            msg_id = self.kernel_manager.shell_channel.execute('', silent=True)
             info = self._ExecutionRequest(msg_id, 'prompt')
             self._request_info['execute'] = info
             return
