@@ -988,6 +988,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 intercepted = True
 
             elif key in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
+                if key == QtCore.Qt.Key_Backspace:
+                    cursor = self._get_word_start_cursor(position)
+                else: # key == QtCore.Qt.Key_Delete
+                    cursor = self._get_word_end_cursor(position)
+                cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
+                self._kill_ring.kill_cursor(cursor)
                 intercepted = True
 
             elif key in (QtCore.Qt.Key_Plus, QtCore.Qt.Key_Equal):
