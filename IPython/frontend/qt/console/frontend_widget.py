@@ -13,7 +13,7 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
 from IPython.core.oinspect import call_tip
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
-from IPython.utils.traitlets import Bool
+from IPython.utils.traitlets import Bool, Instance
 from bracket_matcher import BracketMatcher
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
@@ -106,6 +106,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     _ExecutionRequest = namedtuple('_ExecutionRequest', ['id', 'kind'])
     _input_splitter_class = InputSplitter
     _local_kernel = False
+    _highlighter = Instance(FrontendHighlighter)
 
     #---------------------------------------------------------------------------
     # 'object' interface
