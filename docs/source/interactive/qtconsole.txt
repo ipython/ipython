@@ -59,16 +59,16 @@ input and the drawing eventloop.
 ****************
 
 An additional function, :func:`pastefig`, will be added to the global namespace if you
-specify the ``--pylab`` argument. This takes the active figures in matplotlib, and embeds
+specify the ``pylab`` argument. This takes the active figures in matplotlib, and embeds
 them in your document. This is especially useful for saving_ your work.
 
 .. _inline:
 
-``--pylab inline``
+``pylab=inline``
 ******************
 
 If you want to have all of your figures embedded in your session, instead of calling
-:func:`pastefig`, you can specify ``--pylab inline``, and each time you make a plot, it
+:func:`pastefig`, you can specify ``pylab=inline``, and each time you make a plot, it
 will show up in your document, as if you had called :func:`pastefig`.
 
 
@@ -89,8 +89,8 @@ context menu.
 
 .. Note:: 
 
-    Saving is only available to richtext Qt widgets, so make sure you start ipqt with the
-    ``--rich`` flag, or with ``--pylab``, which always uses a richtext widget.
+    Saving is only available to richtext Qt widgets, which are used by default, but
+    if you pass the ``--plain`` flag, saving will not be available to you.
 
 
 See these examples of :download:`png/html<figs/jn.html>` and :download:`svg/xhtml
@@ -101,23 +101,22 @@ Colors and Highlighting
 =======================
 
 Terminal IPython has always had some coloring, but never syntax highlighting. There are a
-few simple color choices, specified by the ``--colors`` flag or ``%colors`` magic:
+few simple color choices, specified by the ``colors`` flag or ``%colors`` magic:
 
 * LightBG for light backgrounds
 * Linux for dark backgrounds
 * NoColor for a simple colorless terminal
 
-The Qt widget has full support for the ``--colors`` flag, but adds new, more intuitive
-aliases for the colors (the old names still work): dark=Linux, light=LightBG, bw=NoColor.
+The Qt widget has full support for the ``colors`` flag used in the terminal shell.
 
 The Qt widget, however, has full syntax highlighting as you type, handled by the
-`pygments`_ library. The ``--style`` argument exposes access to any style by name that can
-be found by pygments, and there are several already installed. The ``--colors`` argument,
+`pygments`_ library. The ``style`` argument exposes access to any style by name that can
+be found by pygments, and there are several already installed. The ``colors`` argument,
 if unspecified, will be guessed based on the chosen style. Similarly, there are default
-styles associated with each ``--colors`` option.
+styles associated with each ``colors`` option.
 
 
-Screenshot of ``ipython-qtconsole --colors dark``, which uses the 'monokai' theme by
+Screenshot of ``ipython-qtconsole colors=linux``, which uses the 'monokai' theme by
 default:
 
 .. image:: figs/colors_dark.png
@@ -129,7 +128,7 @@ default:
     on your system.
 
 You can also pass the filename of a custom CSS stylesheet, if you want to do your own
-coloring, via the ``--stylesheet`` argument.  The default LightBG stylesheet:
+coloring, via the ``stylesheet`` argument.  The default LightBG stylesheet:
 
 .. sourcecode:: css
 
@@ -141,6 +140,14 @@ coloring, via the ``--stylesheet`` argument.  The default LightBG stylesheet:
     .in-prompt-number { font-weight: bold; }
     .out-prompt { color: darkred; }
     .out-prompt-number { font-weight: bold; }
+
+Fonts
+=====
+
+The QtConsole has configurable via the ConsoleWidget. To change these, set the ``font_family``
+or ``font_size`` traits of the ConsoleWidget. For instance, to use 9pt Anonymous Pro::
+
+    $> ipython-qtconsole ConsoleWidget.font_family="Anonymous Pro" ConsoleWidget.font_size=9
 
 Process Management
 ==================
@@ -160,7 +167,7 @@ do not have to all be qt frontends - any IPython frontend can connect and run co
 When you start ipython-qtconsole, there will be an output line, like::
 
     To connect another client to this kernel, use:
-    -e --xreq 62109 --sub 62110 --rep 62111 --hb 62112
+    --external shell=62109 iopub=62110 stdin=62111 hb=62112
 
 Other frontends can connect to your kernel, and share in the execution. This is great for
 collaboration. The `-e` flag is for 'external'. Starting other consoles with that flag
@@ -169,9 +176,9 @@ have to specify each port individually, but for now this copy-paste method is be
 
 By default (for security reasons), the kernel only listens on localhost, so you can only
 connect multiple frontends to the kernel from your local machine. You can specify to
-listen on an external interface by specifying the ``--ip`` argument::
+listen on an external interface by specifying the ``ip`` argument::
 
-    $> ipython-qtconsole --ip 192.168.1.123
+    $> ipython-qtconsole ip=192.168.1.123
 
 If you specify the ip as 0.0.0.0, that refers to all interfaces, so any computer that can
 see yours can connect to the kernel.
@@ -208,10 +215,6 @@ Regressions
 There are some features, where the qt console lags behind the Terminal frontend. We hope
 to have these fixed by 0.11 release.
 
-    * Configuration: The Qt frontend and ZMQ kernel are not yet hooked up to the IPython
-      configuration system
-    * History Persistence: Currently the history of a GUI session does
-      not persist between sessions.
     * !cmd input: Due to our use of pexpect, we cannot pass input to subprocesses launched
       using the '!' escape. (this will not be fixed).
 

@@ -222,7 +222,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     pure = Bool(False, config=True,
         help="Use a pure Python kernel instead of an IPython kernel.")
     plain = Bool(False, config=True,
-        help="Use a pure Python kernel instead of an IPython kernel.")
+        help="Use a plaintext widget instead of rich text (plain can't print/save).")
 
     def _pure_changed(self, name, old, new):
         kind = 'plain' if self.plain else 'rich'
