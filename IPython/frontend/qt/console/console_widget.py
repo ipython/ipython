@@ -19,7 +19,7 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.config.configurable import Configurable
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
-from IPython.utils.traitlets import Bool, Enum, Int
+from IPython.utils.traitlets import Bool, Enum, Int, Unicode
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 from kill_ring import QtKillRing
@@ -87,6 +87,28 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             'custom' : No action is taken by the widget beyond emitting a
             :          'custom_page_requested(str)' signal.
             'none'   : The text is written directly to the console.
+        """)
+
+    font_family = Unicode(config=True,
+        help="""The font family to use for the console.
+        On OSX this defaults to Monaco, on Windows the default is
+        Consolas with fallback of Courier, and on other platforms
+        the default is Inconsolata with fallback of Monospace
+        """)
+    def _font_family_default(self):
+        if sys.platform == 'win32':
+            # Consolas ships with Vista/Win7, fallback to Courier if needed
+            return 'Consolas'
+        elif sys.platform == 'darwin':
+            # OSX always has Monaco, no need for a fallback
+            return 'Monaco'
+        else:
+            # A popular free mono font, will fallback to Monospace
+            return 'Anonymous Pro'
+
+    font_size = Int(config=True,
+        help="""The font size. If unconfigured, Qt will be entrusted
+        with the size of the font.
         """)
 
     # Whether to override ShortcutEvents for the keybindings defined by this
@@ -597,16 +619,19 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         if sys.platform == 'win32':
             # Consolas ships with Vista/Win7, fallback to Courier if needed
-            family, fallback = 'Consolas', 'Courier'
+            fallback = 'Courier'
         elif sys.platform == 'darwin':
-            # OSX always has Monaco, no need for a fallback
-            family, fallback = 'Monaco', None
+            # OSX always has Monaco
+            fallback = 'Monaco'
         else:
             # FIXME: remove Consolas as a default on Linux once our font
             # selections are configurable by the user.
-            family, fallback = 'Consolas', 'Monospace'
-        font = get_font(family, fallback)
-        font.setPointSize(QtGui.qApp.font().pointSize())
+            fallback = 'Monospace'
+        font = get_font(self.font_family, fallback)
+        if self.font_size:
+            font.setPointSize(self.font_size)
+        else:
+            font.setPointSize(QtGui.qApp.font().pointSize())
         font.setStyleHint(QtGui.QFont.TypeWriter)
         self._set_font(font)
 
