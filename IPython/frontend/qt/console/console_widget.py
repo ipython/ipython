@@ -990,7 +990,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             elif key in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
                 intercepted = True
 
-            elif key == QtCore.Qt.Key_Plus:
+            elif key in (QtCore.Qt.Key_Plus, QtCore.Qt.Key_Equal):
                 self.change_font_size(1)
                 intercepted = True
 
