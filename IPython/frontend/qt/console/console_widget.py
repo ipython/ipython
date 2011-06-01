@@ -998,6 +998,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                 self.change_font_size(-1)
                 intercepted = True
 
+            elif key == QtCore.Qt.Key_0:
+                self.reset_font()
+                intercepted = True
+
         #------ Alt modifier ---------------------------------------------------
 
         elif alt_down:
