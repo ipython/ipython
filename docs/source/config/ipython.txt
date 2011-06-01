@@ -33,25 +33,25 @@ Assuming that your configuration file has the following at the top::
 
 the following attributes can be set in the ``Global`` section.
 
-:attr:`c.Global.display_banner`
+:attr:`c.IPythonApp.display_banner`
     A boolean that determined if the banner is printer when :command:`ipython`
     is started.
 
-:attr:`c.Global.classic`
+:attr:`c.IPythonApp.classic`
     A boolean that determines if IPython starts in "classic" mode.  In this
     mode, the prompts and everything mimic that of the normal :command:`python`
     shell
 
-:attr:`c.Global.nosep`
+:attr:`c.IPythonApp.nosep`
     A boolean that determines if there should be no blank lines between
     prompts.
 
-:attr:`c.Global.log_level`
+:attr:`c.IPythonApp.log_level`
     An integer that sets the detail of the logging level during the startup
     of :command:`ipython`.  The default is 30 and the possible values are
     (0, 10, 20, 30, 40, 50).  Higher is quieter and lower is more verbose.
 
-:attr:`c.Global.extensions`
+:attr:`c.IPythonApp.extensions`
     A list of strings, each of which is an importable IPython extension. An
     IPython extension is a regular Python module or package that has a
     :func:`load_ipython_extension(ip)` method. This method gets called when
@@ -66,12 +66,12 @@ the following attributes can be set in the ``Global`` section.
     :func:`unload_ipython_extension` that will be called when the extension is
     unloaded.
 
-:attr:`c.Global.exec_lines`
+:attr:`c.IPythonApp.exec_lines`
     A list of strings, each of which is Python code that is run in the user's
     namespace after IPython start. These lines can contain full IPython syntax
     with magics, etc.
 
-:attr:`c.Global.exec_files`
+:attr:`c.IPythonApp.exec_files`
     A list of strings, each of which is the full pathname of a ``.py`` or
     ``.ipy`` file that will be executed as IPython starts. These files are run
     in IPython in the user's namespace. Files with a ``.py`` extension need to
@@ -105,16 +105,16 @@ attributes::
     # sample ipython_config.py
     c = get_config()
 
-    c.Global.display_banner = True
-    c.Global.log_level = 20
-    c.Global.extensions = [
+    c.IPythonApp.display_banner = True
+    c.IPythonApp.log_level = 20
+    c.IPythonApp.extensions = [
         'myextension'
     ]
-    c.Global.exec_lines = [
+    c.IPythonApp.exec_lines = [
         'import numpy',
         'import scipy'
     ]
-    c.Global.exec_files = [
+    c.IPythonApp.exec_files = [
         'mycode.py',
         'fancy.ipy'
     ]

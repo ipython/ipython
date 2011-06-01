@@ -245,7 +245,7 @@ So where should you put your configuration files?  By default, all IPython
 applications look in the so called "IPython directory".  The location of
 this directory is determined by the following algorithm:
 
-* If the ``--ipython-dir`` command line flag is given, its value is used.
+* If the ``ipython_dir`` command line flag is given, its value is used.
 
 * If not, the value returned by :func:`IPython.utils.path.get_ipython_dir`
   is used. This function will first look at the :envvar:`IPYTHON_DIR`
@@ -267,7 +267,7 @@ Once the location of the IPython directory has been determined, you need to
 know what filename to use for the configuration file. The basic idea is that
 each application has its own default configuration filename. The default named
 used by the :command:`ipython` command line program is
-:file:`ipython_config.py`.  This value can be overriden by the ``-config_file``
+:file:`ipython_config.py`.  This value can be overriden by the ``config_file``
 command line flag.  A sample :file:`ipython_config.py` file can be found
 in :mod:`IPython.config.default.ipython_config.py`.  Simple copy it to your
 IPython directory to begin using it.
@@ -288,7 +288,7 @@ Let's start by showing how a profile is used:
 
 .. code-block:: bash
 
-    $ ipython -p sympy
+    $ ipython profile=sympy
 
 This tells the :command:`ipython` command line program to get its
 configuration from the "sympy" profile. The search path for profiles is the
@@ -296,9 +296,9 @@ same as that of regular configuration files. The only difference is that
 profiles are named in a special way. In the case above, the "sympy" profile
 would need to have the name :file:`ipython_config_sympy.py`.
 
-The general pattern is this: simply add ``_profilename`` to the end of the
-normal configuration file name. Then load the profile by adding ``-p
-profilename`` to your command line options.
+The general pattern is this: simply add ``<profilename>`` to the end of the
+normal configuration file name. Then load the profile by adding 
+``profile=<profilename>`` to your command line options.
 
 IPython ships with some sample profiles in :mod:`IPython.config.profile`.
 Simply copy these to your IPython directory to begin using them.
