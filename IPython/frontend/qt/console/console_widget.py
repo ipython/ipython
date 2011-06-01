@@ -598,7 +598,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """Change the font size by the specified amount (in points).
         """
         font = self.font
-        font.setPointSize(font.pointSize() + delta)
+        size = max(font.pointSize() + delta, 1) # minimum 1 point
+        font.setPointSize(size)
         self._set_font(font)
 
     def select_all(self):
@@ -989,12 +990,16 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             elif key in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
                 intercepted = True
 
-            elif key == QtCore.Qt.Key_Plus:
+            elif key in (QtCore.Qt.Key_Plus, QtCore.Qt.Key_Equal):
                 self.change_font_size(1)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Minus:
                 self.change_font_size(-1)
+                intercepted = True
+
+            elif key == QtCore.Qt.Key_0:
+                self.reset_font()
                 intercepted = True
 
         #------ Alt modifier ---------------------------------------------------
