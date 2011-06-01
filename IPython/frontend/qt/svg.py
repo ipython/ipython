@@ -29,7 +29,7 @@ def save_svg(string, parent=None):
         filename = dialog.selectedFiles()[0]
         f = open(filename, 'w')
         try:
-            f.write(string)
+            f.write(string.encode('UTF-8'))
         finally:
             f.close()
         return filename
