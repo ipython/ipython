@@ -324,7 +324,7 @@ made a profile for my project (which is called "parkfield")::
 
 I also added a shell alias for convenience::
 
-    alias parkfield="ipython -pylab -profile parkfield" 
+    alias parkfield="ipython --pylab profile=parkfield" 
 
 Now I have a nice little directory with everything I ever type in,
 organized by project and date.
