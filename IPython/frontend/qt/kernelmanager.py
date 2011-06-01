@@ -7,7 +7,7 @@ from IPython.external.qt import QtCore
 # IPython imports.
 from IPython.utils.traitlets import Type
 from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
-    XReqSocketChannel, RepSocketChannel, HBSocketChannel
+    ShellSocketChannel, StdInSocketChannel, HBSocketChannel
 from util import MetaQObjectHasTraits, SuperQObject
 
 
@@ -20,7 +20,7 @@ class SocketChannelQObject(SuperQObject):
     stopped = QtCore.Signal()
 
     #---------------------------------------------------------------------------
-    # 'ZmqSocketChannel' interface
+    # 'ZMQSocketChannel' interface
     #---------------------------------------------------------------------------
 
     def start(self):
@@ -36,7 +36,7 @@ class SocketChannelQObject(SuperQObject):
         self.stopped.emit()
 
 
-class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
+class QtShellSocketChannel(SocketChannelQObject, ShellSocketChannel):
 
     # Emitted when any message is received.
     message_received = QtCore.Signal(object)
@@ -56,7 +56,7 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
     _handlers_called = False
 
     #---------------------------------------------------------------------------
-    # 'XReqSocketChannel' interface
+    # 'ShellSocketChannel' interface
     #---------------------------------------------------------------------------
     
     def call_handlers(self, msg):
@@ -76,7 +76,7 @@ class QtXReqSocketChannel(SocketChannelQObject, XReqSocketChannel):
             self._handlers_called = True
 
     #---------------------------------------------------------------------------
-    # 'QtXReqSocketChannel' interface
+    # 'QtShellSocketChannel' interface
     #---------------------------------------------------------------------------
 
     def reset_first_reply(self):
@@ -136,7 +136,7 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
         QtCore.QCoreApplication.instance().processEvents()
 
 
-class QtRepSocketChannel(SocketChannelQObject, RepSocketChannel):
+class QtStdInSocketChannel(SocketChannelQObject, StdInSocketChannel):
 
     # Emitted when any message is received.
     message_received = QtCore.Signal(object)
@@ -145,7 +145,7 @@ class QtRepSocketChannel(SocketChannelQObject, RepSocketChannel):
     input_requested = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
-    # 'RepSocketChannel' interface
+    # 'StdInSocketChannel' interface
     #---------------------------------------------------------------------------
 
     def call_handlers(self, msg):
@@ -190,8 +190,8 @@ class QtKernelManager(KernelManager, SuperQObject):
 
     # Use Qt-specific channel classes that emit signals.
     sub_channel_class = Type(QtSubSocketChannel)
-    xreq_channel_class = Type(QtXReqSocketChannel)
-    rep_channel_class = Type(QtRepSocketChannel)
+    shell_channel_class = Type(QtShellSocketChannel)
+    stdin_channel_class = Type(QtStdInSocketChannel)
     hb_channel_class = Type(QtHBSocketChannel)
 
     #---------------------------------------------------------------------------
@@ -203,8 +203,8 @@ class QtKernelManager(KernelManager, SuperQObject):
     def start_kernel(self, *args, **kw):
         """ Reimplemented for proper heartbeat management.
         """
-        if self._xreq_channel is not None:
-            self._xreq_channel.reset_first_reply()
+        if self._shell_channel is not None:
+            self._shell_channel.reset_first_reply()
         super(QtKernelManager, self).start_kernel(*args, **kw)
 
     #------ Channel management -------------------------------------------------
@@ -222,13 +222,13 @@ class QtKernelManager(KernelManager, SuperQObject):
         self.stopped_channels.emit()
 
     @property
-    def xreq_channel(self):
+    def shell_channel(self):
         """ Reimplemented for proper heartbeat management.
         """
-        if self._xreq_channel is None:
-            self._xreq_channel = super(QtKernelManager, self).xreq_channel
-            self._xreq_channel.first_reply.connect(self._first_reply)
-        return self._xreq_channel
+        if self._shell_channel is None:
+            self._shell_channel = super(QtKernelManager, self).shell_channel
+            self._shell_channel.first_reply.connect(self._first_reply)
+        return self._shell_channel
 
     #---------------------------------------------------------------------------
     # Protected interface

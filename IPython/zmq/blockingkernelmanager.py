@@ -21,8 +21,8 @@ from Queue import Queue, Empty
 from IPython.utils import io
 from IPython.utils.traitlets import Type
 
-from .kernelmanager import (KernelManager, SubSocketChannel, 
-                           XReqSocketChannel, RepSocketChannel, HBSocketChannel)
+from .kernelmanager import (KernelManager, SubSocketChannel, HBSocketChannel,
+                           ShellSocketChannel, StdInSocketChannel)
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -61,15 +61,15 @@ class BlockingSubSocketChannel(SubSocketChannel):
         return msgs
 
 
-class BlockingXReqSocketChannel(XReqSocketChannel):
+class BlockingShellSocketChannel(ShellSocketChannel):
 
     def __init__(self, context, session, address=None):
-        super(BlockingXReqSocketChannel, self).__init__(context, session,
+        super(BlockingShellSocketChannel, self).__init__(context, session,
                                                         address)
         self._in_queue = Queue()
 
     def call_handlers(self, msg):
-        #io.rprint('[[XReq]]', msg) # dbg
+        #io.rprint('[[Shell]]', msg) # dbg
         self._in_queue.put(msg)
 
     def msg_ready(self):
@@ -94,7 +94,7 @@ class BlockingXReqSocketChannel(XReqSocketChannel):
         return msgs
     
 
-class BlockingRepSocketChannel(RepSocketChannel):
+class BlockingStdInSocketChannel(StdInSocketChannel):
     
     def call_handlers(self, msg):
         #io.rprint('[[Rep]]', msg) # dbg
@@ -114,8 +114,8 @@ class BlockingHBSocketChannel(HBSocketChannel):
 class BlockingKernelManager(KernelManager):
     
     # The classes to use for the various channels.
-    xreq_channel_class = Type(BlockingXReqSocketChannel)
+    shell_channel_class = Type(BlockingShellSocketChannel)
     sub_channel_class = Type(BlockingSubSocketChannel)
-    rep_channel_class = Type(BlockingRepSocketChannel)
+    stdin_channel_class = Type(BlockingStdInSocketChannel)
     hb_channel_class = Type(BlockingHBSocketChannel)
   

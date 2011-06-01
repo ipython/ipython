@@ -257,9 +257,9 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
         # Create a KernelManager and start a kernel.
         self.kernel_manager = QtKernelManager(
-                                xreq_address=(self.ip, self.shell_port),
+                                shell_address=(self.ip, self.shell_port),
                                 sub_address=(self.ip, self.iopub_port),
-                                rep_address=(self.ip, self.stdin_port),
+                                stdin_address=(self.ip, self.stdin_port),
                                 hb_address=(self.ip, self.hb_port)
         )
         # start the kernel
