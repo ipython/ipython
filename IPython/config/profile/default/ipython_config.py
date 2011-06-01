@@ -163,3 +163,21 @@ c = get_config()
 # Only write to the database every n commands - this can save disk
 # access (and hence power) over the default of writing on every command.
 # c.HistoryManager.db_cache_size = 0
+
+#-----------------------------------------------------------------------------
+# QtConsole configuration
+#-----------------------------------------------------------------------------
+
+# set the preferred font and font size:
+# c.ConsoleWidget.font_family = "Anonymous Pro"
+# c.ConsoleWidget.font_size = 10
+
+# set the syntax-highlighting style:
+# c.IPythonWidget.syntax_style = 'perldoc'
+
+# Configure the prompts:
+# c.IPythonWidget.in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
+# c.IPythonWidget.out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
+
+# set the editor - this must be a *GUI* editor, like notepad/gedit/TextMate
+# c.IPythonWidget.editor = 'mate -w'
