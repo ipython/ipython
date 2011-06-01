@@ -40,6 +40,11 @@ default_output_sep2 = ''
 # Base path for most payload sources.
 zmq_shell_source = 'IPython.zmq.zmqshell.ZMQInteractiveShell'
 
+if sys.platform.startswith('win'):
+    default_editor = 'notepad'
+else:
+    default_editor = ''
+
 #-----------------------------------------------------------------------------
 # IPythonWidget class
 #-----------------------------------------------------------------------------
@@ -54,7 +59,7 @@ class IPythonWidget(FrontendWidget):
     custom_edit = Bool(False)
     custom_edit_requested = QtCore.Signal(object, object)
 
-    editor = Unicode('default', config=True,
+    editor = Unicode(default_editor, config=True,
         help="""
         A command for invoking a system text editor. If the string contains a
         {filename} format specifier, it will be used. Otherwise, the filename will
@@ -408,8 +413,10 @@ class IPythonWidget(FrontendWidget):
         """
         if self.custom_edit:
             self.custom_edit_requested.emit(filename, line)
-        elif self.editor == 'default':
-            self._append_plain_text('No default editor available.\n')
+        elif not self.editor:
+            self._append_plain_text('No default editor available.\n'
+            'Specify a GUI text editor in the `IPythonWidget.editor` configurable\n'
+            'to enable the %edit magic')
         else:
             try:
                 filename = '"%s"' % filename
