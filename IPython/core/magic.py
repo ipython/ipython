@@ -3373,7 +3373,7 @@ Defaulting color scheme to 'NoColor'"""
         from IPython.config import profile
         profile_dir = os.path.dirname(profile.__file__)
         ipython_dir = self.ipython_dir
-        print "Installing profiles to: %s [overwrite=%s]"(ipython_dir,overwrite)
+        print "Installing profiles to: %s [overwrite=%s]"%(ipython_dir,overwrite)
         for src in os.listdir(profile_dir):
             if src.startswith('profile_'):
                 name = src.replace('profile_', '')
