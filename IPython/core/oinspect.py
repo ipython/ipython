@@ -549,7 +549,7 @@ class Inspector:
                     fname = inspect.getabsfile(obj.__class__)
             if fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
-            if (fname.endswith('.so') or fname.endswith('.dll')):
+            if any(fname.endswith(e) for e in ['.so', '.dll', '.pyd']):
                 binary_file = True
             out['file'] = fname
         except:
