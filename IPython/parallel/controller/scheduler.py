@@ -261,7 +261,6 @@ class TaskScheduler(SessionFactory):
                 continue
 
             raw_msg = lost[msg_id][0]
-
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
             msg = self.session.unpack_message(msg, copy=False, content=False)
             parent = msg['header']
@@ -294,9 +293,10 @@ class TaskScheduler(SessionFactory):
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
             msg = self.session.unpack_message(msg, content=False, copy=False)
         except Exception:
-            self.log.error("task::Invaid task: %s"%raw_msg, exc_info=True)
+            self.log.error("task::Invaid task msg: %r"%raw_msg, exc_info=True)
             return
         
+
         # send to monitor
         self.mon_stream.send_multipart(['intask']+raw_msg, copy=False)
         
@@ -497,7 +497,7 @@ class TaskScheduler(SessionFactory):
             else:
                 self.finish_job(idx)
         except Exception:
-            self.log.error("task::Invaid result: %s"%raw_msg, exc_info=True)
+            self.log.error("task::Invaid result: %r"%raw_msg, exc_info=True)
             return
 
         header = msg['header']
