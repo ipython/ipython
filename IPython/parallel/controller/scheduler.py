@@ -196,17 +196,27 @@ class TaskScheduler(SessionFactory):
     
     def dispatch_notification(self, msg):
         """dispatch register/unregister events."""
-        idents,msg = self.session.feed_identities(msg)
-        msg = self.session.unpack_message(msg)
+        try:
+            idents,msg = self.session.feed_identities(msg)
+        except ValueError:
+            self.log.warn("task::Invalid Message: %r"%msg)
+            return
+        try:
+            msg = self.session.unpack_message(msg)
+        except ValueError:
+            self.log.warn("task::Unauthorized message from: %r"%idents)
+            return
+        
         msg_type = msg['msg_type']
+        
         handler = self._notification_handlers.get(msg_type, None)
         if handler is None:
-            raise Exception("Unhandled message type: %s"%msg_type)
+            self.log.error("Unhandled message type: %r"%msg_type)
         else:
             try:
                 handler(str(msg['content']['queue']))
             except KeyError:
-                self.log.error("task::Invalid notification msg: %s"%msg)
+                self.log.error("task::Invalid notification msg: %r"%msg)
     
     @logged
     def _register_engine(self, uid):
@@ -262,8 +272,7 @@ class TaskScheduler(SessionFactory):
 
             raw_msg = lost[msg_id][0]
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
-            msg = self.session.unpack_message(msg, copy=False, content=False)
-            parent = msg['header']
+            parent = self.session.unpack(msg[1].bytes)
             idents = [engine, idents[0]]
 
             # build fake error reply
@@ -296,7 +305,7 @@ class TaskScheduler(SessionFactory):
             self.log.error("task::Invaid task msg: %r"%raw_msg, exc_info=True)
             return
         
-
+        
         # send to monitor
         self.mon_stream.send_multipart(['intask']+raw_msg, copy=False)
         
@@ -377,8 +386,7 @@ class TaskScheduler(SessionFactory):
         
         # FIXME: unpacking a message I've already unpacked, but didn't save:
         idents,msg = self.session.feed_identities(raw_msg, copy=False)
-        msg = self.session.unpack_message(msg, copy=False, content=False)
-        header = msg['header']
+        header = self.session.unpack(msg[1].bytes)
         
         try:
             raise why()

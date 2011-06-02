@@ -30,6 +30,7 @@ from zmq.devices import ProcessMonitoredQueue
 from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
+from IPython.config.application import boolean_flag
 from IPython.core.newapplication import ProfileDir
 
 from IPython.parallel.apps.baseapp import (
@@ -98,7 +99,10 @@ flags.update({
                     'reuse existing json connection files')
 })
 
-flags.update()
+flags.update(boolean_flag('secure', 'IPControllerApp.secure',
+    "Use HMAC digests for authentication of messages.",
+    "Don't authenticate messages."
+))
 
 class IPControllerApp(BaseParallelApplication):
 
@@ -109,18 +113,18 @@ class IPControllerApp(BaseParallelApplication):
     
     # change default to True
     auto_create = Bool(True, config=True,
-        help="""Whether to create profile dir if it doesn't exist""")
+        help="""Whether to create profile dir if it doesn't exist.""")
     
     reuse_files = Bool(False, config=True,
-        help='Whether to reuse existing json connection files [default: False]'
+        help='Whether to reuse existing json connection files.'
     )
     secure = Bool(True, config=True,
-        help='Whether to use exec_keys for extra authentication [default: True]'
+        help='Whether to use HMAC digests for extra message authentication.'
     )
     ssh_server = Unicode(u'', config=True,
         help="""ssh url for clients to use when connecting to the Controller
         processes. It should be of the form: [user@]server[:port]. The
-        Controller\'s listening addresses must be accessible from the ssh server""",
+        Controller's listening addresses must be accessible from the ssh server""",
     )
     location = Unicode(u'', config=True,
         help="""The external IP or domain name of the Controller, used for disambiguating

@@ -468,20 +468,23 @@ class Hub(LoggingFactory):
     
     def dispatch_query(self, msg):
         """Route registration requests and queries from clients."""
-        idents, msg = self.session.feed_identities(msg)
+        try:
+            idents, msg = self.session.feed_identities(msg)
+        except ValueError:
+            idents = []
         if not idents:
             self.log.error("Bad Query Message: %r"%msg)
             return
         client_id = idents[0]
         try:
             msg = self.session.unpack_message(msg, content=True)
-        except:
+        except Exception:
             content = error.wrap_exception()
             self.log.error("Bad Query Message: %r"%msg, exc_info=True)
             self.session.send(self.query, "hub_error", ident=client_id, 
                     content=content)
             return
-        
+        print( idents, msg)
         # print client_id, header, parent, content
         #switch on message type:
         msg_type = msg['msg_type']
@@ -1123,9 +1126,10 @@ class Hub(LoggingFactory):
                 return finish(error.wrap_exception())
 
         # clear the existing records
+        now = datetime.now()
         rec = empty_record()
         map(rec.pop, ['msg_id', 'header', 'content', 'buffers', 'submitted'])
-        rec['resubmitted'] = datetime.now()
+        rec['resubmitted'] = now
         rec['queue'] = 'task'
         rec['client_uuid'] = client_id[0]
         try:
@@ -1137,8 +1141,11 @@ class Hub(LoggingFactory):
             reply = error.wrap_exception()
         else:
             # send the messages
+            now_s = now.strftime(util.ISO8601)
             for rec in records:
                 header = rec['header']
+                # include resubmitted in header to prevent digest collision
+                header['resubmitted'] = now_s
                 msg = self.session.msg(header['msg_type'])
                 msg['content'] = rec['content']
                 msg['header'] = header
