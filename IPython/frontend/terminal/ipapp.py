@@ -162,8 +162,8 @@ addflag('color-info', 'InteractiveShell.color_info',
 )
 addflag('confirm-exit', 'TerminalInteractiveShell.confirm_exit',
     """Set to confirm when you try to exit IPython with an EOF (Control-D
-    in Unix, Control-Z/Enter in Windows). By typing 'exit', 'quit' or
-    '%%Exit', you can force a direct exit without any confirmation.""",
+    in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
+    you can force a direct exit without any confirmation.""",
     "Don't prompt the user when exiting."
 )
 addflag('deep-reload', 'InteractiveShell.deep_reload',
@@ -173,7 +173,7 @@ addflag('deep-reload', 'InteractiveShell.deep_reload',
     use it). deep_reload() forces a full reload of modules whose code may
     have changed, which the default reload() function does not.  When
     deep_reload is off, IPython will use the normal reload(), but
-    deep_reload will still be available as dreload(). This fea- ture is off
+    deep_reload will still be available as dreload(). This feature is off
     by default [which means that you have both normal reload() and
     dreload()].""",
     "Disable deep (recursive) reloading by default."

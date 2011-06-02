@@ -240,7 +240,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     )
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
                              default_value=get_default_colors(), config=True,
-        help="Set the color scheme (NoColor, Linux, and LightBG)."
+        help="Set the color scheme (NoColor, Linux, or LightBG)."
     )
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True, help=

@@ -70,8 +70,8 @@ class TerminalInteractiveShell(InteractiveShell):
     confirm_exit = CBool(True, config=True,
         help="""
         Set to confirm when you try to exit IPython with an EOF (Control-D
-        in Unix, Control-Z/Enter in Windows). By typing 'exit', 'quit' or
-        '%%Exit', you can force a direct exit without any confirmation.""",
+        in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
+        you can force a direct exit without any confirmation.""",
     )
     # This display_banner only controls whether or not self.show_banner()
     # is called when mainloop/interact are called.  The default is False
