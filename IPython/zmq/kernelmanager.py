@@ -17,6 +17,7 @@ TODO
 
 # Standard library imports.
 import atexit
+import errno
 from Queue import Queue, Empty
 from subprocess import Popen
 import signal
@@ -108,6 +109,19 @@ class ZmqSocketChannel(Thread):
             raise InvalidPortNumber(message)
         self._address = address
 
+    def _run_loop(self):
+        """Run my loop, ignoring EINTR events in the poller"""
+        while True:
+            try:
+                self.ioloop.start()
+            except zmq.ZMQError as e:
+                if e.errno == errno.EINTR:
+                    continue
+                else:
+                    raise
+            else:
+                break
+    
     def stop(self):
         """Stop the channel's activity.
 
@@ -178,7 +192,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         self.iostate = POLLERR|POLLIN
         self.ioloop.add_handler(self.socket, self._handle_events, 
                                 self.iostate)
-        self.ioloop.start()
+        self._run_loop()
 
     def stop(self):
         self.ioloop.stop()
@@ -385,7 +399,7 @@ class SubSocketChannel(ZmqSocketChannel):
         self.iostate = POLLIN|POLLERR
         self.ioloop.add_handler(self.socket, self._handle_events, 
                                 self.iostate)
-        self.ioloop.start()
+        self._run_loop()
 
     def stop(self):
         self.ioloop.stop()
@@ -473,7 +487,7 @@ class RepSocketChannel(ZmqSocketChannel):
         self.iostate = POLLERR|POLLIN
         self.ioloop.add_handler(self.socket, self._handle_events, 
                                 self.iostate)
-        self.ioloop.start()
+        self._run_loop()
 
     def stop(self):
         self.ioloop.stop()
@@ -591,7 +605,16 @@ class HBSocketChannel(ZmqSocketChannel):
                                 # returns quickly. Note: poll timeout is in
                                 # milliseconds.
                                 if until_dead > 0.0:
-                                    self.poller.poll(1000 * until_dead)
+                                    while True:
+                                        try:
+                                            self.poller.poll(1000 * until_dead)
+                                        except zmq.ZMQError as e:
+                                            if e.errno == errno.EINTR:
+                                                continue
+                                            else:
+                                                raise
+                                        else:
+                                            break
                             
                                 since_last_heartbeat = time.time()-request_time
                                 if since_last_heartbeat > self.time_to_dead:
