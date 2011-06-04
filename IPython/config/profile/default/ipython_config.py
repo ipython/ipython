@@ -4,34 +4,33 @@ c = get_config()
 #-----------------------------------------------------------------------------
 # Application-level options
 #-----------------------------------------------------------------------------
-app = c.IPythonApp
 
-# app.display_banner = True
+# c.TerminalIPythonApp.display_banner = True
 
-# app.classic = False
+# c.TerminalIPythonApp.classic = False
 
-# app.nosep = True
+# c.TerminalIPythonApp.nosep = True
 
 # If you still use multiple versions of IPytho on the same machine,
 # set this to True to suppress warnings about old configuration files
-# app.ignore_old_config = False
+# c.TerminalIPythonApp.ignore_old_config = False
 
 # Set this to determine the detail of what is logged at startup.
 # The default is 30 and possible values are 0,10,20,30,40,50.
-# app.log_level = 20
+# c.Application.log_level = 20
 
 # This should be a list of importable Python modules that have an
 # load_ipython_extension(ip) method.  This method gets called when the extension
 # is loaded.  You can put your extensions anywhere they can be imported
 # but we add the extensions subdir of the ipython directory to sys.path
 # during extension loading, so you can put them there as well.
-# app.extensions = [
+# c.InteractiveShellApp.extensions = [
 #     'myextension'
 # ]
 
 # These lines are run in IPython in the user's namespace after extensions 
 # are loaded.  They can contain full IPython syntax with magics etc.
-# app.exec_lines = [
+# c.InteractiveShellApp.exec_lines = [
 #     'import numpy',
 #     'a = 10; b = 20',
 #     '1/0'
@@ -41,7 +40,7 @@ app = c.IPythonApp
 # extension need to be pure Python.  Files with a .ipy extension can have
 # custom IPython syntax (like magics, etc.).  
 # These files need to be in the cwd, the ipython_dir or be absolute paths.
-# app.exec_files = [
+# c.InteractiveShellApp.exec_files = [
 #     'mycode.py',
 #     'fancy.ipy'
 # ]
@@ -58,9 +57,9 @@ app = c.IPythonApp
 
 # c.InteractiveShell.automagic = False
 
-# c.TerminalTerminalInteractiveShell.banner1 = 'This if for overriding the default IPython banner'
+# c.TerminalInteractiveShell.banner1 = 'This if for overriding the default IPython banner'
  
-# c.TerminalTerminalInteractiveShell.banner2 = "This is for extra banner text"
+# c.TerminalInteractiveShell.banner2 = "This is for extra banner text"
 
 # c.InteractiveShell.cache_size = 1000
 
