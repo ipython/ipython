@@ -29,12 +29,16 @@ import zmq
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag
 from IPython.core.newapplication import ProfileDir
+from IPython.core.shellapp import (
+    InteractiveShellApp, shell_flags, shell_aliases
+)
 from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.lib import pylabtools
 from IPython.utils.traitlets import (
     List, Instance, Float, Dict, Bool, Int, Unicode, CaselessStrEnum
 )
+
 from entry_point import base_launch_kernel
 from kernelapp import KernelApp, kernel_flags, kernel_aliases
 from iostream import OutStream
@@ -551,53 +555,9 @@ class GTKKernel(Kernel):
 #-----------------------------------------------------------------------------
 
 flags = dict(kernel_flags)
+flags.update(shell_flags)
 
 addflag = lambda *args: flags.update(boolean_flag(*args))
-addflag('automagic', 'InteractiveShell.automagic',
-        """Turn on the auto calling of magic commands. Type %%magic at the
-        IPython  prompt  for  more information.""",
-        'Turn off the auto calling of magic commands.'
-)
-addflag('banner', 'InteractiveShell.display_banner',
-        "Display a banner upon starting IPython.",
-        "Don't display a banner upon starting IPython."
-)
-addflag('pdb', 'InteractiveShell.pdb',
-    "Enable auto calling the pdb debugger after every exception.",
-    "Disable auto calling the pdb debugger after every exception."
-)
-addflag('pprint', 'PlainTextFormatter.pprint',
-    "Enable auto pretty printing of results.",
-    "Disable auto auto pretty printing of results."
-)
-addflag('color-info', 'InteractiveShell.color_info',
-    """IPython can display information about objects via a set of func-
-    tions, and optionally can use colors for this, syntax highlighting
-    source code and various other elements.  However, because this
-    information is passed through a pager (like 'less') and many pagers get
-    confused with color codes, this option is off by default.  You can test
-    it and turn it on permanently in your ipython_config.py file if it
-    works for you.  Test it and turn it on permanently if it works with
-    your system.  The magic function %%color_info allows you to toggle this
-    inter- actively for testing.""",
-    "Disable using colors for info related things."
-)
-addflag('deep-reload', 'InteractiveShell.deep_reload',
-    """Enable deep (recursive) reloading by default. IPython can use the
-    deep_reload module which reloads changes in modules recursively (it
-    replaces the reload() function, so you don't need to change anything to
-    use it). deep_reload() forces a full reload of modules whose code may
-    have changed, which the default reload() function does not.  When
-    deep_reload is off, IPython will use the normal reload(), but
-    deep_reload will still be available as dreload(). This fea- ture is off
-    by default [which means that you have both normal reload() and
-    dreload()].""",
-    "Disable deep (recursive) reloading by default."
-)
-addflag('readline', 'InteractiveShell.readline_use',
-    "Enable readline for command line usage.",
-    "Disable readline for command line usage."
-)
 
 flags['pylab'] = (
     {'IPKernelApp' : {'pylab' : 'auto'}},
@@ -606,23 +566,10 @@ flags['pylab'] = (
 )
 
 aliases = dict(kernel_aliases)
+aliases.update(shell_aliases)
 
 # it's possible we don't want short aliases for *all* of these:
 aliases.update(dict(
-    autocall='InteractiveShell.autocall',
-    cache_size='InteractiveShell.cache_size',
-    colors='InteractiveShell.colors',
-    logfile='InteractiveShell.logfile',
-    log_append='InteractiveShell.logappend',
-    pi1='InteractiveShell.prompt_in1',
-    pi2='InteractiveShell.prompt_in2',
-    po='InteractiveShell.prompt_out',
-    si='InteractiveShell.separate_in',
-    so='InteractiveShell.separate_out',
-    so2='InteractiveShell.separate_out2',
-    xmode='InteractiveShell.xmode',
-    c='IPKernelApp.code_to_run',
-    ext='IPKernelApp.extra_extension',
     pylab='IPKernelApp.pylab',
 ))
 
@@ -630,7 +577,7 @@ aliases.update(dict(
 # The IPKernelApp class
 #-----------------------------------------------------------------------------
 
-class IPKernelApp(KernelApp):
+class IPKernelApp(KernelApp, InteractiveShellApp):
     name = 'ipkernel'
 
     aliases = Dict(aliases)
@@ -643,33 +590,11 @@ class IPKernelApp(KernelApp):
         selecting a particular matplotlib backend and loop integration.
         """
     )
-    extensions = List(Unicode, config=True,
-        help="A list of dotted module names of IPython extensions to load."
-    )
-    extra_extension = Unicode('', config=True,
-        help="dotted module name of an IPython extension to load."
-    )
-    def _extra_extension_changed(self, name, old, new):
-        if new:
-            # add to self.extensions
-            self.extensions.append(new)
-
-    exec_files = List(Unicode, config=True,
-        help="""List of files to run at IPython startup."""
-    )
-    file_to_run = Unicode('', config=True,
-        help="""A file to be run""")
-    def _file_to_run_changed(self, name, old, new):
-        self.exec_files.append(new)
-
-    exec_lines = List(Unicode, config=True,
-        help="""lines of code to run at IPython startup."""
-    )
-    code_to_run = Unicode('', config=True,
-        help="Execute the given command string."
-    )
-    def _code_to_run_changed(self, name, old, new):
-        self.exec_lines.append(new)
+    def initialize(self, argv=None):
+        super(IPKernelApp, self).initialize(argv)
+        self.init_shell()
+        self.init_extensions()
+        self.init_code()
 
     def init_kernel(self):
         kernel_factory = Kernel
@@ -704,7 +629,9 @@ class IPKernelApp(KernelApp):
         if self.pylab:
             pylabtools.import_pylab(kernel.shell.user_ns, backend,
                                     shell=kernel.shell)
-
+    
+    def init_shell(self):
+        self.shell = self.kernel.shell
 
 
 #-----------------------------------------------------------------------------
@@ -728,7 +655,7 @@ def launch_kernel(*args, **kwargs):
 
 
 def main():
-    """Run a PyKernel as an application"""
+    """Run an IPKernel as an application"""
     app = IPKernelApp()
     app.initialize()
     app.start()
