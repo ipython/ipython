@@ -62,33 +62,8 @@ default_config_file_name = u'ipython_config.py'
 # Crash handler for this application
 #-----------------------------------------------------------------------------
 
-_message_template = """\
-Oops, $self.app_name crashed. We do our best to make it stable, but...
-
-A crash report was automatically generated with the following information:
-  - A verbatim copy of the crash traceback.
-  - A copy of your input history during this session.
-  - Data on your current $self.app_name configuration.
-
-It was left in the file named:
-\t'$self.crash_report_fname'
-If you can email this file to the developers, the information in it will help
-them in understanding and correcting the problem.
-
-You can mail it to: $self.contact_name at $self.contact_email
-with the subject '$self.app_name Crash Report'.
-
-If you want to do it now, the following command will work (under Unix):
-mail -s '$self.app_name Crash Report' $self.contact_email < $self.crash_report_fname
-
-To ensure accurate tracking of this issue, please file a report about it at:
-$self.bug_tracker
-"""
-
 class IPAppCrashHandler(CrashHandler):
     """sys.excepthook for IPython itself, leaves a detailed report on disk."""
-
-    message_template = _message_template
 
     def __init__(self, app):
         contact_name = release.authors['Fernando'][0]
