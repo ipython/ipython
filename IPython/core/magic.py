@@ -51,7 +51,6 @@ from IPython.core.macro import Macro
 from IPython.core import page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
-from IPython.external.Itpl import itpl, printpl
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.path import get_py_filename
@@ -915,8 +914,7 @@ Currently the magic system has the following functions:\n"""
         datalabel = 'Data/Info'
         colsep = 3
         # variable format strings
-        vformat    = "$vname.ljust(varwidth)$vtype.ljust(typewidth)"
-        vfmt_short = '$vstr[:25]<...>$vstr[-25:]'
+        vformat    = "{0:<{varwidth}}{1:<{typewidth}}"
         aformat    = "%s: %s elems, type `%s`, %s bytes"
         # find the size of the columns to format the output nicely
         varwidth = max(max(map(len,varnames)), len(varlabel)) + colsep
@@ -928,7 +926,7 @@ Currently the magic system has the following functions:\n"""
         kb = 1024
         Mb = 1048576  # kb**2
         for vname,var,vtype in zip(varnames,varlist,typelist):
-            print itpl(vformat),
+            print vformat.format(vname, vtype, varwidth=varwidth, typewidth=typewidth),
             if vtype in seq_types:
                 print "n="+str(len(var))
             elif vtype in [array_type,ndarray_type]:
@@ -962,7 +960,7 @@ Currently the magic system has the following functions:\n"""
                 if len(vstr) < 50:
                     print vstr
                 else:
-                    printpl(vfmt_short)
+                    print vstr[:25] + "<...>" + vstr[-25:]
                 
     def magic_reset(self, parameter_s=''):
         """Resets the namespace by removing all names defined by the user.
