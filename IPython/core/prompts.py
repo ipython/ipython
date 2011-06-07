@@ -23,20 +23,23 @@ import os
 import re
 import socket
 import sys
+import time
 
+from IPython.config.configurable import Configurable
 from IPython.core import release
-from IPython.external.Itpl import ItplNS
 from IPython.utils import coloransi
+from IPython.utils.traitlets import (Unicode, Instance, Dict, Bool, Int)
 
 #-----------------------------------------------------------------------------
 # Color schemes for prompts
 #-----------------------------------------------------------------------------
 
-PromptColors = coloransi.ColorSchemeTable()
 InputColors = coloransi.InputTermColors  # just a shorthand
 Colors = coloransi.TermColors  # just a shorthand
 
-PromptColors.add_scheme(coloransi.ColorScheme(
+color_lists = dict(normal=Colors(), inp=InputColors(), nocolor=coloransi.NoColors())
+
+PColNoColors = coloransi.ColorScheme(
     'NoColor',
     in_prompt  = InputColors.NoColor,  # Input prompt
     in_number  = InputColors.NoColor,  # Input prompt number
@@ -47,10 +50,10 @@ PromptColors.add_scheme(coloransi.ColorScheme(
     out_number = Colors.NoColor, # Output prompt number
 
     normal = Colors.NoColor  # color off (usu. Colors.Normal)
-    ))
+    )
 
 # make some schemes as instances so we can copy them for modification easily:
-__PColLinux =  coloransi.ColorScheme(
+PColLinux =  coloransi.ColorScheme(
     'Linux',
     in_prompt  = InputColors.Green,
     in_number  = InputColors.LightGreen,
@@ -62,24 +65,34 @@ __PColLinux =  coloransi.ColorScheme(
 
     normal = Colors.Normal
     )
-# Don't forget to enter it into the table!
-PromptColors.add_scheme(__PColLinux)
 
 # Slightly modified Linux for light backgrounds
-__PColLightBG  = __PColLinux.copy('LightBG')
+PColLightBG  = PColLinux.copy('LightBG')
 
-__PColLightBG.colors.update(
+PColLightBG.colors.update(
     in_prompt  = InputColors.Blue,
     in_number  = InputColors.LightBlue,
     in_prompt2 = InputColors.Blue
 )
-PromptColors.add_scheme(__PColLightBG)
-
-del Colors,InputColors
 
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
+
+class LazyEvaluate(object):
+    """This is used for formatting strings with values that need to be updated
+    at that time, such as the current time or line number."""
+    def __init__(self, func, *args, **kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+    
+    def __call__(self, **kwargs):
+        self.kwargs.update(kwargs)
+        return self.func(*self.args, **self.kwargs)
+    
+    def __str__(self):
+        return str(self())
 
 def multiple_replace(dict, text):
     """ Replace in 'text' all occurences of any key in the given
@@ -121,51 +134,43 @@ HOME = os.environ.get("HOME","//////:::::ZZZZZ,,,~~~")
 USER           = os.environ.get("USER")
 HOSTNAME       = socket.gethostname()
 HOSTNAME_SHORT = HOSTNAME.split(".")[0]
-ROOT_SYMBOL    = "$#"[os.name=='nt' or os.getuid()==0]
+ROOT_SYMBOL    = "#" if (os.name=='nt' or os.getuid()==0) else "$"
 
-prompt_specials_color = {
+prompt_abbreviations = {
     # Prompt/history count
-    '%n' : '${self.col_num}' '${self.cache.prompt_count}' '${self.col_p}',
-    r'\#': '${self.col_num}' '${self.cache.prompt_count}' '${self.col_p}',
+    '%n' : '{color.number}' '{count}' '{color.prompt}',
+    r'\#': '{color.number}' '{count}' '{color.prompt}',
     # Just the prompt counter number, WITHOUT any coloring wrappers, so users
     # can get numbers displayed in whatever color they want.
-    r'\N': '${self.cache.prompt_count}',
+    r'\N': '{count}',
 
     # Prompt/history count, with the actual digits replaced by dots.  Used
     # mainly in continuation prompts (prompt_in2)
-    #r'\D': '${"."*len(str(self.cache.prompt_count))}',
+    r'\D': '{dots}',
 
-    # More robust form of the above expression, that uses the __builtin__
-    # module.  Note that we can NOT use __builtins__ (note the 's'), because
-    # that can either be a dict or a module, and can even mutate at runtime,
-    # depending on the context (Python makes no guarantees on it).  In
-    # contrast, __builtin__ is always a module object, though it must be
-    # explicitly imported.
-    r'\D': '${"."*__builtin__.len(__builtin__.str(self.cache.prompt_count))}',
-
-    # Current working directory
-    r'\w': '${os.getcwd()}',
     # Current time
-    r'\t' : '${time.strftime("%H:%M:%S")}',
+    r'\t' : '{time}',
+    # Current working directory
+    r'\w': '{cwd}',
     # Basename of current working directory.
     # (use os.sep to make this portable across OSes)
-    r'\W' : '${os.getcwd().split("%s")[-1]}' % os.sep,
+    r'\W' : '{cwd_last}',
     # These X<N> are an extension to the normal bash prompts.  They return
     # N terms of the path, after replacing $HOME with '~'
-    r'\X0': '${os.getcwd().replace("%s","~")}' % HOME,
-    r'\X1': '${self.cwd_filt(1)}',
-    r'\X2': '${self.cwd_filt(2)}',
-    r'\X3': '${self.cwd_filt(3)}',
-    r'\X4': '${self.cwd_filt(4)}',
-    r'\X5': '${self.cwd_filt(5)}',
+    r'\X0': '{cwd_x[0])}',
+    r'\X1': '{cwd_x[1])}',
+    r'\X2': '{cwd_x[2])}',
+    r'\X3': '{cwd_x[3])}',
+    r'\X4': '{cwd_x[4])}',
+    r'\X5': '{cwd_x[5])}',
     # Y<N> are similar to X<N>, but they show '~' if it's the directory
     # N+1 in the list.  Somewhat like %cN in tcsh.
-    r'\Y0': '${self.cwd_filt2(0)}',
-    r'\Y1': '${self.cwd_filt2(1)}',
-    r'\Y2': '${self.cwd_filt2(2)}',
-    r'\Y3': '${self.cwd_filt2(3)}',
-    r'\Y4': '${self.cwd_filt2(4)}',
-    r'\Y5': '${self.cwd_filt2(5)}',
+    r'\Y0': '{cwd_y[0])}',
+    r'\Y1': '{cwd_y[1])}',
+    r'\Y2': '{cwd_y[2])}',
+    r'\Y3': '{cwd_y[3])}',
+    r'\Y4': '{cwd_y[4])}',
+    r'\Y5': '{cwd_y[5])}',
     # Hostname up to first .
     r'\h': HOSTNAME_SHORT,
     # Full hostname
@@ -183,28 +188,6 @@ prompt_specials_color = {
     # Root symbol ($ or #)
     r'\$': ROOT_SYMBOL,
     }
-
-# A copy of the prompt_specials dictionary but with all color escapes removed,
-# so we can correctly compute the prompt length for the auto_rewrite method.
-prompt_specials_nocolor = prompt_specials_color.copy()
-prompt_specials_nocolor['%n'] = '${self.cache.prompt_count}'
-prompt_specials_nocolor[r'\#'] = '${self.cache.prompt_count}'
-
-# Add in all the InputTermColors color escapes as valid prompt characters.
-# They all get added as \\C_COLORNAME, so that we don't have any conflicts
-# with a color name which may begin with a letter used by any other of the
-# allowed specials.  This of course means that \\C will never be allowed for
-# anything else.
-input_colors = coloransi.InputTermColors
-for _color in dir(input_colors):
-    if _color[0] != '_':
-        c_name = r'\C_'+_color
-        prompt_specials_color[c_name] = getattr(input_colors,_color)
-        prompt_specials_nocolor[c_name] = ''
-
-# we default to no color for safety.  Note that prompt_specials is a global
-# variable used by all prompt objects.
-prompt_specials = prompt_specials_nocolor
 
 #-----------------------------------------------------------------------------
 # More utilities
@@ -230,207 +213,166 @@ def str_safe(arg):
         #raise  # dbg
     return out
 
+def cwd_filt(self, depth):
+    """Return the last depth elements of the current working directory.
+
+    $HOME is always replaced with '~'.
+    If depth==0, the full path is returned."""
+
+    cwd = os.getcwd().replace(HOME,"~")
+    out = os.sep.join(cwd.split(os.sep)[-depth:])
+    return out or os.sep
+
+def cwd_filt2(self, depth):
+    """Return the last depth elements of the current working directory.
+
+    $HOME is always replaced with '~'.
+    If depth==0, the full path is returned."""
+
+    full_cwd = os.getcwd()
+    cwd = full_cwd.replace(HOME,"~").split(os.sep)
+    if '~' in cwd and len(cwd) == depth+1:
+        depth += 1
+    drivepart = ''
+    if sys.platform == 'win32' and len(cwd) > depth:
+        drivepart = os.path.splitdrive(full_cwd)[0]
+    out = drivepart + '/'.join(cwd[-depth:])
+
+    return out or os.sep
+
 #-----------------------------------------------------------------------------
 # Prompt classes
 #-----------------------------------------------------------------------------
 
-class BasePrompt(object):
-    """Interactive prompt similar to Mathematica's."""
+lazily_evaluate = {'time': LazyEvaluate(time.strftime, "%H:%M:%S"),
+                   'cwd': LazyEvaluate(os.getcwd),
+                   'cwd_last': LazyEvaluate(lambda: os.getcwd().split(os.sep)[-1]),
+                   'cwd_x': [LazyEvaluate(lambda: os.getcwd().replace("%s","~"))] +\
+                            [LazyEvaluate(cwd_filt, x) for x in range(1,6)],
+                   'cwd_y': [LazyEvaluate(cwd_filt2, x) for x in range(6)]
+                   }
+        
 
-    def _get_p_template(self):
-        return self._p_template
-
-    def _set_p_template(self,val):
-        self._p_template = val
-        self.set_p_str()
-
-    p_template = property(_get_p_template,_set_p_template,
-                          doc='Template for prompt string creation')
-
-    def __init__(self, cache, sep, prompt, pad_left=False):
-
-        # Hack: we access information about the primary prompt through the
-        # cache argument.  We need this, because we want the secondary prompt
-        # to be aligned with the primary one.  Color table info is also shared
-        # by all prompt classes through the cache.  Nice OO spaghetti code!
-        self.cache = cache
-        self.sep = sep
-
-        # regexp to count the number of spaces at the end of a prompt
-        # expression, useful for prompt auto-rewriting
-        self.rspace = re.compile(r'(\s*)$')
-        # Flag to left-pad prompt strings to match the length of the primary
-        # prompt
-        self.pad_left = pad_left
-
-        # Set template to create each actual prompt (where numbers change).
-        # Use a property
-        self.p_template = prompt
-        self.set_p_str()
-
-    def set_p_str(self):
-        """ Set the interpolating prompt strings.
-
-        This must be called every time the color settings change, because the
-        prompt_specials global may have changed."""
-
-        import os,time  # needed in locals for prompt string handling
-        loc = locals()
-        try:
-            self.p_str = ItplNS('%s%s%s' %
-                                ('${self.sep}${self.col_p}',
-                                 multiple_replace(prompt_specials, self.p_template),
-                                 '${self.col_norm}'),self.cache.shell.user_ns,loc)
-
-            self.p_str_nocolor = ItplNS(multiple_replace(prompt_specials_nocolor,
-                                                         self.p_template),
-                                        self.cache.shell.user_ns,loc)
-        except:
-            print "Illegal prompt template (check $ usage!):",self.p_template
-            self.p_str = self.p_template
-            self.p_str_nocolor = self.p_template
-
-    def write(self, msg):
-        sys.stdout.write(msg)
-        return ''
-
-    def __str__(self):
-        """Return a string form of the prompt.
-
-        This for is useful for continuation and output prompts, since it is
-        left-padded to match lengths with the primary one (if the
-        self.pad_left attribute is set)."""
-
-        out_str = str_safe(self.p_str)
-        if self.pad_left:
-            # We must find the amount of padding required to match lengths,
-            # taking the color escapes (which are invisible on-screen) into
-            # account.
-            esc_pad = len(out_str) - len(str_safe(self.p_str_nocolor))
-            format = '%%%ss' % (len(str(self.cache.last_prompt))+esc_pad)
-            return format % out_str
+class PromptManager(Configurable):
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    
+    color_scheme_table = Instance(coloransi.ColorSchemeTable)
+    color_scheme = Unicode('Linux')
+    def _color_scheme_changed(self, name, new_value):
+        self.color_scheme_table.set_active_scheme(new_value)
+        for pname in ['in', 'in2', 'out', 'rewrite']:
+            # We need to recalculate the number of invisible characters
+            self.update_prompt(pname)
+    
+    # These fields can be referenced in prompt templates, and are evaluated
+    # when the prompt is generated - for things like timestamps. They are only
+    # evaluated if a prompt uses them.
+    lazy_evaluate_fields = Dict()
+    def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
+    
+    in_template = Unicode('In [\\#]: ', config=True)
+    in2_template = Unicode('   .\\D.: ', config=True)
+    out_template = Unicode('Out[\\#]: ', config=True)
+    rewrite_template = Unicode("------> ", config=True)
+    
+    # Justify prompts by default?
+    justify = Bool(True)
+    
+    # We actually store the expanded templates here:
+    templates = Dict()
+    
+    # The number of characters in the last prompt rendered, not including
+    # colour characters.
+    width = Int()
+    
+    # The number of characters in each prompt which don't contribute to width
+    invisible_chars = Dict()
+    def _invisible_chars_default(self):
+        return {'in': 0, 'in2': 0, 'out': 0, 'rewrite': 0}
+    
+    def __init__(self, shell, config=None):
+        super(PromptManager, self).__init__(shell=shell, config=config)
+        
+        # Prepare colour scheme table
+        self.color_scheme_table = coloransi.ColorSchemeTable([PColNoColors,
+                                    PColLinux, PColLightBG], self.color_scheme)
+        
+        # Prepare templates
+        self.update_prompt('in', self.in_template)
+        self.update_prompt('in2', self.in2_template)
+        self.update_prompt('out', self.out_template)
+        self.update_prompt('rewrite', self.rewrite_template)
+        self.on_trait_change(self._update_prompt_trait, ['in_template',
+                            'in2_template', 'out_template', 'rewrite_template'])
+    
+    def update_prompt(self, name, new_template=None):
+        if new_template is not None:
+            self.templates[name] = multiple_replace(prompt_abbreviations, new_template)
+        invis_chars = len(self.render(name, color=True, just=False)) - \
+                            len(self.render(name, color=False, just=False))
+        self.invisible_chars[name] = invis_chars
+    
+    def _update_prompt_trait(self, traitname, new_template):
+        name = traitname[:-9]   # Cut off '_template'
+        self.update_prompt(name, new_template)
+    
+    def render(self, name, color=True, just=None, **kwargs):
+        """
+        Render the selected prompt.
+        
+        Parameters
+        ----------
+        name : str
+          Which prompt to render. One of 'in', 'in2', 'out', 'rewrite'
+        color : bool
+          If True (default), include ANSI escape sequences for a coloured prompt.
+        just : bool
+          If True, justify the prompt to the width of the last prompt. The
+          default is stored in self.justify.
+        **kwargs :
+          Additional arguments will be passed to the string formatting operation,
+          so they can override the values that would otherwise fill in the
+          template.
+        
+        Returns
+        -------
+        A string containing the rendered prompt.
+        """
+        if color:
+            scheme = self.color_scheme_table.active_colors
+            if name=='out':
+                colors = color_lists['normal']
+                colors.number, colors.prompt, colors.normal = \
+                        scheme.out_number, scheme.out_prompt, scheme.normal
+            else:
+                colors = color_lists['inp']
+                colors.number, colors.prompt, colors.normal = \
+                        scheme.in_number, scheme.in_prompt, scheme.in_normal
+                if name=='in2':
+                    colors.prompt = scheme.in_prompt2
         else:
-            return out_str
-
-    # these path filters are put in as methods so that we can control the
-    # namespace where the prompt strings get evaluated
-    def cwd_filt(self, depth):
-        """Return the last depth elements of the current working directory.
-
-        $HOME is always replaced with '~'.
-        If depth==0, the full path is returned."""
-
-        cwd = os.getcwd().replace(HOME,"~")
-        out = os.sep.join(cwd.split(os.sep)[-depth:])
-        if out:
-            return out
-        else:
-            return os.sep
-
-    def cwd_filt2(self, depth):
-        """Return the last depth elements of the current working directory.
-
-        $HOME is always replaced with '~'.
-        If depth==0, the full path is returned."""
-
-        full_cwd = os.getcwd()
-        cwd = full_cwd.replace(HOME,"~").split(os.sep)
-        if '~' in cwd and len(cwd) == depth+1:
-            depth += 1
-        drivepart = ''
-        if sys.platform == 'win32' and len(cwd) > depth:
-            drivepart = os.path.splitdrive(full_cwd)[0]
-        out = drivepart + '/'.join(cwd[-depth:])
-
-        if out:
-            return out
-        else:
-            return os.sep
-
-    def __nonzero__(self):
-        """Implement boolean behavior.
-
-        Checks whether the p_str attribute is non-empty"""
-
-        return bool(self.p_template)
-
-
-class Prompt1(BasePrompt):
-    """Input interactive prompt similar to Mathematica's."""
-
-    def __init__(self, cache, sep='\n', prompt='In [\\#]: ', pad_left=True):
-        BasePrompt.__init__(self, cache, sep, prompt, pad_left)
-
-    def set_colors(self):
-        self.set_p_str()
-        Colors = self.cache.color_table.active_colors # shorthand
-        self.col_p = Colors.in_prompt
-        self.col_num = Colors.in_number
-        self.col_norm = Colors.in_normal
-        # We need a non-input version of these escapes for the '--->'
-        # auto-call prompts used in the auto_rewrite() method.
-        self.col_p_ni = self.col_p.replace('\001','').replace('\002','')
-        self.col_norm_ni = Colors.normal
-
-    def __str__(self):
-        self.cache.last_prompt = str_safe(self.p_str_nocolor).split('\n')[-1]
-        return str_safe(self.p_str)
-
-    def auto_rewrite(self):
-        """Return a string of the form '--->' which lines up with the previous
-        input string. Useful for systems which re-write the user input when
-        handling automatically special syntaxes."""
-
-        curr = str(self.cache.last_prompt)
-        nrspaces = len(self.rspace.search(curr).group())
-        return '%s%s>%s%s' % (self.col_p_ni,'-'*(len(curr)-nrspaces-1),
-                              ' '*nrspaces,self.col_norm_ni)
-
-
-class PromptOut(BasePrompt):
-    """Output interactive prompt similar to Mathematica's."""
-
-    def __init__(self, cache, sep='', prompt='Out[\\#]: ', pad_left=True):
-        BasePrompt.__init__(self, cache, sep, prompt, pad_left)
-        if not self.p_template:
-            self.__str__ = lambda: ''
-
-    def set_colors(self):
-        self.set_p_str()
-        Colors = self.cache.color_table.active_colors # shorthand
-        self.col_p = Colors.out_prompt
-        self.col_num = Colors.out_number
-        self.col_norm = Colors.normal
-
-
-class Prompt2(BasePrompt):
-    """Interactive continuation prompt."""
-
-    def __init__(self, cache, prompt='   .\\D.: ', pad_left=True):
-        self.cache = cache
-        self.p_template = prompt
-        self.pad_left = pad_left
-        self.set_p_str()
-
-    def set_p_str(self):
-        import os,time  # needed in locals for prompt string handling
-        loc = locals()
-        self.p_str = ItplNS('%s%s%s' %
-                            ('${self.col_p2}',
-                             multiple_replace(prompt_specials, self.p_template),
-                             '$self.col_norm'),
-                            self.cache.shell.user_ns,loc)
-        self.p_str_nocolor = ItplNS(multiple_replace(prompt_specials_nocolor,
-                                                     self.p_template),
-                                    self.cache.shell.user_ns,loc)
-
-    def set_colors(self):
-        self.set_p_str()
-        Colors = self.cache.color_table.active_colors
-        self.col_p2 = Colors.in_prompt2
-        self.col_norm = Colors.in_normal
-        # FIXME (2004-06-16) HACK: prevent crashes for users who haven't
-        # updated their prompt_in2 definitions.  Remove eventually.
-        self.col_p = Colors.out_prompt
-        self.col_num = Colors.out_number
+            # No color
+            colors = color_lists['nocolor']
+            colors.number, colors.prompt, colors.normal = '', '', ''
+        
+        count = self.shell.execution_count    # Shorthand
+        # Build the dictionary to be passed to string formatting
+        fmtargs = dict(color=colors, count=count,
+                        dots="."*len(str(count)) )
+        fmtargs.update(self.lazy_evaluate_fields)
+        fmtargs.update(kwargs)
+        
+        # Prepare the prompt
+        prompt = colors.prompt + self.templates[name] + colors.normal
+        
+        # Fill in required fields
+        res = prompt.format(**fmtargs)
+        
+        # Handle justification of prompt
+        invis_chars = self.invisible_chars[name] if color else 0
+        just = self.justify if (just is None) else just
+        if just:
+            res = res.rjust(self.width + invis_chars)
+        self.width = len(res) - invis_chars
+        return res
 

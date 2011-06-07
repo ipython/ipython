@@ -25,7 +25,6 @@ Authors:
 import __builtin__
 
 from IPython.config.configurable import Configurable
-from IPython.core import prompts
 from IPython.utils import io
 from IPython.utils.traitlets import Instance, List
 from IPython.utils.warn import warn
@@ -34,32 +33,20 @@ from IPython.utils.warn import warn
 # Main displayhook class
 #-----------------------------------------------------------------------------
 
-# TODO: The DisplayHook class should be split into two classes, one that
-# manages the prompts and their synchronization and another that just does the
-# displayhook logic and calls into the prompt manager.
-
-# TODO: Move the various attributes (cache_size, colors, input_sep,
-# output_sep, output_sep2, ps1, ps2, ps_out, pad_left). Some of these are also
-# attributes of InteractiveShell. They should be on ONE object only and the
-# other objects should ask that one object for their values.
+# TODO: Move the various attributes (cache_size, [others now moved]). Some
+# of these are also attributes of InteractiveShell. They should be on ONE object
+# only and the other objects should ask that one object for their values.
 
 class DisplayHook(Configurable):
     """The custom IPython displayhook to replace sys.displayhook.
 
     This class does many things, but the basic idea is that it is a callable
     that gets called anytime user code returns a value.
-
-    Currently this class does more than just the displayhook logic and that
-    extra logic should eventually be moved out of here.
     """
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
-    def __init__(self, shell=None, cache_size=1000,
-                 colors='NoColor', input_sep='\n',
-                 output_sep='\n', output_sep2='',
-                 ps1 = None, ps2 = None, ps_out = None, pad_left=True,
-                 config=None):
+    def __init__(self, shell=None, cache_size=1000, config=None):
         super(DisplayHook, self).__init__(shell=shell, config=config)
 
         cache_size_min = 3
@@ -75,36 +62,10 @@ class DisplayHook(Configurable):
             self.do_full_cache = 1
 
         self.cache_size = cache_size
-        self.input_sep = input_sep
 
         # we need a reference to the user-level namespace
         self.shell = shell
-
-        # Set input prompt strings and colors
-        if cache_size == 0:
-            if ps1.find('%n') > -1 or ps1.find(r'\#') > -1 \
-                   or ps1.find(r'\N') > -1:
-                ps1 = '>>> '
-            if ps2.find('%n') > -1 or ps2.find(r'\#') > -1 \
-                   or ps2.find(r'\N') > -1:
-                ps2 = '... '
-        self.ps1_str = self._set_prompt_str(ps1,'In [\\#]: ','>>> ')
-        self.ps2_str = self._set_prompt_str(ps2,'   .\\D.: ','... ')
-        self.ps_out_str = self._set_prompt_str(ps_out,'Out[\\#]: ','')
-
-        self.color_table = prompts.PromptColors
-        self.prompt1 = prompts.Prompt1(self,sep=input_sep,prompt=self.ps1_str,
-                               pad_left=pad_left)
-        self.prompt2 = prompts.Prompt2(self,prompt=self.ps2_str,pad_left=pad_left)
-        self.prompt_out = prompts.PromptOut(self,sep='',prompt=self.ps_out_str,
-                                    pad_left=pad_left)
-        self.set_colors(colors)
-
-        # Store the last prompt string each time, we need it for aligning
-        # continuation and auto-rewrite prompts
-        self.last_prompt = ''
-        self.output_sep = output_sep
-        self.output_sep2 = output_sep2
+        
         self._,self.__,self.___ = '','',''
 
         # these are deliberately global:
@@ -114,32 +75,6 @@ class DisplayHook(Configurable):
     @property
     def prompt_count(self):
         return self.shell.execution_count
-
-    def _set_prompt_str(self,p_str,cache_def,no_cache_def):
-        if p_str is None:
-            if self.do_full_cache:
-                return cache_def
-            else:
-                return no_cache_def
-        else:
-            return p_str
-
-    def set_colors(self, colors):
-        """Set the active color scheme and configure colors for the three
-        prompt subsystems."""
-
-        # FIXME: This modifying of the global prompts.prompt_specials needs
-        # to be fixed. We need to refactor all of the prompts stuff to use
-        # proper configuration and traits notifications.
-        if colors.lower()=='nocolor':
-            prompts.prompt_specials = prompts.prompt_specials_nocolor
-        else:
-            prompts.prompt_specials = prompts.prompt_specials_color
-
-        self.color_table.set_active_scheme(colors)
-        self.prompt1.set_colors()
-        self.prompt2.set_colors()
-        self.prompt_out.set_colors()
 
     #-------------------------------------------------------------------------
     # Methods used in __call__. Override these methods to modify the behavior
@@ -180,8 +115,8 @@ class DisplayHook(Configurable):
         ``io.stdout``.
         """
         # Use write, not print which adds an extra space.
-        io.stdout.write(self.output_sep)
-        outprompt = str(self.prompt_out)
+        io.stdout.write(self.shell.separate_out)
+        outprompt = self.shell.prompt_manager.render('out')
         if self.do_full_cache:
             io.stdout.write(outprompt)
 
@@ -235,11 +170,12 @@ class DisplayHook(Configurable):
             # So that multi-line strings line up with the left column of
             # the screen, instead of having the output prompt mess up
             # their first line.
-            # We use the ps_out_str template instead of the expanded prompt
+            # We use the prompt template instead of the expanded prompt
             # because the expansion may add ANSI escapes that will interfere
             # with our ability to determine whether or not we should add
             # a newline.
-            if self.ps_out_str and not self.ps_out_str.endswith('\n'):
+            prompt_template = self.shell.prompt_manager.out_template
+            if prompt_template and not prompt_template.endswith('\n'):
                 # But avoid extraneous empty lines.
                 result_repr = '\n' + result_repr
 
@@ -286,7 +222,7 @@ class DisplayHook(Configurable):
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
-        io.stdout.write(self.output_sep2)
+        io.stdout.write(self.shell.separate_out2)
         io.stdout.flush()
 
     def __call__(self, result=None):
