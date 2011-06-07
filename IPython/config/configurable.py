@@ -185,7 +185,32 @@ class SingletonConfigurable(Configurable):
     """
 
     _instance = None
-
+    
+    @classmethod
+    def _walk_mro(cls):
+        """Walk the cls.mro() for parent classes that are also singletons
+        
+        For use in instance()
+        """
+        
+        for subclass in cls.mro():
+            if issubclass(cls, subclass) and \
+                    issubclass(subclass, SingletonConfigurable) and \
+                    subclass != SingletonConfigurable:
+                yield subclass
+    
+    @classmethod
+    def clear_instance(cls):
+        """unset _instance for this class and singleton parents.
+        """
+        if not cls.initialized():
+            return
+        for subclass in cls._walk_mro():
+            if isinstance(subclass._instance, cls):
+                # only clear instances that are instances
+                # of the calling class
+                subclass._instance = None
+            
     @classmethod
     def instance(cls, *args, **kwargs):
         """Returns a global instance of this class.
@@ -219,14 +244,10 @@ class SingletonConfigurable(Configurable):
         if cls._instance is None:
             inst = cls(*args, **kwargs)
             # Now make sure that the instance will also be returned by
-            # the subclasses instance attribute.
-            for subclass in cls.mro():
-                if issubclass(cls, subclass) and \
-                issubclass(subclass, SingletonConfigurable) and \
-                subclass != SingletonConfigurable:
-                    subclass._instance = inst
-                else:
-                    break
+            # parent classes' _instance attribute.
+            for subclass in cls._walk_mro():
+                subclass._instance = inst
+        
         if isinstance(cls._instance, cls):
             return cls._instance
         else:
