@@ -150,7 +150,7 @@ prompt_abbreviations = {
     r'\D': '{dots}',
 
     # Current time
-    r'\t' : '{time}',
+    r'\T' : '{time}',
     # Current working directory
     r'\w': '{cwd}',
     # Basename of current working directory.
