@@ -345,10 +345,8 @@ def load_default_config(ipython_dir=None):
 
 def launch_new_instance():
     """Create and run a full blown IPython instance"""
-    app = TerminalIPythonApp()
+    app = TerminalIPythonApp.instance()
     app.initialize()
-    # print app.config
-    # print app.profile_dir.location
     app.start()
 
 
