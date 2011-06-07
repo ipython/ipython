@@ -1704,7 +1704,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         [D:\ipython]|2> Hello Word_  # cursor is here        
         """
         if isinstance(s, unicode):
-            s = s.encode(self.stdin_encoding)
+            s = s.encode(self.stdin_encoding, 'replace')
         self.rl_next_input = s
 
     # Maybe move this to the terminal subclass?
