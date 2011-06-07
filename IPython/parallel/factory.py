@@ -15,6 +15,7 @@
 import logging
 import os
 
+import zmq
 from zmq.eventloop.ioloop import IOLoop
 
 from IPython.config.configurable import Configurable
@@ -38,7 +39,10 @@ class SessionFactory(LoggingFactory):
     """The Base factory from which every factory in IPython.parallel inherits"""
     
     # not configurable:
-    context = Instance('zmq.Context', (), {})
+    context = Instance('zmq.Context')
+    def _context_default(self):
+        return zmq.Context.instance()
+    
     session = Instance('IPython.parallel.streamsession.StreamSession')
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
     def _loop_default(self):
