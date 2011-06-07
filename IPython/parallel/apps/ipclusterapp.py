@@ -511,7 +511,7 @@ class IPBaseParallelApplication(Application):
 
 def launch_new_instance():
     """Create and run the IPython cluster."""
-    app = IPBaseParallelApplication()
+    app = IPBaseParallelApplication.instance()
     app.initialize()
     app.start()
 

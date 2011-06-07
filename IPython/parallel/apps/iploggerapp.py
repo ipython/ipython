@@ -86,7 +86,7 @@ class IPLoggerApp(BaseParallelApplication):
 
 def launch_new_instance():
     """Create and run the IPython LogWatcher"""
-    app = IPLoggerApp()
+    app = IPLoggerApp.instance()
     app.initialize()
     app.start()
 
