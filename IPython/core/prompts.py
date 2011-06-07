@@ -158,20 +158,20 @@ prompt_abbreviations = {
     r'\W' : '{cwd_last}',
     # These X<N> are an extension to the normal bash prompts.  They return
     # N terms of the path, after replacing $HOME with '~'
-    r'\X0': '{cwd_x[0])}',
-    r'\X1': '{cwd_x[1])}',
-    r'\X2': '{cwd_x[2])}',
-    r'\X3': '{cwd_x[3])}',
-    r'\X4': '{cwd_x[4])}',
-    r'\X5': '{cwd_x[5])}',
+    r'\X0': '{cwd_x[0]}',
+    r'\X1': '{cwd_x[1]}',
+    r'\X2': '{cwd_x[2]}',
+    r'\X3': '{cwd_x[3]}',
+    r'\X4': '{cwd_x[4]}',
+    r'\X5': '{cwd_x[5]}',
     # Y<N> are similar to X<N>, but they show '~' if it's the directory
     # N+1 in the list.  Somewhat like %cN in tcsh.
-    r'\Y0': '{cwd_y[0])}',
-    r'\Y1': '{cwd_y[1])}',
-    r'\Y2': '{cwd_y[2])}',
-    r'\Y3': '{cwd_y[3])}',
-    r'\Y4': '{cwd_y[4])}',
-    r'\Y5': '{cwd_y[5])}',
+    r'\Y0': '{cwd_y[0]}',
+    r'\Y1': '{cwd_y[1]}',
+    r'\Y2': '{cwd_y[2]}',
+    r'\Y3': '{cwd_y[3]}',
+    r'\Y4': '{cwd_y[4]}',
+    r'\Y5': '{cwd_y[5]}',
     # Hostname up to first .
     r'\h': HOSTNAME_SHORT,
     # Full hostname
@@ -194,7 +194,7 @@ prompt_abbreviations = {
 # More utilities
 #-----------------------------------------------------------------------------
 
-def cwd_filt(self, depth):
+def cwd_filt(depth):
     """Return the last depth elements of the current working directory.
 
     $HOME is always replaced with '~'.
@@ -204,7 +204,7 @@ def cwd_filt(self, depth):
     out = os.sep.join(cwd.split(os.sep)[-depth:])
     return out or os.sep
 
-def cwd_filt2(self, depth):
+def cwd_filt2(depth):
     """Return the last depth elements of the current working directory.
 
     $HOME is always replaced with '~'.
