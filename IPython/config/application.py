@@ -274,8 +274,10 @@ class Application(SingletonConfigurable):
         if isinstance(subapp, basestring):
             subapp = import_item(subapp)
         
+        # clear existing instances
+        self.__class__.clear_instance()
         # instantiate
-        self.subapp = subapp()
+        self.subapp = subapp.instance()
         # and initialize subapp
         self.subapp.initialize(argv)
         
