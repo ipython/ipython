@@ -664,7 +664,7 @@ def launch_kernel(*args, **kwargs):
 
 def main():
     """Run an IPKernel as an application"""
-    app = IPKernelApp()
+    app = IPKernelApp.instance()
     app.initialize()
     app.start()
 

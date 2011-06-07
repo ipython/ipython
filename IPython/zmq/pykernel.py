@@ -272,7 +272,7 @@ def launch_kernel(*args, **kwargs):
 
 def main():
     """Run a PyKernel as an application"""
-    app = KernelApp()
+    app = KernelApp.instance()
     app.initialize()
     app.start()
 
