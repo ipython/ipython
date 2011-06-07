@@ -187,13 +187,6 @@ def late_startup_hook(self):
     #print "default startup hook ok" # dbg
 
 
-def generate_prompt(self, is_continuation):
-    """ calculate and return a string with the prompt to display """
-    if is_continuation:
-        return str(self.displayhook.prompt2)
-    return str(self.displayhook.prompt1)
-
-
 def show_in_pager(self,s):
     """ Run a string through pager """
     # raising TryNext here will use the default paging functionality
