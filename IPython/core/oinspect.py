@@ -357,7 +357,7 @@ class Inspector:
         # where the object is defined
         ofile = inspect.getabsfile(obj)
 
-        if (ofile.endswith('.so') or ofile.endswith('.dll')):
+        if ofile.endswith(('.so', '.dll', '.pyd')):
             print 'File %r is binary, not printing.' % ofile
         elif not os.path.isfile(ofile):
             print 'File %r does not exist, not printing.' % ofile
@@ -549,7 +549,7 @@ class Inspector:
                     fname = inspect.getabsfile(obj.__class__)
             if fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
-            if any(fname.endswith(e) for e in ['.so', '.dll', '.pyd']):
+            if fname.endswith(('.so', '.dll', '.pyd')):
                 binary_file = True
             out['file'] = fname
         except:
