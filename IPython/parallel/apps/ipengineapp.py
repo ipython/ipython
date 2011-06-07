@@ -260,7 +260,7 @@ class IPEngineApp(BaseParallelApplication):
 
 def launch_new_instance():
     """Create and run the IPython engine"""
-    app = IPEngineApp()
+    app = IPEngineApp.instance()
     app.initialize()
     app.start()
 
