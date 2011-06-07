@@ -92,7 +92,7 @@ class ParalleMagic(Plugin):
         Then you can do the following::
 
             In [24]: %px a = 5
-            Parallel execution on engines: all
+            Parallel execution on engine(s): all
             Out[24]: 
             <Results List>
             [0] In [7]: a = 5
@@ -102,7 +102,7 @@ class ParalleMagic(Plugin):
         if self.active_view is None:
             print NO_ACTIVE_VIEW
             return
-        print "Parallel execution on engines: %s" % self.active_view.targets
+        print "Parallel execution on engine(s): %s" % self.active_view.targets
         result = self.active_view.execute(parameter_s, block=False)
         if self.active_view.block:
             result.get()
@@ -125,9 +125,9 @@ class ParalleMagic(Plugin):
             %autopx to enabled
 
             In [26]: a = 10
-            Parallel execution on engines: [0,1,2,3]
+            Parallel execution on engine(s): [0,1,2,3]
             In [27]: print a
-            Parallel execution on engines: [0,1,2,3]
+            Parallel execution on engine(s): [0,1,2,3]
             [stdout:0] 10
             [stdout:1] 10
             [stdout:2] 10
@@ -174,15 +174,21 @@ class ParalleMagic(Plugin):
         If self.active_view.block is True, wait for the result
         and display the result.  Otherwise, this is a noop.
         """
+        if isinstance(result.stdout, basestring):
+            # single result
+            stdouts = [result.stdout.rstrip()]
+        else:
+            stdouts = [s.rstrip() for s in result.stdout]
+        
         targets = self.active_view.targets
         if isinstance(targets, int):
             targets = [targets]
-        if targets == 'all':
+        elif targets == 'all':
             targets = self.active_view.client.ids
-        stdout = [s.rstrip() for s in result.stdout]
-        if any(stdout):
-            for i,eid in enumerate(targets):
-                print '[stdout:%i]'%eid, stdout[i]
+
+        if any(stdouts):
+            for eid,stdout in zip(targets, stdouts):
+                print '[stdout:%i]'%eid, stdout
 
 
     def pxrun_cell(self, raw_cell, store_history=True):

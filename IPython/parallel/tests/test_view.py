@@ -315,6 +315,7 @@ class TestView(ClusterTestCase):
         sys.stdout = savestdout
         sio.read()
         self.assertTrue('[stdout:%i]'%v.targets in sio.buf)
+        self.assertTrue(sio.buf.rstrip().endswith('10'))
         self.assertRaisesRemote(ZeroDivisionError, ip.magic_px, '1/0')
 
     def test_magic_px_nonblocking(self):
