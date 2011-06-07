@@ -5,6 +5,7 @@ Authors:
 
 * Fernando Perez
 * Brian Granger
+* Thomas Kluyver
 """
 
 #-----------------------------------------------------------------------------
@@ -81,7 +82,7 @@ PColLightBG.colors.update(
 
 class LazyEvaluate(object):
     """This is used for formatting strings with values that need to be updated
-    at that time, such as the current time or line number."""
+    at that time, such as the current time or working directory."""
     def __init__(self, func, *args, **kwargs):
         self.func = func
         self.args = args
@@ -193,26 +194,6 @@ prompt_abbreviations = {
 # More utilities
 #-----------------------------------------------------------------------------
 
-def str_safe(arg):
-    """Convert to a string, without ever raising an exception.
-
-    If str(arg) fails, <ERROR: ... > is returned, where ... is the exception
-    error message."""
-
-    try:
-        out = str(arg)
-    except UnicodeError:
-        try:
-            out = arg.encode('utf_8','replace')
-        except Exception,msg:
-            # let's keep this little duplication here, so that the most common
-            # case doesn't suffer from a double try wrapping.
-            out = '<ERROR: %s>' % msg
-    except Exception,msg:
-        out = '<ERROR: %s>' % msg
-        #raise  # dbg
-    return out
-
 def cwd_filt(self, depth):
     """Return the last depth elements of the current working directory.
 
@@ -254,20 +235,23 @@ lazily_evaluate = {'time': LazyEvaluate(time.strftime, "%H:%M:%S"),
         
 
 class PromptManager(Configurable):
+    """This is the primary interface for producing IPython's prompts."""
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     
     color_scheme_table = Instance(coloransi.ColorSchemeTable)
-    color_scheme = Unicode('Linux')
+    color_scheme = Unicode('Linux', config=True)
     def _color_scheme_changed(self, name, new_value):
         self.color_scheme_table.set_active_scheme(new_value)
         for pname in ['in', 'in2', 'out', 'rewrite']:
             # We need to recalculate the number of invisible characters
             self.update_prompt(pname)
     
-    # These fields can be referenced in prompt templates, and are evaluated
-    # when the prompt is generated - for things like timestamps. They are only
-    # evaluated if a prompt uses them.
-    lazy_evaluate_fields = Dict()
+    lazy_evaluate_fields = Dict(help="""
+        This maps field names used in the prompt templates to functions which
+        will be called when the prompt is rendered. This allows us to include
+        things like the current time in the prompts. Functions are only called
+        if they are used in the prompt.
+        """)
     def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
     
     in_template = Unicode('In [\\#]: ', config=True)
@@ -275,8 +259,10 @@ class PromptManager(Configurable):
     out_template = Unicode('Out[\\#]: ', config=True)
     rewrite_template = Unicode("------> ", config=True)
     
-    # Justify prompts by default?
-    justify = Bool(True)
+    justify = Bool(True, config=True, help="""
+        If True (default), each prompt will be right-aligned with the
+        preceding one.
+        """)
     
     # We actually store the expanded templates here:
     templates = Dict()
@@ -306,6 +292,14 @@ class PromptManager(Configurable):
                             'in2_template', 'out_template', 'rewrite_template'])
     
     def update_prompt(self, name, new_template=None):
+        """This is called when a prompt template is updated. It processes
+        abbreviations used in the prompt template (like \#) and calculates how
+        many invisible characters (ANSI colour escapes) the resulting prompt
+        contains.
+        
+        It is also called for each prompt on changing the colour scheme. In both
+        cases, traitlets should take care of calling this automatically.
+        """
         if new_template is not None:
             self.templates[name] = multiple_replace(prompt_abbreviations, new_template)
         invis_chars = len(self.render(name, color=True, just=False)) - \
@@ -344,6 +338,12 @@ class PromptManager(Configurable):
                 colors = color_lists['normal']
                 colors.number, colors.prompt, colors.normal = \
                         scheme.out_number, scheme.out_prompt, scheme.normal
+            elif name=='rewrite':
+                colors = color_lists['normal']
+                # We need a non-input version of these escapes
+                colors.number = scheme.in_number.replace("\001","").replace("\002","")
+                colors.prompt = scheme.in_prompt.replace("\001","").replace("\002","")
+                colors.normal = scheme.normal
             else:
                 colors = color_lists['inp']
                 colors.number, colors.prompt, colors.normal = \
