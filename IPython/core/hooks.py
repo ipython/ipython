@@ -51,7 +51,7 @@ from IPython.core.error import TryNext
 
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
-           'generate_prompt', 'show_in_pager','pre_prompt_hook',
+           'show_in_pager','pre_prompt_hook',
            'pre_run_code_hook', 'clipboard_get']
 
 def editor(self,filename, linenum=None):
