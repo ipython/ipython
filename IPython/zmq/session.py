@@ -13,6 +13,7 @@
 #-----------------------------------------------------------------------------
 
 import hmac
+import logging
 import os
 import pprint
 import uuid
@@ -27,6 +28,7 @@ except:
 
 import zmq
 from zmq.utils import jsonapi
+from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.config.configurable import Configurable
@@ -72,6 +74,36 @@ DELIM="<IDS|MSG>"
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+class SessionFactory(Configurable):
+    """The Base class for configurables that have a Session, Context, logger,
+    and IOLoop.
+    """
+    
+    log = Instance('logging.Logger', ('', logging.WARN))
+    
+    logname = Unicode('')
+    def _logname_changed(self, name, old, new):
+        self.log = logging.getLogger(new)
+    
+    # not configurable:
+    context = Instance('zmq.Context')
+    def _context_default(self):
+        return zmq.Context.instance()
+    
+    session = Instance('IPython.zmq.session.Session')
+    
+    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
+    def _loop_default(self):
+        return IOLoop.instance()
+    
+    def __init__(self, **kwargs):
+        super(SessionFactory, self).__init__(**kwargs)
+        
+        if self.session is None:
+            # construct the session
+            self.session = Session(**kwargs)
+    
 
 class Message(object):
     """A simple message object that maps dict keys to attributes.
@@ -143,7 +175,7 @@ class Session(Configurable):
         else:
             self.pack = import_item(new)
 
-    unpacker = Unicode('json',config=True,
+    unpacker = Unicode('json', config=True,
         help="""The name of the unpacker for unserializing messages.
         Only used with custom functions for `packer`.""")
     def _unpacker_changed(self, name, old, new):
@@ -156,7 +188,7 @@ class Session(Configurable):
         else:
             self.unpack = import_item(new)
         
-    session = CStr('',config=True,
+    session = CStr('', config=True,
         help="""The UUID identifying this session.""")
     def _session_default(self):
         return bytes(uuid.uuid4())

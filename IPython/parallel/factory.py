@@ -1,7 +1,7 @@
 """Base config factories."""
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2009  The IPython Development Team
+#  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -22,39 +22,12 @@ from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Int, Instance, Unicode
 
 from IPython.parallel.util import select_random_ports
-from IPython.zmq.session import Session
+from IPython.zmq.session import Session, SessionFactory
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class LoggingFactory(Configurable):
-    """A most basic class, that has a `log` (type:`Logger`) attribute, set via a `logname` Trait."""
-    log = Instance('logging.Logger', ('ZMQ', logging.WARN))
-    logname = Unicode('ZMQ')
-    def _logname_changed(self, name, old, new):
-        self.log = logging.getLogger(new)
-    
 
-class SessionFactory(LoggingFactory):
-    """The Base factory from which every factory in IPython.parallel inherits"""
-    
-    # not configurable:
-    context = Instance('zmq.Context')
-    def _context_default(self):
-        return zmq.Context.instance()
-    
-    session = Instance('IPython.zmq.session.Session')
-    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
-    def _loop_default(self):
-        return IOLoop.instance()
-    
-    
-    def __init__(self, **kwargs):
-        super(SessionFactory, self).__init__(**kwargs)
-        
-        # construct the session
-        self.session = Session(**kwargs)
-    
 
 class RegistrationFactory(SessionFactory):
     """The Base Configurable for objects that involve registration."""

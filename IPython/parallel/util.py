@@ -452,6 +452,7 @@ def connect_engine_logger(context, iface, engine, loglevel=logging.DEBUG):
     handler.setLevel(loglevel)
     logger.addHandler(handler)
     logger.setLevel(loglevel)
+    return logger
 
 def local_logger(logname, loglevel=logging.DEBUG):
     loglevel = integer_loglevel(loglevel)
@@ -463,4 +464,5 @@ def local_logger(logname, loglevel=logging.DEBUG):
     handler.setLevel(loglevel)
     logger.addHandler(handler)
     logger.setLevel(loglevel)
+    return logger
 

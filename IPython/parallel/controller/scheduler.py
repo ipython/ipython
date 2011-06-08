@@ -612,7 +612,8 @@ class TaskScheduler(SessionFactory):
         for msg_id in jobs:
             raw_msg, targets, after, follow, timeout = self.depending[msg_id]
             
-            if after.unreachable(self.all_completed, self.all_failed) or follow.unreachable(self.all_completed, self.all_failed):
+            if after.unreachable(self.all_completed, self.all_failed)\
+                    or follow.unreachable(self.all_completed, self.all_failed):
                 self.fail_unreachable(msg_id)
             
             elif after.check(self.all_completed, self.all_failed): # time deps met, maybe run
@@ -643,9 +644,9 @@ class TaskScheduler(SessionFactory):
     
 
 
-def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname='ZMQ', 
-                            log_url=None, loglevel=logging.DEBUG,
-                            identity=b'task'):
+def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,
+                        logname='root', log_url=None, loglevel=logging.DEBUG,
+                        identity=b'task'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
     
@@ -671,13 +672,13 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname=
     # setup logging. Note that these will not work in-process, because they clobber
     # existing loggers.
     if log_url:
-        connect_logger(logname, ctx, log_url, root="scheduler", loglevel=loglevel)
+        log = connect_logger(logname, ctx, log_url, root="scheduler", loglevel=loglevel)
     else:
-        local_logger(logname, loglevel)
+        log = local_logger(logname, loglevel)
     
     scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
                             mon_stream=mons, notifier_stream=nots,
-                            loop=loop, logname=logname,
+                            loop=loop, log=log,
                             config=config)
     scheduler.start()
     try:
