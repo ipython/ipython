@@ -174,13 +174,11 @@ class Kernel(HasTraits):
 
     def _abort_queue(self):
         while True:
-            try:
-                ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
-            except zmq.ZMQError, e:
-                if e.errno == zmq.EAGAIN:
-                    break
+            ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
+            if msg is None:
+                break
             else:
-                assert ident is not None, "Missing message part."
+                assert ident is not None, "Unexpected missing message part."
             print>>sys.__stdout__, "Aborting:"
             print>>sys.__stdout__, Message(msg)
             msg_type = msg['msg_type']
