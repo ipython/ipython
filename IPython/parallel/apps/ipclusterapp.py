@@ -308,7 +308,7 @@ class IPClusterEngines(BaseParallelApplication):
         klass = import_item(clsname)
 
         launcher = klass(
-            work_dir=self.profile_dir.location, config=self.config, logname=self.log.name
+            work_dir=self.profile_dir.location, config=self.config, log=self.log
         )
         return launcher
     

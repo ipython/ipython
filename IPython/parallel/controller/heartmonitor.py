@@ -18,8 +18,8 @@ import zmq
 from zmq.devices import ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
+from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Set, Instance, CFloat
-from IPython.parallel.factory import LoggingFactory
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
@@ -47,7 +47,7 @@ class Heart(object):
     def start(self):
         return self.device.start()
         
-class HeartMonitor(LoggingFactory):
+class HeartMonitor(Configurable):
     """A basic HeartMonitor class
     pingstream: a PUB stream
     pongstream: an XREP stream
@@ -58,6 +58,7 @@ class HeartMonitor(LoggingFactory):
         ' (in ms) [default: 100]',
     )
     
+    log = Instance('logging.Logger', ('root',))
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')

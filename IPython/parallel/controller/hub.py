@@ -31,7 +31,9 @@ from IPython.utils.traitlets import (
 from IPython.utils.jsonutil import ISO8601, extract_dates
 
 from IPython.parallel import error, util
-from IPython.parallel.factory import RegistrationFactory, LoggingFactory
+from IPython.parallel.factory import RegistrationFactory
+
+from IPython.zmq.session import SessionFactory
 
 from .heartmonitor import HeartMonitor
 
@@ -231,8 +233,10 @@ class HubFactory(RegistrationFactory):
         hpub.bind(engine_iface % self.hb[0])
         hrep = ctx.socket(zmq.XREP)
         hrep.bind(engine_iface % self.hb[1])
-        self.heartmonitor = HeartMonitor(loop=loop, pingstream=ZMQStream(hpub,loop), pongstream=ZMQStream(hrep,loop), 
-                                config=self.config)
+        self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
+                                pingstream=ZMQStream(hpub,loop),
+                                pongstream=ZMQStream(hrep,loop)
+                            )
 
         ### Client connections ###
         # Notifier socket
@@ -287,10 +291,10 @@ class HubFactory(RegistrationFactory):
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
                 query=q, notifier=n, resubmit=r, db=self.db,
                 engine_info=self.engine_info, client_info=self.client_info,
-                logname=self.log.name)
+                log=self.log)
     
 
-class Hub(LoggingFactory):
+class Hub(SessionFactory):
     """The IPython Controller Hub with 0MQ connections
     
     Parameters
@@ -328,7 +332,6 @@ class Hub(LoggingFactory):
     _idcounter=Int(0)
     
     # objects from constructor:
-    loop=Instance(ioloop.IOLoop)
     query=Instance(ZMQStream)
     monitor=Instance(ZMQStream)
     notifier=Instance(ZMQStream)
