@@ -23,6 +23,7 @@ pjoin = os.path.join
 import zmq
 # from zmq.eventloop import ioloop, zmqstream
 
+from IPython.utils.jsonutil import extract_dates
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (HasTraits, Int, Instance, Unicode,
                                     Dict, List, Bool, Set)
@@ -30,8 +31,9 @@ from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
 from IPython.parallel import error
-from IPython.parallel import streamsession as ss
 from IPython.parallel import util
+
+from IPython.zmq.session import Session, Message
 
 from .asyncresult import AsyncResult, AsyncHubResult
 from IPython.core.newapplication import ProfileDir, ProfileDirError
@@ -294,9 +296,9 @@ class Client(HasTraits):
             arg = 'key'
         key_arg = {arg:exec_key}
         if username is None:
-            self.session = ss.StreamSession(**key_arg)
+            self.session = Session(**key_arg)
         else:
-            self.session = ss.StreamSession(username=username, **key_arg)
+            self.session = Session(username=username, **key_arg)
         self._query_socket = self._context.socket(zmq.XREQ)
         self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:
@@ -416,7 +418,7 @@ class Client(HasTraits):
         idents,msg = self.session.recv(self._query_socket,mode=0)
         if self.debug:
             pprint(msg)
-        msg = ss.Message(msg)
+        msg = Message(msg)
         content = msg.content
         self._config['registration'] = dict(content)
         if content.status == 'ok':
@@ -478,11 +480,11 @@ class Client(HasTraits):
             md['engine_id'] = self._engines.get(md['engine_uuid'], None)
         
         if 'date' in parent:
-            md['submitted'] = datetime.strptime(parent['date'], util.ISO8601)
+            md['submitted'] = parent['date']
         if 'started' in header:
-            md['started'] = datetime.strptime(header['started'], util.ISO8601)
+            md['started'] = header['started']
         if 'date' in header:
-            md['completed'] = datetime.strptime(header['date'], util.ISO8601)
+            md['completed'] = header['date']
         return md
     
     def _register_engine(self, msg):
@@ -528,7 +530,7 @@ class Client(HasTraits):
             header = {}
             parent['msg_id'] = msg_id
             header['engine'] = uuid
-            header['date'] = datetime.now().strftime(util.ISO8601)
+            header['date'] = datetime.now()
             msg = dict(parent_header=parent, header=header, content=content)
             self._handle_apply_reply(msg)
     
@@ -551,7 +553,7 @@ class Client(HasTraits):
     
     def _handle_apply_reply(self, msg):
         """Save the reply to an apply_request into our results."""
-        parent = msg['parent_header']
+        parent = extract_dates(msg['parent_header'])
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
             if msg_id in self.history:
@@ -563,7 +565,7 @@ class Client(HasTraits):
         else:
             self.outstanding.remove(msg_id)
         content = msg['content']
-        header = msg['header']
+        header = extract_dates(msg['header'])
         
         # construct metadata:
         md = self.metadata[msg_id]
@@ -589,33 +591,31 @@ class Client(HasTraits):
     def _flush_notifications(self):
         """Flush notifications of engine registrations waiting
         in ZMQ queue."""
-        msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
+        idents,msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
-            msg = msg[-1]
             msg_type = msg['msg_type']
             handler = self._notification_handlers.get(msg_type, None)
             if handler is None:
                 raise Exception("Unhandled message type: %s"%msg.msg_type)
             else:
                 handler(msg)
-            msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
+            idents,msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
     
     def _flush_results(self, sock):
         """Flush task or queue results waiting in ZMQ queue."""
-        msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
-            msg = msg[-1]
             msg_type = msg['msg_type']
             handler = self._queue_handlers.get(msg_type, None)
             if handler is None:
                 raise Exception("Unhandled message type: %s"%msg.msg_type)
             else:
                 handler(msg)
-            msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
     def _flush_control(self, sock):
         """Flush replies from the control channel waiting
@@ -624,12 +624,12 @@ class Client(HasTraits):
         Currently: ignore them."""
         if self._ignored_control_replies <= 0:
             return
-        msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             self._ignored_control_replies -= 1
             if self.debug:
                 pprint(msg)
-            msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
     def _flush_ignored_control(self):
         """flush ignored control replies"""
@@ -638,19 +638,18 @@ class Client(HasTraits):
             self._ignored_control_replies -= 1
     
     def _flush_ignored_hub_replies(self):
-        msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
+        ident,msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
         while msg is not None:
-            msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
+            ident,msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
     
     def _flush_iopub(self, sock):
         """Flush replies from the iopub channel waiting
         in the ZMQ queue.
         """
-        msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
-            msg = msg[-1]
             parent = msg['parent_header']
             msg_id = parent['msg_id']
             content = msg['content']
@@ -674,7 +673,7 @@ class Client(HasTraits):
             # reduntant?
             self.metadata[msg_id] = md
             
-            msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
     #--------------------------------------------------------------------------
     # len, getitem
@@ -1172,6 +1171,7 @@ class Client(HasTraits):
         failures = []
         # load cached results into result:
         content.update(local_results)
+        content = extract_dates(content)
         # update cache with results:
         for msg_id in sorted(theids):
             if msg_id in content['completed']:
@@ -1338,6 +1338,8 @@ class Client(HasTraits):
         has_bufs = buffer_lens is not None
         has_rbufs = result_buffer_lens is not None
         for i,rec in enumerate(records):
+            # unpack timestamps
+            rec = extract_dates(rec)
             # relink buffers
             if has_bufs:
                 blen = buffer_lens[i]
@@ -1345,11 +1347,6 @@ class Client(HasTraits):
             if has_rbufs:
                 blen = result_buffer_lens[i]
                 rec['result_buffers'], buffers = buffers[:blen],buffers[blen:]
-            # turn timestamps back into times
-            for key in 'submitted started completed resubmitted'.split():
-                maybedate = rec.get(key, None)
-                if maybedate and util.ISO8601_RE.match(maybedate):
-                    rec[key] = datetime.strptime(maybedate, util.ISO8601)
             
         return records
 

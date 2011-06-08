@@ -8,7 +8,7 @@
 
 from zmq.eventloop import ioloop
 
-from IPython.parallel.streamsession import StreamSession
+from IPython.zmq.session import Session
 
 class KernelStarter(object):
     """Object for resetting/killing the Kernel."""
@@ -213,7 +213,7 @@ def make_starter(up_addr, down_addr, *args, **kwargs):
     """entry point function for launching a kernelstarter in a subprocess"""
     loop = ioloop.IOLoop.instance()
     ctx = zmq.Context()
-    session = StreamSession()
+    session = Session()
     upstream = zmqstream.ZMQStream(ctx.socket(zmq.XREQ),loop)
     upstream.connect(up_addr)
     downstream = zmqstream.ZMQStream(ctx.socket(zmq.XREQ),loop)

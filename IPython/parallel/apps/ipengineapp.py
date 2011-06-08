@@ -27,7 +27,7 @@ from IPython.parallel.apps.baseapp import BaseParallelApplication
 from IPython.zmq.log import EnginePUBHandler
 
 from IPython.config.configurable import Configurable
-from IPython.parallel.streamsession import StreamSession
+from IPython.zmq.session import Session
 from IPython.parallel.engine.engine import EngineFactory
 from IPython.parallel.engine.streamkernel import Kernel
 from IPython.parallel.util import disambiguate_url
@@ -100,7 +100,7 @@ class IPEngineApp(BaseParallelApplication):
     app_name = Unicode(u'ipengine')
     description = Unicode(_description)
     config_file_name = Unicode(default_config_file_name)
-    classes = List([ProfileDir, StreamSession, EngineFactory, Kernel, MPI])
+    classes = List([ProfileDir, Session, EngineFactory, Kernel, MPI])
 
     startup_script = Unicode(u'', config=True,
         help='specify a script to be run at startup')
@@ -124,9 +124,9 @@ class IPEngineApp(BaseParallelApplication):
         c = 'IPEngineApp.startup_command',
         s = 'IPEngineApp.startup_script',
 
-        ident = 'StreamSession.session',
-        user = 'StreamSession.username',
-        exec_key = 'StreamSession.keyfile',
+        ident = 'Session.session',
+        user = 'Session.username',
+        exec_key = 'Session.keyfile',
 
         url = 'EngineFactory.url',
         ip = 'EngineFactory.ip',
@@ -190,7 +190,7 @@ class IPEngineApp(BaseParallelApplication):
                     if isinstance(v, unicode):
                         d[k] = v.encode()
             if d['exec_key']:
-                config.StreamSession.key = d['exec_key']
+                config.Session.key = d['exec_key']
             d['url'] = disambiguate_url(d['url'], d['location'])
             config.EngineFactory.url = d['url']
             config.EngineFactory.location = d['location']

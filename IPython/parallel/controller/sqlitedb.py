@@ -17,7 +17,7 @@ from zmq.eventloop import ioloop
 
 from IPython.utils.traitlets import Unicode, Instance, List
 from .dictdb import BaseDB
-from IPython.parallel.util import ISO8601
+from IPython.utils.jsonutil import date_default, extract_dates
 
 #-----------------------------------------------------------------------------
 # SQLite operators, adapters, and converters
@@ -52,13 +52,13 @@ def _convert_datetime(ds):
         return datetime.strptime(ds, ISO8601)
 
 def _adapt_dict(d):
-    return json.dumps(d)
+    return json.dumps(d, default=date_default)
 
 def _convert_dict(ds):
     if ds is None:
         return ds
     else:
-        return json.loads(ds)
+        return extract_dates(json.loads(ds))
 
 def _adapt_bufs(bufs):
     # this is *horrible*
