@@ -23,7 +23,6 @@ pjoin = os.path.join
 import zmq
 # from zmq.eventloop import ioloop, zmqstream
 
-from IPython.utils.jsonutil import extract_dates
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (HasTraits, Int, Instance, Unicode,
                                     Dict, List, Bool, Set)
@@ -553,7 +552,7 @@ class Client(HasTraits):
     
     def _handle_apply_reply(self, msg):
         """Save the reply to an apply_request into our results."""
-        parent = extract_dates(msg['parent_header'])
+        parent = msg['parent_header']
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
             if msg_id in self.history:
@@ -565,7 +564,7 @@ class Client(HasTraits):
         else:
             self.outstanding.remove(msg_id)
         content = msg['content']
-        header = extract_dates(msg['header'])
+        header = msg['header']
         
         # construct metadata:
         md = self.metadata[msg_id]
@@ -1171,7 +1170,7 @@ class Client(HasTraits):
         failures = []
         # load cached results into result:
         content.update(local_results)
-        content = extract_dates(content)
+        
         # update cache with results:
         for msg_id in sorted(theids):
             if msg_id in content['completed']:
@@ -1332,14 +1331,13 @@ class Client(HasTraits):
             raise self._unwrap_exception(content)
         
         records = content['records']
+        
         buffer_lens = content['buffer_lens']
         result_buffer_lens = content['result_buffer_lens']
         buffers = msg['buffers']
         has_bufs = buffer_lens is not None
         has_rbufs = result_buffer_lens is not None
         for i,rec in enumerate(records):
-            # unpack timestamps
-            rec = extract_dates(rec)
             # relink buffers
             if has_bufs:
                 blen = buffer_lens[i]

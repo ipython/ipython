@@ -28,7 +28,6 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
-from IPython.utils.jsonutil import ISO8601
 from IPython.utils.traitlets import Instance, List, Int, Dict, Set, Unicode
 from IPython.zmq.completer import KernelCompleter
 
@@ -253,7 +252,7 @@ class Kernel(SessionFactory):
             return
         self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent,
                             ident='%s.pyin'%self.prefix)
-        started = datetime.now().strftime(ISO8601)
+        started = datetime.now()
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
             # allow for not overriding displayhook
@@ -303,7 +302,7 @@ class Kernel(SessionFactory):
         # self.iopub_stream.send(pyin_msg)
         # self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent)
         sub = {'dependencies_met' : True, 'engine' : self.ident,
-                'started': datetime.now().strftime(ISO8601)}
+                'started': datetime.now()}
         try:
             # allow for not overriding displayhook
             if hasattr(sys.displayhook, 'set_parent'):

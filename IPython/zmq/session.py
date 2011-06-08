@@ -33,7 +33,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.config.configurable import Configurable
 from IPython.utils.importstring import import_item
-from IPython.utils.jsonutil import date_default
+from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.traitlets import CStr, Unicode, Bool, Any, Instance, Set
 
 #-----------------------------------------------------------------------------
@@ -57,10 +57,9 @@ def squash_unicode(obj):
 #-----------------------------------------------------------------------------
 # globals and defaults
 #-----------------------------------------------------------------------------
-
-_default_key = 'on_unknown' if jsonapi.jsonmod.__name__ == 'jsonlib' else 'default'
-json_packer = lambda obj: jsonapi.dumps(obj, **{_default_key:date_default})
-json_unpacker = lambda s: squash_unicode(jsonapi.loads(s))
+key = 'on_unknown' if jsonapi.jsonmod.__name__ == 'jsonlib' else 'default'
+json_packer = lambda obj: jsonapi.dumps(obj, **{key:date_default})
+json_unpacker = lambda s: squash_unicode(extract_dates(jsonapi.loads(s)))
 
 pickle_packer = lambda o: pickle.dumps(o,-1)
 pickle_unpacker = pickle.loads
@@ -136,7 +135,7 @@ class Message(object):
 
 
 def msg_header(msg_id, msg_type, username, session):
-    date=datetime.now()
+    date = datetime.now()
     return locals()
 
 def extract_header(msg_or_header):
@@ -164,7 +163,7 @@ class Session(Configurable):
     packer = Unicode('json',config=True,
             help="""The name of the packer for serializing messages.
             Should be one of 'json', 'pickle', or an import name
-            for a custom serializer.""")
+            for a custom callable serializer.""")
     def _packer_changed(self, name, old, new):
         if new.lower() == 'json':
             self.pack = json_packer
@@ -173,7 +172,7 @@ class Session(Configurable):
             self.pack = pickle_packer
             self.unpack = pickle_unpacker
         else:
-            self.pack = import_item(new)
+            self.pack = import_item(str(new))
 
     unpacker = Unicode('json', config=True,
         help="""The name of the unpacker for unserializing messages.
@@ -186,7 +185,7 @@ class Session(Configurable):
             self.pack = pickle_packer
             self.unpack = pickle_unpacker
         else:
-            self.unpack = import_item(new)
+            self.unpack = import_item(str(new))
         
     session = CStr('', config=True,
         help="""The UUID identifying this session.""")
@@ -217,14 +216,16 @@ class Session(Configurable):
     def _pack_changed(self, name, old, new):
         if not callable(new):
             raise TypeError("packer must be callable, not %s"%type(new))
-        
+    
     unpack = Any(default_unpacker) # the actual packer function
     def _unpack_changed(self, name, old, new):
+        # unpacker is not checked - it is assumed to be 
         if not callable(new):
-            raise TypeError("packer must be callable, not %s"%type(new))
+            raise TypeError("unpacker must be callable, not %s"%type(new))
 
     def __init__(self, **kwargs):
         super(Session, self).__init__(**kwargs)
+        self._check_packers()
         self.none = self.pack({})
 
     @property
@@ -232,6 +233,36 @@ class Session(Configurable):
         """always return new uuid"""
         return str(uuid.uuid4())
 
+    def _check_packers(self):
+        """check packers for binary data and datetime support."""
+        pack = self.pack
+        unpack = self.unpack
+        
+        # check simple serialization
+        msg = dict(a=[1,'hi'])
+        try:
+            packed = pack(msg)
+        except Exception:
+            raise ValueError("packer could not serialize a simple message")
+        
+        # ensure packed message is bytes
+        if not isinstance(packed, bytes):
+            raise ValueError("message packed to %r, but bytes are required"%type(packed))
+        
+        # check that unpack is pack's inverse
+        try:
+            unpacked = unpack(packed)
+        except Exception:
+            raise ValueError("unpacker could not handle the packer's output")
+        
+        # check datetime support
+        msg = dict(t=datetime.now())
+        try:
+            unpacked = unpack(pack(msg))
+        except Exception:
+            self.pack = lambda o: pack(squash_dates(o))
+            self.unpack = lambda s: extract_dates(unpack(s))
+    
     def msg_header(self, msg_type):
         return msg_header(self.msg_id, msg_type, self.username, self.session)
 
@@ -246,13 +277,6 @@ class Session(Configurable):
         msg['header'].update(sub)
         return msg
 
-    def check_key(self, msg_or_header):
-        """Check that a message's header has the right key"""
-        if not self.key:
-            return True
-        header = extract_header(msg_or_header)
-        return header.get('key', '') == self.key
-    
     def sign(self, msg):
         """Sign a message with HMAC digest. If no auth, return b''."""
         if self.auth is None:
@@ -261,7 +285,7 @@ class Session(Configurable):
         for m in msg:
             h.update(m)
         return h.hexdigest()
-
+    
     def serialize(self, msg, ident=None):
         content = msg.get('content', {})
         if content is None:

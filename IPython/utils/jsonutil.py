@@ -32,15 +32,26 @@ def extract_dates(obj):
     if isinstance(obj, dict):
         for k,v in obj.iteritems():
             obj[k] = extract_dates(v)
-    elif isinstance(obj, list):
+    elif isinstance(obj, (list, tuple)):
         obj = [ extract_dates(o) for o in obj ]
     elif isinstance(obj, basestring):
         if ISO8601_PAT.match(obj):
             obj = datetime.strptime(obj, ISO8601)
     return obj
 
+def squash_dates(obj):
+    """squash datetime objects into ISO8601 strings"""
+    if isinstance(obj, dict):
+        for k,v in obj.iteritems():
+            obj[k] = squash_dates(v)
+    elif isinstance(obj, (list, tuple)):
+        obj = [ squash_dates(o) for o in obj ]
+    elif isinstance(obj, datetime):
+        obj = obj.strftime(ISO8601)
+    return obj
+    
 def date_default(obj):
-    """default function for packing datetime objects"""
+    """default function for packing datetime objects in JSON."""
     if isinstance(obj, datetime):
         return obj.strftime(ISO8601)
     else:
