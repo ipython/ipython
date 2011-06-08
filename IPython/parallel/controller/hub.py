@@ -28,7 +28,6 @@ from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import (
         HasTraits, Instance, Int, Unicode, Dict, Set, Tuple, CStr
         )
-from IPython.utils.jsonutil import ISO8601, extract_dates
 
 from IPython.parallel import error, util
 from IPython.parallel.factory import RegistrationFactory
@@ -74,7 +73,7 @@ def empty_record():
     
 def init_record(msg):
     """Initialize a TaskRecord based on a request."""
-    header = extract_dates(msg['header'])
+    header = msg['header']
     return {
         'msg_id' : header['msg_id'],
         'header' : header,
@@ -255,7 +254,8 @@ class HubFactory(RegistrationFactory):
         # connect the db
         self.log.info('Hub using DB backend: %r'%(self.db_class.split()[-1]))
         # cdir = self.config.Global.cluster_dir
-        self.db = import_item(str(self.db_class))(session=self.session.session, config=self.config)
+        self.db = import_item(str(self.db_class))(session=self.session.session, 
+                                            config=self.config, log=self.log)
         time.sleep(.25)
         try:
             scheme = self.config.TaskScheduler.scheme_name
@@ -488,7 +488,6 @@ class Hub(SessionFactory):
             self.session.send(self.query, "hub_error", ident=client_id, 
                     content=content)
             return
-        print( idents, msg)
         # print client_id, header, parent, content
         #switch on message type:
         msg_type = msg['msg_type']
@@ -557,10 +556,8 @@ class Hub(SessionFactory):
             self.log.error("queue::target %r not registered"%queue_id)
             self.log.debug("queue::    valid are: %r"%(self.by_ident.keys()))
             return
-            
-        header = msg['header']
-        msg_id = header['msg_id']
         record = init_record(msg)
+        msg_id = record['msg_id']
         record['engine_uuid'] = queue_id
         record['client_uuid'] = client_id
         record['queue'] = 'mux'
@@ -614,7 +611,7 @@ class Hub(SessionFactory):
             self.log.warn("queue:: unknown msg finished %r"%msg_id)
             return
         # update record anyway, because the unregistration could have been premature
-        rheader = extract_dates(msg['header'])
+        rheader = msg['header']
         completed = rheader['date']
         started = rheader.get('started', None)
         result = {
@@ -697,7 +694,7 @@ class Hub(SessionFactory):
         if msg_id in self.unassigned:
             self.unassigned.remove(msg_id)
         
-        header = extract_dates(msg['header'])
+        header = msg['header']
         engine_uuid = header.get('engine', None)
         eid = self.by_ident.get(engine_uuid, None)
         
@@ -1141,11 +1138,10 @@ class Hub(SessionFactory):
             reply = error.wrap_exception()
         else:
             # send the messages
-            now_s = now.strftime(ISO8601)
             for rec in records:
                 header = rec['header']
                 # include resubmitted in header to prevent digest collision
-                header['resubmitted'] = now_s
+                header['resubmitted'] = now
                 msg = self.session.msg(header['msg_type'])
                 msg['content'] = rec['content']
                 msg['header'] = header
@@ -1241,10 +1237,8 @@ class Hub(SessionFactory):
         content = msg['content']
         query = content.get('query', {})
         keys = content.get('keys', None)
-        query = util.extract_dates(query)
         buffers = []
         empty = list()
-        
         try:
             records = self.db.find_records(query, keys)
         except Exception as e:

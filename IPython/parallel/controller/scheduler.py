@@ -179,7 +179,7 @@ class TaskScheduler(SessionFactory):
         self.notifier_stream.on_recv(self.dispatch_notification)
         self.auditor = ioloop.PeriodicCallback(self.audit_timeouts, 2e3, self.loop) # 1 Hz
         self.auditor.start()
-        self.log.info("Scheduler started...%r"%self)
+        self.log.info("Scheduler started [%s]"%self.scheme_name)
     
     def resume_receiving(self):
         """Resume accepting jobs."""
