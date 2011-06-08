@@ -46,7 +46,7 @@ from datetime import datetime
 
 from IPython.config.configurable import Configurable
 
-from IPython.utils.traitlets import Dict, Unicode
+from IPython.utils.traitlets import Dict, Unicode, Instance
 
 filters = {
  '$lt' : lambda a,b: a < b,
@@ -83,6 +83,7 @@ class BaseDB(Configurable):
     """Empty Parent class so traitlets work on DB."""
     # base configurable traits:
     session = Unicode("")
+    log = Instance('logging.Logger', ('root',))
 
 class DictDB(BaseDB):
     """Basic in-memory dict-based object for saving Task Records.
