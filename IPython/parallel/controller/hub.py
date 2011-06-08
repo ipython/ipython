@@ -28,6 +28,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import (
         HasTraits, Instance, Int, Unicode, Dict, Set, Tuple, CStr
         )
+from IPython.utils.jsonutil import ISO8601, extract_dates
 
 from IPython.parallel import error, util
 from IPython.parallel.factory import RegistrationFactory, LoggingFactory
@@ -71,13 +72,13 @@ def empty_record():
     
 def init_record(msg):
     """Initialize a TaskRecord based on a request."""
-    header = msg['header']
+    header = extract_dates(msg['header'])
     return {
         'msg_id' : header['msg_id'],
         'header' : header,
         'content': msg['content'],
         'buffers': msg['buffers'],
-        'submitted': datetime.strptime(header['date'], util.ISO8601),
+        'submitted': header['date'],
         'client_uuid' : None,
         'engine_uuid' : None,
         'started': None,
@@ -295,7 +296,7 @@ class Hub(LoggingFactory):
     Parameters
     ==========
     loop: zmq IOLoop instance
-    session: StreamSession object
+    session: Session object
     <removed> context: zmq context for creating new connections (?)
     queue: ZMQStream for monitoring the command queue (SUB)
     query: ZMQStream for engine registration and client queries requests (XREP)
@@ -610,11 +611,9 @@ class Hub(LoggingFactory):
             self.log.warn("queue:: unknown msg finished %r"%msg_id)
             return
         # update record anyway, because the unregistration could have been premature
-        rheader = msg['header']
-        completed = datetime.strptime(rheader['date'], util.ISO8601)
+        rheader = extract_dates(msg['header'])
+        completed = rheader['date']
         started = rheader.get('started', None)
-        if started is not None:
-            started = datetime.strptime(started, util.ISO8601)
         result = {
             'result_header' : rheader,
             'result_content': msg['content'],
@@ -695,7 +694,7 @@ class Hub(LoggingFactory):
         if msg_id in self.unassigned:
             self.unassigned.remove(msg_id)
         
-        header = msg['header']
+        header = extract_dates(msg['header'])
         engine_uuid = header.get('engine', None)
         eid = self.by_ident.get(engine_uuid, None)
         
@@ -706,10 +705,8 @@ class Hub(LoggingFactory):
                 self.completed[eid].append(msg_id)
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
-            completed = datetime.strptime(header['date'], util.ISO8601)
+            completed = header['date']
             started = header.get('started', None)
-            if started is not None:
-                started = datetime.strptime(started, util.ISO8601)
             result = {
                 'result_header' : header,
                 'result_content': msg['content'],
@@ -1141,7 +1138,7 @@ class Hub(LoggingFactory):
             reply = error.wrap_exception()
         else:
             # send the messages
-            now_s = now.strftime(util.ISO8601)
+            now_s = now.strftime(ISO8601)
             for rec in records:
                 header = rec['header']
                 # include resubmitted in header to prevent digest collision

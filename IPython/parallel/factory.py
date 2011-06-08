@@ -21,8 +21,8 @@ from zmq.eventloop.ioloop import IOLoop
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Int, Instance, Unicode
 
-import IPython.parallel.streamsession as ss
 from IPython.parallel.util import select_random_ports
+from IPython.zmq.session import Session
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -43,7 +43,7 @@ class SessionFactory(LoggingFactory):
     def _context_default(self):
         return zmq.Context.instance()
     
-    session = Instance('IPython.parallel.streamsession.StreamSession')
+    session = Instance('IPython.zmq.session.Session')
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
     def _loop_default(self):
         return IOLoop.instance()
@@ -53,7 +53,7 @@ class SessionFactory(LoggingFactory):
         super(SessionFactory, self).__init__(**kwargs)
         
         # construct the session
-        self.session = ss.StreamSession(**kwargs)
+        self.session = Session(**kwargs)
     
 
 class RegistrationFactory(SessionFactory):

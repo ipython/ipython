@@ -28,12 +28,13 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
+from IPython.utils.jsonutil import ISO8601
 from IPython.utils.traitlets import Instance, List, Int, Dict, Set, Unicode
 from IPython.zmq.completer import KernelCompleter
 
 from IPython.parallel.error import wrap_exception
 from IPython.parallel.factory import SessionFactory
-from IPython.parallel.util import serialize_object, unpack_apply_message, ISO8601
+from IPython.parallel.util import serialize_object, unpack_apply_message
 
 def printer(*args):
     pprint(args, stream=sys.__stdout__)
@@ -42,7 +43,7 @@ def printer(*args):
 class _Passer(zmqstream.ZMQStream):
     """Empty class that implements `send()` that does nothing.
     
-    Subclass ZMQStream for StreamSession typechecking
+    Subclass ZMQStream for Session typechecking
     
     """
     def __init__(self, *args, **kwargs):
