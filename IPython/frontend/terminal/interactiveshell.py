@@ -58,11 +58,21 @@ raw_input_original = raw_input
 
 class TerminalInteractiveShell(InteractiveShell):
 
-    autoedit_syntax = CBool(False, config=True)
+    autoedit_syntax = CBool(False, config=True,
+        help="auto editing of files with syntax errors.")
     banner = Unicode('')
-    banner1 = Unicode(default_banner, config=True)
-    banner2 = Unicode('', config=True)
-    confirm_exit = CBool(True, config=True)
+    banner1 = Unicode(default_banner, config=True,
+        help="""The part of the banner to be printed before the profile"""
+    )
+    banner2 = Unicode('', config=True,
+        help="""The part of the banner to be printed after the profile"""
+    )
+    confirm_exit = CBool(True, config=True,
+        help="""
+        Set to confirm when you try to exit IPython with an EOF (Control-D
+        in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
+        you can force a direct exit without any confirmation.""",
+    )
     # This display_banner only controls whether or not self.show_banner()
     # is called when mainloop/interact are called.  The default is False
     # because for the terminal based application, the banner behavior
@@ -71,19 +81,35 @@ class TerminalInteractiveShell(InteractiveShell):
     display_banner = CBool(False) # This isn't configurable!
     embedded = CBool(False)
     embedded_active = CBool(False)
-    editor = Unicode(get_default_editor(), config=True)
-    pager = Unicode('less', config=True)
+    editor = Unicode(get_default_editor(), config=True,
+        help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
+    )
+    pager = Unicode('less', config=True,
+        help="The shell program to be used for paging.")
 
-    screen_length = Int(0, config=True)
-    term_title = CBool(False, config=True)
+    screen_length = Int(0, config=True,
+        help=
+        """Number of lines of your screen, used to control printing of very
+        long strings.  Strings longer than this number of lines will be sent
+        through a pager instead of directly printed.  The default value for
+        this is 0, which means IPython will auto-detect your screen size every
+        time it needs to print certain potentially long strings (this doesn't
+        change the behavior of the 'print' keyword, it's only triggered
+        internally). If for some reason this isn't working well (it needs
+        curses support), specify it yourself. Otherwise don't change the
+        default.""",
+    )
+    term_title = CBool(False, config=True,
+        help="Enable auto setting the terminal title."
+    )
 
-    def __init__(self, config=None, ipython_dir=None, user_ns=None,
+    def __init__(self, config=None, ipython_dir=None, profile_dir=None, user_ns=None,
                  user_global_ns=None, custom_exceptions=((),None),
                  usage=None, banner1=None, banner2=None,
                  display_banner=None):
 
         super(TerminalInteractiveShell, self).__init__(
-            config=config, ipython_dir=ipython_dir, user_ns=user_ns,
+            config=config, profile_dir=profile_dir, user_ns=user_ns,
             user_global_ns=user_global_ns, custom_exceptions=custom_exceptions
         )
         self.init_term_title()

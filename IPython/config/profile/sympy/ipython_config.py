@@ -1,8 +1,10 @@
 c = get_config()
+app = c.IPythonApp
 
 # This can be used at any point in a config file to load a sub config
 # and merge it into the current one.
-load_subconfig('ipython_config.py')
+import os
+load_subconfig(os.path.join('..','profile_default', 'ipython_config.py'))
 
 lines = """
 from __future__ import division
@@ -16,14 +18,14 @@ f, g, h = map(Function, 'fgh')
 # exist before using them.  Simple assigning a new list will override
 # all previous values.
 
-if hasattr(c.Global, 'exec_lines'):
-    c.Global.exec_lines.append(lines)
+if hasattr(app, 'exec_lines'):
+    app.exec_lines.append(lines)
 else:
-    c.Global.exec_lines = [lines]
+    app.exec_lines = [lines]
 
 # Load the sympy_printing extension to enable nice printing of sympy expr's.
-if hasattr(c.Global, 'extensions'):
-    c.Global.extensions.append('sympy_printing')
+if hasattr(app, 'extensions'):
+    app.extensions.append('sympy_printing')
 else:
-    c.Global.extensions = ['sympy_printing']
+    app.extensions = ['sympy_printing']
 
