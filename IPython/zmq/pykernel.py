@@ -51,6 +51,7 @@ class Kernel(HasTraits):
     shell_socket = Instance('zmq.Socket')
     iopub_socket = Instance('zmq.Socket')
     stdin_socket = Instance('zmq.Socket')
+    log = Instance('logging.Logger')
 
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
@@ -73,11 +74,10 @@ class Kernel(HasTraits):
             ident,msg = self.session.recv(self.shell_socket,0)
             assert ident is not None, "Missing message part."
             omsg = Message(msg)
-            print>>sys.__stdout__
-            print>>sys.__stdout__, omsg
+            self.log.debug(str(omsg))
             handler = self.handlers.get(omsg.msg_type, None)
             if handler is None:
-                print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", omsg
+                self.log.error("UNKNOWN MESSAGE TYPE: %s"%omsg)
             else:
                 handler(ident, omsg)
 
@@ -97,8 +97,7 @@ class Kernel(HasTraits):
         try:
             code = parent[u'content'][u'code']
         except:
-            print>>sys.__stderr__, "Got bad msg: "
-            print>>sys.__stderr__, Message(parent)
+            self.log.error("Got bad msg: %s"%Message(parent))
             return
         pyin_msg = self.session.send(self.iopub_socket, u'pyin',{u'code':code}, parent=parent)
 
@@ -136,7 +135,7 @@ class Kernel(HasTraits):
 
         # Send the reply.
         reply_msg = self.session.send(self.shell_socket, u'execute_reply', reply_content, parent, ident=ident)
-        print>>sys.__stdout__, Message(reply_msg)
+        self.log.debug(Message(reply_msg))
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
@@ -145,14 +144,14 @@ class Kernel(HasTraits):
                    'status' : 'ok'}
         completion_msg = self.session.send(self.shell_socket, 'complete_reply',
                                            matches, parent, ident)
-        print >> sys.__stdout__, completion_msg
+        self.log.debug(completion_msg)
 
     def object_info_request(self, ident, parent):
         context = parent['content']['oname'].split('.')
         object_info = self._object_info(context)
         msg = self.session.send(self.shell_socket, 'object_info_reply',
                                 object_info, parent, ident)
-        print >> sys.__stdout__, msg
+        self.log.debug(msg)
 
     def shutdown_request(self, ident, parent):
         content = dict(parent['content'])
@@ -160,7 +159,7 @@ class Kernel(HasTraits):
                                 content, parent, ident)
         msg = self.session.send(self.iopub_socket, 'shutdown_reply',
                                 content, parent, ident)
-        print >> sys.__stdout__, msg
+        self.log.debug(msg)
         time.sleep(0.1)
         sys.exit(0)
 
@@ -170,19 +169,17 @@ class Kernel(HasTraits):
 
     def _abort_queue(self):
         while True:
-            try:
-                ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
-            except zmq.ZMQError, e:
-                if e.errno == zmq.EAGAIN:
-                    break
+            ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
+            if msg is None:
+                # msg=None on EAGAIN
+                break
             else:
                 assert ident is not None, "Missing message part."
-            print>>sys.__stdout__, "Aborting:"
-            print>>sys.__stdout__, Message(msg)
+            self.log.debug("Aborting: %s"%Message(msg))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             reply_msg = self.session.send(self.shell_socket, reply_type, {'status':'aborted'}, msg, ident=ident)
-            print>>sys.__stdout__, Message(reply_msg)
+            self.log.debug(Message(reply_msg))
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.1)
@@ -201,8 +198,7 @@ class Kernel(HasTraits):
         try:
             value = reply['content']['value']
         except:
-            print>>sys.__stderr__, "Got bad raw_input reply: "
-            print>>sys.__stderr__, Message(parent)
+            self.log.error("Got bad raw_input reply: %s"%Message(parent))
             value = ''
         return value
 
