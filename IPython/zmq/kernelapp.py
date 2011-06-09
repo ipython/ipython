@@ -192,6 +192,7 @@ class KernelApp(BaseIPythonApplication):
                                 shell_socket=self.shell_socket,
                                 iopub_socket=self.iopub_socket,
                                 stdin_socket=self.stdin_socket,
+                                log=self.log
         )
         self.kernel.record_ports(self.ports)
 
