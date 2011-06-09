@@ -316,7 +316,7 @@ class IPClusterEngines(BaseParallelApplication):
         self.log.info("Starting %i engines"%self.n)
         self.engine_launcher.start(
             self.n,
-            profile_dir=self.profile_dir.location
+            self.profile_dir.location
         )
 
     def stop_engines(self):
@@ -422,7 +422,7 @@ class IPClusterStart(IPClusterEngines):
     
     def start_controller(self):
         self.controller_launcher.start(
-            profile_dir=self.profile_dir.location
+            self.profile_dir.location
         )
         
     def stop_controller(self):
