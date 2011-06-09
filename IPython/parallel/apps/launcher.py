@@ -989,7 +989,7 @@ class SGEControllerLauncher(SGELauncher):
     def start(self, profile_dir):
         """Start the controller by profile or profile_dir."""
         self.log.info("Starting PBSControllerLauncher: %r" % self.args)
-        return super(PBSControllerLauncher, self).start(1, profile_dir)
+        return super(SGEControllerLauncher, self).start(1, profile_dir)
 
 class SGEEngineSetLauncher(SGELauncher):
     """Launch Engines with SGE"""
