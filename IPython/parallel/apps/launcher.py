@@ -970,7 +970,7 @@ class PBSEngineSetLauncher(PBSLauncher):
 
 class SGELauncher(PBSLauncher):
     """Sun GridEngine is a PBS clone with slightly different syntax"""
-    job_array_regexp = Unicode('#$$\W+-t\W+[\w\d\-\$]+')
+    job_array_regexp = Unicode('#\$\$\W+\-t')
     job_array_template = Unicode('#$$ -t 1-$n')
     queue_regexp = Unicode('#$$\W+-q\W+\$?\w+')
     queue_template = Unicode('#$$ -q $queue')
