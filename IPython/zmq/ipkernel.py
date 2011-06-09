@@ -155,11 +155,11 @@ class Kernel(Configurable):
     def start(self):
         """ Start the kernel main loop.
         """
-        self.poller = zmq.Poller()
-        self.poller.register(self.shell_socket, zmq.POLLIN)
+        poller = zmq.Poller()
+        poller.register(self.shell_socket, zmq.POLLIN)
         while True:
-            self.poller.poll(self._poll_interval)
-            self.do_one_iteration()
+            if poller.poll(1000*self._poll_interval):
+                self.do_one_iteration()
 
     def record_ports(self, ports):
         """Record the ports that this kernel is using.
