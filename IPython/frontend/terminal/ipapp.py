@@ -206,9 +206,16 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # command_line_loader = IPAppConfigLoader
     default_config_file_name = default_config_file_name
     crash_handler_class = IPAppCrashHandler
+    
     flags = Dict(flags)
     aliases = Dict(aliases)
     classes = [InteractiveShellApp, TerminalInteractiveShell, ProfileDir, PlainTextFormatter]
+    subcommands = Dict(dict(
+        qtconsole=('IPython.frontend.qt.console.ipythonqt.IPythonQtConsoleApp',
+            """Launch the IPython QtConsole.  Also launched as ipython-qtconsole"""
+        )
+    ))
+    
     # *do* autocreate requested profile
     auto_create=Bool(True)
     copy_config_files=Bool(True)
@@ -259,9 +266,11 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""
         super(TerminalIPythonApp, self).initialize(argv)
+        if self.subapp is not None:
+            # don't bother initializing further, starting subapp
+            return
         if not self.ignore_old_config:
             check_for_old_config(self.ipython_dir)
-        
         # print self.extra_args
         if self.extra_args:
             self.file_to_run = self.extra_args[0]
@@ -322,6 +331,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
                 self.shell.showtraceback()
 
     def start(self):
+        if self.subapp is not None:
+            return self.subapp.start()
         # perform any prexec steps:
         if self.interact:
             self.log.debug("Starting IPython's mainloop...")
