@@ -158,7 +158,16 @@ class Kernel(Configurable):
         poller = zmq.Poller()
         poller.register(self.shell_socket, zmq.POLLIN)
         while True:
-            if poller.poll(1000*self._poll_interval):
+            try:
+                # scale by extra factor of 10, because there is no
+                # reason for this to be anything less than ~ 0.1s
+                # since it is a real poller and will respond
+                # to events immediately
+                poller.poll(10*1000*self._poll_interval)
+            except:
+                # This avoids inappropriate printing of interrupts
+                raise
+            else:
                 self.do_one_iteration()
 
     def record_ports(self, ports):
