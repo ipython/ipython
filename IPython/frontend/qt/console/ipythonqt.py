@@ -15,6 +15,7 @@ from IPython.external.qt import QtGui
 from pygments.styles import get_all_styles
 
 # Local imports
+from IPython.config.application import boolean_flag
 from IPython.core.newapplication import ProfileDir, BaseIPythonApplication
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
@@ -22,7 +23,7 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, Int, CaselessStrEnum, Bool, Any
+    Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
 )
 from IPython.zmq.ipkernel import (
     flags as ipkernel_flags,
@@ -48,7 +49,8 @@ class MainWindow(QtGui.QMainWindow):
     # 'object' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, app, frontend, existing=False, may_close=True):
+    def __init__(self, app, frontend, existing=False, may_close=True,
+                    confirm_exit=True):
         """ Create a MainWindow for the specified FrontendWidget.
         
         The app is passed as an argument to allow for different
@@ -67,6 +69,7 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self._may_close = True
         self._frontend.exit_requested.connect(self.close)
+        self._confirm_exit = confirm_exit
         self.setCentralWidget(frontend)
     
     #---------------------------------------------------------------------------
@@ -85,6 +88,11 @@ class MainWindow(QtGui.QMainWindow):
             keepkernel = self._frontend._keep_kernel_on_exit
         
         kernel_manager = self._frontend.kernel_manager
+        
+        if keepkernel is None and not self._confirm_exit:
+            # don't prompt, just terminate the kernel if we own it
+            # or leave it alone if we don't
+            keepkernel = not self._existing
         
         if keepkernel is None: #show prompt
             if kernel_manager and kernel_manager.channels_running:
@@ -154,11 +162,26 @@ flags.update({
             "Use a pure Python kernel instead of an IPython kernel."),
     'plain' : ({'ConsoleWidget' : {'kind' : 'plain'}},
             "Disable rich text support."),
-    'gui-completion' : ({'FrontendWidget' : {'gui_completion' : True}},
-            "use a GUI widget for tab completion"),
 })
-
-qt_flags = ['existing', 'pure', 'plain', 'gui-completion']
+flags.update(boolean_flag(
+    'gui-completion', 'ConsoleWidget.gui_completion',
+    "use a GUI widget for tab completion",
+    "use plaintext output for completion"
+))
+flags.update(boolean_flag(
+    'confirm-exit', 'IPythonQtConsoleApp.confirm_exit',
+    """Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
+       to force a direct exit without any confirmation.
+    """,
+    """Don't prompt the user when exiting. This will terminate the kernel
+       if it is owned by the frontend, and leave it alive if it is external.
+    """
+))
+# the flags that are specific to the frontend
+# these must be scrubbed before being passed to the kernel,
+# or it will raise an error on unrecognized flags
+qt_flags = ['existing', 'pure', 'plain', 'gui-completion', 'no-gui-completion',
+            'confirm-exit', 'no-confirm-exit']
 
 aliases = dict(ipkernel_aliases)
 
@@ -171,7 +194,7 @@ aliases.update(dict(
 
     plain = 'IPythonQtConsoleApp.plain',
     pure = 'IPythonQtConsoleApp.pure',
-    gui_completion = 'FrontendWidget.gui_completion',
+    gui_completion = 'ConsoleWidget.gui_completion',
     style = 'IPythonWidget.syntax_style',
     stylesheet = 'IPythonQtConsoleApp.stylesheet',
     colors = 'ZMQInteractiveShell.colors',
@@ -213,15 +236,15 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     stdin_port = Int(0, config=True,
         help="set the stdin (XREQ) port [default: random]")
 
-    existing = Bool(False, config=True,
+    existing = CBool(False, config=True,
         help="Whether to connect to an already running Kernel.")
 
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
 
-    pure = Bool(False, config=True,
+    pure = CBool(False, config=True,
         help="Use a pure Python kernel instead of an IPython kernel.")
-    plain = Bool(False, config=True,
+    plain = CBool(False, config=True,
         help="Use a plaintext widget instead of rich text (plain can't print/save).")
 
     def _pure_changed(self, name, old, new):
@@ -236,6 +259,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
     _plain_changed = _pure_changed
 
+    confirm_exit = CBool(True, config=True,
+        help="""
+        Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
+        to force a direct exit without any confirmation.""",
+    )
+    
     # the factory for creating a widget
     widget_factory = Any(RichIPythonWidget)
 
@@ -278,7 +307,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                                         local_kernel=local_kernel)
         self.widget.kernel_manager = self.kernel_manager
         self.window = MainWindow(self.app, self.widget, self.existing,
-                                may_close=local_kernel)
+                                may_close=local_kernel,
+                                confirm_exit=self.confirm_exit)
         self.window.setWindowTitle('Python' if self.pure else 'IPython')
 
     def init_colors(self):
