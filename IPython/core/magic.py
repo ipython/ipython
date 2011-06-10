@@ -1684,6 +1684,7 @@ Currently the magic system has the following functions:\n"""
                                     return
                             except (KeyError):
                                 nruns = 1
+                            twall0 = time.time()
                             if nruns == 1:
                                 t0 = clock2()
                                 runner(filename,prog_ns,prog_ns,
@@ -1692,8 +1693,8 @@ Currently the magic system has the following functions:\n"""
                                 t_usr = t1[0]-t0[0]
                                 t_sys = t1[1]-t0[1]
                                 print "\nIPython CPU timings (estimated):"
-                                print "  User  : %10s s." % t_usr
-                                print "  System: %10s s." % t_sys
+                                print "  User   : %10.2f s." % t_usr
+                                print "  System : %10.2f s." % t_sys
                             else:
                                 runs = range(nruns)
                                 t0 = clock2()
@@ -1705,10 +1706,12 @@ Currently the magic system has the following functions:\n"""
                                 t_sys = t1[1]-t0[1]
                                 print "\nIPython CPU timings (estimated):"
                                 print "Total runs performed:",nruns
-                                print "  Times : %10s    %10s" % ('Total','Per run')
-                                print "  User  : %10s s, %10s s." % (t_usr,t_usr/nruns)
-                                print "  System: %10s s, %10s s." % (t_sys,t_sys/nruns)
-                                
+                                print "  Times  : %10.2f    %10.2f" % ('Total','Per run')
+                                print "  User   : %10.2f s, %10.2f s." % (t_usr,t_usr/nruns)
+                                print "  System : %10.2f s, %10.2f s." % (t_sys,t_sys/nruns)
+                            twall1 = time.time()
+                            print "Wall time: %10.2f s." % (twall1-twall0)
+
                         else:
                             # regular execution
                             runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
