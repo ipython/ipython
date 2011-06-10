@@ -17,31 +17,46 @@ The IPython controller application.
 
 from __future__ import with_statement
 
-import copy
 import os
-import logging
 import socket
 import stat
 import sys
 import uuid
 
+from multiprocessing import Process
+
 import zmq
+from zmq.devices import ProcessMonitoredQueue
 from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
-from IPython.config.loader import Config
+from IPython.config.application import boolean_flag
+from IPython.core.newapplication import ProfileDir
 
-from IPython.parallel import factory
-
-from IPython.parallel.apps.clusterdir import (
-    ApplicationWithClusterDir,
-    ClusterDirConfigLoader
+from IPython.parallel.apps.baseapp import (
+    BaseParallelApplication,
+    base_flags
 )
-from IPython.parallel.util import disambiguate_ip_address, split_url
-# from IPython.kernel.fcutil import FCServiceFactory, FURLError
-from IPython.utils.traitlets import Instance, Unicode
+from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict
 
-from IPython.parallel.controller.controller import ControllerFactory
+# from IPython.parallel.controller.controller import ControllerFactory
+from IPython.parallel.streamsession import StreamSession
+from IPython.parallel.controller.heartmonitor import HeartMonitor
+from IPython.parallel.controller.hub import HubFactory
+from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
+from IPython.parallel.controller.sqlitedb import SQLiteDB
+
+from IPython.parallel.util import signal_children, split_url
+
+# conditional import of MongoDB backend class
+
+try:
+    from IPython.parallel.controller.mongodb import MongoDB
+except ImportError:
+    maybe_mongo = []
+else:
+    maybe_mongo = [MongoDB]
 
 
 #-----------------------------------------------------------------------------
@@ -59,238 +74,112 @@ The IPython controller provides a gateway between the IPython engines and
 clients. The controller needs to be started before the engines and can be
 configured using command line options or using a cluster directory. Cluster
 directories contain config, log and security files and are usually located in
-your ipython directory and named as "cluster_<profile>". See the --profile
-and --cluster-dir options for details.
+your ipython directory and named as "cluster_<profile>". See the `profile`
+and `profile_dir` options for details.
 """
 
-#-----------------------------------------------------------------------------
-# Default interfaces
-#-----------------------------------------------------------------------------
 
-# The default client interfaces for FCClientServiceFactory.interfaces
-default_client_interfaces = Config()
-default_client_interfaces.Default.url_file = 'ipcontroller-client.url'
-
-# Make this a dict we can pass to Config.__init__ for the default
-default_client_interfaces = dict(copy.deepcopy(default_client_interfaces.items()))
-
-
-
-# The default engine interfaces for FCEngineServiceFactory.interfaces
-default_engine_interfaces = Config()
-default_engine_interfaces.Default.url_file = u'ipcontroller-engine.url'
-
-# Make this a dict we can pass to Config.__init__ for the default
-default_engine_interfaces = dict(copy.deepcopy(default_engine_interfaces.items()))
-
-
-#-----------------------------------------------------------------------------
-# Service factories
-#-----------------------------------------------------------------------------
-
-# 
-# class FCClientServiceFactory(FCServiceFactory):
-#     """A Foolscap implementation of the client services."""
-# 
-#     cert_file = Unicode(u'ipcontroller-client.pem', config=True)
-#     interfaces = Instance(klass=Config, kw=default_client_interfaces,
-#                           allow_none=False, config=True)
-# 
-# 
-# class FCEngineServiceFactory(FCServiceFactory):
-#     """A Foolscap implementation of the engine services."""
-# 
-#     cert_file = Unicode(u'ipcontroller-engine.pem', config=True)
-#     interfaces = Instance(klass=dict, kw=default_engine_interfaces,
-#                           allow_none=False, config=True)
-# 
-
-#-----------------------------------------------------------------------------
-# Command line options
-#-----------------------------------------------------------------------------
-
-
-class IPControllerAppConfigLoader(ClusterDirConfigLoader):
-
-    def _add_arguments(self):
-        super(IPControllerAppConfigLoader, self)._add_arguments()
-        paa = self.parser.add_argument
-        
-        ## Hub Config:
-        paa('--mongodb', 
-            dest='HubFactory.db_class', action='store_const',
-            const='IPython.parallel.controller.mongodb.MongoDB', 
-            help='Use MongoDB for task storage [default: in-memory]')
-        paa('--sqlite', 
-            dest='HubFactory.db_class', action='store_const',
-            const='IPython.parallel.controller.sqlitedb.SQLiteDB',
-            help='Use SQLite3 for DB task storage [default: in-memory]')
-        paa('--hb',
-            type=int, dest='HubFactory.hb', nargs=2,
-            help='The (2) ports the Hub\'s Heartmonitor will use for the heartbeat '
-            'connections [default: random]',
-            metavar='Hub.hb_ports')
-        paa('--ping',
-            type=int, dest='HubFactory.ping',
-            help='The frequency at which the Hub pings the engines for heartbeats '
-            ' (in ms) [default: 100]',
-            metavar='Hub.ping')
-        
-        # Client config
-        paa('--client-ip',
-            type=str, dest='HubFactory.client_ip', 
-            help='The IP address or hostname the Hub will listen on for '
-            'client connections. Both engine-ip and client-ip can be set simultaneously '
-            'via --ip [default: loopback]',
-            metavar='Hub.client_ip')
-        paa('--client-transport',
-            type=str, dest='HubFactory.client_transport', 
-            help='The ZeroMQ transport the Hub will use for '
-            'client connections. Both engine-transport and client-transport can be set simultaneously '
-            'via --transport [default: tcp]',
-            metavar='Hub.client_transport')
-        paa('--query',
-            type=int, dest='HubFactory.query_port', 
-            help='The port on which the Hub XREP socket will listen for result queries from clients [default: random]',
-            metavar='Hub.query_port')
-        paa('--notifier',
-            type=int, dest='HubFactory.notifier_port', 
-            help='The port on which the Hub PUB socket will listen for notification connections [default: random]',
-            metavar='Hub.notifier_port')
-        
-        # Engine config
-        paa('--engine-ip',
-            type=str, dest='HubFactory.engine_ip', 
-            help='The IP address or hostname the Hub will listen on for '
-            'engine connections. This applies to the Hub and its schedulers'
-            'engine-ip and client-ip can be set simultaneously '
-            'via --ip [default: loopback]',
-            metavar='Hub.engine_ip')
-        paa('--engine-transport',
-            type=str, dest='HubFactory.engine_transport', 
-            help='The ZeroMQ transport the Hub will use for '
-            'client connections. Both engine-transport and client-transport can be set simultaneously '
-            'via --transport [default: tcp]',
-            metavar='Hub.engine_transport')
-        
-        # Scheduler config
-        paa('--mux',
-            type=int, dest='ControllerFactory.mux', nargs=2,
-            help='The (2) ports the MUX scheduler will listen on for client,engine '
-            'connections, respectively [default: random]',
-            metavar='Scheduler.mux_ports')
-        paa('--task',
-            type=int, dest='ControllerFactory.task', nargs=2,
-            help='The (2) ports the Task scheduler will listen on for client,engine '
-            'connections, respectively [default: random]',
-            metavar='Scheduler.task_ports')
-        paa('--control',
-            type=int, dest='ControllerFactory.control', nargs=2,
-            help='The (2) ports the Control scheduler will listen on for client,engine '
-            'connections, respectively [default: random]',
-            metavar='Scheduler.control_ports')
-        paa('--iopub',
-            type=int, dest='ControllerFactory.iopub', nargs=2,
-            help='The (2) ports the IOPub scheduler will listen on for client,engine '
-            'connections, respectively [default: random]',
-            metavar='Scheduler.iopub_ports')
-            
-        paa('--scheme',
-            type=str, dest='HubFactory.scheme',
-            choices = ['pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'],
-            help='select the task scheduler scheme  [default: Python LRU]',
-            metavar='Scheduler.scheme')
-        paa('--usethreads',
-            dest='ControllerFactory.usethreads', action="store_true",
-            help='Use threads instead of processes for the schedulers',
-            )
-        paa('--hwm',
-            dest='TaskScheduler.hwm', type=int,
-            help='specify the High Water Mark (HWM) '
-            'in the Python scheduler. This is the maximum number '
-            'of allowed outstanding tasks on each engine.',
-            )
-        
-        ## Global config
-        paa('--log-to-file',
-            action='store_true', dest='Global.log_to_file',
-            help='Log to a file in the log directory (default is stdout)')
-        paa('--log-url',
-            type=str, dest='Global.log_url',
-            help='Broadcast logs to an iploggerz process [default: disabled]')
-        paa('-r','--reuse-files', 
-            action='store_true', dest='Global.reuse_files',
-            help='Try to reuse existing json connection files.')
-        paa('--no-secure',
-            action='store_false', dest='Global.secure',
-            help='Turn off execution keys (default).')
-        paa('--secure',
-            action='store_true', dest='Global.secure',
-            help='Turn on execution keys.')
-        paa('--execkey',
-            type=str, dest='Global.exec_key',
-            help='path to a file containing an execution key.',
-            metavar='keyfile')
-        paa('--ssh',
-            type=str, dest='Global.sshserver',
-            help='ssh url for clients to use when connecting to the Controller '
-            'processes. It should be of the form: [user@]server[:port]. The '
-            'Controller\'s listening addresses must be accessible from the ssh server',
-            metavar='Global.sshserver')
-        paa('--location',
-            type=str, dest='Global.location',
-            help="The external IP or domain name of this machine, used for disambiguating "
-            "engine and client connections.",
-            metavar='Global.location')
-        factory.add_session_arguments(self.parser)
-        factory.add_registration_arguments(self.parser)
 
 
 #-----------------------------------------------------------------------------
 # The main application
 #-----------------------------------------------------------------------------
+flags = {}
+flags.update(base_flags)
+flags.update({
+    'usethreads' : ( {'IPControllerApp' : {'use_threads' : True}},
+                    'Use threads instead of processes for the schedulers'),
+    'sqlitedb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.sqlitedb.SQLiteDB'}},
+                    'use the SQLiteDB backend'),
+    'mongodb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.mongodb.MongoDB'}},
+                    'use the MongoDB backend'),
+    'dictdb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.dictdb.DictDB'}},
+                    'use the in-memory DictDB backend'),
+    'reuse' : ({'IPControllerApp' : {'reuse_files' : True}},
+                    'reuse existing json connection files')
+})
 
+flags.update(boolean_flag('secure', 'IPControllerApp.secure',
+    "Use HMAC digests for authentication of messages.",
+    "Don't authenticate messages."
+))
 
-class IPControllerApp(ApplicationWithClusterDir):
+class IPControllerApp(BaseParallelApplication):
 
     name = u'ipcontroller'
     description = _description
-    command_line_loader = IPControllerAppConfigLoader
-    default_config_file_name = default_config_file_name
-    auto_create_cluster_dir = True
+    config_file_name = Unicode(default_config_file_name)
+    classes = [ProfileDir, StreamSession, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
     
+    # change default to True
+    auto_create = Bool(True, config=True,
+        help="""Whether to create profile dir if it doesn't exist.""")
+    
+    reuse_files = Bool(False, config=True,
+        help='Whether to reuse existing json connection files.'
+    )
+    secure = Bool(True, config=True,
+        help='Whether to use HMAC digests for extra message authentication.'
+    )
+    ssh_server = Unicode(u'', config=True,
+        help="""ssh url for clients to use when connecting to the Controller
+        processes. It should be of the form: [user@]server[:port]. The
+        Controller's listening addresses must be accessible from the ssh server""",
+    )
+    location = Unicode(u'', config=True,
+        help="""The external IP or domain name of the Controller, used for disambiguating
+        engine and client connections.""",
+    )
+    import_statements = List([], config=True,
+        help="import statements to be run at startup.  Necessary in some environments"
+    )
 
-    def create_default_config(self):
-        super(IPControllerApp, self).create_default_config()
-        # Don't set defaults for Global.secure or Global.reuse_furls
-        # as those are set in a component.
-        self.default_config.Global.import_statements = []
-        self.default_config.Global.clean_logs = True
-        self.default_config.Global.secure = True
-        self.default_config.Global.reuse_files = False
-        self.default_config.Global.exec_key = "exec_key.key"
-        self.default_config.Global.sshserver = None
-        self.default_config.Global.location = None
+    use_threads = Bool(False, config=True,
+        help='Use threads instead of processes for the schedulers',
+        )
 
-    def pre_construct(self):
-        super(IPControllerApp, self).pre_construct()
-        c = self.master_config
-        # The defaults for these are set in FCClientServiceFactory and
-        # FCEngineServiceFactory, so we only set them here if the global
-        # options have be set to override the class level defaults.
+    # internal
+    children = List()
+    mq_class = Unicode('zmq.devices.ProcessMonitoredQueue')
+
+    def _use_threads_changed(self, name, old, new):
+        self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if new else 'Process')
+
+    aliases = Dict(dict(
+        log_level = 'IPControllerApp.log_level',
+        log_url = 'IPControllerApp.log_url',
+        reuse_files = 'IPControllerApp.reuse_files',
+        secure = 'IPControllerApp.secure',
+        ssh = 'IPControllerApp.ssh_server',
+        use_threads = 'IPControllerApp.use_threads',
+        import_statements = 'IPControllerApp.import_statements',
+        location = 'IPControllerApp.location',
+
+        ident = 'StreamSession.session',
+        user = 'StreamSession.username',
+        exec_key = 'StreamSession.keyfile',
+
+        url = 'HubFactory.url',
+        ip = 'HubFactory.ip',
+        transport = 'HubFactory.transport',
+        port = 'HubFactory.regport',
+
+        ping = 'HeartMonitor.period',
+
+        scheme = 'TaskScheduler.scheme_name',
+        hwm = 'TaskScheduler.hwm',
+
+
+        profile = "BaseIPythonApplication.profile",
+        profile_dir = 'ProfileDir.location',
         
-        # if hasattr(c.Global, 'reuse_furls'):
-        #     c.FCClientServiceFactory.reuse_furls = c.Global.reuse_furls
-        #     c.FCEngineServiceFactory.reuse_furls = c.Global.reuse_furls
-        #     del c.Global.reuse_furls
-        # if hasattr(c.Global, 'secure'):
-        #     c.FCClientServiceFactory.secure = c.Global.secure
-        #     c.FCEngineServiceFactory.secure = c.Global.secure
-        #     del c.Global.secure
+    ))
+    flags = Dict(flags)
     
+
     def save_connection_dict(self, fname, cdict):
         """save a connection dict to json file."""
-        c = self.master_config
+        c = self.config
         url = cdict['url']
         location = cdict['location']
         if not location:
@@ -301,43 +190,41 @@ class IPControllerApp(ApplicationWithClusterDir):
             else:
                 location = socket.gethostbyname_ex(socket.gethostname())[2][-1]
             cdict['location'] = location
-        fname = os.path.join(c.Global.security_dir, fname)
+        fname = os.path.join(self.profile_dir.security_dir, fname)
         with open(fname, 'w') as f:
             f.write(json.dumps(cdict, indent=2))
         os.chmod(fname, stat.S_IRUSR|stat.S_IWUSR)
     
     def load_config_from_json(self):
         """load config from existing json connector files."""
-        c = self.master_config
+        c = self.config
         # load from engine config
-        with open(os.path.join(c.Global.security_dir, 'ipcontroller-engine.json')) as f:
+        with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-engine.json')) as f:
             cfg = json.loads(f.read())
-        key = c.SessionFactory.exec_key = cfg['exec_key']
+        key = c.StreamSession.key = cfg['exec_key']
         xport,addr = cfg['url'].split('://')
         c.HubFactory.engine_transport = xport
         ip,ports = addr.split(':')
         c.HubFactory.engine_ip = ip
         c.HubFactory.regport = int(ports)
-        c.Global.location = cfg['location']
+        self.location = cfg['location']
         
         # load client config
-        with open(os.path.join(c.Global.security_dir, 'ipcontroller-client.json')) as f:
+        with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-client.json')) as f:
             cfg = json.loads(f.read())
         assert key == cfg['exec_key'], "exec_key mismatch between engine and client keys"
         xport,addr = cfg['url'].split('://')
         c.HubFactory.client_transport = xport
         ip,ports = addr.split(':')
         c.HubFactory.client_ip = ip
-        c.Global.sshserver = cfg['ssh']
+        self.ssh_server = cfg['ssh']
         assert int(ports) == c.HubFactory.regport, "regport mismatch"
     
-    def construct(self):
-        # This is the working dir by now.
-        sys.path.insert(0, '')
-        c = self.master_config
+    def init_hub(self):
+        c = self.config
         
-        self.import_statements()
-        reusing = c.Global.reuse_files
+        self.do_import_statements()
+        reusing = self.reuse_files
         if reusing:
             try:
                 self.load_config_from_json()
@@ -346,21 +233,20 @@ class IPControllerApp(ApplicationWithClusterDir):
         # check again, because reusing may have failed:
         if reusing:
             pass
-        elif c.Global.secure:
-            keyfile = os.path.join(c.Global.security_dir, c.Global.exec_key)
+        elif self.secure:
             key = str(uuid.uuid4())
-            with open(keyfile, 'w') as f:
-                f.write(key)
-            os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
-            c.SessionFactory.exec_key = key
+            # keyfile = os.path.join(self.profile_dir.security_dir, self.exec_key)
+            # with open(keyfile, 'w') as f:
+            #     f.write(key)
+            # os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
+            c.StreamSession.key = key
         else:
-            c.SessionFactory.exec_key = ''
-            key = None
+            key = c.StreamSession.key = ''
         
         try:
-            self.factory = ControllerFactory(config=c, logname=self.log.name)
-            self.start_logging()
-            self.factory.construct()
+            self.factory = HubFactory(config=c, log=self.log)
+            # self.start_logging()
+            self.factory.init_hub()
         except:
             self.log.error("Couldn't construct the Controller", exc_info=True)
             self.exit(1)
@@ -369,21 +255,82 @@ class IPControllerApp(ApplicationWithClusterDir):
             # save to new json config files
             f = self.factory
             cdict = {'exec_key' : key,
-                    'ssh' : c.Global.sshserver,
+                    'ssh' : self.ssh_server,
                     'url' : "%s://%s:%s"%(f.client_transport, f.client_ip, f.regport),
-                    'location' : c.Global.location
+                    'location' : self.location
                     }
             self.save_connection_dict('ipcontroller-client.json', cdict)
             edict = cdict
             edict['url']="%s://%s:%s"%((f.client_transport, f.client_ip, f.regport))
             self.save_connection_dict('ipcontroller-engine.json', edict)
+
+    #
+    def init_schedulers(self):
+        children = self.children
+        mq = import_item(str(self.mq_class))
         
+        hub = self.factory
+        # maybe_inproc = 'inproc://monitor' if self.use_threads else self.monitor_url
+        # IOPub relay (in a Process)
+        q = mq(zmq.PUB, zmq.SUB, zmq.PUB, 'N/A','iopub')
+        q.bind_in(hub.client_info['iopub'])
+        q.bind_out(hub.engine_info['iopub'])
+        q.setsockopt_out(zmq.SUBSCRIBE, '')
+        q.connect_mon(hub.monitor_url)
+        q.daemon=True
+        children.append(q)
+
+        # Multiplexer Queue (in a Process)
+        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'in', 'out')
+        q.bind_in(hub.client_info['mux'])
+        q.setsockopt_in(zmq.IDENTITY, 'mux')
+        q.bind_out(hub.engine_info['mux'])
+        q.connect_mon(hub.monitor_url)
+        q.daemon=True
+        children.append(q)
+
+        # Control Queue (in a Process)
+        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'incontrol', 'outcontrol')
+        q.bind_in(hub.client_info['control'])
+        q.setsockopt_in(zmq.IDENTITY, 'control')
+        q.bind_out(hub.engine_info['control'])
+        q.connect_mon(hub.monitor_url)
+        q.daemon=True
+        children.append(q)
+        try:
+            scheme = self.config.TaskScheduler.scheme_name
+        except AttributeError:
+            scheme = TaskScheduler.scheme_name.get_default_value()
+        # Task Queue (in a Process)
+        if scheme == 'pure':
+            self.log.warn("task::using pure XREQ Task scheduler")
+            q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
+            # q.setsockopt_out(zmq.HWM, hub.hwm)
+            q.bind_in(hub.client_info['task'][1])
+            q.setsockopt_in(zmq.IDENTITY, 'task')
+            q.bind_out(hub.engine_info['task'])
+            q.connect_mon(hub.monitor_url)
+            q.daemon=True
+            children.append(q)
+        elif scheme == 'none':
+            self.log.warn("task::using no Task scheduler")
+
+        else:
+            self.log.info("task::using Python %s Task scheduler"%scheme)
+            sargs = (hub.client_info['task'][1], hub.engine_info['task'],
+                                hub.monitor_url, hub.client_info['notification'])
+            kwargs = dict(logname='scheduler', loglevel=self.log_level,
+                            log_url = self.log_url, config=dict(self.config))
+            q = Process(target=launch_scheduler, args=sargs, kwargs=kwargs)
+            q.daemon=True
+            children.append(q)
+
     
     def save_urls(self):
         """save the registration urls to files."""
-        c = self.master_config
+        c = self.config
         
-        sec_dir = c.Global.security_dir
+        sec_dir = self.profile_dir.security_dir
         cf = self.factory
         
         with open(os.path.join(sec_dir, 'ipcontroller-engine.url'), 'w') as f:
@@ -393,8 +340,8 @@ class IPControllerApp(ApplicationWithClusterDir):
             f.write("%s://%s:%s"%(cf.client_transport, cf.client_ip, cf.regport))
         
     
-    def import_statements(self):
-        statements = self.master_config.Global.import_statements
+    def do_import_statements(self):
+        statements = self.import_statements
         for s in statements:
             try:
                 self.log.msg("Executing statement: '%s'" % s)
@@ -402,30 +349,52 @@ class IPControllerApp(ApplicationWithClusterDir):
             except:
                 self.log.msg("Error running statement: %s" % s)
 
-    def start_logging(self):
-        super(IPControllerApp, self).start_logging()
-        if self.master_config.Global.log_url:
-            context = self.factory.context
+    def forward_logging(self):
+        if self.log_url:
+            self.log.info("Forwarding logging to %s"%self.log_url)
+            context = zmq.Context.instance()
             lsock = context.socket(zmq.PUB)
-            lsock.connect(self.master_config.Global.log_url)
+            lsock.connect(self.log_url)
             handler = PUBHandler(lsock)
+            self.log.removeHandler(self._log_handler)
             handler.root_topic = 'controller'
             handler.setLevel(self.log_level)
             self.log.addHandler(handler)
-    # 
-    def start_app(self):
+            self._log_handler = handler
+    # #
+    
+    def initialize(self, argv=None):
+        super(IPControllerApp, self).initialize(argv)
+        self.forward_logging()
+        self.init_hub()
+        self.init_schedulers()
+    
+    def start(self):
         # Start the subprocesses:
         self.factory.start()
+        child_procs = []
+        for child in self.children:
+            child.start()
+            if isinstance(child, ProcessMonitoredQueue):
+                child_procs.append(child.launcher)
+            elif isinstance(child, Process):
+                child_procs.append(child)
+        if child_procs:
+            signal_children(child_procs)
+
         self.write_pid_file(overwrite=True)
+
         try:
             self.factory.loop.start()
         except KeyboardInterrupt:
             self.log.critical("Interrupted, Exiting...\n")
+            
 
 
 def launch_new_instance():
     """Create and run the IPython controller"""
-    app = IPControllerApp()
+    app = IPControllerApp.instance()
+    app.initialize()
     app.start()
 
 

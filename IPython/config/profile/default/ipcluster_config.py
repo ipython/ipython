@@ -23,8 +23,8 @@ c = get_config()
 # - PBSControllerLauncher
 # - SGEControllerLauncher
 # - WindowsHPCControllerLauncher
-# c.Global.controller_launcher = 'IPython.parallel.apps.launcher.LocalControllerLauncher'
-# c.Global.controller_launcher = 'IPython.parallel.apps.launcher.PBSControllerLauncher'
+# c.IPClusterStartApp.controller_launcher = 'IPython.parallel.apps.launcher.LocalControllerLauncher'
+# c.IPClusterStartApp.controller_launcher = 'IPython.parallel.apps.launcher.PBSControllerLauncher'
 
 # Options are:
 # - LocalEngineSetLauncher
@@ -32,25 +32,25 @@ c = get_config()
 # - PBSEngineSetLauncher
 # - SGEEngineSetLauncher
 # - WindowsHPCEngineSetLauncher
-# c.Global.engine_launcher = 'IPython.parallel.apps.launcher.LocalEngineSetLauncher'
+# c.IPClusterEnginesApp.engine_launcher = 'IPython.parallel.apps.launcher.LocalEngineSetLauncher'
 
 #-----------------------------------------------------------------------------
-# Global configuration
+# Application configuration
 #-----------------------------------------------------------------------------
 
 # The default number of engines that will be started. This is overridden by
 # the -n command line option: "ipcluster start -n 4"
-# c.Global.n = 2
+# c.IPClusterEnginesApp.n = 2
 
 # Log to a file in cluster_dir/log, otherwise just log to sys.stdout.
-# c.Global.log_to_file = False
+# c.BaseParallelApp.log_to_file = False
 
 # Remove old logs from cluster_dir/log before starting.
-# c.Global.clean_logs = True
+# c.BaseParallelApp.clean_logs = True
 
 # The working directory for the process. The application will use os.chdir
 # to change to this directory before starting.
-# c.Global.work_dir = os.getcwd()
+# c.BaseParallelApp.work_dir = os.getcwd()
 
 
 #-----------------------------------------------------------------------------
@@ -121,12 +121,12 @@ c = get_config()
 # in the location specified by the --cluster_dir argument.
 # c.SSHControllerLauncher.program_args = ['-r', '-ip', '0.0.0.0', '--cluster_dir', '/path/to/cd']
 
-# Set the default args passed to ipenginez for SSH launched engines
+# Set the default args passed to ipengine for SSH launched engines
 # c.SSHEngineSetLauncher.engine_args = ['--mpi', 'mpi4py']
 
 # SSH engines are launched as a dict of locations/n-engines.
 # if a value is a tuple instead of an int, it is assumed to be of the form
-# (n, [args]), setting the arguments to passed to ipenginez on `host`.
+# (n, [args]), setting the arguments to passed to ipengine on `host`.
 # otherwise, c.SSHEngineSetLauncher.engine_args will be used as the default.
 
 # In this case, there will be 3 engines at my.example.com, and
@@ -162,13 +162,13 @@ c = get_config()
 
 # The batch submission script used to start the controller. This is where
 # environment variables would be setup, etc. This string is interpreted using
-# the Itpl module in IPython.external. Basically, you can use ${n} for the
-# number of engine and ${cluster_dir} for the cluster_dir.
+# Python's string formatting. Basically, you can use {queue} for the name
+# of the PBS queue, and {profile_dir} for the profile_dir.
 # c.PBSControllerLauncher.batch_template = """
 # #PBS -N ipcontroller
-# #PBS -q $queue
+# #PBS -q {queue}
 # 
-# ipcontrollerz --cluster-dir $cluster_dir
+# ipcontroller profile_dir={profile_dir}
 # """
 
 # You can also load this template from a file
@@ -180,13 +180,14 @@ c = get_config()
 
 # The batch submission script used to start the engines. This is where
 # environment variables would be setup, etc. This string is interpreted using
-# the Itpl module in IPython.external. Basically, you can use ${n} for the
-# number of engine and ${cluster_dir} for the cluster_dir.
+# Python's string formatting. Basically, you can use {queue} for the name
+# of the PBS queue, and {profile_dir} for the profile_dir, and {n}
+# for the number of engines.
 # c.PBSEngineSetLauncher.batch_template = """
-# #PBS -N ipcontroller
-# #PBS -l nprocs=$n
+# #PBS -N ipengine
+# #PBS -l nprocs={n}
 # 
-# ipenginez --cluster-dir $cluster_dir$s
+# ipengine profile_dir={profile_dir}
 # """
 
 # You can also load this template from a file
@@ -211,7 +212,7 @@ c = get_config()
 
 # c.IPControllerTask.task_name = 'IPController'
 # c.IPControllerTask.controller_cmd = [u'ipcontroller.exe']
-# c.IPControllerTask.controller_args = ['--log-to-file', '--log-level', '40']
+# c.IPControllerTask.controller_args = ['--log-to-file', 'log_level=40']
 # c.IPControllerTask.environment_variables = {}
 
 # c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'
@@ -227,7 +228,7 @@ c = get_config()
 
 # c.IPEngineTask.task_name = 'IPEngine'
 # c.IPEngineTask.engine_cmd = [u'ipengine.exe']
-# c.IPEngineTask.engine_args = ['--log-to-file', '--log-level', '40']
+# c.IPEngineTask.engine_args = ['--log-to-file', 'log_level=40']
 # c.IPEngineTask.environment_variables = {}
 
 # c.WindowsHPCEngineSetLauncher.scheduler = 'HEADNODE'

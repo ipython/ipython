@@ -24,8 +24,8 @@ import zmq
 # from zmq.eventloop import ioloop, zmqstream
 
 from IPython.utils.path import get_ipython_dir
-from IPython.utils.traitlets import (HasTraits, Int, Instance, CUnicode, 
-                                    Dict, List, Bool, Str, Set)
+from IPython.utils.traitlets import (HasTraits, Int, Instance, Unicode,
+                                    Dict, List, Bool, Set)
 from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
@@ -34,7 +34,7 @@ from IPython.parallel import streamsession as ss
 from IPython.parallel import util
 
 from .asyncresult import AsyncResult, AsyncHubResult
-from IPython.parallel.apps.clusterdir import ClusterDir, ClusterDirError
+from IPython.core.newapplication import ProfileDir, ProfileDirError
 from .view import DirectView, LoadBalancedView
 
 #--------------------------------------------------------------------------
@@ -213,7 +213,7 @@ class Client(HasTraits):
     metadata = Instance('collections.defaultdict', (Metadata,))
     history = List()
     debug = Bool(False)
-    profile=CUnicode('default')
+    profile=Unicode('default')
     
     _outstanding_dict = Instance('collections.defaultdict', (set,))
     _ids = List()
@@ -229,12 +229,12 @@ class Client(HasTraits):
     _notification_socket=Instance('zmq.Socket')
     _mux_socket=Instance('zmq.Socket')
     _task_socket=Instance('zmq.Socket')
-    _task_scheme=Str()
+    _task_scheme=Unicode()
     _closed = False
     _ignored_control_replies=Int(0)
     _ignored_hub_replies=Int(0)
     
-    def __init__(self, url_or_file=None, profile='default', cluster_dir=None, ipython_dir=None,
+    def __init__(self, url_or_file=None, profile='default', profile_dir=None, ipython_dir=None,
             context=None, username=None, debug=False, exec_key=None,
             sshserver=None, sshkey=None, password=None, paramiko=None,
             timeout=10
@@ -245,7 +245,7 @@ class Client(HasTraits):
         self._context = context
             
         
-        self._setup_cluster_dir(profile, cluster_dir, ipython_dir)
+        self._setup_profile_dir(profile, profile_dir, ipython_dir)
         if self._cd is not None:
             if url_or_file is None:
                 url_or_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
@@ -296,7 +296,7 @@ class Client(HasTraits):
         if username is None:
             self.session = ss.StreamSession(**key_arg)
         else:
-            self.session = ss.StreamSession(username, **key_arg)
+            self.session = ss.StreamSession(username=username, **key_arg)
         self._query_socket = self._context.socket(zmq.XREQ)
         self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:
@@ -318,21 +318,21 @@ class Client(HasTraits):
         """cleanup sockets, but _not_ context."""
         self.close()
     
-    def _setup_cluster_dir(self, profile, cluster_dir, ipython_dir):
+    def _setup_profile_dir(self, profile, profile_dir, ipython_dir):
         if ipython_dir is None:
             ipython_dir = get_ipython_dir()
-        if cluster_dir is not None:
+        if profile_dir is not None:
             try:
-                self._cd = ClusterDir.find_cluster_dir(cluster_dir)
+                self._cd = ProfileDir.find_profile_dir(profile_dir)
                 return
-            except ClusterDirError:
+            except ProfileDirError:
                 pass
         elif profile is not None:
             try:
-                self._cd = ClusterDir.find_cluster_dir_by_profile(
+                self._cd = ProfileDir.find_profile_dir_by_name(
                     ipython_dir, profile)
                 return
-            except ClusterDirError:
+            except ProfileDirError:
                 pass
         self._cd = None
     
