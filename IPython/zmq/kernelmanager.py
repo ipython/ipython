@@ -76,7 +76,7 @@ def validate_string_dict(dct):
 # ZMQ Socket Channel classes
 #-----------------------------------------------------------------------------
 
-class ZmqSocketChannel(Thread):
+class ZMQSocketChannel(Thread):
     """The base class for the channels that use ZMQ sockets.
     """
     context = None
@@ -98,7 +98,7 @@ class ZmqSocketChannel(Thread):
         address : tuple
             Standard (ip, port) tuple that the kernel is listening on.
         """
-        super(ZmqSocketChannel, self).__init__()
+        super(ZMQSocketChannel, self).__init__()
         self.daemon = True
 
         self.context = context
@@ -159,14 +159,14 @@ class ZmqSocketChannel(Thread):
         self.ioloop.add_callback(drop_io_state_callback)
 
 
-class XReqSocketChannel(ZmqSocketChannel):
+class ShellSocketChannel(ZMQSocketChannel):
     """The XREQ channel for issues request/replies to the kernel.
     """
 
     command_queue = None
 
     def __init__(self, context, session, address):
-        super(XReqSocketChannel, self).__init__(context, session, address)
+        super(ShellSocketChannel, self).__init__(context, session, address)
         self.command_queue = Queue()
         self.ioloop = ioloop.IOLoop()
 
@@ -182,7 +182,7 @@ class XReqSocketChannel(ZmqSocketChannel):
 
     def stop(self):
         self.ioloop.stop()
-        super(XReqSocketChannel, self).stop()
+        super(ShellSocketChannel, self).stop()
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -368,7 +368,7 @@ class XReqSocketChannel(ZmqSocketChannel):
         self.add_io_state(POLLOUT)
 
 
-class SubSocketChannel(ZmqSocketChannel):
+class SubSocketChannel(ZMQSocketChannel):
     """The SUB channel which listens for messages that the kernel publishes.
     """
 
@@ -455,13 +455,13 @@ class SubSocketChannel(ZmqSocketChannel):
         self._flushed = True
 
 
-class RepSocketChannel(ZmqSocketChannel):
+class StdInSocketChannel(ZMQSocketChannel):
     """A reply channel to handle raw_input requests that the kernel makes."""
 
     msg_queue = None
 
     def __init__(self, context, session, address):
-        super(RepSocketChannel, self).__init__(context, session, address)
+        super(StdInSocketChannel, self).__init__(context, session, address)
         self.ioloop = ioloop.IOLoop()
         self.msg_queue = Queue()
 
@@ -477,7 +477,7 @@ class RepSocketChannel(ZmqSocketChannel):
 
     def stop(self):
         self.ioloop.stop()
-        super(RepSocketChannel, self).stop()
+        super(StdInSocketChannel, self).stop()
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -526,7 +526,7 @@ class RepSocketChannel(ZmqSocketChannel):
         self.add_io_state(POLLOUT)
 
 
-class HBSocketChannel(ZmqSocketChannel):
+class HBSocketChannel(ZMQSocketChannel):
     """The heartbeat channel which monitors the kernel heartbeat.
 
     Note that the heartbeat channel is paused by default. As long as you start
@@ -663,22 +663,22 @@ class KernelManager(HasTraits):
     kernel = Instance(Popen)
 
     # The addresses for the communication channels. 
-    xreq_address = TCPAddress((LOCALHOST, 0))
+    shell_address = TCPAddress((LOCALHOST, 0))
     sub_address = TCPAddress((LOCALHOST, 0))
-    rep_address = TCPAddress((LOCALHOST, 0))
+    stdin_address = TCPAddress((LOCALHOST, 0))
     hb_address = TCPAddress((LOCALHOST, 0))
 
     # The classes to use for the various channels.
-    xreq_channel_class = Type(XReqSocketChannel)
+    shell_channel_class = Type(ShellSocketChannel)
     sub_channel_class = Type(SubSocketChannel)
-    rep_channel_class = Type(RepSocketChannel)
+    stdin_channel_class = Type(StdInSocketChannel)
     hb_channel_class = Type(HBSocketChannel)
 
     # Protected traits.
     _launch_args = Any
-    _xreq_channel = Any
+    _shell_channel = Any
     _sub_channel = Any
-    _rep_channel = Any
+    _stdin_channel = Any
     _hb_channel = Any
 
     def __init__(self, **kwargs):
@@ -690,7 +690,7 @@ class KernelManager(HasTraits):
     # Channel management methods:
     #--------------------------------------------------------------------------
 
-    def start_channels(self, xreq=True, sub=True, rep=True, hb=True):
+    def start_channels(self, shell=True, sub=True, stdin=True, hb=True):
         """Starts the channels for this kernel.
 
         This will create the channels if they do not exist and then start
@@ -698,32 +698,32 @@ class KernelManager(HasTraits):
         must first call :method:`start_kernel`. If the channels have been
         stopped and you call this, :class:`RuntimeError` will be raised.
         """
-        if xreq:
-            self.xreq_channel.start()
+        if shell:
+            self.shell_channel.start()
         if sub:
             self.sub_channel.start()
-        if rep:
-            self.rep_channel.start()
+        if stdin:
+            self.stdin_channel.start()
         if hb:
             self.hb_channel.start()
 
     def stop_channels(self):
         """Stops all the running channels for this kernel.
         """
-        if self.xreq_channel.is_alive():
-            self.xreq_channel.stop()
+        if self.shell_channel.is_alive():
+            self.shell_channel.stop()
         if self.sub_channel.is_alive():
             self.sub_channel.stop()
-        if self.rep_channel.is_alive():
-            self.rep_channel.stop()
+        if self.stdin_channel.is_alive():
+            self.stdin_channel.stop()
         if self.hb_channel.is_alive():
             self.hb_channel.stop()
 
     @property
     def channels_running(self):
         """Are any of the channels created and running?"""
-        return (self.xreq_channel.is_alive() or self.sub_channel.is_alive() or
-                self.rep_channel.is_alive() or self.hb_channel.is_alive())
+        return (self.shell_channel.is_alive() or self.sub_channel.is_alive() or
+                self.stdin_channel.is_alive() or self.hb_channel.is_alive())
 
     #--------------------------------------------------------------------------
     # Kernel process management methods:
@@ -743,10 +743,10 @@ class KernelManager(HasTraits):
         **kw : optional
              See respective options for IPython and Python kernels.
         """
-        xreq, sub, rep, hb = self.xreq_address, self.sub_address, \
-            self.rep_address, self.hb_address
-        if xreq[0] not in LOCAL_IPS or sub[0] not in LOCAL_IPS or \
-                rep[0] not in LOCAL_IPS or hb[0] not in LOCAL_IPS:
+        shell, sub, stdin, hb = self.shell_address, self.sub_address, \
+            self.stdin_address, self.hb_address
+        if shell[0] not in LOCAL_IPS or sub[0] not in LOCAL_IPS or \
+                stdin[0] not in LOCAL_IPS or hb[0] not in LOCAL_IPS:
             raise RuntimeError("Can only launch a kernel on a local interface. "
                                "Make sure that the '*_address' attributes are "
                                "configured properly. "
@@ -759,11 +759,11 @@ class KernelManager(HasTraits):
         else:
             from pykernel import launch_kernel
         self.kernel, xrep, pub, req, _hb = launch_kernel(
-            xrep_port=xreq[1], pub_port=sub[1], 
-            req_port=rep[1], hb_port=hb[1], **kw)
-        self.xreq_address = (xreq[0], xrep)
+            shell_port=shell[1], iopub_port=sub[1],
+            stdin_port=stdin[1], hb_port=hb[1], **kw)
+        self.shell_address = (shell[0], xrep)
         self.sub_address = (sub[0], pub)
-        self.rep_address = (rep[0], req)
+        self.stdin_address = (stdin[0], req)
         self.hb_address = (hb[0], _hb)
 
     def shutdown_kernel(self, restart=False):
@@ -782,7 +782,7 @@ class KernelManager(HasTraits):
         # Don't send any additional kernel kill messages immediately, to give
         # the kernel a chance to properly execute shutdown actions. Wait for at
         # most 1s, checking every 0.1s.
-        self.xreq_channel.shutdown(restart=restart)
+        self.shell_channel.shutdown(restart=restart)
         for i in range(10):
             if self.is_alive:
                 time.sleep(0.1)
@@ -908,13 +908,13 @@ class KernelManager(HasTraits):
     #--------------------------------------------------------------------------
 
     @property
-    def xreq_channel(self):
+    def shell_channel(self):
         """Get the REQ socket channel object to make requests of the kernel."""
-        if self._xreq_channel is None:
-            self._xreq_channel = self.xreq_channel_class(self.context, 
+        if self._shell_channel is None:
+            self._shell_channel = self.shell_channel_class(self.context,
                                                          self.session,
-                                                         self.xreq_address)
-        return self._xreq_channel
+                                                         self.shell_address)
+        return self._shell_channel
 
     @property
     def sub_channel(self):
@@ -926,13 +926,13 @@ class KernelManager(HasTraits):
         return self._sub_channel
 
     @property
-    def rep_channel(self):
+    def stdin_channel(self):
         """Get the REP socket channel object to handle stdin (raw_input)."""
-        if self._rep_channel is None:
-            self._rep_channel = self.rep_channel_class(self.context, 
+        if self._stdin_channel is None:
+            self._stdin_channel = self.stdin_channel_class(self.context,
                                                        self.session,
-                                                       self.rep_address)
-        return self._rep_channel
+                                                       self.stdin_address)
+        return self._stdin_channel
 
     @property
     def hb_channel(self):

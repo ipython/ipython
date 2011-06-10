@@ -35,6 +35,6 @@ def teardown():
 # Actual tests
 
 def test_execute():
-    KM.xreq_channel.execute(code='x=1')
-    KM.xreq_channel.execute(code='print 1')
+    KM.shell_channel.execute(code='x=1')
+    KM.shell_channel.execute(code='print 1')
     

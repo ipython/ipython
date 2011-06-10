@@ -21,7 +21,7 @@ You start IPython with the command::
 
 If invoked with no options, it executes all the files listed in sequence
 and drops you into the interpreter while still acknowledging any options
-you may have set in your ipythonrc file. This behavior is different from
+you may have set in your ipython_config.py. This behavior is different from
 standard Python, which when called as python -i will only execute one
 file and ignore your configuration setup.
 
@@ -41,9 +41,12 @@ Special Threading Options
 
 Previously IPython had command line options for controlling GUI event loop
 integration (-gthread, -qthread, -q4thread, -wthread, -pylab). As of IPython
-version 0.11, these have been deprecated. Please see the new ``%gui``
+version 0.11, these have been removed. Please see the new ``%gui``
 magic command or :ref:`this section <gui_support>` for details on the new
-interface.
+interface, or specify the gui at the commandline::
+
+    $ ipython gui=qt
+
 
 Regular Options
 ---------------
@@ -58,15 +61,15 @@ the provided example for more details on what the options do. Options
 given at the command line override the values set in the ipythonrc file.
 
 All options with a [no] prepended can be specified in negated form
-(-nooption instead of -option) to turn the feature off.
+(--no-option instead of --option) to turn the feature off.
 
-    -help  print a help message and exit.
+    -h, --help  print a help message and exit.
 
-    -pylab
-    Deprecated.  See :ref:`Matplotlib support <matplotlib_support>`
+    --pylab, pylab=<name>
+    See :ref:`Matplotlib support <matplotlib_support>`
     for more details.
 
-    -autocall <val>
+    autocall=<val>
 	Make IPython automatically call any callable object even if you
 	didn't type explicit parentheses. For example, 'str 43' becomes
 	'str(43)' automatically. The value can be '0' to disable the feature,
@@ -75,25 +78,25 @@ All options with a [no] prepended can be specified in negated form
 	objects are automatically called (even if no arguments are
 	present). The default is '1'.
 
-    -[no]autoindent    
+    --[no-]autoindent    
 	Turn automatic indentation on/off.
 
-    -[no]automagic 
+    --[no-]automagic 
 	make magic commands automatic (without needing their first character
 	to be %). Type %magic at the IPython prompt for more information.
 
-    -[no]autoedit_syntax 
+    --[no-]autoedit_syntax 
 	When a syntax error occurs after editing a file, automatically
 	open the file to the trouble causing line for convenient
 	fixing.
 
-    -[no]banner		Print the initial information banner (default on).
+    --[no-]banner		Print the initial information banner (default on).
 
-    -c <command>
+    c=<command>
 	execute the given command string. This is similar to the -c
 	option in the normal Python interpreter.
 
-    -cache_size, cs <n> 
+    cache_size=<n> 
 	size of the output cache (maximum number of entries to hold in
 	memory). The default is 1000, you can change it permanently in your
 	config file. Setting it to 0 completely disables the caching system,
@@ -102,15 +105,15 @@ All options with a [no] prepended can be specified in negated form
 	because otherwise you'll spend more time re-flushing a too small cache
 	than working.
 
-    -classic, cl 
+    --classic
 	Gives IPython a similar feel to the classic Python
 	prompt.
 
-    -colors <scheme> 
+    colors=<scheme> 
 	Color scheme for prompts and exception reporting. Currently
 	implemented: NoColor, Linux and LightBG.
 
-    -[no]color_info 
+    --[no-]color_info 
 	IPython can display information about objects via a set of functions,
 	and optionally can use colors for this, syntax highlighting source
 	code and various other elements.  However, because this information is
@@ -124,12 +127,12 @@ All options with a [no] prepended can be specified in negated form
 	system. The magic function %color_info allows you to toggle this
 	interactively for testing.
 
-    -[no]debug 
+    --[no-]debug 
 	Show information about the loading process. Very useful to pin down
 	problems with your configuration files or to get details about
 	session restores.
 
-    -[no]deep_reload: 
+    --[no-]deep_reload: 
 	IPython can use the deep_reload module which reloads changes in
 	modules recursively (it replaces the reload() function, so you don't
 	need to change anything to use it).  deep_reload() forces a full
@@ -141,7 +144,7 @@ All options with a [no] prepended can be specified in negated form
 	feature is off by default [which means that you have both
 	normal reload() and dreload()].
 
-    -editor <name>
+    editor=<name>
 	Which editor to use with the %edit command. By default,
 	IPython will honor your EDITOR environment variable (if not
 	set, vi is the Unix default and notepad the Windows one).
@@ -150,7 +153,7 @@ All options with a [no] prepended can be specified in negated form
 	small, lightweight editor here (in case your default EDITOR is
 	something like Emacs).
 
-    -ipythondir <name> 
+    ipython_dir=<name> 
 	name of your IPython configuration directory IPYTHON_DIR. This
 	can also be specified through the environment variable
 	IPYTHON_DIR.
@@ -187,28 +190,28 @@ All options with a [no] prepended can be specified in negated form
       our first attempts failed because of inherent limitations of
       Python's Pickle module, so this may have to wait.
 
-    -[no]messages   
+    --[no-]messages   
 	Print messages which IPython collects about its startup
 	process (default on).
 
-    -[no]pdb
+    --[no-]pdb
 	Automatically call the pdb debugger after every uncaught
 	exception. If you are used to debugging using pdb, this puts
 	you automatically inside of it after any call (either in
 	IPython or in code called by it) which triggers an exception
 	which goes uncaught.
 
-    -pydb
+    --pydb
 	Makes IPython use the third party "pydb" package as debugger,
 	instead of pdb. Requires that pydb is installed.
 	
-    -[no]pprint
+    --[no-]pprint
 	ipython can optionally use the pprint (pretty printer) module
 	for displaying results. pprint tends to give a nicer display
 	of nested data structures. If you like it, you can turn it on
 	permanently in your config file (default off).
 
-    -profile, p <name>
+    profile=<name>
 
 	assume that your config file is ipythonrc-<name> or
 	ipy_profile_<name>.py (looks in current dir first, then in
@@ -227,7 +230,7 @@ All options with a [no] prepended can be specified in negated form
 	circular file inclusions, IPython will stop if it reaches 15
 	recursive inclusions.
 
-    -prompt_in1, pi1 <string>
+    pi1=<string>
 
         Specify the string used for input prompts. Note that if you are using
 	numbered prompts, the number is represented with a '\#' in the
@@ -236,7 +239,7 @@ All options with a [no] prepended can be specified in negated form
 	discusses in detail all the available escapes to customize your
 	prompts.
 
-    -prompt_in2, pi2 <string>
+    pi2=<string>
 	Similar to the previous option, but used for the continuation
 	prompts. The special sequence '\D' is similar to '\#', but
 	with all digits replaced dots (so you can have your
@@ -244,21 +247,22 @@ All options with a [no] prepended can be specified in negated form
 	' .\D.:' (note three spaces at the start for alignment with
 	'In [\#]').
 
-    -prompt_out,po <string> 
+    po=<string> 
 	String used for output prompts, also uses numbers like
 	prompt_in1. Default: 'Out[\#]:'
 
-    -quick   start in bare bones mode (no config file loaded).
+    --quick
+    start in bare bones mode (no config file loaded).
 
-    -rcfile <name>   
+    config_file=<name>   
 	name of your IPython resource configuration file. Normally
-	IPython loads ipythonrc (from current directory) or
-	IPYTHON_DIR/ipythonrc.
+	IPython loads ipython_config.py (from current directory) or
+	IPYTHON_DIR/profile_default.
 
 	If the loading of your config file fails, IPython starts with
 	a bare bones configuration (no modules loaded at all).
 
-    -[no]readline
+    --[no-]readline
 	use the readline library, which is needed to support name
 	completion and command history, among other things.  It is
 	enabled by default, but may cause problems for users of
@@ -268,7 +272,7 @@ All options with a [no] prepended can be specified in negated form
 	IPython's readline and syntax coloring fine, only 'emacs' (M-x
 	shell and C-c !) buffers do not.
 
-    -screen_length, sl <n>
+    sl=<n>
 	number of lines of your screen. This is used to control
 	printing of very long strings. Strings longer than this number
 	of lines will be sent through a pager instead of directly
@@ -281,41 +285,38 @@ All options with a [no] prepended can be specified in negated form
 	reason this isn't working well (it needs curses support), specify
 	it yourself. Otherwise don't change the default.
 
-    -separate_in, si <string>
+    si=<string>
 
 	separator before input prompts.
 	Default: '\n'
 
-    -separate_out, so <string>  
+    so=<string>  
         separator before output prompts.
         Default: nothing.
 
-    -separate_out2, so2
+    so2=<string>
 	separator after output prompts.
 	Default: nothing.
 	For these three options, use the value 0 to specify no separator.
 
-    -nosep   
+    --nosep
 	shorthand for '-SeparateIn 0 -SeparateOut 0 -SeparateOut2
 	0'. Simply removes all input/output separators.
 
-    -upgrade 
-	allows you to upgrade your IPYTHON_DIR configuration when you
+    --init
+	allows you to initialize your IPYTHON_DIR configuration when you
 	install a new version of IPython. Since new versions may
 	include new command line options or example files, this copies
-	updated ipythonrc-type files. However, it backs up (with a
+	updated config files. However, it backs up (with a
 	.old extension) all files which it overwrites so that you can
 	merge back any customizations you might have in your personal
 	files. Note that you should probably use %upgrade instead,
 	it's a safer alternative.
 
 
-    -Version    print version information and exit.
+    --version    print version information and exit.
 
-    -wxversion <string> 
-    Deprecated.
-
-    -xmode <modename>
+    xmode=<modename>
 
 	Mode for exception reporting.
 

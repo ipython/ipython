@@ -5,17 +5,33 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-# Systemm library imports
+# stdlib imports
+import os
+import signal
+import sys
+
+# System library imports
 from IPython.external.qt import QtGui
 from pygments.styles import get_all_styles
 
 # Local imports
-from IPython.external.argparse import ArgumentParser
+from IPython.config.application import boolean_flag
+from IPython.core.newapplication import ProfileDir, BaseIPythonApplication
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.kernelmanager import QtKernelManager
+from IPython.utils.traitlets import (
+    Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
+)
+from IPython.zmq.ipkernel import (
+    flags as ipkernel_flags,
+    aliases as ipkernel_aliases,
+    IPKernelApp
+)
+from IPython.zmq.zmqshell import ZMQInteractiveShell
+
 
 #-----------------------------------------------------------------------------
 # Network Constants
@@ -33,7 +49,8 @@ class MainWindow(QtGui.QMainWindow):
     # 'object' interface
     #---------------------------------------------------------------------------
     
-    def __init__(self, app, frontend, existing=False, may_close=True):
+    def __init__(self, app, frontend, existing=False, may_close=True,
+                    confirm_exit=True):
         """ Create a MainWindow for the specified FrontendWidget.
         
         The app is passed as an argument to allow for different
@@ -52,6 +69,7 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self._may_close = True
         self._frontend.exit_requested.connect(self.close)
+        self._confirm_exit = confirm_exit
         self.setCentralWidget(frontend)
     
     #---------------------------------------------------------------------------
@@ -70,6 +88,11 @@ class MainWindow(QtGui.QMainWindow):
             keepkernel = self._frontend._keep_kernel_on_exit
         
         kernel_manager = self._frontend.kernel_manager
+        
+        if keepkernel is None and not self._confirm_exit:
+            # don't prompt, just terminate the kernel if we own it
+            # or leave it alone if we don't
+            keepkernel = not self._existing
         
         if keepkernel is None: #show prompt
             if kernel_manager and kernel_manager.channels_running:
@@ -127,123 +150,210 @@ class MainWindow(QtGui.QMainWindow):
                 event.accept()
 
 #-----------------------------------------------------------------------------
-# Main entry point
+# Aliases and Flags
 #-----------------------------------------------------------------------------
 
-def main():
-    """ Entry point for application.
+flags = dict(ipkernel_flags)
+
+flags.update({
+    'existing' : ({'IPythonQtConsoleApp' : {'existing' : True}},
+            "Connect to an existing kernel."),
+    'pure' : ({'IPythonQtConsoleApp' : {'pure' : True}},
+            "Use a pure Python kernel instead of an IPython kernel."),
+    'plain' : ({'ConsoleWidget' : {'kind' : 'plain'}},
+            "Disable rich text support."),
+})
+flags.update(boolean_flag(
+    'gui-completion', 'ConsoleWidget.gui_completion',
+    "use a GUI widget for tab completion",
+    "use plaintext output for completion"
+))
+flags.update(boolean_flag(
+    'confirm-exit', 'IPythonQtConsoleApp.confirm_exit',
+    """Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
+       to force a direct exit without any confirmation.
+    """,
+    """Don't prompt the user when exiting. This will terminate the kernel
+       if it is owned by the frontend, and leave it alive if it is external.
     """
-    # Parse command line arguments.
-    parser = ArgumentParser()
-    kgroup = parser.add_argument_group('kernel options')
-    kgroup.add_argument('-e', '--existing', action='store_true',
-                        help='connect to an existing kernel')
-    kgroup.add_argument('--ip', type=str, default=LOCALHOST,
-                        help=\
-            "set the kernel\'s IP address [default localhost].\
-            If the IP address is something other than localhost, then \
-            Consoles on other machines will be able to connect\
-            to the Kernel, so be careful!")
-    kgroup.add_argument('--xreq', type=int, metavar='PORT', default=0,
-                        help='set the XREQ channel port [default random]')
-    kgroup.add_argument('--sub', type=int, metavar='PORT', default=0,
-                        help='set the SUB channel port [default random]')
-    kgroup.add_argument('--rep', type=int, metavar='PORT', default=0,
-                        help='set the REP channel port [default random]')
-    kgroup.add_argument('--hb', type=int, metavar='PORT', default=0,
-                        help='set the heartbeat port [default random]')
+))
+# the flags that are specific to the frontend
+# these must be scrubbed before being passed to the kernel,
+# or it will raise an error on unrecognized flags
+qt_flags = ['existing', 'pure', 'plain', 'gui-completion', 'no-gui-completion',
+            'confirm-exit', 'no-confirm-exit']
 
-    egroup = kgroup.add_mutually_exclusive_group()
-    egroup.add_argument('--pure', action='store_true', help = \
-                        'use a pure Python kernel instead of an IPython kernel')
-    egroup.add_argument('--pylab', type=str, metavar='GUI', nargs='?', 
-                       const='auto', help = \
-        "Pre-load matplotlib and numpy for interactive use. If GUI is not \
-         given, the GUI backend is matplotlib's, otherwise use one of: \
-         ['tk', 'gtk', 'qt', 'wx', 'inline'].")
+aliases = dict(ipkernel_aliases)
 
-    wgroup = parser.add_argument_group('widget options')
-    wgroup.add_argument('--paging', type=str, default='inside',
-                        choices = ['inside', 'hsplit', 'vsplit', 'none'],
-                        help='set the paging style [default inside]')
-    wgroup.add_argument('--plain', action='store_true',
-                        help='disable rich text support')
-    wgroup.add_argument('--gui-completion', action='store_true',
-                        help='use a GUI widget for tab completion')
-    wgroup.add_argument('--style', type=str,
-                        choices = list(get_all_styles()),
-                        help='specify a pygments style for by name')
-    wgroup.add_argument('--stylesheet', type=str,
-                        help='path to a custom CSS stylesheet')
-    wgroup.add_argument('--colors', type=str, help = \
-        "Set the color scheme (LightBG,Linux,NoColor). This is guessed \
-         based on the pygments style if not set.")
+aliases.update(dict(
+    hb = 'IPythonQtConsoleApp.hb_port',
+    shell = 'IPythonQtConsoleApp.shell_port',
+    iopub = 'IPythonQtConsoleApp.iopub_port',
+    stdin = 'IPythonQtConsoleApp.stdin_port',
+    ip = 'IPythonQtConsoleApp.ip',
 
-    args = parser.parse_args()
+    plain = 'IPythonQtConsoleApp.plain',
+    pure = 'IPythonQtConsoleApp.pure',
+    gui_completion = 'ConsoleWidget.gui_completion',
+    style = 'IPythonWidget.syntax_style',
+    stylesheet = 'IPythonQtConsoleApp.stylesheet',
+    colors = 'ZMQInteractiveShell.colors',
 
-    # parse the colors arg down to current known labels
-    if args.colors:
-        colors=args.colors.lower()
-        if colors in ('lightbg', 'light'):
-            colors='lightbg'
-        elif colors in ('dark', 'linux'):
-            colors='linux'
+    editor = 'IPythonWidget.editor',
+    pi = 'IPythonWidget.in_prompt',
+    po = 'IPythonWidget.out_prompt',
+    si = 'IPythonWidget.input_sep',
+    so = 'IPythonWidget.output_sep',
+    so2 = 'IPythonWidget.output_sep2',
+))
+
+#-----------------------------------------------------------------------------
+# IPythonQtConsole
+#-----------------------------------------------------------------------------
+
+class IPythonQtConsoleApp(BaseIPythonApplication):
+    name = 'ipython-qtconsole'
+    default_config_file_name='ipython_config.py'
+    classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir]
+    flags = Dict(flags)
+    aliases = Dict(aliases)
+
+    kernel_argv = List(Unicode)
+
+    # connection info:
+    ip = Unicode(LOCALHOST, config=True,
+        help="""Set the kernel\'s IP address [default localhost].
+        If the IP address is something other than localhost, then
+        Consoles on other machines will be able to connect
+        to the Kernel, so be careful!"""
+    )
+    hb_port = Int(0, config=True,
+        help="set the heartbeat port [default: random]")
+    shell_port = Int(0, config=True,
+        help="set the shell (XREP) port [default: random]")
+    iopub_port = Int(0, config=True,
+        help="set the iopub (PUB) port [default: random]")
+    stdin_port = Int(0, config=True,
+        help="set the stdin (XREQ) port [default: random]")
+
+    existing = CBool(False, config=True,
+        help="Whether to connect to an already running Kernel.")
+
+    stylesheet = Unicode('', config=True,
+        help="path to a custom CSS stylesheet")
+
+    pure = CBool(False, config=True,
+        help="Use a pure Python kernel instead of an IPython kernel.")
+    plain = CBool(False, config=True,
+        help="Use a plaintext widget instead of rich text (plain can't print/save).")
+
+    def _pure_changed(self, name, old, new):
+        kind = 'plain' if self.plain else 'rich'
+        self.config.ConsoleWidget.kind = kind
+        if self.pure:
+            self.widget_factory = FrontendWidget
+        elif self.plain:
+            self.widget_factory = IPythonWidget
         else:
-            colors='nocolor'
-    elif args.style:
-        if args.style=='bw':
-            colors='nocolor'
-        elif styles.dark_style(args.style):
-            colors='linux'
+            self.widget_factory = RichIPythonWidget
+
+    _plain_changed = _pure_changed
+
+    confirm_exit = CBool(True, config=True,
+        help="""
+        Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
+        to force a direct exit without any confirmation.""",
+    )
+    
+    # the factory for creating a widget
+    widget_factory = Any(RichIPythonWidget)
+
+    def parse_command_line(self, argv=None):
+        super(IPythonQtConsoleApp, self).parse_command_line(argv)
+        if argv is None:
+            argv = sys.argv[1:]
+
+        self.kernel_argv = list(argv) # copy
+
+        # scrub frontend-specific flags
+        for a in argv:
+            if a.startswith('--') and a[2:] in qt_flags:
+                self.kernel_argv.remove(a)
+
+    def init_kernel_manager(self):
+        # Don't let Qt or ZMQ swallow KeyboardInterupts.
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+        # Create a KernelManager and start a kernel.
+        self.kernel_manager = QtKernelManager(
+                                shell_address=(self.ip, self.shell_port),
+                                sub_address=(self.ip, self.iopub_port),
+                                stdin_address=(self.ip, self.stdin_port),
+                                hb_address=(self.ip, self.hb_port)
+        )
+        # start the kernel
+        if not self.existing:
+            kwargs = dict(ip=self.ip, ipython=not self.pure)
+            kwargs['extra_arguments'] = self.kernel_argv
+            self.kernel_manager.start_kernel(**kwargs)
+        self.kernel_manager.start_channels()
+
+
+    def init_qt_elements(self):
+        # Create the widget.
+        self.app = QtGui.QApplication([])
+        local_kernel = (not self.existing) or self.ip in LOCAL_IPS
+        self.widget = self.widget_factory(config=self.config,
+                                        local_kernel=local_kernel)
+        self.widget.kernel_manager = self.kernel_manager
+        self.window = MainWindow(self.app, self.widget, self.existing,
+                                may_close=local_kernel,
+                                confirm_exit=self.confirm_exit)
+        self.window.setWindowTitle('Python' if self.pure else 'IPython')
+
+    def init_colors(self):
+        """Configure the coloring of the widget"""
+        # Note: This will be dramatically simplified when colors
+        # are removed from the backend.
+
+        if self.pure:
+            # only IPythonWidget supports styling
+            return
+
+        # parse the colors arg down to current known labels
+        try:
+            colors = self.config.ZMQInteractiveShell.colors
+        except AttributeError:
+            colors = None
+        try:
+            style = self.config.IPythonWidget.colors
+        except AttributeError:
+            style = None
+
+        # find the value for colors:
+        if colors:
+            colors=colors.lower()
+            if colors in ('lightbg', 'light'):
+                colors='lightbg'
+            elif colors in ('dark', 'linux'):
+                colors='linux'
+            else:
+                colors='nocolor'
+        elif style:
+            if style=='bw':
+                colors='nocolor'
+            elif styles.dark_style(style):
+                colors='linux'
+            else:
+                colors='lightbg'
         else:
-            colors='lightbg'
-    else:
-        colors=None
+            colors=None
 
-    # Don't let Qt or ZMQ swallow KeyboardInterupts.
-    import signal
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-    # Create a KernelManager and start a kernel.
-    kernel_manager = QtKernelManager(xreq_address=(args.ip, args.xreq),
-                                     sub_address=(args.ip, args.sub),
-                                     rep_address=(args.ip, args.rep),
-                                     hb_address=(args.ip, args.hb))
-    if not args.existing:
-        # if not args.ip in LOCAL_IPS+ALL_ALIAS:
-        #     raise ValueError("Must bind a local ip, such as: %s"%LOCAL_IPS)
-
-        kwargs = dict(ip=args.ip)
-        if args.pure:
-            kwargs['ipython']=False
-        else:
-            kwargs['colors']=colors
-            if args.pylab:
-                kwargs['pylab']=args.pylab
-
-        kernel_manager.start_kernel(**kwargs)
-    kernel_manager.start_channels()
-
-    # Create the widget.
-    app = QtGui.QApplication([])
-    local_kernel = (not args.existing) or args.ip in LOCAL_IPS
-    if args.pure:
-        kind = 'plain' if args.plain else 'rich'
-        widget = FrontendWidget(kind=kind, paging=args.paging, 
-                                local_kernel=local_kernel)
-    elif args.plain:
-        widget = IPythonWidget(paging=args.paging, local_kernel=local_kernel)
-    else:
-        widget = RichIPythonWidget(paging=args.paging, 
-                                   local_kernel=local_kernel)
-    widget.gui_completion = args.gui_completion
-    widget.kernel_manager = kernel_manager
-
-    # Configure the style.
-    if not args.pure: # only IPythonWidget supports styles
-        if args.style:
-            widget.syntax_style = args.style
-            widget.style_sheet = styles.sheet_from_template(args.style, colors)
+        # Configure the style.
+        widget = self.widget
+        if style:
+            widget.style_sheet = styles.sheet_from_template(style, colors)
+            widget.syntax_style = style
             widget._syntax_style_changed()
             widget._style_sheet_changed()
         elif colors:
@@ -254,23 +364,38 @@ def main():
             # defaults to change
             widget.set_default_style()
 
-        if args.stylesheet:
+        if self.stylesheet:
             # we got an expicit stylesheet
-            if os.path.isfile(args.stylesheet):
-                with open(args.stylesheet) as f:
+            if os.path.isfile(self.stylesheet):
+                with open(self.stylesheet) as f:
                     sheet = f.read()
                 widget.style_sheet = sheet
                 widget._style_sheet_changed()
             else:
-                raise IOError("Stylesheet %r not found."%args.stylesheet)
+                raise IOError("Stylesheet %r not found."%self.stylesheet)
 
-    # Create the main window.
-    window = MainWindow(app, widget, args.existing, may_close=local_kernel)
-    window.setWindowTitle('Python' if args.pure else 'IPython')
-    window.show()
+    def initialize(self, argv=None):
+        super(IPythonQtConsoleApp, self).initialize(argv)
+        self.init_kernel_manager()
+        self.init_qt_elements()
+        self.init_colors()
 
-    # Start the application main loop.
-    app.exec_()
+    def start(self):
+
+        # draw the window
+        self.window.show()
+
+        # Start the application main loop.
+        self.app.exec_()
+
+#-----------------------------------------------------------------------------
+# Main entry point
+#-----------------------------------------------------------------------------
+
+def main():
+    app = IPythonQtConsoleApp()
+    app.initialize()
+    app.start()
 
 
 if __name__ == '__main__':
