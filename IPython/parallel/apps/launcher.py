@@ -49,7 +49,6 @@ except ImportError:
 
 from zmq.eventloop import ioloop
 
-from IPython.external import Itpl
 # from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Any, Int, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
@@ -805,8 +804,8 @@ class BatchSystemLauncher(BaseLauncher):
 
     This class also has the notion of a batch script. The ``batch_template``
     attribute can be set to a string that is a template for the batch script.
-    This template is instantiated using Itpl. Thus the template can use
-    ${n} fot the number of instances. Subclasses can add additional variables
+    This template is instantiated using string formatting. Thus the template can
+    use {n} fot the number of instances. Subclasses can add additional variables
     to the template dict.
     """
 
@@ -866,7 +865,6 @@ class BatchSystemLauncher(BaseLauncher):
         """Instantiate and write the batch script to the work_dir."""
         self.context['n'] = n
         self.context['queue'] = self.queue
-        print self.context
         # first priority is batch_template if set
         if self.batch_template_file and not self.batch_template:
             # second priority is batch_template_file
@@ -890,7 +888,7 @@ class BatchSystemLauncher(BaseLauncher):
             firstline, rest = self.batch_template.split('\n',1)
             self.batch_template = u'\n'.join([firstline, self.queue_template, rest])
             
-        script_as_string = Itpl.itplns(self.batch_template, self.context)
+        script_as_string = self.batch_template.format(**self.context)
         self.log.info('Writing instantiated batch script: %s' % self.batch_file)
     
         with open(self.batch_file, 'w') as f:
@@ -899,9 +897,8 @@ class BatchSystemLauncher(BaseLauncher):
 
     def start(self, n, profile_dir):
         """Start n copies of the process using a batch system."""
-        # Here we save profile and profile_dir in the context so they
-        # can be used in the batch script template as ${profile} and
-        # ${profile_dir}
+        # Here we save profile_dir in the context so they
+        # can be used in the batch script template as {profile_dir}
         self.context['profile_dir'] = profile_dir
         self.profile_dir = unicode(profile_dir)
         self.write_batch_script(n)
@@ -929,9 +926,9 @@ class PBSLauncher(BatchSystemLauncher):
     
     batch_file = Unicode(u'')
     job_array_regexp = Unicode('#PBS\W+-t\W+[\w\d\-\$]+')
-    job_array_template = Unicode('#PBS -t 1-$n')
+    job_array_template = Unicode('#PBS -t 1-{n}')
     queue_regexp = Unicode('#PBS\W+-q\W+\$?\w+')
-    queue_template = Unicode('#PBS -q $queue')
+    queue_template = Unicode('#PBS -q {queue}')
 
 
 class PBSControllerLauncher(PBSLauncher):
@@ -942,7 +939,7 @@ class PBSControllerLauncher(PBSLauncher):
     default_template= Unicode("""#!/bin/sh
 #PBS -V
 #PBS -N ipcontroller
-%s --log-to-file profile_dir $profile_dir
+%s --log-to-file profile_dir={profile_dir}
 """%(' '.join(ipcontroller_cmd_argv)))
 
     def start(self, profile_dir):
@@ -958,7 +955,7 @@ class PBSEngineSetLauncher(PBSLauncher):
     default_template= Unicode(u"""#!/bin/sh
 #PBS -V
 #PBS -N ipengine
-%s profile_dir $profile_dir
+%s profile_dir={profile_dir}
 """%(' '.join(ipengine_cmd_argv)))
 
     def start(self, n, profile_dir):
@@ -970,20 +967,20 @@ class PBSEngineSetLauncher(PBSLauncher):
 
 class SGELauncher(PBSLauncher):
     """Sun GridEngine is a PBS clone with slightly different syntax"""
-    job_array_regexp = Unicode('#\$\$\W+\-t')
-    job_array_template = Unicode('#$$ -t 1-$n')
-    queue_regexp = Unicode('#$$\W+-q\W+\$?\w+')
-    queue_template = Unicode('#$$ -q $queue')
+    job_array_regexp = Unicode('#\$\W+\-t')
+    job_array_template = Unicode('#$ -t 1-{n}')
+    queue_regexp = Unicode('#\$\W+-q\W+\$?\w+')
+    queue_template = Unicode('#$ -q $queue')
 
 class SGEControllerLauncher(SGELauncher):
     """Launch a controller using SGE."""
 
     batch_file_name = Unicode(u'sge_controller', config=True,
         help="batch file name for the ipontroller job.")
-    default_template= Unicode(u"""#$$ -V
-#$$ -S /bin/sh
-#$$ -N ipcontroller
-%s --log-to-file profile_dir=$profile_dir
+    default_template= Unicode(u"""#$ -V
+#$ -S /bin/sh
+#$ -N ipcontroller
+%s --log-to-file profile_dir={profile_dir}
 """%(' '.join(ipcontroller_cmd_argv)))
 
     def start(self, profile_dir):
@@ -995,10 +992,10 @@ class SGEEngineSetLauncher(SGELauncher):
     """Launch Engines with SGE"""
     batch_file_name = Unicode(u'sge_engines', config=True,
         help="batch file name for the engine(s) job.")
-    default_template = Unicode("""#$$ -V
-#$$ -S /bin/sh
-#$$ -N ipengine
-%s profile_dir=$profile_dir
+    default_template = Unicode("""#$ -V
+#$ -S /bin/sh
+#$ -N ipengine
+%s profile_dir={profile_dir}
 """%(' '.join(ipengine_cmd_argv)))
 
     def start(self, n, profile_dir):
