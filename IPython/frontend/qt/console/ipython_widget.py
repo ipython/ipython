@@ -185,6 +185,10 @@ class IPythonWidget(FrontendWidget):
                 self._append_plain_text(self.output_sep)
                 self._append_html(self._make_out_prompt(prompt_number))
                 text = data['text/plain']
+                # If the repr is multiline, make sure we start on a new line,
+                # so that its lines are aligned.
+                if "\n" in text and not self.output_sep.endswith("\n"):
+                    self._append_plain_text('\n')
                 self._append_plain_text(text + self.output_sep2)
 
     def _handle_display_data(self, msg):
