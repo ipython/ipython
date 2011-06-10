@@ -25,10 +25,11 @@ import traceback
 import zmq
 
 # Local imports.
-from IPython.utils.traitlets import HasTraits, Instance
+from IPython.utils.traitlets import HasTraits, Instance, Dict
 from completer import KernelCompleter
-from entry_point import base_launch_kernel, make_default_main
+from entry_point import base_launch_kernel
 from session import Session, Message
+from kernelapp import KernelApp
 
 #-----------------------------------------------------------------------------
 # Main kernel class
@@ -40,16 +41,17 @@ class Kernel(HasTraits):
 
     # This is a dict of port number that the kernel is listening on. It is set
     # by record_ports and used by connect_request.
-    _recorded_ports = None
+    _recorded_ports = Dict()
 
     #---------------------------------------------------------------------------
     # Kernel interface
     #---------------------------------------------------------------------------
 
     session = Instance(Session)
-    reply_socket = Instance('zmq.Socket')
-    pub_socket = Instance('zmq.Socket')
-    req_socket = Instance('zmq.Socket')
+    shell_socket = Instance('zmq.Socket')
+    iopub_socket = Instance('zmq.Socket')
+    stdin_socket = Instance('zmq.Socket')
+    log = Instance('logging.Logger')
 
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
@@ -69,29 +71,23 @@ class Kernel(HasTraits):
         """ Start the kernel main loop.
         """
         while True:
-            ident,msg = self.session.recv(self.reply_socket,0)
+            ident,msg = self.session.recv(self.shell_socket,0)
             assert ident is not None, "Missing message part."
             omsg = Message(msg)
-            print>>sys.__stdout__
-            print>>sys.__stdout__, omsg
+            self.log.debug(str(omsg))
             handler = self.handlers.get(omsg.msg_type, None)
             if handler is None:
-                print >> sys.__stderr__, "UNKNOWN MESSAGE TYPE:", omsg
+                self.log.error("UNKNOWN MESSAGE TYPE: %s"%omsg)
             else:
                 handler(ident, omsg)
 
-    def record_ports(self, xrep_port, pub_port, req_port, hb_port):
+    def record_ports(self, ports):
         """Record the ports that this kernel is using.
 
         The creator of the Kernel instance must call this methods if they
         want the :meth:`connect_request` method to return the port numbers.
         """
-        self._recorded_ports = {
-            'xrep_port' : xrep_port,
-            'pub_port' : pub_port,
-            'req_port' : req_port,
-            'hb_port' : hb_port
-        }
+        self._recorded_ports = ports
 
     #---------------------------------------------------------------------------
     # Kernel request handlers
@@ -101,10 +97,9 @@ class Kernel(HasTraits):
         try:
             code = parent[u'content'][u'code']
         except:
-            print>>sys.__stderr__, "Got bad msg: "
-            print>>sys.__stderr__, Message(parent)
+            self.log.error("Got bad msg: %s"%Message(parent))
             return
-        pyin_msg = self.session.send(self.pub_socket, u'pyin',{u'code':code}, parent=parent)
+        pyin_msg = self.session.send(self.iopub_socket, u'pyin',{u'code':code}, parent=parent)
 
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
@@ -129,7 +124,7 @@ class Kernel(HasTraits):
                 u'ename' : unicode(etype.__name__),
                 u'evalue' : unicode(evalue)
             }
-            exc_msg = self.session.send(self.pub_socket, u'pyerr', exc_content, parent)
+            exc_msg = self.session.send(self.iopub_socket, u'pyerr', exc_content, parent)
             reply_content = exc_content
         else:
             reply_content = { 'status' : 'ok', 'payload' : {} }
@@ -139,32 +134,32 @@ class Kernel(HasTraits):
         sys.stdout.flush()
 
         # Send the reply.
-        reply_msg = self.session.send(self.reply_socket, u'execute_reply', reply_content, parent, ident=ident)
-        print>>sys.__stdout__, Message(reply_msg)
+        reply_msg = self.session.send(self.shell_socket, u'execute_reply', reply_content, parent, ident=ident)
+        self.log.debug(Message(reply_msg))
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
     def complete_request(self, ident, parent):
         matches = {'matches' : self._complete(parent),
                    'status' : 'ok'}
-        completion_msg = self.session.send(self.reply_socket, 'complete_reply',
+        completion_msg = self.session.send(self.shell_socket, 'complete_reply',
                                            matches, parent, ident)
-        print >> sys.__stdout__, completion_msg
+        self.log.debug(completion_msg)
 
     def object_info_request(self, ident, parent):
         context = parent['content']['oname'].split('.')
         object_info = self._object_info(context)
-        msg = self.session.send(self.reply_socket, 'object_info_reply',
+        msg = self.session.send(self.shell_socket, 'object_info_reply',
                                 object_info, parent, ident)
-        print >> sys.__stdout__, msg
+        self.log.debug(msg)
 
     def shutdown_request(self, ident, parent):
         content = dict(parent['content'])
-        msg = self.session.send(self.reply_socket, 'shutdown_reply',
+        msg = self.session.send(self.shell_socket, 'shutdown_reply',
                                 content, parent, ident)
-        msg = self.session.send(self.pub_socket, 'shutdown_reply',
+        msg = self.session.send(self.iopub_socket, 'shutdown_reply',
                                 content, parent, ident)
-        print >> sys.__stdout__, msg
+        self.log.debug(msg)
         time.sleep(0.1)
         sys.exit(0)
 
@@ -174,17 +169,17 @@ class Kernel(HasTraits):
 
     def _abort_queue(self):
         while True:
-            ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
+            ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
             if msg is None:
+                # msg=None on EAGAIN
                 break
             else:
-                assert ident is not None, "Unexpected missing message part."
-            print>>sys.__stdout__, "Aborting:"
-            print>>sys.__stdout__, Message(msg)
+                assert ident is not None, "Missing message part."
+            self.log.debug("Aborting: %s"%Message(msg))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
-            reply_msg = self.session.send(self.reply_socket, reply_type, {'status':'aborted'}, msg, ident=ident)
-            print>>sys.__stdout__, Message(reply_msg)
+            reply_msg = self.session.send(self.shell_socket, reply_type, {'status':'aborted'}, msg, ident=ident)
+            self.log.debug(Message(reply_msg))
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.1)
@@ -196,15 +191,14 @@ class Kernel(HasTraits):
 
         # Send the input request.
         content = dict(prompt=prompt)
-        msg = self.session.send(self.req_socket, u'input_request', content, parent)
+        msg = self.session.send(self.stdin_socket, u'input_request', content, parent)
 
         # Await a response.
-        ident,reply = self.session.recv(self.req_socket, 0)
+        ident,reply = self.session.recv(self.stdin_socket, 0)
         try:
             value = reply['content']['value']
         except:
-            print>>sys.__stderr__, "Got bad raw_input reply: "
-            print>>sys.__stderr__, Message(parent)
+            self.log.error("Got bad raw_input reply: %s"%Message(parent))
             value = ''
         return value
 
@@ -245,58 +239,26 @@ class Kernel(HasTraits):
 # Kernel main and launch functions
 #-----------------------------------------------------------------------------
 
-def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
-                  stdin=None, stdout=None, stderr=None,
-                  executable=None, independent=False):
-    """ Launches a localhost kernel, binding to the specified ports.
-
-    Parameters
-    ----------
-    ip  : str, optional
-        The ip address the kernel will bind to.
+def launch_kernel(*args, **kwargs):
+    """ Launches a simple Python kernel, binding to the specified ports.
     
-    xrep_port : int, optional
-        The port to use for XREP channel.
-
-    pub_port : int, optional
-        The port to use for the SUB channel.
-
-    req_port : int, optional
-        The port to use for the REQ (raw input) channel.
-
-    hb_port : int, optional
-        The port to use for the hearbeat REP channel.
-
-    stdin, stdout, stderr : optional (default None)
-        Standards streams, as defined in subprocess.Popen.
-
-    executable : str, optional (default sys.executable)
-        The Python executable to use for the kernel process.
-
-    independent : bool, optional (default False) 
-        If set, the kernel process is guaranteed to survive if this process
-        dies. If not set, an effort is made to ensure that the kernel is killed
-        when this process dies. Note that in this case it is still good practice
-        to kill kernels manually before exiting.
+    This function simply calls entry_point.base_launch_kernel with the right first
+    command to start a pykernel.  See base_launch_kernel for arguments.
 
     Returns
     -------
     A tuple of form:
-        (kernel_process, xrep_port, pub_port, req_port)
+        (kernel_process, xrep_port, pub_port, req_port, hb_port)
     where kernel_process is a Popen object and the ports are integers.
     """
-    extra_arguments = []
-    if ip is not None:
-        extra_arguments.append('--ip')
-        if isinstance(ip, basestring):
-            extra_arguments.append(ip)
-    
     return base_launch_kernel('from IPython.zmq.pykernel import main; main()',
-                              xrep_port, pub_port, req_port, hb_port,
-                              stdin, stdout, stderr,
-                              executable, independent, extra_arguments)
+                                *args, **kwargs)
 
-main = make_default_main(Kernel)
+def main():
+    """Run a PyKernel as an application"""
+    app = KernelApp.instance()
+    app.initialize()
+    app.start()
 
 if __name__ == '__main__':
     main()

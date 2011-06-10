@@ -163,3 +163,28 @@ c = get_config()
 # Only write to the database every n commands - this can save disk
 # access (and hence power) over the default of writing on every command.
 # c.HistoryManager.db_cache_size = 0
+
+#-----------------------------------------------------------------------------
+# QtConsole configuration
+#-----------------------------------------------------------------------------
+
+# set the preferred typeface and font size. The default typeface is:
+#   'Consolas' on Windows (fallback to 'Courier')
+#   'Monaco' on OSX
+#   'Monospace' elsewhere
+# c.ConsoleWidget.font_family = "Consolas"
+
+# The point fontsize. Leave as zero to let Qt decide on the starting font size.
+# While running, you can change the font size with ctrl- +/-
+# c.ConsoleWidget.font_size = 0
+
+# set the pygments syntax-highlighting style:
+# c.IPythonWidget.syntax_style = 'default'
+
+# Configure the prompts:
+# c.IPythonWidget.in_prompt = 'In [<span class="in-prompt-number">%i</span>]: '
+# c.IPythonWidget.out_prompt = 'Out[<span class="out-prompt-number">%i</span>]: '
+
+# set the editor - this must be a *GUI* editor, like notepad/gedit/TextMate
+# There is no default on systems other than Windows.
+# c.IPythonWidget.editor = 'notepad'

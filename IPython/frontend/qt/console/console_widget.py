@@ -19,7 +19,7 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.config.configurable import Configurable
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
-from IPython.utils.traitlets import Bool, Enum, Int
+from IPython.utils.traitlets import Bool, Enum, Int, Unicode
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 from kill_ring import QtKillRing
@@ -55,33 +55,61 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
     #------ Configuration ------------------------------------------------------
 
-    # Whether to process ANSI escape codes.
-    ansi_codes = Bool(True, config=True)
-
-    # The maximum number of lines of text before truncation. Specifying a
-    # non-positive number disables text truncation (not recommended).
-    buffer_size = Int(500, config=True)
-
-    # Whether to use a list widget or plain text output for tab completion.
-    gui_completion = Bool(False, config=True)
-
-    # The type of underlying text widget to use. Valid values are 'plain', which
-    # specifies a QPlainTextEdit, and 'rich', which specifies a QTextEdit.
+    ansi_codes = Bool(True, config=True,
+        help="Whether to process ANSI escape codes."
+    )
+    buffer_size = Int(500, config=True,
+        help="""
+        The maximum number of lines of text before truncation. Specifying a
+        non-positive number disables text truncation (not recommended).
+        """
+    )
+    gui_completion = Bool(False, config=True,
+        help="Use a list widget instead of plain text output for tab completion."
+    )
     # NOTE: this value can only be specified during initialization.
-    kind = Enum(['plain', 'rich'], default_value='plain', config=True)
-
-    # The type of paging to use. Valid values are:
-    #     'inside' : The widget pages like a traditional terminal.
-    #     'hsplit' : When paging is requested, the widget is split
-    #                horizontally. The top pane contains the console, and the
-    #                bottom pane contains the paged text.
-    #     'vsplit' : Similar to 'hsplit', except that a vertical splitter used.
-    #     'custom' : No action is taken by the widget beyond emitting a
-    #                'custom_page_requested(str)' signal.
-    #     'none'   : The text is written directly to the console.
+    kind = Enum(['plain', 'rich'], default_value='plain', config=True,
+        help="""
+        The type of underlying text widget to use. Valid values are 'plain', which
+        specifies a QPlainTextEdit, and 'rich', which specifies a QTextEdit.
+        """
+    )
     # NOTE: this value can only be specified during initialization.
     paging = Enum(['inside', 'hsplit', 'vsplit', 'custom', 'none'], 
-                  default_value='inside', config=True)
+                  default_value='inside', config=True,
+        help="""
+        The type of paging to use. Valid values are:
+            'inside' : The widget pages like a traditional terminal.
+            'hsplit' : When paging is requested, the widget is split
+            :          horizontally. The top pane contains the console, and the
+            :          bottom pane contains the paged text.
+            'vsplit' : Similar to 'hsplit', except that a vertical splitter used.
+            'custom' : No action is taken by the widget beyond emitting a
+            :          'custom_page_requested(str)' signal.
+            'none'   : The text is written directly to the console.
+        """)
+
+    font_family = Unicode(config=True,
+        help="""The font family to use for the console.
+        On OSX this defaults to Monaco, on Windows the default is
+        Consolas with fallback of Courier, and on other platforms
+        the default is Monospace.
+        """)
+    def _font_family_default(self):
+        if sys.platform == 'win32':
+            # Consolas ships with Vista/Win7, fallback to Courier if needed
+            return 'Consolas'
+        elif sys.platform == 'darwin':
+            # OSX always has Monaco, no need for a fallback
+            return 'Monaco'
+        else:
+            # Monospace should always exist, no need for a fallback
+            return 'Monospace'
+
+    font_size = Int(config=True,
+        help="""The font size. If unconfigured, Qt will be entrusted
+        with the size of the font.
+        """)
 
     # Whether to override ShortcutEvents for the keybindings defined by this
     # widget (Ctrl+n, Ctrl+a, etc). Enable this if you want this widget to take
@@ -591,16 +619,18 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         if sys.platform == 'win32':
             # Consolas ships with Vista/Win7, fallback to Courier if needed
-            family, fallback = 'Consolas', 'Courier'
+            fallback = 'Courier'
         elif sys.platform == 'darwin':
-            # OSX always has Monaco, no need for a fallback
-            family, fallback = 'Monaco', None
+            # OSX always has Monaco
+            fallback = 'Monaco'
         else:
-            # FIXME: remove Consolas as a default on Linux once our font
-            # selections are configurable by the user.
-            family, fallback = 'Consolas', 'Monospace'
-        font = get_font(family, fallback)
-        font.setPointSize(QtGui.qApp.font().pointSize())
+            # Monospace should always exist
+            fallback = 'Monospace'
+        font = get_font(self.font_family, fallback)
+        if self.font_size:
+            font.setPointSize(self.font_size)
+        else:
+            font.setPointSize(QtGui.qApp.font().pointSize())
         font.setStyleHint(QtGui.QFont.TypeWriter)
         self._set_font(font)
 

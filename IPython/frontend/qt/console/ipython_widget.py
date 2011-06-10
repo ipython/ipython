@@ -23,9 +23,7 @@ from IPython.core.inputsplitter import IPythonInputSplitter, \
 from IPython.core.usage import default_gui_banner
 from IPython.utils.traitlets import Bool, Str, Unicode
 from frontend_widget import FrontendWidget
-from styles import (default_light_style_sheet,  default_light_syntax_style,
-                    default_dark_style_sheet, default_dark_syntax_style,
-                    default_bw_style_sheet, default_bw_syntax_style)
+import styles
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -42,6 +40,11 @@ default_output_sep2 = ''
 # Base path for most payload sources.
 zmq_shell_source = 'IPython.zmq.zmqshell.ZMQInteractiveShell'
 
+if sys.platform.startswith('win'):
+    default_editor = 'notepad'
+else:
+    default_editor = ''
+
 #-----------------------------------------------------------------------------
 # IPythonWidget class
 #-----------------------------------------------------------------------------
@@ -56,26 +59,35 @@ class IPythonWidget(FrontendWidget):
     custom_edit = Bool(False)
     custom_edit_requested = QtCore.Signal(object, object)
 
-    # A command for invoking a system text editor. If the string contains a
-    # {filename} format specifier, it will be used. Otherwise, the filename will
-    # be appended to the end the command.
-    editor = Unicode('default', config=True)
+    editor = Unicode(default_editor, config=True,
+        help="""
+        A command for invoking a system text editor. If the string contains a
+        {filename} format specifier, it will be used. Otherwise, the filename will
+        be appended to the end the command.
+        """)
 
-    # The editor command to use when a specific line number is requested. The
-    # string should contain two format specifiers: {line} and {filename}. If
-    # this parameter is not specified, the line number option to the %edit magic
-    # will be ignored.
-    editor_line = Unicode(config=True)
+    editor_line = Unicode(config=True,
+        help="""
+        The editor command to use when a specific line number is requested. The
+        string should contain two format specifiers: {line} and {filename}. If
+        this parameter is not specified, the line number option to the %edit magic
+        will be ignored.
+        """)
 
-    # A CSS stylesheet. The stylesheet can contain classes for:
-    #     1. Qt: QPlainTextEdit, QFrame, QWidget, etc
-    #     2. Pygments: .c, .k, .o, etc (see PygmentsHighlighter)
-    #     3. IPython: .error, .in-prompt, .out-prompt, etc
-    style_sheet = Unicode(config=True)
+    style_sheet = Unicode(config=True,
+        help="""
+        A CSS stylesheet. The stylesheet can contain classes for:
+            1. Qt: QPlainTextEdit, QFrame, QWidget, etc
+            2. Pygments: .c, .k, .o, etc. (see PygmentsHighlighter)
+            3. IPython: .error, .in-prompt, .out-prompt, etc
+        """)
     
-    # If not empty, use this Pygments style for syntax highlighting. Otherwise,
-    # the style sheet is queried for Pygments style information.
-    syntax_style = Str(config=True)
+
+    syntax_style = Str(config=True,
+        help="""
+        If not empty, use this Pygments style for syntax highlighting. Otherwise,
+        the style sheet is queried for Pygments style information.
+        """)
 
     # Prompts.
     in_prompt = Str(default_in_prompt, config=True)
@@ -215,7 +227,7 @@ class IPythonWidget(FrontendWidget):
         """ Reimplemented to make a history request.
         """
         super(IPythonWidget, self)._started_channels()
-        self.kernel_manager.xreq_channel.history(hist_access_type='tail', n=1000)
+        self.kernel_manager.shell_channel.history(hist_access_type='tail', n=1000)
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
@@ -257,7 +269,7 @@ class IPythonWidget(FrontendWidget):
         text = ''
         
         # Send the completion request to the kernel
-        msg_id = self.kernel_manager.xreq_channel.complete(
+        msg_id = self.kernel_manager.shell_channel.complete(
             text,                                    # text
             self._get_input_buffer_cursor_line(),    # line
             self._get_input_buffer_cursor_column(),  # cursor_pos
@@ -308,7 +320,7 @@ class IPythonWidget(FrontendWidget):
         """
         # If a number was not specified, make a prompt number request.
         if number is None:
-            msg_id = self.kernel_manager.xreq_channel.execute('', silent=True)
+            msg_id = self.kernel_manager.shell_channel.execute('', silent=True)
             info = self._ExecutionRequest(msg_id, 'prompt')
             self._request_info['execute'] = info
             return
@@ -371,14 +383,14 @@ class IPythonWidget(FrontendWidget):
         """
         colors = colors.lower()
         if colors=='lightbg':
-            self.style_sheet = default_light_style_sheet
-            self.syntax_style = default_light_syntax_style
+            self.style_sheet = styles.default_light_style_sheet
+            self.syntax_style = styles.default_light_syntax_style
         elif colors=='linux':
-            self.style_sheet = default_dark_style_sheet
-            self.syntax_style = default_dark_syntax_style
+            self.style_sheet = styles.default_dark_style_sheet
+            self.syntax_style = styles.default_dark_syntax_style
         elif colors=='nocolor':
-            self.style_sheet = default_bw_style_sheet
-            self.syntax_style = default_bw_syntax_style
+            self.style_sheet = styles.default_bw_style_sheet
+            self.syntax_style = styles.default_bw_syntax_style
         else:
             raise KeyError("No such color scheme: %s"%colors)
 
@@ -399,8 +411,10 @@ class IPythonWidget(FrontendWidget):
         """
         if self.custom_edit:
             self.custom_edit_requested.emit(filename, line)
-        elif self.editor == 'default':
-            self._append_plain_text('No default editor available.\n')
+        elif not self.editor:
+            self._append_plain_text('No default editor available.\n'
+            'Specify a GUI text editor in the `IPythonWidget.editor` configurable\n'
+            'to enable the %edit magic')
         else:
             try:
                 filename = '"%s"' % filename
@@ -482,9 +496,13 @@ class IPythonWidget(FrontendWidget):
         bg_color = self._control.palette().window().color()
         self._ansi_processor.set_background_color(bg_color)
 
+
     def _syntax_style_changed(self):
         """ Set the style for the syntax highlighter.
         """
+        if self._highlighter is None:
+            # ignore premature calls
+            return
         if self.syntax_style:
             self._highlighter.set_style(self.syntax_style)
         else:

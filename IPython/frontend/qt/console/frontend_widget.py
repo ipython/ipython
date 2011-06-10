@@ -13,7 +13,7 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
 from IPython.core.oinspect import call_tip
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
-from IPython.utils.traitlets import Bool
+from IPython.utils.traitlets import Bool, Instance
 from bracket_matcher import BracketMatcher
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
@@ -106,6 +106,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     _ExecutionRequest = namedtuple('_ExecutionRequest', ['id', 'kind'])
     _input_splitter_class = InputSplitter
     _local_kernel = False
+    _highlighter = Instance(FrontendHighlighter)
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -183,7 +184,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         See parent class :meth:`execute` docstring for full details.
         """
-        msg_id = self.kernel_manager.xreq_channel.execute(source, hidden)
+        msg_id = self.kernel_manager.shell_channel.execute(source, hidden)
         self._request_info['execute'] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
         if not hidden:
@@ -329,7 +330,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self.kernel_manager.sub_channel.flush()
 
         def callback(line):
-            self.kernel_manager.rep_channel.input(line)
+            self.kernel_manager.stdin_channel.input(line)
         self._readline(msg['content']['prompt'], callback=callback)
 
     def _handle_kernel_died(self, since_last_heartbeat):
@@ -517,7 +518,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Send the metadata request to the kernel
         name = '.'.join(context)
-        msg_id = self.kernel_manager.xreq_channel.object_info(name)
+        msg_id = self.kernel_manager.shell_channel.object_info(name)
         pos = self._get_cursor().position()
         self._request_info['call_tip'] = self._CallTipRequest(msg_id, pos)
         return True
@@ -528,7 +529,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         context = self._get_context()
         if context:
             # Send the completion request to the kernel
-            msg_id = self.kernel_manager.xreq_channel.complete(
+            msg_id = self.kernel_manager.shell_channel.complete(
                 '.'.join(context),                       # text
                 self._get_input_buffer_cursor_line(),    # line
                 self._get_input_buffer_cursor_column(),  # cursor_pos
