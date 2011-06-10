@@ -41,7 +41,7 @@ from .. import pylabtools as pt
 def test_figure_to_svg():
     # simple empty-figure test
     fig = plt.figure()
-    yield nt.assert_equal(pt.figure_to_svg(fig), None)
+    yield nt.assert_equal(pt.print_figure(fig, 'svg'), None)
 
     plt.close('all')
 
@@ -50,5 +50,5 @@ def test_figure_to_svg():
     ax = fig.add_subplot(1,1,1)
     ax.plot([1,2,3])
     plt.draw()
-    svg = pt.figure_to_svg(fig)[:100].lower()
+    svg = pt.print_figure(fig, 'svg')[:100].lower()
     yield nt.assert_true('doctype svg' in svg)
