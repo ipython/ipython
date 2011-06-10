@@ -24,8 +24,8 @@ from xml.etree import ElementTree as ET
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import (
-    Str, Int, List, Instance,
-    Enum, Bool, CStr
+    Unicode, Int, List, Instance,
+    Enum, Bool
 )
 
 #-----------------------------------------------------------------------------
@@ -74,27 +74,27 @@ def find_username():
 
 class WinHPCJob(Configurable):
 
-    job_id = Str('')
-    job_name = Str('MyJob', config=True)
+    job_id = Unicode('')
+    job_name = Unicode('MyJob', config=True)
     min_cores = Int(1, config=True)
     max_cores = Int(1, config=True)
     min_sockets = Int(1, config=True)
     max_sockets = Int(1, config=True)
     min_nodes = Int(1, config=True)
     max_nodes = Int(1, config=True)
-    unit_type = Str("Core", config=True)
+    unit_type = Unicode("Core", config=True)
     auto_calculate_min = Bool(True, config=True)
     auto_calculate_max = Bool(True, config=True)
     run_until_canceled = Bool(False, config=True)
     is_exclusive = Bool(False, config=True)
-    username = Str(find_username(), config=True)
-    job_type = Str('Batch', config=True)
+    username = Unicode(find_username(), config=True)
+    job_type = Unicode('Batch', config=True)
     priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
         default_value='Highest', config=True)
-    requested_nodes = Str('', config=True)
-    project = Str('IPython', config=True)
-    xmlns = Str('http://schemas.microsoft.com/HPCS2008/scheduler/')
-    version = Str("2.000")
+    requested_nodes = Unicode('', config=True)
+    project = Unicode('IPython', config=True)
+    xmlns = Unicode('http://schemas.microsoft.com/HPCS2008/scheduler/')
+    version = Unicode("2.000")
     tasks = List([])
 
     @property
@@ -165,21 +165,21 @@ class WinHPCJob(Configurable):
 
 class WinHPCTask(Configurable):
 
-    task_id = Str('')
-    task_name = Str('')
-    version = Str("2.000")
+    task_id = Unicode('')
+    task_name = Unicode('')
+    version = Unicode("2.000")
     min_cores = Int(1, config=True)
     max_cores = Int(1, config=True)
     min_sockets = Int(1, config=True)
     max_sockets = Int(1, config=True)
     min_nodes = Int(1, config=True)
     max_nodes = Int(1, config=True)
-    unit_type = Str("Core", config=True)
-    command_line = CStr('', config=True)
-    work_directory = CStr('', config=True)
+    unit_type = Unicode("Core", config=True)
+    command_line = Unicode('', config=True)
+    work_directory = Unicode('', config=True)
     is_rerunnaable = Bool(True, config=True)
-    std_out_file_path = CStr('', config=True)
-    std_err_file_path = CStr('', config=True)
+    std_out_file_path = Unicode('', config=True)
+    std_err_file_path = Unicode('', config=True)
     is_parametric = Bool(False, config=True)
     environment_variables = Instance(dict, args=(), config=True)
 
@@ -223,41 +223,41 @@ class WinHPCTask(Configurable):
 # By declaring these, we can configure the controller and engine separately!
 
 class IPControllerJob(WinHPCJob):
-    job_name = Str('IPController', config=False)
+    job_name = Unicode('IPController', config=False)
     is_exclusive = Bool(False, config=True)
-    username = Str(find_username(), config=True)
+    username = Unicode(find_username(), config=True)
     priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
         default_value='Highest', config=True)
-    requested_nodes = Str('', config=True)
-    project = Str('IPython', config=True)
+    requested_nodes = Unicode('', config=True)
+    project = Unicode('IPython', config=True)
 
 
 class IPEngineSetJob(WinHPCJob):
-    job_name = Str('IPEngineSet', config=False)
+    job_name = Unicode('IPEngineSet', config=False)
     is_exclusive = Bool(False, config=True)
-    username = Str(find_username(), config=True)
+    username = Unicode(find_username(), config=True)
     priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
         default_value='Highest', config=True)
-    requested_nodes = Str('', config=True)
-    project = Str('IPython', config=True)
+    requested_nodes = Unicode('', config=True)
+    project = Unicode('IPython', config=True)
 
 
 class IPControllerTask(WinHPCTask):
 
-    task_name = Str('IPController', config=True)
+    task_name = Unicode('IPController', config=True)
     controller_cmd = List(['ipcontroller.exe'], config=True)
     controller_args = List(['--log-to-file', '--log-level', '40'], config=True)
     # I don't want these to be configurable
-    std_out_file_path = CStr('', config=False)
-    std_err_file_path = CStr('', config=False)
+    std_out_file_path = Unicode('', config=False)
+    std_err_file_path = Unicode('', config=False)
     min_cores = Int(1, config=False)
     max_cores = Int(1, config=False)
     min_sockets = Int(1, config=False)
     max_sockets = Int(1, config=False)
     min_nodes = Int(1, config=False)
     max_nodes = Int(1, config=False)
-    unit_type = Str("Core", config=False)
-    work_directory = CStr('', config=False)
+    unit_type = Unicode("Core", config=False)
+    work_directory = Unicode('', config=False)
 
     def __init__(self, config=None):
         super(IPControllerTask, self).__init__(config=config)
@@ -272,20 +272,20 @@ class IPControllerTask(WinHPCTask):
 
 class IPEngineTask(WinHPCTask):
 
-    task_name = Str('IPEngine', config=True)
+    task_name = Unicode('IPEngine', config=True)
     engine_cmd = List(['ipengine.exe'], config=True)
     engine_args = List(['--log-to-file', '--log-level', '40'], config=True)
     # I don't want these to be configurable
-    std_out_file_path = CStr('', config=False)
-    std_err_file_path = CStr('', config=False)
+    std_out_file_path = Unicode('', config=False)
+    std_err_file_path = Unicode('', config=False)
     min_cores = Int(1, config=False)
     max_cores = Int(1, config=False)
     min_sockets = Int(1, config=False)
     max_sockets = Int(1, config=False)
     min_nodes = Int(1, config=False)
     max_nodes = Int(1, config=False)
-    unit_type = Str("Core", config=False)
-    work_directory = CStr('', config=False)
+    unit_type = Unicode("Core", config=False)
+    work_directory = Unicode('', config=False)
 
     def __init__(self, config=None):
         super(IPEngineTask,self).__init__(config=config)

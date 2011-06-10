@@ -57,7 +57,7 @@ controller and engines in the following situations:
 
 1. When the controller and engines are all run on localhost. This is useful
    for testing or running on a multicore computer.
-2. When engines are started using the :command:`mpirun` command that comes 
+2. When engines are started using the :command:`mpiexec` command that comes 
    with most MPI [MPI]_ implementations
 3. When engines are started using the PBS [PBS]_ batch system 
    (or other `qsub` systems, such as SGE).
@@ -80,9 +80,9 @@ The simplest way to use ipcluster requires no configuration, and will
 launch a controller and a number of engines on the local machine. For instance, 
 to start one controller and 4 engines on localhost, just do::
 
-    $ ipcluster start -n 4
+    $ ipcluster start n=4
 
-To see other command line options for the local mode, do::
+To see other command line options, do::
 
     $ ipcluster -h
 
@@ -92,12 +92,12 @@ Configuring an IPython cluster
 
 Cluster configurations are stored as `profiles`.  You can create a new profile with::
 
-    $ ipcluster create -p myprofile
+    $ ipcluster create profile=myprofile
 
 This will create the directory :file:`IPYTHONDIR/cluster_myprofile`, and populate it
 with the default configuration files for the three IPython cluster commands. Once
 you edit those files, you can continue to call ipcluster/ipcontroller/ipengine
-with no arguments beyond ``-p myprofile``, and any configuration will be maintained.
+with no arguments beyond ``p=myprofile``, and any configuration will be maintained.
 
 There is no limit to the number of profiles you can have, so you can maintain a profile for each
 of your common use cases. The default profile will be used whenever the
@@ -112,7 +112,8 @@ Using various batch systems with :command:`ipcluster`
 
 :command:`ipcluster` has a notion of Launchers that can start controllers
 and engines with various remote execution schemes.  Currently supported
-models include `mpiexec`, PBS-style (Torque, SGE), and Windows HPC Server.
+models include :command:`ssh`, :command`mpiexec`, PBS-style (Torque, SGE),
+and Windows HPC Server.
 
 .. note::
 
@@ -132,7 +133,7 @@ The mpiexec/mpirun mode is useful if you:
 
 If these are satisfied, you can create a new profile::
 
-    $ ipcluster create -p mpi
+    $ ipcluster create profile=mpi
 
 and edit the file :file:`IPYTHONDIR/cluster_mpi/ipcluster_config.py`.
 
@@ -140,11 +141,11 @@ There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
 .. sourcecode:: python
 
-    c.Global.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
+    c.IPClusterEnginesApp.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
-    $ ipcluster start -n 4 -p mpi
+    $ ipcluster start n=4 profile=mpi
 
 This does the following:
 
@@ -155,7 +156,7 @@ If you have a reason to also start the Controller with mpi, you can specify:
 
 .. sourcecode:: python
 
-    c.Global.controller_launcher = 'IPython.parallel.apps.launcher.MPIExecControllerLauncher'
+    c.IPClusterStartApp.controller_launcher = 'IPython.parallel.apps.launcher.MPIExecControllerLauncher'
 
 .. note::
 
@@ -189,7 +190,7 @@ The PBS mode uses the Portable Batch System [PBS]_ to start the engines.
 
 As usual, we will start by creating a fresh profile::
 
-    $ ipcluster create -p pbs
+    $ ipcluster create profile=pbs
 
 And in :file:`ipcluster_config.py`, we will select the PBS launchers for the controller
 and engines:
@@ -213,7 +214,7 @@ to specify your own. Here is a sample PBS script template:
     cd $$PBS_O_WORKDIR
     export PATH=$$HOME/usr/local/bin
     export PYTHONPATH=$$HOME/usr/local/lib/python2.7/site-packages
-    /usr/local/bin/mpiexec -n ${n} ipengine --cluster_dir=${cluster_dir}
+    /usr/local/bin/mpiexec -n ${n} ipengine cluster_dir=${cluster_dir}
 
 There are a few important points about this template:
 
@@ -251,7 +252,7 @@ The controller template should be similar, but simpler:
     cd $$PBS_O_WORKDIR
     export PATH=$$HOME/usr/local/bin
     export PYTHONPATH=$$HOME/usr/local/lib/python2.7/site-packages
-    ipcontroller --cluster_dir=${cluster_dir}
+    ipcontroller cluster_dir=${cluster_dir}
 
 
 Once you have created these scripts, save them with names like
@@ -287,7 +288,7 @@ connections on all its interfaces, by adding in :file:`ipcontroller_config`:
 
 You can now run the cluster with::
 
-    $ ipcluster start -p pbs -n 128
+    $ ipcluster start profile=pbs n=128
 
 Additional configuration options can be found in the PBS section of :file:`ipcluster_config`.
 
@@ -312,7 +313,7 @@ nodes and :command:`ipcontroller` can be run remotely as well, or on localhost.
 
 As usual, we start by creating a clean profile::
 
-    $ ipcluster create -p ssh
+    $ ipcluster create profile= ssh
 
 To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
@@ -334,7 +335,7 @@ The controller's remote location and configuration can be specified:
     # Set the arguments to be passed to ipcontroller
     # note that remotely launched ipcontroller will not get the contents of 
     # the local ipcontroller_config.py unless it resides on the *remote host*
-    # in the location specified by the --cluster_dir argument.
+    # in the location specified by the `cluster_dir` argument.
     # c.SSHControllerLauncher.program_args = ['-r', '-ip', '0.0.0.0', '--cluster_dir', '/path/to/cd']
 
 .. note::
@@ -351,7 +352,7 @@ on that host.
 
     c.SSHEngineSetLauncher.engines = { 'host1.example.com' : 2,
                 'host2.example.com' : 5,
-                'host3.example.com' : (1, ['--cluster_dir', '/home/different/location']),
+                'host3.example.com' : (1, ['cluster_dir=/home/different/location']),
                 'host4.example.com' : 8 }
 
 * The `engines` dict, where the keys are the host we want to run engines on and
@@ -452,10 +453,10 @@ you want to unlock the door and enter your house. As with your house, you want
 to be able to create the key (or JSON file) once, and then simply use it at
 any point in the future.
 
-To do this, the only thing you have to do is specify the `-r` flag, so that
+To do this, the only thing you have to do is specify the `--reuse` flag, so that
 the connection information in the JSON files remains accurate::
 
-    $ ipcontroller -r
+    $ ipcontroller --reuse
 
 Then, just copy the JSON files over the first time and you are set. You can
 start and stop the controller and engines any many times as you want in the

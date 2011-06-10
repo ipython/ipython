@@ -15,7 +15,7 @@ import sqlite3
 
 from zmq.eventloop import ioloop
 
-from IPython.utils.traitlets import CUnicode, CStr, Instance, List
+from IPython.utils.traitlets import Unicode, Instance, List
 from .dictdb import BaseDB
 from IPython.parallel.util import ISO8601
 
@@ -83,9 +83,16 @@ def _convert_bufs(bs):
 class SQLiteDB(BaseDB):
     """SQLite3 TaskRecord backend."""
     
-    filename = CUnicode('tasks.db', config=True)
-    location = CUnicode('', config=True)
-    table = CUnicode("", config=True)
+    filename = Unicode('tasks.db', config=True,
+        help="""The filename of the sqlite task database. [default: 'tasks.db']""")
+    location = Unicode('', config=True,
+        help="""The directory containing the sqlite task database.  The default
+        is to use the cluster_dir location.""")
+    table = Unicode("", config=True,
+        help="""The SQLite Table to use for storing tasks for this session. If unspecified,
+        a new table will be created with the Hub's IDENT.  Specifying the table will result
+        in tasks from previous sessions being available via Clients' db_query and
+        get_result methods.""")
     
     _db = Instance('sqlite3.Connection')
     _keys = List(['msg_id' ,
@@ -115,10 +122,16 @@ class SQLiteDB(BaseDB):
             # use session, and prefix _, since starting with # is illegal
             self.table = '_'+self.session.replace('-','_')
         if not self.location:
-            if hasattr(self.config.Global, 'cluster_dir'):
-                self.location = self.config.Global.cluster_dir
+            # get current profile
+            from IPython.core.newapplication import BaseIPythonApplication
+            if BaseIPythonApplication.initialized():
+                app = BaseIPythonApplication.instance()
+                if app.profile_dir is not None:
+                    self.location = app.profile_dir.location
+                else:
+                    self.location = u'.'
             else:
-                self.location = '.'
+                self.location = u'.'
         self._init_db()
         
         # register db commit as 2s periodic callback

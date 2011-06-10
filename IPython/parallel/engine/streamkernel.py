@@ -28,7 +28,7 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
-from IPython.utils.traitlets import Instance, List, Int, Dict, Set, Str
+from IPython.utils.traitlets import Instance, List, Int, Dict, Set, Unicode
 from IPython.zmq.completer import KernelCompleter
 
 from IPython.parallel.error import wrap_exception
@@ -64,9 +64,11 @@ class Kernel(SessionFactory):
     #---------------------------------------------------------------------------
     
     # kwargs:
-    int_id = Int(-1, config=True)
-    user_ns = Dict(config=True)
-    exec_lines = List(config=True)
+    exec_lines = List(Unicode, config=True,
+        help="List of lines to execute")
+
+    int_id = Int(-1)
+    user_ns = Dict(config=True,  help="""Set the user's namespace of the Kernel""")
     
     control_stream = Instance(zmqstream.ZMQStream)
     task_stream = Instance(zmqstream.ZMQStream)
