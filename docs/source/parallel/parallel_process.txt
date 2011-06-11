@@ -208,35 +208,32 @@ to specify your own. Here is a sample PBS script template:
     #PBS -N ipython
     #PBS -j oe
     #PBS -l walltime=00:10:00
-    #PBS -l nodes=${n/4}:ppn=4
-    #PBS -q $queue
+    #PBS -l nodes={n/4}:ppn=4
+    #PBS -q {queue}
 
-    cd $$PBS_O_WORKDIR
-    export PATH=$$HOME/usr/local/bin
-    export PYTHONPATH=$$HOME/usr/local/lib/python2.7/site-packages
-    /usr/local/bin/mpiexec -n ${n} ipengine cluster_dir=${cluster_dir}
+    cd $PBS_O_WORKDIR
+    export PATH=$HOME/usr/local/bin
+    export PYTHONPATH=$HOME/usr/local/lib/python2.7/site-packages
+    /usr/local/bin/mpiexec -n {n} ipengine profile_dir={profile_dir}
 
 There are a few important points about this template:
 
-1. This template will be rendered at runtime using IPython's :mod:`Itpl` 
-   template engine.
+1. This template will be rendered at runtime using IPython's :class:`EvalFormatter`.
+   This is simply a subclass of :class:`string.Formatter` that allows simple expressions
+   on keys.
 
 2. Instead of putting in the actual number of engines, use the notation
-   ``${n}`` to indicate the number of engines to be started. You can also uses
-   expressions like ``${n/4}`` in the template to indicate the number of 
-   nodes. There will always be a ${n} and ${cluster_dir} variable passed to the template.
+   ``{n}`` to indicate the number of engines to be started. You can also use
+   expressions like ``{n/4}`` in the template to indicate the number of nodes.
+   There will always be ``{n}`` and ``{profile_dir}`` variables passed to the formatter.
    These allow the batch system to know how many engines, and where the configuration
-   files reside. The same is true for the batch queue, with the template variable ``$queue``.
+   files reside. The same is true for the batch queue, with the template variable
+   ``{queue}``.
 
-3. Because ``$`` is a special character used by the template engine, you must  
-   escape any ``$`` by using ``$$``.  This is important when referring to 
-   environment variables in the template, or in SGE, where the config lines start
-   with ``#$``, which will have to be ``#$$``.
-
-4. Any options to :command:`ipengine` can be given in the batch script 
+3. Any options to :command:`ipengine` can be given in the batch script
    template, or in :file:`ipengine_config.py`.
 
-5. Depending on the configuration of you system, you may have to set 
+4. Depending on the configuration of you system, you may have to set
    environment variables in the script template.
 
 The controller template should be similar, but simpler:
@@ -247,12 +244,12 @@ The controller template should be similar, but simpler:
     #PBS -j oe
     #PBS -l walltime=00:10:00
     #PBS -l nodes=1:ppn=4
-    #PBS -q $queue
+    #PBS -q {queue}
 
-    cd $$PBS_O_WORKDIR
-    export PATH=$$HOME/usr/local/bin
-    export PYTHONPATH=$$HOME/usr/local/lib/python2.7/site-packages
-    ipcontroller cluster_dir=${cluster_dir}
+    cd $PBS_O_WORKDIR
+    export PATH=$HOME/usr/local/bin
+    export PYTHONPATH=$HOME/usr/local/lib/python2.7/site-packages
+    ipcontroller profile_dir={profile_dir}
 
 
 Once you have created these scripts, save them with names like
@@ -268,14 +265,14 @@ Once you have created these scripts, save them with names like
 Alternately, you can just define the templates as strings inside :file:`ipcluster_config`.
 
 Whether you are using your own templates or our defaults, the extra configurables available are
-the number of engines to launch (``$n``, and the batch system queue to which the jobs are to be
-submitted (``$queue``)). These are configurables, and can be specified in
+the number of engines to launch (``{n}``, and the batch system queue to which the jobs are to be
+submitted (``{queue}``)). These are configurables, and can be specified in
 :file:`ipcluster_config`:
 
 .. sourcecode:: python
 
     c.PBSLauncher.queue = 'veryshort.q'
-    c.PBSEngineSetLauncher.n = 64
+    c.IPClusterEnginesApp.n = 64
 
 Note that assuming you are running PBS on a multi-node cluster, the Controller's default behavior
 of listening only on localhost is likely too restrictive.  In this case, also assuming the
@@ -313,7 +310,7 @@ nodes and :command:`ipcontroller` can be run remotely as well, or on localhost.
 
 As usual, we start by creating a clean profile::
 
-    $ ipcluster create profile= ssh
+    $ ipcluster create profile=ssh
 
 To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
@@ -335,8 +332,8 @@ The controller's remote location and configuration can be specified:
     # Set the arguments to be passed to ipcontroller
     # note that remotely launched ipcontroller will not get the contents of 
     # the local ipcontroller_config.py unless it resides on the *remote host*
-    # in the location specified by the `cluster_dir` argument.
-    # c.SSHControllerLauncher.program_args = ['-r', '-ip', '0.0.0.0', '--cluster_dir', '/path/to/cd']
+    # in the location specified by the `profile_dir` argument.
+    # c.SSHControllerLauncher.program_args = ['--reuse', 'ip=0.0.0.0', 'profile_dir=/path/to/cd']
 
 .. note::
 
@@ -352,7 +349,7 @@ on that host.
 
     c.SSHEngineSetLauncher.engines = { 'host1.example.com' : 2,
                 'host2.example.com' : 5,
-                'host3.example.com' : (1, ['cluster_dir=/home/different/location']),
+                'host3.example.com' : (1, ['profile_dir=/home/different/location']),
                 'host4.example.com' : 8 }
 
 * The `engines` dict, where the keys are the host we want to run engines on and
@@ -365,7 +362,7 @@ a single location:
 
 .. sourcecode:: python
 
-    c.SSHEngineSetLauncher.engine_args = ['--cluster_dir', '/path/to/cluster_ssh']
+    c.SSHEngineSetLauncher.engine_args = ['profile_dir=/path/to/cluster_ssh']
 
 Current limitations of the SSH mode of :command:`ipcluster` are:
 
