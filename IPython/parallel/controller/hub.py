@@ -546,7 +546,7 @@ class Hub(SessionFactory):
             return
         queue_id, client_id = idents[:2]
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unpack_message(msg)
         except Exception:
             self.log.error("queue::client %r sent invalid message to %r: %r"%(client_id, queue_id, msg), exc_info=True)
             return
@@ -571,9 +571,16 @@ class Hub(SessionFactory):
                     self.log.warn("conflicting initial state for record: %r:%r <%r> %r"%(msg_id, rvalue, key, evalue))
                 elif evalue and not rvalue:
                     record[key] = evalue
-            self.db.update_record(msg_id, record)
+            try:
+                self.db.update_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error updating record %r"%msg_id, exc_info=True)
         except KeyError:
-            self.db.add_record(msg_id, record)
+            try:
+                self.db.add_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error adding record %r"%msg_id, exc_info=True)
+                
         
         self.pending.add(msg_id)
         self.queues[eid].append(msg_id)
@@ -585,7 +592,7 @@ class Hub(SessionFactory):
             
         client_id, queue_id = idents[:2]
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unpack_message(msg)
         except Exception:
             self.log.error("queue::engine %r sent invalid message to %r: %r"%(
                     queue_id,client_id, msg), exc_info=True)
@@ -635,7 +642,7 @@ class Hub(SessionFactory):
         client_id = idents[0]
         
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unpack_message(msg)
         except Exception:
             self.log.error("task::client %r sent invalid task message: %r"%(
                     client_id, msg), exc_info=True)
@@ -669,9 +676,15 @@ class Hub(SessionFactory):
                     self.log.warn("conflicting initial state for record: %r:%r <%r> %r"%(msg_id, rvalue, key, evalue))
                 elif evalue and not rvalue:
                     record[key] = evalue
-            self.db.update_record(msg_id, record)
+            try:
+                self.db.update_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error updating record %r"%msg_id, exc_info=True)
         except KeyError:
-            self.db.add_record(msg_id, record)
+            try:
+                self.db.add_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error adding record %r"%msg_id, exc_info=True)
         except Exception:
             self.log.error("DB Error saving task request %r"%msg_id, exc_info=True)
     
@@ -679,7 +692,7 @@ class Hub(SessionFactory):
         """save the result of a completed task."""
         client_id = idents[0]
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unpack_message(msg)
         except Exception:
             self.log.error("task::invalid task result message send to %r: %r"%(
                     client_id, msg), exc_info=True)
