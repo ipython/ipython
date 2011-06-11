@@ -30,6 +30,7 @@ ISO8601_PAT=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+$")
 def extract_dates(obj):
     """extract ISO8601 dates from unpacked JSON"""
     if isinstance(obj, dict):
+        obj = dict(obj) # don't clobber
         for k,v in obj.iteritems():
             obj[k] = extract_dates(v)
     elif isinstance(obj, (list, tuple)):
@@ -42,6 +43,7 @@ def extract_dates(obj):
 def squash_dates(obj):
     """squash datetime objects into ISO8601 strings"""
     if isinstance(obj, dict):
+        obj = dict(obj) # don't clobber
         for k,v in obj.iteritems():
             obj[k] = squash_dates(v)
     elif isinstance(obj, (list, tuple)):
