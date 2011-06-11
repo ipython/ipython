@@ -131,21 +131,10 @@ class Kernel(SessionFactory):
     
     def abort_queue(self, stream):
         while True:
-            try:
-                msg = self.session.recv(stream, zmq.NOBLOCK,content=True)
-            except zmq.ZMQError as e:
-                if e.errno == zmq.EAGAIN:
-                    break
-                else:
-                    return
-            else:
-                if msg is None:
-                    return
-                else:
-                    idents,msg = msg
+            idents,msg = self.session.recv(stream, zmq.NOBLOCK, content=True)
+            if msg is None:
+                return
                 
-                # assert self.reply_socketly_socket.rcvmore(), "Unexpected missing message part."
-                # msg = self.reply_socket.recv_json()
             self.log.info("Aborting:")
             self.log.info(str(msg))
             msg_type = msg['msg_type']
