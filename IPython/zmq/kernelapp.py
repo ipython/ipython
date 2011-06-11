@@ -73,7 +73,7 @@ class KernelApp(BaseIPythonApplication):
     name='pykernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
-
+    classes = [Session]
     # the kernel class, as an importstring
     kernel_class = Unicode('IPython.zmq.pykernel.Kernel')
     kernel = Any()
@@ -163,7 +163,7 @@ class KernelApp(BaseIPythonApplication):
 
     def init_session(self):
         """create our session object"""
-        self.session = Session(username=u'kernel')
+        self.session = Session(config=self.config, username=u'kernel')
 
     def init_io(self):
         """redirects stdout/stderr, and installs a display hook"""
