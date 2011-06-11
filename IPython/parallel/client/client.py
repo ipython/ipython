@@ -120,11 +120,27 @@ class Client(HasTraits):
         [Default: 'default']
     context : zmq.Context
         Pass an existing zmq.Context instance, otherwise the client will create its own.
-    username : bytes
-        set username to be passed to the Session object
     debug : bool
         flag for lots of message printing for debug purposes
+    timeout : int/float 
+        time (in seconds) to wait for connection replies from the Hub
+        [Default: 10]
  
+    #-------------- session related args ----------------
+    
+    config : Config object
+        If specified, this will be relayed to the Session for configuration
+    username : str
+        set username for the session object
+    packer : str (import_string) or callable
+        Can be either the simple keyword 'json' or 'pickle', or an import_string to a
+        function to serialize messages. Must support same input as
+        JSON, and output must be bytes.
+        You can pass a callable directly as `pack`
+    unpacker : str (import_string) or callable
+        The inverse of packer.  Only necessary if packer is specified as *not* one
+        of 'json' or 'pickle'.
+    
     #-------------- ssh related args ----------------
     # These are args for configuring the ssh tunnel to be used
     # credentials are used to forward connections over ssh to the Controller
@@ -150,9 +166,10 @@ class Client(HasTraits):
     
     ------- exec authentication args -------
     If even localhost is untrusted, you can have some protection against
-    unauthorized execution by using a key.  Messages are still sent
-    as cleartext, so if someone can snoop your loopback traffic this will
-    not help against malicious attacks.
+    unauthorized execution by signing messages with HMAC digests.  
+    Messages are still sent as cleartext, so if someone can snoop your 
+    loopback traffic this will not protect your privacy, but will prevent
+    unauthorized execution.
     
     exec_key : str
         an authentication key or file containing a key
@@ -236,9 +253,9 @@ class Client(HasTraits):
     _ignored_hub_replies=Int(0)
     
     def __init__(self, url_or_file=None, profile='default', profile_dir=None, ipython_dir=None,
-            context=None, username=None, debug=False, exec_key=None,
+            context=None, debug=False, exec_key=None,
             sshserver=None, sshkey=None, password=None, paramiko=None,
-            timeout=10
+            timeout=10, **extra_args
             ):
         super(Client, self).__init__(debug=debug, profile=profile)
         if context is None:
@@ -289,15 +306,15 @@ class Client(HasTraits):
             else:
                 password = getpass("SSH Password for %s: "%sshserver)
         ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
-        if exec_key is not None and os.path.isfile(exec_key):
-            arg = 'keyfile'
-        else:
-            arg = 'key'
-        key_arg = {arg:exec_key}
-        if username is None:
-            self.session = Session(**key_arg)
-        else:
-            self.session = Session(username=username, **key_arg)
+        
+        # configure and construct the session
+        if exec_key is not None:
+            if os.path.isfile(exec_key):
+                extra_args['keyfile'] = exec_key
+            else:
+                extra_args['key'] = exec_key
+        self.session = Session(**extra_args)
+        
         self._query_socket = self._context.socket(zmq.XREQ)
         self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:
