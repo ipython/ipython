@@ -18,6 +18,7 @@ import zmq
 from zmq.devices import ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
+from IPython.config.application import Application
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Set, Instance, CFloat
 
@@ -58,7 +59,10 @@ class HeartMonitor(Configurable):
         ' (in ms) [default: 100]',
     )
     
-    log = Instance('logging.Logger', ('root',))
+    log = Instance('logging.Logger')
+    def _log_default(self):
+        return Application.instance().log
+    
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')

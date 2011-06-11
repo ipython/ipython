@@ -31,6 +31,7 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
+from IPython.config.application import Application
 from IPython.config.configurable import Configurable
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
@@ -79,7 +80,9 @@ class SessionFactory(Configurable):
     and IOLoop.
     """
     
-    log = Instance('logging.Logger', ('', logging.WARN))
+    log = Instance('logging.Logger')
+    def _log_default(self):
+        return Application.instance().log
     
     logname = Unicode('')
     def _logname_changed(self, name, old, new):
