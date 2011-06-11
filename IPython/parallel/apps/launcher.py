@@ -49,6 +49,7 @@ except ImportError:
 
 from zmq.eventloop import ioloop
 
+from IPython.config.application import Application
 from IPython.config.configurable import Configurable
 from IPython.utils.text import EvalFormatter
 from IPython.utils.traitlets import Any, Int, List, Unicode, Dict, Instance
@@ -107,7 +108,9 @@ class BaseLauncher(Configurable):
     # the work_dir option.
     work_dir = Unicode(u'.')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
-    log = Instance('logging.Logger', ('root',))
+    log = Instance('logging.Logger')
+    def _log_default(self):
+        return Application.instance().log
     
     start_data = Any()
     stop_data = Any()

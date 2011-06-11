@@ -44,6 +44,7 @@ We support a subset of mongodb operators:
 
 from datetime import datetime
 
+from IPython.config.application import Application
 from IPython.config.configurable import Configurable
 
 from IPython.utils.traitlets import Dict, Unicode, Instance
@@ -83,7 +84,9 @@ class BaseDB(Configurable):
     """Empty Parent class so traitlets work on DB."""
     # base configurable traits:
     session = Unicode("")
-    log = Instance('logging.Logger', ('root',))
+    log = Instance('logging.Logger')
+    def _log_default(self):
+        return Application.instance().log
 
 class DictDB(BaseDB):
     """Basic in-memory dict-based object for saving Task Records.

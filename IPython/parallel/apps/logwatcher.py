@@ -19,6 +19,7 @@ import sys
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
+from IPython.config.application import Application
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Int, Unicode, Instance, List
 
@@ -34,7 +35,9 @@ class LogWatcher(Configurable):
     This can subscribe to multiple topics, but defaults to all topics.
     """
     
-    log = Instance('logging.Logger', ('root',))
+    log = Instance('logging.Logger')
+    def _log_default(self):
+        return Application.instance().log
     
     # configurables
     topics = List([''], config=True,
