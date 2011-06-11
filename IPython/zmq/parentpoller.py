@@ -5,9 +5,6 @@ import time
 from thread import interrupt_main
 from threading import Thread
 
-# Local imports.
-from IPython.utils.io import raw_print
-
 
 class ParentPollerUnix(Thread):
     """ A Unix-specific daemon thread that terminates the program immediately 
@@ -24,7 +21,6 @@ class ParentPollerUnix(Thread):
         while True:
             try:
                 if os.getppid() == 1:
-                    raw_print('Killed by parent poller!')
                     os._exit(1)
                 time.sleep(1.0)
             except OSError, e:
@@ -117,9 +113,7 @@ class ParentPollerWindows(Thread):
                 handle = handles[result - WAIT_OBJECT_0]
 
                 if handle == self.interrupt_handle:
-                    raw_print('Interrupted by parent poller!')
                     interrupt_main()
 
                 elif handle == self.parent_handle:
-                    raw_print('Killed by parent poller!')
                     os._exit(1)
