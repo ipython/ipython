@@ -32,6 +32,7 @@ from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
 
 # Local imports.
+from IPython.config.loader import Config
 from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
@@ -676,11 +677,16 @@ class KernelManager(HasTraits):
     The REP channel is for the kernel to request stdin (raw_input) from the
     frontend.
     """
+    # config object for passing to child configurables
+    config = Instance(Config)
+    
     # The PyZMQ Context to use for communication with the kernel.
-    context = Instance(zmq.Context,(),{})
+    context = Instance(zmq.Context)
+    def _context_default(self):
+        return zmq.Context.instance()
 
     # The Session to use for communication with the kernel.
-    session = Instance(Session,(),{})
+    session = Instance(Session)
 
     # The kernel process with which the KernelManager is communicating.
     kernel = Instance(Popen)
@@ -706,8 +712,10 @@ class KernelManager(HasTraits):
 
     def __init__(self, **kwargs):
         super(KernelManager, self).__init__(**kwargs)
+        if self.session is None:
+            self.session = Session(config=self.config)
         # Uncomment this to try closing the context.
-        # atexit.register(self.context.close)
+        # atexit.register(self.context.term)
 
     #--------------------------------------------------------------------------
     # Channel management methods:

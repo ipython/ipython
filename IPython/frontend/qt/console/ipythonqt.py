@@ -30,6 +30,7 @@ from IPython.zmq.ipkernel import (
     aliases as ipkernel_aliases,
     IPKernelApp
 )
+from IPython.zmq.session import Session
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 
 
@@ -214,7 +215,7 @@ aliases.update(dict(
 class IPythonQtConsoleApp(BaseIPythonApplication):
     name = 'ipython-qtconsole'
     default_config_file_name='ipython_config.py'
-    classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir]
+    classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir, Session]
     flags = Dict(flags)
     aliases = Dict(aliases)
 
@@ -289,7 +290,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                                 shell_address=(self.ip, self.shell_port),
                                 sub_address=(self.ip, self.iopub_port),
                                 stdin_address=(self.ip, self.stdin_port),
-                                hb_address=(self.ip, self.hb_port)
+                                hb_address=(self.ip, self.hb_port),
+                                config=self.config
         )
         # start the kernel
         if not self.existing:
