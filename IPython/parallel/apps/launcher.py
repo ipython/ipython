@@ -50,6 +50,7 @@ except ImportError:
 from zmq.eventloop import ioloop
 
 # from IPython.config.configurable import Configurable
+from IPython.utils.text import EvalFormatter
 from IPython.utils.traitlets import Any, Int, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
@@ -839,6 +840,8 @@ class BatchSystemLauncher(BaseLauncher):
     batch_file = Unicode(u'')
     # the format dict used with batch_template:
     context = Dict()
+    # the Formatter instance for rendering the templates:
+    formatter = Instance(EvalFormatter, (), {})
 
     
     def find_args(self):
@@ -888,7 +891,7 @@ class BatchSystemLauncher(BaseLauncher):
             firstline, rest = self.batch_template.split('\n',1)
             self.batch_template = u'\n'.join([firstline, self.queue_template, rest])
             
-        script_as_string = self.batch_template.format(**self.context)
+        script_as_string = self.formatter.format(self.batch_template, **self.context)
         self.log.info('Writing instantiated batch script: %s' % self.batch_file)
     
         with open(self.batch_file, 'w') as f:

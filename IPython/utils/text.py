@@ -19,6 +19,7 @@ import __main__
 import os
 import re
 import shutil
+from string import Formatter
 
 from IPython.external.path import path
 
@@ -518,4 +519,42 @@ def format_screen(strng):
     par_re = re.compile(r'\\$',re.MULTILINE)
     strng = par_re.sub('',strng)
     return strng
+
+
+class EvalFormatter(Formatter):
+    """A String Formatter that allows evaluation of simple expressions.
+    
+    Any time a format key is not found in the kwargs,
+    it will be tried as an expression in the kwargs namespace.
+    
+    This is to be used in templating cases, such as the parallel batch
+    script templates, where simple arithmetic on arguments is useful.
+    
+    Examples
+    --------
+    
+    In [1]: f = EvalFormatter()
+    In [2]: f.format('{n/4}', n=8)
+    Out[2]: '2'
+    
+    In [3]: f.format('{range(3)}')
+    Out[3]: '[0, 1, 2]'
+
+    In [4]: f.format('{3*2}')
+    Out[4]: '6'
+    """
+    
+    def get_value(self, key, args, kwargs):
+        if isinstance(key, (int, long)):
+            return args[key]
+        elif key in kwargs:
+            return kwargs[key]
+        else:
+            # evaluate the expression using kwargs as namespace
+            try:
+                return eval(key, kwargs)
+            except Exception:
+                # classify all bad expressions as key errors
+                raise KeyError(key)
+
 
