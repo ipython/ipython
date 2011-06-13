@@ -199,7 +199,7 @@ def call_tip(oinfo, format_call=True):
       (regular functions).
     """
     # Get call definition
-    argspec = oinfo['argspec']
+    argspec = oinfo.get('argspec')
     if argspec is None:
         call_line = None
     else:
@@ -218,11 +218,11 @@ def call_tip(oinfo, format_call=True):
 
     # Now get docstring.
     # The priority is: call docstring, constructor docstring, main one.
-    doc = oinfo['call_docstring']
+    doc = oinfo.get('call_docstring')
     if doc is None:
-        doc = oinfo['init_docstring']
+        doc = oinfo.get('init_docstring')
     if doc is None:
-        doc = oinfo['docstring']
+        doc = oinfo.get('docstring','')
 
     return call_line, doc
 
