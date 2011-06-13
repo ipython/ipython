@@ -665,6 +665,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         pass
 
+    def _transform_prompt(self, line):
+        """ Strip prompt from line.
+        """
+        pass
+
     def _up_pressed(self, shift_modifier):
         """ Called when the up key is pressed. Returns whether to continue
             processing the event.

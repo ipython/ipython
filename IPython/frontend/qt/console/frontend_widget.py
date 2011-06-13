@@ -160,7 +160,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         text = self._control.textCursor().selection().toPlainText()
         if text:
-            lines = map(transform_classic_prompt, text.splitlines())
+            lines = map(self._transform_prompt, text.splitlines())
             text = '\n'.join(lines)
             QtGui.QApplication.clipboard().setText(text)
 
@@ -205,6 +205,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         if not self._reading:
             self._highlighter.highlighting_on = False
+
+    def _transform_prompt(self, line):
+        """ Strip prompt from line.
+        """
+        return transform_classic_prompt(line)
 
     def _tab_pressed(self):
         """ Called when the tab key is pressed. Returns whether to continue

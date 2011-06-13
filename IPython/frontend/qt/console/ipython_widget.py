@@ -227,9 +227,18 @@ class IPythonWidget(FrontendWidget):
         """
         text = self._control.textCursor().selection().toPlainText()
         if text:
-            lines = map(transform_ipy_prompt, text.splitlines())
+            lines = map(self._transform_prompt, text.splitlines())
             text = '\n'.join(lines)
             QtGui.QApplication.clipboard().setText(text)
+
+    #---------------------------------------------------------------------------
+    # 'ConsoleWidget' abstract interface
+    #---------------------------------------------------------------------------
+
+    def _transform_prompt(self, line):
+        """ Strip prompt from line.
+        """
+        return transform_ipy_prompt(line)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' public interface

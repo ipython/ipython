@@ -645,7 +645,7 @@ def transform_classic_prompt(line):
 _ipy_prompt_re = re.compile(r'^([ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
 
 def transform_ipy_prompt(line):
-    """Handle inputs that start classic IPython prompt syntax."""
+    """Handle inputs that start with classic IPython prompt syntax."""
 
     if not line or line.isspace():
         return line
