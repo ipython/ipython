@@ -355,13 +355,15 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # line as string, later we can pass False to format_call and
             # syntax-highlight it ourselves for nicer formatting in the
             # calltip.
-            if rep['content']['ismagic']:
+            content = rep['content']
+            # if this is from pykernel, 'docstring' will be the only key
+            if content.get('ismagic', False):
                 # Don't generate a call-tip for magics. Ideally, we should
                 # generate a tooltip, but not on ( like we do for actual
                 # callables.
                 call_info, doc = None, None
             else:
-                call_info, doc = call_tip(rep['content'], format_call=True)
+                call_info, doc = call_tip(content, format_call=True)
             if call_info or doc:
                 self._call_tip_widget.show_call_info(call_info, doc)
 
@@ -369,7 +371,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle display hook output.
         """
         if not self._hidden and self._is_from_this_session(msg):
-            self._append_plain_text(msg['content']['data']['text/plain'] + '\n')
+            data = msg['content']['data']
+            if isinstance(data, basestring):
+                # plaintext data from pure Python kernel
+                text = data
+            else:
+                # formatted output from DisplayFormatter (IPython kernel)
+                text = data.get('text/plain', '')
+            self._append_plain_text(text + '\n')
 
     def _handle_stream(self, msg):
         """ Handle stdout, stderr, and stdin.
