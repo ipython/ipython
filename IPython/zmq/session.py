@@ -1,5 +1,12 @@
 #!/usr/bin/env python
-"""edited session.py to work with streams, and move msg_type to the header
+"""Session object for building, serializing, sending, and receiving messages in
+IPython. The Session object supports serialization, HMAC signatures, and
+metadata on messages.
+
+Also defined here are utilities for working with Sessions:
+* A SessionFactory to be used as a base class for configurables that work with
+Sessions.
+* A Message object for convenience that allows attribute-access to the msg dict.
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
@@ -31,8 +38,7 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.config.application import Application
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.traitlets import CStr, Unicode, Bool, Any, Instance, Set
@@ -75,14 +81,10 @@ DELIM="<IDS|MSG>"
 # Classes
 #-----------------------------------------------------------------------------
 
-class SessionFactory(Configurable):
+class SessionFactory(LoggingConfigurable):
     """The Base class for configurables that have a Session, Context, logger,
     and IOLoop.
     """
-    
-    log = Instance('logging.Logger')
-    def _log_default(self):
-        return Application.instance().log
     
     logname = Unicode('')
     def _logname_changed(self, name, old, new):
@@ -161,8 +163,48 @@ def extract_header(msg_or_header):
     return h
 
 class Session(Configurable):
-    """tweaked version of IPython.zmq.session.Session, for development in Parallel"""
+    """Object for handling serialization and sending of messages.
+    
+    The Session object handles building messages and sending them
+    with ZMQ sockets or ZMQStream objects.  Objects can communicate with each
+    other over the network via Session objects, and only need to work with the
+    dict-based IPython message spec. The Session will handle 
+    serialization/deserialization, security, and metadata.
+    
+    Sessions support configurable serialiization via packer/unpacker traits,
+    and signing with HMAC digests via the key/keyfile traits.
+    
+    Parameters
+    ----------
+    
+    debug : bool
+        whether to trigger extra debugging statements
+    packer/unpacker : str : 'json', 'pickle' or import_string
+        importstrings for methods to serialize message parts.  If just
+        'json' or 'pickle', predefined JSON and pickle packers will be used.
+        Otherwise, the entire importstring must be used.
+        
+        The functions must accept at least valid JSON input, and output *bytes*.
+        
+        For example, to use msgpack:
+        packer = 'msgpack.packb', unpacker='msgpack.unpackb'
+    pack/unpack : callables
+        You can also set the pack/unpack callables for serialization directly.
+    session : bytes
+        the ID of this Session object.  The default is to generate a new UUID.
+    username : unicode
+        username added to message headers.  The default is to ask the OS.
+    key : bytes
+        The key used to initialize an HMAC signature.  If unset, messages
+        will not be signed or checked.
+    keyfile : filepath
+        The file containing a key.  If this is set, `key` will be initialized
+        to the contents of the file.
+    
+    """
+    
     debug=Bool(False, config=True, help="""Debug output in the Session""")
+    
     packer = Unicode('json',config=True,
             help="""The name of the packer for serializing messages.
             Should be one of 'json', 'pickle', or an import name
@@ -194,6 +236,7 @@ class Session(Configurable):
         help="""The UUID identifying this session.""")
     def _session_default(self):
         return bytes(uuid.uuid4())
+    
     username = Unicode(os.environ.get('USER','username'), config=True,
         help="""Username for the Session. Default is your system username.""")
     
@@ -206,7 +249,6 @@ class Session(Configurable):
         else:
             self.auth = None
     auth = Instance(hmac.HMAC)
-    counters = Instance('collections.defaultdict', (int,))
     digest_history = Set()
     
     keyfile = Unicode('', config=True,
@@ -227,6 +269,38 @@ class Session(Configurable):
             raise TypeError("unpacker must be callable, not %s"%type(new))
 
     def __init__(self, **kwargs):
+        """create a Session object
+        
+        Parameters
+        ----------
+
+        debug : bool
+            whether to trigger extra debugging statements
+        packer/unpacker : str : 'json', 'pickle' or import_string
+            importstrings for methods to serialize message parts.  If just
+            'json' or 'pickle', predefined JSON and pickle packers will be used.
+            Otherwise, the entire importstring must be used.
+
+            The functions must accept at least valid JSON input, and output
+            *bytes*.
+
+            For example, to use msgpack:
+            packer = 'msgpack.packb', unpacker='msgpack.unpackb'
+        pack/unpack : callables
+            You can also set the pack/unpack callables for serialization
+            directly.
+        session : bytes
+            the ID of this Session object.  The default is to generate a new 
+            UUID.
+        username : unicode
+            username added to message headers.  The default is to ask the OS.
+        key : bytes
+            The key used to initialize an HMAC signature.  If unset, messages
+            will not be signed or checked.
+        keyfile : filepath
+            The file containing a key.  If this is set, `key` will be 
+            initialized to the contents of the file.
+        """
         super(Session, self).__init__(**kwargs)
         self._check_packers()
         self.none = self.pack({})
@@ -290,6 +364,14 @@ class Session(Configurable):
         return h.hexdigest()
     
     def serialize(self, msg, ident=None):
+        """Serialize the message components to bytes.
+        
+        Returns
+        -------
+        
+        list of bytes objects
+        
+        """
         content = msg.get('content', {})
         if content is None:
             content = self.none
@@ -335,8 +417,8 @@ class Session(Configurable):
         stream : zmq.Socket or ZMQStream
             the socket-like object used to send the data
         msg_or_type : str or Message/dict
-            Normally, msg_or_type will be a msg_type unless a message is being sent more
-            than once.
+            Normally, msg_or_type will be a msg_type unless a message is being 
+            sent more than once.
         
         content : dict or None
             the content of the message (ignored if msg_or_type is a message)
@@ -436,9 +518,8 @@ class Session(Configurable):
                 return None,None
             else:
                 raise
-        # return an actual Message object
-        # determine the number of idents by trying to unpack them.
-        # this is terrible:
+        # split multipart message into identity list and message dict
+        # invalid large messages can cause very expensive string comparisons
         idents, msg = self.feed_identities(msg, copy)
         try:
             return idents, self.unpack_message(msg, content=content, copy=copy)
@@ -448,8 +529,9 @@ class Session(Configurable):
             raise e
     
     def feed_identities(self, msg, copy=True):
-        """feed until DELIM is reached, then return the prefix as idents and remainder as
-        msg. This is easily broken by setting an IDENT to DELIM, but that would be silly.
+        """feed until DELIM is reached, then return the prefix as idents and
+        remainder as msg. This is easily broken by setting an IDENT to DELIM,
+        but that would be silly.
         
         Parameters
         ----------
@@ -536,3 +618,4 @@ def test_msg2obj():
     am2 = dict(ao)
     assert am['x'] == am2['x']
     assert am['y']['z'] == am2['y']['z']
+
