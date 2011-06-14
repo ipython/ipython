@@ -15,7 +15,7 @@ configurable.
 
 .. seealso:: 
 
-    `The original IPython-Qt project description. <ipython_qt>`_
+    :ref:`The original IPython-Qt project description. <ipython_qt>`
     
 ``%loadpy``
 ===========
@@ -78,7 +78,7 @@ Saving and Printing
 ===================
 
 IPythonQt has the ability to save your current session, as either HTML or XHTML. If you
-have been using `pastefig <pastefig>`_ or inline_ pylab, your figures will be PNG
+have been using :func:`pastefig` or inline_ pylab, your figures will be PNG
 in HTML, or inlined as SVG in XHTML. PNG images have the option to be either in an
 external folder, as in many browsers' "Webpage, Complete" option, or inlined as well, for
 a larger, but more portable file.
