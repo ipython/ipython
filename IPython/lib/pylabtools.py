@@ -106,8 +106,6 @@ def print_figure(fig, fmt='png'):
     finally:
         fig.set_facecolor(fc)
         fig.set_edgecolor(ec)
-    if fmt == 'png':
-        data = data.encode('base64')
     return data
 
 

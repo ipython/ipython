@@ -42,7 +42,7 @@ class InlineBackendConfig(SingletonConfigurable):
     figure_format = CaselessStrEnum(['svg', 'png'], default_value='png', config=True,
         help="The image format for figures with the inline backend.")
 
-    def _format_changed(self, name, old, new):
+    def _figure_format_changed(self, name, old, new):
         if self.shell is None:
             return
         else:
