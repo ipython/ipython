@@ -44,9 +44,9 @@ We support a subset of mongodb operators:
 
 from datetime import datetime
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 
-from IPython.utils.traitlets import Dict, Unicode
+from IPython.utils.traitlets import Dict, Unicode, Instance
 
 filters = {
  '$lt' : lambda a,b: a < b,
@@ -79,7 +79,7 @@ class CompositeFilter(object):
                 return False
         return True
 
-class BaseDB(Configurable):
+class BaseDB(LoggingConfigurable):
     """Empty Parent class so traitlets work on DB."""
     # base configurable traits:
     session = Unicode("")

@@ -41,7 +41,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict
 
 # from IPython.parallel.controller.controller import ControllerFactory
-from IPython.parallel.streamsession import StreamSession
+from IPython.zmq.session import Session
 from IPython.parallel.controller.heartmonitor import HeartMonitor
 from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
@@ -109,7 +109,7 @@ class IPControllerApp(BaseParallelApplication):
     name = u'ipcontroller'
     description = _description
     config_file_name = Unicode(default_config_file_name)
-    classes = [ProfileDir, StreamSession, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
+    classes = [ProfileDir, Session, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
     
     # change default to True
     auto_create = Bool(True, config=True,
@@ -155,9 +155,9 @@ class IPControllerApp(BaseParallelApplication):
         import_statements = 'IPControllerApp.import_statements',
         location = 'IPControllerApp.location',
 
-        ident = 'StreamSession.session',
-        user = 'StreamSession.username',
-        exec_key = 'StreamSession.keyfile',
+        ident = 'Session.session',
+        user = 'Session.username',
+        exec_key = 'Session.keyfile',
 
         url = 'HubFactory.url',
         ip = 'HubFactory.ip',
@@ -201,7 +201,7 @@ class IPControllerApp(BaseParallelApplication):
         # load from engine config
         with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-engine.json')) as f:
             cfg = json.loads(f.read())
-        key = c.StreamSession.key = cfg['exec_key']
+        key = c.Session.key = cfg['exec_key']
         xport,addr = cfg['url'].split('://')
         c.HubFactory.engine_transport = xport
         ip,ports = addr.split(':')
@@ -239,9 +239,9 @@ class IPControllerApp(BaseParallelApplication):
             # with open(keyfile, 'w') as f:
             #     f.write(key)
             # os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
-            c.StreamSession.key = key
+            c.Session.key = key
         else:
-            key = c.StreamSession.key = ''
+            key = c.Session.key = ''
         
         try:
             self.factory = HubFactory(config=c, log=self.log)

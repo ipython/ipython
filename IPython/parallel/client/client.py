@@ -30,8 +30,9 @@ from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
 from IPython.parallel import error
-from IPython.parallel import streamsession as ss
 from IPython.parallel import util
+
+from IPython.zmq.session import Session, Message
 
 from .asyncresult import AsyncResult, AsyncHubResult
 from IPython.core.newapplication import ProfileDir, ProfileDirError
@@ -119,11 +120,27 @@ class Client(HasTraits):
         [Default: 'default']
     context : zmq.Context
         Pass an existing zmq.Context instance, otherwise the client will create its own.
-    username : bytes
-        set username to be passed to the Session object
     debug : bool
         flag for lots of message printing for debug purposes
+    timeout : int/float 
+        time (in seconds) to wait for connection replies from the Hub
+        [Default: 10]
  
+    #-------------- session related args ----------------
+    
+    config : Config object
+        If specified, this will be relayed to the Session for configuration
+    username : str
+        set username for the session object
+    packer : str (import_string) or callable
+        Can be either the simple keyword 'json' or 'pickle', or an import_string to a
+        function to serialize messages. Must support same input as
+        JSON, and output must be bytes.
+        You can pass a callable directly as `pack`
+    unpacker : str (import_string) or callable
+        The inverse of packer.  Only necessary if packer is specified as *not* one
+        of 'json' or 'pickle'.
+    
     #-------------- ssh related args ----------------
     # These are args for configuring the ssh tunnel to be used
     # credentials are used to forward connections over ssh to the Controller
@@ -149,9 +166,10 @@ class Client(HasTraits):
     
     ------- exec authentication args -------
     If even localhost is untrusted, you can have some protection against
-    unauthorized execution by using a key.  Messages are still sent
-    as cleartext, so if someone can snoop your loopback traffic this will
-    not help against malicious attacks.
+    unauthorized execution by signing messages with HMAC digests.  
+    Messages are still sent as cleartext, so if someone can snoop your 
+    loopback traffic this will not protect your privacy, but will prevent
+    unauthorized execution.
     
     exec_key : str
         an authentication key or file containing a key
@@ -235,9 +253,9 @@ class Client(HasTraits):
     _ignored_hub_replies=Int(0)
     
     def __init__(self, url_or_file=None, profile='default', profile_dir=None, ipython_dir=None,
-            context=None, username=None, debug=False, exec_key=None,
+            context=None, debug=False, exec_key=None,
             sshserver=None, sshkey=None, password=None, paramiko=None,
-            timeout=10
+            timeout=10, **extra_args
             ):
         super(Client, self).__init__(debug=debug, profile=profile)
         if context is None:
@@ -288,15 +306,15 @@ class Client(HasTraits):
             else:
                 password = getpass("SSH Password for %s: "%sshserver)
         ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
-        if exec_key is not None and os.path.isfile(exec_key):
-            arg = 'keyfile'
-        else:
-            arg = 'key'
-        key_arg = {arg:exec_key}
-        if username is None:
-            self.session = ss.StreamSession(**key_arg)
-        else:
-            self.session = ss.StreamSession(username=username, **key_arg)
+        
+        # configure and construct the session
+        if exec_key is not None:
+            if os.path.isfile(exec_key):
+                extra_args['keyfile'] = exec_key
+            else:
+                extra_args['key'] = exec_key
+        self.session = Session(**extra_args)
+        
         self._query_socket = self._context.socket(zmq.XREQ)
         self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
         if self._ssh:
@@ -416,7 +434,7 @@ class Client(HasTraits):
         idents,msg = self.session.recv(self._query_socket,mode=0)
         if self.debug:
             pprint(msg)
-        msg = ss.Message(msg)
+        msg = Message(msg)
         content = msg.content
         self._config['registration'] = dict(content)
         if content.status == 'ok':
@@ -478,11 +496,11 @@ class Client(HasTraits):
             md['engine_id'] = self._engines.get(md['engine_uuid'], None)
         
         if 'date' in parent:
-            md['submitted'] = datetime.strptime(parent['date'], util.ISO8601)
+            md['submitted'] = parent['date']
         if 'started' in header:
-            md['started'] = datetime.strptime(header['started'], util.ISO8601)
+            md['started'] = header['started']
         if 'date' in header:
-            md['completed'] = datetime.strptime(header['date'], util.ISO8601)
+            md['completed'] = header['date']
         return md
     
     def _register_engine(self, msg):
@@ -528,7 +546,7 @@ class Client(HasTraits):
             header = {}
             parent['msg_id'] = msg_id
             header['engine'] = uuid
-            header['date'] = datetime.now().strftime(util.ISO8601)
+            header['date'] = datetime.now()
             msg = dict(parent_header=parent, header=header, content=content)
             self._handle_apply_reply(msg)
     
@@ -589,33 +607,31 @@ class Client(HasTraits):
     def _flush_notifications(self):
         """Flush notifications of engine registrations waiting
         in ZMQ queue."""
-        msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
+        idents,msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
-            msg = msg[-1]
             msg_type = msg['msg_type']
             handler = self._notification_handlers.get(msg_type, None)
             if handler is None:
                 raise Exception("Unhandled message type: %s"%msg.msg_type)
             else:
                 handler(msg)
-            msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
+            idents,msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
     
     def _flush_results(self, sock):
         """Flush task or queue results waiting in ZMQ queue."""
-        msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
-            msg = msg[-1]
             msg_type = msg['msg_type']
             handler = self._queue_handlers.get(msg_type, None)
             if handler is None:
                 raise Exception("Unhandled message type: %s"%msg.msg_type)
             else:
                 handler(msg)
-            msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
     def _flush_control(self, sock):
         """Flush replies from the control channel waiting
@@ -624,12 +640,12 @@ class Client(HasTraits):
         Currently: ignore them."""
         if self._ignored_control_replies <= 0:
             return
-        msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             self._ignored_control_replies -= 1
             if self.debug:
                 pprint(msg)
-            msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
     def _flush_ignored_control(self):
         """flush ignored control replies"""
@@ -638,19 +654,18 @@ class Client(HasTraits):
             self._ignored_control_replies -= 1
     
     def _flush_ignored_hub_replies(self):
-        msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
+        ident,msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
         while msg is not None:
-            msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
+            ident,msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
     
     def _flush_iopub(self, sock):
         """Flush replies from the iopub channel waiting
         in the ZMQ queue.
         """
-        msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
-            msg = msg[-1]
             parent = msg['parent_header']
             msg_id = parent['msg_id']
             content = msg['content']
@@ -674,7 +689,7 @@ class Client(HasTraits):
             # reduntant?
             self.metadata[msg_id] = md
             
-            msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
     
     #--------------------------------------------------------------------------
     # len, getitem
@@ -1172,6 +1187,7 @@ class Client(HasTraits):
         failures = []
         # load cached results into result:
         content.update(local_results)
+        
         # update cache with results:
         for msg_id in sorted(theids):
             if msg_id in content['completed']:
@@ -1332,6 +1348,7 @@ class Client(HasTraits):
             raise self._unwrap_exception(content)
         
         records = content['records']
+        
         buffer_lens = content['buffer_lens']
         result_buffer_lens = content['result_buffer_lens']
         buffers = msg['buffers']
@@ -1345,11 +1362,6 @@ class Client(HasTraits):
             if has_rbufs:
                 blen = result_buffer_lens[i]
                 rec['result_buffers'], buffers = buffers[:blen],buffers[blen:]
-            # turn timestamps back into times
-            for key in 'submitted started completed resubmitted'.split():
-                maybedate = rec.get(key, None)
-                if maybedate and util.ISO8601_RE.match(maybedate):
-                    rec[key] = datetime.strptime(maybedate, util.ISO8601)
             
         return records
 

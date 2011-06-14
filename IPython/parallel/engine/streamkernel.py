@@ -33,7 +33,7 @@ from IPython.zmq.completer import KernelCompleter
 
 from IPython.parallel.error import wrap_exception
 from IPython.parallel.factory import SessionFactory
-from IPython.parallel.util import serialize_object, unpack_apply_message, ISO8601
+from IPython.parallel.util import serialize_object, unpack_apply_message
 
 def printer(*args):
     pprint(args, stream=sys.__stdout__)
@@ -42,7 +42,7 @@ def printer(*args):
 class _Passer(zmqstream.ZMQStream):
     """Empty class that implements `send()` that does nothing.
     
-    Subclass ZMQStream for StreamSession typechecking
+    Subclass ZMQStream for Session typechecking
     
     """
     def __init__(self, *args, **kwargs):
@@ -131,21 +131,10 @@ class Kernel(SessionFactory):
     
     def abort_queue(self, stream):
         while True:
-            try:
-                msg = self.session.recv(stream, zmq.NOBLOCK,content=True)
-            except zmq.ZMQError as e:
-                if e.errno == zmq.EAGAIN:
-                    break
-                else:
-                    return
-            else:
-                if msg is None:
-                    return
-                else:
-                    idents,msg = msg
+            idents,msg = self.session.recv(stream, zmq.NOBLOCK, content=True)
+            if msg is None:
+                return
                 
-                # assert self.reply_socketly_socket.rcvmore(), "Unexpected missing message part."
-                # msg = self.reply_socket.recv_json()
             self.log.info("Aborting:")
             self.log.info(str(msg))
             msg_type = msg['msg_type']
@@ -252,7 +241,7 @@ class Kernel(SessionFactory):
             return
         self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent,
                             ident='%s.pyin'%self.prefix)
-        started = datetime.now().strftime(ISO8601)
+        started = datetime.now()
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
             # allow for not overriding displayhook
@@ -302,7 +291,7 @@ class Kernel(SessionFactory):
         # self.iopub_stream.send(pyin_msg)
         # self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent)
         sub = {'dependencies_met' : True, 'engine' : self.ident,
-                'started': datetime.now().strftime(ISO8601)}
+                'started': datetime.now()}
         try:
             # allow for not overriding displayhook
             if hasattr(sys.displayhook, 'set_parent'):

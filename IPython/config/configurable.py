@@ -261,3 +261,18 @@ class SingletonConfigurable(Configurable):
         """Has an instance been created?"""
         return hasattr(cls, "_instance") and cls._instance is not None
 
+
+class LoggingConfigurable(Configurable):
+    """A parent class for Configurables that log.
+    
+    Subclasses have a log trait, and the default behavior
+    is to get the logger from the currently running Application
+    via Application.instance().log.
+    """
+    
+    log = Instance('logging.Logger')
+    def _log_default(self):
+        from IPython.config.application import Application
+        return Application.instance().log
+        
+        

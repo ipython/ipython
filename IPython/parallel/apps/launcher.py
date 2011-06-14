@@ -49,13 +49,12 @@ except ImportError:
 
 from zmq.eventloop import ioloop
 
-# from IPython.config.configurable import Configurable
+from IPython.config.application import Application
+from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.text import EvalFormatter
 from IPython.utils.traitlets import Any, Int, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
-
-from IPython.parallel.factory import LoggingFactory
 
 from .win32support import forward_read_events
 
@@ -97,7 +96,7 @@ class UnknownStatus(LauncherError):
     pass
 
 
-class BaseLauncher(LoggingFactory):
+class BaseLauncher(LoggingConfigurable):
     """An asbtraction for starting, stopping and signaling a process."""
 
     # In all of the launchers, the work_dir is where child processes will be
@@ -390,7 +389,7 @@ class LocalEngineSetLauncher(BaseLauncher):
         self.profile_dir = unicode(profile_dir)
         dlist = []
         for i in range(n):
-            el = self.launcher_class(work_dir=self.work_dir, config=self.config, logname=self.log.name)
+            el = self.launcher_class(work_dir=self.work_dir, config=self.config, log=self.log)
             # Copy the engine args over to each engine launcher.
             el.engine_args = copy.deepcopy(self.engine_args)
             el.on_stop(self._notice_engine_stopped)
@@ -612,7 +611,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
             else:
                 user=None
             for i in range(n):
-                el = self.launcher_class(work_dir=self.work_dir, config=self.config, logname=self.log.name)
+                el = self.launcher_class(work_dir=self.work_dir, config=self.config, log=self.log)
                 
                 # Copy the engine args over to each engine launcher.
                 i

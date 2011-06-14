@@ -590,7 +590,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
 
     aliases = Dict(aliases)
     flags = Dict(flags)
-    classes = [Kernel, ZMQInteractiveShell, ProfileDir]
+    classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
     # configurables
     pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
         config=True,

@@ -30,7 +30,9 @@ from IPython.utils.traitlets import (
         )
 
 from IPython.parallel import error, util
-from IPython.parallel.factory import RegistrationFactory, LoggingFactory
+from IPython.parallel.factory import RegistrationFactory
+
+from IPython.zmq.session import SessionFactory
 
 from .heartmonitor import HeartMonitor
 
@@ -77,7 +79,7 @@ def init_record(msg):
         'header' : header,
         'content': msg['content'],
         'buffers': msg['buffers'],
-        'submitted': datetime.strptime(header['date'], util.ISO8601),
+        'submitted': header['date'],
         'client_uuid' : None,
         'engine_uuid' : None,
         'started': None,
@@ -230,8 +232,10 @@ class HubFactory(RegistrationFactory):
         hpub.bind(engine_iface % self.hb[0])
         hrep = ctx.socket(zmq.XREP)
         hrep.bind(engine_iface % self.hb[1])
-        self.heartmonitor = HeartMonitor(loop=loop, pingstream=ZMQStream(hpub,loop), pongstream=ZMQStream(hrep,loop), 
-                                config=self.config)
+        self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
+                                pingstream=ZMQStream(hpub,loop),
+                                pongstream=ZMQStream(hrep,loop)
+                            )
 
         ### Client connections ###
         # Notifier socket
@@ -250,7 +254,8 @@ class HubFactory(RegistrationFactory):
         # connect the db
         self.log.info('Hub using DB backend: %r'%(self.db_class.split()[-1]))
         # cdir = self.config.Global.cluster_dir
-        self.db = import_item(str(self.db_class))(session=self.session.session, config=self.config)
+        self.db = import_item(str(self.db_class))(session=self.session.session, 
+                                            config=self.config, log=self.log)
         time.sleep(.25)
         try:
             scheme = self.config.TaskScheduler.scheme_name
@@ -286,16 +291,16 @@ class HubFactory(RegistrationFactory):
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
                 query=q, notifier=n, resubmit=r, db=self.db,
                 engine_info=self.engine_info, client_info=self.client_info,
-                logname=self.log.name)
+                log=self.log)
     
 
-class Hub(LoggingFactory):
+class Hub(SessionFactory):
     """The IPython Controller Hub with 0MQ connections
     
     Parameters
     ==========
     loop: zmq IOLoop instance
-    session: StreamSession object
+    session: Session object
     <removed> context: zmq context for creating new connections (?)
     queue: ZMQStream for monitoring the command queue (SUB)
     query: ZMQStream for engine registration and client queries requests (XREP)
@@ -327,7 +332,6 @@ class Hub(LoggingFactory):
     _idcounter=Int(0)
     
     # objects from constructor:
-    loop=Instance(ioloop.IOLoop)
     query=Instance(ZMQStream)
     monitor=Instance(ZMQStream)
     notifier=Instance(ZMQStream)
@@ -484,7 +488,6 @@ class Hub(LoggingFactory):
             self.session.send(self.query, "hub_error", ident=client_id, 
                     content=content)
             return
-        print( idents, msg)
         # print client_id, header, parent, content
         #switch on message type:
         msg_type = msg['msg_type']
@@ -543,7 +546,7 @@ class Hub(LoggingFactory):
             return
         queue_id, client_id = idents[:2]
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unpack_message(msg)
         except Exception:
             self.log.error("queue::client %r sent invalid message to %r: %r"%(client_id, queue_id, msg), exc_info=True)
             return
@@ -553,10 +556,8 @@ class Hub(LoggingFactory):
             self.log.error("queue::target %r not registered"%queue_id)
             self.log.debug("queue::    valid are: %r"%(self.by_ident.keys()))
             return
-            
-        header = msg['header']
-        msg_id = header['msg_id']
         record = init_record(msg)
+        msg_id = record['msg_id']
         record['engine_uuid'] = queue_id
         record['client_uuid'] = client_id
         record['queue'] = 'mux'
@@ -570,9 +571,16 @@ class Hub(LoggingFactory):
                     self.log.warn("conflicting initial state for record: %r:%r <%r> %r"%(msg_id, rvalue, key, evalue))
                 elif evalue and not rvalue:
                     record[key] = evalue
-            self.db.update_record(msg_id, record)
+            try:
+                self.db.update_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error updating record %r"%msg_id, exc_info=True)
         except KeyError:
-            self.db.add_record(msg_id, record)
+            try:
+                self.db.add_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error adding record %r"%msg_id, exc_info=True)
+                
         
         self.pending.add(msg_id)
         self.queues[eid].append(msg_id)
@@ -584,7 +592,7 @@ class Hub(LoggingFactory):
             
         client_id, queue_id = idents[:2]
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unpack_message(msg)
         except Exception:
             self.log.error("queue::engine %r sent invalid message to %r: %r"%(
                     queue_id,client_id, msg), exc_info=True)
@@ -611,10 +619,8 @@ class Hub(LoggingFactory):
             return
         # update record anyway, because the unregistration could have been premature
         rheader = msg['header']
-        completed = datetime.strptime(rheader['date'], util.ISO8601)
+        completed = rheader['date']
         started = rheader.get('started', None)
-        if started is not None:
-            started = datetime.strptime(started, util.ISO8601)
         result = {
             'result_header' : rheader,
             'result_content': msg['content'],
@@ -636,7 +642,7 @@ class Hub(LoggingFactory):
         client_id = idents[0]
         
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unpack_message(msg)
         except Exception:
             self.log.error("task::client %r sent invalid task message: %r"%(
                     client_id, msg), exc_info=True)
@@ -670,9 +676,15 @@ class Hub(LoggingFactory):
                     self.log.warn("conflicting initial state for record: %r:%r <%r> %r"%(msg_id, rvalue, key, evalue))
                 elif evalue and not rvalue:
                     record[key] = evalue
-            self.db.update_record(msg_id, record)
+            try:
+                self.db.update_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error updating record %r"%msg_id, exc_info=True)
         except KeyError:
-            self.db.add_record(msg_id, record)
+            try:
+                self.db.add_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error adding record %r"%msg_id, exc_info=True)
         except Exception:
             self.log.error("DB Error saving task request %r"%msg_id, exc_info=True)
     
@@ -680,7 +692,7 @@ class Hub(LoggingFactory):
         """save the result of a completed task."""
         client_id = idents[0]
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unpack_message(msg)
         except Exception:
             self.log.error("task::invalid task result message send to %r: %r"%(
                     client_id, msg), exc_info=True)
@@ -706,10 +718,8 @@ class Hub(LoggingFactory):
                 self.completed[eid].append(msg_id)
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
-            completed = datetime.strptime(header['date'], util.ISO8601)
+            completed = header['date']
             started = header.get('started', None)
-            if started is not None:
-                started = datetime.strptime(started, util.ISO8601)
             result = {
                 'result_header' : header,
                 'result_content': msg['content'],
@@ -1141,11 +1151,10 @@ class Hub(LoggingFactory):
             reply = error.wrap_exception()
         else:
             # send the messages
-            now_s = now.strftime(util.ISO8601)
             for rec in records:
                 header = rec['header']
                 # include resubmitted in header to prevent digest collision
-                header['resubmitted'] = now_s
+                header['resubmitted'] = now
                 msg = self.session.msg(header['msg_type'])
                 msg['content'] = rec['content']
                 msg['header'] = header
@@ -1241,10 +1250,8 @@ class Hub(LoggingFactory):
         content = msg['content']
         query = content.get('query', {})
         keys = content.get('keys', None)
-        query = util.extract_dates(query)
         buffers = []
         empty = list()
-        
         try:
             records = self.db.find_records(query, keys)
         except Exception as e:

@@ -20,10 +20,13 @@ from unittest import TestCase
 
 from nose import SkipTest
 
-from IPython.parallel import error, streamsession as ss
+from IPython.parallel import error
 from IPython.parallel.controller.dictdb import DictDB
 from IPython.parallel.controller.sqlitedb import SQLiteDB
 from IPython.parallel.controller.hub import init_record, empty_record
+
+from IPython.zmq.session import Session
+
 
 #-------------------------------------------------------------------------------
 # TestCases
@@ -31,7 +34,7 @@ from IPython.parallel.controller.hub import init_record, empty_record
 
 class TestDictBackend(TestCase):
     def setUp(self):
-        self.session = ss.StreamSession()
+        self.session = Session()
         self.db = self.create_db()
         self.load_records(16)
     

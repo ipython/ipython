@@ -24,8 +24,9 @@ from IPython.utils.traitlets import Instance, Dict, Int, Type, CFloat, Unicode
 
 from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
-from IPython.parallel.streamsession import Message
 from IPython.parallel.util import disambiguate_url
+
+from IPython.zmq.session import Message
 
 from .streamkernel import Kernel
 
