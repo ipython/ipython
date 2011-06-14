@@ -25,7 +25,7 @@ import traceback
 import zmq
 
 # Local imports.
-from IPython.utils.traitlets import HasTraits, Instance
+from IPython.utils.traitlets import HasTraits, Instance, Float
 from completer import KernelCompleter
 from entry_point import base_launch_kernel, make_default_main
 from session import Session, Message
@@ -37,6 +37,15 @@ from session import Session, Message
 class Kernel(HasTraits):
 
     # Private interface
+
+    # Time to sleep after flushing the stdout/err buffers in each execute
+    # cycle.  While this introduces a hard limit on the minimal latency of the
+    # execute cycle, it helps prevent output synchronization problems for
+    # clients.
+    # Units are in seconds.  The minimum zmq latency on local host is probably
+    # ~150 microseconds, set this to 500us for now.  We may need to increase it
+    # a little if it's not enough after more interactive testing.
+    _execute_sleep = Float(0.0005, config=True)
 
     # This is a dict of port number that the kernel is listening on. It is set
     # by record_ports and used by connect_request.
@@ -137,6 +146,11 @@ class Kernel(HasTraits):
         # Flush output before sending the reply.
         sys.stderr.flush()
         sys.stdout.flush()
+        # FIXME: on rare occasions, the flush doesn't seem to make it to the
+        # clients... This seems to mitigate the problem, but we definitely need
+        # to better understand what's going on.
+        if self._execute_sleep:
+            time.sleep(self._execute_sleep)
 
         # Send the reply.
         reply_msg = self.session.send(self.reply_socket, u'execute_reply', reply_content, parent, ident=ident)
