@@ -19,8 +19,7 @@ import sys
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
-from IPython.config.application import Application
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import Int, Unicode, Instance, List
 
 #-----------------------------------------------------------------------------
@@ -28,16 +27,12 @@ from IPython.utils.traitlets import Int, Unicode, Instance, List
 #-----------------------------------------------------------------------------
 
 
-class LogWatcher(Configurable):
+class LogWatcher(LoggingConfigurable):
     """A simple class that receives messages on a SUB socket, as published
     by subclasses of `zmq.log.handlers.PUBHandler`, and logs them itself.
     
     This can subscribe to multiple topics, but defaults to all topics.
     """
-    
-    log = Instance('logging.Logger')
-    def _log_default(self):
-        return Application.instance().log
     
     # configurables
     topics = List([''], config=True,

@@ -50,7 +50,7 @@ except ImportError:
 from zmq.eventloop import ioloop
 
 from IPython.config.application import Application
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.text import EvalFormatter
 from IPython.utils.traitlets import Any, Int, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
@@ -96,7 +96,7 @@ class UnknownStatus(LauncherError):
     pass
 
 
-class BaseLauncher(Configurable):
+class BaseLauncher(LoggingConfigurable):
     """An asbtraction for starting, stopping and signaling a process."""
 
     # In all of the launchers, the work_dir is where child processes will be
@@ -108,9 +108,6 @@ class BaseLauncher(Configurable):
     # the work_dir option.
     work_dir = Unicode(u'.')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
-    log = Instance('logging.Logger')
-    def _log_default(self):
-        return Application.instance().log
     
     start_data = Any()
     stop_data = Any()
