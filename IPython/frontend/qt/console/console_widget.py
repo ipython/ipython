@@ -79,13 +79,14 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                   default_value='inside', config=True,
         help="""
         The type of paging to use. Valid values are:
+        
             'inside' : The widget pages like a traditional terminal.
             'hsplit' : When paging is requested, the widget is split
-            :          horizontally. The top pane contains the console, and the
-            :          bottom pane contains the paged text.
+                       horizontally. The top pane contains the console, and the
+                       bottom pane contains the paged text.
             'vsplit' : Similar to 'hsplit', except that a vertical splitter used.
             'custom' : No action is taken by the widget beyond emitting a
-            :          'custom_page_requested(str)' signal.
+                       'custom_page_requested(str)' signal.
             'none'   : The text is written directly to the console.
         """)
 

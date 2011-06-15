@@ -212,3 +212,4 @@ class KernelApp(BaseIPythonApplication):
             self.kernel.start()
         except KeyboardInterrupt:
             pass
+

@@ -1,4 +1,15 @@
 """ A minimal application using the Qt console-style IPython frontend.
+
+This is not a complete console app, as subprocess will not be able to receive
+input, there is no real readline support, among other limitations.
+
+Authors:
+
+* Evan Patterson
+* Min RK
+* Erik Tollerud
+* Fernando Perez
+
 """
 
 #-----------------------------------------------------------------------------
@@ -201,20 +212,25 @@ aliases.update(dict(
     colors = 'ZMQInteractiveShell.colors',
 
     editor = 'IPythonWidget.editor',
-    pi = 'IPythonWidget.in_prompt',
-    po = 'IPythonWidget.out_prompt',
-    si = 'IPythonWidget.input_sep',
-    so = 'IPythonWidget.output_sep',
-    so2 = 'IPythonWidget.output_sep2',
 ))
 
 #-----------------------------------------------------------------------------
 # IPythonQtConsole
 #-----------------------------------------------------------------------------
-
 class IPythonQtConsoleApp(BaseIPythonApplication):
     name = 'ipython-qtconsole'
     default_config_file_name='ipython_config.py'
+    
+    description = """
+        The IPython QtConsole.
+        
+        This launches a Console-style application using Qt.  It is not a full
+        console, in that launched terminal subprocesses will not.
+        
+        The QtConsole supports various extra features beyond the
+        
+    """
+    
     classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir, Session]
     flags = Dict(flags)
     aliases = Dict(aliases)

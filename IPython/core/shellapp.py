@@ -28,6 +28,7 @@ import sys
 
 from IPython.config.application import boolean_flag
 from IPython.config.configurable import Configurable
+from IPython.config.loader import Config
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import Unicode, Instance, List
 
@@ -63,7 +64,7 @@ addflag('color-info', 'InteractiveShell.color_info',
     it and turn it on permanently in your ipython_config.py file if it
     works for you.  Test it and turn it on permanently if it works with
     your system.  The magic function %%color_info allows you to toggle this
-    inter- actively for testing.""",
+    interactively for testing.""",
     "Disable using colors for info related things."
 )
 addflag('deep-reload', 'InteractiveShell.deep_reload',
@@ -78,6 +79,13 @@ addflag('deep-reload', 'InteractiveShell.deep_reload',
     dreload()].""",
     "Disable deep (recursive) reloading by default."
 )
+nosep_config = Config()
+nosep_config.InteractiveShell.separate_in = ''
+nosep_config.InteractiveShell.separate_out = ''
+nosep_config.InteractiveShell.separate_out2 = ''
+
+shell_flags['nosep']=(nosep_config, "Eliminate all spacing between prompts.")
+
 
 # it's possible we don't want short aliases for *all* of these:
 shell_aliases = dict(
@@ -86,13 +94,6 @@ shell_aliases = dict(
     colors='InteractiveShell.colors',
     logfile='InteractiveShell.logfile',
     log_append='InteractiveShell.logappend',
-    pi1='InteractiveShell.prompt_in1',
-    pi2='InteractiveShell.prompt_in1',
-    po='InteractiveShell.prompt_out',
-    si='InteractiveShell.separate_in',
-    so='InteractiveShell.separate_out',
-    so2='InteractiveShell.separate_out2',
-    xmode='InteractiveShell.xmode',
     c='InteractiveShellApp.code_to_run',
     ext='InteractiveShellApp.extra_extension',
 )
