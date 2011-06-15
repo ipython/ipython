@@ -28,7 +28,7 @@ import sys
 import zmq
 from zmq.eventloop import ioloop
 
-from IPython.core.application import ProfileDir
+from IPython.core.profiledir import ProfileDir
 from IPython.parallel.apps.baseapp import BaseParallelApplication
 from IPython.zmq.log import EnginePUBHandler
 
@@ -55,7 +55,7 @@ IPython engines run in parallel and perform computations on behalf of a client
 and controller. A controller needs to be started before the engines. The
 engine can be configured using command line options or using a cluster
 directory. Cluster directories contain config, log and security files and are
-usually located in your ipython directory and named as "cluster_<profile>".
+usually located in your ipython directory and named as "profile_name".
 See the `profile` and `profile_dir` options for details.
 """
 

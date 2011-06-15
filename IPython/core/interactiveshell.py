@@ -54,10 +54,10 @@ from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.magic import Magic
-from IPython.core.application import ProfileDir
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
+from IPython.core.profiledir import ProfileDir
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io

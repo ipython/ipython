@@ -46,7 +46,7 @@ from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
 from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
-from IPython.core.application import ProfileDir
+from IPython.core.profiledir import ProfileDir
 from IPython.core.macro import Macro
 from IPython.core import page
 from IPython.core.prefilter import ESC_MAGIC

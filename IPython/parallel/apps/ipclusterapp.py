@@ -33,7 +33,8 @@ from zmq.eventloop import ioloop
 
 from IPython.config.application import Application, boolean_flag
 from IPython.config.loader import Config
-from IPython.core.application import BaseIPythonApplication, ProfileDir
+from IPython.core.application import BaseIPythonApplication
+from IPython.core.profiledir import ProfileDir
 from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Int, Unicode, Bool, CFloat, Dict, List
@@ -89,7 +90,7 @@ start_help = """Start an IPython cluster for parallel computing
 Start an ipython cluster by its profile name or cluster
 directory. Cluster directories contain configuration, log and
 security related files and are named using the convention
-'cluster_<profile>' and should be creating using the 'start'
+'profile_<name>' and should be creating using the 'start'
 subcommand of 'ipcluster'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster start n=4 profile=<profile>`,
@@ -99,7 +100,7 @@ stop_help = """Stop a running IPython cluster
 
 Stop a running ipython cluster by its profile name or cluster
 directory. Cluster directories are named using the convention
-'cluster_<profile>'. If your cluster directory is in 
+'profile_<name>'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster stop profile=<profile>`, otherwise
 use the 'profile_dir' option.
@@ -110,93 +111,12 @@ Start one or more engines to connect to an existing Cluster
 by profile name or cluster directory.
 Cluster directories contain configuration, log and
 security related files and are named using the convention
-'cluster_<profile>' and should be creating using the 'start'
+'profile_<name>' and should be creating using the 'start'
 subcommand of 'ipcluster'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster engines n=4 profile=<profile>`,
 otherwise use the 'profile_dir' option.
 """
-create_help = """Create an ipcluster profile by name
-
-Create an ipython cluster directory by its profile name or
-cluster directory path. Cluster directories contain
-configuration, log and security related files and are named
-using the convention 'cluster_<profile>'. By default they are
-located in your ipython directory. Once created, you will
-probably need to edit the configuration files in the cluster
-directory to configure your cluster. Most users will create a
-cluster directory by profile name,
-`ipcluster create profile=mycluster`, which will put the directory
-in `<ipython_dir>/cluster_mycluster`.
-"""
-list_help = """List available cluster profiles
-
-List all available clusters, by cluster directory, that can
-be found in the current working directly or in the ipython
-directory. Cluster directories are named using the convention
-'cluster_<profile>'.
-"""
-
-
-class IPClusterList(BaseIPythonApplication):
-    name = u'ipcluster-list'
-    description = list_help
-    
-    # empty aliases
-    aliases=Dict()
-    flags = Dict(base_flags)
-    
-    def _log_level_default(self):
-        return 20
-    
-    def list_profile_dirs(self):
-        # Find the search paths
-        profile_dir_paths = os.environ.get('IPYTHON_PROFILE_PATH','')
-        if profile_dir_paths:
-            profile_dir_paths = profile_dir_paths.split(':')
-        else:
-            profile_dir_paths = []
-        
-        ipython_dir = self.ipython_dir
-        
-        paths = [os.getcwd(), ipython_dir] + profile_dir_paths
-        paths = list(set(paths))
-
-        self.log.info('Searching for cluster profiles in paths: %r' % paths)
-        for path in paths:
-            files = os.listdir(path)
-            for f in files:
-                full_path = os.path.join(path, f)
-                if os.path.isdir(full_path) and f.startswith('profile_') and \
-                    os.path.isfile(os.path.join(full_path, 'ipcontroller_config.py')):
-                    profile = f.split('_')[-1]
-                    start_cmd = 'ipcluster start profile=%s n=4' % profile
-                    print start_cmd + " ==> " + full_path
-    
-    def start(self):
-        self.list_profile_dirs()
-
-
-# `ipcluster create` will be deprecated when `ipython profile create` or equivalent exists
-
-create_flags = {}
-create_flags.update(base_flags)
-create_flags.update(boolean_flag('reset', 'IPClusterCreate.overwrite', 
-                "reset config files to defaults", "leave existing config files"))
-
-class IPClusterCreate(BaseParallelApplication):
-    name = u'ipcluster-create'
-    description = create_help
-    auto_create = Bool(True)
-    config_file_name = Unicode(default_config_file_name)
-    
-    flags = Dict(create_flags)
-    
-    aliases = Dict(dict(profile='BaseIPythonApplication.profile'))
-    
-    classes = [ProfileDir]
-    
-    
 stop_aliases = dict(
     signal='IPClusterStop.signal',
     profile='BaseIPythonApplication.profile',

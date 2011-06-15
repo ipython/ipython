@@ -37,7 +37,7 @@ from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
 from IPython.config.application import boolean_flag
-from IPython.core.application import ProfileDir
+from IPython.core.profiledir import ProfileDir
 
 from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
@@ -80,7 +80,7 @@ The IPython controller provides a gateway between the IPython engines and
 clients. The controller needs to be started before the engines and can be
 configured using command line options or using a cluster directory. Cluster
 directories contain config, log and security files and are usually located in
-your ipython directory and named as "cluster_<profile>". See the `profile`
+your ipython directory and named as "profile_name". See the `profile`
 and `profile_dir` options for details.
 """
 

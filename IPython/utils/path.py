@@ -413,13 +413,13 @@ def check_for_old_config(ipython_dir=None):
     if ipython_dir is None:
         ipython_dir = get_ipython_dir()
 
-    old_configs = ['ipy_user_conf.py', 'ipythonrc']
+    old_configs = ['ipy_user_conf.py', 'ipythonrc', 'ipython_config.py']
     for cfg in old_configs:
         f = os.path.join(ipython_dir, cfg)
         if os.path.exists(f):
             warn.warn("""Found old IPython config file %r.
     The IPython configuration system has changed as of 0.11, and this file will be ignored.
     See http://ipython.github.com/ipython-doc/dev/config for details on the new config system.
-    The current default config file is 'ipython_config.py', where you can suppress these
-    warnings with `Global.ignore_old_config = True`."""%f)
+    To start configuring IPython, do `ipython profile create`, and edit `ipython_config.py` in
+    <ipython_dir>/profile_default."""%f)
 
