@@ -19,10 +19,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from copy import deepcopy
 import logging
+import os
 import re
 import sys
+from copy import deepcopy
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
@@ -98,9 +99,13 @@ class Application(SingletonConfigurable):
     version = Unicode(u'0.0')
 
     # The log level for the application
-    log_level = Enum((0,10,20,30,40,50), default_value=logging.WARN,
-                     config=True,
-                     help="Set the log level.")
+    log_level = Enum((0,10,20,30,40,50,'DEBUG','INFO','WARN','ERROR','CRITICAL'),
+                    default_value=logging.WARN,
+                    config=True,
+                    help="Set the log level by value or name.")
+    def _log_level_changed(self, name, old, new):
+        if isinstance(new, basestring):
+            self.log_level = getattr(logging, new)
     
     # the alias map for configurables
     aliases = Dict(dict(log_level='Application.log_level'))
@@ -336,6 +341,16 @@ class Application(SingletonConfigurable):
         loader = PyFileConfigLoader(filename, path=path)
         config = loader.load_config()
         self.update_config(config)
+    
+    def generate_config_file(self):
+        """generate default config file from Configurables"""
+        lines = ["# Configuration file for %s."%self.name]
+        lines.append('')
+        lines.append('c = get_config()')
+        lines.append('')
+        for cls in self.classes:
+            lines.append(cls.class_config_section())
+        return '\n'.join(lines)
 
     def exit(self, exit_status=0):
         self.log.debug("Exiting application: %s" % self.name)
