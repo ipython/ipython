@@ -2,6 +2,10 @@
 """The IPython Controller Hub with 0MQ
 This is the master object that handles connections from engines and clients,
 and monitors traffic through the various queues.
+
+Authors:
+
+* Min RK
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team

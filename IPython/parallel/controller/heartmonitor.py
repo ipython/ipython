@@ -2,6 +2,10 @@
 """
 A multi-heart Heartbeat system using PUB and XREP sockets. pings are sent out on the PUB,
 and hearts are tracked based on their XREQ identities.
+
+Authors:
+
+* Min RK
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team

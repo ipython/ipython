@@ -1,4 +1,9 @@
-"""AsyncResult objects for the client"""
+"""AsyncResult objects for the client
+
+Authors:
+
+* MinRK
+"""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #

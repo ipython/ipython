@@ -1,4 +1,9 @@
-"""A TaskRecord backend using sqlite3"""
+"""A TaskRecord backend using sqlite3
+
+Authors:
+
+* Min RK
+"""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
 #

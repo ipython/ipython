@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 """
 Kernel adapted from kernel.py to use ZMQ Streams
+
+Authors:
+
+* Min RK
+* Brian Granger
+* Fernando Perez
+* Evan Patterson
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team

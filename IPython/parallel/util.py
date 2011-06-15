@@ -1,4 +1,9 @@
-"""some generic utilities for dealing with classes, urls, and serialization"""
+"""some generic utilities for dealing with classes, urls, and serialization
+
+Authors:
+
+* Min RK
+"""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #

@@ -7,6 +7,12 @@ Also defined here are utilities for working with Sessions:
 * A SessionFactory to be used as a base class for configurables that work with
 Sessions.
 * A Message object for convenience that allows attribute-access to the msg dict.
+
+Authors:
+
+* Min RK
+* Brian Granger
+* Fernando Perez
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team

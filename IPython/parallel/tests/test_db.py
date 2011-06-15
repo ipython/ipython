@@ -1,4 +1,9 @@
-"""Tests for db backends"""
+"""Tests for db backends
+
+Authors:
+
+* Min RK
+"""
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team

@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 """Utility for forwarding file read events over a zmq socket.
 
-This is necessary because select on Windows only supports"""
+This is necessary because select on Windows only supports
+
+Authors:
+
+* MinRK
+
+"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team

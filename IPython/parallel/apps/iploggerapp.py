@@ -2,6 +2,11 @@
 # encoding: utf-8
 """
 A simple IPython logger application
+
+Authors:
+
+* MinRK
+
 """
 
 #-----------------------------------------------------------------------------

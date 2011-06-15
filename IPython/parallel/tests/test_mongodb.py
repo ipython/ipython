@@ -1,4 +1,9 @@
-"""Tests for mongodb backend"""
+"""Tests for mongodb backend
+
+Authors:
+
+* Min RK
+"""
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team

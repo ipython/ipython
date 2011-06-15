@@ -1,4 +1,9 @@
-"""KernelStarter class that intercepts Control Queue messages, and handles process management."""
+"""KernelStarter class that intercepts Control Queue messages, and handles process management.
+
+Authors:
+
+* Min RK
+"""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
