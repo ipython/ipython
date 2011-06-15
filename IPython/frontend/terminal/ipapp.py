@@ -168,13 +168,6 @@ flags['quick']=(
     "Enable quick startup with no config files."
 )
 
-nosep_config = Config()
-nosep_config.InteractiveShell.separate_in = ''
-nosep_config.InteractiveShell.separate_out = ''
-nosep_config.InteractiveShell.separate_out2 = ''
-
-flags['nosep']=(nosep_config, "Eliminate all spacing between prompts.")
-
 flags['i'] = (
     {'TerminalIPythonApp' : {'force_interact' : True}},
     "If running code from the command line, become interactive afterwards."
@@ -190,8 +183,6 @@ aliases.update(shell_aliases)
 
 # it's possible we don't want short aliases for *all* of these:
 aliases.update(dict(
-    editor='TerminalInteractiveShell.editor',
-    sl='TerminalInteractiveShell.screen_length',
     gui='TerminalIPythonApp.gui',
     pylab='TerminalIPythonApp.pylab',
 ))
@@ -363,3 +354,4 @@ def launch_new_instance():
 
 if __name__ == '__main__':
     launch_new_instance()
+

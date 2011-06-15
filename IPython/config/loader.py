@@ -350,15 +350,27 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             >>> cl.load_config(["foo='bar'","A.name='brian'","B.number=0"])
             {'A': {'name': 'brian'}, 'B': {'number': 0}, 'foo': 'bar'}
         """
+        self.clear()
         if argv is None:
             argv = sys.argv[1:]
         self.argv = argv
         self.aliases = aliases or {}
         self.flags = flags or {}
+        
+    
+    def clear(self):
+        super(KeyValueConfigLoader, self).clear()
+        self.extra_args = []
+        
 
     def load_config(self, argv=None, aliases=None, flags=None):
         """Parse the configuration and generate the Config object.
-
+        
+        After loading, any arguments that are not key-value or
+        flags will be stored in self.extra_args - a list of
+        unparsed command-line arguments.  This is used for
+        arguments such as input files or subcommands.
+        
         Parameters
         ----------
         argv : list, optional
@@ -383,8 +395,6 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             aliases = self.aliases
         if flags is None:
             flags = self.flags
-        
-        self.extra_args = []
         
         for item in argv:
             if kv_pattern.match(item):
