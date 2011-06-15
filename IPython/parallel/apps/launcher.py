@@ -157,29 +157,20 @@ class BaseLauncher(LoggingConfigurable):
             return False
 
     def start(self):
-        """Start the process.
-
-        This must return a deferred that fires with information about the
-        process starting (like a pid, job id, etc.).
-        """
+        """Start the process."""
         raise NotImplementedError('start must be implemented in a subclass')
 
     def stop(self):
         """Stop the process and notify observers of stopping.
 
-        This must return a deferred that fires with information about the
-        processing stopping, like errors that occur while the process is
-        attempting to be shut down. This deferred won't fire when the process
-        actually stops. To observe the actual process stopping, see
-        :func:`observe_stop`.
+        This method will return None immediately.
+        To observe the actual process stopping, see :meth:`on_stop`.
         """
         raise NotImplementedError('stop must be implemented in a subclass')
 
     def on_stop(self, f):
-        """Get a deferred that will fire when the process stops.
-
-        The deferred will fire with data that contains information about
-        the exit status of the process.
+        """Register a callback to be called with this Launcher's stop_data
+        when the process actually finishes.
         """
         if self.state=='after':
             return f(self.stop_data)
@@ -202,7 +193,7 @@ class BaseLauncher(LoggingConfigurable):
         """Call this to trigger process stop actions.
 
         This logs the process stopping and sets the state to 'after'. Call
-        this to trigger all the deferreds from :func:`observe_stop`."""
+        this to trigger callbacks registered via :meth:`on_stop`."""
 
         self.log.info('Process %r stopped: %r' % (self.args[0], data))
         self.stop_data = data
@@ -214,8 +205,6 @@ class BaseLauncher(LoggingConfigurable):
 
     def signal(self, sig):
         """Signal the process.
-
-        Return a semi-meaningless deferred after signaling the process.
 
         Parameters
         ----------
@@ -247,7 +236,6 @@ class LocalProcessLauncher(BaseLauncher):
             work_dir=work_dir, config=config, **kwargs
         )
         self.process = None
-        self.start_deferred = None
         self.poller = None
 
     def find_args(self):
@@ -520,7 +508,7 @@ class MPIExecEngineSetLauncher(MPIExecLauncher):
 # SSH launchers
 #-----------------------------------------------------------------------------
 
-# TODO: Get SSH Launcher working again.
+# TODO: Get SSH Launcher back to level of sshx in 0.10.2
 
 class SSHLauncher(LocalProcessLauncher):
     """A minimal launcher for ssh.
@@ -700,7 +688,7 @@ class WindowsHPCLauncher(BaseLauncher):
             '/scheduler:%s' % self.scheduler
         ]
         self.log.info("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
-        # Twisted will raise DeprecationWarnings if we try to pass unicode to this
+
         output = check_output([self.job_cmd]+args,
             env=os.environ,
             cwd=self.work_dir,
@@ -1072,3 +1060,4 @@ sge_launchers = [
 ]
 all_launchers = local_launchers + mpi_launchers + ssh_launchers + winhpc_launchers\
                 + pbs_launchers + sge_launchers
+
