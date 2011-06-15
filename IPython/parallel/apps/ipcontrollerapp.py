@@ -37,7 +37,7 @@ from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
 from IPython.config.application import boolean_flag
-from IPython.core.newapplication import ProfileDir
+from IPython.core.application import ProfileDir
 
 from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,

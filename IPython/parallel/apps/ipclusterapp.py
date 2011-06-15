@@ -33,7 +33,7 @@ from zmq.eventloop import ioloop
 
 from IPython.config.application import Application, boolean_flag
 from IPython.config.loader import Config
-from IPython.core.newapplication import BaseIPythonApplication, ProfileDir
+from IPython.core.application import BaseIPythonApplication, ProfileDir
 from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Int, Unicode, Bool, CFloat, Dict, List

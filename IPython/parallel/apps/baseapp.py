@@ -32,7 +32,7 @@ from subprocess import Popen, PIPE
 
 from IPython.core import release
 from IPython.core.crashhandler import CrashHandler
-from IPython.core.newapplication import (
+from IPython.core.application import (
     BaseIPythonApplication,
     base_aliases as base_ip_aliases,
     base_flags as base_ip_flags

@@ -25,7 +25,7 @@ import zmq
 
 # IPython imports.
 from IPython.core.ultratb import FormattedTB
-from IPython.core.newapplication import (
+from IPython.core.application import (
     BaseIPythonApplication, base_flags, base_aliases
 )
 from IPython.utils import io

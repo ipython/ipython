@@ -141,7 +141,7 @@ class SQLiteDB(BaseDB):
             self.table = '_'+self.session.replace('-','_')
         if not self.location:
             # get current profile
-            from IPython.core.newapplication import BaseIPythonApplication
+            from IPython.core.application import BaseIPythonApplication
             if BaseIPythonApplication.initialized():
                 app = BaseIPythonApplication.instance()
                 if app.profile_dir is not None:

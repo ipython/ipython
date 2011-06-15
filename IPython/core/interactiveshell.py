@@ -54,7 +54,7 @@ from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.magic import Magic
-from IPython.core.newapplication import ProfileDir
+from IPython.core.application import ProfileDir
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
@@ -344,7 +344,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     payload_manager = Instance('IPython.core.payload.PayloadManager')
     history_manager = Instance('IPython.core.history.HistoryManager')
 
-    profile_dir = Instance('IPython.core.newapplication.ProfileDir')
+    profile_dir = Instance('IPython.core.application.ProfileDir')
     @property
     def profile(self):
         if self.profile_dir is not None:

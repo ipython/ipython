@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-The :class:`~IPython.core.newapplication.Application` object for the command
+The :class:`~IPython.core.application.Application` object for the command
 line :command:`ipython` program.
 
 Authors
@@ -37,7 +37,7 @@ from IPython.core import release
 from IPython.core import usage
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.formatters import PlainTextFormatter
-from IPython.core.newapplication import (
+from IPython.core.application import (
     ProfileDir, BaseIPythonApplication, base_flags, base_aliases
 )
 from IPython.core.shellapp import (
