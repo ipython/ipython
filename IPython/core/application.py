@@ -12,6 +12,7 @@ Authors:
 
 * Brian Granger
 * Fernando Perez
+* Min RK
 
 Notes
 -----
@@ -30,439 +31,399 @@ Notes
 
 import logging
 import os
+import shutil
 import sys
 
+from IPython.config.application import Application
+from IPython.config.configurable import Configurable
+from IPython.config.loader import Config
 from IPython.core import release, crashhandler
-from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
-from IPython.config.loader import (
-    PyFileConfigLoader,
-    ArgParseConfigLoader,
-    Config,
-)
+from IPython.utils.path import get_ipython_dir, get_ipython_package_dir, expand_path
+from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class ApplicationError(Exception):
+
+#-----------------------------------------------------------------------------
+# Module errors
+#-----------------------------------------------------------------------------
+
+class ProfileDirError(Exception):
     pass
 
 
-class BaseAppConfigLoader(ArgParseConfigLoader):
-    """Default command line options for IPython based applications."""
+#-----------------------------------------------------------------------------
+# Class for managing profile directories
+#-----------------------------------------------------------------------------
 
-    def _add_ipython_dir(self, parser):
-        """Add the --ipython-dir option to the parser."""
-        paa = parser.add_argument
-        paa('--ipython-dir', 
-            dest='Global.ipython_dir',type=unicode,
-            help=
-            """Set to override default location of the IPython directory
-            IPYTHON_DIR, stored as Global.ipython_dir.  This can also be 
-            specified through the environment variable IPYTHON_DIR.""",
-            metavar='Global.ipython_dir')
+class ProfileDir(Configurable):
+    """An object to manage the profile directory and its resources.
 
-    def _add_log_level(self, parser):
-        """Add the --log-level option to the parser."""
-        paa = parser.add_argument
-        paa('--log-level',
-            dest="Global.log_level",type=int,
-            help='Set the log level (0,10,20,30,40,50).  Default is 30.',
-            metavar='Global.log_level')
-            
-    def _add_version(self, parser):
-        """Add the --version option to the parser."""
-        parser.add_argument('--version', action="version",
-                                                version=self.version)
+    The profile directory is used by all IPython applications, to manage
+    configuration, logging and security.
 
-    def _add_arguments(self):
-        self._add_ipython_dir(self.parser)
-        self._add_log_level(self.parser)
-        try:  # Old versions of argparse don't have a version action
-            self._add_version(self.parser)
-        except Exception:
-            pass
-
-
-class Application(object):
-    """Load a config, construct configurables and set them running.
-
-    The configuration of an application can be done via three different Config
-    objects, which are loaded and ultimately merged into a single one used
-    from that point on by the app. These are:
-
-    1. default_config: internal defaults, implemented in code.
-    2. file_config: read from the filesystem.
-    3. command_line_config: read from the system's command line flags.
-
-    During initialization, 3 is actually read before 2, since at the
-    command-line one may override the location of the file to be read.  But the
-    above is the order in which the merge is made.
+    This object knows how to find, create and manage these directories. This
+    should be used by any code that wants to handle profiles.
     """
 
-    name = u'ipython'
-    description = 'IPython: an enhanced interactive Python shell.'
-    #: Usage message printed by argparse. If None, auto-generate
-    usage = None
-    #: The command line config loader.  Subclass of ArgParseConfigLoader.
-    command_line_loader = BaseAppConfigLoader
-    #: The name of the config file to load, determined at runtime
-    config_file_name = None
-    #: The name of the default config file. Track separately from the actual
-    #: name because some logic happens only if we aren't using the default.
-    default_config_file_name = u'ipython_config.py'
-    default_log_level = logging.WARN
-    #: Set by --profile option
-    profile_name = None
-    #: User's ipython directory, typically ~/.ipython or ~/.config/ipython/
-    ipython_dir = None
-    #: Internal defaults, implemented in code.
-    default_config = None
-    #: Read from the filesystem.
-    file_config = None
-    #: Read from the system's command line flags.
-    command_line_config = None
-    #: The final config that will be passed to the main object.
-    master_config = None
-    #: A reference to the argv to be used (typically ends up being sys.argv[1:])
-    argv = None
-    #: extra arguments computed by the command-line loader
-    extra_args = None
-    #: The class to use as the crash handler.
-    crash_handler_class = crashhandler.CrashHandler
+    security_dir_name = Unicode('security')
+    log_dir_name = Unicode('log')
+    pid_dir_name = Unicode('pid')
+    security_dir = Unicode(u'')
+    log_dir = Unicode(u'')
+    pid_dir = Unicode(u'')
 
-    # Private attributes
-    _exiting = False
-    _initialized = False
+    location = Unicode(u'', config=True,
+        help="""Set the profile location directly. This overrides the logic used by the
+        `profile` option.""",
+        )
 
-    def __init__(self, argv=None):
-        self.argv = sys.argv[1:] if argv is None else argv
-        self.init_logger()
+    _location_isset = Bool(False) # flag for detecting multiply set location
 
-    def init_logger(self):
-        self.log = logging.getLogger(self.__class__.__name__)
-        # This is used as the default until the command line arguments are read.
-        self.log.setLevel(self.default_log_level)
-        self._log_handler = logging.StreamHandler()
-        self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
-        self._log_handler.setFormatter(self._log_formatter)
-        self.log.addHandler(self._log_handler)
-
-    def _set_log_level(self, level):
-        self.log.setLevel(level)
-
-    def _get_log_level(self):
-        return self.log.level
-
-    log_level = property(_get_log_level, _set_log_level)
-
-    def initialize(self):
-        """Initialize the application.
-
-        Loads all configuration information and sets all application state, but
-        does not start any relevant processing (typically some kind of event
-        loop).
-
-        Once this method has been called, the application is flagged as
-        initialized and the method becomes a no-op."""
+    def _location_changed(self, name, old, new):
+        if self._location_isset:
+            raise RuntimeError("Cannot set profile location more than once.")
+        self._location_isset = True
+        if not os.path.isdir(new):
+            os.makedirs(new)
         
-        if self._initialized:
+        # ensure config files exist:
+        self.security_dir = os.path.join(new, self.security_dir_name)
+        self.log_dir = os.path.join(new, self.log_dir_name)
+        self.pid_dir = os.path.join(new, self.pid_dir_name)
+        self.check_dirs()
+
+    def _log_dir_changed(self, name, old, new):
+        self.check_log_dir()
+
+    def check_log_dir(self):
+        if not os.path.isdir(self.log_dir):
+            os.mkdir(self.log_dir)
+
+    def _security_dir_changed(self, name, old, new):
+        self.check_security_dir()
+
+    def check_security_dir(self):
+        if not os.path.isdir(self.security_dir):
+            os.mkdir(self.security_dir, 0700)
+        else:
+            os.chmod(self.security_dir, 0700)
+
+    def _pid_dir_changed(self, name, old, new):
+        self.check_pid_dir()
+
+    def check_pid_dir(self):
+        if not os.path.isdir(self.pid_dir):
+            os.mkdir(self.pid_dir, 0700)
+        else:
+            os.chmod(self.pid_dir, 0700)
+
+    def check_dirs(self):
+        self.check_security_dir()
+        self.check_log_dir()
+        self.check_pid_dir()
+
+    def copy_config_file(self, config_file, path=None, overwrite=False):
+        """Copy a default config file into the active profile directory.
+
+        Default configuration files are kept in :mod:`IPython.config.default`.
+        This function moves these from that location to the working profile
+        directory.
+        """
+        dst = os.path.join(self.location, config_file)
+        if os.path.isfile(dst) and not overwrite:
             return
+        if path is None:
+            path = os.path.join(get_ipython_package_dir(), u'config', u'profile', u'default')
+        src = os.path.join(path, config_file)
+        shutil.copy(src, dst)
 
-        # The first part is protected with an 'attempt' wrapper, that will log
-        # failures with the basic system traceback machinery.  Once our crash
-        # handler is in place, we can let any subsequent exception propagate,
-        # as our handler will log it with much better detail than the default.
-        self.attempt(self.create_crash_handler)
+    @classmethod
+    def create_profile_dir(cls, profile_dir, config=None):
+        """Create a new profile directory given a full path.
 
-        # Configuration phase
-        # Default config (internally hardwired in application code)
-        self.create_default_config()
-        self.log_default_config()
-        self.set_default_config_log_level()
+        Parameters
+        ----------
+        profile_dir : str
+            The full path to the profile directory.  If it does exist, it will
+            be used.  If not, it will be created.
+        """
+        return cls(location=profile_dir, config=config)
 
-        # Command-line config
-        self.pre_load_command_line_config()
-        self.load_command_line_config()
-        self.set_command_line_config_log_level()
-        self.post_load_command_line_config()
-        self.log_command_line_config()
+    @classmethod
+    def create_profile_dir_by_name(cls, path, name=u'default', config=None):
+        """Create a profile dir by profile name and path.
 
-        # Find resources needed for filesystem access, using information from
-        # the above two
-        self.find_ipython_dir()
-        self.find_resources()
-        self.find_config_file_name()
-        self.find_config_file_paths()
+        Parameters
+        ----------
+        path : unicode
+            The path (directory) to put the profile directory in.
+        name : unicode
+            The name of the profile.  The name of the profile directory will
+            be "profile_<profile>".
+        """
+        if not os.path.isdir(path):
+            raise ProfileDirError('Directory not found: %s' % path)
+        profile_dir = os.path.join(path, u'profile_' + name)
+        return cls(location=profile_dir, config=config)
 
-        # File-based config
-        self.pre_load_file_config()
-        self.load_file_config()
-        self.set_file_config_log_level()
-        self.post_load_file_config()
-        self.log_file_config()
+    @classmethod
+    def find_profile_dir_by_name(cls, ipython_dir, name=u'default', config=None):
+        """Find an existing profile dir by profile name, return its ProfileDir.
 
-        # Merge all config objects into a single one the app can then use
-        self.merge_configs()
-        self.log_master_config()
+        This searches through a sequence of paths for a profile dir.  If it
+        is not found, a :class:`ProfileDirError` exception will be raised.
 
-        # Construction phase
-        self.pre_construct()
-        self.construct()
-        self.post_construct()
+        The search path algorithm is:
+        1. ``os.getcwd()``
+        2. ``ipython_dir``
 
-        # Done, flag as such and
-        self._initialized = True
+        Parameters
+        ----------
+        ipython_dir : unicode or str
+            The IPython directory to use.
+        name : unicode or str
+            The name of the profile.  The name of the profile directory
+            will be "profile_<profile>".
+        """
+        dirname = u'profile_' + name
+        paths = [os.getcwdu(), ipython_dir]
+        for p in paths:
+            profile_dir = os.path.join(p, dirname)
+            if os.path.isdir(profile_dir):
+                return cls(location=profile_dir, config=config)
+        else:
+            raise ProfileDirError('Profile directory not found in paths: %s' % dirname)
 
-    def start(self):
-        """Start the application."""
-        self.initialize()
-        self.start_app()
+    @classmethod
+    def find_profile_dir(cls, profile_dir, config=None):
+        """Find/create a profile dir and return its ProfileDir.
 
+        This will create the profile directory if it doesn't exist.
+
+        Parameters
+        ----------
+        profile_dir : unicode or str
+            The path of the profile directory.  This is expanded using
+            :func:`IPython.utils.genutils.expand_path`.
+        """
+        profile_dir = expand_path(profile_dir)
+        if not os.path.isdir(profile_dir):
+            raise ProfileDirError('Profile directory not found: %s' % profile_dir)
+        return cls(location=profile_dir, config=config)
+
+
+#-----------------------------------------------------------------------------
+# Base Application Class
+#-----------------------------------------------------------------------------
+
+# aliases and flags
+
+base_aliases = dict(
+    profile='BaseIPythonApplication.profile',
+    ipython_dir='BaseIPythonApplication.ipython_dir',
+)
+
+base_flags = dict(
+    debug = ({'Application' : {'log_level' : logging.DEBUG}},
+            "set log level to logging.DEBUG (maximize logging output)"),
+    quiet = ({'Application' : {'log_level' : logging.CRITICAL}},
+            "set log level to logging.CRITICAL (minimize logging output)"),
+    init = ({'BaseIPythonApplication' : {
+                    'copy_config_files' : True,
+                    'auto_create' : True}
+            }, "Initialize profile with default config files")
+)
+
+
+class BaseIPythonApplication(Application):
+
+    name = Unicode(u'ipython')
+    description = Unicode(u'IPython: an enhanced interactive Python shell.')
+    version = Unicode(release.version)
+    
+    aliases = Dict(base_aliases)
+    flags = Dict(base_flags)
+    
+    # Track whether the config_file has changed,
+    # because some logic happens only if we aren't using the default.
+    config_file_specified = Bool(False)
+    
+    config_file_name = Unicode(u'ipython_config.py')
+    def _config_file_name_changed(self, name, old, new):
+        if new != old:
+            self.config_file_specified = True
+
+    # The directory that contains IPython's builtin profiles.
+    builtin_profile_dir = Unicode(
+        os.path.join(get_ipython_package_dir(), u'config', u'profile', u'default')
+    )
+
+    config_file_paths = List(Unicode)
+    def _config_file_paths_default(self):
+        return [os.getcwdu()]
+
+    profile = Unicode(u'default', config=True,
+        help="""The IPython profile to use."""
+    )
+    def _profile_changed(self, name, old, new):
+        self.builtin_profile_dir = os.path.join(
+                get_ipython_package_dir(), u'config', u'profile', new
+        )
+        
+
+    ipython_dir = Unicode(get_ipython_dir(), config=True, 
+        help="""
+        The name of the IPython directory. This directory is used for logging
+        configuration (through profiles), history storage, etc. The default
+        is usually $HOME/.ipython. This options can also be specified through
+        the environment variable IPYTHON_DIR.
+        """
+    )
+    
+    overwrite = Bool(False, config=True,
+        help="""Whether to overwrite existing config files when copying""")
+    auto_create = Bool(False, config=True,
+        help="""Whether to create profile dir if it doesn't exist""")
+    
+    config_files = List(Unicode)
+    def _config_files_default(self):
+        return [u'ipython_config.py']
+    
+    copy_config_files = Bool(False, config=True,
+        help="""Whether to copy the default config files into the profile dir.""")
+
+    # The class to use as the crash handler.
+    crash_handler_class = Type(crashhandler.CrashHandler)
+
+    def __init__(self, **kwargs):
+        super(BaseIPythonApplication, self).__init__(**kwargs)
+        # ensure even default IPYTHON_DIR exists
+        if not os.path.exists(self.ipython_dir):
+            self._ipython_dir_changed('ipython_dir', self.ipython_dir, self.ipython_dir)
+    
     #-------------------------------------------------------------------------
     # Various stages of Application creation
     #-------------------------------------------------------------------------
 
-    def create_crash_handler(self):
+    def init_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
         self.crash_handler = self.crash_handler_class(self)
         sys.excepthook = self.crash_handler
 
-    def create_default_config(self):
-        """Create defaults that can't be set elsewhere.
+    def _ipython_dir_changed(self, name, old, new):
+        if old in sys.path:
+            sys.path.remove(old)
+        sys.path.append(os.path.abspath(new))
+        if not os.path.isdir(new):
+            os.makedirs(new, mode=0777)
+        readme = os.path.join(new, 'README')
+        if not os.path.exists(readme):
+            path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
+            shutil.copy(os.path.join(path, 'README'), readme)
+        self.log.debug("IPYTHON_DIR set to: %s" % new)
 
-        For the most part, we try to set default in the class attributes
-        of Configurables.  But, defaults the top-level Application (which is
-        not a HasTraits or Configurables) are not set in this way.  Instead
-        we set them here.  The Global section is for variables like this that
-        don't belong to a particular configurable.
-        """
-        c = Config()
-        c.Global.ipython_dir = get_ipython_dir()
-        c.Global.log_level = self.log_level
-        self.default_config = c
-
-    def log_default_config(self):
-        self.log.debug('Default config loaded:')
-        self.log.debug(repr(self.default_config))
-
-    def set_default_config_log_level(self):
-        try:
-            self.log_level = self.default_config.Global.log_level
-        except AttributeError:
-            # Fallback to the default_log_level class attribute
-            pass
-
-    def create_command_line_config(self):
-        """Create and return a command line config loader."""
-        return self.command_line_loader(
-            self.argv,
-            description=self.description, 
-            version=release.version,
-            usage=self.usage
-        )
-
-    def pre_load_command_line_config(self):
-        """Do actions just before loading the command line config."""
-        pass
-
-    def load_command_line_config(self):
-        """Load the command line config."""
-        loader = self.create_command_line_config()
-        self.command_line_config = loader.load_config()
-        self.extra_args = loader.get_extra_args()
-
-    def set_command_line_config_log_level(self):
-        try:
-            self.log_level = self.command_line_config.Global.log_level
-        except AttributeError:
-            pass
-
-    def post_load_command_line_config(self):
-        """Do actions just after loading the command line config."""
-        pass
-
-    def log_command_line_config(self):
-        self.log.debug("Command line config loaded:")
-        self.log.debug(repr(self.command_line_config))
-
-    def find_ipython_dir(self):
-        """Set the IPython directory.
-
-        This sets ``self.ipython_dir``, but the actual value that is passed to
-        the application is kept in either ``self.default_config`` or
-        ``self.command_line_config``.  This also adds ``self.ipython_dir`` to
-        ``sys.path`` so config files there can be referenced by other config
-        files.
-        """
-
-        try:
-            self.ipython_dir = self.command_line_config.Global.ipython_dir
-        except AttributeError:
-            self.ipython_dir = self.default_config.Global.ipython_dir
-        sys.path.append(os.path.abspath(self.ipython_dir))
-        if not os.path.isdir(self.ipython_dir):
-            os.makedirs(self.ipython_dir, mode=0777)
-        self.log.debug("IPYTHON_DIR set to: %s" % self.ipython_dir)
-
-    def find_resources(self):
-        """Find other resources that need to be in place.
-
-        Things like cluster directories need to be in place to find the
-        config file.  These happen right after the IPython directory has
-        been set.
-        """
-        pass
-
-    def find_config_file_name(self):
-        """Find the config file name for this application.
-
-        This must set ``self.config_file_name`` to the filename of the
-        config file to use (just the filename). The search paths for the
-        config file are set in :meth:`find_config_file_paths` and then passed
-        to the config file loader where they are resolved to an absolute path.
-
-        If a profile has been set at the command line, this will resolve it.
-        """
-        try:
-            self.config_file_name = self.command_line_config.Global.config_file
-        except AttributeError:
-            pass
-        else:
-            return
-
-        try:
-            self.profile_name = self.command_line_config.Global.profile
-        except AttributeError:
-            # Just use the default as there is no profile
-            self.config_file_name = self.default_config_file_name
-        else:
-            # Use the default config file name and profile name if set
-            # to determine the used config file name.
-            name_parts = self.default_config_file_name.split('.')
-            name_parts.insert(1, u'_' + self.profile_name + u'.')
-            self.config_file_name = ''.join(name_parts)
-
-    def find_config_file_paths(self):
-        """Set the search paths for resolving the config file.
-
-        This must set ``self.config_file_paths`` to a sequence of search
-        paths to pass to the config file loader.
-        """
-        # Include our own profiles directory last, so that users can still find
-        # our shipped copies of builtin profiles even if they don't have them
-        # in their local ipython directory.
-        prof_dir = os.path.join(get_ipython_package_dir(), 'config', 'profile')
-        self.config_file_paths = (os.getcwdu(), self.ipython_dir, prof_dir)
-
-    def pre_load_file_config(self):
-        """Do actions before the config file is loaded."""
-        pass
-
-    def load_file_config(self, suppress_errors=True):
+    def load_config_file(self, suppress_errors=True):
         """Load the config file.
-        
-        This tries to load the config file from disk.  If successful, the
-        ``CONFIG_FILE`` config variable is set to the resolved config file
-        location.  If not successful, an empty config is used.
-        
+
         By default, errors in loading config are handled, and a warning
         printed on screen. For testing, the suppress_errors option is set
         to False, so errors will make tests fail.
         """
         self.log.debug("Attempting to load config file: %s" %
                        self.config_file_name)
-        loader = PyFileConfigLoader(self.config_file_name,
-                                    path=self.config_file_paths)
         try:
-            self.file_config = loader.load_config()
-            self.file_config.Global.config_file = loader.full_filename
+            Application.load_config_file(
+                self,
+                self.config_file_name, 
+                path=self.config_file_paths
+            )
         except IOError:
             # Only warn if the default config file was NOT being used.
-            if not self.config_file_name==self.default_config_file_name:
+            if self.config_file_specified:
                 self.log.warn("Config file not found, skipping: %s" %
-                               self.config_file_name, exc_info=True)
-            self.file_config = Config()
+                               self.config_file_name)
         except:
-            if not suppress_errors:     # For testing purposes
+            # For testing purposes.
+            if not suppress_errors:
                 raise
             self.log.warn("Error loading config file: %s" %
                           self.config_file_name, exc_info=True)
-            self.file_config = Config()
 
-    def set_file_config_log_level(self):
-        # We need to keeep self.log_level updated.  But we only use the value
-        # of the file_config if a value was not specified at the command
-        # line, because the command line overrides everything.
-        if not hasattr(self.command_line_config.Global, 'log_level'):
-            try:
-                self.log_level = self.file_config.Global.log_level
-            except AttributeError:
-                pass # Use existing value
-
-    def post_load_file_config(self):
-        """Do actions after the config file is loaded."""
-        pass
-
-    def log_file_config(self):
-        if hasattr(self.file_config.Global, 'config_file'):
-            self.log.debug("Config file loaded: %s" %
-                           self.file_config.Global.config_file)
-            self.log.debug(repr(self.file_config))
-
-    def merge_configs(self):
-        """Merge the default, command line and file config objects."""
-        config = Config()
-        config._merge(self.default_config)
-        config._merge(self.file_config)
-        config._merge(self.command_line_config)
-
-        # XXX fperez - propose to Brian we rename master_config to simply
-        # config, I think this is going to be heavily used in examples and
-        # application code and the name is shorter/easier to find/remember.
-        # For now, just alias it...
-        self.master_config = config
-        self.config = config
-
-    def log_master_config(self):
-        self.log.debug("Master config created:")
-        self.log.debug(repr(self.master_config))
-
-    def pre_construct(self):
-        """Do actions after the config has been built, but before construct."""
-        pass
-
-    def construct(self):
-        """Construct the main objects that make up this app."""
-        self.log.debug("Constructing main objects for application")
-
-    def post_construct(self):
-        """Do actions after construct, but before starting the app."""
-        pass
-
-    def start_app(self):
-        """Actually start the app."""
-        self.log.debug("Starting application")
-
-    #-------------------------------------------------------------------------
-    # Utility methods
-    #-------------------------------------------------------------------------
-
-    def exit(self, exit_status=0):
-        if self._exiting:
-            pass
-        else:
-            self.log.debug("Exiting application: %s" % self.name)
-            self._exiting = True
-            sys.exit(exit_status)
-
-    def attempt(self, func):
+    def init_profile_dir(self):
+        """initialize the profile dir"""
         try:
-            func()
-        except SystemExit:
-            raise
-        except:
-            self.log.critical("Aborting application: %s" % self.name,
-                              exc_info=True)
-            self.exit(0)
+            # location explicitly specified:
+            location = self.config.ProfileDir.location
+        except AttributeError:
+            # location not specified, find by profile name
+            try:
+                p = ProfileDir.find_profile_dir_by_name(self.ipython_dir, self.profile, self.config)
+            except ProfileDirError:
+                # not found, maybe create it (always create default profile)
+                if self.auto_create or self.profile=='default':
+                    try:
+                        p = ProfileDir.create_profile_dir_by_name(self.ipython_dir, self.profile, self.config)
+                    except ProfileDirError:
+                        self.log.fatal("Could not create profile: %r"%self.profile)
+                        self.exit(1)
+                    else:
+                        self.log.info("Created profile dir: %r"%p.location)
+                else:
+                    self.log.fatal("Profile %r not found."%self.profile)
+                    self.exit(1)
+            else:
+                self.log.info("Using existing profile dir: %r"%p.location)
+        else:
+            # location is fully specified
+            try:
+                p = ProfileDir.find_profile_dir(location, self.config)
+            except ProfileDirError:
+                # not found, maybe create it
+                if self.auto_create:
+                    try:
+                        p = ProfileDir.create_profile_dir(location, self.config)
+                    except ProfileDirError:
+                        self.log.fatal("Could not create profile directory: %r"%location)
+                        self.exit(1)
+                    else:
+                        self.log.info("Creating new profile dir: %r"%location)
+                else:
+                    self.log.fatal("Profile directory %r not found."%location)
+                    self.exit(1)
+            else:
+                self.log.info("Using existing profile dir: %r"%location)
+        
+        self.profile_dir = p
+        self.config_file_paths.append(p.location)
+    
+    def init_config_files(self):
+        """[optionally] copy default config files into profile dir."""
+        # copy config files
+        if self.copy_config_files:
+            path = self.builtin_profile_dir
+            src = self.profile
+            if not os.path.exists(path):
+                # use default if new profile doesn't have a preset
+                path = None
+                src = 'default'
+            
+            self.log.debug("Staging %s config files into %r [overwrite=%s]"%(
+                    src, self.profile_dir.location, self.overwrite)
+            )
+            
+            for cfg in self.config_files:
+                self.profile_dir.copy_config_file(cfg, path=path, overwrite=self.overwrite)
+    
+    def initialize(self, argv=None):
+        self.init_crash_handler()
+        self.parse_command_line(argv)
+        cl_config = self.config
+        self.init_profile_dir()
+        self.init_config_files()
+        self.load_config_file()
+        # enforce cl-opts override configfile opts:
+        self.update_config(cl_config)
 

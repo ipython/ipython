@@ -28,7 +28,7 @@ import zmq
 # Local imports.
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag
-from IPython.core.newapplication import ProfileDir
+from IPython.core.application import ProfileDir
 from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )

@@ -27,7 +27,7 @@ from pygments.styles import get_all_styles
 
 # Local imports
 from IPython.config.application import boolean_flag
-from IPython.core.newapplication import ProfileDir, BaseIPythonApplication
+from IPython.core.application import ProfileDir, BaseIPythonApplication
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget

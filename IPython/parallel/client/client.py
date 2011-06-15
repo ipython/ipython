@@ -40,7 +40,7 @@ from IPython.parallel import util
 from IPython.zmq.session import Session, Message
 
 from .asyncresult import AsyncResult, AsyncHubResult
-from IPython.core.newapplication import ProfileDir, ProfileDirError
+from IPython.core.application import ProfileDir, ProfileDirError
 from .view import DirectView, LoadBalancedView
 
 #--------------------------------------------------------------------------
