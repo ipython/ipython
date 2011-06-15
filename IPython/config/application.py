@@ -33,7 +33,11 @@ from IPython.utils.traitlets import (
     Unicode, List, Int, Enum, Dict, Instance
 )
 from IPython.utils.importstring import import_item
-from IPython.utils.text import indent
+from IPython.utils.text import indent, wrap_paragraphs, dedent
+
+#-----------------------------------------------------------------------------
+# function for re-wrapping a helpstring
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Descriptions for the various sections
@@ -44,6 +48,8 @@ Flags are command-line arguments passed as '--<flag>'.
 These take no parameters, unlike regular key-value arguments.
 They are typically used for setting boolean flags, or enabling
 modes that involve setting multiple options together.
+
+Flags *always* begin with '--', never just one '-'.
 """.strip() # trim newlines of front and back
 
 alias_description = """
@@ -104,10 +110,18 @@ class Application(SingletonConfigurable):
     # this must be a dict of two-tuples, the first element being the Config/dict
     # and the second being the help string for the flag
     flags = Dict()
+    def _flags_changed(self, name, old, new):
+        """ensure flags dict is valid"""
+        for key,value in new.iteritems():
+            assert len(value) == 2, "Bad flag: %r:%s"%(key,value)
+            assert isinstance(value[0], (dict, Config)), "Bad flag: %r:%s"%(key,value)
+            assert isinstance(value[1], basestring), "Bad flag: %r:%s"%(key,value)
+        
     
     # subcommands for launching other applications
     # if this is not empty, this will be a parent Application
-    # this must be a dict of two-tuples, the first element being the application class/import string
+    # this must be a dict of two-tuples, 
+    # the first element being the application class/import string
     # and the second being the help string for the subcommand
     subcommands = Dict()
     # parse_command_line will initialize a subapp, if requested
@@ -123,11 +137,6 @@ class Application(SingletonConfigurable):
         # options.
         self.classes.insert(0, self.__class__)
         
-        # ensure self.flags dict is valid
-        for key,value in self.flags.iteritems():
-            assert len(value) == 2, "Bad flag: %r:%s"%(key,value)
-            assert isinstance(value[0], (dict, Config)), "Bad flag: %r:%s"%(key,value)
-            assert isinstance(value[1], basestring), "Bad flag: %r:%s"%(key,value)
         self.init_logging()
 
     def _config_changed(self, name, old, new):
@@ -170,14 +179,16 @@ class Application(SingletonConfigurable):
         self.log.setLevel(new)
     
     def print_alias_help(self):
-        """print the alias part of the help"""
+        """Print the alias part of the help."""
         if not self.aliases:
             return
         
         lines = ['Aliases']
         lines.append('-'*len(lines[0]))
-        lines.append(self.alias_description)
         lines.append('')
+        for p in wrap_paragraphs(self.alias_description):
+            lines.append(p)
+            lines.append('')
         
         classdict = {}
         for cls in self.classes:
@@ -197,23 +208,25 @@ class Application(SingletonConfigurable):
         print '\n'.join(lines)
     
     def print_flag_help(self):
-        """print the flag part of the help"""
+        """Print the flag part of the help."""
         if not self.flags:
             return
         
         lines = ['Flags']
         lines.append('-'*len(lines[0]))
-        lines.append(self.flag_description)
         lines.append('')
+        for p in wrap_paragraphs(self.flag_description):
+            lines.append(p)
+            lines.append('')
         
         for m, (cfg,help) in self.flags.iteritems():
             lines.append('--'+m)
-            lines.append(indent(help.strip(), flatten=True))
+            lines.append(indent(dedent(help.strip())))
         lines.append('')
         print '\n'.join(lines)
     
     def print_subcommands(self):
-        """print the subcommand part of the help"""
+        """Print the subcommand part of the help."""
         if not self.subcommands:
             return
         
@@ -222,14 +235,14 @@ class Application(SingletonConfigurable):
         for subc, (cls,help) in self.subcommands.iteritems():
             lines.append("%s : %s"%(subc, cls))
             if help:
-                lines.append(indent(help.strip(), flatten=True))
+                lines.append(indent(dedent(help.strip())))
         lines.append('')
         print '\n'.join(lines)
     
     def print_help(self, classes=False):
         """Print the help for each Configurable class in self.classes.
         
-        If classes=False (the default), only flags and aliases are printed
+        If classes=False (the default), only flags and aliases are printed.
         """
         self.print_subcommands()
         self.print_flag_help()
@@ -239,8 +252,10 @@ class Application(SingletonConfigurable):
             if self.classes:
                 print "Class parameters"
                 print "----------------"
-                print self.keyvalue_description
                 print
+                for p in wrap_paragraphs(self.keyvalue_description):
+                    print p
+                    print
         
             for cls in self.classes:
                 cls.class_print_help()
@@ -251,8 +266,9 @@ class Application(SingletonConfigurable):
 
     def print_description(self):
         """Print the application description."""
-        print self.description
-        print
+        for p in wrap_paragraphs(self.description):
+            print p
+            print
 
     def print_version(self):
         """Print the version string."""
@@ -269,7 +285,7 @@ class Application(SingletonConfigurable):
         self.config = newconfig
     
     def initialize_subcommand(self, subc, argv=None):
-        """Initialize a subcommand with argv"""
+        """Initialize a subcommand with argv."""
         subapp,help = self.subcommands.get(subc)
         
         if isinstance(subapp, basestring):
@@ -330,7 +346,7 @@ class Application(SingletonConfigurable):
 #-----------------------------------------------------------------------------
 
 def boolean_flag(name, configurable, set_help='', unset_help=''):
-    """helper for building basic --trait, --no-trait flags
+    """Helper for building basic --trait, --no-trait flags.
     
     Parameters
     ----------
@@ -360,3 +376,4 @@ def boolean_flag(name, configurable, set_help='', unset_help=''):
     setter = {cls : {trait : True}}
     unsetter = {cls : {trait : False}}
     return {name : (setter, set_help), 'no-'+name : (unsetter, unset_help)}
+

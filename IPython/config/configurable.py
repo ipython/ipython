@@ -21,12 +21,12 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from copy import deepcopy
 import datetime
+from copy import deepcopy
 
 from loader import Config
 from IPython.utils.traitlets import HasTraits, Instance
-from IPython.utils.text import indent
+from IPython.utils.text import indent, wrap_paragraphs
 
 
 #-----------------------------------------------------------------------------
@@ -51,7 +51,7 @@ class Configurable(HasTraits):
     created = None
 
     def __init__(self, **kwargs):
-        """Create a conigurable given a config config.
+        """Create a configurable given a config config.
 
         Parameters
         ----------
@@ -153,27 +153,31 @@ class Configurable(HasTraits):
     
     @classmethod
     def class_get_trait_help(cls, trait):
-        """Get the help string for a single """
+        """Get the help string for a single trait."""
         lines = []
         header = "%s.%s : %s" % (cls.__name__, trait.name, trait.__class__.__name__)
+        lines.append(header)
         try:
             dvr = repr(trait.get_default_value())
         except Exception:
             dvr = None # ignore defaults we can't construct
         if dvr is not None:
-            header += ' [default: %s]'%dvr
-        lines.append(header)
+            if len(dvr) > 64:
+                dvr = dvr[:61]+'...'
+            lines.append(indent('Default: %s'%dvr, 4))
+        if 'Enum' in trait.__class__.__name__:
+            # include Enum choices
+            lines.append(indent('Choices: %r'%(trait.values,)))
         
         help = trait.get_metadata('help')
         if help is not None:
-            lines.append(indent(help.strip(), flatten=True))
-        if 'Enum' in trait.__class__.__name__:
-            # include Enum choices
-            lines.append(indent('Choices: %r'%(trait.values,), flatten=True))
+            help = '\n'.join(wrap_paragraphs(help, 76))
+            lines.append(indent(help, 4))
         return '\n'.join(lines)
 
     @classmethod
     def class_print_help(cls):
+        """Get the help string for a single trait and print it."""
         print cls.class_get_help()
 
 
