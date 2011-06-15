@@ -4,12 +4,19 @@
 
 Scattering consists of partitioning a sequence and sending the various
 pieces to individual nodes in a cluster.
+
+
+Authors:
+
+* Brian Granger
+* MinRK
+
 """
 
 __docformat__ = "restructuredtext en"
 
 #-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
+#  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.

@@ -1,4 +1,9 @@
-"""base class for parallel client tests"""
+"""base class for parallel client tests
+
+Authors:
+
+* Min RK
+"""
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team

@@ -1,4 +1,9 @@
-"""Base config factories."""
+"""Base config factories.
+
+Authors:
+
+* Min RK
+"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team

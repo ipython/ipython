@@ -3,6 +3,10 @@
 The Pure ZMQ scheduler does not allow routing schemes other than LRU,
 nor does it check msg_id DAG dependencies. For those, a slightly slower
 Python Scheduler exists.
+
+Authors:
+
+* Min RK
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team

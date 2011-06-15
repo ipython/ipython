@@ -5,6 +5,7 @@ A base class for a configurable application.
 Authors:
 
 * Brian Granger
+* Min RK
 """
 
 #-----------------------------------------------------------------------------

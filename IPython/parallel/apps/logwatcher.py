@@ -1,5 +1,12 @@
 #!/usr/bin/env python
-"""A simple logger object that consolidates messages incoming from ipcluster processes."""
+"""
+A simple logger object that consolidates messages incoming from ipcluster processes.
+
+Authors:
+
+* MinRK
+
+"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team

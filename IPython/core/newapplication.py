@@ -12,6 +12,7 @@ Authors:
 
 * Brian Granger
 * Fernando Perez
+* Min RK
 
 Notes
 -----

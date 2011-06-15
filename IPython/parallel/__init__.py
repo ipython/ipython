@@ -1,4 +1,9 @@
-"""The IPython ZMQ-based parallel computing interface."""
+"""The IPython ZMQ-based parallel computing interface.
+
+Authors:
+
+* MinRK
+"""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2011 The IPython Development Team
 #

@@ -1,4 +1,9 @@
-"""Tests for dependency.py"""
+"""Tests for dependency.py
+
+Authors:
+
+* Min RK
+"""
 
 __docformat__ = "restructuredtext en"
 

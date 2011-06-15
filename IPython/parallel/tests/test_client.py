@@ -1,4 +1,9 @@
-"""Tests for parallel client.py"""
+"""Tests for parallel client.py
+
+Authors:
+
+* Min RK
+"""
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
