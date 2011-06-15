@@ -61,7 +61,7 @@ aliases.update(dict(url='LogWatcher.url', topics='LogWatcher.topics'))
 
 class IPLoggerApp(BaseParallelApplication):
 
-    name = u'iploggerz'
+    name = u'iplogger'
     description = _description
     config_file_name = Unicode(default_config_file_name)
     

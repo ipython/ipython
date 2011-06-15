@@ -82,6 +82,8 @@ class BaseIPythonApplication(Application):
     config_file_specified = Bool(False)
     
     config_file_name = Unicode(u'ipython_config.py')
+    def _config_file_name_default(self):
+        return self.name.replace('-','_') + u'_config.py'
     def _config_file_name_changed(self, name, old, new):
         if new != old:
             self.config_file_specified = True
@@ -102,8 +104,7 @@ class BaseIPythonApplication(Application):
         self.builtin_profile_dir = os.path.join(
                 get_ipython_package_dir(), u'config', u'profile', new
         )
-        
-
+    
     ipython_dir = Unicode(get_ipython_dir(), config=True, 
         help="""
         The name of the IPython directory. This directory is used for logging
@@ -123,7 +124,11 @@ class BaseIPythonApplication(Application):
         return [u'ipython_config.py']
     
     copy_config_files = Bool(False, config=True,
-        help="""Whether to copy the default config files into the profile dir.""")
+        help="""Whether to install the default config files into the profile dir.
+        If a new profile is being created, and IPython contains config files for that
+        profile, then they will be staged into the new directory.  Otherwise,
+        default config files will be automatically generated.
+        """)
 
     # The class to use as the crash handler.
     crash_handler_class = Type(crashhandler.CrashHandler)
@@ -162,6 +167,21 @@ class BaseIPythonApplication(Application):
         printed on screen. For testing, the suppress_errors option is set
         to False, so errors will make tests fail.
         """
+        base_config = 'ipython_config.py'
+        self.log.debug("Attempting to load config file: %s" %
+                       base_config)
+        try:
+            Application.load_config_file(
+                self,
+                base_config, 
+                path=self.config_file_paths
+            )
+        except IOError:
+            # ignore errors loading parent
+            pass
+        if self.config_file_name == base_config:
+            # don't load secondary config
+            return
         self.log.debug("Attempting to load config file: %s" %
                        self.config_file_name)
         try:
@@ -235,21 +255,32 @@ class BaseIPythonApplication(Application):
         if self.copy_config_files:
             path = self.builtin_profile_dir
             src = self.profile
-            if not os.path.exists(path):
-                # use default if new profile doesn't have a preset
-                path = None
-                src = 'default'
             
-            self.log.debug("Staging %s config files into %r [overwrite=%s]"%(
-                    src, self.profile_dir.location, self.overwrite)
-            )
-            
-            for cfg in self.config_files:
+            cfg = self.config_file_name
+            if path and os.path.exists(os.path.join(path, cfg)):
+                self.log.warn("Staging %r from %s into %r [overwrite=%s]"%(
+                        cfg, src, self.profile_dir.location, self.overwrite)
+                )
                 self.profile_dir.copy_config_file(cfg, path=path, overwrite=self.overwrite)
+            else:
+                self.stage_default_config_file()
+    
+    def stage_default_config_file(self):
+        """auto generate default config file, and stage it into the profile."""
+        s = self.generate_config_file()
+        fname = os.path.join(self.profile_dir.location, self.config_file_name)
+        if self.overwrite or not os.path.exists(fname):
+            self.log.warn("Generating default config file: %r"%(fname))
+            with open(fname, 'w') as f:
+                f.write(s)
+        
     
     def initialize(self, argv=None):
         self.init_crash_handler()
         self.parse_command_line(argv)
+        if self.subapp is not None:
+            # stop here if subapp is taking over
+            return
         cl_config = self.config
         self.init_profile_dir()
         self.init_config_files()

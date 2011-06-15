@@ -180,6 +180,38 @@ class Configurable(HasTraits):
         """Get the help string for a single trait and print it."""
         print cls.class_get_help()
 
+    @classmethod
+    def class_config_section(cls):
+        """Get the config class config section"""
+        def c(s):
+            """return a commented, wrapped block."""
+            s = '\n\n'.join(wrap_paragraphs(s, 78))
+            
+            return '# ' + s.replace('\n', '\n# ')
+        
+        # section header
+        breaker = '#' + '-'*78
+        s = "# %s configuration"%cls.__name__
+        lines = [breaker, s, breaker, '']
+        # get the description trait
+        desc = cls.class_traits().get('description')
+        if desc:
+            desc = desc.default_value
+        else:
+            # no description trait, use __doc__
+            desc = getattr(cls, '__doc__', '')
+        if desc:
+            lines.append(c(desc))
+            lines.append('')
+        
+        for name,trait in cls.class_traits(config=True).iteritems():
+            help = trait.get_metadata('help') or ''
+            lines.append(c(help))
+            lines.append('# c.%s.%s = %r'%(cls.__name__, name, trait.get_default_value()))
+            lines.append('')
+        return '\n'.join(lines)
+    
+    
 
 class SingletonConfigurable(Configurable):
     """A configurable that only allows one instance.

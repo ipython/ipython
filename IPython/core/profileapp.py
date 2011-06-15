@@ -162,6 +162,42 @@ class ProfileCreate(BaseIPythonApplication):
     aliases = Dict(dict(profile='BaseIPythonApplication.profile'))
     
     classes = [ProfileDir]
+    
+    def init_config_files(self):
+        super(ProfileCreate, self).init_config_files()
+        # use local imports, since these classes may import from here
+        from IPython.frontend.terminal.ipapp import TerminalIPythonApp
+        apps = [TerminalIPythonApp]
+        try:
+            from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
+        except ImportError:
+            pass
+        else:
+            apps.append(IPythonQtConsoleApp)
+        if self.cluster:
+            from IPython.parallel.apps.ipcontrollerapp import IPControllerApp
+            from IPython.parallel.apps.ipengineapp import IPEngineApp
+            from IPython.parallel.apps.ipclusterapp import IPClusterStart
+            from IPython.parallel.apps.iploggerapp import IPLoggerApp
+            apps.extend([
+                IPControllerApp,
+                IPEngineApp,
+                IPClusterStart,
+                IPLoggerApp,
+            ])
+        for App in apps:
+            app = App()
+            app.config.update(self.config)
+            app.log = self.log
+            app.overwrite = self.overwrite
+            app.copy_config_files=True
+            app.profile = self.profile
+            app.init_profile_dir()
+            app.init_config_files()
+        print 'tic'
+    
+    def stage_default_config_file(self):
+        pass
 
 class ProfileApp(Application):
     name = u'ipython-profile'

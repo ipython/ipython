@@ -103,7 +103,7 @@ class MPI(Configurable):
 
 class IPEngineApp(BaseParallelApplication):
 
-    app_name = Unicode(u'ipengine')
+    name = Unicode(u'ipengine')
     description = Unicode(_description)
     config_file_name = Unicode(default_config_file_name)
     classes = List([ProfileDir, Session, EngineFactory, Kernel, MPI])

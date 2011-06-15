@@ -322,7 +322,7 @@ class IPClusterStart(IPClusterEngines):
     classes = List()
     def _classes_default(self,):
         from IPython.parallel.apps import launcher
-        return [ProfileDir]+launcher.all_launchers
+        return [ProfileDir] + [IPClusterEngines] + launcher.all_launchers
     
     clean_logs = Bool(True, config=True, 
         help="whether to cleanup old logs before starting")
@@ -410,12 +410,11 @@ class IPClusterStart(IPClusterEngines):
 
 base='IPython.parallel.apps.ipclusterapp.IPCluster'
 
-class IPBaseParallelApplication(Application):
+class IPClusterApp(Application):
     name = u'ipcluster'
     description = _description
     
-    subcommands = {'create' : (base+'Create', create_help),
-                'list' : (base+'List', list_help),
+    subcommands = {
                 'start' : (base+'Start', start_help),
                 'stop' : (base+'Stop', stop_help),
                 'engines' : (base+'Engines', engines_help),

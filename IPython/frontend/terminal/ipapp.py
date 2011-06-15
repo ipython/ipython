@@ -208,9 +208,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             "Create and manage IPython profiles.")
     ))
     
-    # *do* autocreate requested profile
+    # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)
-    copy_config_files=Bool(True)
     # configurables
     ignore_old_config=Bool(False, config=True,
         help="Suppress warning messages about legacy config files"
