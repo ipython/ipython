@@ -68,7 +68,7 @@ controller and engines in the following situations:
 .. note::
 
     Currently :command:`ipcluster` requires that the
-    :file:`~/.ipython/cluster_<profile>/security` directory live on a shared filesystem that is
+    :file:`~/.ipython/profile_<name>/security` directory live on a shared filesystem that is
     seen by both the controller and engines. If you don't have a shared file
     system you will need to use :command:`ipcontroller` and
     :command:`ipengine` directly.
@@ -92,7 +92,7 @@ Configuring an IPython cluster
 
 Cluster configurations are stored as `profiles`.  You can create a new profile with::
 
-    $ ipcluster create profile=myprofile
+    $ ipython profile create --cluster profile=myprofile
 
 This will create the directory :file:`IPYTHONDIR/cluster_myprofile`, and populate it
 with the default configuration files for the three IPython cluster commands. Once
@@ -133,7 +133,7 @@ The mpiexec/mpirun mode is useful if you:
 
 If these are satisfied, you can create a new profile::
 
-    $ ipcluster create profile=mpi
+    $ ipython profile create --cluster profile=mpi
 
 and edit the file :file:`IPYTHONDIR/cluster_mpi/ipcluster_config.py`.
 
@@ -190,7 +190,7 @@ The PBS mode uses the Portable Batch System [PBS]_ to start the engines.
 
 As usual, we will start by creating a fresh profile::
 
-    $ ipcluster create profile=pbs
+    $ ipython profile create --cluster profile=pbs
 
 And in :file:`ipcluster_config.py`, we will select the PBS launchers for the controller
 and engines:
@@ -310,7 +310,7 @@ nodes and :command:`ipcontroller` can be run remotely as well, or on localhost.
 
 As usual, we start by creating a clean profile::
 
-    $ ipcluster create profile=ssh
+    $ ipython profile create --cluster profile=ssh
 
 To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
@@ -417,7 +417,7 @@ When the controller and engines are running on different hosts, things are
 slightly more complicated, but the underlying ideas are the same:
 
 1. Start the controller on a host using :command:`ipcontroller`.
-2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/cluster_<profile>/security` on
+2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/profile_<name>/security` on
    the controller's host to the host where the engines will run.
 3. Use :command:`ipengine` on the engine's hosts to start the engines.
 
@@ -425,7 +425,7 @@ The only thing you have to be careful of is to tell :command:`ipengine` where
 the :file:`ipcontroller-engine.json` file is located. There are two ways you
 can do this:
 
-* Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/cluster_<profile>/security`
+* Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/profile_<name>/security`
   directory on the engine's host, where it will be found automatically.
 * Call :command:`ipengine` with the ``--file=full_path_to_the_file``
   flag.
@@ -437,7 +437,7 @@ The ``--file`` flag works like this::
 .. note::
     
     If the controller's and engine's hosts all have a shared file system  
-    (:file:`~/.ipython/cluster_<profile>/security` is the same on all of them), then things
+    (:file:`~/.ipython/profile_<name>/security` is the same on all of them), then things
     will just work!
 
 Make JSON files persistent
@@ -472,7 +472,7 @@ Log files
 
 All of the components of IPython have log files associated with them.
 These log files can be extremely useful in debugging problems with
-IPython and can be found in the directory :file:`~/.ipython/cluster_<profile>/log`.
+IPython and can be found in the directory :file:`~/.ipython/profile_<name>/log`.
 Sending the log files to us will often help us to debug any problems.
 
 

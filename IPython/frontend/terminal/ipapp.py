@@ -203,7 +203,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     subcommands = Dict(dict(
         qtconsole=('IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             """Launch the IPython Qt Console."""
-        )
+        ),
+        profile = ("IPython.core.profileapp.ProfileApp",
+            "Create and manage IPython profiles.")
     ))
     
     # *do* autocreate requested profile
