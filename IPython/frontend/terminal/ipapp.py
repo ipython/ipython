@@ -194,7 +194,6 @@ aliases.update(dict(
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     name = u'ipython'
     description = usage.cl_usage
-    # command_line_loader = IPAppConfigLoader
     default_config_file_name = default_config_file_name
     crash_handler_class = IPAppCrashHandler
     
@@ -202,8 +201,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     aliases = Dict(aliases)
     classes = [InteractiveShellApp, TerminalInteractiveShell, ProfileDir, PlainTextFormatter]
     subcommands = Dict(dict(
-        qtconsole=('IPython.frontend.qt.console.ipythonqt.IPythonQtConsoleApp',
-            """Launch the IPython QtConsole.  Also launched as ipython-qtconsole"""
+        qtconsole=('IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp',
+            """Launch the IPython Qt Console."""
         )
     ))
     
