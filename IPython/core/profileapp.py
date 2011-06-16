@@ -207,4 +207,14 @@ class ProfileApp(Application):
         create = (ProfileCreate, "Create a new profile dir with default config files"),
         list = (ProfileList, "List existing profiles")
     ))
+    
+    def start(self):
+        if self.subapp is None:
+            print "No subcommand specified. Must specify one of: %s"%(self.subcommands.keys())
+            print
+            self.print_description()
+            self.print_subcommands()
+            self.exit(1)
+        else:
+            return self.subapp.start()
 
