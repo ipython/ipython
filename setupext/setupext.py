@@ -139,8 +139,9 @@ def check_for_pyzmq():
         print_status('pyzmq', "no (required for qtconsole and parallel computing capabilities)")
         return False
     else:
-        if zmq.__version__ < '2.0.10':
-            print_status('pyzmq', "no (require >= 2.0.10 for qtconsole and parallel computing capabilities)")
+        if zmq.__version__ < '2.1.4':
+            print_status('pyzmq', "no (have %s, but require >= 2.1.4 for"
+            " qtconsole and parallel computing capabilities)"%zmq.__version__)
             
         else:
             print_status("pyzmq", zmq.__version__)

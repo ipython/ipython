@@ -303,11 +303,10 @@ pyzmq
 IPython 0.11 introduced some new functionality, including a two-process
 execution model using ZeroMQ for communication [ZeroMQ]_. The Python bindings
 to ZeroMQ are found in the pyzmq project, which is easy_install-able once you
-have ZeroMQ installed (or even if you don't).
+have ZeroMQ installed.  If you are on Python 2.6 or 2.7 on OSX, or 2.7 on Windows,
+pyzmq has eggs that include ZeroMQ itself.
 
-IPython.zmq depends on pyzmq >= 2.0.10.1, but IPython.parallel requires the more
-recent 2.1.4.  2.1.4 also has binary releases for OSX and Windows, that do not
-require prior installation of libzmq.
+IPython.zmq depends on pyzmq >= 2.1.4.
 
 Dependencies for ipython-qtconsole (new GUI)
 ============================================
