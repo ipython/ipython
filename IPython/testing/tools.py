@@ -197,7 +197,10 @@ def ipexec(fname, options=None):
     
     # For these subprocess calls, eliminate all prompt printing so we only see
     # output from script execution
-    prompt_opts = ['pi1=""', 'pi2=""', 'po=""']
+    prompt_opts = [ 'InteractiveShell.prompt_in1=""', 
+                    'InteractiveShell.prompt_in2=""', 
+                    'InteractiveShell.prompt_out=""'
+    ]
     cmdargs = ' '.join(default_argv() + prompt_opts + options)
     
     _ip = get_ipython()
