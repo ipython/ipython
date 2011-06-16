@@ -426,8 +426,9 @@ class IPClusterApp(Application):
     
     def start(self):
         if self.subapp is None:
-            print "No subcommand specified! Must specify one of: %s"%(self.subcommands.keys())
+            print "No subcommand specified. Must specify one of: %s"%(self.subcommands.keys())
             print
+            self.print_description()
             self.print_subcommands()
             self.exit(1)
         else:
@@ -435,7 +436,7 @@ class IPClusterApp(Application):
 
 def launch_new_instance():
     """Create and run the IPython cluster."""
-    app = IPBaseParallelApplication.instance()
+    app = IPClusterApp.instance()
     app.initialize()
     app.start()
 
