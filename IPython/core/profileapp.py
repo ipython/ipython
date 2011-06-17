@@ -194,7 +194,6 @@ class ProfileCreate(BaseIPythonApplication):
             app.profile = self.profile
             app.init_profile_dir()
             app.init_config_files()
-        print 'tic'
     
     def stage_default_config_file(self):
         pass

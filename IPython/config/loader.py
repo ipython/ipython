@@ -23,7 +23,7 @@ import re
 import sys
 
 from IPython.external import argparse
-from IPython.utils.path import filefind
+from IPython.utils.path import filefind, get_ipython_dir
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -269,23 +269,40 @@ class PyFileConfigLoader(FileConfigLoader):
     def _read_file_as_dict(self):
         """Load the config file into self.config, with recursive loading."""
         # This closure is made available in the namespace that is used
-        # to exec the config file.  This allows users to call
+        # to exec the config file.  It allows users to call
         # load_subconfig('myconfig.py') to load config files recursively.
         # It needs to be a closure because it has references to self.path
         # and self.config.  The sub-config is loaded with the same path
         # as the parent, but it uses an empty config which is then merged
         # with the parents.
-        def load_subconfig(fname):
-            loader = PyFileConfigLoader(fname, self.path)
+        
+        # If a profile is specified, the config file will be loaded
+        # from that profile
+        
+        def load_subconfig(fname, profile=None):
+            # import here to prevent circular imports
+            from IPython.core.profiledir import ProfileDir, ProfileDirError
+            if profile is not None:
+                try:
+                    profile_dir = ProfileDir.find_profile_dir_by_name(
+                            get_ipython_dir(),
+                            profile,
+                    )
+                except ProfileDirError:
+                    return
+                path = profile_dir.location
+            else:
+                path = self.path
+            loader = PyFileConfigLoader(fname, path)
             try:
                 sub_config = loader.load_config()
             except IOError:
                 # Pass silently if the sub config is not there. This happens
-                # when a user us using a profile, but not the default config.
+                # when a user s using a profile, but not the default config.
                 pass
             else:
                 self.config._merge(sub_config)
-
+        
         # Again, this needs to be a closure and should be used in config
         # files to get the config being loaded.
         def get_config():

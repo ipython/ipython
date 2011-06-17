@@ -1,10 +1,9 @@
 c = get_config()
-app = c.IPythonApp
+app = c.InteractiveShellApp
 
 # This can be used at any point in a config file to load a sub config
 # and merge it into the current one.
-import os
-load_subconfig(os.path.join('..','profile_default', 'ipython_config.py'))
+load_subconfig('ipython_config.py', profile='default')
 
 c.InteractiveShell.prompt_in1 = '\C_LightGreen\u@\h\C_LightBlue[\C_LightCyan\Y1\C_LightBlue]\C_Green|\#> '
 c.InteractiveShell.prompt_in2 = '\C_Green|\C_LightGreen\D\C_Green> '
