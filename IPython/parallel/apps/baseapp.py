@@ -230,7 +230,11 @@ class BaseParallelApplication(BaseIPythonApplication):
         pid_file = os.path.join(self.profile_dir.pid_dir, self.name + u'.pid')
         if os.path.isfile(pid_file):
             with open(pid_file, 'r') as f:
-                pid = int(f.read().strip())
+                s = f.read().strip()
+                try:
+                    pid = int(s)
+                except:
+                    raise PIDFileError("invalid pid file: %s (contents: %r)"%(pid_file, s))
                 return pid
         else:
             raise PIDFileError('pid file not found: %s' % pid_file)
