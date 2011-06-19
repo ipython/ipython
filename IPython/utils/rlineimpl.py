@@ -45,7 +45,7 @@ if sys.platform == 'win32' and have_readline:
     try:
         _outputfile=_rl.GetOutputFile()
     except AttributeError:
-        print "Failed GetOutputFile"
+        warnings.warn("Failed GetOutputFile")
         have_readline = False
 
 # Test to see if libedit is being used instead of GNU readline.
@@ -86,7 +86,7 @@ if sys.platform == 'darwin' and have_readline:
         else:
             break
 
-    if p is not None and p.returncode == 0 and re.search(r'/libedit[\.\d+]*\.dylib\s', out):
+    if p is not None and p.returncode == 0 and re.search(br'/libedit[\.\d+]*\.dylib\s', out):
         # we are bound to libedit - new in Leopard
         _rl.parse_and_bind("bind ^I rl_complete")
         warnings.warn("Leopard libedit detected - readline will not be well behaved "
