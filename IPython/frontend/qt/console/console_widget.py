@@ -195,6 +195,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         # Initialize protected variables. Some variables contain useful state
         # information for subclasses; they should be considered read-only.
+        self._append_before_prompt_pos = 0
         self._ansi_processor = QtAnsiCodeProcessor()
         self._completion_widget = CompletionWidget(self._control)
         self._continuation_prompt = '> '
@@ -727,8 +728,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         # Determine where to insert the content.
         cursor = self._control.textCursor()
         if before_prompt and not self._executing:
-            cursor.setPosition(self._prompt_pos)
-            cursor.movePosition(QtGui.QTextCursor.Left, n=len(self._prompt))
+            cursor.setPosition(self._append_before_prompt_pos)
         else:
             cursor.movePosition(QtGui.QTextCursor.End)
         start_pos = cursor.position()
@@ -739,7 +739,9 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         # Adjust the prompt position if we have inserted before it. This is safe
         # because buffer truncation is disabled when not executing.
         if before_prompt and not self._executing:
-            self._prompt_pos += cursor.position() - start_pos
+            diff = cursor.position() - start_pos
+            self._append_before_prompt_pos += diff
+            self._prompt_pos += diff
             
         return result
 
@@ -1726,14 +1728,16 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             If set, a new line will be written before showing the prompt if 
             there is not already a newline at the end of the buffer.
         """
+        # Save the current end position to support _append*(before_prompt=True).
+        cursor = self._get_end_cursor()
+        self._append_before_prompt_pos = cursor.position()
+        
         # Insert a preliminary newline, if necessary.
-        if newline:
-            cursor = self._get_end_cursor()
-            if cursor.position() > 0:
-                cursor.movePosition(QtGui.QTextCursor.Left, 
-                                    QtGui.QTextCursor.KeepAnchor)
-                if cursor.selection().toPlainText() != '\n':
-                    self._append_plain_text('\n')
+        if newline and cursor.position() > 0:
+            cursor.movePosition(QtGui.QTextCursor.Left, 
+                                QtGui.QTextCursor.KeepAnchor)
+            if cursor.selection().toPlainText() != '\n':
+                self._append_plain_text('\n')
 
         # Write the prompt.
         self._append_plain_text(self._prompt_sep)
