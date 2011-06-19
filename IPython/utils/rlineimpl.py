@@ -9,6 +9,7 @@ In addition to normal readline stuff, this module provides have_readline
 boolean and _outputfile variable used in IPython.utils.
 """
 
+import os
 import re
 import sys
 import time
@@ -44,7 +45,7 @@ if sys.platform == 'win32' and have_readline:
     try:
         _outputfile=_rl.GetOutputFile()
     except AttributeError:
-        print "Failed GetOutputFile"
+        warnings.warn("Failed GetOutputFile")
         have_readline = False
 
 # Test to see if libedit is being used instead of GNU readline.
@@ -56,21 +57,36 @@ if sys.platform == 'darwin' and have_readline:
     # seems to make this better behaved in environments such as PyQt and gdb
     dt = 1e-3
     while dt < 1:
-        p = Popen(['otool', '-L', _rl.__file__], stdout=PIPE, stderr=PIPE)
-        otool,err = p.communicate()
+        try:
+            p = Popen(['otool', '-L', _rl.__file__], stdout=PIPE, stderr=PIPE)
+        except OSError:
+            try:
+                # otool not available (no XCode), use lsof instead.
+                # This *could* have a false positive
+                # if another package that uses libedit explicitly
+                # has been imported prior to this test.
+                p = Popen(['lsof', '-p', str(os.getpid())], stdout=PIPE, stderr=PIPE)
+            except OSError:
+                # This is highly unlikely, but let's be sure
+                # we don't crash IPython just because we can't find lsof
+                p = out = err = None
+                warnings.warn("libedit detection failed")
+                break
+
+        out,err = p.communicate()
 
         if p.returncode == 4:
             # EINTR
             time.sleep(dt)
             dt *= 2
             continue
-        elif p.returncode:
+        elif p is None or p.returncode:
             warnings.warn("libedit detection failed: %s"%err)
             break
         else:
             break
 
-    if p.returncode == 0 and re.search(r'/libedit[\.\d+]*\.dylib\s', otool):
+    if p is not None and p.returncode == 0 and re.search(br'/libedit[\.\d+]*\.dylib\s', out):
         # we are bound to libedit - new in Leopard
         _rl.parse_and_bind("bind ^I rl_complete")
         warnings.warn("Leopard libedit detected - readline will not be well behaved "
@@ -79,7 +95,8 @@ if sys.platform == 'darwin' and have_readline:
             "which is easy_installable with: 'easy_install readline'",
             RuntimeWarning)
         uses_libedit = True
-
+    # cleanup names
+    del dt,p,out,err
 
 # the clear_history() function was only introduced in Python 2.4 and is
 # actually optional in the readline API, so we must explicitly check for its
