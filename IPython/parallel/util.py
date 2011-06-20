@@ -182,29 +182,6 @@ def disambiguate_url(url, location=None):
     
     return "%s://%s:%s"%(proto,ip,port)
 
-
-def rekey(dikt):
-    """Rekey a dict that has been forced to use str keys where there should be
-    ints by json.  This belongs in the jsonutil added by fperez."""
-    for k in dikt.iterkeys():
-        if isinstance(k, str):
-            ik=fk=None
-            try:
-                ik = int(k)
-            except ValueError:
-                try:
-                    fk = float(k)
-                except ValueError:
-                    continue
-            if ik is not None:
-                nk = ik
-            else:
-                nk = fk
-            if nk in dikt:
-                raise KeyError("already have key %r"%nk)
-            dikt[nk] = dikt.pop(k)
-    return dikt
-
 def serialize_object(obj, threshold=64e-6):
     """Serialize an object into a list of sendable buffers.
     

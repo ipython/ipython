@@ -28,6 +28,7 @@ pjoin = os.path.join
 import zmq
 # from zmq.eventloop import ioloop, zmqstream
 
+from IPython.utils.jsonutil import rekey
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (HasTraits, Int, Instance, Unicode,
                                     Dict, List, Bool, Set)
@@ -1247,7 +1248,7 @@ class Client(HasTraits):
         status = content.pop('status')
         if status != 'ok':
             raise self._unwrap_exception(content)
-        content = util.rekey(content)
+        content = rekey(content)
         if isinstance(targets, int):
             return content[targets]
         else:

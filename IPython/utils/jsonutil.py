@@ -27,6 +27,29 @@ ISO8601_PAT=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+$")
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+def rekey(dikt):
+    """Rekey a dict that has been forced to use str keys where there should be
+    ints by json."""
+    for k in dikt.iterkeys():
+        if isinstance(k, basestring):
+            ik=fk=None
+            try:
+                ik = int(k)
+            except ValueError:
+                try:
+                    fk = float(k)
+                except ValueError:
+                    continue
+            if ik is not None:
+                nk = ik
+            else:
+                nk = fk
+            if nk in dikt:
+                raise KeyError("already have key %r"%nk)
+            dikt[nk] = dikt.pop(k)
+    return dikt
+
+
 def extract_dates(obj):
     """extract ISO8601 dates from unpacked JSON"""
     if isinstance(obj, dict):
