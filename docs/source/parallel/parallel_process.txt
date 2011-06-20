@@ -92,7 +92,7 @@ Configuring an IPython cluster
 
 Cluster configurations are stored as `profiles`.  You can create a new profile with::
 
-    $ ipython profile create --cluster profile=myprofile
+    $ ipython profile create --parallel profile=myprofile
 
 This will create the directory :file:`IPYTHONDIR/cluster_myprofile`, and populate it
 with the default configuration files for the three IPython cluster commands. Once
@@ -133,7 +133,7 @@ The mpiexec/mpirun mode is useful if you:
 
 If these are satisfied, you can create a new profile::
 
-    $ ipython profile create --cluster profile=mpi
+    $ ipython profile create --parallel profile=mpi
 
 and edit the file :file:`IPYTHONDIR/cluster_mpi/ipcluster_config.py`.
 
@@ -190,7 +190,7 @@ The PBS mode uses the Portable Batch System [PBS]_ to start the engines.
 
 As usual, we will start by creating a fresh profile::
 
-    $ ipython profile create --cluster profile=pbs
+    $ ipython profile create --parallel profile=pbs
 
 And in :file:`ipcluster_config.py`, we will select the PBS launchers for the controller
 and engines:
@@ -310,7 +310,7 @@ nodes and :command:`ipcontroller` can be run remotely as well, or on localhost.
 
 As usual, we start by creating a clean profile::
 
-    $ ipython profile create --cluster profile=ssh
+    $ ipython profile create --parallel profile=ssh
 
 To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 

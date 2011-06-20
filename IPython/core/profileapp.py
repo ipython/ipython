@@ -36,7 +36,7 @@ from IPython.utils.traitlets import Unicode, Bool, Dict
 # Constants
 #-----------------------------------------------------------------------------
 
-create_help = """Create an ipcluster profile by name
+create_help = """Create an IPython profile by name
 
 Create an ipython profile directory by its name or
 profile directory path. Profile directories contain
@@ -45,7 +45,7 @@ using the convention 'profile_<name>'. By default they are
 located in your ipython directory. Once created, you will
 can edit the configuration files in the profile
 directory to configure IPython. Most users will create a
-cluster directory by profile name,
+profile directory by name,
 `ipython profile create myprofile`, which will put the directory
 in `<ipython_dir>/profile_myprofile`.
 """
@@ -124,7 +124,7 @@ create_flags = {}
 create_flags.update(base_flags)
 create_flags.update(boolean_flag('reset', 'ProfileCreate.overwrite', 
                 "reset config files to defaults", "leave existing config files"))
-create_flags.update(boolean_flag('cluster', 'ProfileCreate.cluster', 
+create_flags.update(boolean_flag('parallel', 'ProfileCreate.parallel', 
                 "Include parallel computing config files", 
                 "Don't include parallel computing config files"))
 
@@ -136,18 +136,18 @@ class ProfileCreate(BaseIPythonApplication):
     def _copy_config_files_default(self):
         return True
     
-    cluster = Bool(False, config=True,
+    parallel = Bool(False, config=True,
         help="whether to include parallel computing config files")
-    def _cluster_changed(self, name, old, new):
-        cluster_files = [   'ipcontroller_config.py', 
+    def _parallel_changed(self, name, old, new):
+        parallel_files = [   'ipcontroller_config.py', 
                             'ipengine_config.py', 
                             'ipcluster_config.py'
                         ]
         if new:
-            for cf in cluster_files:
+            for cf in parallel_files:
                 self.config_files.append(cf)
         else:
-            for cf in cluster_files:
+            for cf in parallel_files:
                 if cf in self.config_files:
                     self.config_files.remove(cf)
     
@@ -174,7 +174,7 @@ class ProfileCreate(BaseIPythonApplication):
             pass
         else:
             apps.append(IPythonQtConsoleApp)
-        if self.cluster:
+        if self.parallel:
             from IPython.parallel.apps.ipcontrollerapp import IPControllerApp
             from IPython.parallel.apps.ipengineapp import IPEngineApp
             from IPython.parallel.apps.ipclusterapp import IPClusterStart
