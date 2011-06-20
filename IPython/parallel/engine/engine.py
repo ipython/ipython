@@ -41,9 +41,9 @@ class EngineFactory(RegistrationFactory):
     out_stream_factory=Type('IPython.zmq.iostream.OutStream', config=True,
         help="""The OutStream for handling stdout/err.
         Typically 'IPython.zmq.iostream.OutStream'""")
-    display_hook_factory=Type('IPython.zmq.displayhook.DisplayHook', config=True,
+    display_hook_factory=Type('IPython.zmq.displayhook.ZMQDisplayHook', config=True,
         help="""The class for handling displayhook.
-        Typically 'IPython.zmq.displayhook.DisplayHook'""")
+        Typically 'IPython.zmq.displayhook.ZMQDisplayHook'""")
     location=Unicode(config=True,
         help="""The location (an IP address) of the controller.  This is
         used for disambiguating URLs, to determine whether
