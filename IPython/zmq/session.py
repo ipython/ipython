@@ -72,7 +72,7 @@ def squash_unicode(obj):
 #-----------------------------------------------------------------------------
 key = 'on_unknown' if jsonapi.jsonmod.__name__ == 'jsonlib' else 'default'
 json_packer = lambda obj: jsonapi.dumps(obj, **{key:date_default})
-json_unpacker = lambda s: squash_unicode(extract_dates(jsonapi.loads(s)))
+json_unpacker = lambda s: extract_dates(jsonapi.loads(s))
 
 pickle_packer = lambda o: pickle.dumps(o,-1)
 pickle_unpacker = pickle.loads
