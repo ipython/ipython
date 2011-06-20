@@ -51,7 +51,7 @@ def setup():
                 ['profile=iptest', 'log_level=50', '--reuse']
     cp.start()
     launchers.append(cp)
-    cluster_dir = os.path.join(get_ipython_dir(), 'cluster_iptest')
+    cluster_dir = os.path.join(get_ipython_dir(), 'profile_iptest')
     engine_json = os.path.join(cluster_dir, 'security', 'ipcontroller-engine.json')
     client_json = os.path.join(cluster_dir, 'security', 'ipcontroller-client.json')
     tic = time.time()
