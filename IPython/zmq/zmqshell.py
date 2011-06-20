@@ -33,7 +33,7 @@ from IPython.utils import io
 from IPython.utils.path import get_py_filename
 from IPython.utils.traitlets import Instance, Type, Dict
 from IPython.utils.warn import warn
-from IPython.zmq.displayhook import ZMQShellDisplayHook
+from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_png
 from IPython.zmq.session import extract_header
 from session import Session
 
