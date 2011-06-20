@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 """test View objects
 
 Authors:
 
 * Min RK
 """
-# -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
 #
