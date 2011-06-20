@@ -104,8 +104,11 @@ class Application(SingletonConfigurable):
                     config=True,
                     help="Set the log level by value or name.")
     def _log_level_changed(self, name, old, new):
+        """Adjust the log level when log_level is set."""
         if isinstance(new, basestring):
-            self.log_level = getattr(logging, new)
+            new = getattr(logging, new)
+            self.log_level = new
+        self.log.setLevel(new)
     
     # the alias map for configurables
     aliases = Dict(dict(log_level='Application.log_level'))
@@ -178,10 +181,6 @@ class Application(SingletonConfigurable):
         """
         if self.subapp is not None:
             return self.subapp.start()
-    
-    def _log_level_changed(self, name, old, new):
-        """Adjust the log level when log_level is set."""
-        self.log.setLevel(new)
     
     def print_alias_help(self):
         """Print the alias part of the help."""
