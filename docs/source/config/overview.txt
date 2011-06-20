@@ -18,8 +18,8 @@ met our requirements.
     your old :file:`ipythonrc` or :file:`ipy_user_conf.py` configuration files
     to the new system.  Read on for information on how to do this.
 
-The discussion that follows is focused on teaching user's how to configure
-IPython to their liking.  Developer's who want to know more about how they
+The discussion that follows is focused on teaching users how to configure
+IPython to their liking.  Developers who want to know more about how they
 can enable their objects to take advantage of the configuration system
 should consult our :ref:`developer guide <developer_guide>`
 
@@ -37,15 +37,19 @@ Configuration object: :class:`~IPython.config.loader.Config`
     are smart. They know how to merge themselves with other configuration
     objects and they automatically create sub-configuration objects.
 
-Application: :class:`~IPython.core.application.Application`
+Application: :class:`~IPython.config.application.Application`
     An application is a process that does a specific job. The most obvious
     application is the :command:`ipython` command line program. Each
-    application reads a *single* configuration file and command line options
+    application reads *one or more* configuration files and a single set of
+    command line options
     and then produces a master configuration object for the application. This
     configuration object is then passed to the configurable objects that the
     application creates. These configurable objects implement the actual logic
     of the application and know how to configure themselves given the
     configuration object.
+    
+    Applications always have a `log` attribute that is a configured Logger.
+    This allows centralized logging configuration per-application.
 
 Component: :class:`~IPython.config.configurable.Configurable`
     A configurable is a regular Python class that serves as a base class for
@@ -63,6 +67,25 @@ Component: :class:`~IPython.config.configurable.Configurable`
     subclasses that implement all of the logic in the application. Each of
     these subclasses has its own configuration information that controls how
     instances are created.
+
+Singletons: :class:`~IPython.config.configurable.SingletonConfigurable`
+    Any object for which there is a single canonical instance. These are
+    just like Configurables, except they have a class method 
+    :meth:`~IPython.config.configurable.SingletonConfigurable.instance`,
+    that returns the current active instance (or creates one if it
+    does not exist).  Examples of singletons include
+    :class:`~IPython.config.application.Application`s and
+    :class:`~IPython.core.interactiveshell.InteractiveShell`.  This lets
+    objects easily connect to the current running Application without passing
+    objects around everywhere.  For instance, to get the current running 
+    Application instance, simply do: ``app = Application.instance()``.
+
+
+.. note::
+
+    Singletons are not strictly enforced - you can have many instances
+    of a given singleton class, but the :meth:`instance` method will always
+    return the same one.
 
 Having described these main concepts, we can now state the main idea in our
 configuration system: *"configuration" allows the default values of class
@@ -106,7 +129,7 @@ subclass::
     from IPython.utils.traitlets import Int, Float, Str, Bool
     
     class MyClass(Configurable):
-        name = Str('defaultname', config=True)
+        name = Unicode(u'defaultname', config=True)
         ranking = Int(0, config=True)
         value = Float(99.0)
         # The rest of the class implementation would go here..
@@ -197,6 +220,15 @@ search path for sub-configuration files is inherited from that of the parent.
 Thus, you can typically put the two in the same directory and everything will
 just work.
 
+You can also load configuration files by profile, for instance:
+
+.. sourcecode:: python
+
+    load_subconfig('ipython_config.py', profile='default')
+
+to inherit your default configuration as a starting point.
+
+
 Class based configuration inheritance
 =====================================
 
@@ -241,9 +273,10 @@ This class hierarchy and configuration file accomplishes the following:
 Configuration file location
 ===========================
 
-So where should you put your configuration files?  By default, all IPython
-applications look in the so called "IPython directory".  The location of
-this directory is determined by the following algorithm:
+So where should you put your configuration files? IPython uses "profiles" for
+configuration, and by default, all profiles will be stored in the so called
+"IPython directory". The location of this directory is determined by the
+following algorithm:
 
 * If the ``ipython_dir`` command line flag is given, its value is used.
 
@@ -263,26 +296,41 @@ For most users, the default value will simply be something like
 :file:`$HOME/.config/ipython` on Linux, or :file:`$HOME/.ipython`
 elsewhere.
 
-Once the location of the IPython directory has been determined, you need to
-know what filename to use for the configuration file. The basic idea is that
-each application has its own default configuration filename. The default named
-used by the :command:`ipython` command line program is
-:file:`ipython_config.py`.  This value can be overriden by the ``config_file``
-command line flag.  A sample :file:`ipython_config.py` file can be found
-in :mod:`IPython.config.default.ipython_config.py`.  Simple copy it to your
-IPython directory to begin using it.
+Once the location of the IPython directory has been determined, you need to know
+which profile you are using. For users with a single configuration, this will
+simply be 'default', and will be located in 
+:file:`<IPYTHON_DIR>/profile_default`.
+
+The next thing you need to know is what to call your configuration file. The
+basic idea is that each application has its own default configuration filename.
+The default named used by the :command:`ipython` command line program is
+:file:`ipython_config.py`, and *all* IPython applications will use this file.
+Other applications, such as the parallel :command:`ipcluster` scripts or the
+QtConsole will load their own config files *after* :file:`ipython_config.py`. To
+load a particular configuration file instead of the default, the name can be
+overridden by the ``config_file`` command line flag.
+
+To generate the default configuration files, do::
+
+    $> ipython profile create
+
+and you will have a default :file:`ipython_config.py` in your IPython directory
+under :file:`profile_default`. If you want the default config files for the
+:mod:`IPython.parallel` applications, add ``--parallel`` to the end of the
+command-line args.
 
 .. _Profiles:
 
 Profiles
 ========
 
-A profile is simply a configuration file that follows a simple naming
-convention and can be loaded using a simplified syntax.  The idea is
-that users often want to maintain a set of configuration files for different
-purposes:  one for doing numerical computing with NumPy and SciPy and
-another for doing symbolic computing with SymPy.  Profiles make it easy
-to keep a separate configuration file for each of these purposes.
+A profile is a directory containing configuration and runtime files, such as
+logs, connection info for the parallel apps, and your IPython command history.
+
+The idea is that users often want to maintain a set of configuration files for
+different purposes: one for doing numerical computing with NumPy and SciPy and
+another for doing symbolic computing with SymPy. Profiles make it easy to keep a
+separate configuration files, logs, and histories for each of these purposes.
 
 Let's start by showing how a profile is used:
 
@@ -290,18 +338,107 @@ Let's start by showing how a profile is used:
 
     $ ipython profile=sympy
 
-This tells the :command:`ipython` command line program to get its
-configuration from the "sympy" profile. The search path for profiles is the
-same as that of regular configuration files. The only difference is that
-profiles are named in a special way. In the case above, the "sympy" profile
-would need to have the name :file:`ipython_config_sympy.py`.
+This tells the :command:`ipython` command line program to get its configuration
+from the "sympy" profile. The file names for various profiles do not change. The
+only difference is that profiles are named in a special way. In the case above,
+the "sympy" profile means looking for :file:`ipython_config.py` in :file:`<IPYTHON_DIR>/profile_sympy`.
 
-The general pattern is this: simply add ``<profilename>`` to the end of the
-normal configuration file name. Then load the profile by adding 
-``profile=<profilename>`` to your command line options.
+The general pattern is this: simply create a new profile with:
 
-IPython ships with some sample profiles in :mod:`IPython.config.profile`.
-Simply copy these to your IPython directory to begin using them.
+.. code-block:: bash
+
+    ipython profile create <name>
+
+which adds a directory called ``profile_<name>`` to your IPython directory. Then
+you can load this profile by adding ``profile=<name>`` to your command line
+options. Profiles are supported by all IPython applications.
+
+IPython ships with some sample profiles in :file:`IPython/config/profile`. If
+you create profiles with the name of one of our shipped profiles, these config
+files will be copied over instead of starting with the automatically generated
+config files.
+
+.. _commandline:
+
+Command-line arguments
+======================
+
+IPython exposes *all* configurable options on the command-line. The command-line
+arguments are generated from the Configurable traits of the classes associated
+with a given Application.  Configuring IPython from the command-line may look
+very similar to an IPython config file
+
+IPython applications use a parser called
+:class:`~IPython.config.loader.KeyValueLoader` to load values into a Config
+object.  Values are assigned in much the same way as in a config file:
+
+.. code-block:: bash
+
+    $> ipython InteractiveShell.use_readline=False BaseIPythonApplication.profile='myprofile'
+
+Is the same as adding:
+
+.. sourcecode:: python
+
+    c.InteractiveShell.use_readline=False
+    c.BaseIPythonApplication.profile='myprofile'
+
+to your config file. Key/Value arguments *always* take a value, separated by '='
+and no spaces.
+
+Aliases
+-------
+
+For convenience, applications have a mapping of commonly
+used traits, so you don't have to specify the whole class name. For these **aliases**, the class need not be specified:
+
+.. code-block:: bash
+
+    $> ipython profile='myprofile'
+    # is equivalent to
+    $> ipython BaseIPythonApplication.profile='myprofile'
+
+Flags
+-----
+
+Applications can also be passed **flags**. Flags are options that take no
+arguments, and are always prefixed with ``--``. They are simply wrappers for
+setting one or more configurables with predefined values, often True/False.
+
+For instance:
+
+.. code-block:: bash
+
+    $> ipcontroller --debug
+    # is equivalent to
+    $> ipcontroller Application.log_level=DEBUG
+    # and 
+    $> ipython --pylab
+    # is equivalent to
+    $> ipython pylab=auto
+
+Subcommands
+-----------
+
+
+Some IPython applications have **subcommands**. Subcommands are modeled after
+:command:`git`, and are called with the form :command:`command subcommand
+[...args]`.  Currently, the QtConsole is a subcommand of terminal IPython:
+
+.. code-block:: bash
+
+    $> ipython qtconsole profile=myprofile
+
+and :command:`ipcluster` is simply a wrapper for its various subcommands (start,
+stop, engines).
+
+.. code-block:: bash
+
+    $> ipcluster start profile=myprofile n=4
+
+
+To see a list of the available aliases, flags, and subcommands for an IPython application, simply pass ``-h`` or ``--help``.  And to see the full list of configurable options (*very* long), pass ``--help-all``.
+
 
 Design requirements
 ===================

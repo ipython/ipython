@@ -46,7 +46,7 @@ There are two ways you can tell IPython to use your extension:
 To load an extension called :file:`myextension.py` add the following logic
 to your configuration file::
 
-    c.Global.extensions = [
+    c.InteractiveShellApp.extensions = [
         'myextension'
     ]
 
