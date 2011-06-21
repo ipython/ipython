@@ -74,20 +74,17 @@ class RichIPythonWidget(IPythonWidget):
             prompt_number = content['execution_count']
             data = content['data']
             if data.has_key('image/svg+xml'):
-                self._append_plain_text(self.output_sep)
-                self._append_html(self._make_out_prompt(prompt_number))
-                # TODO: try/except this call.
-                self._append_svg(data['image/svg+xml'])
-                self._append_html(self.output_sep2)
+                self._append_plain_text(self.output_sep, True)
+                self._append_html(self._make_out_prompt(prompt_number), True)
+                self._append_svg(data['image/svg+xml'], True)
+                self._append_html(self.output_sep2, True)
             elif data.has_key('image/png'):
-                self._append_plain_text(self.output_sep)
-                self._append_html(self._make_out_prompt(prompt_number))
+                self._append_plain_text(self.output_sep, True)
+                self._append_html(self._make_out_prompt(prompt_number), True)
                 # This helps the output to look nice.
-                self._append_plain_text('\n')
-                # TODO: try/except these calls
-                png = decodestring(data['image/png'])
-                self._append_png(png)
-                self._append_html(self.output_sep2)
+                self._append_plain_text('\n', True)
+                self._append_png(decodestring(data['image/png']), True)
+                self._append_html(self.output_sep2, True)
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_pyout(msg)
@@ -103,14 +100,12 @@ class RichIPythonWidget(IPythonWidget):
             # FIXME: Is this the right ordering of things to try?
             if data.has_key('image/svg+xml'):
                 svg = data['image/svg+xml']
-                # TODO: try/except this call.
-                self._append_svg(svg)
+                self._append_svg(svg, True)
             elif data.has_key('image/png'):
-                # TODO: try/except these calls
                 # PNG data is base64 encoded as it passes over the network
                 # in a JSON structure so we decode it.
                 png = decodestring(data['image/png'])
-                self._append_png(png)
+                self._append_png(png, True)
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_display_data(msg)
@@ -119,35 +114,15 @@ class RichIPythonWidget(IPythonWidget):
     # 'RichIPythonWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _append_svg(self, svg):
-        """ Append raw svg data to the widget.
+    def _append_png(self, png, before_prompt=False):
+        """ Append raw PNG data to the widget.
         """
-        try:
-            image = svg_to_image(svg)
-        except ValueError:
-            self._append_plain_text('Received invalid plot data.')
-        else:
-            format = self._add_image(image)
-            self._name_to_svg_map[format.name()] = svg
-            cursor = self._get_end_cursor()
-            cursor.insertBlock()
-            cursor.insertImage(format)
-            cursor.insertBlock()
+        self._append_custom(self._insert_png, png, before_prompt)
 
-    def _append_png(self, png):
-        """ Append raw svg data to the widget.
+    def _append_svg(self, svg, before_prompt=False):
+        """ Append raw SVG data to the widget.
         """
-        try:
-            image = QtGui.QImage()
-            image.loadFromData(png, 'PNG')
-        except ValueError:
-            self._append_plain_text('Received invalid plot data.')
-        else:
-            format = self._add_image(image)
-            cursor = self._get_end_cursor()
-            cursor.insertBlock()
-            cursor.insertImage(format)
-            cursor.insertBlock()
+        self._append_custom(self._insert_svg, svg, before_prompt)
 
     def _add_image(self, image):
         """ Adds the specified QImage to the document and returns a
@@ -235,6 +210,34 @@ class RichIPythonWidget(IPythonWidget):
 
         else:
             return '<b>Unrecognized image format</b>'
+
+    def _insert_png(self, cursor, png):
+        """ Insert raw PNG data into the widget.
+        """
+        try:
+            image = QtGui.QImage()
+            image.loadFromData(png, 'PNG')
+        except ValueError:
+            self._insert_plain_text(cursor, 'Received invalid PNG data.')
+        else:
+            format = self._add_image(image)
+            cursor.insertBlock()
+            cursor.insertImage(format)
+            cursor.insertBlock()
+
+    def _insert_svg(self, cursor, svg):
+        """ Insert raw SVG data into the widet.
+        """
+        try:
+            image = svg_to_image(svg)
+        except ValueError:
+            self._insert_plain_text(cursor, 'Received invalid SVG data.')
+        else:
+            format = self._add_image(image)
+            self._name_to_svg_map[format.name()] = svg
+            cursor.insertBlock()
+            cursor.insertImage(format)
+            cursor.insertBlock()
 
     def _save_image(self, name, format='PNG'):
         """ Shows a save dialog for the ImageResource with 'name'.
