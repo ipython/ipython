@@ -427,6 +427,7 @@ def check_for_old_config(ipython_dir=None):
     will be ignored. See http://ipython.github.com/ipython-doc/dev/config for
     details on the new config system. To start configuring IPython, do 
     `ipython profile create`, and edit `ipython_config.py` in
-    <ipython_dir>/profile_default.""")
+    <ipython_dir>/profile_default, adding
+    `c.InteractiveShellApp.ignore_old_config=True`""")
         
 
