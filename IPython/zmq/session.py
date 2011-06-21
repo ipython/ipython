@@ -47,7 +47,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
-from IPython.utils.traitlets import CStr, Unicode, Bool, Any, Instance, Set
+from IPython.utils.traitlets import Bytes, Unicode, Bool, Any, Instance, Set
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -238,7 +238,7 @@ class Session(Configurable):
         else:
             self.unpack = import_item(str(new))
         
-    session = CStr('', config=True,
+    session = Bytes(b'', config=True,
         help="""The UUID identifying this session.""")
     def _session_default(self):
         return bytes(uuid.uuid4())
@@ -247,7 +247,7 @@ class Session(Configurable):
         help="""Username for the Session. Default is your system username.""")
     
     # message signature related traits:
-    key = CStr('', config=True,
+    key = Bytes(b'', config=True,
         help="""execution key, for extra authentication.""")
     def _key_changed(self, name, old, new):
         if new:
