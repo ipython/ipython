@@ -65,13 +65,16 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
     )
     gui_completion = Bool(False, config=True,
-        help="Use a list widget instead of plain text output for tab completion."
+        help="""
+        Use a list widget instead of plain text output for tab completion.
+        """
     )
     # NOTE: this value can only be specified during initialization.
     kind = Enum(['plain', 'rich'], default_value='plain', config=True,
         help="""
-        The type of underlying text widget to use. Valid values are 'plain', which
-        specifies a QPlainTextEdit, and 'rich', which specifies a QTextEdit.
+        The type of underlying text widget to use. Valid values are 'plain',
+        which specifies a QPlainTextEdit, and 'rich', which specifies a
+        QTextEdit.
         """
     )
     # NOTE: this value can only be specified during initialization.
@@ -84,7 +87,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             'hsplit' : When paging is requested, the widget is split
                        horizontally. The top pane contains the console, and the
                        bottom pane contains the paged text.
-            'vsplit' : Similar to 'hsplit', except that a vertical splitter used.
+            'vsplit' : Similar to 'hsplit', except that a vertical splitter
+                       used.
             'custom' : No action is taken by the widget beyond emitting a
                        'custom_page_requested(str)' signal.
             'none'   : The text is written directly to the console.
@@ -508,7 +512,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         self._html_exporter.export()
 
-    def _get_input_buffer(self):
+    def _get_input_buffer(self, force=False):
         """ The text that the user has entered entered at the current prompt.
 
         If the console is currently executing, the text that is executing will
@@ -516,7 +520,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         """
         # If we're executing, the input buffer may not even exist anymore due to
         # the limit imposed by 'buffer_size'. Therefore, we store it.
-        if self._executing:
+        if self._executing and not force:
             return self._input_buffer_executing
 
         cursor = self._get_end_cursor()
@@ -1628,7 +1632,8 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         self._control.setReadOnly(False)
         self._control.setAttribute(QtCore.Qt.WA_InputMethodEnabled, True)
 
-        self._executing = False
+        if not self._reading:
+            self._executing = False
         self._prompt_started_hook()
 
         # If the input buffer has changed while executing, load it.
@@ -1671,11 +1676,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             self._reading_callback = None
             while self._reading:
                 QtCore.QCoreApplication.processEvents()
-            return self.input_buffer.rstrip('\n')
+            return self._get_input_buffer(force=True).rstrip('\n')
 
         else:
             self._reading_callback = lambda: \
-                callback(self.input_buffer.rstrip('\n'))
+                callback(self._get_input_buffer(force=True).rstrip('\n'))
 
     def _set_continuation_prompt(self, prompt, html=False):
         """ Sets the continuation prompt.
