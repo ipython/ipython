@@ -141,7 +141,7 @@ There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
 .. sourcecode:: python
 
-    c.IPClusterEnginesApp.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
+    c.IPClusterEngines.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
@@ -156,7 +156,7 @@ If you have a reason to also start the Controller with mpi, you can specify:
 
 .. sourcecode:: python
 
-    c.IPClusterStartApp.controller_launcher = 'IPython.parallel.apps.launcher.MPIExecControllerLauncher'
+    c.IPClusterStart.controller_launcher = 'IPython.parallel.apps.launcher.MPIExecControllerLauncher'
 
 .. note::
 
@@ -274,7 +274,7 @@ submitted (``{queue}``)). These are configurables, and can be specified in
 .. sourcecode:: python
 
     c.PBSLauncher.queue = 'veryshort.q'
-    c.IPClusterEnginesApp.n = 64
+    c.IPClusterEngines.n = 64
 
 Note that assuming you are running PBS on a multi-node cluster, the Controller's default behavior
 of listening only on localhost is likely too restrictive.  In this case, also assuming the
