@@ -193,7 +193,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def compute_banner(self):
         self.banner = self.banner1
-        if self.profile:
+        if self.profile and self.profile != 'default':
             self.banner += '\nIPython profile: %s\n' % self.profile
         if self.banner2:
             self.banner += '\n' + self.banner2
