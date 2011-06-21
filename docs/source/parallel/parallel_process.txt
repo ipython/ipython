@@ -405,7 +405,7 @@ controller and engines from IPython.
     
     The order of the above operations may be important.  You *must*
     start the controller before the engines, unless you are reusing connection
-    information (via `-r`), in which case ordering is not important.
+    information (via `--reuse`), in which case ordering is not important.
 
 .. note::
 
@@ -431,12 +431,12 @@ can do this:
 
 * Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/profile_<name>/security`
   directory on the engine's host, where it will be found automatically.
-* Call :command:`ipengine` with the ``--file=full_path_to_the_file``
+* Call :command:`ipengine` with the ``file=full_path_to_the_file``
   flag.
 
-The ``--file`` flag works like this::
+The ``file`` flag works like this::
 
-    $ ipengine --file=/path/to/my/ipcontroller-engine.json
+    $ ipengine file=/path/to/my/ipcontroller-engine.json
 
 .. note::
     
