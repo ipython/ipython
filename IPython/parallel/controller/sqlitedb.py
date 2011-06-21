@@ -1,4 +1,9 @@
-"""A TaskRecord backend using sqlite3"""
+"""A TaskRecord backend using sqlite3
+
+Authors:
+
+* Min RK
+"""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
 #
@@ -15,9 +20,9 @@ import sqlite3
 
 from zmq.eventloop import ioloop
 
-from IPython.utils.traitlets import CUnicode, CStr, Instance, List
+from IPython.utils.traitlets import Unicode, Instance, List, Dict
 from .dictdb import BaseDB
-from IPython.parallel.util import ISO8601
+from IPython.utils.jsonutil import date_default, extract_dates, squash_dates
 
 #-----------------------------------------------------------------------------
 # SQLite operators, adapters, and converters
@@ -42,23 +47,14 @@ null_operators = {
 '!=' : "IS NOT NULL",
 }
 
-def _adapt_datetime(dt):
-    return dt.strftime(ISO8601)
-
-def _convert_datetime(ds):
-    if ds is None:
-        return ds
-    else:
-        return datetime.strptime(ds, ISO8601)
-
 def _adapt_dict(d):
-    return json.dumps(d)
+    return json.dumps(d, default=date_default)
 
 def _convert_dict(ds):
     if ds is None:
         return ds
     else:
-        return json.loads(ds)
+        return extract_dates(json.loads(ds))
 
 def _adapt_bufs(bufs):
     # this is *horrible*
@@ -83,11 +79,19 @@ def _convert_bufs(bs):
 class SQLiteDB(BaseDB):
     """SQLite3 TaskRecord backend."""
     
-    filename = CUnicode('tasks.db', config=True)
-    location = CUnicode('', config=True)
-    table = CUnicode("", config=True)
+    filename = Unicode('tasks.db', config=True,
+        help="""The filename of the sqlite task database. [default: 'tasks.db']""")
+    location = Unicode('', config=True,
+        help="""The directory containing the sqlite task database.  The default
+        is to use the cluster_dir location.""")
+    table = Unicode("", config=True,
+        help="""The SQLite Table to use for storing tasks for this session. If unspecified,
+        a new table will be created with the Hub's IDENT.  Specifying the table will result
+        in tasks from previous sessions being available via Clients' db_query and
+        get_result methods.""")
     
     _db = Instance('sqlite3.Connection')
+    # the ordered list of column names
     _keys = List(['msg_id' ,
             'header' ,
             'content',
@@ -108,6 +112,27 @@ class SQLiteDB(BaseDB):
             'stdout',
             'stderr',
         ])
+    # sqlite datatypes for checking that db is current format
+    _types = Dict({'msg_id' : 'text' ,
+            'header' : 'dict text',
+            'content' : 'dict text',
+            'buffers' : 'bufs blob',
+            'submitted' : 'timestamp',
+            'client_uuid' : 'text',
+            'engine_uuid' : 'text',
+            'started' : 'timestamp',
+            'completed' : 'timestamp',
+            'resubmitted' : 'timestamp',
+            'result_header' : 'dict text',
+            'result_content' : 'dict text',
+            'result_buffers' : 'bufs blob',
+            'queue' : 'text',
+            'pyin' : 'text',
+            'pyout' : 'text',
+            'pyerr' : 'text',
+            'stdout' : 'text',
+            'stderr' : 'text',
+        })
     
     def __init__(self, **kwargs):
         super(SQLiteDB, self).__init__(**kwargs)
@@ -115,10 +140,16 @@ class SQLiteDB(BaseDB):
             # use session, and prefix _, since starting with # is illegal
             self.table = '_'+self.session.replace('-','_')
         if not self.location:
-            if hasattr(self.config.Global, 'cluster_dir'):
-                self.location = self.config.Global.cluster_dir
+            # get current profile
+            from IPython.core.application import BaseIPythonApplication
+            if BaseIPythonApplication.initialized():
+                app = BaseIPythonApplication.instance()
+                if app.profile_dir is not None:
+                    self.location = app.profile_dir.location
+                else:
+                    self.location = u'.'
             else:
-                self.location = '.'
+                self.location = u'.'
         self._init_db()
         
         # register db commit as 2s periodic callback
@@ -136,11 +167,36 @@ class SQLiteDB(BaseDB):
             d[key] = None
         return d
     
+    def _check_table(self):
+        """Ensure that an incorrect table doesn't exist
+        
+        If a bad (old) table does exist, return False
+        """
+        cursor = self._db.execute("PRAGMA table_info(%s)"%self.table)
+        lines = cursor.fetchall()
+        if not lines:
+            # table does not exist
+            return True
+        types = {}
+        keys = []
+        for line in lines:
+            keys.append(line[1])
+            types[line[1]] = line[2]
+        if self._keys != keys:
+            # key mismatch
+            self.log.warn('keys mismatch')
+            return False
+        for key in self._keys:
+            if types[key] != self._types[key]:
+                self.log.warn(
+                    'type mismatch: %s: %s != %s'%(key,types[key],self._types[key])
+                )
+                return False
+        return True
+        
     def _init_db(self):
         """Connect to the database and get new session number."""
         # register adapters
-        sqlite3.register_adapter(datetime, _adapt_datetime)
-        sqlite3.register_converter('datetime', _convert_datetime)
         sqlite3.register_adapter(dict, _adapt_dict)
         sqlite3.register_converter('dict', _convert_dict)
         sqlite3.register_adapter(list, _adapt_bufs)
@@ -151,18 +207,27 @@ class SQLiteDB(BaseDB):
             # isolation_level = None)#,
              cached_statements=64)
         # print dir(self._db)
+        first_table = self.table
+        i=0
+        while not self._check_table():
+            i+=1
+            self.table = first_table+'_%i'%i
+            self.log.warn(
+                "Table %s exists and doesn't match db format, trying %s"%
+                (first_table,self.table)
+            )
         
         self._db.execute("""CREATE TABLE IF NOT EXISTS %s 
                 (msg_id text PRIMARY KEY,
                 header dict text,
                 content dict text,
                 buffers bufs blob,
-                submitted datetime text,
+                submitted timestamp,
                 client_uuid text,
                 engine_uuid text,
-                started datetime text,
-                completed datetime text,
-                resubmitted datetime text,
+                started timestamp,
+                completed timestamp,
+                resubmitted timestamp,
                 result_header dict text,
                 result_content dict text,
                 result_buffers bufs blob,

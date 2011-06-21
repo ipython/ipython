@@ -17,14 +17,14 @@ import zmq
 
 from zmq.tests import BaseZMQTestCase
 from zmq.eventloop.zmqstream import ZMQStream
-# from IPython.zmq.tests import SessionTestCase
-from IPython.parallel import streamsession as ss
+
+from IPython.zmq import session as ss
 
 class SessionTestCase(BaseZMQTestCase):
     
     def setUp(self):
         BaseZMQTestCase.setUp(self)
-        self.session = ss.StreamSession()
+        self.session = ss.Session()
 
 class TestSession(SessionTestCase):
     
@@ -42,19 +42,19 @@ class TestSession(SessionTestCase):
             
     
     def test_args(self):
-        """initialization arguments for StreamSession"""
+        """initialization arguments for Session"""
         s = self.session
         self.assertTrue(s.pack is ss.default_packer)
         self.assertTrue(s.unpack is ss.default_unpacker)
         self.assertEquals(s.username, os.environ.get('USER', 'username'))
         
-        s = ss.StreamSession(username=None)
+        s = ss.Session()
         self.assertEquals(s.username, os.environ.get('USER', 'username'))
         
-        self.assertRaises(TypeError, ss.StreamSession, packer='hi')
-        self.assertRaises(TypeError, ss.StreamSession, unpacker='hi')
+        self.assertRaises(TypeError, ss.Session, pack='hi')
+        self.assertRaises(TypeError, ss.Session, unpack='hi')
         u = str(uuid.uuid4())
-        s = ss.StreamSession(username='carrot', session=u)
+        s = ss.Session(username='carrot', session=u)
         self.assertEquals(s.session, u)
         self.assertEquals(s.username, 'carrot')
         

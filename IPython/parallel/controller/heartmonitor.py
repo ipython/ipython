@@ -2,6 +2,10 @@
 """
 A multi-heart Heartbeat system using PUB and XREP sockets. pings are sent out on the PUB,
 and hearts are tracked based on their XREQ identities.
+
+Authors:
+
+* Min RK
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
@@ -15,11 +19,11 @@ import time
 import uuid
 
 import zmq
-from zmq.devices import ProcessDevice, ThreadDevice
+from zmq.devices import ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
-from IPython.utils.traitlets import Set, Instance, CFloat, Bool
-from IPython.parallel.factory import LoggingFactory
+from IPython.config.configurable import LoggingConfigurable
+from IPython.utils.traitlets import Set, Instance, CFloat
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
@@ -47,20 +51,22 @@ class Heart(object):
     def start(self):
         return self.device.start()
         
-class HeartMonitor(LoggingFactory):
+class HeartMonitor(LoggingConfigurable):
     """A basic HeartMonitor class
     pingstream: a PUB stream
     pongstream: an XREP stream
     period: the period of the heartbeat in milliseconds"""
     
-    period=CFloat(1000, config=True) # in milliseconds
+    period=CFloat(1000, config=True,
+        help='The frequency at which the Hub pings the engines for heartbeats '
+        ' (in ms) [default: 100]',
+    )
     
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         return ioloop.IOLoop.instance()
-    debug=Bool(False)
     
     # not settable:
     hearts=Set()

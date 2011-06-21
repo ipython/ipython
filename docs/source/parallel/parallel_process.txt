@@ -57,7 +57,7 @@ controller and engines in the following situations:
 
 1. When the controller and engines are all run on localhost. This is useful
    for testing or running on a multicore computer.
-2. When engines are started using the :command:`mpirun` command that comes 
+2. When engines are started using the :command:`mpiexec` command that comes 
    with most MPI [MPI]_ implementations
 3. When engines are started using the PBS [PBS]_ batch system 
    (or other `qsub` systems, such as SGE).
@@ -68,7 +68,7 @@ controller and engines in the following situations:
 .. note::
 
     Currently :command:`ipcluster` requires that the
-    :file:`~/.ipython/cluster_<profile>/security` directory live on a shared filesystem that is
+    :file:`~/.ipython/profile_<name>/security` directory live on a shared filesystem that is
     seen by both the controller and engines. If you don't have a shared file
     system you will need to use :command:`ipcontroller` and
     :command:`ipengine` directly.
@@ -80,9 +80,9 @@ The simplest way to use ipcluster requires no configuration, and will
 launch a controller and a number of engines on the local machine. For instance, 
 to start one controller and 4 engines on localhost, just do::
 
-    $ ipcluster start -n 4
+    $ ipcluster start n=4
 
-To see other command line options for the local mode, do::
+To see other command line options, do::
 
     $ ipcluster -h
 
@@ -92,12 +92,12 @@ Configuring an IPython cluster
 
 Cluster configurations are stored as `profiles`.  You can create a new profile with::
 
-    $ ipcluster create -p myprofile
+    $ ipython profile create --parallel profile=myprofile
 
 This will create the directory :file:`IPYTHONDIR/cluster_myprofile`, and populate it
 with the default configuration files for the three IPython cluster commands. Once
 you edit those files, you can continue to call ipcluster/ipcontroller/ipengine
-with no arguments beyond ``-p myprofile``, and any configuration will be maintained.
+with no arguments beyond ``p=myprofile``, and any configuration will be maintained.
 
 There is no limit to the number of profiles you can have, so you can maintain a profile for each
 of your common use cases. The default profile will be used whenever the
@@ -112,7 +112,8 @@ Using various batch systems with :command:`ipcluster`
 
 :command:`ipcluster` has a notion of Launchers that can start controllers
 and engines with various remote execution schemes.  Currently supported
-models include `mpiexec`, PBS-style (Torque, SGE), and Windows HPC Server.
+models include :command:`ssh`, :command`mpiexec`, PBS-style (Torque, SGE),
+and Windows HPC Server.
 
 .. note::
 
@@ -132,7 +133,7 @@ The mpiexec/mpirun mode is useful if you:
 
 If these are satisfied, you can create a new profile::
 
-    $ ipcluster create -p mpi
+    $ ipython profile create --parallel profile=mpi
 
 and edit the file :file:`IPYTHONDIR/cluster_mpi/ipcluster_config.py`.
 
@@ -140,11 +141,11 @@ There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
 .. sourcecode:: python
 
-    c.Global.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
+    c.IPClusterEnginesApp.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
-    $ ipcluster start -n 4 -p mpi
+    $ ipcluster start n=4 profile=mpi
 
 This does the following:
 
@@ -155,7 +156,7 @@ If you have a reason to also start the Controller with mpi, you can specify:
 
 .. sourcecode:: python
 
-    c.Global.controller_launcher = 'IPython.parallel.apps.launcher.MPIExecControllerLauncher'
+    c.IPClusterStartApp.controller_launcher = 'IPython.parallel.apps.launcher.MPIExecControllerLauncher'
 
 .. note::
 
@@ -189,7 +190,7 @@ The PBS mode uses the Portable Batch System [PBS]_ to start the engines.
 
 As usual, we will start by creating a fresh profile::
 
-    $ ipcluster create -p pbs
+    $ ipython profile create --parallel profile=pbs
 
 And in :file:`ipcluster_config.py`, we will select the PBS launchers for the controller
 and engines:
@@ -207,35 +208,32 @@ to specify your own. Here is a sample PBS script template:
     #PBS -N ipython
     #PBS -j oe
     #PBS -l walltime=00:10:00
-    #PBS -l nodes=${n/4}:ppn=4
-    #PBS -q $queue
+    #PBS -l nodes={n/4}:ppn=4
+    #PBS -q {queue}
 
-    cd $$PBS_O_WORKDIR
-    export PATH=$$HOME/usr/local/bin
-    export PYTHONPATH=$$HOME/usr/local/lib/python2.7/site-packages
-    /usr/local/bin/mpiexec -n ${n} ipengine --cluster_dir=${cluster_dir}
+    cd $PBS_O_WORKDIR
+    export PATH=$HOME/usr/local/bin
+    export PYTHONPATH=$HOME/usr/local/lib/python2.7/site-packages
+    /usr/local/bin/mpiexec -n {n} ipengine profile_dir={profile_dir}
 
 There are a few important points about this template:
 
-1. This template will be rendered at runtime using IPython's :mod:`Itpl` 
-   template engine.
+1. This template will be rendered at runtime using IPython's :class:`EvalFormatter`.
+   This is simply a subclass of :class:`string.Formatter` that allows simple expressions
+   on keys.
 
 2. Instead of putting in the actual number of engines, use the notation
-   ``${n}`` to indicate the number of engines to be started. You can also uses
-   expressions like ``${n/4}`` in the template to indicate the number of 
-   nodes. There will always be a ${n} and ${cluster_dir} variable passed to the template.
+   ``{n}`` to indicate the number of engines to be started. You can also use
+   expressions like ``{n/4}`` in the template to indicate the number of nodes.
+   There will always be ``{n}`` and ``{profile_dir}`` variables passed to the formatter.
    These allow the batch system to know how many engines, and where the configuration
-   files reside. The same is true for the batch queue, with the template variable ``$queue``.
+   files reside. The same is true for the batch queue, with the template variable
+   ``{queue}``.
 
-3. Because ``$`` is a special character used by the template engine, you must  
-   escape any ``$`` by using ``$$``.  This is important when referring to 
-   environment variables in the template, or in SGE, where the config lines start
-   with ``#$``, which will have to be ``#$$``.
-
-4. Any options to :command:`ipengine` can be given in the batch script 
+3. Any options to :command:`ipengine` can be given in the batch script
    template, or in :file:`ipengine_config.py`.
 
-5. Depending on the configuration of you system, you may have to set 
+4. Depending on the configuration of you system, you may have to set
    environment variables in the script template.
 
 The controller template should be similar, but simpler:
@@ -246,12 +244,12 @@ The controller template should be similar, but simpler:
     #PBS -j oe
     #PBS -l walltime=00:10:00
     #PBS -l nodes=1:ppn=4
-    #PBS -q $queue
+    #PBS -q {queue}
 
-    cd $$PBS_O_WORKDIR
-    export PATH=$$HOME/usr/local/bin
-    export PYTHONPATH=$$HOME/usr/local/lib/python2.7/site-packages
-    ipcontroller --cluster_dir=${cluster_dir}
+    cd $PBS_O_WORKDIR
+    export PATH=$HOME/usr/local/bin
+    export PYTHONPATH=$HOME/usr/local/lib/python2.7/site-packages
+    ipcontroller profile_dir={profile_dir}
 
 
 Once you have created these scripts, save them with names like
@@ -267,14 +265,14 @@ Once you have created these scripts, save them with names like
 Alternately, you can just define the templates as strings inside :file:`ipcluster_config`.
 
 Whether you are using your own templates or our defaults, the extra configurables available are
-the number of engines to launch (``$n``, and the batch system queue to which the jobs are to be
-submitted (``$queue``)). These are configurables, and can be specified in
+the number of engines to launch (``{n}``, and the batch system queue to which the jobs are to be
+submitted (``{queue}``)). These are configurables, and can be specified in
 :file:`ipcluster_config`:
 
 .. sourcecode:: python
 
     c.PBSLauncher.queue = 'veryshort.q'
-    c.PBSEngineSetLauncher.n = 64
+    c.IPClusterEnginesApp.n = 64
 
 Note that assuming you are running PBS on a multi-node cluster, the Controller's default behavior
 of listening only on localhost is likely too restrictive.  In this case, also assuming the
@@ -287,7 +285,7 @@ connections on all its interfaces, by adding in :file:`ipcontroller_config`:
 
 You can now run the cluster with::
 
-    $ ipcluster start -p pbs -n 128
+    $ ipcluster start profile=pbs n=128
 
 Additional configuration options can be found in the PBS section of :file:`ipcluster_config`.
 
@@ -312,7 +310,7 @@ nodes and :command:`ipcontroller` can be run remotely as well, or on localhost.
 
 As usual, we start by creating a clean profile::
 
-    $ ipcluster create -p ssh
+    $ ipython profile create --parallel profile=ssh
 
 To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
@@ -334,8 +332,8 @@ The controller's remote location and configuration can be specified:
     # Set the arguments to be passed to ipcontroller
     # note that remotely launched ipcontroller will not get the contents of 
     # the local ipcontroller_config.py unless it resides on the *remote host*
-    # in the location specified by the --cluster_dir argument.
-    # c.SSHControllerLauncher.program_args = ['-r', '-ip', '0.0.0.0', '--cluster_dir', '/path/to/cd']
+    # in the location specified by the `profile_dir` argument.
+    # c.SSHControllerLauncher.program_args = ['--reuse', 'ip=0.0.0.0', 'profile_dir=/path/to/cd']
 
 .. note::
 
@@ -351,7 +349,7 @@ on that host.
 
     c.SSHEngineSetLauncher.engines = { 'host1.example.com' : 2,
                 'host2.example.com' : 5,
-                'host3.example.com' : (1, ['--cluster_dir', '/home/different/location']),
+                'host3.example.com' : (1, ['profile_dir=/home/different/location']),
                 'host4.example.com' : 8 }
 
 * The `engines` dict, where the keys are the host we want to run engines on and
@@ -364,7 +362,7 @@ a single location:
 
 .. sourcecode:: python
 
-    c.SSHEngineSetLauncher.engine_args = ['--cluster_dir', '/path/to/cluster_ssh']
+    c.SSHEngineSetLauncher.engine_args = ['profile_dir=/path/to/cluster_ssh']
 
 Current limitations of the SSH mode of :command:`ipcluster` are:
 
@@ -419,7 +417,7 @@ When the controller and engines are running on different hosts, things are
 slightly more complicated, but the underlying ideas are the same:
 
 1. Start the controller on a host using :command:`ipcontroller`.
-2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/cluster_<profile>/security` on
+2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/profile_<name>/security` on
    the controller's host to the host where the engines will run.
 3. Use :command:`ipengine` on the engine's hosts to start the engines.
 
@@ -427,7 +425,7 @@ The only thing you have to be careful of is to tell :command:`ipengine` where
 the :file:`ipcontroller-engine.json` file is located. There are two ways you
 can do this:
 
-* Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/cluster_<profile>/security`
+* Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/profile_<name>/security`
   directory on the engine's host, where it will be found automatically.
 * Call :command:`ipengine` with the ``--file=full_path_to_the_file``
   flag.
@@ -439,7 +437,7 @@ The ``--file`` flag works like this::
 .. note::
     
     If the controller's and engine's hosts all have a shared file system  
-    (:file:`~/.ipython/cluster_<profile>/security` is the same on all of them), then things
+    (:file:`~/.ipython/profile_<name>/security` is the same on all of them), then things
     will just work!
 
 Make JSON files persistent
@@ -452,10 +450,10 @@ you want to unlock the door and enter your house. As with your house, you want
 to be able to create the key (or JSON file) once, and then simply use it at
 any point in the future.
 
-To do this, the only thing you have to do is specify the `-r` flag, so that
+To do this, the only thing you have to do is specify the `--reuse` flag, so that
 the connection information in the JSON files remains accurate::
 
-    $ ipcontroller -r
+    $ ipcontroller --reuse
 
 Then, just copy the JSON files over the first time and you are set. You can
 start and stop the controller and engines any many times as you want in the
@@ -474,7 +472,7 @@ Log files
 
 All of the components of IPython have log files associated with them.
 These log files can be extremely useful in debugging problems with
-IPython and can be found in the directory :file:`~/.ipython/cluster_<profile>/log`.
+IPython and can be found in the directory :file:`~/.ipython/profile_<name>/log`.
 Sending the log files to us will often help us to debug any problems.
 
 

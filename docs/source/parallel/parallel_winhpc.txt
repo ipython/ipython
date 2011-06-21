@@ -162,7 +162,7 @@ cluster using the Windows HPC Server 2008 job scheduler. To make sure that
 to start an IPython cluster on your local host. To do this, open a Windows
 Command Prompt and type the following command::
 
-    ipcluster start -n 2
+    ipcluster start n=2
 
 You should see a number of messages printed to the screen, ending with 
 "IPython cluster: started". The result should look something like the following
@@ -179,11 +179,11 @@ describe how to configure and run an IPython cluster on an actual compute
 cluster running Windows HPC Server 2008. Here is an outline of the needed
 steps:
 
-1. Create a cluster profile using: ``ipcluster create -p mycluster``
+1. Create a cluster profile using: ``ipython profile create --parallel profile=mycluster``
 
 2. Edit configuration files in the directory :file:`.ipython\\cluster_mycluster`
 
-3. Start the cluster using: ``ipcluser start -p mycluster -n 32``
+3. Start the cluster using: ``ipcluser start profile=mycluster n=32``
 
 Creating a cluster profile
 --------------------------
@@ -198,13 +198,13 @@ directory is a specially named directory (typically located in the
 :file:`.ipython` subdirectory of your home directory) that contains the
 configuration files for a particular cluster profile, as well as log files and
 security keys. The naming convention for cluster directories is:
-:file:`cluster_<profile name>`. Thus, the cluster directory for a profile named
+:file:`profile_<profile name>`. Thus, the cluster directory for a profile named
 "foo" would be :file:`.ipython\\cluster_foo`.
 
 To create a new cluster profile (named "mycluster") and the associated cluster
 directory, type the following command at the Windows Command Prompt::
 
-    ipcluster create -p mycluster
+    ipython profile create --parallel profile=mycluster
 
 The output of this command is shown in the screenshot below. Notice how
 :command:`ipcluster` prints out the location of the newly created cluster
@@ -257,7 +257,7 @@ Starting the cluster profile
 Once a cluster profile has been configured, starting an IPython cluster using
 the profile is simple::
 
-    ipcluster start -p mycluster -n 32
+    ipcluster start profile=mycluster n=32
 
 The ``-n`` option tells :command:`ipcluster` how many engines to start (in
 this case 32). Stopping the cluster is as simple as typing Control-C.

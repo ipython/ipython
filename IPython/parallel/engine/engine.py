@@ -2,6 +2,10 @@
 """A simple engine that talks to a controller over 0MQ.
 it handles registration, etc. and launches a kernel
 connected to the Controller's Schedulers.
+
+Authors:
+
+* Min RK
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
@@ -19,13 +23,14 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # internal
-from IPython.utils.traitlets import Instance, Str, Dict, Int, Type, CFloat
+from IPython.utils.traitlets import Instance, Dict, Int, Type, CFloat, Unicode
 # from IPython.utils.localinterfaces import LOCALHOST 
 
 from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
-from IPython.parallel.streamsession import Message
 from IPython.parallel.util import disambiguate_url
+
+from IPython.zmq.session import Message
 
 from .streamkernel import Kernel
 
@@ -33,13 +38,22 @@ class EngineFactory(RegistrationFactory):
     """IPython engine"""
     
     # configurables:
-    user_ns=Dict(config=True)
-    out_stream_factory=Type('IPython.zmq.iostream.OutStream', config=True)
-    display_hook_factory=Type('IPython.zmq.displayhook.DisplayHook', config=True)
-    location=Str(config=True)
-    timeout=CFloat(2,config=True)
+    out_stream_factory=Type('IPython.zmq.iostream.OutStream', config=True,
+        help="""The OutStream for handling stdout/err.
+        Typically 'IPython.zmq.iostream.OutStream'""")
+    display_hook_factory=Type('IPython.zmq.displayhook.DisplayHook', config=True,
+        help="""The class for handling displayhook.
+        Typically 'IPython.zmq.displayhook.DisplayHook'""")
+    location=Unicode(config=True,
+        help="""The location (an IP address) of the controller.  This is
+        used for disambiguating URLs, to determine whether
+        loopback should be used to connect or the public address.""")
+    timeout=CFloat(2,config=True,
+        help="""The time (in seconds) to wait for the Controller to respond
+        to registration requests before giving up.""")
     
     # not configurable:
+    user_ns=Dict()
     id=Int(allow_none=True)
     registrar=Instance('zmq.eventloop.zmqstream.ZMQStream')
     kernel=Instance(Kernel)
@@ -47,6 +61,7 @@ class EngineFactory(RegistrationFactory):
     
     def __init__(self, **kwargs):
         super(EngineFactory, self).__init__(**kwargs)
+        self.ident = self.session.session
         ctx = self.context
         
         reg = ctx.socket(zmq.XREQ)
@@ -127,11 +142,10 @@ class EngineFactory(RegistrationFactory):
             
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session, 
                     control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream, 
-                    loop=loop, user_ns = self.user_ns, logname=self.log.name)
+                    loop=loop, user_ns = self.user_ns, log=self.log)
             self.kernel.start()
             hb_addrs = [ disambiguate_url(addr, self.location) for addr in hb_addrs ]
             heart = Heart(*map(str, hb_addrs), heart_id=identity)
-            # ioloop.DelayedCallback(heart.start, 1000, self.loop).start()
             heart.start()
             
             
@@ -143,7 +157,7 @@ class EngineFactory(RegistrationFactory):
     
     
     def abort(self):
-        self.log.fatal("Registration timed out")
+        self.log.fatal("Registration timed out after %.1f seconds"%self.timeout)
         self.session.send(self.registrar, "unregistration_request", content=dict(id=self.id))
         time.sleep(1)
         sys.exit(255)

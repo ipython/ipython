@@ -1,4 +1,9 @@
-"""some generic utilities for dealing with classes, urls, and serialization"""
+"""some generic utilities for dealing with classes, urls, and serialization
+
+Authors:
+
+* Min RK
+"""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
@@ -17,7 +22,6 @@ import re
 import stat
 import socket
 import sys
-from datetime import datetime
 from signal import signal, SIGINT, SIGABRT, SIGTERM
 try:
     from signal import SIGKILL
@@ -39,10 +43,6 @@ from zmq.log import handlers
 from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
 from IPython.utils.newserialized import serialize, unserialize
 from IPython.zmq.log import EnginePUBHandler
-
-# globals
-ISO8601="%Y-%m-%dT%H:%M:%S.%f"
-ISO8601_RE=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+$")
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -100,18 +100,6 @@ class ReverseDict(dict):
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
-
-def extract_dates(obj):
-    """extract ISO8601 dates from unpacked JSON"""
-    if isinstance(obj, dict):
-        for k,v in obj.iteritems():
-            obj[k] = extract_dates(v)
-    elif isinstance(obj, list):
-        obj = [ extract_dates(o) for o in obj ]
-    elif isinstance(obj, basestring):
-        if ISO8601_RE.match(obj):
-            obj = datetime.strptime(obj, ISO8601)
-    return obj
 
 def validate_url(url):
     """validate a url for zeromq"""
@@ -193,29 +181,6 @@ def disambiguate_url(url, location=None):
     ip = disambiguate_ip_address(ip,location)
     
     return "%s://%s:%s"%(proto,ip,port)
-
-
-def rekey(dikt):
-    """Rekey a dict that has been forced to use str keys where there should be
-    ints by json.  This belongs in the jsonutil added by fperez."""
-    for k in dikt.iterkeys():
-        if isinstance(k, str):
-            ik=fk=None
-            try:
-                ik = int(k)
-            except ValueError:
-                try:
-                    fk = float(k)
-                except ValueError:
-                    continue
-            if ik is not None:
-                nk = ik
-            else:
-                nk = fk
-            if nk in dikt:
-                raise KeyError("already have key %r"%nk)
-            dikt[nk] = dikt.pop(k)
-    return dikt
 
 def serialize_object(obj, threshold=64e-6):
     """Serialize an object into a list of sendable buffers.
@@ -469,6 +434,7 @@ def connect_engine_logger(context, iface, engine, loglevel=logging.DEBUG):
     handler.setLevel(loglevel)
     logger.addHandler(handler)
     logger.setLevel(loglevel)
+    return logger
 
 def local_logger(logname, loglevel=logging.DEBUG):
     loglevel = integer_loglevel(loglevel)
@@ -480,4 +446,5 @@ def local_logger(logname, loglevel=logging.DEBUG):
     handler.setLevel(loglevel)
     logger.addHandler(handler)
     logger.setLevel(loglevel)
+    return logger
 

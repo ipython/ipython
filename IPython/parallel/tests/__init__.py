@@ -48,10 +48,10 @@ class TestProcessLauncher(LocalProcessLauncher):
 def setup():
     cp = TestProcessLauncher()
     cp.cmd_and_args = ipcontroller_cmd_argv + \
-                ['--profile', 'iptest', '--log-level', '99', '-r']
+                ['profile=iptest', 'log_level=50', '--reuse']
     cp.start()
     launchers.append(cp)
-    cluster_dir = os.path.join(get_ipython_dir(), 'cluster_iptest')
+    cluster_dir = os.path.join(get_ipython_dir(), 'profile_iptest')
     engine_json = os.path.join(cluster_dir, 'security', 'ipcontroller-engine.json')
     client_json = os.path.join(cluster_dir, 'security', 'ipcontroller-client.json')
     tic = time.time()
@@ -70,7 +70,7 @@ def add_engines(n=1, profile='iptest'):
     eps = []
     for i in range(n):
         ep = TestProcessLauncher()
-        ep.cmd_and_args = ipengine_cmd_argv + ['--profile', profile, '--log-level', '99']
+        ep.cmd_and_args = ipengine_cmd_argv + ['profile=%s'%profile, 'log_level=50']
         ep.start()
         launchers.append(ep)
         eps.append(ep)

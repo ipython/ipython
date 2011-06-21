@@ -4,10 +4,11 @@ Authors
 -------
 * Brian Granger
 * Fernando Perez
+* Min RK
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2009  The IPython Development Team
+#  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -22,7 +23,7 @@ import re
 import sys
 
 from IPython.external import argparse
-from IPython.utils.path import filefind
+from IPython.utils.path import filefind, get_ipython_dir
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -34,6 +35,9 @@ class ConfigError(Exception):
 
 
 class ConfigLoaderError(ConfigError):
+    pass
+
+class ArgumentError(ConfigLoaderError):
     pass
 
 #-----------------------------------------------------------------------------
@@ -265,23 +269,40 @@ class PyFileConfigLoader(FileConfigLoader):
     def _read_file_as_dict(self):
         """Load the config file into self.config, with recursive loading."""
         # This closure is made available in the namespace that is used
-        # to exec the config file.  This allows users to call
+        # to exec the config file.  It allows users to call
         # load_subconfig('myconfig.py') to load config files recursively.
         # It needs to be a closure because it has references to self.path
         # and self.config.  The sub-config is loaded with the same path
         # as the parent, but it uses an empty config which is then merged
         # with the parents.
-        def load_subconfig(fname):
-            loader = PyFileConfigLoader(fname, self.path)
+        
+        # If a profile is specified, the config file will be loaded
+        # from that profile
+        
+        def load_subconfig(fname, profile=None):
+            # import here to prevent circular imports
+            from IPython.core.profiledir import ProfileDir, ProfileDirError
+            if profile is not None:
+                try:
+                    profile_dir = ProfileDir.find_profile_dir_by_name(
+                            get_ipython_dir(),
+                            profile,
+                    )
+                except ProfileDirError:
+                    return
+                path = profile_dir.location
+            else:
+                path = self.path
+            loader = PyFileConfigLoader(fname, path)
             try:
                 sub_config = loader.load_config()
             except IOError:
                 # Pass silently if the sub config is not there. This happens
-                # when a user us using a profile, but not the default config.
+                # when a user s using a profile, but not the default config.
                 pass
             else:
                 self.config._merge(sub_config)
-
+        
         # Again, this needs to be a closure and should be used in config
         # files to get the config being loaded.
         def get_config():
@@ -304,7 +325,7 @@ class CommandLineConfigLoader(ConfigLoader):
     here.
     """
 
-kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.+')
+kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.*')
 flag_pattern = re.compile(r'\-\-\w+(\-\w)*')
 
 class KeyValueConfigLoader(CommandLineConfigLoader):
@@ -346,15 +367,27 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             >>> cl.load_config(["foo='bar'","A.name='brian'","B.number=0"])
             {'A': {'name': 'brian'}, 'B': {'number': 0}, 'foo': 'bar'}
         """
+        self.clear()
         if argv is None:
             argv = sys.argv[1:]
         self.argv = argv
         self.aliases = aliases or {}
         self.flags = flags or {}
+        
+    
+    def clear(self):
+        super(KeyValueConfigLoader, self).clear()
+        self.extra_args = []
+        
 
     def load_config(self, argv=None, aliases=None, flags=None):
         """Parse the configuration and generate the Config object.
-
+        
+        After loading, any arguments that are not key-value or
+        flags will be stored in self.extra_args - a list of
+        unparsed command-line arguments.  This is used for
+        arguments such as input files or subcommands.
+        
         Parameters
         ----------
         argv : list, optional
@@ -379,7 +412,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             aliases = self.aliases
         if flags is None:
             flags = self.flags
-
+        
         for item in argv:
             if kv_pattern.match(item):
                 lhs,rhs = item.split('=',1)
@@ -403,14 +436,21 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 m = item[2:]
                 cfg,_ = flags.get(m, (None,None))
                 if cfg is None:
-                    raise ValueError("Unrecognized flag: %r"%item)
+                    raise ArgumentError("Unrecognized flag: %r"%item)
                 elif isinstance(cfg, (dict, Config)):
-                    # update self.config with Config:
-                    self.config.update(cfg)
+                    # don't clobber whole config sections, update
+                    # each section from config:
+                    for sec,c in cfg.iteritems():
+                        self.config[sec].update(c)
                 else:
                     raise ValueError("Invalid flag: %r"%flag)
+            elif item.startswith('-'):
+                # this shouldn't ever be valid
+                raise ArgumentError("Invalid argument: %r"%item)
             else:
-                raise ValueError("Invalid argument: %r"%item)
+                # keep all args that aren't valid in a list, 
+                # in case our parent knows what to do with them.
+                self.extra_args.append(item)
         return self.config
 
 class ArgParseConfigLoader(CommandLineConfigLoader):

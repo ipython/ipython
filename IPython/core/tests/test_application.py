@@ -4,7 +4,7 @@
 import os
 import tempfile
 
-from IPython.core.application import Application
+from IPython.core.application import BaseIPythonApplication
 from IPython.testing import decorators as testdec
 
 @testdec.onlyif_unicode_paths
@@ -16,22 +16,11 @@ def test_unicode_cwd():
     os.chdir(wd)
     #raise Exception(repr(os.getcwd()))
     try:
-        app = Application()
+        app = BaseIPythonApplication()
         # The lines below are copied from Application.initialize()
-        app.create_default_config()
-        app.log_default_config()
-        app.set_default_config_log_level()
-
-        # Find resources needed for filesystem access, using information from
-        # the above two
-        app.find_ipython_dir()
-        app.find_resources()
-        app.find_config_file_name()
-        app.find_config_file_paths()
-
-        # File-based config
-        app.pre_load_file_config()
-        app.load_file_config(suppress_errors=False)
+        app.init_profile_dir()
+        app.init_config_files()
+        app.load_config_file(suppress_errors=False)
     finally:
         os.chdir(old_wd)
 
@@ -48,22 +37,11 @@ def test_unicode_ipdir():
     old_ipdir2 = os.environ.pop("IPYTHON_DIR", None)
     os.environ["IPYTHONDIR"] = ipdir.encode("utf-8")
     try:
-        app = Application()
+        app = BaseIPythonApplication()
         # The lines below are copied from Application.initialize()
-        app.create_default_config()
-        app.log_default_config()
-        app.set_default_config_log_level()
-
-        # Find resources needed for filesystem access, using information from
-        # the above two
-        app.find_ipython_dir()
-        app.find_resources()
-        app.find_config_file_name()
-        app.find_config_file_paths()
-
-        # File-based config
-        app.pre_load_file_config()
-        app.load_file_config(suppress_errors=False)
+        app.init_profile_dir()
+        app.init_config_files()
+        app.load_config_file(suppress_errors=False)
     finally:
         if old_ipdir1:
             os.environ["IPYTHONDIR"] = old_ipdir1

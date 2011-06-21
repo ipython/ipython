@@ -42,12 +42,13 @@ class Foo(Configurable):
 
 class Bar(Configurable):
 
+    b = Int(0, config=True, help="The integer b.")
     enabled = Bool(True, config=True, help="Enable bar.")
 
 
 class MyApp(Application):
 
-    app_name = Unicode(u'myapp')
+    name = Unicode(u'myapp')
     running = Bool(False, config=True,
                    help="Is the app running?")
     classes = List([Bar, Foo])
@@ -71,30 +72,30 @@ class TestApplication(TestCase):
 
     def test_basic(self):
         app = MyApp()
-        self.assertEquals(app.app_name, u'myapp')
+        self.assertEquals(app.name, u'myapp')
         self.assertEquals(app.running, False)
         self.assertEquals(app.classes, [MyApp,Bar,Foo])
         self.assertEquals(app.config_file, u'')
 
     def test_config(self):
         app = MyApp()
-        app.parse_command_line(["i=10","Foo.j=10","enabled=False","log_level=0"])
+        app.parse_command_line(["i=10","Foo.j=10","enabled=False","log_level=50"])
         config = app.config
         self.assertEquals(config.Foo.i, 10)
         self.assertEquals(config.Foo.j, 10)
         self.assertEquals(config.Bar.enabled, False)
-        self.assertEquals(config.MyApp.log_level,0)
+        self.assertEquals(config.MyApp.log_level,50)
 
     def test_config_propagation(self):
         app = MyApp()
-        app.parse_command_line(["i=10","Foo.j=10","enabled=False","log_level=0"])
+        app.parse_command_line(["i=10","Foo.j=10","enabled=False","log_level=50"])
         app.init_foo()
         app.init_bar()
         self.assertEquals(app.foo.i, 10)
         self.assertEquals(app.foo.j, 10)
         self.assertEquals(app.bar.enabled, False)
 
-    def test_alias(self):
+    def test_flags(self):
         app = MyApp()
         app.parse_command_line(["--disable"])
         app.init_bar()
@@ -103,3 +104,32 @@ class TestApplication(TestCase):
         app.init_bar()
         self.assertEquals(app.bar.enabled, True)
     
+    def test_aliases(self):
+        app = MyApp()
+        app.parse_command_line(["i=5", "j=10"])
+        app.init_foo()
+        self.assertEquals(app.foo.i, 5)
+        app.init_foo()
+        self.assertEquals(app.foo.j, 10)
+    
+    def test_flag_clobber(self):
+        """test that setting flags doesn't clobber existing settings"""
+        app = MyApp()
+        app.parse_command_line(["Bar.b=5", "--disable"])
+        app.init_bar()
+        self.assertEquals(app.bar.enabled, False)
+        self.assertEquals(app.bar.b, 5)
+        app.parse_command_line(["--enable", "Bar.b=10"])
+        app.init_bar()
+        self.assertEquals(app.bar.enabled, True)
+        self.assertEquals(app.bar.b, 10)
+    
+    def test_extra_args(self):
+        app = MyApp()
+        app.parse_command_line(['extra', "Bar.b=5", "--disable", 'args'])
+        app.init_bar()
+        self.assertEquals(app.bar.enabled, False)
+        self.assertEquals(app.bar.b, 5)
+        self.assertEquals(app.extra_args, ['extra', 'args'])
+    
+

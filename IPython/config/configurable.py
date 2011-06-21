@@ -7,10 +7,11 @@ Authors:
 
 * Brian Granger
 * Fernando Perez
+* Min RK
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2010  The IPython Development Team
+#  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -20,12 +21,12 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from copy import deepcopy
 import datetime
+from copy import deepcopy
 
 from loader import Config
 from IPython.utils.traitlets import HasTraits, Instance
-from IPython.utils.text import indent
+from IPython.utils.text import indent, wrap_paragraphs
 
 
 #-----------------------------------------------------------------------------
@@ -44,14 +45,13 @@ class MultipleInstanceError(ConfigurableError):
 # Configurable implementation
 #-----------------------------------------------------------------------------
 
-
 class Configurable(HasTraits):
 
     config = Instance(Config,(),{})
     created = None
 
     def __init__(self, **kwargs):
-        """Create a conigurable given a config config.
+        """Create a configurable given a config config.
 
         Parameters
         ----------
@@ -146,18 +146,72 @@ class Configurable(HasTraits):
         final_help = []
         final_help.append(u'%s options' % cls.__name__)
         final_help.append(len(final_help[0])*u'-')
-        for k, v in cls_traits.items():
-            help = v.get_metadata('help')
-            header = "%s.%s : %s" % (cls.__name__, k, v.__class__.__name__)
-            final_help.append(header)
-            if help is not None:
-                final_help.append(indent(help))
+        for k,v in cls.class_traits(config=True).iteritems():
+            help = cls.class_get_trait_help(v)
+            final_help.append(help)
         return '\n'.join(final_help)
+    
+    @classmethod
+    def class_get_trait_help(cls, trait):
+        """Get the help string for a single trait."""
+        lines = []
+        header = "%s.%s : %s" % (cls.__name__, trait.name, trait.__class__.__name__)
+        lines.append(header)
+        try:
+            dvr = repr(trait.get_default_value())
+        except Exception:
+            dvr = None # ignore defaults we can't construct
+        if dvr is not None:
+            if len(dvr) > 64:
+                dvr = dvr[:61]+'...'
+            lines.append(indent('Default: %s'%dvr, 4))
+        if 'Enum' in trait.__class__.__name__:
+            # include Enum choices
+            lines.append(indent('Choices: %r'%(trait.values,)))
+        
+        help = trait.get_metadata('help')
+        if help is not None:
+            help = '\n'.join(wrap_paragraphs(help, 76))
+            lines.append(indent(help, 4))
+        return '\n'.join(lines)
 
     @classmethod
     def class_print_help(cls):
+        """Get the help string for a single trait and print it."""
         print cls.class_get_help()
 
+    @classmethod
+    def class_config_section(cls):
+        """Get the config class config section"""
+        def c(s):
+            """return a commented, wrapped block."""
+            s = '\n\n'.join(wrap_paragraphs(s, 78))
+            
+            return '# ' + s.replace('\n', '\n# ')
+        
+        # section header
+        breaker = '#' + '-'*78
+        s = "# %s configuration"%cls.__name__
+        lines = [breaker, s, breaker, '']
+        # get the description trait
+        desc = cls.class_traits().get('description')
+        if desc:
+            desc = desc.default_value
+        else:
+            # no description trait, use __doc__
+            desc = getattr(cls, '__doc__', '')
+        if desc:
+            lines.append(c(desc))
+            lines.append('')
+        
+        for name,trait in cls.class_traits(config=True).iteritems():
+            help = trait.get_metadata('help') or ''
+            lines.append(c(help))
+            lines.append('# c.%s.%s = %r'%(cls.__name__, name, trait.get_default_value()))
+            lines.append('')
+        return '\n'.join(lines)
+    
+    
 
 class SingletonConfigurable(Configurable):
     """A configurable that only allows one instance.
@@ -168,7 +222,32 @@ class SingletonConfigurable(Configurable):
     """
 
     _instance = None
-
+    
+    @classmethod
+    def _walk_mro(cls):
+        """Walk the cls.mro() for parent classes that are also singletons
+        
+        For use in instance()
+        """
+        
+        for subclass in cls.mro():
+            if issubclass(cls, subclass) and \
+                    issubclass(subclass, SingletonConfigurable) and \
+                    subclass != SingletonConfigurable:
+                yield subclass
+    
+    @classmethod
+    def clear_instance(cls):
+        """unset _instance for this class and singleton parents.
+        """
+        if not cls.initialized():
+            return
+        for subclass in cls._walk_mro():
+            if isinstance(subclass._instance, cls):
+                # only clear instances that are instances
+                # of the calling class
+                subclass._instance = None
+            
     @classmethod
     def instance(cls, *args, **kwargs):
         """Returns a global instance of this class.
@@ -202,14 +281,10 @@ class SingletonConfigurable(Configurable):
         if cls._instance is None:
             inst = cls(*args, **kwargs)
             # Now make sure that the instance will also be returned by
-            # the subclasses instance attribute.
-            for subclass in cls.mro():
-                if issubclass(cls, subclass) and \
-                issubclass(subclass, SingletonConfigurable) and \
-                subclass != SingletonConfigurable:
-                    subclass._instance = inst
-                else:
-                    break
+            # parent classes' _instance attribute.
+            for subclass in cls._walk_mro():
+                subclass._instance = inst
+        
         if isinstance(cls._instance, cls):
             return cls._instance
         else:
@@ -223,3 +298,18 @@ class SingletonConfigurable(Configurable):
         """Has an instance been created?"""
         return hasattr(cls, "_instance") and cls._instance is not None
 
+
+class LoggingConfigurable(Configurable):
+    """A parent class for Configurables that log.
+    
+    Subclasses have a log trait, and the default behavior
+    is to get the logger from the currently running Application
+    via Application.instance().log.
+    """
+    
+    log = Instance('logging.Logger')
+    def _log_default(self):
+        from IPython.config.application import Application
+        return Application.instance().log
+        
+        

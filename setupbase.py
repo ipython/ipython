@@ -103,7 +103,7 @@ def find_packages():
     Find all of IPython's packages.
     """
     packages = ['IPython']
-    add_package(packages, 'config', tests=True, others=['default','profile'])
+    add_package(packages, 'config', tests=True, others=['profile'])
     add_package(packages, 'core', tests=True)
     add_package(packages, 'deathrow', tests=True)
     add_package(packages, 'extensions')
@@ -150,8 +150,8 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'IPython.config.userconfig' : ['*'],
-        'IPython.testing' : ['*.txt']
+        'IPython.config.profile' : ['README', '*/*.py'],
+        'IPython.testing' : ['*.txt'],
     }
     return package_data
 
@@ -280,7 +280,7 @@ def find_scripts(entry_points=False):
             'irunner = IPython.lib.irunner:main'
         ]
         gui_scripts = [
-            'ipython-qtconsole = IPython.frontend.qt.console.ipythonqt:main',
+            'ipython-qtconsole = IPython.frontend.qt.console.qtconsoleapp:main',
         ]
         scripts = dict(console_scripts=console_scripts, gui_scripts=gui_scripts)
     else:
@@ -292,7 +292,6 @@ def find_scripts(entry_points=False):
                    pjoin(parallel_scripts, 'ipcluster'),
                    pjoin(parallel_scripts, 'iplogger'),
                    pjoin(main_scripts, 'ipython'),
-                   pjoin(main_scripts, 'ipython-qtconsole'),
                    pjoin(main_scripts, 'pycolor'),
                    pjoin(main_scripts, 'irunner'),
                    pjoin(main_scripts, 'iptest')

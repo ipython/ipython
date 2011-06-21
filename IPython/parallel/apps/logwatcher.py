@@ -1,5 +1,12 @@
 #!/usr/bin/env python
-"""A simple logger object that consolidates messages incoming from ipcluster processes."""
+"""
+A simple logger object that consolidates messages incoming from ipcluster processes.
+
+Authors:
+
+* MinRK
+
+"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
@@ -19,29 +26,35 @@ import sys
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
-from IPython.utils.traitlets import Int, Str, Instance, List
-
-from IPython.parallel.factory import LoggingFactory
+from IPython.config.configurable import LoggingConfigurable
+from IPython.utils.traitlets import Int, Unicode, Instance, List
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
 
-class LogWatcher(LoggingFactory):
+class LogWatcher(LoggingConfigurable):
     """A simple class that receives messages on a SUB socket, as published
     by subclasses of `zmq.log.handlers.PUBHandler`, and logs them itself.
     
     This can subscribe to multiple topics, but defaults to all topics.
     """
+    
     # configurables
-    topics = List([''], config=True)
-    url = Str('tcp://127.0.0.1:20202', config=True)
+    topics = List([''], config=True,
+        help="The ZMQ topics to subscribe to. Default is to subscribe to all messages")
+    url = Unicode('tcp://127.0.0.1:20202', config=True,
+        help="ZMQ url on which to listen for log messages")
     
     # internals
-    context = Instance(zmq.Context, (), {})
     stream = Instance('zmq.eventloop.zmqstream.ZMQStream')
-    loop = Instance('zmq.eventloop.ioloop.IOLoop')
+    
+    context = Instance(zmq.Context)
+    def _context_default(self):
+        return zmq.Context.instance()
+    
+    loop = Instance(zmq.eventloop.ioloop.IOLoop)
     def _loop_default(self):
         return ioloop.IOLoop.instance()
     
@@ -62,9 +75,13 @@ class LogWatcher(LoggingFactory):
     def subscribe(self):
         """Update our SUB socket's subscriptions."""
         self.stream.setsockopt(zmq.UNSUBSCRIBE, '')
-        for topic in self.topics:
-            self.log.debug("Subscribing to: %r"%topic)
-            self.stream.setsockopt(zmq.SUBSCRIBE, topic)
+        if '' in self.topics:
+            self.log.debug("Subscribing to: everything")
+            self.stream.setsockopt(zmq.SUBSCRIBE, '')
+        else:
+            for topic in self.topics:
+                self.log.debug("Subscribing to: %r"%(topic))
+                self.stream.setsockopt(zmq.SUBSCRIBE, topic)
     
     def _extract_level(self, topic_str):
         """Turn 'engine.0.INFO.extra' into (logging.INFO, 'engine.0.extra')"""
@@ -94,5 +111,5 @@ class LogWatcher(LoggingFactory):
             level,topic = self._extract_level(topic)
             if msg[-1] == '\n':
                 msg = msg[:-1]
-            logging.log(level, "[%s] %s" % (topic, msg))
+            self.log.log(level, "[%s] %s" % (topic, msg))
 

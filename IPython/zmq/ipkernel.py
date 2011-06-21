@@ -27,37 +27,25 @@ import zmq
 
 # Local imports.
 from IPython.config.configurable import Configurable
+from IPython.config.application import boolean_flag
+from IPython.core.application import ProfileDir
+from IPython.core.shellapp import (
+    InteractiveShellApp, shell_flags, shell_aliases
+)
 from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.lib import pylabtools
-from IPython.utils.traitlets import Instance, Float
-from entry_point import (base_launch_kernel, make_argument_parser, make_kernel,
-                         start_kernel)
+from IPython.utils.traitlets import (
+    List, Instance, Float, Dict, Bool, Int, Unicode, CaselessStrEnum
+)
+
+from entry_point import base_launch_kernel
+from kernelapp import KernelApp, kernel_flags, kernel_aliases
 from iostream import OutStream
 from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
 
-# Module-level logger
-logger = logging.getLogger(__name__)
-
-# FIXME: this needs to be done more cleanly later, once we have proper
-# configuration support.  This is a library, so it shouldn't set a stream
-# handler, see:
-# http://docs.python.org/library/logging.html#configuring-logging-for-a-library
-# But this lets us at least do developer debugging for now by manually turning
-# it on/off.  And once we have full config support, the client entry points
-# will select their logging handlers, as well as passing to this library the
-# logging level.
-
-if 0:  # dbg - set to 1 to actually see the messages.
-    logger.addHandler(logging.StreamHandler())
-    logger.setLevel(logging.DEBUG)
-
-# /FIXME
 
 #-----------------------------------------------------------------------------
 # Main kernel class
@@ -71,9 +59,10 @@ class Kernel(Configurable):
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     session = Instance(Session)
-    reply_socket = Instance('zmq.Socket')
-    pub_socket = Instance('zmq.Socket')
-    req_socket = Instance('zmq.Socket')
+    shell_socket = Instance('zmq.Socket')
+    iopub_socket = Instance('zmq.Socket')
+    stdin_socket = Instance('zmq.Socket')
+    log = Instance(logging.Logger)
 
     # Private interface
 
@@ -100,7 +89,8 @@ class Kernel(Configurable):
 
     # This is a dict of port number that the kernel is listening on. It is set
     # by record_ports and used by connect_request.
-    _recorded_ports = None
+    _recorded_ports = Dict()
+
 
 
     def __init__(self, **kwargs):
@@ -111,11 +101,11 @@ class Kernel(Configurable):
         atexit.register(self._at_shutdown)
 
         # Initialize the InteractiveShell subclass
-        self.shell = ZMQInteractiveShell.instance()
+        self.shell = ZMQInteractiveShell.instance(config=self.config)
         self.shell.displayhook.session = self.session
-        self.shell.displayhook.pub_socket = self.pub_socket
+        self.shell.displayhook.pub_socket = self.iopub_socket
         self.shell.display_pub.session = self.session
-        self.shell.display_pub.pub_socket = self.pub_socket
+        self.shell.display_pub.pub_socket = self.iopub_socket
 
         # TMP - hack while developing
         self.shell._reply_content = None
@@ -131,7 +121,7 @@ class Kernel(Configurable):
     def do_one_iteration(self):
         """Do one iteration of the kernel's evaluation loop.
         """
-        ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
+        ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
         if msg is None:
             return
         
@@ -143,21 +133,20 @@ class Kernel(Configurable):
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
-        # Eventually we'll move these from stdout to a logger.
-        logger.debug('\n*** MESSAGE TYPE:'+str(msg['msg_type'])+'***')
-        logger.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
+        self.log.debug('\n*** MESSAGE TYPE:'+str(msg['msg_type'])+'***')
+        self.log.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
 
         # Find and call actual handler for message
         handler = self.handlers.get(msg['msg_type'], None)
         if handler is None:
-            logger.error("UNKNOWN MESSAGE TYPE:" +str(msg))
+            self.log.error("UNKNOWN MESSAGE TYPE:" +str(msg))
         else:
             handler(ident, msg)
             
         # Check whether we should exit, in case the incoming message set the
         # exit flag on
         if self.shell.exit_now:
-            logger.debug('\nExiting IPython kernel...')
+            self.log.debug('\nExiting IPython kernel...')
             # We do a normal, clean exit, which allows any actions registered
             # via atexit (such as history saving) to take place.
             sys.exit(0)
@@ -166,26 +155,27 @@ class Kernel(Configurable):
     def start(self):
         """ Start the kernel main loop.
         """
+        poller = zmq.Poller()
+        poller.register(self.shell_socket, zmq.POLLIN)
         while True:
             try:
-                time.sleep(self._poll_interval)
+                # scale by extra factor of 10, because there is no
+                # reason for this to be anything less than ~ 0.1s
+                # since it is a real poller and will respond
+                # to events immediately
+                poller.poll(10*1000*self._poll_interval)
                 self.do_one_iteration()
             except KeyboardInterrupt:
                 # Ctrl-C shouldn't crash the kernel
                 io.raw_print("KeyboardInterrupt caught in kernel")
 
-    def record_ports(self, xrep_port, pub_port, req_port, hb_port):
+    def record_ports(self, ports):
         """Record the ports that this kernel is using.
 
         The creator of the Kernel instance must call this methods if they
         want the :meth:`connect_request` method to return the port numbers.
         """
-        self._recorded_ports = {
-            'xrep_port' : xrep_port,
-            'pub_port' : pub_port,
-            'req_port' : req_port,
-            'hb_port' : hb_port
-        }
+        self._recorded_ports = ports
 
     #---------------------------------------------------------------------------
     # Kernel request handlers
@@ -194,11 +184,11 @@ class Kernel(Configurable):
     def _publish_pyin(self, code, parent):
         """Publish the code request on the pyin stream."""
 
-        pyin_msg = self.session.send(self.pub_socket, u'pyin',{u'code':code}, parent=parent)
+        pyin_msg = self.session.send(self.iopub_socket, u'pyin',{u'code':code}, parent=parent)
 
     def execute_request(self, ident, parent):
         
-        status_msg = self.session.send(self.pub_socket,
+        status_msg = self.session.send(self.iopub_socket,
             u'status',
             {u'execution_state':u'busy'},
             parent=parent
@@ -209,8 +199,8 @@ class Kernel(Configurable):
             code = content[u'code']
             silent = content[u'silent'] 
         except:
-            logger.error("Got bad msg: ")
-            logger.error(str(Message(parent)))
+            self.log.error("Got bad msg: ")
+            self.log.error(str(Message(parent)))
             return
 
         shell = self.shell # we'll need this a lot here
@@ -298,14 +288,14 @@ class Kernel(Configurable):
             time.sleep(self._execute_sleep)
         
         # Send the reply.
-        reply_msg = self.session.send(self.reply_socket, u'execute_reply',
+        reply_msg = self.session.send(self.shell_socket, u'execute_reply',
                                       reply_content, parent, ident=ident)
-        logger.debug(str(reply_msg))
+        self.log.debug(str(reply_msg))
 
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
-        status_msg = self.session.send(self.pub_socket,
+        status_msg = self.session.send(self.iopub_socket,
             u'status',
             {u'execution_state':u'idle'},
             parent=parent
@@ -316,17 +306,17 @@ class Kernel(Configurable):
         matches = {'matches' : matches,
                    'matched_text' : txt,
                    'status' : 'ok'}
-        completion_msg = self.session.send(self.reply_socket, 'complete_reply',
+        completion_msg = self.session.send(self.shell_socket, 'complete_reply',
                                            matches, parent, ident)
-        logger.debug(str(completion_msg))
+        self.log.debug(str(completion_msg))
 
     def object_info_request(self, ident, parent):
         object_info = self.shell.object_inspect(parent['content']['oname'])
         # Before we send this object over, we scrub it for JSON usage
         oinfo = json_clean(object_info)
-        msg = self.session.send(self.reply_socket, 'object_info_reply',
+        msg = self.session.send(self.shell_socket, 'object_info_reply',
                                 oinfo, parent, ident)
-        logger.debug(msg)
+        self.log.debug(msg)
 
     def history_request(self, ident, parent):
         # We need to pull these out, as passing **kwargs doesn't work with
@@ -353,18 +343,18 @@ class Kernel(Configurable):
         else:
             hist = []
         content = {'history' : list(hist)}
-        msg = self.session.send(self.reply_socket, 'history_reply',
+        msg = self.session.send(self.shell_socket, 'history_reply',
                                 content, parent, ident)
-        logger.debug(str(msg))
+        self.log.debug(str(msg))
 
     def connect_request(self, ident, parent):
         if self._recorded_ports is not None:
             content = self._recorded_ports.copy()
         else:
             content = {}
-        msg = self.session.send(self.reply_socket, 'connect_reply',
+        msg = self.session.send(self.shell_socket, 'connect_reply',
                                 content, parent, ident)
-        logger.debug(msg)
+        self.log.debug(msg)
 
     def shutdown_request(self, ident, parent):
         self.shell.exit_now = True
@@ -377,19 +367,19 @@ class Kernel(Configurable):
 
     def _abort_queue(self):
         while True:
-            ident,msg = self.session.recv(self.reply_socket, zmq.NOBLOCK)
+            ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
             if msg is None:
                 break
             else:
                 assert ident is not None, \
                        "Unexpected missing message part."
 
-            logger.debug("Aborting:\n"+str(Message(msg)))
+            self.log.debug("Aborting:\n"+str(Message(msg)))
             msg_type = msg['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
-            reply_msg = self.session.send(self.reply_socket, reply_type, 
+            reply_msg = self.session.send(self.shell_socket, reply_type,
                     {'status' : 'aborted'}, msg, ident=ident)
-            logger.debug(reply_msg)
+            self.log.debug(reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.1)
@@ -401,15 +391,15 @@ class Kernel(Configurable):
 
         # Send the input request.
         content = dict(prompt=prompt)
-        msg = self.session.send(self.req_socket, u'input_request', content, parent)
+        msg = self.session.send(self.stdin_socket, u'input_request', content, parent)
 
         # Await a response.
-        ident, reply = self.session.recv(self.req_socket, 0)
+        ident, reply = self.session.recv(self.stdin_socket, 0)
         try:
             value = reply['content']['value']
         except:
-            logger.error("Got bad raw_input reply: ")
-            logger.error(str(Message(parent)))
+            self.log.error("Got bad raw_input reply: ")
+            self.log.error(str(Message(parent)))
             value = ''
         return value
     
@@ -461,9 +451,9 @@ class Kernel(Configurable):
         """
         # io.rprint("Kernel at_shutdown") # dbg
         if self._shutdown_message is not None:
-            self.session.send(self.reply_socket, self._shutdown_message)
-            self.session.send(self.pub_socket, self._shutdown_message)
-            logger.debug(str(self._shutdown_message))
+            self.session.send(self.shell_socket, self._shutdown_message)
+            self.session.send(self.iopub_socket, self._shutdown_message)
+            self.log.debug(str(self._shutdown_message))
             # A very short sleep to give zmq time to flush its message buffers
             # before Python truly shuts down.
             time.sleep(0.01)
@@ -569,120 +559,114 @@ class GTKKernel(Kernel):
 
 
 #-----------------------------------------------------------------------------
+# Aliases and Flags for the IPKernelApp
+#-----------------------------------------------------------------------------
+
+flags = dict(kernel_flags)
+flags.update(shell_flags)
+
+addflag = lambda *args: flags.update(boolean_flag(*args))
+
+flags['pylab'] = (
+    {'IPKernelApp' : {'pylab' : 'auto'}},
+    """Pre-load matplotlib and numpy for interactive use with
+    the default matplotlib backend."""
+)
+
+aliases = dict(kernel_aliases)
+aliases.update(shell_aliases)
+
+# it's possible we don't want short aliases for *all* of these:
+aliases.update(dict(
+    pylab='IPKernelApp.pylab',
+))
+
+#-----------------------------------------------------------------------------
+# The IPKernelApp class
+#-----------------------------------------------------------------------------
+
+class IPKernelApp(KernelApp, InteractiveShellApp):
+    name = 'ipkernel'
+
+    aliases = Dict(aliases)
+    flags = Dict(flags)
+    classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
+    # configurables
+    pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
+        config=True,
+        help="""Pre-load matplotlib and numpy for interactive use,
+        selecting a particular matplotlib backend and loop integration.
+        """
+    )
+    def initialize(self, argv=None):
+        super(IPKernelApp, self).initialize(argv)
+        self.init_shell()
+        self.init_extensions()
+        self.init_code()
+
+    def init_kernel(self):
+        kernel_factory = Kernel
+
+        kernel_map = {
+            'qt' : QtKernel,
+            'qt4': QtKernel,
+            'inline': Kernel,
+            'osx': TkKernel,
+            'wx' : WxKernel,
+            'tk' : TkKernel,
+            'gtk': GTKKernel,
+        }
+
+        if self.pylab:
+            key = None if self.pylab == 'auto' else self.pylab
+            gui, backend = pylabtools.find_gui_and_backend(key)
+            kernel_factory = kernel_map.get(gui)
+            if kernel_factory is None:
+                raise ValueError('GUI is not supported: %r' % gui)
+            pylabtools.activate_matplotlib(backend)
+
+        kernel = kernel_factory(config=self.config, session=self.session,
+                                shell_socket=self.shell_socket,
+                                iopub_socket=self.iopub_socket,
+                                stdin_socket=self.stdin_socket,
+                                log=self.log
+        )
+        self.kernel = kernel
+        kernel.record_ports(self.ports)
+
+        if self.pylab:
+            pylabtools.import_pylab(kernel.shell.user_ns, backend,
+                                    shell=kernel.shell)
+    
+    def init_shell(self):
+        self.shell = self.kernel.shell
+
+
+#-----------------------------------------------------------------------------
 # Kernel main and launch functions
 #-----------------------------------------------------------------------------
 
-def launch_kernel(ip=None, xrep_port=0, pub_port=0, req_port=0, hb_port=0,
-                  stdin=None, stdout=None, stderr=None,
-                  executable=None, independent=False, pylab=False, colors=None):
-    """Launches a localhost kernel, binding to the specified ports.
+def launch_kernel(*args, **kwargs):
+    """Launches a localhost IPython kernel, binding to the specified ports.
 
-    Parameters
-    ----------
-    ip  : str, optional
-        The ip address the kernel will bind to.
-    
-    xrep_port : int, optional
-        The port to use for XREP channel.
-
-    pub_port : int, optional
-        The port to use for the SUB channel.
-
-    req_port : int, optional
-        The port to use for the REQ (raw input) channel.
-
-    hb_port : int, optional
-        The port to use for the hearbeat REP channel.
-
-    stdin, stdout, stderr : optional (default None)
-        Standards streams, as defined in subprocess.Popen.
-
-    executable : str, optional (default sys.executable)
-        The Python executable to use for the kernel process.
-
-    independent : bool, optional (default False) 
-        If set, the kernel process is guaranteed to survive if this process
-        dies. If not set, an effort is made to ensure that the kernel is killed
-        when this process dies. Note that in this case it is still good practice
-        to kill kernels manually before exiting.
-
-    pylab : bool or string, optional (default False)
-        If not False, the kernel will be launched with pylab enabled. If a
-        string is passed, matplotlib will use the specified backend. Otherwise,
-        matplotlib's default backend will be used.
-
-    colors : None or string, optional (default None)
-        If not None, specify the color scheme. One of (NoColor, LightBG, Linux)
+    This function simply calls entry_point.base_launch_kernel with the right first
+    command to start an ipkernel.  See base_launch_kernel for arguments.
 
     Returns
     -------
     A tuple of form:
-        (kernel_process, xrep_port, pub_port, req_port)
+        (kernel_process, shell_port, iopub_port, stdin_port, hb_port)
     where kernel_process is a Popen object and the ports are integers.
     """
-    extra_arguments = []
-    if pylab:
-        extra_arguments.append('--pylab')
-        if isinstance(pylab, basestring):
-            extra_arguments.append(pylab)
-    if ip is not None:
-        extra_arguments.append('--ip')
-        if isinstance(ip, basestring):
-            extra_arguments.append(ip)
-    if colors is not None:
-        extra_arguments.append('--colors')
-        extra_arguments.append(colors)
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
-                              xrep_port, pub_port, req_port, hb_port, 
-                              stdin, stdout, stderr,
-                              executable, independent, extra_arguments)
+                              *args, **kwargs)
 
 
 def main():
-    """ The IPython kernel main entry point.
-    """
-    parser = make_argument_parser()
-    parser.add_argument('--pylab', type=str, metavar='GUI', nargs='?', 
-                        const='auto', help = \
-"Pre-load matplotlib and numpy for interactive use. If GUI is not \
-given, the GUI backend is matplotlib's, otherwise use one of: \
-['tk', 'gtk', 'qt', 'wx', 'osx', 'inline'].")
-    parser.add_argument('--colors',
-        type=str, dest='colors',
-        help="Set the color scheme (NoColor, Linux, and LightBG).",
-        metavar='ZMQInteractiveShell.colors')
-    namespace = parser.parse_args()
-
-    kernel_class = Kernel
-
-    kernel_classes = {
-        'qt' : QtKernel,
-        'qt4': QtKernel,
-        'inline': Kernel,
-        'osx': TkKernel,
-        'wx' : WxKernel,
-        'tk' : TkKernel,
-        'gtk': GTKKernel,
-    }
-    if namespace.pylab:
-        if namespace.pylab == 'auto':
-            gui, backend = pylabtools.find_gui_and_backend()
-        else:
-            gui, backend = pylabtools.find_gui_and_backend(namespace.pylab)
-        kernel_class = kernel_classes.get(gui)
-        if kernel_class is None:
-            raise ValueError('GUI is not supported: %r' % gui)
-        pylabtools.activate_matplotlib(backend)
-    if namespace.colors:
-        ZMQInteractiveShell.colors=namespace.colors
-
-    kernel = make_kernel(namespace, kernel_class, OutStream)
-
-    if namespace.pylab:
-        pylabtools.import_pylab(kernel.shell.user_ns, backend,
-                                shell=kernel.shell)
-
-    start_kernel(namespace, kernel)
+    """Run an IPKernel as an application"""
+    app = IPKernelApp.instance()
+    app.initialize()
+    app.start()
 
 
 if __name__ == '__main__':

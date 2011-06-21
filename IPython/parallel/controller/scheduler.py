@@ -3,6 +3,10 @@
 The Pure ZMQ scheduler does not allow routing schemes other than LRU,
 nor does it check msg_id DAG dependencies. For those, a slightly slower
 Python Scheduler exists.
+
+Authors:
+
+* Min RK
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
@@ -35,7 +39,7 @@ from zmq.eventloop import ioloop, zmqstream
 # local imports
 from IPython.external.decorator import decorator
 from IPython.config.loader import Config
-from IPython.utils.traitlets import Instance, Dict, List, Set, Int
+from IPython.utils.traitlets import Instance, Dict, List, Set, Int, Str, Enum
 
 from IPython.parallel import error
 from IPython.parallel.factory import SessionFactory
@@ -126,10 +130,24 @@ class TaskScheduler(SessionFactory):
     
     """
     
-    hwm = Int(0, config=True) # limit number of outstanding tasks
+    hwm = Int(0, config=True, shortname='hwm',
+        help="""specify the High Water Mark (HWM) for the downstream
+        socket in the Task scheduler. This is the maximum number
+        of allowed outstanding tasks on each engine."""
+    )
+    scheme_name = Enum(('leastload', 'pure', 'lru', 'plainrandom', 'weighted', 'twobin'),
+        'leastload', config=True, shortname='scheme', allow_none=False,
+        help="""select the task scheduler scheme  [default: Python LRU]
+        Options are: 'pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'"""
+    )
+    def _scheme_name_changed(self, old, new):
+        self.log.debug("Using scheme %r"%new)
+        self.scheme = globals()[new]
     
     # input arguments:
-    scheme = Instance(FunctionType, default=leastload) # function for determining the destination
+    scheme = Instance(FunctionType) # function for determining the destination
+    def _scheme_default(self):
+        return leastload
     client_stream = Instance(zmqstream.ZMQStream) # client-facing stream
     engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
     notifier_stream = Instance(zmqstream.ZMQStream) # hub-facing sub stream
@@ -165,7 +183,7 @@ class TaskScheduler(SessionFactory):
         self.notifier_stream.on_recv(self.dispatch_notification)
         self.auditor = ioloop.PeriodicCallback(self.audit_timeouts, 2e3, self.loop) # 1 Hz
         self.auditor.start()
-        self.log.info("Scheduler started...%r"%self)
+        self.log.info("Scheduler started [%s]"%self.scheme_name)
     
     def resume_receiving(self):
         """Resume accepting jobs."""
@@ -182,17 +200,27 @@ class TaskScheduler(SessionFactory):
     
     def dispatch_notification(self, msg):
         """dispatch register/unregister events."""
-        idents,msg = self.session.feed_identities(msg)
-        msg = self.session.unpack_message(msg)
+        try:
+            idents,msg = self.session.feed_identities(msg)
+        except ValueError:
+            self.log.warn("task::Invalid Message: %r"%msg)
+            return
+        try:
+            msg = self.session.unpack_message(msg)
+        except ValueError:
+            self.log.warn("task::Unauthorized message from: %r"%idents)
+            return
+        
         msg_type = msg['msg_type']
+        
         handler = self._notification_handlers.get(msg_type, None)
         if handler is None:
-            raise Exception("Unhandled message type: %s"%msg_type)
+            self.log.error("Unhandled message type: %r"%msg_type)
         else:
             try:
                 handler(str(msg['content']['queue']))
             except KeyError:
-                self.log.error("task::Invalid notification msg: %s"%msg)
+                self.log.error("task::Invalid notification msg: %r"%msg)
     
     @logged
     def _register_engine(self, uid):
@@ -247,10 +275,8 @@ class TaskScheduler(SessionFactory):
                 continue
 
             raw_msg = lost[msg_id][0]
-
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
-            msg = self.session.unpack_message(msg, copy=False, content=False)
-            parent = msg['header']
+            parent = self.session.unpack(msg[1].bytes)
             idents = [engine, idents[0]]
 
             # build fake error reply
@@ -280,8 +306,9 @@ class TaskScheduler(SessionFactory):
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
             msg = self.session.unpack_message(msg, content=False, copy=False)
         except Exception:
-            self.log.error("task::Invaid task: %s"%raw_msg, exc_info=True)
+            self.log.error("task::Invaid task msg: %r"%raw_msg, exc_info=True)
             return
+        
         
         # send to monitor
         self.mon_stream.send_multipart(['intask']+raw_msg, copy=False)
@@ -363,8 +390,7 @@ class TaskScheduler(SessionFactory):
         
         # FIXME: unpacking a message I've already unpacked, but didn't save:
         idents,msg = self.session.feed_identities(raw_msg, copy=False)
-        msg = self.session.unpack_message(msg, copy=False, content=False)
-        header = msg['header']
+        header = self.session.unpack(msg[1].bytes)
         
         try:
             raise why()
@@ -483,7 +509,7 @@ class TaskScheduler(SessionFactory):
             else:
                 self.finish_job(idx)
         except Exception:
-            self.log.error("task::Invaid result: %s"%raw_msg, exc_info=True)
+            self.log.error("task::Invaid result: %r"%raw_msg, exc_info=True)
             return
 
         header = msg['header']
@@ -590,7 +616,8 @@ class TaskScheduler(SessionFactory):
         for msg_id in jobs:
             raw_msg, targets, after, follow, timeout = self.depending[msg_id]
             
-            if after.unreachable(self.all_completed, self.all_failed) or follow.unreachable(self.all_completed, self.all_failed):
+            if after.unreachable(self.all_completed, self.all_failed)\
+                    or follow.unreachable(self.all_completed, self.all_failed):
                 self.fail_unreachable(msg_id)
             
             elif after.check(self.all_completed, self.all_failed): # time deps met, maybe run
@@ -621,9 +648,9 @@ class TaskScheduler(SessionFactory):
     
 
 
-def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname='ZMQ', 
-                            log_addr=None, loglevel=logging.DEBUG, scheme='lru',
-                            identity=b'task'):
+def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,
+                        logname='root', log_url=None, loglevel=logging.DEBUG,
+                        identity=b'task'):
     from zmq.eventloop import ioloop
     from zmq.eventloop.zmqstream import ZMQStream
     
@@ -646,16 +673,16 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,logname=
     nots.setsockopt(zmq.SUBSCRIBE, '')
     nots.connect(not_addr)
     
-    scheme = globals().get(scheme, None)
-    # setup logging
-    if log_addr:
-        connect_logger(logname, ctx, log_addr, root="scheduler", loglevel=loglevel)
+    # setup logging. Note that these will not work in-process, because they clobber
+    # existing loggers.
+    if log_url:
+        log = connect_logger(logname, ctx, log_url, root="scheduler", loglevel=loglevel)
     else:
-        local_logger(logname, loglevel)
+        log = local_logger(logname, loglevel)
     
     scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
                             mon_stream=mons, notifier_stream=nots,
-                            scheme=scheme, loop=loop, logname=logname,
+                            loop=loop, log=log,
                             config=config)
     scheduler.start()
     try:

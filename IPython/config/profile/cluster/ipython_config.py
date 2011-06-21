@@ -1,24 +1,25 @@
 c = get_config()
+app = c.InteractiveShellApp
 
 # This can be used at any point in a config file to load a sub config
 # and merge it into the current one.
-load_subconfig('ipython_config.py')
+load_subconfig('ipython_config.py', profile='default')
 
 lines = """
-from IPython.kernel.client import *
+from IPython.parallel import *
 """
 
 # You have to make sure that attributes that are containers already
 # exist before using them.  Simple assigning a new list will override
 # all previous values.
-if hasattr(c.Global, 'exec_lines'):
-    c.Global.exec_lines.append(lines)
+if hasattr(app, 'exec_lines'):
+    app.exec_lines.append(lines)
 else:
-    c.Global.exec_lines = [lines]
+    app.exec_lines = [lines]
 
 # Load the parallelmagic extension to enable %result, %px, %autopx magics.
-if hasattr(c.Global, 'extensions'):
-    c.Global.extensions.append('parallelmagic')
+if hasattr(app, 'extensions'):
+    app.extensions.append('parallelmagic')
 else:
-    c.Global.extensions = ['parallelmagic']
+    app.extensions = ['parallelmagic']
 

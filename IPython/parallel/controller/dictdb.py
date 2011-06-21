@@ -1,6 +1,11 @@
 """A Task logger that presents our DB interface, 
 but exists entirely in memory and implemented with dicts.
 
+Authors:
+
+* Min RK
+
+
 TaskRecords are dicts of the form:
 {
     'msg_id' : str(uuid),
@@ -35,7 +40,7 @@ We support a subset of mongodb operators:
     $lt,$gt,$lte,$gte,$ne,$in,$nin,$all,$mod,$exists
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010  The IPython Development Team
+#  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -44,9 +49,9 @@ We support a subset of mongodb operators:
 
 from datetime import datetime
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 
-from IPython.utils.traitlets import Dict, CUnicode
+from IPython.utils.traitlets import Dict, Unicode, Instance
 
 filters = {
  '$lt' : lambda a,b: a < b,
@@ -79,10 +84,10 @@ class CompositeFilter(object):
                 return False
         return True
 
-class BaseDB(Configurable):
+class BaseDB(LoggingConfigurable):
     """Empty Parent class so traitlets work on DB."""
     # base configurable traits:
-    session = CUnicode("")
+    session = Unicode("")
 
 class DictDB(BaseDB):
     """Basic in-memory dict-based object for saving Task Records.

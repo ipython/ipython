@@ -19,6 +19,8 @@ import __main__
 import os
 import re
 import shutil
+import textwrap
+from string import Formatter
 
 from IPython.external.path import path
 
@@ -391,15 +393,39 @@ def igrep(pat,list):
     return grep(pat,list,case=0)
 
 
-def indent(str,nspaces=4,ntabs=0):
+def indent(instr,nspaces=4, ntabs=0, flatten=False):
     """Indent a string a given number of spaces or tabstops.
 
     indent(str,nspaces=4,ntabs=0) -> indent str by ntabs+nspaces.
+    
+    Parameters
+    ----------
+    
+    instr : basestring
+        The string to be indented.
+    nspaces : int (default: 4)
+        The number of spaces to be indented.
+    ntabs : int (default: 0)
+        The number of tabs to be indented.
+    flatten : bool (default: False)
+        Whether to scrub existing indentation.  If True, all lines will be
+        aligned to the same indentation.  If False, existing indentation will
+        be strictly increased.
+    
+    Returns
+    -------
+    
+    str|unicode : string indented by ntabs and nspaces.
+    
     """
-    if str is None:
+    if instr is None:
         return
     ind = '\t'*ntabs+' '*nspaces
-    outstr = '%s%s' % (ind,str.replace(os.linesep,os.linesep+ind))
+    if flatten:
+        pat = re.compile(r'^\s*', re.MULTILINE)
+    else:
+        pat = re.compile(r'^', re.MULTILINE)
+    outstr = re.sub(pat, ind, instr)
     if outstr.endswith(os.linesep+ind):
         return outstr[:-len(ind)]
     else:
@@ -494,4 +520,94 @@ def format_screen(strng):
     par_re = re.compile(r'\\$',re.MULTILINE)
     strng = par_re.sub('',strng)
     return strng
+
+def dedent(text):
+    """Equivalent of textwrap.dedent that ignores unindented first line.
+    
+    This means it will still dedent strings like:
+    '''foo
+    is a bar
+    '''
+    
+    For use in wrap_paragraphs.
+    """
+    
+    if text.startswith('\n'):
+        # text starts with blank line, don't ignore the first line
+        return textwrap.dedent(text)
+    
+    # split first line
+    splits = text.split('\n',1)
+    if len(splits) == 1:
+        # only one line
+        return textwrap.dedent(text)
+    
+    first, rest = splits
+    # dedent everything but the first line
+    rest = textwrap.dedent(rest)
+    return '\n'.join([first, rest])
+
+def wrap_paragraphs(text, ncols=80):
+    """Wrap multiple paragraphs to fit a specified width.
+    
+    This is equivalent to textwrap.wrap, but with support for multiple
+    paragraphs, as separated by empty lines.
+    
+    Returns
+    -------
+    
+    list of complete paragraphs, wrapped to fill `ncols` columns.
+    """
+    paragraph_re = re.compile(r'\n(\s*\n)+', re.MULTILINE)
+    text = dedent(text).strip()
+    paragraphs = paragraph_re.split(text)[::2] # every other entry is space
+    out_ps = []
+    indent_re = re.compile(r'\n\s+', re.MULTILINE)
+    for p in paragraphs:
+        # presume indentation that survives dedent is meaningful formatting, 
+        # so don't fill unless text is flush.
+        if indent_re.search(p) is None:
+            # wrap paragraph
+            p = textwrap.fill(p, ncols)
+        out_ps.append(p)
+    return out_ps
+    
+
+
+class EvalFormatter(Formatter):
+    """A String Formatter that allows evaluation of simple expressions.
+    
+    Any time a format key is not found in the kwargs,
+    it will be tried as an expression in the kwargs namespace.
+    
+    This is to be used in templating cases, such as the parallel batch
+    script templates, where simple arithmetic on arguments is useful.
+    
+    Examples
+    --------
+    
+    In [1]: f = EvalFormatter()
+    In [2]: f.format('{n/4}', n=8)
+    Out[2]: '2'
+    
+    In [3]: f.format('{range(3)}')
+    Out[3]: '[0, 1, 2]'
+
+    In [4]: f.format('{3*2}')
+    Out[4]: '6'
+    """
+    
+    def get_value(self, key, args, kwargs):
+        if isinstance(key, (int, long)):
+            return args[key]
+        elif key in kwargs:
+            return kwargs[key]
+        else:
+            # evaluate the expression using kwargs as namespace
+            try:
+                return eval(key, kwargs)
+            except Exception:
+                # classify all bad expressions as key errors
+                raise KeyError(key)
+
 

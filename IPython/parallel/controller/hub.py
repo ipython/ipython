@@ -2,6 +2,10 @@
 """The IPython Controller Hub with 0MQ
 This is the master object that handles connections from engines and clients,
 and monitors traffic through the various queues.
+
+Authors:
+
+* Min RK
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
@@ -25,10 +29,14 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import HasTraits, Instance, Int, CStr, Str, Dict, Set, List, Bool
+from IPython.utils.traitlets import (
+        HasTraits, Instance, Int, Unicode, Dict, Set, Tuple, CStr
+        )
 
 from IPython.parallel import error, util
-from IPython.parallel.factory import RegistrationFactory, LoggingFactory
+from IPython.parallel.factory import RegistrationFactory
+
+from IPython.zmq.session import SessionFactory
 
 from .heartmonitor import HeartMonitor
 
@@ -75,7 +83,7 @@ def init_record(msg):
         'header' : header,
         'content': msg['content'],
         'buffers': msg['buffers'],
-        'submitted': datetime.strptime(header['date'], util.ISO8601),
+        'submitted': header['date'],
         'client_uuid' : None,
         'engine_uuid' : None,
         'started': None,
@@ -103,68 +111,80 @@ class EngineConnector(HasTraits):
     heartbeat (str): identity of heartbeat XREQ socket
     """
     id=Int(0)
-    queue=Str()
-    control=Str()
-    registration=Str()
-    heartbeat=Str()
+    queue=CStr()
+    control=CStr()
+    registration=CStr()
+    heartbeat=CStr()
     pending=Set()
 
 class HubFactory(RegistrationFactory):
     """The Configurable for setting up a Hub."""
     
-    # name of a scheduler scheme
-    scheme = Str('leastload', config=True)
-    
     # port-pairs for monitoredqueues:
-    hb = Instance(list, config=True)
+    hb = Tuple(Int,Int,config=True,
+        help="""XREQ/SUB Port pair for Engine heartbeats""")
     def _hb_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
+
+    mux = Tuple(Int,Int,config=True,
+        help="""Engine/Client Port pair for MUX queue""")
     
-    mux = Instance(list, config=True)
     def _mux_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
     
-    task = Instance(list, config=True)
+    task = Tuple(Int,Int,config=True,
+        help="""Engine/Client Port pair for Task queue""")
     def _task_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
+
+    control = Tuple(Int,Int,config=True,
+        help="""Engine/Client Port pair for Control queue""")
     
-    control = Instance(list, config=True)
     def _control_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
+
+    iopub = Tuple(Int,Int,config=True,
+        help="""Engine/Client Port pair for IOPub relay""")
     
-    iopub = Instance(list, config=True)
     def _iopub_default(self):
-        return util.select_random_ports(2)
+        return tuple(util.select_random_ports(2))
     
     # single ports:
-    mon_port = Instance(int, config=True)
+    mon_port = Int(config=True,
+        help="""Monitor (SUB) port for queue traffic""")
+
     def _mon_port_default(self):
         return util.select_random_ports(1)[0]
     
-    notifier_port = Instance(int, config=True)
+    notifier_port = Int(config=True,
+        help="""PUB port for sending engine status notifications""")
+
     def _notifier_port_default(self):
         return util.select_random_ports(1)[0]
     
-    ping = Int(1000, config=True) # ping frequency
+    engine_ip = Unicode('127.0.0.1', config=True,
+        help="IP on which to listen for engine connections. [default: loopback]")
+    engine_transport = Unicode('tcp', config=True,
+        help="0MQ transport for engine connections. [default: tcp]")
     
-    engine_ip = CStr('127.0.0.1', config=True)
-    engine_transport = CStr('tcp', config=True)
+    client_ip = Unicode('127.0.0.1', config=True,
+        help="IP on which to listen for client connections. [default: loopback]")
+    client_transport = Unicode('tcp', config=True,
+        help="0MQ transport for client connections. [default : tcp]")
     
-    client_ip = CStr('127.0.0.1', config=True)
-    client_transport = CStr('tcp', config=True)
+    monitor_ip = Unicode('127.0.0.1', config=True,
+        help="IP on which to listen for monitor messages. [default: loopback]")
+    monitor_transport = Unicode('tcp', config=True,
+        help="0MQ transport for monitor messages. [default : tcp]")
     
-    monitor_ip = CStr('127.0.0.1', config=True)
-    monitor_transport = CStr('tcp', config=True)
+    monitor_url = Unicode('')
     
-    monitor_url = CStr('')
-    
-    db_class = CStr('IPython.parallel.controller.dictdb.DictDB', config=True)
+    db_class = Unicode('IPython.parallel.controller.dictdb.DictDB', config=True,
+        help="""The class to use for the DB backend""")
     
     # not configurable
     db = Instance('IPython.parallel.controller.dictdb.BaseDB')
     heartmonitor = Instance('IPython.parallel.controller.heartmonitor.HeartMonitor')
-    subconstructors = List()
-    _constructed = Bool(False)
     
     def _ip_changed(self, name, old, new):
         self.engine_ip = new
@@ -184,26 +204,16 @@ class HubFactory(RegistrationFactory):
     def __init__(self, **kwargs):
         super(HubFactory, self).__init__(**kwargs)
         self._update_monitor_url()
-        # self.on_trait_change(self._sync_ips, 'ip')
-        # self.on_trait_change(self._sync_transports, 'transport')
-        self.subconstructors.append(self.construct_hub)
     
     
     def construct(self):
-        assert not self._constructed, "already constructed!"
-        
-        for subc in self.subconstructors:
-            subc()
-        
-        self._constructed = True
-        
+        self.init_hub()
     
     def start(self):
-        assert self._constructed, "must be constructed by self.construct() first!"
         self.heartmonitor.start()
         self.log.info("Heartmonitor started")
     
-    def construct_hub(self):
+    def init_hub(self):
         """construct"""
         client_iface = "%s://%s:"%(self.client_transport, self.client_ip) + "%i"
         engine_iface = "%s://%s:"%(self.engine_transport, self.engine_ip) + "%i"
@@ -226,8 +236,10 @@ class HubFactory(RegistrationFactory):
         hpub.bind(engine_iface % self.hb[0])
         hrep = ctx.socket(zmq.XREP)
         hrep.bind(engine_iface % self.hb[1])
-        self.heartmonitor = HeartMonitor(loop=loop, pingstream=ZMQStream(hpub,loop), pongstream=ZMQStream(hrep,loop), 
-                                period=self.ping, logname=self.log.name)
+        self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
+                                pingstream=ZMQStream(hpub,loop),
+                                pongstream=ZMQStream(hrep,loop)
+                            )
 
         ### Client connections ###
         # Notifier socket
@@ -246,9 +258,14 @@ class HubFactory(RegistrationFactory):
         # connect the db
         self.log.info('Hub using DB backend: %r'%(self.db_class.split()[-1]))
         # cdir = self.config.Global.cluster_dir
-        self.db = import_item(self.db_class)(session=self.session.session, config=self.config)
+        self.db = import_item(str(self.db_class))(session=self.session.session, 
+                                            config=self.config, log=self.log)
         time.sleep(.25)
-
+        try:
+            scheme = self.config.TaskScheduler.scheme_name
+        except AttributeError:
+            from .scheduler import TaskScheduler
+            scheme = TaskScheduler.scheme_name.get_default_value()
         # build connection dicts
         self.engine_info = {
             'control' : engine_iface%self.control[1],
@@ -262,7 +279,7 @@ class HubFactory(RegistrationFactory):
         self.client_info = {
             'control' : client_iface%self.control[0],
             'mux': client_iface%self.mux[0],
-            'task' : (self.scheme, client_iface%self.task[0]),
+            'task' : (scheme, client_iface%self.task[0]),
             'iopub' : client_iface%self.iopub[0],
             'notification': client_iface%self.notifier_port
             }
@@ -278,16 +295,16 @@ class HubFactory(RegistrationFactory):
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
                 query=q, notifier=n, resubmit=r, db=self.db,
                 engine_info=self.engine_info, client_info=self.client_info,
-                logname=self.log.name)
+                log=self.log)
     
 
-class Hub(LoggingFactory):
+class Hub(SessionFactory):
     """The IPython Controller Hub with 0MQ connections
     
     Parameters
     ==========
     loop: zmq IOLoop instance
-    session: StreamSession object
+    session: Session object
     <removed> context: zmq context for creating new connections (?)
     queue: ZMQStream for monitoring the command queue (SUB)
     query: ZMQStream for engine registration and client queries requests (XREP)
@@ -319,7 +336,6 @@ class Hub(LoggingFactory):
     _idcounter=Int(0)
     
     # objects from constructor:
-    loop=Instance(ioloop.IOLoop)
     query=Instance(ZMQStream)
     monitor=Instance(ZMQStream)
     notifier=Instance(ZMQStream)
@@ -438,34 +454,16 @@ class Hub(LoggingFactory):
     # dispatch methods (1 per stream)
     #-----------------------------------------------------------------------------
     
-    # def dispatch_registration_request(self, msg):
-    #     """"""
-    #     self.log.debug("registration::dispatch_register_request(%s)"%msg)
-    #     idents,msg = self.session.feed_identities(msg)
-    #     if not idents:
-    #         self.log.error("Bad Query Message: %s"%msg, exc_info=True)
-    #         return
-    #     try:
-    #         msg = self.session.unpack_message(msg,content=True)
-    #     except:
-    #         self.log.error("registration::got bad registration message: %s"%msg, exc_info=True)
-    #         return
-    #     
-    #     msg_type = msg['msg_type']
-    #     content = msg['content']
-    #     
-    #     handler = self.query_handlers.get(msg_type, None)
-    #     if handler is None:
-    #         self.log.error("registration::got bad registration message: %s"%msg)
-    #     else:
-    #         handler(idents, msg)
     
     def dispatch_monitor_traffic(self, msg):
         """all ME and Task queue messages come through here, as well as
         IOPub traffic."""
         self.log.debug("monitor traffic: %r"%msg[:2])
         switch = msg[0]
-        idents, msg = self.session.feed_identities(msg[1:])
+        try:
+            idents, msg = self.session.feed_identities(msg[1:])
+        except ValueError:
+            idents=[]
         if not idents:
             self.log.error("Bad Monitor Message: %r"%msg)
             return
@@ -478,20 +476,22 @@ class Hub(LoggingFactory):
     
     def dispatch_query(self, msg):
         """Route registration requests and queries from clients."""
-        idents, msg = self.session.feed_identities(msg)
+        try:
+            idents, msg = self.session.feed_identities(msg)
+        except ValueError:
+            idents = []
         if not idents:
             self.log.error("Bad Query Message: %r"%msg)
             return
         client_id = idents[0]
         try:
             msg = self.session.unpack_message(msg, content=True)
-        except:
+        except Exception:
             content = error.wrap_exception()
             self.log.error("Bad Query Message: %r"%msg, exc_info=True)
             self.session.send(self.query, "hub_error", ident=client_id, 
                     content=content)
             return
-        
         # print client_id, header, parent, content
         #switch on message type:
         msg_type = msg['msg_type']
@@ -546,24 +546,22 @@ class Hub(LoggingFactory):
     
     def save_queue_request(self, idents, msg):
         if len(idents) < 2:
-            self.log.error("invalid identity prefix: %s"%idents)
+            self.log.error("invalid identity prefix: %r"%idents)
             return
         queue_id, client_id = idents[:2]
         try:
-            msg = self.session.unpack_message(msg, content=False)
-        except:
-            self.log.error("queue::client %r sent invalid message to %r: %s"%(client_id, queue_id, msg), exc_info=True)
+            msg = self.session.unpack_message(msg)
+        except Exception:
+            self.log.error("queue::client %r sent invalid message to %r: %r"%(client_id, queue_id, msg), exc_info=True)
             return
         
         eid = self.by_ident.get(queue_id, None)
         if eid is None:
             self.log.error("queue::target %r not registered"%queue_id)
-            self.log.debug("queue::    valid are: %s"%(self.by_ident.keys()))
+            self.log.debug("queue::    valid are: %r"%(self.by_ident.keys()))
             return
-            
-        header = msg['header']
-        msg_id = header['msg_id']
         record = init_record(msg)
+        msg_id = record['msg_id']
         record['engine_uuid'] = queue_id
         record['client_uuid'] = client_id
         record['queue'] = 'mux'
@@ -577,30 +575,36 @@ class Hub(LoggingFactory):
                     self.log.warn("conflicting initial state for record: %r:%r <%r> %r"%(msg_id, rvalue, key, evalue))
                 elif evalue and not rvalue:
                     record[key] = evalue
-            self.db.update_record(msg_id, record)
+            try:
+                self.db.update_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error updating record %r"%msg_id, exc_info=True)
         except KeyError:
-            self.db.add_record(msg_id, record)
+            try:
+                self.db.add_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error adding record %r"%msg_id, exc_info=True)
+                
         
         self.pending.add(msg_id)
         self.queues[eid].append(msg_id)
     
     def save_queue_result(self, idents, msg):
         if len(idents) < 2:
-            self.log.error("invalid identity prefix: %s"%idents)
+            self.log.error("invalid identity prefix: %r"%idents)
             return
             
         client_id, queue_id = idents[:2]
         try:
-            msg = self.session.unpack_message(msg, content=False)
-        except:
-            self.log.error("queue::engine %r sent invalid message to %r: %s"%(
+            msg = self.session.unpack_message(msg)
+        except Exception:
+            self.log.error("queue::engine %r sent invalid message to %r: %r"%(
                     queue_id,client_id, msg), exc_info=True)
             return
         
         eid = self.by_ident.get(queue_id, None)
         if eid is None:
             self.log.error("queue::unknown engine %r is sending a reply: "%queue_id)
-            # self.log.debug("queue::       %s"%msg[2:])
             return
         
         parent = msg['parent_header']
@@ -615,14 +619,12 @@ class Hub(LoggingFactory):
         elif msg_id not in self.all_completed:
             # it could be a result from a dead engine that died before delivering the
             # result
-            self.log.warn("queue:: unknown msg finished %s"%msg_id)
+            self.log.warn("queue:: unknown msg finished %r"%msg_id)
             return
         # update record anyway, because the unregistration could have been premature
         rheader = msg['header']
-        completed = datetime.strptime(rheader['date'], util.ISO8601)
+        completed = rheader['date']
         started = rheader.get('started', None)
-        if started is not None:
-            started = datetime.strptime(started, util.ISO8601)
         result = {
             'result_header' : rheader,
             'result_content': msg['content'],
@@ -644,9 +646,9 @@ class Hub(LoggingFactory):
         client_id = idents[0]
         
         try:
-            msg = self.session.unpack_message(msg, content=False)
-        except:
-            self.log.error("task::client %r sent invalid task message: %s"%(
+            msg = self.session.unpack_message(msg)
+        except Exception:
+            self.log.error("task::client %r sent invalid task message: %r"%(
                     client_id, msg), exc_info=True)
             return
         record = init_record(msg)
@@ -678,9 +680,15 @@ class Hub(LoggingFactory):
                     self.log.warn("conflicting initial state for record: %r:%r <%r> %r"%(msg_id, rvalue, key, evalue))
                 elif evalue and not rvalue:
                     record[key] = evalue
-            self.db.update_record(msg_id, record)
+            try:
+                self.db.update_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error updating record %r"%msg_id, exc_info=True)
         except KeyError:
-            self.db.add_record(msg_id, record)
+            try:
+                self.db.add_record(msg_id, record)
+            except Exception:
+                self.log.error("DB Error adding record %r"%msg_id, exc_info=True)
         except Exception:
             self.log.error("DB Error saving task request %r"%msg_id, exc_info=True)
     
@@ -688,11 +696,10 @@ class Hub(LoggingFactory):
         """save the result of a completed task."""
         client_id = idents[0]
         try:
-            msg = self.session.unpack_message(msg, content=False)
-        except:
-            self.log.error("task::invalid task result message send to %r: %s"%(
+            msg = self.session.unpack_message(msg)
+        except Exception:
+            self.log.error("task::invalid task result message send to %r: %r"%(
                     client_id, msg), exc_info=True)
-            raise
             return
         
         parent = msg['parent_header']
@@ -715,10 +722,8 @@ class Hub(LoggingFactory):
                 self.completed[eid].append(msg_id)
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
-            completed = datetime.strptime(header['date'], util.ISO8601)
+            completed = header['date']
             started = header.get('started', None)
-            if started is not None:
-                started = datetime.strptime(started, util.ISO8601)
             result = {
                 'result_header' : header,
                 'result_content': msg['content'],
@@ -734,12 +739,12 @@ class Hub(LoggingFactory):
                 self.log.error("DB Error saving task request %r"%msg_id, exc_info=True)
             
         else:
-            self.log.debug("task::unknown task %s finished"%msg_id)
+            self.log.debug("task::unknown task %r finished"%msg_id)
     
     def save_task_destination(self, idents, msg):
         try:
             msg = self.session.unpack_message(msg, content=True)
-        except:
+        except Exception:
             self.log.error("task::invalid task tracking message", exc_info=True)
             return
         content = msg['content']
@@ -748,11 +753,11 @@ class Hub(LoggingFactory):
         engine_uuid = content['engine_id']
         eid = self.by_ident[engine_uuid]
         
-        self.log.info("task::task %s arrived on %s"%(msg_id, eid))
+        self.log.info("task::task %r arrived on %r"%(msg_id, eid))
         if msg_id in self.unassigned:
             self.unassigned.remove(msg_id)
         # else:
-        #     self.log.debug("task::task %s not listed as MIA?!"%(msg_id))
+        #     self.log.debug("task::task %r not listed as MIA?!"%(msg_id))
         
         self.tasks[eid].append(msg_id)
         # self.pending[msg_id][1].update(received=datetime.now(),engine=(eid,engine_uuid))
@@ -776,13 +781,13 @@ class Hub(LoggingFactory):
         # print (topics)
         try:
             msg = self.session.unpack_message(msg, content=True)
-        except:
+        except Exception:
             self.log.error("iopub::invalid IOPub message", exc_info=True)
             return
         
         parent = msg['parent_header']
         if not parent:
-            self.log.error("iopub::invalid IOPub message: %s"%msg)
+            self.log.error("iopub::invalid IOPub message: %r"%msg)
             return
         msg_id = parent['msg_id']
         msg_type = msg['msg_type']
@@ -822,7 +827,7 @@ class Hub(LoggingFactory):
         
     def connection_request(self, client_id, msg):
         """Reply with connection addresses for clients."""
-        self.log.info("client::client %s connected"%client_id)
+        self.log.info("client::client %r connected"%client_id)
         content = dict(status='ok')
         content.update(self.client_info)
         jsonable = {}
@@ -894,7 +899,7 @@ class Hub(LoggingFactory):
                 dc.start()
                 self.incoming_registrations[heart] = (eid,queue,reg[0],dc)
         else:
-            self.log.error("registration::registration %i failed: %s"%(eid, content['evalue']))
+            self.log.error("registration::registration %i failed: %r"%(eid, content['evalue']))
         return eid
     
     def unregister_engine(self, ident, msg):
@@ -902,9 +907,9 @@ class Hub(LoggingFactory):
         try:
             eid = msg['content']['id']
         except:
-            self.log.error("registration::bad engine id for unregistration: %s"%ident, exc_info=True)
+            self.log.error("registration::bad engine id for unregistration: %r"%ident, exc_info=True)
             return
-        self.log.info("registration::unregister_engine(%s)"%eid)
+        self.log.info("registration::unregister_engine(%r)"%eid)
         # print (eid)
         uuid = self.keytable[eid]
         content=dict(id=eid, queue=uuid)
@@ -1124,7 +1129,7 @@ class Hub(LoggingFactory):
         elif len(records) < len(msg_ids):
             missing = [ m for m in msg_ids if m not in found_ids ]
             try:
-                raise KeyError("No such msg(s): %s"%missing)
+                raise KeyError("No such msg(s): %r"%missing)
             except KeyError:
                 return finish(error.wrap_exception())
         elif invalid_ids:
@@ -1135,9 +1140,10 @@ class Hub(LoggingFactory):
                 return finish(error.wrap_exception())
 
         # clear the existing records
+        now = datetime.now()
         rec = empty_record()
         map(rec.pop, ['msg_id', 'header', 'content', 'buffers', 'submitted'])
-        rec['resubmitted'] = datetime.now()
+        rec['resubmitted'] = now
         rec['queue'] = 'task'
         rec['client_uuid'] = client_id[0]
         try:
@@ -1151,6 +1157,8 @@ class Hub(LoggingFactory):
             # send the messages
             for rec in records:
                 header = rec['header']
+                # include resubmitted in header to prevent digest collision
+                header['resubmitted'] = now
                 msg = self.session.msg(header['msg_type'])
                 msg['content'] = rec['content']
                 msg['header'] = header
@@ -1246,10 +1254,8 @@ class Hub(LoggingFactory):
         content = msg['content']
         query = content.get('query', {})
         keys = content.get('keys', None)
-        query = util.extract_dates(query)
         buffers = []
         empty = list()
-        
         try:
             records = self.db.find_records(query, keys)
         except Exception as e:

@@ -23,4 +23,3 @@ IPython developer's guide
    ipgraph.txt
    ipython_qt.txt
    ipythonzmq.txt
-   parallelzmq.txt
