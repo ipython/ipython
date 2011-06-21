@@ -39,13 +39,13 @@ hosts ``host1``-``hostn``. The following steps are then required:
    (:file:`ipcontroller-engine.json`) is located.
 
 At this point, the controller and engines will be connected. By default, the JSON files
-created by the controller are put into the :file:`~/.ipython/cluster_default/security`
+created by the controller are put into the :file:`~/.ipython/profile_default/security`
 directory. If the engines share a filesystem with the controller, step 2 can be skipped as
 the engines will automatically look at that location.
 
 The final step required to actually use the running controller from a client is to move
 the JSON file :file:`ipcontroller-client.json` from ``host0`` to any host where clients
-will be run. If these file are put into the :file:`~/.ipython/cluster_default/security`
+will be run. If these file are put into the :file:`~/.ipython/profile_default/security`
 directory of the client's host, they will be found automatically. Otherwise, the full path
 to them has to be passed to the client's constructor.
 
@@ -94,14 +94,14 @@ Cluster configurations are stored as `profiles`.  You can create a new profile w
 
     $ ipython profile create --parallel profile=myprofile
 
-This will create the directory :file:`IPYTHONDIR/cluster_myprofile`, and populate it
+This will create the directory :file:`IPYTHONDIR/profile_myprofile`, and populate it
 with the default configuration files for the three IPython cluster commands. Once
 you edit those files, you can continue to call ipcluster/ipcontroller/ipengine
-with no arguments beyond ``p=myprofile``, and any configuration will be maintained.
+with no arguments beyond ``profile=myprofile``, and any configuration will be maintained.
 
 There is no limit to the number of profiles you can have, so you can maintain a profile for each
 of your common use cases. The default profile will be used whenever the
-profile argument is not specified, so edit :file:`IPYTHONDIR/cluster_default/*_config.py` to
+profile argument is not specified, so edit :file:`IPYTHONDIR/profile_default/*_config.py` to
 represent your most common use case.
 
 The configuration files are loaded with commented-out settings and explanations,
@@ -135,7 +135,7 @@ If these are satisfied, you can create a new profile::
 
     $ ipython profile create --parallel profile=mpi
 
-and edit the file :file:`IPYTHONDIR/cluster_mpi/ipcluster_config.py`.
+and edit the file :file:`IPYTHONDIR/profile_mpi/ipcluster_config.py`.
 
 There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
@@ -366,7 +366,7 @@ a single location:
 
 .. sourcecode:: python
 
-    c.SSHEngineSetLauncher.engine_args = ['profile_dir=/path/to/cluster_ssh']
+    c.SSHEngineSetLauncher.engine_args = ['profile_dir=/path/to/profile_ssh']
 
 Current limitations of the SSH mode of :command:`ipcluster` are:
 
@@ -398,7 +398,7 @@ the command::
     $ ipengine
 
 The engines should start and automatically connect to the controller using the
-JSON files in :file:`~/.ipython/cluster_default/security`. You are now ready to use the
+JSON files in :file:`~/.ipython/profile_default/security`. You are now ready to use the
 controller and engines from IPython.
 
 .. warning:: 

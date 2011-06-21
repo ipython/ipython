@@ -37,7 +37,7 @@ module and then create a :class:`.Client` instance:
     In [2]: rc = Client()
 
 This form assumes that the default connection information (stored in
-:file:`ipcontroller-client.json` found in :file:`IPYTHON_DIR/cluster_default/security`) is
+:file:`ipcontroller-client.json` found in :file:`IPYTHON_DIR/profile_default/security`) is
 accurate. If the controller was started on a remote machine, you must copy that connection
 file to the client machine, or enter its contents as arguments to the Client constructor:
 

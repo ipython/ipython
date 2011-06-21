@@ -156,7 +156,7 @@ To connect and authenticate to the controller an engine or client needs
 some information that the controller has stored in a JSON file.
 Thus, the JSON files need to be copied to a location where
 the clients and engines can find them. Typically, this is the
-:file:`~/.ipython/cluster_default/security` directory on the host where the 
+:file:`~/.ipython/profile_default/security` directory on the host where the 
 client/engine is running (which could be a different host than the controller). 
 Once the JSON files are copied over, everything should work fine.
 
@@ -218,7 +218,7 @@ everything is working correctly, try the following commands:
 
 
 When a client is created with no arguments, the client tries to find the corresponding JSON file
-in the local `~/.ipython/cluster_default/security` directory. Or if you specified a profile,
+in the local `~/.ipython/profile_default/security` directory. Or if you specified a profile,
 you can use that with the Client.  This should cover most cases:
 
 .. sourcecode:: ipython
