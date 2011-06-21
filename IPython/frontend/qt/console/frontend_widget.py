@@ -22,8 +22,7 @@ from pygments_highlighter import PygmentsHighlighter
 
 
 class FrontendHighlighter(PygmentsHighlighter):
-    """ A PygmentsHighlighter that can be turned on and off and that ignores
-        prompts.
+    """ A PygmentsHighlighter that understands and ignores prompts.
     """
 
     def __init__(self, frontend):
@@ -50,14 +49,12 @@ class FrontendHighlighter(PygmentsHighlighter):
         else:
             prompt = self._frontend._continuation_prompt
 
-        # Don't highlight the part of the string that contains the prompt.
+        # Only highlight if we can identify a prompt, but make sure not to
+        # highlight the prompt.
         if string.startswith(prompt):
             self._current_offset = len(prompt)
             string = string[len(prompt):]
-        else:
-            self._current_offset = 0
-
-        PygmentsHighlighter.highlightBlock(self, string)
+            super(FrontendHighlighter, self).highlightBlock(string)
 
     def rehighlightBlock(self, block):
         """ Reimplemented to temporarily enable highlighting if disabled.
@@ -71,7 +68,7 @@ class FrontendHighlighter(PygmentsHighlighter):
         """ Reimplemented to highlight selectively.
         """
         start += self._current_offset
-        PygmentsHighlighter.setFormat(self, start, count, format)
+        super(FrontendHighlighter, self).setFormat(start, count, format)
 
 
 class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
@@ -372,14 +369,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle display hook output.
         """
         if not self._hidden and self._is_from_this_session(msg):
-            data = msg['content']['data']
-            if isinstance(data, basestring):
-                # plaintext data from pure Python kernel
-                text = data
-            else:
-                # formatted output from DisplayFormatter (IPython kernel)
-                text = data.get('text/plain', '')
-            self._append_plain_text(text + '\n')
+            text = msg['content']['data']
+            self._append_plain_text(text + '\n', before_prompt=True)
 
     def _handle_stream(self, msg):
         """ Handle stdout, stderr, and stdin.
@@ -390,7 +381,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # widget's tab width.
             text = msg['content']['data'].expandtabs(8)
             
-            self._append_plain_text(text)
+            self._append_plain_text(text, before_prompt=True)
             self._control.moveCursor(QtGui.QTextCursor.End)
 
     def _handle_shutdown_reply(self, msg):
