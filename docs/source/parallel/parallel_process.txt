@@ -112,7 +112,7 @@ Using various batch systems with :command:`ipcluster`
 
 :command:`ipcluster` has a notion of Launchers that can start controllers
 and engines with various remote execution schemes.  Currently supported
-models include :command:`ssh`, :command`mpiexec`, PBS-style (Torque, SGE),
+models include :command:`ssh`, :command:`mpiexec`, PBS-style (Torque, SGE),
 and Windows HPC Server.
 
 .. note::
