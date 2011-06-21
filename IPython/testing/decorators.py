@@ -56,7 +56,7 @@ import unittest
 # Third-party imports
 
 # This is Michele Simionato's decorator module, kept verbatim.
-from IPython.external.decorator import decorator, update_wrapper
+from IPython.external.decorator import decorator
 
 # We already have python3-compliant code for parametric tests
 if sys.version[0]=='2':
