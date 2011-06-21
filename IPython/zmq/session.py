@@ -47,7 +47,8 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
-from IPython.utils.traitlets import Bytes, Unicode, Bool, Any, Instance, Set
+from IPython.utils.traitlets import (Bytes, Unicode, Bool, Any, Instance, Set,
+                                        DottedObjectName)
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -211,7 +212,7 @@ class Session(Configurable):
     
     debug=Bool(False, config=True, help="""Debug output in the Session""")
     
-    packer = Unicode('json',config=True,
+    packer = DottedObjectName('json',config=True,
             help="""The name of the packer for serializing messages.
             Should be one of 'json', 'pickle', or an import name
             for a custom callable serializer.""")
@@ -225,7 +226,7 @@ class Session(Configurable):
         else:
             self.pack = import_item(str(new))
 
-    unpacker = Unicode('json', config=True,
+    unpacker = DottedObjectName('json', config=True,
         help="""The name of the unpacker for unserializing messages.
         Only used with custom functions for `packer`.""")
     def _unpacker_changed(self, name, old, new):
