@@ -10,15 +10,10 @@ IPython cluster for parallel computing.
 All Connections
 ===============
 
-The Parallel Computing code is currently under development in IPython's newparallel_
-branch on GitHub.
-
-.. _newparallel: http://github.com/ipython/ipython/tree/newparallel
-
 The IPython cluster consists of a Controller, and one or more each of clients and engines.
 The goal of the Controller is to manage and monitor the connections and communications
 between the clients and the engines.  The Controller is no longer a single process entity,
-but rather a collection of processes - specifically one Hub, and 3 (or more) Schedulers.
+but rather a collection of processes - specifically one Hub, and 4 (or more) Schedulers.
 
 It is important for security/practicality reasons that all connections be inbound to the
 controller processes. The arrows in the figures indicate the direction of the
