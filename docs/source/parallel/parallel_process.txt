@@ -197,8 +197,10 @@ and engines:
 
 .. sourcecode:: python
 
-    c.Global.controller_launcher = 'IPython.parallel.apps.launcher.PBSControllerLauncher'
-    c.Global.engine_launcher = 'IPython.parallel.apps.launcher.PBSEngineSetLauncher'
+    c.IPClusterStart.controller_launcher = \
+        'IPython.parallel.apps.launcher.PBSControllerLauncher'
+    c.IPClusterEngines.engine_launcher = \
+        'IPython.parallel.apps.launcher.PBSEngineSetLauncher'
 
 IPython does provide simple default batch templates for PBS and SGE, but you may need
 to specify your own. Here is a sample PBS script template:
@@ -316,9 +318,11 @@ To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
 .. sourcecode:: python
 
-    c.Global.engine_launcher = 'IPython.parallel.apps.launcher.SSHEngineSetLauncher'
+    c.IPClusterEngines.engine_launcher = \
+        'IPython.parallel.apps.launcher.SSHEngineSetLauncher'
     # and if the Controller is also to be remote:
-    c.Global.controller_launcher = 'IPython.parallel.apps.launcher.SSHControllerLauncher'
+    c.IPClusterStart.controller_launcher = \
+        'IPython.parallel.apps.launcher.SSHControllerLauncher'
     
 
 The controller's remote location and configuration can be specified:
