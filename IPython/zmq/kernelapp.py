@@ -95,7 +95,7 @@ class KernelApp(BaseIPythonApplication):
     no_stderr = Bool(False, config=True, help="redirect stderr to the null device")
     outstream_class = Unicode('IPython.zmq.iostream.OutStream', config=True,
         help="The importstring for the OutStream factory")
-    displayhook_class = Unicode('IPython.zmq.displayhook.DisplayHook', config=True,
+    displayhook_class = Unicode('IPython.zmq.displayhook.ZMQDisplayHook', config=True,
         help="The importstring for the DisplayHook factory")
 
     # polling
