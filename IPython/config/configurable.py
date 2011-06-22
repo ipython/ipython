@@ -204,6 +204,19 @@ class Configurable(HasTraits):
             lines.append(c(desc))
             lines.append('')
         
+        parents = []
+        for parent in cls.mro():
+            # only include parents that are not base classes
+            # and are not the class itself
+            if issubclass(parent, Configurable) and \
+                    not parent in (Configurable, SingletonConfigurable, cls):
+                parents.append(parent)
+        
+        if parents:
+            pstr = ', '.join([ p.__name__ for p in parents ])
+            lines.append(c('%s will inherit config from: %s'%(cls.__name__, pstr)))
+            lines.append('')
+        
         for name,trait in cls.class_traits(config=True).iteritems():
             help = trait.get_metadata('help') or ''
             lines.append(c(help))
