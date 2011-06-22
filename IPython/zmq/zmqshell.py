@@ -16,7 +16,6 @@ machinery.  This should thus be thought of as scaffolding.
 from __future__ import print_function
 
 # Stdlib
-from base64 import encodestring
 import inspect
 import os
 
@@ -26,7 +25,6 @@ from IPython.core.interactiveshell import (
 )
 from IPython.core import page
 from IPython.core.autocall import ZMQExitAutocall
-from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
 from IPython.core.magic import MacroToEdit
@@ -35,6 +33,7 @@ from IPython.utils import io
 from IPython.utils.path import get_py_filename
 from IPython.utils.traitlets import Instance, Type, Dict
 from IPython.utils.warn import warn
+from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_png
 from IPython.zmq.session import extract_header
 from session import Session
 
@@ -48,42 +47,6 @@ install_payload_page()
 #-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
-
-def _encode_png(data):
-    pngdata = data.get('image/png')
-    if pngdata is not None:
-        data['image/png'] = encodestring(pngdata)
-
-
-class ZMQDisplayHook(DisplayHook):
-    """A displayhook subclass that publishes data using ZeroMQ."""
-
-    session = Instance(Session)
-    pub_socket = Instance('zmq.Socket')
-    parent_header = Dict({})
-
-    def set_parent(self, parent):
-        """Set the parent for outbound messages."""
-        self.parent_header = extract_header(parent)
-
-    def start_displayhook(self):
-        self.msg = self.session.msg(u'pyout', {}, parent=self.parent_header)
-
-    def write_output_prompt(self):
-        """Write the output prompt."""
-        if self.do_full_cache:
-            self.msg['content']['execution_count'] = self.prompt_count
-
-    def write_format_data(self, format_dict):
-        pngdata = format_dict.get('image/png')
-        _encode_png(format_dict)
-        self.msg['content']['data'] = format_dict
-
-    def finish_displayhook(self):
-        """Finish up all displayhook activities."""
-        self.session.send(self.pub_socket, self.msg)
-        self.msg = None
-
 
 class ZMQDisplayPublisher(DisplayPublisher):
     """A display publisher that publishes data using a ZeroMQ PUB socket."""
@@ -114,7 +77,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
 class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
 
-    displayhook_class = Type(ZMQDisplayHook)
+    displayhook_class = Type(ZMQShellDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
     
     exiter = Instance(ZMQExitAutocall)

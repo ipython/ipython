@@ -13,7 +13,6 @@ import sys
 from parentpoller import ParentPollerWindows
 
 
-
 def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
                         ip=None, stdin=None, stdout=None, stderr=None,
                         executable=None, independent=False, extra_arguments=[]):
