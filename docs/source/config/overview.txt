@@ -126,7 +126,7 @@ subclass::
 
     # Sample component that can be configured.
     from IPython.config.configurable import Configurable
-    from IPython.utils.traitlets import Int, Float, Str, Bool
+    from IPython.utils.traitlets import Int, Float, Unicode, Bool
     
     class MyClass(Configurable):
         name = Unicode(u'defaultname', config=True)
@@ -150,8 +150,8 @@ After this configuration file is loaded, the values set in it will override
 the class defaults anytime a :class:`MyClass` is created.  Furthermore,
 these attributes will be type checked and validated anytime they are set.
 This type checking is handled by the :mod:`IPython.utils.traitlets` module,
-which provides the :class:`Str`, :class:`Int` and :class:`Float` types.  In 
-addition to these traitlets, the :mod:`IPython.utils.traitlets` provides
+which provides the :class:`Unicode`, :class:`Int` and :class:`Float` types.
+In addition to these traitlets, the :mod:`IPython.utils.traitlets` provides
 traitlets for a number of other types.
 
 .. note::
@@ -237,14 +237,14 @@ Sometimes, your classes will have an inheritance hierarchy that you want
 to be reflected in the configuration system.  Here is a simple example::
 
     from IPython.config.configurable import Configurable
-    from IPython.utils.traitlets import Int, Float, Str, Bool
+    from IPython.utils.traitlets import Int, Float, Unicode, Bool
     
     class Foo(Configurable):
-        name = Str('fooname', config=True)
+        name = Unicode(u'fooname', config=True)
         value = Float(100.0, config=True)
     
     class Bar(Foo):
-        name = Str('barname', config=True)
+        name = Unicode(u'barname', config=True)
         othervalue = Int(0, config=True)
 
 Now, we can create a configuration file to configure instances of :class:`Foo`
@@ -253,7 +253,7 @@ and :class:`Bar`::
     # config file
     c = get_config()
     
-    c.Foo.name = 'bestname'
+    c.Foo.name = u'bestname'
     c.Bar.othervalue = 10
 
 This class hierarchy and configuration file accomplishes the following:
@@ -460,7 +460,7 @@ Here are the main requirements we wanted our configuration system to have:
   hierarchical data structures, namely regular attribute access
   (``Foo.Bar.Bam.name``). Third, using Python makes it easy for users to
   import configuration attributes from one configuration file to another.
-  Forth, even though Python is dynamically typed, it does have types that can
+  Fourth, even though Python is dynamically typed, it does have types that can
   be checked at runtime. Thus, a ``1`` in a config file is the integer '1',
   while a ``'1'`` is a string.
 
