@@ -70,6 +70,8 @@ import ast
 import codeop
 import re
 import sys
+import tokenize
+from StringIO import StringIO
 
 # IPython modules
 from IPython.utils.text import make_quoted_expr
@@ -155,6 +157,24 @@ def remove_comments(src):
     """
 
     return re.sub('#.*', '', src)
+    
+def has_comment(src):
+    """Indicate whether an input line has (i.e. ends in, or is) a comment.
+    
+    This uses tokenize, so it can distinguish comments from # inside strings.
+    
+    Parameters
+    ----------
+    src : string
+      A single line input string.
+    
+    Returns
+    -------
+    Boolean: True if source has a comment.
+    """
+    readline = StringIO(src).readline
+    toktypes = set(t[0] for t in tokenize.generate_tokens(readline))
+    return(tokenize.COMMENT in toktypes)
 
 
 def get_input_encoding():
@@ -173,19 +193,13 @@ def get_input_encoding():
 #-----------------------------------------------------------------------------
 
 class InputSplitter(object):
-    """An object that can split Python source input in executable blocks.
+    """An object that can accumulate lines of Python source before execution.
 
-    This object is designed to be used in one of two basic modes:
-
-    1. By feeding it python source line-by-line, using :meth:`push`.  In this
-       mode, it will return on each push whether the currently pushed code
-       could be executed already.  In addition, it provides a method called
+    This object is designed to be fed python source line-by-line, using
+       :meth:`push`. It will return on each push whether the currently pushed
+       code could be executed already. In addition, it provides a method called
        :meth:`push_accepts_more` that can be used to query whether more input
        can be pushed into a single interactive block.
-
-    2. By calling :meth:`split_blocks` with a single, multiline Python string,
-       that is then split into blocks each of which can be executed
-       interactively as a single statement.
 
     This is a simple example of how an interactive terminal-based client can use
     this tool::
@@ -346,9 +360,6 @@ class InputSplitter(object):
         Because of condition #3, this method should be used only by
         *line-oriented* frontends, since it means that intermediate blank lines
         are not allowed in function definitions (or any other indented block).
-
-        Block-oriented frontends that have a separate keyboard event to
-        indicate execution should use the :meth:`split_blocks` method instead.
 
         If the current input produces a syntax error, this method immediately
         returns False but does *not* raise the syntax error exception, as
@@ -658,6 +669,42 @@ def transform_ipy_prompt(line):
         return line
 
 
+def _make_help_call(target, esc, lspace, next_input=None):
+    """Prepares a pinfo(2)/psearch call from a target name and the escape
+    (i.e. ? or ??)"""
+    method  = 'pinfo2' if esc == '??' \
+                else 'psearch' if '*' in target \
+                else 'pinfo'
+        
+    if next_input:
+        tpl = '%sget_ipython().magic(u"%s %s", next_input=%s)'
+        return tpl % (lspace, method, target, make_quoted_expr(next_input))
+    else:
+        return '%sget_ipython().magic(u"%s %s")' % (lspace, method, target)
+
+_initial_space_re = re.compile(r'\s*')
+_help_end_re = re.compile(r"""(%?
+                              [a-zA-Z_*][a-zA-Z0-9_*]*       # Variable name
+                              (\.[a-zA-Z_*][a-zA-Z0-9_*]*)*   # .etc.etc
+                              )
+                              (\?\??)$                       # ? or ??""",
+                              re.VERBOSE)
+def transform_help_end(line):
+    """Translate lines with ?/?? at the end"""
+    m = _help_end_re.search(line)
+    if m is None or has_comment(line):
+        return line
+    target = m.group(1)
+    esc = m.group(3)
+    lspace = _initial_space_re.match(line).group(0)
+    newline = _make_help_call(target, esc, lspace)
+    
+    # If we're mid-command, put it back on the next prompt for the user.
+    next_input = line.rstrip('?') if line.strip() != m.group(0) else None
+        
+    return _make_help_call(target, esc, lspace, next_input)
+
+
 class EscapedTransformer(object):
     """Class to transform lines that are explicitly escaped out."""
 
@@ -694,28 +741,8 @@ class EscapedTransformer(object):
         # A naked help line should just fire the intro help screen
         if not line_info.line[1:]:
             return 'get_ipython().show_usage()'
-
-        # There may be one or two '?' at the end, move them to the front so that
-        # the rest of the logic can assume escapes are at the start
-        l_ori = line_info
-        line = line_info.line
-        if line.endswith('?'):
-            line = line[-1] + line[:-1]
-        if line.endswith('?'):
-            line = line[-1] + line[:-1]
-        line_info = LineInfo(line)
-
-        # From here on, simply choose which level of detail to get, and
-        # special-case the psearch syntax
-        pinfo = 'pinfo' # default
-        if '*' in line_info.line:
-            pinfo = 'psearch'
-        elif line_info.esc == '??':
-            pinfo = 'pinfo2'
-
-        tpl = '%sget_ipython().magic(u"%s %s")'
-        return tpl % (line_info.lspace, pinfo,
-                      ' '.join([line_info.fpart, line_info.rest]).strip())
+        
+        return _make_help_call(line_info.fpart, line_info.esc, line_info.lspace)
 
     @staticmethod
     def _tr_magic(line_info):
@@ -756,14 +783,9 @@ class EscapedTransformer(object):
         # Get line endpoints, where the escapes can be
         line_info = LineInfo(line)
 
-        # If the escape is not at the start, only '?' needs to be special-cased.
-        # All other escapes are only valid at the start
         if not line_info.esc in self.tr:
-            if line.endswith(ESC_HELP):
-                return self._tr_help(line_info)
-            else:
-                # If we don't recognize the escape, don't modify the line
-                return line
+            # If we don't recognize the escape, don't modify the line
+            return line
 
         return self.tr[line_info.esc](line_info)
 
@@ -815,9 +837,9 @@ class IPythonInputSplitter(InputSplitter):
 
         lines_list = lines.splitlines()
 
-        transforms = [transform_escaped, transform_assign_system,
-                      transform_assign_magic, transform_ipy_prompt,
-                      transform_classic_prompt]
+        transforms = [transform_ipy_prompt, transform_classic_prompt,
+                      transform_escaped, transform_help_end,
+                      transform_assign_system, transform_assign_magic]
 
         # Transform logic
         #

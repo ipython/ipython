@@ -25,6 +25,7 @@ import nose.tools as nt
 
 # Our own
 from IPython.core import inputsplitter as isp
+from IPython.testing import tools as tt
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -92,9 +93,7 @@ def test_spaces():
              ('\tx', 1),
              ('\t x', 2),
              ]
-    
-    for s, nsp in tests:
-        nt.assert_equal(isp.num_ini_spaces(s), nsp)
+    tt.check_pairs(isp.num_ini_spaces, tests)
 
 
 def test_remove_comments():
@@ -106,9 +105,19 @@ def test_remove_comments():
              ('line # c \nline#c2  \nline\nline #c\n\n',
               'line \nline\nline\nline \n\n'),
              ]
-
-    for inp, out in tests:
-        nt.assert_equal(isp.remove_comments(inp), out)
+    tt.check_pairs(isp.remove_comments, tests)
+        
+def test_has_comment():
+    tests = [('text', False),
+             ('text #comment', True),
+             ('text #comment\n', True),
+             ('#comment', True),
+             ('#comment\n', True),
+             ('a = "#string"', False),
+             ('a = "#string" # comment', True),
+             ('a #comment not "string"', True),
+             ]
+    tt.check_pairs(isp.has_comment, tests)
 
 
 def test_get_input_encoding():
@@ -434,12 +443,22 @@ syntax = \
        [ ('?', 'get_ipython().show_usage()'),
          ('?x1', 'get_ipython().magic(u"pinfo x1")'),
          ('??x2', 'get_ipython().magic(u"pinfo2 x2")'),
-         ('x3?', 'get_ipython().magic(u"pinfo x3")'),
-         ('x4??', 'get_ipython().magic(u"pinfo2 x4")'),
-         ('%hist?', 'get_ipython().magic(u"pinfo %hist")'),
-         ('f*?', 'get_ipython().magic(u"psearch f*")'),
-         ('ax.*aspe*?', 'get_ipython().magic(u"psearch ax.*aspe*")'),
+         ('?a.*s', 'get_ipython().magic(u"psearch a.*s")'),
+         ('?%hist', 'get_ipython().magic(u"pinfo %hist")'),
+         ('?abc = qwe', 'get_ipython().magic(u"pinfo abc")'),
          ],
+         
+      end_help =
+      [ ('x3?', 'get_ipython().magic(u"pinfo x3")'),
+        ('x4??', 'get_ipython().magic(u"pinfo2 x4")'),
+        ('%hist?', 'get_ipython().magic(u"pinfo %hist")'),
+        ('f*?', 'get_ipython().magic(u"psearch f*")'),
+        ('ax.*aspe*?', 'get_ipython().magic(u"psearch ax.*aspe*")'),
+        ('a = abc?', 'get_ipython().magic(u"pinfo abc", next_input=u"a = abc")'),
+        ('a = abc.qe??', 'get_ipython().magic(u"pinfo2 abc.qe", next_input=u"a = abc.qe")'),
+        ('a = *.items?', 'get_ipython().magic(u"psearch *.items", next_input=u"a = *.items")'),
+        ('a*2 #comment?', 'a*2 #comment?'),
+        ],
 
        # Explicit magic calls
        escaped_magic =
@@ -471,7 +490,15 @@ syntax = \
          ('  /f y', '  f(y)'),
          ('/f a b', 'f(a, b)'),
          ],
-
+         
+       # Check that we transform prompts before other transforms
+       mixed =
+       [ ('In [1]: %lsmagic', 'get_ipython().magic(u"lsmagic")'),
+         ('>>> %lsmagic', 'get_ipython().magic(u"lsmagic")'),
+         ('In [2]: !ls', 'get_ipython().system(u"ls")'),
+         ('In [3]: abs?', 'get_ipython().magic(u"pinfo abs")'),
+         ('In [4]: b = %who', 'b = get_ipython().magic(u"who")'),
+         ],
        )
 
 # multiline syntax examples.  Each of these should be a list of lists, with
@@ -496,11 +523,11 @@ syntax_ml = \
 
 
 def test_assign_system():
-    transform_checker(syntax['assign_system'], isp.transform_assign_system)
+    tt.check_pairs(isp.transform_assign_system, syntax['assign_system'])
 
     
 def test_assign_magic():
-    transform_checker(syntax['assign_magic'], isp.transform_assign_magic)
+    tt.check_pairs(isp.transform_assign_magic, syntax['assign_magic'])
 
 
 def test_classic_prompt():
@@ -513,34 +540,36 @@ def test_ipy_prompt():
     transform_checker(syntax['ipy_prompt'], isp.transform_ipy_prompt)
     for example in syntax_ml['ipy_prompt']:
         transform_checker(example, isp.transform_ipy_prompt)
-    
+
+def test_end_help():
+    tt.check_pairs(isp.transform_help_end, syntax['end_help'])
 
 def test_escaped_noesc():
-    transform_checker(syntax['escaped_noesc'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_noesc'])
 
 
 def test_escaped_shell():
-    transform_checker(syntax['escaped_shell'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_shell'])
 
 
 def test_escaped_help():
-    transform_checker(syntax['escaped_help'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_help'])
 
 
 def test_escaped_magic():
-    transform_checker(syntax['escaped_magic'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_magic'])
 
 
 def test_escaped_quote():
-    transform_checker(syntax['escaped_quote'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_quote'])
 
 
 def test_escaped_quote2():
-    transform_checker(syntax['escaped_quote2'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_quote2'])
 
 
 def test_escaped_paren():
-    transform_checker(syntax['escaped_paren'], isp.transform_escaped)
+    tt.check_pairs(isp.transform_escaped, syntax['escaped_paren'])
 
 
 class IPythonInputTestCase(InputSplitterTestCase):
