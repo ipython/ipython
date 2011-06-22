@@ -31,7 +31,7 @@ from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn
 from IPython.utils.text import num_ini_spaces
-from IPython.utils.traitlets import Int, Str, CBool, Unicode
+from IPython.utils.traitlets import Int, CBool, Unicode
 
 #-----------------------------------------------------------------------------
 # Utilities

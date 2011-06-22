@@ -28,7 +28,7 @@ from IPython.config.configurable import (
 )
 
 from IPython.utils.traitlets import (
-    Int, Float, Str
+    Int, Float, Unicode
 )
 
 from IPython.config.loader import Config
@@ -42,7 +42,7 @@ from IPython.config.loader import Config
 class MyConfigurable(Configurable):
     a = Int(1, config=True, help="The integer a.")
     b = Float(1.0, config=True, help="The integer b.")
-    c = Str('no config')
+    c = Unicode('no config')
 
 
 mc_help=u"""MyConfigurable options
@@ -56,11 +56,11 @@ MyConfigurable.b : Float
 
 class Foo(Configurable):
     a = Int(0, config=True, help="The integer a.")
-    b = Str('nope', config=True)
+    b = Unicode('nope', config=True)
 
 
 class Bar(Foo):
-    b = Str('gotit', config=False, help="The string b.")
+    b = Unicode('gotit', config=False, help="The string b.")
     c = Float(config=True, help="The string c.")
 
 
