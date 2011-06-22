@@ -28,6 +28,9 @@ pjoin = os.path.join
 import zmq
 # from zmq.eventloop import ioloop, zmqstream
 
+from IPython.config.configurable import MultipleInstanceError
+from IPython.core.application import BaseIPythonApplication
+
 from IPython.utils.jsonutil import rekey
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (HasTraits, Int, Instance, Unicode,
@@ -117,13 +120,14 @@ class Client(HasTraits):
     Parameters
     ----------
     
-    url_or_file : bytes; zmq url or path to ipcontroller-client.json
+    url_or_file : bytes or unicode; zmq url or path to ipcontroller-client.json
         Connection information for the Hub's registration.  If a json connector
         file is given, then likely no further configuration is necessary.
         [Default: use profile]
     profile : bytes
         The name of the Cluster profile to be used to find connector information.
-        [Default: 'default']
+        If run from an IPython application, the default profile will be the same
+        as the running application, otherwise it will be 'default'.
     context : zmq.Context
         Pass an existing zmq.Context instance, otherwise the client will create its own.
     debug : bool
@@ -237,7 +241,20 @@ class Client(HasTraits):
     metadata = Instance('collections.defaultdict', (Metadata,))
     history = List()
     debug = Bool(False)
-    profile=Unicode('default')
+    
+    profile=Unicode()
+    def _profile_default(self):
+        if BaseIPythonApplication.initialized():
+            # an IPython app *might* be running, try to get its profile
+            try:
+                return BaseIPythonApplication.instance().profile
+            except (AttributeError, MultipleInstanceError):
+                # could be a *different* subclass of config.Application,
+                # which would raise one of these two errors.
+                return u'default'
+        else:
+            return u'default'
+        
     
     _outstanding_dict = Instance('collections.defaultdict', (set,))
     _ids = List()
@@ -258,18 +275,24 @@ class Client(HasTraits):
     _ignored_control_replies=Int(0)
     _ignored_hub_replies=Int(0)
     
-    def __init__(self, url_or_file=None, profile='default', profile_dir=None, ipython_dir=None,
+    def __new__(self, *args, **kw):
+        # don't raise on positional args
+        return HasTraits.__new__(self, **kw)
+    
+    def __init__(self, url_or_file=None, profile=None, profile_dir=None, ipython_dir=None,
             context=None, debug=False, exec_key=None,
             sshserver=None, sshkey=None, password=None, paramiko=None,
             timeout=10, **extra_args
             ):
-        super(Client, self).__init__(debug=debug, profile=profile)
+        if profile:
+            super(Client, self).__init__(debug=debug, profile=profile)
+        else:
+            super(Client, self).__init__(debug=debug)
         if context is None:
             context = zmq.Context.instance()
         self._context = context
-            
         
-        self._setup_profile_dir(profile, profile_dir, ipython_dir)
+        self._setup_profile_dir(self.profile, profile_dir, ipython_dir)
         if self._cd is not None:
             if url_or_file is None:
                 url_or_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
