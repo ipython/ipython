@@ -30,7 +30,8 @@ from IPython.core.application import (
 )
 from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST
-from IPython.utils.traitlets import Any, Instance, Dict, Unicode, Int, Bool
+from IPython.utils.traitlets import (Any, Instance, Dict, Unicode, Int, Bool,
+                                        DottedObjectName)
 from IPython.utils.importstring import import_item
 # local imports
 from IPython.zmq.heartbeat import Heartbeat
@@ -75,7 +76,7 @@ class KernelApp(BaseIPythonApplication):
     flags = Dict(kernel_flags)
     classes = [Session]
     # the kernel class, as an importstring
-    kernel_class = Unicode('IPython.zmq.pykernel.Kernel')
+    kernel_class = DottedObjectName('IPython.zmq.pykernel.Kernel')
     kernel = Any()
     poller = Any() # don't restrict this even though current pollers are all Threads
     heartbeat = Instance(Heartbeat)
@@ -93,10 +94,10 @@ class KernelApp(BaseIPythonApplication):
     # streams, etc.
     no_stdout = Bool(False, config=True, help="redirect stdout to the null device")
     no_stderr = Bool(False, config=True, help="redirect stderr to the null device")
-    outstream_class = Unicode('IPython.zmq.iostream.OutStream', config=True,
-        help="The importstring for the OutStream factory")
-    displayhook_class = Unicode('IPython.zmq.displayhook.ZMQDisplayHook', config=True,
-        help="The importstring for the DisplayHook factory")
+    outstream_class = DottedObjectName('IPython.zmq.iostream.OutStream',
+        config=True, help="The importstring for the OutStream factory")
+    displayhook_class = DottedObjectName('IPython.zmq.displayhook.ZMQDisplayHook',
+        config=True, help="The importstring for the DisplayHook factory")
 
     # polling
     parent = Int(0, config=True,

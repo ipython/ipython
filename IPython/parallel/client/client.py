@@ -341,6 +341,8 @@ class Client(HasTraits):
             if os.path.isfile(exec_key):
                 extra_args['keyfile'] = exec_key
             else:
+                if isinstance(exec_key, unicode):
+                    exec_key = exec_key.encode('ascii')
                 extra_args['key'] = exec_key
         self.session = Session(**extra_args)
         

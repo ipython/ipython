@@ -39,7 +39,7 @@ from zmq.eventloop import ioloop, zmqstream
 # local imports
 from IPython.external.decorator import decorator
 from IPython.config.loader import Config
-from IPython.utils.traitlets import Instance, Dict, List, Set, Int, Str, Enum
+from IPython.utils.traitlets import Instance, Dict, List, Set, Int, Enum
 
 from IPython.parallel import error
 from IPython.parallel.factory import SessionFactory

@@ -37,7 +37,8 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Int, Unicode, Bool, CFloat, Dict, List
+from IPython.utils.traitlets import (Int, Unicode, Bool, CFloat, Dict, List, 
+                                        DottedObjectName)
 
 from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
@@ -198,7 +199,7 @@ class IPClusterEngines(BaseParallelApplication):
     n = Int(2, config=True,
         help="The number of engines to start.")
 
-    engine_launcher_class = Unicode('LocalEngineSetLauncher',
+    engine_launcher_class = DottedObjectName('LocalEngineSetLauncher',
         config=True,
         help="The class for launching a set of Engines."
         )
@@ -330,7 +331,7 @@ class IPClusterStart(IPClusterEngines):
     delay = CFloat(1., config=True,
         help="delay (in s) between starting the controller and the engines")
 
-    controller_launcher_class = Unicode('LocalControllerLauncher',
+    controller_launcher_class = DottedObjectName('LocalControllerLauncher',
         config=True,
         help="The class for launching a Controller."
         )
