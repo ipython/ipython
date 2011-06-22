@@ -457,8 +457,12 @@ class Client(HasTraits):
                 return s.connect(url)
             
         self.session.send(self._query_socket, 'connection_request')
-        r,w,x = zmq.select([self._query_socket],[],[], timeout)
-        if not r:
+        # use Poller because zmq.select has wrong units in pyzmq 2.1.7
+        poller = zmq.Poller()
+        poller.register(self._query_socket, zmq.POLLIN)
+        # poll expects milliseconds, timeout is seconds
+        evts = poller.poll(timeout*1000)
+        if not evts:
             raise error.TimeoutError("Hub connection request timed out")
         idents,msg = self.session.recv(self._query_socket,mode=0)
         if self.debug:
