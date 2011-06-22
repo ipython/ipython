@@ -33,7 +33,7 @@ ZMQ architecture
 There is a new GUI framework for IPython, based on a client-server model in
 which multiple clients can communicate with one IPython kernel, using the
 ZeroMQ messaging framework. There is already a Qt console client, which can
-be started by calling ``ipython-qtconsole``. The protocol is :ref:`documented
+be started by calling ``ipython qtconsole``. The protocol is :ref:`documented
 <messaging>`.
 
 The parallel computing framework has also been rewritten using ZMQ. The
@@ -42,6 +42,10 @@ new :mod:`IPython.parallel` module.
 
 New features
 ------------
+
+* You can now get help on an object halfway through typing a command. For
+  instance, typing ``a = zip?`` shows the details of :func:`zip`. It also
+  leaves the command at the next prompt so you can carry on with it.
 
 * The input history is now written to an SQLite database. The API for
   retrieving items from the history has also been redesigned.
@@ -63,7 +67,7 @@ New features
 
 * The methods of :class:`~IPython.core.iplib.InteractiveShell` have
   been organized into sections to make it easier to turn more sections
-  of functionality into componenets.
+  of functionality into components.
 
 * The embedded shell has been refactored into a truly standalone subclass of
   :class:`InteractiveShell` called :class:`InteractiveShellEmbed`.  All

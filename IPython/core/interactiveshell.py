@@ -1703,7 +1703,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         [D:\ipython]|1> _ip.set_next_input("Hello Word")
         [D:\ipython]|2> Hello Word_  # cursor is here        
         """
-
+        if isinstance(s, unicode):
+            s = s.encode(self.stdin_encoding, 'replace')
         self.rl_next_input = s
 
     # Maybe move this to the terminal subclass?
@@ -1841,7 +1842,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         from . import history
         history.init_ipython(self)
 
-    def magic(self,arg_s):
+    def magic(self, arg_s, next_input=None):
         """Call a magic function by name.
 
         Input: a string containing the name of the magic function to call and
@@ -1858,6 +1859,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
         valid Python code you can type at the interpreter, including loops and
         compound statements.
         """
+        # Allow setting the next input - this is used if the user does `a=abs?`.
+        # We do this first so that magic functions can override it.
+        if next_input:
+            self.set_next_input(next_input)
+            
         args = arg_s.split(' ',1)
         magic_name = args[0]
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
