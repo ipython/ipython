@@ -30,7 +30,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 # internal:
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import (
-        HasTraits, Instance, Int, Unicode, Dict, Set, Tuple, Bytes, DottedObjectName
+        HasTraits, Instance, Int, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
         )
 
 from IPython.parallel import error, util
@@ -111,10 +111,10 @@ class EngineConnector(HasTraits):
     heartbeat (str): identity of heartbeat XREQ socket
     """
     id=Int(0)
-    queue=Bytes()
-    control=Bytes()
-    registration=Bytes()
-    heartbeat=Bytes()
+    queue=CBytes()
+    control=CBytes()
+    registration=CBytes()
+    heartbeat=CBytes()
     pending=Set()
 
 class HubFactory(RegistrationFactory):
