@@ -40,7 +40,7 @@ IPython: an enhanced interactive Python shell.
     environment variable.
 
     For more information, see the manual available in HTML and PDF in your
-    installation, or online at http://ipython.scipy.org.
+    installation, or online at http://ipython.org/documentation.html.
 """
 
 interactive_usage = """

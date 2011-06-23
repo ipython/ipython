@@ -42,7 +42,7 @@ content and emphasis here is practical: installing IPython, configuring
 IPython to use the Windows job scheduler and running example parallel programs
 interactively. A more complete description of IPython's parallel computing
 capabilities can be found in IPython's online documentation
-(http://ipython.scipy.org/moin/Documentation).
+(http://ipython.org/documentation.html).
 
 Setting up your Windows cluster
 ===============================
@@ -84,7 +84,7 @@ IPython on Windows:
 * pywin32 (http://sourceforge.net/projects/pywin32/)
 * PyReadline (https://launchpad.net/pyreadline)
 * pyzmq (http://github.com/zeromq/pyzmq/downloads)
-* IPython (http://ipython.scipy.org)
+* IPython (http://ipython.org)
 
 In addition, the following dependencies are needed to run the demos described
 in this document.
@@ -111,10 +111,10 @@ need to follow:
 
 3. Install the latest development version of IPython. This can be done by
    downloading the the development version from the IPython website
-   (http://ipython.scipy.org) and following the installation instructions.
+   (http://ipython.org) and following the installation instructions.
 
 Further details about installing IPython or its dependencies can be found in
-the online IPython documentation (http://ipython.scipy.org/moin/Documentation)
+the online IPython documentation (http://ipython.org/documentation.html)
 Once you are finished with the installation, you can try IPython out by
 opening a Windows Command Prompt and typing ``ipython``. This will
 start IPython's interactive shell and you should see something like the

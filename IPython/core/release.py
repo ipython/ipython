@@ -114,7 +114,7 @@ author = 'The IPython Development Team'
 
 author_email = 'ipython-dev@scipy.org'
 
-url = 'http://ipython.scipy.org'
+url = 'http://ipython.org'
 
 download_url = 'http://ipython.scipy.org/dist'
 

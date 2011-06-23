@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002, 2003, 2004, 2005 Alexander Schmolck
 ;; Author:        Alexander Schmolck
 ;; Keywords:      ipython python languages oop
-;; URL:           http://ipython.scipy.org
+;; URL:           http://ipython.org
 ;; Compatibility: Emacs21, XEmacs21
 ;; FIXME: #$@! INPUT RING
 (defconst ipython-version "0.11"

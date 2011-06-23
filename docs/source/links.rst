@@ -17,8 +17,8 @@
    NOTE: Some of these were taken from the nipy links compendium.
 
 .. Main IPython links
-.. _ipython: http://ipython.scipy.org
-.. _`ipython manual`: http://ipython.scipy.org/doc/manual/html
+.. _ipython: http://ipython.org
+.. _`ipython manual`: http://ipython.org/documentation.html
 .. _ipython_github: http://github.com/ipython/ipython/
 .. _ipython_github_repo: http://github.com/ipython/ipython/
 .. _ipython_downloads: http://ipython.scipy.org/dist
