@@ -186,7 +186,7 @@ More details on using MPI with IPython can be found :ref:`here <parallelmpi>`.
 Using :command:`ipcluster` in PBS mode
 ---------------------------------------
 
-The PBS mode uses the Portable Batch System [PBS]_ to start the engines. 
+The PBS mode uses the Portable Batch System (PBS) to start the engines. 
 
 As usual, we will start by creating a fresh profile::
 
@@ -201,6 +201,14 @@ and engines:
         'IPython.parallel.apps.launcher.PBSControllerLauncher'
     c.IPClusterEngines.engine_launcher = \
         'IPython.parallel.apps.launcher.PBSEngineSetLauncher'
+
+.. note::
+
+    Note that the configurable is IPClusterEngines for the engine launcher, and
+    IPClusterStart for the controller launcher. This is because the start command is a
+    subclass of the engine command, adding a controller launcher. Since it is a subclass,
+    any configuration made in IPClusterEngines is inherited by IPClusterStart unless it is
+    overridden.
 
 IPython does provide simple default batch templates for PBS and SGE, but you may need
 to specify your own. Here is a sample PBS script template:
@@ -283,7 +291,7 @@ connections on all its interfaces, by adding in :file:`ipcontroller_config`:
 
 .. sourcecode:: python
 
-    c.RegistrationFactory.ip = '*'
+    c.HubFactory.ip = '*'
 
 You can now run the cluster with::
 
@@ -373,7 +381,8 @@ Current limitations of the SSH mode of :command:`ipcluster` are:
 * Untested on Windows. Would require a working :command:`ssh` on Windows.
   Also, we are using shell scripts to setup and execute commands on remote
   hosts.
-* No file movement - 
+* No file movement - This is a regression from 0.10, which moved connection files
+  around with scp. This will be improved, but not before 0.11 release.
 
 Using the :command:`ipcontroller` and :command:`ipengine` commands
 ====================================================================
@@ -483,26 +492,170 @@ Sending the log files to us will often help us to debug any problems.
 Configuring `ipcontroller`
 ---------------------------
 
+The IPython Controller takes its configuration from the file :file:`ipcontroller_config.py`
+in the active profile directory.
+
 Ports and addresses
 *******************
 
+In many cases, you will want to configure the Controller's network identity.  By default,
+the Controller listens only on loopback, which is the most secure but often impractical.
+To instruct the controller to listen on a specific interface, you can set the 
+:attr:`HubFactory.ip` trait.  To listen on all interfaces, simply specify:
+
+.. sourcecode:: python
+
+    c.HubFactory.ip = '*'
+
+
+When connecting to a Controller that is listening on loopback, or behind a firewall, it may
+be necessary to specify an SSH server to use for tunnels, and the external IP of the
+Controller. If you specified that the HubFactory listen on loopback, or all interfaces,
+then IPython will try to guess the external IP. If you are on a system with VM network
+devices, or many interfaces, this guess may be incorrect. In these cases, you will want
+to specify the 'location' of the Controller. This is the IP of the machine the Controller
+is on, as seen by the clients, engines, or the SSH server used to tunnel connections.
+
+For example, to set up a cluster with a Controller on a work node, using ssh tunnels
+through the login node, an example :file:`ipcontroller_config.py` might contain:
+
+.. sourcecode:: python
+
+    # allow connections on all interfaces from engines
+    # engines on the same node will use loopback, while engines
+    # from other nodes will use an external IP
+    c.HubFactory.ip = '*'
+    
+    # you typically only need to specify the location when there are extra
+    # interfaces that may not be visible to peer nodes (e.g. VM interfaces)
+    c.HubFactory.location = '10.0.1.5'
+    # or to get an automatic value, try this:
+    import socket
+    ex_ip = socket.gethostbyname_ex(socket.gethostname())[-1][0]
+    c.HubFactory.location = ex_ip
+    
+    # now instruct clients to use the login node for SSH tunnels:
+    c.HubFactory.ssh_server = 'login.mycluster.net'
+
+After doing this, your :file:`ipcontroller-client.json` file will look something like this:
+
+.. this can be Python, despite the fact that it's actually JSON, because it's
+.. still valid Python
+
+.. sourcecode:: python
+
+    {
+      "url":"tcp:\/\/*:43447",
+      "exec_key":"9c7779e4-d08a-4c3b-ba8e-db1f80b562c1",
+      "ssh":"login.mycluster.net",
+      "location":"10.0.1.5"
+    }
+
+Then this file will be all you need for a client to connect to the controller, tunneling
+SSH connections through login.mycluster.net.
 
 Database Backend
 ****************
 
+The Hub stores all messages and results passed between Clients and Engines.
+For large and/or long-running clusters, it would be unreasonable to keep all
+of this information in memory. For this reason, we have two database backends:
+[MongoDB]_ via PyMongo_, and SQLite with the stdlib :py:mod:`sqlite`.
+
+MongoDB is our design target, and the dict-like model it uses has driven our design. As far
+as we are concerned, BSON can be considered essentially the same as JSON, adding support
+for binary data and datetime objects, and any new database backend must support the same
+data types.
 
 .. seealso::
 
+    MongoDB `BSON doc <http://www.mongodb.org/display/DOCS/BSON>`_
+
+To use one of these backends, you must set the :attr:`HubFactory.db_class` trait:
+
+.. sourcecode:: python
+
+    # for a simple dict-based in-memory implementation, use dictdb
+    # This is the default and the fastest, since it doesn't involve the filesystem
+    c.HubFactory.db_class = 'IPython.parallel.controller.dictdb.DictDB'
     
+    # To use MongoDB:
+    c.HubFactory.db_class = 'IPython.parallel.controller.mongodb.MongoDB'
+    
+    # and SQLite:
+    c.HubFactory.db_class = 'IPython.parallel.controller.sqlitedb.SQLiteDB'
+
+When using the proper databases, you can actually allow for tasks to persist from
+one session to the next by specifying the MongoDB database or SQLite table in
+which tasks are to be stored.  The default is to use a table named for the Hub's Session,
+which is a UUID, and thus different every time.
+
+.. sourcecode:: python
+
+    # To keep persistant task history in MongoDB:
+    c.MongoDB.database = 'tasks'
+    
+    # and in SQLite:
+    c.SQLiteDB.table = 'tasks'
+
+
+Since MongoDB servers can be running remotely or configured to listen on a particular port,
+you can specify any arguments you may need to the PyMongo `Connection 
+<http://api.mongodb.org/python/1.9/api/pymongo/connection.html#pymongo.connection.Connection>`_:
+
+.. sourcecode:: python
+
+    # positional args to pymongo.Connection
+    c.MongoDB.connection_args = []
+    
+    # keyword args to pymongo.Connection
+    c.MongoDB.connection_kwargs = {}
+
+.. _MongoDB: http://www.mongodb.org
+.. _PyMongo: http://api.mongodb.org/python/1.9/
 
 Configuring `ipengine`
 -----------------------
 
-.. note::
+The IPython Engine takes its configuration from the file :file:`ipengine_config.py`
 
-    TODO
+The Engine itself also has some amount of configuration. Most of this
+has to do with initializing MPI or connecting to the controller.
+
+To instruct the Engine to initialize with an MPI environment set up by
+mpi4py, add:
+
+.. sourcecode:: python
+
+    c.MPI.use = 'mpi4py'
+
+In this case, the Engine will use our default mpi4py init script to set up
+the MPI environment prior to exection.  We have default init scripts for
+mpi4py and pytrilinos.  If you want to specify your own code to be run
+at the beginning, specify `c.MPI.init_script`.
+
+You can also specify a file or python command to be run at startup of the
+Engine:
+
+.. sourcecode:: python
+
+    c.IPEngineApp.startup_script = u'/path/to/my/startup.py'
+    
+    c.IPEngineApp.startup_command = 'import numpy, scipy, mpi4py'
+
+These commands/files will be run again, after each
+
+It's also useful on systems with shared filesystems to run the engines
+in some scratch directory.  This can be set with:
+
+.. sourcecode:: python
+
+    c.IPEngineApp.work_dir = u'/path/to/scratch/'
 
 
 
-.. [PBS] Portable Batch System.  http://www.openpbs.org/
+.. [MongoDB] MongoDB database http://www.mongodb.org
+
+.. [PBS] Portable Batch System http://www.openpbs.org
+
 .. [SSH] SSH-Agent http://en.wikipedia.org/wiki/ssh-agent
