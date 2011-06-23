@@ -8,12 +8,7 @@ The `IPython cookbook <http://ipython.scipy.org/moin/Cookbook>`_ details more
 things you can do with IPython.
 
 .. This is not in the current version:
-.. Use IPython to present interactive demos
-   ----------------------------------------
 
-.. Use the IPython.demo.Demo class to load any Python script as an interactive
-   demo. With a minimal amount of simple markup, you can control the execution of
-   the script, stopping as needed. See :ref:`here <interactive_demos>` for more.
 
 Embed IPython in your programs
 ------------------------------
@@ -34,6 +29,13 @@ contains leading '>>>' prompts, even if they have extra leading whitespace
 to see your translated history allows for an easy doctest workflow, where you
 can go from doctest to interactive execution to pasting into valid Python code
 as needed.
+
+Use IPython to present interactive demos
+----------------------------------------
+
+Use the :class:`IPython.lib.demo.Demo` class to load any Python script as an interactive
+demo. With a minimal amount of simple markup, you can control the execution of
+the script, stopping as needed. See :ref:`here <interactive_demos>` for more.
 
 Suppress output
 ---------------
