@@ -965,7 +965,7 @@ class SGELauncher(PBSLauncher):
     job_array_regexp = Unicode('#\$\W+\-t')
     job_array_template = Unicode('#$ -t 1-{n}')
     queue_regexp = Unicode('#\$\W+-q\W+\$?\w+')
-    queue_template = Unicode('#$ -q $queue')
+    queue_template = Unicode('#$ -q {queue}')
 
 class SGEControllerLauncher(SGELauncher):
     """Launch a controller using SGE."""
