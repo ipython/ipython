@@ -26,6 +26,14 @@ the most simple method of installing IPython and its dependencies.  It is not
 required though.  More information about :mod:`setuptools` can be found on its
 website.
 
+.. note::
+
+    On Windows, IPython *does* depend on :mod:`setuptools`, and it is recommended
+    that you install the :mod:`distribute` package, which improves
+    :mod:`setuptools` and fixes various bugs.
+    
+    We hope to remove this dependency in 0.12.
+
 More general information about installing Python packages can be found in
 Python's documentation at http://www.python.org/doc/.
 
@@ -100,6 +108,12 @@ permissions, you may need to run the last command with :command:`sudo`.
 
 Windows
 -------
+
+.. note::
+
+    On Windows, IPython requires :mod:`setuptools` or :mod:`distribute`.
+    
+    We hope to remove this dependency in 0.12.
 
 There are a few caveats for Windows users.  The main issue is that a basic
 ``python setup.py install`` approach won't create ``.bat`` file or Start Menu
