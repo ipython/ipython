@@ -412,12 +412,13 @@ def launch_new_instance():
         
         # this only comes up when IPython has been installed using vanilla
         # setuptools, and *not* distribute.
-        import inspect
-        for record in inspect.stack():
-            frame = record[0]
-            if frame.f_locals.get('__name__') == '__parents_main__':
-                # we are a subprocess, don't start another Controller!
-                return
+        import multiprocessing
+        p = multiprocessing.current_process()
+        # the main process has name 'MainProcess'
+        # subprocesses will have names like 'Process-1'
+        if p.name != 'MainProcess':
+            # we are a subprocess, don't start another Controller!
+            return
     app = IPControllerApp.instance()
     app.initialize()
     app.start()
