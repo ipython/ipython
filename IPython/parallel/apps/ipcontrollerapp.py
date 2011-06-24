@@ -405,6 +405,19 @@ class IPControllerApp(BaseParallelApplication):
 
 def launch_new_instance():
     """Create and run the IPython controller"""
+    if sys.platform == 'win32':
+        # make sure we don't get called from a multiprocessing subprocess
+        # this can result in infinite Controllers being started on Windows
+        # which doesn't have a proper fork, so multiprocessing is wonky
+        
+        # this only comes up when IPython has been installed using vanilla
+        # setuptools, and *not* distribute.
+        import inspect
+        for record in inspect.stack():
+            frame = record[0]
+            if frame.f_locals.get('__name__') == '__parents_main__':
+                # we are a subprocess, don't start another Controller!
+                return
     app = IPControllerApp.instance()
     app.initialize()
     app.start()
