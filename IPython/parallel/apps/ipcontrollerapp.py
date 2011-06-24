@@ -327,9 +327,15 @@ class IPControllerApp(BaseParallelApplication):
                                 hub.monitor_url, hub.client_info['notification'])
             kwargs = dict(logname='scheduler', loglevel=self.log_level,
                             log_url = self.log_url, config=dict(self.config))
-            q = Process(target=launch_scheduler, args=sargs, kwargs=kwargs)
-            q.daemon=True
-            children.append(q)
+            if 'Process' in self.mq_class:
+                # run the Python scheduler in a Process
+                q = Process(target=launch_scheduler, args=sargs, kwargs=kwargs)
+                q.daemon=True
+                children.append(q)
+            else:
+                # single-threaded Controller
+                kwargs['in_thread'] = True
+                launch_scheduler(*sargs, **kwargs)
 
     
     def save_urls(self):
