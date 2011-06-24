@@ -143,6 +143,7 @@ def test_get_home_dir_3():
 
 
 @with_environment
+@skip_win32
 def test_get_home_dir_4():
     """Testcase $HOME is not set, os=='posix'. 
     This should fail with HomeDirError"""
@@ -227,9 +228,10 @@ def test_get_home_dir_8():
 @with_environment
 def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
-    env['IPYTHON_DIR'] = "someplace/.ipython"
+    env_ipdir = os.path.join("someplace", ".ipython")
+    env['IPYTHON_DIR'] = env_ipdir
     ipdir = path.get_ipython_dir()
-    nt.assert_equal(ipdir, "someplace/.ipython")
+    nt.assert_equal(ipdir, env_ipdir)
 
 
 @with_environment
@@ -293,8 +295,8 @@ def test_get_ipython_dir_6():
 @with_environment
 def test_get_ipython_dir_7():
     """test_get_ipython_dir_7, test home directory expansion on IPYTHON_DIR"""
-    home_dir = os.path.expanduser('~/')
-    env['IPYTHON_DIR'] = '~/somewhere'
+    home_dir = os.path.expanduser('~')
+    env['IPYTHON_DIR'] = os.path.join('~', 'somewhere')
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))
 

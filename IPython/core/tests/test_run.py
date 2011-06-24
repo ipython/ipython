@@ -17,6 +17,7 @@ import sys
 import tempfile
 
 import nose.tools as nt
+from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
@@ -156,7 +157,11 @@ class TestMagicRunSimple(tt.TempFileMixin):
 
     def test_obj_del(self):
         """Test that object's __del__ methods are called on exit."""
-        
+        if sys.platform == 'win32':
+            try:
+                import win32api
+            except ImportError:
+                raise SkipTest("Test requires pywin32")
         src = ("class A(object):\n"
                "    def __del__(self):\n"
                "        print 'object A deleted'\n"

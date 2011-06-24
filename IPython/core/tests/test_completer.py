@@ -14,6 +14,7 @@ import nose.tools as nt
 
 # our own packages
 from IPython.core import completer
+from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
 
 #-----------------------------------------------------------------------------
@@ -136,9 +137,8 @@ def test_has_open_quotes4():
     for s in ['""', '""" """', '"hi" "ipython"']:
         nt.assert_false(completer.has_open_quotes(s))
 
-
-def test_file_completions():
-
+@knownfailureif(sys.platform == 'win32', "abspath completions fail on Windows")
+def test_abspath_file_completions():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
         prefix = os.path.join(tmpdir, 'foo')
@@ -156,3 +156,28 @@ def test_file_completions():
         c = ip.complete(prefix, cmd)[1]
         comp = [prefix+s for s in suffixes]
         nt.assert_equal(c, comp)
+
+def test_local_file_completions():
+    ip = get_ipython()
+    cwd = os.getcwdu()
+    try:
+        with TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            prefix = './foo'
+            suffixes = map(str, [1,2])
+            names = [prefix+s for s in suffixes]
+            for n in names:
+                open(n, 'w').close()
+
+            # Check simple completion
+            c = ip.complete(prefix)[1]
+            nt.assert_equal(c, names)
+
+            # Now check with a function call
+            cmd = 'a = f("%s' % prefix
+            c = ip.complete(prefix, cmd)[1]
+            comp = [prefix+s for s in suffixes]
+            nt.assert_equal(c, comp)
+    finally:
+        # prevent failures from making chdir stick
+        os.chdir(cwd)

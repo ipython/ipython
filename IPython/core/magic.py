@@ -2832,10 +2832,13 @@ Defaulting color scheme to 'NoColor'"""
                     if opts.has_key('b'):
                         raise UsageError("Bookmark '%s' not found.  "
                               "Use '%%bookmark -l' to see your bookmarks." % ps)
-            
+
+        # strip extra quotes on Windows, because os.chdir doesn't like them
+        if sys.platform == 'win32':
+            ps = ps.strip('\'"')
         # at this point ps should point to the target dir
         if ps:
-            try:                
+            try:
                 os.chdir(os.path.expanduser(ps))
                 if hasattr(self.shell, 'term_title') and self.shell.term_title:
                     set_term_title('IPython: ' + abbrev_cwd())
