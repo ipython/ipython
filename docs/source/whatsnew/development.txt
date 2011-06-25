@@ -17,8 +17,8 @@ refactored.  This refactoring is founded on a number of new abstractions.
 The main new classes that implement these abstractions are:
 
 * :class:`IPython.utils.traitlets.HasTraitlets`.
-* :class:`IPython.core.component.Component`.
-* :class:`IPython.core.application.Application`.
+* :class:`IPython.config.configurable.Configurable`.
+* :class:`IPython.config.application.Application`.
 * :class:`IPython.config.loader.ConfigLoader`.
 * :class:`IPython.config.loader.Config`
 
@@ -26,6 +26,15 @@ We are still in the process of writing developer focused documentation about
 these classes, but for now our :ref:`configuration documentation
 <config_overview>` contains a high level overview of the concepts that these
 classes express.
+
+The biggest user-visible change is likely the move to using the config system to
+determine the command-line arguments for IPython applications. The benefit of
+this is that *all* configurable values in IPython are exposed on the
+command-line, but the syntax for specifying values has changed. The gist is that
+assigning values is pure Python assignment, so there is always an '=', and never
+a leading '-', nor a space separating key from value. Flags exist, to set
+multiple values or boolean flags, and these are always prefixed with '--', and
+never take arguments.
 
 ZMQ architecture
 ----------------
@@ -43,6 +52,25 @@ new :mod:`IPython.parallel` module.
 New features
 ------------
 
+* Added ``Bytes`` traitlet, removing ``Str``.  All 'string' traitlets should
+  either be ``Unicode`` if a real string, or ``Bytes`` if a C-string. This
+  removes ambiguity and helps the Python 3 transition.
+
+* New magic ``%loadpy`` loads a python file from disk or web URL into
+  the current input buffer.
+
+* New magic ``%pastebin`` for sharing code via the 'Lodge it' pastebin.
+
+* New magic ``%precision`` for controlling float and numpy pretty printing.
+
+* IPython applications initiate logging, so any object can gain access to
+  a the logger of the currently running Application with:
+
+.. sourcecode:: python
+
+    from IPython.config.application import Application
+    logger = Application.instance().log
+
 * You can now get help on an object halfway through typing a command. For
   instance, typing ``a = zip?`` shows the details of :func:`zip`. It also
   leaves the command at the next prompt so you can carry on with it.
@@ -59,13 +87,13 @@ New features
 * The configuration system and configuration files are brand new. See the
   configuration system :ref:`documentation <config_index>` for more details.
 
-* The :class:`~IPython.core.iplib.InteractiveShell` class is now a
-  :class:`~IPython.core.component.Component` subclass and has traitlets that
+* The :class:`~IPython.core.interactiveshell.InteractiveShell` class is now a
+  :class:`~IPython.config.configurable.Configurable` subclass and has traitlets that
   determine the defaults and runtime environment. The ``__init__`` method has
   also been refactored so this class can be instantiated and run without the
   old :mod:`ipmaker` module.
 
-* The methods of :class:`~IPython.core.iplib.InteractiveShell` have
+* The methods of :class:`~IPython.core.interactiveshell.InteractiveShell` have
   been organized into sections to make it easier to turn more sections
   of functionality into components.
 
@@ -74,7 +102,7 @@ New features
   embedding logic has been taken out of the base class and put into the 
   embedded subclass.
 
-* I have created methods of :class:`~IPython.core.iplib.InteractiveShell` to
+* Added methods of :class:`~IPython.core.interactiveshell.InteractiveShell` to
   help it cleanup after itself. The :meth:`cleanup` method controls this. We
   couldn't do this in :meth:`__del__` because we have cycles in our object
   graph that prevent it from being called.
@@ -83,7 +111,7 @@ New features
   strings like ``foo.bar.Bar`` to the actual class.
 
 * Completely refactored the :mod:`IPython.core.prefilter` module into
-  :class:`~IPython.core.component.Component` subclasses. Added a new layer
+  :class:`~IPython.config.configurable.Configurable` subclasses. Added a new layer
   into the prefilter system, called "transformations" that all new prefilter
   logic should use (rather than the older "checker/handler" approach).
 
@@ -93,19 +121,19 @@ New features
   :mod:`~IPython.external.argparse` to parse command line options for
   :command:`ipython`.
 
-* New top level :func:`~IPython.frontend.terminal.embed.embed` function that can be called
-  to embed IPython at any place in user's code. One the first call it will
-  create an :class:`~IPython.frontend.terminal.embed.InteractiveShellEmbed` instance and
-  call it. In later calls, it just calls the previously created
+* New top level :func:`~IPython.frontend.terminal.embed.embed` function that can
+  be called to embed IPython at any place in user's code. One the first call it
+  will create an :class:`~IPython.frontend.terminal.embed.InteractiveShellEmbed`
+  instance and call it. In later calls, it just calls the previously created
   :class:`~IPython.frontend.terminal.embed.InteractiveShellEmbed`.
 
-* Created a component system (:mod:`IPython.core.component`) that is based on
-  :mod:`IPython.utils.traitlets`. Components are arranged into a runtime
-  containment tree (not inheritance) that i) automatically propagates
-  configuration information and ii) allows components to discover each other
-  in a loosely coupled manner. In the future all parts of IPython will be
-  subclasses of :class:`~IPython.core.component.Component`. All IPython
-  developers should become familiar with the component system.
+* Created a configuration system (:mod:`IPython.config.configurable`) that is
+  based on :mod:`IPython.utils.traitlets`. Configurables are arranged into a
+  runtime containment tree (not inheritance) that i) automatically propagates
+  configuration information and ii) allows singletons to discover each other in
+  a loosely coupled manner. In the future all parts of IPython will be
+  subclasses of :class:`~IPython.config.configurable.Configurable`. All IPython
+  developers should become familiar with the config system.
 
 * Created a new :class:`~IPython.config.loader.Config` for holding
   configuration information. This is a dict like class with a few extras: i)
@@ -122,11 +150,13 @@ New features
 
 * Created a top-level :class:`Application` class in
   :mod:`IPython.core.application` that is designed to encapsulate the starting
-  of any IPython process. An application loads and merges all the
-  configuration objects, constructs the main application :class:`Component`
-  instances and then starts the application running. The default
-  :class:`Application` class has built-in logic for handling the IPython
-  directory as well as profiles.
+  of any basic Python program. An application loads and merges all the
+  configuration objects, constructs the main application, configures and
+  initiates logging, and creates and configures any :class:`Configurable`
+  instances and then starts the application running. An extended
+  :class:`BaseIPythonApplication` class adds logic for handling the
+  IPython directory as well as profiles, and all IPython entry points
+  extend it.
 
 * The :class:`Type` and :class:`Instance` traitlets now handle classes given
   as strings, like ``foo.bar.Bar``. This is needed for forward declarations.
@@ -152,10 +182,6 @@ New features
   :command:`%gui` magic command.  Type ``%gui?`` at an IPython prompt for
   documentation.
 
-* The command line options ``-wthread``, ``-qthread`` and
-  ``-gthread`` just call the appropriate :mod:`IPython.lib.inputhook`
-  functions.
-
 * For developers :mod:`IPython.lib.inputhook` provides a simple interface
   for managing the event loops in their interactive GUI applications.
   Examples can be found in our :file:`docs/examples/lib` directory.
@@ -163,30 +189,48 @@ New features
 Backwards incompatible changes
 ------------------------------
 
+* The Twisted-based :mod:`IPython.kernel` has been removed, and completely
+  rewritten as :mod:`IPython.parallel`, using ZeroMQ.
+
+* Profiles are now directories. Instead of a profile being a single config file,
+  profiles are now self-contained directories. By default, profiles get their
+  own IPython history, log files, and everything. To create a new profile, do
+  ``ipython profile create <name>``.
+
+* All IPython applications have been rewritten to use
+  :class:`~IPython.config.loader.KeyValueConfigLoader`. This means that
+  command-line options have changed. Now, all configurable values are accessible
+  from the command-line with the same syntax as in a configuration file.
+
+* The command line options ``-wthread``, ``-qthread`` and
+  ``-gthread`` have been removed. Use ``gui=wx``, ``gui=qt``, ``gui=gtk``
+  instead.
+
 * The extension loading functions have been renamed to
   :func:`load_ipython_extension` and :func:`unload_ipython_extension`.
 
-* :class:`~IPython.core.iplib.InteractiveShell` no longer takes an
+* :class:`~IPython.core.interactiveshell.InteractiveShell` no longer takes an
   ``embedded`` argument. Instead just use the
-  :class:`~IPython.core.iplib.InteractiveShellEmbed` class.
+  :class:`~IPython.core.interactiveshell.InteractiveShellEmbed` class.
 
 * ``__IPYTHON__`` is no longer injected into ``__builtin__``.
 
 * :meth:`Struct.__init__` no longer takes `None` as its first argument.  It
   must be a :class:`dict` or :class:`Struct`.
 
-* :meth:`~IPython.core.iplib.InteractiveShell.ipmagic` has been renamed 
-  :meth:`~IPython.core.iplib.InteractiveShell.magic.`
+* :meth:`~IPython.core.interactiveshell.InteractiveShell.ipmagic` has been
+  renamed :meth:`~IPython.core.interactiveshell.InteractiveShell.magic.`
 
 * The functions :func:`ipmagic` and :func:`ipalias` have been removed from
   :mod:`__builtins__`.
 
-* The references to the global :class:`~IPython.core.iplib.InteractiveShell`
-  instance (``_ip``, and ``__IP``) have been removed from the user's
-  namespace. They are replaced by a new function called :func:`get_ipython`
-  that returns the current :class:`~IPython.core.iplib.InteractiveShell`
-  instance. This function is injected into the user's namespace and is now the
-  main way of accessing IPython's API.
+* The references to the global
+  :class:`~IPython.core.interactivehell.InteractiveShell` instance (``_ip``, and
+  ``__IP``) have been removed from the user's namespace. They are replaced by a
+  new function called :func:`get_ipython` that returns the current
+  :class:`~IPython.core.interactiveshell.InteractiveShell` instance. This
+  function is injected into the user's namespace and is now the main way of
+  accessing the running IPython.
 
 * Old style configuration files :file:`ipythonrc` and :file:`ipy_user_conf.py`
   are no longer supported. Users should migrate there configuration files to
@@ -197,7 +241,7 @@ Backwards incompatible changes
   completely removed. The new extension API is described :ref:`here
   <configuring_ipython>`.
 
-* Support for ``qt3`` has been dropped.  User's who need this should use
+* Support for ``qt3`` has been dropped.  Users who need this should use
   previous versions of IPython.
 
 * Removed :mod:`shellglobals` as it was obsolete.
@@ -205,10 +249,6 @@ Backwards incompatible changes
 * Removed all the threaded shells in :mod:`IPython.core.shell`. These are no
   longer needed because of the new capabilities in
   :mod:`IPython.lib.inputhook`.
-
-* The ``-pylab`` command line flag has been disabled until matplotlib adds
-  support for the new :mod:`IPython.lib.inputhook` approach.  The new stuff
-  does work with matplotlib, but you have to set everything up by hand.
 
 * New top-level sub-packages have been created: :mod:`IPython.core`, 
   :mod:`IPython.lib`, :mod:`IPython.utils`, :mod:`IPython.deathrow`,
@@ -218,9 +258,9 @@ Backwards incompatible changes
   and friends) have been updated.  See :ref:`this section <module_reorg>` of the
   documentation for descriptions of these new sub-packages.
 
-* Compatability modules have been created for :mod:`IPython.Shell`, 
-  :mod:`IPython.ipapi` and :mod:`IPython.iplib` that display warnings
-  and then load the actual implementation from :mod:`IPython.core`.
+* :mod:`IPython.ipapi` has been moved to :mod:`IPython.core.ipapi`.
+  :mod:`IPython.Shell` and :mod:`IPython.iplib` have been split and removed as
+  part of the refactor.
 
 * :mod:`Extensions` has been moved to :mod:`extensions` and all existing
   extensions have been moved to either :mod:`IPython.quarantine` or
@@ -230,10 +270,8 @@ Backwards incompatible changes
   party libraries. More details about this can be found :ref:`here
   <module_reorg>`.
 
-* The IPython GUIs in :mod:`IPython.frontend` and :mod:`IPython.gui` are likely
-  broken because of the refactoring in the core.  With proper updates, these
-  should still work.  We probably want to get these so they are not using
-  :mod:`IPython.kernel.core` (which is being phased out).
-
+* Previous IPython GUIs in :mod:`IPython.frontend` and :mod:`IPython.gui` are
+  likely broken, and have been removed to :mod:`IPython.deathrow` because of the
+  refactoring in the core. With proper updates, these should still work.
 
 
