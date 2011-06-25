@@ -159,8 +159,6 @@ class ProfileCreate(BaseIPythonApplication):
     
     flags = Dict(create_flags)
     
-    aliases = Dict(dict(profile='BaseIPythonApplication.profile'))
-    
     classes = [ProfileDir]
     
     def init_config_files(self):
