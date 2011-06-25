@@ -51,7 +51,7 @@ Application: :class:`~IPython.config.application.Application`
     Applications always have a `log` attribute that is a configured Logger.
     This allows centralized logging configuration per-application.
 
-Component: :class:`~IPython.config.configurable.Configurable`
+Configurable: :class:`~IPython.config.configurable.Configurable`
     A configurable is a regular Python class that serves as a base class for
     all main classes in an application. The
     :class:`~IPython.config.configurable.Configurable` base class is
@@ -121,10 +121,10 @@ attributes on it.  All you have to know is:
 
 The answers to these two questions are provided by the various
 :class:`~IPython.config.configurable.Configurable` subclasses that an
-application uses. Let's look at how this would work for a simple component
+application uses. Let's look at how this would work for a simple configurable
 subclass::
 
-    # Sample component that can be configured.
+    # Sample configurable:
     from IPython.config.configurable import Configurable
     from IPython.utils.traitlets import Int, Float, Unicode, Bool
     
