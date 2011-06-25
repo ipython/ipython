@@ -6,6 +6,7 @@ Using IPython for interactive work
    :maxdepth: 2
 
    tutorial.txt
+   tips.txt
    reference.txt
    shell.txt
    qtconsole.txt
