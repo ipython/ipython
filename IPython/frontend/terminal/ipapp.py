@@ -45,6 +45,7 @@ from IPython.core.shellapp import (
 )
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.lib import inputhook
+from IPython.utils import warn
 from IPython.utils.path import get_ipython_dir, check_for_old_config
 from IPython.utils.traitlets import (
     Bool, Dict, CaselessStrEnum
@@ -253,6 +254,32 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # internal, not-configurable
     interact=Bool(True)
 
+
+    def parse_command_line(self, argv=None):
+        """override to allow old '-pylab' flag with deprecation warning"""
+        argv = sys.argv[1:] if argv is None else argv
+        
+        try:
+            idx = argv.index('-pylab')
+        except ValueError:
+            # `-pylab` not given, proceed as normal
+            pass
+        else:
+            # deprecated `-pylab` given,
+            # warn and transform into current syntax
+            argv = list(argv) # copy, don't clobber
+            warn.warn("`-pylab` flag has been deprecated.\n"
+            "    Use `--pylab` instead, or `pylab=foo` to specify a backend.")
+            sub = '--pylab'
+            if len(argv) > idx+1:
+                # check for gui arg, as in '-pylab qt'
+                gui = argv[idx+1]
+                if gui in ('wx', 'qt', 'qt4', 'gtk', 'auto'):
+                    sub = 'pylab='+gui
+                    argv.pop(idx+1)
+            argv[idx] = sub
+        
+        return super(TerminalIPythonApp, self).parse_command_line(argv)
 
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""
