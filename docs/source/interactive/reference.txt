@@ -352,8 +352,8 @@ follows is a list of these.
 Caution for Windows users
 -------------------------
 
-Windows, unfortunately, uses the '\' character as a path
-separator. This is a terrible choice, because '\' also represents the
+Windows, unfortunately, uses the '\\' character as a path
+separator. This is a terrible choice, because '\\' also represents the
 escape character in most modern programming languages, including
 Python. For this reason, using '/' character is recommended if you
 have problems with ``\``.  However, in Windows commands '/' flags
@@ -372,14 +372,13 @@ IPython itself, plus a lot of system-type features. They are all
 prefixed with a % character, but parameters are given without
 parentheses or quotes.
 
-Example: typing '%cd mydir' (without the quotes) changes you working
-directory to 'mydir', if it exists.
+Example: typing ``%cd mydir`` changes your working directory to 'mydir', if it
+exists.
 
-If you have 'automagic' enabled (in your ipythonrc file, via the command
-line option -automagic or with the %automagic function), you don't need
+If you have 'automagic' enabled (as it by default), you don't need
 to type in the % explicitly. IPython will scan its internal list of
 magic functions and call one if it exists. With automagic on you can
-then just type 'cd mydir' to go to directory 'mydir'. The automagic
+then just type ``cd mydir`` to go to directory 'mydir'. The automagic
 system has the lowest possible precedence in name searches, so defining
 an identifier with the same name as an existing magic function will
 shadow it for automagic use. You can still access the shadowed magic
@@ -1243,10 +1242,10 @@ For more information on the use of the pdb debugger, read the included
 pdb.doc file (part of the standard Python distribution). On a stock
 Linux system it is located at /usr/lib/python2.3/pdb.doc, but the
 easiest way to read it is by using the help() function of the pdb module
-as follows (in an IPython prompt):
+as follows (in an IPython prompt)::
 
-In [1]: import pdb 
-In [2]: pdb.help()
+    In [1]: import pdb
+    In [2]: pdb.help()
 
 This will load the pdb.doc document in a file viewer for you automatically.
 
@@ -1476,8 +1475,10 @@ commands::
     from matplotlib import pylab
     pylab.interactive(True)
 
-All of this will soon be automated as Matplotlib beings to include
+All of this will soon be automated as Matplotlib begins to include
 new logic that uses our new GUI support.
+
+.. _Matplotlib: http://matplotlib.sourceforge.net
 
 .. _interactive_demos:
 
@@ -1545,7 +1546,7 @@ In order to run a file as a demo, you must first make a Demo object out
 of it. If the file is named myscript.py, the following code will make a
 demo::
 
-    from IPython.demo import Demo
+    from IPython.lib.demo import Demo
 
     mydemo = Demo('myscript.py')
 
@@ -1562,7 +1563,7 @@ methods, and call '?' on them to see their docstrings for more usage
 details. In addition, the demo module itself contains a comprehensive
 docstring, which you can access via::
 
-    from IPython import demo
+    from IPython.lib import demo
 
     demo?
 
@@ -1574,6 +1575,4 @@ internal execution state of the Python interpreter, so only top-level
 divisions are allowed. If you want to be able to open an IPython
 instance at an arbitrary point in a program, you can use IPython's
 embedding facilities, described in detail in Sec. 9
-
-.. [Matplotlib] Matplotlib. http://matplotlib.sourceforge.net
 
