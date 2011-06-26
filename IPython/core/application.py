@@ -277,8 +277,9 @@ class BaseIPythonApplication(Application):
         
     
     def initialize(self, argv=None):
-        self.init_crash_handler()
+        # don't hook up crash handler before parsing command-line
         self.parse_command_line(argv)
+        self.init_crash_handler()
         if self.subapp is not None:
             # stop here if subapp is taking over
             return

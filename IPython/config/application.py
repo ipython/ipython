@@ -31,7 +31,7 @@ from IPython.config.loader import (
 )
 
 from IPython.utils.traitlets import (
-    Unicode, List, Int, Enum, Dict, Instance
+    Unicode, List, Int, Enum, Dict, Instance, TraitError
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent, wrap_paragraphs, dedent
@@ -326,12 +326,12 @@ class Application(SingletonConfigurable):
                                         flags=self.flags)
         try:
             config = loader.load_config()
-        except ArgumentError as e:
-            self.log.fatal(str(e))
+            self.update_config(config)
+        except (TraitError, ArgumentError) as e:
             self.print_description()
             self.print_help()
+            self.log.fatal(str(e))
             self.exit(1)
-        self.update_config(config)
         # store unparsed args in extra_args
         self.extra_args = loader.extra_args
 
