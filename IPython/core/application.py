@@ -54,6 +54,7 @@ from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict
 base_aliases = dict(
     profile='BaseIPythonApplication.profile',
     ipython_dir='BaseIPythonApplication.ipython_dir',
+    log_level='Application.log_level',
 )
 
 base_flags = dict(
