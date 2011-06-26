@@ -101,7 +101,9 @@ def test_info():
     fname = __file__
     if fname.endswith(".pyc"):
         fname = fname[:-1]
-    nt.assert_equal(i['file'], fname)
+    # case-insensitive comparison needed on some filesystems
+    # e.g. Windows:
+    nt.assert_equal(i['file'].lower(), fname.lower())
     nt.assert_equal(i['definition'], 'Call(self, *a, **kw)\n')
     nt.assert_equal(i['docstring'], Call.__doc__)
     nt.assert_equal(i['source'], None)
