@@ -6,7 +6,7 @@ Details of Parallel Computing with IPython
 
 .. note::
 
-    There are still many sections to fill out
+    There are still many sections to fill out in this doc
 
 
 Caveats
@@ -70,9 +70,11 @@ The :attr:`ndarray.flags.writeable` flag will tell you if you can write to an ar
     In [6]: _.flags.writeable
     Out[6]: False
 
-If you want to safely edit an array in-place after *sending* it, you must use the `track=True` flag.  IPython always performs non-copying sends of arrays, which return immediately.  You
-must instruct IPython track those messages *at send time* in order to know for sure that the send has completed.  AsyncResults have a :attr:`sent` property, and :meth:`wait_on_send` method
-for checking and waiting for 0MQ to finish with a buffer.
+If you want to safely edit an array in-place after *sending* it, you must use the `track=True`
+flag. IPython always performs non-copying sends of arrays, which return immediately. You must
+instruct IPython track those messages *at send time* in order to know for sure that the send has
+completed. AsyncResults have a :attr:`sent` property, and :meth:`wait_on_send` method for
+checking and waiting for 0MQ to finish with a buffer.
 
 .. sourcecode:: ipython
 
@@ -124,12 +126,12 @@ An example of a function that uses a closure:
     f1() # returns 1
     f2() # returns 2
 
-f1 and f2 will have closures referring to the scope in which `inner` was defined, because they
-use the variable 'a'. As a result, you would not be able to send ``f1`` or ``f2`` with IPython.
-Note that you *would* be able to send `f`. This is only true for interactively defined
-functions (as are often used in decorators), and only when there are variables used inside the
-inner function, that are defined in the outer function. If the names are *not* in the outer
-function, then there will not be a closure, and the generated function will look in
+``f1`` and ``f2`` will have closures referring to the scope in which `inner` was defined,
+because they use the variable 'a'. As a result, you would not be able to send ``f1`` or ``f2``
+with IPython. Note that you *would* be able to send `f`. This is only true for interactively
+defined functions (as are often used in decorators), and only when there are variables used
+inside the inner function, that are defined in the outer function. If the names are *not* in the
+outer function, then there will not be a closure, and the generated function will look in
 ``globals()`` for the name:
 
 .. sourcecode:: python
@@ -168,9 +170,10 @@ Client method, called `apply`.
 Apply
 -----
 
-The principal method of remote execution is :meth:`apply`, of View objects. The Client provides
-the full execution and communication API for engines via its low-level
-:meth:`send_apply_message` method.
+The principal method of remote execution is :meth:`apply`, of
+:class:`~IPython.parallel.client.view.View` objects. The Client provides the full execution and
+communication API for engines via its low-level :meth:`send_apply_message` method, which is used
+by all higher level methods of its Views.
 
 f : function
     The fuction to be called remotely
@@ -227,21 +230,23 @@ timeout : float/int or None
 execute and run
 ---------------
 
-For executing strings of Python code, :class:`DirectView`s also provide an :meth:`execute` and a
-:meth:`run` method, which rather than take functions and arguments, take simple strings.
+For executing strings of Python code, :class:`DirectView` 's also provide an :meth:`execute` and
+a :meth:`run` method, which rather than take functions and arguments, take simple strings.
 `execute` simply takes a string of Python code to execute, and sends it to the Engine(s). `run`
 is the same as `execute`, but for a *file*, rather than a string. It is simply a wrapper that
 does something very similar to ``execute(open(f).read())``.
 
 .. note::
 
-    TODO: Example
+    TODO: Examples for execute and run
 
 Views
 =====
 
-The principal extension of the :class:`~parallel.Client` is the
-:class:`~parallel.View` class. The client
+The principal extension of the :class:`~parallel.Client` is the :class:`~parallel.View`
+class. The client is typically a singleton for connecting to a cluster, and presents a
+low-level interface to the Hub and Engines. Most real usage will involve creating one or more
+:class:`~parallel.View` objects for working with engines in various ways.
 
 
 DirectView
@@ -300,6 +305,27 @@ Execution via DirectView
 
 The DirectView is the simplest way to work with one or more engines directly (hence the name).
 
+For instance, to get the process ID of all your engines:
+
+.. sourcecode:: ipython
+
+    In [5]: import os
+    
+    In [6]: dview.apply_sync(os.getpid)
+    Out[6]: [1354, 1356, 1358, 1360]
+
+Or to see the hostname of the machine they are on:
+
+.. sourcecode:: ipython
+
+    In [5]: import socket
+    
+    In [6]: dview.apply_sync(socket.gethostname)
+    Out[6]: ['tesla', 'tesla', 'edison', 'edison', 'edison']
+
+.. note::
+
+    TODO: expand on direct execution
 
 Data movement via DirectView
 ****************************
@@ -341,24 +367,28 @@ between engines, MPI should be used:
 Push and pull
 -------------
 
-push
+:meth:`~IPython.parallel.client.view.DirectView.push`
 
-pull
+:meth:`~IPython.parallel.client.view.DirectView.pull`
+
+.. note::
+
+    TODO: write this section
 
 
-
-
-    
 LoadBalancedView
 ----------------
 
-The :class:`.LoadBalancedView` 
-
+The :class:`~.LoadBalancedView` is the class for load-balanced execution via the task scheduler.
+These views always run tasks on exactly one engine, but let the scheduler determine where that
+should be, allowing load-balancing of tasks. The LoadBalancedView does allow you to specify
+restrictions on where and when tasks can execute, for more complicated load-balanced workflows.
 
 Data Movement
 =============
 
-Reference
+Since the :class:`~.LoadBalancedView` does not know where execution will take place, explicit
+data movement methods like push/pull and scatter/gather do not make sense, and are not provided.
 
 Results
 =======
@@ -366,9 +396,9 @@ Results
 AsyncResults
 ------------
 
-Our primary representation is the AsyncResult object, based on the object of the same name in
-the built-in :mod:`multiprocessing.pool` module. Our version provides a superset of that
-interface.
+Our primary representation of the results of remote execution is the :class:`~.AsyncResult`
+object, based on the object of the same name in the built-in :mod:`multiprocessing.pool`
+module. Our version provides a superset of that interface.
 
 The basic principle of the AsyncResult is the encapsulation of one or more results not yet completed.  Execution methods (including data movement, such as push/pull) will all return
 AsyncResults when `block=False`.
@@ -432,7 +462,7 @@ a CompositeError, a subclass of RemoteError, will be raised.
 .. seealso::
 
     For more information on remote exceptions, see :ref:`the section in the Direct Interface
-    <Parallel_exceptions>`.
+    <parallel_exceptions>`.
 
 Extended interface
 ******************
@@ -445,7 +475,8 @@ that many calls (any of those submitted via DirectView) will map results to engi
 provide a :meth:`get_dict`, which is also a wrapper on :meth:`get`, which returns a dictionary
 of the individual results, keyed by engine ID.
 
-You can also prevent a submitted job from actually executing, via the AsyncResult's :meth:`abort` method.  This will instruct engines to not execute the job when it arrives.
+You can also prevent a submitted job from actually executing, via the AsyncResult's
+:meth:`abort` method. This will instruct engines to not execute the job when it arrives.
 
 The larger extension of the AsyncResult API is the :attr:`metadata` attribute.  The metadata
 is a dictionary (with attribute access) that contains, logically enough, metadata about the
@@ -570,11 +601,9 @@ objects, can be passed as argument to wait. A timeout can be specified, which wi
 the call from blocking for more than a specified time, but the default behavior is to wait
 forever.
 
-
-
-The client also has an `outstanding` attribute - a ``set`` of msg_ids that are awaiting replies.
-This is the default if wait is called with no arguments - i.e. wait on *all* outstanding
-messages.
+The client also has an ``outstanding`` attribute - a ``set`` of msg_ids that are awaiting
+replies. This is the default if wait is called with no arguments - i.e. wait on *all*
+outstanding messages.
 
 
 .. note::
@@ -584,11 +613,11 @@ messages.
 Map
 ===
 
-Many parallel computing problems can be expressed as a `map`, or running a single program with a
-variety of different inputs. Python has a built-in :py-func:`map`, which does exactly this, and
-many parallel execution tools in Python, such as the built-in :py-class:`multiprocessing.Pool`
-object provide implementations of `map`. All View objects provide a :meth:`map` method as well,
-but the load-balanced and direct implementations differ.
+Many parallel computing problems can be expressed as a ``map``, or running a single program with
+a variety of different inputs. Python has a built-in :py:func:`map`, which does exactly this,
+and many parallel execution tools in Python, such as the built-in
+:py:class:`multiprocessing.Pool` object provide implementations of `map`. All View objects
+provide a :meth:`map` method as well, but the load-balanced and direct implementations differ.
 
 Views' map methods can be called on any number of sequences, but they can also take the `block`
 and `bound` keyword arguments, just like :meth:`~client.apply`, but *only as keywords*.
@@ -603,19 +632,27 @@ and `bound` keyword arguments, just like :meth:`~client.apply`, but *only as key
 Decorators and RemoteFunctions
 ==============================
 
-@parallel
+.. note::
 
-@remote
+    TODO: write this section
 
-RemoteFunction
+:func:`~IPython.parallel.client.remotefunction.@parallel`
 
-ParallelFunction
+:func:`~IPython.parallel.client.remotefunction.@remote`
+
+:class:`~IPython.parallel.client.remotefunction.RemoteFunction`
+
+:class:`~IPython.parallel.client.remotefunction.ParallelFunction`
 
 Dependencies
 ============
 
-@depend
+.. note::
 
-@require
+    TODO: write this section
 
-Dependency
+:func:`~IPython.parallel.controller.dependency.@depend`
+
+:func:`~IPython.parallel.controller.dependency.@require`
+
+:class:`~IPython.parallel.controller.dependency.Dependency`

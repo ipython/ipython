@@ -27,11 +27,40 @@ engines using the various methods, we outline some of the general issues that
 come up when starting the controller and engines. These things come up no
 matter which method you use to start your IPython cluster.
 
+If you are running engines on multiple machines, you will likely need to instruct the
+controller to listen for connections on an external interface. This can be done by specifying
+the ``ip`` argument on the command-line, or the ``HubFactory.ip`` configurable in
+:file:`ipcontroller_config.py`.
+
+If your machines are on a trusted network, you can safely instruct the controller to listen
+on all public interfaces with::
+
+    $> ipcontroller ip=*
+
+Or you can set the same behavior as the default by adding the following line to your :file:`ipcontroller_config.py`:
+
+.. sourcecode:: python
+
+    c.HubFactory.ip = '*'
+
+.. note::
+
+    Due to the lack of security in ZeroMQ, the controller will only listen for connections on
+    localhost by default. If you see Timeout errors on engines or clients, then the first
+    thing you should check is the ip address the controller is listening on, and make sure
+    that it is visible from the timing out machine.
+    
+.. seealso::
+
+    Our `notes <parallel_security>`_ on security in the new parallel computing code.
+
 Let's say that you want to start the controller on ``host0`` and engines on
 hosts ``host1``-``hostn``. The following steps are then required:
 
 1. Start the controller on ``host0`` by running :command:`ipcontroller` on
-   ``host0``.
+   ``host0``.  The controller must be instructed to listen on an interface visible
+   to the engine machines, via the ``ip`` command-line argument or ``HubFactory.ip``
+   in :file:`ipcontroller_config.py`.
 2. Move the JSON file (:file:`ipcontroller-engine.json`) created by the 
    controller from ``host0`` to hosts ``host1``-``hostn``.
 3. Start the engines on hosts ``host1``-``hostn`` by running 
@@ -108,7 +137,7 @@ The configuration files are loaded with commented-out settings and explanations,
 which should cover most of the available possibilities.
 
 Using various batch systems with :command:`ipcluster`
-------------------------------------------------------
+-----------------------------------------------------
 
 :command:`ipcluster` has a notion of Launchers that can start controllers
 and engines with various remote execution schemes.  Currently supported
@@ -345,7 +374,7 @@ The controller's remote location and configuration can be specified:
     # note that remotely launched ipcontroller will not get the contents of 
     # the local ipcontroller_config.py unless it resides on the *remote host*
     # in the location specified by the `profile_dir` argument.
-    # c.SSHControllerLauncher.program_args = ['--reuse', 'ip=0.0.0.0', 'profile_dir=/path/to/cd']
+    # c.SSHControllerLauncher.program_args = ['--reuse', 'ip=*', 'profile_dir=/path/to/cd']
 
 .. note::
 
@@ -414,7 +443,7 @@ controller and engines from IPython.
     
     The order of the above operations may be important.  You *must*
     start the controller before the engines, unless you are reusing connection
-    information (via `--reuse`), in which case ordering is not important.
+    information (via ``--reuse``), in which case ordering is not important.
 
 .. note::
 
@@ -429,7 +458,9 @@ Starting the controller and engines on different hosts
 When the controller and engines are running on different hosts, things are
 slightly more complicated, but the underlying ideas are the same:
 
-1. Start the controller on a host using :command:`ipcontroller`.
+1. Start the controller on a host using :command:`ipcontroller`. The controller must be
+   instructed to listen on an interface visible to the engine machines, via the ``ip``
+   command-line argument or ``HubFactory.ip`` in :file:`ipcontroller_config.py`.
 2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/profile_<name>/security` on
    the controller's host to the host where the engines will run.
 3. Use :command:`ipengine` on the engine's hosts to start the engines.
@@ -507,8 +538,7 @@ To instruct the controller to listen on a specific interface, you can set the
 
     c.HubFactory.ip = '*'
 
-
-When connecting to a Controller that is listening on loopback, or behind a firewall, it may
+When connecting to a Controller that is listening on loopback or behind a firewall, it may
 be necessary to specify an SSH server to use for tunnels, and the external IP of the
 Controller. If you specified that the HubFactory listen on loopback, or all interfaces,
 then IPython will try to guess the external IP. If you are on a system with VM network
