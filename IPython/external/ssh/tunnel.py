@@ -81,7 +81,12 @@ def _try_passwordless_openssh(server, keyfile):
 def _try_passwordless_paramiko(server, keyfile):
     """Try passwordless login with paramiko."""
     if paramiko is None:
-        raise ImportError("paramiko unavailable, use openssh")
+        msg = "Paramiko unavaliable, "
+        if sys.platform == 'win32':
+            msg += "Paramiko is required for ssh tunneled connections on Windows."
+        else:
+            msg += "use OpenSSH."
+        raise ImportError(msg)
     username, server, port = _split_server(server)
     client = paramiko.SSHClient()
     client.load_system_host_keys()

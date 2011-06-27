@@ -32,6 +32,7 @@ from IPython.config.configurable import MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
 
 from IPython.utils.jsonutil import rekey
+from IPython.utils.localinterfaces import LOCAL_IPS
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (HasTraits, Int, Instance, Unicode,
                                     Dict, List, Bool, Set)
@@ -322,6 +323,14 @@ class Client(HasTraits):
         location = cfg.setdefault('location', None)
         cfg['url'] = util.disambiguate_url(cfg['url'], location)
         url = cfg['url']
+        if location is not None:
+            proto,addr,port = util.split_url(url)
+            if addr == '127.0.0.1' and location not in LOCAL_IPS and not sshserver:
+                sshserver = location
+                warnings.warn(
+                    "Controller appears to be listening on localhost, but is not local. "
+                    "IPython will try to use SSH tunnels to %s"%location,
+                    RuntimeWarning)
         
         self._config = cfg
         
