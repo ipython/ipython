@@ -8,29 +8,28 @@ cut and paste use once you understand how to use the system."""
 # embedded in another IPython session (helps avoid confusion)
 
 try:
-    __IPYTHON__
+    get_ipython
 except NameError:
-    argv = ['']
-    banner = exit_msg = ''
+    banner=exit_msg=''
 else:
-    # Command-line options for IPython (a list like sys.argv)
-    argv = ['-pi1','In <\\#>:','-pi2','   .\\D.:','-po','Out<\\#>:']
     banner = '*** Nested interpreter ***'
     exit_msg = '*** Back in main IPython ***'
 
-# First import the embeddable shell class
-from IPython.Shell import IPShellEmbed
+# First import the embed function
+from IPython.frontend.terminal.embed import InteractiveShellEmbed
 # Now create the IPython shell instance. Put ipshell() anywhere in your code
 # where you want it to open.
-ipshell = IPShellEmbed(argv,banner=banner,exit_msg=exit_msg)
+ipshell = InteractiveShellEmbed(banner1=banner, exit_msg=exit_msg)
                             
 #---------------------------------------------------------------------------
 # This code will load an embeddable IPython shell always with no changes for
 # nested embededings.
 
-from IPython.Shell import IPShellEmbed
-ipshell = IPShellEmbed()
-# Now ipshell() will open IPython anywhere in the code.
+# This code will load an embeddable IPython shell always with no changes for
+# nested embededings.
+
+from IPython import embed
+# Now embed() will open IPython anywhere in the code.
 
 #---------------------------------------------------------------------------
 # This code loads an embeddable shell only if NOT running inside
@@ -38,10 +37,10 @@ ipshell = IPShellEmbed()
 # dummy function.
 
 try:
-    __IPYTHON__
+    get_ipython
 except NameError:
-    from IPython.Shell import IPShellEmbed
-    ipshell = IPShellEmbed()
+    from IPython.frontend.terminal.embed import InteractiveShellEmbed
+    ipshell = InteractiveShellEmbed()
     # Now ipshell() will open IPython anywhere in the code
 else:
     # Define a dummy ipshell() so the same code doesn't crash inside an
