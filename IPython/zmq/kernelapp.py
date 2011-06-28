@@ -166,18 +166,17 @@ class KernelApp(BaseIPythonApplication):
         """create our session object"""
         self.session = Session(config=self.config, username=u'kernel')
 
-    def init_io(self):
-        """redirects stdout/stderr, and installs a display hook"""
-        # Re-direct stdout/stderr, if necessary.
+    def init_blackhole(self):
+        """redirects stdout/stderr to devnull if necessary"""
         if self.no_stdout or self.no_stderr:
             blackhole = file(os.devnull, 'w')
             if self.no_stdout:
                 sys.stdout = sys.__stdout__ = blackhole
             if self.no_stderr:
                 sys.stderr = sys.__stderr__ = blackhole
-
-        # Redirect input streams and set a display hook.
-
+    
+    def init_io(self):
+        """Redirect input streams and set a display hook."""
         if self.outstream_class:
             outstream_factory = import_item(str(self.outstream_class))
             sys.stdout = outstream_factory(self.session, self.iopub_socket, u'stdout')
@@ -199,6 +198,7 @@ class KernelApp(BaseIPythonApplication):
 
     def initialize(self, argv=None):
         super(KernelApp, self).initialize(argv)
+        self.init_blackhole()
         self.init_session()
         self.init_poller()
         self.init_sockets()
