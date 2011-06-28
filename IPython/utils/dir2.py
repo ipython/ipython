@@ -20,8 +20,14 @@
 def get_class_members(cls):
     ret = dir(cls)
     if hasattr(cls,'__bases__'):
-        for base in cls.__bases__:
-            ret.extend(get_class_members(base))
+        try:
+            bases = cls.__bases__
+        except AttributeError:
+            # `obj` lied to hasattr (e.g. Pyro), ignore
+            pass
+        else:
+            for base in bases:
+                ret.extend(get_class_members(base))
     return ret
 
 
@@ -59,6 +65,9 @@ def dir2(obj):
         except TypeError:
             # This will happen if `obj` is a class and not an instance.
             pass
+        except AttributeError:
+            # `obj` lied to hasatter (e.g. Pyro), ignore
+            pass
 
     # Support for PyCrust-style _getAttributeNames magic method.
     if hasattr(obj, '_getAttributeNames'):
@@ -68,6 +77,9 @@ def dir2(obj):
         except TypeError:
             # `obj` is a class and not an instance.  Ignore
             # this error.
+            pass
+        except AttributeError:
+            # `obj` lied to hasatter (e.g. Pyro), ignore
             pass
 
     if may_have_dupes:
