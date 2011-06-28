@@ -250,7 +250,7 @@ class HubFactory(RegistrationFactory):
 
         # monitor socket
         sub = ctx.socket(zmq.SUB)
-        sub.setsockopt(zmq.SUBSCRIBE, "")
+        sub.setsockopt(zmq.SUBSCRIBE, b"")
         sub.bind(self.monitor_url)
         sub.bind('inproc://monitor')
         sub = ZMQStream(sub, loop)

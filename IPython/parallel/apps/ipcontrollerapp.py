@@ -197,7 +197,7 @@ class IPControllerApp(BaseParallelApplication):
                 location = socket.gethostbyname_ex(socket.gethostname())[2][-1]
             cdict['location'] = location
         fname = os.path.join(self.profile_dir.security_dir, fname)
-        with open(fname, 'w') as f:
+        with open(fname, 'wb') as f:
             f.write(json.dumps(cdict, indent=2))
         os.chmod(fname, stat.S_IRUSR|stat.S_IWUSR)
     

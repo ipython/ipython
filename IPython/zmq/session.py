@@ -82,7 +82,7 @@ default_packer = json_packer
 default_unpacker = json_unpacker
 
 
-DELIM="<IDS|MSG>"
+DELIM=b"<IDS|MSG>"
 
 #-----------------------------------------------------------------------------
 # Classes

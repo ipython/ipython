@@ -678,7 +678,7 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,
     mons = zmqstream.ZMQStream(ctx.socket(zmq.PUB),loop)
     mons.connect(mon_addr)
     nots = zmqstream.ZMQStream(ctx.socket(zmq.SUB),loop)
-    nots.setsockopt(zmq.SUBSCRIBE, '')
+    nots.setsockopt(zmq.SUBSCRIBE, b'')
     nots.connect(not_addr)
     
     # setup logging.

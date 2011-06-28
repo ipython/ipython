@@ -704,15 +704,15 @@ class TestComplex(TraitTestBase):
 
 class BytesTrait(HasTraits):
 
-    value = Bytes('string')
+    value = Bytes(b'string')
 
 class TestBytes(TraitTestBase):
 
     obj = BytesTrait()
 
-    _default_value = 'string'
-    _good_values   = ['10', '-10', '10L',
-                      '-10L', '10.1', '-10.1', 'string']
+    _default_value = b'string'
+    _good_values   = [b'10', b'-10', b'10L',
+                      b'-10L', b'10.1', b'-10.1', b'string']
     _bad_values    = [10, -10, 10L, -10L, 10.1, -10.1, 1j, [10],
                       ['ten'],{'ten': 10},(10,), None,  u'string']
 
