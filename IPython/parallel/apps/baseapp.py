@@ -97,7 +97,6 @@ base_aliases = {}
 base_aliases.update(base_ip_aliases)
 base_aliases.update({
     'profile_dir' : 'ProfileDir.location',
-    'log_level' : 'BaseParallelApplication.log_level',
     'work_dir' : 'BaseParallelApplication.work_dir',
     'log_to_file' : 'BaseParallelApplication.log_to_file',
     'clean_logs' : 'BaseParallelApplication.clean_logs',

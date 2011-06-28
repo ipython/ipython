@@ -29,7 +29,11 @@ import zmq
 from zmq.eventloop import ioloop
 
 from IPython.core.profiledir import ProfileDir
-from IPython.parallel.apps.baseapp import BaseParallelApplication
+from IPython.parallel.apps.baseapp import (
+    BaseParallelApplication,
+    base_aliases,
+    base_flags,
+)
 from IPython.zmq.log import EnginePUBHandler
 
 from IPython.config.configurable import Configurable
@@ -99,7 +103,27 @@ class MPI(Configurable):
 #-----------------------------------------------------------------------------
 # Main application
 #-----------------------------------------------------------------------------
+aliases = dict(
+    file = 'IPEngineApp.url_file',
+    c = 'IPEngineApp.startup_command',
+    s = 'IPEngineApp.startup_script',
 
+    ident = 'Session.session',
+    user = 'Session.username',
+    exec_key = 'Session.keyfile',
+
+    url = 'EngineFactory.url',
+    ip = 'EngineFactory.ip',
+    transport = 'EngineFactory.transport',
+    port = 'EngineFactory.regport',
+    location = 'EngineFactory.location',
+
+    timeout = 'EngineFactory.timeout',
+
+    mpi = 'MPI.use',
+
+)
+aliases.update(base_aliases)
 
 class IPEngineApp(BaseParallelApplication):
 
@@ -125,31 +149,7 @@ class IPEngineApp(BaseParallelApplication):
         help="""The URL for the iploggerapp instance, for forwarding
         logging to a central location.""")
 
-    aliases = Dict(dict(
-        file = 'IPEngineApp.url_file',
-        c = 'IPEngineApp.startup_command',
-        s = 'IPEngineApp.startup_script',
-
-        ident = 'Session.session',
-        user = 'Session.username',
-        exec_key = 'Session.keyfile',
-
-        url = 'EngineFactory.url',
-        ip = 'EngineFactory.ip',
-        transport = 'EngineFactory.transport',
-        port = 'EngineFactory.regport',
-        location = 'EngineFactory.location',
-
-        timeout = 'EngineFactory.timeout',
-
-        profile = "IPEngineApp.profile",
-        profile_dir = 'ProfileDir.location',
-
-        mpi = 'MPI.use',
-
-        log_level = 'IPEngineApp.log_level',
-        log_url = 'IPEngineApp.log_url'
-    ))
+    aliases = Dict(aliases)
 
     # def find_key_file(self):
     #     """Set the key file.

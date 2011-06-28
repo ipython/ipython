@@ -179,7 +179,7 @@ engine_aliases = {}
 engine_aliases.update(base_aliases)
 engine_aliases.update(dict(
     n='IPClusterEngines.n',
-    elauncher = 'IPClusterEngines.engine_launcher_class',
+    engines = 'IPClusterEngines.engine_launcher_class',
     daemonize = 'IPClusterEngines.daemonize',
 ))
 engine_flags = {}
@@ -322,6 +322,7 @@ start_aliases.update(engine_aliases)
 start_aliases.update(dict(
     delay='IPClusterStart.delay',
     clean_logs='IPClusterStart.clean_logs',
+    controller = 'IPClusterStart.controller_launcher_class',
 ))
 
 class IPClusterStart(IPClusterEngines):

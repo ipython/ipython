@@ -41,7 +41,8 @@ from IPython.core.profiledir import ProfileDir
 
 from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
-    base_flags
+    base_aliases,
+    base_flags,
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict
@@ -109,6 +110,28 @@ flags.update(boolean_flag('secure', 'IPControllerApp.secure',
     "Use HMAC digests for authentication of messages.",
     "Don't authenticate messages."
 ))
+aliases = dict(
+    reuse_files = 'IPControllerApp.reuse_files',
+    secure = 'IPControllerApp.secure',
+    ssh = 'IPControllerApp.ssh_server',
+    use_threads = 'IPControllerApp.use_threads',
+    location = 'IPControllerApp.location',
+
+    ident = 'Session.session',
+    user = 'Session.username',
+    exec_key = 'Session.keyfile',
+
+    url = 'HubFactory.url',
+    ip = 'HubFactory.ip',
+    transport = 'HubFactory.transport',
+    port = 'HubFactory.regport',
+
+    ping = 'HeartMonitor.period',
+
+    scheme = 'TaskScheduler.scheme_name',
+    hwm = 'TaskScheduler.hwm',
+)
+aliases.update(base_aliases)
 
 class IPControllerApp(BaseParallelApplication):
 
@@ -151,35 +174,7 @@ class IPControllerApp(BaseParallelApplication):
     def _use_threads_changed(self, name, old, new):
         self.mq_class = 'zmq.devices.%sMonitoredQueue'%('Thread' if new else 'Process')
 
-    aliases = Dict(dict(
-        log_level = 'IPControllerApp.log_level',
-        log_url = 'IPControllerApp.log_url',
-        reuse_files = 'IPControllerApp.reuse_files',
-        secure = 'IPControllerApp.secure',
-        ssh = 'IPControllerApp.ssh_server',
-        use_threads = 'IPControllerApp.use_threads',
-        import_statements = 'IPControllerApp.import_statements',
-        location = 'IPControllerApp.location',
-
-        ident = 'Session.session',
-        user = 'Session.username',
-        exec_key = 'Session.keyfile',
-
-        url = 'HubFactory.url',
-        ip = 'HubFactory.ip',
-        transport = 'HubFactory.transport',
-        port = 'HubFactory.regport',
-
-        ping = 'HeartMonitor.period',
-
-        scheme = 'TaskScheduler.scheme_name',
-        hwm = 'TaskScheduler.hwm',
-
-
-        profile = "BaseIPythonApplication.profile",
-        profile_dir = 'ProfileDir.location',
-        
-    ))
+    aliases = Dict(aliases)
     flags = Dict(flags)
     
 
