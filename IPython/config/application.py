@@ -161,7 +161,12 @@ class Application(SingletonConfigurable):
         """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(self.log_level)
-        self._log_handler = logging.StreamHandler()
+        if sys.executable.endswith('pythonw.exe'):
+            # this should really go to a file, but file-logging is only
+            # hooked up in parallel applications
+            self._log_handler = logging.StreamHandler(open(os.devnull, 'w'))
+        else:
+            self._log_handler = logging.StreamHandler()
         self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
         self._log_handler.setFormatter(self._log_formatter)
         self.log.addHandler(self._log_handler)
