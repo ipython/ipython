@@ -77,6 +77,7 @@ class BaseIPythonApplication(Application):
     
     aliases = Dict(base_aliases)
     flags = Dict(base_flags)
+    classes = List([ProfileDir])
     
     # Track whether the config_file has changed,
     # because some logic happens only if we aren't using the default.

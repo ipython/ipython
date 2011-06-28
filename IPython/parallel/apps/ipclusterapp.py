@@ -120,9 +120,8 @@ otherwise use the 'profile_dir' option.
 """
 stop_aliases = dict(
     signal='IPClusterStop.signal',
-    profile='BaseIPythonApplication.profile',
-    profile_dir='ProfileDir.location',
 )
+stop_aliases.update(base_aliases)
 
 class IPClusterStop(BaseParallelApplication):
     name = u'ipcluster'
@@ -181,6 +180,16 @@ engine_aliases.update(base_aliases)
 engine_aliases.update(dict(
     n='IPClusterEngines.n',
     elauncher = 'IPClusterEngines.engine_launcher_class',
+    daemonize = 'IPClusterEngines.daemonize',
+))
+engine_flags = {}
+engine_flags.update(base_flags)
+
+engine_flags.update(dict(
+    daemonize=(
+        {'IPClusterEngines' : {'daemonize' : True}},
+        """run the cluster into the background (not available on Windows)""",
+    )
 ))
 class IPClusterEngines(BaseParallelApplication):
 
@@ -204,14 +213,16 @@ class IPClusterEngines(BaseParallelApplication):
         help="The class for launching a set of Engines."
         )
     daemonize = Bool(False, config=True,
-        help='Daemonize the ipcluster program. This implies --log-to-file')
+        help="""Daemonize the ipcluster program. This implies --log-to-file.
+        Not available on Windows.
+        """)
 
     def _daemonize_changed(self, name, old, new):
         if new:
             self.log_to_file = True
 
     aliases = Dict(engine_aliases)
-    # flags = Dict(flags)
+    flags = Dict(engine_flags)
     _stopping = False
 
     def initialize(self, argv=None):
