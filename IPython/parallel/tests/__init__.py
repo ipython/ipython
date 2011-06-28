@@ -46,14 +46,18 @@ class TestProcessLauncher(LocalProcessLauncher):
 # nose setup/teardown
 
 def setup():
-    cp = TestProcessLauncher()
-    cp.cmd_and_args = ipcontroller_cmd_argv + \
-                ['profile=iptest', 'log_level=50', '--reuse']
-    cp.start()
-    launchers.append(cp)
     cluster_dir = os.path.join(get_ipython_dir(), 'profile_iptest')
     engine_json = os.path.join(cluster_dir, 'security', 'ipcontroller-engine.json')
     client_json = os.path.join(cluster_dir, 'security', 'ipcontroller-client.json')
+    for json in (engine_json, client_json):
+        if os.path.exists(json):
+            os.remove(json)
+    
+    cp = TestProcessLauncher()
+    cp.cmd_and_args = ipcontroller_cmd_argv + \
+                ['profile=iptest', 'log_level=50']
+    cp.start()
+    launchers.append(cp)
     tic = time.time()
     while not os.path.exists(engine_json) or not os.path.exists(client_json):
         if cp.poll() is not None:
