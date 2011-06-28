@@ -68,7 +68,8 @@ def shlex_split(x):
 
     # shlex.split has unicode bugs, so encode first to str
     if isinstance(x, unicode):
-        x = x.encode(sys.stdin.encoding)
+        # don't raise errors on encoding:
+        x = x.encode(sys.stdin.encoding or sys.getdefaultencoding(), 'replace')
 
     endofline = []
     while x != '':
