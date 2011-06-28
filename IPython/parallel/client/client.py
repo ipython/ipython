@@ -326,11 +326,11 @@ class Client(HasTraits):
         if location is not None:
             proto,addr,port = util.split_url(url)
             if addr == '127.0.0.1' and location not in LOCAL_IPS and not sshserver:
-                sshserver = location
-                warnings.warn(
-                    "Controller appears to be listening on localhost, but is not local. "
-                    "IPython will try to use SSH tunnels to %s"%location,
-                    RuntimeWarning)
+                warnings.warn("""
+            Controller appears to be listening on localhost, but not on this machine.
+            If this is true, you should specify Client(...,sshserver='you@%s')
+            or instruct your controller to listen on an external IP."""%location,
+                RuntimeWarning)
         
         self._config = cfg
         
