@@ -24,6 +24,7 @@ Authors:
 import json
 import os
 import sys
+import time
 
 import zmq
 from zmq.eventloop import ioloop
@@ -43,7 +44,7 @@ from IPython.parallel.engine.streamkernel import Kernel
 from IPython.parallel.util import disambiguate_url
 
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Bool, Unicode, Dict, List
+from IPython.utils.traitlets import Bool, Unicode, Dict, List, Float
 
 
 #-----------------------------------------------------------------------------
@@ -143,6 +144,11 @@ class IPEngineApp(BaseParallelApplication):
         security directory of the cluster directory.  This location is
         resolved using the `profile` or `profile_dir` options.""",
         )
+    wait_for_url_file = Float(5, config=True,
+        help="""The maximum number of seconds to wait for url_file to exist.
+        This is useful for batch-systems and shared-filesystems where the
+        controller and engine are started at the same time and it
+        may take a moment for the controller to write the connector files.""")
 
     url_file_name = Unicode(u'ipcontroller-engine.json')
     log_url = Unicode('', config=True,
@@ -168,7 +174,7 @@ class IPEngineApp(BaseParallelApplication):
     #         config.Global.key_file = try_this
         
     def find_url_file(self):
-        """Set the key file.
+        """Set the url file.
 
         Here we don't try to actually see if it exists for is valid as that
         is hadled by the connection logic.
@@ -186,10 +192,28 @@ class IPEngineApp(BaseParallelApplication):
         config = self.config
         # print config
         self.find_url_file()
+        
+        # was the url manually specified?
+        keys = set(self.config.EngineFactory.keys())
+        keys = keys.union(set(self.config.RegistrationFactory.keys()))
+        
+        if keys.intersection(set(['ip', 'url', 'port'])):
+            # Connection info was specified, don't wait for the file
+            url_specified = True
+            self.wait_for_url_file = 0
+        else:
+            url_specified = False
 
-        # if os.path.exists(config.Global.key_file) and config.Global.secure:
-        #     config.SessionFactory.exec_key = config.Global.key_file
+        if self.wait_for_url_file and not os.path.exists(self.url_file):
+            self.log.warn("url_file %r not found"%self.url_file)
+            self.log.warn("Waiting up to %.1f seconds for it to arrive."%self.wait_for_url_file)
+            tic = time.time()
+            while not os.path.exists(self.url_file) and (time.time()-tic < self.wait_for_url_file):
+                # wait for url_file to exist, for up to 10 seconds
+                time.sleep(0.1)
+            
         if os.path.exists(self.url_file):
+            self.log.info("Loading url_file %r"%self.url_file)
             with open(self.url_file) as f:
                 d = json.loads(f.read())
                 for k,v in d.iteritems():
@@ -200,6 +224,10 @@ class IPEngineApp(BaseParallelApplication):
             d['url'] = disambiguate_url(d['url'], d['location'])
             config.EngineFactory.url = d['url']
             config.EngineFactory.location = d['location']
+        elif not url_specified:
+            self.log.critical("Fatal: url file never arrived: %s"%self.url_file)
+            self.exit(1)
+        
         
         try:
             exec_lines = config.Kernel.exec_lines

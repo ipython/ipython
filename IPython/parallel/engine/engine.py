@@ -72,7 +72,7 @@ class EngineFactory(RegistrationFactory):
     def register(self):
         """send the registration_request"""
         
-        self.log.info("registering")
+        self.log.info("Registering with controller at %s"%self.url)
         content = dict(queue=self.ident, heartbeat=self.ident, control=self.ident)
         self.registrar.on_recv(self.complete_registration)
         # print (self.session.key)
