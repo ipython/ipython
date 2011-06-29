@@ -82,7 +82,17 @@ class KernelApp(BaseIPythonApplication):
     heartbeat = Instance(Heartbeat)
     session = Instance('IPython.zmq.session.Session')
     ports = Dict()
-
+    
+    # inherit config file name from parent:
+    parent_appname = Unicode(config=True)
+    def _parent_appname_changed(self, name, old, new):
+        if self.config_file_specified:
+            # it was manually specified, ignore
+            return
+        self.config_file_name = new.replace('-','_') + u'_config.py'
+        # don't let this count as specifying the config file
+        self.config_file_specified = False
+        
     # connection info:
     ip = Unicode(LOCALHOST, config=True,
         help="Set the IP or interface on which the kernel will listen.")
