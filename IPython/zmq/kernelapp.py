@@ -141,7 +141,7 @@ class KernelApp(BaseIPythonApplication):
 
     def init_sockets(self):
         # Create a context, a session, and the kernel sockets.
-        io.raw_print("Starting the kernel at pid:", os.getpid())
+        self.log.info("Starting the kernel at pid:", os.getpid())
         context = zmq.Context.instance()
         # Uncomment this to try closing the context.
         # atexit.register(context.term)
@@ -164,8 +164,9 @@ class KernelApp(BaseIPythonApplication):
 
         # Helper to make it easier to connect to an existing kernel, until we have
         # single-port connection negotiation fully implemented.
-        self.log.info("To connect another client to this kernel, use:")
-        self.log.info("--external shell={0} iopub={1} stdin={2} hb={3}".format(
+        # set log-level to critical, to make sure it is output
+        self.log.critical("To connect another client to this kernel, use:")
+        self.log.critical("--existing shell={0} iopub={1} stdin={2} hb={3}".format(
             self.shell_port, self.iopub_port, self.stdin_port, self.hb_port))
 
 
