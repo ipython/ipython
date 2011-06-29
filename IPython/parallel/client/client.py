@@ -318,14 +318,20 @@ class Client(HasTraits):
         if exec_key:
             cfg['exec_key'] = exec_key
         exec_key = cfg['exec_key']
-        sshserver=cfg['ssh']
-        url = cfg['url']
         location = cfg.setdefault('location', None)
         cfg['url'] = util.disambiguate_url(cfg['url'], location)
         url = cfg['url']
-        if location is not None:
-            proto,addr,port = util.split_url(url)
-            if addr == '127.0.0.1' and location not in LOCAL_IPS and not sshserver:
+        proto,addr,port = util.split_url(url)
+        if location is not None and addr == '127.0.0.1':
+            # location specified, and connection is expected to be local
+            if location not in LOCAL_IPS and not sshserver:
+                # load ssh from JSON *only* if the controller is not on
+                # this machine
+                sshserver=cfg['ssh']
+            if location not in LOCAL_IPS and not sshserver:
+                # warn if no ssh specified, but SSH is probably needed
+                # This is only a warning, because the most likely cause
+                # is a local Controller on a laptop whose IP is dynamic
                 warnings.warn("""
             Controller appears to be listening on localhost, but not on this machine.
             If this is true, you should specify Client(...,sshserver='you@%s')
