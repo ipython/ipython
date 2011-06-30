@@ -23,7 +23,6 @@ Contents
    config/index.txt
    development/index.txt
    api/index.txt
-   faq.txt
    about/index.txt
 
 .. htmlonly::
