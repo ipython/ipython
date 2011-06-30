@@ -52,12 +52,6 @@ This will get pyzmq, which is needed for
 IPython's parallel computing features as well as the nose package, which will
 enable you to run IPython's test suite.  
 
-.. warning::
-
-    IPython's test system is being refactored and currently the
-    :command:`iptest` shown below does not work. More details about the
-    testing situation can be found :ref:`here <testing>`
-
 To run IPython's test suite, use the :command:`iptest` command:
 
 .. code-block:: bash

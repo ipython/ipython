@@ -2,14 +2,6 @@
 IPython reference
 =================
 
-.. warning::
-
-    As of the 0.11 version of IPython, some of the features and APIs
-    described in this section have been deprecated or are broken.  Our plan
-    is to continue to support these features, but they need to be updated
-    to take advantage of recent API changes.  Furthermore, this section
-    of the documentation need to be updated to reflect all of these changes.
-
 .. _command_line_options:
 
 Command-line usage
