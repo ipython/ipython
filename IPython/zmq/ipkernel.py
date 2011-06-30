@@ -598,6 +598,10 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         selecting a particular matplotlib backend and loop integration.
         """
     )
+    pylab_import_all = Bool(True, config=True,
+        help="""If true, an 'import *' is done from numpy and pylab,
+        when using pylab"""
+    )
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
         self.init_shell()
@@ -635,7 +639,8 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         kernel.record_ports(self.ports)
 
         if self.pylab:
-            pylabtools.import_pylab(kernel.shell.user_ns, backend,
+            import_all = self.pylab_import_all
+            pylabtools.import_pylab(kernel.shell.user_ns, backend, import_all,
                                     shell=kernel.shell)
     
     def init_shell(self):
