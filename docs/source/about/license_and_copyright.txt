@@ -10,7 +10,7 @@ License
 IPython is licensed under the terms of the new or revised BSD license, as
 follows::
 
-    Copyright (c) 2008, IPython Development Team
+    Copyright (c) 2011, IPython Development Team
 
     All rights reserved.
 
@@ -56,7 +56,9 @@ currently active contributors:
 * Ondrej Certik
 * Laurent Dufrechou
 * Robert Kern
+* Thomas Kluyver
 * Brian E. Granger
+* Evan Patterson
 * Fernando Perez (project leader)
 * Benjamin Ragan-Kelley
 * Ville M. Vainio
