@@ -150,7 +150,7 @@ class Kernel(SessionFactory):
             # self.reply_socket.send(ident,zmq.SNDMORE)
             # self.reply_socket.send_json(reply_msg)
             reply_msg = self.session.send(stream, reply_type, 
-                        content={'status' : 'aborted'}, parent=msg, ident=idents)[0]
+                        content={'status' : 'aborted'}, parent=msg, ident=idents)
             self.log.debug(str(reply_msg))
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
