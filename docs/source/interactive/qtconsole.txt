@@ -116,7 +116,7 @@ if unspecified, will be guessed based on the chosen style. Similarly, there are 
 styles associated with each ``colors`` option.
 
 
-Screenshot of ``ipython-qtconsole colors=linux``, which uses the 'monokai' theme by
+Screenshot of ``ipython qtconsole colors=linux``, which uses the 'monokai' theme by
 default:
 
 .. image:: figs/colors_dark.png
@@ -124,7 +124,7 @@ default:
     
 .. Note::
 
-    Calling ``ipython-qtconsole -h`` will show all the style names that pygments can find
+    Calling ``ipython qtconsole -h`` will show all the style names that pygments can find
     on your system.
 
 You can also pass the filename of a custom CSS stylesheet, if you want to do your own
@@ -147,7 +147,7 @@ Fonts
 The QtConsole has configurable via the ConsoleWidget. To change these, set the ``font_family``
 or ``font_size`` traits of the ConsoleWidget. For instance, to use 9pt Anonymous Pro::
 
-    $> ipython-qtconsole ConsoleWidget.font_family="Anonymous Pro" ConsoleWidget.font_size=9
+    $> ipython qtconsole ConsoleWidget.font_family="Anonymous Pro" ConsoleWidget.font_size=9
 
 Process Management
 ==================
@@ -164,7 +164,7 @@ Multiple Consoles
 
 Since the Kernel listens on the network, multiple frontends can connect to it.  These
 do not have to all be qt frontends - any IPython frontend can connect and run code.
-When you start ipython-qtconsole, there will be an output line, like::
+When you start ipython qtconsole, there will be an output line, like::
 
     To connect another client to this kernel, use:
     --external shell=62109 iopub=62110 stdin=62111 hb=62112
@@ -178,7 +178,7 @@ By default (for security reasons), the kernel only listens on localhost, so you 
 connect multiple frontends to the kernel from your local machine. You can specify to
 listen on an external interface by specifying the ``ip`` argument::
 
-    $> ipython-qtconsole ip=192.168.1.123
+    $> ipython qtconsole ip=192.168.1.123
 
 If you specify the ip as 0.0.0.0, that refers to all interfaces, so any computer that can
 see yours can connect to the kernel.
