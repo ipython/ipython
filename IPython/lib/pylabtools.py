@@ -311,7 +311,7 @@ def pylab_activate(user_ns, gui=None, import_all=True):
     """
     gui, backend = find_gui_and_backend(gui)
     activate_matplotlib(backend)
-    import_pylab(user_ns, backend)
+    import_pylab(user_ns, backend, import_all)
 
     print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
