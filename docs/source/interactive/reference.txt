@@ -1238,13 +1238,13 @@ Second, when using the ``PyOSInputHook`` approach, a GUI application should
 ``PyOSInputHook``. This means that applications that are meant to be used both
 in IPython and as standalone apps need to have special code to detects how the
 application is being run. We highly recommend using IPython's
-:func:`appstart_` functions for this. Here is a simple example that shows the
+:func:`enable_foo` functions for this. Here is a simple example that shows the
 recommended code that should be at the bottom of a wxPython using GUI
 application::
 
   try:
-      from IPython import appstart_wx
-      appstart_wx(app)
+      from IPython.lib.inputhook import enable_wx
+      enable_wx(app)
   except ImportError:
       app.MainLoop()
 
