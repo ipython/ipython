@@ -75,9 +75,13 @@ def install():
     cmd = '"%s"' % ipybase
     mkshortcut(python, 'IPython', link, cmd, workdir)
     
-    link = pjoin(ip_start_menu, 'pysh.lnk')
-    cmd = '"%s" profile=pysh --init' % ipybase
-    mkshortcut(python, 'IPython (command prompt mode)', link, cmd, workdir)
+    # Disable pysh Start item until the profile restores functionality
+    # Most of this code is in IPython/deathrow, and needs to be updated
+    # to 0.11 APIs
+    
+    # link = pjoin(ip_start_menu, 'pysh.lnk')
+    # cmd = '"%s" profile=pysh --init' % ipybase
+    # mkshortcut(python, 'IPython (command prompt mode)', link, cmd, workdir)
     
     link = pjoin(ip_start_menu, 'pylab.lnk')
     cmd = '"%s" profile=pylab --init' % ipybase
