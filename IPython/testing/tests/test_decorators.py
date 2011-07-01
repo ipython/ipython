@@ -176,7 +176,7 @@ def test_skip_dt_decorator2():
 
 @dec.skip_linux
 def test_linux():
-    nt.assert_not_equals(sys.platform,'linux2',"This test can't run under linux")
+    nt.assert_false(sys.platform.startswith('linux'),"This test can't run under linux")
 
 @dec.skip_win32
 def test_win32():
