@@ -181,7 +181,8 @@ class InputHookManager(object):
         But, we first check to see if an application has already been 
         created.  If so, we simply return that instance.
         """
-        from PyQt4 import QtCore
+        from IPython.external.qt_for_kernel import QtCore, QtGui
+
         # PyQt4 has had this since 4.3.1.  In version 4.2, PyOS_InputHook
         # was set when QtCore was imported, but if it ever got removed,
         # you couldn't reset it.  For earlier versions we can
@@ -190,8 +191,8 @@ class InputHookManager(object):
             QtCore.pyqtRestoreInputHook()
         except AttributeError:
             pass
+
         self._current_gui = GUI_QT4
-        from PyQt4 import QtGui
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtGui.QApplication([" "])
