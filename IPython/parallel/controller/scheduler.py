@@ -51,7 +51,7 @@ from .dependency import Dependency
 @decorator
 def logged(f,self,*args,**kwargs):
     # print ("#--------------------")
-    self.log.debug("scheduler::%s(*%s,**%s)"%(f.func_name, args, kwargs))
+    self.log.debug("scheduler::%s(*%s,**%s)", f.func_name, args, kwargs)
     # print ("#--")
     return f(self,*args, **kwargs)
 
@@ -266,7 +266,6 @@ class TaskScheduler(SessionFactory):
             self.failed.pop(uid)
 
     
-    @logged
     def handle_stranded_tasks(self, engine):
         """Deal with jobs resident in an engine that died."""
         lost = self.pending[engine]
@@ -298,7 +297,6 @@ class TaskScheduler(SessionFactory):
     #-----------------------------------------------------------------------
     # Job Submission
     #-----------------------------------------------------------------------
-    @logged
     def dispatch_submission(self, raw_msg):
         """Dispatch job submission to appropriate handlers."""
         # ensure targets up to date:
@@ -366,7 +364,6 @@ class TaskScheduler(SessionFactory):
         else:
             self.save_unmet(msg_id, *args)
     
-    # @logged
     def audit_timeouts(self):
         """Audit all waiting tasks for expired timeouts."""
         now = datetime.now()
@@ -377,12 +374,11 @@ class TaskScheduler(SessionFactory):
                 if timeout and timeout < now:
                     self.fail_unreachable(msg_id, error.TaskTimeout)
                 
-    @logged
     def fail_unreachable(self, msg_id, why=error.ImpossibleDependency):
         """a task has become unreachable, send a reply with an ImpossibleDependency
         error."""
         if msg_id not in self.depending:
-            self.log.error("msg %r already failed!"%msg_id)
+            self.log.error("msg %r already failed!", msg_id)
             return
         raw_msg,targets,after,follow,timeout = self.depending.pop(msg_id)
         for mid in follow.union(after):
@@ -407,7 +403,6 @@ class TaskScheduler(SessionFactory):
         
         self.update_graph(msg_id, success=False)
     
-    @logged
     def maybe_run(self, msg_id, raw_msg, targets, after, follow, timeout):
         """check location dependencies, and run if they are met."""
         blacklist = self.blacklist.setdefault(msg_id, set())
@@ -459,7 +454,6 @@ class TaskScheduler(SessionFactory):
         self.submit_task(msg_id, raw_msg, targets, follow, timeout, indices)
         return True
             
-    @logged
     def save_unmet(self, msg_id, raw_msg, targets, after, follow, timeout):
         """Save a message for later submission when its dependencies are met."""
         self.depending[msg_id] = [raw_msg,targets,after,follow,timeout]
@@ -469,7 +463,6 @@ class TaskScheduler(SessionFactory):
                 self.graph[dep_id] = set()
             self.graph[dep_id].add(msg_id)
     
-    @logged
     def submit_task(self, msg_id, raw_msg, targets, follow, timeout, indices=None):
         """Submit a task to any of a subset of our targets."""
         if indices:
@@ -496,7 +489,6 @@ class TaskScheduler(SessionFactory):
     #-----------------------------------------------------------------------
     # Result Handling
     #-----------------------------------------------------------------------
-    @logged
     def dispatch_result(self, raw_msg):
         """dispatch method for result replies"""
         try:
@@ -510,7 +502,7 @@ class TaskScheduler(SessionFactory):
             else:
                 self.finish_job(idx)
         except Exception:
-            self.log.error("task::Invaid result: %r"%raw_msg, exc_info=True)
+            self.log.error("task::Invaid result: %r", raw_msg, exc_info=True)
             return
 
         header = msg['header']
@@ -532,7 +524,6 @@ class TaskScheduler(SessionFactory):
         else:
             self.handle_unmet_dependency(idents, parent)
         
-    @logged
     def handle_result(self, idents, parent, raw_msg, success=True):
         """handle a real task result, either success or failure"""
         # first, relay result to client
@@ -557,7 +548,6 @@ class TaskScheduler(SessionFactory):
         
         self.update_graph(msg_id, success)
         
-    @logged
     def handle_unmet_dependency(self, idents, parent):
         """handle an unmet dependency"""
         engine = idents[0]
@@ -590,7 +580,6 @@ class TaskScheduler(SessionFactory):
         
         
     
-    @logged
     def update_graph(self, dep_id=None, success=True):
         """dep_id just finished. Update our dependency
         graph and submit any jobs that just became runable.
