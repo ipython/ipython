@@ -49,6 +49,14 @@ The parallel computing framework has also been rewritten using ZMQ. The
 protocol is described :ref:`here <parallel_messages>`, and the code is in the
 new :mod:`IPython.parallel` module.
 
+Python 3 support
+----------------
+
+A Python 3 version of IPython has been prepared. For the time being, this is
+maintained separately and updated from the main codebase. Its code can be found
+`here <https://github.com/ipython/ipython-py3k>`_. Note that the parallel
+computing features do not yet work in Python 3.
+
 New features
 ------------
 
