@@ -223,7 +223,6 @@ class TaskScheduler(SessionFactory):
             except KeyError:
                 self.log.error("task::Invalid notification msg: %r"%msg)
     
-    @logged
     def _register_engine(self, uid):
         """New engine with ident `uid` became available."""
         # head of the line:
@@ -322,15 +321,19 @@ class TaskScheduler(SessionFactory):
         self.retries[msg_id] = retries
         
         # time dependencies
-        after = Dependency(header.get('after', []))
-        if after.all:
-            if after.success:
-                after.difference_update(self.all_completed)
-            if after.failure:
-                after.difference_update(self.all_failed)
-        if after.check(self.all_completed, self.all_failed):
-            # recast as empty set, if `after` already met,
-            # to prevent unnecessary set comparisons
+        after = header.get('after', None)
+        if after:
+            after = Dependency(after)
+            if after.all:
+                if after.success:
+                    after = after.difference(self.all_completed)
+                if after.failure:
+                    after = after.difference(self.all_failed)
+            if after.check(self.all_completed, self.all_failed):
+                # recast as empty set, if `after` already met,
+                # to prevent unnecessary set comparisons
+                after = MET
+        else:
             after = MET
         
         # location dependencies
@@ -345,6 +348,8 @@ class TaskScheduler(SessionFactory):
         
         # validate and reduce dependencies:
         for dep in after,follow:
+            if not dep: # empty dependency
+                continue
             # check valid:
             if msg_id in dep or dep.difference(self.all_ids):
                 self.depending[msg_id] = args
