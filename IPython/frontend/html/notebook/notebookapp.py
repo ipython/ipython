@@ -27,7 +27,7 @@ _kernel_action_regex = r"(?P<action>restart|interrupt)"
 
 
 
-class NotebookApplication(web.Application):
+class NotebookWebApplication(web.Application):
 
     def __init__(self):
         handlers = [
@@ -117,7 +117,7 @@ class NotebookApplication(web.Application):
 
 def launch_new_instance():
     options.parse_command_line()
-    application = NotebookApplication()
+    application = NotebookWebApplication()
     http_server = httpserver.HTTPServer(application)
     http_server.listen(options.options.port)
     print "IPython Notebook running at: http://127.0.0.1:8888"
