@@ -417,7 +417,7 @@ class TerminalInteractiveShell(InteractiveShell):
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------
 
-    def enable_pylab(self, gui=None):
+    def enable_pylab(self, gui=None, import_all=True):
         """Activate pylab support at runtime.
 
         This turns on support for matplotlib, preloads into the interactive
@@ -440,7 +440,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # code in an empty namespace, and we update *both* user_ns and
         # user_ns_hidden with this information.
         ns = {}
-        gui = pylab_activate(ns, gui)
+        gui = pylab_activate(ns, gui, import_all)
         self.user_ns.update(ns)
         self.user_ns_hidden.update(ns)
         # Now we must activate the gui pylab wants to use, and fix %run to take
