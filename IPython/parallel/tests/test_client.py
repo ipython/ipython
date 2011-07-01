@@ -242,8 +242,16 @@ class TestClient(ClusterTestCase):
         self.assertRaisesRemote(KeyError, self.client.resubmit, ['invalid'])
 
     def test_purge_results(self):
+        # ensure there are some tasks
+        for i in range(5):
+            self.client[:].apply_sync(lambda : 1)
         hist = self.client.hub_history()
-        self.client.purge_results(hist)
+        self.client.purge_results(hist[-1])
         newhist = self.client.hub_history()
-        self.assertTrue(len(newhist) == 0)
+        self.assertEquals(len(newhist)+1,len(hist))
+        
+    def test_purge_all_results(self):
+        self.client.purge_results('all')
+        hist = self.client.hub_history()
+        self.assertEquals(len(hist), 0)
 

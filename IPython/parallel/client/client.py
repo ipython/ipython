@@ -1305,14 +1305,15 @@ class Client(HasTraits):
         Individual results can be purged by msg_id, or the entire
         history of specific targets can be purged.
         
+        Use `purge_results('all')` to scrub everything from the Hub's db.
+        
         Parameters
         ----------
         
         jobs : str or list of str or AsyncResult objects
                 the msg_ids whose results should be forgotten.
         targets : int/str/list of ints/strs
-                The targets, by uuid or int_id, whose entire history is to be purged.
-                Use `targets='all'` to scrub everything from the Hub's memory.
+                The targets, by int_id, whose entire history is to be purged.
                 
                 default : None
         """
@@ -1322,19 +1323,22 @@ class Client(HasTraits):
             targets = self._build_targets(targets)[1]
         
         # construct msg_ids from jobs
-        msg_ids = []
-        if isinstance(jobs, (basestring,AsyncResult)):
-            jobs = [jobs]
-        bad_ids = filter(lambda obj: not isinstance(obj, (basestring, AsyncResult)), jobs)
-        if bad_ids:
-            raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
-        for j in jobs:
-            if isinstance(j, AsyncResult):
-                msg_ids.extend(j.msg_ids)
-            else:
-                msg_ids.append(j)
-        
-        content = dict(targets=targets, msg_ids=msg_ids)
+        if jobs == 'all':
+            msg_ids = jobs
+        else:
+            msg_ids = []
+            if isinstance(jobs, (basestring,AsyncResult)):
+                jobs = [jobs]
+            bad_ids = filter(lambda obj: not isinstance(obj, (basestring, AsyncResult)), jobs)
+            if bad_ids:
+                raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
+            for j in jobs:
+                if isinstance(j, AsyncResult):
+                    msg_ids.extend(j.msg_ids)
+                else:
+                    msg_ids.append(j)
+
+        content = dict(engine_ids=targets, msg_ids=msg_ids)
         self.session.send(self._query_socket, "purge_request", content=content)
         idents, msg = self.session.recv(self._query_socket, 0)
         if self.debug:

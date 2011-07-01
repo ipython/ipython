@@ -1063,6 +1063,7 @@ class Hub(SessionFactory):
         """Purge results from memory. This method is more valuable before we move
         to a DB based message storage mechanism."""
         content = msg['content']
+        self.log.info("Dropping records with %s", content)
         msg_ids = content.get('msg_ids', [])
         reply = dict(status='ok')
         if msg_ids == 'all':
@@ -1092,7 +1093,6 @@ class Hub(SessionFactory):
                         except:
                             reply = error.wrap_exception()
                         break
-                    msg_ids = self.completed.pop(eid)
                     uid = self.engines[eid].queue
                     try:
                         self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
