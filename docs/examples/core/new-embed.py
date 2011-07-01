@@ -6,7 +6,7 @@ from IPython import embed
 a = 10
 b = 20
 
-embed('First time')
+embed(header='First time', banner1='')
 
 c = 30
 d = 40
@@ -14,4 +14,4 @@ d = 40
 try:
     raise Exception('adsfasdf')
 except:
-    embed('The second time')
+    embed(header='The second time')

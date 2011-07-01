@@ -2,14 +2,6 @@
 IPython reference
 =================
 
-.. warning::
-
-    As of the 0.11 version of IPython, some of the features and APIs
-    described in this section have been deprecated or are broken.  Our plan
-    is to continue to support these features, but they need to be updated
-    to take advantage of recent API changes.  Furthermore, this section
-    of the documentation need to be updated to reflect all of these changes.
-
 .. _command_line_options:
 
 Command-line usage
@@ -34,10 +26,8 @@ $HOME/.ipython.  For Windows users, $HOME resolves to C:\\Documents and
 Settings\\YourUserName in most instances.
 
 
-
-
-Special Threading Options
--------------------------
+Eventloop integration
+---------------------
 
 Previously IPython had command line options for controlling GUI event loop
 integration (-gthread, -qthread, -q4thread, -wthread, -pylab). As of IPython
@@ -63,13 +53,13 @@ given at the command line override the values set in the ipythonrc file.
 All options with a [no] prepended can be specified in negated form
 (--no-option instead of --option) to turn the feature off.
 
-    -h, --help  print a help message and exit.
+    ``-h, --help``  print a help message and exit.
 
-    --pylab, pylab=<name>
+    ``--pylab, pylab=<name>``
     See :ref:`Matplotlib support <matplotlib_support>`
     for more details.
 
-    autocall=<val>
+    ``autocall=<val>``
 	Make IPython automatically call any callable object even if you
 	didn't type explicit parentheses. For example, 'str 43' becomes
 	'str(43)' automatically. The value can be '0' to disable the feature,
@@ -78,25 +68,26 @@ All options with a [no] prepended can be specified in negated form
 	objects are automatically called (even if no arguments are
 	present). The default is '1'.
 
-    --[no-]autoindent    
+    ``--[no-]autoindent``
 	Turn automatic indentation on/off.
 
-    --[no-]automagic 
+    ``--[no-]automagic``
 	make magic commands automatic (without needing their first character
 	to be %). Type %magic at the IPython prompt for more information.
 
-    --[no-]autoedit_syntax 
+    ``--[no-]autoedit_syntax``
 	When a syntax error occurs after editing a file, automatically
 	open the file to the trouble causing line for convenient
 	fixing.
 
-    --[no-]banner		Print the initial information banner (default on).
+    ``--[no-]banner``
+	Print the initial information banner (default on).
 
-    c=<command>
+    ``c=<command>``
 	execute the given command string. This is similar to the -c
 	option in the normal Python interpreter.
 
-    cache_size=<n> 
+    ``cache_size=<n>``
 	size of the output cache (maximum number of entries to hold in
 	memory). The default is 1000, you can change it permanently in your
 	config file. Setting it to 0 completely disables the caching system,
@@ -105,15 +96,15 @@ All options with a [no] prepended can be specified in negated form
 	because otherwise you'll spend more time re-flushing a too small cache
 	than working.
 
-    --classic
+    ``--classic``
 	Gives IPython a similar feel to the classic Python
 	prompt.
 
-    colors=<scheme> 
+    ``colors=<scheme>``
 	Color scheme for prompts and exception reporting. Currently
 	implemented: NoColor, Linux and LightBG.
 
-    --[no-]color_info 
+    ``--[no-]color_info``
 	IPython can display information about objects via a set of functions,
 	and optionally can use colors for this, syntax highlighting source
 	code and various other elements.  However, because this information is
@@ -127,12 +118,12 @@ All options with a [no] prepended can be specified in negated form
 	system. The magic function %color_info allows you to toggle this
 	interactively for testing.
 
-    --[no-]debug 
+    ``--[no-]debug``
 	Show information about the loading process. Very useful to pin down
 	problems with your configuration files or to get details about
 	session restores.
 
-    --[no-]deep_reload: 
+    ``--[no-]deep_reload``
 	IPython can use the deep_reload module which reloads changes in
 	modules recursively (it replaces the reload() function, so you don't
 	need to change anything to use it).  deep_reload() forces a full
@@ -144,7 +135,7 @@ All options with a [no] prepended can be specified in negated form
 	feature is off by default [which means that you have both
 	normal reload() and dreload()].
 
-    editor=<name>
+    ``editor=<name>``
 	Which editor to use with the %edit command. By default,
 	IPython will honor your EDITOR environment variable (if not
 	set, vi is the Unix default and notepad the Windows one).
@@ -153,22 +144,25 @@ All options with a [no] prepended can be specified in negated form
 	small, lightweight editor here (in case your default EDITOR is
 	something like Emacs).
 
-    ipython_dir=<name> 
+    ``ipython_dir=<name>``
 	name of your IPython configuration directory IPYTHON_DIR. This
 	can also be specified through the environment variable
 	IPYTHON_DIR.
 
-    -log, l 
-	generate a log file of all input. The file is named
-	ipython_log.py in your current directory (which prevents logs
-	from multiple IPython sessions from trampling each other). You
-	can use this to later restore a session by loading your
-	logfile as a file to be executed with option -logplay (see
-	below).
+    ``logfile=<name>``
+        specify the name of your logfile.
+        
+        This implies ``%logstart`` at the beginning of your session
+        
+        generate a log file of all input. The file is named
+        ipython_log.py in your current directory (which prevents logs
+        from multiple IPython sessions from trampling each other). You
+        can use this to later restore a session by loading your
+        logfile with ``ipython --i ipython_log.py``
 
-    -logfile, lf <name>   specify the name of your logfile.
-
-    -logplay, lp <name> 
+    ``logplay=<name>``
+    
+      NOT AVAILABLE in 0.11
 
       you can replay a previous log. For restoring a session as close as
       possible to the state you left it in, use this option (don't just run
@@ -190,56 +184,53 @@ All options with a [no] prepended can be specified in negated form
       our first attempts failed because of inherent limitations of
       Python's Pickle module, so this may have to wait.
 
-    --[no-]messages   
+    ``--[no-]messages``
 	Print messages which IPython collects about its startup
 	process (default on).
 
-    --[no-]pdb
+    ``--[no-]pdb``
 	Automatically call the pdb debugger after every uncaught
 	exception. If you are used to debugging using pdb, this puts
 	you automatically inside of it after any call (either in
 	IPython or in code called by it) which triggers an exception
 	which goes uncaught.
 
-    --pydb
-	Makes IPython use the third party "pydb" package as debugger,
-	instead of pdb. Requires that pydb is installed.
-	
-    --[no-]pprint
+    ``--[no-]pprint``
 	ipython can optionally use the pprint (pretty printer) module
 	for displaying results. pprint tends to give a nicer display
 	of nested data structures. If you like it, you can turn it on
 	permanently in your config file (default off).
 
-    profile=<name>
+    ``profile=<name>``
 
-	assume that your config file is ipythonrc-<name> or
-	ipy_profile_<name>.py (looks in current dir first, then in
-	IPYTHON_DIR).  This is a quick way to keep and load multiple
+	Select the IPython profile by name.
+    
+	This is a quick way to keep and load multiple
 	config files for different tasks, especially if you use the
 	include option of config files. You can keep a basic
-	IPYTHON_DIR/ipythonrc file and then have other 'profiles' which
+	:file:`IPYTHON_DIR/profile_default/ipython_config.py` file 
+	and then have other 'profiles' which
 	include this one and load extra things for particular
 	tasks. For example:
 
-	1. $IPYTHON_DIR/ipythonrc : load basic things you always want.
-	2. $IPYTHON_DIR/ipythonrc-math : load (1) and basic math-related modules.
-	3. $IPYTHON_DIR/ipythonrc-numeric : load (1) and Numeric and plotting modules.
+	1. $IPYTHON_DIR/profile_default : load basic things you always want.
+	2. $IPYTHON_DIR/profile_math : load (1) and basic math-related modules.
+	3. $IPYTHON_DIR/profile_numeric : load (1) and Numeric and plotting modules.
 
 	Since it is possible to create an endless loop by having
 	circular file inclusions, IPython will stop if it reaches 15
 	recursive inclusions.
 
-    pi1=<string>
+    ``InteractiveShell.prompt_in1=<string>``
 
-        Specify the string used for input prompts. Note that if you are using
+	Specify the string used for input prompts. Note that if you are using
 	numbered prompts, the number is represented with a '\#' in the
 	string. Don't forget to quote strings with spaces embedded in
 	them. Default: 'In [\#]:'.  The :ref:`prompts section <prompts>`
 	discusses in detail all the available escapes to customize your
 	prompts.
 
-    pi2=<string>
+    ``InteractiveShell.prompt_in2=<string>``
 	Similar to the previous option, but used for the continuation
 	prompts. The special sequence '\D' is similar to '\#', but
 	with all digits replaced dots (so you can have your
@@ -247,14 +238,14 @@ All options with a [no] prepended can be specified in negated form
 	' .\D.:' (note three spaces at the start for alignment with
 	'In [\#]').
 
-    po=<string> 
+    ``InteractiveShell.prompt_out=<string>``
 	String used for output prompts, also uses numbers like
 	prompt_in1. Default: 'Out[\#]:'
 
-    --quick
-    start in bare bones mode (no config file loaded).
+    ``--quick``
+        start in bare bones mode (no config file loaded).
 
-    config_file=<name>   
+    ``config_file=<name>``
 	name of your IPython resource configuration file. Normally
 	IPython loads ipython_config.py (from current directory) or
 	IPYTHON_DIR/profile_default.
@@ -262,7 +253,7 @@ All options with a [no] prepended can be specified in negated form
 	If the loading of your config file fails, IPython starts with
 	a bare bones configuration (no modules loaded at all).
 
-    --[no-]readline
+    ``--[no-]readline``
 	use the readline library, which is needed to support name
 	completion and command history, among other things.  It is
 	enabled by default, but may cause problems for users of
@@ -272,7 +263,7 @@ All options with a [no] prepended can be specified in negated form
 	IPython's readline and syntax coloring fine, only 'emacs' (M-x
 	shell and C-c !) buffers do not.
 
-    sl=<n>
+    ``TerminalInteractiveShell.screen_length=<n>``
 	number of lines of your screen. This is used to control
 	printing of very long strings. Strings longer than this number
 	of lines will be sent through a pager instead of directly
@@ -285,38 +276,35 @@ All options with a [no] prepended can be specified in negated form
 	reason this isn't working well (it needs curses support), specify
 	it yourself. Otherwise don't change the default.
 
-    si=<string>
+    ``TerminalInteractiveShell.separate_in=<string>``
 
 	separator before input prompts.
 	Default: '\n'
 
-    so=<string>  
+    ``TerminalInteractiveShell.separate_out=<string>``
         separator before output prompts.
         Default: nothing.
 
-    so2=<string>
+    ``TerminalInteractiveShell.separate_out2=<string>``
 	separator after output prompts.
 	Default: nothing.
 	For these three options, use the value 0 to specify no separator.
 
-    --nosep
-	shorthand for '-SeparateIn 0 -SeparateOut 0 -SeparateOut2
-	0'. Simply removes all input/output separators.
+    ``--nosep``
+	shorthand for setting the above separators to empty strings.
+	
+	Simply removes all input/output separators.
 
-    --init
-	allows you to initialize your IPYTHON_DIR configuration when you
-	install a new version of IPython. Since new versions may
-	include new command line options or example files, this copies
-	updated config files. However, it backs up (with a
-	.old extension) all files which it overwrites so that you can
-	merge back any customizations you might have in your personal
-	files. Note that you should probably use %upgrade instead,
-	it's a safer alternative.
+    ``--init``
+	allows you to initialize a profile dir for configuration when you
+	install a new version of IPython or want to use a new profile.
+	Since new versions may include new command line options or example
+	files, this copies updated config files. Note that you should probably
+	use %upgrade instead,it's a safer alternative.
 
+    ``--version``    print version information and exit.
 
-    --version    print version information and exit.
-
-    xmode=<modename>
+    ``xmode=<modename>``
 
 	Mode for exception reporting.
 
@@ -337,11 +325,7 @@ All options with a [no] prepended can be specified in negated form
 Interactive use
 ===============
 
-Warning: IPython relies on the existence of a global variable called
-_ip which controls the shell itself. If you redefine _ip to anything,
-bizarre behavior will quickly occur.
-
-Other than the above warning, IPython is meant to work as a drop-in
+IPython is meant to work as a drop-in
 replacement for the standard interactive interpreter. As such, any code
 which is valid python should execute normally under IPython (cases where
 this is not true should be reported as bugs). It does, however, offer
@@ -384,7 +368,9 @@ an identifier with the same name as an existing magic function will
 shadow it for automagic use. You can still access the shadowed magic
 function by explicitly using the % character at the beginning of the line.
 
-An example (with automagic on) should clarify all this::
+An example (with automagic on) should clarify all this:
+
+.. sourcecode:: ipython
 
     In [1]: cd ipython # %cd is called by automagic
 
@@ -415,11 +401,11 @@ An example (with automagic on) should clarify all this::
     /home/fperez/ipython
 
 You can define your own magic functions to extend the system. The
-following example defines a new magic command, %impall::
+following example defines a new magic command, %impall:
 
-    import IPython.ipapi 
+.. sourcecode:: python
 
-    ip = IPython.ipapi.get()
+    ip = get_ipython()
 
     def doimp(self, arg):
 
@@ -433,20 +419,13 @@ following example defines a new magic command, %impall::
 
     ip.expose_magic('impall', doimp)
 
-You can also define your own aliased names for magic functions. In your
-ipythonrc file, placing a line like::
-
-    execute __IP.magic_cl = __IP.magic_clear
-
-will define %cl as a new name for %clear.
-
 Type %magic for more information, including a list of all available
 magic functions at any time and their docstrings. You can also type
 %magic_function_name? (see sec. 6.4 <#sec:dyn-object-info> for
 information on the '?' system) to get information about any particular
 magic function you are interested in.
 
-The API documentation for the :mod:`IPython.Magic` module contains the full
+The API documentation for the :mod:`IPython.core.magic` module contains the full
 docstrings of all currently available magic commands.
 
 
@@ -543,8 +522,7 @@ Persistent command history across sessions
 
 IPython will save your input history when it leaves and reload it next
 time you restart it. By default, the history file is named
-$IPYTHON_DIR/history, but if you've loaded a named profile,
-'-PROFILE_NAME' is appended to the name. This allows you to keep
+$IPYTHON_DIR/profile_<name>/history.sqlite. This allows you to keep
 separate histories related to various tasks: commands related to
 numerical work will not be clobbered by a system shell history, for
 example.
@@ -568,11 +546,19 @@ more convenient (M-i indents, M-u unindents)::
 
 Note that there are 4 spaces between the quote marks after "M-i" above.
 
-Warning: this feature is ON by default, but it can cause problems with
-the pasting of multi-line indented code (the pasted code gets
-re-indented on each line). A magic function %autoindent allows you to
-toggle it on/off at runtime. You can also disable it permanently on in
-your ipythonrc file (set autoindent 0).
+.. warning::
+
+    Setting the above indents will cause problems with unicode text entry in the terminal.
+
+.. warning::
+
+    Autoindent is ON by default, but it can cause problems with
+    the pasting of multi-line indented code (the pasted code gets
+    re-indented on each line). A magic function %autoindent allows you to
+    toggle it on/off at runtime. You can also disable it permanently on in
+    your :file:`ipython_config.py` file (set TerminalInteractiveShell.autoindent=False).
+    
+    If you want to paste multiple lines, it is recommended that you use ``%paste``.
 
 
 Customizing readline behavior
@@ -618,10 +604,10 @@ Session logging and restoring
 -----------------------------
 
 You can log all input from a session either by starting IPython with the
-command line switches -log or -logfile (see :ref:`here <command_line_options>`)
+command line switche ``logfile=foo.py`` (see :ref:`here <command_line_options>`)
 or by activating the logging at any moment with the magic function %logstart.
 
-Log files can later be reloaded with the -logplay option and IPython
+Log files can later be reloaded by running them as scripts and IPython
 will attempt to 'replay' the log by executing all the lines in it, thus
 restoring the state of a previous session. This feature is not quite
 perfect, but can still be useful in many cases.
@@ -636,8 +622,8 @@ follows:
 
 %logstart [log_name [log_mode]]
 
-If no name is given, it defaults to a file named 'log' in your
-IPYTHON_DIR directory, in 'rotate' mode (see below).
+If no name is given, it defaults to a file named 'ipython_log.py' in your
+current working directory, in 'rotate' mode (see below).
 
 '%logstart name' saves to file 'name' in 'backup' mode. It saves your
 history up to that point and then continues logging.
@@ -889,7 +875,7 @@ Directory history
 Your history of visited directories is kept in the global list _dh, and
 the magic %cd command can be used to go to any entry in that list. The
 %dhist command allows you to view this history. Do ``cd -<TAB`` to
-conventiently view the directory history.
+conveniently view the directory history.
 
 
 Automatic parentheses and quotes
@@ -967,11 +953,12 @@ Python honors the environment variable PYTHONSTARTUP and will execute at
 startup the file referenced by this variable. If you put at the end of
 this file the following two lines of code::
 
-    import IPython 
-    IPython.Shell.IPShell().mainloop(sys_exit=1)
+    from IPython.frontend.terminal.ipapp import launch_new_instance
+    launch_new_instance()
+    raise SystemExit
 
 then IPython will be your working environment anytime you start Python.
-The sys_exit=1 is needed to have IPython issue a call to sys.exit() when
+The ``raise SystemExit`` is needed to exit Python when
 it finishes, otherwise you'll be back at the normal Python '>>>'
 prompt.
 
@@ -1009,11 +996,9 @@ needed).
 The following code snippet is the bare minimum you need to include in
 your Python programs for this to work (detailed examples follow later)::
 
-    from IPython.Shell import IPShellEmbed
+    from IPython import embed
 
-    ipshell = IPShellEmbed()
-
-    ipshell() # this call anywhere in your program will start IPython
+    embed() # this call anywhere in your program will start IPython
 
 You can run embedded instances even in code which is itself being run at
 the IPython interactive prompt with '%run <filename>'. Since it's easy
@@ -1027,201 +1012,21 @@ them separately, for example with different options for data
 presentation. If you close and open the same instance multiple times,
 its prompt counters simply continue from each execution to the next.
 
-Please look at the docstrings in the Shell.py module for more details on
-the use of this system.
+Please look at the docstrings in the :mod:`~IPython.frontend.terminal.embed` 
+module for more details on the use of this system.
 
 The following sample file illustrating how to use the embedding
 functionality is provided in the examples directory as example-embed.py.
-It should be fairly self-explanatory::
+It should be fairly self-explanatory:
 
-
-    #!/usr/bin/env python
-
-    """An example of how to embed an IPython shell into a running program.
-
-    Please see the documentation in the IPython.Shell module for more details.
-
-    The accompanying file example-embed-short.py has quick code fragments for
-    embedding which you can cut and paste in your code once you understand how
-    things work.
-
-    The code in this file is deliberately extra-verbose, meant for learning."""
-
-    # The basics to get you going:
-
-    # IPython sets the __IPYTHON__ variable so you can know if you have nested
-    # copies running.
-
-    # Try running this code both at the command line and from inside IPython (with
-    # %run example-embed.py)
-    try:
-        __IPYTHON__
-    except NameError:
-        nested = 0
-        args = ['']
-    else:
-        print "Running nested copies of IPython."
-        print "The prompts for the nested copy have been modified"
-        nested = 1
-        # what the embedded instance will see as sys.argv:
-        args = ['-pi1','In <\\#>: ','-pi2','   .\\D.: ',
-                '-po','Out<\\#>: ','-nosep']
-
-    # First import the embeddable shell class
-    from IPython.Shell import IPShellEmbed
-
-    # Now create an instance of the embeddable shell. The first argument is a
-    # string with options exactly as you would type them if you were starting
-    # IPython at the system command line. Any parameters you want to define for
-    # configuration can thus be specified here.
-    ipshell = IPShellEmbed(args,
-                           banner = 'Dropping into IPython',
-                           exit_msg = 'Leaving Interpreter, back to program.')
-
-    # Make a second instance, you can have as many as you want.
-    if nested:
-        args[1] = 'In2<\\#>'
-    else:
-        args = ['-pi1','In2<\\#>: ','-pi2','   .\\D.: ',
-                '-po','Out<\\#>: ','-nosep']
-    ipshell2 = IPShellEmbed(args,banner = 'Second IPython instance.')
-
-    print '\nHello. This is printed from the main controller program.\n'
-
-    # You can then call ipshell() anywhere you need it (with an optional
-    # message):
-    ipshell('***Called from top level. '
-            'Hit Ctrl-D to exit interpreter and continue program.\n'
-            'Note that if you use %kill_embedded, you can fully deactivate\n'
-            'This embedded instance so it will never turn on again')
-
-    print '\nBack in caller program, moving along...\n'
-
-    #---------------------------------------------------------------------------
-    # More details:
-
-    # IPShellEmbed instances don't print the standard system banner and
-    # messages. The IPython banner (which actually may contain initialization
-    # messages) is available as <instance>.IP.BANNER in case you want it.
-
-    # IPShellEmbed instances print the following information everytime they
-    # start:
-
-    # - A global startup banner.
-
-    # - A call-specific header string, which you can use to indicate where in the
-    # execution flow the shell is starting.
-
-    # They also print an exit message every time they exit.
-
-    # Both the startup banner and the exit message default to None, and can be set
-    # either at the instance constructor or at any other time with the
-    # set_banner() and set_exit_msg() methods.
-
-    # The shell instance can be also put in 'dummy' mode globally or on a per-call
-    # basis. This gives you fine control for debugging without having to change
-    # code all over the place.
-
-    # The code below illustrates all this.
-
-
-    # This is how the global banner and exit_msg can be reset at any point
-    ipshell.set_banner('Entering interpreter - New Banner')
-    ipshell.set_exit_msg('Leaving interpreter - New exit_msg')
-
-    def foo(m):
-        s = 'spam'
-        ipshell('***In foo(). Try @whos, or print s or m:')
-        print 'foo says m = ',m
-
-    def bar(n):
-        s = 'eggs'
-        ipshell('***In bar(). Try @whos, or print s or n:')
-        print 'bar says n = ',n
-
-    # Some calls to the above functions which will trigger IPython:
-    print 'Main program calling foo("eggs")\n'
-    foo('eggs')
-
-    # The shell can be put in 'dummy' mode where calls to it silently return. This
-    # allows you, for example, to globally turn off debugging for a program with a
-    # single call.
-    ipshell.set_dummy_mode(1)
-    print '\nTrying to call IPython which is now "dummy":'
-    ipshell()
-    print 'Nothing happened...'
-    # The global 'dummy' mode can still be overridden for a single call
-    print '\nOverriding dummy mode manually:'
-    ipshell(dummy=0)
-
-    # Reactivate the IPython shell
-    ipshell.set_dummy_mode(0)
-
-    print 'You can even have multiple embedded instances:'
-    ipshell2()
-
-    print '\nMain program calling bar("spam")\n'
-    bar('spam')
-
-    print 'Main program finished. Bye!'
-
-    #********************** End of file <example-embed.py> ***********************
+.. literalinclude:: ../../examples/core/example-embed.py
+    :language: python
 
 Once you understand how the system functions, you can use the following
-code fragments in your programs which are ready for cut and paste::
+code fragments in your programs which are ready for cut and paste:
 
-
-    """Quick code snippets for embedding IPython into other programs.
-
-    See example-embed.py for full details, this file has the bare minimum code for
-    cut and paste use once you understand how to use the system."""
-
-    #---------------------------------------------------------------------------
-    # This code loads IPython but modifies a few things if it detects it's running
-    # embedded in another IPython session (helps avoid confusion)
-
-    try:
-        __IPYTHON__
-    except NameError:
-        argv = ['']
-        banner = exit_msg = ''
-    else:
-        # Command-line options for IPython (a list like sys.argv)
-        argv = ['-pi1','In <\\#>:','-pi2','   .\\D.:','-po','Out<\\#>:']
-        banner = '*** Nested interpreter ***'
-        exit_msg = '*** Back in main IPython ***'
-
-    # First import the embeddable shell class
-    from IPython.Shell import IPShellEmbed
-    # Now create the IPython shell instance. Put ipshell() anywhere in your code
-    # where you want it to open.
-    ipshell = IPShellEmbed(argv,banner=banner,exit_msg=exit_msg)
-
-    #---------------------------------------------------------------------------
-    # This code will load an embeddable IPython shell always with no changes for
-    # nested embededings.
-
-    from IPython.Shell import IPShellEmbed
-    ipshell = IPShellEmbed()
-    # Now ipshell() will open IPython anywhere in the code.
-
-    #---------------------------------------------------------------------------
-    # This code loads an embeddable shell only if NOT running inside
-    # IPython. Inside IPython, the embeddable shell variable ipshell is just a
-    # dummy function.
-
-    try:
-        __IPYTHON__
-    except NameError:
-        from IPython.Shell import IPShellEmbed
-        ipshell = IPShellEmbed()
-        # Now ipshell() will open IPython anywhere in the code
-    else:
-        # Define a dummy ipshell() so the same code doesn't crash inside an
-        # interactive IPython
-        def ipshell(): pass
-
-    #******************* End of file <example-embed-short.py> ********************
+.. literalinclude:: ../../examples/core/example-embed-short.py
+    :language: python
 
 Using the Python debugger (pdb)
 ===============================
@@ -1266,7 +1071,7 @@ the origin of the problem.
 Furthermore, you can use these debugging facilities both with the
 embedded IPython mode and without IPython at all. For an embedded shell
 (see sec. Embedding_), simply call the constructor with
-'-pdb' in the argument string and automatically pdb will be called if an
+'--pdb' in the argument string and automatically pdb will be called if an
 uncaught exception is triggered by your code.
 
 For stand-alone use of the feature in your programs which do not use
@@ -1430,13 +1235,13 @@ Second, when using the ``PyOSInputHook`` approach, a GUI application should
 ``PyOSInputHook``. This means that applications that are meant to be used both
 in IPython and as standalone apps need to have special code to detects how the
 application is being run. We highly recommend using IPython's
-:func:`appstart_` functions for this. Here is a simple example that shows the
+:func:`enable_foo` functions for this. Here is a simple example that shows the
 recommended code that should be at the bottom of a wxPython using GUI
 application::
 
   try:
-      from IPython import appstart_wx
-      appstart_wx(app)
+      from IPython.lib.inputhook import enable_wx
+      enable_wx(app)
   except ImportError:
       app.MainLoop()
 
@@ -1498,49 +1303,11 @@ This allows you to show a piece of code, run it and then execute
 interactively commands based on the variables just created. Once you
 want to continue, you simply execute the next block of the demo. The
 following listing shows the markup necessary for dividing a script into
-sections for execution as a demo::
+sections for execution as a demo:
 
+.. literalinclude:: ../../examples/lib/example-demo.py
+    :language: python
 
-    """A simple interactive demo to illustrate the use of IPython's Demo class.
-
-    Any python script can be run as a demo, but that does little more than showing
-    it on-screen, syntax-highlighted in one shot.  If you add a little simple
-    markup, you can stop at specified intervals and return to the ipython prompt,
-    resuming execution later.
-    """
-
-    print 'Hello, welcome to an interactive IPython demo.'
-    print 'Executing this block should require confirmation before proceeding,'
-    print 'unless auto_all has been set to true in the demo object'
-
-    # The mark below defines a block boundary, which is a point where IPython will
-    # stop execution and return to the interactive prompt.
-    # Note that in actual interactive execution, 
-    # <demo> --- stop ---
-
-    x = 1
-    y = 2
-
-    # <demo> --- stop ---
-
-    # the mark below makes this block as silent
-    # <demo> silent
-
-    print 'This is a silent block, which gets executed but not printed.'
-
-    # <demo> --- stop ---
-    # <demo> auto
-    print 'This is an automatic block.'
-    print 'It is executed without asking for confirmation, but printed.'
-    z = x+y
-
-    print 'z=',x
-
-    # <demo> --- stop ---
-    # This is just another normal block.
-    print 'z is now:', z
-
-    print 'bye!'
 
 In order to run a file as a demo, you must first make a Demo object out
 of it. If the file is named myscript.py, the following code will make a

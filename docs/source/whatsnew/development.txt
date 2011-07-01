@@ -16,7 +16,7 @@ As of the 0.11 version of IPython, a signifiant portion of the core has been
 refactored.  This refactoring is founded on a number of new abstractions.
 The main new classes that implement these abstractions are:
 
-* :class:`IPython.utils.traitlets.HasTraitlets`.
+* :class:`IPython.utils.traitlets.HasTraits`.
 * :class:`IPython.config.configurable.Configurable`.
 * :class:`IPython.config.application.Application`.
 * :class:`IPython.config.loader.ConfigLoader`.
@@ -275,3 +275,16 @@ Backwards incompatible changes
   refactoring in the core. With proper updates, these should still work.
 
 
+Known Regressions
+-----------------
+
+We do our best to improve IPython, but there are some known regressions in 0.11 relative
+to 0.10.2.
+
+* The machinery that adds functionality to the 'sh' profile for using IPython as your
+  system shell has not been updated to use the new APIs.  As a result, only the aesthetic
+  (prompt) changes are still implemented. We intend to fix this by 0.12.
+
+* The installation of scripts on Windows was broken without setuptools, so we now
+  depend on setuptools on Windows.  We hope to fix setuptools-less installation,
+  and then remove the setuptools dependency.

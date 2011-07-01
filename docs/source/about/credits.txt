@@ -37,6 +37,12 @@ developers:
 * **Jörgen Stenarson** <jorgen.stenarson-AT-bostream.nu> Maintainer of the
   PyReadline project, which is needed for IPython under windows.
 
+* **Thomas Kluyver** <takowl-AT-gmail.com> Port of IPython and its necessary ZeroMQ
+  infrastructure to Python3, IPython core.
+
+* **Evan Patterson** <epatters-AT-enthought.com> Qt console frontend with ZeroMQ.
+
+
 Special thanks
 ==============
 
@@ -108,11 +114,6 @@ new code, bug reports, fixes, comments and ideas. A brief list follows, please
 let us know if we have omitted your name by accident:
 
 * Mark Voorhies <mark.voorhies-AT-ucsf.edu> Printing support in Qt console.
-
-* Thomas Kluyver <takowl-AT-gmail.com> Port of IPython and its necessary ZeroMQ
-  infrastructure to Python3.
-
-* Evan Patterson <epatters-AT-enthought.com> Qt console frontend with ZeroMQ.
 
 * Justin Riley <justin.t.riley-AT-gmail.com> Contributions to parallel support,
   Amazon EC2, Sun Grid Engine, documentation.

@@ -34,8 +34,8 @@ button.show()
 window.show()
 
 try:
-    from IPython.lib.inputhook import appstart_gtk
-    appstart_gtk()
+    from IPython.lib.inputhook import enable_gtk
+    enable_gtk()
 except ImportError:
     gtk.main()
 

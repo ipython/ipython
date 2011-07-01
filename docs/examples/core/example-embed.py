@@ -17,37 +17,43 @@ The code in this file is deliberately extra-verbose, meant for learning."""
 
 # Try running this code both at the command line and from inside IPython (with
 # %run example-embed.py)
+from IPython.config.loader import Config
 try:
-    __IPYTHON__
+    get_ipython
 except NameError:
     nested = 0
-    args = ['']
+    cfg = Config()
+    shell_config = cfg.InteractiveShellEmbed
+    shell_config.prompt_in1 = 'In <\\#>: '
+    shell_config.prompt_in2 = '   .\\D.: '
+    shell_config.prompt_out = 'Out<\\#>: '
 else:
     print "Running nested copies of IPython."
     print "The prompts for the nested copy have been modified"
+    cfg = Config()
     nested = 1
-    # what the embedded instance will see as sys.argv:
-    args = ['-pi1','In <\\#>: ','-pi2','   .\\D.: ',
-            '-po','Out<\\#>: ','-nosep']
 
 # First import the embeddable shell class
-from IPython.core.shell import IPShellEmbed
+from IPython.frontend.terminal.embed import InteractiveShellEmbed
 
 # Now create an instance of the embeddable shell. The first argument is a
 # string with options exactly as you would type them if you were starting
 # IPython at the system command line. Any parameters you want to define for
 # configuration can thus be specified here.
-ipshell = IPShellEmbed(args,
-                       banner = 'Dropping into IPython',
+ipshell = InteractiveShellEmbed(config=cfg,
+                       banner1 = 'Dropping into IPython',
                        exit_msg = 'Leaving Interpreter, back to program.')
 
 # Make a second instance, you can have as many as you want.
-if nested:
-    args[1] = 'In2<\\#>'
-else:
-    args = ['-pi1','In2<\\#>: ','-pi2','   .\\D.: ',
-            '-po','Out<\\#>: ','-nosep']
-ipshell2 = IPShellEmbed(args,banner = 'Second IPython instance.')
+cfg2 = cfg.copy()
+shell_config = cfg2.InteractiveShellEmbed
+shell_config.prompt_in1 = 'In2<\\#>: '
+if not nested:
+    shell_config.prompt_in1 = 'In2<\\#>: '
+    shell_config.prompt_in2 = '   .\\D.: '
+    shell_config.prompt_out = 'Out<\\#>: '
+ipshell2 = InteractiveShellEmbed(config=cfg,
+                        banner1 = 'Second IPython instance.')
 
 print '\nHello. This is printed from the main controller program.\n'
 
@@ -63,11 +69,11 @@ print '\nBack in caller program, moving along...\n'
 #---------------------------------------------------------------------------
 # More details:
 
-# IPShellEmbed instances don't print the standard system banner and
+# InteractiveShellEmbed instances don't print the standard system banner and
 # messages. The IPython banner (which actually may contain initialization
-# messages) is available as <instance>.IP.BANNER in case you want it.
+# messages) is available as get_ipython().banner in case you want it.
 
-# IPShellEmbed instances print the following information everytime they
+# InteractiveShellEmbed instances print the following information everytime they
 # start:
 
 # - A global startup banner.
@@ -79,7 +85,7 @@ print '\nBack in caller program, moving along...\n'
 
 # Both the startup banner and the exit message default to None, and can be set
 # either at the instance constructor or at any other time with the
-# set_banner() and set_exit_msg() methods.
+# by setting the banner and exit_msg attributes.
 
 # The shell instance can be also put in 'dummy' mode globally or on a per-call
 # basis. This gives you fine control for debugging without having to change
@@ -89,17 +95,17 @@ print '\nBack in caller program, moving along...\n'
 
 
 # This is how the global banner and exit_msg can be reset at any point
-ipshell.set_banner('Entering interpreter - New Banner')
-ipshell.set_exit_msg('Leaving interpreter - New exit_msg')
+ipshell.banner = 'Entering interpreter - New Banner'
+ipshell.exit_msg = 'Leaving interpreter - New exit_msg'
 
 def foo(m):
     s = 'spam'
-    ipshell('***In foo(). Try @whos, or print s or m:')
+    ipshell('***In foo(). Try %whos, or print s or m:')
     print 'foo says m = ',m
 
 def bar(n):
     s = 'eggs'
-    ipshell('***In bar(). Try @whos, or print s or n:')
+    ipshell('***In bar(). Try %whos, or print s or n:')
     print 'bar says n = ',n
     
 # Some calls to the above functions which will trigger IPython:
@@ -109,16 +115,16 @@ foo('eggs')
 # The shell can be put in 'dummy' mode where calls to it silently return. This
 # allows you, for example, to globally turn off debugging for a program with a
 # single call.
-ipshell.set_dummy_mode(1)
+ipshell.dummy_mode = True
 print '\nTrying to call IPython which is now "dummy":'
 ipshell()
 print 'Nothing happened...'
 # The global 'dummy' mode can still be overridden for a single call
 print '\nOverriding dummy mode manually:'
-ipshell(dummy=0)
+ipshell(dummy=False)
 
 # Reactivate the IPython shell
-ipshell.set_dummy_mode(0)
+ipshell.dummy_mode = False
 
 print 'You can even have multiple embedded instances:'
 ipshell2()

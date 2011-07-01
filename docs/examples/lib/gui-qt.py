@@ -35,6 +35,6 @@ if __name__ == '__main__':
     sw.show()
 
     try:
-        from IPython import appstart_qt4; appstart_qt4(app)
+        from IPython import enable_qt4; enable_qt4(app)
     except ImportError:
         app.exec_()
