@@ -102,8 +102,8 @@ if app is None:
     app = MyApp(redirect=False, clearSigInt=False)
 
 try:
-    from IPython.lib.inputhook import appstart_wx
-    appstart_wx(app)
+    from IPython.lib.inputhook import enable_wx
+    enable_wx(app)
 except ImportError:
     app.MainLoop()
 

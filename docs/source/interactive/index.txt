@@ -8,7 +8,7 @@ Using IPython for interactive work
    tutorial.txt
    tips.txt
    reference.txt
-   shell.txt
+.. shell.txt
    qtconsole.txt
 
 

@@ -19,7 +19,6 @@ IPython developer's guide
    parallel_messages.txt
    parallel_connections.txt
    magic_blueprint.txt
-   notification_blueprint.txt
    ipgraph.txt
    ipython_qt.txt
    ipythonzmq.txt
