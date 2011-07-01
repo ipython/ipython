@@ -465,7 +465,7 @@ class QtKernel(Kernel):
     def start(self):
         """Start a kernel with QtPy4 event loop integration."""
 
-        from PyQt4 import QtCore
+        from IPython.external.qt_for_kernel import QtCore
         from IPython.lib.guisupport import get_app_qt4, start_event_loop_qt4
 
         self.app = get_app_qt4([" "])
