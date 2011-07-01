@@ -57,6 +57,16 @@ maintained separately and updated from the main codebase. Its code can be found
 `here <https://github.com/ipython/ipython-py3k>`_. Note that the parallel
 computing features do not yet work in Python 3.
 
+Unicode
+-------
+
+Entering non-ascii characters in unicode literals (``u"€ø"``) now works properly
+on all platforms. However, entering these in byte/string literals (``"€ø"``)
+will not work as expected on Windows (or any platform where the terminal encoding
+is not UTF-8, as it typically is for Linux & Mac OS X). You can use escape sequences
+(``"\xe9\x82"``) to get bytes above 128, or use unicode literals and encode
+them. This is a limitation of Python 2 which we cannot easily work around.
+
 New features
 ------------
 
