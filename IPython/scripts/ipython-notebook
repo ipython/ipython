@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from IPython.frontend.html.notebook import notebook
+from IPython.frontend.html.notebook import notebookapp
 
-notebook.main()
+notebookapp.launch_new_instance()
+

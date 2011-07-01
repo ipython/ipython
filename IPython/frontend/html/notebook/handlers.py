@@ -6,12 +6,9 @@ import urllib
 import uuid
 from Queue import Queue
 
-from tornado import options
 from tornado import web
 from tornado import websocket
 
-
-options.define("port", default=8888, help="run on the given port", type=int)
 
 _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"

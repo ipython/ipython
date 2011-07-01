@@ -115,7 +115,7 @@ class NotebookApplication(web.Application):
         return router
 
 
-def main():
+def launch_new_instance():
     options.parse_command_line()
     application = NotebookApplication()
     http_server = httpserver.HTTPServer(application)

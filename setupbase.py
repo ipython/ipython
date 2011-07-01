@@ -282,7 +282,7 @@ def find_scripts(entry_points=False):
     if entry_points:
         console_scripts = [
             'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
-            'ipython-notebook = IPython.frontend.html.notebook.notebook:main',
+            'ipython-notebook = IPython.frontend.html.notebook.notebookapp:launch_new_instance',
             'pycolor = IPython.utils.PyColorize:main',
             'ipcontroller = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
             'ipengine = IPython.parallel.apps.ipengineapp:launch_new_instance',
