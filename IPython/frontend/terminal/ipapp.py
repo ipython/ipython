@@ -232,6 +232,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         selecting a particular matplotlib backend and loop integration.
         """
     )
+    pylab_import_all = Bool(True, config=True,
+        help="""If true, an 'import *' is done from numpy and pylab,
+        when using pylab"""
+    )
     display_banner = Bool(True, config=True,
         help="Whether to display a banner upon starting IPython."
     )
@@ -343,7 +347,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             try:
                 self.log.info("Enabling GUI event loop integration, "
                               "toolkit=%s, pylab=%s" % (gui, self.pylab) )
-                activate(gui)
+                if self.pylab:
+                    activate(gui, import_all=self.pylab_import_all)
+                else:
+                    activate(gui)
             except:
                 self.log.warn("Error in enabling GUI event loop integration:")
                 self.shell.showtraceback()
