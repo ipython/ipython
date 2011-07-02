@@ -17,6 +17,7 @@ Inputhook management for GUI event loop integration.
 
 import ctypes
 import sys
+import warnings
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -183,6 +184,17 @@ class InputHookManager(object):
         """
         from IPython.external.qt_for_kernel import QtCore, QtGui
 
+        if 'pyreadline' in sys.modules:
+            # see IPython GitHub Issue #281 for more info on this issue
+            # Similar intermittent behavior has been reported on OSX,
+            # but not consistently reproducible
+            warnings.warn("""PyReadline's inputhook can conflict with Qt, causing delays
+            in interactive input. If you do see this issue, we recommend using another GUI
+            toolkit if you can, or disable readline with the configuration option
+            'TerminalInteractiveShell.readline_use=False', specified in a config file or
+            at the command-line""",
+            RuntimeWarning)
+        
         # PyQt4 has had this since 4.3.1.  In version 4.2, PyOS_InputHook
         # was set when QtCore was imported, but if it ever got removed,
         # you couldn't reset it.  For earlier versions we can
