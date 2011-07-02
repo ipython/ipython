@@ -326,9 +326,17 @@ class TaskScheduler(SessionFactory):
             after = Dependency(after)
             if after.all:
                 if after.success:
-                    after = after.difference(self.all_completed)
+                    after = Dependency(after.difference(self.all_completed),
+                                success=after.success,
+                                failure=after.failure,
+                                all=after.all,
+                    )
                 if after.failure:
-                    after = after.difference(self.all_failed)
+                    after = Dependency(after.difference(self.all_failed),
+                                success=after.success,
+                                failure=after.failure,
+                                all=after.all,
+                    )
             if after.check(self.all_completed, self.all_failed):
                 # recast as empty set, if `after` already met,
                 # to prevent unnecessary set comparisons
