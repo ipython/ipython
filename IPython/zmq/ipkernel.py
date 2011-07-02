@@ -572,6 +572,11 @@ flags['pylab'] = (
     """Pre-load matplotlib and numpy for interactive use with
     the default matplotlib backend."""
 )
+flags['no-pylab-import-all'] = (
+    {'IPKernelApp' : {'pylab_import_all' : False}},
+    """Don't 'import *' from numpy and pylab,
+        when using pylab."""
+)
 
 aliases = dict(kernel_aliases)
 aliases.update(shell_aliases)
