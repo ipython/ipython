@@ -186,6 +186,7 @@ aliases.update(shell_aliases)
 aliases.update(dict(
     gui='TerminalIPythonApp.gui',
     pylab='TerminalIPythonApp.pylab',
+    pylab_import_all='TerminalIPythonApp.pylab_import_all',
 ))
 
 #-----------------------------------------------------------------------------

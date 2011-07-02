@@ -579,6 +579,7 @@ aliases.update(shell_aliases)
 # it's possible we don't want short aliases for *all* of these:
 aliases.update(dict(
     pylab='IPKernelApp.pylab',
+    pylab_import_all='IPKernelApp.pylab_import_all',
 ))
 
 #-----------------------------------------------------------------------------
