@@ -24,7 +24,6 @@ import sys
 from pprint import pformat
 
 from IPython.core import ultratb
-from IPython.external.Itpl import itpl
 from IPython.utils.sysinfo import sys_info
 
 #-----------------------------------------------------------------------------
@@ -33,7 +32,7 @@ from IPython.utils.sysinfo import sys_info
 
 # Template for the user message.
 _default_message_template = """\
-Oops, $self.app_name crashed. We do our best to make it stable, but...
+Oops, {app_name} crashed. We do our best to make it stable, but...
 
 A crash report was automatically generated with the following information:
   - A verbatim copy of the crash traceback.
@@ -41,18 +40,18 @@ A crash report was automatically generated with the following information:
   - Data on your current $self.app_name configuration.
 
 It was left in the file named:
-\t'$self.crash_report_fname'
+\t'{crash_report_fname}'
 If you can email this file to the developers, the information in it will help
 them in understanding and correcting the problem.
 
-You can mail it to: $self.contact_name at $self.contact_email
-with the subject '$self.app_name Crash Report'.
+You can mail it to: $self.contact_name at {contact_email}
+with the subject '{app_name} Crash Report'.
 
 If you want to do it now, the following command will work (under Unix):
-mail -s '$self.app_name Crash Report' $self.contact_email < $self.crash_report_fname
+mail -s '{app_name} Crash Report' {contact_email} < {crash_report_fname}
 
 To ensure accurate tracking of this issue, please file a report about it at:
-$self.bug_tracker
+{bug_tracker}
 """
 
 
@@ -66,6 +65,7 @@ class CrashHandler(object):
     """
 
     message_template = _default_message_template
+    section_sep = '\n\n'+'*'*75+'\n\n'
 
     def __init__(self, app, contact_name=None, contact_email=None, 
                  bug_tracker=None, show_crash_traceback=True, call_pdb=False):
@@ -96,16 +96,17 @@ class CrashHandler(object):
         further customization of the crash handler's behavior. Please see the
         source for further details.
         """
+        self.crash_report_fname = "Crash_report_%s.txt" % app.name
         self.app = app
-        self.app_name = self.app.name
-        self.contact_name = contact_name
-        self.contact_email = contact_email
-        self.bug_tracker = bug_tracker
-        self.crash_report_fname = "Crash_report_%s.txt" % self.app_name
-        self.show_crash_traceback = show_crash_traceback
-        self.section_sep = '\n\n'+'*'*75+'\n\n'
         self.call_pdb = call_pdb
         #self.call_pdb = True # dbg
+        self.show_crash_traceback = show_crash_traceback
+        self.info = dict(app_name = app.name,
+                    contact_name = contact_name,
+                    contact_email = contact_email,
+                    bug_tracker = bug_tracker,
+                    crash_report_fname = self.crash_report_fname)
+        
 
     def __call__(self, etype, evalue, etb):
         """Handle an exception, call for compatible with sys.excepthook"""
@@ -148,8 +149,8 @@ class CrashHandler(object):
             return
 
         # Inform user on stderr of what happened
-        msg = itpl('\n'+'*'*70+'\n'+self.message_template)
-        print >> sys.stderr, msg
+        print >> sys.stderr, '\n'+'*'*70+'\n'
+        print >> sys.stderr, self.message_template.format(**self.info)
 
         # Construct report on disk
         report.write(self.make_report(traceback))
