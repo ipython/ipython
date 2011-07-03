@@ -44,7 +44,7 @@ from IPython.utils.traitlets import Instance, Dict, List, Set, Int, Enum, CBytes
 
 from IPython.parallel import error
 from IPython.parallel.factory import SessionFactory
-from IPython.parallel.util import connect_logger, local_logger, ensure_bytes
+from IPython.parallel.util import connect_logger, local_logger, asbytes
 
 from .dependency import Dependency
 
@@ -177,7 +177,7 @@ class TaskScheduler(SessionFactory):
     ident = CBytes() # ZMQ identity. This should just be self.session.session
                      # but ensure Bytes
     def _ident_default(self):
-        return ensure_bytes(self.session.session)
+        return asbytes(self.session.session)
     
     def start(self):
         self.engine_stream.on_recv(self.dispatch_result, copy=False)
@@ -223,7 +223,7 @@ class TaskScheduler(SessionFactory):
             self.log.error("Unhandled message type: %r"%msg_type)
         else:
             try:
-                handler(ensure_bytes(msg['content']['queue']))
+                handler(asbytes(msg['content']['queue']))
             except Exception:
                 self.log.error("task::Invalid notification msg: %r",msg)
     
@@ -323,7 +323,7 @@ class TaskScheduler(SessionFactory):
         # get targets as a set of bytes objects
         # from a list of unicode objects
         targets = header.get('targets', [])
-        targets = map(ensure_bytes, targets)
+        targets = map(asbytes, targets)
         targets = set(targets)
             
         retries = header.get('retries', 0)

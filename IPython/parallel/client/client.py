@@ -50,7 +50,7 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 from .view import DirectView, LoadBalancedView
 
 if sys.version_info[0] >= 3:
-    # xrange is used in a coupe 'isinstance' tests in py2
+    # xrange is used in a couple 'isinstance' tests in py2
     # should be just 'range' in 3k
     xrange = range
 
@@ -362,12 +362,12 @@ class Client(HasTraits):
             if os.path.isfile(exec_key):
                 extra_args['keyfile'] = exec_key
             else:
-                exec_key = util.ensure_bytes(exec_key)
+                exec_key = util.asbytes(exec_key)
                 extra_args['key'] = exec_key
         self.session = Session(**extra_args)
         
         self._query_socket = self._context.socket(zmq.XREQ)
-        self._query_socket.setsockopt(zmq.IDENTITY, util.ensure_bytes(self.session.session))
+        self._query_socket.setsockopt(zmq.IDENTITY, util.asbytes(self.session.session))
         if self._ssh:
             tunnel.tunnel_connection(self._query_socket, url, sshserver, **ssh_kwargs)
         else:
@@ -460,7 +460,7 @@ class Client(HasTraits):
         if not isinstance(targets, (tuple, list, xrange)):
             raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
             
-        return [util.ensure_bytes(self._engines[t]) for t in targets], list(targets)
+        return [util.asbytes(self._engines[t]) for t in targets], list(targets)
     
     def _connect(self, sshserver, ssh_kwargs, timeout):
         """setup all our socket connections to the cluster. This is called from
@@ -493,7 +493,7 @@ class Client(HasTraits):
         content = msg.content
         self._config['registration'] = dict(content)
         if content.status == 'ok':
-            ident = util.ensure_bytes(self.session.session)
+            ident = util.asbytes(self.session.session)
             if content.mux:
                 self._mux_socket = self._context.socket(zmq.XREQ)
                 self._mux_socket.setsockopt(zmq.IDENTITY, ident)

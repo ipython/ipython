@@ -24,10 +24,10 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import sys
-import new, types, copy_reg
+import types, copy_reg
 
 def code_ctor(*args):
-    return new.code(*args)
+    return types.CodeType(*args)
     
 def reduce_code(co):
     if co.co_freevars or co.co_cellvars:

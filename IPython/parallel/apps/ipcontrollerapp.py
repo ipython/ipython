@@ -54,7 +54,7 @@ from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
 from IPython.parallel.controller.sqlitedb import SQLiteDB
 
-from IPython.parallel.util import signal_children, split_url, ensure_bytes
+from IPython.parallel.util import signal_children, split_url, asbytes
 
 # conditional import of MongoDB backend class
 
@@ -202,7 +202,7 @@ class IPControllerApp(BaseParallelApplication):
         # load from engine config
         with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-engine.json')) as f:
             cfg = json.loads(f.read())
-        key = c.Session.key = ensure_bytes(cfg['exec_key'])
+        key = c.Session.key = asbytes(cfg['exec_key'])
         xport,addr = cfg['url'].split('://')
         c.HubFactory.engine_transport = xport
         ip,ports = addr.split(':')
@@ -239,7 +239,7 @@ class IPControllerApp(BaseParallelApplication):
             # with open(keyfile, 'w') as f:
             #     f.write(key)
             # os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
-            c.Session.key = ensure_bytes(key)
+            c.Session.key = asbytes(key)
         else:
             key = c.Session.key = b''
         

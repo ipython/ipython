@@ -40,7 +40,7 @@ from IPython.zmq.completer import KernelCompleter
 
 from IPython.parallel.error import wrap_exception
 from IPython.parallel.factory import SessionFactory
-from IPython.parallel.util import serialize_object, unpack_apply_message, ensure_bytes
+from IPython.parallel.util import serialize_object, unpack_apply_message, asbytes
 
 def printer(*args):
     pprint(args, stream=sys.__stdout__)
@@ -79,7 +79,7 @@ class Kernel(SessionFactory):
     bident = CBytes()
     ident = Unicode()
     def _ident_changed(self, name, old, new):
-        self.bident = ensure_bytes(new)
+        self.bident = asbytes(new)
     
     user_ns = Dict(config=True,  help="""Set the user's namespace of the Kernel""")
     
@@ -255,7 +255,7 @@ class Kernel(SessionFactory):
             self.log.error("Got bad msg: %s"%parent, exc_info=True)
             return
         self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent,
-                            ident=ensure_bytes('%s.pyin'%self.prefix))
+                            ident=asbytes('%s.pyin'%self.prefix))
         started = datetime.now()
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
@@ -269,7 +269,7 @@ class Kernel(SessionFactory):
             exc_content = self._wrap_exception('execute')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
-                            ident=ensure_bytes('%s.pyerr'%self.prefix))
+                            ident=asbytes('%s.pyerr'%self.prefix))
             reply_content = exc_content
         else:
             reply_content = {'status' : 'ok'}
@@ -348,7 +348,7 @@ class Kernel(SessionFactory):
             exc_content = self._wrap_exception('apply')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
-                                ident=ensure_bytes('%s.pyerr'%self.prefix))
+                                ident=asbytes('%s.pyerr'%self.prefix))
             reply_content = exc_content
             result_buf = []
             

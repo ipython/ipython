@@ -63,8 +63,7 @@ def _convert_dict(ds):
         if isinstance(ds, bytes):
             # If I understand the sqlite doc correctly, this will always be utf8
             ds = ds.decode('utf8')
-        d = json.loads(ds)
-        return extract_dates(d)
+        return extract_dates(json.loads(ds))
 
 def _adapt_bufs(bufs):
     # this is *horrible*

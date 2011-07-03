@@ -101,7 +101,7 @@ class ReverseDict(dict):
 # Functions
 #-----------------------------------------------------------------------------
 
-def ensure_bytes(s):
+def asbytes(s):
     """ensure that an object is ascii bytes"""
     if isinstance(s, unicode):
         s = s.encode('ascii')

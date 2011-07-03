@@ -28,7 +28,7 @@ from IPython.utils.traitlets import Instance, Dict, Int, Type, CFloat, Unicode, 
 
 from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
-from IPython.parallel.util import disambiguate_url, ensure_bytes
+from IPython.parallel.util import disambiguate_url, asbytes
 
 from IPython.zmq.session import Message
 
@@ -61,7 +61,7 @@ class EngineFactory(RegistrationFactory):
     bident = CBytes()
     ident = Unicode()
     def _ident_changed(self, name, old, new):
-        self.bident = ensure_bytes(new)
+        self.bident = asbytes(new)
     
     
     def __init__(self, **kwargs):
