@@ -57,7 +57,7 @@ class AsyncResultTest(ClusterTestCase):
 
     def test_get_after_error(self):
         ar = self.client[-1].apply_async(lambda : 1/0)
-        ar.wait()
+        ar.wait(10)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
         self.assertRaisesRemote(ZeroDivisionError, ar.get_dict)

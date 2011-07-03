@@ -289,7 +289,7 @@ class HubFactory(RegistrationFactory):
         # resubmit stream
         r = ZMQStream(ctx.socket(zmq.XREQ), loop)
         url = util.disambiguate_url(self.client_info['task'][-1])
-        r.setsockopt(zmq.IDENTITY, self.session.session)
+        r.setsockopt(zmq.IDENTITY, util.asbytes(self.session.session))
         r.connect(url)
 
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
@@ -380,14 +380,14 @@ class Hub(SessionFactory):
         self.heartmonitor.add_heart_failure_handler(self.handle_heart_failure)
         self.heartmonitor.add_new_heart_handler(self.handle_new_heart)
         
-        self.monitor_handlers = { 'in' : self.save_queue_request,
-                                'out': self.save_queue_result,
-                                'intask': self.save_task_request,
-                                'outtask': self.save_task_result,
-                                'tracktask': self.save_task_destination,
-                                'incontrol': _passer,
-                                'outcontrol': _passer,
-                                'iopub': self.save_iopub_message,
+        self.monitor_handlers = {b'in' : self.save_queue_request,
+                                b'out': self.save_queue_result,
+                                b'intask': self.save_task_request,
+                                b'outtask': self.save_task_result,
+                                b'tracktask': self.save_task_destination,
+                                b'incontrol': _passer,
+                                b'outcontrol': _passer,
+                                b'iopub': self.save_iopub_message,
         }
         
         self.query_handlers = {'queue_request': self.queue_status,
@@ -562,8 +562,9 @@ class Hub(SessionFactory):
             return
         record = init_record(msg)
         msg_id = record['msg_id']
-        record['engine_uuid'] = queue_id
-        record['client_uuid'] = client_id
+        # Unicode in records
+        record['engine_uuid'] = queue_id.decode('ascii')
+        record['client_uuid'] = client_id.decode('ascii')
         record['queue'] = 'mux'
 
         try:
@@ -751,7 +752,7 @@ class Hub(SessionFactory):
         # print (content)
         msg_id = content['msg_id']
         engine_uuid = content['engine_id']
-        eid = self.by_ident[engine_uuid]
+        eid = self.by_ident[util.asbytes(engine_uuid)]
         
         self.log.info("task::task %r arrived on %r"%(msg_id, eid))
         if msg_id in self.unassigned:
@@ -833,7 +834,7 @@ class Hub(SessionFactory):
         jsonable = {}
         for k,v in self.keytable.iteritems():
             if v not in self.dead_engines:
-                jsonable[str(k)] = v
+                jsonable[str(k)] = v.decode('ascii')
         content['engines'] = jsonable
         self.session.send(self.query, 'connection_reply', content, parent=msg, ident=client_id)
     
@@ -841,11 +842,13 @@ class Hub(SessionFactory):
         """Register a new engine."""
         content = msg['content']
         try:
-            queue = content['queue']
+            queue = util.asbytes(content['queue'])
         except KeyError:
             self.log.error("registration::queue not specified", exc_info=True)
             return
         heart = content.get('heartbeat', None)
+        if heart:
+            heart = util.asbytes(heart)
         """register a new engine, and create the socket(s) necessary"""
         eid = self._next_id
         # print (eid, queue, reg, heart)
@@ -912,7 +915,7 @@ class Hub(SessionFactory):
         self.log.info("registration::unregister_engine(%r)"%eid)
         # print (eid)
         uuid = self.keytable[eid]
-        content=dict(id=eid, queue=uuid)
+        content=dict(id=eid, queue=uuid.decode('ascii'))
         self.dead_engines.add(uuid)
         # self.ids.remove(eid)
         # uuid = self.keytable.pop(eid)
@@ -980,7 +983,7 @@ class Hub(SessionFactory):
         self.tasks[eid] = list()
         self.completed[eid] = list()
         self.hearts[heart] = eid
-        content = dict(id=eid, queue=self.engines[eid].queue)
+        content = dict(id=eid, queue=self.engines[eid].queue.decode('ascii'))
         if self.notifier:
             self.session.send(self.notifier, "registration_notification", content=content)
         self.log.info("engine::Engine Connected: %i"%eid)
@@ -1054,9 +1057,9 @@ class Hub(SessionFactory):
                 queue = len(queue)
                 completed = len(completed)
                 tasks = len(tasks)
-            content[bytes(t)] = {'queue': queue, 'completed': completed , 'tasks': tasks}
+            content[str(t)] = {'queue': queue, 'completed': completed , 'tasks': tasks}
         content['unassigned'] = list(self.unassigned) if verbose else len(self.unassigned)
-        
+        # print (content)
         self.session.send(self.query, "queue_reply", content=content, ident=client_id)
     
     def purge_results(self, client_id, msg):
@@ -1179,7 +1182,7 @@ class Hub(SessionFactory):
                             'io' : io_dict,
                           }
         if rec['result_buffers']:
-            buffers = map(str, rec['result_buffers'])
+            buffers = map(bytes, rec['result_buffers'])
         else:
             buffers = []
         
@@ -1281,7 +1284,7 @@ class Hub(SessionFactory):
                     buffers.extend(rb)
             content = dict(status='ok', records=records, buffer_lens=buffer_lens,
                                     result_buffer_lens=result_buffer_lens)
-        
+        # self.log.debug (content)
         self.session.send(self.query, "db_reply", content=content, 
                                             parent=msg, ident=client_id,
                                             buffers=buffers)

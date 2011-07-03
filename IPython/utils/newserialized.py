@@ -19,15 +19,22 @@ __test__ = {}
 # Imports
 #-------------------------------------------------------------------------------
 
+import sys
 import cPickle as pickle
 
 try:
     import numpy
 except ImportError:
-    pass
+    numpy = None
 
 class SerializationError(Exception):
     pass
+
+if sys.version_info[0] >= 3:
+    buffer = memoryview
+    py3k = True
+else:
+    py3k = False
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -93,8 +100,11 @@ class SerializeIt(object):
     def __init__(self, unSerialized):
         self.data = None
         self.obj = unSerialized.getObject()
-        if globals().has_key('numpy') and isinstance(self.obj, numpy.ndarray):
-            if len(self.obj.shape) == 0: # length 0 arrays are just pickled
+        if numpy is not None and isinstance(self.obj, numpy.ndarray):
+            if py3k or len(self.obj.shape) == 0: # length 0 arrays are just pickled
+                # FIXME:
+                # also use pickle for numpy arrays on py3k, since
+                # pyzmq doesn't rebuild from memoryviews properly
                 self.typeDescriptor = 'pickle'
                 self.metadata = {}
             else:
@@ -102,7 +112,7 @@ class SerializeIt(object):
                 self.typeDescriptor = 'ndarray'
                 self.metadata = {'shape':self.obj.shape,
                                  'dtype':self.obj.dtype.str}
-        elif isinstance(self.obj, str):
+        elif isinstance(self.obj, bytes):
             self.typeDescriptor = 'bytes'
             self.metadata = {}
         elif isinstance(self.obj, buffer):
@@ -146,9 +156,9 @@ class UnSerializeIt(UnSerialized):
         
     def getObject(self):
         typeDescriptor = self.serialized.getTypeDescriptor()
-        if globals().has_key('numpy') and typeDescriptor == 'ndarray':
+        if numpy is not None and typeDescriptor == 'ndarray':
                 buf = self.serialized.getData()
-                if isinstance(buf, (str, buffer)):
+                if isinstance(buf, (bytes, buffer)):
                     result = numpy.frombuffer(buf, dtype = self.serialized.metadata['dtype'])
                 else:
                     # memoryview

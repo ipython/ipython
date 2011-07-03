@@ -13,8 +13,6 @@ Authors:
 
 """
 
-__docformat__ = "restructuredtext en"
-
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
@@ -25,6 +23,8 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
+
+from __future__ import division
 
 import types
 
@@ -67,7 +67,7 @@ class Map:
           return
           
         remainder = len(seq)%q
-        basesize = len(seq)/q
+        basesize = len(seq)//q
         hi = []
         lo = []
         for n in range(q):

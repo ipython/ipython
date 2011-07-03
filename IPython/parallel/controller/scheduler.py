@@ -40,11 +40,11 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.external.decorator import decorator
 from IPython.config.application import Application
 from IPython.config.loader import Config
-from IPython.utils.traitlets import Instance, Dict, List, Set, Int, Enum
+from IPython.utils.traitlets import Instance, Dict, List, Set, Int, Enum, CBytes
 
 from IPython.parallel import error
 from IPython.parallel.factory import SessionFactory
-from IPython.parallel.util import connect_logger, local_logger
+from IPython.parallel.util import connect_logger, local_logger, asbytes
 
 from .dependency import Dependency
 
@@ -174,6 +174,10 @@ class TaskScheduler(SessionFactory):
     blacklist = Dict() # dict by msg_id of locations where a job has encountered UnmetDependency
     auditor = Instance('zmq.eventloop.ioloop.PeriodicCallback')
     
+    ident = CBytes() # ZMQ identity. This should just be self.session.session
+                     # but ensure Bytes
+    def _ident_default(self):
+        return asbytes(self.session.session)
     
     def start(self):
         self.engine_stream.on_recv(self.dispatch_result, copy=False)
@@ -204,7 +208,7 @@ class TaskScheduler(SessionFactory):
         try:
             idents,msg = self.session.feed_identities(msg)
         except ValueError:
-            self.log.warn("task::Invalid Message: %r"%msg)
+            self.log.warn("task::Invalid Message: %r",msg)
             return
         try:
             msg = self.session.unpack_message(msg)
@@ -219,15 +223,16 @@ class TaskScheduler(SessionFactory):
             self.log.error("Unhandled message type: %r"%msg_type)
         else:
             try:
-                handler(str(msg['content']['queue']))
-            except KeyError:
-                self.log.error("task::Invalid notification msg: %r"%msg)
+                handler(asbytes(msg['content']['queue']))
+            except Exception:
+                self.log.error("task::Invalid notification msg: %r",msg)
     
     def _register_engine(self, uid):
         """New engine with ident `uid` became available."""
         # head of the line:
         self.targets.insert(0,uid)
         self.loads.insert(0,0)
+
         # initialize sets
         self.completed[uid] = set()
         self.failed[uid] = set()
@@ -309,14 +314,18 @@ class TaskScheduler(SessionFactory):
         
         
         # send to monitor
-        self.mon_stream.send_multipart(['intask']+raw_msg, copy=False)
+        self.mon_stream.send_multipart([b'intask']+raw_msg, copy=False)
         
         header = msg['header']
         msg_id = header['msg_id']
         self.all_ids.add(msg_id)
         
-        # targets
-        targets = set(header.get('targets', []))
+        # get targets as a set of bytes objects
+        # from a list of unicode objects
+        targets = header.get('targets', [])
+        targets = map(asbytes, targets)
+        targets = set(targets)
+            
         retries = header.get('retries', 0)
         self.retries[msg_id] = retries
         
@@ -412,7 +421,7 @@ class TaskScheduler(SessionFactory):
         
         msg = self.session.send(self.client_stream, 'apply_reply', content, 
                                                 parent=header, ident=idents)
-        self.session.send(self.mon_stream, msg, ident=['outtask']+idents)
+        self.session.send(self.mon_stream, msg, ident=[b'outtask']+idents)
         
         self.update_graph(msg_id, success=False)
     
@@ -494,9 +503,9 @@ class TaskScheduler(SessionFactory):
         self.add_job(idx)
         self.pending[target][msg_id] = (raw_msg, targets, MET, follow, timeout)
         # notify Hub
-        content = dict(msg_id=msg_id, engine_id=target)
+        content = dict(msg_id=msg_id, engine_id=target.decode('ascii'))
         self.session.send(self.mon_stream, 'task_destination', content=content, 
-                        ident=['tracktask',self.session.session])
+                        ident=[b'tracktask',self.ident])
         
     
     #-----------------------------------------------------------------------
@@ -533,7 +542,7 @@ class TaskScheduler(SessionFactory):
                 # relay to client and update graph
                 self.handle_result(idents, parent, raw_msg, success)
                 # send to Hub monitor
-                self.mon_stream.send_multipart(['outtask']+raw_msg, copy=False)
+                self.mon_stream.send_multipart([b'outtask']+raw_msg, copy=False)
         else:
             self.handle_unmet_dependency(idents, parent)
         

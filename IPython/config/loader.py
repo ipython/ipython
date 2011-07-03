@@ -379,7 +379,20 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         super(KeyValueConfigLoader, self).clear()
         self.extra_args = []
         
-
+    
+    def _decode_argv(self, argv, enc=None):
+        """decode argv if bytes, using stin.encoding, falling back on default enc"""
+        uargv = []
+        if enc is None:
+            enc = sys.stdin.encoding or sys.getdefaultencoding()
+        for arg in argv:
+            if not isinstance(arg, unicode):
+                # only decode if not already decoded
+                arg = arg.decode(enc)
+            uargv.append(arg)
+        return uargv
+                
+                
     def load_config(self, argv=None, aliases=None, flags=None):
         """Parse the configuration and generate the Config object.
         
@@ -413,7 +426,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         if flags is None:
             flags = self.flags
         
-        for item in argv:
+        for item in self._decode_argv(argv):
             if kv_pattern.match(item):
                 lhs,rhs = item.split('=',1)
                 # Substitute longnames for aliases.
@@ -427,9 +440,10 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     exec exec_str in locals(), globals()
                 except (NameError, SyntaxError):
                     # This case happens if the rhs is a string but without
-                    # the quote marks.  We add the quote marks and see if
+                    # the quote marks. Use repr, to get quote marks, and
+                    # 'u' prefix and see if
                     # it succeeds. If it still fails, we let it raise.
-                    exec_str = 'self.config.' + lhs + '="' + rhs + '"'
+                    exec_str = u'self.config.' + lhs + '=' + repr(rhs)
                     exec exec_str in locals(), globals()
             elif flag_pattern.match(item):
                 # trim leading '--'
