@@ -21,8 +21,11 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import os
+import sys
 from tempfile import mkstemp
 from unittest import TestCase
+
+from nose import SkipTest
 
 from IPython.utils.traitlets import Int, Unicode
 from IPython.config.configurable import Configurable
@@ -130,6 +133,23 @@ class TestKeyValueCL(TestCase):
         self.assertEquals(cl.extra_args, ['b', 'd'])
         self.assertEquals(config.a, 5)
         self.assertEquals(config.c, 10)
+    
+    def test_unicode_args(self):
+        cl = KeyValueConfigLoader()
+        argv = [u'a=épsîlön']
+        config = cl.load_config(argv)
+        self.assertEquals(config.a, u'épsîlön')
+    
+    def test_unicode_bytes_args(self):
+        uarg = u'a=é'
+        try:
+            barg = uarg.encode(sys.stdin.encoding)
+        except (TypeError, UnicodeEncodeError):
+            raise SkipTest("sys.stdin.encoding can't handle 'é'")
+        
+        cl = KeyValueConfigLoader()
+        config = cl.load_config([barg])
+        self.assertEquals(config.a, u'é')
 
 
 class TestConfig(TestCase):

@@ -1099,7 +1099,7 @@ class CaselessStrEnum(Enum):
             if self._allow_none:
                 return value
 
-        if not isinstance(value, str):
+        if not isinstance(value, basestring):
             self.error(obj, value)
 
         for v in self.values:
