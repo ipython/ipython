@@ -102,9 +102,9 @@ class ReverseDict(dict):
 #-----------------------------------------------------------------------------
 
 def ensure_bytes(s):
-    """ensure that an object is bytes"""
+    """ensure that an object is ascii bytes"""
     if isinstance(s, unicode):
-        s = s.encode(sys.getdefaultencoding(), 'replace')
+        s = s.encode('ascii')
     return s
 
 def validate_url(url):

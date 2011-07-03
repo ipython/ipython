@@ -503,7 +503,7 @@ class TaskScheduler(SessionFactory):
         self.add_job(idx)
         self.pending[target][msg_id] = (raw_msg, targets, MET, follow, timeout)
         # notify Hub
-        content = dict(msg_id=msg_id, engine_id=target.decode())
+        content = dict(msg_id=msg_id, engine_id=target.decode('ascii'))
         self.session.send(self.mon_stream, 'task_destination', content=content, 
                         ident=[b'tracktask',self.ident])
         

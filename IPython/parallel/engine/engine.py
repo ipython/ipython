@@ -23,7 +23,7 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # internal
-from IPython.utils.traitlets import Instance, Dict, Int, Type, CFloat, Unicode
+from IPython.utils.traitlets import Instance, Dict, Int, Type, CFloat, Unicode, CBytes
 # from IPython.utils.localinterfaces import LOCALHOST 
 
 from IPython.parallel.controller.heartmonitor import Heart
@@ -58,6 +58,11 @@ class EngineFactory(RegistrationFactory):
     registrar=Instance('zmq.eventloop.zmqstream.ZMQStream')
     kernel=Instance(Kernel)
     
+    bident = CBytes()
+    ident = Unicode()
+    def _ident_changed(self, name, old, new):
+        self.bident = ensure_bytes(new)
+    
     
     def __init__(self, **kwargs):
         super(EngineFactory, self).__init__(**kwargs)
@@ -65,7 +70,7 @@ class EngineFactory(RegistrationFactory):
         ctx = self.context
         
         reg = ctx.socket(zmq.XREQ)
-        reg.setsockopt(zmq.IDENTITY, ensure_bytes(self.ident))
+        reg.setsockopt(zmq.IDENTITY, self.bident)
         reg.connect(self.url)
         self.registrar = zmqstream.ZMQStream(reg, self.loop)
         
@@ -83,8 +88,7 @@ class EngineFactory(RegistrationFactory):
         self._abort_dc.stop()
         ctx = self.context
         loop = self.loop
-        identity = ensure_bytes(self.ident)
-        
+        identity = self.bident
         idents,msg = self.session.feed_identities(msg)
         msg = Message(self.session.unpack_message(msg))
         
@@ -139,7 +143,7 @@ class EngineFactory(RegistrationFactory):
             if self.display_hook_factory:
                 sys.displayhook = self.display_hook_factory(self.session, iopub_stream)
                 sys.displayhook.topic = 'engine.%i.pyout'%self.id
-            
+
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session, 
                     control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream, 
                     loop=loop, user_ns = self.user_ns, log=self.log)

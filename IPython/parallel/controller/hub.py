@@ -563,8 +563,8 @@ class Hub(SessionFactory):
         record = init_record(msg)
         msg_id = record['msg_id']
         # Unicode in records
-        record['engine_uuid'] = queue_id.decode('utf8', 'replace')
-        record['client_uuid'] = client_id.decode('utf8', 'replace')
+        record['engine_uuid'] = queue_id.decode('ascii')
+        record['client_uuid'] = client_id.decode('ascii')
         record['queue'] = 'mux'
 
         try:
@@ -834,7 +834,7 @@ class Hub(SessionFactory):
         jsonable = {}
         for k,v in self.keytable.iteritems():
             if v not in self.dead_engines:
-                jsonable[str(k)] = v.decode()
+                jsonable[str(k)] = v.decode('ascii')
         content['engines'] = jsonable
         self.session.send(self.query, 'connection_reply', content, parent=msg, ident=client_id)
     

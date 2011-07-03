@@ -46,7 +46,7 @@ class Heart(object):
         if in_type == zmq.SUB:
             self.device.setsockopt_in(zmq.SUBSCRIBE, b"")
         if heart_id is None:
-            heart_id = ensure_bytes(uuid.uuid4())
+            heart_id = uuid.uuid4().bytes
         self.device.setsockopt_out(zmq.IDENTITY, heart_id)
         self.id = heart_id
     
