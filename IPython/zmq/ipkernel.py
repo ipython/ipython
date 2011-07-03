@@ -572,6 +572,11 @@ flags['pylab'] = (
     """Pre-load matplotlib and numpy for interactive use with
     the default matplotlib backend."""
 )
+flags['no-pylab-import-all'] = (
+    {'IPKernelApp' : {'pylab_import_all' : False}},
+    """Don't 'import *' from numpy and pylab,
+        when using pylab."""
+)
 
 aliases = dict(kernel_aliases)
 aliases.update(shell_aliases)
@@ -579,6 +584,7 @@ aliases.update(shell_aliases)
 # it's possible we don't want short aliases for *all* of these:
 aliases.update(dict(
     pylab='IPKernelApp.pylab',
+    pylab_import_all='IPKernelApp.pylab_import_all',
 ))
 
 #-----------------------------------------------------------------------------
@@ -597,6 +603,10 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
         """
+    )
+    pylab_import_all = Bool(True, config=True,
+        help="""If true, an 'import *' is done from numpy and pylab,
+        when using pylab"""
     )
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
@@ -635,7 +645,8 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         kernel.record_ports(self.ports)
 
         if self.pylab:
-            pylabtools.import_pylab(kernel.shell.user_ns, backend,
+            import_all = self.pylab_import_all
+            pylabtools.import_pylab(kernel.shell.user_ns, backend, import_all,
                                     shell=kernel.shell)
     
     def init_shell(self):

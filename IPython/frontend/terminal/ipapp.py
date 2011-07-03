@@ -178,6 +178,11 @@ flags['pylab'] = (
     """Pre-load matplotlib and numpy for interactive use with
     the default matplotlib backend."""
 )
+flags['no-pylab-import-all'] = (
+    {'TerminalIPythonApp' : {'pylab_import_all' : False}},
+    """Don't 'import *' from numpy and pylab,
+        when using pylab."""
+)
 
 aliases = dict(base_aliases)
 aliases.update(shell_aliases)
@@ -186,6 +191,7 @@ aliases.update(shell_aliases)
 aliases.update(dict(
     gui='TerminalIPythonApp.gui',
     pylab='TerminalIPythonApp.pylab',
+    pylab_import_all='TerminalIPythonApp.pylab_import_all',
 ))
 
 #-----------------------------------------------------------------------------
@@ -231,6 +237,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
         """
+    )
+    pylab_import_all = Bool(True, config=True,
+        help="""If true, an 'import *' is done from numpy and pylab,
+        when using pylab"""
     )
     display_banner = Bool(True, config=True,
         help="Whether to display a banner upon starting IPython."
@@ -343,7 +353,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             try:
                 self.log.info("Enabling GUI event loop integration, "
                               "toolkit=%s, pylab=%s" % (gui, self.pylab) )
-                activate(gui)
+                if self.pylab:
+                    activate(gui, import_all=self.pylab_import_all)
+                else:
+                    activate(gui)
             except:
                 self.log.warn("Error in enabling GUI event loop integration:")
                 self.shell.showtraceback()
