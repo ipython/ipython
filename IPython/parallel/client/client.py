@@ -17,6 +17,7 @@ Authors:
 
 import os
 import json
+import sys
 import time
 import warnings
 from datetime import datetime
@@ -47,6 +48,11 @@ from IPython.zmq.session import Session, Message
 from .asyncresult import AsyncResult, AsyncHubResult
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from .view import DirectView, LoadBalancedView
+
+if sys.version_info[0] >= 3:
+    # xrange is used in a coupe 'isinstance' tests in py2
+    # should be just 'range' in 3k
+    xrange = range
 
 #--------------------------------------------------------------------------
 # Decorators for Client methods
@@ -356,13 +362,12 @@ class Client(HasTraits):
             if os.path.isfile(exec_key):
                 extra_args['keyfile'] = exec_key
             else:
-                if isinstance(exec_key, unicode):
-                    exec_key = exec_key.encode('ascii')
+                exec_key = util.ensure_bytes(exec_key)
                 extra_args['key'] = exec_key
         self.session = Session(**extra_args)
         
         self._query_socket = self._context.socket(zmq.XREQ)
-        self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
+        self._query_socket.setsockopt(zmq.IDENTITY, util.ensure_bytes(self.session.session))
         if self._ssh:
             tunnel.tunnel_connection(self._query_socket, url, sshserver, **ssh_kwargs)
         else:
@@ -404,7 +409,7 @@ class Client(HasTraits):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
         for k,v in engines.iteritems():
             eid = int(k)
-            self._engines[eid] = bytes(v) # force not unicode
+            self._engines[eid] = v
             self._ids.append(eid)
         self._ids = sorted(self._ids)
         if sorted(self._engines.keys()) != range(len(self._engines)) and \
@@ -455,7 +460,7 @@ class Client(HasTraits):
         if not isinstance(targets, (tuple, list, xrange)):
             raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
             
-        return [self._engines[t] for t in targets], list(targets)
+        return [util.ensure_bytes(self._engines[t]) for t in targets], list(targets)
     
     def _connect(self, sshserver, ssh_kwargs, timeout):
         """setup all our socket connections to the cluster. This is called from
@@ -488,14 +493,15 @@ class Client(HasTraits):
         content = msg.content
         self._config['registration'] = dict(content)
         if content.status == 'ok':
+            ident = util.ensure_bytes(self.session.session)
             if content.mux:
                 self._mux_socket = self._context.socket(zmq.XREQ)
-                self._mux_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                self._mux_socket.setsockopt(zmq.IDENTITY, ident)
                 connect_socket(self._mux_socket, content.mux)
             if content.task:
                 self._task_scheme, task_addr = content.task
                 self._task_socket = self._context.socket(zmq.XREQ)
-                self._task_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                self._task_socket.setsockopt(zmq.IDENTITY, ident)
                 connect_socket(self._task_socket, task_addr)
             if content.notification:
                 self._notification_socket = self._context.socket(zmq.SUB)
@@ -507,12 +513,12 @@ class Client(HasTraits):
             #     connect_socket(self._query_socket, content.query)
             if content.control:
                 self._control_socket = self._context.socket(zmq.XREQ)
-                self._control_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                self._control_socket.setsockopt(zmq.IDENTITY, ident)
                 connect_socket(self._control_socket, content.control)
             if content.iopub:
                 self._iopub_socket = self._context.socket(zmq.SUB)
                 self._iopub_socket.setsockopt(zmq.SUBSCRIBE, b'')
-                self._iopub_socket.setsockopt(zmq.IDENTITY, self.session.session)
+                self._iopub_socket.setsockopt(zmq.IDENTITY, ident)
                 connect_socket(self._iopub_socket, content.iopub)
             self._update_engines(dict(content.engines))
         else:

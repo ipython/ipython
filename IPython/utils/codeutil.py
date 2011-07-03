@@ -23,6 +23,7 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
+import sys
 import new, types, copy_reg
 
 def code_ctor(*args):
@@ -31,9 +32,12 @@ def code_ctor(*args):
 def reduce_code(co):
     if co.co_freevars or co.co_cellvars:
         raise ValueError("Sorry, cannot pickle code objects with closures")
-    return code_ctor, (co.co_argcount, co.co_nlocals, co.co_stacksize,
-        co.co_flags, co.co_code, co.co_consts, co.co_names,
-        co.co_varnames, co.co_filename, co.co_name, co.co_firstlineno,
-        co.co_lnotab)
+    args =  [co.co_argcount, co.co_nlocals, co.co_stacksize,
+            co.co_flags, co.co_code, co.co_consts, co.co_names,
+            co.co_varnames, co.co_filename, co.co_name, co.co_firstlineno,
+            co.co_lnotab]
+    if sys.version_info[0] >= 3:
+        args.insert(1, co.co_kwonlyargcount)
+    return code_ctor, tuple(args)
 
 copy_reg.pickle(types.CodeType, reduce_code)

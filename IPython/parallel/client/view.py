@@ -969,6 +969,8 @@ class LoadBalancedView(View):
             idents = []
         else:
             idents = self.client._build_targets(targets)[0]
+            # ensure *not* bytes
+            idents = [ ident.decode() for ident in idents ]
         
         after = self._render_dependency(after)
         follow = self._render_dependency(follow)

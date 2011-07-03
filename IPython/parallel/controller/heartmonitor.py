@@ -25,6 +25,8 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import Set, Instance, CFloat
 
+from IPython.parallel.util import ensure_bytes
+
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
     This is a simple wrapper with defaults for the most common
@@ -42,9 +44,9 @@ class Heart(object):
         self.device.connect_in(in_addr)
         self.device.connect_out(out_addr)
         if in_type == zmq.SUB:
-            self.device.setsockopt_in(zmq.SUBSCRIBE, "")
+            self.device.setsockopt_in(zmq.SUBSCRIBE, b"")
         if heart_id is None:
-            heart_id = str(uuid.uuid4())
+            heart_id = ensure_bytes(uuid.uuid4())
         self.device.setsockopt_out(zmq.IDENTITY, heart_id)
         self.id = heart_id
     
@@ -115,7 +117,7 @@ class HeartMonitor(LoggingConfigurable):
         self.responses = set()
         # print self.on_probation, self.hearts
         # self.log.debug("heartbeat::beat %.3f, %i beating hearts"%(self.lifetime, len(self.hearts)))
-        self.pingstream.send(str(self.lifetime))
+        self.pingstream.send(ensure_bytes(str(self.lifetime)))
     
     def handle_new_heart(self, heart):
         if self._new_handlers:
@@ -140,11 +142,13 @@ class HeartMonitor(LoggingConfigurable):
     
     def handle_pong(self, msg):
         "a heart just beat"
-        if msg[1] == str(self.lifetime):
+        current = ensure_bytes(str(self.lifetime))
+        last = ensure_bytes(str(self.last_ping))
+        if msg[1] == current:
             delta = time.time()-self.tic
             # self.log.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))
             self.responses.add(msg[0])
-        elif msg[1] == str(self.last_ping):
+        elif msg[1] == last:
             delta = time.time()-self.tic + (self.lifetime-self.last_ping)
             self.log.warn("heartbeat::heart %r missed a beat, and took %.2f ms to respond"%(msg[0], 1000*delta))
             self.responses.add(msg[0])

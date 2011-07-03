@@ -28,7 +28,7 @@ from IPython.utils.traitlets import Instance, Dict, Int, Type, CFloat, Unicode
 
 from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
-from IPython.parallel.util import disambiguate_url
+from IPython.parallel.util import disambiguate_url, ensure_bytes
 
 from IPython.zmq.session import Message
 
@@ -65,7 +65,7 @@ class EngineFactory(RegistrationFactory):
         ctx = self.context
         
         reg = ctx.socket(zmq.XREQ)
-        reg.setsockopt(zmq.IDENTITY, self.ident)
+        reg.setsockopt(zmq.IDENTITY, ensure_bytes(self.ident))
         reg.connect(self.url)
         self.registrar = zmqstream.ZMQStream(reg, self.loop)
         
@@ -83,7 +83,7 @@ class EngineFactory(RegistrationFactory):
         self._abort_dc.stop()
         ctx = self.context
         loop = self.loop
-        identity = self.ident
+        identity = ensure_bytes(self.ident)
         
         idents,msg = self.session.feed_identities(msg)
         msg = Message(self.session.unpack_message(msg))

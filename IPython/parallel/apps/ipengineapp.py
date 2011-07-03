@@ -41,7 +41,7 @@ from IPython.config.configurable import Configurable
 from IPython.zmq.session import Session
 from IPython.parallel.engine.engine import EngineFactory
 from IPython.parallel.engine.streamkernel import Kernel
-from IPython.parallel.util import disambiguate_url
+from IPython.parallel.util import disambiguate_url, ensure_bytes
 
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Bool, Unicode, Dict, List, Float
@@ -216,11 +216,8 @@ class IPEngineApp(BaseParallelApplication):
             self.log.info("Loading url_file %r"%self.url_file)
             with open(self.url_file) as f:
                 d = json.loads(f.read())
-                for k,v in d.iteritems():
-                    if isinstance(v, unicode):
-                        d[k] = v.encode()
             if d['exec_key']:
-                config.Session.key = d['exec_key']
+                config.Session.key = ensure_bytes(d['exec_key'])
             d['url'] = disambiguate_url(d['url'], d['location'])
             config.EngineFactory.url = d['url']
             config.EngineFactory.location = d['location']

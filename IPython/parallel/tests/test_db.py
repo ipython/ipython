@@ -16,6 +16,7 @@ Authors:
 # Imports
 #-------------------------------------------------------------------------------
 
+from __future__ import division
 
 import tempfile
 import time
@@ -100,7 +101,7 @@ class TestDictBackend(TestCase):
     def test_find_records_dt(self):
         """test finding records by date"""
         hist = self.db.get_history()
-        middle = self.db.get_record(hist[len(hist)/2])
+        middle = self.db.get_record(hist[len(hist)//2])
         tic = middle['submitted']
         before = self.db.find_records({'submitted' : {'$lt' : tic}})
         after = self.db.find_records({'submitted' : {'$gte' : tic}})
@@ -168,7 +169,7 @@ class TestDictBackend(TestCase):
         query = {'msg_id' : {'$in':msg_ids}}
         self.db.drop_matching_records(query)
         recs = self.db.find_records(query)
-        self.assertTrue(len(recs)==0)
+        self.assertEquals(len(recs), 0)
             
 class TestSQLiteBackend(TestDictBackend):
     def create_db(self):

@@ -16,6 +16,8 @@ Authors:
 # Imports
 #-------------------------------------------------------------------------------
 
+from __future__ import division
+
 import time
 from datetime import datetime
 from tempfile import mktemp
@@ -132,7 +134,9 @@ class TestClient(ClusterTestCase):
         self.assertEquals(sorted(qs.keys()), ['completed', 'queue', 'tasks'])
         allqs = self.client.queue_status()
         self.assertTrue(isinstance(allqs, dict))
-        self.assertEquals(sorted(allqs.keys()), sorted(self.client.ids + ['unassigned']))
+        intkeys = list(allqs.keys())
+        intkeys.remove('unassigned')
+        self.assertEquals(sorted(intkeys), sorted(self.client.ids))
         unassigned = allqs.pop('unassigned')
         for eid,qs in allqs.items():
             self.assertTrue(isinstance(qs, dict))
@@ -156,7 +160,7 @@ class TestClient(ClusterTestCase):
     def test_db_query_dt(self):
         """test db query by date"""
         hist = self.client.hub_history()
-        middle = self.client.db_query({'msg_id' : hist[len(hist)/2]})[0]
+        middle = self.client.db_query({'msg_id' : hist[len(hist)//2]})[0]
         tic = middle['submitted']
         before = self.client.db_query({'submitted' : {'$lt' : tic}})
         after = self.client.db_query({'submitted' : {'$gte' : tic}})

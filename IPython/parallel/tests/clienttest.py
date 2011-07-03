@@ -41,9 +41,11 @@ def crash():
     if sys.platform.startswith('win'):
         import ctypes
         ctypes.windll.kernel32.SetErrorMode(0x0002);
-
-    co = types.CodeType(0, 0, 0, 0, b'\x04\x71\x00\x00',
-                             (), (), (), '', '', 1, b'')
+    args = [ 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (), '', '', 1, b'']
+    if sys.version_info[0] >= 3:
+        args.insert(1, 0)
+        
+    co = types.CodeType(*args)
     exec(co)
 
 def wait(n):
