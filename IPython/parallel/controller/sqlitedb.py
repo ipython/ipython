@@ -28,6 +28,12 @@ from IPython.utils.jsonutil import date_default, extract_dates, squash_dates
 # SQLite operators, adapters, and converters
 #-----------------------------------------------------------------------------
 
+try:
+    buffer
+except NameError:
+    # py3k
+    buffer = memoryview
+
 operators = {
  '$lt' : "<",
  '$gt' : ">",
@@ -54,6 +60,9 @@ def _convert_dict(ds):
     if ds is None:
         return ds
     else:
+        if isinstance(ds, bytes):
+            # If I understand the sqlite doc correctly, this will always be utf8
+            ds = ds.decode('utf8')
         return extract_dates(json.loads(ds))
 
 def _adapt_bufs(bufs):

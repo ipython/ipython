@@ -54,7 +54,7 @@ from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
 from IPython.parallel.controller.sqlitedb import SQLiteDB
 
-from IPython.parallel.util import signal_children, split_url
+from IPython.parallel.util import signal_children, split_url, asbytes
 
 # conditional import of MongoDB backend class
 
@@ -202,14 +202,13 @@ class IPControllerApp(BaseParallelApplication):
         # load from engine config
         with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-engine.json')) as f:
             cfg = json.loads(f.read())
-        key = c.Session.key = cfg['exec_key']
+        key = c.Session.key = asbytes(cfg['exec_key'])
         xport,addr = cfg['url'].split('://')
         c.HubFactory.engine_transport = xport
         ip,ports = addr.split(':')
         c.HubFactory.engine_ip = ip
         c.HubFactory.regport = int(ports)
         self.location = cfg['location']
-        
         # load client config
         with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-client.json')) as f:
             cfg = json.loads(f.read())
@@ -240,9 +239,9 @@ class IPControllerApp(BaseParallelApplication):
             # with open(keyfile, 'w') as f:
             #     f.write(key)
             # os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
-            c.Session.key = key
+            c.Session.key = asbytes(key)
         else:
-            key = c.Session.key = ''
+            key = c.Session.key = b''
         
         try:
             self.factory = HubFactory(config=c, log=self.log)
@@ -273,27 +272,27 @@ class IPControllerApp(BaseParallelApplication):
         hub = self.factory
         # maybe_inproc = 'inproc://monitor' if self.use_threads else self.monitor_url
         # IOPub relay (in a Process)
-        q = mq(zmq.PUB, zmq.SUB, zmq.PUB, 'N/A','iopub')
+        q = mq(zmq.PUB, zmq.SUB, zmq.PUB, b'N/A',b'iopub')
         q.bind_in(hub.client_info['iopub'])
         q.bind_out(hub.engine_info['iopub'])
-        q.setsockopt_out(zmq.SUBSCRIBE, '')
+        q.setsockopt_out(zmq.SUBSCRIBE, b'')
         q.connect_mon(hub.monitor_url)
         q.daemon=True
         children.append(q)
 
         # Multiplexer Queue (in a Process)
-        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'in', 'out')
+        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, b'in', b'out')
         q.bind_in(hub.client_info['mux'])
-        q.setsockopt_in(zmq.IDENTITY, 'mux')
+        q.setsockopt_in(zmq.IDENTITY, b'mux')
         q.bind_out(hub.engine_info['mux'])
         q.connect_mon(hub.monitor_url)
         q.daemon=True
         children.append(q)
 
         # Control Queue (in a Process)
-        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, 'incontrol', 'outcontrol')
+        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, b'incontrol', b'outcontrol')
         q.bind_in(hub.client_info['control'])
-        q.setsockopt_in(zmq.IDENTITY, 'control')
+        q.setsockopt_in(zmq.IDENTITY, b'control')
         q.bind_out(hub.engine_info['control'])
         q.connect_mon(hub.monitor_url)
         q.daemon=True
@@ -305,10 +304,10 @@ class IPControllerApp(BaseParallelApplication):
         # Task Queue (in a Process)
         if scheme == 'pure':
             self.log.warn("task::using pure XREQ Task scheduler")
-            q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, 'intask', 'outtask')
+            q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, b'intask', b'outtask')
             # q.setsockopt_out(zmq.HWM, hub.hwm)
             q.bind_in(hub.client_info['task'][1])
-            q.setsockopt_in(zmq.IDENTITY, 'task')
+            q.setsockopt_in(zmq.IDENTITY, b'task')
             q.bind_out(hub.engine_info['task'])
             q.connect_mon(hub.monitor_url)
             q.daemon=True

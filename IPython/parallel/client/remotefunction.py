@@ -16,6 +16,9 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import division
+
+import sys
 import warnings
 
 from IPython.testing.skipdoctest import skip_doctest
@@ -142,7 +145,7 @@ class ParallelFunction(RemoteFunction):
         balanced = 'Balanced' in self.view.__class__.__name__
         if balanced:
             if self.chunksize:
-                nparts = len_0/self.chunksize + int(len_0%self.chunksize > 0)
+                nparts = len_0//self.chunksize + int(len_0%self.chunksize > 0)
             else:
                 nparts = len_0
             targets = [None]*nparts
@@ -169,7 +172,10 @@ class ParallelFunction(RemoteFunction):
             
             # print (args)
             if hasattr(self, '_map'):
-                f = map
+                if sys.version_info[0] >= 3:
+                    f = lambda f, *sequences: list(map(f, *sequences))
+                else:
+                    f = map
                 args = [self.func]+args
             else:
                 f=self.func

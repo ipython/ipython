@@ -54,8 +54,9 @@ Python 3 support
 
 A Python 3 version of IPython has been prepared. For the time being, this is
 maintained separately and updated from the main codebase. Its code can be found
-`here <https://github.com/ipython/ipython-py3k>`_. Note that the parallel
-computing features do not yet work in Python 3.
+`here <https://github.com/ipython/ipython-py3k>`_. The parallel computing
+components are not perfect on Python3, but most functionality appears to be
+working.
 
 Unicode
 -------
