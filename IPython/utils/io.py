@@ -17,8 +17,6 @@ from __future__ import print_function
 import sys
 import tempfile
 
-from IPython.external.Itpl import itpl, printpl
-
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -268,12 +266,13 @@ class NLprinter:
 
         for idx in range(start,stop):
             elem = lst[idx]
+            newpos = pos + str(idx)
             if type(elem)==type([]):
                 self.depth += 1
-                self.__call__(elem,itpl('$pos$idx,'),**kw)
+                self.__call__(elem, newpos+",", **kw)
                 self.depth -= 1
             else:
-                printpl(kw['indent']*self.depth+'$pos$idx$kw["sep"]$elem')
+                print(kw['indent']*self.depth + newpos + kw["sep"] + repr(elem))
 
 nlprint = NLprinter()
 
