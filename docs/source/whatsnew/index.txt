@@ -21,6 +21,7 @@ development work they do here in a user friendly format.
    :maxdepth: 1
 
    development
+   version0.11
    version0.10
    version0.9
    version0.8
