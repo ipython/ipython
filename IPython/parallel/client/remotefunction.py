@@ -18,6 +18,7 @@ Authors:
 
 from __future__ import division
 
+import sys
 import warnings
 
 from IPython.testing.skipdoctest import skip_doctest
