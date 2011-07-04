@@ -33,7 +33,10 @@ def install():
         return
     
     # Lookup path to common startmenu ...
-    ip_start_menu = pjoin(get_special_folder_path('CSIDL_COMMON_PROGRAMS'), 'IPython')
+    ip_start_menu = pjoin(get_special_folder_path('CSIDL_COMMON_PROGRAMS'),
+                          'IPython (Py%i.%i %i bit)' % (sys.version_info[0],
+                                                        sys.version_info[1],
+                                                        8*tuple.__itemsize__))
     # Create IPython entry ...
     if not os.path.isdir(ip_start_menu):
         os.mkdir(ip_start_menu)

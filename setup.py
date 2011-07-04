@@ -230,7 +230,9 @@ if 'setuptools' in sys.modules:
     if not setupext.check_for_readline():
         if sys.platform == 'darwin':
             requires.append('readline')
-        elif sys.platform.startswith('win'):
+        elif sys.platform.startswith('win') and sys.maxsize < 2**32:
+            # only require pyreadline on 32b Windows, due to 64b bug in pyreadline:
+            # https://bugs.launchpad.net/pyreadline/+bug/787574
             requires.append('pyreadline')
         else:
             pass
@@ -246,6 +248,7 @@ if 'setuptools' in sys.modules:
             print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
             sys.exit(1)
         setup_args['scripts'] = [pjoin('scripts','ipython_win_post_install.py')]
+        setup_args['options'] = {"bdist_wininst": {"install_script": "ipython_win_post_install.py"}}
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
