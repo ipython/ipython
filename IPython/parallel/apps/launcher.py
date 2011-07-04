@@ -869,19 +869,21 @@ class BatchSystemLauncher(BaseLauncher):
             # third (last) priority is default_template
             self.batch_template = self.default_template
         
-        regex = re.compile(self.job_array_regexp)
-        # print regex.search(self.batch_template)
-        if not regex.search(self.batch_template):
-            self.log.info("adding job array settings to batch script")
-            firstline, rest = self.batch_template.split('\n',1)
-            self.batch_template = u'\n'.join([firstline, self.job_array_template, rest])
+            # add jobarray or queue lines to user-specified template
+            # note that this is *only* when user did not specify a template.
+            regex = re.compile(self.job_array_regexp)
+            # print regex.search(self.batch_template)
+            if not regex.search(self.batch_template):
+                self.log.info("adding job array settings to batch script")
+                firstline, rest = self.batch_template.split('\n',1)
+                self.batch_template = u'\n'.join([firstline, self.job_array_template, rest])
         
-        regex = re.compile(self.queue_regexp)
-        # print regex.search(self.batch_template)
-        if self.queue and not regex.search(self.batch_template):
-            self.log.info("adding PBS queue settings to batch script")
-            firstline, rest = self.batch_template.split('\n',1)
-            self.batch_template = u'\n'.join([firstline, self.queue_template, rest])
+            regex = re.compile(self.queue_regexp)
+            # print regex.search(self.batch_template)
+            if self.queue and not regex.search(self.batch_template):
+                self.log.info("adding PBS queue settings to batch script")
+                firstline, rest = self.batch_template.split('\n',1)
+                self.batch_template = u'\n'.join([firstline, self.queue_template, rest])
             
         script_as_string = self.formatter.format(self.batch_template, **self.context)
         self.log.info('Writing instantiated batch script: %s' % self.batch_file)
