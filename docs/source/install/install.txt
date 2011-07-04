@@ -312,14 +312,14 @@ pyzmq has eggs that include ZeroMQ itself.
 
 IPython.zmq depends on pyzmq >= 2.1.4.
 
-Dependencies for ipython-qtconsole (new GUI)
+Dependencies for ipython qtconsole (new GUI)
 ============================================
 
 Qt
 --
 
 Also with 0.11, a new GUI was added using the work in :mod:`IPython.zmq`,
-which can be launched with ``ipython-qtconsole``. The GUI is built on Qt, and works
+which can be launched with ``ipython qtconsole``. The GUI is built on Qt, and works
 with either PyQt, which can be installed from the 
 `PyQt website <http://www.riverbankcomputing.co.uk/>`_, or 
 `PySide <http://www.pyside.org/>`_, from Nokia.
@@ -327,7 +327,7 @@ with either PyQt, which can be installed from the
 pygments
 --------
 
-The syntax-highlighting in ``ipython-qtconsole`` is done with the pygments project, 
+The syntax-highlighting in ``ipython qtconsole`` is done with the pygments project, 
 which is easy_install-able [pygments]_.
 
 .. [ZeroMQ] ZeroMQ.  http://www.zeromq.org
