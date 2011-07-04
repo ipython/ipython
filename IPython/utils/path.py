@@ -16,6 +16,7 @@ Utilities for path handling.
 
 import os
 import sys
+from hashlib import md5
 
 import IPython
 from IPython.utils import warn
@@ -402,6 +403,18 @@ def target_update(target,deps,cmd):
     if target_outdated(target,deps):
         system(cmd)
 
+def filehash(path):
+    """Make an MD5 hash of a file, ignoring any differences in line
+    ending characters."""
+    with open(path, "rU") as f:
+        return md5(f.read()).hexdigest()
+
+# If the config is unmodified from the default, we'll just delete it.
+# These are consistent for 0.10.x, thankfully. We're not going to worry about
+# older versions.
+old_config_md5 = {'ipy_user_conf.py': 'fc108bedff4b9a00f91fa0a5999140d3',
+                  'ipythonrc': '12a68954f3403eea2eec09dc8fe5a9b5'}
+
 def check_for_old_config(ipython_dir=None):
     """Check for old config files, and present a warning if they exist.
 
@@ -418,16 +431,26 @@ def check_for_old_config(ipython_dir=None):
     for cfg in old_configs:
         f = os.path.join(ipython_dir, cfg)
         if os.path.exists(f):
-            warned = True
-            warn.warn("Found old IPython config file %r"%f)
+            if filehash(f) == old_config_md5.get(cfg, ''):
+                os.unlink(f)
+            else:
+                oldf = f+'.old'
+                i = 0
+                while os.path.exists(oldf):
+                    oldf = f+'.old.%i'%i
+                    i += 1
+                os.rename(f, oldf)
+                warn.warn("Renamed old IPython config file '%s' to '%s'." % (f, oldf))
+                warned = True
     
     if warned:
-        warn.warn("""
-    The IPython configuration system has changed as of 0.11, and these files
-    will be ignored. See http://ipython.github.com/ipython-doc/dev/config for
-    details on the new config system. To start configuring IPython, do 
-    `ipython profile create`, and edit `ipython_config.py` in
-    <ipython_dir>/profile_default, adding
-    `c.InteractiveShellApp.ignore_old_config=True`""")
+        warn.info("""
+  The IPython configuration system has changed as of 0.11, and these files will
+  be ignored. See http://ipython.github.com/ipython-doc/dev/config for details
+  of the new config system.
+  To start configuring IPython, do `ipython profile create`, and edit
+  `ipython_config.py` in <ipython_dir>/profile_default.
+  If you need to leave the old config files in place for an older version of
+  IPython, set `c.InteractiveShellApp.ignore_old_config=True` in the new config.""")
         
 
