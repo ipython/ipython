@@ -260,6 +260,8 @@ class TestClient(ClusterTestCase):
         self.client.purge_results(hist[-1])
         newhist = self.client.hub_history()
         self.assertEquals(len(newhist)+1,len(hist))
+        rc2.spin()
+        rc2.close()
         
     def test_purge_all_results(self):
         self.client.purge_results('all')
