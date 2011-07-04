@@ -5,18 +5,9 @@ include setupegg.py
 graft setupext
 
 graft scripts
-graft IPython/kernel
-graft IPython/config
-graft IPython/core
-# graft IPython/deathrow
-graft IPython/external
-graft IPython/frontend
-graft IPython/gui
-graft IPython/lib
-graft IPython/quarantine
-graft IPython/scripts
-graft IPython/testing
-graft IPython/utils
+
+graft IPython
+prune IPython/deathrow
 
 include IPython/.git_commit_info.ini
 
@@ -27,6 +18,7 @@ exclude docs/man/*.1
 # docs subdirs we want to skip
 prune docs/attic
 prune docs/build
+prune docs/gh-pages
 
 global-exclude *~
 global-exclude *.flc
