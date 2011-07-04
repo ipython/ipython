@@ -16,6 +16,7 @@ Utilities for path handling.
 
 import os
 import sys
+from hashlib import md5
 
 import IPython
 from IPython.utils import warn
@@ -402,6 +403,18 @@ def target_update(target,deps,cmd):
     if target_outdated(target,deps):
         system(cmd)
 
+def filehash(path):
+    """Make an MD5 hash of a file, ignoring any differences in line
+    ending characters."""
+    with open(path, "rU") as f:
+        return md5(f.read()).hexdigest()
+
+# If the config is unmodified from the default, we'll just delete it.
+# These are consistent for 0.10.x, thankfully. We're not going to worry about
+# older versions.
+old_config_md5 = {'ipy_user_conf.py': 'fc108bedff4b9a00f91fa0a5999140d3',
+                  'ipythonrc': '12a68954f3403eea2eec09dc8fe5a9b5'}
+
 def check_for_old_config(ipython_dir=None):
     """Check for old config files, and present a warning if they exist.
 
@@ -418,8 +431,12 @@ def check_for_old_config(ipython_dir=None):
     for cfg in old_configs:
         f = os.path.join(ipython_dir, cfg)
         if os.path.exists(f):
-            warned = True
-            warn.warn("Found old IPython config file %r"%f)
+            if filehash(f) == old_config_md5[cfg]:
+                os.unlink(f)
+                warn.info("Removed unmodified old IPython config file %r"%f)
+            else:
+                warned = True
+                warn.warn("Found old IPython config file %r (modified by user)"%f)
     
     if warned:
         warn.warn("""
