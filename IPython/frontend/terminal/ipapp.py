@@ -343,7 +343,11 @@ def load_default_config(ipython_dir=None):
         ipython_dir = get_ipython_dir()
     profile_dir = os.path.join(ipython_dir, 'profile_default')
     cl = PyFileConfigLoader(default_config_file_name, profile_dir)
-    config = cl.load_config()
+    try:
+        config = cl.load_config()
+    except IOError:
+        # no config found
+        config = Config()
     return config
 
 
