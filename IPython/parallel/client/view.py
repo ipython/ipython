@@ -809,11 +809,11 @@ class LoadBalancedView(View):
         
         For use in `set_flags`.
         """
-        if dep is None or isinstance(dep, (str, AsyncResult, Dependency)):
+        if dep is None or isinstance(dep, (basestring, AsyncResult, Dependency)):
             return True
         elif isinstance(dep, (list,set, tuple)):
             for d in dep:
-                if not isinstance(d, (str, AsyncResult)):
+                if not isinstance(d, (basestring, AsyncResult)):
                     return False
         elif isinstance(dep, dict):
             if set(dep.keys()) != set(Dependency().as_dict().keys()):
@@ -821,7 +821,7 @@ class LoadBalancedView(View):
             if not isinstance(dep['msg_ids'], list):
                 return False
             for d in dep['msg_ids']:
-                if not isinstance(d, str):
+                if not isinstance(d, basestring):
                     return False
         else:
             return False

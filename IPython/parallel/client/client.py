@@ -440,7 +440,7 @@ class Client(HasTraits):
         
         if targets is None:
             targets = self._ids
-        elif isinstance(targets, str):
+        elif isinstance(targets, basestring):
             if targets.lower() == 'all':
                 targets = self._ids
             else:
@@ -825,7 +825,7 @@ class Client(HasTraits):
         if jobs is None:
             theids = self.outstanding
         else:
-            if isinstance(jobs, (int, str, AsyncResult)):
+            if isinstance(jobs, (int, basestring, AsyncResult)):
                 jobs = [jobs]
             theids = set()
             for job in jobs:
@@ -1096,7 +1096,7 @@ class Client(HasTraits):
         for id in indices_or_msg_ids:
             if isinstance(id, int):
                 id = self.history[id]
-            if not isinstance(id, str):
+            if not isinstance(id, basestring):
                 raise TypeError("indices must be str or int, not %r"%id)
             theids.append(id)
         
@@ -1146,7 +1146,7 @@ class Client(HasTraits):
         for id in indices_or_msg_ids:
             if isinstance(id, int):
                 id = self.history[id]
-            if not isinstance(id, str):
+            if not isinstance(id, basestring):
                 raise TypeError("indices must be str or int, not %r"%id)
             theids.append(id)
 
