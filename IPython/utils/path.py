@@ -431,7 +431,7 @@ def check_for_old_config(ipython_dir=None):
     for cfg in old_configs:
         f = os.path.join(ipython_dir, cfg)
         if os.path.exists(f):
-            if filehash(f) == old_config_md5[cfg]:
+            if filehash(f) == old_config_md5.get(cfg, ''):
                 os.unlink(f)
                 warn.info("Removed unmodified old IPython config file %r"%f)
             else:
