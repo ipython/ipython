@@ -255,10 +255,6 @@ Another way of getting this is to do:
 For more installation options, see the `nose website
 <http://somethingaboutorange.com/mrl/projects/nose/>`_.  
 
-.. warning::
-
-    As described above, the :command:`iptest` command currently doesn't work.
-
 Once you have nose installed, you can run IPython's test suite using the
 iptest command:
 
