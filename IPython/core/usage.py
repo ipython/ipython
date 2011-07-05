@@ -22,18 +22,27 @@ IPython: an enhanced interactive Python shell.
     system shell and more.  IPython can also be embedded in running programs.
 
     If invoked with no options, it executes all the files listed in sequence
-    and exits, use -i to enter interactive mode after running the files.  Files
+    and exits, use --i to enter interactive mode after running the files.  Files
     ending in .py will be treated as normal Python, but files ending in .ipy
     can contain special IPython syntax (magic commands, shell expansions, etc.)
 
-    Please note that some of the configuration options are not available at the
-    command line, simply because they are not practical here. Look into your
-    ipython_config.py configuration file for details on those.
+    Almost all configuration in IPython is available via the command-line. Do
+    `ipython --help-all` to see all available options.  For persistent
+    configuration, Look into your ipython_config.py configuration file for 
+    details.
 
-    This file is typically installed in the IPYTHON_DIR directory. For Linux
-    users, this will be $HOME/.config/ipython, and for other users it will be
+    This file is typically installed in the IPYTHON_DIR directory, and there
+    is a separate configuration directory for each profile. The default profile
+    directory will be located in $IPYTHON_DIR/profile_default. For Linux
+    users, IPYTHON_DIR will be $HOME/.config/ipython, and for other users it will be
     $HOME/.ipython.  For Windows users, $HOME resolves to C:\\Documents and
     Settings\\YourUserName in most instances.
+    
+    To initialize a profile with the default configuration file, do:
+    
+      $> ipython profile create
+    
+    and start editing IPYTHON_DIR/profile_default/ipython_config.py
 
     In IPython's documentation, we will refer to this directory as IPYTHON_DIR,
     you can change its default location by setting any path you want in this
@@ -53,12 +62,8 @@ caching, similar to Mathematica). It is intended to be a fully compatible
 replacement for the standard Python interpreter, while offering vastly
 improved functionality and flexibility.
 
-At your system command line, type 'ipython -help' to see the command line
+At your system command line, type 'ipython -h' to see the command line
 options available. This document only describes interactive features.
-
-Warning: IPython relies on the existence of a global variable called __IP which
-controls the shell itself. If you redefine __IP to anything, bizarre behavior
-will quickly occur.
 
 MAIN FEATURES
 
@@ -111,7 +116,9 @@ MAIN FEATURES
   your history for lines that match what you've typed so far, completing as
   much as it can.
 
-* Persistent command history across sessions (readline required).
+  - %hist: search history by index (this does *not* require readline).
+
+* Persistent command history across sessions.
 
 * Logging of input with the ability to save and restore a working session.
   
@@ -294,7 +301,7 @@ inline graphics and much more.
 
 This quick reference document contains the basic information you'll need to
 know to make the most efficient use of it.  For the various command line
-options available at startup, type ``--help`` at the command line.
+options available at startup, type ``ipython qtconsole --help`` at the command line.
 
 
 Multiline editing
@@ -473,10 +480,10 @@ Inline matplotlib graphics
 ==========================
 
 The IPython console is capable of displaying matplotlib figures inline, in SVG
-format.  If started with the ``pylab=inline``, then all figures are
-rendered inline automatically.  If started with ``--pylab`` or ``pylab=<your
-backend>``, then a GUI backend will be used, but IPython's ``display()`` and
-``getfigs()`` functions can be used to view plots inline::
+or PNG format.  If started with the ``pylab=inline``, then all figures are
+rendered inline automatically (PNG by default).  If started with ``--pylab``
+or ``pylab=<your backend>``, then a GUI backend will be used, but IPython's
+``display()`` and ``getfigs()`` functions can be used to view plots inline::
 
     In [9]: display(*getfigs())    # display all figures inline
 
