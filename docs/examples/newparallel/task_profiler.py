@@ -24,8 +24,8 @@ from IPython.parallel import Client
 def main():
     parser = OptionParser()
     parser.set_defaults(n=100)
-    parser.set_defaults(tmin=1)
-    parser.set_defaults(tmax=60)
+    parser.set_defaults(tmin=1e-3)
+    parser.set_defaults(tmax=1)
     parser.set_defaults(profile='default')
     
     parser.add_option("-n", type='int', dest='n',
@@ -45,7 +45,8 @@ def main():
     print view
     rc.block=True
     nengines = len(rc.ids)
-    rc[:].execute('from IPython.utils.timing import time')
+    with rc[:].sync_imports():
+        from IPython.utils.timing import time
 
     # the jobs should take a random time within a range
     times = [random.random()*(opts.tmax-opts.tmin)+opts.tmin for i in range(opts.n)]

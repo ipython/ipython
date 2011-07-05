@@ -13,5 +13,5 @@ print "Using map_async: ", result
 @view.parallel(block=True)
 def f(x): return 2*x
 
-result = f(range(10))
+result = f.map(range(10))
 print "Using a parallel function: ", result

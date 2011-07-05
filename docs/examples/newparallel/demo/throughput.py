@@ -15,7 +15,7 @@ def echo(s=''):
 
 def time_throughput(nmessages, t=0, f=wait):
     client = parallel.Client()
-    view = client[None]
+    view = client.load_balanced_view()
     # do one ping before starting timing
     if f is echo:
         t = np.random.random(t/8)
@@ -25,32 +25,10 @@ def time_throughput(nmessages, t=0, f=wait):
     for i in xrange(nmessages):
         view.apply(f, t)
     lap = time.time()
-    client.barrier()
+    client.wait()
     toc = time.time()
     return lap-tic, toc-tic
 
-def time_twisted(nmessages, t=0, f=wait):
-    from IPython.kernel import client as kc
-    client = kc.TaskClient()
-    if f is wait:
-        s = "import time; time.sleep(%f)"%t
-        task = kc.StringTask(s)
-    elif f is echo:
-        t = np.random.random(t/8)
-        s = "s=t"
-        task = kc.StringTask(s, push=dict(t=t), pull=['s'])
-    else:
-        raise
-    # do one ping before starting timing
-    client.barrier(client.run(task))
-    tic = time.time()
-    tids = []
-    for i in xrange(nmessages):
-        tids.append(client.run(task))
-    lap = time.time()
-    client.barrier(tids)
-    toc = time.time()
-    return lap-tic, toc-tic
 
 def do_runs(nlist,t=0,f=wait, trials=2, runner=time_throughput):
     A = np.zeros((len(nlist),2))

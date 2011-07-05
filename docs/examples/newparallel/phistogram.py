@@ -1,6 +1,6 @@
 """Parallel histogram function"""
 import numpy
-from IPython.utils.pickleutil import Reference
+from IPython.parallel import Reference
 
 def phistogram(view, a, bins=10, rng=None, normed=False):
     """Compute the histogram of a remote array a.

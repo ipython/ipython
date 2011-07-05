@@ -6,6 +6,7 @@ This only works for a local cluster, because the filenames are local paths.
 
 
 import os
+import time
 import urllib
 
 from itertools import repeat
@@ -49,8 +50,11 @@ if __name__ == '__main__':
     # Run the serial version
     print "Serial word frequency count:"
     text = open('davinci.txt').read()
+    tic = time.time()
     freqs = wordfreq(text)
+    toc = time.time()
     print_wordfreq(freqs, 10)
+    print "Took %.3f s to calcluate"%(toc-tic)
     
     
     # The parallel version
@@ -67,7 +71,10 @@ if __name__ == '__main__':
     
     cwd = os.path.abspath(os.getcwd())
     fnames = [ os.path.join(cwd, 'davinci%i.txt'%i) for i in range(n)]
+    tic = time.time()
     pfreqs = pwordfreq(view,fnames)
+    toc = time.time()
     print_wordfreq(freqs)
+    print "Took %.3f s to calcluate on %i engines"%(toc-tic, len(view.targets))
     # cleanup split files
     map(os.remove, fnames)
