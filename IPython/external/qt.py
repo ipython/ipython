@@ -1,4 +1,9 @@
 """ A Qt API selector that can be used to switch between PyQt and PySide.
+
+This uses the ETS 4.0 selection pattern of:
+PySide first, PyQt with API v2. second.
+
+Do not use this if you need PyQt with the old QString/QVariant API.
 """
 
 import os
