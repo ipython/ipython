@@ -51,20 +51,25 @@ They are typically used for setting boolean flags, or enabling
 modes that involve setting multiple options together.
 
 Flags *always* begin with '--', never just one '-'.
-""".strip() # trim newlines of front and back
+""".strip() # trim newlines off front and back
 
 alias_description = """
 These are commonly set parameters, given abbreviated aliases for convenience.
 They are set in the same `name=value` way as class parameters, where
 <name> is replaced by the real parameter for which it is an alias.
-""".strip() # trim newlines of front and back
+
+Setting parameters will *never* be prefixed with '-'.
+
+This line is evaluated in Python, so simple expressions are allowed, e.g.
+    `C.a=range(3)`   For setting C.a=[0,1,2]
+""".strip() # trim newlines off front and back
 
 keyvalue_description = """
 Parameters are set from command-line arguments of the form:
 `Class.trait=value`.  Parameters will *never* be prefixed with '-'.
 This line is evaluated in Python, so simple expressions are allowed, e.g.
-    `C.a='range(3)'`   For setting C.a=[0,1,2]
-""".strip() # trim newlines of front and back
+    `C.a=range(3)`   For setting C.a=[0,1,2]
+""".strip() # trim newlines off front and back
 
 #-----------------------------------------------------------------------------
 # Application class
