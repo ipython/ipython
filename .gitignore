@@ -1,8 +1,7 @@
 build
-./dist
-docs/dist
-docs/build
-docs/_build
+dist
+_build
+docs/man/*.gz
 docs/source/api/generated
 docs/gh-pages
 *.py[co]
