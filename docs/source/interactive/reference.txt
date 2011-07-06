@@ -1269,29 +1269,29 @@ v2 is also the default for PyQt4 on Python 3.  IPython's code for the QtConsole
 uses v2, but you can still use any interface in your code, since the
 Qt frontend is in a different process.
 
-If you launch IPython in pylab mode with ``ipython pylab=qt``, then IPython
-will ask matplotlib which Qt library to use, via the 'backend.qt4' rcParam.
-If matplotlib is version 1.0.1 or older, then IPython will always use PyQt4
-without setting the v2 APIs.
-
-If you just integrate the Qt event loop with ``ipython gui=qt``, then IPython
-has a few more possibilities.  The default will be to import PyQt4 without
-configuration of the APIs, thus matching what most applications would expect.
-It will fall back of PySide if PyQt4 is unavailable.
+The default will be to import PyQt4 without configuration of the APIs, thus
+matching what most applications would expect. It will fall back of PySide if
+PyQt4 is unavailable.
 
 If specified, IPython will respect the environment variable ``QT_API`` used
 by ETS.  ETS 4.0 also works with both PyQt4 and PySide, but it requires
-PyQt4 to use the v2 API.  So if ``QT_API=pyside`` PySide will be used,
-and if ``QT_API=pyqt`` then PyQt4 will be used with the v2 API for 
+PyQt4 to use its v2 API.  So if ``QT_API=pyside`` PySide will be used,
+and if ``QT_API=pyqt`` then PyQt4 will be used *with the v2 API* for
 QString and QVariant, so ETS codes like MayaVi will also work with IPython.
+
+If you launch IPython in pylab mode with ``ipython pylab=qt``, then IPython
+will ask matplotlib which Qt library to use (only if QT_API is *not set*),
+via the 'backend.qt4' rcParam.
+If matplotlib is version 1.0.1 or older, then IPython will always use PyQt4
+without setting the v2 APIs, since neither v2 PyQt nor PySide work.
 
 .. warning::
 
-    Note that this means for ETS to work with PyQt4, ``QT_API`` *must* be set to
+    Note that this means for ETS 4 to work with PyQt4, ``QT_API`` *must* be set to
     work with IPython's qt integration, because otherwise PyQt4 will be loaded in
     an incompatible mode.
     
-    It also means that you must not have ``QT_API`` set if you want to
+    It also means that you must *not* have ``QT_API`` set if you want to
     use ``gui=qt`` with code that requires PyQt4 API v1.
 
 
