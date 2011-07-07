@@ -244,13 +244,13 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             # warn and transform into current syntax
             argv = list(argv) # copy, don't clobber
             warn.warn("`-pylab` flag has been deprecated.\n"
-            "    Use `--pylab` instead, or `pylab=foo` to specify a backend.")
+            "    Use `--pylab` instead, or `--pylab=foo` to specify a backend.")
             sub = '--pylab'
             if len(argv) > idx+1:
                 # check for gui arg, as in '-pylab qt'
                 gui = argv[idx+1]
                 if gui in ('wx', 'qt', 'qt4', 'gtk', 'auto'):
-                    sub = 'pylab='+gui
+                    sub = '--pylab='+gui
                     argv.pop(idx+1)
             argv[idx] = sub
         
