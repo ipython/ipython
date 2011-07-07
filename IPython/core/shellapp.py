@@ -189,7 +189,12 @@ class InteractiveShellApp(Configurable):
     def _exec_file(self, fname):
         full_filename = filefind(fname, [u'.', self.ipython_dir])
         if os.path.isfile(full_filename):
-            if full_filename.endswith(u'.py'):
+            if full_filename.endswith('.ipy'):
+                self.log.info("Running file in user namespace: %s" %
+                              full_filename)
+                self.shell.safe_execfile_ipy(full_filename)
+            else:
+                # default to python, even without extension
                 self.log.info("Running file in user namespace: %s" %
                               full_filename)
                 # Ensure that __file__ is always defined to match Python behavior
@@ -198,13 +203,6 @@ class InteractiveShellApp(Configurable):
                     self.shell.safe_execfile(full_filename, self.shell.user_ns)
                 finally:
                     del self.shell.user_ns['__file__']
-            elif full_filename.endswith('.ipy'):
-                self.log.info("Running file in user namespace: %s" %
-                              full_filename)
-                self.shell.safe_execfile_ipy(full_filename)
-            else:
-                self.log.warn("File does not have a .py or .ipy extension: <%s>"
-                               % full_filename)
 
     def _run_exec_files(self):
         """Run files from IPythonApp.exec_files"""
