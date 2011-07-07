@@ -155,7 +155,7 @@ class Configurable(HasTraits):
     def class_get_trait_help(cls, trait):
         """Get the help string for a single trait."""
         lines = []
-        header = "%s.%s : %s" % (cls.__name__, trait.name, trait.__class__.__name__)
+        header = "--%s.%s=<%s>" % (cls.__name__, trait.name, trait.__class__.__name__)
         lines.append(header)
         try:
             dvr = repr(trait.get_default_value())

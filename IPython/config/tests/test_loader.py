@@ -130,9 +130,11 @@ class TestKeyValueCL(TestCase):
     def test_extra_args(self):
         cl = KeyValueConfigLoader()
         config = cl.load_config(['a=5', 'b', 'c=10', 'd'])
-        self.assertEquals(cl.extra_args, ['b', 'd'])
+        self.assertEquals(cl.extra_args, ['b', 'c=10' , 'd'])
         self.assertEquals(config.a, 5)
-        self.assertEquals(config.c, 10)
+        self.assertRaises(AttributeError, getattr, config, 'c')
+        config = cl.load_config(['--', 'a=5', 'c=10'])
+        self.assertEquals(cl.extra_args, ['a=5', 'c=10'])
     
     def test_unicode_args(self):
         cl = KeyValueConfigLoader()

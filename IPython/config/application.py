@@ -49,21 +49,19 @@ Flags are command-line arguments passed as '--<flag>'.
 These take no parameters, unlike regular key-value arguments.
 They are typically used for setting boolean flags, or enabling
 modes that involve setting multiple options together.
-
-Flags *always* begin with '--', never just one '-'.
 """.strip() # trim newlines of front and back
 
 alias_description = """
 These are commonly set parameters, given abbreviated aliases for convenience.
-They are set in the same `name=value` way as class parameters, where
+They are set in the same `--name=value` way as class parameters, where
 <name> is replaced by the real parameter for which it is an alias.
 """.strip() # trim newlines of front and back
 
 keyvalue_description = """
 Parameters are set from command-line arguments of the form:
-`Class.trait=value`.  Parameters will *never* be prefixed with '-'.
+`--Class.trait=value`.
 This line is evaluated in Python, so simple expressions are allowed, e.g.
-    `C.a='range(3)'`   For setting C.a=[0,1,2]
+    `--C.a='range(3)'`   For setting C.a=[0,1,2]
 """.strip() # trim newlines of front and back
 
 #-----------------------------------------------------------------------------
@@ -210,11 +208,12 @@ class Application(SingletonConfigurable):
             cls = classdict[classname]
             
             trait = cls.class_traits(config=True)[traitname]
-            help = cls.class_get_trait_help(trait)
-            help = help.replace(longname, "%s (%s)"%(alias, longname), 1)
-            lines.append(help)
+            help = cls.class_get_trait_help(trait).splitlines()
+            # reformat first line
+            help[0] = help[0].replace(longname, alias) + ' (%s)'%longname
+            lines.extend(help)
         lines.append('')
-        print '\n'.join(lines)
+        print os.linesep.join(lines)
     
     def print_flag_help(self):
         """Print the flag part of the help."""

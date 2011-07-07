@@ -326,7 +326,7 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.*')
-flag_pattern = re.compile(r'\-\-\w+(\-\w)*')
+flag_pattern = re.compile(r'\w+(\-\w)*')
 
 class KeyValueConfigLoader(CommandLineConfigLoader):
     """A config loader that loads key value pairs from the command line.
@@ -426,7 +426,17 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         if flags is None:
             flags = self.flags
         
-        for item in self._decode_argv(argv):
+        # ensure argv is a list of unicode strings:
+        uargv = self._decode_argv(argv)
+        for idx,raw in enumerate(uargv):
+            # strip leading '-'
+            item = raw.lstrip('-')
+            
+            if raw == '--':
+                # don't parse arguments after '--'
+                self.extra_args.extend(uargv[idx+1:])
+                break
+            
             if kv_pattern.match(item):
                 lhs,rhs = item.split('=',1)
                 # Substitute longnames for aliases.
@@ -445,26 +455,23 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     # it succeeds. If it still fails, we let it raise.
                     exec_str = u'self.config.' + lhs + '=' + repr(rhs)
                     exec exec_str in locals(), globals()
-            elif flag_pattern.match(item):
-                # trim leading '--'
-                m = item[2:]
-                cfg,_ = flags.get(m, (None,None))
-                if cfg is None:
-                    raise ArgumentError("Unrecognized flag: %r"%item)
-                elif isinstance(cfg, (dict, Config)):
+            elif item in flags:
+                cfg,help = flags[item]
+                if isinstance(cfg, (dict, Config)):
                     # don't clobber whole config sections, update
                     # each section from config:
                     for sec,c in cfg.iteritems():
                         self.config[sec].update(c)
                 else:
-                    raise ValueError("Invalid flag: %r"%flag)
-            elif item.startswith('-'):
-                # this shouldn't ever be valid
-                raise ArgumentError("Invalid argument: %r"%item)
+                    raise ValueError("Invalid flag: '%s'"%raw)
+            elif raw.startswith('-'):
+                raise ArgumentError("invalid argument: '%s'"%raw)
             else:
                 # keep all args that aren't valid in a list, 
                 # in case our parent knows what to do with them.
-                self.extra_args.append(item)
+                # self.extra_args.append(item)
+                self.extra_args.extend(uargv[idx:])
+                break
         return self.config
 
 class ArgParseConfigLoader(CommandLineConfigLoader):

@@ -47,10 +47,10 @@ class MyConfigurable(Configurable):
 
 mc_help=u"""MyConfigurable options
 ----------------------
-MyConfigurable.a : Int
+--MyConfigurable.a=<Int>
     Default: 1
     The integer a.
-MyConfigurable.b : Float
+--MyConfigurable.b=<Float>
     Default: 1.0
     The integer b."""
 
