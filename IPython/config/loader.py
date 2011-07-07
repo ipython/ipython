@@ -326,7 +326,8 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
 kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.*')
-flag_pattern = re.compile(r'\-\-\w+(\-\w)*')
+flag_pattern = re.compile(r'\-\-\w+(\-\w)*$')
+bad_assign_pattern = re.compile(r'\-+.*\=.*')
 
 class KeyValueConfigLoader(CommandLineConfigLoader):
     """A config loader that loads key value pairs from the command line.
@@ -460,7 +461,22 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     raise ValueError("Invalid flag: %r"%flag)
             elif item.startswith('-'):
                 # this shouldn't ever be valid
-                raise ArgumentError("Invalid argument: %r"%item)
+                stripped = item.lstrip('-')
+                msg = "Invalid argument: '%s'"%item
+                suggest = None
+                if '=' in stripped:
+                    # this is an assignment, but with one or more leading '-'
+                    suggest = stripped
+                elif stripped in flags:
+                    # this is a known flag with one (or more than two)
+                    # leading '-'
+                    suggest = '--'+stripped
+
+                if suggest:
+                    # add suggestion to error message
+                    msg += ".  Did you mean '%s'?"%suggest
+                
+                raise ArgumentError(msg)
             else:
                 # keep all args that aren't valid in a list, 
                 # in case our parent knows what to do with them.
