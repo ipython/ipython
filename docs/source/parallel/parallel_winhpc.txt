@@ -204,7 +204,7 @@ security keys. The naming convention for cluster directories is:
 To create a new cluster profile (named "mycluster") and the associated cluster
 directory, type the following command at the Windows Command Prompt::
 
-    ipython profile create --parallel profile=mycluster
+    ipython profile create --parallel --profile=mycluster
 
 The output of this command is shown in the screenshot below. Notice how
 :command:`ipcluster` prints out the location of the newly created cluster
@@ -257,7 +257,7 @@ Starting the cluster profile
 Once a cluster profile has been configured, starting an IPython cluster using
 the profile is simple::
 
-    ipcluster start profile=mycluster n=32
+    ipcluster start --profile=mycluster --n=32
 
 The ``-n`` option tells :command:`ipcluster` how many engines to start (in
 this case 32). Stopping the cluster is as simple as typing Control-C.

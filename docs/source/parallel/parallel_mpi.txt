@@ -57,7 +57,7 @@ The easiest approach is to use the `MPIExec` Launchers in :command:`ipcluster`,
 which will first start a controller and then a set of engines using
 :command:`mpiexec`::
 
-    $ ipcluster start n=4 elauncher=MPIExecEngineSetLauncher
+    $ ipcluster start --n=4 --elauncher=MPIExecEngineSetLauncher
 
 This approach is best as interrupting :command:`ipcluster` will automatically
 stop and clean up the controller and engines.
@@ -68,14 +68,14 @@ Manual starting using :command:`mpiexec`
 If you want to start the IPython engines using the :command:`mpiexec`, just
 do::
 
-    $ mpiexec n=4 ipengine mpi=mpi4py
+    $ mpiexec n=4 ipengine --mpi=mpi4py
 
 This requires that you already have a controller running and that the FURL
 files for the engines are in place. We also have built in support for
 PyTrilinos [PyTrilinos]_, which can be used (assuming is installed) by
 starting the engines with::
 
-    $ mpiexec n=4 ipengine mpi=pytrilinos
+    $ mpiexec n=4 ipengine --mpi=pytrilinos
 
 Automatic starting using PBS and :command:`ipcluster`
 ------------------------------------------------------
@@ -110,7 +110,7 @@ distributed array. Save the following text in a file called :file:`psum.py`:
 
 Now, start an IPython cluster::
 
-    $ ipcluster start profile=mpi n=4
+    $ ipcluster start --profile=mpi --n=4
     
 .. note::
 
