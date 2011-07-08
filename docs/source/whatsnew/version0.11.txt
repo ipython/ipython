@@ -300,7 +300,7 @@ Backwards incompatible changes
   from the command-line with the same syntax as in a configuration file.
 
 * The command line options ``-wthread``, ``-qthread`` and
-  ``-gthread`` have been removed. Use ``gui=wx``, ``gui=qt``, ``gui=gtk``
+  ``-gthread`` have been removed. Use ``--gui=wx``, ``--gui=qt``, ``--gui=gtk``
   instead.
 
 * The extension loading functions have been renamed to
