@@ -35,7 +35,7 @@ the ``ip`` argument on the command-line, or the ``HubFactory.ip`` configurable i
 If your machines are on a trusted network, you can safely instruct the controller to listen
 on all public interfaces with::
 
-    $> ipcontroller ip=*
+    $> ipcontroller --ip=*
 
 Or you can set the same behavior as the default by adding the following line to your :file:`ipcontroller_config.py`:
 
@@ -109,7 +109,7 @@ The simplest way to use ipcluster requires no configuration, and will
 launch a controller and a number of engines on the local machine. For instance, 
 to start one controller and 4 engines on localhost, just do::
 
-    $ ipcluster start n=4
+    $ ipcluster start --n=4
 
 To see other command line options, do::
 
@@ -121,7 +121,7 @@ Configuring an IPython cluster
 
 Cluster configurations are stored as `profiles`.  You can create a new profile with::
 
-    $ ipython profile create --parallel profile=myprofile
+    $ ipython profile create --parallel --profile=myprofile
 
 This will create the directory :file:`IPYTHONDIR/profile_myprofile`, and populate it
 with the default configuration files for the three IPython cluster commands. Once
@@ -162,7 +162,7 @@ The mpiexec/mpirun mode is useful if you:
 
 If these are satisfied, you can create a new profile::
 
-    $ ipython profile create --parallel profile=mpi
+    $ ipython profile create --parallel --profile=mpi
 
 and edit the file :file:`IPYTHONDIR/profile_mpi/ipcluster_config.py`.
 
@@ -174,7 +174,7 @@ There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
-    $ ipcluster start n=4 profile=mpi
+    $ ipcluster start --n=4 --profile=mpi
 
 This does the following:
 
@@ -219,7 +219,7 @@ The PBS mode uses the Portable Batch System (PBS) to start the engines.
 
 As usual, we will start by creating a fresh profile::
 
-    $ ipython profile create --parallel profile=pbs
+    $ ipython profile create --parallel --profile=pbs
 
 And in :file:`ipcluster_config.py`, we will select the PBS launchers for the controller
 and engines:
@@ -253,7 +253,7 @@ to specify your own. Here is a sample PBS script template:
     cd $PBS_O_WORKDIR
     export PATH=$HOME/usr/local/bin
     export PYTHONPATH=$HOME/usr/local/lib/python2.7/site-packages
-    /usr/local/bin/mpiexec -n {n} ipengine profile_dir={profile_dir}
+    /usr/local/bin/mpiexec -n {n} ipengine --profile_dir={profile_dir}
 
 There are a few important points about this template:
 
@@ -288,7 +288,7 @@ The controller template should be similar, but simpler:
     cd $PBS_O_WORKDIR
     export PATH=$HOME/usr/local/bin
     export PYTHONPATH=$HOME/usr/local/lib/python2.7/site-packages
-    ipcontroller profile_dir={profile_dir}
+    ipcontroller --profile_dir={profile_dir}
 
 
 Once you have created these scripts, save them with names like
@@ -324,7 +324,7 @@ connections on all its interfaces, by adding in :file:`ipcontroller_config`:
 
 You can now run the cluster with::
 
-    $ ipcluster start profile=pbs n=128
+    $ ipcluster start --profile=pbs --n=128
 
 Additional configuration options can be found in the PBS section of :file:`ipcluster_config`.
 
@@ -349,7 +349,7 @@ nodes and :command:`ipcontroller` can be run remotely as well, or on localhost.
 
 As usual, we start by creating a clean profile::
 
-    $ ipython profile create --parallel profile=ssh
+    $ ipython profile create --parallel --profile=ssh
 
 To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
@@ -374,7 +374,7 @@ The controller's remote location and configuration can be specified:
     # note that remotely launched ipcontroller will not get the contents of 
     # the local ipcontroller_config.py unless it resides on the *remote host*
     # in the location specified by the `profile_dir` argument.
-    # c.SSHControllerLauncher.program_args = ['--reuse', 'ip=*', 'profile_dir=/path/to/cd']
+    # c.SSHControllerLauncher.program_args = ['--reuse', '--ip=*', '--profile_dir=/path/to/cd']
 
 .. note::
 
@@ -390,7 +390,7 @@ on that host.
 
     c.SSHEngineSetLauncher.engines = { 'host1.example.com' : 2,
                 'host2.example.com' : 5,
-                'host3.example.com' : (1, ['profile_dir=/home/different/location']),
+                'host3.example.com' : (1, ['--profile_dir=/home/different/location']),
                 'host4.example.com' : 8 }
 
 * The `engines` dict, where the keys are the host we want to run engines on and
@@ -403,7 +403,7 @@ a single location:
 
 .. sourcecode:: python
 
-    c.SSHEngineSetLauncher.engine_args = ['profile_dir=/path/to/profile_ssh']
+    c.SSHEngineSetLauncher.engine_args = ['--profile_dir=/path/to/profile_ssh']
 
 Current limitations of the SSH mode of :command:`ipcluster` are:
 
@@ -471,12 +471,12 @@ can do this:
 
 * Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/profile_<name>/security`
   directory on the engine's host, where it will be found automatically.
-* Call :command:`ipengine` with the ``file=full_path_to_the_file``
+* Call :command:`ipengine` with the ``--file=full_path_to_the_file``
   flag.
 
 The ``file`` flag works like this::
 
-    $ ipengine file=/path/to/my/ipcontroller-engine.json
+    $ ipengine --file=/path/to/my/ipcontroller-engine.json
 
 .. note::
     

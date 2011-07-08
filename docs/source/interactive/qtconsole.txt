@@ -20,7 +20,7 @@ configurable.
 ``%loadpy``
 ===========
 
-The ``%loadpy`` magic has been added, just for the GUI frontend. It takes any python
+The new ``%loadpy`` magic takes any python
 script (must end in '.py'), and pastes its contents as your next input, so you can edit it
 before executing. The script may be on your machine, but you can also specify a url, and
 it will download the script from the web. This is particularly useful for playing with
@@ -28,8 +28,7 @@ examples from documentation, such as matplotlib.
 
 .. sourcecode:: ipython
 
-    In [6]: %loadpy 
-    http://matplotlib.sourceforge.net/plot_directive/mpl_examples/mplot3d/contour3d_demo.py
+    In [6]: %loadpy http://matplotlib.sourceforge.net/plot_directive/mpl_examples/mplot3d/contour3d_demo.py
 
     In [7]: from mpl_toolkits.mplot3d import axes3d
        ...: import matplotlib.pyplot as plt
@@ -64,12 +63,13 @@ them in your document. This is especially useful for saving_ your work.
 
 .. _inline:
 
-``pylab=inline``
+``--pylab=inline``
 ******************
 
 If you want to have all of your figures embedded in your session, instead of calling
-:func:`pastefig`, you can specify ``pylab=inline``, and each time you make a plot, it
-will show up in your document, as if you had called :func:`pastefig`.
+:func:`pastefig`, you can specify ``--pylab=inline`` when you start the console,
+and each time you make a plot, it will show up in your document, as if you had
+called :func:`pastefig`.
 
 
 .. _saving:
@@ -116,7 +116,7 @@ if unspecified, will be guessed based on the chosen style. Similarly, there are 
 styles associated with each ``colors`` option.
 
 
-Screenshot of ``ipython qtconsole colors=linux``, which uses the 'monokai' theme by
+Screenshot of ``ipython qtconsole --colors=linux``, which uses the 'monokai' theme by
 default:
 
 .. image:: figs/colors_dark.png
@@ -147,7 +147,7 @@ Fonts
 The QtConsole has configurable via the ConsoleWidget. To change these, set the ``font_family``
 or ``font_size`` traits of the ConsoleWidget. For instance, to use 9pt Anonymous Pro::
 
-    $> ipython qtconsole ConsoleWidget.font_family="Anonymous Pro" ConsoleWidget.font_size=9
+    $> ipython qtconsole --ConsoleWidget.font_family="Anonymous Pro" --ConsoleWidget.font_size=9
 
 Process Management
 ==================
@@ -167,7 +167,7 @@ do not have to all be qt frontends - any IPython frontend can connect and run co
 When you start ipython qtconsole, there will be an output line, like::
 
     To connect another client to this kernel, use:
-    --external shell=62109 iopub=62110 stdin=62111 hb=62112
+    --external --shell=62109 --iopub=62110 --stdin=62111 --hb=62112
 
 Other frontends can connect to your kernel, and share in the execution. This is great for
 collaboration. The `-e` flag is for 'external'. Starting other consoles with that flag
@@ -178,7 +178,7 @@ By default (for security reasons), the kernel only listens on localhost, so you 
 connect multiple frontends to the kernel from your local machine. You can specify to
 listen on an external interface by specifying the ``ip`` argument::
 
-    $> ipython qtconsole ip=192.168.1.123
+    $> ipython qtconsole --ip=192.168.1.123
 
 If you specify the ip as 0.0.0.0, that refers to all interfaces, so any computer that can
 see yours can connect to the kernel.
