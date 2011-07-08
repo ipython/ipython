@@ -83,19 +83,19 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
     # Build the kernel launch command.
     if executable is None:
         executable = sys.executable
-    arguments = [ executable, '-c', code, 'shell=%i'%shell_port,
-                  'iopub=%i'%iopub_port, 'stdin=%i'%stdin_port,
-                  'hb=%i'%hb_port
+    arguments = [ executable, '-c', code, '--shell=%i'%shell_port,
+                  '--iopub=%i'%iopub_port, '--stdin=%i'%stdin_port,
+                  '--hb=%i'%hb_port
     ]
     if ip is not None:
-        arguments.append('ip=%s'%ip)
+        arguments.append('--ip=%s'%ip)
     arguments.extend(extra_arguments)
 
     # Spawn a kernel.
     if sys.platform == 'win32':
         # Create a Win32 event for interrupting the kernel.
         interrupt_event = ParentPollerWindows.create_interrupt_event()
-        arguments += [ 'interrupt=%i'%interrupt_event ]
+        arguments += [ '--interrupt=%i'%interrupt_event ]
 
         # If this process in running on pythonw, stdin, stdout, and stderr are
         # invalid. Popen will fail unless they are suitably redirected. We don't
@@ -133,7 +133,7 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
             handle = DuplicateHandle(pid, pid, pid, 0, 
                                      True, # Inheritable by new processes.
                                      DUPLICATE_SAME_ACCESS)
-            proc = Popen(arguments + ['parent=%i'%int(handle)],
+            proc = Popen(arguments + ['--parent=%i'%int(handle)],
                          stdin=_stdin, stdout=_stdout, stderr=_stderr)
 
         # Attach the interrupt event to the Popen objet so it can be used later.
@@ -153,7 +153,6 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
             proc = Popen(arguments, preexec_fn=lambda: os.setsid(),
                          stdin=stdin, stdout=stdout, stderr=stderr)
         else:
-            proc = Popen(arguments + ['parent=1'],
+            proc = Popen(arguments + ['--parent=1'],
                          stdin=stdin, stdout=stdout, stderr=stderr)
-
     return proc, shell_port, iopub_port, stdin_port, hb_port

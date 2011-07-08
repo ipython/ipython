@@ -119,7 +119,7 @@ class TestKeyValueCL(TestCase):
 
     def test_basic(self):
         cl = KeyValueConfigLoader()
-        argv = [s.strip('c.') for s in pyfile.split('\n')[2:-1]]
+        argv = ['--'+s.strip('c.') for s in pyfile.split('\n')[2:-1]]
         config = cl.load_config(argv)
         self.assertEquals(config.a, 10)
         self.assertEquals(config.b, 20)
@@ -129,21 +129,21 @@ class TestKeyValueCL(TestCase):
     
     def test_extra_args(self):
         cl = KeyValueConfigLoader()
-        config = cl.load_config(['a=5', 'b', 'c=10', 'd'])
-        self.assertEquals(cl.extra_args, ['b', 'c=10' , 'd'])
+        config = cl.load_config(['--a=5', 'b', '--c=10', 'd'])
+        self.assertEquals(cl.extra_args, ['b', '--c=10' , 'd'])
         self.assertEquals(config.a, 5)
         self.assertRaises(AttributeError, getattr, config, 'c')
-        config = cl.load_config(['--', 'a=5', 'c=10'])
-        self.assertEquals(cl.extra_args, ['a=5', 'c=10'])
+        config = cl.load_config(['--', '--a=5', '--c=10'])
+        self.assertEquals(cl.extra_args, ['--a=5', '--c=10'])
     
     def test_unicode_args(self):
         cl = KeyValueConfigLoader()
-        argv = [u'a=épsîlön']
+        argv = [u'--a=épsîlön']
         config = cl.load_config(argv)
         self.assertEquals(config.a, u'épsîlön')
     
     def test_unicode_bytes_args(self):
-        uarg = u'a=é'
+        uarg = u'--a=é'
         try:
             barg = uarg.encode(sys.stdin.encoding)
         except (TypeError, UnicodeEncodeError):

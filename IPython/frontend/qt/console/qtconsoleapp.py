@@ -293,10 +293,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
         self.kernel_argv = list(argv) # copy
         # kernel should inherit default config file from frontend
-        self.kernel_argv.append("KernelApp.parent_appname='%s'"%self.name)
+        self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
         # scrub frontend-specific flags
         for a in argv:
-            if a.startswith('--') and a[2:] in qt_flags:
+            if a.startswith('-') and a.lstrip('-') in qt_flags:
                 self.kernel_argv.remove(a)
 
     def init_kernel_manager(self):

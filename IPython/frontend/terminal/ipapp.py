@@ -146,7 +146,8 @@ flags['quick']=(
 
 flags['i'] = (
     {'TerminalIPythonApp' : {'force_interact' : True}},
-    "If running code from the command line, become interactive afterwards."
+    """also works as '-i'
+    If running code from the command line, become interactive afterwards."""
 )
 flags['pylab'] = (
     {'TerminalIPythonApp' : {'pylab' : 'auto'}},

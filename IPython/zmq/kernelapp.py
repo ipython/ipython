@@ -166,7 +166,7 @@ class KernelApp(BaseIPythonApplication):
         # single-port connection negotiation fully implemented.
         # set log-level to critical, to make sure it is output
         self.log.critical("To connect another client to this kernel, use:")
-        self.log.critical("--existing shell={0} iopub={1} stdin={2} hb={3}".format(
+        self.log.critical("--existing --shell={0} --iopub={1} --stdin={2} --hb={3}".format(
             self.shell_port, self.iopub_port, self.stdin_port, self.hb_port))
 
 

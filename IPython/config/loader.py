@@ -325,15 +325,15 @@ class CommandLineConfigLoader(ConfigLoader):
     here.
     """
 
-kv_pattern = re.compile(r'[A-Za-z]\w*(\.\w+)*\=.*')
-flag_pattern = re.compile(r'\w+(\-\w)*')
+kv_pattern = re.compile(r'\-\-[A-Za-z]\w*(\.\w+)*\=.*')
+flag_pattern = re.compile(r'\-\-?\w+[\-\w]*$')
 
 class KeyValueConfigLoader(CommandLineConfigLoader):
     """A config loader that loads key value pairs from the command line.
 
     This allows command line options to be gives in the following form::
     
-        ipython Global.profile="foo" InteractiveShell.autocall=False
+        ipython --profile="foo" --InteractiveShell.autocall=False
     """
 
     def __init__(self, argv=None, aliases=None, flags=None):
@@ -364,7 +364,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
 
             >>> from IPython.config.loader import KeyValueConfigLoader
             >>> cl = KeyValueConfigLoader()
-            >>> cl.load_config(["foo='bar'","A.name='brian'","B.number=0"])
+            >>> cl.load_config(["--foo='bar'","--A.name='brian'","--B.number=0"])
             {'A': {'name': 'brian'}, 'B': {'number': 0}, 'foo': 'bar'}
         """
         self.clear()
@@ -437,7 +437,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 self.extra_args.extend(uargv[idx+1:])
                 break
             
-            if kv_pattern.match(item):
+            if kv_pattern.match(raw):
                 lhs,rhs = item.split('=',1)
                 # Substitute longnames for aliases.
                 if lhs in aliases:
@@ -455,17 +455,24 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     # it succeeds. If it still fails, we let it raise.
                     exec_str = u'self.config.' + lhs + '=' + repr(rhs)
                     exec exec_str in locals(), globals()
-            elif item in flags:
-                cfg,help = flags[item]
-                if isinstance(cfg, (dict, Config)):
-                    # don't clobber whole config sections, update
-                    # each section from config:
-                    for sec,c in cfg.iteritems():
-                        self.config[sec].update(c)
+            elif flag_pattern.match(raw):
+                if item in flags:
+                    cfg,help = flags[item]
+                    if isinstance(cfg, (dict, Config)):
+                        # don't clobber whole config sections, update
+                        # each section from config:
+                        for sec,c in cfg.iteritems():
+                            self.config[sec].update(c)
+                    else:
+                        raise ValueError("Invalid flag: '%s'"%raw)
                 else:
-                    raise ValueError("Invalid flag: '%s'"%raw)
+                    raise ArgumentError("Unrecognized flag: '%s'"%raw)
             elif raw.startswith('-'):
-                raise ArgumentError("invalid argument: '%s'"%raw)
+                kv = '--'+item
+                if kv_pattern.match(kv):
+                    raise ArgumentError("Invalid argument: '%s', did you mean '%s'?"%(raw, kv))
+                else:
+                    raise ArgumentError("Invalid argument: '%s'"%raw)
             else:
                 # keep all args that aren't valid in a list, 
                 # in case our parent knows what to do with them.
