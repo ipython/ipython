@@ -50,7 +50,7 @@ to your configuration file::
         'myextension'
     ]
 
-To load that same extension at runtime, use the ``%load_ext`` magic::
+To load that same extension at runtime, use the ``%load_ext`` magic:
 
 .. sourcecode:: ipython
 

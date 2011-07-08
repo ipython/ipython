@@ -35,7 +35,7 @@ version 0.11, these have been removed. Please see the new ``%gui``
 magic command or :ref:`this section <gui_support>` for details on the new
 interface, or specify the gui at the commandline::
 
-    $ ipython gui=qt
+    $ ipython --gui=qt
 
 
 Regular Options
@@ -59,7 +59,7 @@ All options with a [no] prepended can be specified in negated form
     See :ref:`Matplotlib support <matplotlib_support>`
     for more details.
 
-    ``autocall=<val>``
+    ``--autocall=<val>``
 	Make IPython automatically call any callable object even if you
 	didn't type explicit parentheses. For example, 'str 43' becomes
 	'str(43)' automatically. The value can be '0' to disable the feature,
@@ -83,11 +83,11 @@ All options with a [no] prepended can be specified in negated form
     ``--[no-]banner``
 	Print the initial information banner (default on).
 
-    ``c=<command>``
+    ``--c=<command>``
 	execute the given command string. This is similar to the -c
 	option in the normal Python interpreter.
 
-    ``cache_size=<n>``
+    ``--cache_size=<n>``
 	size of the output cache (maximum number of entries to hold in
 	memory). The default is 1000, you can change it permanently in your
 	config file. Setting it to 0 completely disables the caching system,
@@ -100,7 +100,7 @@ All options with a [no] prepended can be specified in negated form
 	Gives IPython a similar feel to the classic Python
 	prompt.
 
-    ``colors=<scheme>``
+    ``--colors=<scheme>``
 	Color scheme for prompts and exception reporting. Currently
 	implemented: NoColor, Linux and LightBG.
 
@@ -135,7 +135,7 @@ All options with a [no] prepended can be specified in negated form
 	feature is off by default [which means that you have both
 	normal reload() and dreload()].
 
-    ``editor=<name>``
+    ``--editor=<name>``
 	Which editor to use with the %edit command. By default,
 	IPython will honor your EDITOR environment variable (if not
 	set, vi is the Unix default and notepad the Windows one).
@@ -144,12 +144,12 @@ All options with a [no] prepended can be specified in negated form
 	small, lightweight editor here (in case your default EDITOR is
 	something like Emacs).
 
-    ``ipython_dir=<name>``
+    ``--ipython_dir=<name>``
 	name of your IPython configuration directory IPYTHON_DIR. This
 	can also be specified through the environment variable
 	IPYTHON_DIR.
 
-    ``logfile=<name>``
+    ``--logfile=<name>``
         specify the name of your logfile.
         
         This implies ``%logstart`` at the beginning of your session
@@ -160,7 +160,7 @@ All options with a [no] prepended can be specified in negated form
         can use this to later restore a session by loading your
         logfile with ``ipython --i ipython_log.py``
 
-    ``logplay=<name>``
+    ``--logplay=<name>``
     
       NOT AVAILABLE in 0.11
 
@@ -201,7 +201,7 @@ All options with a [no] prepended can be specified in negated form
 	of nested data structures. If you like it, you can turn it on
 	permanently in your config file (default off).
 
-    ``profile=<name>``
+    ``--profile=<name>``
 
 	Select the IPython profile by name.
     
@@ -263,7 +263,7 @@ All options with a [no] prepended can be specified in negated form
 	IPython's readline and syntax coloring fine, only 'emacs' (M-x
 	shell and C-c !) buffers do not.
 
-    ``TerminalInteractiveShell.screen_length=<n>``
+    ``--TerminalInteractiveShell.screen_length=<n>``
 	number of lines of your screen. This is used to control
 	printing of very long strings. Strings longer than this number
 	of lines will be sent through a pager instead of directly
@@ -276,16 +276,16 @@ All options with a [no] prepended can be specified in negated form
 	reason this isn't working well (it needs curses support), specify
 	it yourself. Otherwise don't change the default.
 
-    ``TerminalInteractiveShell.separate_in=<string>``
+    ``--TerminalInteractiveShell.separate_in=<string>``
 
 	separator before input prompts.
 	Default: '\n'
 
-    ``TerminalInteractiveShell.separate_out=<string>``
+    ``--TerminalInteractiveShell.separate_out=<string>``
         separator before output prompts.
         Default: nothing.
 
-    ``TerminalInteractiveShell.separate_out2=<string>``
+    ``--TerminalInteractiveShell.separate_out2=<string>``
 	separator after output prompts.
 	Default: nothing.
 	For these three options, use the value 0 to specify no separator.
@@ -304,7 +304,7 @@ All options with a [no] prepended can be specified in negated form
 
     ``--version``    print version information and exit.
 
-    ``xmode=<modename>``
+    ``--xmode=<modename>``
 
 	Mode for exception reporting.
 

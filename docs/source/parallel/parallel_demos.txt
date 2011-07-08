@@ -103,7 +103,7 @@ calculation, we will need two top-level functions from :file:`pidigits.py`:
 
 .. literalinclude:: ../../examples/newparallel/pidigits.py
    :language: python
-   :lines: 41-56
+   :lines: 47-62
 
 We will also use the :func:`plot_two_digit_freqs` function to plot the
 results. The code to run this calculation in parallel is contained in
