@@ -349,7 +349,8 @@ We basically need to be able to test the following types of code:
    Nose will pick them up as long as they conform to the (flexible) conventions
    used by nose to recognize tests.
 
-2. Python files containing doctests.  Here, we have two possibilities:
+2. Python files containing doctests. Here, we have two possibilities:
+   
    - The prompts are the usual ``>>>`` and the input is pure Python.
    - The prompts are of the form ``In [1]:`` and the input can contain extended
      IPython expressions.
@@ -361,6 +362,7 @@ We basically need to be able to test the following types of code:
 
 3. ReStructuredText files that contain code blocks.  For this type of file, we
    have three distinct possibilities for the code blocks:
+   
    - They use ``>>>`` prompts.
    - They use ``In [1]:`` prompts.
    - They are standalone blocks of pure Python code without any prompts.

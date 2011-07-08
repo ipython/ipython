@@ -336,7 +336,7 @@ Let's start by showing how a profile is used:
 
 .. code-block:: bash
 
-    $ ipython profile=sympy
+    $ ipython --profile=sympy
 
 This tells the :command:`ipython` command line program to get its configuration
 from the "sympy" profile. The file names for various profiles do not change. The
@@ -350,7 +350,7 @@ The general pattern is this: simply create a new profile with:
     ipython profile create <name>
 
 which adds a directory called ``profile_<name>`` to your IPython directory. Then
-you can load this profile by adding ``profile=<name>`` to your command line
+you can load this profile by adding ``--profile=<name>`` to your command line
 options. Profiles are supported by all IPython applications.
 
 IPython ships with some sample profiles in :file:`IPython/config/profile`. If
@@ -374,7 +374,7 @@ object.  Values are assigned in much the same way as in a config file:
 
 .. code-block:: bash
 
-    $> ipython InteractiveShell.use_readline=False BaseIPythonApplication.profile='myprofile'
+    $> ipython --InteractiveShell.use_readline=False --BaseIPythonApplication.profile='myprofile'
 
 Is the same as adding:
 
@@ -394,9 +394,9 @@ used traits, so you don't have to specify the whole class name. For these **alia
 
 .. code-block:: bash
 
-    $> ipython profile='myprofile'
+    $> ipython --profile='myprofile'
     # is equivalent to
-    $> ipython BaseIPythonApplication.profile='myprofile'
+    $> ipython --BaseIPythonApplication.profile='myprofile'
 
 Flags
 -----
@@ -411,11 +411,11 @@ For instance:
 
     $> ipcontroller --debug
     # is equivalent to
-    $> ipcontroller Application.log_level=DEBUG
+    $> ipcontroller --Application.log_level=DEBUG
     # and 
     $> ipython --pylab
     # is equivalent to
-    $> ipython pylab=auto
+    $> ipython --pylab=auto
 
 Subcommands
 -----------
@@ -427,14 +427,14 @@ Some IPython applications have **subcommands**. Subcommands are modeled after
 
 .. code-block:: bash
 
-    $> ipython qtconsole profile=myprofile
+    $> ipython qtconsole --profile=myprofile
 
 and :command:`ipcluster` is simply a wrapper for its various subcommands (start,
 stop, engines).
 
 .. code-block:: bash
 
-    $> ipcluster start profile=myprofile n=4
+    $> ipcluster start --profile=myprofile --n=4
 
 
 To see a list of the available aliases, flags, and subcommands for an IPython application, simply pass ``-h`` or ``--help``.  And to see the full list of configurable options (*very* long), pass ``--help-all``.
