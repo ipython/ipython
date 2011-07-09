@@ -434,13 +434,7 @@ def check_for_old_config(ipython_dir=None):
             if filehash(f) == old_config_md5.get(cfg, ''):
                 os.unlink(f)
             else:
-                oldf = f+'.old'
-                i = 0
-                while os.path.exists(oldf):
-                    oldf = f+'.old.%i'%i
-                    i += 1
-                os.rename(f, oldf)
-                warn.warn("Renamed old IPython config file '%s' to '%s'." % (f, oldf))
+                warn.warn("Found old IPython config file %r (modified by user)"%f)
                 warned = True
     
     if warned:
@@ -451,6 +445,6 @@ def check_for_old_config(ipython_dir=None):
   To start configuring IPython, do `ipython profile create`, and edit
   `ipython_config.py` in <ipython_dir>/profile_default.
   If you need to leave the old config files in place for an older version of
-  IPython, set `c.InteractiveShellApp.ignore_old_config=True` in the new config.""")
-        
+  IPython and want to suppress this warning message, set
+  `c.InteractiveShellApp.ignore_old_config=True` in the new config.""")
 
