@@ -318,9 +318,9 @@ class TestView(ClusterTestCase):
         sys.stdout = sio
         ip.magic_px('print a')
         sys.stdout = savestdout
-        sio.read()
-        self.assertTrue('[stdout:%i]'%v.targets in sio.buf)
-        self.assertTrue(sio.buf.rstrip().endswith('10'))
+        buf = sio.getvalue()
+        self.assertTrue('[stdout:%i]'%v.targets in buf)
+        self.assertTrue(buf.rstrip().endswith('10'))
         self.assertRaisesRemote(ZeroDivisionError, ip.magic_px, '1/0')
 
     def test_magic_px_nonblocking(self):
@@ -338,8 +338,8 @@ class TestView(ClusterTestCase):
         sys.stdout = sio
         ip.magic_px('print a')
         sys.stdout = savestdout
-        sio.read()
-        self.assertFalse('[stdout:%i]'%v.targets in sio.buf)
+        buf = sio.getvalue()
+        self.assertFalse('[stdout:%i]'%v.targets in buf)
         ip.magic_px('1/0')
         ar = v.get_result(-1)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
@@ -360,8 +360,7 @@ class TestView(ClusterTestCase):
         ip.run_code(compile('b*=2', '', 'single'))
         ip.magic_autopx()
         sys.stdout = savestdout
-        sio.read()
-        output = sio.buf.strip()
+        output = sio.getvalue().strip()
         self.assertTrue(output.startswith('%autopx enabled'))
         self.assertTrue(output.endswith('%autopx disabled'))
         self.assertTrue('RemoteError: ZeroDivisionError' in output)
@@ -386,8 +385,7 @@ class TestView(ClusterTestCase):
         ip.run_code(compile('b*=2', '', 'single'))
         ip.magic_autopx()
         sys.stdout = savestdout
-        sio.read()
-        output = sio.buf.strip()
+        output = sio.getvalue().strip()
         self.assertTrue(output.startswith('%autopx enabled'))
         self.assertTrue(output.endswith('%autopx disabled'))
         self.assertFalse('ZeroDivisionError' in output)
