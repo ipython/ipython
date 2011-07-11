@@ -187,11 +187,15 @@ class InteractiveShellApp(Configurable):
             self.shell.showtraceback()
 
     def _exec_file(self, fname):
-        full_filename = filefind(fname, [u'.', self.ipython_dir])
+        try:
+            full_filename = filefind(fname, [u'.', self.ipython_dir])
+        except IOError as e:
+            self.log.warn("File not found: %r"%fname)
+            return
         # Make sure that the running script gets a proper sys.argv as if it
         # were run from a system shell.
         save_argv = sys.argv
-        sys.argv = sys.argv[sys.argv.index(fname):]
+        sys.argv = [full_filename] + self.extra_args[1:]
         try:
             if os.path.isfile(full_filename):
                 if full_filename.endswith('.ipy'):
