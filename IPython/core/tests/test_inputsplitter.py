@@ -200,6 +200,21 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push("if 1:")
         isp.push("    x = (1+\n    2)")
         self.assertEqual(isp.indent_spaces, 4)
+    
+    def test_indent4(self):
+        # In cell mode, inputs must be fed in whole blocks, so skip this test
+        if self.isp.input_mode == 'cell': return
+
+        isp = self.isp
+        # whitespace after ':' should not screw up indent level
+        isp.push('if 1: \n    x=1')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('y=2\n')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\t\n    x=1')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('y=2\n')
+        self.assertEqual(isp.indent_spaces, 0)
 
     def test_dedent_pass(self):
         isp = self.isp # shorthand
