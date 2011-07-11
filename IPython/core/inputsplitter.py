@@ -434,7 +434,7 @@ class InputSplitter(object):
                 #print 'Full dedent in text',self.source # dbg
                 full_dedent = True
 
-        if line[-1] == ':':
+        if line.rstrip()[-1] == ':':
             indent_spaces += 4
         elif dedent_re.match(line):
             indent_spaces -= 4
