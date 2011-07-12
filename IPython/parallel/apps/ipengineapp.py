@@ -66,7 +66,7 @@ See the `profile` and `profile_dir` options for details.
 
 _examples = """
 ipengine --ip=192.168.0.1 --port=1000     # connect to hub at ip and port
-ipengine --log_to_file --log_level=DEBUG  # log to a file with DEBUG verbosity
+ipengine --log-to-file --log_level=DEBUG  # log to a file with DEBUG verbosity
 """
 
 #-----------------------------------------------------------------------------
