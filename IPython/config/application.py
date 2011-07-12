@@ -89,7 +89,9 @@ class Application(SingletonConfigurable):
     option_description = Unicode(option_description)
     keyvalue_description = Unicode(keyvalue_description)
     subcommand_description = Unicode(subcommand_description)
-    
+
+    # The usage and example string that goes at the end of the help string.
+    examples = Unicode()
 
     # A sequence of Configurable subclasses whose config=True attributes will
     # be exposed at the command line.
@@ -170,7 +172,7 @@ class Application(SingletonConfigurable):
         self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
         self._log_handler.setFormatter(self._log_formatter)
         self.log.addHandler(self._log_handler)
-    
+
     def initialize(self, argv=None):
         """Do the basic steps to configure me.
         
@@ -285,6 +287,19 @@ class Application(SingletonConfigurable):
             print p
             print
 
+    def print_examples(self):
+        """Print usage and examples.
+
+        This usage string goes at the end of the command line help string
+        and should contain examples of the application's usage.
+        """
+        if self.examples:
+            print "Examples"
+            print "--------"
+            print
+            print indent(dedent(self.examples.strip()))
+            print
+
     def print_version(self):
         """Print the version string."""
         print self.version
@@ -327,6 +342,7 @@ class Application(SingletonConfigurable):
         if '-h' in argv or '--help' in argv or '--help-all' in argv:
             self.print_description()
             self.print_help('--help-all' in argv)
+            self.print_examples()
             self.exit(0)
 
         if '--version' in argv:
@@ -341,6 +357,7 @@ class Application(SingletonConfigurable):
         except (TraitError, ArgumentError) as e:
             self.print_description()
             self.print_help()
+            self.print_examples()
             self.log.fatal(str(e))
             self.exit(1)
         # store unparsed args in extra_args

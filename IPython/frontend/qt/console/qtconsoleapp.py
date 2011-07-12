@@ -218,6 +218,12 @@ aliases.update(dict(
 #-----------------------------------------------------------------------------
 # IPythonQtConsole
 #-----------------------------------------------------------------------------
+
+qt_examples = """
+ipython qtconsole                 # start the qtconsole
+ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
+"""
+
 class IPythonQtConsoleApp(BaseIPythonApplication):
     name = 'ipython-qtconsole'
     default_config_file_name='ipython_config.py'
@@ -231,7 +237,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         The QtConsole supports various extra features beyond the
         
     """
-    
+    examples = qt_examples
+
     classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir, Session]
     flags = Dict(flags)
     aliases = Dict(aliases)

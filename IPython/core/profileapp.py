@@ -79,7 +79,6 @@ where you can edit ipython_config.py to start configuring IPython.
 #-----------------------------------------------------------------------------
 
 
-
 class ProfileList(Application):
     name = u'ipython-profile'
     description = list_help
@@ -128,9 +127,15 @@ create_flags.update(boolean_flag('parallel', 'ProfileCreate.parallel',
                 "Include parallel computing config files", 
                 "Don't include parallel computing config files"))
 
+create_examples = """
+ipython profile create foo        # create profile foo
+ipython profile create foo --init # create with default config files
+"""
+
 class ProfileCreate(BaseIPythonApplication):
     name = u'ipython-profile'
     description = create_help
+    examples = create_examples
     auto_create = Bool(True, config=False)
     
     def _copy_config_files_default(self):
@@ -199,10 +204,16 @@ class ProfileCreate(BaseIPythonApplication):
     def stage_default_config_file(self):
         pass
 
+main_examples = """
+ipython profile create -h  # show the help string for the create subcommand
+ipython profile list -h    # show the help string for the list subcommand
+"""
+
 class ProfileApp(Application):
     name = u'ipython-profile'
     description = profile_help
-    
+    examples = main_examples
+
     subcommands = Dict(dict(
         create = (ProfileCreate, "Create a new profile dir with default config files"),
         list = (ProfileList, "List existing profiles")
