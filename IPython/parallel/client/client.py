@@ -343,6 +343,9 @@ class Client(HasTraits):
             If this is true, you should specify Client(...,sshserver='you@%s')
             or instruct your controller to listen on an external IP."""%location,
                 RuntimeWarning)
+        elif not sshserver:
+            # otherwise sync with cfg
+            sshserver = cfg['ssh']
         
         self._config = cfg
         
