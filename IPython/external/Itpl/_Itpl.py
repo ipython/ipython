@@ -196,7 +196,7 @@ class Itpl:
         for live, chunk in self.chunks:
             if live: app(str(eval(chunk,glob,loc)))
             else: app(chunk)
-        out = u''.join(result)
+        out = ''.join(result)
         try:
             return str(out)
         except UnicodeError:
@@ -212,9 +212,6 @@ class Itpl:
         loc, glob = frame.f_locals, frame.f_globals
 
         return self._str(glob,loc)
-
-    def encode(self, encoding, errors):
-        return str(self)#.encode(encoding, errors)
     
 class ItplNS(Itpl):
     """Class representing a string with interpolation abilities.
