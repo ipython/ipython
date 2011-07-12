@@ -70,7 +70,7 @@ class SessionManager(SessionFactory):
     def create_connected_stream(self, port, socket_type):
         sock = self.context.socket(socket_type)
         addr = "tcp://%s:%i" % (self.kernel_manager.get_kernel_ip(self.kernel_id), port)
-        self.log.info("Connecting to: %s, %r" % (addr, socket_type))
+        self.log.info("Connecting to: %s" % addr)
         sock.connect(addr)
         return ZMQStream(sock)
 

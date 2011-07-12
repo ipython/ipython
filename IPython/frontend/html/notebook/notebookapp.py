@@ -6,6 +6,8 @@
 
 import logging
 import os
+import signal
+import sys
 
 import zmq
 
@@ -16,7 +18,6 @@ import tornado.ioloop
 tornado.ioloop = ioloop
 
 from tornado import httpserver
-from tornado import options
 from tornado import web
 
 from kernelmanager import KernelManager
@@ -28,7 +29,16 @@ from handlers import (
 from routers import IOPubStreamRouter, ShellStreamRouter
 
 from IPython.core.application import BaseIPythonApplication
+from IPython.core.profiledir import ProfileDir
+from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.zmq.session import Session
+from IPython.zmq.zmqshell import ZMQInteractiveShell
+from IPython.zmq.ipkernel import (
+    flags as ipkernel_flags,
+    aliases as ipkernel_aliases,
+    IPKernelApp
+)
+from IPython.utils.traitlets import Dict, Unicode, Int, Any, List, Enum
 
 #-----------------------------------------------------------------------------
 # Module globals
@@ -37,13 +47,15 @@ from IPython.zmq.session import Session
 _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
 
+LOCALHOST = '127.0.0.1'
+
 #-----------------------------------------------------------------------------
 # The Tornado web application
 #-----------------------------------------------------------------------------
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, kernel_manager, log):
+    def __init__(self, kernel_manager, log, kernel_argv):
         handlers = [
             (r"/", MainHandler),
             (r"/kernels", KernelHandler),
@@ -61,7 +73,9 @@ class NotebookWebApplication(web.Application):
 
         self.kernel_manager = kernel_manager
         self.log = log
+        self.kernel_argv = kernel_argv
         self._routers = {}
+        self._session_dict = {}
 
     #-------------------------------------------------------------------------
     # Methods for managing kernels and sessions
@@ -72,9 +86,11 @@ class NotebookWebApplication(web.Application):
         return self.kernel_manager.kernel_ids
 
     def start_kernel(self):
-        # TODO: pass command line options to the kernel in start_kernel()
-        kernel_id = self.kernel_manager.start_kernel()
+        kwargs = dict()
+        kwargs['extra_arguments'] = self.kernel_argv
+        kernel_id = self.kernel_manager.start_kernel(**kwargs)
         self.log.info("Kernel started: %s" % kernel_id)
+        self.log.debug("Kernel args: %r" % kwargs)
         self.start_session_manager(kernel_id)
         return kernel_id
 
@@ -87,7 +103,6 @@ class NotebookWebApplication(web.Application):
         shell_router = ShellStreamRouter(shell_stream)
         self._routers[(kernel_id, 'iopub')] = iopub_router
         self._routers[(kernel_id, 'shell')] = shell_router
-        self.log.debug("Session manager started for kernel: %s" % kernel_id)
 
     def kill_kernel(self, kernel_id):
         sm = self._session_dict.pop(kernel_id)
@@ -139,9 +154,9 @@ aliases = dict(ipkernel_aliases)
 
 aliases.update(dict(
     ip = 'IPythonNotebookApp.ip',
-    port = 'IPythonNotebookApp.port'
+    port = 'IPythonNotebookApp.port',
     colors = 'ZMQInteractiveShell.colors',
-    editor = 'IPythonWidget.editor',
+    editor = 'RichIPythonWidget.editor',
 ))
 
 #-----------------------------------------------------------------------------
@@ -160,11 +175,16 @@ class IPythonNotebookApp(BaseIPythonApplication):
     """
     
     classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session,
-               KernelManager, SessionManager]
+               KernelManager, SessionManager, RichIPythonWidget]
     flags = Dict(flags)
     aliases = Dict(aliases)
 
     kernel_argv = List(Unicode)
+
+    log_level = Enum((0,10,20,30,40,50,'DEBUG','INFO','WARN','ERROR','CRITICAL'),
+                    default_value=logging.INFO,
+                    config=True,
+                    help="Set the log level by value or name.")
 
     # connection info:
     ip = Unicode(LOCALHOST, config=True,
@@ -185,10 +205,10 @@ class IPythonNotebookApp(BaseIPythonApplication):
 
         self.kernel_argv = list(argv) # copy
         # kernel should inherit default config file from frontend
-        self.kernel_argv.append("KernelApp.parent_appname='%s'"%self.name)
+        self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
         # scrub frontend-specific flags
         for a in argv:
-            if a.startswith('--') and a[2:] in qt_flags:
+            if a.startswith('-') and a.lstrip('-') in notebook_flags:
                 self.kernel_argv.remove(a)
 
     def init_kernel_manager(self):
@@ -198,10 +218,17 @@ class IPythonNotebookApp(BaseIPythonApplication):
         # Create a KernelManager and start a kernel.
         self.kernel_manager = KernelManager(config=self.config, log=self.log)
 
+    def init_logging(self):
+        super(IPythonNotebookApp, self).init_logging()
+        # This prevents double log messages because tornado use a root logger that
+        # self.log is a child of. The logging module dipatches log messages to a log
+        # and all of its ancenstors until propagate is set to False.
+        self.log.propagate = False
+
     def initialize(self, argv=None):
         super(IPythonNotebookApp, self).initialize(argv)
-        self.init_kernel_mananger()
-        self.web_app = NotebookWebApplication()
+        self.init_kernel_manager()
+        self.web_app = NotebookWebApplication(self.kernel_manager, self.log, self.kernel_argv)
         self.http_server = httpserver.HTTPServer(self.web_app)
         self.http_server.listen(self.port)
 

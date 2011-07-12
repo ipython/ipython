@@ -11,7 +11,7 @@ import uuid
 
 import zmq
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 from IPython.zmq.ipkernel import launch_kernel
 from IPython.utils.traitlets import Instance, Dict, Unicode
 
@@ -23,16 +23,12 @@ class DuplicateKernelError(Exception):
     pass
 
 
-class KernelManager(Configurable):
+class KernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
 
     context = Instance('zmq.Context')
     def _context_default(self):
         return zmq.Context.instance()
-
-    logname = Unicode('')
-    def _logname_changed(self, name, old, new):
-        self.log = logging.getLogger(new)
 
     _kernels = Dict()
 
@@ -181,6 +177,6 @@ class KernelManager(Configurable):
         from sessionmanager import SessionManager
         return SessionManager(
             kernel_id=kernel_id, kernel_manager=self, 
-            config=self.config, context=self.context, logname=self.logname
+            config=self.config, context=self.context, log=self.log
         )
 
