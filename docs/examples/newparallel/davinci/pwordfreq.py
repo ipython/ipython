@@ -69,7 +69,7 @@ if __name__ == '__main__':
         with open('davinci%i.txt'%i, 'w') as f:
             f.write('\n'.join(chunk))
     
-    cwd = os.path.abspath(os.getcwd())
+    cwd = os.path.abspath(os.getcwdu())
     fnames = [ os.path.join(cwd, 'davinci%i.txt'%i) for i in range(n)]
     tic = time.time()
     pfreqs = pwordfreq(view,fnames)

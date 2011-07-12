@@ -250,7 +250,7 @@ class DocTestCase(doctests.DocTestCase):
             # Save our current directory and switch out to the one where the
             # test was originally created, in case another doctest did a
             # directory change.  We'll restore this in the finally clause.
-            curdir = os.getcwd()
+            curdir = os.getcwdu()
             #print 'runTest in dir:', self._ori_dir  # dbg
             os.chdir(self._ori_dir)
 

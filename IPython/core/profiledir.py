@@ -167,7 +167,7 @@ class ProfileDir(Configurable):
         is not found, a :class:`ProfileDirError` exception will be raised.
 
         The search path algorithm is:
-        1. ``os.getcwd()``
+        1. ``os.getcwdu()``
         2. ``ipython_dir``
 
         Parameters

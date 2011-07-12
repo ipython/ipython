@@ -224,9 +224,9 @@ def str_safe(arg):
         except Exception,msg:
             # let's keep this little duplication here, so that the most common
             # case doesn't suffer from a double try wrapping.
-            out = '<ERROR: %s>' % msg
+            out = '<ERRORx: %s>' % msg
     except Exception,msg:
-        out = '<ERROR: %s>' % msg
+        out = '<ERRORy: %s>' % msg
         #raise  # dbg
     return out
 

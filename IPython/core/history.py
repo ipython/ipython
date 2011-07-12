@@ -47,7 +47,7 @@ class HistoryManager(Configurable):
     dir_hist = List()
     def _dir_hist_default(self):
         try:
-            return [os.getcwd()]
+            return [os.getcwdu()]
         except OSError:
             return []
 
@@ -173,7 +173,7 @@ class HistoryManager(Configurable):
         optionally open a new session."""
         self.output_hist.clear()
         # The directory history can't be completely empty
-        self.dir_hist[:] = [os.getcwd()]
+        self.dir_hist[:] = [os.getcwdu()]
         
         if new_session:
             if self.session_number:

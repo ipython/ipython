@@ -15,7 +15,7 @@ if sys.platform != 'win32':
     oscmd('sphinx-build -b latex -d build/doctrees source build/latex')
 
     # Produce pdf.
-    topdir = os.getcwd()
+    topdir = os.getcwdu()
     os.chdir('build/latex')
 
     # Change chapter style to section style: allows chapters to start on

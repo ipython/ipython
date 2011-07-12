@@ -104,7 +104,7 @@ def rehashdir_f(self,arg):
             
         execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
         isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
-    savedir = os.getcwd()
+    savedir = os.getcwdu()
     try:
         # write the whole loop for posix/Windows so we don't have an if in
         # the innermost part
