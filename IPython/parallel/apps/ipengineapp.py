@@ -64,6 +64,10 @@ usually located in your ipython directory and named as "profile_name".
 See the `profile` and `profile_dir` options for details.
 """
 
+_examples = """
+ipengine --ip=192.168.0.1 --port=1000     # connect to hub at ip and port
+ipengine --log_to_file --log_level=DEBUG  # log to a file with DEBUG verbosity
+"""
 
 #-----------------------------------------------------------------------------
 # MPI configuration
@@ -126,10 +130,12 @@ aliases = dict(
 )
 aliases.update(base_aliases)
 
+
 class IPEngineApp(BaseParallelApplication):
 
     name = Unicode(u'ipengine')
     description = Unicode(_description)
+    examples = _examples
     config_file_name = Unicode(default_config_file_name)
     classes = List([ProfileDir, Session, EngineFactory, Kernel, MPI])
 

@@ -74,6 +74,18 @@ where you can edit ipython_config.py to start configuring IPython.
 
 """
 
+_list_examples = "ipython profile list  # list all profiles"
+
+_create_examples = """
+ipython profile create foo        # create profile foo
+ipython profile create foo --init # create with default config files
+"""
+
+_main_examples = """
+ipython profile create -h  # show the help string for the create subcommand
+ipython profile list -h    # show the help string for the list subcommand
+"""
+
 #-----------------------------------------------------------------------------
 # Profile Application Class (for `ipython profile` subcommand)
 #-----------------------------------------------------------------------------
@@ -82,7 +94,8 @@ where you can edit ipython_config.py to start configuring IPython.
 class ProfileList(Application):
     name = u'ipython-profile'
     description = list_help
-    
+    examples = _list_examples
+
     aliases = Dict({
         'ipython-dir' : 'ProfileList.ipython_dir',
         'log-level' : 'Application.log_level',
@@ -92,6 +105,7 @@ class ProfileList(Application):
             "Set Application.log_level to 0, maximizing log output."
         )
     ))
+
     ipython_dir = Unicode(get_ipython_dir(), config=True, 
         help="""
         The name of the IPython directory. This directory is used for logging
@@ -127,15 +141,11 @@ create_flags.update(boolean_flag('parallel', 'ProfileCreate.parallel',
                 "Include parallel computing config files", 
                 "Don't include parallel computing config files"))
 
-create_examples = """
-ipython profile create foo        # create profile foo
-ipython profile create foo --init # create with default config files
-"""
 
 class ProfileCreate(BaseIPythonApplication):
     name = u'ipython-profile'
     description = create_help
-    examples = create_examples
+    examples = _create_examples
     auto_create = Bool(True, config=False)
     
     def _copy_config_files_default(self):
@@ -204,15 +214,11 @@ class ProfileCreate(BaseIPythonApplication):
     def stage_default_config_file(self):
         pass
 
-main_examples = """
-ipython profile create -h  # show the help string for the create subcommand
-ipython profile list -h    # show the help string for the list subcommand
-"""
 
 class ProfileApp(Application):
     name = u'ipython-profile'
     description = profile_help
-    examples = main_examples
+    examples = _main_examples
 
     subcommands = Dict(dict(
         create = (ProfileCreate, "Create a new profile dir with default config files"),

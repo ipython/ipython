@@ -53,6 +53,15 @@ from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 
 #-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+_examples = """
+ipython qtconsole                 # start the qtconsole
+ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
+"""
+
+#-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
@@ -219,10 +228,6 @@ aliases.update(dict(
 # IPythonQtConsole
 #-----------------------------------------------------------------------------
 
-qt_examples = """
-ipython qtconsole                 # start the qtconsole
-ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
-"""
 
 class IPythonQtConsoleApp(BaseIPythonApplication):
     name = 'ipython-qtconsole'
@@ -237,7 +242,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         The QtConsole supports various extra features beyond the
         
     """
-    examples = qt_examples
+    examples = _examples
 
     classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir, Session]
     flags = Dict(flags)

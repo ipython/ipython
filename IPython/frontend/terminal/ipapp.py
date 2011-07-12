@@ -58,6 +58,15 @@ from IPython.utils.traitlets import (
 #: The default config file name for this application.
 default_config_file_name = u'ipython_config.py'
 
+_examples = """
+ipython --pylab            # start in pylab mode
+ipython --pylab=qt         # start in pylab mode with the qt4 backend
+ipython --log_level=DEBUG  # set logging to DEBUG
+ipython --profile=foo      # start with profile foo
+ipython qtconsole          # start the qtconsole GUI application
+ipython profile -h         # show the help string for the profile subcmd
+ipython qtconsole -h       # show the help string for the qtconsole subcmd
+"""
 
 #-----------------------------------------------------------------------------
 # Crash handler for this application
@@ -168,22 +177,13 @@ aliases.update(dict(
 # Main classes and functions
 #-----------------------------------------------------------------------------
 
-examples = """
-ipython --pylab            # start in pylab mode
-ipython --pylab=qt         # start in pylab mode with the qt4 backend
-ipython --log_level=DEBUG  # set logging to DEBUG
-ipython --profile=foo      # start with profile foo
-ipython qtconsole          # start the qtconsole GUI application
-ipython profile -h         # show the help string for the profile subcmd
-ipython qtconsole -h       # show the help string for the qtconsole subcmd
-"""
 
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     name = u'ipython'
     description = usage.cl_usage
     default_config_file_name = default_config_file_name
     crash_handler_class = IPAppCrashHandler
-    examples = examples
+    examples = _examples
 
     flags = Dict(flags)
     aliases = Dict(aliases)

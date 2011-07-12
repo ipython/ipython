@@ -61,9 +61,28 @@ An IPython cluster consists of 1 controller and 1 or more engines.
 This command automates the startup of these processes using a wide
 range of startup methods (SSH, local processes, PBS, mpiexec,
 Windows HPC Server 2008). To start a cluster with 4 engines on your
-local host simply do 'ipcluster start n=4'. For more complex usage
-you will typically do 'ipcluster create profile=mycluster', then edit
-configuration files, followed by 'ipcluster start profile=mycluster n=4'.
+local host simply do 'ipcluster start --n=4'. For more complex usage
+you will typically do 'ipython create mycluster --parallel', then edit
+configuration files, followed by 'ipcluster start --profile=mycluster --n=4'.
+"""
+
+_main_examples = """
+ipcluster start -h    # show the help string for the start subcmd
+ipcluster stop -h     # show the help string for the stop subcmd
+ipcluster engines -h  # show the help string for the engines subcmd
+"""
+
+_start_examples = """
+ipython profile create mycluster --parallel # create mycluster profile
+ipcluster start --profile=mycluster --n=4   # start mycluster with 4 nodes
+"""
+
+_stop_examples = """
+ipcluster stop --profile=mycluster  # stop a running cluster by profile name
+"""
+
+_engines_examples = """
+ipcluster engines --profile=mycluster --n=4  # start 4 engines only
 """
 
 
@@ -126,6 +145,7 @@ stop_aliases.update(base_aliases)
 class IPClusterStop(BaseParallelApplication):
     name = u'ipcluster'
     description = stop_help
+    examples = _stop_examples
     config_file_name = Unicode(default_config_file_name)
     
     signal = Int(signal.SIGINT, config=True,
@@ -195,6 +215,7 @@ class IPClusterEngines(BaseParallelApplication):
 
     name = u'ipcluster'
     description = engines_help
+    examples = _engines_examples
     usage = None
     config_file_name = Unicode(default_config_file_name)
     default_log_level = logging.INFO
@@ -329,6 +350,7 @@ class IPClusterStart(IPClusterEngines):
 
     name = u'ipcluster'
     description = start_help
+    examples = _start_examples
     default_log_level = logging.INFO
     auto_create = Bool(True, config=True,
         help="whether to create the profile_dir if it doesn't exist")
@@ -426,7 +448,8 @@ base='IPython.parallel.apps.ipclusterapp.IPCluster'
 class IPClusterApp(Application):
     name = u'ipcluster'
     description = _description
-    
+    examples = _main_examples
+
     subcommands = {
                 'start' : (base+'Start', start_help),
                 'stop' : (base+'Stop', stop_help),

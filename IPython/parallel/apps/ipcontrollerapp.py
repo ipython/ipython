@@ -85,7 +85,10 @@ your ipython directory and named as "profile_name". See the `profile`
 and `profile_dir` options for details.
 """
 
-
+_examples = """
+ipcontroller --ip=192.168.0.1 --port=1000  # listen on ip, port for engines
+ipcontroller --scheme=pure  # use the pure zeromq scheduler
+"""
 
 
 #-----------------------------------------------------------------------------
@@ -131,10 +134,12 @@ aliases = dict(
 )
 aliases.update(base_aliases)
 
+
 class IPControllerApp(BaseParallelApplication):
 
     name = u'ipcontroller'
     description = _description
+    examples = _examples
     config_file_name = Unicode(default_config_file_name)
     classes = [ProfileDir, Session, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
     
