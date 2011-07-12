@@ -195,6 +195,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         qtconsole=('IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             """Launch the IPython Qt Console."""
         ),
+        hotebook=('IPython.frontend.html.notebook.notebookapp.IPythonNotebookApp',
+            """Launch the IPython HTML Notebook Server"""
+        ),
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles.")
     ))

@@ -1,5 +1,9 @@
 """A kernel manager for multiple kernels."""
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import logging
 import signal
 import sys
@@ -11,6 +15,9 @@ from IPython.config.configurable import Configurable
 from IPython.zmq.ipkernel import launch_kernel
 from IPython.utils.traitlets import Instance, Dict, Unicode
 
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 
 class DuplicateKernelError(Exception):
     pass

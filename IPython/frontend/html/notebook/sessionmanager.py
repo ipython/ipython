@@ -1,5 +1,9 @@
 """A manager for session and channels for a single kernel."""
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import zmq
 from zmq.eventloop.zmqstream import ZMQStream
 
@@ -9,6 +13,10 @@ from IPython.zmq.session import SessionFactory
 
 class SessionManagerRunningError(Exception):
     pass
+
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 
 
 class SessionManager(SessionFactory):

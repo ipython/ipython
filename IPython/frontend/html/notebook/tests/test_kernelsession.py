@@ -1,3 +1,4 @@
+"""Tests for the notebook kernel and session manager."""
 
 from unittest import TestCase
 
