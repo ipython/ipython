@@ -128,8 +128,14 @@ class TestApplication(TestCase):
         app = MyApp()
         app.parse_command_line(["--Bar.b=5", 'extra', "--disable", 'args'])
         app.init_bar()
+        self.assertEquals(app.bar.enabled, False)
+        self.assertEquals(app.bar.b, 5)
+        self.assertEquals(app.extra_args, ['extra', 'args'])
+        app = MyApp()
+        app.parse_command_line(["--Bar.b=5", '--', 'extra', "--disable", 'args'])
+        app.init_bar()
         self.assertEquals(app.bar.enabled, True)
         self.assertEquals(app.bar.b, 5)
-        self.assertEquals(app.extra_args, ['extra', "--disable", 'args'])
+        self.assertEquals(app.extra_args, ['extra', '--disable', 'args'])
     
 

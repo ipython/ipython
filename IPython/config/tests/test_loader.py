@@ -130,9 +130,9 @@ class TestKeyValueCL(TestCase):
     def test_extra_args(self):
         cl = KeyValueConfigLoader()
         config = cl.load_config(['--a=5', 'b', '--c=10', 'd'])
-        self.assertEquals(cl.extra_args, ['b', '--c=10' , 'd'])
+        self.assertEquals(cl.extra_args, ['b', 'd'])
         self.assertEquals(config.a, 5)
-        self.assertRaises(AttributeError, getattr, config, 'c')
+        self.assertEquals(config.c, 10)
         config = cl.load_config(['--', '--a=5', '--c=10'])
         self.assertEquals(cl.extra_args, ['--a=5', '--c=10'])
     

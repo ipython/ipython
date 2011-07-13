@@ -434,6 +434,8 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             
             if raw == '--':
                 # don't parse arguments after '--'
+                # this is useful for relaying arguments to scripts, e.g.
+                # ipython -i foo.py --pylab=qt -- args after '--' go-to-foo.py
                 self.extra_args.extend(uargv[idx+1:])
                 break
             
@@ -476,9 +478,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             else:
                 # keep all args that aren't valid in a list, 
                 # in case our parent knows what to do with them.
-                # self.extra_args.append(item)
-                self.extra_args.extend(uargv[idx:])
-                break
+                self.extra_args.append(item)
         return self.config
 
 class ArgParseConfigLoader(CommandLineConfigLoader):
