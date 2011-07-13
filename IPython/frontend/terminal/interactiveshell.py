@@ -588,6 +588,10 @@ class TerminalInteractiveShell(InteractiveShell):
             write("## -- End pasted text --\n")
             
         self._execute_block(block, par)
+    
+    def showindentationerror(self):
+        super(TerminalInteractiveShell, self).showindentationerror()
+        print("If you want to paste code into IPython, try the %paste magic function.")
 
 
 InteractiveShellABC.register(TerminalInteractiveShell)
