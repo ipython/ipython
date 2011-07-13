@@ -168,7 +168,10 @@ class ProfileCreate(BaseIPythonApplication):
         apps = [TerminalIPythonApp]
         try:
             from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
-        except ImportError:
+        except Exception:
+            # this should be ImportError, but under weird circumstances
+            # this might be an AttributeError, or possibly others
+            # in any case, nothing should cause the profile creation to crash.
             pass
         else:
             apps.append(IPythonQtConsoleApp)
