@@ -238,7 +238,10 @@ class TerminalInteractiveShell(InteractiveShell):
 
         if display_banner is None:
             display_banner = self.display_banner
-        if display_banner:
+        
+        if isinstance(display_banner, basestring):
+            self.show_banner(display_banner)
+        elif display_banner:
             self.show_banner()
 
         more = False
