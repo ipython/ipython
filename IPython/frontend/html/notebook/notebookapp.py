@@ -55,7 +55,7 @@ LOCALHOST = '127.0.0.1'
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, kernel_manager, log, kernel_argv):
+    def __init__(self, kernel_manager, log, kernel_argv, config):
         handlers = [
             (r"/", MainHandler),
             (r"/kernels", KernelHandler),
@@ -74,6 +74,7 @@ class NotebookWebApplication(web.Application):
         self.kernel_manager = kernel_manager
         self.log = log
         self.kernel_argv = kernel_argv
+        self.config = config
         self._routers = {}
         self._session_dict = {}
 
@@ -99,8 +100,12 @@ class NotebookWebApplication(web.Application):
         self._session_dict[kernel_id] = sm
         iopub_stream = sm.get_iopub_stream()
         shell_stream = sm.get_shell_stream()
-        iopub_router = IOPubStreamRouter(iopub_stream, sm.session)
-        shell_router = ShellStreamRouter(shell_stream, sm.session)
+        iopub_router = IOPubStreamRouter(
+            zmq_stream=iopub_stream, session=sm.session, config=self.config
+        )
+        shell_router = ShellStreamRouter(
+            zmq_stream=shell_stream, session=sm.session, config=self.config
+        )
         self._routers[(kernel_id, 'iopub')] = iopub_router
         self._routers[(kernel_id, 'shell')] = shell_router
 
@@ -230,7 +235,9 @@ class IPythonNotebookApp(BaseIPythonApplication):
     def initialize(self, argv=None):
         super(IPythonNotebookApp, self).initialize(argv)
         self.init_kernel_manager()
-        self.web_app = NotebookWebApplication(self.kernel_manager, self.log, self.kernel_argv)
+        self.web_app = NotebookWebApplication(
+            self.kernel_manager, self.log, self.kernel_argv, self.config
+        )
         self.http_server = httpserver.HTTPServer(self.web_app)
         self.http_server.listen(self.port)
 

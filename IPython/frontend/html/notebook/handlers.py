@@ -55,7 +55,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         logging.info("Connection open: %s, %s" % (kernel_id, self.client_id))
 
     def on_message(self, msg):
-        self.router.forward_unicode(self.client_id, msg)
+        self.router.forward_msg(self.client_id, msg)
 
     def on_close(self):
         self.router.unregister_client(self.client_id)
