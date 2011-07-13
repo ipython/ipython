@@ -1,17 +1,22 @@
+"""Tornado handlers for the notebook."""
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import datetime
 import json
 import logging
 import os
 import urllib
-import uuid
-from Queue import Queue
 
 from tornado import web
 from tornado import websocket
 
+#-----------------------------------------------------------------------------
+# Handlers
+#-----------------------------------------------------------------------------
 
-_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
-_kernel_action_regex = r"(?P<action>restart|interrupt)"
 
 class MainHandler(web.RequestHandler):
     def get(self):
@@ -37,58 +42,6 @@ class KernelActionHandler(web.RequestHandler):
         if action == 'restart':
             new_kernel_id = self.application.restart_kernel(kernel_id)
             self.write(json.dumps(new_kernel_id))
-
-
-class ZMQStreamRouter(object):
-
-    def __init__(self, zmq_stream):
-        self.zmq_stream = zmq_stream
-        self._clients = {}
-        self.zmq_stream.on_recv(self._on_zmq_reply)
-
-    def register_client(self, client):
-        client_id = uuid.uuid4()
-        self._clients[client_id] = client
-        return client_id
-
-    def unregister_client(self, client_id):
-        del self._clients[client_id]
-
-    def copy_clients(self, router):
-        # Copy the clients of another router.
-        for client_id, client in router._clients.items():
-            client.router = self
-            self._clients[client_id] = client
-
-
-class IOPubStreamRouter(ZMQStreamRouter):
-
-    def _on_zmq_reply(self, msg_list):
-        for client_id, client in self._clients.items():
-            for msg in msg_list:
-                client.write_message(msg)
-
-    def forward_unicode(self, client_id, msg):
-        # This is a SUB stream that we should never write to.
-        pass
-
-
-class ShellStreamRouter(ZMQStreamRouter):
-
-    def __init__(self, zmq_stream):
-        ZMQStreamRouter.__init__(self, zmq_stream)
-        self._request_queue = Queue()
-
-    def _on_zmq_reply(self, msg_list):
-        client_id = self._request_queue.get(block=False)
-        client = self._clients.get(client_id)
-        if client is not None:
-            for msg in msg_list:
-                client.write_message(msg)
-
-    def forward_unicode(self, client_id, msg):
-        self._request_queue.put(client_id)
-        self.zmq_stream.send_unicode(msg)
 
 
 class ZMQStreamHandler(websocket.WebSocketHandler):

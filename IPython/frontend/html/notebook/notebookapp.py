@@ -99,8 +99,8 @@ class NotebookWebApplication(web.Application):
         self._session_dict[kernel_id] = sm
         iopub_stream = sm.get_iopub_stream()
         shell_stream = sm.get_shell_stream()
-        iopub_router = IOPubStreamRouter(iopub_stream)
-        shell_router = ShellStreamRouter(shell_stream)
+        iopub_router = IOPubStreamRouter(iopub_stream, sm.session)
+        shell_router = ShellStreamRouter(shell_stream, sm.session)
         self._routers[(kernel_id, 'iopub')] = iopub_router
         self._routers[(kernel_id, 'shell')] = shell_router
 
@@ -138,6 +138,8 @@ class NotebookWebApplication(web.Application):
     def get_router(self, kernel_id, stream_name):
         router = self._routers[(kernel_id, stream_name)]
         return router
+
+    
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags

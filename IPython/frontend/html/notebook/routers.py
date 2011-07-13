@@ -1,11 +1,12 @@
 import uuid
 from Queue import Queue
-
+import json
 
 class ZMQStreamRouter(object):
 
-    def __init__(self, zmq_stream):
+    def __init__(self, zmq_stream, session):
         self.zmq_stream = zmq_stream
+        self.session = session
         self._clients = {}
         self.zmq_stream.on_recv(self._on_zmq_reply)
 
@@ -29,6 +30,7 @@ class IOPubStreamRouter(ZMQStreamRouter):
     def _on_zmq_reply(self, msg_list):
         for client_id, client in self._clients.items():
             for msg in msg_list:
+                print "Got message: ", msg
                 client.write_message(msg)
 
     def forward_unicode(self, client_id, msg):
@@ -38,8 +40,8 @@ class IOPubStreamRouter(ZMQStreamRouter):
 
 class ShellStreamRouter(ZMQStreamRouter):
 
-    def __init__(self, zmq_stream):
-        ZMQStreamRouter.__init__(self, zmq_stream)
+    def __init__(self, zmq_stream, session):
+        ZMQStreamRouter.__init__(self, zmq_stream, session)
         self._request_queue = Queue()
 
     def _on_zmq_reply(self, msg_list):
@@ -50,8 +52,7 @@ class ShellStreamRouter(ZMQStreamRouter):
                 client.write_message(msg)
 
     def forward_unicode(self, client_id, msg):
-        self._request_queue.put(client_id)
-        self.zmq_stream.send_unicode(msg)
-
-
+        print "Inbound message: ", msg
+        self._request_queue.put(client_id)        
+        self.session.send(self.zmq_stream, msg)
 

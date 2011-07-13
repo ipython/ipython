@@ -4,7 +4,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import logging
 import signal
 import sys
 import uuid
@@ -13,7 +12,7 @@ import zmq
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.zmq.ipkernel import launch_kernel
-from IPython.utils.traitlets import Instance, Dict, Unicode
+from IPython.utils.traitlets import Instance, Dict
 
 #-----------------------------------------------------------------------------
 # Classes
