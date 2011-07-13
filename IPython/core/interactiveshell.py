@@ -1608,7 +1608,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
     
     # This is overridden in TerminalInteractiveShell to show a message about
     # the %paste magic.
-    showindentationerror = showsyntaxerror
+    def showindentationerror(self):
+        """Called by run_cell when there's an IndentationError in code entered
+        at the prompt.
+        
+        This is overridden in TerminalInteractiveShell to show a message about
+        the %paste magic."""
+        self.showsyntaxerror()
 
     #-------------------------------------------------------------------------
     # Things related to readline
