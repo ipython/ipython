@@ -303,10 +303,11 @@ class IPythonRunner(InteractiveRunner):
     
     def __init__(self,program = 'ipython',args=None,out=sys.stdout,echo=True):
         """New runner, optionally passing the ipython command to use."""
-        
         args0 = ['--colors=NoColor',
                  '--no-term-title',
-                 '--no-autoindent']
+                 '--no-autoindent',
+                 # '--quick' is important, to prevent loading default config:
+                 '--quick']
         if args is None: args = args0
         else: args = args0 + args
         prompts = [r'In \[\d+\]: ',r'   \.*: ']
