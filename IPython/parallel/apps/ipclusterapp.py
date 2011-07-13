@@ -321,9 +321,9 @@ start_aliases = {}
 start_aliases.update(engine_aliases)
 start_aliases.update(dict(
     delay='IPClusterStart.delay',
-    clean_logs='IPClusterStart.clean_logs',
     controller = 'IPClusterStart.controller_launcher_class',
 ))
+start_aliases['clean-logs'] = 'IPClusterStart.clean_logs'
 
 class IPClusterStart(IPClusterEngines):
 

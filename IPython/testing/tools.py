@@ -32,6 +32,8 @@ import os
 import re
 import sys
 
+from contextlib import contextmanager
+
 try:
     # These tools are used by parts of the runtime, so we make the nose
     # dependency optional at this point.  Nose is a hard dependency to run the
@@ -307,3 +309,13 @@ def check_pairs(func, pairs):
     for inp, expected in pairs:
         out = func(inp)
         assert out == expected, pair_fail_msg.format(func.func_name, inp, expected, out)
+
+@contextmanager
+def mute_warn():
+    from IPython.utils import warn
+    save_warn = warn.warn
+    warn.warn = lambda *a, **kw: None
+    try:
+        yield
+    finally:
+        warn.warn = save_warn

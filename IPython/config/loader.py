@@ -24,6 +24,7 @@ import sys
 
 from IPython.external import argparse
 from IPython.utils.path import filefind, get_ipython_dir
+from IPython.utils import warn
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -325,7 +326,22 @@ class CommandLineConfigLoader(ConfigLoader):
     here.
     """
 
-kv_pattern = re.compile(r'\-\-[A-Za-z]\w*(\.\w+)*\=.*')
+# raw --identifier=value pattern
+# but *also* accept '-' as wordsep, for aliases
+# accepts:  --foo=a
+#           --Class.trait=value
+#           --alias-name=value
+# rejects:  -foo=value
+#           --foo
+#           --Class.trait
+kv_pattern = re.compile(r'\-\-[A-Za-z][\w\-]*(\.[\w\-]+)*\=.*')
+
+# just flags, no assignments, with two *or one* leading '-'
+# accepts:  --foo
+#           -foo-bar-again
+# rejects:  --anything=anything
+#           --two.word
+
 flag_pattern = re.compile(r'\-\-?\w+[\-\w]*$')
 
 class KeyValueConfigLoader(CommandLineConfigLoader):
@@ -364,8 +380,8 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
 
             >>> from IPython.config.loader import KeyValueConfigLoader
             >>> cl = KeyValueConfigLoader()
-            >>> cl.load_config(["--foo='bar'","--A.name='brian'","--B.number=0"])
-            {'A': {'name': 'brian'}, 'B': {'number': 0}, 'foo': 'bar'}
+            >>> cl.load_config(["--A.name='brian'","--B.number=0"])
+            {'A': {'name': 'brian'}, 'B': {'number': 0}}
         """
         self.clear()
         if argv is None:
@@ -444,6 +460,9 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 # Substitute longnames for aliases.
                 if lhs in aliases:
                     lhs = aliases[lhs]
+                if '.' not in lhs:
+                    # probably a mistyped alias, but not technically illegal
+                    warn.warn("Unrecognized alias: '%s', it will probably have no effect."%lhs)
                 exec_str = 'self.config.' + lhs + '=' + rhs
                 try:
                     # Try to see if regular Python syntax will work. This

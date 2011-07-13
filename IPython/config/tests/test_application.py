@@ -55,8 +55,13 @@ class MyApp(Application):
     config_file = Unicode(u'', config=True,
                    help="Load this config file")
 
-    aliases = Dict(dict(i='Foo.i',j='Foo.j',name='Foo.name',
-                    enabled='Bar.enabled', log_level='MyApp.log_level'))
+    aliases = Dict({
+                    'i' : 'Foo.i',
+                    'j' : 'Foo.j',
+                    'name' : 'Foo.name',
+                    'enabled' : 'Bar.enabled',
+                    'log-level' : 'MyApp.log_level',
+                })
     
     flags = Dict(dict(enable=({'Bar': {'enabled' : True}}, "Set Bar.enabled to True"),
                   disable=({'Bar': {'enabled' : False}}, "Set Bar.enabled to False")))
@@ -79,7 +84,7 @@ class TestApplication(TestCase):
 
     def test_config(self):
         app = MyApp()
-        app.parse_command_line(["--i=10","--Foo.j=10","--enabled=False","--log_level=50"])
+        app.parse_command_line(["--i=10","--Foo.j=10","--enabled=False","--log-level=50"])
         config = app.config
         self.assertEquals(config.Foo.i, 10)
         self.assertEquals(config.Foo.j, 10)
@@ -88,7 +93,7 @@ class TestApplication(TestCase):
 
     def test_config_propagation(self):
         app = MyApp()
-        app.parse_command_line(["--i=10","--Foo.j=10","--enabled=False","--log_level=50"])
+        app.parse_command_line(["--i=10","--Foo.j=10","--enabled=False","--log-level=50"])
         app.init_foo()
         app.init_bar()
         self.assertEquals(app.foo.i, 10)

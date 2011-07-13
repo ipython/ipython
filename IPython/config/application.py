@@ -111,7 +111,7 @@ class Application(SingletonConfigurable):
         self.log.setLevel(new)
     
     # the alias map for configurables
-    aliases = Dict(dict(log_level='Application.log_level'))
+    aliases = Dict({'log-level' : 'Application.log_level'})
     
     # flags for loading Configurables or store_const style flags
     # flags are loaded from this dict by '--key' flags

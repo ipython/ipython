@@ -52,11 +52,11 @@ from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict
 
 # aliases and flags
 
-base_aliases = dict(
-    profile='BaseIPythonApplication.profile',
-    ipython_dir='BaseIPythonApplication.ipython_dir',
-    log_level='Application.log_level',
-)
+base_aliases = {
+    'profile' : 'BaseIPythonApplication.profile',
+    'ipython-dir' : 'BaseIPythonApplication.ipython_dir',
+    'log-level' : 'Application.log_level',
+}
 
 base_flags = dict(
     debug = ({'Application' : {'log_level' : logging.DEBUG}},

@@ -27,6 +27,8 @@ from unittest import TestCase
 
 from nose import SkipTest
 
+from IPython.testing.tools import mute_warn
+
 from IPython.utils.traitlets import Int, Unicode
 from IPython.config.configurable import Configurable
 from IPython.config.loader import (
@@ -120,7 +122,8 @@ class TestKeyValueCL(TestCase):
     def test_basic(self):
         cl = KeyValueConfigLoader()
         argv = ['--'+s.strip('c.') for s in pyfile.split('\n')[2:-1]]
-        config = cl.load_config(argv)
+        with mute_warn():
+            config = cl.load_config(argv)
         self.assertEquals(config.a, 10)
         self.assertEquals(config.b, 20)
         self.assertEquals(config.Foo.Bar.value, 10)
@@ -129,17 +132,20 @@ class TestKeyValueCL(TestCase):
     
     def test_extra_args(self):
         cl = KeyValueConfigLoader()
-        config = cl.load_config(['--a=5', 'b', '--c=10', 'd'])
+        with mute_warn():
+            config = cl.load_config(['--a=5', 'b', '--c=10', 'd'])
         self.assertEquals(cl.extra_args, ['b', 'd'])
         self.assertEquals(config.a, 5)
         self.assertEquals(config.c, 10)
-        config = cl.load_config(['--', '--a=5', '--c=10'])
+        with mute_warn():
+            config = cl.load_config(['--', '--a=5', '--c=10'])
         self.assertEquals(cl.extra_args, ['--a=5', '--c=10'])
     
     def test_unicode_args(self):
         cl = KeyValueConfigLoader()
         argv = [u'--a=épsîlön']
-        config = cl.load_config(argv)
+        with mute_warn():
+            config = cl.load_config(argv)
         self.assertEquals(config.a, u'épsîlön')
     
     def test_unicode_bytes_args(self):
@@ -150,7 +156,8 @@ class TestKeyValueCL(TestCase):
             raise SkipTest("sys.stdin.encoding can't handle 'é'")
         
         cl = KeyValueConfigLoader()
-        config = cl.load_config([barg])
+        with mute_warn():
+            config = cl.load_config([barg])
         self.assertEquals(config.a, u'é')
 
 

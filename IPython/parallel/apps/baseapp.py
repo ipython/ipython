@@ -96,11 +96,11 @@ class ParallelCrashHandler(CrashHandler):
 base_aliases = {}
 base_aliases.update(base_ip_aliases)
 base_aliases.update({
-    'profile_dir' : 'ProfileDir.location',
-    'work_dir' : 'BaseParallelApplication.work_dir',
-    'log_to_file' : 'BaseParallelApplication.log_to_file',
-    'clean_logs' : 'BaseParallelApplication.clean_logs',
-    'log_url' : 'BaseParallelApplication.log_url',
+    'profile-dir' : 'ProfileDir.location',
+    'work-dir' : 'BaseParallelApplication.work_dir',
+    'log-to-file' : 'BaseParallelApplication.log_to_file',
+    'clean-logs' : 'BaseParallelApplication.clean_logs',
+    'log-url' : 'BaseParallelApplication.log_url',
 })
 
 base_flags = {

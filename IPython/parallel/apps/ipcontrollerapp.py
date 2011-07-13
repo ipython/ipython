@@ -111,15 +111,13 @@ flags.update(boolean_flag('secure', 'IPControllerApp.secure',
     "Don't authenticate messages."
 ))
 aliases = dict(
-    reuse_files = 'IPControllerApp.reuse_files',
     secure = 'IPControllerApp.secure',
     ssh = 'IPControllerApp.ssh_server',
-    use_threads = 'IPControllerApp.use_threads',
     location = 'IPControllerApp.location',
 
     ident = 'Session.session',
     user = 'Session.username',
-    exec_key = 'Session.keyfile',
+    keyfile = 'Session.keyfile',
 
     url = 'HubFactory.url',
     ip = 'HubFactory.ip',

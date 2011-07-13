@@ -55,7 +55,7 @@ def setup():
     
     cp = TestProcessLauncher()
     cp.cmd_and_args = ipcontroller_cmd_argv + \
-                ['--profile=iptest', '--log_level=50']
+                ['--profile=iptest', '--log-level=50']
     cp.start()
     launchers.append(cp)
     tic = time.time()
@@ -74,7 +74,7 @@ def add_engines(n=1, profile='iptest'):
     eps = []
     for i in range(n):
         ep = TestProcessLauncher()
-        ep.cmd_and_args = ipengine_cmd_argv + ['--profile=%s'%profile, '--log_level=50']
+        ep.cmd_and_args = ipengine_cmd_argv + ['--profile=%s'%profile, '--log-level=50']
         ep.start()
         launchers.append(ep)
         eps.append(ep)

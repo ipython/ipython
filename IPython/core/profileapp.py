@@ -84,13 +84,13 @@ class ProfileList(Application):
     name = u'ipython-profile'
     description = list_help
     
-    aliases = Dict(dict(
-        ipython_dir = 'ProfileList.ipython_dir',
-        log_level = 'Application.log_level',
-    ))
+    aliases = Dict({
+        'ipython-dir' : 'ProfileList.ipython_dir',
+        'log-level' : 'Application.log_level',
+    })
     flags = Dict(dict(
         debug = ({'Application' : {'log_level' : 0}},
-            "Set log_level to 0, maximizing log output."
+            "Set Application.log_level to 0, maximizing log output."
         )
     ))
     ipython_dir = Unicode(get_ipython_dir(), config=True, 

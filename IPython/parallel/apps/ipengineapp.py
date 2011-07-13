@@ -111,7 +111,7 @@ aliases = dict(
 
     ident = 'Session.session',
     user = 'Session.username',
-    exec_key = 'Session.keyfile',
+    keyfile = 'Session.keyfile',
 
     url = 'EngineFactory.url',
     ip = 'EngineFactory.ip',

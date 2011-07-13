@@ -90,13 +90,13 @@ shell_flags['nosep']=(nosep_config, "Eliminate all spacing between prompts.")
 # it's possible we don't want short aliases for *all* of these:
 shell_aliases = dict(
     autocall='InteractiveShell.autocall',
-    cache_size='InteractiveShell.cache_size',
     colors='InteractiveShell.colors',
     logfile='InteractiveShell.logfile',
     logappend='InteractiveShell.logappend',
     c='InteractiveShellApp.code_to_run',
     ext='InteractiveShellApp.extra_extension',
 )
+shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
 
 #-----------------------------------------------------------------------------
 # Main classes and functions
