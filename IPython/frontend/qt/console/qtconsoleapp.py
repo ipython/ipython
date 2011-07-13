@@ -216,13 +216,15 @@ aliases.update(dict(
 
     plain = 'IPythonQtConsoleApp.plain',
     pure = 'IPythonQtConsoleApp.pure',
-    gui_completion = 'ConsoleWidget.gui_completion',
     style = 'IPythonWidget.syntax_style',
     stylesheet = 'IPythonQtConsoleApp.stylesheet',
     colors = 'ZMQInteractiveShell.colors',
 
     editor = 'IPythonWidget.editor',
+    paging = 'ConsoleWidget.paging',
 ))
+aliases['gui-completion'] = 'ConsoleWidget.gui_completion'
+
 
 #-----------------------------------------------------------------------------
 # IPythonQtConsole
@@ -237,9 +239,15 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         The IPython QtConsole.
         
         This launches a Console-style application using Qt.  It is not a full
-        console, in that launched terminal subprocesses will not.
+        console, in that launched terminal subprocesses will not be able to accept
+        input.
         
-        The QtConsole supports various extra features beyond the
+        The QtConsole supports various extra features beyond the Terminal IPython
+        shell, such as inline plotting with matplotlib, via:
+        
+            ipython qtconsole --pylab=inline
+        
+        as well as saving your session as HTML, and printing the output.
         
     """
     examples = _examples
