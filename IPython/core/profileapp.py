@@ -77,8 +77,9 @@ where you can edit ipython_config.py to start configuring IPython.
 _list_examples = "ipython profile list  # list all profiles"
 
 _create_examples = """
-ipython profile create foo        # create profile foo
-ipython profile create foo --init # create with default config files
+ipython profile create foo         # create profile foo w/ default config files
+ipython profile create foo --reset # restage default config files over current
+ipython profile create foo --parallel # also stage parallel config files
 """
 
 _main_examples = """

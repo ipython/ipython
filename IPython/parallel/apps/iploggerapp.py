@@ -48,7 +48,7 @@ by registering a `zmq.log.handlers.PUBHandler` with the `logging` module. The
 logger can be configured using command line options or using a cluster
 directory. Cluster directories contain config, log and security files and are
 usually located in your ipython directory and named as "profile_name".
-See the `profile` and `profile_dir` options for details.
+See the `profile` and `profile-dir` options for details.
 """
 
 

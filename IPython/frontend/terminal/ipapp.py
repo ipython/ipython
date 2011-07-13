@@ -63,9 +63,12 @@ ipython --pylab            # start in pylab mode
 ipython --pylab=qt         # start in pylab mode with the qt4 backend
 ipython --log_level=DEBUG  # set logging to DEBUG
 ipython --profile=foo      # start with profile foo
+
 ipython qtconsole          # start the qtconsole GUI application
-ipython profile -h         # show the help string for the profile subcmd
 ipython qtconsole -h       # show the help string for the qtconsole subcmd
+
+ipython profile create foo # create profile foo w/ default config files
+ipython profile -h         # show the help string for the profile subcmd
 """
 
 #-----------------------------------------------------------------------------

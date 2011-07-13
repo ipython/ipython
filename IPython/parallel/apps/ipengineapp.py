@@ -61,12 +61,12 @@ and controller. A controller needs to be started before the engines. The
 engine can be configured using command line options or using a cluster
 directory. Cluster directories contain config, log and security files and are
 usually located in your ipython directory and named as "profile_name".
-See the `profile` and `profile_dir` options for details.
+See the `profile` and `profile-dir` options for details.
 """
 
 _examples = """
 ipengine --ip=192.168.0.1 --port=1000     # connect to hub at ip and port
-ipengine --log-to-file --log_level=DEBUG  # log to a file with DEBUG verbosity
+ipengine --log-to-file --log-level=DEBUG  # log to a file with DEBUG verbosity
 """
 
 #-----------------------------------------------------------------------------

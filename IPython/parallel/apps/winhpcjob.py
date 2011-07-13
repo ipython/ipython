@@ -252,7 +252,7 @@ class IPControllerTask(WinHPCTask):
 
     task_name = Unicode('IPController', config=True)
     controller_cmd = List(['ipcontroller.exe'], config=True)
-    controller_args = List(['--log-to-file', 'log-level=40'], config=True)
+    controller_args = List(['--log-to-file', '--log-level=40'], config=True)
     # I don't want these to be configurable
     std_out_file_path = Unicode('', config=False)
     std_err_file_path = Unicode('', config=False)
@@ -280,7 +280,7 @@ class IPEngineTask(WinHPCTask):
 
     task_name = Unicode('IPEngine', config=True)
     engine_cmd = List(['ipengine.exe'], config=True)
-    engine_args = List(['--log-to-file', 'log_level=40'], config=True)
+    engine_args = List(['--log-to-file', '--log-level=40'], config=True)
     # I don't want these to be configurable
     std_out_file_path = Unicode('', config=False)
     std_err_file_path = Unicode('', config=False)

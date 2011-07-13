@@ -67,7 +67,9 @@ configuration files, followed by 'ipcluster start --profile=mycluster --n=4'.
 """
 
 _main_examples = """
+ipcluster start --n=4 # start a 4 node cluster on localhost
 ipcluster start -h    # show the help string for the start subcmd
+
 ipcluster stop -h     # show the help string for the stop subcmd
 ipcluster engines -h  # show the help string for the engines subcmd
 """
@@ -113,8 +115,8 @@ security related files and are named using the convention
 'profile_<name>' and should be creating using the 'start'
 subcommand of 'ipcluster'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
-using its profile name, 'ipcluster start n=4 profile=<profile>`,
-otherwise use the 'profile_dir' option.
+using its profile name, 'ipcluster start --n=4 --profile=<profile>`,
+otherwise use the 'profile-dir' option.
 """
 stop_help = """Stop a running IPython cluster
 
@@ -122,8 +124,8 @@ Stop a running ipython cluster by its profile name or cluster
 directory. Cluster directories are named using the convention
 'profile_<name>'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
-using its profile name, 'ipcluster stop profile=<profile>`, otherwise
-use the 'profile_dir' option.
+using its profile name, 'ipcluster stop --profile=<profile>`, otherwise
+use the '--profile-dir' option.
 """
 engines_help = """Start engines connected to an existing IPython cluster
 
@@ -134,8 +136,8 @@ security related files and are named using the convention
 'profile_<name>' and should be creating using the 'start'
 subcommand of 'ipcluster'. If your cluster directory is in 
 the cwd or the ipython directory, you can simply refer to it
-using its profile name, 'ipcluster engines n=4 profile=<profile>`,
-otherwise use the 'profile_dir' option.
+using its profile name, 'ipcluster engines --n=4 --profile=<profile>`,
+otherwise use the 'profile-dir' option.
 """
 stop_aliases = dict(
     signal='IPClusterStop.signal',
