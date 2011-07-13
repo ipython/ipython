@@ -87,7 +87,7 @@ All options with a [no] prepended can be specified in negated form
 	execute the given command string. This is similar to the -c
 	option in the normal Python interpreter.
 
-    ``--cache_size=<n>``
+    ``--cache-size=<n>``
 	size of the output cache (maximum number of entries to hold in
 	memory). The default is 1000, you can change it permanently in your
 	config file. Setting it to 0 completely disables the caching system,

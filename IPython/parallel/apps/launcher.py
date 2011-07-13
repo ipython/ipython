@@ -576,7 +576,7 @@ class SSHEngineLauncher(SSHLauncher):
         help="remote ipengine command.")
     # Command line arguments for ipengine.
     program_args = List(
-        ['--log-to-file','log_level=%i'%logging.INFO], config=True,
+        ['--log-to-file','--log_level=%i'%logging.INFO], config=True,
         help="Command line arguments to ipengine."
     )
     

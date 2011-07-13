@@ -253,7 +253,7 @@ to specify your own. Here is a sample PBS script template:
     cd $PBS_O_WORKDIR
     export PATH=$HOME/usr/local/bin
     export PYTHONPATH=$HOME/usr/local/lib/python2.7/site-packages
-    /usr/local/bin/mpiexec -n {n} ipengine --profile_dir={profile_dir}
+    /usr/local/bin/mpiexec -n {n} ipengine --profile-dir={profile_dir}
 
 There are a few important points about this template:
 
@@ -288,7 +288,7 @@ The controller template should be similar, but simpler:
     cd $PBS_O_WORKDIR
     export PATH=$HOME/usr/local/bin
     export PYTHONPATH=$HOME/usr/local/lib/python2.7/site-packages
-    ipcontroller --profile_dir={profile_dir}
+    ipcontroller --profile-dir={profile_dir}
 
 
 Once you have created these scripts, save them with names like
@@ -373,8 +373,8 @@ The controller's remote location and configuration can be specified:
     # Set the arguments to be passed to ipcontroller
     # note that remotely launched ipcontroller will not get the contents of 
     # the local ipcontroller_config.py unless it resides on the *remote host*
-    # in the location specified by the `profile_dir` argument.
-    # c.SSHControllerLauncher.program_args = ['--reuse', '--ip=*', '--profile_dir=/path/to/cd']
+    # in the location specified by the `profile-dir` argument.
+    # c.SSHControllerLauncher.program_args = ['--reuse', '--ip=*', '--profile-dir=/path/to/cd']
 
 .. note::
 
@@ -390,7 +390,7 @@ on that host.
 
     c.SSHEngineSetLauncher.engines = { 'host1.example.com' : 2,
                 'host2.example.com' : 5,
-                'host3.example.com' : (1, ['--profile_dir=/home/different/location']),
+                'host3.example.com' : (1, ['--profile-dir=/home/different/location']),
                 'host4.example.com' : 8 }
 
 * The `engines` dict, where the keys are the host we want to run engines on and
@@ -403,7 +403,7 @@ a single location:
 
 .. sourcecode:: python
 
-    c.SSHEngineSetLauncher.engine_args = ['--profile_dir=/path/to/profile_ssh']
+    c.SSHEngineSetLauncher.engine_args = ['--profile-dir=/path/to/profile_ssh']
 
 Current limitations of the SSH mode of :command:`ipcluster` are:
 

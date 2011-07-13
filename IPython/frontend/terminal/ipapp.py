@@ -61,7 +61,7 @@ default_config_file_name = u'ipython_config.py'
 _examples = """
 ipython --pylab            # start in pylab mode
 ipython --pylab=qt         # start in pylab mode with the qt4 backend
-ipython --log_level=DEBUG  # set logging to DEBUG
+ipython --log-level=DEBUG  # set logging to DEBUG
 ipython --profile=foo      # start with profile foo
 
 ipython qtconsole          # start the qtconsole GUI application
