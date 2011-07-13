@@ -2273,6 +2273,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 with self.display_trap:
                     try:
                         code_ast = ast.parse(cell, filename=cell_name)
+                    except IndentationError:
+                        self.showsyntaxerror()
+                        print("If you want to paste code into IPython, try the %paste magic function.")
+                        self.execution_count += 1
+                        return None
                     except (OverflowError, SyntaxError, ValueError, TypeError,
                             MemoryError):
                         self.showsyntaxerror()
