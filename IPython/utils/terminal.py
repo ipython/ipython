@@ -102,7 +102,7 @@ if sys.platform == 'win32':
 
             try:
                 # Cannot be on network share when issuing system commands
-                curr = os.getcwd()
+                curr = os.getcwdu()
                 os.chdir("C:")
                 ret = os.system("title " + title)
             finally:

@@ -129,7 +129,7 @@ def arg_split(s, posix=False):
 
 def abbrev_cwd():
     """ Return abbreviated version of cwd, e.g. d:mydir """
-    cwd = os.getcwd().replace('\\','/')
+    cwd = os.getcwdu().replace('\\','/')
     drivepart = ''
     tail = cwd
     if sys.platform == 'win32':

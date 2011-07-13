@@ -92,7 +92,7 @@ class AsyncJobQ(threading.Thread):
             self.output.append(out)
 
     def add(self,cmd):
-        self.q.put_nowait((cmd, os.getcwd()))
+        self.q.put_nowait((cmd, os.getcwdu()))
         
     def dumpoutput(self):
         while self.output:
@@ -220,7 +220,7 @@ def jobctrl_shellcmd(ip,cmd):
                 p = Popen(cmd,shell = True)
             
         jobentry = 'tasks/t' + str(p.pid)
-        ip.db[jobentry] = (p.pid,cmd,os.getcwd(),time.time())
+        ip.db[jobentry] = (p.pid,cmd,os.getcwdu(),time.time())
         p.communicate()        
 
     finally:

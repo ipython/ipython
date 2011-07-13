@@ -245,7 +245,7 @@ class path(unicode):
         """ Return this path as a relative path,
         based from the current working directory.
         """
-        cwd = self.__class__(os.getcwd())
+        cwd = self.__class__(os.getcwdu())
         return cwd.relpathto(self)
 
     def relpathto(self, dest):

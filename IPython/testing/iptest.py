@@ -385,7 +385,7 @@ def run_iptestall():
     # to clean up any junk files left over by accident.  This also makes it
     # robust against being run in non-writeable directories by mistake, as the
     # temp dir will always be user-writeable.
-    curdir = os.getcwd()
+    curdir = os.getcwdu()
     testdir = tempfile.gettempdir()
     os.chdir(testdir)
 

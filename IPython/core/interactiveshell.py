@@ -500,7 +500,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # keep track of where we started running (mainly for crash post-mortem)
         # This is not being used anywhere currently.
-        self.starting_dir = os.getcwd()
+        self.starting_dir = os.getcwdu()
 
         # Indentation management
         self.indent_current_nsp = 0

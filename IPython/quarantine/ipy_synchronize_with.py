@@ -37,7 +37,7 @@ def find_filename(filename):
     filename = "".join(filename)
 
     if not os.path.isabs(filename):
-        filename = os.path.join(os.getcwd(), filename)
+        filename = os.path.join(os.getcwdu(), filename)
 
     if os.path.isfile(filename):
         return filename

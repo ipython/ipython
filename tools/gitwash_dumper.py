@@ -16,7 +16,7 @@ verbose = False
 
 
 def clone_repo(url, branch):
-    cwd = os.getcwd()
+    cwd = os.getcwdu()
     tmpdir = tempfile.mkdtemp()
     try:
         cmd = 'git clone %s %s' % (url, tmpdir)

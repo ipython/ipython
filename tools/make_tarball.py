@@ -18,7 +18,7 @@ tar_name = '%s.tgz' % base_name
 # to the top of the tree.  There are long threads (since 2007) on the git list
 # about this and it still doesn't work in a sensible way...
 
-start_dir = os.getcwd()
+start_dir = os.getcwdu()
 cd('..')
 git_tpl = 'git archive --format=tar --prefix={0}/ HEAD | gzip > {1}'
 sh(git_tpl.format(base_name, tar_name))
