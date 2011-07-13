@@ -14,7 +14,7 @@ def test_unicode_cwd():
     
     old_wd = os.getcwdu()
     os.chdir(wd)
-    #raise Exception(repr(os.getcwd()))
+    #raise Exception(repr(os.getcwdu()))
     try:
         app = BaseIPythonApplication()
         # The lines below are copied from Application.initialize()

@@ -69,7 +69,7 @@ def sh3(cmd):
 def init_repo(path):
     """clone the gh-pages repo if we haven't already."""
     sh("git clone %s %s"%(pages_repo, path))
-    here = os.getcwd()
+    here = os.getcwdu()
     cd(path)
     sh('git checkout gh-pages')
     cd(here)
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         except CalledProcessError:
             tag = "dev"   # Fallback
     
-    startdir = os.getcwd()
+    startdir = os.getcwdu()
     if not os.path.exists(pages_dir):
         # init the repo
         init_repo(pages_dir)

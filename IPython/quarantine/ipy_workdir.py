@@ -33,7 +33,7 @@ def workdir_f(ip,line):
         if os.path.isfile(head):
             cmd = os.path.abspath(head) + ' ' + tail
         print "Execute command '" + cmd+ "' in",workdir
-        olddir = os.getcwd()
+        olddir = os.getcwdu()
         os.chdir(workdir)
         try:
             os.system(cmd)
