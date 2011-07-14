@@ -1165,7 +1165,7 @@ class Hub(SessionFactory):
                 msg = self.session.msg(header['msg_type'])
                 msg['content'] = rec['content']
                 msg['header'] = header
-                msg['msg_id'] = rec['msg_id']
+                msg['header']['msg_id'] = rec['msg_id']
                 self.session.send(self.resubmit, msg, buffers=rec['buffers'])
 
         finish(dict(status='ok'))
