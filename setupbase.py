@@ -105,7 +105,6 @@ def find_packages():
     packages = ['IPython']
     add_package(packages, 'config', tests=True, others=['profile'])
     add_package(packages, 'core', tests=True)
-    add_package(packages, 'deathrow', tests=True)
     add_package(packages, 'extensions')
     add_package(packages, 'external')
     add_package(packages, 'external.argparse')
