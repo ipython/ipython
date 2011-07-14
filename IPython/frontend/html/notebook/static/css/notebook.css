@@ -166,6 +166,8 @@ div.output_latex {
     font-size: 13pt;
 }
 
+div.output_png {
+}
 
 div.text_cell {
     background-color: white;

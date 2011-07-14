@@ -441,7 +441,7 @@ Notebook.prototype._kernel_started = function () {
     this.kernel.shell_channel.onmessage = function (e) {
         reply = $.parseJSON(e.data);
         // console.log(reply);
-        var msg_type = reply.msg_type;
+        var msg_type = reply.header.msg_type;
         var cell = that.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
             cell.set_input_prompt(reply.content.execution_count);
@@ -451,8 +451,8 @@ Notebook.prototype._kernel_started = function () {
     this.kernel.iopub_channel.onmessage = function (e) {
         reply = $.parseJSON(e.data);
         var content = reply.content;
-        // console.log(reply);
-        var msg_type = reply.msg_type;
+        console.log(reply);
+        var msg_type = reply.header.msg_type;
         var cell = that.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "stream") {
             cell.expand();
@@ -709,6 +709,7 @@ CodeCell.prototype.append_pyerr = function (ename, evalue, tb) {
 
 
 CodeCell.prototype.append_display_data = function (data, element) {
+    console.log(data);
     if (data["text/latex"] !== undefined) {
         this.append_latex(data["text/latex"], element);
         // If it is undefined, then we just appended to div.output, which
@@ -719,6 +720,8 @@ CodeCell.prototype.append_display_data = function (data, element) {
         };
     } else if (data["image/svg+xml"] !== undefined) {
         this.append_svg(data["image/svg+xml"], element);
+    } else if (data["image/png"] !== undefined) {
+        this.append_png(data["image/png"], element);
     } else if (data["text/plain"] !== undefined) {
         this.append_stream(data["text/plain"], element);
     };
@@ -739,6 +742,15 @@ CodeCell.prototype.append_svg = function (svg, element) {
     element = element || this.element.find("div.output");
     var toinsert = $("<div/>").addClass("output_area output_svg");
     toinsert.append(svg);
+    element.append(toinsert);
+    return element;
+};
+
+
+CodeCell.prototype.append_png = function (png, element) {
+    element = element || this.element.find("div.output");
+    var toinsert = $("<div/>").addClass("output_area output_png");
+    toinsert.append($("<img/>").attr('src','data:image/png;base64,'+png));
     element.append(toinsert);
     return element;
 };
@@ -982,9 +994,9 @@ Kernel.prototype.get_msg = function (msg_type, content) {
         header : {
             msg_id : uuid(),
             username : "bgranger",
-            session: this.session_id
+            session: this.session_id,
+            msg_type : msg_type
         },
-        msg_type : msg_type,
         content : content,
         parent_header : {}
     };
@@ -1130,3 +1142,4 @@ $(document).ready(function () {
     $("#expand").click(function () {IPYTHON.notebook.expand();});
 
 });
+

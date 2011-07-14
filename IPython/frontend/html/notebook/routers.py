@@ -1,9 +1,26 @@
+"""Routers that connect WebSockets to ZMQ sockets."""
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2011  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING.txt, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import uuid
 from Queue import Queue
 import json
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance, Int, Dict
+
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 
 class ZMQStreamRouter(Configurable):
 
@@ -58,15 +75,26 @@ class ZMQStreamRouter(Configurable):
         """
         pass
 
+    def _reserialize_reply(self, msg_list):
+        """Reserialize a reply message using JSON.
+
+        This takes the msg list from the ZMQ socket, unserializes it using
+        self.session and then serializes the result using JSON. This method
+        should be used by self._on_zmq_reply to build messages that can
+        be sent back to the browser.
+        """
+        idents, msg_list = self.session.feed_identities(msg_list)
+        msg = self.session.unpack_message(msg_list)
+        msg['header'].pop('date')
+        return json.dumps(msg)
+
 
 class IOPubStreamRouter(ZMQStreamRouter):
 
     def _on_zmq_reply(self, msg_list):
-        msg = self.session.unpack_message(msg_list)
-        msg = json.dumps(msg)
+        msg = self._reserialize_reply(msg_list)
         for client_id, client in self._clients.items():
-            for msg in msg_list:
-                client.write_message(msg)
+            client.write_message(msg)
 
 
 class ShellStreamRouter(ZMQStreamRouter):
@@ -74,21 +102,16 @@ class ShellStreamRouter(ZMQStreamRouter):
     _request_queue = Instance(Queue,(),{})
 
     def _on_zmq_reply(self, msg_list):
-        msg = self.session.unpack_message(msg_list)
-        msg = json.dumps(msg)
-        print "Reply: ", msg_list
+        msg = self._reserialize_reply(msg_list)
         client_id = self._request_queue.get(block=False)
         client = self._clients.get(client_id)
         if client is not None:
-            for msg in msg_list:
-                client.write_message(msg)
+            client.write_message(msg)
 
     def forward_msg(self, client_id, msg):
         if len(msg) < self.max_msg_size:
             msg = json.loads(msg)
-            print "Raw msg: ", msg
             to_send = self.session.serialize(msg)
-            print "to_send: ", to_send, to_send[-3:]
             self._request_queue.put(client_id)        
-            self.session.send_raw(self.zmq_stream, to_send[-3:])
+            self.session.send(self.zmq_stream, msg)
 
