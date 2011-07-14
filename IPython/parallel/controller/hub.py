@@ -485,7 +485,7 @@ class Hub(SessionFactory):
             return
         client_id = idents[0]
         try:
-            msg = self.session.unpack_message(msg, content=True)
+            msg = self.session.unserialize(msg, content=True)
         except Exception:
             content = error.wrap_exception()
             self.log.error("Bad Query Message: %r"%msg, exc_info=True)
@@ -550,7 +550,7 @@ class Hub(SessionFactory):
             return
         queue_id, client_id = idents[:2]
         try:
-            msg = self.session.unpack_message(msg)
+            msg = self.session.unserialize(msg)
         except Exception:
             self.log.error("queue::client %r sent invalid message to %r: %r"%(client_id, queue_id, msg), exc_info=True)
             return
@@ -597,7 +597,7 @@ class Hub(SessionFactory):
             
         client_id, queue_id = idents[:2]
         try:
-            msg = self.session.unpack_message(msg)
+            msg = self.session.unserialize(msg)
         except Exception:
             self.log.error("queue::engine %r sent invalid message to %r: %r"%(
                     queue_id,client_id, msg), exc_info=True)
@@ -647,7 +647,7 @@ class Hub(SessionFactory):
         client_id = idents[0]
         
         try:
-            msg = self.session.unpack_message(msg)
+            msg = self.session.unserialize(msg)
         except Exception:
             self.log.error("task::client %r sent invalid task message: %r"%(
                     client_id, msg), exc_info=True)
@@ -697,7 +697,7 @@ class Hub(SessionFactory):
         """save the result of a completed task."""
         client_id = idents[0]
         try:
-            msg = self.session.unpack_message(msg)
+            msg = self.session.unserialize(msg)
         except Exception:
             self.log.error("task::invalid task result message send to %r: %r"%(
                     client_id, msg), exc_info=True)
@@ -744,7 +744,7 @@ class Hub(SessionFactory):
     
     def save_task_destination(self, idents, msg):
         try:
-            msg = self.session.unpack_message(msg, content=True)
+            msg = self.session.unserialize(msg, content=True)
         except Exception:
             self.log.error("task::invalid task tracking message", exc_info=True)
             return
@@ -781,7 +781,7 @@ class Hub(SessionFactory):
         """save an iopub message into the db"""
         # print (topics)
         try:
-            msg = self.session.unpack_message(msg, content=True)
+            msg = self.session.unserialize(msg, content=True)
         except Exception:
             self.log.error("iopub::invalid IOPub message", exc_info=True)
             return

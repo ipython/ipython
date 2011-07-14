@@ -211,7 +211,7 @@ class TaskScheduler(SessionFactory):
             self.log.warn("task::Invalid Message: %r",msg)
             return
         try:
-            msg = self.session.unpack_message(msg)
+            msg = self.session.unserialize(msg)
         except ValueError:
             self.log.warn("task::Unauthorized message from: %r"%idents)
             return
@@ -307,7 +307,7 @@ class TaskScheduler(SessionFactory):
         self.notifier_stream.flush()
         try:
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
-            msg = self.session.unpack_message(msg, content=False, copy=False)
+            msg = self.session.unserialize(msg, content=False, copy=False)
         except Exception:
             self.log.error("task::Invaid task msg: %r"%raw_msg, exc_info=True)
             return
@@ -515,7 +515,7 @@ class TaskScheduler(SessionFactory):
         """dispatch method for result replies"""
         try:
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
-            msg = self.session.unpack_message(msg, content=False, copy=False)
+            msg = self.session.unserialize(msg, content=False, copy=False)
             engine = idents[0]
             try:
                 idx = self.targets.index(engine)
