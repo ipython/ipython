@@ -44,7 +44,7 @@ class KernelStarter(object):
         except:
             print ("bad msg: %s"%msg)
         
-        msgtype = msg['msg_type']
+        msgtype = msg['header']['msg_type']
         handler = self.handlers.get(msgtype, None)
         if handler is None:
             self.downstream.send_multipart(raw_msg, copy=False)
@@ -58,7 +58,7 @@ class KernelStarter(object):
         except:
             print ("bad msg: %s"%msg)
         
-        msgtype = msg['msg_type']
+        msgtype = msg['header']['msg_type']
         handler = self.handlers.get(msgtype, None)
         if handler is None:
             self.upstream.send_multipart(raw_msg, copy=False)

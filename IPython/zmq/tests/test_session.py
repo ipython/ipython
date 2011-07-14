@@ -37,10 +37,8 @@ class TestSession(SessionTestCase):
         self.assertTrue(isinstance(msg['content'],dict))
         self.assertTrue(isinstance(msg['header'],dict))
         self.assertTrue(isinstance(msg['parent_header'],dict))
-        self.assertEquals(msg['msg_type'], 'execute')
+        self.assertEquals(msg['header']['msg_type'], 'execute')
         
-            
-    
     def test_args(self):
         """initialization arguments for Session"""
         s = self.session

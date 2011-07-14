@@ -133,11 +133,11 @@ class Kernel(Configurable):
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
-        self.log.debug('\n*** MESSAGE TYPE:'+str(msg['msg_type'])+'***')
+        self.log.debug('\n*** MESSAGE TYPE:'+str(msg['header']['msg_type'])+'***')
         self.log.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
 
         # Find and call actual handler for message
-        handler = self.handlers.get(msg['msg_type'], None)
+        handler = self.handlers.get(msg['header']['msg_type'], None)
         if handler is None:
             self.log.error("UNKNOWN MESSAGE TYPE:" +str(msg))
         else:
@@ -375,7 +375,7 @@ class Kernel(Configurable):
                        "Unexpected missing message part."
 
             self.log.debug("Aborting:\n"+str(Message(msg)))
-            msg_type = msg['msg_type']
+            msg_type = msg['header']['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             reply_msg = self.session.send(self.shell_socket, reply_type,
                     {'status' : 'aborted'}, msg, ident=ident)

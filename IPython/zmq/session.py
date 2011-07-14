@@ -359,9 +359,7 @@ class Session(Configurable):
         """
         msg = {}
         msg['header'] = self.msg_header(msg_type)
-        msg['msg_id'] = msg['header']['msg_id']
         msg['parent_header'] = {} if parent is None else extract_header(parent)
-        msg['msg_type'] = msg_type
         msg['content'] = {} if content is None else content
         sub = {} if subheader is None else subheader
         msg['header'].update(sub)
@@ -651,7 +649,6 @@ class Session(Configurable):
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
         message['header'] = self.unpack(msg_list[1])
-        message['msg_type'] = message['header']['msg_type']
         message['parent_header'] = self.unpack(msg_list[2])
         if content:
             message['content'] = self.unpack(msg_list[3])
