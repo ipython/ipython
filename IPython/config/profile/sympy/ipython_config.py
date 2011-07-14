@@ -8,9 +8,9 @@ load_subconfig('ipython_config.py', profile='default')
 lines = """
 from __future__ import division
 from sympy import *
-x, y, z = symbols('x,y,z')
-k, m, n = symbols('k,m,n', integer=True)
-f, g, h = map(Function, 'fgh')
+x, y, z, t = symbols('x y z t')
+k, m, n = symbols('k m n', integer=True)
+f, g, h = symbols('f g h', cls=Function)
 """
 
 # You have to make sure that attributes that are containers already
