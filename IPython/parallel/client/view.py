@@ -523,7 +523,7 @@ class DirectView(View):
                                     ident=ident)
             if track:
                 trackers.append(msg['tracker'])
-            msg_ids.append(msg['msg_id'])
+            msg_ids.append(msg['header']['msg_id'])
         tracker = None if track is False else zmq.MessageTracker(*trackers)
         ar = AsyncResult(self.client, msg_ids, fname=f.__name__, targets=targets, tracker=tracker)
         if block:
@@ -980,7 +980,7 @@ class LoadBalancedView(View):
                                 subheader=subheader)
         tracker = None if track is False else msg['tracker']
         
-        ar = AsyncResult(self.client, msg['msg_id'], fname=f.__name__, targets=None, tracker=tracker)
+        ar = AsyncResult(self.client, msg['header']['msg_id'], fname=f.__name__, targets=None, tracker=tracker)
         
         if block:
             try:

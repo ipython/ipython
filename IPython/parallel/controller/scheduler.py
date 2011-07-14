@@ -216,7 +216,7 @@ class TaskScheduler(SessionFactory):
             self.log.warn("task::Unauthorized message from: %r"%idents)
             return
         
-        msg_type = msg['msg_type']
+        msg_type = msg['header']['msg_type']
         
         handler = self._notification_handlers.get(msg_type, None)
         if handler is None:

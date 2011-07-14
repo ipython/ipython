@@ -96,7 +96,7 @@ class BaseFrontendMixin(object):
         """ Calls the frontend handler associated with the message type of the 
             given message.
         """
-        msg_type = msg['msg_type']
+        msg_type = msg['header']['msg_type']
         handler = getattr(self, '_handle_' + msg_type, None)
         if handler:
             handler(msg)

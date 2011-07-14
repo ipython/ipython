@@ -494,7 +494,7 @@ class Hub(SessionFactory):
             return
         # print client_id, header, parent, content
         #switch on message type:
-        msg_type = msg['msg_type']
+        msg_type = msg['header']['msg_type']
         self.log.info("client::client %r requested %r"%(client_id, msg_type))
         handler = self.query_handlers.get(msg_type, None)
         try:
@@ -791,7 +791,7 @@ class Hub(SessionFactory):
             self.log.error("iopub::invalid IOPub message: %r"%msg)
             return
         msg_id = parent['msg_id']
-        msg_type = msg['msg_type']
+        msg_type = msg['header']['msg_type']
         content = msg['content']
         
         # ensure msg_id is in db
