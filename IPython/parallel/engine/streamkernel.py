@@ -384,7 +384,7 @@ class Kernel(SessionFactory):
         
         header = msg['header']
         msg_id = header['msg_id']
-        msg['header']['msg_type']
+        msg_type = msg['header']['msg_type']
         if self.check_aborted(msg_id):
             self.aborted.remove(msg_id)
             # is it safe to assume a msg_id will not be resubmitted?
