@@ -84,7 +84,7 @@ class ZMQStreamRouter(Configurable):
         be sent back to the browser.
         """
         idents, msg_list = self.session.feed_identities(msg_list)
-        msg = self.session.unpack_message(msg_list)
+        msg = self.session.unserialize(msg_list)
         msg['header'].pop('date')
         return json.dumps(msg)
 
