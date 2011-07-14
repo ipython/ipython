@@ -134,7 +134,7 @@ def getsource(obj,is_binary=False):
         return None
     else:
         #get source if obj was decoratred with @decorator
-        if hasattr(obj,"__wrapped__"):
+        while hasattr(obj,"__wrapped__"):
             obj = obj.__wrapped__
         try:
             src = inspect.getsource(obj)
