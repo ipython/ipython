@@ -122,10 +122,11 @@ class Kernel(Configurable):
         """Do one iteration of the kernel's evaluation loop.
         """
         ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
-        msg_type = msg['header']['msg_type']
         if msg is None:
             return
-        
+
+        msg_type = msg['header']['msg_type']
+
         # This assert will raise in versions of zeromq 2.0.7 and lesser.
         # We now require 2.0.8 or above, so we can uncomment for safety.
         # print(ident,msg, file=sys.__stdout__)
