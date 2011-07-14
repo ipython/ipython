@@ -195,7 +195,7 @@ class Kernel(SessionFactory):
     def dispatch_control(self, msg):
         idents,msg = self.session.feed_identities(msg, copy=False)
         try:
-            msg = self.session.unpack_message(msg, content=True, copy=False)
+            msg = self.session.unserialize(msg, content=True, copy=False)
         except:
             self.log.error("Invalid Message", exc_info=True)
             return
@@ -373,7 +373,7 @@ class Kernel(SessionFactory):
         self.control_stream.flush()
         idents,msg = self.session.feed_identities(msg, copy=False)
         try:
-            msg = self.session.unpack_message(msg, content=True, copy=False)
+            msg = self.session.unserialize(msg, content=True, copy=False)
         except:
             self.log.error("Invalid Message", exc_info=True)
             return

@@ -40,7 +40,7 @@ class KernelStarter(object):
     def dispatch_request(self, raw_msg):
         idents, msg = self.session.feed_identities()
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unserialize(msg, content=False)
         except:
             print ("bad msg: %s"%msg)
         
@@ -54,7 +54,7 @@ class KernelStarter(object):
     def dispatch_reply(self, raw_msg):
         idents, msg = self.session.feed_identities()
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unserialize(msg, content=False)
         except:
             print ("bad msg: %s"%msg)
         

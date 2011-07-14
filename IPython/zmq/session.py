@@ -383,6 +383,10 @@ class Session(Configurable):
     def serialize(self, msg, ident=None):
         """Serialize the message components to bytes.
 
+        This is roughly the inverse of unserialize. The serialize/unserialize
+        methods work with full message lists, whereas pack/unpack work with
+        the individual message parts in the message list.
+
         Parameters
         ----------
         msg : dict or Message
@@ -576,7 +580,7 @@ class Session(Configurable):
         # invalid large messages can cause very expensive string comparisons
         idents, msg_list = self.feed_identities(msg_list, copy)
         try:
-            return idents, self.unpack_message(msg_list, content=content, copy=copy)
+            return idents, self.unserialize(msg_list, content=content, copy=copy)
         except Exception as e:
             print (idents, msg_list)
             # TODO: handle it
@@ -598,10 +602,12 @@ class Session(Configurable):
         
         Returns
         -------
-        (idents,msg_list) : two lists
-            idents will always be a list of bytes - the indentity prefix
-            msg_list will be a list of bytes or Messages, unchanged from input
-            msg_list should be unpackable via self.unpack_message at this point.
+        (idents, msg_list) : two lists
+            idents will always be a list of bytes, each of which is a ZMQ
+            identity. msg_list will be a list of bytes or zmq.Messages of the
+            form [HMAC,p_header,p_parent,p_content,buffer1,buffer2,...] and
+            should be unpackable/unserializable via self.unserialize at this
+            point.
         """
         if copy:
             idx = msg_list.index(DELIM)
@@ -617,21 +623,30 @@ class Session(Configurable):
             idents, msg_list = msg_list[:idx], msg_list[idx+1:]
             return [m.bytes for m in idents], msg_list
     
-    def unpack_message(self, msg_list, content=True, copy=True):
-        """Return a message object from the format
-        sent by self.send.
-        
+    def unserialize(self, msg_list, content=True, copy=True):
+        """Unserialize a msg_list to a nested message dict.
+
+        This is roughly the inverse of serialize. The serialize/unserialize
+        methods work with full message lists, whereas pack/unpack work with
+        the individual message parts in the message list.
+
         Parameters:
         -----------
-        
+        msg_list : list of bytes or Message objects
+            The list of message parts of the form [HMAC,p_header,p_parent,
+            p_content,buffer1,buffer2,...].
         content : bool (True)
-            whether to unpack the content dict (True), 
-            or leave it serialized (False)
-        
+            Whether to unpack the content dict (True), or leave it packed
+            (False).
         copy : bool (True)
-            whether to return the bytes (True), 
-            or the non-copying Message object in each place (False)
-        
+            Whether to return the bytes (True), or the non-copying Message
+            object in each place (False).
+
+        Returns
+        -------
+        msg : dict
+            The nested message dict with top-level keys [header, parent_header,
+            content, buffers].
         """
         minlen = 4
         message = {}
