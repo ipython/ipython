@@ -31,14 +31,24 @@ class TestSession(SessionTestCase):
     def test_msg(self):
         """message format"""
         msg = self.session.msg('execute')
-        thekeys = set('header msg_id parent_header msg_type content'.split())
+        thekeys = set('header parent_header content'.split())
         s = set(msg.keys())
         self.assertEquals(s, thekeys)
         self.assertTrue(isinstance(msg['content'],dict))
         self.assertTrue(isinstance(msg['header'],dict))
         self.assertTrue(isinstance(msg['parent_header'],dict))
         self.assertEquals(msg['header']['msg_type'], 'execute')
-        
+
+    def test_serialize(self):
+        msg = self.session.msg('execute')
+        msg_list = self.session.serialize(msg, ident=b'foo')
+        ident, msg_list = self.session.feed_identities(msg_list)
+        new_msg = self.session.unserialize(msg_list)
+        self.assertEquals(ident[0], b'foo')
+        self.assertEquals(new_msg['header'],msg['header'])
+        self.assertEquals(new_msg['content'],msg['content'])
+        self.assertEquals(new_msg['parent_header'],msg['parent_header'])
+
     def test_args(self):
         """initialization arguments for Session"""
         s = self.session
@@ -107,3 +117,4 @@ class TestSession(SessionTestCase):
         content = dict(code='whoda',stuff=object())
         themsg = self.session.msg('execute',content=content)
         pmsg = theids
+
