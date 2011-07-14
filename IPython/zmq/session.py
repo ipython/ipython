@@ -244,7 +244,7 @@ class Session(Configurable):
     def _session_default(self):
         return bytes(uuid.uuid4())
     
-    username = Unicode(os.environ.get('USER','username'), config=True,
+    username = Unicode(os.environ.get('USER',u'username'), config=True,
         help="""Username for the Session. Default is your system username.""")
     
     # message signature related traits:
@@ -455,7 +455,8 @@ class Session(Configurable):
             The socket-like object used to send the data.
         msg_or_type : str or Message/dict
             Normally, msg_or_type will be a msg_type unless a message is being 
-            sent more than once.
+            sent more than once. If a header is supplied, this can be set to
+            None and the msg_type will be pulled from the header.
         
         content : dict or None
             The content of the message (ignored if msg_or_type is a message).
