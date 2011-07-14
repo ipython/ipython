@@ -56,8 +56,9 @@ class TestDictBackend(TestCase):
             msg = self.session.msg('apply_request', content=dict(a=5))
             msg['buffers'] = []
             rec = init_record(msg)
-            msg_ids.append(msg['header']['msg_id'])
-            self.db.add_record(msg['header']['msg_id'], rec)
+            msg_id = msg['header']['msg_id']
+            msg_ids.append(msg_id)
+            self.db.add_record(msg_id, rec)
         return msg_ids
     
     def test_add_record(self):

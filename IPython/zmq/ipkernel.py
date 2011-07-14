@@ -122,6 +122,7 @@ class Kernel(Configurable):
         """Do one iteration of the kernel's evaluation loop.
         """
         ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
+        msg_type = msg['header']['msg_type']
         if msg is None:
             return
         
@@ -133,11 +134,11 @@ class Kernel(Configurable):
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
-        self.log.debug('\n*** MESSAGE TYPE:'+str(msg['header']['msg_type'])+'***')
+        self.log.debug('\n*** MESSAGE TYPE:'+str(msg_type)+'***')
         self.log.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
 
         # Find and call actual handler for message
-        handler = self.handlers.get(msg['header']['msg_type'], None)
+        handler = self.handlers.get(msg_type, None)
         if handler is None:
             self.log.error("UNKNOWN MESSAGE TYPE:" +str(msg))
         else:
