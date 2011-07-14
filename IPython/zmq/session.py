@@ -436,7 +436,7 @@ class Session(Configurable):
 
         return to_send
         
-    def send(self, stream, msg_or_type, content=None, parent=None, ident=None
+    def send(self, stream, msg_or_type, content=None, parent=None, ident=None,
              buffers=None, subheader=None, track=False, header=None):
         """Build and send a message via stream or socket.
 
