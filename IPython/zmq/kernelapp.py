@@ -141,7 +141,7 @@ class KernelApp(BaseIPythonApplication):
 
     def init_sockets(self):
         # Create a context, a session, and the kernel sockets.
-        self.log.info("Starting the kernel at pid:", os.getpid())
+        self.log.info("Starting the kernel at pid: %i", os.getpid())
         context = zmq.Context.instance()
         # Uncomment this to try closing the context.
         # atexit.register(context.term)
