@@ -158,8 +158,8 @@ flags['quick']=(
 
 flags['i'] = (
     {'TerminalIPythonApp' : {'force_interact' : True}},
-    """also works as '-i'
-    If running code from the command line, become interactive afterwards."""
+    """If running code from the command line, become interactive afterwards.
+    Note: can also be given simply as '-i.'"""
 )
 flags['pylab'] = (
     {'TerminalIPythonApp' : {'pylab' : 'auto'}},
@@ -180,7 +180,6 @@ aliases.update(dict(
 # Main classes and functions
 #-----------------------------------------------------------------------------
 
-
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     name = u'ipython'
     description = usage.cl_usage
@@ -190,7 +189,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
 
     flags = Dict(flags)
     aliases = Dict(aliases)
-    classes = [InteractiveShellApp, TerminalInteractiveShell, ProfileDir, PlainTextFormatter]
+    classes = [InteractiveShellApp, TerminalInteractiveShell, ProfileDir,
+               PlainTextFormatter]
     subcommands = Dict(dict(
         qtconsole=('IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             """Launch the IPython Qt Console."""
@@ -247,17 +247,14 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
 
     def parse_command_line(self, argv=None):
         """override to allow old '-pylab' flag with deprecation warning"""
+
         argv = sys.argv[1:] if argv is None else argv
-        
-        try:
-            idx = argv.index('-pylab')
-        except ValueError:
-            # `-pylab` not given, proceed as normal
-            pass
-        else:
+
+        if '-pylab' in argv:
             # deprecated `-pylab` given,
             # warn and transform into current syntax
-            argv = list(argv) # copy, don't clobber
+            argv = argv[:] # copy, don't clobber
+            idx = argv.index('-pylab')
             warn.warn("`-pylab` flag has been deprecated.\n"
             "    Use `--pylab` instead, or `--pylab=foo` to specify a backend.")
             sub = '--pylab'
