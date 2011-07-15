@@ -192,7 +192,13 @@ class IPControllerApp(BaseParallelApplication):
             except AssertionError:
                 pass
             else:
-                location = socket.gethostbyname_ex(socket.gethostname())[2][-1]
+                try:
+                    location = socket.gethostbyname_ex(socket.gethostname())[2][-1]
+                except (socket.gaierror, IndexError):
+                    self.log.warn("Could not identify this machine's IP, assuming 127.0.0.1."
+                    " You may need to specify '--location=<external_ip_address>' to help"
+                    " IPython decide when to connect via loopback.")
+                    location = '127.0.0.1'
             cdict['location'] = location
         fname = os.path.join(self.profile_dir.security_dir, fname)
         with open(fname, 'wb') as f:

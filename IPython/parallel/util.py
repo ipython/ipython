@@ -166,8 +166,13 @@ def disambiguate_ip_address(ip, location=None):
     """turn multi-ip interfaces '0.0.0.0' and '*' into connectable
     ones, based on the location (default interpretation of location is localhost)."""
     if ip in ('0.0.0.0', '*'):
-        external_ips = socket.gethostbyname_ex(socket.gethostname())[2]
-        if location is None or location in external_ips:
+        try:
+            external_ips = socket.gethostbyname_ex(socket.gethostname())[2]
+        except (socket.gaierror, IndexError):
+            # couldn't identify this machine, assume localhost
+            external_ips = []
+        if location is None or location in external_ips or not external_ips:
+            # If location is unspecified or cannot be determined, assume local
             ip='127.0.0.1'
         elif location:
             return location
