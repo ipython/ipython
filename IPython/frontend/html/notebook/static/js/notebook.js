@@ -18,8 +18,14 @@ var IPython = (function (IPython) {
         this.notebook_load_re = /%notebook load/
         this.notebook_save_re = /%notebook save/
         this.notebook_filename_re = /(\w)+.ipynb/
+        this.style();
         this.bind_events();
         this.start_kernel();
+    };
+
+
+    Notebook.prototype.style = function () {
+        this.element.addClass('vbox box-flex1 border-box-sizing');
     };
 
 
@@ -390,17 +396,15 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.handle_payload = function (payload) {
         var l = payload.length;
-        var element = $('div#pager');
         if (l > 0) {
-            element.show();
+            IPython.pager.clear();
+            IPython.pager.expand();
         };
         for (var i=0; i<l; i++) {
-            var toinsert = $("<div/>").addClass("output_area output_stream monospace-font");
-            toinsert.append($("<pre/>").addClass("monospace-font").
-                html(utils.fixConsole(payload[i].text)));
-            element.append(toinsert);
+            IPython.pager.append_text(payload[i].text);
         };
     };
+
 
     Notebook.prototype.handle_iopub_reply = function (e) {
         reply = $.parseJSON(e.data);
