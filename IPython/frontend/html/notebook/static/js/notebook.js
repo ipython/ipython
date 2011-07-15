@@ -367,50 +367,53 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.start_kernel = function () {
         this.kernel = new IPython.Kernel();
-        this.kernel.start_kernel(this._kernel_started, this);
+        this.kernel.start_kernel($.proxy(this.kernel_started, this));
     };
 
 
-    Notebook.prototype._kernel_started = function () {
-        console.log("Kernel started: ", this.kernel.kernel_id);
-        var that = this;
+    Notebook.prototype.handle_shell_reply = function (e) {
+        reply = $.parseJSON(e.data);
+        // console.log(reply);
+        var msg_type = reply.header.msg_type;
+        var cell = this.cell_for_msg(reply.parent_header.msg_id);
+        if (msg_type === "execute_reply") {
+            cell.set_input_prompt(reply.content.execution_count);
+        };
+    };
 
-        this.kernel.shell_channel.onmessage = function (e) {
-            reply = $.parseJSON(e.data);
-            // console.log(reply);
-            var msg_type = reply.header.msg_type;
-            var cell = that.cell_for_msg(reply.parent_header.msg_id);
-            if (msg_type === "execute_reply") {
-                cell.set_input_prompt(reply.content.execution_count);
+
+    Notebook.prototype.handle_iopub_reply = function (e) {
+        reply = $.parseJSON(e.data);
+        var content = reply.content;
+        // console.log(reply);
+        var msg_type = reply.header.msg_type;
+        var cell = this.cell_for_msg(reply.parent_header.msg_id);
+        if (msg_type === "stream") {
+            cell.expand();
+            cell.append_stream(content.data + "\n");
+        } else if (msg_type === "display_data") {
+            cell.expand();
+            cell.append_display_data(content.data);
+        } else if (msg_type === "pyout") {
+            cell.expand();
+            cell.append_pyout(content.data, content.execution_count)
+        } else if (msg_type === "pyerr") {
+            cell.expand();
+            cell.append_pyerr(content.ename, content.evalue, content.traceback);
+        } else if (msg_type === "status") {
+            if (content.execution_state === "busy") {
+                this.kernel.status_busy();
+            } else if (content.execution_state === "idle") {
+                this.kernel.status_idle();
             };
-        };
+        }
+    };
 
-        this.kernel.iopub_channel.onmessage = function (e) {
-            reply = $.parseJSON(e.data);
-            var content = reply.content;
-            // console.log(reply);
-            var msg_type = reply.header.msg_type;
-            var cell = that.cell_for_msg(reply.parent_header.msg_id);
-            if (msg_type === "stream") {
-                cell.expand();
-                cell.append_stream(content.data + "\n");
-            } else if (msg_type === "display_data") {
-                cell.expand();
-                cell.append_display_data(content.data);
-            } else if (msg_type === "pyout") {
-                cell.expand();
-                cell.append_pyout(content.data, content.execution_count)
-            } else if (msg_type === "pyerr") {
-                cell.expand();
-                cell.append_pyerr(content.ename, content.evalue, content.traceback);
-            } else if (msg_type === "status") {
-                if (content.execution_state === "busy") {
-                    that.kernel.status_busy();
-                } else if (content.execution_state === "idle") {
-                    that.kernel.status_idle();
-                };
-            }
-        };
+
+    Notebook.prototype.kernel_started = function () {
+        console.log("Kernel started: ", this.kernel.kernel_id);
+        this.kernel.shell_channel.onmessage = $.proxy(this.handle_shell_reply,this);
+        this.kernel.iopub_channel.onmessage = $.proxy(this.handle_iopub_reply,this);
     };
 
 

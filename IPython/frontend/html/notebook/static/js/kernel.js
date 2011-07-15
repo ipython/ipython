@@ -28,22 +28,22 @@ var IPython = (function (IPython) {
         return msg;
     }
 
-    Kernel.prototype.start_kernel = function (callback, context) {
+    Kernel.prototype.start_kernel = function (callback) {
         var that = this;
         $.post(this.base_url,
             function (kernel_id) {
-                that._handle_start_kernel(kernel_id, callback, context);
+                that._handle_start_kernel(kernel_id, callback);
             }, 
             'json'
         );
     };
 
 
-    Kernel.prototype._handle_start_kernel = function (kernel_id, callback, context) {
+    Kernel.prototype._handle_start_kernel = function (kernel_id, callback) {
         this.kernel_id = kernel_id;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this._start_channels();
-        callback.call(context);
+        callback();
     };
 
 
