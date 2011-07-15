@@ -78,7 +78,7 @@ LinuxColors = ColorScheme(
     token.OP         : Colors.Yellow,
     token.STRING     : Colors.LightBlue,
     tokenize.COMMENT : Colors.LightRed,
-    token.NAME       : Colors.White,
+    token.NAME       : Colors.Normal,
     token.ERRORTOKEN : Colors.Red,
 
     _KEYWORD         : Colors.LightGreen,
@@ -93,7 +93,7 @@ LightBGColors = ColorScheme(
     token.OP         : Colors.Blue,
     token.STRING     : Colors.Blue,
     tokenize.COMMENT : Colors.Red,
-    token.NAME       : Colors.Black,
+    token.NAME       : Colors.Normal,
     token.ERRORTOKEN : Colors.Red,
 
     _KEYWORD         : Colors.Green,
