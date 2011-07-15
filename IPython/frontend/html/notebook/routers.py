@@ -86,6 +86,7 @@ class ZMQStreamRouter(Configurable):
         idents, msg_list = self.session.feed_identities(msg_list)
         msg = self.session.unserialize(msg_list)
         msg['header'].pop('date')
+        msg.pop('buffers')
         return json.dumps(msg)
 
 

@@ -5,7 +5,7 @@ CodeMirror.defineMode("python", function(conf) {
         return new RegExp("^((" + words.join(")|(") + "))\\b");
     }
     
-    var singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!]");
+    var singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!\\?]");
     var singleDelimiters = new RegExp('^[\\(\\)\\[\\]\\{\\}@,:`=;\\.]');
     var doubleOperators = new RegExp("^((==)|(!=)|(<=)|(>=)|(<>)|(<<)|(>>)|(//)|(\\*\\*))");
     var doubleDelimiters = new RegExp("^((\\+=)|(\\-=)|(\\*=)|(%=)|(/=)|(&=)|(\\|=)|(\\^=))");

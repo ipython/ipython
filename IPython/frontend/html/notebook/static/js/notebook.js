@@ -5,6 +5,8 @@
 
 var IPython = (function (IPython) {
 
+    var utils = IPython.utils;
+
     var Notebook = function (selector) {
         this.element = $(selector);
         this.element.scroll();
@@ -373,14 +375,32 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.handle_shell_reply = function (e) {
         reply = $.parseJSON(e.data);
-        // console.log(reply);
-        var msg_type = reply.header.msg_type;
+        var header = reply.header;
+        var content = reply.content;
+        var msg_type = header.msg_type;
+        console.log(reply);
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
-            cell.set_input_prompt(reply.content.execution_count);
+            cell.set_input_prompt(content.execution_count);
         };
+        var payload = content.payload || [];
+        this.handle_payload(content.payload);
     };
 
+
+    Notebook.prototype.handle_payload = function (payload) {
+        var l = payload.length;
+        var element = $('div#pager');
+        if (l > 0) {
+            element.show();
+        };
+        for (var i=0; i<l; i++) {
+            var toinsert = $("<div/>").addClass("output_area output_stream monospace-font");
+            toinsert.append($("<pre/>").addClass("monospace-font").
+                html(utils.fixConsole(payload[i].text)));
+            element.append(toinsert);
+        };
+    };
 
     Notebook.prototype.handle_iopub_reply = function (e) {
         reply = $.parseJSON(e.data);

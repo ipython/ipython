@@ -127,13 +127,13 @@ div#left_panel_splitter {
 div#pager {
     height: 200px;
     overflow: auto;
-
+    padding: 15px;
 }
 
 div#notebook {
     overflow-y: scroll;
     overflow-x: auto;
-    padding: 0px 40px;
+    padding: 0px 15px;
     background-color: white;
     font-size: 12pt;
 }
