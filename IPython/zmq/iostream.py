@@ -1,4 +1,3 @@
-import logging
 import sys
 import time
 from io import StringIO
@@ -10,9 +9,6 @@ from IPython.utils import io
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
-
-# Module-level logger
-logger =  logging.getLogger(__name__)
 
 #-----------------------------------------------------------------------------
 # Stream classes
@@ -48,7 +44,6 @@ class OutStream(object):
                 content = {u'name':self.name, u'data':data}
                 msg = self.session.send(self.pub_socket, u'stream', content=content,
                                        parent=self.parent_header, ident=self.topic)
-                logger.debug(msg)
 
                 self._buffer.close()
                 self._new_buffer()
