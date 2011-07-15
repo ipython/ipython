@@ -7,7 +7,41 @@
 $(document).ready(function () {
 
     $('div#wrapper').addClass('vbox border-box-sizing')
-    $('div.notebook').addClass('box-flex1 border-box-sizing')
+    $('div#notebook_app').addClass('hbox box-flex1 border-box-sizing')
+    $('div#left_panel').addClass('vbox border-box-sizing ui-widget ui-widget-content')
+    $('div#pager_splitter').addClass('border-box-sizing ui-widget ui-widget-header')
+    $('div#notebook_panel').addClass('vbox box-flex1 border-box-sizing ui-widget ui-widget-content')
+    $('div#notebook').addClass('vbox box-flex1 border-box-sizing')
+    $('div#left_panel_splitter').addClass('border-box-sizing ui-widget ui-widget-header')
+    $('div#pager').addClass('border-box-sizing')
+
+    $('div#pager_splitter').click(function () {
+        $('div#pager').toggle('fast');
+    });
+
+    $('div#pager_splitter').hover(
+        function () {
+            $('div#pager_splitter').addClass('ui-state-hover');
+        },
+        function () {
+            $('div#pager_splitter').removeClass('ui-state-hover');
+        }
+    );
+
+    $('div#pager').hide();
+
+    $('div#left_panel_splitter').click(function () {
+        $('div#left_panel').toggle('fast');
+    });
+
+    $('div#left_panel_splitter').hover(
+        function () {
+            $('div#left_panel_splitter').addClass('ui-state-hover');
+        },
+        function () {
+            $('div#left_panel_splitter').removeClass('ui-state-hover');
+        }
+    );
 
     MathJax.Hub.Config({
         tex2jax: {
@@ -20,7 +54,7 @@ $(document).ready(function () {
         }
     });
 
-    IPython.notebook = new IPython.Notebook('div.notebook');
+    IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.notebook.insert_code_cell_after();
 
     $("#menu_tabs").tabs();
