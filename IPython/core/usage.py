@@ -22,7 +22,7 @@ IPython: an enhanced interactive Python shell.
     system shell and more.  IPython can also be embedded in running programs.
 
     If invoked with no options, it executes all the files listed in sequence
-    and exits, use --i to enter interactive mode after running the files.  Files
+    and exits, use -i to enter interactive mode after running the files.  Files
     ending in .py will be treated as normal Python, but files ending in .ipy
     can contain special IPython syntax (magic commands, shell expansions, etc.)
 

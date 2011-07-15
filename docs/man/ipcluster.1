@@ -1,4 +1,4 @@
-.TH IPCLUSTER 1 "October 28, 2008" "" ""
+.TH IPCLUSTER 1 "July 15, 2011" "" ""
 .SH NAME
 \fBipcluster \- IPython parallel computing cluster control tool
 .SH SYNOPSIS
@@ -12,28 +12,26 @@ ipcluster is a control tool for IPython's parallel computing functions.
 
 IPython cluster startup. This starts a controller and engines using various
 approaches. Use the IPYTHON_DIR environment variable to change your IPython
-directory from the default of .ipython or _ipython. The log and security
+directory from the default of ~/.ipython or ~/.config/ipython. The log and security
 subdirectories of your IPython directory will be used by this script for log
 files and security files.
 .SH POSITIONAL ARGUMENTS
 
-The first positional argument should be one of: {mpiexec, local, mpirun, pbs,
-ssh}, which are the available cluster types.
+The first positional argument should be one of: {start, stop, engines},
+which are the available subcommands.
 
-For detailed help on each, type "ipcluster TYPE --help". Briefly:
+For detailed help on each, type "ipcluster CMD --help". Briefly:
 
-  local         run a local cluster
-  mpirun        run a cluster using mpirun (mpiexec also works)
-  mpiexec       run a cluster using mpiexec (mpirun also works)
-  pbs           run a pbs cluster
-  ssh           run a cluster using ssh, should have ssh-keys setup
+  start         start an IPython cluster
+  stop          stop a running IPython cluster
+  engines       add a number of engines to a running cluster
 .SH OPTIONS
 .TP
 .B
 \-h, \-\-help
 show help message and exit
 .SH EXAMPLE
-ipcluster local -n 4
+ipcluster start --n=4
 
 This command will start 4 IPython engines on the local computer.
 .SH SEE ALSO
