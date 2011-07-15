@@ -142,7 +142,8 @@ class NotebookWebApplication(web.Application):
         # TODO: This causes a hard crash in ZMQStream.close, which sets
         # self.socket to None to hastily. We will need to fix this in PyZMQ
         # itself. For now, we just leave the old kernel running :(
-        # self.kill_kernel(kernel_id)
+        # Maybe this is fixed now, but nothing was changed really.
+        self.kill_kernel(kernel_id)
 
         self.log.debug("Kernel restarted: %s -> %s" % (kernel_id, new_kernel_id))
         return new_kernel_id
