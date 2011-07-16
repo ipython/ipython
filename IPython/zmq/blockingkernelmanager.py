@@ -48,6 +48,10 @@ class BlockingSubSocketChannel(SubSocketChannel):
 
     def get_msg(self, block=True, timeout=None):
         """Get a message if there is one that is ready."""
+        if block and timeout is None:
+            # never use timeout=None, because get
+            # becomes uninterruptible
+            timeout = 1e6
         return self._in_queue.get(block, timeout)
 
     def get_msgs(self):
@@ -81,6 +85,10 @@ class BlockingShellSocketChannel(ShellSocketChannel):
 
     def get_msg(self, block=True, timeout=None):
         """Get a message if there is one that is ready."""
+        if block and timeout is None:
+            # never use timeout=None, because get
+            # becomes uninterruptible
+            timeout = 1e6
         return self._in_queue.get(block, timeout)
 
     def get_msgs(self):
