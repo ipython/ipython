@@ -81,9 +81,9 @@ class Frontend(object):
        
        try:
            print()
-           self._splitter.push(raw_input(' In[%i]: '%self.prompt_count+self.code))
+           self._splitter.push(raw_input('In [%i]: '%self.prompt_count+self.code))
            while self._splitter.push_accepts_more():
-              self.code = raw_input(' .....: '+' '*self._splitter.indent_spaces)
+              self.code = raw_input('.....: '+' '*self._splitter.indent_spaces)
               self._splitter.push(' '*self._splitter.indent_spaces+self.code)
            self._execute(self._splitter.source,False)
            self._splitter.reset()
@@ -117,25 +117,25 @@ class Frontend(object):
 
         See parent class :meth:`execute` docstring for full details.
         """
-        msg_id = self.km.xreq_channel.execute(source, hidden)
-        while not self.km.xreq_channel.msg_ready():
+        msg_id = self.km.shell_channel.execute(source, hidden)
+        while not self.km.shell_channel.msg_ready():
             try:
-                self.handle_rep_channel(timeout=0.1)
+                self.handle_stdin_channel(timeout=0.1)
             except Empty:
                 pass
         self.handle_execute_reply(msg_id)
 
     def handle_execute_reply(self, msg_id):
-        msg_xreq = self.km.xreq_channel.get_msg()
-        if msg_xreq["parent_header"]["msg_id"] == msg_id:
-            if msg_xreq["content"]["status"] == 'ok' :
+        msg = self.km.shell_channel.get_msg()
+        if msg["parent_header"]["msg_id"] == msg_id:
+            if msg["content"]["status"] == 'ok' :
                 self.handle_sub_channel()
                
-            elif msg_xreq["content"]["status"] == 'error':
-                for frame in msg_xreq["content"]["traceback"]:
+            elif msg["content"]["status"] == 'error':
+                for frame in msg["content"]["traceback"]:
                     print(frame, file=sys.stderr)
             
-            self.prompt_count = msg_xreq["content"]["execution_count"] + 1
+            self.prompt_count = msg["content"]["execution_count"] + 1
 
 
     def handle_sub_channel(self):
@@ -169,13 +169,13 @@ class Frontend(object):
                             file=sys.stdout)
                     sys.stdout.flush()
 
-    def handle_rep_channel(self, timeout=0.1):
+    def handle_stdin_channel(self, timeout=0.1):
         """ Method to capture raw_input
         """
-        msg_rep = self.km.rep_channel.get_msg(timeout=timeout)
+        msg_rep = self.km.stdin_channel.get_msg(timeout=timeout)
         if self.session_id == msg_rep["parent_header"]["session"] :
             raw_data = raw_input(msg_rep["content"]["prompt"])
-            self.km.rep_channel.input(raw_data)
+            self.km.stdin_channel.input(raw_data)
              
        
 
@@ -195,11 +195,11 @@ def start_frontend():
             If the IP address is something other than localhost, then \
             Consoles on other machines will be able to connect\
             to the Kernel, so be careful!")
-    kgroup.add_argument('--xreq', type=int, metavar='PORT', default=0,
+    kgroup.add_argument('--shell', type=int, metavar='PORT', default=0,
                         help='set the XREQ channel port [default random]')
-    kgroup.add_argument('--sub', type=int, metavar='PORT', default=0,
+    kgroup.add_argument('--iopub', type=int, metavar='PORT', default=0,
                         help='set the SUB channel port [default random]')
-    kgroup.add_argument('--rep', type=int, metavar='PORT', default=0,
+    kgroup.add_argument('--stdin', type=int, metavar='PORT', default=0,
                         help='set the REP channel port [default random]')
     kgroup.add_argument('--hb', type=int, metavar='PORT', default=0,
                         help='set the heartbeat port [default random]')
@@ -231,21 +231,15 @@ def start_frontend():
         colors=None
 
     # Create a KernelManager and start a kernel.
-    kernel_manager = KernelManager(xreq_address=(args.ip, args.xreq),
-                                     sub_address=(args.ip, args.sub),
-                                     rep_address=(args.ip, args.rep),
+    kernel_manager = KernelManager(shell_address=(args.ip, args.shell),
+                                     sub_address=(args.ip, args.iopub),
+                                     stdin_address=(args.ip, args.stdin),
                                      hb_address=(args.ip, args.hb))
     if not args.existing:
         # if not args.ip in LOCAL_IPS+ALL_ALIAS:
         #     raise ValueError("Must bind a local ip, such as: %s"%LOCAL_IPS)
 
-        kwargs = dict(ip=args.ip)
-        if args.pure:
-            kwargs['ipython']=False
-        else:
-            kwargs['colors']=colors
-            if args.pylab:
-                kwargs['pylab']=args.pylab
+        kwargs = dict(ip=args.ip, ipython=True)
         kernel_manager.start_kernel(**kwargs)
 
     

@@ -106,7 +106,7 @@ class BlockingShellSocketChannel(ShellSocketChannel):
 class BlockingStdInSocketChannel(StdInSocketChannel):
     
     def __init__(self, context, session, address=None):
-        super(BlockingRepSocketChannel, self).__init__(context, session, address)
+        super(BlockingStdInSocketChannel, self).__init__(context, session, address)
         self._in_queue = Queue()
         
     def call_handlers(self, msg):
