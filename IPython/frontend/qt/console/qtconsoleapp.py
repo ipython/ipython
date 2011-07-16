@@ -176,21 +176,20 @@ class MainWindow(QtGui.QMainWindow):
 #-----------------------------------------------------------------------------
 
 flags = dict(ipkernel_flags)
-
-flags.update({
+qt_flags = {
     'existing' : ({'IPythonQtConsoleApp' : {'existing' : True}},
             "Connect to an existing kernel."),
     'pure' : ({'IPythonQtConsoleApp' : {'pure' : True}},
             "Use a pure Python kernel instead of an IPython kernel."),
     'plain' : ({'ConsoleWidget' : {'kind' : 'plain'}},
             "Disable rich text support."),
-})
-flags.update(boolean_flag(
+}
+qt_flags.update(boolean_flag(
     'gui-completion', 'ConsoleWidget.gui_completion',
     "use a GUI widget for tab completion",
     "use plaintext output for completion"
 ))
-flags.update(boolean_flag(
+qt_flags.update(boolean_flag(
     'confirm-exit', 'IPythonQtConsoleApp.confirm_exit',
     """Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
        to force a direct exit without any confirmation.
@@ -199,31 +198,31 @@ flags.update(boolean_flag(
        if it is owned by the frontend, and leave it alive if it is external.
     """
 ))
+flags.update(qt_flags)
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-qt_flags = ['existing', 'pure', 'plain', 'gui-completion', 'no-gui-completion',
-            'confirm-exit', 'no-confirm-exit']
+qt_flags = qt_flags.keys()
 
 aliases = dict(ipkernel_aliases)
 
-aliases.update(dict(
+qt_aliases = dict(
     hb = 'IPythonQtConsoleApp.hb_port',
     shell = 'IPythonQtConsoleApp.shell_port',
     iopub = 'IPythonQtConsoleApp.iopub_port',
     stdin = 'IPythonQtConsoleApp.stdin_port',
     ip = 'IPythonQtConsoleApp.ip',
 
-    plain = 'IPythonQtConsoleApp.plain',
-    pure = 'IPythonQtConsoleApp.pure',
     style = 'IPythonWidget.syntax_style',
     stylesheet = 'IPythonQtConsoleApp.stylesheet',
     colors = 'ZMQInteractiveShell.colors',
 
     editor = 'IPythonWidget.editor',
     paging = 'ConsoleWidget.paging',
-))
-aliases['gui-completion'] = 'ConsoleWidget.gui_completion'
+)
+aliases.update(qt_aliases)
+# also scrub aliases from the frontend
+qt_flags.extend(qt_aliases.keys())
 
 
 #-----------------------------------------------------------------------------
@@ -316,8 +315,11 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
         # scrub frontend-specific flags
         for a in argv:
-            if a.startswith('-') and a.lstrip('-') in qt_flags:
-                self.kernel_argv.remove(a)
+            
+            if a.startswith('-'):
+                key = a.lstrip('-').split('=')[0]
+                if key in qt_flags:
+                    self.kernel_argv.remove(a)
 
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.

@@ -136,11 +136,13 @@ class ProfileList(Application):
 
 create_flags = {}
 create_flags.update(base_flags)
-create_flags.update(boolean_flag('reset', 'ProfileCreate.overwrite', 
-                "reset config files to defaults", "leave existing config files"))
-create_flags.update(boolean_flag('parallel', 'ProfileCreate.parallel', 
-                "Include parallel computing config files", 
-                "Don't include parallel computing config files"))
+# don't include '--init' flag, which implies running profile create in other apps
+create_flags.pop('init')
+create_flags['reset'] = ({'ProfileCreate': {'overwrite' : True}},
+                        "reset config files in this profile to the defaults.")
+create_flags['parallel'] = ({'ProfileCreate': {'parallel' : True}},
+                        "Include the config files for parallel "
+                        "computing apps (ipengine, ipcontroller, etc.)")
 
 
 class ProfileCreate(BaseIPythonApplication):

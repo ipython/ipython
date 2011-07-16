@@ -37,6 +37,7 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
+from IPython.utils.sysinfo import num_cpus
 from IPython.utils.traitlets import (Int, Unicode, Bool, CFloat, Dict, List, 
                                         DottedObjectName)
 
@@ -228,12 +229,32 @@ class IPClusterEngines(BaseParallelApplication):
         eslaunchers = [ l for l in launchers if 'EngineSet' in l.__name__]
         return [ProfileDir]+eslaunchers
     
-    n = Int(2, config=True,
-        help="The number of engines to start.")
+    n = Int(num_cpus(), config=True,
+        help="""The number of engines to start. The default is to use one for each
+        CPU on your machine""")
 
     engine_launcher_class = DottedObjectName('LocalEngineSetLauncher',
         config=True,
-        help="The class for launching a set of Engines."
+        help="""The class for launching a set of Engines. Change this value
+        to use various batch systems to launch your engines, such as PBS,SGE,MPIExec,etc.
+        Each launcher class has its own set of configuration options, for making sure
+        it will work in your environment.
+        
+        You can also write your own launcher, and specify it's absolute import path,
+        as in 'mymodule.launcher.FTLEnginesLauncher`.
+        
+        Examples include:
+        
+            LocalEngineSetLauncher : start engines locally as subprocesses [default]
+            MPIExecEngineSetLauncher : use mpiexec to launch in an MPI environment
+            PBSEngineSetLauncher : use PBS (qsub) to submit engines to a batch queue
+            SGEEngineSetLauncher : use SGE (qsub) to submit engines to a batch queue
+            SSHEngineSetLauncher : use SSH to start the controller
+                                Note that SSH does *not* move the connection files
+                                around, so you will likely have to do this manually
+                                unless the machines are on a shared file system.
+            WindowsHPCEngineSetLauncher : use Windows HPC
+        """
         )
     daemonize = Bool(False, config=True,
         help="""Daemonize the ipcluster program. This implies --log-to-file.
@@ -267,10 +288,14 @@ class IPClusterEngines(BaseParallelApplication):
             # not a module, presume it's the raw name in apps.launcher
             clsname = 'IPython.parallel.apps.launcher.'+clsname
         # print repr(clsname)
-        klass = import_item(clsname)
+        try:
+            klass = import_item(clsname)
+        except (ImportError, KeyError):
+            self.log.fatal("Could not import launcher class: %r"%clsname)
+            self.exit(1)
 
         launcher = klass(
-            work_dir=self.profile_dir.location, config=self.config, log=self.log
+            work_dir=u'.', config=self.config, log=self.log
         )
         return launcher
     
@@ -348,6 +373,12 @@ start_aliases.update(dict(
 ))
 start_aliases['clean-logs'] = 'IPClusterStart.clean_logs'
 
+# set inherited Start keys directly, to ensure command-line args get higher priority
+# than config file options.
+for key,value in start_aliases.items():
+    if value.startswith('IPClusterEngines'):
+        start_aliases[key] = value.replace('IPClusterEngines', 'IPClusterStart')
+
 class IPClusterStart(IPClusterEngines):
 
     name = u'ipcluster'
@@ -369,7 +400,21 @@ class IPClusterStart(IPClusterEngines):
 
     controller_launcher_class = DottedObjectName('LocalControllerLauncher',
         config=True,
-        help="The class for launching a Controller."
+        helep="""The class for launching a Controller. Change this value if you want
+        your controller to also be launched by a batch system, such as PBS,SGE,MPIExec,etc.
+        
+        Each launcher class has its own set of configuration options, for making sure
+        it will work in your environment.
+        
+        Examples include:
+        
+            LocalControllerLauncher : start engines locally as subprocesses
+            MPIExecControllerLauncher : use mpiexec to launch engines in an MPI universe
+            PBSControllerLauncher : use PBS (qsub) to submit engines to a batch queue
+            SGEControllerLauncher : use SGE (qsub) to submit engines to a batch queue
+            SSHControllerLauncher : use SSH to start the controller
+            WindowsHPCControllerLauncher : use Windows HPC
+        """
         )
     reset = Bool(False, config=True,
         help="Whether to reset config files as part of '--create'."

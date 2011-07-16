@@ -66,7 +66,9 @@ base_flags = dict(
     init = ({'BaseIPythonApplication' : {
                     'copy_config_files' : True,
                     'auto_create' : True}
-            }, "Initialize profile with default config files")
+            }, """Initialize profile with default config files.  This is equivalent
+            to running `ipython profile create <profile>` prior to startup.
+            """)
 )
 
 
