@@ -9,6 +9,8 @@
 # Verify zmq version dependency >= 2.1.4
 #-----------------------------------------------------------------------------
 
+import warnings
+
 minimum_pyzmq_version = "2.1.4"
 
 try:
@@ -23,3 +25,10 @@ if pyzmq_version < minimum_pyzmq_version:
                     minimum_pyzmq_version, pyzmq_version))
 
 del pyzmq_version
+
+if zmq.zmq_version() >= '3.0.0':
+    warnings.warn("""libzmq 3 detected.
+    It is unlikely that IPython's zmq code will work properly.
+    Please install libzmq stable, which is 2.1.x or 2.2.x""",
+    RuntimeWarning)
+
