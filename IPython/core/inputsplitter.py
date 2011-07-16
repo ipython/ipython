@@ -173,7 +173,12 @@ def has_comment(src):
     Boolean: True if source has a comment.
     """
     readline = StringIO(src).readline
-    toktypes = set(t[0] for t in tokenize.generate_tokens(readline))
+    toktypes = set()
+    try:
+        for t in tokenize.generate_tokens(readline):
+            toktypes.add(t[0])
+    except tokenize.TokenError:
+        pass
     return(tokenize.COMMENT in toktypes)
 
 

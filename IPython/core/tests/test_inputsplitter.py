@@ -472,6 +472,7 @@ syntax = \
         ('a = abc?', 'get_ipython().magic(u"pinfo abc", next_input=u"a = abc")'),
         ('a = abc.qe??', 'get_ipython().magic(u"pinfo2 abc.qe", next_input=u"a = abc.qe")'),
         ('a = *.items?', 'get_ipython().magic(u"psearch *.items", next_input=u"a = *.items")'),
+        ('plot(a?', 'get_ipython().magic(u"pinfo a", next_input=u"plot(a")'),
         ('a*2 #comment?', 'a*2 #comment?'),
         ],
 
