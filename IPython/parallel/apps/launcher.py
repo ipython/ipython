@@ -1001,6 +1001,78 @@ class SGEEngineSetLauncher(SGELauncher):
         return super(SGEEngineSetLauncher, self).start(n, profile_dir)
 
 
+# LSF launchers
+
+class LSFLauncher(BatchSystemLauncher):
+    """A BatchSystemLauncher subclass for LSF."""
+    
+    submit_command = List(['bsub'], config=True,
+                          help="The PBS submit command ['bsub']")
+    delete_command = List(['bkill'], config=True,
+                          help="The PBS delete command ['bkill']")
+    job_id_regexp = Unicode(r'\d+', config=True,
+                            help="Regular expresion for identifying the job ID [r'\d+']")
+    
+    batch_file = Unicode(u'')
+    job_array_regexp = Unicode('#BSUB[ \t]-J+\w+\[\d+-\d+\]')
+    job_array_template = Unicode('#BSUB -J ipengine[1-{n}]')
+    queue_regexp = Unicode('#BSUB[ \t]+-q[ \t]+\w+')
+    queue_template = Unicode('#BSUB -q {queue}')
+    
+    def start(self, n, profile_dir):
+        """Start n copies of the process using LSF batch system.
+        This cant inherit from the base class because bsub expects
+        to be piped a shell script in order to honor the #BSUB directives :
+        bsub < script
+        """
+        # Here we save profile_dir in the context so they
+        # can be used in the batch script template as {profile_dir}
+        self.context['profile_dir'] = profile_dir
+        self.profile_dir = unicode(profile_dir)
+        self.write_batch_script(n)
+        #output = check_output(self.args, env=os.environ)
+        piped_cmd = self.args[0]+'<\"'+self.args[1]+'\"'
+        p = Popen(piped_cmd, shell=True,env=os.environ,stdout=PIPE)
+        output,err = p.communicate()
+        job_id = self.parse_job_id(output)
+        self.notify_start(job_id)
+        return job_id
+
+
+class LSFControllerLauncher(LSFLauncher):
+    """Launch a controller using LSF."""
+    
+    batch_file_name = Unicode(u'lsf_controller', config=True,
+                              help="batch file name for the controller job.")
+    default_template= Unicode("""#!/bin/sh
+    #BSUB -J ipcontroller
+    #BSUB -oo ipcontroller.o.%%J 
+    #BSUB -eo ipcontroller.e.%%J 
+    %s --log-to-file --profile-dir={profile_dir}
+    """%(' '.join(ipcontroller_cmd_argv)))
+    
+    def start(self, profile_dir):
+        """Start the controller by profile or profile_dir."""
+        self.log.info("Starting LSFControllerLauncher: %r" % self.args)
+        return super(LSFControllerLauncher, self).start(1, profile_dir)
+
+
+class LSFEngineSetLauncher(LSFLauncher):
+    """Launch Engines using LSF"""
+    batch_file_name = Unicode(u'lsf_engines', config=True,
+                              help="batch file name for the engine(s) job.")
+    default_template= Unicode(u"""#!/bin/sh
+    #BSUB -oo ipengine.o.%%J 
+    #BSUB -eo ipengine.e.%%J 
+    %s --profile-dir={profile_dir}
+    """%(' '.join(ipengine_cmd_argv)))
+    
+    def start(self, n, profile_dir):
+        """Start n engines by profile or profile_dir."""
+        self.log.info('Starting %i engines with LSFEngineSetLauncher: %r' % (n, self.args))
+        return super(LSFEngineSetLauncher, self).start(n, profile_dir)
+
+
 #-----------------------------------------------------------------------------
 # A launcher for ipcluster itself!
 #-----------------------------------------------------------------------------
@@ -1060,6 +1132,11 @@ sge_launchers = [
     SGEControllerLauncher,
     SGEEngineSetLauncher,
 ]
+lsf_launchers = [
+    LSFLauncher,
+    LSFControllerLauncher,
+    LSFEngineSetLauncher,
+]
 all_launchers = local_launchers + mpi_launchers + ssh_launchers + winhpc_launchers\
-                + pbs_launchers + sge_launchers
+                + pbs_launchers + sge_launchers + lsf_launchers
 
