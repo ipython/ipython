@@ -1,6 +1,7 @@
 # Standard library imports.
 import ctypes
 import os
+import platform
 import time
 from thread import interrupt_main
 from threading import Thread
@@ -100,12 +101,14 @@ class ParentPollerWindows(Thread):
             handles.append(self.interrupt_handle)
         if self.parent_handle:
             handles.append(self.parent_handle)
+        arch = platform.architecture()[0]
+        c_int = ctypes.c_int64 if arch.startswith('64') else ctypes.c_int
 
         # Listen forever.
         while True:
             result = ctypes.windll.kernel32.WaitForMultipleObjects(
                 len(handles),                            # nCount
-                (ctypes.c_int * len(handles))(*handles), # lpHandles
+                (c_int * len(handles))(*handles),        # lpHandles
                 False,                                   # bWaitAll
                 INFINITE)                                # dwMilliseconds
 
@@ -117,3 +120,8 @@ class ParentPollerWindows(Thread):
 
                 elif handle == self.parent_handle:
                     os._exit(1)
+            elif result < 0:
+                # wait failed, but don't let this throttle CPU
+                # if this is going to repeat, perhaps we should
+                # just give up and return.
+                time.sleep(.1)
