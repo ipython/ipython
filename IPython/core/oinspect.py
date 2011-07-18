@@ -133,7 +133,7 @@ def getsource(obj,is_binary=False):
     if is_binary:
         return None
     else:
-        #get source if obj was decoratred with @decorator
+        # get source if obj was decorated with @decorator
         if hasattr(obj,"__wrapped__"):
             obj = obj.__wrapped__
         try:
