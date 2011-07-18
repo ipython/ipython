@@ -1,9 +1,12 @@
 # Standard library imports.
 import ctypes
 import os
+import platform
 import time
 from thread import interrupt_main
 from threading import Thread
+
+from IPython.utils.warn import warn
 
 
 class ParentPollerUnix(Thread):
@@ -100,12 +103,14 @@ class ParentPollerWindows(Thread):
             handles.append(self.interrupt_handle)
         if self.parent_handle:
             handles.append(self.parent_handle)
+        arch = platform.architecture()[0]
+        c_int = ctypes.c_int64 if arch.startswith('64') else ctypes.c_int
 
         # Listen forever.
         while True:
             result = ctypes.windll.kernel32.WaitForMultipleObjects(
                 len(handles),                            # nCount
-                (ctypes.c_int * len(handles))(*handles), # lpHandles
+                (c_int * len(handles))(*handles),        # lpHandles
                 False,                                   # bWaitAll
                 INFINITE)                                # dwMilliseconds
 
@@ -117,3 +122,10 @@ class ParentPollerWindows(Thread):
 
                 elif handle == self.parent_handle:
                     os._exit(1)
+            elif result < 0:
+                # wait failed, just give up and stop polling.
+                warn("""Parent poll failed.  If the frontend dies,
+                the kernel may be left running.  Please let us know
+                about your system (bitness, Python, etc.) at
+                ipython-dev@scipy.org""")
+                return
