@@ -257,6 +257,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
     kernel_argv = List(Unicode)
 
+    # create requested profiles by default, if they don't exist:
+    auto_create = CBool(True)
     # connection info:
     ip = Unicode(LOCALHOST, config=True,
         help="""Set the kernel\'s IP address [default localhost].
