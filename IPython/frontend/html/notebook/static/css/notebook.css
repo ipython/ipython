@@ -109,6 +109,7 @@ span#kernel_status {
 }
 
 div#notebook_app {
+    width: 100%;
 }
 
 div#left_panel {

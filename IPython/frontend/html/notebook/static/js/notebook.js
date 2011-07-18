@@ -25,6 +25,8 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.style = function () {
+        // With vbox here Chrome exhibits the CodeMirror scroll bug.
+        // Without the vbox here, Firefox won't scroll the notebook div.
         this.element.addClass('vbox box-flex1 border-box-sizing');
     };
 
