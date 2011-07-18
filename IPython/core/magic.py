@@ -1593,7 +1593,7 @@ Currently the magic system has the following functions:\n"""
         save_argv = sys.argv # save it for later restoring
 
         # simulate shell expansion on arguments, at least tilde expansion
-        args = map(os.path.expanduser, arg_lst[1:])
+        args = [ os.path.expanduser(a) for a in arg_lst[1:] ]
 
         sys.argv = [filename]+ args  # put in the proper filename
 
