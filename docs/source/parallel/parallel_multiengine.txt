@@ -587,13 +587,13 @@ execution, and will fail with an UnmetDependencyError.
 
     In [69]: from IPython.parallel import require
 
-    In [70]: @requre('re'):
+    In [70]: @require('re'):
         ...: def findall(pat, x):
         ...:     # re is guaranteed to be available
         ...:     return re.findall(pat, x)
           
     # you can also pass modules themselves, that you already have locally:
-    In [71]: @requre(time):
+    In [71]: @require(time):
         ...: def wait(t):
         ...:     time.sleep(t)
         ...:     return t
