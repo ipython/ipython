@@ -6,6 +6,8 @@ import time
 from thread import interrupt_main
 from threading import Thread
 
+from IPython.utils.warn import warn
+
 
 class ParentPollerUnix(Thread):
     """ A Unix-specific daemon thread that terminates the program immediately 
@@ -121,7 +123,9 @@ class ParentPollerWindows(Thread):
                 elif handle == self.parent_handle:
                     os._exit(1)
             elif result < 0:
-                # wait failed, but don't let this throttle CPU
-                # if this is going to repeat, perhaps we should
-                # just give up and return.
-                time.sleep(.1)
+                # wait failed, just give up and stop polling.
+                warn("""Parent poll failed.  If the frontend dies,
+                the kernel may be left running.  Please let us know
+                about your system (bitness, Python, etc.) at
+                ipython-dev@scipy.org""")
+                return
