@@ -134,14 +134,6 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   ['docs/man/ipython.1'],
                   'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
 
-                 ('docs/man/ipython-wx.1.gz',
-                  ['docs/man/ipython-wx.1'],
-                  'cd docs/man && gzip -9c ipython-wx.1 > ipython-wx.1.gz'),
-
-                 ('docs/man/ipythonx.1.gz',
-                  ['docs/man/ipythonx.1'],
-                  'cd docs/man && gzip -9c ipythonx.1 > ipythonx.1.gz'),
-
                  ('docs/man/irunner.1.gz',
                   ['docs/man/irunner.1'],
                   'cd docs/man && gzip -9c irunner.1 > irunner.1.gz'),
