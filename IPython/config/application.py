@@ -48,9 +48,9 @@ from IPython.utils.text import indent, wrap_paragraphs, dedent
 option_description = """
 IPython command-line arguments are passed as '--<flag>', or '--<name>=<value>'.
 
-Arguments that take values are actually aliases to full Configurables, whose
-aliases are listed on the help line. For more information on full
-configurables, see '--help-all'.
+Arguments that take values are actually convenience aliases to full
+Configurables, whose aliases are listed on the help line. For more information
+on full configurables, see '--help-all'.
 """.strip() # trim newlines of front and back
 
 keyvalue_description = """
@@ -250,8 +250,8 @@ class Application(SingletonConfigurable):
         for p in wrap_paragraphs(self.subcommand_description):
             lines.append(p)
             lines.append('')
-        for subc, (cls,help) in self.subcommands.iteritems():
-            lines.append("%s : %s"%(subc, cls))
+        for subc, (cls, help) in self.subcommands.iteritems():
+            lines.append(subc)
             if help:
                 lines.append(indent(dedent(help.strip())))
         lines.append('')
