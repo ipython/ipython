@@ -133,6 +133,14 @@ def getsource(obj,is_binary=False):
     if is_binary:
         return None
     else:
+<<<<<<< HEAD
+        #get source if obj was decoratred with @decorator
+        while hasattr(obj,"__wrapped__"):
+            if obj is obj.__wrapped__:
+                break
+            obj = obj.__wrapped__
+=======
+>>>>>>> parent of 1b4b159... Display source code correctly for decorated functions.
         try:
             src = inspect.getsource(obj)
         except TypeError:
