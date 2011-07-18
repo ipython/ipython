@@ -31,6 +31,8 @@ else:
 import os
 import sys
 
+from IPython.utils.warn import warn
+
 matplotlib = sys.modules.get('matplotlib')
 if matplotlib and matplotlib.__version__ <= '1.0.1':
     # 1.0.1 doesn't support pyside or v2, so stick with PyQt @v1,
@@ -70,13 +72,16 @@ else:
             from IPython.external.qt import QtCore, QtGui
         except ValueError as e:
             if 'API' in str(e):
-                # API mismatch, give more meaningful message
-                raise ImportError("""
+                # PyQt4 already imported, and APIv2 couldn't be set
+                # Give more meaningful message, and warn instead of raising
+                warn("""
     Assigning the ETS variable `QT_API=pyqt` implies PyQt's v2 API for
     QString and QVariant, but PyQt has already been imported
-    with v1 APIs.  You must unset QT_API to work with PyQt4
+    with v1 APIs.  You should unset QT_API to work with PyQt4
     in its default mode.
 """)
+                # allow it to still work
+                from PyQt4 import QtCore, QtGui
             else:
                 raise
 
