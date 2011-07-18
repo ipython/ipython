@@ -101,7 +101,8 @@ def print_figure(fig, fmt='png'):
     try:
         string_io = StringIO()
         # use 72 dpi to match QTConsole's dpi
-        fig.canvas.print_figure(string_io, format=fmt, dpi=72)
+        fig.canvas.print_figure(string_io, format=fmt, dpi=72,
+                                bbox_inches='tight')
         data = string_io.getvalue()
     finally:
         fig.set_facecolor(fc)

@@ -403,10 +403,6 @@ interact with IPython at the end of the script (instead of exiting).
 
 The already implemented runners are listed below; adding one for a new program
 is a trivial task, see the source for examples.
-
-WARNING: the SAGE runner only works if you manually configure your SAGE copy
-to use 'colors NoColor' in the ipythonrc config file, since currently the
-prompt matching regexp does not identify color sequences.
 """
 
 def main():

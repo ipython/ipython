@@ -13,40 +13,49 @@ import sys
 from IPython.core import release
 
 cl_usage = """\
-ipython [options] [files]
+=========
+ IPython
+=========
 
-IPython: an enhanced interactive Python shell.
+Tools for Interactive Computing in Python
+=========================================
 
     A Python shell with automatic history (input and output), dynamic object
     introspection, easier configuration, command completion, access to the
     system shell and more.  IPython can also be embedded in running programs.
 
+
+Usage
+-----
+
+    ipython [subcommand] [options] [files]
+
     If invoked with no options, it executes all the files listed in sequence
-    and exits, use --i to enter interactive mode after running the files.  Files
+    and exits, use -i to enter interactive mode after running the files.  Files
     ending in .py will be treated as normal Python, but files ending in .ipy
     can contain special IPython syntax (magic commands, shell expansions, etc.)
 
     Almost all configuration in IPython is available via the command-line. Do
     `ipython --help-all` to see all available options.  For persistent
-    configuration, Look into your ipython_config.py configuration file for 
+    configuration, look into your `ipython_config.py` configuration file for 
     details.
 
-    This file is typically installed in the IPYTHON_DIR directory, and there
+    This file is typically installed in the `IPYTHON_DIR` directory, and there
     is a separate configuration directory for each profile. The default profile
-    directory will be located in $IPYTHON_DIR/profile_default. For Linux
-    users, IPYTHON_DIR will be $HOME/.config/ipython, and for other users it will be
-    $HOME/.ipython.  For Windows users, $HOME resolves to C:\\Documents and
-    Settings\\YourUserName in most instances.
+    directory will be located in $IPYTHON_DIR/profile_default. For Linux users,
+    IPYTHON_DIR defaults to `$HOME/.config/ipython`, and for other Unix systems
+    to `$HOME/.ipython`.  For Windows users, $HOME resolves to C:\\Documents
+    and Settings\\YourUserName in most instances.
     
-    To initialize a profile with the default configuration file, do:
+    To initialize a profile with the default configuration file, do::
     
       $> ipython profile create
     
-    and start editing IPYTHON_DIR/profile_default/ipython_config.py
+    and start editing `IPYTHON_DIR/profile_default/ipython_config.py`
 
-    In IPython's documentation, we will refer to this directory as IPYTHON_DIR,
-    you can change its default location by setting any path you want in this
-    environment variable.
+    In IPython's documentation, we will refer to this directory as
+    `IPYTHON_DIR`, you can change its default location by creating an
+    environment variable with this name and setting it to the desired path.
 
     For more information, see the manual available in HTML and PDF in your
     installation, or online at http://ipython.org/documentation.html.

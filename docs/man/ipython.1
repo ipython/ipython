@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH IPYTHON 1 "November 30, 2004"
+.TH IPYTHON 1 "July 15, 2011"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -22,304 +22,205 @@
 .\" To preview this page as plain text: nroff -man ipython.1
 .\"
 .SH NAME
-ipython \- An Enhanced Interactive Python
+ipython \- Tools for Interactive Computing in Python.
 .SH SYNOPSIS
 .B ipython
 .RI [ options ] " files" ...
 .SH DESCRIPTION
-An interactive Python shell with automatic history (input and output),
-dynamic object introspection, easier configuration, command
-completion, access to the system shell, integration with numerical and
-scientific computing tools, and more.
+An interactive Python shell with automatic history (input and output), dynamic
+object introspection, easier configuration, command completion, access to the
+system shell, integration with numerical and scientific computing tools, and
+more.
 .
 .SH REGULAR OPTIONS
-After the above threading options have been given, regular options can follow
-in any order.  All options can be abbreviated to their shortest non-ambiguous
-form and are case-sensitive.  One or two dashes can be used.  Some options
-have an alternate short form, indicated after a |.
+All options that take values, must be of the form '\-\-name=value', but
+flags that take no arguments are allowed a single '\-' to allow common
+patterns like: 'ipython -i myscript.py'.  To pass arguments to scripts,
+rather than to IPython, specify them after '--'.
 .br
 .sp 1
-Most options can also be set from your ipythonrc configuration file.
+All options can also be set from your ipython_config.py configuration file.
 See the provided examples for assistance.  Options given on the
-commandline override the values set in the ipythonrc file.
+commandline override the values set in ipython_config.py.  To generate
+the default config file, do `ipython profile create`.
 .br
 .sp 1
 All options with a [no] prepended can be specified in negated form
-(\-nooption instead of \-option) to turn the feature off.
+(\\--no\-option instead of \-\-option) to turn the feature off.
 .TP
 .B \-h, \-\-help
 Show summary of options.
+.B \-\-no-autoindent
+Turn off autoindenting.
 .TP
-.B \-autocall <val>
-Make IPython automatically call any callable object even if you didn't type
-explicit parentheses. For example, 'str 43' becomes
-str(43) automatically.  The value can be '0' to disable the
-feature, '1' for 'smart' autocall, where it is not applied if
-there are no more arguments on the line, and '2' for 'full'
-autocall, where all callable objects are automatically called
-(even if no arguments are present).  The default is '1'.
+.B \-\-autoedit-syntax
+Turn on auto editing of files with syntax errors.
 .TP
-.B \-[no]autoindent
-Turn automatic indentation on/off.
+.B \-\-pylab
+Pre-load matplotlib and numpy for interactive use with
+the default matplotlib backend.
 .TP
-.B \-[no]automagic
-Make magic commands automatic (without needing their first character
-to be %).  Type %magic at the IPython prompt for more information.
+.B \-\-confirm-exit
+Set to confirm when you try to exit IPython with an EOF (Control-D
+in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
+you can force a direct exit without any confirmation.
 .TP
-.B \-[no]autoedit_syntax
-When a syntax error occurs after editing a file, automatically open the file
-to the trouble causing line for convenient fixing.
-.TP
-.B \-[no]banner
-Print the intial information banner (default on).
-.TP
-.B \-c <command>
-Execute the given command string, and set sys.argv to ['c'].  This is similar
-to the \-c option in the normal Python interpreter.
-.TP
-.B \-cache_size|cs <n>
-Size of the output cache (maximum number of entries to hold in
-memory).  The default is 1000, you can change it permanently in your
-config file.  Setting it to 0 completely disables the caching system,
-and the minimum value accepted is 20 (if you provide a value less than
-20, it is reset to 0 and a warning is issued).  This limit is defined
-because otherwise you'll spend more time re-flushing a too small cache
-than working.
-.TP
-.B \-classic|cl
-Gives IPython a similar feel to the classic Python prompt.
-.TP
-.B \-colors <scheme>
-Color scheme for prompts and exception reporting.  Currently
-implemented: NoColor, Linux, and LightBG.
-.TP
-.B \-[no]color_info
-IPython can display information about objects via a set of functions,
-and optionally can use colors for this, syntax highlighting source
-code and various other elements.  However, because this information is
-passed through a pager (like 'less') and many pagers get confused with
-color codes, this option is off by default.  You can test it and turn
-it on permanently in your ipythonrc file if it works for you.  As a
-reference, the 'less' pager supplied with Mandrake 8.2 works ok, but
-that in RedHat 7.2 doesn't.
-.br
-.sp 1
-Test it and turn it on permanently if it works with your system.  The
-magic function @color_info allows you to toggle this interactively for
-testing.
-.TP
-.B \-[no]confirm_exit
-Set to confirm when you try to exit IPython with an EOF (Control-D in
-Unix, Control-Z/Enter in Windows). Note that using the magic functions
-@Exit or @Quit you can force a direct exit, bypassing any
-confirmation.
-.TP
-.B \-[no]debug
-Show information about the loading process. Very useful to pin down
-problems with your configuration files or to get details about session
-restores.
-.TP
-.B \-[no]deep_reload
-IPython can use the deep_reload module which reloads changes in
-modules recursively (it replaces the reload() function, so you don't
-need to change anything to use it). deep_reload() forces a full reload
-of modules whose code may have changed, which the default reload()
-function does not.
-.br
-.sp 1
-When deep_reload is off, IPython will use the normal reload(), but
+.B \-\-deep-reload
+Enable deep (recursive) reloading by default. IPython can use the
+deep_reload module which reloads changes in modules recursively (it
+replaces the reload() function, so you don't need to change anything to
+use it). deep_reload() forces a full reload of modules whose code may
+have changed, which the default reload() function does not.  When
+deep_reload is off, IPython will use the normal reload(), but
 deep_reload will still be available as dreload(). This feature is off
 by default [which means that you have both normal reload() and
 dreload()].
 .TP
-.B \-editor <name>
-Which editor to use with the @edit command. By default, IPython will
-honor your EDITOR environment variable (if not set, vi is the Unix
-default and notepad the Windows one). Since this editor is invoked on
-the fly by IPython and is meant for editing small code snippets, you
-may want to use a small, lightweight editor here (in case your default
-EDITOR is something like Emacs).
+.B \-\-no-autoedit-syntax
+Turn off auto editing of files with syntax errors.
 .TP
-.B \-ipythondir <name>
-The name of your IPython configuration directory IPYTHON_DIR.  This can
-also be specified through the environment variable IPYTHON_DIR.
+.B \-\-term-title
+Enable auto setting the terminal title.
 .TP
-.B \-log|l
-Generate a log file of all input. The file is named ipython_log.py in your
-current directory (which prevents logs from multiple IPython sessions from
-trampling each other). You can use this to later restore a session by loading
-your logfile as a file to be executed with option -logplay (see below).
+.B \-\-no-confirm-exit
+Don't prompt the user when exiting.
 .TP
-.B \-logfile|lf
-Specify the name of your logfile.
+.B \-\-autoindent
+Turn on autoindenting.
 .TP
-.B \-logplay|lp
-Replay a previous log. For restoring a session as close as possible to
-the state you left it in, use this option (don't just run the
-logfile). With \-logplay, IPython will try to reconstruct the previous
-working environment in full, not just execute the commands in the
-logfile.
-.br
-.sp 1
-When a session is restored, logging is automatically turned on again
-with the name of the logfile it was invoked with (it is read from the
-log header). So once you've turned logging on for a session, you can
-quit IPython and reload it as many times as you want and it will
-continue to log its history and restore from the beginning every time.
-.br
-.sp 1
-Caveats: there are limitations in this option. The history variables
-_i*,_* and _dh don't get restored properly. In the future we will try
-to implement full session saving by writing and retrieving a
-snapshot of the memory state of IPython. But our first attempts
-failed because of inherent limitations of Python's Pickle module, so
-this may have to wait.
+.B \-\-classic
+Gives IPython a similar feel to the classic Python prompt.
 .TP
-.B \-[no]messages
-Print messages which IPython collects about its startup process
-(default on).
+.B \-\-no-automagic
+Turn off the auto calling of magic commands.
 .TP
-.B \-[no]pdb
-Automatically call the pdb debugger after every uncaught exception. If
-you are used to debugging using pdb, this puts you automatically
-inside of it after any call (either in IPython or in code called by
-it) which triggers an exception which goes uncaught.
+.B \-\-banner
+Display a banner upon starting IPython.
 .TP
-.B \-pydb
-Makes IPython use the third party "pydb" package as debugger,
-instead of pdb. Requires that pydb is installed.
+.B \-\-automagic
+Turn on the auto calling of magic commands. Type %%magic at the
+IPython  prompt  for  more information.
 .TP
-.B \-[no]pprint
-IPython can optionally use the pprint (pretty printer) module for
-displaying results. pprint tends to give a nicer display of nested
-data structures. If you like it, you can turn it on permanently in
-your config file (default off).
+.B \-\-no-deep-reload
+Disable deep (recursive) reloading by default.
 .TP
-.B \-profile|p <name>
-Assume that your config file is ipythonrc-<name> (looks in current dir
-first, then in IPYTHON_DIR). This is a quick way to keep and load
-multiple config files for different tasks, especially if you use the
-include option of config files. You can keep a basic
-IPYTHON_DIR/ipythonrc file and then have other 'profiles' which include
-this one and load extra things for particular tasks. For example:
-.br
-.sp 1
-1) $HOME/.ipython/ipythonrc : load basic things you always want.
-.br
-2) $HOME/.ipython/ipythonrc-math : load (1) and basic math-related
-modules.
-.br
-3) $HOME/.ipython/ipythonrc-numeric : load (1) and Numeric and
-plotting modules.
-.br
-.sp 1
-Since it is possible to create an endless loop by having circular file
-inclusions, IPython will stop if it reaches 15 recursive inclusions.
+.B \-\-no-term-title
+Disable auto setting the terminal title.
 .TP
-.B \-prompt_in1|pi1 <string>
-Specify the string used for input prompts. Note that if you are using
-numbered prompts, the number is represented with a '\\#' in the
-string. Don't forget to quote strings with spaces embedded in
-them. Default: 'In [\\#]: '.
-.br
-.sp 1
-Most bash-like escapes can be used to customize IPython's prompts, as well as
-a few additional ones which are IPython-specific.  All valid prompt escapes
-are described in detail in the Customization section of the IPython HTML/PDF
-manual.
+.B \-\-nosep
+Eliminate all spacing between prompts.
 .TP
-.B \-prompt_in2|pi2 <string>
-Similar to the previous option, but used for the continuation prompts. The
-special sequence '\\D' is similar to '\\#', but with all digits replaced dots
-(so you can have your continuation prompt aligned with your input
-prompt). Default: '   .\\D.: ' (note three spaces at the start for alignment
-with 'In [\\#]').
+.B \-\-i
+also works as '-i'
+If running code from the command line, become interactive afterwards.
 .TP
-.B \-prompt_out|po <string>
-String used for output prompts, also uses numbers like prompt_in1.
-Default: 'Out[\\#]:'.
+.B \-\-debug
+set log level to logging.DEBUG (maximize logging output)
 .TP
-.B \-quick
-Start in bare bones mode (no config file loaded).
+.B \-\-pprint
+Enable auto pretty printing of results.
 .TP
-.B \-rcfile <name>
-Name of your IPython resource configuration file.  normally IPython
-loads ipythonrc (from current directory) or IPYTHON_DIR/ipythonrc.  If
-the loading of your config file fails, IPython starts with a bare
-bones configuration (no modules loaded at all).
+.B \-\-quiet
+set log level to logging.CRITICAL (minimize logging output)
 .TP
-.B \-[no]readline
-Use the readline library, which is needed to support name completion
-and command history, among other things. It is enabled by default, but
-may cause problems for users of X/Emacs in Python comint or shell
-buffers.
-.br
-.sp 1
-Note that emacs 'eterm' buffers (opened with M-x term) support
-IPython's readline and syntax coloring fine, only 'emacs' (M-x shell
-and C-c !)  buffers do not.
+.B \-\-pdb
+Enable auto calling the pdb debugger after every exception.
 .TP
-.B \-screen_length|sl <n>
-Number of lines of your screen.  This is used to control printing of
-very long strings.  Strings longer than this number of lines will be
-sent through a pager instead of directly printed.
-.br
-.sp 1
-The default value for this is 0, which means IPython will auto-detect
-your screen size every time it needs to print certain potentially long
-strings (this doesn't change the behavior of the 'print' keyword, it's
-only triggered internally). If for some reason this isn't working well
-(it needs curses support), specify it yourself. Otherwise don't change
-the default.
+.B \-\-color-info
+IPython can display information about objects via a set of func-
+tions, and optionally can use colors for this, syntax highlighting
+source code and various other elements.  However, because this
+information is passed through a pager (like 'less') and many pagers get
+confused with color codes, this option is off by default.  You can test
+it and turn it on permanently in your ipython_config.py file if it
+works for you.  Test it and turn it on permanently if it works with
+your system.  The magic function %%color_info allows you to toggle this
+interactively for testing.
 .TP
-.B \-separate_in|si <string>
-Separator before input prompts.  Default '\n'.
+.B \-\-init
+Initialize profile with default config files
 .TP
-.B \-separate_out|so <string>
-Separator before output prompts.  Default: 0 (nothing).
+.B \-\-no-pdb
+Disable auto calling the pdb debugger after every exception.
 .TP
-.B \-separate_out2|so2 <string>
-Separator after output prompts.  Default: 0 (nothing).
+.B \-\-quick
+Enable quick startup with no config files.
 .TP
-.B \-nosep
-Shorthand for '\-separate_in 0 \-separate_out 0 \-separate_out2 0'.
-Simply removes all input/output separators.
+.B \-\-no-color-info
+Disable using colors for info related things.
 .TP
-.B \-upgrade
-Allows you to upgrade your IPYTHON_DIR configuration when you install a
-new version of IPython.  Since new versions may include new command
-lines options or example files, this copies updated ipythonrc-type
-files.  However, it backs up (with a .old extension) all files which
-it overwrites so that you can merge back any custimizations you might
-have in your personal files.
+.B \-\-no-pprint
+Disable auto auto pretty printing of results.
 .TP
-.B \-Version
-Print version information and exit.
+.B \-\-no-banner
+Don't display a banner upon starting IPython.
 .TP
-.B -wxversion <string>
-Select a specific version of wxPython (used in conjunction with
-\-wthread). Requires the wxversion module, part of recent wxPython
-distributions.
+.B \-\-profile=<Unicode> (BaseIPythonApplication.profile)
+Default: u'default'
+The IPython profile to use.
 .TP
-.B \-xmode <modename>
-Mode for exception reporting.  The valid modes are Plain, Context, and
-Verbose.
-.br
-.sp 1
-\- Plain: similar to python's normal traceback printing.
-.br
-.sp 1
-\- Context: prints 5 lines of context source code around each line in the
-traceback.
-.br
-.sp 1
-\- Verbose: similar to Context, but additionally prints the variables
-currently visible where the exception happened (shortening their strings if
-too long).  This can potentially be very slow, if you happen to have a huge
-data structure whose string representation is complex to compute.  Your
-computer may appear to freeze for a while with cpu usage at 100%.  If this
-occurs, you can cancel the traceback with Ctrl-C (maybe hitting it more than
-once).
+.B \-\-c=<Unicode> (InteractiveShellApp.code_to_run)
+Default: ''
+Execute the given command string.
+.TP
+.B \-\-logappend=<Unicode> (InteractiveShell.logappend)
+Default: ''
+Start logging to the given file in append mode.
+.TP
+.B \-\-autocall=<Enum> (InteractiveShell.autocall)
+Default: 1
+Choices: (0, 1, 2)
+Make IPython automatically call any callable object even if you didn't type
+explicit parentheses. For example, 'str 43' becomes 'str(43)' automatically.
+The value can be '0' to disable the feature, '1' for 'smart' autocall, where
+it is not applied if there are no more arguments on the line, and '2' for
+'full' autocall, where all callable objects are automatically called (even
+if no arguments are present). The default is '1'.
+.TP
+.B \-\-ipython-dir=<Unicode> (BaseIPythonApplication.ipython_dir)
+Default: u'/Users/minrk/.ipython'
+The name of the IPython directory. This directory is used for logging
+configuration (through profiles), history storage, etc. The default is
+usually $HOME/.ipython. This options can also be specified through the
+environment variable IPYTHON_DIR.
+.TP
+.B \-\-gui=<CaselessStrEnum> (TerminalIPythonApp.gui)
+Default: None
+Choices: ('qt', 'wx', 'gtk')
+Enable GUI event loop integration ('qt', 'wx', 'gtk').
+.TP
+.B \-\-pylab=<CaselessStrEnum> (TerminalIPythonApp.pylab)
+Default: None
+Choices: ['tk', 'qt', 'wx', 'gtk', 'osx', 'auto']
+Pre-load matplotlib and numpy for interactive use, selecting a particular
+matplotlib backend and loop integration.
+.TP
+.B \-\-ext=<Unicode> (InteractiveShellApp.extra_extension)
+Default: ''
+dotted module name of an IPython extension to load.
+.TP
+.B \-\-log-level=<Enum> (Application.log_level)
+Default: 30
+Choices: (0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL')
+Set the log level by value or name.
+.TP
+.B \-\-colors=<CaselessStrEnum> (InteractiveShell.colors)
+Default: 'LightBG'
+Choices: ('NoColor', 'LightBG', 'Linux')
+Set the color scheme (NoColor, Linux, or LightBG).
+.TP
+.B \-\-cache-size=<Int> (InteractiveShell.cache_size)
+Default: 1000
+Set the size of the output cache.  The default is 1000, you can change it
+permanently in your config file.  Setting it to 0 completely disables the
+caching system, and the minimum value accepted is 20 (if you provide a value
+less than 20, it is reset to 0 and a warning is issued).  This limit is
+defined because otherwise you'll spend more time re-flushing a too small
+cache than working
+.TP
+.B \-\-logfile=<Unicode> (InteractiveShell.logfile)
+Default: ''
+The name of the logfile to use.
 .
 .SH EMBEDDING
 It is possible to start an IPython instance inside your own Python
@@ -336,4 +237,5 @@ values because you won't break your code in bizarre ways by doing so.
 IPython was written by Fernando Perez <fperez@colorado.edu>, based on earlier
 code by Janko Hauser <jh@comunit.de> and Nathaniel Gray
 <n8gray@caltech.edu>.  This manual page was written by Jack Moffitt
-<jack@xiph.org>, for the Debian project (but may be used by others).
+<jack@xiph.org>, for the Debian project (but may be used by others), and updated by
+Min Ragan-Kelley <benjaminrk@gmail.com> for 0.11.

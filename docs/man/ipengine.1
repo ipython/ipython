@@ -1,4 +1,4 @@
-.TH IPENGINE 1 "October 28, 2008" "" ""
+.TH IPENGINE 1 "July 15, 2011" "" ""
 .SH NAME
 \fBipengine \- IPython parallel computing engine control tool
 .SH SYNOPSIS
@@ -16,8 +16,12 @@ ipengine is a control tool for IPython's parallel computing functions.
 show this help message and exit
 .TP
 .B
-\-\-furl\-file=FURL_FILE
-The filename containing the FURL of the controller
+\-\-profile=name
+The name of the IPython configuration profile to use.
+.TP
+.B
+\-\-file=URL_FILE
+The JSON file containing the connection information of the controller.
 .TP
 .B
 \-\-mpi=MPI
