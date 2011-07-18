@@ -17,8 +17,8 @@ var IPython = (function (IPython) {
 
 
     Pager.prototype.style = function () {
-        this.pager_toggle_element.addClass('border-box-sizing ui-widget ui-widget-header')
-        this.pager_element.addClass('border-box-sizing')
+        this.pager_toggle_element.addClass('ui-widget ui-widget-content')
+        this.pager_element.addClass('')
     };
 
 

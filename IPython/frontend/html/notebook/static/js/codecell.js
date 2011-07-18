@@ -18,17 +18,17 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.create_element = function () {
-        var cell =  $('<div></div>').addClass('cell code_cell vbox border-box-sizing');
-        var input = $('<div></div>').addClass('input hbox border-box-sizing');
+        var cell =  $('<div></div>').addClass('cell code_cell vbox');
+        var input = $('<div></div>').addClass('input hbox');
         input.append($('<div/>').addClass('prompt input_prompt monospace-font'));
-        var input_area = $('<div/>').addClass('input_area box-flex1 border-box-sizing');
+        var input_area = $('<div/>').addClass('input_area box-flex1');
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             enterMode : 'flat',
             tabMode: 'shift'
         });
         input.append(input_area);
-        var output = $('<div></div>').addClass('output vbox border-box-sizing');
+        var output = $('<div></div>').addClass('output vbox');
         cell.append(input).append(output);
         this.element = cell;
         this.collapse()

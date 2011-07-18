@@ -72,17 +72,14 @@ body {
     overflow: hidden;
 }
 
-div#wrapper {
-    /* This is needed to make sure the wrapper fills the body */
-    width: 100%;
-    height: 100%;
-}
 
 span#ipython_notebook h1 {
     font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
     font-size: 22pt;
-    padding: 10px;
-    margin: 10px;
+    height: 35px;
+    padding: 5px;
+    margin: 0px;
+
 }
 
 div#tools {
@@ -110,33 +107,51 @@ span#kernel_status {
 
 div#notebook_app {
     width: 100%;
+    position: relative;
 }
 
 div#left_panel {
     width: 200px;
+    min-height: 300px;
     overflow-y: auto;
+    top: 0px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    position: absolute;
+}
+
+div#left_panel_splitter {
+    width: 7px;
+    top: 0px;
+    left: 202px;
+    margin: 0px;
+    padding: 0px;
+    position: absolute;
+}
+
+div#notebook_panel {
+    margin: 0px 0px 0px 211px;
+    padding: 0px;
+}
+
+div#notebook {
+    overflow-y: scroll;
+    overflow-x: auto;
+    width: 100%;
+    padding: 0px 0px;
+    margin: 0px
+    background-color: white;
+    font-size: 12pt;
 }
 
 div#pager_splitter {
     height: 7px;
 }
 
-div#left_panel_splitter {
-    width: 7px;
-}
-
 div#pager {
     height: 200px;
     overflow: auto;
-    padding: 15px;
-}
-
-div#notebook {
-    overflow-y: scroll;
-    overflow-x: auto;
-    padding: 0px 15px;
-    background-color: white;
-    font-size: 12pt;
 }
 
 .monospace-font {
@@ -146,10 +161,9 @@ div#notebook {
 
 div.cell {
     width: 100%;
-    padding: 5px;
+    padding: 0px;
     /* This acts as a spacer between cells, that is outside the border */
     margin: 15px 0px 15px 0px;
-    position: relative;
 }
 
 div.code_cell {

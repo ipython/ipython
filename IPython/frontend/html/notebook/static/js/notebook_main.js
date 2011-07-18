@@ -6,11 +6,11 @@
 
 $(document).ready(function () {
 
-    $('div#wrapper').addClass('vbox border-box-sizing')
-    $('div#notebook_app').addClass('hbox box-flex1 border-box-sizing')
-    $('div#left_panel').addClass('vbox border-box-sizing ui-widget ui-widget-content')
-    $('div#left_panel_splitter').addClass('border-box-sizing ui-widget ui-widget-header')
-    $('div#notebook_panel').addClass('vbox box-flex1 border-box-sizing ui-widget ui-widget-content')
+
+    $('div#notebook_app').addClass('ui-widget ui-widget-content')
+    $('div#left_panel').addClass('ui-widget')
+    $('div#left_panel_splitter').addClass('ui-widget ui-widget-content')
+    $('div#notebook_panel').addClass('ui-widget')
 
     $('div#left_panel_splitter').click(function () {
         $('div#left_panel').toggle('fast');
@@ -36,15 +36,26 @@ $(document).ready(function () {
         }
     });
 
-//    $('div#notebook').scroll(function (e) {
-//        console.log(e);
-//        e.preventDefault();
-//    });
+    var do_resize = function () {
+        var win = $(window);
+        var w = win.width();
+        var h = win.height();
+        var app_height = h - 50;
+        $('div#notebook_app').height(app_height);
+        $('div#left_panel').height(app_height);
+        $('div#left_panel_splitter').height(app_height);
+        $('div#notebook_panel').height(app_height);
+        $('div#notebook').height(app_height-211);
+    };
+
+    $(window).resize(do_resize);
 
     IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.notebook.insert_code_cell_after();
 
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
+
+    do_resize();
 
 //    $("#menu_tabs").tabs();
 
