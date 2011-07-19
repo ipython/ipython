@@ -61,7 +61,7 @@ input, select { vertical-align: middle; }
 body {
     background-color: white;
     /* This won't propagate to all children so we also set it below */
-    font-size: 12pt;
+    font-size: 10pt;
     /* This makes sure that the body covers the entire window and needs to
        be in a different element than the display: box in wrapper below */
     position: absolute;
@@ -80,10 +80,6 @@ span#ipython_notebook h1 {
     padding: 5px;
     margin: 0px;
 
-}
-
-div#tools {
-    font-size: 11pt;
 }
 
 span#kernel_status {
@@ -138,10 +134,10 @@ div#notebook {
     overflow-y: scroll;
     overflow-x: auto;
     width: 100%;
-    padding: 0px 15px 15px 15px;
+    padding: 0px 15px 0px 15px;
     margin: 0px
     background-color: white;
-    font-size: 12pt;
+    font-size: 10pt;
 }
 
 div#pager_splitter {
@@ -149,12 +145,13 @@ div#pager_splitter {
 }
 
 div#pager {
+    padding: 15px;
     overflow: auto;
 }
 
 .monospace-font {
     font-family: monospace;
-    font-size: 12pt;
+    font-size: 10pt;
 }
 
 div.cell {
@@ -194,7 +191,7 @@ div.output_area {
 
 div.output_latex {
     /* Slightly bigger than the rest of the notebook */
-    font-size: 13pt;
+    font-size: 11pt;
 }
 
 div.output_png {
@@ -206,7 +203,7 @@ div.text_cell {
 
 textarea.text_cell_input {
     /* Slightly bigger than the rest of the notebook */
-    font-size: 13pt;
+    font-size: 11pt;
     outline: none;
     resize: none;
     width:  inherit;
@@ -219,7 +216,7 @@ textarea.text_cell_input {
 div.text_cell_render {
     font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
     /* Slightly bigger than the rest of the notebook */
-    font-size: 13pt;
+    font-size: 11pt;
     outline: none;
     resize: none;
     width:  inherit;

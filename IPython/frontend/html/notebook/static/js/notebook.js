@@ -19,12 +19,23 @@ var IPython = (function (IPython) {
         this.notebook_save_re = /%notebook save/
         this.notebook_filename_re = /(\w)+.ipynb/
         this.style();
+        this.create_elements();
         this.bind_events();
         this.start_kernel();
     };
 
 
     Notebook.prototype.style = function () {
+        $('div#notebook').addClass('border-box-sizing');
+    };
+
+
+    Notebook.prototype.create_elements = function () {
+        // We add this end_space div to the end of the notebook div to:
+        // i) provide a margin between the last cell and the end of the notebook
+        // ii) to prevent the div from scrolling up when the last cell is being
+        // edited, but is too low on the page, which browsers will do automatically.
+        this.element.append($('<div class="end_space"></div>').height(50));
         $('div#notebook').addClass('border-box-sizing');
     };
 
@@ -77,6 +88,8 @@ var IPython = (function (IPython) {
                 }
                 if (cell_index === (that.ncells()-1)) {
                     that.insert_code_cell_after();
+                    // If we are adding a new cell at the end, scroll down to show it.
+                    that.scroll_to_bottom();
                 } else {
                     that.select(cell_index+1);
                 };
@@ -113,6 +126,10 @@ var IPython = (function (IPython) {
         });
     };
 
+
+    Notebook.prototype.scroll_to_bottom = function () {
+        this.element.animate({scrollTop:this.element.get(0).scrollHeight}, 'slow');
+    };
 
     // Cell indexing, retrieval, etc.
 
@@ -158,6 +175,9 @@ var IPython = (function (IPython) {
                 this.selected_cell().unselect();
             };
             this.cells()[index].select();
+            if (index === (this.ncells()-1)) {
+                this.scroll_to_bottom();
+            };
         };
         return this;
     };
@@ -228,7 +248,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.append_cell = function (cell) {
-        this.element.append(cell.element);
+        this.element.find('div.end_space').before(cell.element);
         return this;
     };
 
