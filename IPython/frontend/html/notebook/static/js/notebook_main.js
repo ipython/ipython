@@ -42,14 +42,18 @@ $(document).ready(function () {
         var w = win.width();
         var h = win.height();
         var header_height = $('div#header').outerHeight(true);
-        var app_height = h - header_height - 2;
+        var app_height = h - header_height - 2;  // content height
         var pager_height = $('div#pager').outerHeight(true);
         var pager_splitter_height = $('div#pager_splitter').outerHeight(true);
-        $('div#notebook_app').height(app_height + 2);
+        $('div#notebook_app').height(app_height + 2);  // content+padding+border height
         $('div#left_panel').height(app_height);
         $('div#left_panel_splitter').height(app_height);
         $('div#notebook_panel').height(app_height);
-        $('div#notebook').height(app_height-pager_height-pager_splitter_height);
+        if (IPython.pager.expanded) {
+            $('div#notebook').height(app_height-pager_height-pager_splitter_height);
+        } else {
+            $('div#notebook').height(app_height-pager_splitter_height);
+        }
         console.log('resize: ', app_height);
     };
 
