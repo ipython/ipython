@@ -7,10 +7,11 @@
 $(document).ready(function () {
 
 
-    $('div#notebook_app').addClass('ui-widget ui-widget-content')
-    $('div#left_panel').addClass('ui-widget')
-    $('div#left_panel_splitter').addClass('ui-widget ui-widget-content')
-    $('div#notebook_panel').addClass('ui-widget')
+    $('div#notebook_app').addClass('border-box-sizing ui-widget ui-widget-content');
+    $('div#left_panel').addClass('border-box-sizing ui-widget');
+    $('div#left_panel_splitter').addClass('border-box-sizing ui-widget ui-state-default');
+    $('div#notebook_panel').addClass('border-box-sizing ui-widget');
+    $('div#notebook').addClass('border-box-sizing');
 
     $('div#left_panel_splitter').click(function () {
         $('div#left_panel').toggle('fast');
@@ -40,12 +41,16 @@ $(document).ready(function () {
         var win = $(window);
         var w = win.width();
         var h = win.height();
-        var app_height = h - 50;
-        $('div#notebook_app').height(app_height);
+        var header_height = $('div#header').outerHeight(true);
+        var app_height = h - header_height - 2;
+        var pager_height = $('div#pager').outerHeight(true);
+        var pager_splitter_height = $('div#pager_splitter').outerHeight(true);
+        $('div#notebook_app').height(app_height + 2);
         $('div#left_panel').height(app_height);
         $('div#left_panel_splitter').height(app_height);
         $('div#notebook_panel').height(app_height);
-        $('div#notebook').height(app_height-211);
+        $('div#notebook').height(app_height-pager_height-pager_splitter_height);
+        console.log('resize: ', app_height);
     };
 
     $(window).resize(do_resize);

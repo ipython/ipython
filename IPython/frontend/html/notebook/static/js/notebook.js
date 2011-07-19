@@ -81,6 +81,22 @@ var IPython = (function (IPython) {
                 };
             };
         });
+
+        this.element.bind('collapse_pager', function () {
+            var that_height = that.element.outerHeight(true);
+            var pager_height = $('div#pager').outerHeight(true);
+            var new_height = that_height + pager_height; 
+            console.log('collapse', that_height, pager_height, new_height);
+            that.element.animate({height : new_height + 'px'}, 'fast');
+        });
+
+        this.element.bind('expand_pager', function () {
+            var that_height = that.element.outerHeight(true);
+            var pager_height = $('div#pager').outerHeight(true);
+            var new_height = that_height - pager_height; 
+            console.log('expand', that_height, pager_height, new_height);
+            that.element.animate({height : new_height + 'px'}, 'fast');
+        });
     };
 
 

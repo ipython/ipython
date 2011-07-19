@@ -122,7 +122,7 @@ div#left_panel {
 }
 
 div#left_panel_splitter {
-    width: 7px;
+    width: 8px;
     top: 0px;
     left: 202px;
     margin: 0px;
@@ -131,7 +131,7 @@ div#left_panel_splitter {
 }
 
 div#notebook_panel {
-    margin: 0px 0px 0px 211px;
+    margin: 0px 0px 0px 209px;
     padding: 0px;
 }
 
@@ -139,14 +139,14 @@ div#notebook {
     overflow-y: scroll;
     overflow-x: auto;
     width: 100%;
-    padding: 0px 0px;
+    padding: 0px 15px 15px 15px;
     margin: 0px
     background-color: white;
     font-size: 12pt;
 }
 
 div#pager_splitter {
-    height: 7px;
+    height: 8px;
 }
 
 div#pager {
@@ -161,7 +161,7 @@ div#pager {
 
 div.cell {
     width: 100%;
-    padding: 0px;
+    padding: 5px;
     /* This acts as a spacer between cells, that is outside the border */
     margin: 15px 0px 15px 0px;
 }

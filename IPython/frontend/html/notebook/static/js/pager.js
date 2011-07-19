@@ -10,22 +10,27 @@ var IPython = (function (IPython) {
     var Pager = function (pager_selector, pager_toggle_selector) {
         this.pager_element = $(pager_selector);
         this.pager_toggle_element = $(pager_toggle_selector);
+        this.expanded = true;
         this.style();
         this.bind_events();
-        this.collapse();
     };
 
 
     Pager.prototype.style = function () {
-        this.pager_toggle_element.addClass('ui-widget ui-widget-content')
-        this.pager_element.addClass('')
+        this.pager_toggle_element.addClass('border-box-sizing ui-widget ui-state-default');
+        this.pager_element.addClass('border-box-sizing ui-widget');
     };
 
 
     Pager.prototype.bind_events = function () {
         var that = this;
-        this.pager_toggle_element.click(function () {
-            that.pager_element.toggle('fast');
+
+        this.pager_element.bind('collapse_pager', function () {
+            that.pager_element.hide('fast');
+        });
+
+        this.pager_element.bind('expand_pager', function () {
+            that.pager_element.show('fast');
         });
 
         this.pager_toggle_element.hover(
@@ -36,16 +41,35 @@ var IPython = (function (IPython) {
                 that.pager_toggle_element.removeClass('ui-state-hover');
             }
         );
+
+        this.pager_toggle_element.click(function () {
+            that.toggle();
+        });
     };
 
 
     Pager.prototype.collapse = function () {
-        this.pager_element.hide('fast');
+        if (this.expanded === true) {
+            this.pager_element.add($('div#notebook')).trigger('collapse_pager');
+            this.expanded = false;
+        };
     };
 
 
     Pager.prototype.expand = function () {
-        this.pager_element.show('fast');
+        if (this.expanded !== true) {
+            this.pager_element.add($('div#notebook')).trigger('expand_pager');
+            this.expanded = true;
+        };
+    };
+
+
+    Pager.prototype.toggle = function () {
+        if (this.expanded === true) {
+            this.collapse();
+        } else {
+            this.expand();
+        };
     };
 
 
