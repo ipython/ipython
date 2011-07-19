@@ -16,7 +16,7 @@ simply run the module as a script:
 This is an extension of Ken Schutte <kschutte-AT-csail.mit.edu>'s script
 contributed on the ipython-user list:
 
-http://scipy.net/pipermail/ipython-user/2006-May/001705.html
+http://mail.scipy.org/pipermail/ipython-user/2006-May/003539.html
 
 
 NOTES:
