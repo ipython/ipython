@@ -111,8 +111,6 @@ div#notebook_app {
 }
 
 div#left_panel {
-    width: 200px;
-    min-height: 300px;
     overflow-y: auto;
     top: 0px;
     left: 0px;
@@ -131,7 +129,8 @@ div#left_panel_splitter {
 }
 
 div#notebook_panel {
-    margin: 0px 0px 0px 209px;
+/*    The L margin will be set in the Javascript code*/
+    margin: 0px 0px 0px 0px;
     padding: 0px;
 }
 
@@ -150,7 +149,6 @@ div#pager_splitter {
 }
 
 div#pager {
-    height: 200px;
     overflow: auto;
 }
 

@@ -7,17 +7,18 @@ var IPython = (function (IPython) {
 
     var utils = IPython.utils;
 
-    var Pager = function (pager_selector, pager_toggle_selector) {
+    var Pager = function (pager_selector, pager_splitter_selector) {
         this.pager_element = $(pager_selector);
-        this.pager_toggle_element = $(pager_toggle_selector);
+        this.pager_splitter_element = $(pager_splitter_selector);
         this.expanded = true;
+        this.percentage_height = 0.30;
         this.style();
         this.bind_events();
     };
 
 
     Pager.prototype.style = function () {
-        this.pager_toggle_element.addClass('border-box-sizing ui-widget ui-state-default');
+        this.pager_splitter_element.addClass('border-box-sizing ui-widget ui-state-default');
         this.pager_element.addClass('border-box-sizing ui-widget');
     };
 
@@ -33,18 +34,19 @@ var IPython = (function (IPython) {
             that.pager_element.show('fast');
         });
 
-        this.pager_toggle_element.hover(
+        this.pager_splitter_element.hover(
             function () {
-                that.pager_toggle_element.addClass('ui-state-hover');
+                that.pager_splitter_element.addClass('ui-state-hover');
             },
             function () {
-                that.pager_toggle_element.removeClass('ui-state-hover');
+                that.pager_splitter_element.removeClass('ui-state-hover');
             }
         );
 
-        this.pager_toggle_element.click(function () {
+        this.pager_splitter_element.click(function () {
             that.toggle();
         });
+
     };
 
 

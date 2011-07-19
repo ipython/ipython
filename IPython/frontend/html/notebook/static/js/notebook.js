@@ -25,6 +25,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.style = function () {
+        $('div#notebook').addClass('border-box-sizing');
     };
 
 
@@ -95,6 +96,20 @@ var IPython = (function (IPython) {
             var pager_height = $('div#pager').outerHeight(true);
             var new_height = app_height - pager_height - splitter_height; 
             that.element.animate({height : new_height + 'px'}, 'fast');
+        });
+
+        this.element.bind('collapse_left_panel', function () {
+            var splitter_width = $('div#left_panel_splitter').outerWidth(true);
+            var new_margin = splitter_width;
+            $('div#notebook_panel').animate({marginLeft : new_margin + 'px'}, 'fast');
+        });
+
+        this.element.bind('expand_left_panel', function () {
+            var splitter_width = $('div#left_panel_splitter').outerWidth(true);
+            var left_panel_width = IPython.left_panel.width;
+            var new_margin = splitter_width + left_panel_width;
+            console.log('expand', splitter_width, left_panel_width, new_margin);
+            $('div#notebook_panel').animate({marginLeft : new_margin + 'px'}, 'fast');
         });
     };
 

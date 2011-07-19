@@ -6,26 +6,6 @@
 
 $(document).ready(function () {
 
-
-    $('div#notebook_app').addClass('border-box-sizing ui-widget ui-widget-content');
-    $('div#left_panel').addClass('border-box-sizing ui-widget');
-    $('div#left_panel_splitter').addClass('border-box-sizing ui-widget ui-state-default');
-    $('div#notebook_panel').addClass('border-box-sizing ui-widget');
-    $('div#notebook').addClass('border-box-sizing');
-
-    $('div#left_panel_splitter').click(function () {
-        $('div#left_panel').toggle('fast');
-    });
-
-    $('div#left_panel_splitter').hover(
-        function () {
-            $('div#left_panel_splitter').addClass('ui-state-hover');
-        },
-        function () {
-            $('div#left_panel_splitter').removeClass('ui-state-hover');
-        }
-    );
-
     MathJax.Hub.Config({
         tex2jax: {
             inlineMath: [ ['$','$'], ["\\(","\\)"] ],
@@ -37,34 +17,17 @@ $(document).ready(function () {
         }
     });
 
-    var do_resize = function () {
-        var win = $(window);
-        var w = win.width();
-        var h = win.height();
-        var header_height = $('div#header').outerHeight(true);
-        var app_height = h - header_height - 2;  // content height
-        var pager_height = $('div#pager').outerHeight(true);
-        var pager_splitter_height = $('div#pager_splitter').outerHeight(true);
-        $('div#notebook_app').height(app_height + 2);  // content+padding+border height
-        $('div#left_panel').height(app_height);
-        $('div#left_panel_splitter').height(app_height);
-        $('div#notebook_panel').height(app_height);
-        if (IPython.pager.expanded) {
-            $('div#notebook').height(app_height-pager_height-pager_splitter_height);
-        } else {
-            $('div#notebook').height(app_height-pager_splitter_height);
-        }
-        console.log('resize: ', app_height);
-    };
+    $('div#notebook_app').addClass('border-box-sizing ui-widget ui-widget-content');
+    $('div#notebook_panel').addClass('border-box-sizing ui-widget');
 
-    $(window).resize(do_resize);
-
-    IPython.notebook = new IPython.Notebook('div#notebook');
-    IPython.notebook.insert_code_cell_after();
-
+    IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
+    IPython.left_panel = new IPython.LeftPanel('div#left_panel', 'div#left_panel_splitter');
+    IPython.notebook = new IPython.Notebook('div#notebook');
 
-    do_resize();
+    IPython.notebook.insert_code_cell_after();
+    IPython.layout_manager.do_resize();
+    IPython.pager.collapse();
 
 //    $("#menu_tabs").tabs();
 
