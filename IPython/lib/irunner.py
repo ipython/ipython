@@ -410,7 +410,6 @@ def main():
 
     parser = optparse.OptionParser(usage=MAIN_USAGE)
     newopt = parser.add_option
-    parser.set_defaults(mode='ipython')
     newopt('--ipython',action='store_const',dest='mode',const='ipython',
            help='IPython interactive runner (default).')
     newopt('--python',action='store_const',dest='mode',const='python',
@@ -430,7 +429,9 @@ def main():
     modes = {'.ipy':'ipython',
              '.py':'python',
              '.sage':'sage'}
-    mode = modes.get(ext,opts.mode)
+    mode = modes.get(ext,"ipython")
+    if opts.mode:
+        mode = opts.mode
     runners[mode]().main(args)
 
 if __name__ == '__main__':
