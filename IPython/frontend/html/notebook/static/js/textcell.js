@@ -16,7 +16,7 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.create_element = function () {
-        var cell = $("<div>").addClass('cell text_cell').
+        var cell = $("<div>").addClass('cell text_cell border-box-sizing').
                    append(
                        $("<textarea>" + this.placeholder + "</textarea>").
                        addClass('text_cell_input monospace-font').

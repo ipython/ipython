@@ -131,65 +131,66 @@ var IPython = (function (IPython) {
         this.content.find('#to_text').click(function () {
             IPython.notebook.code_to_text();
         });
+        this.content.find('#run_selected_cell').click(function () {
+            alert("Not Implemented");
+        });
+        this.content.find('#run_all_cells').click(function () {
+            alert("Not Implemented");
+        });
     };
 
 
     CellSection.prototype.create_children = function () {
-        var row0 = $('<div>').
-            append($('<span/>').attr('id','toggle').
-                append( $('<button>Collapse</button>').attr('id','collapse_cell') ).
-                append( $('<button>Expand</button>').attr('id','expand_cell') ) ).
-            append($('<span/>').
-                append($('<button>X</button>').attr('id','delete_cell')));
-        row0.find('#toggle').buttonset();            
-        row0.find('button#delete_cell').button();
-        this.content.append(row0);
 
-        var row1 = $('<div>').
-            append($('<span/>').html('Insert').addClass('button_label')).
-            append($('<span/>').attr('id','insert').
+        this.content.addClass('ui-helper-clearfix');
+
+        var row1 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
+            append($('<span/>').addClass('cell_section_row_buttons').
+                append($('<button>X</button>').attr('id','delete_cell'))).
+            append($('<span/>').html('Actions').addClass('cell_section_row_header'));
+        row1.find('#delete_cell').button();
+        this.content.append(row1);
+
+        var row1 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
+            append($('<span/>').attr('id','insert').addClass('cell_section_row_buttons').
                 append( $('<button>Above</button>').attr('id','insert_cell_above') ).
-                append( $('<button>Below</button>').attr('id','insert_cell_below') ) );
+                append( $('<button>Below</button>').attr('id','insert_cell_below') )).
+            append($('<span/>').html('Insert').addClass('button_label'));
         row1.find('#insert').buttonset();
         this.content.append(row1);
 
-        var row2 = $('<div>').
-            append($('<span/>').html('Move').addClass('button_label')).
-            append($('<span/>').attr('id','move').
+        var row2 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
+            append($('<span/>').attr('id','move').addClass('cell_section_row_buttons').
                 append( $('<button>Up</button>').attr('id','move_cell_up') ).
-                append( $('<button>Down</button>').attr('id','move_cell_down') ) );
+                append( $('<button>Down</button>').attr('id','move_cell_down') ) ).
+            append($('<span/>').html('Move').addClass('button_label'));
         row2.find('#move').buttonset();
         this.content.append(row2);
 
-        var row3 = $('<div>').
-            append($('<span/>').html('Cell Type').addClass('button_label')).
-            append($('<span/>').attr('id','cell_type').
+        var row3 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
+            append($('<span/>').attr('id','cell_type').addClass('cell_section_row_buttons').
                 append( $('<button>Code</button>').attr('id','to_code') ).
-                append( $('<button>Text</button>').attr('id','to_text') ) );
+                append( $('<button>Text</button>').attr('id','to_text') ) ).
+            append($('<span/>').html('Cell Type').addClass('button_label'));
         row3.find('#cell_type').buttonset();
-        this.content.append(row3)
+        this.content.append(row3);
+
+        var row0 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
+            append($('<span/>').attr('id','toggle_output').addClass('cell_section_row_buttons').
+                append( $('<button>Collapse</button>').attr('id','collapse_cell') ).
+                append( $('<button>Expand</button>').attr('id','expand_cell') ) ).
+            append($('<span/>').html('Output').addClass('button_label'));
+        row0.find('#toggle_output').buttonset();
+        this.content.append(row0);
+
+        var row0 = $('<div>').addClass('cell_section_row').
+            append($('<span/>').attr('id','run_cells').addClass('cell_section_row_buttons').
+                append( $('<button>Selected</button>').attr('id','run_selected_cell') ).
+                append( $('<button>All</button>').attr('id','run_all_cells') ) ).
+            append($('<span/>').html('Run').addClass('button_label'));
+        row0.find('#run_cells').buttonset();
+        this.content.append(row0);
     };
-//            <span id="move_cell">
-//                <button id="move_up">Move up</button>
-//                <button id="move_down">Move down</button>
-//            </span>
-//            <span id="insert_delete">
-//                <button id="insert_cell_before">Before</button>
-//                <button id="insert_cell_after">After</button>
-//                <button id="delete_cell">Delete</button>
-//            </span>
-//            <span id="cell_type">
-//                <button id="to_code">Code</button>
-//                <button id="to_text">Text</button>
-//            </span>
-//            <span id="sort">
-//                <button id="sort_cells">Sort</button>
-//            </span>
-//            <span id="toggle">
-//                <button id="collapse">Collapse</button>
-//                <button id="expand">Expand</button>
-//            </span>
-//        </span>
 
 
     // KernelSection

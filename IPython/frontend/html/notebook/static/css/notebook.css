@@ -123,14 +123,42 @@ div.section_content {
     padding: 5px;
 }
 
-
-span.button_label {
-    padding: 0.3em 1em;
-    font-size: 0.8em;
+#expand_cell, #collapse_cell, #insert_cell_above, #insert_cell_below,
+#move_cell_up, #move_cell_down, #to_code, #to_text, #run_selected_cell,
+#run_all_cells {
+    width: 65px;
 }
 
+.cell_section_row {
+    margin: 5px 0px;
+}
+
+.cell_section_row_buttons {
+    float: right;
+}
+
+.cell_section_row_header {
+    float: left;
+    font-size: 0.8em;
+    padding: 0.2em 0em;
+    font-weight: bold;
+}
+
+span.button_label {
+    padding: 0.2em 1em;
+    font-size: 0.8em;
+    float: right;
+}
+
+/* This is needed because FF was adding a 2px margin top and bottom. */
+.cell_section_row .ui-button {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+
 .ui-button .ui-button-text {
-    padding: 0.3em 0.9em;
+    padding: 0.2em 0.8em;
     font-size: 0.7em;
 }
 

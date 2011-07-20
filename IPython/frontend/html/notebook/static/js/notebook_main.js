@@ -53,16 +53,6 @@ $(document).ready(function () {
 //    $("#delete_cell").button("option", "text", false);
 //    $("#delete_cell").click(function () {IPython.notebook.delete_cell();});
 
-//    $("#cell_type").buttonset();
-//    $("#to_code").click(function () {IPython.notebook.text_to_code();});
-//    $("#to_text").click(function () {IPython.notebook.code_to_text();});
-
-//    $("#sort").buttonset();
-//    $("#sort_cells").click(function () {IPython.notebook.sort_cells();});
-
-//    $("#toggle").buttonset();
-//    $("#collapse").click(function () {IPython.notebook.collapse();});
-//    $("#expand").click(function () {IPython.notebook.expand();});
 
 });
 
