@@ -115,6 +115,25 @@ div#left_panel {
     position: absolute;
 }
 
+h3.section_header {
+    padding: 5px;
+}
+
+div.section_content {
+    padding: 5px;
+}
+
+
+span.button_label {
+    padding: 0.3em 1em;
+    font-size: 0.8em;
+}
+
+.ui-button .ui-button-text {
+    padding: 0.3em 0.9em;
+    font-size: 0.7em;
+}
+
 div#left_panel_splitter {
     width: 8px;
     top: 0px;

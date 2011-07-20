@@ -46,7 +46,6 @@ var IPython = (function (IPython) {
         } else {
             $('div#notebook').height(app_height-pager_splitter_height);
         }
-        console.log('resize: ', app_height);
     };
 
     IPython.LayoutManager = LayoutManager

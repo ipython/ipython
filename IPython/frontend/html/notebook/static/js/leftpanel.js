@@ -15,6 +15,7 @@ var IPython = (function (IPython) {
         this.width = 250;
         this.style();
         this.bind_events();
+        this.create_children();
     };
 
 
@@ -54,6 +55,15 @@ var IPython = (function (IPython) {
 
     };
 
+
+    LeftPanel.prototype.create_children = function () {
+        this.notebook_section = new IPython.NotebookSection();
+        this.left_panel_element.append(this.notebook_section.element);
+        this.cell_section = new IPython.CellSection();
+        this.left_panel_element.append(this.cell_section.element);        
+        this.kernel_section = new IPython.KernelSection();
+        this.left_panel_element.append(this.kernel_section.element);   
+    }
 
     LeftPanel.prototype.collapse = function () {
         if (this.expanded === true) {

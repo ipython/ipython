@@ -121,7 +121,6 @@ var IPython = (function (IPython) {
             var splitter_width = $('div#left_panel_splitter').outerWidth(true);
             var left_panel_width = IPython.left_panel.width;
             var new_margin = splitter_width + left_panel_width;
-            console.log('expand', splitter_width, left_panel_width, new_margin);
             $('div#notebook_panel').animate({marginLeft : new_margin + 'px'}, 'fast');
         });
     };
@@ -433,7 +432,7 @@ var IPython = (function (IPython) {
         var header = reply.header;
         var content = reply.content;
         var msg_type = header.msg_type;
-        console.log(reply);
+        // console.log(reply);
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
             cell.set_input_prompt(content.execution_count);
