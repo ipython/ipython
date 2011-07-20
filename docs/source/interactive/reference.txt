@@ -1186,8 +1186,8 @@ import IPython.extensions.PhysicalQInput
 
 .. _gui_support:
 
-GUI event loop support support
-==============================
+GUI event loop support
+======================
 
 .. versionadded:: 0.11
     The ``%gui`` magic and :mod:`IPython.lib.inputhook`.
@@ -1207,16 +1207,15 @@ advantages of this are:
 For users, enabling GUI event loop integration is simple.  You simple use the
 ``%gui`` magic as follows::
 
-    %gui [-a] [GUINAME]
+    %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments are ``wx``, ``qt4``, ``gtk`` and ``tk``.  The ``-a`` option will
-create and return a running application object for the selected GUI toolkit.
+arguments are ``wx``, ``qt4``, ``gtk`` and ``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::
 
-    %gui -a wx
+    %gui wx
 
 For information on IPython's Matplotlib integration (and the ``pylab`` mode)
 see :ref:`this section <matplotlib_support>`.
@@ -1261,7 +1260,7 @@ PyQt and PySide
 
 .. attempt at explanation of the complete mess that is Qt support
 
-When you use ``gui=qt`` or ``pylab=qt``, IPython can work with either
+When you use ``--gui=qt`` or ``--pylab=qt``, IPython can work with either
 PyQt4 or PySide.  There are three options for configuration here, because
 PyQt4 has two APIs for QString and QVariant - v1, which is the default on
 Python 2, and the more natural v2, which is the only API supported by PySide.
@@ -1279,7 +1278,7 @@ PyQt4 to use its v2 API.  So if ``QT_API=pyside`` PySide will be used,
 and if ``QT_API=pyqt`` then PyQt4 will be used *with the v2 API* for
 QString and QVariant, so ETS codes like MayaVi will also work with IPython.
 
-If you launch IPython in pylab mode with ``ipython pylab=qt``, then IPython
+If you launch IPython in pylab mode with ``ipython --pylab=qt``, then IPython
 will ask matplotlib which Qt library to use (only if QT_API is *not set*),
 via the 'backend.qt4' rcParam.
 If matplotlib is version 1.0.1 or older, then IPython will always use PyQt4
@@ -1292,7 +1291,7 @@ without setting the v2 APIs, since neither v2 PyQt nor PySide work.
     an incompatible mode.
     
     It also means that you must *not* have ``QT_API`` set if you want to
-    use ``gui=qt`` with code that requires PyQt4 API v1.
+    use ``--gui=qt`` with code that requires PyQt4 API v1.
 
 
 
@@ -1314,7 +1313,7 @@ process of working with the Matplotlib developers to finalize the new pylab
 API, but for now you can use Matplotlib interactively using the following
 commands::
 
-    %gui -a wx
+    %gui wx
     import matplotlib
     matplotlib.use('wxagg')
     from matplotlib import pylab
