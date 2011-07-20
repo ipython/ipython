@@ -35,6 +35,9 @@ if __name__ == '__main__':
     sw.show()
 
     try:
-        from IPython import enable_qt4; enable_qt4(app)
+        from IPython.lib.inputhook import enable_qt4
+        enable_qt4()
+        from IPython.lib.guisupport import start_event_loop_qt4
+        start_event_loop_qt4(app)
     except ImportError:
         app.exec_()
