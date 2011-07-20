@@ -127,7 +127,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.scroll_to_bottom = function () {
-        this.element.animate({scrollTop:this.element.get(0).scrollHeight}, 'slow');
+        this.element.animate({scrollTop:this.element.get(0).scrollHeight}, 0);
     };
 
     // Cell indexing, retrieval, etc.

@@ -1,7 +1,7 @@
 .CodeMirror {
   overflow: hidden; /* Changed from auto to remove scrollbar */
   height: auto; /* Changed to auto to autogrow */
-/*  line-height: 1em;*/
+  line-height: 1em;
   font-family: monospace;
 }
 
@@ -19,8 +19,10 @@
 }
 .CodeMirror-lines {
   /* Changed from 0.4em, but this gives us jitters upon typing, but I found
-     that removing .CodeMirror line-height: 1em above, it goes away. */
-  padding: 0em;
+     that removing .CodeMirror line-height: 1em above, it goes away. 
+     For now I am using the default of 0.4em, but I have added a 0.4em
+     padding to prompts to match this.*/
+  padding: 0.4em;
 }
 
 .CodeMirror pre {

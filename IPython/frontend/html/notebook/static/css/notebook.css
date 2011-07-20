@@ -61,7 +61,7 @@ input, select { vertical-align: middle; }
 body {
     background-color: white;
     /* This won't propagate to all children so we also set it below */
-    font-size: 10pt;
+    font-size: 11pt;
     /* This makes sure that the body covers the entire window and needs to
        be in a different element than the display: box in wrapper below */
     position: absolute;
@@ -156,7 +156,7 @@ div#notebook {
     padding: 0px 15px 0px 15px;
     margin: 0px
     background-color: white;
-    font-size: 10pt;
+    font-size: 11pt;
 }
 
 div#pager_splitter {
@@ -170,7 +170,7 @@ div#pager {
 
 .monospace-font {
     font-family: monospace;
-    font-size: 10pt;
+    font-size: 11pt;
 }
 
 div.cell {
@@ -186,8 +186,9 @@ div.code_cell {
 
 div.prompt {
     width: 90px;
-    padding: 0px;
+    padding: 0.4em;
     margin: 0px;
+    line-height: 1em;
 }
 
 div.input_prompt {
@@ -210,7 +211,7 @@ div.output_area {
 
 div.output_latex {
     /* Slightly bigger than the rest of the notebook */
-    font-size: 11pt;
+    font-size: 12pt;
 }
 
 div.output_png {
@@ -222,7 +223,7 @@ div.text_cell {
 
 textarea.text_cell_input {
     /* Slightly bigger than the rest of the notebook */
-    font-size: 11pt;
+    font-size: 12pt;
     outline: none;
     resize: none;
     width:  inherit;
@@ -235,7 +236,7 @@ textarea.text_cell_input {
 div.text_cell_render {
     font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
     /* Slightly bigger than the rest of the notebook */
-    font-size: 11pt;
+    font-size: 12pt;
     outline: none;
     resize: none;
     width:  inherit;
