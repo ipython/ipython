@@ -28,31 +28,5 @@ $(document).ready(function () {
     IPython.notebook.insert_code_cell_after();
     IPython.layout_manager.do_resize();
     IPython.pager.collapse();
-
-//    $("#menu_tabs").tabs();
-
-//    $("#help_toolbar").buttonset();
-
-//    $("#kernel_toolbar").buttonset();
-//    $("#interrupt_kernel").click(function () {IPython.notebook.kernel.interrupt();});
-//    $("#restart_kernel").click(function () {IPython.notebook.kernel.restart();});
-//    $("#kernel_status").addClass("status_idle");
-
-//    $("#move_cell").buttonset();
-//    $("#move_up").button("option", "icons", {primary:"ui-icon-arrowthick-1-n"});
-//    $("#move_up").button("option", "text", false);
-//    $("#move_up").click(function () {IPython.notebook.move_cell_up();});
-//    $("#move_down").button("option", "icons", {primary:"ui-icon-arrowthick-1-s"});
-//    $("#move_down").button("option", "text", false);
-//    $("#move_down").click(function () {IPython.notebook.move_cell_down();});
-
-//    $("#insert_delete").buttonset();
-//    $("#insert_cell_before").click(function () {IPython.notebook.insert_code_cell_before();});
-//    $("#insert_cell_after").click(function () {IPython.notebook.insert_code_cell_after();});
-//    $("#delete_cell").button("option", "icons", {primary:"ui-icon-closethick"});
-//    $("#delete_cell").button("option", "text", false);
-//    $("#delete_cell").click(function () {IPython.notebook.delete_cell();});
-
-
 });
 

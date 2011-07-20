@@ -63,6 +63,9 @@ var IPython = (function (IPython) {
         this.left_panel_element.append(this.cell_section.element);        
         this.kernel_section = new IPython.KernelSection();
         this.left_panel_element.append(this.kernel_section.element);   
+        this.help_section = new IPython.HelpSection();
+        this.left_panel_element.append(this.help_section.element);
+        this.help_section.collapse();
     }
 
     LeftPanel.prototype.collapse = function () {
