@@ -259,8 +259,8 @@ class InputHookManager(object):
         Parameters
         ----------
         app : toplevel :class:`Tkinter.Tk` widget, optional.
-            Running application to use.  If not given, we probe Qt for an
-            existing application object, and create a new one if none is found.
+            Running toplevel widget to use.  If not given, we probe Tk for an
+            existing one, and create a new one if none is found.
 
         Notes
         -----
