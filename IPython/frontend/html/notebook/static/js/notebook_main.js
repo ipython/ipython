@@ -21,6 +21,7 @@ $(document).ready(function () {
     $('div#notebook_panel').addClass('border-box-sizing ui-widget');
 
     IPython.layout_manager = new IPython.LayoutManager();
+//    IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.left_panel = new IPython.LeftPanel('div#left_panel', 'div#left_panel_splitter');
     IPython.notebook = new IPython.Notebook('div#notebook');

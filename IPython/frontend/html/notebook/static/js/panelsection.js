@@ -264,7 +264,7 @@ var IPython = (function (IPython) {
         var row1 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
             append($('<span/>').attr('id','help_buttons1').addClass('cell_section_row_buttons').
                 append( $('<button/>').attr('id','matplotlib_help').
-                    append( $('<a>Matplotlib</a>').attr('href','http://matplotlib.sourceforge.net/').attr('target','_blank') )).
+                    append( $('<a>MPL</a>').attr('href','http://matplotlib.sourceforge.net/').attr('target','_blank') )).
                 append( $('<button/>').attr('id','scipy_help').
                     append( $('<a>SciPy</a>').attr('href','http://docs.scipy.org/doc/scipy/reference/').attr('target','_blank') )).
                 append( $('<button/>').attr('id','sympy_help').
