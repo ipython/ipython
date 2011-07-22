@@ -31,7 +31,7 @@ from IPython.core.magic import MacroToEdit
 from IPython.core.payloadpage import install_payload_page
 from IPython.utils import io
 from IPython.utils.path import get_py_filename
-from IPython.utils.traitlets import Instance, Type, Dict
+from IPython.utils.traitlets import Instance, Type, Dict, CBool
 from IPython.utils.warn import warn
 from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_png
 from IPython.zmq.session import extract_header
@@ -79,6 +79,11 @@ class ZMQInteractiveShell(InteractiveShell):
 
     displayhook_class = Type(ZMQShellDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
+    
+    # Override the traitlet in the parent class, because there's no point using
+    # readline for the kernel. Can be removed when the readline code is moved
+    # to the terminal frontend.
+    readline_use = CBool(False)
     
     exiter = Instance(ZMQExitAutocall)
     def _exiter_default(self):
