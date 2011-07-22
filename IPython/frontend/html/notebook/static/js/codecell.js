@@ -25,7 +25,8 @@ var IPython = (function (IPython) {
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             enterMode : 'flat',
-            tabMode: 'shift'
+            tabMode: 'shift',
+            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         input.append(input_area);
         var output = $('<div></div>').addClass('output vbox');
@@ -34,6 +35,18 @@ var IPython = (function (IPython) {
         this.collapse()
     };
 
+
+    CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
+        // This method gets called in CodeMirror's onKeyDown/onKeyPress handlers and
+        // is used to provide custom key handling. Its return value is used to determine
+        // if CodeMirror should ignore the event: true = ignore, false = don't ignore.
+        if (event.keyCode === 13 && event.shiftKey) {
+            // Always ignore shift-enter in CodeMirror as we handle it.
+            return true;
+        } else {
+            return false;
+        };
+    };
 
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);

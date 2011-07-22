@@ -149,10 +149,10 @@ var IPython = (function (IPython) {
             IPython.notebook.code_to_text();
         });
         this.content.find('#run_selected_cell').click(function () {
-            alert("Not Implemented");
+            IPython.notebook.execute_selected_cell();
         });
         this.content.find('#run_all_cells').click(function () {
-            alert("Not Implemented");
+            IPython.notebook.execute_all_cells();
         });
     };
 

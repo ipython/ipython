@@ -57,42 +57,9 @@ var IPython = (function (IPython) {
                     that.select_next();
                 };
             } else if (event.which === 13 && event.shiftKey) {
-                // The focus is not quite working here.
-                var cell = that.selected_cell();
-                var cell_index = that.find_cell_index(cell);
-                // TODO: the logic here needs to be moved into appropriate
-                // methods of Notebook.
-                if (cell instanceof IPython.CodeCell) {
-                    event.preventDefault();
-                    cell.clear_output();
-                    var code = cell.get_code();
-                    if (that.notebook_load_re.test(code)) {
-                        var code_parts = code.split(' ');
-                        if (code_parts.length === 3) {
-                            that.load_notebook(code_parts[2]);
-                        };
-                    } else if (that.notebook_save_re.test(code)) {
-                        var code_parts = code.split(' ');
-                        if (code_parts.length === 3) {
-                            that.save_notebook(code_parts[2]);
-                        } else {
-                            that.save_notebook()
-                        };
-                    } else {
-                        var msg_id = that.kernel.execute(cell.get_code());
-                        that.msg_cell_map[msg_id] = cell.cell_id;
-                    };
-                } else if (cell instanceof IPython.TextCell) {
-                    event.preventDefault();
-                    cell.render();
-                }
-                if (cell_index === (that.ncells()-1)) {
-                    that.insert_code_cell_after();
-                    // If we are adding a new cell at the end, scroll down to show it.
-                    that.scroll_to_bottom();
-                } else {
-                    that.select(cell_index+1);
-                };
+                console.log('Entering execute');
+                that.execute_selected_cell(true);
+                console.log('Leaving execute');
             };
         });
 
@@ -488,6 +455,54 @@ var IPython = (function (IPython) {
         this.kernel.iopub_channel.onmessage = $.proxy(this.handle_iopub_reply,this);
     };
 
+
+    Notebook.prototype.execute_selected_cell = function (add_new) {
+        if (add_new === undefined) {add_new = true;};
+        var that = this;
+        var cell = that.selected_cell();
+        var cell_index = that.find_cell_index(cell);
+        // TODO: the logic here needs to be moved into appropriate
+        // methods of Notebook.
+        if (cell instanceof IPython.CodeCell) {
+            cell.clear_output();
+            var code = cell.get_code();
+            if (that.notebook_load_re.test(code)) {
+                var code_parts = code.split(' ');
+                if (code_parts.length === 3) {
+                    that.load_notebook(code_parts[2]);
+                };
+            } else if (that.notebook_save_re.test(code)) {
+                var code_parts = code.split(' ');
+                if (code_parts.length === 3) {
+                    that.save_notebook(code_parts[2]);
+                } else {
+                    that.save_notebook()
+                };
+            } else {
+                var msg_id = that.kernel.execute(cell.get_code());
+                that.msg_cell_map[msg_id] = cell.cell_id;
+            };
+        } else if (cell instanceof IPython.TextCell) {
+            cell.render();
+        }
+        if ((cell_index === (that.ncells()-1)) && add_new) {
+            that.insert_code_cell_after();
+            // If we are adding a new cell at the end, scroll down to show it.
+            that.scroll_to_bottom();
+        } else {
+            that.select(cell_index+1);
+        };
+    };
+
+
+    Notebook.prototype.execute_all_cells = function () {
+        var ncells = this.ncells();
+        for (var i=0; i<ncells; i++) {
+            this.select(i);
+            this.execute_selected_cell(false);
+        };
+        this.scroll_to_bottom();
+    };
 
     // Persistance and loading
 
