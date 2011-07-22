@@ -432,6 +432,9 @@ class PlainTextFormatter(BaseFormatter):
         else:
             # This uses use StringIO, as cStringIO doesn't handle unicode.
             stream = StringIO()
+            # self.newline.encode() is a quick fix for issue gh-597. We need to
+            # ensure that stream does not get a mix of unicode and bytestrings,
+            # or it will cause trouble.
             printer = pretty.RepresentationPrinter(stream, self.verbose,
                 self.max_width, self.newline.encode(),
                 singleton_pprinters=self.singleton_printers,
