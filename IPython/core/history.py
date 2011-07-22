@@ -650,6 +650,7 @@ def magic_history(self, parameter_s = ''):
     if 'g' in opts:         # Glob search
         pattern = "*" + args + "*" if args else "*"
         hist = history_manager.search(pattern, raw=raw, output=get_output)
+        print_nums = True
     elif 'l' in opts:       # Get 'tail'
         try:
             n = int(args)
