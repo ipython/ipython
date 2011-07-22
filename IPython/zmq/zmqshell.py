@@ -80,6 +80,9 @@ class ZMQInteractiveShell(InteractiveShell):
     displayhook_class = Type(ZMQShellDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
     
+    # Override the traitlet in the parent class, because there's no point using
+    # readline for the kernel. Can be removed when the readline code is moved
+    # to the terminal frontend.
     readline_use = CBool(False)
     
     exiter = Instance(ZMQExitAutocall)
