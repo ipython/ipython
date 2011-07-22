@@ -31,12 +31,112 @@
 
 <div id="header">
     <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
-    <span id="save_widget"></span>
+    <span id="save_widget">
+        <input type="text" id="notebook_name" size="20"></textarea>
+        <button id="save_notebook">Save</button>
+    </span>
+    <span id="kernel_status">Idle</span>
 </div>
 
 <div id="notebook_app">
 
-    <div id="left_panel"></div>
+    <div id="left_panel">
+
+        <div id="notebook_section">
+            <h3 class="section_header">Notebook</h3>
+            <div class="section_content">
+                <div class="section_row">
+                    <span id="new_open" class="section_row_buttons">
+                        <button id="new_notebook">New</button>
+                        <button id="open_notebook">Open</button>
+                    </span>
+                    <span class="section_row_header">Actions</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="cell_section">
+            <h3 class="section_header">Cell</h3>
+            <div class="section_content">
+                <div class="section_row">
+                    <span class="section_row_buttons">
+                        <button id="delete_cell">Delete</button>
+                    </span>
+                    <span class="section_row_header">Actions</span>
+                </div>
+                <div class="section_row">
+                    <span id="insert" class="section_row_buttons">
+                        <button id="insert_cell_above">Above</button>
+                        <button id="insert_cell_below">Below</button>
+                    </span>
+                    <span class="button_label">Insert</span>
+                </div>
+                <div class="section_row">
+                    <span id="move" class="section_row_buttons">
+                        <button id="move_cell_up">Up</button>
+                        <button id="move_cell_down">Down</button>
+                    </span>
+                    <span class="button_label">Move</span>
+                </div>
+                <div class="section_row">
+                    <span id="cell_type" class="section_row_buttons">
+                        <button id="to_code">Code</button>
+                        <button id="to_text">Text</button>
+                    </span>
+                    <span class="button_label">Cell Type</span>
+                </div>
+                <div class="section_row">
+                    <span id="toggle_output" class="section_row_buttons">
+                        <button id="collapse_cell">Collapse</button>
+                        <button id="expand_cell">Expand</button>
+                    </span>
+                    <span class="button_label">Output</span>
+                </div>
+                <div class="section_row">
+                    <span id="run_cells" class="section_row_buttons">
+                        <button id="run_selected_cell">Selected</button>
+                        <button id="run_all_cells">All</button>
+                    </span>
+                    <span class="button_label">Run</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="kernel_section">
+            <h3 class="section_header">Kernel</h3>
+            <div class="section_content">
+                <div class="section_row">
+                    <span id="int_restart" class="section_row_buttons">
+                        <button id="int_kernel">Interrupt</button>
+                        <button id="restart_kernel">Restart</button>
+                    </span>
+                    <span class="section_row_header">Actions</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="help_section">
+            <h3 class="section_header">Help</h3>
+            <div class="section_content">
+                <div class="section_row">
+                    <span id="help_buttons0" class="section_row_buttons">
+                        <button id="python_help"><a href="http://docs.python.org" target="_blank">Python</a></button>
+                        <button id="ipython_help"><a href="http://ipython.org/documentation.html" target="_blank">IPython</a></button>
+                        <button id="numpy_help"><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a></button>
+                    </span>
+                    <span class="section_row_header">Links</span>
+                </div>
+                <div class="section_row">
+                    <span id="help_buttons1" class="section_row_buttons">
+                        <button id="matplotlib_help"><a href="http://matplotlib.sourceforge.net/" target="_blank">MPL</a></button>
+                        <button id="scipy_help"><a href="http://docs.scipy.org/doc/scipy/reference/" target="_blank">SciPy</a></button>
+                        <button id="sympy_help"><a href="http://docs.sympy.org/dev/index.html" target="_blank">SymPy</a></button>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
     <div id="left_panel_splitter"></div>
     <div id="notebook_panel">
         <div id="notebook"></div>
@@ -55,6 +155,7 @@
 <script src="static/js/codecell.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/textcell.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/kernel.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/kernelstatus.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/layout.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/savewidget.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/pager.js" type="text/javascript" charset="utf-8"></script>

@@ -74,23 +74,39 @@ body {
 
 
 div#header {
-    height: 35px;
+    position: relative;
+    height: 45px;
     padding: 5px;
     margin: 0px;
     width: 100%
 }
 
 span#ipython_notebook {
+    position: absolute;
 }
 
 span#ipython_notebook h1 {
     font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
     font-size: 22pt;
+    display: inline;
+}
+
+span#save_widget {
+    position: absolute;
+    left: 0px;
+    padding: 5px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+input#notebook_name {
+    height: 1em;
+    line-height: 1em;
+    padding: 5px;
 }
 
 span#kernel_status {
     position: absolute;
-    top: 12%;
+    padding: 8px 5px 5px 5px;
     right: 10px;
 	font-weight: bold;
 }
@@ -129,22 +145,27 @@ div.section_content {
     padding: 5px;
 }
 
-#expand_cell, #collapse_cell, #insert_cell_above, #insert_cell_below,
-#move_cell_up, #move_cell_down, #to_code, #to_text, #run_selected_cell,
-#run_all_cells, #int_kernel, #restart_kernel, #python_help, #ipython_help,
-#numpy_help, #matplotlib_help, #scipy_help, #sympy_help {
-    width: 65px;
+/*#expand_cell, #collapse_cell, #insert_cell_above, #insert_cell_below,*/
+/*#move_cell_up, #move_cell_down, #to_code, #to_text, #run_selected_cell,*/
+/*#run_all_cells, #int_kernel, #restart_kernel, #python_help, #ipython_help,*/
+/*#numpy_help, #matplotlib_help, #scipy_help, #sympy_help, #new_notebook,*/
+/*#open_notebook {*/
+/*    width: 60px;*/
+/*}*/
+
+span.section_row_buttons > button {
+    width: 60px;
 }
 
-.cell_section_row {
+.section_row {
     margin: 5px 0px;
 }
 
-.cell_section_row_buttons {
+.section_row_buttons {
     float: right;
 }
 
-.cell_section_row_header {
+.section_row_header {
     float: left;
     font-size: 0.8em;
     padding: 0.2em 0em;
@@ -158,7 +179,7 @@ span.button_label {
 }
 
 /* This is needed because FF was adding a 2px margin top and bottom. */
-.cell_section_row .ui-button {
+.section_row .ui-button {
     margin-top: 0px;
     margin-bottom: 0px;
 }

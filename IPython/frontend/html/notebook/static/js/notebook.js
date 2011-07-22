@@ -474,9 +474,9 @@ var IPython = (function (IPython) {
             cell.append_pyerr(content.ename, content.evalue, content.traceback);
         } else if (msg_type === "status") {
             if (content.execution_state === "busy") {
-                this.kernel.status_busy();
+                IPython.kernel_status_widget.status_busy();
             } else if (content.execution_state === "idle") {
-                this.kernel.status_idle();
+                IPython.kernel_status_widget.status_idle();
             };
         }
     };

@@ -11,7 +11,7 @@ var IPython = (function (IPython) {
         this.pager_element = $(pager_selector);
         this.pager_splitter_element = $(pager_splitter_selector);
         this.expanded = true;
-        this.percentage_height = 0.30;
+        this.percentage_height = 0.40;
         this.style();
         this.bind_events();
     };

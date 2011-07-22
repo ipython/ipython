@@ -57,15 +57,10 @@ var IPython = (function (IPython) {
 
 
     LeftPanel.prototype.create_children = function () {
-        this.notebook_section = new IPython.NotebookSection();
-        this.left_panel_element.append(this.notebook_section.element);
-        this.cell_section = new IPython.CellSection();
-        this.left_panel_element.append(this.cell_section.element);        
-        this.kernel_section = new IPython.KernelSection();
-        this.left_panel_element.append(this.kernel_section.element);   
-        this.help_section = new IPython.HelpSection();
-        this.left_panel_element.append(this.help_section.element);
-        this.help_section.collapse();
+        this.notebook_section = new IPython.NotebookSection('div#notebook_section');
+        this.cell_section = new IPython.CellSection('div#cell_section');
+        this.kernel_section = new IPython.KernelSection('div#kernel_section');
+        this.help_section = new IPython.HelpSection('div#help_section');
     }
 
     LeftPanel.prototype.collapse = function () {

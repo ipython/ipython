@@ -28,9 +28,9 @@ var IPython = (function (IPython) {
 
         $('div#left_panel_splitter').height(app_height);
 
+        $('div#notebook_panel').height(app_height);
         var left_panel_width = $('div#left_panel').outerWidth();
         var left_panel_splitter_width = $('div#left_panel_splitter').outerWidth();
-        $('div#notebook_panel').height(app_height);
         if (IPython.left_panel.expanded) {
             $('div#notebook_panel').css({marginLeft : left_panel_width+left_panel_splitter_width});
         } else {

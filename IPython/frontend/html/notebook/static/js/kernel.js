@@ -73,39 +73,17 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype.restart = function () {
-        this.status_restarting();
+        IPython.kernel_status_widget.status_restarting();
         url = this.kernel_url + "/restart"
         var that = this;
         $.post(url, function (kernel_id) {
             console.log("Kernel restarted: " + kernel_id);
             that.kernel_id = kernel_id;
             that.kernel_url = that.base_url + "/" + that.kernel_id;
-            that.status_idle();
+            IPython.kernel_status_widget.status_idle();
         }, 'json');
     };
 
-
-    Kernel.prototype.status_busy = function () {
-        $("#kernel_status").removeClass("status_idle");
-        $("#kernel_status").removeClass("status_restarting");
-        $("#kernel_status").addClass("status_busy");
-        $("#kernel_status").text("Busy");
-    };
-
-
-    Kernel.prototype.status_idle = function () {
-        $("#kernel_status").removeClass("status_busy");
-        $("#kernel_status").removeClass("status_restarting");
-        $("#kernel_status").addClass("status_idle");
-        $("#kernel_status").text("Idle");
-    };
-
-    Kernel.prototype.status_restarting = function () {
-        $("#kernel_status").removeClass("status_busy");
-        $("#kernel_status").removeClass("status_idle");
-        $("#kernel_status").addClass("status_restarting");
-        $("#kernel_status").text("Restarting");
-    };
 
     IPython.Kernel = Kernel;
 

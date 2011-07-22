@@ -9,15 +9,22 @@ var IPython = (function (IPython) {
 
     // Base PanelSection class
 
-    var PanelSection = function () {
-        if (this.section_name === undefined) {
-            this.section_name = 'section';
-        };
-        this.create_element();
-        if (this.element !== undefined) {
+    var PanelSection = function (selector) {
+        this.selector = selector;
+        if (this.selector !== undefined) {
+            this.element = $(selector);
+            this.header = this.element.find('h3.section_header');
+            this.content = this.element.find('div.section_content');
+            this.style();
             this.bind_events();
         }
         this.expanded = true;
+    };
+
+
+    PanelSection.prototype.style = function () {
+        this.header.addClass('ui-widget ui-state-default');
+        this.content.addClass('ui-widget section_content');
     };
 
 
@@ -32,27 +39,9 @@ var IPython = (function (IPython) {
     };
 
 
-    PanelSection.prototype.create_element = function () {
-        this.element = $('<div/>').attr('id',this.id());
-        this.header = $('<h3>'+this.section_name+'</h3>').
-            addClass('ui-widget ui-state-default section_header');
-        this.content = $('<div/>').
-            addClass('ui-widget section_content');
-        this.element.append(this.header).append(this.content);
-        this.create_children();
-    };
-
-
-    PanelSection.prototype.id = function () {
-        return this.section_name.toLowerCase() + "_section";
-    };
-
-
     PanelSection.prototype.expand = function () {
         if (!this.expanded) {
             this.content.slideDown('fast');
-//            this.header.addClass('ui-state-active');
-//            this.header.removeClass('ui-state-default');
             this.expanded = true;
         };
     };
@@ -61,8 +50,6 @@ var IPython = (function (IPython) {
     PanelSection.prototype.collapse = function () {
         if (this.expanded) {
             this.content.slideUp('fast');
-//            this.header.removeClass('ui-state-active');
-//            this.header.addClass('ui-state-default');
             this.expanded = false;
         };
     };
@@ -83,7 +70,6 @@ var IPython = (function (IPython) {
     // NotebookSection
 
     var NotebookSection = function () {
-        this.section_name = "Notebook";
         PanelSection.apply(this, arguments);
     };
 
@@ -91,15 +77,46 @@ var IPython = (function (IPython) {
     NotebookSection.prototype = new PanelSection();
 
 
+    NotebookSection.prototype.style = function () {
+        PanelSection.prototype.style.apply(this);
+        this.content.addClass('ui-helper-clearfix');
+        this.content.find('div.section_row').addClass('ui-helper-clearfix');
+        this.content.find('#new_open').buttonset();
+    };
+
+
+    NotebookSection.prototype.bind_events = function () {
+        PanelSection.prototype.bind_events.apply(this);
+        this.content.find('#new_notebook').click(function () {
+            alert('Not Implemented');
+        });
+        this.content.find('#open_notebook').click(function () {
+            alert('Not Implemented');
+        });
+    };
+
+
     // CellSection
 
     var CellSection = function () {
-        this.section_name = "Cell";
         PanelSection.apply(this, arguments);
     };
 
 
     CellSection.prototype = new PanelSection();
+
+
+    CellSection.prototype.style = function () {
+        PanelSection.prototype.style.apply(this);
+        this.content.addClass('ui-helper-clearfix');
+        this.content.find('div.section_row').addClass('ui-helper-clearfix');
+        this.content.find('#delete_cell').button();
+        this.content.find('#insert').buttonset();
+        this.content.find('#move').buttonset();
+        this.content.find('#cell_type').buttonset();
+        this.content.find('#toggle_output').buttonset();
+        this.content.find('#run_cells').buttonset();
+    };
 
 
     CellSection.prototype.bind_events = function () {
@@ -140,68 +157,22 @@ var IPython = (function (IPython) {
     };
 
 
-    CellSection.prototype.create_children = function () {
-
-        this.content.addClass('ui-helper-clearfix');
-
-        var row0 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
-            append($('<span/>').addClass('cell_section_row_buttons').
-                append($('<button>X</button>').attr('id','delete_cell'))).
-            append($('<span/>').html('Actions').addClass('cell_section_row_header'));
-        row0.find('#delete_cell').button();
-        this.content.append(row0);
-
-        var row1 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
-            append($('<span/>').attr('id','insert').addClass('cell_section_row_buttons').
-                append( $('<button>Above</button>').attr('id','insert_cell_above') ).
-                append( $('<button>Below</button>').attr('id','insert_cell_below') )).
-            append($('<span/>').html('Insert').addClass('button_label'));
-        row1.find('#insert').buttonset();
-        this.content.append(row1);
-
-        var row2 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
-            append($('<span/>').attr('id','move').addClass('cell_section_row_buttons').
-                append( $('<button>Up</button>').attr('id','move_cell_up') ).
-                append( $('<button>Down</button>').attr('id','move_cell_down') ) ).
-            append($('<span/>').html('Move').addClass('button_label'));
-        row2.find('#move').buttonset();
-        this.content.append(row2);
-
-        var row3 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
-            append($('<span/>').attr('id','cell_type').addClass('cell_section_row_buttons').
-                append( $('<button>Code</button>').attr('id','to_code') ).
-                append( $('<button>Text</button>').attr('id','to_text') ) ).
-            append($('<span/>').html('Cell Type').addClass('button_label'));
-        row3.find('#cell_type').buttonset();
-        this.content.append(row3);
-
-        var row1 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
-            append($('<span/>').attr('id','toggle_output').addClass('cell_section_row_buttons').
-                append( $('<button>Collapse</button>').attr('id','collapse_cell') ).
-                append( $('<button>Expand</button>').attr('id','expand_cell') ) ).
-            append($('<span/>').html('Output').addClass('button_label'));
-        row1.find('#toggle_output').buttonset();
-        this.content.append(row1);
-
-        var row0 = $('<div>').addClass('cell_section_row').
-            append($('<span/>').attr('id','run_cells').addClass('cell_section_row_buttons').
-                append( $('<button>Selected</button>').attr('id','run_selected_cell') ).
-                append( $('<button>All</button>').attr('id','run_all_cells') ) ).
-            append($('<span/>').html('Run').addClass('button_label'));
-        row0.find('#run_cells').buttonset();
-        this.content.append(row0);
-    };
-
-
     // KernelSection
 
     var KernelSection = function () {
-        this.section_name = "Kernel";
         PanelSection.apply(this, arguments);
     };
 
 
     KernelSection.prototype = new PanelSection();
+
+
+    KernelSection.prototype.style = function () {
+        PanelSection.prototype.style.apply(this);
+        this.content.addClass('ui-helper-clearfix');
+        this.content.find('div.section_row').addClass('ui-helper-clearfix');
+        this.content.find('#int_restart').buttonset();
+    };
 
 
     KernelSection.prototype.bind_events = function () {
@@ -215,24 +186,9 @@ var IPython = (function (IPython) {
     };
 
 
-    KernelSection.prototype.create_children = function () {
-
-        this.content.addClass('ui-helper-clearfix');
-
-        var row0 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
-            append($('<span/>').attr('id','int_restart').addClass('cell_section_row_buttons').
-                append( $('<button>Interrupt</button>').attr('id','int_kernel') ).
-                append( $('<button>Restart</button>').attr('id','restart_kernel') )).
-            append($('<span/>').html('Actions').addClass('cell_section_row_header'));
-        row0.find('#int_restart').buttonset();
-        this.content.append(row0);
-    };
-
-
     // HelpSection
 
     var HelpSection = function () {
-        this.section_name = "Help";
         PanelSection.apply(this, arguments);
     };
 
@@ -240,38 +196,22 @@ var IPython = (function (IPython) {
     HelpSection.prototype = new PanelSection();
 
 
+    HelpSection.prototype.style = function () {
+        PanelSection.prototype.style.apply(this);
+        PanelSection.prototype.style.apply(this);
+        this.content.addClass('ui-helper-clearfix');
+        this.content.find('div.section_row').addClass('ui-helper-clearfix');
+        this.content.find('#help_buttons0').buttonset();
+        this.content.find('#help_buttons1').buttonset();
+    };
+
+
     HelpSection.prototype.bind_events = function () {
         PanelSection.prototype.bind_events.apply(this);
     };
 
 
-    HelpSection.prototype.create_children = function () {
-
-        this.content.addClass('ui-helper-clearfix');
-
-        var row0 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
-            append($('<span/>').attr('id','help_buttons0').addClass('cell_section_row_buttons').
-                append( $('<button/>').attr('id','python_help').
-                    append( $('<a>Python</a>').attr('href','http://docs.python.org').attr('target','_blank') )).
-                append( $('<button/>').attr('id','ipython_help').
-                    append( $('<a>IPython</a>').attr('href','http://ipython.org/documentation.html').attr('target','_blank') )).
-                append( $('<button/>').attr('id','numpy_help').
-                    append( $('<a>NumPy</a>').attr('href','http://docs.scipy.org/doc/numpy/reference/').attr('target','_blank') ))).
-            append($('<span/>').html('Links').addClass('cell_section_row_header'));
-        row0.find('#help_buttons0').buttonset();
-        this.content.append(row0);
-
-        var row1 = $('<div>').addClass('cell_section_row ui-helper-clearfix').
-            append($('<span/>').attr('id','help_buttons1').addClass('cell_section_row_buttons').
-                append( $('<button/>').attr('id','matplotlib_help').
-                    append( $('<a>MPL</a>').attr('href','http://matplotlib.sourceforge.net/').attr('target','_blank') )).
-                append( $('<button/>').attr('id','scipy_help').
-                    append( $('<a>SciPy</a>').attr('href','http://docs.scipy.org/doc/scipy/reference/').attr('target','_blank') )).
-                append( $('<button/>').attr('id','sympy_help').
-                    append( $('<a>SymPy</a>').attr('href','http://docs.sympy.org/dev/index.html').attr('target','_blank') )));
-        row1.find('#help_buttons1').buttonset();
-        this.content.append(row1);
-    };
+    // Set module variables
 
     IPython.PanelSection = PanelSection;
     IPython.NotebookSection = NotebookSection;
