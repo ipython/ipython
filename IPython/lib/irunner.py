@@ -16,7 +16,7 @@ simply run the module as a script:
 This is an extension of Ken Schutte <kschutte-AT-csail.mit.edu>'s script
 contributed on the ipython-user list:
 
-http://scipy.net/pipermail/ipython-user/2006-May/001705.html
+http://mail.scipy.org/pipermail/ipython-user/2006-May/003539.html
 
 
 NOTES:
@@ -410,7 +410,6 @@ def main():
 
     parser = optparse.OptionParser(usage=MAIN_USAGE)
     newopt = parser.add_option
-    parser.set_defaults(mode='ipython')
     newopt('--ipython',action='store_const',dest='mode',const='ipython',
            help='IPython interactive runner (default).')
     newopt('--python',action='store_const',dest='mode',const='python',
@@ -430,7 +429,9 @@ def main():
     modes = {'.ipy':'ipython',
              '.py':'python',
              '.sage':'sage'}
-    mode = modes.get(ext,opts.mode)
+    mode = modes.get(ext,"ipython")
+    if opts.mode:
+        mode = opts.mode
     runners[mode]().main(args)
 
 if __name__ == '__main__':
