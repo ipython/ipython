@@ -34,13 +34,16 @@ IPython.utils = (function (IPython) {
 
 
     //Map from terminal commands to CSS classes
-    attrib = {
-        "30":"cblack", "31":"cred",
-        "32":"cgreen", "33":"cyellow",  
-        "34":"cblue", "36":"ccyan", 
-        "37":"cwhite", "01":"cbold"}
+    ansi_colormap = {
+        "30":"ansiblack", "31":"ansired",
+        "32":"ansigreen", "33":"ansiyellow",
+        "34":"ansiblue", "35":"ansipurple","36":"ansicyan", 
+        "37":"ansigrey", "01":"ansibold"
+    }
 
-    //Fixes escaped console commands, IE colors. Turns them into HTML
+    // Transform ANI color escape codes into HTML <span> tags with css
+    // classes listed in the above ansi_colormap object. The actual color used
+    // are set in the css file.
     function fixConsole(txt) {
         txt = xmlencode(txt)
         var re = /\033\[([\d;]*?)m/
@@ -55,8 +58,8 @@ IPython.utils = (function (IPython) {
             opened = cmds.length > 1 || cmds[0] != 0
             var rep = []
             for (var i in cmds)
-                if (typeof(attrib[cmds[i]]) != "undefined")
-                    rep.push(attrib[cmds[i]])
+                if (typeof(ansi_colormap[cmds[i]]) != "undefined")
+                    rep.push(ansi_colormap[cmds[i]])
             opener = rep.length > 0?"<span class=\""+rep.join(" ")+"\">":""
             txt = txt.replace(re, closer + opener)
         }

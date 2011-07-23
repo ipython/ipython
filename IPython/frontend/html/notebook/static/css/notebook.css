@@ -340,3 +340,19 @@ div.text_cell_render ol ol ol ol ol {list-style:lower-roman;}
   line-height: 1.231;  /* Changed from 1em to our global default */
 }
 
+/* CSS font colors for translated ANSI colors. */
+
+
+.ansiblack {color: black;}
+.ansired {color: darkred;}
+.ansigreen {color: darkgreen;}
+.ansiyellow {color: brown;}
+.ansiblue {color: darkblue;}
+.ansipurple {color: darkviolet;}
+.ansicyan {color: steelblue;}
+.ansigrey {color: grey;}
+.ansibold {font-weight: bold;}
+
+
+
+}
