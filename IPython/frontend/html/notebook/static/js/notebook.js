@@ -57,9 +57,7 @@ var IPython = (function (IPython) {
                     that.select_next();
                 };
             } else if (event.which === 13 && event.shiftKey) {
-                console.log('Entering execute');
                 that.execute_selected_cell(true);
-                console.log('Leaving execute');
             };
         });
 

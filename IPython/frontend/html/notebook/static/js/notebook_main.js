@@ -29,8 +29,10 @@ $(document).ready(function () {
     IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
     IPython.kernel_status_widget.status_idle();
 
+    IPython.layout_manager.do_resize();
     IPython.notebook.insert_code_cell_after();
     IPython.layout_manager.do_resize();
     IPython.pager.collapse();
+    IPython.layout_manager.do_resize();
 });
 

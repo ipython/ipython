@@ -19,7 +19,7 @@ var IPython = (function (IPython) {
         var cell = $("<div>").addClass('cell text_cell border-box-sizing').
                    append(
                        $("<textarea>" + this.placeholder + "</textarea>").
-                       addClass('text_cell_input monospace-font').
+                       addClass('text_cell_input').
                        attr('rows',1).
                        attr('cols',80).
                        autogrow()

@@ -29,7 +29,7 @@ time, mark, audio, video {
   margin: 0;
   padding: 0;
   border: 0;
-/*  font-size: 100%;*/
+  font-size: 100%;
   font: inherit;
   vertical-align: baseline;
 }
@@ -58,10 +58,28 @@ hr { display: block; height: 1px; border: 0; border-top: 1px solid #ccc; margin:
 
 input, select { vertical-align: middle; }
 
+
+/**
+ * Font normalization inspired by YUI Library's fonts.css: developer.yahoo.com/yui/
+ */
+
+body { font:13px/1.231 sans-serif; *font-size:small; } /* Hack retained to preserve specificity */
+select, input, textarea, button { font:99% sans-serif; }
+
+/* Normalize monospace sizing:
+   en.wikipedia.org/wiki/MediaWiki_talk:Common.css/Archive_11#Teletype_style_fix_for_Chrome */
+pre, code, kbd, samp { font-family: monospace, sans-serif; }
+
+
+/**
+ * Primary styles
+ *
+ * Author: IPython Development Team
+ */
+
+
 body {
     background-color: white;
-    /* This won't propagate to all children so we also set it below */
-    font-size: 11pt;
     /* This makes sure that the body covers the entire window and needs to
        be in a different element than the display: box in wrapper below */
     position: absolute;
@@ -83,11 +101,12 @@ div#header {
 
 span#ipython_notebook {
     position: absolute;
+    padding: 2px;
 }
 
 span#ipython_notebook h1 {
     font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    font-size: 22pt;
+    font-size: 197%;
     display: inline;
 }
 
@@ -145,13 +164,6 @@ div.section_content {
     padding: 5px;
 }
 
-/*#expand_cell, #collapse_cell, #insert_cell_above, #insert_cell_below,*/
-/*#move_cell_up, #move_cell_down, #to_code, #to_text, #run_selected_cell,*/
-/*#run_all_cells, #int_kernel, #restart_kernel, #python_help, #ipython_help,*/
-/*#numpy_help, #matplotlib_help, #scipy_help, #sympy_help, #new_notebook,*/
-/*#open_notebook {*/
-/*    width: 60px;*/
-/*}*/
 
 span.section_row_buttons > button {
     width: 60px;
@@ -167,14 +179,14 @@ span.section_row_buttons > button {
 
 .section_row_header {
     float: left;
-    font-size: 0.8em;
+    font-size: 85%;
     padding: 0.2em 0em;
     font-weight: bold;
 }
 
 span.button_label {
     padding: 0.2em 1em;
-    font-size: 0.8em;
+    font-size: 77%;
     float: right;
 }
 
@@ -187,7 +199,7 @@ span.button_label {
 
 .ui-button .ui-button-text {
     padding: 0.2em 0.8em;
-    font-size: 0.7em;
+    font-size: 77%;
 }
 
 div#left_panel_splitter {
@@ -212,7 +224,6 @@ div#notebook {
     padding: 0px 15px 0px 15px;
     margin: 0px
     background-color: white;
-    font-size: 11pt;
 }
 
 div#pager_splitter {
@@ -222,11 +233,6 @@ div#pager_splitter {
 div#pager {
     padding: 15px;
     overflow: auto;
-}
-
-.monospace-font {
-    font-family: monospace;
-    font-size: 11pt;
 }
 
 div.cell {
@@ -241,10 +247,10 @@ div.code_cell {
 }
 
 div.prompt {
-    width: 90px;
+    width: 80px;
     padding: 0.4em;
     margin: 0px;
-    line-height: 1em;
+    font-family: monospace;
 }
 
 div.input_prompt {
@@ -263,11 +269,16 @@ div.output_prompt {
 div.output_area {
     text-align: left;
     color: black;
+    font-family: monospace;
+}
+
+div.output_stream {
+    padding: 0.4em;
 }
 
 div.output_latex {
     /* Slightly bigger than the rest of the notebook */
-    font-size: 12pt;
+    font-size: 116%;
 }
 
 div.output_png {
@@ -279,7 +290,8 @@ div.text_cell {
 
 textarea.text_cell_input {
     /* Slightly bigger than the rest of the notebook */
-    font-size: 12pt;
+    font-size: 116%;
+    font-family: monospace;
     outline: none;
     resize: none;
     width:  inherit;
@@ -292,7 +304,7 @@ textarea.text_cell_input {
 div.text_cell_render {
     font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
     /* Slightly bigger than the rest of the notebook */
-    font-size: 12pt;
+    font-size: 116%;
     outline: none;
     resize: none;
     width:  inherit;
@@ -306,12 +318,12 @@ div.text_cell_render strong {font-weight: bold;}
 div.text_cell_render u {text-decoration: underline;}
 div.text_cell_render :link { text-decoration: underline }
 div.text_cell_render :visited { text-decoration: underline }
-div.text_cell_render h1 {font-size: 2.0em; margin: .67em 0; font-weight: bold;}
-div.text_cell_render h2 {font-size: 1.5em; margin: .75em 0; font-weight: bold;}
-div.text_cell_render h3 {font-size: 1.17em; margin: .83em 0; font-weight: bold;}
+div.text_cell_render h1 {font-size: 197%; margin: .67em 0; font-weight: bold;}
+div.text_cell_render h2 {font-size: 153.9%; margin: .75em 0; font-weight: bold;}
+div.text_cell_render h3 {font-size: 116%; margin: .83em 0; font-weight: bold;}
 div.text_cell_render h4 {margin: 1.12em 0; font-weight: bold;}
-div.text_cell_render h5 {font-size: .83em; margin: 1.5em 0; font-weight: bold;}
-div.text_cell_render h6 {font-size: .75em; margin: 1.67em 0; font-weight: bold;}
+div.text_cell_render h5 {font-size: 85%.; margin: 1.5em 0; font-weight: bold;}
+div.text_cell_render h6 {font-size: 77%; margin: 1.67em 0; font-weight: bold;}
 div.text_cell_render ul {list-style:disc; margin-left: 40px;}
 div.text_cell_render ul ul {list-style:square; margin-left: 40px;}
 div.text_cell_render ul ul ul {list-style:circle; margin-left: 40px;}
@@ -321,4 +333,10 @@ div.text_cell_render ol ol ol {list-style:decimal;}
 div.text_cell_render ol ol ol ol {list-style:lower-alpha;}
 div.text_cell_render ol ol ol ol ol {list-style:lower-roman;}
 
+
+.CodeMirror {
+  overflow: hidden; /* Changed from auto to remove scrollbar */
+  height: auto;     /* Changed to auto to autogrow */
+  line-height: 1.231;  /* Changed from 1em to our global default */
+}
 

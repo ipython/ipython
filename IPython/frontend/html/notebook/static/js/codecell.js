@@ -20,7 +20,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
         var input = $('<div></div>').addClass('input hbox');
-        input.append($('<div/>').addClass('prompt input_prompt monospace-font'));
+        input.append($('<div/>').addClass('prompt input_prompt'));
         var input_area = $('<div/>').addClass('input_area box-flex1');
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
@@ -55,7 +55,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.append_pyout = function (data, n) {
-        var toinsert = $("<div/>").addClass("output_area output_pyout hbox monospace-font");
+        var toinsert = $("<div/>").addClass("output_area output_pyout hbox");
         toinsert.append($('<div/>').
             addClass('prompt output_prompt').
             html('Out[' + n + ']:')
@@ -103,8 +103,8 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_stream = function (data, element) {
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_area output_stream monospace-font");
-        toinsert.append($("<pre/>").addClass("monospace-font").html(utils.fixConsole(data)));
+        var toinsert = $("<div/>").addClass("output_area output_stream");
+        toinsert.append($("<pre/>").html(utils.fixConsole(data)));
         element.append(toinsert);
         return element;
     };
@@ -132,7 +132,7 @@ var IPython = (function (IPython) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_area output_latex monospace-font");
+        var toinsert = $("<div/>").addClass("output_area output_latex");
         toinsert.append(latex);
         element.append(toinsert);
         return element;
