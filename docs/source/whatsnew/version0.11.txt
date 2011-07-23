@@ -24,15 +24,15 @@ detailed feature breakdown in this document.
 
 A quick summary of the major changes (see below for details):
 
-* *Standalone Qt console*: a new rich console has been added to IPython, started
-  with `ipython qtconsole`.  In this application we have tried to retain the
-  feel of a terminal for fast and efficient workflows, while adding many
-  features that a plain text terminal simply can not support, such as inline
-  figures, full multiline editing with syntax highlighting, tooltips for
+* **Standalone Qt console**: a new rich console has been added to IPython,
+  started with `ipython qtconsole`.  In this application we have tried to
+  retain the feel of a terminal for fast and efficient workflows, while adding
+  many features that a plain text terminal simply can not support, such as
+  inline figures, full multiline editing with syntax highlighting, tooltips for
   function calls and much more.
 
-* *High-level parallel computing with ZeroMQ*. Using the same architecture that
-  our Qt console is based on, we have completely rewritten our high-level
+* **High-level parallel computing with ZeroMQ**. Using the same architecture
+  that our Qt console is based on, we have completely rewritten our high-level
   parallel computing machinery that in prior versions used the Twisted
   networking framework.  While this change will require users to update their
   codes, the improvements in performance, memory control and internal
@@ -40,38 +40,39 @@ A quick summary of the major changes (see below for details):
   have tried to explain how to best proceed with this update, and will be happy
   to answer questions that may arise.
 
-* *New model for GUI/plotting support in the terminal*.  Now instead of the
+* **New model for GUI/plotting support in the terminal**.  Now instead of the
   various `-Xthread` flags we had before, GUI support is provided without the
   use of any threads, by directly integrating GUI event loops with Python's
   `PyOS_InputHook` API.  A new command-line flag `--gui` controls GUI support,
   and it can also be enabled after IPython startup via the new `%gui` magic.
 
-* *A two-process architecture.* The Qt console is the first example of using a
-  new model that splits IPython between a kernel process where code is executed
-  and a client that handles user interaction.  We plan on also providing
-  terminal and web-browser based clients using this infrastructure in future
-  releases.  This model allows multiple clients to interact with an IPython
-  process through a well-documented protocol using the ZeroMQ networking
-  library.
+* **A two-process architecture.** The Qt console is the first example of using
+  a new model that splits IPython between a kernel process where code is
+  executed and a client that handles user interaction.  We plan on also
+  providing terminal and web-browser based clients using this infrastructure in
+  future releases.  This model allows multiple clients to interact with an
+  IPython process through a well-documented protocol using the ZeroMQ
+  networking library.
 
-* *Refactoring.* the entire codebase has been refactored, in order to make it
+* **Refactoring.** the entire codebase has been refactored, in order to make it
   more modular and easier to contribute to.  IPython has traditionally been a
   hard project to participate because the old codebase was very monolithic.  We
   hope this (ongoing) restructuring will make it easier for new developers to
   join us.
 
-* *Improved unicode support*. We closed many bugs related to unicode input.
+* **Improved unicode support**. We closed many bugs related to unicode input.
 
-* *Python 3*. IPython now runs on Python 3.x.
+* **Python 3**. IPython now runs on Python 3.x.
 
-* *New profile model*. Profiles are now directories that contain all relevant
+* **New profile model**. Profiles are now directories that contain all relevant
    infromation for that session, and thus better isolate IPython use-cases.
 
-* *SQLite storage for history*. All history is now stored in a SQLite database,
-   providing support for multiple simultaneous sessions that won't clobber each
-   other as well as the ability to perform queries on all stored data.
+* **SQLite storage for history**. All history is now stored in a SQLite
+   database, providing support for multiple simultaneous sessions that won't
+   clobber each other as well as the ability to perform queries on all stored
+   data.
 
-* *New configuration system*. All parts of IPython are now configured via a
+* **New configuration system**. All parts of IPython are now configured via a
    mechanism inspired by the Enthought Traits library.  Any configurable
    element can have its attributes set either via files that now use real
    Python syntax or from the command-line.
@@ -81,20 +82,31 @@ Over 60 separate authors have contributed to this release, see :ref:`below
 <credits>` for a full list.
 
 
+Don't forget
+------------
+
+- thank enthought, MS, NIH, NSF, Google.  Missing anyone?
+- ms visual studio integration
+
+
 Plotting and GUI support in the terminal
 ----------------------------------------
 
-blah
+Todo...
 
 
 Qt Console
 ----------
 
-blah
+Todo...
 
 
 High-level parallel computing with ZeroMQ
 -----------------------------------------
+
+Todo...
+
+- min's scipy tutorials online?
 
 
 Refactoring
