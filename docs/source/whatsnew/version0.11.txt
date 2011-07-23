@@ -15,12 +15,21 @@ bugs in this process and settle down the new APIs, this series will become
 IPython 1.0.  We encourage feedback now on the core APIs, which we hope to
 maintain stable during the 1.0 series.
 
-Chris Fonnesbeck recently wrote an `excellent post`_ that highlights some of
-the core new features, with examples and screenshots.  We encourage you
-to read it as it provides a great high-level overview that complements the
+Since the internal APIs have changed so much, projects using IPython as a
+library (as opposed to end-users of the application) are the most likely to
+encounter regressions or changes that break their existing use patterns.  We
+will make every effort to provide updated versions of the APIs to facilitate
+the transition, and we encourage you to contact us on the `development mailing
+list`__ with questions and feedback.
+
+.. __: http://mail.scipy.org/mailman/listinfo/ipython-dev
+
+Chris Fonnesbeck recently wrote an `excellent post`__ that highlights some of
+our major new features, with examples and screenshots.  We encourage you to
+read it as it provides an illustrated, high-level overview complementing the
 detailed feature breakdown in this document.
 
-.. _excellent post: http://stronginference.com/weblog/2011/7/15/innovations-in-ipython.html
+.. __: http://stronginference.com/weblog/2011/7/15/innovations-in-ipython.html
 
 A quick summary of the major changes (see below for details):
 
@@ -29,7 +38,10 @@ A quick summary of the major changes (see below for details):
   retain the feel of a terminal for fast and efficient workflows, while adding
   many features that a plain text terminal simply can not support, such as
   inline figures, full multiline editing with syntax highlighting, tooltips for
-  function calls and much more.
+  function calls and much more.  This development was sponsored by `Enthought
+  Inc.`__. See :ref:`below <qtconsole_011>` for details.
+
+.. __: http://enthought.com
 
 * **High-level parallel computing with ZeroMQ**. Using the same architecture
   that our Qt console is based on, we have completely rewritten our high-level
@@ -38,13 +50,28 @@ A quick summary of the major changes (see below for details):
   codes, the improvements in performance, memory control and internal
   consistency across our codebase convinced us it was a price worth paying.  We
   have tried to explain how to best proceed with this update, and will be happy
-  to answer questions that may arise.
+  to answer questions that may arise.  A full tutorial describing these
+  features `was presented at SciPy'11`__.
+
+.. __: http://minrk.github.com/scipy-tutorial-2011
 
 * **New model for GUI/plotting support in the terminal**.  Now instead of the
   various `-Xthread` flags we had before, GUI support is provided without the
   use of any threads, by directly integrating GUI event loops with Python's
   `PyOS_InputHook` API.  A new command-line flag `--gui` controls GUI support,
   and it can also be enabled after IPython startup via the new `%gui` magic.
+  This requires some changes if you want to execute GUI-using scripts inside
+  IPython, see :ref:`below <gui_support>` for more details.
+
+* **Integration into Microsoft Visual Studio**. Thanks to the work of the
+    Microsoft `Python Tools for Visual Studio`__ team, this version of IPython
+    has been integrated into Microsoft Visual Studio's Python tools open source
+    plug-in.  They currently have a relesae candidate out using IPython 0.11,
+    and we will continue to collaborate with them to ensure that as they
+    approach full release time, the integration with IPython is as smooth as
+    possible.
+
+.. __: http://pytools.codeplex.com/
 
 * **A two-process architecture.** The Qt console is the first example of using
   a new model that splits IPython between a kernel process where code is
@@ -62,7 +89,8 @@ A quick summary of the major changes (see below for details):
 
 * **Improved unicode support**. We closed many bugs related to unicode input.
 
-* **Python 3**. IPython now runs on Python 3.x.
+* **Python 3**. IPython now runs on Python 3.x. See :ref:`python3_011` for
+    details.
 
 * **New profile model**. Profiles are now directories that contain all relevant
    infromation for that session, and thus better isolate IPython use-cases.
@@ -77,7 +105,6 @@ A quick summary of the major changes (see below for details):
    element can have its attributes set either via files that now use real
    Python syntax or from the command-line.
 
-
 Over 60 separate authors have contributed to this release, see :ref:`below
 <credits>` for a full list.
 
@@ -88,17 +115,29 @@ Don't forget
 - thank enthought, MS, NIH, NSF, Google.  Missing anyone?
 - ms visual studio integration
 
+.. _gui_support:
 
-Plotting and GUI support in the terminal
+GUI and plotting support in the terminal
 ----------------------------------------
 
 Todo...
 
 
+.. _qtconsole_011:
+
 Qt Console
 ----------
 
 Todo...
+
+.. figure:: ../_static/qtconsole.png
+    :width: 400px
+    :alt: IPython Qt console with embedded plots
+    :align: center
+    :target: ../_static/qtconsole.png
+
+    The Qt console for IPython, using inline matplotlib plots.
+
 
 
 High-level parallel computing with ZeroMQ
@@ -106,7 +145,7 @@ High-level parallel computing with ZeroMQ
 
 Todo...
 
-- min's scipy tutorials online?
+http://minrk.github.com/scipy-tutorial-2011
 
 
 Refactoring
@@ -149,6 +188,8 @@ The parallel computing framework has also been rewritten using ZMQ. The
 protocol is described :ref:`here <parallel_messages>`, and the code is in the
 new :mod:`IPython.parallel` module.
 
+.. _python3_011:
+
 Python 3 support
 ----------------
 
@@ -156,7 +197,11 @@ A Python 3 version of IPython has been prepared. For the time being, this is
 maintained separately and updated from the main codebase. Its code can be found
 `here <https://github.com/ipython/ipython-py3k>`_. The parallel computing
 components are not perfect on Python3, but most functionality appears to be
-working.
+working.  As this work is evolving quickly, the best place to find updated
+information about it is our `Python 3 wiki page`__.
+
+.. __: http://wiki.ipython.org/index.php?title=Python_3
+
 
 Unicode
 -------
