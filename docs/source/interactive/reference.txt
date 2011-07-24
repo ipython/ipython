@@ -1156,34 +1156,6 @@ length. One could however extract all the relevant information from the
 IPython instance and build an appropriate regular expression. This is
 left as an exercise for the reader.
 
-
-Input of physical quantities with units
----------------------------------------
-
-The module PhysicalQInput allows a simplified form of input for physical
-quantities with units. This file is meant to be used in conjunction with
-the PhysicalQInteractive module (in the same directory) and
-Physics.PhysicalQuantities from Konrad Hinsen's ScientificPython
-(http://dirac.cnrs-orleans.fr/ScientificPython/).
-
-The Physics.PhysicalQuantities module defines PhysicalQuantity objects,
-but these must be declared as instances of a class. For example, to
-define v as a velocity of 3 m/s, normally you would write::
-
-    In [1]: v = PhysicalQuantity(3,'m/s')
-
-Using the PhysicalQ_Input extension this can be input instead as: 
-In [1]: v = 3 m/s
-which is much more convenient for interactive use (even though it is
-blatantly invalid Python syntax).
-
-The physics profile supplied with IPython (enabled via 'ipython -p
-physics') uses these extensions, which you can also activate with:
-
-from math import * # math MUST be imported BEFORE PhysicalQInteractive 
-from IPython.extensions.PhysicalQInteractive import * 
-import IPython.extensions.PhysicalQInput
-
 .. _gui_support:
 
 GUI event loop support support
