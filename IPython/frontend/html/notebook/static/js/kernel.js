@@ -67,6 +67,18 @@ var IPython = (function (IPython) {
     }
 
 
+    Kernel.prototype.complete = function (line, cursor_pos) {
+        var content = {
+            text : '',
+            line : line,
+            cursor_pos : cursor_pos
+        };
+        var msg = this.get_msg("complete_request", content);
+        this.shell_channel.send(JSON.stringify(msg));
+        return msg.header.msg_id;
+    }
+
+
     Kernel.prototype.interrupt = function () {
         $.post(this.kernel_url + "/interrupt");
     };

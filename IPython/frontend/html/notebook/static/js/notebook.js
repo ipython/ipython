@@ -402,9 +402,11 @@ var IPython = (function (IPython) {
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
             cell.set_input_prompt(content.execution_count);
+        } else if (msg_type === "complete_reply") {
+            console.log(content);
         };
         var payload = content.payload || [];
-        this.handle_payload(content.payload);
+        this.handle_payload(payload);
     };
 
 
