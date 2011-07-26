@@ -3,7 +3,7 @@ span.py-special {color: #666666;}
 
 span.py-operator {color: #AA22FF; font-weight: bold;}
 
-span.py-error {background-color: #000000; color: #FF0000;}
+/*span.py-error {background-color: #000000; color: #FF0000;}*/
 
 span.py-keyword {color: #008000; font-weight: bold;}
 

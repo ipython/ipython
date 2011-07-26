@@ -18,7 +18,7 @@ var IPython = (function (IPython) {
         var msg = {
             header : {
                 msg_id : utils.uuid(),
-                username : "bgranger",
+                username : "username",
                 session: this.session_id,
                 msg_type : msg_type
             },

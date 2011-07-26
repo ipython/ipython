@@ -353,6 +353,19 @@ div.text_cell_render ol ol ol ol ol {list-style:lower-roman;}
 .ansigrey {color: grey;}
 .ansibold {font-weight: bold;}
 
-
-
+.completions {
+    position: absolute;
+    z-index: 10;
+    overflow: auto;
+    border: 1px solid black;
 }
+
+.completions select {
+    background: white;
+    outline: none;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+    font-family: monospace;
+}
+

@@ -10,6 +10,8 @@ var IPython = (function (IPython) {
     var CodeCell = function (notebook) {
         this.code_mirror = null;
         this.input_prompt_number = ' ';
+        this.is_completing = false;
+        this.completion_cursor = null;
         IPython.Cell.apply(this, arguments);
     };
 
@@ -43,10 +45,92 @@ var IPython = (function (IPython) {
         if (event.keyCode === 13 && event.shiftKey) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
+        } else if (event.keyCode == 32 && (event.ctrlKey || event.metaKey) && !event.altKey) {
+            event.stop();
+            var cur = editor.getCursor();
+            var line = editor.getLine(cur.line);
+            this.is_completing = true;
+            this.completion_cursor = cur;
+            IPython.notebook.complete_cell(this, line, cur.ch);
         } else {
+            if (this.is_completing && this.completion_cursor !== editor.getCursor()) {
+                this.is_completing = false;
+                this.completion_cursor = null;
+                console.log("Stopped completing early");
+            }
             return false;
         };
     };
+
+
+    CodeCell.prototype.finish_completing = function (matched_text, matches) {
+        if (!this.is_completing || matches.length === 0) {return;}
+        // console.log("Got matches", matched_text, matches);
+
+        var that = this;
+        var cur = this.completion_cursor;
+        var complete = $('<div/>').addClass('completions');
+        var select = $('<select/>').attr('multiple','true');
+        for (var i=0; i<matches.length; ++i) {
+            select.append($('<option/>').text(matches[i]));
+        }
+        select.children().first().attr('selected','true');
+        select.attr('size',Math.min(10,matches.length));
+        var pos = this.code_mirror.cursorCoords();
+        complete.css('left',pos.x+'px');
+        complete.css('top',pos.yBot+'px');
+        complete.append(select);
+
+        $('body').append(complete);
+        var done = false;
+
+        var insert = function (selected_text) {
+            that.code_mirror.replaceRange(
+                selected_text,
+                {line: cur.line, ch: (cur.ch-matched_text.length)},
+                {line: cur.line, ch: cur.ch}
+            );
+        };
+
+        var close = function () {
+            if (done) return;
+            done = true;
+            complete.remove();
+            that.is_completing = false;
+            that.completion_cursor = null;
+        };
+
+        var pick = function () {
+            insert(select.val()[0]);
+            close();
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+        };
+
+        select.blur(close);
+        select.keydown(function (event) {
+            var code = event.which;
+            if (code === 13 || code === 32) {
+                // Pressing SPACE or ENTER will cause a pick
+                event.stopPropagation();
+                event.preventDefault();
+                pick();
+            } else if (code === 38 || code === 40) {
+                // We don't want the document keydown handler to handle UP/DOWN,
+                // but we want the default action.
+                event.stopPropagation();
+            } else {
+                // All other key presses simple exit completion.
+                event.stopPropagation();
+                event.preventDefault();
+                close();
+                that.code_mirror.focus();
+            }
+        });
+        // Double click also causes a pick.
+        select.dblclick(pick);
+        select.focus();
+    };
+
 
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);

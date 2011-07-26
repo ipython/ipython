@@ -403,7 +403,7 @@ var IPython = (function (IPython) {
         if (msg_type === "execute_reply") {
             cell.set_input_prompt(content.execution_count);
         } else if (msg_type === "complete_reply") {
-            console.log(content);
+            cell.finish_completing(content.matched_text, content.matches);
         };
         var payload = content.payload || [];
         this.handle_payload(payload);
@@ -503,6 +503,12 @@ var IPython = (function (IPython) {
             this.execute_selected_cell(false);
         };
         this.scroll_to_bottom();
+    };
+
+
+    Notebook.prototype.complete_cell = function (cell, line, cursor_pos) {
+        var msg_id = this.kernel.complete(line, cursor_pos);
+        this.msg_cell_map[msg_id] = cell.cell_id;
     };
 
     // Persistance and loading
