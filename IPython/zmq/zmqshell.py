@@ -83,7 +83,13 @@ class ZMQInteractiveShell(InteractiveShell):
     # Override the traitlet in the parent class, because there's no point using
     # readline for the kernel. Can be removed when the readline code is moved
     # to the terminal frontend.
-    readline_use = CBool(False)
+
+    # FIXME.  This is disabled for now, even though it may cause problems under
+    # Windows, because it breaks %run in the Qt console.  See gh-617 for more
+    # details.  Re-enable once we've fully tested that %run works in the Qt
+    # console with syntax highlighting in tracebacks.
+    # readline_use = CBool(False)
+    # /FIXME
     
     exiter = Instance(ZMQExitAutocall)
     def _exiter_default(self):
