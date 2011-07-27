@@ -45,13 +45,23 @@ var IPython = (function (IPython) {
         if (event.keyCode === 13 && event.shiftKey) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        } else if (event.keyCode == 32 && (event.ctrlKey || event.metaKey) && !event.altKey) {
-            event.stop();
+        // } else if (event.keyCode == 32 && (event.ctrlKey || event.metaKey) && !event.altKey) {
+        } else if (event.keyCode == 9) {
             var cur = editor.getCursor();
-            var line = editor.getLine(cur.line);
-            this.is_completing = true;
-            this.completion_cursor = cur;
-            IPython.notebook.complete_cell(this, line, cur.ch);
+            var pre_cursor = editor.getRange({line:cur.line,ch:0},cur).trim();
+            if (pre_cursor === "") {
+                // Don't autocomplete if the part of the line before the cursor is empty.
+                // In this case, let CodeMirror handle indentation.
+                return false;
+            } else {
+                // Autocomplete the current line.
+                event.stop();
+                var line = editor.getLine(cur.line);
+                this.is_completing = true;
+                this.completion_cursor = cur;
+                IPython.notebook.complete_cell(this, line, cur.ch);
+                return true;
+            }
         } else {
             if (this.is_completing && this.completion_cursor !== editor.getCursor()) {
                 this.is_completing = false;
