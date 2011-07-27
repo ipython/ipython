@@ -32,11 +32,12 @@ $(document).ready(function () {
     IPython.layout_manager.do_resize();
     IPython.notebook.insert_code_cell_after();
     IPython.layout_manager.do_resize();
-    IPython.pager.collapse();
-    IPython.layout_manager.do_resize();
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.
     $('div#header').css('display','block');
     $('div#notebook_app').css('display','block');
+    IPython.layout_manager.do_resize();
+    IPython.pager.collapse();
+    IPython.layout_manager.do_resize();
 });
 
