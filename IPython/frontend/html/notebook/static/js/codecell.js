@@ -66,7 +66,6 @@ var IPython = (function (IPython) {
             if (this.is_completing && this.completion_cursor !== editor.getCursor()) {
                 this.is_completing = false;
                 this.completion_cursor = null;
-                console.log("Stopped completing early");
             }
             return false;
         };

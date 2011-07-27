@@ -57,11 +57,10 @@ var IPython = (function (IPython) {
                     that.select_next();
                 };
             } else if (event.which === 13 && event.shiftKey) {
-                that.execute_selected_cell(true);
+                that.execute_selected_cell();
                 return false;
             } else if (event.which === 13 && event.ctrlKey) {
-                that.execute_selected_cell(false);
-                that.selected_cell().clear_input();
+                that.execute_selected_cell({terminal:true});
                 return false;
             };
         });
@@ -463,8 +462,11 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.execute_selected_cell = function (add_new) {
-        if (add_new === undefined) {add_new = true;};
+    Notebook.prototype.execute_selected_cell = function (options) {
+        // add_new: should a new cell be added if we are at the end of the nb
+        // terminal: execute in terminal mode, which stays in the current cell
+        default_options = {terminal: false, add_new: true}
+        $.extend(default_options, options)
         var that = this;
         var cell = that.selected_cell();
         var cell_index = that.find_cell_index(cell);
@@ -492,12 +494,16 @@ var IPython = (function (IPython) {
         } else if (cell instanceof IPython.TextCell) {
             cell.render();
         }
-        if ((cell_index === (that.ncells()-1)) && add_new) {
-            that.insert_code_cell_after();
-            // If we are adding a new cell at the end, scroll down to show it.
-            that.scroll_to_bottom();
+        if (default_options.terminal) {
+            cell.clear_input();
         } else {
-            that.select(cell_index+1);
+            if ((cell_index === (that.ncells()-1)) && default_options.add_new) {
+                that.insert_code_cell_after();
+                // If we are adding a new cell at the end, scroll down to show it.
+                that.scroll_to_bottom();
+            } else {
+                that.select(cell_index+1);
+            };
         };
     };
 
@@ -506,7 +512,7 @@ var IPython = (function (IPython) {
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             this.select(i);
-            this.execute_selected_cell(false);
+            this.execute_selected_cell({add_new:false});
         };
         this.scroll_to_bottom();
     };
