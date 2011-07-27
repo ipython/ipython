@@ -470,17 +470,17 @@ var IPython = (function (IPython) {
         var that = this;
         var cell = that.selected_cell();
         var cell_index = that.find_cell_index(cell);
-        // TODO: the logic here needs to be moved into appropriate
-        // methods of Notebook.
         if (cell instanceof IPython.CodeCell) {
             cell.clear_output();
             var code = cell.get_code();
             if (that.notebook_load_re.test(code)) {
+                // %notebook load
                 var code_parts = code.split(' ');
                 if (code_parts.length === 3) {
                     that.load_notebook(code_parts[2]);
                 };
             } else if (that.notebook_save_re.test(code)) {
+                // %notebook save
                 var code_parts = code.split(' ');
                 if (code_parts.length === 3) {
                     that.save_notebook(code_parts[2]);

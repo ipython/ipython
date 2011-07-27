@@ -92,11 +92,13 @@ body {
 
 
 div#header {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
     position: relative;
     height: 45px;
     padding: 5px;
     margin: 0px;
-    width: 100%
+    width: 100%;
 }
 
 span#ipython_notebook {
@@ -143,6 +145,8 @@ span#kernel_status {
 }
 
 div#notebook_app {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
     width: 100%;
     position: relative;
 }
