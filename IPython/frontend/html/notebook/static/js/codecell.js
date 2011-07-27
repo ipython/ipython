@@ -228,6 +228,11 @@ var IPython = (function (IPython) {
     };
 
 
+    CodeCell.prototype.clear_input = function () {
+        this.code_mirror.setValue('');
+    };
+
+
     CodeCell.prototype.collapse = function () {
         this.element.find('div.output').hide();
     };

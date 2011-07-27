@@ -59,6 +59,10 @@ var IPython = (function (IPython) {
             } else if (event.which === 13 && event.shiftKey) {
                 that.execute_selected_cell(true);
                 return false;
+            } else if (event.which === 13 && event.ctrlKey) {
+                that.execute_selected_cell(false);
+                that.selected_cell().clear_input();
+                return false;
             };
         });
 
