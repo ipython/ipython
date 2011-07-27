@@ -302,7 +302,8 @@ var IPython = (function (IPython) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
         var cell = new IPython.CodeCell(this);
-        cell.set_input_prompt(this.next_prompt_number);
+        // cell.set_input_prompt(this.next_prompt_number);
+        cell.set_input_prompt();
         this.next_prompt_number = this.next_prompt_number + 1;
         this.insert_cell_before(cell, i);
         this.select(this.find_cell_index(cell));
@@ -314,7 +315,8 @@ var IPython = (function (IPython) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
         var cell = new IPython.CodeCell(this);
-        cell.set_input_prompt(this.next_prompt_number);
+        // cell.set_input_prompt(this.next_prompt_number);
+        cell.set_input_prompt();
         this.next_prompt_number = this.next_prompt_number + 1;
         this.insert_cell_after(cell, i);
         this.select(this.find_cell_index(cell));
