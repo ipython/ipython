@@ -63,7 +63,7 @@ This command automates the startup of these processes using a wide
 range of startup methods (SSH, local processes, PBS, mpiexec,
 Windows HPC Server 2008). To start a cluster with 4 engines on your
 local host simply do 'ipcluster start --n=4'. For more complex usage
-you will typically do 'ipython create mycluster --parallel', then edit
+you will typically do 'ipython profile create mycluster --parallel', then edit
 configuration files, followed by 'ipcluster start --profile=mycluster --n=4'.
 """
 
