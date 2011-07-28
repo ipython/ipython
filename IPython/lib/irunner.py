@@ -36,7 +36,10 @@ import os
 import sys
 
 # Third-party modules.
-import pexpect
+try:
+    import pexpect
+except ImportError:
+    from IPython.external import pexpect
 
 # Global usage strings, to avoid indentation issues when typing it below.
 USAGE = """
