@@ -1,19 +1,19 @@
 """Read and write notebooks as regular .py files."""
 
-from .base import NotebookReader, NotebookWriter
-from .nbdict import new_code_cell, new_worksheet, new_notebook
+from .rwbase import NotebookReader, NotebookWriter
+from .nbbase import new_code_cell, new_worksheet, new_notebook
 
 
 class PyReader(NotebookReader):
 
-    def reads(s, **kwargs):
+    def reads(self, s, **kwargs):
         lines = s.splitlines()
         cells = []
         cell_lines = []
         for line in lines:
-            if line.startswith('# <codecell>'):
-                code = '\n'.join(cell_lines)
-                code = code.strip('\n')
+            if line.startswith(u'# <codecell>'):
+                code = u'\n'.join(cell_lines)
+                code = code.strip(u'\n')
                 if code:
                     cells.append(new_code_cell(input=code))
                     cell_lines = []
@@ -26,15 +26,16 @@ class PyReader(NotebookReader):
 
 class PyWriter(NotebookWriter):
 
-    def writes(nb, **kwargs):
+    def writes(self, nb, **kwargs):
         lines = []
-        for ws in nb['worksheets']:
-            for cell in ws['cells']:
-                if cell['cell_type'] == 'code':
-                    input = cell['input']
+        for ws in nb.worksheets:
+            for cell in ws.cells:
+                if cell.cell_type == 'code':
+                    input = cell.input
+                    lines.extend([u'# <codecell>',u''])
                     lines.extend(input.splitlines())
-                    lines.extend(['','# <codecell>',''])
-        return ''.join(lines)
+                    lines.append(u'')
+        return unicode('\n'.join(lines))
 
 
 _reader = PyReader()

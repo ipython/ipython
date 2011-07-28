@@ -1,7 +1,7 @@
 from base64 import encodestring, decodestring
 
 
-def base64_decode(self, nb):
+def base64_decode(nb):
     """Base64 encode all bytes objects in the notebook."""
     for ws in nb['worksheets']:
         for cell in ws['cells']:
@@ -11,7 +11,7 @@ def base64_decode(self, nb):
     return nb
 
 
-def base64_encode(self, nb):
+def base64_encode(nb):
     """Base64 decode all binary objects in the notebook."""
     for ws in nb['worksheets']:
         for cell in ws['cells']:
@@ -41,5 +41,6 @@ class NotebookWriter(object):
     def write(self, nb, fp, **kwargs):
         """Write a notebook to a file like object"""
         return fp.write(self.dumps(nb,**kwargs))
+
 
 

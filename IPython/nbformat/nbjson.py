@@ -1,7 +1,7 @@
 """Read and write notebooks in JSON format."""
 
 from base64 import encodestring
-from .base import NotebookReader, NotebookWriter, base64_decode
+from .rwbase import NotebookReader, NotebookWriter, base64_decode
 import json
 
 
@@ -14,7 +14,7 @@ class BytesEncoder(json.JSONEncoder):
 
 class JSONReader(NotebookReader):
 
-    def reads(s, **kwargs):
+    def reads(self, s, **kwargs):
         nb = json.loads(s, **kwargs)
         nb = base64_decode(nb)
         return nb
@@ -22,7 +22,7 @@ class JSONReader(NotebookReader):
 
 class JSONWriter(NotebookWriter):
 
-    def writes(nb, **kwargs):
+    def writes(self, nb, **kwargs):
         kwargs['cls'] = BytesEncoder
         kwargs['indent'] = 4
         return json.dumps(nb, **kwargs)
