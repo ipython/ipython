@@ -35,8 +35,9 @@ import optparse
 import os
 import sys
 
-# Third-party modules.
-import pexpect
+# Third-party modules: we carry a copy of pexpect to reduce the need for
+# external dependencies, but our import checks for a system version first.
+from IPython.external import pexpect
 
 # Global usage strings, to avoid indentation issues when typing it below.
 USAGE = """
