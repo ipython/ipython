@@ -132,9 +132,10 @@ let us know if we have omitted your name by accident:
 * Paul Ivanov <pivanov314-AT-gmail.com> multiline specials improvements.
   
 * Dav Clark <davclark-AT-berkeley.edu> traitlets improvements.
-  
-* David Warde-Farley <dwf-AT-cs.toronto.edu> %timeit fixes.
-  
+
+* David Warde-Farley <wardefar-AT-iro.umontreal.ca> - bugfixes to %timeit,
+  input autoindent management, and Qt console tooltips.
+
 * Darren Dale <dsdale24-AT-gmail.com>, traits-based configuration system, Qt
   support.
 
