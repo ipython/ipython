@@ -175,7 +175,9 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.append_display_data = function (data, element) {
-        if (data["text/latex"] !== undefined) {
+        if (data["text/html"] !== undefined) {
+            this.append_html(data["text/html"], element);
+        } else if (data["text/latex"] !== undefined) {
             this.append_latex(data["text/latex"], element);
             // If it is undefined, then we just appended to div.output, which
             // makes the latex visible and we can typeset it. The typesetting
@@ -192,6 +194,15 @@ var IPython = (function (IPython) {
         };
         return element;
     };
+
+
+    CodeCell.prototype.append_html = function (html, element) {
+        element = element || this.element.find("div.output");
+        var toinsert = $("<div/>").addClass("output_area output_html");
+        toinsert.append(html);
+        element.append(toinsert);
+        return element;
+    }
 
 
     CodeCell.prototype.append_stream = function (data, element) {
