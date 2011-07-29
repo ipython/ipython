@@ -3,8 +3,9 @@
 from xml.etree import ElementTree as ET
 
 from .rwbase import NotebookReader, NotebookWriter
-from .nbbase import new_code_cell, new_text_cell, new_worksheet, new_notebook
-
+from .nbbase import (
+    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
+)
 
 def indent(elem, level=0):
     i = "\n" + level*"  "
@@ -30,6 +31,26 @@ def _get_text(e, tag):
         return sub_e.text
 
 
+def _set_text(nbnode, attr, parent, tag):
+    if attr in nbnode:
+        e = ET.SubElement(parent, tag)
+        e.text = nbnode[attr]
+
+
+def _get_int(e, tag):
+    sub_e = e.find(tag)
+    if sub_e is None:
+        return None
+    else:
+        return int(sub_e.text)
+
+
+def _set_int(nbnode, attr, parent, tag):
+    if attr in nbnode:
+        e = ET.SubElement(parent, tag)
+        e.text = unicode(nbnode[attr])
+
+
 class XMLReader(NotebookReader):
 
     def reads(self, s, **kwargs):
@@ -39,14 +60,17 @@ class XMLReader(NotebookReader):
         nbid = _get_text(root,'id')
         
         worksheets = []
-        for ws_e in root.getiterator('worksheet'):
+        for ws_e in root.find('worksheets').getiterator('worksheet'):
             wsname = _get_text(ws_e,'name')
             cells = []
-            for cell_e in ws_e.getiterator():
+            for cell_e in ws_e.find('cells').getiterator():
                 if cell_e.tag == 'codecell':
                     input = _get_text(cell_e,'input')
-                    output_e = cell_e.find('output')
-                    if output_e is not None:
+                    prompt_number = _get_int(cell_e,'prompt_number')
+                    language = _get_text(cell_e,'language')
+                    outputs = []
+                    for output_e in cell_e.find('outputs').getiterator('output'):
+                        output_type = _get_text(output_e,'output_type')
                         output_text = _get_text(output_e,'text')
                         output_png = _get_text(output_e,'png')
                         output_svg = _get_text(output_e,'svg')
@@ -54,11 +78,14 @@ class XMLReader(NotebookReader):
                         output_latex = _get_text(output_e,'latex')
                         output_json = _get_text(output_e,'json')
                         output_javascript = _get_text(output_e,'javascript')
-                    cc = new_code_cell(input=input,output_png=output_png,
-                        output_text=output_text,output_svg=output_svg,
-                        output_html=output_html,output_latex=output_latex,
-                        output_json=output_json,output_javascript=output_javascript
-                    )
+                        output = new_output(output_type=output_type,output_png=output_png,
+                            output_text=output_text,output_svg=output_svg,
+                            output_html=output_html,output_latex=output_latex,
+                            output_json=output_json,output_javascript=output_javascript
+                        )
+                        outputs.append(output)
+                    cc = new_code_cell(input=input,prompt_number=prompt_number,
+                                       language=language,outputs=outputs)
                     cells.append(cc)
                 if cell_e.tag == 'textcell':
                     text = _get_text(cell_e,'text')
@@ -74,57 +101,34 @@ class XMLWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
         nb_e = ET.Element('notebook')
-        if 'name' in nb:
-            name_e = ET.SubElement(nb_e, 'name')
-            name_e.text = nb.name
-        if 'id' in nb:
-            id_e = ET.SubElement(nb_e, 'id')
-            id_e.text = nb.id
+        _set_text(nb,'name',nb_e,'name')
+        _set_text(nb,'id',nb_e,'id')
+        wss_e = ET.SubElement(nb_e,'worksheets')
         for ws in nb.worksheets:
-            ws_e = ET.SubElement(nb_e, 'worksheet')
-            if 'name' in ws:
-                ws_name_e = ET.SubElement(ws_e, 'name')
-                ws_name_e.text = ws.name
+            ws_e = ET.SubElement(wss_e, 'worksheet')
+            _set_text(ws,'name',ws_e,'name')
+            cells_e = ET.SubElement(ws_e,'cells')
             for cell in ws.cells:
                 cell_type = cell.cell_type
                 if cell_type == 'code':
-                    output = cell.output
-                    cell_e = ET.SubElement(ws_e, 'codecell')
-                    output_e = ET.SubElement(cell_e, 'output')
-
-                    if 'input' in cell:
-                        input_e = ET.SubElement(cell_e, 'input')
-                        input_e.text = cell.input
-                    if 'prompt_number' in cell:
-                        prompt_number_e = ET.SubElement(cell_e, 'prompt_number')
-                        input_e.text = cell.prompt_number
-
-                    if 'text' in output:
-                        text_e = ET.SubElement(output_e, 'text')
-                        text_e.text = output.text
-                    if 'png' in output:
-                        png_e = ET.SubElement(output_e, 'png')
-                        png_e.text = output.png
-                    if 'html' in output:
-                        html_e = ET.SubElement(output_e, 'html')
-                        html_e.text = output.html
-                    if 'svg' in output:
-                        svg_e = ET.SubElement(output_e, 'svg')
-                        svg_e.text = output.svg
-                    if 'latex' in output:
-                        latex_e = ET.SubElement(output_e, 'latex')
-                        latex_e.text = output.latex
-                    if 'json' in output:
-                        json_e = ET.SubElement(output_e, 'json')
-                        json_e.text = output.json
-                    if 'javascript' in output:
-                        javascript_e = ET.SubElement(output_e, 'javascript')
-                        javascript_e.text = output.javascript
+                    cell_e = ET.SubElement(cells_e, 'codecell')
+                    _set_text(cell,'input',cell_e,'input')
+                    _set_text(cell,'language',cell_e,'language')
+                    _set_int(cell,'prompt_number',cell_e,'prompt_number')
+                    outputs_e = ET.SubElement(cell_e, 'outputs')
+                    for output in cell.outputs:
+                        output_e = ET.SubElement(outputs_e, 'output')
+                        _set_text(output,'output_type',output_e,'output_type')
+                        _set_text(output,'text',output_e,'text')
+                        _set_text(output,'png',output_e,'png')
+                        _set_text(output,'html',output_e,'html')
+                        _set_text(output,'svg',output_e,'svg')
+                        _set_text(output,'latex',output_e,'latex')
+                        _set_text(output,'json',output_e,'json')
+                        _set_text(output,'javascript',output_e,'javascript')
                 elif cell_type == 'text':
-                    cell_e = ET.SubElement(ws_e, 'textcell')
-                    if 'text' in cell:
-                        cell_text_e = ET.SubElement(cell_e, 'text')
-                        cell_text_e.text = cell.text
+                    cell_e = ET.SubElement(cells_e, 'textcell')
+                    _set_text(cell,'text',cell_e,'text')
 
         indent(nb_e)
         txt = ET.tostring(nb_e, encoding="utf-8")

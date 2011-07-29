@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from IPython.nbformat.nbbase import (
     NotebookNode,
-    new_code_cell, new_text_cell, new_worksheet, new_notebook
+    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
 )
 
 class TestCell(TestCase):
@@ -12,14 +12,16 @@ class TestCell(TestCase):
         self.assertEquals(cc.cell_type,'code')
         self.assertEquals('input' not in cc, True)
         self.assertEquals('prompt_number' not in cc, True)
-        self.assertEquals(cc.output, NotebookNode())
+        self.assertEquals(cc.outputs, [])
 
     def test_code_cell(self):
-        cc = new_code_cell(input='a=10', prompt_number=0, output_svg='foo', output_text='10')
+        cc = new_code_cell(input='a=10', prompt_number=0)
+        cc.outputs = [new_output(output_type='pyout',output_svg='foo',output_text='10')]
         self.assertEquals(cc.input, u'a=10')
         self.assertEquals(cc.prompt_number, 0)
-        self.assertEquals(cc.output.svg, u'foo')
-        self.assertEquals(cc.output.text, u'10')
+        self.assertEquals(cc.language, u'python')
+        self.assertEquals(cc.outputs[0].svg, u'foo')
+        self.assertEquals(cc.outputs[0].text, u'10')
 
     def test_empty_text_cell(self):
         tc = new_text_cell()

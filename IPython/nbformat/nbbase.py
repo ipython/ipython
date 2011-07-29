@@ -10,18 +10,13 @@ class NotebookNode(Struct):
     pass
 
 
-def new_code_cell(input=None, prompt_number=None, output_text=None, output_png=None,
+def new_output(output_type=None, output_text=None, output_png=None,
     output_html=None, output_svg=None, output_latex=None, output_json=None, 
     output_javascript=None):
     """Create a new code cell with input and output"""
-    cell = NotebookNode()
-    cell.cell_type = 'code'
-    if input is not None:
-        cell.input = unicode(input)
-    if prompt_number is not None:
-        cell.prompt_number = int(prompt_number)
-
     output = NotebookNode()
+    if output_type is not None:
+        output.output_type = unicode(output_type)
     if output_text is not None:
         output.text = unicode(output_text)
     if output_png is not None:
@@ -37,16 +32,32 @@ def new_code_cell(input=None, prompt_number=None, output_text=None, output_png=N
     if output_javascript is not None:
         output.javascript = unicode(output_javascript)
 
-    cell.output = output
-    return cell
+    return output
 
+
+def new_code_cell(input=None, prompt_number=None, outputs=None, language=u'python'):
+    """Create a new code cell with input and output"""
+    cell = NotebookNode()
+    cell.cell_type = u'code'
+    if language is not None:
+        cell.language = unicode(language)
+    if input is not None:
+        cell.input = unicode(input)
+    if prompt_number is not None:
+        cell.prompt_number = int(prompt_number)
+    if outputs is None:
+        cell.outputs = []
+    else:
+        cell.outputs = outputs
+
+    return cell
 
 def new_text_cell(text=None):
     """Create a new text cell."""
     cell = NotebookNode()
     if text is not None:
         cell.text = unicode(text)
-    cell.cell_type = 'text'
+    cell.cell_type = u'text'
     return cell
 
 
