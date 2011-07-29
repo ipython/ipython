@@ -1,4 +1,4 @@
-from IPython.nbformat.nbbase import (
+from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
 )
@@ -51,17 +51,23 @@ nb0 = new_notebook(
     worksheets=[ws, new_worksheet(name='worksheet2')]
 )
 
-nb0_py = """# <codecell>
+nb0_py = """# <nbformat>2</nbformat>
+
+# <codecell>
 
 import numpy
 
+# </codecell>
 # <codecell>
 
 a = numpy.random.rand(100)
 
+# </codecell>
 # <codecell>
 
 print a
+
+# </codecell>
 """
 
 

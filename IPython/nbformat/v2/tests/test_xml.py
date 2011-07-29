@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from IPython.nbformat.nbxml import reads, writes
-from IPython.nbformat.tests.nbexamples import nb0
+from ..nbxml import reads, writes
+from .nbexamples import nb0
 import pprint
 
 class TestXML(TestCase):

@@ -1,23 +1,23 @@
 from base64 import encodestring, decodestring
-
+import pprint
 
 def base64_decode(nb):
     """Base64 encode all bytes objects in the notebook."""
-    for ws in nb['worksheets']:
-        for cell in ws['cells']:
-            if cell['cell_type'] == 'code':
-                if cell.get('image/png',''):
-                    cell['image/png'] = bytes(decodestring(cell['image/png']))
+    for ws in nb.worksheets:
+        for cell in ws.cells:
+            if cell.cell_type == 'code':
+                if 'png' in cell:
+                    cell.png = bytes(decodestring(cell.png))
     return nb
 
 
 def base64_encode(nb):
     """Base64 decode all binary objects in the notebook."""
-    for ws in nb['worksheets']:
-        for cell in ws['cells']:
-            if cell['cell_type'] == 'code':
-                if cell.get('image/png',''):
-                    cell['image/png'] = unicode(encodestring(cell['image/png']))
+    for ws in nb.worksheets:
+        for cell in ws.cells:
+            if cell.cell_type == 'code':
+                if 'png' in cell:
+                    cell.png = unicode(encodestring(cell.png))
     return nb
 
 
@@ -29,7 +29,7 @@ class NotebookReader(object):
 
     def read(self, fp, **kwargs):
         """Read a notebook from a file like object"""
-        return self.loads(fp.read(), **kwargs)
+        return self.read(fp.read(), **kwargs)
 
 
 class NotebookWriter(object):
@@ -40,7 +40,7 @@ class NotebookWriter(object):
 
     def write(self, nb, fp, **kwargs):
         """Write a notebook to a file like object"""
-        return fp.write(self.dumps(nb,**kwargs))
+        return fp.write(self.writes(nb,**kwargs))
 
 
 

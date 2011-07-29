@@ -10,6 +10,18 @@ class NotebookNode(Struct):
     pass
 
 
+def from_dict(d):
+    if isinstance(d, dict):
+        newd = NotebookNode()
+        for k,v in d.items():
+            newd[k] = from_dict(v)
+        return newd
+    elif isinstance(d, (tuple, list)):
+        return [from_dict(i) for i in d]
+    else:
+        return d
+
+
 def new_output(output_type=None, output_text=None, output_png=None,
     output_html=None, output_svg=None, output_latex=None, output_json=None, 
     output_javascript=None):
@@ -76,6 +88,7 @@ def new_worksheet(name=None, cells=None):
 def new_notebook(name=None, id=None, worksheets=None):
     """Create a notebook by name, id and a list of worksheets."""
     nb = NotebookNode()
+    nb.nbformat = 2
     if name is not None:
         nb.name = unicode(name)
     if id is None:

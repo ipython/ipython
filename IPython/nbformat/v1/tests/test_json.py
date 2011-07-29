@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from IPython.nbformat.nbjson import reads, writes
-from IPython.nbformat.tests.nbexamples import nb0
+from ..nbjson import reads, writes
+from .nbexamples import nb0
 
 
 class TestJSON(TestCase):

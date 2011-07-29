@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from IPython.nbformat.nbbase import (
+from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook
 )
 
-from IPython.nbformat.nbpy import reads, writes
-from IPython.nbformat.tests.nbexamples import nb0, nb0_py
+from ..nbpy import reads, writes
+from .nbexamples import nb0, nb0_py
 
 
 class TestPy(TestCase):

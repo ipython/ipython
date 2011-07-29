@@ -1,5 +1,6 @@
 """Read and write notebook files as XML."""
 
+from base64 import encodestring, decodestring
 from xml.etree import ElementTree as ET
 
 from .rwbase import NotebookReader, NotebookWriter
@@ -51,11 +52,27 @@ def _set_int(nbnode, attr, parent, tag):
         e.text = unicode(nbnode[attr])
 
 
+def _get_binary(e, tag):
+    sub_e = e.find(tag)
+    if sub_e is None:
+        return None
+    else:
+        return decodestring(sub_e.text)
+
+
+def _set_binary(nbnode, attr, parent, tag):
+    if attr in nbnode:
+        e = ET.SubElement(parent, tag)
+        e.text = encodestring(nbnode[attr])
+
+
 class XMLReader(NotebookReader):
 
     def reads(self, s, **kwargs):
         root = ET.fromstring(s)
+        return self.to_notebook(root, **kwargs)
 
+    def to_notebook(self, root, **kwargs):
         nbname = _get_text(root,'name')
         nbid = _get_text(root,'id')
         
@@ -72,7 +89,7 @@ class XMLReader(NotebookReader):
                     for output_e in cell_e.find('outputs').getiterator('output'):
                         output_type = _get_text(output_e,'output_type')
                         output_text = _get_text(output_e,'text')
-                        output_png = _get_text(output_e,'png')
+                        output_png = _get_binary(output_e,'png')
                         output_svg = _get_text(output_e,'svg')
                         output_html = _get_text(output_e,'html')
                         output_latex = _get_text(output_e,'latex')
@@ -103,6 +120,7 @@ class XMLWriter(NotebookWriter):
         nb_e = ET.Element('notebook')
         _set_text(nb,'name',nb_e,'name')
         _set_text(nb,'id',nb_e,'id')
+        _set_int(nb,'nbformat',nb_e,'nbformat')
         wss_e = ET.SubElement(nb_e,'worksheets')
         for ws in nb.worksheets:
             ws_e = ET.SubElement(wss_e, 'worksheet')
@@ -120,7 +138,7 @@ class XMLWriter(NotebookWriter):
                         output_e = ET.SubElement(outputs_e, 'output')
                         _set_text(output,'output_type',output_e,'output_type')
                         _set_text(output,'text',output_e,'text')
-                        _set_text(output,'png',output_e,'png')
+                        _set_binary(output,'png',output_e,'png')
                         _set_text(output,'html',output_e,'html')
                         _set_text(output,'svg',output_e,'svg')
                         _set_text(output,'latex',output_e,'latex')
@@ -141,5 +159,7 @@ _writer = XMLWriter()
 
 reads = _reader.reads
 read = _reader.read
+to_notebook = _reader.to_notebook
 write = _writer.write
 writes = _writer.writes
+

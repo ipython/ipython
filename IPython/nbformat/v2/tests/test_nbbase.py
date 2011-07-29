@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from IPython.nbformat.nbbase import (
+from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
 )
@@ -53,10 +53,12 @@ class TestNotebook(TestCase):
         self.assertEquals('id' in nb, True)
         self.assertEquals(nb.worksheets, [])
         self.assertEquals('name' not in nb, True)
+        self.assertEquals(nb.nbformat,2)
 
-    def test_notebooke(self):
+    def test_notebook(self):
         worksheets = [new_worksheet(),new_worksheet()]
         nb = new_notebook(name='foo',worksheets=worksheets)
         self.assertEquals(nb.name,u'foo')
         self.assertEquals(nb.worksheets,worksheets)
+        self.assertEquals(nb.nbformat,2)
 
