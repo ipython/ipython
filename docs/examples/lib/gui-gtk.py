@@ -38,3 +38,5 @@ try:
     enable_gtk()
 except ImportError:
     gtk.main()
+
+#gtk.main()

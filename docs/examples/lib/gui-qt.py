@@ -35,15 +35,7 @@ if __name__ == '__main__':
     sw.show()
 
     try:
-        # Note: the following form allows this script to work both inside
-        # ipython and without it, but `%gui qt` MUST be run first (or
-        # equivalently, ipython could have been started with `--gui=qt`).
         from IPython.lib.guisupport import start_event_loop_qt4
         start_event_loop_qt4(app)
-
-        # This from doesn't require the gui support to have been enabled in
-        # advance, but it won't work if the script is run as a standalone app
-        # outside of IPython while the user does have IPython available.
-        #from IPython.lib.inputhook import enable_qt4; enable_qt4(app)
     except ImportError:
         app.exec_()
