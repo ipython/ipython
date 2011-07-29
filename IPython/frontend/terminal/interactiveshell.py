@@ -172,13 +172,13 @@ class TerminalInteractiveShell(InteractiveShell):
     )
 
     def __init__(self, config=None, ipython_dir=None, profile_dir=None, user_ns=None,
-                 user_global_ns=None, custom_exceptions=((),None),
+                 user_module=None, custom_exceptions=((),None),
                  usage=None, banner1=None, banner2=None,
                  display_banner=None):
 
         super(TerminalInteractiveShell, self).__init__(
             config=config, profile_dir=profile_dir, user_ns=user_ns,
-            user_global_ns=user_global_ns, custom_exceptions=custom_exceptions
+            user_module=user_module, custom_exceptions=custom_exceptions
         )
         # use os.system instead of utils.process.system by default,
         # because piped system doesn't make sense in the Terminal:

@@ -372,7 +372,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     _post_execute = Instance(dict)
 
     def __init__(self, config=None, ipython_dir=None, profile_dir=None,
-                 user_module=None, user_local_ns=None,
+                 user_module=None, user_ns=None,
                  custom_exceptions=((), None)):
 
         # This is where traits with a config_key argument are updated
@@ -387,7 +387,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.init_environment()
 
         # Create namespaces (user_ns, user_global_ns, etc.)
-        self.init_create_namespaces(user_module, user_local_ns)
+        self.init_create_namespaces(user_module, user_ns)
         # This has to be done after init_create_namespaces because it uses
         # something in self.user_ns, but before init_sys_modules, which
         # is the first thing to modify sys.
@@ -639,17 +639,14 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def save_sys_module_state(self):
         """Save the state of hooks in the sys module.
 
-        This has to be called after self.user_ns is created.
+        This has to be called after self.user_module is created.
         """
         self._orig_sys_module_state = {}
         self._orig_sys_module_state['stdin'] = sys.stdin
         self._orig_sys_module_state['stdout'] = sys.stdout
         self._orig_sys_module_state['stderr'] = sys.stderr
         self._orig_sys_module_state['excepthook'] = sys.excepthook
-        try:
-            self._orig_sys_modules_main_name = self.user_ns['__name__']
-        except KeyError:
-            pass
+        self._orig_sys_modules_main_name = self.user_module.__name__
 
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
@@ -659,10 +656,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         except AttributeError:
             pass
         # Reset what what done in self.init_sys_modules
-        try:
-            sys.modules[self.user_ns['__name__']] = self._orig_sys_modules_main_name
-        except (AttributeError, KeyError):
-            pass
+        sys.modules[self.user_module.__name__] = self._orig_sys_modules_main_name
 
     #-------------------------------------------------------------------------
     # Things related to hooks
@@ -860,7 +854,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     # Things related to IPython's various namespaces
     #-------------------------------------------------------------------------
 
-    def init_create_namespaces(self, user_module=None, user_local_ns=None):
+    def init_create_namespaces(self, user_module=None, user_ns=None):
         # Create the namespace where the user will operate.  user_ns is
         # normally the only one used, and it is passed to the exec calls as
         # the locals argument.  But we do carry a user_global_ns namespace
@@ -899,9 +893,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # properly initialized namespaces.
         self.user_module = self.prepare_user_module(user_module)
 
-        if user_local_ns is None:
-            user_local_ns = self.user_module.__dict__
-        self.user_local_ns = user_local_ns
+        if user_ns is None:
+            user_ns = self.user_module.__dict__
+        self.user_ns = user_ns
 
         # An auxiliary namespace that checks what parts of the user_ns were
         # loaded at startup, so we can list later only variables defined in
@@ -944,8 +938,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # A table holding all the namespaces IPython deals with, so that
         # introspection facilities can search easily.
-        self.ns_table = {'user_global':user_module.__dict__,
-                         'user_local':user_local_ns,
+        self.ns_table = {'user_global':self.user_module.__dict__,
+                         'user_local':user_ns,
                          'internal':self.internal_ns,
                          'builtin':builtin_mod.__dict__
                          }
@@ -1073,7 +1067,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # stuff, not our variables.
 
         # Finally, update the real user's namespace
-        self.user_local_ns.update(ns)
+        self.user_ns.update(ns)
 
     def reset(self, new_session=True):
         """Clear all internal namespaces, and attempt to release references to
