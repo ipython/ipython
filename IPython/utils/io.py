@@ -232,7 +232,7 @@ def ask_yes_no(prompt,default=None):
         except EOFError:
             if default in answers.keys():
                 ans = default
-                print
+                print()
             else:
                 raise
 
