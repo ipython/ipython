@@ -25,6 +25,7 @@ import shutil
 import tempfile
 import unittest
 from os.path import join
+import sys
 from StringIO import StringIO
 
 from IPython.testing import decorators as dec
@@ -128,6 +129,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         f = IPython.core.formatters.PlainTextFormatter()
         f([Spam(),Spam()])
     
+
     def test_future_flags(self):
         """Check that future flags are used for parsing code (gh-777)"""
         ip = get_ipython()
@@ -151,6 +153,37 @@ class InteractiveShellTestCase(unittest.TestCase):
         finally:
             # Reset compiler flags so we don't mess up other tests.
             ip.compile.reset_compiler_flags()
+    
+    def test_can_pickle(self):
+        "Can we pickle objects defined interactively (GH-29)"
+        ip = get_ipython()
+        ip.reset()
+        ip.run_cell(("class Mylist(list):\n"
+                     "    def __init__(self,x=[]):\n"
+                     "        list.__init__(self,x)"))
+        ip.run_cell("w=Mylist([1,2,3])")
+        
+        from cPickle import dumps
+        
+        # We need to swap in our main module - this is only necessary
+        # inside the test framework, because IPython puts the interactive module
+        # in place (but the test framework undoes this).
+        _main = sys.modules['__main__']
+        sys.modules['__main__'] = ip.user_module
+        try:
+            res = dumps(ip.user_ns["w"])
+        finally:
+            sys.modules['__main__'] = _main
+        self.assertTrue(isinstance(res, bytes))
+        
+    def test_global_ns(self):
+        "Code in functions must be able to access variables outside them."
+        ip = get_ipython()
+        ip.run_cell("a = 10")
+        ip.run_cell(("def f(x):"
+                     "    return x + a"))
+        ip.run_cell("b = f(12)")
+        self.assertEqual(ip.user_ns["b"], 22)
 
     def test_bad_custom_tb(self):
         """Check that InteractiveShell is protected from bad custom exception handlers"""

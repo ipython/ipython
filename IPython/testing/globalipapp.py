@@ -205,8 +205,7 @@ def start_ipython():
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
     shell.system = py3compat.MethodType(xsys, shell)
-
-
+    
     shell._showtraceback = py3compat.MethodType(_showtraceback, shell)
 
     # IPython is ready, now clean up some global state...

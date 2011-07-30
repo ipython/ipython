@@ -888,19 +888,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # should start with "import __builtin__" (note, no 's') which will
         # definitely give you a module. Yeah, it's somewhat confusing:-(.
 
-        # These routines return properly built dicts as needed by the rest of
-        # the code, and can also be used by extension writers to generate
-        # properly initialized namespaces.
-        self.user_module = self.prepare_user_module(user_module)
+        # These routines return a properly built module and dict as needed by
+        # the rest of the code, and can also be used by extension writers to
+        # generate properly initialized namespaces.
+        self.user_module, self.user_ns = self.prepare_user_module(user_module, user_ns)
 
-        if user_ns is None:
-            user_ns = self.user_module.__dict__
-        self.user_ns = user_ns
-
-        # An auxiliary namespace that checks what parts of the user_ns were
-        # loaded at startup, so we can list later only variables defined in
-        # actual interactive use.  Since it is always a subset of user_ns, it
-        # doesn't need to be separately tracked in the ns_table.
+        # A record of hidden variables we have added to the user namespace, so
+        # we can list later only variables defined in actual interactive use.
         self.user_ns_hidden = set()
 
         # Now that FakeModule produces a real module, we've run into a nasty
@@ -943,20 +937,38 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def user_global_ns(self):
         return self.user_module.__dict__
 
-    def prepare_user_module(self, user_module=None):
-        """Prepares a module for use as the interactive __main__ module in
-        which user code is run.
+    def prepare_user_module(self, user_module=None, user_ns=None):
+        """Prepare the module and namespace in which user code will be run.
+        
+        When IPython is started normally, both parameters are None: a new module
+        is created automatically, and its __dict__ used as the namespace.
+        
+        If only user_module is provided, its __dict__ is used as the namespace.
+        If only user_ns is provided, a dummy module is created, and user_ns
+        becomes the global namespace. If both are provided (as they may be
+        when embedding), user_ns is the local namespace, and user_module
+        provides the global namespace.
 
         Parameters
         ----------
         user_module : module, optional
             The current user module in which IPython is being run. If None,
             a clean module will be created.
+        user_ns : dict, optional
+            A namespace in which to run interactive commands.
 
         Returns
         -------
-        A module object.
+        A tuple of user_module and user_ns, each properly initialised.
         """
+        if user_module is None and user_ns is not None:
+            user_ns.setdefault("__name__", "__main__")
+            class DummyMod(object):
+                "A dummy module used for IPython's interactive namespace."
+                pass
+            user_module = DummyMod()
+            user_module.__dict__ = user_ns
+            
         if user_module is None:
             user_module = types.ModuleType("__main__",
                 doc="Automatically created module for IPython interactive environment")
@@ -966,8 +978,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
         user_module.__dict__.setdefault('__builtin__',__builtin__)
         user_module.__dict__.setdefault('__builtins__',__builtin__)
+        
+        if user_ns is None:
+            user_ns = user_module.__dict__
 
-        return user_module
+        return user_module, user_ns
 
     def init_sys_modules(self):
         # We need to insert into sys.modules something that looks like a
@@ -1075,13 +1090,16 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # The main execution namespaces must be cleared very carefully,
         # skipping the deletion of the builtin-related keys, because doing so
         # would cause errors in many object's __del__ methods.
-        for ns in [self.user_ns, self.user_global_ns]:
-            drop_keys = set(ns.keys())
-            drop_keys.discard('__builtin__')
-            drop_keys.discard('__builtins__')
-            for k in drop_keys:
-                del ns[k]
-
+        if self.user_ns is not self.user_global_ns:
+            self.user_ns.clear()
+        ns = self.user_global_ns
+        drop_keys = set(ns.keys())
+        drop_keys.discard('__builtin__')
+        drop_keys.discard('__builtins__')
+        drop_keys.discard('__name__')
+        for k in drop_keys:
+            del ns[k]
+        
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
 

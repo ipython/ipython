@@ -271,6 +271,8 @@ class DocTestCase(doctests.DocTestCase):
             # for IPython examples *only*, we swap the globals with the ipython
             # namespace, after updating it with the globals (which doctest
             # fills with the necessary info from the module being tested).
+            self.user_ns_orig = {}
+            self.user_ns_orig.update(_ip.user_ns)
             _ip.user_ns.update(self._dt_test.globs)
             self._dt_test.globs = _ip.user_ns
             # IPython must protect the _ key in the namespace (it can't exist)
@@ -286,6 +288,8 @@ class DocTestCase(doctests.DocTestCase):
         # teardown doesn't destroy the ipython namespace
         if isinstance(self._dt_test.examples[0],IPExample):
             self._dt_test.globs = self._dt_test_globs_ori
+            _ip.user_ns.clear()
+            _ip.user_ns.update(self.user_ns_orig)
             # Restore the behavior of the '_' key in the user namespace to
             # normal after each doctest, so that unittests behave normally
             _ip.user_ns.protect_underscore = False
