@@ -322,10 +322,20 @@ Regressions
 ===========
 
 There are some features, where the qt console lags behind the Terminal
-frontend. We hope to have these fixed by 0.11 release.
+frontend:
 
 * !cmd input: Due to our use of pexpect, we cannot pass input to subprocesses
-   launched using the '!' escape. (this will not be fixed).
+   launched using the '!' escape, so you should never call a command that
+   requires interactive input.  For such cases, use the terminal IPython.  This
+   will not be fixed, as abandoning pexpect would significantly degrade the
+   console experience.
+
+* Use of ``\b`` and ``\r`` characters in the console: these are control
+  characters that allow the cursor to move backwards on a line, and are used to
+  display things like in-place progress bars in a terminal.  We currently do
+  not support this, but it is being tracked as issue 629_.
+
+.. _629:  https://github.com/ipython/ipython/issues/629
 
 .. [PyQt] PyQt4 http://www.riverbankcomputing.co.uk/software/pyqt/download
 .. [pygments] Pygments http://pygments.org/
