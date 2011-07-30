@@ -29,6 +29,8 @@ import re
 import sys
 import tempfile
 import types
+from weakref import proxy
+
 try:
     from contextlib import nested
 except:
@@ -1056,7 +1058,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
-
+        ns['_ipy'] = proxy(self)   # Weak ref since this is a circular reference
+        
         ns['exit'] = self.exiter
         ns['quit'] = self.exiter
 
