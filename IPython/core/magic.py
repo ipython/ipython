@@ -385,20 +385,6 @@ IPython ships with automagic on, so you should only rarely need the % escape.
 Example: typing '%cd mydir' (without the quotes) changes you working directory
 to 'mydir', if it exists.
 
-You can define your own magic functions to extend the system. See the supplied
-ipythonrc and example-magic.py files for details (in your ipython
-configuration directory, typically $HOME/.config/ipython on Linux or $HOME/.ipython elsewhere).
-
-You can also define your own aliased names for magic functions. In your
-ipythonrc file, placing a line like:
-
-  execute __IPYTHON__.magic_pf = __IPYTHON__.magic_profile
-
-will define %pf as a new name for %profile.
-
-You can also call magics in code using the magic() function, which IPython
-automatically adds to the builtin namespace.  Type 'magic?' for details.
-
 For a list of the available magic functions, use %lsmagic. For a description
 of any of them, type %magic_name?, e.g. '%cd?'.
 

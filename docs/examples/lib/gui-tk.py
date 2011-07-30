@@ -27,6 +27,6 @@ root = Tk()
 app = MyApp(root)
 
 try:
-    from IPython import enable_tk; enable_tk(root)
+    from IPython.lib.inputhook import enable_tk; enable_tk(root)
 except ImportError:
     root.mainloop()

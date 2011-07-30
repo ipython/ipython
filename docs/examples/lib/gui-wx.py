@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """A Simple wx example to test IPython's event loop integration.
 
 To run this do:
@@ -97,13 +98,14 @@ class MyApp(wx.App):
         frame.Show(True)
         return True
 
-app = wx.GetApp()
-if app is None:
-    app = MyApp(redirect=False, clearSigInt=False)
+if __name__ == '__main__':
+    app = wx.GetApp()
+    if app is None:
+        app = MyApp(redirect=False, clearSigInt=False)
 
-try:
-    from IPython.lib.inputhook import enable_wx
-    enable_wx(app)
-except ImportError:
-    app.MainLoop()
+    try:
+        from IPython.lib.inputhook import enable_wx
+        enable_wx(app)
+    except ImportError:
+        app.MainLoop()
 

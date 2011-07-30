@@ -206,6 +206,9 @@ def find_data_files():
     
     # Simple file lists can be made by hand
     manpages  = filter(isfile, glob(pjoin('docs','man','*.1.gz')))
+    if not manpages:
+        # When running from a source tree, the manpages aren't gzipped
+        manpages = filter(isfile, glob(pjoin('docs','man','*.1')))
     igridhelpfiles = filter(isfile,
                             glob(pjoin('IPython','extensions','igrid_help.*')))
 

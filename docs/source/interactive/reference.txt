@@ -604,7 +604,7 @@ Session logging and restoring
 -----------------------------
 
 You can log all input from a session either by starting IPython with the
-command line switche ``logfile=foo.py`` (see :ref:`here <command_line_options>`)
+command line switch ``--logfile=foo.py`` (see :ref:`here <command_line_options>`)
 or by activating the logging at any moment with the magic function %logstart.
 
 Log files can later be reloaded by running them as scripts and IPython
@@ -648,7 +648,7 @@ System shell access
 
 Any input line beginning with a ! character is passed verbatim (minus
 the !, of course) to the underlying operating system. For example,
-typing !ls will run 'ls' in the current directory.
+typing ``!ls`` will run 'ls' in the current directory.
 
 Manual capture of command output
 --------------------------------
@@ -702,9 +702,9 @@ The %alias magic function and the alias option in the ipythonrc
 configuration file allow you to define magic functions which are in fact
 system shell commands. These aliases can have parameters.
 
-'%alias alias_name cmd' defines 'alias_name' as an alias for 'cmd'
+``%alias alias_name cmd`` defines 'alias_name' as an alias for 'cmd'
 
-Then, typing '%alias_name params' will execute the system command 'cmd
+Then, typing ``%alias_name params`` will execute the system command 'cmd
 params' (from your underlying operating system).
 
 You can also define aliases with parameters using %s specifiers (one per
@@ -722,9 +722,8 @@ replaced by a positional parameter to the call to %parts::
 If called with no parameters, %alias prints the table of currently
 defined aliases.
 
-The %rehash/rehashx magics allow you to load your entire $PATH as
-ipython aliases. See their respective docstrings (or sec. 6.2
-<#sec:magic> for further details).
+The %rehashx magic allows you to load your entire $PATH as
+ipython aliases. See its docstring for further details.
 
 
 .. _dreload:
@@ -765,15 +764,14 @@ addition to the %rep magic command that brings a history entry
 up for editing on the next  command line.
 
 The following GLOBAL variables always exist (so don't overwrite them!):
-_i: stores previous input. _ii: next previous. _iii: next-next previous.
-_ih : a list of all input _ih[n] is the input from line n and this list
-is aliased to the global variable In. If you overwrite In with a
-variable of your own, you can remake the assignment to the internal list
-with a simple 'In=_ih'.
+
+* _i, _ii, _iii: store previous, next previous and next-next previous inputs.
+* In, _ih : a list of all inputs; _ih[n] is the input from line n. If you
+  overwrite In with a variable of your own, you can remake the assignment to the
+  internal list with a simple ``In=_ih``.
 
 Additionally, global variables named _i<n> are dynamically created (<n>
-being the prompt counter), such that
-_i<n> == _ih[<n>] == In[<n>].
+being the prompt counter), so ``_i<n> == _ih[<n>] == In[<n>]``.
 
 For example, what you typed at prompt 14 is available as _i14, _ih[14]
 and In[14].
@@ -781,55 +779,23 @@ and In[14].
 This allows you to easily cut and paste multi line interactive prompts
 by printing them out: they print like a clean string, without prompt
 characters. You can also manipulate them like regular variables (they
-are strings), modify or exec them (typing 'exec _i9' will re-execute the
-contents of input prompt 9, 'exec In[9:14]+In[18]' will re-execute lines
-9 through 13 and line 18).
+are strings), modify or exec them (typing ``exec _i9`` will re-execute the
+contents of input prompt 9.
 
 You can also re-execute multiple lines of input easily by using the
 magic %macro function (which automates the process and allows
 re-execution without having to type 'exec' every time). The macro system
 also allows you to re-execute previous lines which include magic
-function calls (which require special processing). Type %macro? or see
-sec. 6.2 <#sec:magic> for more details on the macro system.
+function calls (which require special processing). Type %macro? for more details
+on the macro system.
 
 A history function %hist allows you to see any part of your input
 history by printing a range of the _i variables.
 
 You can also search ('grep') through your history by typing 
-'%hist -g somestring'. This also searches through the so called *shadow history*,
-which remembers all the commands (apart from multiline code blocks)
-you have ever entered. Handy for searching for svn/bzr URL's, IP adrresses
-etc. You can bring shadow history entries listed by '%hist -g' up for editing 
-(or re-execution by just pressing ENTER) with %rep command. Shadow history 
-entries are not available as _iNUMBER variables, and they are identified by 
-the '0' prefix in %hist -g output. That is, history entry 12 is a normal 
-history entry, but 0231 is a shadow history entry.
-
-Shadow history was added because the readline history is inherently very
-unsafe - if you have multiple IPython sessions open, the last session 
-to close will overwrite the history of previountly closed session. Likewise,
-if a crash occurs, history is never saved, whereas shadow history entries
-are added after entering every command (so a command executed 
-in another IPython session is immediately available in other IPython 
-sessions that are open).
-
-To conserve space, a command can exist in shadow history only once - it doesn't 
-make sense to store a common line like "cd .." a thousand times. The idea is 
-mainly to provide a reliable place where valuable, hard-to-remember commands can 
-always be retrieved, as opposed to providing an exact sequence of commands
-you have entered in actual order.
-
-Because shadow history has all the commands you have ever executed,
-time taken by %hist -g will increase oven time. If it ever starts to take
-too long (or it ends up containing sensitive information like passwords), 
-clear the shadow history by `%clear shadow_nuke`.
-
-Time taken to add entries to shadow history should be negligible, but 
-in any case, if you start noticing performance degradation after using 
-IPython for a long time (or running a script that floods the shadow history!), 
-you can 'compress' the shadow history by executing 
-`%clear shadow_compress`. In practice, this should never be necessary
-in normal use.
+``%hist -g somestring``. This is handy for searching for URLs, IP addresses,
+etc. You can bring history entries listed by '%hist -g' up for editing
+with the %recall command, or run them immediately with %rerun.
 
 .. _output_caching:
 
@@ -874,7 +840,7 @@ Directory history
 
 Your history of visited directories is kept in the global list _dh, and
 the magic %cd command can be used to go to any entry in that list. The
-%dhist command allows you to view this history. Do ``cd -<TAB`` to
+%dhist command allows you to view this history. Do ``cd -<TAB>`` to
 conveniently view the directory history.
 
 
@@ -1158,8 +1124,8 @@ left as an exercise for the reader.
 
 .. _gui_support:
 
-GUI event loop support support
-==============================
+GUI event loop support
+======================
 
 .. versionadded:: 0.11
     The ``%gui`` magic and :mod:`IPython.lib.inputhook`.
@@ -1179,16 +1145,15 @@ advantages of this are:
 For users, enabling GUI event loop integration is simple.  You simple use the
 ``%gui`` magic as follows::
 
-    %gui [-a] [GUINAME]
+    %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments are ``wx``, ``qt4``, ``gtk`` and ``tk``.  The ``-a`` option will
-create and return a running application object for the selected GUI toolkit.
+arguments are ``wx``, ``qt4``, ``gtk`` and ``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::
 
-    %gui -a wx
+    %gui wx
 
 For information on IPython's Matplotlib integration (and the ``pylab`` mode)
 see :ref:`this section <matplotlib_support>`.
@@ -1233,7 +1198,7 @@ PyQt and PySide
 
 .. attempt at explanation of the complete mess that is Qt support
 
-When you use ``gui=qt`` or ``pylab=qt``, IPython can work with either
+When you use ``--gui=qt`` or ``--pylab=qt``, IPython can work with either
 PyQt4 or PySide.  There are three options for configuration here, because
 PyQt4 has two APIs for QString and QVariant - v1, which is the default on
 Python 2, and the more natural v2, which is the only API supported by PySide.
@@ -1251,7 +1216,7 @@ PyQt4 to use its v2 API.  So if ``QT_API=pyside`` PySide will be used,
 and if ``QT_API=pyqt`` then PyQt4 will be used *with the v2 API* for
 QString and QVariant, so ETS codes like MayaVi will also work with IPython.
 
-If you launch IPython in pylab mode with ``ipython pylab=qt``, then IPython
+If you launch IPython in pylab mode with ``ipython --pylab=qt``, then IPython
 will ask matplotlib which Qt library to use (only if QT_API is *not set*),
 via the 'backend.qt4' rcParam.
 If matplotlib is version 1.0.1 or older, then IPython will always use PyQt4
@@ -1264,7 +1229,7 @@ without setting the v2 APIs, since neither v2 PyQt nor PySide work.
     an incompatible mode.
     
     It also means that you must *not* have ``QT_API`` set if you want to
-    use ``gui=qt`` with code that requires PyQt4 API v1.
+    use ``--gui=qt`` with code that requires PyQt4 API v1.
 
 
 
@@ -1286,7 +1251,7 @@ process of working with the Matplotlib developers to finalize the new pylab
 API, but for now you can use Matplotlib interactively using the following
 commands::
 
-    %gui -a wx
+    %gui wx
     import matplotlib
     matplotlib.use('wxagg')
     from matplotlib import pylab

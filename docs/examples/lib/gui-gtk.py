@@ -39,5 +39,4 @@ try:
 except ImportError:
     gtk.main()
 
-
-
+#gtk.main()

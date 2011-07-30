@@ -3,38 +3,38 @@
 
 This directive allows pasting of entire interactive IPython sessions, prompts
 and all, and their code will actually get re-executed at doc build time, with
-all prompts renumbered sequentially.
+all prompts renumbered sequentially. It also allows you to input code as a pure
+python input by giving the argument python to the directive. The output looks
+like an interactive ipython section.
 
 To enable this directive, simply list it in your Sphinx ``conf.py`` file
 (making sure the directory where you placed it is visible to sphinx, as is
 needed for all Sphinx directives).
 
 By default this directive assumes that your prompts are unchanged IPython ones,
-but this can be customized.  For example, the following code in your Sphinx
-config file will configure this directive for the following input/output
-prompts ``Yade [1]:`` and ``-> [1]:``::
+but this can be customized. The configurable options that can be placed in
+conf.py are
 
- import ipython_directive as id
- id.rgxin =re.compile(r'(?:In |Yade )\[(\d+)\]:\s?(.*)\s*')
- id.rgxout=re.compile(r'(?:Out| ->  )\[(\d+)\]:\s?(.*)\s*')
- id.fmtin ='Yade [%d]:'
- id.fmtout=' ->  [%d]:'
+ipython_savefig_dir:
+    The directory in which to save the figures. This is relative to the
+    Sphinx source directory. The default is `html_static_path`.
+ipython_rgxin:
+    The compiled regular expression to denote the start of IPython input
+    lines. The default is re.compile('In \[(\d+)\]:\s?(.*)\s*'). You
+    shouldn't need to change this.
+ipython_rgxout:
+    The compiled regular expression to denote the start of IPython output
+    lines. The default is re.compile('Out\[(\d+)\]:\s?(.*)\s*'). You
+    shouldn't need to change this.
+ipython_promptin:
+    The string to represent the IPython input prompt in the generated ReST.
+    The default is 'In [%d]:'. This expects that the line numbers are used
+    in the prompt.
+ipython_promptout:
 
- from IPython import Config
- id.CONFIG = Config(
-   prompt_in1="Yade [\#]:",
-   prompt_in2="     .\D..",
-   prompt_out=" ->  [\#]:"
- )
- id.reconfig_shell()
-
- import ipython_console_highlighting as ich
- ich.IPythonConsoleLexer.input_prompt=
-    re.compile("(Yade \[[0-9]+\]: )|(   \.\.\.+:)")
- ich.IPythonConsoleLexer.output_prompt=
-    re.compile("(( ->  )|(Out)\[[0-9]+\]: )|(   \.\.\.+:)")
- ich.IPythonConsoleLexer.continue_prompt=re.compile("   \.\.\.+:")
-
+    The string to represent the IPython prompt in the generated ReST. The
+    default is 'Out [%d]:'. This expects that the line numbers are used
+    in the prompt.
 
 ToDo
 ----
@@ -42,8 +42,6 @@ ToDo
 - Turn the ad-hoc test() function into a real test suite.
 - Break up ipython-specific functionality from matplotlib stuff into better
   separated code.
-- Make sure %bookmarks used internally are removed on exit.
-
 
 Authors
 -------
@@ -51,6 +49,7 @@ Authors
 - John D Hunter: orignal author.
 - Fernando Perez: refactoring, documentation, cleanups, port to 0.11.
 - VáclavŠmilauer <eudoxos-AT-arcig.cz>: Prompt generalizations.
+- Skipper Seabold, refactoring, cleanups, pure python addition
 """
 
 #-----------------------------------------------------------------------------
@@ -62,6 +61,7 @@ import cStringIO
 import os
 import re
 import sys
+import tempfile
 
 # To keep compatibility with various python versions
 try:
@@ -73,34 +73,26 @@ except ImportError:
 import matplotlib
 import sphinx
 from docutils.parsers.rst import directives
+from docutils import nodes
+from sphinx.util.compat import Directive
 
 matplotlib.use('Agg')
 
 # Our own
 from IPython import Config, InteractiveShell
-from IPython.utils.io import Term
+from IPython.core.profiledir import ProfileDir
+from IPython.utils import io
 
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
-
-sphinx_version = sphinx.__version__.split(".")
-# The split is necessary for sphinx beta versions where the string is
-# '6b1'
-sphinx_version = tuple([int(re.split('[a-z]', x)[0])
-                        for x in sphinx_version[:2]])
-
+# for tokenizing blocks
 COMMENT, INPUT, OUTPUT =  range(3)
-CONFIG = Config()
-rgxin = re.compile('In \[(\d+)\]:\s?(.*)\s*')
-rgxout = re.compile('Out\[(\d+)\]:\s?(.*)\s*')
-fmtin = 'In [%d]:'
-fmtout = 'Out[%d]:'
 
 #-----------------------------------------------------------------------------
 # Functions and class declarations
 #-----------------------------------------------------------------------------
-def block_parser(part):
+def block_parser(part, rgxin, rgxout, fmtin, fmtout):
     """
     part is a string of ipython text, comprised of at most one
     input, one ouput, comments, and blank lines.  The block parser
@@ -194,20 +186,13 @@ def block_parser(part):
 
     return block
 
-
 class EmbeddedSphinxShell(object):
     """An embedded IPython instance to run inside Sphinx"""
 
     def __init__(self):
 
         self.cout = cStringIO.StringIO()
-        Term.cout = self.cout
-        Term.cerr = self.cout
 
-        # For debugging, so we can see normal output, use this:
-        # from IPython.utils.io import Tee
-        #Term.cout = Tee(self.cout, channel='stdout') # dbg
-        #Term.cerr = Tee(self.cout, channel='stderr') # dbg
 
         # Create config object for IPython
         config = Config()
@@ -219,14 +204,28 @@ class EmbeddedSphinxShell(object):
         config.InteractiveShell.autoindent = False
         config.InteractiveShell.colors = 'NoColor'
 
+        # create a profile so instance history isn't saved
+        tmp_profile_dir = tempfile.mkdtemp(prefix='profile_')
+        profname = 'auto_profile_sphinx_build'
+        pdir = os.path.join(tmp_profile_dir,profname)
+        profile = ProfileDir.create_profile_dir(pdir)
+
         # Create and initialize ipython, but don't start its mainloop
-        IP = InteractiveShell.instance(config=config)
+        IP = InteractiveShell.instance(config=config, profile_dir=profile)
+        # io.stdout redirect must be done *after* instantiating InteractiveShell
+        io.stdout = self.cout
+        io.stderr = self.cout
+
+        # For debugging, so we can see normal output, use this:
+        #from IPython.utils.io import Tee
+        #io.stdout = Tee(self.cout, channel='stdout') # dbg
+        #io.stderr = Tee(self.cout, channel='stderr') # dbg
 
         # Store a few parts of IPython we'll need.
         self.IP = IP
         self.user_ns = self.IP.user_ns
         self.user_global_ns = self.IP.user_global_ns
-                                    
+
         self.input = ''
         self.output = ''
 
@@ -238,27 +237,61 @@ class EmbeddedSphinxShell(object):
         # pyplot as plt so we can make a call to the plt.gcf().savefig
         self._pyplot_imported = False
 
-        # we need bookmark the current dir first so we can save
-        # relative to it
-        self.process_input_line('bookmark ipy_basedir')
+    def clear_cout(self):
         self.cout.seek(0)
         self.cout.truncate(0)
 
-    def process_input_line(self, line):
+    def process_input_line(self, line, store_history=True):
         """process the input, capturing stdout"""
         #print "input='%s'"%self.input
         stdout = sys.stdout
+        splitter = self.IP.input_splitter
         try:
             sys.stdout = self.cout
-            self.IP.push_line(line)
+            splitter.push(line)
+            more = splitter.push_accepts_more()
+            if not more:
+                source_raw = splitter.source_raw_reset()[1]
+                self.IP.run_cell(source_raw, store_history=store_history)
         finally:
             sys.stdout = stdout
+
+    def process_image(self, decorator):
+        """
+        # build out an image directive like
+        # .. image:: somefile.png
+        #    :width 4in
+        #
+        # from an input like
+        # savefig somefile.png width=4in
+        """
+        savefig_dir = self.savefig_dir
+        source_dir = self.source_dir
+        saveargs = decorator.split(' ')
+        filename = saveargs[1]
+        # insert relative path to image file in source
+        outfile = os.path.relpath(os.path.join(savefig_dir,filename),
+                    source_dir)
+
+        imagerows = ['.. image:: %s'%outfile]
+
+        for kwarg in saveargs[2:]:
+            arg, val = kwarg.split('=')
+            arg = arg.strip()
+            val = val.strip()
+            imagerows.append('   :%s: %s'%(arg, val))
+
+        image_file = os.path.basename(outfile) # only return file name
+        image_directive = '\n'.join(imagerows)
+        return image_file, image_directive
+
 
     # Callbacks for each type of token
     def process_input(self, data, input_prompt, lineno):
         """Process data block for INPUT token."""
         decorator, input, rest = data
         image_file = None
+        image_directive = None
         #print 'INPUT:', data  # dbg
         is_verbatim = decorator=='@verbatim' or self.is_verbatim
         is_doctest = decorator=='@doctest' or self.is_doctest
@@ -272,48 +305,31 @@ class EmbeddedSphinxShell(object):
         Nc = len(continuation)
 
         if is_savefig:
-            saveargs = decorator.split(' ')
-            filename = saveargs[1]
-            outfile = os.path.join('_static/%s'%filename)
-            # build out an image directive like
-            # .. image:: somefile.png
-            #    :width 4in
-            #
-            # from an input like
-            # savefig somefile.png width=4in
-            imagerows = ['.. image:: %s'%outfile]
-
-            for kwarg in saveargs[2:]:
-                arg, val = kwarg.split('=')
-                arg = arg.strip()
-                val = val.strip()
-                imagerows.append('   :%s: %s'%(arg, val))
-
-            image_file = outfile
-            image_directive = '\n'.join(imagerows)
-
-        # TODO: can we get "rest" from ipython
-        #self.process_input_line('\n'.join(input_lines))
+            image_file, image_directive = self.process_image(decorator)
 
         ret = []
         is_semicolon = False
+        store_history = True
 
         for i, line in enumerate(input_lines):
             if line.endswith(';'):
                 is_semicolon = True
+            if is_semicolon or is_suppress:
+                store_history = False
 
             if i==0:
                 # process the first input line
                 if is_verbatim:
                     self.process_input_line('')
+                    self.IP.execution_count += 1 # increment it anyway
                 else:
                     # only submit the line in non-verbatim mode
-                    self.process_input_line(line)
+                    self.process_input_line(line, store_history=store_history)
                 formatted_line = '%s %s'%(input_prompt, line)
             else:
                 # process a continuation line
                 if not is_verbatim:
-                    self.process_input_line(line)
+                    self.process_input_line(line, store_history=store_history)
 
                 formatted_line = '%s %s'%(continuation, line)
 
@@ -334,7 +350,8 @@ class EmbeddedSphinxShell(object):
             ret.append(output)
 
         self.cout.truncate(0)
-        return ret, input_lines, output, is_doctest, image_file
+        return (ret, input_lines, output, is_doctest, image_file,
+                    image_directive)
         #print 'OUTPUT', output  # dbg
 
     def process_output(self, data, output_prompt,
@@ -345,16 +362,19 @@ class EmbeddedSphinxShell(object):
             found = output
             if found is not None:
                 found = found.strip()
-                
+
                 # XXX - fperez: in 0.11, 'output' never comes with the prompt
                 # in it, just the actual output text.  So I think all this code
                 # can be nuked...
-                ## ind = found.find(output_prompt)
-                ## if ind<0:
-                ##     e='output prompt="%s" does not match out line=%s' % \
-                ##        (output_prompt, found)
-                ##     raise RuntimeError(e)
-                ## found = found[len(output_prompt):].strip()
+
+                # the above comment does not appear to be accurate... (minrk)
+
+                ind = found.find(output_prompt)
+                if ind<0:
+                    e='output prompt="%s" does not match out line=%s' % \
+                       (output_prompt, found)
+                    raise RuntimeError(e)
+                found = found[len(output_prompt):].strip()
 
                 if found!=submitted:
                     e = ('doctest failure for input_lines="%s" with '
@@ -364,36 +384,45 @@ class EmbeddedSphinxShell(object):
                 #print 'doctest PASSED for input_lines="%s" with found_output="%s" and submitted output="%s"'%(input_lines, found, submitted)
 
     def process_comment(self, data):
-        """Process data block for COMMENT token."""
+        """Process data fPblock for COMMENT token."""
         if not self.is_suppress:
             return [data]
+
+    def save_image(self, image_file):
+        """
+        Saves the image file to disk.
+        """
+        self.ensure_pyplot()
+        command = 'plt.gcf().savefig("%s")'%image_file
+        #print 'SAVEFIG', command  # dbg
+        self.process_input_line('bookmark ipy_thisdir', store_history=False)
+        self.process_input_line('cd -b ipy_savedir', store_history=False)
+        self.process_input_line(command, store_history=False)
+        self.process_input_line('cd -b ipy_thisdir', store_history=False)
+        self.process_input_line('bookmark -d ipy_thisdir', store_history=False)
+        self.clear_cout()
+
 
     def process_block(self, block):
         """
         process block from the block_parser and return a list of processed lines
         """
-
         ret = []
         output = None
         input_lines = None
+        lineno = self.IP.execution_count
 
-        m = rgxin.match(str(self.IP.outputcache.prompt1).strip())
-        lineno = int(m.group(1))
-
-        input_prompt = fmtin%lineno
-        output_prompt = fmtout%lineno
+        input_prompt = self.promptin%lineno
+        output_prompt = self.promptout%lineno
         image_file = None
         image_directive = None
-        # XXX - This needs a second refactor.  There's too much state being
-        # held globally, which makes for a very awkward interface and large,
-        # hard to test functions.  I've already broken this up at least into
-        # three separate processors to isolate the logic better, but this only
-        # serves to highlight the coupling.  Next we need to clean it up...
+
         for token, data in block:
             if token==COMMENT:
                 out_data = self.process_comment(data)
             elif token==INPUT:
-                out_data, input_lines, output, is_doctest, image_file= \
+                (out_data, input_lines, output, is_doctest, image_file,
+                    image_directive) = \
                           self.process_input(data, input_prompt, lineno)
             elif token==OUTPUT:
                 out_data = \
@@ -403,88 +432,235 @@ class EmbeddedSphinxShell(object):
             if out_data:
                 ret.extend(out_data)
 
+        # save the image files
         if image_file is not None:
-            self.ensure_pyplot()
-            command = 'plt.gcf().savefig("%s")'%image_file
-            print 'SAVEFIG', command  # dbg
-            self.process_input_line('bookmark ipy_thisdir')
-            self.process_input_line('cd -b ipy_basedir')
-            self.process_input_line(command)
-            self.process_input_line('cd -b ipy_thisdir')
-            self.cout.seek(0)
-            self.cout.truncate(0)
+            self.save_image(image_file)
+
         return ret, image_directive
 
     def ensure_pyplot(self):
         if self._pyplot_imported:
             return
-        self.process_input_line('import matplotlib.pyplot as plt')
+        self.process_input_line('import matplotlib.pyplot as plt',
+                                store_history=False)
 
-# A global instance used below. XXX: not sure why this can't be created inside
-# ipython_directive itself.
-shell = EmbeddedSphinxShell()
+    def process_pure_python(self, content):
+        """
+        content is a list of strings. it is unedited directive conent
 
-def reconfig_shell():
-    """Called after setting module-level variables to re-instantiate
-    with the set values (since shell is instantiated first at import-time
-    when module variables have default values)"""
-    global shell
+        This runs it line by line in the InteractiveShell, prepends
+        prompts as needed capturing stderr and stdout, then returns
+        the content as a list as if it were ipython code
+        """
+        output = []
+        savefig = False # keep up with this to clear figure
+        multiline = False # to handle line continuation
+        fmtin = self.promptin
+
+        for lineno, line in enumerate(content):
+
+            line_stripped = line.strip()
+
+            if not len(line):
+                output.append(line) # preserve empty lines in output
+                continue
+
+            # handle decorators
+            if line_stripped.startswith('@'):
+                output.extend([line])
+                if 'savefig' in line:
+                    savefig = True # and need to clear figure
+                continue
+
+            # handle comments
+            if line_stripped.startswith('#'):
+                output.extend([line])
+                continue
+
+            # deal with multilines
+            if not multiline: # not currently on a multiline
+
+                if line_stripped.endswith('\\'): # now we are
+                    multiline = True
+                    cont_len = len(str(lineno)) + 2
+                    line_to_process = line.strip('\\')
+                    output.extend([u"%s %s" % (fmtin%lineno,line)])
+                    continue
+                else: # no we're still not
+                    line_to_process = line.strip('\\')
+            else: # we are currently on a multiline
+                line_to_process += line.strip('\\')
+                if line_stripped.endswith('\\'): # and we still are
+                    continuation = '.' * cont_len
+                    output.extend([(u'   %s: '+line_stripped) % continuation])
+                    continue
+                # else go ahead and run this multiline then carry on
+
+            # get output of line
+            self.process_input_line(unicode(line_to_process.strip()),
+                                    store_history=False)
+            out_line = self.cout.getvalue()
+            self.clear_cout()
+
+            # clear current figure if plotted
+            if savefig:
+                self.ensure_pyplot()
+                self.process_input_line('plt.clf()', store_history=False)
+                self.clear_cout()
+                savefig = False
+
+            # line numbers don't actually matter, they're replaced later
+            if not multiline:
+                in_line = u"%s %s" % (fmtin%lineno,line)
+
+                output.extend([in_line])
+            else:
+                output.extend([(u'   %s: '+line_stripped) % continuation])
+                multiline = False
+            if len(out_line):
+                output.extend([out_line])
+            output.extend([u''])
+
+        return output
+
+class IpythonDirective(Directive):
+
+    has_content = True
+    required_arguments = 0
+    optional_arguments = 4 # python, suppress, verbatim, doctest
+    final_argumuent_whitespace = True
+    option_spec = { 'python': directives.unchanged,
+                    'suppress' : directives.flag,
+                    'verbatim' : directives.flag,
+                    'doctest' : directives.flag,
+                  }
+
     shell = EmbeddedSphinxShell()
 
+    def get_config_options(self):
+        # contains sphinx configuration variables
+        config = self.state.document.settings.env.config
 
-def ipython_directive(name, arguments, options, content, lineno,
-                      content_offset, block_text, state, state_machine,
-                      ):
+        # get config variables to set figure output directory
+        confdir = self.state.document.settings.env.app.confdir
+        savefig_dir = config.ipython_savefig_dir
+        source_dir = os.path.dirname(self.state.document.current_source)
+        if savefig_dir is None:
+            savefig_dir = config.html_static_path
+        if isinstance(savefig_dir, list):
+            savefig_dir = savefig_dir[0] # safe to assume only one path?
+        savefig_dir = os.path.join(confdir, savefig_dir)
 
-    debug = ipython_directive.DEBUG
-    shell.is_suppress = options.has_key('suppress')
-    shell.is_doctest = options.has_key('doctest')
-    shell.is_verbatim = options.has_key('verbatim')
+        # get regex and prompt stuff
+        rgxin     = config.ipython_rgxin
+        rgxout    = config.ipython_rgxout
+        promptin  = config.ipython_promptin
+        promptout = config.ipython_promptout
 
-    #print 'ipy', shell.is_suppress, options
-    parts = '\n'.join(content).split('\n\n')
-    lines = ['.. sourcecode:: ipython', '']
+        return savefig_dir, source_dir, rgxin, rgxout, promptin, promptout
 
-    figures = []
-    for part in parts:
-        block = block_parser(part)
+    def setup(self):
+        # get config values
+        (savefig_dir, source_dir, rgxin,
+                rgxout, promptin, promptout) = self.get_config_options()
 
-        if len(block):
-            rows, figure = shell.process_block(block)
-            for row in rows:
-                lines.extend(['    %s'%line for line in row.split('\n')])
+        # and attach to shell so we don't have to pass them around
+        self.shell.rgxin = rgxin
+        self.shell.rgxout = rgxout
+        self.shell.promptin = promptin
+        self.shell.promptout = promptout
+        self.shell.savefig_dir = savefig_dir
+        self.shell.source_dir = source_dir
 
-            if figure is not None:
-                figures.append(figure)
+        # setup bookmark for saving figures directory
 
-    for figure in figures:
-        lines.append('')
-        lines.extend(figure.split('\n'))
-        lines.append('')
+        self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
+                                      store_history=False)
+        self.shell.clear_cout()
 
-    #print lines
-    if len(lines)>2:
-        if debug:
-            print '\n'.join(lines)
-        else:
-            #print 'INSERTING %d lines'%len(lines)
-            state_machine.insert_input(
-                lines, state_machine.input_lines.source(0))
+        return rgxin, rgxout, promptin, promptout
 
-    return []
 
-ipython_directive.DEBUG = False
-ipython_directive.DEBUG = True  # dbg
+    def teardown(self):
+        # delete last bookmark
+        self.shell.process_input_line('bookmark -d ipy_savedir',
+                                      store_history=False)
+        self.shell.clear_cout()
+
+    def run(self):
+        debug = False
+
+        #TODO, any reason block_parser can't be a method of embeddable shell
+        # then we wouldn't have to carry these around
+        rgxin, rgxout, promptin, promptout = self.setup()
+
+        options = self.options
+        self.shell.is_suppress = 'suppress' in options
+        self.shell.is_doctest = 'doctest' in options
+        self.shell.is_verbatim = 'verbatim' in options
+
+
+        # handle pure python code
+        if 'python' in self.arguments:
+            content = self.content
+            self.content = self.shell.process_pure_python(content)
+
+        parts = '\n'.join(self.content).split('\n\n')
+
+        lines = ['.. code-block:: ipython','']
+        figures = []
+
+        for part in parts:
+
+            block = block_parser(part, rgxin, rgxout, promptin, promptout)
+
+            if len(block):
+                rows, figure = self.shell.process_block(block)
+                for row in rows:
+                    lines.extend(['   %s'%line for line in row.split('\n')])
+
+                if figure is not None:
+                    figures.append(figure)
+
+        #text = '\n'.join(lines)
+        #figs = '\n'.join(figures)
+
+        for figure in figures:
+            lines.append('')
+            lines.extend(figure.split('\n'))
+            lines.append('')
+
+        #print lines
+        if len(lines)>2:
+            if debug:
+                print '\n'.join(lines)
+            else: #NOTE: this raises some errors, what's it for?
+                #print 'INSERTING %d lines'%len(lines)
+                self.state_machine.insert_input(
+                    lines, self.state_machine.input_lines.source(0))
+
+        text = '\n'.join(lines)
+        txtnode = nodes.literal_block(text, text)
+        txtnode['language'] = 'ipython'
+        #imgnode = nodes.image(figs)
+
+        # cleanup
+        self.teardown()
+
+        return []#, imgnode]
 
 # Enable as a proper Sphinx directive
 def setup(app):
     setup.app = app
-    options = {'suppress': directives.flag,
-               'doctest': directives.flag,
-               'verbatim': directives.flag,
-               }
 
-    app.add_directive('ipython', ipython_directive, True, (0, 2, 0), **options)
+    app.add_directive('ipython', IpythonDirective)
+    app.add_config_value('ipython_savefig_dir', None, True)
+    app.add_config_value('ipython_rgxin',
+                         re.compile('In \[(\d+)\]:\s?(.*)\s*'), True)
+    app.add_config_value('ipython_rgxout',
+                         re.compile('Out\[(\d+)\]:\s?(.*)\s*'), True)
+    app.add_config_value('ipython_promptin', 'In [%d]:', True)
+    app.add_config_value('ipython_promptout', 'Out[%d]:', True)
 
 
 # Simple smoke test, needs to be converted to a proper automatic test.
@@ -507,7 +683,7 @@ In [3]: im = imread('stinkbug.png')
 @savefig mystinkbug.png width=4in
 In [4]: imshow(im)
 Out[4]: <matplotlib.image.AxesImage object at 0x39ea850>
-        
+
 """,
         r"""
 
@@ -542,7 +718,7 @@ In [133]: import numpy.random
 In [134]: numpy.random.seed(2358)
 
 @doctest
-In [135]: np.random.rand(10,2)
+In [135]: numpy.random.rand(10,2)
 Out[135]:
 array([[ 0.64524308,  0.59943846],
        [ 0.47102322,  0.8715456 ],
@@ -615,6 +791,8 @@ In [153]: grid(True)
 
         """,
         ]
+    # skip local-file depending first example:
+    examples = examples[1:]
 
     #ipython_directive.DEBUG = True  # dbg
     #options = dict(suppress=True)  # dbg
