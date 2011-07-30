@@ -274,7 +274,7 @@ An important part of working with the QtConsole when you are writing your own
 Qt code is to remember that user code (in the kernel) is *not* in the same
 process as the frontend.  This means that there is not necessarily any Qt code
 running in the kernel, and under most normal circumstances there isn't. If,
-however, you specify ``pylab=qt`` at the command-line, then there *will* be a
+however, you specify ``--pylab=qt`` at the command-line, then there *will* be a
 :class:`QCoreApplication` instance running in the kernel process along with
 user-code. To get a reference to this application, do:
 
