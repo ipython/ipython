@@ -126,7 +126,9 @@ def find_packages():
     add_package(packages, 'frontend.qt.console', tests=True)
     add_package(packages, 'frontend.terminal', tests=True)
     add_package(packages, 'lib', tests=True)
-    add_package(packages, 'nbformat', tests=True)
+    add_package(packages, 'nbformat')
+    add_package(packages, 'nbformat.v1', tests=True)
+    add_package(packages, 'nbformat.v2', tests=True)
     add_package(packages, 'parallel', tests=True, scripts=True, 
                                     others=['apps','engine','client','controller'])
     add_package(packages, 'quarantine', tests=True)
