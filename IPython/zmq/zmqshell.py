@@ -396,7 +396,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
     def magic_gui(self, *args, **kwargs):
         raise NotImplementedError(
-            'GUI support must be enabled in command line options.')
+            'Kernel GUI support is not implemented yet, except for --pylab.')
 
     def magic_pylab(self, *args, **kwargs):
         raise NotImplementedError(
