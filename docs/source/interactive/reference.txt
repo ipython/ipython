@@ -1117,6 +1117,18 @@ GUI event loop support
 .. versionadded:: 0.11
     The ``%gui`` magic and :mod:`IPython.lib.inputhook`.
 
+.. warning::
+
+   All GUI support with the ``%gui`` magic, described in this section, applies
+   only to the plain terminal IPython, *not* to the Qt console.  The Qt console
+   currently only supports GUI interaction via the ``--pylab`` flag, as
+   explained :ref:`in the matplotlib section <matplotlib_support>`.
+
+   We intend to correct this limitation as soon as possible, you can track our
+   progress at issue #643_.
+
+.. _643: https://github.com/ipython/ipython/issues/643
+    
 IPython has excellent support for working interactively with Graphical User
 Interface (GUI) toolkits, such as wxPython, PyQt4, PyGTK and Tk. This is
 implemented using Python's builtin ``PyOSInputHook`` hook. This implementation
@@ -1145,32 +1157,33 @@ object, do::
 For information on IPython's Matplotlib integration (and the ``pylab`` mode)
 see :ref:`this section <matplotlib_support>`.
 
-For developers that want to use IPython's GUI event loop integration in
-the form of a library, these capabilities are exposed in library form
-in the :mod:`IPython.lib.inputhook`.  Interested developers should see the
-module docstrings for more information, but there are a few points that
-should be mentioned here.
+For developers that want to use IPython's GUI event loop integration in the
+form of a library, these capabilities are exposed in library form in the
+:mod:`IPython.lib.inputhook` and :mod:`IPython.lib.guisupport` modules.
+Interested developers should see the module docstrings for more information,
+but there are a few points that should be mentioned here.
 
 First, the ``PyOSInputHook`` approach only works in command line settings 
-where readline is activated.
+where readline is activated.  As indicated in the warning above, we plan on
+improving the integration of GUI event loops with the standalone kernel used by
+the Qt console and other frontends (issue 643_).
 
 Second, when using the ``PyOSInputHook`` approach, a GUI application should
 *not* start its event loop. Instead all of this is handled by the
 ``PyOSInputHook``. This means that applications that are meant to be used both
 in IPython and as standalone apps need to have special code to detects how the
-application is being run. We highly recommend using IPython's
-:func:`enable_foo` functions for this. Here is a simple example that shows the
-recommended code that should be at the bottom of a wxPython using GUI
-application::
+application is being run. We highly recommend using IPython's support for this.
+Since the details vary slightly between toolkits, we point you to the various
+examples in our source directory :file:`docs/examples/lib` that demonstrate
+these capabilities.
 
-  try:
-      from IPython.lib.inputhook import enable_wx
-      enable_wx(app)
-  except ImportError:
-      app.MainLoop()
+.. warning::
 
-This pattern should be used instead of the simple ``app.MainLoop()`` code
-that a standalone wxPython application would have.
+   The WX version of this is currently broken.  While ``--pylab=wx`` works
+   fine, standalone WX apps do not.  See
+   https://github.com/ipython/ipython/issues/645 for details of our progress on
+   this issue.
+
 
 Third, unlike previous versions of IPython, we no longer "hijack" (replace
 them with no-ops) the event loops. This is done to allow applications that

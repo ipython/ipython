@@ -8,7 +8,6 @@ In [5]: %gui gtk
 In [6]: %run gui-gtk.py
 """
 
-
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -38,5 +37,3 @@ try:
     enable_gtk()
 except ImportError:
     gtk.main()
-
-#gtk.main()

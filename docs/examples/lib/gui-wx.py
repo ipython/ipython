@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-"""A Simple wx example to test IPython's event loop integration.
+"""
+WARNING: This example is currently broken, see
+https://github.com/ipython/ipython/issues/645 for details on our progress on
+this issue.
+
+A Simple wx example to test IPython's event loop integration.
 
 To run this do:
 
@@ -98,7 +103,12 @@ class MyApp(wx.App):
         frame.Show(True)
         return True
 
+
 if __name__ == '__main__':
+    raise NotImplementedError(
+        'Standalone WX GUI support is currently broken. '
+        'See https://github.com/ipython/ipython/issues/645 for details')
+
     app = wx.GetApp()
     if app is None:
         app = MyApp(redirect=False, clearSigInt=False)
