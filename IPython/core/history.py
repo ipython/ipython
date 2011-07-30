@@ -693,7 +693,7 @@ def magic_history(self, parameter_s = ''):
 
 
 def magic_rep(self, arg):
-    r""" Repeat a command, or get command to input line for editing
+    r"""Repeat a command, or get command to input line for editing
 
     - %rep (no arguments):
     

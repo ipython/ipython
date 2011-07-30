@@ -325,25 +325,23 @@ All options with a [no] prepended can be specified in negated form
 Interactive use
 ===============
 
-IPython is meant to work as a drop-in
-replacement for the standard interactive interpreter. As such, any code
-which is valid python should execute normally under IPython (cases where
-this is not true should be reported as bugs). It does, however, offer
-many features which are not available at a standard python prompt. What
-follows is a list of these.
+IPython is meant to work as a drop-in replacement for the standard interactive
+interpreter. As such, any code which is valid python should execute normally
+under IPython (cases where this is not true should be reported as bugs). It
+does, however, offer many features which are not available at a standard python
+prompt. What follows is a list of these.
 
 
 Caution for Windows users
 -------------------------
 
-Windows, unfortunately, uses the '\\' character as a path
-separator. This is a terrible choice, because '\\' also represents the
-escape character in most modern programming languages, including
-Python. For this reason, using '/' character is recommended if you
-have problems with ``\``.  However, in Windows commands '/' flags
-options, so you can not use it for the root directory. This means that
-paths beginning at the root must be typed in a contrived manner like:
-``%copy \opt/foo/bar.txt \tmp``
+Windows, unfortunately, uses the '\\' character as a path separator. This is a
+terrible choice, because '\\' also represents the escape character in most
+modern programming languages, including Python. For this reason, using '/'
+character is recommended if you have problems with ``\``.  However, in Windows
+commands '/' flags options, so you can not use it for the root directory. This
+means that paths beginning at the root must be typed in a contrived manner
+like: ``%copy \opt/foo/bar.txt \tmp``
 
 .. _magic:
 
@@ -419,11 +417,11 @@ following example defines a new magic command, %impall:
 
     ip.expose_magic('impall', doimp)
 
-Type %magic for more information, including a list of all available
-magic functions at any time and their docstrings. You can also type
-%magic_function_name? (see sec. 6.4 <#sec:dyn-object-info> for
-information on the '?' system) to get information about any particular
-magic function you are interested in.
+Type `%magic` for more information, including a list of all available magic
+functions at any time and their docstrings. You can also type
+%magic_function_name? (see :ref:`below <dynamic_object_info` for information on
+the '?' system) to get information about any particular magic function you are
+interested in.
 
 The API documentation for the :mod:`IPython.core.magic` module contains the full
 docstrings of all currently available magic commands.
@@ -444,20 +442,20 @@ PYTHONDOCS for this feature to work correctly.
 Dynamic object information
 --------------------------
 
-Typing ?word or word? prints detailed information about an object. If
-certain strings in the object are too long (docstrings, code, etc.) they
-get snipped in the center for brevity. This system gives access variable
-types and values, full source code for any object (if available),
-function prototypes and other useful information.
+Typing ``?word`` or ``word?`` prints detailed information about an object. If
+certain strings in the object are too long (docstrings, code, etc.) they get
+snipped in the center for brevity. This system gives access variable types and
+values, full source code for any object (if available), function prototypes and
+other useful information.
 
-Typing ??word or word?? gives access to the full information without
+Typing ``??word`` or ``word??`` gives access to the full information without
 snipping long strings. Long strings are sent to the screen through the
 less pager if longer than the screen and printed otherwise. On systems
 lacking the less command, IPython uses a very basic internal pager.
 
 The following magic functions are particularly useful for gathering
 information about your working environment. You can get more details by
-typing %magic or querying them individually (use %function_name? with or
+typing ``%magic`` or querying them individually (use %function_name? with or
 without the %), this is just a summary:
 
     * **%pdoc <object>**: Print (or run through a pager if too long) the
@@ -476,21 +474,19 @@ without the %), this is just a summary:
       identifiers and %whos prints a table with some basic details about
       each identifier.
 
-Note that the dynamic object information functions (?/??, %pdoc, %pfile,
-%pdef, %psource) give you access to documentation even on things which
-are not really defined as separate identifiers. Try for example typing
-{}.get? or after doing import os, type os.path.abspath??.
-
+Note that the dynamic object information functions (?/??, ``%pdoc``,
+``%pfile``, ``%pdef``, ``%psource``) give you access to documentation even on
+things which are not really defined as separate identifiers. Try for example
+typing {}.get? or after doing import os, type ``os.path.abspath??``.
 
 .. _readline:
 
 Readline-based features
 -----------------------
 
-These features require the GNU readline library, so they won't work if
-your Python installation lacks readline support. We will first describe
-the default behavior IPython uses, and then how to change it to suit
-your preferences.
+These features require the GNU readline library, so they won't work if your
+Python installation lacks readline support. We will first describe the default
+behavior IPython uses, and then how to change it to suit your preferences.
 
 
 Command line completion
@@ -534,10 +530,10 @@ Autoindent
 IPython can recognize lines ending in ':' and indent the next line,
 while also un-indenting automatically after 'raise' or 'return'.
 
-This feature uses the readline library, so it will honor your ~/.inputrc
-configuration (or whatever file your INPUTRC variable points to). Adding
-the following lines to your .inputrc file can make indenting/unindenting
-more convenient (M-i indents, M-u unindents)::
+This feature uses the readline library, so it will honor your
+:file:`~/.inputrc` configuration (or whatever file your INPUTRC variable points
+to). Adding the following lines to your :file:`.inputrc` file can make
+indenting/unindenting more convenient (M-i indents, M-u unindents)::
 
     $if Python 
     "\M-i": "    "  
@@ -548,17 +544,19 @@ Note that there are 4 spaces between the quote marks after "M-i" above.
 
 .. warning::
 
-    Setting the above indents will cause problems with unicode text entry in the terminal.
+    Setting the above indents will cause problems with unicode text entry in
+    the terminal.
 
 .. warning::
 
-    Autoindent is ON by default, but it can cause problems with
-    the pasting of multi-line indented code (the pasted code gets
-    re-indented on each line). A magic function %autoindent allows you to
-    toggle it on/off at runtime. You can also disable it permanently on in
-    your :file:`ipython_config.py` file (set TerminalInteractiveShell.autoindent=False).
+    Autoindent is ON by default, but it can cause problems with the pasting of
+    multi-line indented code (the pasted code gets re-indented on each line). A
+    magic function %autoindent allows you to toggle it on/off at runtime. You
+    can also disable it permanently on in your :file:`ipython_config.py` file
+    (set TerminalInteractiveShell.autoindent=False).
     
-    If you want to paste multiple lines, it is recommended that you use ``%paste``.
+    If you want to paste multiple lines, it is recommended that you use
+    ``%paste``.
 
 
 Customizing readline behavior
@@ -604,7 +602,7 @@ Session logging and restoring
 -----------------------------
 
 You can log all input from a session either by starting IPython with the
-command line switche ``logfile=foo.py`` (see :ref:`here <command_line_options>`)
+command line switch ``--logfile=foo.py`` (see :ref:`here <command_line_options>`)
 or by activating the logging at any moment with the magic function %logstart.
 
 Log files can later be reloaded by running them as scripts and IPython
@@ -617,10 +615,10 @@ any code you wrote while experimenting. Log files are regular text files
 which you can later open in your favorite text editor to extract code or
 to 'clean them up' before using them to replay a session.
 
-The %logstart function for activating logging in mid-session is used as
-follows:
+The `%logstart` function for activating logging in mid-session is used as
+follows::
 
-%logstart [log_name [log_mode]]
+    %logstart [log_name [log_mode]]
 
 If no name is given, it defaults to a file named 'ipython_log.py' in your
 current working directory, in 'rotate' mode (see below).
@@ -648,7 +646,7 @@ System shell access
 
 Any input line beginning with a ! character is passed verbatim (minus
 the !, of course) to the underlying operating system. For example,
-typing !ls will run 'ls' in the current directory.
+typing ``!ls`` will run 'ls' in the current directory.
 
 Manual capture of command output
 --------------------------------
@@ -702,9 +700,9 @@ The %alias magic function and the alias option in the ipythonrc
 configuration file allow you to define magic functions which are in fact
 system shell commands. These aliases can have parameters.
 
-'%alias alias_name cmd' defines 'alias_name' as an alias for 'cmd'
+``%alias alias_name cmd`` defines 'alias_name' as an alias for 'cmd'
 
-Then, typing '%alias_name params' will execute the system command 'cmd
+Then, typing ``%alias_name params`` will execute the system command 'cmd
 params' (from your underlying operating system).
 
 You can also define aliases with parameters using %s specifiers (one per
@@ -722,9 +720,8 @@ replaced by a positional parameter to the call to %parts::
 If called with no parameters, %alias prints the table of currently
 defined aliases.
 
-The %rehash/rehashx magics allow you to load your entire $PATH as
-ipython aliases. See their respective docstrings (or sec. 6.2
-<#sec:magic> for further details).
+The %rehashx magic allows you to load your entire $PATH as
+ipython aliases. See its docstring for further details.
 
 
 .. _dreload:
@@ -765,15 +762,14 @@ addition to the %rep magic command that brings a history entry
 up for editing on the next  command line.
 
 The following GLOBAL variables always exist (so don't overwrite them!):
-_i: stores previous input. _ii: next previous. _iii: next-next previous.
-_ih : a list of all input _ih[n] is the input from line n and this list
-is aliased to the global variable In. If you overwrite In with a
-variable of your own, you can remake the assignment to the internal list
-with a simple 'In=_ih'.
+
+* _i, _ii, _iii: store previous, next previous and next-next previous inputs.
+* In, _ih : a list of all inputs; _ih[n] is the input from line n. If you
+  overwrite In with a variable of your own, you can remake the assignment to the
+  internal list with a simple ``In=_ih``.
 
 Additionally, global variables named _i<n> are dynamically created (<n>
-being the prompt counter), such that
-_i<n> == _ih[<n>] == In[<n>].
+being the prompt counter), so ``_i<n> == _ih[<n>] == In[<n>]``.
 
 For example, what you typed at prompt 14 is available as _i14, _ih[14]
 and In[14].
@@ -781,55 +777,23 @@ and In[14].
 This allows you to easily cut and paste multi line interactive prompts
 by printing them out: they print like a clean string, without prompt
 characters. You can also manipulate them like regular variables (they
-are strings), modify or exec them (typing 'exec _i9' will re-execute the
-contents of input prompt 9, 'exec In[9:14]+In[18]' will re-execute lines
-9 through 13 and line 18).
+are strings), modify or exec them (typing ``exec _i9`` will re-execute the
+contents of input prompt 9.
 
 You can also re-execute multiple lines of input easily by using the
 magic %macro function (which automates the process and allows
 re-execution without having to type 'exec' every time). The macro system
 also allows you to re-execute previous lines which include magic
-function calls (which require special processing). Type %macro? or see
-sec. 6.2 <#sec:magic> for more details on the macro system.
+function calls (which require special processing). Type %macro? for more details
+on the macro system.
 
 A history function %hist allows you to see any part of your input
 history by printing a range of the _i variables.
 
 You can also search ('grep') through your history by typing 
-'%hist -g somestring'. This also searches through the so called *shadow history*,
-which remembers all the commands (apart from multiline code blocks)
-you have ever entered. Handy for searching for svn/bzr URL's, IP adrresses
-etc. You can bring shadow history entries listed by '%hist -g' up for editing 
-(or re-execution by just pressing ENTER) with %rep command. Shadow history 
-entries are not available as _iNUMBER variables, and they are identified by 
-the '0' prefix in %hist -g output. That is, history entry 12 is a normal 
-history entry, but 0231 is a shadow history entry.
-
-Shadow history was added because the readline history is inherently very
-unsafe - if you have multiple IPython sessions open, the last session 
-to close will overwrite the history of previountly closed session. Likewise,
-if a crash occurs, history is never saved, whereas shadow history entries
-are added after entering every command (so a command executed 
-in another IPython session is immediately available in other IPython 
-sessions that are open).
-
-To conserve space, a command can exist in shadow history only once - it doesn't 
-make sense to store a common line like "cd .." a thousand times. The idea is 
-mainly to provide a reliable place where valuable, hard-to-remember commands can 
-always be retrieved, as opposed to providing an exact sequence of commands
-you have entered in actual order.
-
-Because shadow history has all the commands you have ever executed,
-time taken by %hist -g will increase oven time. If it ever starts to take
-too long (or it ends up containing sensitive information like passwords), 
-clear the shadow history by `%clear shadow_nuke`.
-
-Time taken to add entries to shadow history should be negligible, but 
-in any case, if you start noticing performance degradation after using 
-IPython for a long time (or running a script that floods the shadow history!), 
-you can 'compress' the shadow history by executing 
-`%clear shadow_compress`. In practice, this should never be necessary
-in normal use.
+``%hist -g somestring``. This is handy for searching for URLs, IP addresses,
+etc. You can bring history entries listed by '%hist -g' up for editing
+with the %recall command, or run them immediately with %rerun.
 
 .. _output_caching:
 
@@ -874,7 +838,7 @@ Directory history
 
 Your history of visited directories is kept in the global list _dh, and
 the magic %cd command can be used to go to any entry in that list. The
-%dhist command allows you to view this history. Do ``cd -<TAB`` to
+%dhist command allows you to view this history. Do ``cd -<TAB>`` to
 conveniently view the directory history.
 
 
@@ -1106,68 +1070,69 @@ supplied, which we will briefly describe now. These can be used 'as is'
 (and both provide very useful functionality), or you can use them as a
 starting point for writing your own extensions.
 
+.. _pasting_with_prompts:
 
-Pasting of code starting with '>>> ' or '... '
-----------------------------------------------
+Pasting of code starting with Python or IPython prompts
+-------------------------------------------------------
 
-In the python tutorial it is common to find code examples which have
-been taken from real python sessions. The problem with those is that all
-the lines begin with either '>>> ' or '... ', which makes it impossible
-to paste them all at once. One must instead do a line by line manual
-copying, carefully removing the leading extraneous characters.
+IPython is smart enough to filter  out input prompts, be they plain Python ones
+(``>>>`` and ``...``) or IPython ones (``In [N]:`` and `` ...:``).  You can
+therefore copy and paste from existing interactive sessions without worry.
 
-This extension identifies those starting characters and removes them
-from the input automatically, so that one can paste multi-line examples
-directly into IPython, saving a lot of time. Please look at the file
-InterpreterPasteInput.py in the IPython/extensions directory for details
-on how this is done.
+The following is a 'screenshot' of how things work, copying an example from the
+standard Python tutorial::
 
-IPython comes with a special profile enabling this feature, called
-tutorial. Simply start IPython via 'ipython -p tutorial' and the feature
-will be available. In a normal IPython session you can activate the
-feature by importing the corresponding module with:
-In [1]: import IPython.extensions.InterpreterPasteInput
+    In [1]: >>> # Fibonacci series:
 
-The following is a 'screenshot' of how things work when this extension
-is on, copying an example from the standard tutorial::
+    In [2]: ... # the sum of two elements defines the next
 
-    IPython profile: tutorial 
+    In [3]: ... a, b = 0, 1
 
-    *** Pasting of code with ">>>" or "..." has been enabled. 
+    In [4]: >>> while b < 10:
+       ...:     ...     print b
+       ...:     ...     a, b = b, a+b
+       ...:     
+    1
+    1
+    2
+    3
+    5
+    8
 
-    In [1]: >>> def fib2(n): # return Fibonacci series up to n 
-       ...: ...     """Return a list containing the Fibonacci series up to
-    n.""" 
-       ...: ...     result = [] 
-       ...: ...     a, b = 0, 1 
-       ...: ...     while b < n: 
-       ...: ...         result.append(b)    # see below 
-       ...: ...         a, b = b, a+b 
-       ...: ...     return result 
-       ...: 
+And pasting from IPython sessions works equally well::
 
-    In [2]: fib2(10) 
-    Out[2]: [1, 1, 2, 3, 5, 8]
+    In [1]: In [5]: def f(x):
+       ...:        ...:     "A simple function"
+       ...:        ...:     return x**2
+       ...:    ...: 
 
-Note that as currently written, this extension does not recognize
-IPython's prompts for pasting. Those are more complicated, since the
-user can change them very easily, they involve numbers and can vary in
-length. One could however extract all the relevant information from the
-IPython instance and build an appropriate regular expression. This is
-left as an exercise for the reader.
+    In [2]: f(3)
+    Out[2]: 9
 
 .. _gui_support:
 
-GUI event loop support support
-==============================
+GUI event loop support
+======================
 
 .. versionadded:: 0.11
     The ``%gui`` magic and :mod:`IPython.lib.inputhook`.
 
+.. warning::
+
+   All GUI support with the ``%gui`` magic, described in this section, applies
+   only to the plain terminal IPython, *not* to the Qt console.  The Qt console
+   currently only supports GUI interaction via the ``--pylab`` flag, as
+   explained :ref:`in the matplotlib section <matplotlib_support>`.
+
+   We intend to correct this limitation as soon as possible, you can track our
+   progress at issue #643_.
+
+.. _643: https://github.com/ipython/ipython/issues/643
+    
 IPython has excellent support for working interactively with Graphical User
 Interface (GUI) toolkits, such as wxPython, PyQt4, PyGTK and Tk. This is
 implemented using Python's builtin ``PyOSInputHook`` hook. This implementation
-is extremely robust compared to our previous threaded based version. The
+is extremely robust compared to our previous thread-based version. The
 advantages of this are:
 
 * GUIs can be enabled and disabled dynamically at runtime.
@@ -1179,46 +1144,46 @@ advantages of this are:
 For users, enabling GUI event loop integration is simple.  You simple use the
 ``%gui`` magic as follows::
 
-    %gui [-a] [GUINAME]
+    %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments are ``wx``, ``qt4``, ``gtk`` and ``tk``.  The ``-a`` option will
-create and return a running application object for the selected GUI toolkit.
+arguments are ``wx``, ``qt4``, ``gtk`` and ``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::
 
-    %gui -a wx
+    %gui wx
 
 For information on IPython's Matplotlib integration (and the ``pylab`` mode)
 see :ref:`this section <matplotlib_support>`.
 
-For developers that want to use IPython's GUI event loop integration in
-the form of a library, these capabilities are exposed in library form
-in the :mod:`IPython.lib.inputhook`.  Interested developers should see the
-module docstrings for more information, but there are a few points that
-should be mentioned here.
+For developers that want to use IPython's GUI event loop integration in the
+form of a library, these capabilities are exposed in library form in the
+:mod:`IPython.lib.inputhook` and :mod:`IPython.lib.guisupport` modules.
+Interested developers should see the module docstrings for more information,
+but there are a few points that should be mentioned here.
 
 First, the ``PyOSInputHook`` approach only works in command line settings 
-where readline is activated.
+where readline is activated.  As indicated in the warning above, we plan on
+improving the integration of GUI event loops with the standalone kernel used by
+the Qt console and other frontends (issue 643_).
 
 Second, when using the ``PyOSInputHook`` approach, a GUI application should
 *not* start its event loop. Instead all of this is handled by the
 ``PyOSInputHook``. This means that applications that are meant to be used both
 in IPython and as standalone apps need to have special code to detects how the
-application is being run. We highly recommend using IPython's
-:func:`enable_foo` functions for this. Here is a simple example that shows the
-recommended code that should be at the bottom of a wxPython using GUI
-application::
+application is being run. We highly recommend using IPython's support for this.
+Since the details vary slightly between toolkits, we point you to the various
+examples in our source directory :file:`docs/examples/lib` that demonstrate
+these capabilities.
 
-  try:
-      from IPython.lib.inputhook import enable_wx
-      enable_wx(app)
-  except ImportError:
-      app.MainLoop()
+.. warning::
 
-This pattern should be used instead of the simple ``app.MainLoop()`` code
-that a standalone wxPython application would have.
+   The WX version of this is currently broken.  While ``--pylab=wx`` works
+   fine, standalone WX apps do not.  See
+   https://github.com/ipython/ipython/issues/645 for details of our progress on
+   this issue.
+
 
 Third, unlike previous versions of IPython, we no longer "hijack" (replace
 them with no-ops) the event loops. This is done to allow applications that
@@ -1233,7 +1198,7 @@ PyQt and PySide
 
 .. attempt at explanation of the complete mess that is Qt support
 
-When you use ``gui=qt`` or ``pylab=qt``, IPython can work with either
+When you use ``--gui=qt`` or ``--pylab=qt``, IPython can work with either
 PyQt4 or PySide.  There are three options for configuration here, because
 PyQt4 has two APIs for QString and QVariant - v1, which is the default on
 Python 2, and the more natural v2, which is the only API supported by PySide.
@@ -1251,21 +1216,20 @@ PyQt4 to use its v2 API.  So if ``QT_API=pyside`` PySide will be used,
 and if ``QT_API=pyqt`` then PyQt4 will be used *with the v2 API* for
 QString and QVariant, so ETS codes like MayaVi will also work with IPython.
 
-If you launch IPython in pylab mode with ``ipython pylab=qt``, then IPython
-will ask matplotlib which Qt library to use (only if QT_API is *not set*),
-via the 'backend.qt4' rcParam.
-If matplotlib is version 1.0.1 or older, then IPython will always use PyQt4
-without setting the v2 APIs, since neither v2 PyQt nor PySide work.
+If you launch IPython in pylab mode with ``ipython --pylab=qt``, then IPython
+will ask matplotlib which Qt library to use (only if QT_API is *not set*), via
+the 'backend.qt4' rcParam.  If matplotlib is version 1.0.1 or older, then
+IPython will always use PyQt4 without setting the v2 APIs, since neither v2
+PyQt nor PySide work.
 
 .. warning::
 
-    Note that this means for ETS 4 to work with PyQt4, ``QT_API`` *must* be set to
-    work with IPython's qt integration, because otherwise PyQt4 will be loaded in
-    an incompatible mode.
+    Note that this means for ETS 4 to work with PyQt4, ``QT_API`` *must* be set
+    to work with IPython's qt integration, because otherwise PyQt4 will be
+    loaded in an incompatible mode.
     
     It also means that you must *not* have ``QT_API`` set if you want to
-    use ``gui=qt`` with code that requires PyQt4 API v1.
-
+    use ``--gui=qt`` with code that requires PyQt4 API v1.
 
 
 .. _matplotlib_support:
@@ -1273,27 +1237,17 @@ without setting the v2 APIs, since neither v2 PyQt nor PySide work.
 Plotting with matplotlib
 ========================
 
+`Matplotlib`_ provides high quality 2D and 3D plotting for Python. Matplotlib
+can produce plots on screen using a variety of GUI toolkits, including Tk,
+PyGTK, PyQt4 and wxPython. It also provides a number of commands useful for
+scientific computing, all with a syntax compatible with that of the popular
+Matlab program.
 
-`Matplotlib`_ provides high quality 2D and
-3D plotting for Python. Matplotlib can produce plots on screen using a variety
-of GUI toolkits, including Tk, PyGTK, PyQt4 and wxPython. It also provides a
-number of commands useful for scientific computing, all with a syntax
-compatible with that of the popular Matlab program.
-
-Many IPython users have come to rely on IPython's ``-pylab`` mode which
-automates the integration of Matplotlib with IPython. We are still in the
-process of working with the Matplotlib developers to finalize the new pylab
-API, but for now you can use Matplotlib interactively using the following
-commands::
-
-    %gui -a wx
-    import matplotlib
-    matplotlib.use('wxagg')
-    from matplotlib import pylab
-    pylab.interactive(True)
-
-All of this will soon be automated as Matplotlib begins to include
-new logic that uses our new GUI support.
+To start IPython with matplotlib support, use the ``--pylab`` switch.  If no
+arguments are given, IPython will automatically detect your choice of
+matplotlib backend.  You can also request a specific backend with
+``--pylab=backend``, where ``backend`` must be one of: 'tk', 'qt', 'wx', 'gtk',
+'osx'.
 
 .. _Matplotlib: http://matplotlib.sourceforge.net
 
@@ -1319,7 +1273,6 @@ sections for execution as a demo:
 
 .. literalinclude:: ../../examples/lib/example-demo.py
     :language: python
-
 
 In order to run a file as a demo, you must first make a Demo object out
 of it. If the file is named myscript.py, the following code will make a
@@ -1353,5 +1306,5 @@ Supporting something like this would basically require tracking the
 internal execution state of the Python interpreter, so only top-level
 divisions are allowed. If you want to be able to open an IPython
 instance at an arbitrary point in a program, you can use IPython's
-embedding facilities, described in detail in Sec. 9
+embedding facilities, see :func:`IPython.embed` for details.
 

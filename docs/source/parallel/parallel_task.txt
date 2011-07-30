@@ -27,7 +27,7 @@ the :command:`ipcluster` command::
 	$ ipcluster start --n=4
 	
 For more detailed information about starting the controller and engines, see
-our :ref:`introduction <ip1par>` to using IPython for parallel computing.
+our :ref:`introduction <parallel_overview>` to using IPython for parallel computing.
 
 Creating a ``Client`` instance
 ==============================

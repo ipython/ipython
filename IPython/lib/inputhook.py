@@ -115,13 +115,14 @@ class InputHookManager(object):
         elif self._apps.has_key(gui):
             del self._apps[gui]
 
-    def enable_wx(self):
+    def enable_wx(self, app=None):
         """Enable event loop integration with wxPython.
 
         Parameters
         ----------
-        app : bool
-            Create a running application object or not.
+        app : WX Application, optional.
+            Running application to use.  If not given, we probe WX for an
+            existing application object, and create a new one if none is found.
 
         Notes
         -----
@@ -129,22 +130,19 @@ class InputHookManager(object):
         the wxPython to integrate with terminal based applications like
         IPython.
 
-        If ``app`` is True, we create an :class:`wx.App` as follows::
+        If ``app`` is not given we probe for an existing one, and return it if
+        found.  If no existing app is found, we create an :class:`wx.App` as
+        follows::
 
             import wx
             app = wx.App(redirect=False, clearSigInt=False)
-
-        Both options this constructor are important for things to work
-        properly in an interactive context.
-
-        But, we first check to see if an application has already been 
-        created.  If so, we simply return that instance.
         """
         from IPython.lib.inputhookwx import inputhook_wx
         self.set_inputhook(inputhook_wx)
         self._current_gui = GUI_WX
         import wx
-        app = wx.GetApp()
+        if app is None:
+            app = wx.GetApp()
         if app is None:
             app = wx.App(redirect=False, clearSigInt=False)
         app._in_event_loop = True
@@ -160,13 +158,14 @@ class InputHookManager(object):
             self._apps[GUI_WX]._in_event_loop = False
         self.clear_inputhook()
 
-    def enable_qt4(self):
+    def enable_qt4(self, app=None):
         """Enable event loop integration with PyQt4.
         
         Parameters
         ----------
-        app : bool
-            Create a running application object or not.
+        app : Qt Application, optional.
+            Running application to use.  If not given, we probe Qt for an
+            existing application object, and create a new one if none is found.
 
         Notes
         -----
@@ -174,13 +173,12 @@ class InputHookManager(object):
         the PyQt4 to integrate with terminal based applications like
         IPython.
 
-        If ``app`` is True, we create an :class:`QApplication` as follows::
+        If ``app`` is not given we probe for an existing one, and return it if
+        found.  If no existing app is found, we create an :class:`QApplication`
+        as follows::
 
             from PyQt4 import QtCore
             app = QtGui.QApplication(sys.argv)
-
-        But, we first check to see if an application has already been 
-        created.  If so, we simply return that instance.
         """
         from IPython.external.qt_for_kernel import QtCore, QtGui
 
@@ -205,7 +203,8 @@ class InputHookManager(object):
             pass
 
         self._current_gui = GUI_QT4
-        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtGui.QApplication([" "])
         app._in_event_loop = True
@@ -221,14 +220,15 @@ class InputHookManager(object):
             self._apps[GUI_QT4]._in_event_loop = False
         self.clear_inputhook()
 
-    def enable_gtk(self, app=False):
+    def enable_gtk(self, app=None):
         """Enable event loop integration with PyGTK.
 
         Parameters
         ----------
-        app : bool
-            Create a running application object or not.  Because gtk does't
-            have an app class, this does nothing.
+        app : ignored
+           Ignored, it's only a placeholder to keep the call signature of all
+           gui activation methods consistent, which simplifies the logic of
+           supporting magics.
 
         Notes
         -----
@@ -253,21 +253,24 @@ class InputHookManager(object):
         """
         self.clear_inputhook()
 
-    def enable_tk(self, app=False):
+    def enable_tk(self, app=None):
         """Enable event loop integration with Tk.
 
         Parameters
         ----------
-        app : bool
-            Create a running application object or not.
+        app : toplevel :class:`Tkinter.Tk` widget, optional.
+            Running toplevel widget to use.  If not given, we probe Tk for an
+            existing one, and create a new one if none is found.
 
         Notes
         -----
-        Currently this is a no-op as creating a :class:`Tkinter.Tk` object 
+        If you have already created a :class:`Tkinter.Tk` object, the only
+        thing done by this method is to register with the
+        :class:`InputHookManager`, since creating that object automatically
         sets ``PyOS_InputHook``.
         """
         self._current_gui = GUI_TK
-        if app:
+        if app is None:
             import Tkinter
             app = Tkinter.Tk()
             app.withdraw()
@@ -302,7 +305,7 @@ clear_app_refs = inputhook_manager.clear_app_refs
 
 
 # Convenience function to switch amongst them
-def enable_gui(gui=None):
+def enable_gui(gui=None, app=None):
     """Switch amongst GUI input hooks by name.
 
     This is just a utility wrapper around the methods of the InputHookManager
@@ -314,8 +317,11 @@ def enable_gui(gui=None):
       If None, clears input hook, otherwise it must be one of the recognized
       GUI names (see ``GUI_*`` constants in module).
 
-    app : optional, bool
-      If true, create an app object and return it.
+    app : optional, existing application object.
+      For toolkits that have the concept of a global app, you can supply an
+      existing one.  If not given, the toolkit will be probed for one, and if
+      none is found, a new one will be created.  Note that GTK does not have
+      this concept, and passing an app if `gui`=="GTK" will raise an error.
 
     Returns
     -------
@@ -333,7 +339,7 @@ def enable_gui(gui=None):
     try:
         gui_hook = guis[gui]
     except KeyError:
-        e="Invalid GUI request %r, valid ones are:%s" % (gui, guis.keys())
+        e = "Invalid GUI request %r, valid ones are:%s" % (gui, guis.keys())
         raise ValueError(e)
-    return gui_hook()
+    return gui_hook(app)
 
