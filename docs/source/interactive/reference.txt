@@ -1070,55 +1070,44 @@ supplied, which we will briefly describe now. These can be used 'as is'
 (and both provide very useful functionality), or you can use them as a
 starting point for writing your own extensions.
 
+.. _pasting_with_prompts:
 
-Pasting of code starting with '>>> ' or '... '
-----------------------------------------------
+Pasting of code starting with Python or IPython prompts
+-------------------------------------------------------
 
-In the python tutorial it is common to find code examples which have
-been taken from real python sessions. The problem with those is that all
-the lines begin with either '>>> ' or '... ', which makes it impossible
-to paste them all at once. One must instead do a line by line manual
-copying, carefully removing the leading extraneous characters.
+IPython is smart enough to filter  out input prompts, be they plain Python ones
+(``>>>`` and ``...``) or IPython ones (``In [N]:`` and `` ...:``).  You can
+therefore copy and paste from existing interactive sessions without worry.
 
-This extension identifies those starting characters and removes them
-from the input automatically, so that one can paste multi-line examples
-directly into IPython, saving a lot of time. Please look at the file
-InterpreterPasteInput.py in the IPython/extensions directory for details
-on how this is done.
+The following is a 'screenshot' of how things work, copying an example from the
+standard Python tutorial::
 
-IPython comes with a special profile enabling this feature, called
-tutorial. Simply start IPython via 'ipython -p tutorial' and the feature
-will be available. In a normal IPython session you can activate the
-feature by importing the corresponding module with:
-In [1]: import IPython.extensions.InterpreterPasteInput
+    In [1]: >>> # Fibonacci series:
 
-The following is a 'screenshot' of how things work when this extension
-is on, copying an example from the standard tutorial::
+    In [2]: ... # the sum of two elements defines the next
 
-    IPython profile: tutorial 
+    In [3]: ... a, b = 0, 1
 
-    *** Pasting of code with ">>>" or "..." has been enabled. 
+    In [4]: >>> while b < 10:
+       ...:     ...     print b
+       ...:     ...     a, b = b, a+b
+       ...:     
+    1
+    1
+    2
+    3
+    5
+    8
 
-    In [1]: >>> def fib2(n): # return Fibonacci series up to n 
-       ...: ...     """Return a list containing the Fibonacci series up to
-    n.""" 
-       ...: ...     result = [] 
-       ...: ...     a, b = 0, 1 
-       ...: ...     while b < n: 
-       ...: ...         result.append(b)    # see below 
-       ...: ...         a, b = b, a+b 
-       ...: ...     return result 
-       ...: 
+And pasting from IPython sessions works equally well::
 
-    In [2]: fib2(10) 
-    Out[2]: [1, 1, 2, 3, 5, 8]
+    In [1]: In [5]: def f(x):
+       ...:        ...:     "A simple function"
+       ...:        ...:     return x**2
+       ...:    ...: 
 
-Note that as currently written, this extension does not recognize
-IPython's prompts for pasting. Those are more complicated, since the
-user can change them very easily, they involve numbers and can vary in
-length. One could however extract all the relevant information from the
-IPython instance and build an appropriate regular expression. This is
-left as an exercise for the reader.
+    In [2]: f(3)
+    Out[2]: 9
 
 .. _gui_support:
 
