@@ -3,4 +3,4 @@
 ipdir=$PWD/..
 
 cd $ipdir/dist
-scp * ipython@ipython.scipy.org:www/dist/testing/
+scp * ipython@archive.ipython.org:archive.ipython.org/testing/
