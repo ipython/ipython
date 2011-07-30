@@ -82,58 +82,21 @@ setup_args = dict(
 # Find packages
 #---------------------------------------------------------------------------
 
-def add_package(packages,pname,config=False,tests=False,scripts=False,
-                others=None):
-    """
-    Add a package to the list of packages, including certain subpackages.
-    """
-    packages.append('.'.join(['IPython',pname]))
-    if config:
-        packages.append('.'.join(['IPython',pname,'config']))
-    if tests:
-        packages.append('.'.join(['IPython',pname,'tests']))
-    if scripts:
-        packages.append('.'.join(['IPython',pname,'scripts']))
-    if others is not None:
-        for o in others:
-            packages.append('.'.join(['IPython',pname,o]))
-
 def find_packages():
     """
     Find all of IPython's packages.
     """
-    packages = ['IPython']
-    add_package(packages, 'config', tests=True, others=['profile'])
-    add_package(packages, 'core', tests=True)
-    add_package(packages, 'extensions')
-    add_package(packages, 'external')
-    add_package(packages, 'external.argparse')
-    add_package(packages, 'external.decorator')
-    add_package(packages, 'external.decorators')
-    add_package(packages, 'external.guid')
-    add_package(packages, 'external.Itpl')
-    add_package(packages, 'external.mglob')
-    add_package(packages, 'external.path')
-    add_package(packages, 'external.pexpect')
-    add_package(packages, 'external.pyparsing')
-    add_package(packages, 'external.simplegeneric')
-    add_package(packages, 'external.ssh')
-    add_package(packages, 'kernel')
-    add_package(packages, 'frontend')
-    add_package(packages, 'frontend.qt')
-    add_package(packages, 'frontend.qt.console', tests=True)
-    add_package(packages, 'frontend.terminal', tests=True)    
-    add_package(packages, 'lib', tests=True)
-    add_package(packages, 'parallel', tests=True, scripts=True, 
-                                    others=['apps','engine','client','controller'])
-    add_package(packages, 'quarantine', tests=True)
-    add_package(packages, 'scripts')
-    add_package(packages, 'testing', tests=True)
-    add_package(packages, 'testing.plugin', tests=False)
-    add_package(packages, 'utils', tests=True)
-    add_package(packages, 'zmq')
-    add_package(packages, 'zmq.pylab')
-    add_package(packages, 'zmq.gui')
+    excludes = ['deathrow']
+    packages = []
+    for dir,subdirs,files in os.walk('IPython'):
+        package = dir.replace(os.path.sep, '.')
+        if any([ package.startswith('IPython.'+exc) for exc in excludes ]):
+            # package is to be excluded (e.g. deathrow)
+            continue
+        if '__init__.py' not in files:
+            # not a package
+            continue
+        packages.append(package)
     return packages
 
 #---------------------------------------------------------------------------
