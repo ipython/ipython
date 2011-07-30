@@ -1,22 +1,38 @@
 .. _qtconsole:
 
 =========================
-IPython as a QtGUI widget
+A Qt Console for IPython
 =========================
 
 We now have a version of IPython, using the new two-process :ref:`ZeroMQ Kernel
-<ipythonzmq>`, running in a PyQt_ GUI.
+<ipythonzmq>`, running in a PyQt_ GUI.  This is a very lightweight widget that
+largely feels like a terminal, but provides a number of enhancements only
+possible in a GUI, such as inline figures, proper multiline editing with syntax
+highlighting, graphical calltips, and much more.
 
-Overview
-========
+.. figure:: ../_static/qtconsole.png
+    :width: 400px
+    :alt: IPython Qt console with embedded plots
+    :align: center
+    :target: ../_static/qtconsole.png
+
+    The Qt console for IPython, using inline matplotlib plots.
+
+To get acquainted with the Qt console, type `%guiref` to see a quick
+introduction of its main features.
 
 The Qt frontend has hand-coded emacs-style bindings for text navigation. This
 is not yet configurable.
 
-.. seealso:: 
+.. tip::
 
-    :ref:`The original IPython-Qt project description. <ipython_qt>`
-    
+   Since the Qt console tries hard to behave like a terminal, by default it
+   immediately executes single lines of input that are complete.  If you want
+   to force multiline input, hit :key:`Ctrl-Enter` at the end of the first line
+   instead of :key:`Enter`, and it will open a new line for input.  At any
+   point in a multiline block, you can force its execution (without having to
+   go to the bottom) with :key:`Shift-Enter`.
+
 ``%loadpy``
 ===========
 
@@ -205,8 +221,8 @@ These do not have to all be qt frontends - any IPython frontend can connect and
 run code.  When you start ipython qtconsole, there will be an output line,
 like::
 
-    To connect another client to this kernel, use:
-    --external --shell=62109 --iopub=62110 --stdin=62111 --hb=62112
+    [IPKernelApp] To connect another client to this kernel, use:
+    [IPKernelApp] --existing --shell=60690 --iopub=44045 --stdin=38323 --hb=41797
 
 Other frontends can connect to your kernel, and share in the execution. This is
 great for collaboration. The `-e` flag is for 'external'. Starting other

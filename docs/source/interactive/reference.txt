@@ -1133,7 +1133,7 @@ GUI event loop support
 IPython has excellent support for working interactively with Graphical User
 Interface (GUI) toolkits, such as wxPython, PyQt4, PyGTK and Tk. This is
 implemented using Python's builtin ``PyOSInputHook`` hook. This implementation
-is extremely robust compared to our previous threaded based version. The
+is extremely robust compared to our previous thread-based version. The
 advantages of this are:
 
 * GUIs can be enabled and disabled dynamically at runtime.
@@ -1217,20 +1217,19 @@ and if ``QT_API=pyqt`` then PyQt4 will be used *with the v2 API* for
 QString and QVariant, so ETS codes like MayaVi will also work with IPython.
 
 If you launch IPython in pylab mode with ``ipython --pylab=qt``, then IPython
-will ask matplotlib which Qt library to use (only if QT_API is *not set*),
-via the 'backend.qt4' rcParam.
-If matplotlib is version 1.0.1 or older, then IPython will always use PyQt4
-without setting the v2 APIs, since neither v2 PyQt nor PySide work.
+will ask matplotlib which Qt library to use (only if QT_API is *not set*), via
+the 'backend.qt4' rcParam.  If matplotlib is version 1.0.1 or older, then
+IPython will always use PyQt4 without setting the v2 APIs, since neither v2
+PyQt nor PySide work.
 
 .. warning::
 
-    Note that this means for ETS 4 to work with PyQt4, ``QT_API`` *must* be set to
-    work with IPython's qt integration, because otherwise PyQt4 will be loaded in
-    an incompatible mode.
+    Note that this means for ETS 4 to work with PyQt4, ``QT_API`` *must* be set
+    to work with IPython's qt integration, because otherwise PyQt4 will be
+    loaded in an incompatible mode.
     
     It also means that you must *not* have ``QT_API`` set if you want to
     use ``--gui=qt`` with code that requires PyQt4 API v1.
-
 
 
 .. _matplotlib_support:
@@ -1238,27 +1237,17 @@ without setting the v2 APIs, since neither v2 PyQt nor PySide work.
 Plotting with matplotlib
 ========================
 
+`Matplotlib`_ provides high quality 2D and 3D plotting for Python. Matplotlib
+can produce plots on screen using a variety of GUI toolkits, including Tk,
+PyGTK, PyQt4 and wxPython. It also provides a number of commands useful for
+scientific computing, all with a syntax compatible with that of the popular
+Matlab program.
 
-`Matplotlib`_ provides high quality 2D and
-3D plotting for Python. Matplotlib can produce plots on screen using a variety
-of GUI toolkits, including Tk, PyGTK, PyQt4 and wxPython. It also provides a
-number of commands useful for scientific computing, all with a syntax
-compatible with that of the popular Matlab program.
-
-Many IPython users have come to rely on IPython's ``-pylab`` mode which
-automates the integration of Matplotlib with IPython. We are still in the
-process of working with the Matplotlib developers to finalize the new pylab
-API, but for now you can use Matplotlib interactively using the following
-commands::
-
-    %gui wx
-    import matplotlib
-    matplotlib.use('wxagg')
-    from matplotlib import pylab
-    pylab.interactive(True)
-
-All of this will soon be automated as Matplotlib begins to include
-new logic that uses our new GUI support.
+To start IPython with matplotlib support, use the ``--pylab`` switch.  If no
+arguments are given, IPython will automatically detect your choice of
+matplotlib backend.  You can also request a specific backend with
+``--pylab=backend``, where ``backend`` must be one of: 'tk', 'qt', 'wx', 'gtk',
+'osx'.
 
 .. _Matplotlib: http://matplotlib.sourceforge.net
 
@@ -1318,5 +1307,5 @@ Supporting something like this would basically require tracking the
 internal execution state of the Python interpreter, so only top-level
 divisions are allowed. If you want to be able to open an IPython
 instance at an arbitrary point in a program, you can use IPython's
-embedding facilities, described in detail in Sec. 9
+embedding facilities, see :func:`IPython.embed` for details.
 
