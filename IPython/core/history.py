@@ -693,9 +693,10 @@ def magic_history(self, parameter_s = ''):
 
 
 def magic_rep(self, arg):
-    r"""Repeat a command, or get command to input line for editing
+    r"""Repeat a command, or get command to input line for editing. %recall and
+    %rep are equivalent.
 
-    - %rep (no arguments):
+    - %recall (no arguments):
     
     Place a string version of last computation result (stored in the special '_'
     variable) to the next input prompt. Allows you to create elaborate command
@@ -707,17 +708,17 @@ def magic_rep(self, arg):
          In[3]: %rep
          In[4]: heivaan_ <== cursor blinking
     
-    %rep 45
+    %recall 45
     
     Place history line 45 on the next input prompt. Use %hist to find
     out the number.
     
-    %rep 1-4
+    %recall 1-4
     
     Combine the specified lines into one cell, and place it on the next
     input prompt. See %history for the slice syntax.
     
-    %rep foo+bar
+    %recall foo+bar
     
     If foo+bar can be evaluated in the user namespace, the result is
     placed at the next input prompt. Otherwise, the history is searched
