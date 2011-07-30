@@ -190,7 +190,6 @@ def start_ipython():
     # Create and initialize our test-friendly IPython instance.
     shell = TerminalInteractiveShell.instance(config=config,
                                               user_ns=ipnsdict(),
-                                              user_global_ns={}
                                               )
 
     # A few more tweaks needed for playing nicely with doctests...
