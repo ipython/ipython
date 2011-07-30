@@ -185,10 +185,10 @@ comparing the current code to the last point it had in common with the 0.10
 series.  A huge diff and over 2000 commits make up this development::
 
     git diff $(git merge-base 0.10.2 HEAD)  | wc -l
-    287676
+    287985
 
-    git log $(git merge-base 0.10.2 HEAD) --oneline | wc -l
-    2046
+    git log $(git merge-base 0.10.2 HEAD)..HEAD --oneline | wc -l
+    2192
 
 Since our move to github, 510 issues were closed, 225 of which were pull
 requests and 285 regular issues (see :ref:`below <issues_list_011>` for a full
