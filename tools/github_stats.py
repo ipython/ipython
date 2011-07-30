@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 """Simple tools to query github.com and gather stats about issues.
 """
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 from __future__ import print_function
 
 import json
@@ -9,6 +13,9 @@ import sys
 from datetime import datetime, timedelta
 from urllib import urlopen
 
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
 
 def get_issues(project="ipython/ipython/", state="open"):
     """Get a list of the issues from the Github API."""
@@ -63,28 +70,40 @@ def report(issues, show_urls=False):
         for i in issues:
             print('* %d: %s' % (i['number'], i['title'].encode('utf-8')))
 
+#-----------------------------------------------------------------------------
+# Main script
+#-----------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    # Demo, search one year back
+    # Whether to add reST urls for all issues in printout.
     show_urls = True
+
+    # By default, search one month back
     if len(sys.argv) > 1:
         days = int(sys.argv[1])
     else:
-        days = 365
+        days = 30
 
+    # turn off to play interactively without redownloading, use %run -i
     if 1:
-        issues = sorted_by_field(issues_closed_since(timedelta(days=days)),
-                                 reverse=True)
+        issues = issues_closed_since(timedelta(days=days))
 
+    # For regular reports, it's nice to show them in reverse chronological order
+    issues = sorted_by_field(issues, reverse=True)
+
+    # Break up into pull requests and regular issues
     pulls = filter(is_pull_request, issues)
     regular = filter(lambda i: not is_pull_request(i), issues)
-    n = len(issues)
+    n_issues, n_pulls, n_regular = map(len, (issues, pulls, regular))
 
-    print("%d total issues closed in the last %d days." % (n, days))
-    print("%d pull requests and %d regular issues." % (len(pulls), len(regular)))
+    # Print summary report we can directly include into release notes.
+    print("Github stats for the last  %d days." % days)
+    print("We closed a total of %d issues, %d pull requests and %d regular \n"
+          "issues; this is the full list (generated with the script \n"
+          "`tools/github_stats.py`):" % (n_issues, n_pulls, n_regular))
     print()
-    print('Pull requests (%d):\n' % len(pulls))
+    print('Pull requests (%d):\n' % n_pulls)
     report(pulls, show_urls)
     print()
-    print('Regular issues (%d):\n' % len(regular))
+    print('Regular issues (%d):\n' % n_regular)
     report(regular, show_urls)
