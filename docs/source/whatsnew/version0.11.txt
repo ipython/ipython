@@ -63,14 +63,6 @@ A quick summary of the major changes (see below for details):
   This requires some changes if you want to execute GUI-using scripts inside
   IPython, see :ref:`the GUI support section <gui_support>` for more details.
 
-* **Integration into Microsoft Visual Studio**. Thanks to the work of the
-  Microsoft `Python Tools for Visual Studio`__ team, this version of IPython
-  has been integrated into Microsoft Visual Studio's Python tools open source
-  plug-in.  `Details below`_
-
-.. __: http://pytools.codeplex.com
-.. _details below: ms_visual_studio_011_
-
 * **A two-process architecture.** The Qt console is the first example of using
   a new model that splits IPython between a kernel process where code is
   executed and a client that handles user interaction.  We plan on also
@@ -84,6 +76,21 @@ A quick summary of the major changes (see below for details):
   hard project to participate because the old codebase was very monolithic.  We
   hope this (ongoing) restructuring will make it easier for new developers to
   join us.
+
+* **Vim integration**. Vim can be configured to seamlessly control an IPython
+  kernel, see the files in :file:`docs/examples/vim` for the full details.
+  This work was done by Paul Ivanov, who prepared a nice `video
+  demonstration`__ of the features it provides.
+
+.. __: http://pirsquared.org/blog/2011/07/28/vim-ipython/
+  
+* **Integration into Microsoft Visual Studio**. Thanks to the work of the
+  Microsoft `Python Tools for Visual Studio`__ team, this version of IPython
+  has been integrated into Microsoft Visual Studio's Python tools open source
+  plug-in.  `Details below`_
+
+.. __: http://pytools.codeplex.com
+.. _details below: ms_visual_studio_011_
 
 * **Improved unicode support**. We closed many bugs related to unicode input.
 
@@ -103,12 +110,6 @@ A quick summary of the major changes (see below for details):
   can have its attributes set either via files that now use real Python syntax
   or from the command-line.
 
-* **Vim integration**. Vim can be configured to seamlessly control an IPython
-  kernel, see the files in :file:`docs/examples/vim` for the full details.
-  This work was done by Paul Ivanov, who prepared a nice `video
-  demonstration`__ of the features it provides.
-
-.. __: http://pirsquared.org/blog/2011/07/28/vim-ipython/
 
 Authors and support
 -------------------
@@ -191,11 +192,14 @@ list).  Github's pull requests are a fantastic mechanism for reviewing code and
 building a shared ownership of the project, and we are making enthusiastic use
 of it.
 
-Note: this undercounts the number of issues closed in this development cycle,
-since we only moved to github for issue tracking in May 2010, but we have no
-way of collecting statistics on the number of issues closed in the old
-Launchpad bug tracker prior to that.
+.. Note::
 
+   This undercounts the number of issues closed in this development cycle,
+   since we only moved to github for issue tracking in May 2010, but we have no
+   way of collecting statistics on the number of issues closed in the old
+   Launchpad bug tracker prior to that.
+
+   
 .. _qtconsole_011:
 
 Qt Console
@@ -250,9 +254,9 @@ reference docs.
 Refactoring
 -----------
 
-As of the 0.11 version of IPython, a signifiant portion of the core has been
-refactored.  This refactoring is founded on a number of new abstractions.
-The main new classes that implement these abstractions are:
+As of this release, a signifiant portion of IPython has been refactored.  This
+refactoring is founded on a number of new abstractions.  The main new classes
+that implement these abstractions are:
 
 * :class:`IPython.utils.traitlets.HasTraits`.
 * :class:`IPython.config.configurable.Configurable`.
@@ -274,8 +278,8 @@ a leading '-', nor a space separating key from value. Flags exist, to set
 multiple values or boolean flags, and these are always prefixed with '--', and
 never take arguments.
 
-ZMQ architecture
-----------------
+ZeroMQ architecture
+-------------------
 
 There is a new GUI framework for IPython, based on a client-server model in
 which multiple clients can communicate with one IPython kernel, using the
@@ -331,10 +335,10 @@ Microsoft Visual Studio`__, as seen here:
 
 The Microsoft team developing this currently has a release candidate out using
 IPython 0.11. We will continue to collaborate with them to ensure that as they
-approach full release time, the integration with IPython is as smooth as
-possible.  We'd like to thank Dino Viehland and Shahrokh Mortazavi for the work
-they have done towards this feature, as well as Wenming Ye for his support of
-our WinHPC features.
+approach their final release date, the integration with IPython remains smooth.
+We'd like to thank Dino Viehland and Shahrokh Mortazavi for the work they have
+done towards this feature, as well as Wenming Ye for his support of our WinHPC
+capabilities.
 
 .. __: http://pytools.codeplex.com
 

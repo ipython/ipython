@@ -325,25 +325,23 @@ All options with a [no] prepended can be specified in negated form
 Interactive use
 ===============
 
-IPython is meant to work as a drop-in
-replacement for the standard interactive interpreter. As such, any code
-which is valid python should execute normally under IPython (cases where
-this is not true should be reported as bugs). It does, however, offer
-many features which are not available at a standard python prompt. What
-follows is a list of these.
+IPython is meant to work as a drop-in replacement for the standard interactive
+interpreter. As such, any code which is valid python should execute normally
+under IPython (cases where this is not true should be reported as bugs). It
+does, however, offer many features which are not available at a standard python
+prompt. What follows is a list of these.
 
 
 Caution for Windows users
 -------------------------
 
-Windows, unfortunately, uses the '\\' character as a path
-separator. This is a terrible choice, because '\\' also represents the
-escape character in most modern programming languages, including
-Python. For this reason, using '/' character is recommended if you
-have problems with ``\``.  However, in Windows commands '/' flags
-options, so you can not use it for the root directory. This means that
-paths beginning at the root must be typed in a contrived manner like:
-``%copy \opt/foo/bar.txt \tmp``
+Windows, unfortunately, uses the '\\' character as a path separator. This is a
+terrible choice, because '\\' also represents the escape character in most
+modern programming languages, including Python. For this reason, using '/'
+character is recommended if you have problems with ``\``.  However, in Windows
+commands '/' flags options, so you can not use it for the root directory. This
+means that paths beginning at the root must be typed in a contrived manner
+like: ``%copy \opt/foo/bar.txt \tmp``
 
 .. _magic:
 
@@ -419,11 +417,11 @@ following example defines a new magic command, %impall:
 
     ip.expose_magic('impall', doimp)
 
-Type %magic for more information, including a list of all available
-magic functions at any time and their docstrings. You can also type
-%magic_function_name? (see sec. 6.4 <#sec:dyn-object-info> for
-information on the '?' system) to get information about any particular
-magic function you are interested in.
+Type `%magic` for more information, including a list of all available magic
+functions at any time and their docstrings. You can also type
+%magic_function_name? (see :ref:`below <dynamic_object_info` for information on
+the '?' system) to get information about any particular magic function you are
+interested in.
 
 The API documentation for the :mod:`IPython.core.magic` module contains the full
 docstrings of all currently available magic commands.
@@ -444,20 +442,20 @@ PYTHONDOCS for this feature to work correctly.
 Dynamic object information
 --------------------------
 
-Typing ?word or word? prints detailed information about an object. If
-certain strings in the object are too long (docstrings, code, etc.) they
-get snipped in the center for brevity. This system gives access variable
-types and values, full source code for any object (if available),
-function prototypes and other useful information.
+Typing ``?word`` or ``word?`` prints detailed information about an object. If
+certain strings in the object are too long (docstrings, code, etc.) they get
+snipped in the center for brevity. This system gives access variable types and
+values, full source code for any object (if available), function prototypes and
+other useful information.
 
-Typing ??word or word?? gives access to the full information without
+Typing ``??word`` or ``word??`` gives access to the full information without
 snipping long strings. Long strings are sent to the screen through the
 less pager if longer than the screen and printed otherwise. On systems
 lacking the less command, IPython uses a very basic internal pager.
 
 The following magic functions are particularly useful for gathering
 information about your working environment. You can get more details by
-typing %magic or querying them individually (use %function_name? with or
+typing ``%magic`` or querying them individually (use %function_name? with or
 without the %), this is just a summary:
 
     * **%pdoc <object>**: Print (or run through a pager if too long) the
@@ -476,21 +474,19 @@ without the %), this is just a summary:
       identifiers and %whos prints a table with some basic details about
       each identifier.
 
-Note that the dynamic object information functions (?/??, %pdoc, %pfile,
-%pdef, %psource) give you access to documentation even on things which
-are not really defined as separate identifiers. Try for example typing
-{}.get? or after doing import os, type os.path.abspath??.
-
+Note that the dynamic object information functions (?/??, ``%pdoc``,
+``%pfile``, ``%pdef``, ``%psource``) give you access to documentation even on
+things which are not really defined as separate identifiers. Try for example
+typing {}.get? or after doing import os, type ``os.path.abspath??``.
 
 .. _readline:
 
 Readline-based features
 -----------------------
 
-These features require the GNU readline library, so they won't work if
-your Python installation lacks readline support. We will first describe
-the default behavior IPython uses, and then how to change it to suit
-your preferences.
+These features require the GNU readline library, so they won't work if your
+Python installation lacks readline support. We will first describe the default
+behavior IPython uses, and then how to change it to suit your preferences.
 
 
 Command line completion
@@ -534,10 +530,10 @@ Autoindent
 IPython can recognize lines ending in ':' and indent the next line,
 while also un-indenting automatically after 'raise' or 'return'.
 
-This feature uses the readline library, so it will honor your ~/.inputrc
-configuration (or whatever file your INPUTRC variable points to). Adding
-the following lines to your .inputrc file can make indenting/unindenting
-more convenient (M-i indents, M-u unindents)::
+This feature uses the readline library, so it will honor your
+:file:`~/.inputrc` configuration (or whatever file your INPUTRC variable points
+to). Adding the following lines to your :file:`.inputrc` file can make
+indenting/unindenting more convenient (M-i indents, M-u unindents)::
 
     $if Python 
     "\M-i": "    "  
@@ -548,17 +544,19 @@ Note that there are 4 spaces between the quote marks after "M-i" above.
 
 .. warning::
 
-    Setting the above indents will cause problems with unicode text entry in the terminal.
+    Setting the above indents will cause problems with unicode text entry in
+    the terminal.
 
 .. warning::
 
-    Autoindent is ON by default, but it can cause problems with
-    the pasting of multi-line indented code (the pasted code gets
-    re-indented on each line). A magic function %autoindent allows you to
-    toggle it on/off at runtime. You can also disable it permanently on in
-    your :file:`ipython_config.py` file (set TerminalInteractiveShell.autoindent=False).
+    Autoindent is ON by default, but it can cause problems with the pasting of
+    multi-line indented code (the pasted code gets re-indented on each line). A
+    magic function %autoindent allows you to toggle it on/off at runtime. You
+    can also disable it permanently on in your :file:`ipython_config.py` file
+    (set TerminalInteractiveShell.autoindent=False).
     
-    If you want to paste multiple lines, it is recommended that you use ``%paste``.
+    If you want to paste multiple lines, it is recommended that you use
+    ``%paste``.
 
 
 Customizing readline behavior
@@ -617,10 +615,10 @@ any code you wrote while experimenting. Log files are regular text files
 which you can later open in your favorite text editor to extract code or
 to 'clean them up' before using them to replay a session.
 
-The %logstart function for activating logging in mid-session is used as
-follows:
+The `%logstart` function for activating logging in mid-session is used as
+follows::
 
-%logstart [log_name [log_mode]]
+    %logstart [log_name [log_mode]]
 
 If no name is given, it defaults to a file named 'ipython_log.py' in your
 current working directory, in 'rotate' mode (see below).
@@ -1273,7 +1271,6 @@ sections for execution as a demo:
 
 .. literalinclude:: ../../examples/lib/example-demo.py
     :language: python
-
 
 In order to run a file as a demo, you must first make a Demo object out
 of it. If the file is named myscript.py, the following code will make a
