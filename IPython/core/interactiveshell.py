@@ -903,10 +903,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # doesn't need to be separately tracked in the ns_table.
         self.user_ns_hidden = set()
 
-        # A namespace to keep track of internal data structures to prevent
-        # them from cluttering user-visible stuff.  Will be updated later
-        self.internal_ns = {}
-
         # Now that FakeModule produces a real module, we've run into a nasty
         # problem: after script execution (via %run), the module where the user
         # code ran is deleted.  Now that this object is a true module (needed
@@ -940,17 +936,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # introspection facilities can search easily.
         self.ns_table = {'user_global':self.user_module.__dict__,
                          'user_local':user_ns,
-                         'internal':self.internal_ns,
                          'builtin':builtin_mod.__dict__
                          }
-
-        # Similarly, track all namespaces where references can be held and that
-        # we can safely clear (so it can NOT include builtin).  This one can be
-        # a simple list.  Note that the main execution namespaces, user_ns and
-        # user_global_ns, can NOT be listed here, as clearing them blindly
-        # causes errors in object __del__ methods.  Instead, the reset() method
-        # clears them manually and carefully.
-        self.ns_refs_table = [ self.internal_ns, self._main_ns_cache ]
     
     @property
     def user_global_ns(self):
@@ -1085,10 +1072,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
         if self.displayhook.do_full_cache:
             self.displayhook.flush()
 
-        # Restore the user namespaces to minimal usability
-        for ns in self.ns_refs_table:
-            ns.clear()
-
         # The main execution namespaces must be cleared very carefully,
         # skipping the deletion of the builtin-related keys, because doing so
         # would cause errors in many object's __del__ methods.
@@ -1128,10 +1111,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """
         if varname in ('__builtin__', '__builtins__'):
             raise ValueError("Refusing to delete %s" % varname)
-        ns_refs = self.ns_refs_table + [self.user_ns,
-                self.user_global_ns, self._user_main_module.__dict__] +\
-                self._main_ns_cache.values()
 
+        ns_refs = [self.user_ns, self.user_global_ns,
+                self._user_main_module.__dict__] + self._main_ns_cache.values()
+        
         if by_name:                    # Delete by name
             for ns in ns_refs:
                 try:
@@ -1172,7 +1155,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 raise TypeError('regex must be a string or compiled pattern')
             # Search for keys in each namespace that match the given regex
             # If a match is found, delete the key/value pair.
-            for ns in self.ns_refs_table:
+            for ns in [self.user_ns, self.user_global_ns]:
                 for var in ns:
                     if m.search(var):
                         del ns[var]
@@ -1266,7 +1249,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # Put them in a list. The order is important so that we
             # find things in the same order that Python finds them.
             namespaces = [ ('Interactive', self.user_ns),
-                           ('IPython internal', self.internal_ns),
+                           ('Interactive (global)', self.user_global_ns),
                            ('Python builtin', builtin_mod.__dict__),
                            ('Alias', self.alias_manager.alias_table),
                            ]
