@@ -1,5 +1,7 @@
 """Various utilities common to IPython release and maintenance tools.
 """
+from __future__ import print_function
+
 # Library imports
 import os
 import sys
@@ -13,7 +15,7 @@ cd = os.chdir
 # Utility functions
 def sh(cmd):
     """Run system command in shell, raise SystemExit if it returns an error."""
-    print "$",cmd
+    print("$", cmd)
     stat = os.system(cmd)
     #stat = 0  # Uncomment this and comment previous to run in debug mode
     if stat:
