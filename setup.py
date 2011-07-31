@@ -170,10 +170,9 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
         for dirpath,dirnames,filenames in os.walk('docs/example'):
             docdeps += [ pjoin(dirpath,f) for f in filenames
                          if not f.endswith('~') ]
-        # then, make them all dependencies for the main PDF (the html will get
-        # auto-generated as well).
+        # then, make them all dependencies for the main html docs
         to_update.append(
-            ('docs/dist/ipython.pdf',
+            ('docs/dist/index.html',
              docdeps,
              "cd docs && make dist")
             )
@@ -218,8 +217,8 @@ if 'setuptools' in sys.modules:
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.4',
         zmq = 'pyzmq>=2.1.4',
-        doc='Sphinx>=0.3',
-        test='nose>=0.10.1',
+        doc = 'Sphinx>=0.3',
+        test = 'nose>=0.10.1',
     )
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False
@@ -244,7 +243,9 @@ if 'setuptools' in sys.modules:
             print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
             sys.exit(1)
         setup_args['scripts'] = [pjoin('scripts','ipython_win_post_install.py')]
-        setup_args['options'] = {"bdist_wininst": {"install_script": "ipython_win_post_install.py"}}
+        setup_args['options'] = {"bdist_wininst":
+                                 {"install_script":
+                                  "ipython_win_post_install.py"}}
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is

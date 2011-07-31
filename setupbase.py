@@ -220,7 +220,7 @@ def find_data_files():
     )
     manual_files = make_dir_struct(
         'data',
-        pjoin('docs','dist'),
+        pjoin('docs','html'),
         pjoin(docdirbase,'manual')
     )
 
