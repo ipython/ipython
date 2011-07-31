@@ -23,7 +23,7 @@ execfile(pjoin('IPython','core','release.py'))
 
 # Build site addresses for file uploads
 release_site = '%s/release/%s' % (archive, version)
-backup_site =  '%s/backup/%s' % (archive, version)
+backup_site =  '%s/backup/' % archive
 
 # Start actual release process
 print()
