@@ -192,7 +192,7 @@ series.  A huge diff and ~2200 commits make up this cycle::
     288019
 
     git log $(git merge-base 0.10.2 HEAD)..HEAD --oneline | wc -l
-    2198
+    2200
 
 Since our move to github, 511 issues were closed, 226 of which were pull
 requests and 285 regular issues (:ref:`a full list with links
@@ -606,7 +606,7 @@ the new classes and APIs, but that we simply haven't had time for.  Any user
 who is interested in one of these is encouraged to help us by porting it and
 submitting a pull request on our `development site`_.
 
-.. _development site:: http://github.com/ipython/ipython
+.. _development site: http://github.com/ipython/ipython
 
 Currently, the quarantine directory contains::
 

@@ -2,7 +2,7 @@
 """Release data for the IPython project."""
 
 #-----------------------------------------------------------------------------
-#  Copyright (c) 2008-2010, IPython Development Team.
+#  Copyright (c) 2008-2011, IPython Development Team.
 #  Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
 #  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
 #  Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
