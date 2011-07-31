@@ -16,4 +16,6 @@ execfile(pjoin(ipdir, 'IPython','core','release.py'))
 testing_site = '%s/testing/%s' % (archive, version)
 
 cd(distdir)
+
+# FIXME: this assumes the path *with the version number* exists on the server
 sh('scp * %s' % testing_site)
