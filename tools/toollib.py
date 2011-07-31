@@ -12,6 +12,11 @@ from distutils.dir_util import remove_tree
 pjoin = os.path.join
 cd = os.chdir
 
+# Constants
+
+# SSH root address of the archive site
+archive = 'ipython@archive.ipython.org:archive.ipython.org'
+
 # Utility functions
 def sh(cmd):
     """Run system command in shell, raise SystemExit if it returns an error."""

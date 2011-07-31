@@ -15,8 +15,6 @@ distdir = pjoin(ipdir, 'dist')
 # Where I keep static backups of each release
 ipbackupdir = os.path.expanduser('~/ipython/backup')
 
-# SSH root address of the archive site
-archive = 'ipython@archive.ipython.org:archive.ipython.org'
 # Start in main IPython dir
 cd(ipdir)
 
