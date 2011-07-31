@@ -36,10 +36,10 @@ A quick summary of the major changes (see below for details):
 * **Standalone Qt console**: a new rich console has been added to IPython,
   started with `ipython qtconsole`.  In this application we have tried to
   retain the feel of a terminal for fast and efficient workflows, while adding
-  many features that a plain text terminal simply can not support, such as
-  inline figures, full multiline editing with syntax highlighting, tooltips for
-  function calls and much more.  This development was sponsored by `Enthought
-  Inc.`__. See :ref:`below <qtconsole_011>` for details.
+  many features that a line-oriented terminal simply can not support, such as
+  inline figures, full multiline editing with syntax highlighting, graphical
+  tooltips for function calls and much more.  This development was sponsored by
+  `Enthought Inc.`__. See :ref:`below <qtconsole_011>` for details.
 
 .. __: http://enthought.com
 
@@ -51,7 +51,8 @@ A quick summary of the major changes (see below for details):
   consistency across our codebase convinced us it was a price worth paying.  We
   have tried to explain how to best proceed with this update, and will be happy
   to answer questions that may arise.  A full tutorial describing these
-  features `was presented at SciPy'11`__.
+  features `was presented at SciPy'11`__, more details :ref:`below
+  <parallel_011>`.
 
 .. __: http://minrk.github.com/scipy-tutorial-2011
 
@@ -63,13 +64,13 @@ A quick summary of the major changes (see below for details):
   This requires some changes if you want to execute GUI-using scripts inside
   IPython, see :ref:`the GUI support section <gui_support>` for more details.
 
-* **A two-process architecture.** The Qt console is the first example of using
-  a new model that splits IPython between a kernel process where code is
-  executed and a client that handles user interaction.  We plan on also
-  providing terminal and web-browser based clients using this infrastructure in
-  future releases.  This model allows multiple clients to interact with an
-  IPython process through a well-documented protocol using the ZeroMQ
-  networking library.
+* **A two-process architecture.** The Qt console is the first use of a new
+  model that splits IPython between a kernel process where code is executed and
+  a client that handles user interaction.  We plan on also providing terminal
+  and web-browser based clients using this infrastructure in future releases.
+  This model allows multiple clients to interact with an IPython process
+  through a :ref:`well-documented messaging protocol <messaging>` using the
+  ZeroMQ networking library.
 
 * **Refactoring.** the entire codebase has been refactored, in order to make it
   more modular and easier to contribute to.  IPython has traditionally been a
@@ -166,8 +167,8 @@ cycle from several institutions:
 .. _Gerardo Gutiérrez: http://ipythonqt.blogspot.com/2010/04/ipython-qt-interface-gsoc-2010-proposal.html>
 
 
-Development summary
--------------------
+Development summary: moving to Git and Github
+---------------------------------------------
 
 In April 2010, after `one breakage too many with bzr`__, we decided to move our
 entire development process to Git and Github.com.  This has proven to be one of
@@ -177,24 +178,27 @@ tools.  We first converted our bzr repo to a git one without losing history,
 and a few weeks later ported all open Launchpad bugs to github issues with
 their comments mostly intact (modulo some formatting changes).  This ensured a
 smooth transition where no development history or submitted bugs were lost.
+Feel free to use our little Launchpad to Github issues `porting script`_ if you
+need to make a similar transition.
 
 .. __: http://mail.scipy.org/pipermail/ipython-dev/2010-April/005944.html
+.. _porting script: https://gist.github.com/835577
 
 These simple statistics show how much work has been done on the new release, by
 comparing the current code to the last point it had in common with the 0.10
-series.  A huge diff and over 2000 commits make up this development::
+series.  A huge diff and ~2200 commits make up this cycle::
 
     git diff $(git merge-base 0.10.2 HEAD)  | wc -l
-    287985
+    288019
 
     git log $(git merge-base 0.10.2 HEAD)..HEAD --oneline | wc -l
-    2192
+    2198
 
-Since our move to github, 510 issues were closed, 225 of which were pull
-requests and 285 regular issues (see :ref:`below <issues_list_011>` for a full
-list).  Github's pull requests are a fantastic mechanism for reviewing code and
-building a shared ownership of the project, and we are making enthusiastic use
-of it.
+Since our move to github, 511 issues were closed, 226 of which were pull
+requests and 285 regular issues (:ref:`a full list with links
+<issues_list_011>` is available for those interested in the details).  Github's
+pull requests are a fantastic mechanism for reviewing code and building a
+shared ownership of the project, and we are making enthusiastic use of it.
 
 .. Note::
 
@@ -231,6 +235,8 @@ widget.
 See the :ref:`Qt console section <qtconsole>` of the docs for a detailed
 description of the console's features and use.
 
+
+.. _parallel_011:
 
 High-level parallel computing with ZeroMQ
 -----------------------------------------
@@ -273,14 +279,25 @@ these classes, but for now our :ref:`configuration documentation
 <config_overview>` contains a high level overview of the concepts that these
 classes express.
 
-The biggest user-visible change is likely the move to using the config system to
-determine the command-line arguments for IPython applications. The benefit of
-this is that *all* configurable values in IPython are exposed on the
-command-line, but the syntax for specifying values has changed. The gist is that
-assigning values is pure Python assignment, so there is always an '=', and never
-a leading '-', nor a space separating key from value. Flags exist, to set
-multiple values or boolean flags, and these are always prefixed with '--', and
-never take arguments.
+The biggest user-visible change is likely the move to using the config system
+to determine the command-line arguments for IPython applications. The benefit
+of this is that *all* configurable values in IPython are exposed on the
+command-line, but the syntax for specifying values has changed. The gist is
+that assigning values is pure Python assignment.  Simple flags exist for
+commonly used options, these are always prefixed with '--'.
+
+The IPython command-line help has the details of all the options (via
+``ipythyon --help``), but a simple example should clarify things; the ``pylab``
+flag can be used to start in pylab mode with the qt4 backend::
+
+  ipython --pylab=qt
+
+which is equivalent to using the fully qualified form::
+
+  ipython --TerminalIPythonApp.pylab=qt
+
+The long-form options can be listed via ``ipython --help-all``.
+
 
 ZeroMQ architecture
 -------------------
@@ -746,11 +763,3 @@ alphabetical order by first name):
     This list was generated with the output of
     ``git log dev-0.11 HEAD --format='* %aN <%aE>' | sed 's/@/\-at\-/' | sed 's/<>//' | sort -u``
     after some cleanup.  If you should be on this list, please add yourself.
-
-
-.. _issues_list_011:
-
-Closed issues
-=============
-
-.. include:: github-stats-011.txt

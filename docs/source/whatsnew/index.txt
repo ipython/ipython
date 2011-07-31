@@ -22,6 +22,7 @@ development work they do here in a user friendly format.
 
    development
    version0.11
+   github-stats-0.11
    version0.10
    version0.9
    version0.8

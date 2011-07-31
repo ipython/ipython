@@ -1,11 +1,18 @@
-We closed a total of 510 issues, 225 pull requests and 285 regular issues; this
-is the full list (generated with the script `tools/github_stats.py`). We should
-note that a few of these were made on the 0.10.x series, but we have no
-automatic way of filtering the issues by branch, so this reflects all of our
-development over the last two years, including work already released in 0.10.2:
+.. _issues_list_011:
 
-Pull requests (225):
+Issues closed in the 0.11 development cycle
+===========================================
 
+In this cycle, we closed a total of 511 issues, 226 pull requests and 285
+regular issues; this is the full list (generated with the script
+`tools/github_stats.py`). We should note that a few of these were made on the
+0.10.x series, but we have no automatic way of filtering the issues by branch,
+so this reflects all of our development over the last two years, including work
+already released in 0.10.2:
+
+Pull requests (226):
+
+* `620 <https://github.com/ipython/ipython/issues/620>`_: Release notes and updates to GUI support docs for 0.11
 * `642 <https://github.com/ipython/ipython/issues/642>`_: fix typo in docs/examples/vim/README.rst
 * `631 <https://github.com/ipython/ipython/issues/631>`_: two-way vim-ipython integration
 * `637 <https://github.com/ipython/ipython/issues/637>`_: print is a function, this allows to properly exit ipython
