@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """ IPython extension: Render templates from variables and paste to clipbard """
 
 from IPython.core import ipapi
@@ -65,4 +63,3 @@ def render(tmpl):
     return res
 
 ip.push('render')
-    

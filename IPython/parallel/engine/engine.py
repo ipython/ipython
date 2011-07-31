@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """A simple engine that talks to a controller over 0MQ.
 it handles registration, etc. and launches a kernel
 connected to the Controller's Schedulers.

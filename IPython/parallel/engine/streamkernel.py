@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Kernel adapted from kernel.py to use ZMQ Streams
 
