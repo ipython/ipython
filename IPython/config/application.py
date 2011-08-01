@@ -366,8 +366,13 @@ class Application(SingletonConfigurable):
     def load_config_file(self, filename, path=None):
         """Load a .py based config file by filename and path."""
         loader = PyFileConfigLoader(filename, path=path)
-        config = loader.load_config()
-        self.update_config(config)
+        try:
+            config = loader.load_config()
+        except Exception:
+            self.log.error("Exception while loading config file %s [path=%s]"%
+                            (filename, path), exc_info=True)
+        else:
+            self.update_config(config)
     
     def generate_config_file(self):
         """generate default config file from Configurables"""
