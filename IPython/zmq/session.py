@@ -401,7 +401,7 @@ class Session(Configurable):
             [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_content,
              buffer1,buffer2,...]. In this list, the p_* entities are
             the packed or serialized versions, so if JSON is used, these
-            are uft8 encoded JSON strings.
+            are utf8 encoded JSON strings.
         """
         content = msg.get('content', {})
         if content is None:
