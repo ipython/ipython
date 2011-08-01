@@ -31,5 +31,5 @@ else:
 
 # This next print statement is NOT debugging, we're making the check on a
 # completely separate process so we verify by capturing stdout:
-print 'ARGV 1-:', sys.argv[1:]
+print('ARGV 1-:', sys.argv[1:])
 sys.stdout.flush()

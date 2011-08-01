@@ -223,8 +223,8 @@ def start_ipython():
     # now return this without recursively calling here again.
     _ip = shell
     get_ipython = _ip.get_ipython
-    __builtin__._ip = _ip
-    __builtin__.get_ipython = get_ipython
+    builtin_mod._ip = _ip
+    builtin_mod.get_ipython = get_ipython
     
     # To avoid extra IPython messages during testing, suppress io.stdout/stderr
     io.stdout = StreamProxy('stdout')

@@ -926,7 +926,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.ns_table = {'user':user_ns,
                          'user_global':user_global_ns,
                          'internal':self.internal_ns,
-                         'builtin':__builtin__.__dict__
+                         'builtin':builtin_mod.__dict__
                          }
 
         # Similarly, track all namespaces where references can be held and that
@@ -1050,7 +1050,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         
         # For more details:
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-        ns = dict(__builtin__ = __builtin__)
+        ns = dict(__builtin__ = builtin_mod)
         
         # Put 'help' in the user namespace
         try:
@@ -1273,7 +1273,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # find things in the same order that Python finds them.
             namespaces = [ ('Interactive', self.user_ns),
                            ('IPython internal', self.internal_ns),
-                           ('Python builtin', __builtin__.__dict__),
+                           ('Python builtin', builtin_mod.__dict__),
                            ('Alias', self.alias_manager.alias_table),
                            ]
             alias_ns = self.alias_manager.alias_table

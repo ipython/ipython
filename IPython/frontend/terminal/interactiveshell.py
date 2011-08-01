@@ -27,6 +27,7 @@ from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.pylabtools import pylab_activate
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn
