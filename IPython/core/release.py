@@ -36,19 +36,19 @@ __version__ = '.'.join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
 
-description = "An interactive computing environment for Python"
+description = "IPython: Productive Interactive Computing"
 
 long_description = \
 """
-The goal of IPython is to create a comprehensive environment for
-interactive and exploratory computing.  To support this goal, IPython
-has two main components:
+IPython provides a rich toolkit to help you make the most out of using Python
+interactively.  Its main components are:
 
-* An enhanced interactive Python shell.
+* Powerful interactive Python shells (terminal- and Qt-based).
+* Support for interactive data visualization and use of GUI toolkits.
+* Flexible, embeddable interpreters to load into your own projects.
+* Tools for high level and interactive parallel computing.
 
-* An architecture for interactive parallel computing.
-
-The enhanced interactive Python shell has the following main features:
+The enhanced interactive Python shells have the following main features:
 
 * Comprehensive object introspection.
 
@@ -116,8 +116,10 @@ author_email = 'ipython-dev@scipy.org'
 
 url = 'http://ipython.org'
 
-download_url = 'http://ipython.scipy.org/dist'
+# This will only be valid for actual releases sent to PyPI, but that's OK since
+# those are the ones we want pip/easy_install to be able to find.
+download_url = 'http://archive.ipython.org/release/%s' % version
 
-platforms = ['Linux','Mac OSX','Windows XP/2000/NT','Windows 95/98/ME']
+platforms = ['Linux','Mac OSX','Windows XP/2000/NT']
 
 keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed']
