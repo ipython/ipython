@@ -23,7 +23,7 @@ import textwrap
 from string import Formatter
 
 from IPython.external.path import path
-
+from IPython.utils import py3compat
 from IPython.utils.io import nlprint
 from IPython.utils.data import flatten
 
@@ -284,7 +284,7 @@ def make_quoted_expr(s):
     tail = ''
     tailpadding = ''
     raw  = ''
-    ucode = 'u'
+    ucode = '' if py3compat.PY3 else 'u'
     if "\\" in s:
         raw = 'r'
         if s.endswith('\\'):
@@ -494,7 +494,7 @@ def marquee(txt='',width=78,mark='*'):
     """
     if not txt:
         return (mark*width)[:width]
-    nmark = (width-len(txt)-2)/len(mark)/2
+    nmark = (width-len(txt)-2)//len(mark)//2
     if nmark < 0: nmark =0
     marks = mark*nmark
     return '%s %s %s' % (marks,txt,marks)

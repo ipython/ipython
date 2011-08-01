@@ -380,7 +380,7 @@ class Session(Configurable):
         h = self.auth.copy()
         for m in msg_list:
             h.update(m)
-        return h.hexdigest()
+        return str_to_bytes(h.hexdigest())
     
     def serialize(self, msg, ident=None):
         """Serialize the message components to bytes.

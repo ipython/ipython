@@ -52,15 +52,17 @@ import inspect
 import re
 import sys
 import types
-from types import (
-    InstanceType, ClassType, FunctionType,
-    ListType, TupleType
-)
+from types import FunctionType
+try:
+    from types import ClassType, InstanceType
+    ClassTypes = (ClassType, type)
+except:
+    ClassTypes = (type,)
+    
 from .importstring import import_item
+from IPython.utils import py3compat
 
-ClassTypes = (ClassType, type)
-
-SequenceTypes = (ListType, TupleType, set, frozenset)
+SequenceTypes = (list, tuple, set, frozenset)
 
 #-----------------------------------------------------------------------------
 # Basic classes
@@ -108,7 +110,7 @@ def repr_type(obj):
     error messages.
     """
     the_type = type(obj)
-    if the_type is InstanceType:
+    if (not py3compat.PY3) and the_type is InstanceType:
         # Old-style class.
         the_type = obj.__class__
     msg = '%r %r' % (obj, the_type)
@@ -616,7 +618,7 @@ class ClassBasedTraitType(TraitType):
 
     def error(self, obj, value):
         kind = type(value)
-        if kind is InstanceType:
+        if (not py3compat.PY3) and kind is InstanceType:
             msg = 'class %s' % value.__class__.__name__
         else:
             msg = '%s (i.e. %s)' % ( str( kind )[1:-1], repr( value ) )
@@ -880,29 +882,29 @@ class CInt(Int):
         except:
             self.error(obj, value)
 
+if not py3compat.PY3:
+    class Long(TraitType):
+        """A long integer trait."""
 
-class Long(TraitType):
-    """A long integer trait."""
+        default_value = 0L
+        info_text = 'a long'
 
-    default_value = 0L
-    info_text = 'a long'
-
-    def validate(self, obj, value):
-        if isinstance(value, long):
-            return value
-        if isinstance(value, int):
-            return long(value)
-        self.error(obj, value)
-
-
-class CLong(Long):
-    """A casting version of the long integer trait."""
-
-    def validate(self, obj, value):
-        try:
-            return long(value)
-        except:
+        def validate(self, obj, value):
+            if isinstance(value, long):
+                return value
+            if isinstance(value, int):
+                return long(value)
             self.error(obj, value)
+
+
+    class CLong(Long):
+        """A casting version of the long integer trait."""
+
+        def validate(self, obj, value):
+            try:
+                return long(value)
+            except:
+                self.error(obj, value)
 
 
 class Float(TraitType):
@@ -955,7 +957,7 @@ class CComplex(Complex):
 # for Python 3 conversion and for reliable unicode behaviour on Python 2. So
 # we don't have a Str type.
 class Bytes(TraitType):
-    """A trait for strings."""
+    """A trait for byte strings."""
 
     default_value = ''
     info_text = 'a string'
@@ -967,7 +969,7 @@ class Bytes(TraitType):
 
 
 class CBytes(Bytes):
-    """A casting version of the string trait."""
+    """A casting version of the byte string trait."""
 
     def validate(self, obj, value):
         try:
