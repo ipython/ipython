@@ -369,7 +369,11 @@ class Application(SingletonConfigurable):
         loader = PyFileConfigLoader(filename, path=path)
         try:
             config = loader.load_config()
+        except IOError:
+            # problem with the file (probably doesn't exist), raise
+            raise
         except Exception:
+            # problem while running the file
             self.log.error("Exception while loading config file %s [path=%s]"%
                             (filename, path), exc_info=True)
         else:
