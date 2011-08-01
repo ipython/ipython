@@ -2,6 +2,8 @@
 """Compatibility tricks for Python 3. Mainly to do with unicode."""
 import sys
 
+orig_open = open
+
 def no_code(x, encoding=None):
     return x
 
@@ -38,6 +40,8 @@ if sys.version_info[0] >= 3:
         if dotted:
             return all(isidentifier(a) for a in s.split("."))
         return s.isidentifier()
+    
+    open = orig_open
 
 else:
     PY3 = False
@@ -56,6 +60,27 @@ else:
         if dotted:
             return all(isidentifier(a) for a in s.split("."))
         return bool(_name_re.match(s))
+    
+    class open(object):
+        """Wrapper providing key part of Python 3 open() interface."""
+        def __init__(self, fname, mode="r", encoding="utf-8"):
+            self.f = orig_open(fname, mode)
+            self.enc = encoding
+        
+        def write(self, s):
+            return self.f.write(s.encode(self.enc))
+        
+        def read(self, size=-1):
+            return self.f.read(size).decode(self.enc)
+        
+        def close(self):
+            return self.f.close()
+        
+        def __enter__(self):
+            return self
+        
+        def __exit__(self, etype, value, traceback):
+            self.f.close()
 
 def execfile(fname, glob, loc=None):
     loc = loc if (loc is not None) else glob

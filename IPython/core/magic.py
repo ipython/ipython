@@ -52,6 +52,7 @@ from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils import py3compat
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import arg_split, abbrev_cwd
@@ -2085,11 +2086,9 @@ Currently the magic system has the following functions:\n"""
         except (TypeError, ValueError) as e:
             print e.args[0]
             return
-        if isinstance(cmds, unicode):
-            cmds = cmds.encode("utf-8")
-        with open(fname,'w') as f:
-            f.write("# coding: utf-8\n")
-            f.write(cmds)
+        with py3compat.open(fname,'w', encoding="utf-8") as f:
+            f.write(u"# coding: utf-8\n")
+            f.write(py3compat.cast_unicode(cmds))
         print 'The following commands were written to file `%s`:' % fname
         print cmds
     
