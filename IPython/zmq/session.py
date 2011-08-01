@@ -48,7 +48,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
-                                        DottedObjectName)
+                                        DottedObjectName, CUnicode)
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -239,10 +239,10 @@ class Session(Configurable):
         else:
             self.unpack = import_item(str(new))
         
-    session = CBytes(b'', config=True,
+    session = CUnicode(u'', config=True,
         help="""The UUID identifying this session.""")
     def _session_default(self):
-        return bytes(uuid.uuid4())
+        return unicode(uuid.uuid4())
     
     username = Unicode(os.environ.get('USER',u'username'), config=True,
         help="""Username for the Session. Default is your system username.""")

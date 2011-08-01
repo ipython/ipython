@@ -16,6 +16,7 @@ from types import ModuleType
 from IPython.parallel.client.asyncresult import AsyncResult
 from IPython.parallel.error import UnmetDependency
 from IPython.parallel.util import interactive
+from IPython.utils import py3compat
 
 class depend(object):
     """Dependency decorator, for use with tasks.
@@ -65,9 +66,10 @@ class dependent(object):
             raise UnmetDependency()
         return self.f(*args, **kwargs)
     
-    @property
-    def __name__(self):
-        return self.func_name
+    if not py3compat.PY3:
+        @property
+        def __name__(self):
+            return self.func_name
 
 @interactive
 def _require(*names):
