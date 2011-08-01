@@ -40,6 +40,7 @@ from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
 from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -102,9 +103,12 @@ class BaseIPythonApplication(Application):
     def _config_file_paths_default(self):
         return [os.getcwdu()]
 
-    profile = Unicode(u'default', config=True,
+    profile = Unicode(u'', config=True,
         help="""The IPython profile to use."""
     )
+    def _profile_default(self):
+        return "python3" if py3compat.PY3 else "default"
+    
     def _profile_changed(self, name, old, new):
         self.builtin_profile_dir = os.path.join(
                 get_ipython_package_dir(), u'config', u'profile', new
@@ -222,7 +226,7 @@ class BaseIPythonApplication(Application):
                 p = ProfileDir.find_profile_dir_by_name(self.ipython_dir, self.profile, self.config)
             except ProfileDirError:
                 # not found, maybe create it (always create default profile)
-                if self.auto_create or self.profile=='default':
+                if self.auto_create or self.profile==self._profile_default():
                     try:
                         p = ProfileDir.create_profile_dir_by_name(self.ipython_dir, self.profile, self.config)
                     except ProfileDirError:
