@@ -143,9 +143,10 @@ class Application(SingletonConfigurable):
 
     def __init__(self, **kwargs):
         SingletonConfigurable.__init__(self, **kwargs)
-        # Add my class to self.classes so my attributes appear in command line
-        # options.
-        self.classes.insert(0, self.__class__)
+        # Ensure my class is in self.classes, so my attributes appear in command line
+        # options and config files.
+        if self.__class__ not in self.classes:
+            self.classes.insert(0, self.__class__)
         
         self.init_logging()
 
