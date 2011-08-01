@@ -1281,8 +1281,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # We need to special-case 'print', which as of python2.6 registers as a
         # function but should only be treated as one if print_function was
         # loaded with a future import.  In this case, just bail.
-        if (oname == 'print' and not (self.compile.compiler_flags &
-                                      __future__.CO_FUTURE_PRINT_FUNCTION)):
+        if (oname == 'print' and not py3compat.PY3 and not \
+            (self.compile.compiler_flags & __future__.CO_FUTURE_PRINT_FUNCTION)):
             return {'found':found, 'obj':obj, 'namespace':ospace,
                     'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
 
@@ -1524,7 +1524,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     
             if etype is SyntaxError:
                 # Though this won't be called by syntax errors in the input
-                # line, there may be SyntaxError cases whith imported code.
+                # line, there may be SyntaxError cases with imported code.
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
                 print "UsageError:", value
