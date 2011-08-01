@@ -1,3 +1,5 @@
+# coding: utf-8
+"""Compatibility tricks for Python 3. Mainly to do with unicode."""
 import sys
 
 def no_code(x, encoding=None):
@@ -32,6 +34,11 @@ if sys.version_info[0] >= 3:
     str_to_bytes = encode
     bytes_to_str = decode
     
+    def isidentifier(s, dotted=False):
+        if dotted:
+            return all(isidentifier(a) for a in s.split("."))
+        return s.isidentifier()
+
 else:
     PY3 = False
     
@@ -42,6 +49,13 @@ else:
     unicode_to_str = encode
     str_to_bytes = no_code
     bytes_to_str = no_code
+    
+    import re
+    _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
+    def isidentifier(s, dotted=False):
+        if dotted:
+            return all(isidentifier(a) for a in s.split("."))
+        return bool(_name_re.match(s))
 
 def execfile(fname, glob, loc=None):
     loc = loc if (loc is not None) else glob

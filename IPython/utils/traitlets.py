@@ -1008,12 +1008,12 @@ class ObjectName(TraitType):
     This does not check that the name exists in any scope."""
     info_text = "a valid object identifier in Python"
 
-    if sys.version_info[0] < 3:
+    if py3compat.PY3:
+        # Python 3:
+        coerce_str = staticmethod(lambda _,s: s)
+    
+    else:
         # Python 2:
-        _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
-        def isidentifier(self, s):
-            return bool(self._name_re.match(s))
-        
         def coerce_str(self, obj, value):
             "In Python 2, coerce ascii-only unicode to str"
             if isinstance(value, unicode):
@@ -1023,15 +1023,10 @@ class ObjectName(TraitType):
                     self.error(obj, value)
             return value
     
-    else:
-        # Python 3:
-        isidentifier = staticmethod(lambda s: s.isidentifier())
-        coerce_str = staticmethod(lambda _,s: s)
-    
     def validate(self, obj, value):
         value = self.coerce_str(obj, value)
         
-        if isinstance(value, str) and self.isidentifier(value):
+        if isinstance(value, str) and py3compat.isidentifier(value):
             return value
         self.error(obj, value)
 
@@ -1040,8 +1035,7 @@ class DottedObjectName(ObjectName):
     def validate(self, obj, value):
         value = self.coerce_str(obj, value)
         
-        if isinstance(value, str) and all(self.isidentifier(x) \
-                                                    for x in value.split('.')):
+        if isinstance(value, str) and py3compat.isidentifier(value, dotted=True):
             return value
         self.error(obj, value)
 
