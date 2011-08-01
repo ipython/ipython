@@ -676,7 +676,7 @@ Currently the magic system has the following functions:\n"""
        
         %psearch -a _*         list objects beginning with a single underscore"""
         try:
-            parameter_s = parameter_s.encode('ascii')
+            parameter_s.encode('ascii')
         except UnicodeEncodeError:
             print 'Python identifiers can only contain ascii characters.'
             return
