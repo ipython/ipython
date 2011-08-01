@@ -169,7 +169,6 @@ print 'bye!'
 #
 #*****************************************************************************
 
-import exceptions
 import os
 import re
 import shlex
@@ -182,7 +181,7 @@ from IPython.utils.text import marquee
 
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
-class DemoError(exceptions.Exception): pass
+class DemoError(Exception): pass
 
 def re_mark(mark):
     return re.compile(r'^\s*#\s+<demo>\s+%s\s*$' % mark,re.MULTILINE)

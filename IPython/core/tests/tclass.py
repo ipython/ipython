@@ -2,6 +2,8 @@
 
 See test_run for details."""
 
+from __future__ import print_function
+
 import sys
 
 # We want to ensure that while objects remain available for immediate access,
@@ -10,10 +12,11 @@ import sys
 class C(object):
     def __init__(self,name):
         self.name = name
+        self.p = print
         self.flush_stdout = sys.stdout.flush
         
     def __del__(self):
-        print 'tclass.py: deleting object:',self.name
+        self.p('tclass.py: deleting object:',self.name)
         self.flush_stdout()
 
 try:

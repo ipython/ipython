@@ -20,7 +20,7 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # stdlib
-import __builtin__
+import __builtin__ as builtin_mod
 import os
 import sys
 from types import MethodType
@@ -131,7 +131,7 @@ class ipnsdict(dict):
         # aggressive low-level cleaning of the execution namespace, we need to
         # correct for that ourselves, to ensure consitency with the 'real'
         # ipython.
-        self['__builtins__'] = __builtin__
+        self['__builtins__'] = builtin_mod
         
     def __delitem__(self, key):
         """Part of the test suite checks that we can release all

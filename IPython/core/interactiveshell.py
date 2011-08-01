@@ -17,7 +17,7 @@
 from __future__ import with_statement
 from __future__ import absolute_import
 
-import __builtin__
+import __builtin__ as builtin_mod
 import __future__
 import abc
 import ast
@@ -61,6 +61,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import py3compat
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
@@ -979,13 +980,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # Set __name__ to __main__ to better match the behavior of the
             # normal interpreter.
             user_ns = {'__name__'     :'__main__',
-                       '__builtin__' : __builtin__,
-                       '__builtins__' : __builtin__,
+                       py3compat.builtin_mod_name: builtin_mod,
+                       '__builtins__' : builtin_mod,
                       }
         else:
             user_ns.setdefault('__name__','__main__')
-            user_ns.setdefault('__builtin__',__builtin__)
-            user_ns.setdefault('__builtins__',__builtin__)
+            user_ns.setdefault(py3compat.builtin_mod_name,builtin_mod)
+            user_ns.setdefault('__builtins__',builtin_mod)
 
         if user_global_ns is None:
             user_global_ns = user_ns
@@ -1255,14 +1256,15 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         Has special code to detect magic functions.
         """
-        #oname = oname.strip()
+        oname = oname.strip()
         #print '1- oname: <%r>' % oname  # dbg
-        try:
-            oname = oname.strip().encode('ascii')
-            #print '2- oname: <%r>' % oname  # dbg
-        except UnicodeEncodeError:
-            print 'Python identifiers can only contain ascii characters.'
-            return dict(found=False)
+        if not py3compat.PY3:
+            try:
+                oname = oname.encode('ascii')
+                #print '2- oname: <%r>' % oname  # dbg
+            except UnicodeError:
+                print 'Python identifiers can only contain ascii characters.'
+                return dict(found=False)
 
         alias_ns = None
         if namespaces is None:
@@ -1701,7 +1703,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
                                                         include_latest=True):
             if cell.strip(): # Ignore blank lines
                 for line in cell.splitlines():
-                    self.readline.add_history(line.encode(stdin_encoding, 'replace'))
+                    self.readline.add_history(py3compat.unicode_to_str(line,
+                                                                stdin_encoding))
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
@@ -1907,8 +1910,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
     
         self.define_magic('foo',foo_impl)
         """
-        
-        import new
         im = types.MethodType(func,self)
         old = getattr(self, "magic_" + magicname, None)
         setattr(self, "magic_" + magicname, im)
@@ -2175,15 +2176,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # behavior of running a script from the system command line, where
         # Python inserts the script's directory into sys.path
         dname = os.path.dirname(fname)
-        
-        if isinstance(fname, unicode):
-            # execfile uses default encoding instead of filesystem encoding
-            # so unicode filenames will fail
-            fname = fname.encode(sys.getfilesystemencoding() or sys.getdefaultencoding())
 
         with prepended_to_syspath(dname):
             try:
-                execfile(fname,*where)
+                py3compat.execfile(fname,*where)
             except SystemExit, status:
                 # If the call was made with 0 or None exit status (sys.exit(0)
                 # or sys.exit() ), don't bother showing a traceback, as both of

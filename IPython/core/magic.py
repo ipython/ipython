@@ -15,7 +15,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
+import __builtin__ as builtin_mod
 import __future__
 import bdb
 import inspect
@@ -1729,7 +1729,7 @@ Currently the magic system has the following functions:\n"""
             # Since this seems to be done by the interpreter itself, the best
             # we can do is to at least restore __builtins__ for the user on
             # exit.
-            self.shell.user_ns['__builtins__'] = __builtin__
+            self.shell.user_ns['__builtins__'] = builtin_mod
             
             # Ensure key global structures are restored
             sys.argv = save_argv

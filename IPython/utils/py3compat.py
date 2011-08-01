@@ -10,6 +10,16 @@ def decode(s, encoding=None):
 def encode(u, encoding=None):
     encoding = encoding or sys.stdin.encoding or sys.getdefaultencoding()
     return u.encode(encoding, "replace")
+    
+def cast_unicode(s, encoding=None):
+    if isinstance(s, bytes):
+        return decode(s, encoding)
+    return s
+
+def cast_bytes(s, encoding=None):
+    if not isinstance(s, bytes):
+        return encode(s, encoding)
+    return s
 
 if sys.version_info[0] >= 3:
     PY3 = True
@@ -33,5 +43,6 @@ else:
     str_to_bytes = no_code
     bytes_to_str = no_code
 
-def execfile(fname, glob, loc):
+def execfile(fname, glob, loc=None):
+    loc = loc if (loc is not None) else glob
     exec compile(open(fname).read(), fname, 'exec') in glob, loc

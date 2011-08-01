@@ -22,6 +22,8 @@ Authors:
 import re
 import sys
 
+from IPython.utils import py3compat
+
 #-----------------------------------------------------------------------------
 # Main function
 #-----------------------------------------------------------------------------
@@ -56,11 +58,7 @@ def split_user_input(line, pattern=None):
     manner.
     """
     # We need to ensure that the rest of this routine deals only with unicode
-    if type(line)==str:
-        codec = sys.stdin.encoding
-        if codec is None:
-            codec = 'utf-8'
-        line = line.decode(codec)
+    line = py3compat.cast_unicode(line, sys.stdin.encoding or 'utf-8')
         
     if pattern is None:
         pattern = line_split
@@ -75,15 +73,16 @@ def split_user_input(line, pattern=None):
         pre = re.match('^(\s*)(.*)',line).groups()[0]
     else:
         pre,ifun,the_rest = match.groups()
-
-    # ifun has to be a valid python identifier, so it better encode into
-    # ascii.  We do still make it a unicode string so that we consistently
-    # return unicode, but it will be one that is guaranteed to be pure ascii
-    try:
-        ifun = unicode(ifun.encode('ascii'))
-    except UnicodeEncodeError:
-        the_rest = ifun + u' ' + the_rest
-        ifun = u''
+    
+    if not py3compat.PY3:
+        # ifun has to be a valid python identifier, so it better encode into
+        # ascii.  We do still make it a unicode string so that we consistently
+        # return unicode, but it will be one that is guaranteed to be pure ascii
+        try:
+            ifun = unicode(ifun.encode('ascii'))
+        except UnicodeEncodeError:
+            the_rest = ifun + u' ' + the_rest
+            ifun = u''
 
     #print 'line:<%s>' % line # dbg
     #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg

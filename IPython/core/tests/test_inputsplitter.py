@@ -125,7 +125,7 @@ def test_get_input_encoding():
     nt.assert_true(isinstance(encoding, basestring))
     # simple-minded check that at least encoding a simple string works with the
     # encoding we got.
-    nt.assert_equal('test'.encode(encoding), 'test')
+    nt.assert_equal(u'test'.encode(encoding), b'test')
 
 
 class NoInputEncodingTestCase(unittest.TestCase):

@@ -332,7 +332,7 @@ class TerminalInteractiveShell(InteractiveShell):
             self.set_readline_completer()
         
         try:
-            line = self.raw_input_original(prompt).decode(self.stdin_encoding)
+            line = py3compat.str_to_unicode(self.raw_input_original(prompt))
         except ValueError:
             warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
                  " or sys.stdout.close()!\nExiting IPython!")

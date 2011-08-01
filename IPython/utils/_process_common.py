@@ -17,6 +17,8 @@ of subprocess utilities, and it contains tools that are common to all of them.
 import subprocess
 import sys
 
+from IPython.utils import py3compat
+
 #-----------------------------------------------------------------------------
 # Function definitions
 #-----------------------------------------------------------------------------
@@ -116,8 +118,8 @@ def getoutput(cmd):
 
     out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
     if out is None:
-        out = ''
-    return out
+        return ''
+    return py3compat.bytes_to_str(out)
 
 
 def getoutputerror(cmd):
@@ -138,5 +140,6 @@ def getoutputerror(cmd):
 
     out_err = process_handler(cmd, lambda p: p.communicate())
     if out_err is None:
-        out_err = '', ''
-    return out_err
+        return '', ''
+    out, err = out_err
+    return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
