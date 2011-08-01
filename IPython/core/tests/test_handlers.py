@@ -10,6 +10,7 @@ import nose.tools as nt
 # our own packages
 from IPython.core import autocall
 from IPython.testing import decorators as dec
+from IPython.testing import tools as tt
 from IPython.testing.globalipapp import get_ipython
 
 #-----------------------------------------------------------------------------
@@ -40,15 +41,7 @@ def run(tests):
     """Loop through a list of (pre, post) inputs, where pre is the string
     handed to ipython, and post is how that string looks after it's been
     transformed (i.e. ipython's notion of _i)"""
-    for pre, post in tests:
-        global num_tests
-        num_tests += 1        
-        actual = ip.prefilter_manager.prefilter_lines(pre)
-        if actual != None:
-            actual = actual.rstrip('\n')
-        if actual != post:
-            failures.append('Expected %r to become %r, found %r' % (
-                pre, post, actual))
+    tt.check_pairs(ip.prefilter_manager.prefilter_lines, tests)
 
 
 def test_handlers():

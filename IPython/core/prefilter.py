@@ -131,7 +131,7 @@ class LineInfo(object):
     def __init__(self, line, continue_prompt):
         self.line            = line
         self.continue_prompt = continue_prompt
-        self.pre, self.ifun, self.the_rest = split_user_input(line)
+        self.pre, self.esc, self.ifun, self.the_rest = split_user_input(line)
 
         self.pre_char       = self.pre.strip()
         if self.pre_char:
@@ -630,7 +630,7 @@ class MultiLineMagicChecker(PrefilterChecker):
         # both ! and !!.    
         if line_info.continue_prompt \
             and self.prefilter_manager.multi_line_specials:
-                if line_info.ifun.startswith(ESC_MAGIC):
+                if line_info.esc == ESC_MAGIC:
                     return self.prefilter_manager.get_handler_by_name('magic')
         else:
             return None
@@ -644,14 +644,16 @@ class EscCharsChecker(PrefilterChecker):
         """Check for escape character and return either a handler to handle it,
         or None if there is no escape char."""
         if line_info.line[-1] == ESC_HELP \
-               and line_info.pre_char != ESC_SHELL \
-               and line_info.pre_char != ESC_SH_CAP:
+               and line_info.esc != ESC_SHELL \
+               and line_info.esc != ESC_SH_CAP:
             # the ? can be at the end, but *not* for either kind of shell escape,
             # because a ? can be a vaild final char in a shell cmd
             return self.prefilter_manager.get_handler_by_name('help')
         else:
+            if line_info.pre:
+                return None
             # This returns None like it should if no handler exists
-            return self.prefilter_manager.get_handler_by_esc(line_info.pre_char)
+            return self.prefilter_manager.get_handler_by_esc(line_info.esc)
 
 
 class AssignmentChecker(PrefilterChecker):
@@ -872,6 +874,7 @@ class AutoHandler(PrefilterHandler):
         ifun    = line_info.ifun
         the_rest = line_info.the_rest
         pre     = line_info.pre
+        esc     = line_info.esc
         continue_prompt = line_info.continue_prompt
         obj = line_info.ofind(self)['obj']
         #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun,the_rest)  # dbg
@@ -883,13 +886,13 @@ class AutoHandler(PrefilterHandler):
         force_auto = isinstance(obj, IPyAutocall)
         auto_rewrite = getattr(obj, 'rewrite', True)
         
-        if pre == ESC_QUOTE:
+        if esc == ESC_QUOTE:
             # Auto-quote splitting on whitespace
             newcmd = '%s("%s")' % (ifun,'", "'.join(the_rest.split()) )
-        elif pre == ESC_QUOTE2:
+        elif esc == ESC_QUOTE2:
             # Auto-quote whole string
             newcmd = '%s("%s")' % (ifun,the_rest)
-        elif pre == ESC_PAREN:
+        elif esc == ESC_PAREN:
             newcmd = '%s(%s)' % (ifun,",".join(the_rest.split()))
         else:
             # Auto-paren.
@@ -946,7 +949,7 @@ class HelpHandler(PrefilterHandler):
                 line = line[:-1]
             if line:
                 #print 'line:<%r>' % line  # dbg
-                self.shell.magic_pinfo(line)
+                self.shell.magic_pinfo(line_info.ifun)
             else:
                 self.shell.show_usage()
             return '' # Empty string is needed here!

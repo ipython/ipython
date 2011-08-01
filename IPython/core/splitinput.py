@@ -40,13 +40,15 @@ from IPython.utils import py3compat
 # ! and !! trigger if they are first char(s) *or* follow an indent 
 # ? triggers as first or last char.
 
-# The three parts of the regex are:
-#  1) pre:     pre_char *or* initial whitespace 
-#  2) ifun:    first word/method (mix of \w and '.')
-#  3) the_rest: rest of line (separated from ifun by space if non-empty)
-line_split = re.compile(r'^([,;/%?]|!!?|\s*)'
+# The four parts of the regex are:
+#  1) pre:     initial whitespace
+#  2) esc:     escape character
+#  3) ifun:    first word/method (mix of \w and '.')
+#  4) the_rest: rest of line (separated from ifun by space if non-empty)
+line_split = re.compile(r'^(\s*)'
+                        r'([,;/%?]|!!?)?'
                         r'\s*([\w\.]+)'
-                        r'(\s+.*$|$)')
+                        r'(.*$|$)')
 
 # r'[\w\.]+'
 # r'\s*=\s*%.*'
@@ -71,19 +73,14 @@ def split_user_input(line, pattern=None):
             # print "split failed for line '%s'" % line
             ifun, the_rest = line, u''
         pre = re.match('^(\s*)(.*)',line).groups()[0]
+        esc = ""
     else:
-        pre,ifun,the_rest = match.groups()
+        pre, esc, ifun, the_rest = match.groups()
     
-    if not py3compat.PY3:
-        # ifun has to be a valid python identifier, so it better encode into
-        # ascii.  We do still make it a unicode string so that we consistently
-        # return unicode, but it will be one that is guaranteed to be pure ascii
-        try:
-            ifun = unicode(ifun.encode('ascii'))
-        except UnicodeEncodeError:
-            the_rest = ifun + u' ' + the_rest
-            ifun = u''
+    if not py3compat.isidentifier(ifun, dotted=True):
+        the_rest = ifun + u' ' + the_rest
+        ifun = u''
 
     #print 'line:<%s>' % line # dbg
     #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg
-    return pre, ifun.strip(), the_rest.lstrip()
+    return pre, esc, ifun.strip(), the_rest.lstrip()

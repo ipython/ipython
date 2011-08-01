@@ -38,7 +38,7 @@ from IPython.utils.warn import warn, error
 #-----------------------------------------------------------------------------
 
 # This is used as the pattern for calls to split_user_input.
-shell_line_split = re.compile(r'^(\s*)(\S*\s*)(.*$)')
+shell_line_split = re.compile(r'^(\s*)()(\S+)(.*$)')
 
 def default_aliases():
     """Return list of shell aliases to auto-define.
@@ -222,7 +222,7 @@ class AliasManager(Configurable):
                  <16> 'q:/opt/np/notepad++.exe myfile.txt'
         """
         
-        pre,fn,rest = split_user_input(line)
+        pre,_,fn,rest = split_user_input(line)
         res = pre + self.expand_aliases(fn, rest)
         return res
 
@@ -242,7 +242,7 @@ class AliasManager(Configurable):
         
         done = set()
         while 1:
-            pre,fn,rest = split_user_input(line, shell_line_split)
+            pre,_,fn,rest = split_user_input(line, shell_line_split)
             if fn in self.alias_table:
                 if fn in done:
                     warn("Cyclic alias definition, repeated '%s'" % fn)

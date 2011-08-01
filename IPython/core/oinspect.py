@@ -24,12 +24,16 @@ import os
 import sys
 import types
 from collections import namedtuple
-from itertools import izip_longest
+try:
+    from itertools import izip_longest
+except ImportError:
+    from itertools import zip_longest as izip_longest
 
 # IPython's own
 from IPython.core import page
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import py3compat
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
@@ -249,7 +253,7 @@ class Inspector:
         try:
             # We need a plain string here, NOT unicode!
             hdef = oname + inspect.formatargspec(*getargspec(obj))
-            return hdef.encode('ascii')
+            return py3compat.unicode_to_str(hdef.encode('ascii'))
         except:
             return None
  
@@ -362,7 +366,7 @@ class Inspector:
         except:
             self.noinfo('source',oname)
         else:
-            page.page(self.format(src))
+            page.page(self.format(py3compat.unicode_to_str(src)))
 
     def pfile(self,obj,oname=''):
         """Show the whole file where an object was defined."""
