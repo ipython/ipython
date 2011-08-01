@@ -48,7 +48,7 @@ from IPython.lib import inputhook
 from IPython.utils import warn
 from IPython.utils.path import get_ipython_dir, check_for_old_config
 from IPython.utils.traitlets import (
-    Bool, Dict, CaselessStrEnum
+    Bool, List, Dict, CaselessStrEnum
 )
 
 #-----------------------------------------------------------------------------
@@ -189,8 +189,17 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
 
     flags = Dict(flags)
     aliases = Dict(aliases)
-    classes = [InteractiveShellApp, TerminalInteractiveShell, ProfileDir,
-               PlainTextFormatter]
+    classes = List()
+    def _classes_default(self):
+        """This has to be in a method, for TerminalIPythonApp to be available."""
+        return [
+            InteractiveShellApp, # ShellApp comes before TerminalApp, because
+            self.__class__,      # it will also affect subclasses (e.g. QtConsole)
+            TerminalInteractiveShell,
+            ProfileDir,
+            PlainTextFormatter,
+        ]
+    
     subcommands = Dict(dict(
         qtconsole=('IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             """Launch the IPython Qt Console."""
