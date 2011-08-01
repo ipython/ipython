@@ -5,9 +5,9 @@ app = c.InteractiveShellApp
 # and merge it into the current one.
 load_subconfig('ipython_config.py', profile='default')
 
-c.InteractiveShell.prompt_in1 = '\C_LightGreen\u@\h\C_LightBlue[\C_LightCyan\Y1\C_LightBlue]\C_Green|\#> '
-c.InteractiveShell.prompt_in2 = '\C_Green|\C_LightGreen\D\C_Green> '
-c.InteractiveShell.prompt_out = '<\#> '
+c.InteractiveShell.prompt_in1 = r'\C_LightGreen\u@\h\C_LightBlue[\C_LightCyan\Y1\C_LightBlue]\C_Green|\#> '
+c.InteractiveShell.prompt_in2 = r'\C_Green|\C_LightGreen\D\C_Green> '
+c.InteractiveShell.prompt_out = r'<\#> '
 
 c.InteractiveShell.prompts_pad_left = True
 
