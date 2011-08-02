@@ -459,7 +459,7 @@ class Inspector:
         # Source or docstring, depending on detail level and whether
         # source found.
         if detail_level > 0 and info['source'] is not None:
-            displayfields.append(("Source", info['source']))
+            displayfields.append(("Source", self.format(py3compat.unicode_to_str(info['source']))))
         elif info['docstring'] is not None:
             displayfields.append(("Docstring", info["docstring"]))
         
@@ -608,12 +608,11 @@ class Inspector:
             source = None
             try:
                 try:
-                    src = getsource(obj,binary_file)
+                    source = getsource(obj,binary_file)
                 except TypeError:
                     if hasattr(obj,'__class__'):
-                        src = getsource(obj.__class__,binary_file)
-                if src is not None:
-                    source = self.format(src)
+                        source = getsource(obj.__class__,binary_file)
+                if source is not None:
                     out['source'] = source.rstrip()
             except Exception:
                 pass
