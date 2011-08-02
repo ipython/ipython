@@ -228,6 +228,8 @@ class TestClient(ClusterTestCase):
         v = self.client.load_balanced_view()
         ar = v.apply_async(f)
         r1 = ar.get(1)
+        # give the Hub a chance to notice:
+        time.sleep(0.5)
         ahr = self.client.resubmit(ar.msg_ids)
         r2 = ahr.get(1)
         self.assertFalse(r1 == r2)

@@ -319,7 +319,7 @@ class TestView(ClusterTestCase):
         ip.magic_px('print a')
         sys.stdout = savestdout
         buf = sio.getvalue()
-        self.assertTrue('[stdout:%i]'%v.targets in buf)
+        self.assertTrue('[stdout:' in buf, buf)
         self.assertTrue(buf.rstrip().endswith('10'))
         self.assertRaisesRemote(ZeroDivisionError, ip.magic_px, '1/0')
 
