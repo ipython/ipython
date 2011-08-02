@@ -641,9 +641,9 @@ Currently the magic system has the following functions:\n"""
 
           -i/-c: make the pattern case insensitive/sensitive.  If neither of
           these options are given, the default is read from your configuration
-          file, with the option name 'wildcards_case_sensitive'. If this option
-          is not specified in your configuration file, IPython's internal 
-          default is to do a case sensitive search.
+          file, with the option ``InteractiveShell.wildcards_case_sensitive``. 
+          If this option is not specified in your configuration file, IPython's 
+          internal default is to do a case sensitive search.
 
           -e/-s NAMESPACE: exclude/search a given namespace.  The pattern you
           specifiy can be searched in any of the following namespaces:
@@ -1230,7 +1230,7 @@ Currently the magic system has the following functions:\n"""
         this feature on and off.
 
         The initial state of this feature is set in your configuration
-        file (the option is called 'pdb').
+        file (the option is ``InteractiveShell.pdb``).
 
         If you want to just activate the debugger AFTER an exception has fired,
         without having to type '%pdb on' and rerunning your code, you can use
@@ -2269,10 +2269,11 @@ Currently the magic system has the following functions:\n"""
         docstring for how to change the editor hook.
 
         You can also set the value of this editor via the command line option
-        '-editor' or in your configuration file. This is useful if you wish to 
-        use specifically for IPython an editor different from your typical 
-        default (and for Windows users who typically don't set environment 
-        variables).
+        '-editor' or in your configuration file (via the 
+        ``TerminalInteractiveShell.editor`` option). This is useful if you wish 
+        to use an editor specifcally for  IPython that is different from your  
+        typical default (and for Windows users who typically don't set  
+        environment variables).
 
         This command allows you to conveniently edit multi-line code right in
         your IPython session.
