@@ -1259,7 +1259,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
         oname = oname.strip()
         #print '1- oname: <%r>' % oname  # dbg
         if not py3compat.isidentifier(oname.lstrip(ESC_MAGIC), dotted=True):
-            print 'Python identifiers can only contain ascii characters.'
             return dict(found=False)
 
         alias_ns = None
