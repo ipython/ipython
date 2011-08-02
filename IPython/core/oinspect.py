@@ -253,7 +253,7 @@ class Inspector:
         try:
             # We need a plain string here, NOT unicode!
             hdef = oname + inspect.formatargspec(*getargspec(obj))
-            return py3compat.unicode_to_str(hdef.encode('ascii'))
+            return py3compat.unicode_to_str(hdef, 'ascii')
         except:
             return None
  
