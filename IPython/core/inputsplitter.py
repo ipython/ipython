@@ -75,6 +75,7 @@ from StringIO import StringIO
 
 # IPython modules
 from IPython.utils.text import make_quoted_expr
+from IPython.utils.py3compat import cast_unicode
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -837,8 +838,7 @@ class IPythonInputSplitter(InputSplitter):
             return super(IPythonInputSplitter, self).push(lines)
 
         # We must ensure all input is pure unicode
-        if type(lines)==str:
-            lines = lines.decode(self.encoding)
+        lines = cast_unicode(lines, self.encoding)
 
         lines_list = lines.splitlines()
 
