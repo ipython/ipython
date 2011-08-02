@@ -3,11 +3,10 @@
 Limitations:
 
 - When generating examples for use as doctests, make sure that you have
-  pretty-printing OFF.  This can be done either by starting ipython with the
-  flag '--nopprint', by setting pprint to 0 in your ipythonrc file, or by
-  interactively disabling it with %Pprint.  This is required so that IPython
-  output matches that of normal Python, which is used by doctest for internal
-  execution.
+  pretty-printing OFF.  This can be done either by setting the 'pprint' option 
+  in your configuration file to  'False', or by interactively disabling it with 
+  %Pprint.  This is required so that IPython output matches that of normal 
+  Python, which is used by doctest for internal execution.
 
 - Do not rely on specific prompt numbers for results (such as using
   '_34==True', for example).  For IPython tests run via an external process the

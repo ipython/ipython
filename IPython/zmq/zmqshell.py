@@ -242,9 +242,10 @@ class ZMQInteractiveShell(InteractiveShell):
         docstring for how to change the editor hook.
 
         You can also set the value of this editor via the command line option
-        '-editor' or in your ipythonrc file. This is useful if you wish to use
-        specifically for IPython an editor different from your typical default
-        (and for Windows users who typically don't set environment variables).
+        '-editor' or via the 'editor' option in your configuration file. 
+        This is useful if you wish to use  specifically for IPython an editor 
+        different from your typical default (and for Windows users who typically
+        don't set environment variables).
 
         This command allows you to conveniently edit multi-line code right in
         your IPython session.

@@ -13,7 +13,7 @@ itself, so hooks have full access to the entire IPython object.
 
 If you wish to define a new hook and activate it, you need to put the
 necessary code into a python file which can be either imported or execfile()'d
-from within your ipythonrc configuration.
+from within your profile's ipython_config.py configuration.
 
 For example, suppose that you have a module called 'myiphooks' in your
 PYTHONPATH, which contains the following definition:
