@@ -41,6 +41,10 @@ def _get_long_path_name(path):
     """Dummy no-op."""
     return path
 
+def _writable_dir(path):
+    """Whether `path` is a directory, to which the user has write access."""
+    return os.path.isdir(path) and os.access(path, os.W_OK)
+
 if sys.platform == 'win32':
     def _get_long_path_name(path):
         """Get a long path name (expand ~) on Windows using ctypes.
@@ -166,7 +170,7 @@ def get_home_dir():
     raised for all other OSes.
     """
 
-    isdir = os.path.isdir
+    isdir = _writable_dir
     env = os.environ
 
     # first, check py2exe distribution root directory for _ipython.
@@ -272,7 +276,7 @@ def get_xdg_dir():
     This is only for posix (Linux,Unix,OS X, etc) systems.
     """
 
-    isdir = os.path.isdir
+    isdir = _writable_dir
     env = os.environ
     
     if os.name == 'posix':
@@ -294,7 +298,8 @@ def get_ipython_dir():
     
     env = os.environ
     pjoin = os.path.join
-    exists = os.path.exists
+    isdir = _writable_dir
+    
     
     ipdir_def = '.ipython'
     xdg_def = 'ipython'
@@ -312,7 +317,7 @@ def get_ipython_dir():
             
             xdg_ipdir = pjoin(xdg_dir, xdg_def)
         
-            if exists(xdg_ipdir) or not exists(home_ipdir):
+            if isdir(xdg_ipdir) or not isdir(home_ipdir):
                 ipdir = xdg_ipdir
         
         if ipdir is None:
