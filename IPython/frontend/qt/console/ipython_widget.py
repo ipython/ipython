@@ -174,7 +174,11 @@ class IPythonWidget(FrontendWidget):
         """ Implemented to handle history tail replies, which are only supported
             by the IPython kernel.
         """
-        history_items = msg['content']['history']
+        content = msg['content']
+        if 'history' not in content:
+            self.log.error("History request failed: %r"%content)
+            return
+        history_items = content['history']
         items = [ line.rstrip() for _, _, line in history_items ]
         self._set_history(items)
 
