@@ -45,6 +45,9 @@ class OutStream(object):
                 msg = self.session.send(self.pub_socket, u'stream', content=content,
                                        parent=self.parent_header, ident=self.topic)
 
+                if hasattr(self.pub_socket, 'flush'):
+                    # socket itself has flush (presumably ZMQStream)
+                    self.pub_socket.flush()
                 self._buffer.close()
                 self._new_buffer()
 
