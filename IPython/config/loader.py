@@ -326,6 +326,31 @@ class CommandLineConfigLoader(ConfigLoader):
     here.
     """
 
+    def _exec_config_str(self, lhs, rhs):
+        exec_str = 'self.config.' + lhs + '=' + rhs
+        try:
+            # Try to see if regular Python syntax will work. This
+            # won't handle strings as the quote marks are removed
+            # by the system shell.
+            exec exec_str in locals(), globals()
+        except (NameError, SyntaxError):
+            # This case happens if the rhs is a string but without
+            # the quote marks. Use repr, to get quote marks, and
+            # 'u' prefix and see if
+            # it succeeds. If it still fails, we let it raise.
+            exec_str = u'self.config.' + lhs + '=' + repr(rhs)
+            exec exec_str in locals(), globals()
+    
+    def _load_flag(self, cfg):
+        """update self.config from a flag, which can be a dict or Config"""
+        if isinstance(cfg, (dict, Config)):
+            # don't clobber whole config sections, update
+            # each section from config:
+            for sec,c in cfg.iteritems():
+                self.config[sec].update(c)
+        else:
+            raise ValueError("Invalid flag: '%s'"%raw)
+
 # raw --identifier=value pattern
 # but *also* accept '-' as wordsep, for aliases
 # accepts:  --foo=a
@@ -463,29 +488,12 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 if '.' not in lhs:
                     # probably a mistyped alias, but not technically illegal
                     warn.warn("Unrecognized alias: '%s', it will probably have no effect."%lhs)
-                exec_str = 'self.config.' + lhs + '=' + rhs
-                try:
-                    # Try to see if regular Python syntax will work. This
-                    # won't handle strings as the quote marks are removed
-                    # by the system shell.
-                    exec exec_str in locals(), globals()
-                except (NameError, SyntaxError):
-                    # This case happens if the rhs is a string but without
-                    # the quote marks. Use repr, to get quote marks, and
-                    # 'u' prefix and see if
-                    # it succeeds. If it still fails, we let it raise.
-                    exec_str = u'self.config.' + lhs + '=' + repr(rhs)
-                    exec exec_str in locals(), globals()
+                self._exec_config_str(lhs, rhs)
+                
             elif flag_pattern.match(raw):
                 if item in flags:
                     cfg,help = flags[item]
-                    if isinstance(cfg, (dict, Config)):
-                        # don't clobber whole config sections, update
-                        # each section from config:
-                        for sec,c in cfg.iteritems():
-                            self.config[sec].update(c)
-                    else:
-                        raise ValueError("Invalid flag: '%s'"%raw)
+                    self._load_flag(cfg)
                 else:
                     raise ArgumentError("Unrecognized flag: '%s'"%raw)
             elif raw.startswith('-'):
@@ -503,7 +511,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
 class ArgParseConfigLoader(CommandLineConfigLoader):
     """A loader that uses the argparse module to load from the command line."""
 
-    def __init__(self, argv=None, *parser_args, **parser_kw):
+    def __init__(self, argv=None, aliases=None, flags=None, *parser_args, **parser_kw):
         """Create a config loader for use with argparse.
 
         Parameters
@@ -527,16 +535,20 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             The resulting Config object.
         """
         super(CommandLineConfigLoader, self).__init__()
-        if argv == None:
+        self.clear()
+        if argv is None:
             argv = sys.argv[1:]
         self.argv = argv
+        self.aliases = aliases or {}
+        self.flags = flags or {}
+        
         self.parser_args = parser_args
         self.version = parser_kw.pop("version", None)
         kwargs = dict(argument_default=argparse.SUPPRESS)
         kwargs.update(parser_kw)
         self.parser_kw = kwargs
 
-    def load_config(self, argv=None):
+    def load_config(self, argv=None, aliases=None, flags=None):
         """Parse command line arguments and return as a Config object.
 
         Parameters
@@ -549,7 +561,11 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         self.clear()
         if argv is None:
             argv = self.argv
-        self._create_parser()
+        if aliases is None:
+            aliases = self.aliases
+        if flags is None:
+            flags = self.flags
+        self._create_parser(aliases, flags)
         self._parse_args(argv)
         self._convert_to_config()
         return self.config
@@ -560,11 +576,11 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         else:
             return []
 
-    def _create_parser(self):
+    def _create_parser(self, aliases=None, flags=None):
         self.parser = ArgumentParser(*self.parser_args, **self.parser_kw)
-        self._add_arguments()
+        self._add_arguments(aliases, flags)
 
-    def _add_arguments(self):
+    def _add_arguments(self, aliases=None, flags=None):
         raise NotImplementedError("subclasses must implement _add_arguments")
 
     def _parse_args(self, args):
@@ -582,7 +598,63 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _convert_to_config(self):
         """self.parsed_data->self.config"""
         for k, v in vars(self.parsed_data).iteritems():
-            exec_str = 'self.config.' + k + '= v'
-            exec exec_str in locals(), globals()
+            self._exec_config_str(k, v)
 
-
+class KVArgParseConfigLoader(ArgParseConfigLoader):
+    """A config loader that loads aliases and flags with argparse,
+    but will use KVLoader for the rest.  This allows better parsing 
+    of common args, such as `ipython -c 'print 5'`, but still gets
+    arbitrary config with `ipython --InteractiveShell.use_readline=False`"""
+    def _add_arguments(self, aliases=None, flags=None):
+        self.alias_flags = {}
+        # print aliases, flags
+        if aliases is None:
+            aliases = self.aliases
+        if flags is None:
+            flags = self.flags
+        paa = self.parser.add_argument
+        for key,value in aliases.iteritems():
+            if key in flags:
+                # flags
+                nargs = '?'
+            else:
+                nargs = None
+            if len(key) is 1:
+                paa('-'+key, '--'+key, type=str, dest=value, nargs=nargs)
+            else:
+                paa('--'+key, type=str, dest=value, nargs=nargs)
+        for key, (value, help) in flags.iteritems():
+            if key in self.aliases:
+                # 
+                self.alias_flags[self.aliases[key]] = value
+                continue
+            if len(key) is 1:
+                paa('-'+key, '--'+key, action='append_const', dest='_flags', const=value)
+            else:
+                paa('--'+key, action='append_const', dest='_flags', const=value)
+    
+    def _convert_to_config(self):
+        """self.parsed_data->self.config, parse unrecognized extra args via KVLoader."""
+        # remove subconfigs list from namespace before transforming the Namespace
+        if '_flags' in self.parsed_data:
+            subcs = self.parsed_data._flags
+            del self.parsed_data._flags
+        else:
+            subcs = []
+        
+        for k, v in vars(self.parsed_data).iteritems():
+            if v is None:
+                # it was a flag that shares the name of an alias
+                subcs.append(self.alias_flags[k])
+            else:
+                # eval the KV assignment
+                self._exec_config_str(k, v)
+        
+        for subc in subcs:
+            self.config.update(subc)
+        
+        if self.extra_args:
+            sub_parser = KeyValueConfigLoader()
+            sub_parser.load_config(self.extra_args)
+            self.config.update(sub_parser.config)
+            self.extra_args = sub_parser.extra_args

@@ -27,7 +27,7 @@ from copy import deepcopy
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
-    KeyValueConfigLoader, PyFileConfigLoader, Config, ArgumentError
+    KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError
 )
 
 from IPython.utils.traitlets import (
@@ -350,7 +350,7 @@ class Application(SingletonConfigurable):
             self.print_version()
             self.exit(0)
         
-        loader = KeyValueConfigLoader(argv=argv, aliases=self.aliases,
+        loader = KVArgParseConfigLoader(argv=argv, aliases=self.aliases,
                                         flags=self.flags)
         try:
             config = loader.load_config()
