@@ -16,6 +16,7 @@ Utilities for path handling.
 
 import os
 import sys
+import tempfile
 from hashlib import md5
 
 import IPython
@@ -322,6 +323,19 @@ def get_ipython_dir():
             ipdir = home_ipdir
 
     ipdir = os.path.normpath(os.path.expanduser(ipdir))
+    
+    if os.path.exists(ipdir) and not _writable_dir(ipdir):
+        # ipdir exists, but is not writable
+        warn.warn("IPython dir '%s' is not a writable location,"
+                        " using a temp directory."%ipdir)
+        ipdir = tempfile.mkdtemp()
+    elif not os.path.exists(ipdir):
+        parent = ipdir.rsplit(os.path.sep, 1)[0]
+        if not _writable_dir(parent):
+            # ipdir does not exist and parent isn't writable
+            warn.warn("IPython parent '%s' is not a writable location,"
+                        " using a temp directory."%parent)
+            ipdir = tempfile.mkdtemp()
 
     return _cast_unicode(ipdir, fs_encoding)
 
