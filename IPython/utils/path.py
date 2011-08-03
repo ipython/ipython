@@ -170,7 +170,6 @@ def get_home_dir():
     raised for all other OSes.
     """
 
-    isdir = _writable_dir
     env = os.environ
 
     # first, check py2exe distribution root directory for _ipython.
@@ -182,7 +181,7 @@ def get_home_dir():
         else: 
             root=os.path.join(os.path.split(IPython.__file__)[0],"../../")
         root=os.path.abspath(root).rstrip('\\')
-        if isdir(os.path.join(root, '_ipython')):
+        if _writable_dir(os.path.join(root, '_ipython')):
             os.environ["IPYKITROOT"] = root
         return _cast_unicode(root, fs_encoding)
 
@@ -216,7 +215,7 @@ def get_home_dir():
         except KeyError:
             pass
         else:
-            if isdir(homedir):
+            if _writable_dir(homedir):
                 return _cast_unicode(homedir, fs_encoding)
 
         # Now look for a local home directory
@@ -225,7 +224,7 @@ def get_home_dir():
         except KeyError:
             pass
         else:
-            if isdir(homedir):
+            if _writable_dir(homedir):
                 return _cast_unicode(homedir, fs_encoding)
 
         # Now the users profile directory
@@ -234,7 +233,7 @@ def get_home_dir():
         except KeyError:
             pass
         else:
-            if isdir(homedir):
+            if _writable_dir(homedir):
                 return _cast_unicode(homedir, fs_encoding)
 
         # Use the registry to get the 'My Documents' folder.
@@ -249,7 +248,7 @@ def get_home_dir():
         except:
             pass
         else:
-            if isdir(homedir):
+            if _writable_dir(homedir):
                 return _cast_unicode(homedir, fs_encoding)
 
         # A user with a lot of unix tools in win32 may have defined $HOME.
@@ -259,7 +258,7 @@ def get_home_dir():
         except KeyError:
             pass
         else:
-            if isdir(homedir):
+            if _writable_dir(homedir):
                 return _cast_unicode(homedir, fs_encoding)
 
         # If all else fails, raise HomeDirError
@@ -276,14 +275,13 @@ def get_xdg_dir():
     This is only for posix (Linux,Unix,OS X, etc) systems.
     """
 
-    isdir = _writable_dir
     env = os.environ
     
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
         # use ~/.config if not set OR empty
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
-        if xdg and isdir(xdg):
+        if xdg and _writable_dir(xdg):
             return _cast_unicode(xdg, fs_encoding)
     
     return None
@@ -298,7 +296,6 @@ def get_ipython_dir():
     
     env = os.environ
     pjoin = os.path.join
-    isdir = _writable_dir
     
     
     ipdir_def = '.ipython'
@@ -317,7 +314,7 @@ def get_ipython_dir():
             
             xdg_ipdir = pjoin(xdg_dir, xdg_def)
         
-            if isdir(xdg_ipdir) or not isdir(home_ipdir):
+            if _writable_dir(xdg_ipdir) or not _writable_dir(home_ipdir):
                 ipdir = xdg_ipdir
         
         if ipdir is None:
