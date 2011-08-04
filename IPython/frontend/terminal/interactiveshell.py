@@ -16,10 +16,14 @@
 
 import __builtin__
 import bdb
-from contextlib import nested
 import os
 import re
 import sys
+
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
 
 from IPython.core.error import TryNext
 from IPython.core.usage import interactive_usage, default_banner

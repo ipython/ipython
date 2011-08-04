@@ -29,7 +29,10 @@ import re
 import sys
 import tempfile
 import types
-from contextlib import nested
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
