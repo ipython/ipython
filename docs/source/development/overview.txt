@@ -146,7 +146,7 @@ do::
     $ cd ipython-mybranch
     $ bzr push lp:~yourusername/ipython/ipython-mybranch
 
-Then, go to the `IPython Launchpad site <www.launchpad.net/ipython>`_, and you
+Then, go to the `IPython Launchpad site <http://www.launchpad.net/ipython>`_, and you
 should see your branch under the "Code" tab. If you click on your branch, you
 can provide a short description of the branch as well as mark its status. Most
 importantly, you should click the link that reads "Propose for merging into
