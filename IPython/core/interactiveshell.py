@@ -414,7 +414,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # We save this here in case user code replaces raw_input, but it needs
         # to be after init_readline(), because PyPy's readline works by replacing
         # raw_input.
-        self.raw_input_original = raw_input
+        if py3compat.PY3:
+            self.raw_input_original = input
+        else:
+            self.raw_input_original = raw_input
         # init_completer must come after init_readline, because it needs to
         # know whether readline is present or not system-wide to configure the
         # completers, since the completion machinery can now operate

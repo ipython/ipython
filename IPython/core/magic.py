@@ -61,7 +61,6 @@ from IPython.utils.text import LSString, SList, format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
-import IPython.utils.generics
 
 #-----------------------------------------------------------------------------
 # Utility functions
