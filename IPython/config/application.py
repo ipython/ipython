@@ -210,6 +210,8 @@ class Application(SingletonConfigurable):
             help = cls.class_get_trait_help(trait).splitlines()
             # reformat first line
             help[0] = help[0].replace(longname, alias) + ' (%s)'%longname
+            if len(alias) == 1:
+                help[0] = help[0].replace('--%s='%alias, '-%s '%alias)
             lines.extend(help)
         # lines.append('')
         print os.linesep.join(lines)
@@ -221,7 +223,8 @@ class Application(SingletonConfigurable):
         
         lines = []
         for m, (cfg,help) in self.flags.iteritems():
-            lines.append('--'+m)
+            prefix = '--' if len(m) > 1 else '-'
+            lines.append(prefix+m)
             lines.append(indent(dedent(help.strip())))
         # lines.append('')
         print os.linesep.join(lines)
