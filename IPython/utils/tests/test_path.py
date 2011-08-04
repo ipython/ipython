@@ -381,6 +381,7 @@ def test_get_long_path_name():
     p = path.get_long_path_name('/usr/local')
     nt.assert_equals(p,'/usr/local')
 
+@dec.skip_win32 # can't create not-user-writable dir on win
 @with_environment
 def test_not_writable_ipdir():
     tmpdir = tempfile.mkdtemp()
