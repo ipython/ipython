@@ -14,14 +14,9 @@ var IPython = (function (IPython) {
         this.next_prompt_number = 1;
         this.kernel = null;
         this.msg_cell_map = {};
-        this.filename = null;
-        this.notebook_load_re = /%notebook load/
-        this.notebook_save_re = /%notebook save/
-        this.notebook_filename_re = /(\w)+.ipynb/
         this.style();
         this.create_elements();
         this.bind_events();
-        this.start_kernel();
     };
 
 
@@ -473,24 +468,8 @@ var IPython = (function (IPython) {
         if (cell instanceof IPython.CodeCell) {
             cell.clear_output();
             var code = cell.get_code();
-            if (that.notebook_load_re.test(code)) {
-                // %notebook load
-                var code_parts = code.split(' ');
-                if (code_parts.length === 3) {
-                    that.load_notebook(code_parts[2]);
-                };
-            } else if (that.notebook_save_re.test(code)) {
-                // %notebook save
-                var code_parts = code.split(' ');
-                if (code_parts.length === 3) {
-                    that.save_notebook(code_parts[2]);
-                } else {
-                    that.save_notebook()
-                };
-            } else {
-                var msg_id = that.kernel.execute(cell.get_code());
-                that.msg_cell_map[msg_id] = cell.cell_id;
-            };
+            var msg_id = that.kernel.execute(cell.get_code());
+            that.msg_cell_map[msg_id] = cell.cell_id;
         } else if (cell instanceof IPython.TextCell) {
             cell.render();
         }
@@ -532,18 +511,22 @@ var IPython = (function (IPython) {
             // Always delete cell 0 as they get renumbered as they are deleted.
             this.delete_cell(0);
         };
-        var new_cells = data.cells;
-        ncells = new_cells.length;
-        var cell_data = null;
-        for (var i=0; i<ncells; i++) {
-            cell_data = new_cells[i];
-            if (cell_data.cell_type == 'code') {
-                this.insert_code_cell_after();
-                this.selected_cell().fromJSON(cell_data);
-            } else if (cell_data.cell_type === 'text') {
-                this.insert_text_cell_after();
-                this.selected_cell().fromJSON(cell_data);
-            };
+        // Only handle 1 worksheet for now.
+        var worksheet = data.worksheets[0];
+        if (worksheet !== undefined) {
+            var new_cells = worksheet.cells;
+            ncells = new_cells.length;
+            var cell_data = null;
+            for (var i=0; i<ncells; i++) {
+                cell_data = new_cells[i];
+                if (cell_data.cell_type == 'code') {
+                    this.insert_code_cell_after();
+                    this.selected_cell().fromJSON(cell_data);
+                } else if (cell_data.cell_type === 'text') {
+                    this.insert_text_cell_after();
+                    this.selected_cell().fromJSON(cell_data);
+                };
+            };          
         };
     };
 
@@ -555,66 +538,65 @@ var IPython = (function (IPython) {
         for (var i=0; i<ncells; i++) {
             cell_array[i] = cells[i].toJSON();
         };
-        json = {
-            cells : cell_array
-        };
-        return json
-    };
-
-
-    Notebook.prototype.test_filename = function (filename) {
-        if (this.notebook_filename_re.test(filename)) {
-            return true;
-        } else {
-            var bad_filename = $('<div/>');
-            bad_filename.html(
-                "The filename you entered (" + filename + ") is not valid. Notebook filenames must have the following form: foo.ipynb"
-            );
-            bad_filename.dialog({title: 'Invalid filename', modal: true});
-            return false;
-        };
-    };
-
-    Notebook.prototype.save_notebook = function (filename) {
-        this.filename = filename || this.filename || '';
-        if (this.filename === '') {
-            var no_filename = $('<div/>');
-            no_filename.html(
-                "This notebook has no filename, please specify a filename of the form: foo.ipynb"
-            );
-            no_filename.dialog({title: 'Missing filename', modal: true});
-            return;
+        data = {
+            // Only handle 1 worksheet for now.
+            worksheets : [{cells:cell_array}]
         }
-        if (!this.test_filename(this.filename)) {return;}
-        var thedata = this.toJSON();
-        var settings = {
-          processData : false,
-          cache : false,
-          type : "PUT",
-          data : JSON.stringify(thedata),
-          success : function (data, status, xhr) {console.log(data);}
+        return data
+    };
+
+    Notebook.prototype.save_notebook = function () {
+        if (IPython.save_widget.test_notebook_name()) {
+            var notebook_id = IPython.save_widget.get_notebook_id();
+            var nbname = IPython.save_widget.get_notebook_name();
+            // We may want to move the name/id/nbformat logic inside toJSON?
+            var data = this.toJSON();
+            data.name = nbname;
+            data.nbformat = 2;
+            data.id = notebook_id
+            // We do the call with settings so we can set cache to false.
+            var settings = {
+              processData : false,
+              cache : false,
+              type : "PUT",
+              data : JSON.stringify(data),
+              success : $.proxy(this.notebook_saved,this)
+            };
+            IPython.save_widget.status_saving();
+            $.ajax("/notebooks/" + notebook_id, settings);
         };
-        $.ajax("/notebooks/" + this.filename, settings);
     };
 
 
-    Notebook.prototype.load_notebook = function (filename) {
-        if (!this.test_filename(filename)) {return;}
-        var that = this;
+    Notebook.prototype.notebook_saved = function (data, status, xhr) {
+        IPython.save_widget.status_save();
+    }
+
+
+    Notebook.prototype.load_notebook = function () {
+        var notebook_id = IPython.save_widget.get_notebook_id();
         // We do the call with settings so we can set cache to false.
         var settings = {
           processData : false,
           cache : false,
           type : "GET",
           dataType : "json",
-          success : function (data, status, xhr) {
-              that.fromJSON(data);
-              that.filename = filename;
-              that.kernel.restart();
-          }
+          success : $.proxy(this.notebook_loaded,this)
         };
-        $.ajax("/notebooks/" + filename, settings);
+        IPython.save_widget.status_loading();
+        $.ajax("/notebooks/" + notebook_id, settings);
     }
+
+
+    Notebook.prototype.notebook_loaded = function (data, status, xhr) {
+        this.fromJSON(data);
+        if (this.ncells() === 0) {
+            this.insert_code_cell_after();
+        };
+        IPython.save_widget.status_save();
+        IPython.save_widget.set_notebook_name(data.name);
+        this.start_kernel();
+    };
 
     IPython.Notebook = Notebook;
 

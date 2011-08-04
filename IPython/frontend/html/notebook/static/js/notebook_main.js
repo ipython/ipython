@@ -30,14 +30,18 @@ $(document).ready(function () {
     IPython.kernel_status_widget.status_idle();
 
     IPython.layout_manager.do_resize();
-    IPython.notebook.insert_code_cell_after();
-    IPython.layout_manager.do_resize();
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.
     $('div#header').css('display','block');
     $('div#notebook_app').css('display','block');
-    IPython.layout_manager.do_resize();
-    IPython.pager.collapse();
-    IPython.layout_manager.do_resize();
+
+    IPython.notebook.load_notebook();
+
+    // Perform these actions after the notebook has been loaded.
+    setTimeout(function () {
+        IPython.save_widget.update_url();
+        IPython.layout_manager.do_resize();
+        IPython.pager.collapse();
+    }, 100);
 });
 

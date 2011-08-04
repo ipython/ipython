@@ -112,7 +112,7 @@ class ShellStreamRouter(ZMQStreamRouter):
     def forward_msg(self, client_id, msg):
         if len(msg) < self.max_msg_size:
             msg = json.loads(msg)
-            to_send = self.session.serialize(msg)
+            # to_send = self.session.serialize(msg)
             self._request_queue.put(client_id)        
             self.session.send(self.zmq_stream, msg)
 

@@ -302,18 +302,28 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.fromJSON = function (data) {
         if (data.cell_type === 'code') {
-            this.set_code(data.code);
-            this.set_input_prompt(data.prompt_number);
+            if (data.input !== undefined) {
+                this.set_code(data.input);
+            }
+            if (data.prompt_number !== undefined) {
+                this.set_input_prompt(data.prompt_number);
+            } else {
+                this.set_input_prompt();
+            };
         };
     };
 
 
     CodeCell.prototype.toJSON = function () {
-        return {
-            code : this.get_code(),
-            cell_type : 'code',
-            prompt_number : this.input_prompt_number
+        var data = {}
+        data.input = this.get_code();
+        data.cell_type = 'code';
+        if (this.input_prompt_number !== ' ') {
+            data.prompt_number = this.input_prompt_number
         };
+        data.outputs = [];
+        data.language = 'python';
+        return data;
     };
 
     IPython.CodeCell = CodeCell;

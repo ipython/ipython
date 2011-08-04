@@ -27,13 +27,15 @@ tornado.ioloop = ioloop
 from tornado import httpserver
 from tornado import web
 
-from kernelmanager import KernelManager
-from sessionmanager import SessionManager
-from handlers import (
-    MainHandler, KernelHandler, KernelActionHandler, ZMQStreamHandler,
+from .kernelmanager import KernelManager
+from .sessionmanager import SessionManager
+from .handlers import (
+    MainHandler, NamedNotebookHandler,
+    KernelHandler, KernelActionHandler, ZMQStreamHandler,
     NotebookRootHandler, NotebookHandler
 )
-from routers import IOPubStreamRouter, ShellStreamRouter
+from .routers import IOPubStreamRouter, ShellStreamRouter
+from .notebookmanager import NotebookManager
 
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
@@ -53,6 +55,7 @@ from IPython.utils.traitlets import Dict, Unicode, Int, Any, List, Enum
 
 _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
+_notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
 
 LOCALHOST = '127.0.0.1'
 
@@ -65,12 +68,13 @@ class NotebookWebApplication(web.Application):
     def __init__(self, kernel_manager, log, kernel_argv, config):
         handlers = [
             (r"/", MainHandler),
+            (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
             (r"/kernels", KernelHandler),
             (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
             (r"/kernels/%s/iopub" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='iopub')),
             (r"/kernels/%s/shell" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='shell')),
             (r"/notebooks", NotebookRootHandler),
-            (r"/notebooks/([^/]+)", NotebookHandler)
+            (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler)
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
@@ -84,6 +88,7 @@ class NotebookWebApplication(web.Application):
         self.config = config
         self._routers = {}
         self._session_dict = {}
+        self.notebook_manager = NotebookManager(config=self.config)
 
     #-------------------------------------------------------------------------
     # Methods for managing kernels and sessions

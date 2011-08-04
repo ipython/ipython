@@ -129,17 +129,19 @@ var IPython = (function (IPython) {
 
     TextCell.prototype.fromJSON = function (data) {
         if (data.cell_type === 'text') {
-            this.set_text(data.text);
-            this.grow(this.element.find("textarea.text_cell_input"));
+            if (data.text !== undefined) {
+                this.set_text(data.text);
+                this.grow(this.element.find("textarea.text_cell_input"));
+            };
         };
     }
 
 
     TextCell.prototype.toJSON = function () {
-        return {
-            cell_type : 'text',
-            text : this.get_text(),
-        };
+        var data = {}
+        data.cell_type = 'text';
+        data.text = this.get_text();
+        return data;
     };
 
     IPython.TextCell = TextCell;

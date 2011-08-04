@@ -206,6 +206,13 @@ span.button_label {
     font-size: 77%;
 }
 
+#download_format {
+    float: right;
+    font-size: 85%;
+    width: 60px;
+    margin: 1px 5px;
+}
+
 div#left_panel_splitter {
     width: 8px;
     top: 0px;

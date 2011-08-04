@@ -4,14 +4,13 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import datetime
 import json
 import logging
-import os
 import urllib
 
 from tornado import web
 from tornado import websocket
+
 
 #-----------------------------------------------------------------------------
 # Handlers
@@ -20,7 +19,16 @@ from tornado import websocket
 
 class MainHandler(web.RequestHandler):
     def get(self):
-        self.render('notebook.html')
+        notebook_id = self.application.notebook_manager.new_notebook()
+        self.render('notebook.html', notebook_id=notebook_id)
+
+
+class NamedNotebookHandler(web.RequestHandler):
+    def get(self, notebook_id):
+        nbm = self.application.notebook_manager
+        if not nbm.notebook_exists(notebook_id):
+            raise web.HTTPError(404)
+        self.render('notebook.html', notebook_id=notebook_id)
 
 
 class KernelHandler(web.RequestHandler):
@@ -30,6 +38,7 @@ class KernelHandler(web.RequestHandler):
 
     def post(self):
         kernel_id = self.application.start_kernel()
+        self.set_header('Location', '/'+kernel_id)
         self.write(json.dumps(kernel_id))
 
 
@@ -65,52 +74,52 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
 class NotebookRootHandler(web.RequestHandler):
 
     def get(self):
-        files = os.listdir(os.getcwd())
-        files = [file for file in files if file.endswith(".ipynb")]
+        nbm = self.application.notebook_manager
+        files = nbm.list_notebooks()
         self.write(json.dumps(files))
+
+    def post(self):
+        nbm = self.application.notebook_manager
+        body = self.request.body.strip()
+        format = self.get_argument('format', default='json')
+        if body:
+            notebook_id = nbm.save_new_notebook(body, format)
+        else:
+            notebook_id = nbm.new_notebook()
+        self.set_header('Location', '/'+notebook_id)
+        self.write(json.dumps(notebook_id))
 
 
 class NotebookHandler(web.RequestHandler):
 
-    SUPPORTED_METHODS = ("GET", "DELETE", "PUT")
+    SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
 
-    def find_path(self, filename):
-        filename = urllib.unquote(filename)
-        if not filename.endswith('.ipynb'):
-            raise web.HTTPError(400)
-        path = os.path.join(os.getcwd(), filename)
-        return path
+    def get(self, notebook_id):
+        nbm = self.application.notebook_manager
+        format = self.get_argument('format', default='json')
+        last_mod, name, data = nbm.get_notebook(notebook_id, format)
+        if format == u'json':
+            self.set_header('Content-Type', 'application/json')
+            self.set_header('Content-Disposition','attachment; filename=%s.json' % name)
+        elif format == u'xml':
+            self.set_header('Content-Type', 'text/xml')
+            self.set_header('Content-Disposition','attachment; filename=%s.ipynb' % name)
+        elif format == u'py':
+            self.set_header('Content-Type', 'text/plain')
+            self.set_header('Content-Disposition','attachment; filename=%s.py' % name)
+        self.set_header('Last-Modified', last_mod)
+        self.finish(data)
 
-    def get(self, filename):
-        path = self.find_path(filename)
-        if not os.path.isfile(path):
-            raise web.HTTPError(404)
-        info = os.stat(path)
-        self.set_header("Content-Type", "application/unknown")
-        self.set_header("Last-Modified", datetime.datetime.utcfromtimestamp(
-            info.st_mtime))
-        f = open(path, "r")
-        try:
-            self.finish(f.read())
-        finally:
-            f.close()
-
-    def put(self, filename):
-        path = self.find_path(filename)
-        f = open(path, "w")
-        f.write(self.request.body)
-        f.close()
-        self.finish()
-
-    def delete(self, filename):
-        path = self.find_path(filename)
-        if not os.path.isfile(path):
-            raise web.HTTPError(404)
-        os.unlink(path)
+    def put(self, notebook_id):
+        nbm = self.application.notebook_manager
+        format = self.get_argument('format', default='json')
+        nbm.save_notebook(notebook_id, self.request.body, format)
         self.set_status(204)
         self.finish()
 
-
-
-
+    def delete(self, notebook_id):
+        nbm = self.application.notebook_manager
+        nbm.delete_notebook(notebook_id)
+        self.set_status(204)
+        self.finish()
 

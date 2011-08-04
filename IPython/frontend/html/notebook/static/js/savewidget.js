@@ -9,6 +9,7 @@ var IPython = (function (IPython) {
 
     var SaveWidget = function (selector) {
         this.selector = selector;
+        this.notebook_name_re = /[^/\\]+/
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
@@ -29,7 +30,7 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.bind_events = function () {
         var that = this;
         this.element.find('button#save_notebook').click(function () {
-            IPython.notebook.save_notebook(that.get_notebook_name());
+            IPython.notebook.save_notebook();
         });
     };
 
@@ -39,9 +40,57 @@ var IPython = (function (IPython) {
     }
 
 
-    SaveWidget.prototype.set_notebook_name = function (name) {
-        this.element.find('input#notebook_name').attr('value',name);
+    SaveWidget.prototype.set_notebook_name = function (nbname) {
+        this.element.find('input#notebook_name').attr('value',nbname);
     }
+
+
+    SaveWidget.prototype.get_notebook_id = function () {
+        return this.element.find('span#notebook_id').text()
+    };
+
+
+    SaveWidget.prototype.update_url = function () {
+        var notebook_id = this.get_notebook_id();
+        if (notebook_id !== '') {
+            window.history.replaceState({}, '', notebook_id);
+        };
+    };
+
+
+    SaveWidget.prototype.test_notebook_name = function () {
+        var nbname = this.get_notebook_name();
+        if (this.notebook_name_re.test(nbname)) {
+            return true;
+        } else {
+            var bad_name = $('<div/>');
+            bad_name.html(
+                "The notebook name you entered (" +
+                nbname +
+                ") is not valid. Notebook names can contain any characters except / and \\"
+            );
+            bad_name.dialog({title: 'Invalid name', modal: true});
+            return false;
+        };
+    };
+
+
+    SaveWidget.prototype.status_save = function () {
+        this.element.find('span.ui-button-text').text('Save');
+        this.element.find('button#save_notebook').button('enable');
+    };    
+
+
+    SaveWidget.prototype.status_saving = function () {
+        this.element.find('span.ui-button-text').text('Saving');
+        this.element.find('button#save_notebook').button('disable');
+    };    
+
+
+    SaveWidget.prototype.status_loading = function () {
+        this.element.find('span.ui-button-text').text('Loading');
+        this.element.find('button#save_notebook').button('disable');
+    };    
 
 
     IPython.SaveWidget = SaveWidget;

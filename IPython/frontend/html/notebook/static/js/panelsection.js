@@ -82,19 +82,30 @@ var IPython = (function (IPython) {
         this.content.addClass('ui-helper-clearfix');
         this.content.find('div.section_row').addClass('ui-helper-clearfix');
         this.content.find('#new_open').buttonset();
+        this.content.find('#download_notebook').button();
+        this.content.find('#upload_notebook').button();
+        this.content.find('#download_format').addClass('ui-widget ui-widget-content');
+        this.content.find('#download_format option').addClass('ui-widget ui-widget-content');
     };
 
 
     NotebookSection.prototype.bind_events = function () {
         PanelSection.prototype.bind_events.apply(this);
+        var that = this;
         this.content.find('#new_notebook').click(function () {
-            alert('Not Implemented');
+            console.log('click!')
+            window.open('/');
         });
         this.content.find('#open_notebook').click(function () {
             alert('Not Implemented');
         });
+        this.content.find('#download_notebook').click(function () {
+            var format = that.content.find('#download_format').val();
+            var notebook_id = IPython.save_widget.get_notebook_id();
+            var url = '/notebooks/' + notebook_id + '?format=' + format;
+            window.open(url,'_newtab');
+        });
     };
-
 
     // CellSection
 

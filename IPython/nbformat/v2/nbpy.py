@@ -36,10 +36,11 @@ class PyWriter(NotebookWriter):
         for ws in nb.worksheets:
             for cell in ws.cells:
                 if cell.cell_type == 'code':
-                    input = cell.input
-                    lines.extend([u'# <codecell>',u''])
-                    lines.extend(input.splitlines())
-                    lines.extend([u'',u'# </codecell>'])
+                    input = cell.get('input')
+                    if input is not None:
+                        lines.extend([u'# <codecell>',u''])
+                        lines.extend(input.splitlines())
+                        lines.extend([u'',u'# </codecell>'])
         lines.append('')
         return unicode('\n'.join(lines))
 
