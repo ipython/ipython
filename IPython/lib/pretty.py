@@ -454,8 +454,10 @@ class GroupQueue(object):
         except ValueError:
             pass
 
-
-_baseclass_reprs = (object.__repr__, types.InstanceType.__repr__)
+try:
+    _baseclass_reprs = (object.__repr__, types.InstanceType.__repr__)
+except AttributeError:  # Python 3
+    _baseclass_reprs = (object.__repr__,)
 
 
 def _default_pprint(obj, p, cycle):
@@ -648,22 +650,32 @@ _type_pprinters = {
     tuple:                      _seq_pprinter_factory('(', ')', tuple),
     list:                       _seq_pprinter_factory('[', ']', list),
     dict:                       _dict_pprinter_factory('{', '}', dict),
-    types.DictProxyType:        _dict_pprinter_factory('<dictproxy {', '}>'),
+    
     set:                        _seq_pprinter_factory('set([', '])', set),
     frozenset:                  _seq_pprinter_factory('frozenset([', '])', frozenset),
     super:                      _super_pprint,
     _re_pattern_type:           _re_pattern_pprint,
     type:                       _type_pprint,
-    types.ClassType:            _type_pprint,
     types.FunctionType:         _function_pprint,
     types.BuiltinFunctionType:  _function_pprint,
     types.SliceType:            _repr_pprint,
     types.MethodType:           _repr_pprint,
-    xrange:                     _repr_pprint,
+    
     datetime.datetime:          _repr_pprint,
     datetime.timedelta:         _repr_pprint,
     _exception_base:            _exception_pprint
 }
+
+try:
+    _type_pprinters[types.DictProxyType] = _dict_pprinter_factory('<dictproxy {', '}>')
+    _type_pprinters[types.ClassType] = _type_pprint,
+except AttributeError: # Python 3
+    pass
+    
+try:
+    _type_pprinters[xrange] = _repr_pprint
+except NameError:
+    _type_pprinters[range] = _repr_pprint
 
 #: printers for types specified by name
 _deferred_type_pprinters = {
