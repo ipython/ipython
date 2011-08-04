@@ -228,7 +228,8 @@ class CompletionSplitter(object):
     
     # A string of delimiter characters.  The default value makes sense for
     # IPython's most typical usage patterns.
-    _delims = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+    #_delims = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+    _delims = ' \n\t'
 
     # The expression (a normal string) to be compiled into a regular expression
     # for actual splitting.  We store it as an attribute mostly for ease of
@@ -349,14 +350,18 @@ class Completer(object):
 
         """
 
-        #print 'Completer->attr_matches, txt=%r' % text # dbg
+        #io.rprint('Completer->attr_matches, txt=%r' % text) # dbg
         # Another option, seems to work great. Catches things like ''.<tab>
         m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
 
-        if not m:
-            return []
-        
-        expr, attr = m.group(1, 3)
+        if m:
+            expr, attr = m.group(1, 3)        
+        else:
+            m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
+            if not m2:
+                return []
+            expr, attr = m2.group(1,2)
+    
         try:
             obj = eval(expr, self.namespace)
         except:
@@ -579,7 +584,7 @@ class IPCompleter(Completer):
     def python_matches(self,text):
         """Match attributes or global python names"""
 
-        #print 'Completer->python_matches, txt=%r' % text # dbg
+        #io.rprint('Completer->python_matches, txt=%r' % text) # dbg
         if "." in text:
             try:
                 matches = self.attr_matches(text)
@@ -680,7 +685,7 @@ class IPCompleter(Completer):
         return argMatches
 
     def dispatch_custom_completer(self, text):
-        #print "Custom! '%s' %s" % (text, self.custom_completers) # dbg
+        #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
         line = self.line_buffer        
         if not line.strip():
             return None
