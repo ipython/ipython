@@ -387,8 +387,12 @@ The keybinding prefixes mean:
 The keybindings themselves are:
 
 - ``Enter``: insert new line (may cause execution, see above).
-- ``C-Enter``: force new line, *never* causes execution.
+- ``C-Enter``: *force* new line, *never* causes execution.
 - ``S-Enter``: *force* execution regardless of where cursor is, no newline added.
+- ``Up``: step backwards through the history.
+- ``Down``: step forwards through the history.
+- ``S-Up``: search backwards through the history (like ``C-r`` in bash).
+- ``S-Down``: search forwards through the history.
 - ``C-c``: copy highlighted text to clipboard (prompts are automatically stripped).
 - ``C-S-c``: copy highlighted text to clipboard (prompts are not stripped).
 - ``C-v``: paste text from clipboard.
