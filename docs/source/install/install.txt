@@ -250,7 +250,7 @@ getting the these is to use :command:`easy_install`::
 	$ easy_install Twisted
 
 Of course, you can also download the source tarballs from the `Twisted website
-<twistedmatrix.org>`_ and the `zope.interface page at PyPI
+<http://twistedmatrix.com>`_ and the `zope.interface page at PyPI
 <http://pypi.python.org/pypi/zope.interface>`_ and do the usual ``python
 setup.py install`` if you prefer.
 
@@ -294,7 +294,7 @@ built-in Python on OS X comes with wxPython preinstalled.  For Windows, a
 binary installer is available on the `wxPython website
 <http://www.wxpython.org/>`_.
 
-.. [Twisted] Twisted matrix.  http://twistedmatrix.org
+.. [Twisted] Twisted matrix.  http://twistedmatrix.com
 .. [ZopeInterface] http://pypi.python.org/pypi/zope.interface
 .. [Foolscap] Foolscap network protocol.  http://foolscap.lothar.com/trac
 .. [pyOpenSSL] pyOpenSSL.  http://pyopenssl.sourceforge.net
