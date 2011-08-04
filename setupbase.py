@@ -23,7 +23,10 @@ from __future__ import print_function
 import os
 import sys
 
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+except:
+    from ConfigParser import ConfigParser
 from distutils.command.build_py import build_py
 from glob import glob
 
@@ -40,6 +43,13 @@ pjoin = os.path.join
 def oscmd(s):
     print(">", s)
     os.system(s)
+    
+try:
+    execfile
+except NameError:
+    def execfile(fname, globs, locs=None):
+        locs = locs or globs
+        exec(compile(open(fname).read(), fname, "exec"), globs, locs)
 
 # A little utility we'll need below, since glob() does NOT allow you to do
 # exclusion on multiple endings!
@@ -58,7 +68,7 @@ def file_doesnt_endwith(test,endings):
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-execfile(pjoin('IPython','core','release.py'))
+execfile(pjoin('IPython','core','release.py'), globals())
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
