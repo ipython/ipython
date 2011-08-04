@@ -440,7 +440,11 @@ class IPythonWidget(FrontendWidget):
     def _make_in_prompt(self, number):
         """ Given a prompt number, returns an HTML In prompt.
         """
-        body = self.in_prompt % number
+        try:
+            body = self.in_prompt % number
+        except TypeError:
+            # allow in_prompt to leave out number, e.g. '>>> '
+            body = self.in_prompt
         return '<span class="in-prompt">%s</span>' % body
 
     def _make_continuation_prompt(self, prompt):
