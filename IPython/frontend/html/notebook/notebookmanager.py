@@ -46,7 +46,6 @@ class NotebookManager(Configurable):
         names = os.listdir(self.notebook_dir)
         names = [name.split(u'.')[0] \
             for name in names if name.endswith(self.filename_ext)]
-        print names
         data = []
         for name in names:
             if name not in self.rev_mapping:
