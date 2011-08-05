@@ -17,7 +17,14 @@ from tornado import websocket
 #-----------------------------------------------------------------------------
 
 
-class MainHandler(web.RequestHandler):
+class NBBrowserHandler(web.RequestHandler):
+    def get(self):
+        nbm = self.application.notebook_manager
+        project = nbm.notebook_dir
+        self.render('nbbrowser.html', project=project)
+
+
+class NewHandler(web.RequestHandler):
     def get(self):
         notebook_id = self.application.notebook_manager.new_notebook()
         self.render('notebook.html', notebook_id=notebook_id)

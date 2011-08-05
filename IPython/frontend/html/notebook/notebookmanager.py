@@ -44,8 +44,9 @@ class NotebookManager(Configurable):
             dict(notebook_id=notebook,name=name)
         """
         names = os.listdir(self.notebook_dir)
-        names = [name.strip(self.filename_ext)\
+        names = [name.split(u'.')[0] \
             for name in names if name.endswith(self.filename_ext)]
+        print names
         data = []
         for name in names:
             if name not in self.rev_mapping:
@@ -53,6 +54,7 @@ class NotebookManager(Configurable):
             else:
                 notebook_id = self.rev_mapping[name]
             data.append(dict(notebook_id=notebook_id,name=name))
+        data = sorted(data, key=lambda item: item['name'])
         return data
 
     def new_notebook_id(self, name):
@@ -112,11 +114,13 @@ class NotebookManager(Configurable):
             with open(path,'r') as f:
                 s = f.read()
                 try:
-                    # v2 and later have xml in the .ipynb files
+                    # v2 and later have xml in the .ipynb files.
                     nb = current.reads(s, 'xml')
                 except:
-                    # v1 had json in the .ipynb files
+                    # v1 had json in the .ipynb files.
                     nb = current.reads(s, 'json')
+                    # v1 notebooks don't have a name field, so use the filename.
+                    nb.name = os.path.split(path)[-1].split(u'.')[0]
         except:
             raise web.HTTPError(404)
         return last_modified, nb

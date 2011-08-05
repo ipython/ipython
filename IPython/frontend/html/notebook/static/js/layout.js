@@ -22,7 +22,7 @@ var IPython = (function (IPython) {
         var header_height = $('div#header').outerHeight(true);
         var app_height = h - header_height - 2;  // content height
 
-        $('div#notebook_app').height(app_height + 2);  // content+padding+border height
+        $('div#main_app').height(app_height + 2);  // content+padding+border height
 
         $('div#left_panel').height(app_height);
 

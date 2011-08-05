@@ -61,14 +61,14 @@ var IPython = (function (IPython) {
         });
 
         this.element.bind('collapse_pager', function () {
-            var app_height = $('div#notebook_app').height(); // content height
+            var app_height = $('div#main_app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var new_height = app_height - splitter_height;
             that.element.animate({height : new_height + 'px'}, 'fast');
         });
 
         this.element.bind('expand_pager', function () {
-            var app_height = $('div#notebook_app').height(); // content height
+            var app_height = $('div#main_app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var pager_height = $('div#pager').outerHeight(true);
             var new_height = app_height - pager_height - splitter_height; 
@@ -93,6 +93,12 @@ var IPython = (function (IPython) {
     Notebook.prototype.scroll_to_bottom = function () {
         this.element.animate({scrollTop:this.element.get(0).scrollHeight}, 0);
     };
+
+
+    Notebook.prototype.scroll_to_top = function () {
+        this.element.animate({scrollTop:0}, 0);
+    };
+
 
     // Cell indexing, retrieval, etc.
 
@@ -296,12 +302,10 @@ var IPython = (function (IPython) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
         var cell = new IPython.CodeCell(this);
-        // cell.set_input_prompt(this.next_prompt_number);
         cell.set_input_prompt();
-        this.next_prompt_number = this.next_prompt_number + 1;
         this.insert_cell_before(cell, i);
         this.select(this.find_cell_index(cell));
-        return this;
+        return cell;
     }
 
 
@@ -309,12 +313,10 @@ var IPython = (function (IPython) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
         var cell = new IPython.CodeCell(this);
-        // cell.set_input_prompt(this.next_prompt_number);
         cell.set_input_prompt();
-        this.next_prompt_number = this.next_prompt_number + 1;
         this.insert_cell_after(cell, i);
         this.select(this.find_cell_index(cell));
-        return this;
+        return cell;
     }
 
 
@@ -325,7 +327,7 @@ var IPython = (function (IPython) {
         cell.config_mathjax();
         this.insert_cell_before(cell, i);
         this.select(this.find_cell_index(cell));
-        return this;
+        return cell;
     }
 
 
@@ -336,7 +338,7 @@ var IPython = (function (IPython) {
         cell.config_mathjax();
         this.insert_cell_after(cell, i);
         this.select(this.find_cell_index(cell));
-        return this;
+        return cell;
     }
 
 
@@ -517,14 +519,15 @@ var IPython = (function (IPython) {
             var new_cells = worksheet.cells;
             ncells = new_cells.length;
             var cell_data = null;
+            var new_cell = null;
             for (var i=0; i<ncells; i++) {
                 cell_data = new_cells[i];
                 if (cell_data.cell_type == 'code') {
-                    this.insert_code_cell_after();
-                    this.selected_cell().fromJSON(cell_data);
+                    new_cell = this.insert_code_cell_after();
+                    new_cell.fromJSON(cell_data);
                 } else if (cell_data.cell_type === 'text') {
-                    this.insert_text_cell_after();
-                    this.selected_cell().fromJSON(cell_data);
+                    new_cell = this.insert_text_cell_after();
+                    new_cell.fromJSON(cell_data);
                 };
             };          
         };
@@ -573,15 +576,21 @@ var IPython = (function (IPython) {
     }
 
 
-    Notebook.prototype.load_notebook = function () {
+    Notebook.prototype.load_notebook = function (callback) {
+        var that = this;
         var notebook_id = IPython.save_widget.get_notebook_id();
         // We do the call with settings so we can set cache to false.
         var settings = {
-          processData : false,
-          cache : false,
-          type : "GET",
-          dataType : "json",
-          success : $.proxy(this.notebook_loaded,this)
+            processData : false,
+            cache : false,
+            type : "GET",
+            dataType : "json",
+            success : function (data, status, xhr) {
+                that.notebook_loaded(data, status, xhr);
+                if (callback !== undefined) {
+                    callback();
+                };
+            }
         };
         IPython.save_widget.status_loading();
         $.ajax("/notebooks/" + notebook_id, settings);
@@ -596,6 +605,12 @@ var IPython = (function (IPython) {
         IPython.save_widget.status_save();
         IPython.save_widget.set_notebook_name(data.name);
         this.start_kernel();
+        // fromJSON always selects the last cell inserted. We need to wait
+        // until that is done before scrolling to the top.
+        setTimeout(function () {
+            IPython.notebook.select(0);
+            IPython.notebook.scroll_to_top();
+        }, 50);
     };
 
     IPython.Notebook = Notebook;

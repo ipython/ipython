@@ -30,7 +30,7 @@ from tornado import web
 from .kernelmanager import KernelManager
 from .sessionmanager import SessionManager
 from .handlers import (
-    MainHandler, NamedNotebookHandler,
+    NBBrowserHandler, NewHandler, NamedNotebookHandler,
     KernelHandler, KernelActionHandler, ZMQStreamHandler,
     NotebookRootHandler, NotebookHandler
 )
@@ -67,7 +67,8 @@ class NotebookWebApplication(web.Application):
 
     def __init__(self, kernel_manager, log, kernel_argv, config):
         handlers = [
-            (r"/", MainHandler),
+            (r"/", NBBrowserHandler),
+            (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
             (r"/kernels", KernelHandler),
             (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),

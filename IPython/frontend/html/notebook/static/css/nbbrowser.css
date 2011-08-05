@@ -1,0 +1,64 @@
+
+/**
+ * Primary styles
+ *
+ * Author: IPython Development Team
+ */
+
+
+body {
+    background-color: white;
+    /* This makes sure that the body covers the entire window and needs to
+       be in a different element than the display: box in wrapper below */
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    overflow: auto;
+}
+
+#content_panel {
+    width: 600px;
+}
+
+#content_toolbar {
+    padding: 10px 5px;
+}
+
+#header_border {
+    width: 100%;
+    height: 2px;
+}
+
+#app_hbox {
+    width: 100%;
+}
+
+#notebooks_buttons {
+    float: right;
+}
+
+#project_name {
+    height: 25px;
+    line-height: 25px;
+    padding: 3px;
+}
+
+.notebook_item {
+    height: 25px;
+    line-height: 25px;
+    padding: 3px;
+}
+
+.notebook_item a {
+    text-decoration: none;
+}
+
+.item_buttons {
+    float: right;
+}
+
+.highlight_text {
+    color: blue;
+}

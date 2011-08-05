@@ -18,7 +18,7 @@ $(document).ready(function () {
     });
 
     $('div#header').addClass('border-box-sizing');
-    $('div#notebook_app').addClass('border-box-sizing ui-widget ui-widget-content');
+    $('div#main_app').addClass('border-box-sizing ui-widget ui-widget-content');
     $('div#notebook_panel').addClass('border-box-sizing ui-widget');
 
     IPython.layout_manager = new IPython.LayoutManager();
@@ -33,15 +33,18 @@ $(document).ready(function () {
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.
     $('div#header').css('display','block');
-    $('div#notebook_app').css('display','block');
-
-    IPython.notebook.load_notebook();
+    $('div#main_app').css('display','block');
 
     // Perform these actions after the notebook has been loaded.
-    setTimeout(function () {
-        IPython.save_widget.update_url();
-        IPython.layout_manager.do_resize();
-        IPython.pager.collapse();
-    }, 100);
+    // We wait 100 milliseconds because the notebook scrolls to the top after a load
+    // is completed and we need to wait for that to mostly finish.
+    IPython.notebook.load_notebook(function () {
+        setTimeout(function () {
+            IPython.save_widget.update_url();
+            IPython.layout_manager.do_resize();
+            IPython.pager.collapse();
+        },100);
+    });
+
 });
 

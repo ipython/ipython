@@ -93,11 +93,10 @@ var IPython = (function (IPython) {
         PanelSection.prototype.bind_events.apply(this);
         var that = this;
         this.content.find('#new_notebook').click(function () {
-            console.log('click!')
-            window.open('/');
+            window.open('/new');
         });
         this.content.find('#open_notebook').click(function () {
-            alert('Not Implemented');
+            window.open('/');
         });
         this.content.find('#download_notebook').click(function () {
             var format = that.content.find('#download_format').val();

@@ -1,0 +1,56 @@
+
+/**
+ * Primary styles
+ *
+ * Author: IPython Development Team
+ */
+
+
+body {
+    background-color: white;
+    /* This makes sure that the body covers the entire window and needs to
+       be in a different element than the display: box in wrapper below */
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    overflow: hidden;
+}
+
+
+div#header {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
+    position: relative;
+    height: 45px;
+    padding: 5px;
+    margin: 0px;
+    width: 100%;
+}
+
+span#ipython_notebook {
+    position: absolute;
+    padding: 2px;
+}
+
+span#ipython_notebook h1 {
+    font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    font-size: 197%;
+    display: inline;
+    color: black;
+}
+
+div#main_app {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
+    width: 100%;
+    position: relative;
+}
+
+.ui-button .ui-button-text {
+    padding: 0.2em 0.8em;
+    font-size: 77%;
+}
+
+
