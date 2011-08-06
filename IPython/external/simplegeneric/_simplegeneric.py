@@ -1,5 +1,6 @@
 """This is version 0.7 of Philip J. Eby's simplegeneric module
-(http://pypi.python.org/pypi/simplegeneric)
+(http://pypi.python.org/pypi/simplegeneric), patched to work with Python 3,
+which doesn't support old-style classes.
 """
 
 #Name: simplegeneric
@@ -12,8 +13,12 @@
 
 __all__ = ["generic"]
 
-from types import ClassType, InstanceType
-classtypes = type, ClassType
+try:
+    from types import ClassType, InstanceType
+except ImportError:
+    classtypes = type
+else:
+    classtypes = type, ClassType
 
 def generic(func):
     """Create a simple generic function"""
@@ -29,7 +34,12 @@ def generic(func):
         else:
             return func(*args, **kw)
 
-    _by_type = {object: func, InstanceType: _by_class}
+    _by_type = {object: func}
+    try:
+        _by_type[InstanceType] = _by_class
+    except NameError:   # Python 3
+        pass
+    
     _gbt = _by_type.get
 
     def when_type(*types):
