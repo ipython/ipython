@@ -76,7 +76,16 @@ class TestClient(ClusterTestCase):
         v = self.client.load_balanced_view(-1)
         self.assertEquals(v.targets, [self.client.ids[-1]])
         v = self.client.load_balanced_view('all')
-        self.assertEquals(v.targets, self.client.ids)
+        self.assertEquals(v.targets, None)
+    
+    def test_dview_targets(self):
+        """test load_balanced_view targets"""
+        v = self.client.direct_view()
+        self.assertEquals(v.targets, 'all')
+        v = self.client.direct_view('all')
+        self.assertEquals(v.targets, 'all')
+        v = self.client.direct_view(-1)
+        self.assertEquals(v.targets, self.client.ids[-1])
     
     def test_targets(self):
         """test various valid targets arguments"""
