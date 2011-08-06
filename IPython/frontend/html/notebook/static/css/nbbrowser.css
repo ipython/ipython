@@ -18,12 +18,22 @@ body {
     overflow: auto;
 }
 
+#left_panel {
+}
+
+#drop_zone {
+    height: 200px;
+    width: 200px
+}
+
 #content_panel {
     width: 600px;
 }
 
 #content_toolbar {
-    padding: 10px 5px;
+    padding: 10px 5px 5px 5px;
+    height: 25px;
+    line-height: 25px;
 }
 
 #header_border {
@@ -33,6 +43,10 @@ body {
 
 #app_hbox {
     width: 100%;
+}
+
+#drag_info {
+    float: left;
 }
 
 #notebooks_buttons {
@@ -57,6 +71,10 @@ body {
 
 .item_buttons {
     float: right;
+}
+
+.item_buttons .upload_button {
+    color: darkred;
 }
 
 .highlight_text {

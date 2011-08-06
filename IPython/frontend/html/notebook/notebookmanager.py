@@ -124,30 +124,57 @@ class NotebookManager(Configurable):
             raise web.HTTPError(404)
         return last_modified, nb
 
-    def save_new_notebook(self, data, format=u'json'):
-        """Save a new notebook and return its notebook_id."""
+    def save_new_notebook(self, data, name=None, format=u'json'):
+        """Save a new notebook and return its notebook_id.
+
+        If a name is passed in, it overrides any values in the notebook data
+        and the value in the data is updated to use that value.
+        """
         if format not in self.allowed_formats:
             raise web.HTTPError(415)
+
         try:
             nb = current.reads(data, format)
         except:
-            raise web.HTTPError(400)
-        try:
-            name = nb.name
-        except AttributeError:
-            raise web.HTTPError(400)
+            if format == u'xml':
+                # v1 notebooks might come in with a format='xml' but be json.
+                try:
+                    nb = current.reads(data, u'json')
+                except:
+                    raise web.HTTPError(400)
+            else:
+                raise web.HTTPError(400)
+
+        if name is None:
+            try:
+                name = nb.name
+            except AttributeError:
+                raise web.HTTPError(400)
+        nb.name = name
+
         notebook_id = self.new_notebook_id(name)
         self.save_notebook_object(notebook_id, nb)
         return notebook_id
 
-    def save_notebook(self, notebook_id, data, format=u'json'):
+    def save_notebook(self, notebook_id, data, name=None, format=u'json'):
         """Save an existing notebook by notebook_id."""
         if format not in self.allowed_formats:
             raise web.HTTPError(415)
+
         try:
             nb = current.reads(data, format)
         except:
-            raise web.HTTPError(400)
+            if format == u'xml':
+                # v1 notebooks might come in with a format='xml' but be json.
+                try:
+                    nb = current.reads(data, u'json')
+                except:
+                    raise web.HTTPError(400)
+            else:
+                raise web.HTTPError(400)
+
+        if name is not None:
+            nb.name = name
         self.save_notebook_object(notebook_id, nb)
 
     def save_notebook_object(self, notebook_id, nb):

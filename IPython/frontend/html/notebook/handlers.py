@@ -89,8 +89,9 @@ class NotebookRootHandler(web.RequestHandler):
         nbm = self.application.notebook_manager
         body = self.request.body.strip()
         format = self.get_argument('format', default='json')
+        name = self.get_argument('name', default=None)
         if body:
-            notebook_id = nbm.save_new_notebook(body, format)
+            notebook_id = nbm.save_new_notebook(body, name=name, format=format)
         else:
             notebook_id = nbm.new_notebook()
         self.set_header('Location', '/'+notebook_id)
@@ -120,7 +121,8 @@ class NotebookHandler(web.RequestHandler):
     def put(self, notebook_id):
         nbm = self.application.notebook_manager
         format = self.get_argument('format', default='json')
-        nbm.save_notebook(notebook_id, self.request.body, format)
+        name = self.get_argument('name', default=None)
+        nbm.save_notebook(notebook_id, self.request.body, name=name, format=format)
         self.set_status(204)
         self.finish()
 
