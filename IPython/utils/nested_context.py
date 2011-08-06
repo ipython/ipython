@@ -4,6 +4,8 @@ but it's removed in Python 3.2."""
 # TODO : Remove this once we drop support for Python 2.6, and use
 # "with a, b:" instead.
 
+import sys
+
 from contextlib import contextmanager
 
 @contextmanager
