@@ -17,9 +17,13 @@ import uuid
 
 import zmq
 
+from tornado import web
+
+from .routers import IOPubStreamRouter, ShellStreamRouter
+
 from IPython.config.configurable import LoggingConfigurable
 from IPython.zmq.ipkernel import launch_kernel
-from IPython.utils.traitlets import Instance, Dict
+from IPython.utils.traitlets import Instance, Dict, List, Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -55,7 +59,7 @@ class KernelManager(LoggingConfigurable):
 
     def start_kernel(self, **kwargs):
         """Start a new kernel."""
-        kernel_id = str(uuid.uuid4())
+        kernel_id = unicode(uuid.uuid4())
         (process, shell_port, iopub_port, stdin_port, hb_port) = launch_kernel(**kwargs)
         # Store the information for contacting the kernel. This assumes the kernel is
         # running on localhost.
@@ -185,4 +189,118 @@ class KernelManager(LoggingConfigurable):
             kernel_id=kernel_id, kernel_manager=self, 
             config=self.config, context=self.context, log=self.log
         )
+
+
+class RoutingKernelManager(LoggingConfigurable):
+    """A KernelManager that handles WebSocket routing and HTTP error handling"""
+
+    kernel_argv = List(Unicode)
+    kernel_manager = Instance(KernelManager)
+
+    _routers = Dict()
+    _session_dict = Dict()
+    _notebook_mapping = Dict()
+
+    #-------------------------------------------------------------------------
+    # Methods for managing kernels and sessions
+    #-------------------------------------------------------------------------
+
+    @property
+    def kernel_ids(self):
+        return self.kernel_manager.kernel_ids
+
+    def notebook_for_kernel(self, kernel_id):
+        notebook_ids = [k for k, v in self._notebook_mapping.iteritems() if v == kernel_id]
+        if len(notebook_ids) == 1:
+            return notebook_ids[0]
+        else:
+            return None
+
+    def delete_mapping_for_kernel(self, kernel_id):
+        notebook_id = self.notebook_for_kernel(kernel_id)
+        if notebook_id is not None:
+            del self._notebook_mapping[notebook_id]
+
+    def start_kernel(self, notebook_id=None):
+        self.log.info
+        kernel_id = self._notebook_mapping.get(notebook_id)
+        if kernel_id is None:
+            kwargs = dict()
+            kwargs['extra_arguments'] = self.kernel_argv
+            kernel_id = self.kernel_manager.start_kernel(**kwargs)
+            if notebook_id is not None:
+                self._notebook_mapping[notebook_id] = kernel_id
+            self.log.info("Kernel started for notebook %s: %s" % (notebook_id,kernel_id))
+            self.log.debug("Kernel args: %r" % kwargs)
+            self.start_session_manager(kernel_id)
+        else:
+            self.log.info("Using existing kernel: %s" % kernel_id)
+        return kernel_id
+
+    def start_session_manager(self, kernel_id):
+        sm = self.kernel_manager.create_session_manager(kernel_id)
+        self._session_dict[kernel_id] = sm
+        iopub_stream = sm.get_iopub_stream()
+        shell_stream = sm.get_shell_stream()
+        iopub_router = IOPubStreamRouter(
+            zmq_stream=iopub_stream, session=sm.session, config=self.config
+        )
+        shell_router = ShellStreamRouter(
+            zmq_stream=shell_stream, session=sm.session, config=self.config
+        )
+        self._routers[(kernel_id, 'iopub')] = iopub_router
+        self._routers[(kernel_id, 'shell')] = shell_router
+
+    def kill_kernel(self, kernel_id):
+        if kernel_id not in self.kernel_manager:
+            raise web.HTTPError(404)
+        try:
+            sm = self._session_dict.pop(kernel_id)
+        except KeyError:
+            raise web.HTTPError(404)
+        sm.stop()
+        self.kernel_manager.kill_kernel(kernel_id)
+        self.delete_mapping_for_kernel(kernel_id)
+        self.log.info("Kernel killed: %s" % kernel_id)
+
+    def interrupt_kernel(self, kernel_id):
+        if kernel_id not in self.kernel_manager:
+            raise web.HTTPError(404)
+        self.kernel_manager.interrupt_kernel(kernel_id)
+        self.log.debug("Kernel interrupted: %s" % kernel_id)
+
+    def restart_kernel(self, kernel_id):
+        if kernel_id not in self.kernel_manager:
+            raise web.HTTPError(404)
+
+        # Get the notebook_id to preserve the kernel/notebook association
+        notebook_id = self.notebook_for_kernel(kernel_id)
+        # Create the new kernel first so we can move the clients over.
+        new_kernel_id = self.start_kernel()
+
+        # Copy the clients over to the new routers.
+        old_iopub_router = self.get_router(kernel_id, 'iopub')
+        old_shell_router = self.get_router(kernel_id, 'shell')
+        new_iopub_router = self.get_router(new_kernel_id, 'iopub')
+        new_shell_router = self.get_router(new_kernel_id, 'shell')
+        new_iopub_router.copy_clients(old_iopub_router)
+        new_shell_router.copy_clients(old_shell_router)
+
+        # Now shutdown the old session and the kernel.
+        # TODO: This causes a hard crash in ZMQStream.close, which sets
+        # self.socket to None to hastily. We will need to fix this in PyZMQ
+        # itself. For now, we just leave the old kernel running :(
+        # Maybe this is fixed now, but nothing was changed really.
+        self.kill_kernel(kernel_id)
+
+        # Now save the new kernel/notebook association. We have to save it
+        # after the old kernel is killed as that will delete the mapping.
+        self._notebook_mapping[notebook_id] = kernel_id
+
+        self.log.debug("Kernel restarted: %s -> %s" % (kernel_id, new_kernel_id))
+        return new_kernel_id
+
+    def get_router(self, kernel_id, stream_name):
+        router = self._routers[(kernel_id, stream_name)]
+        return router
 

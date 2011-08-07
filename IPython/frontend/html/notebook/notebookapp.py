@@ -27,14 +27,13 @@ tornado.ioloop = ioloop
 from tornado import httpserver
 from tornado import web
 
-from .kernelmanager import KernelManager
+from .kernelmanager import KernelManager, RoutingKernelManager
 from .sessionmanager import SessionManager
 from .handlers import (
     NBBrowserHandler, NewHandler, NamedNotebookHandler,
-    KernelHandler, KernelActionHandler, ZMQStreamHandler,
+    MainKernelHandler, KernelHandler, KernelActionHandler, ZMQStreamHandler,
     NotebookRootHandler, NotebookHandler
 )
-from .routers import IOPubStreamRouter, ShellStreamRouter
 from .notebookmanager import NotebookManager
 
 from IPython.core.application import BaseIPythonApplication
@@ -65,12 +64,13 @@ LOCALHOST = '127.0.0.1'
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, kernel_manager, log, kernel_argv, config):
+    def __init__(self, routing_kernel_manager, notebook_manager, log):
         handlers = [
             (r"/", NBBrowserHandler),
             (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
-            (r"/kernels", KernelHandler),
+            (r"/kernels", MainKernelHandler),
+            (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
             (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
             (r"/kernels/%s/iopub" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='iopub')),
             (r"/kernels/%s/shell" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='shell')),
@@ -83,82 +83,10 @@ class NotebookWebApplication(web.Application):
         )
         web.Application.__init__(self, handlers, **settings)
 
-        self.kernel_manager = kernel_manager
+        self.routing_kernel_manager = routing_kernel_manager
         self.log = log
-        self.kernel_argv = kernel_argv
-        self.config = config
-        self._routers = {}
-        self._session_dict = {}
-        self.notebook_manager = NotebookManager(config=self.config)
+        self.notebook_manager = notebook_manager
 
-    #-------------------------------------------------------------------------
-    # Methods for managing kernels and sessions
-    #-------------------------------------------------------------------------
-
-    @property
-    def kernel_ids(self):
-        return self.kernel_manager.kernel_ids
-
-    def start_kernel(self):
-        kwargs = dict()
-        kwargs['extra_arguments'] = self.kernel_argv
-        kernel_id = self.kernel_manager.start_kernel(**kwargs)
-        self.log.info("Kernel started: %s" % kernel_id)
-        self.log.debug("Kernel args: %r" % kwargs)
-        self.start_session_manager(kernel_id)
-        return kernel_id
-
-    def start_session_manager(self, kernel_id):
-        sm = self.kernel_manager.create_session_manager(kernel_id)
-        self._session_dict[kernel_id] = sm
-        iopub_stream = sm.get_iopub_stream()
-        shell_stream = sm.get_shell_stream()
-        iopub_router = IOPubStreamRouter(
-            zmq_stream=iopub_stream, session=sm.session, config=self.config
-        )
-        shell_router = ShellStreamRouter(
-            zmq_stream=shell_stream, session=sm.session, config=self.config
-        )
-        self._routers[(kernel_id, 'iopub')] = iopub_router
-        self._routers[(kernel_id, 'shell')] = shell_router
-
-    def kill_kernel(self, kernel_id):
-        sm = self._session_dict.pop(kernel_id)
-        sm.stop()
-        self.kernel_manager.kill_kernel(kernel_id)
-        self.log.info("Kernel killed: %s" % kernel_id)
-
-    def interrupt_kernel(self, kernel_id):
-        self.kernel_manager.interrupt_kernel(kernel_id)
-        self.log.debug("Kernel interrupted: %s" % kernel_id)
-
-    def restart_kernel(self, kernel_id):
-        # Create the new kernel first so we can move the clients over.
-        new_kernel_id = self.start_kernel()
-
-        # Copy the clients over to the new routers.
-        old_iopub_router = self.get_router(kernel_id, 'iopub')
-        old_shell_router = self.get_router(kernel_id, 'shell')
-        new_iopub_router = self.get_router(new_kernel_id, 'iopub')
-        new_shell_router = self.get_router(new_kernel_id, 'shell')
-        new_iopub_router.copy_clients(old_iopub_router)
-        new_shell_router.copy_clients(old_shell_router)
-
-        # Now shutdown the old session and the kernel.
-        # TODO: This causes a hard crash in ZMQStream.close, which sets
-        # self.socket to None to hastily. We will need to fix this in PyZMQ
-        # itself. For now, we just leave the old kernel running :(
-        # Maybe this is fixed now, but nothing was changed really.
-        self.kill_kernel(kernel_id)
-
-        self.log.debug("Kernel restarted: %s -> %s" % (kernel_id, new_kernel_id))
-        return new_kernel_id
-
-    def get_router(self, kernel_id, stream_name):
-        router = self._routers[(kernel_id, stream_name)]
-        return router
-
-    
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -196,6 +124,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
     """
     
     classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session,
+               RoutingKernelManager, NotebookManager,
                KernelManager, SessionManager, RichIPythonWidget]
     flags = Dict(flags)
     aliases = Dict(aliases)
@@ -232,12 +161,16 @@ class IPythonNotebookApp(BaseIPythonApplication):
             if a.startswith('-') and a.lstrip('-') in notebook_flags:
                 self.kernel_argv.remove(a)
 
-    def init_kernel_manager(self):
+    def init_configurables(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         # Create a KernelManager and start a kernel.
         self.kernel_manager = KernelManager(config=self.config, log=self.log)
+        self.routing_kernel_manager = RoutingKernelManager(config=self.config, log=self.log,
+            kernel_manager=self.kernel_manager, kernel_argv=self.kernel_argv
+        )
+        self.notebook_manager = NotebookManager(config=self.config, log=self.log)
 
     def init_logging(self):
         super(IPythonNotebookApp, self).init_logging()
@@ -248,9 +181,9 @@ class IPythonNotebookApp(BaseIPythonApplication):
 
     def initialize(self, argv=None):
         super(IPythonNotebookApp, self).initialize(argv)
-        self.init_kernel_manager()
+        self.init_configurables()
         self.web_app = NotebookWebApplication(
-            self.kernel_manager, self.log, self.kernel_argv, self.config
+            self.routing_kernel_manager, self.notebook_manager, self.log
         )
         self.http_server = httpserver.HTTPServer(self.web_app)
         self.http_server.listen(self.port)

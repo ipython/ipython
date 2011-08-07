@@ -391,7 +391,8 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.start_kernel = function () {
         this.kernel = new IPython.Kernel();
-        this.kernel.start_kernel($.proxy(this.kernel_started, this));
+        var notebook_id = IPython.save_widget.get_notebook_id();
+        this.kernel.start_kernel(notebook_id, $.proxy(this.kernel_started, this));
     };
 
 

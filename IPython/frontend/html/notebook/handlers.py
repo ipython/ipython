@@ -13,7 +13,7 @@ from tornado import websocket
 
 
 #-----------------------------------------------------------------------------
-# Handlers
+# Top-level handlers
 #-----------------------------------------------------------------------------
 
 
@@ -38,25 +38,45 @@ class NamedNotebookHandler(web.RequestHandler):
         self.render('notebook.html', notebook_id=notebook_id)
 
 
-class KernelHandler(web.RequestHandler):
+#-----------------------------------------------------------------------------
+# Kernel handlers
+#-----------------------------------------------------------------------------
+
+
+class MainKernelHandler(web.RequestHandler):
 
     def get(self):
-        self.finish(json.dumps(self.application.kernel_ids))
+        rkm = self.application.routing_kernel_manager
+        self.finish(json.dumps(rkm.kernel_ids))
 
     def post(self):
-        kernel_id = self.application.start_kernel()
+        rkm = self.application.routing_kernel_manager
+        notebook_id = self.get_argument('notebook', default=None)
+        kernel_id = rkm.start_kernel(notebook_id)
         self.set_header('Location', '/'+kernel_id)
         self.finish(json.dumps(kernel_id))
+
+
+class KernelHandler(web.RequestHandler):
+
+    SUPPORTED_METHODS = ('DELETE')
+
+    def delete(self, kernel_id):
+        rkm = self.application.routing_kernel_manager
+        self.kill_kernel(kernel_id)
+        self.set_status(204)
+        self.finish()
 
 
 class KernelActionHandler(web.RequestHandler):
 
     def post(self, kernel_id, action):
-        # TODO: figure out a better way of handling RPC style calls.
+        rkm = self.application.routing_kernel_manager
         if action == 'interrupt':
-            self.application.interrupt_kernel(kernel_id)
+            rkm.interrupt_kernel(kernel_id)
+            self.set_status(204)
         if action == 'restart':
-            new_kernel_id = self.application.restart_kernel(kernel_id)
+            new_kernel_id = rkm.restart_kernel(kernel_id)
             self.write(json.dumps(new_kernel_id))
         self.finish()
 
@@ -67,7 +87,8 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         self.stream_name = stream_name
 
     def open(self, kernel_id):
-        self.router = self.application.get_router(kernel_id, self.stream_name)
+        rkm = self.application.routing_kernel_manager
+        self.router = rkm.get_router(kernel_id, self.stream_name)
         self.client_id = self.router.register_client(self)
         logging.info("Connection open: %s, %s" % (kernel_id, self.client_id))
 
@@ -78,6 +99,10 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         self.router.unregister_client(self.client_id)
         logging.info("Connection closed: %s" % self.client_id)
 
+
+#-----------------------------------------------------------------------------
+# Notebook web service handlers
+#-----------------------------------------------------------------------------
 
 class NotebookRootHandler(web.RequestHandler):
 

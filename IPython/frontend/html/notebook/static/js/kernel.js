@@ -28,9 +28,10 @@ var IPython = (function (IPython) {
         return msg;
     }
 
-    Kernel.prototype.start_kernel = function (callback) {
+    Kernel.prototype.start_kernel = function (notebook_id, callback) {
         var that = this;
-        $.post(this.base_url,
+        var qs = $.param({notebook:notebook_id});
+        $.post(this.base_url + '?' + qs,
             function (kernel_id) {
                 that._handle_start_kernel(kernel_id, callback);
             }, 

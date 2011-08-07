@@ -15,7 +15,7 @@ import uuid
 
 from tornado import web
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, List, Dict
 
@@ -25,7 +25,7 @@ from IPython.utils.traitlets import Unicode, List, Dict
 #-----------------------------------------------------------------------------
 
 
-class NotebookManager(Configurable):
+class NotebookManager(LoggingConfigurable):
 
     notebook_dir = Unicode(os.getcwd())
     filename_ext = Unicode(u'.ipynb')
