@@ -43,7 +43,7 @@ def parse_py(s, **kwargs):
     if m is not None:
         nbformat = int(m.group('nbformat'))
     else:
-        raise NBFormatError('No nbformat version found')
+        nbformat = 2
     return nbformat, s
 
 

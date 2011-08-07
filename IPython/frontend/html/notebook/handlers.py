@@ -41,12 +41,12 @@ class NamedNotebookHandler(web.RequestHandler):
 class KernelHandler(web.RequestHandler):
 
     def get(self):
-        self.write(json.dumps(self.application.kernel_ids))
+        self.finish(json.dumps(self.application.kernel_ids))
 
     def post(self):
         kernel_id = self.application.start_kernel()
         self.set_header('Location', '/'+kernel_id)
-        self.write(json.dumps(kernel_id))
+        self.finish(json.dumps(kernel_id))
 
 
 class KernelActionHandler(web.RequestHandler):
@@ -58,6 +58,7 @@ class KernelActionHandler(web.RequestHandler):
         if action == 'restart':
             new_kernel_id = self.application.restart_kernel(kernel_id)
             self.write(json.dumps(new_kernel_id))
+        self.finish()
 
 
 class ZMQStreamHandler(websocket.WebSocketHandler):
@@ -83,7 +84,7 @@ class NotebookRootHandler(web.RequestHandler):
     def get(self):
         nbm = self.application.notebook_manager
         files = nbm.list_notebooks()
-        self.write(json.dumps(files))
+        self.finish(json.dumps(files))
 
     def post(self):
         nbm = self.application.notebook_manager
@@ -95,7 +96,7 @@ class NotebookRootHandler(web.RequestHandler):
         else:
             notebook_id = nbm.new_notebook()
         self.set_header('Location', '/'+notebook_id)
-        self.write(json.dumps(notebook_id))
+        self.finish(json.dumps(notebook_id))
 
 
 class NotebookHandler(web.RequestHandler):
@@ -110,10 +111,10 @@ class NotebookHandler(web.RequestHandler):
             self.set_header('Content-Type', 'application/json')
             self.set_header('Content-Disposition','attachment; filename=%s.json' % name)
         elif format == u'xml':
-            self.set_header('Content-Type', 'text/xml')
+            self.set_header('Content-Type', 'application/xml')
             self.set_header('Content-Disposition','attachment; filename=%s.ipynb' % name)
         elif format == u'py':
-            self.set_header('Content-Type', 'text/plain')
+            self.set_header('Content-Type', 'application/x-python')
             self.set_header('Content-Disposition','attachment; filename=%s.py' % name)
         self.set_header('Last-Modified', last_mod)
         self.finish(data)

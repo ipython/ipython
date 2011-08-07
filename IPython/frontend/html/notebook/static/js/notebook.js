@@ -559,11 +559,12 @@ var IPython = (function (IPython) {
             data.id = notebook_id
             // We do the call with settings so we can set cache to false.
             var settings = {
-              processData : false,
-              cache : false,
-              type : "PUT",
-              data : JSON.stringify(data),
-              success : $.proxy(this.notebook_saved,this)
+                processData : false,
+                cache : false,
+                type : "PUT",
+                data : JSON.stringify(data),
+                headers : {'Content-Type': 'application/json'},
+                success : $.proxy(this.notebook_saved,this)
             };
             IPython.save_widget.status_saving();
             $.ajax("/notebooks/" + notebook_id, settings);

@@ -15,4 +15,3 @@ class TestPy(TestCase):
         s = writes(nb0)
         self.assertEquals(s,nb0_py)
 
-

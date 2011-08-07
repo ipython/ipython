@@ -191,12 +191,21 @@ var IPython = (function (IPython) {
                 var nbname = item.find('.item_name > input').attr('value');
                 var nbformat = item.data('nbformat');
                 var nbdata = item.data('nbdata');
+                var content_type = 'text/plain';
+                if (nbformat === 'xml') {
+                    content_type = 'application/xml';
+                } else if (nbformat === 'json') {
+                    content_type = 'application/json';
+                } else if (nbformat === 'py') {
+                    content_type = 'application/x-python';
+                };
                 var settings = {
                     processData : false,
                     cache : false,
-                    type : "POST",
-                    dataType : "json",
+                    type : 'POST',
+                    dataType : 'json',
                     data : nbdata,
+                    headers : {'Content-Type': content_type},
                     success : function (data, status, xhr) {
                         that.add_link(data, nbname, item);
                         that.add_delete_button(item);
@@ -204,7 +213,7 @@ var IPython = (function (IPython) {
                 };
 
                 var qs = $.param({name:nbname, format:nbformat});
-                $.ajax("/notebooks?" + qs, settings);
+                $.ajax('/notebooks?' + qs, settings);
             });
         var cancel_button = $('<button>Cancel</button>').button().
             click(function (e) {
