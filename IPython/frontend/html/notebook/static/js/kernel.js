@@ -87,7 +87,7 @@ var IPython = (function (IPython) {
 
     Kernel.prototype.restart = function () {
         IPython.kernel_status_widget.status_restarting();
-        url = this.kernel_url + "/restart"
+        var url = this.kernel_url + "/restart"
         var that = this;
         $.post(url, function (kernel_id) {
             console.log("Kernel restarted: " + kernel_id);
@@ -97,6 +97,14 @@ var IPython = (function (IPython) {
         }, 'json');
     };
 
+
+    Kernel.prototype.kill = function () {
+        var settings = {
+            cache : false,
+            type : "DELETE",
+        };
+        $.ajax(this.kernel_url, settings);
+    };
 
     IPython.Kernel = Kernel;
 

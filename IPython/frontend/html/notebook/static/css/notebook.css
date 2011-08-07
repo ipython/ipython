@@ -80,10 +80,20 @@ span.section_row_buttons > button {
     float: right;
 }
 
+#kernel_persist {
+    float: right;
+}
+
+.checkbox_label {
+    font-size: 85%;
+    float: right;
+    padding: 0.3em;
+}
+
 .section_row_header {
     float: left;
     font-size: 85%;
-    padding: 0.2em 0em;
+    padding: 0.4em 0em;
     font-weight: bold;
 }
 

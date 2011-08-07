@@ -63,7 +63,7 @@ class KernelHandler(web.RequestHandler):
 
     def delete(self, kernel_id):
         rkm = self.application.routing_kernel_manager
-        self.kill_kernel(kernel_id)
+        rkm.kill_kernel(kernel_id)
         self.set_status(204)
         self.finish()
 
