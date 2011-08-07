@@ -90,14 +90,12 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         rkm = self.application.routing_kernel_manager
         self.router = rkm.get_router(kernel_id, self.stream_name)
         self.client_id = self.router.register_client(self)
-        logging.info("Connection open: %s, %s" % (kernel_id, self.client_id))
 
     def on_message(self, msg):
         self.router.forward_msg(self.client_id, msg)
 
     def on_close(self):
         self.router.unregister_client(self.client_id)
-        logging.info("Connection closed: %s" % self.client_id)
 
 
 #-----------------------------------------------------------------------------

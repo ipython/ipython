@@ -37,9 +37,17 @@ class ZMQStreamRouter(Configurable):
         super(ZMQStreamRouter,self).__init__(**kwargs)
         self.zmq_stream.on_recv(self._on_zmq_reply)
 
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        """Disable the routing actions of this router."""
+        self._clients = {}
+        self.zmq_stream.on_recv(None)
+
     def register_client(self, client):
         """Register a client, returning a client uuid."""
-        client_id = uuid.uuid4()
+        client_id = unicode(uuid.uuid4())
         self._clients[client_id] = client
         return client_id
 
@@ -112,7 +120,6 @@ class ShellStreamRouter(ZMQStreamRouter):
     def forward_msg(self, client_id, msg):
         if len(msg) < self.max_msg_size:
             msg = json.loads(msg)
-            # to_send = self.session.serialize(msg)
             self._request_queue.put(client_id)        
             self.session.send(self.zmq_stream, msg)
 
