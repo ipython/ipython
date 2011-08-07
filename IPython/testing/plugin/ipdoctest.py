@@ -640,6 +640,9 @@ class ExtensionDoctest(doctests.Doctest):
 
     def configure(self, options, config):
         Plugin.configure(self, options, config)
+        # Pull standard doctest plugin out of config; we will do doctesting
+        config.plugins.plugins = [p for p in config.plugins.plugins
+                                  if p.name != 'doctest']
         self.doctest_tests = options.doctest_tests
         self.extension = tolist(options.doctestExtension)
 
@@ -783,6 +786,9 @@ class IPythonDoctest(ExtensionDoctest):
     def configure(self, options, config):
         #print "Configuring nose plugin:", self.name # dbg
         Plugin.configure(self, options, config)
+        # Pull standard doctest plugin out of config; we will do doctesting
+        config.plugins.plugins = [p for p in config.plugins.plugins
+                                  if p.name != 'doctest']
         self.doctest_tests = options.ipdoctest_tests
         self.extension = tolist(options.ipdoctest_extension)
 

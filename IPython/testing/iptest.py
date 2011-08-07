@@ -355,19 +355,13 @@ def run_iptest():
         # for nose >= 0.11, though unfortunately nose 0.10 doesn't support it.
         argv.append('--traverse-namespace')
 
-    # Construct list of plugins, omitting the existing doctest plugin, which
-    # ours replaces (and extends).
+    # use our plugin for doctesting.  It will remove the standard doctest plugin
+    # if it finds it enabled
     plugins = [IPythonDoctest(make_exclude()), KnownFailure()]
-    for p in nose.plugins.builtin.plugins:
-        plug = p()
-        if plug.name == 'doctest':
-            continue
-        plugins.append(plug)
-
     # We need a global ipython running in this process
     globalipapp.start_ipython()
     # Now nose can run
-    TestProgram(argv=argv, plugins=plugins)
+    TestProgram(argv=argv, addplugins=plugins)
 
 
 def run_iptestall():
