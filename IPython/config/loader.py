@@ -598,13 +598,19 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _convert_to_config(self):
         """self.parsed_data->self.config"""
         for k, v in vars(self.parsed_data).iteritems():
-            self._exec_config_str(k, v)
+            exec "self.config.%s = v"%k in locals(), globals()
 
 class KVArgParseConfigLoader(ArgParseConfigLoader):
     """A config loader that loads aliases and flags with argparse,
     but will use KVLoader for the rest.  This allows better parsing 
     of common args, such as `ipython -c 'print 5'`, but still gets
     arbitrary config with `ipython --InteractiveShell.use_readline=False`"""
+    
+    def _convert_to_config(self):
+        """self.parsed_data->self.config"""
+        for k, v in vars(self.parsed_data).iteritems():
+            self._exec_config_str(k, v)
+
     def _add_arguments(self, aliases=None, flags=None):
         self.alias_flags = {}
         # print aliases, flags
@@ -651,10 +657,10 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
                 self._exec_config_str(k, v)
         
         for subc in subcs:
-            self.config.update(subc)
+            self._load_flag(subc)
         
         if self.extra_args:
             sub_parser = KeyValueConfigLoader()
             sub_parser.load_config(self.extra_args)
-            self.config.update(sub_parser.config)
+            self.config._merge(sub_parser.config)
             self.extra_args = sub_parser.extra_args
