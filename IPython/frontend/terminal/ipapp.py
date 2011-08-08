@@ -205,7 +205,11 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             """Launch the IPython Qt Console."""
         ),
         profile = ("IPython.core.profileapp.ProfileApp",
-            "Create and manage IPython profiles.")
+            "Create and manage IPython profiles."
+        ),
+        kernel = ("IPython.zmq.ipkernel.IPKernelApp",
+            "Start a kernel without an attached frontend."
+        ),
     ))
     
     # *do* autocreate requested profile, but don't create the config file.
