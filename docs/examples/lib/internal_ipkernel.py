@@ -14,10 +14,7 @@ def pylab_kernel(gui):
     """Launch and return an IPython kernel with pylab support for the desired gui
     """
     kernel = IPKernelApp()
-    # FIXME: we're hardcoding the heartbeat port b/c of a bug in IPython 0.11
-    # that will set it to 0 if not specified.  Once this is fixed, the --hb
-    # parameter can be omitted and all ports will be automatic
-    kernel.initialize(['python', '--pylab=%s' % gui, '--hb=19999',
+    kernel.initialize(['python', '--pylab=%s' % gui,
                        #'--log-level=10'
                        ])
     return kernel
