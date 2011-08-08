@@ -65,12 +65,12 @@ def new_code_cell(input=None, prompt_number=None, outputs=None, language=u'pytho
 
     return cell
 
-def new_text_cell(text=None):
+def new_html_cell(source=None):
     """Create a new text cell."""
     cell = NotebookNode()
-    if text is not None:
-        cell.text = unicode(text)
-    cell.cell_type = u'text'
+    if source is not None:
+        cell.source = unicode(source)
+    cell.cell_type = u'html'
     return cell
 
 

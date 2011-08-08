@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ET
 
 from .rwbase import NotebookReader, NotebookWriter
 from .nbbase import (
-    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_html_cell, new_worksheet, new_notebook, new_output
 )
 
 def indent(elem, level=0):
@@ -87,7 +87,7 @@ class XMLReader(NotebookReader):
                     language = _get_text(cell_e,'language')
                     outputs = []
                     for output_e in cell_e.find('outputs').getiterator('output'):
-                        prompt_number = _get_int(output_e,'prompt_number')
+                        out_prompt_number = _get_int(output_e,'prompt_number')
                         output_type = _get_text(output_e,'output_type')
                         output_text = _get_text(output_e,'text')
                         output_png = _get_binary(output_e,'png')
@@ -100,15 +100,15 @@ class XMLReader(NotebookReader):
                             output_text=output_text,output_svg=output_svg,
                             output_html=output_html,output_latex=output_latex,
                             output_json=output_json,output_javascript=output_javascript,
-                            prompt_number=prompt_number
+                            prompt_number=out_prompt_number
                         )
                         outputs.append(output)
                     cc = new_code_cell(input=input,prompt_number=prompt_number,
                                        language=language,outputs=outputs)
                     cells.append(cc)
-                if cell_e.tag == 'textcell':
-                    text = _get_text(cell_e,'text')
-                    cells.append(new_text_cell(text=text))
+                if cell_e.tag == 'htmlcell':
+                    source = _get_text(cell_e,'source')
+                    cells.append(new_html_cell(source=source))
             ws = new_worksheet(name=wsname,cells=cells)
             worksheets.append(ws)
 
@@ -138,7 +138,7 @@ class XMLWriter(NotebookWriter):
                     outputs_e = ET.SubElement(cell_e, 'outputs')
                     for output in cell.outputs:
                         output_e = ET.SubElement(outputs_e, 'output')
-                        _set_int(cell,'prompt_number',output_e,'prompt_number')
+                        _set_int(output,'prompt_number',output_e,'prompt_number')
                         _set_text(output,'output_type',output_e,'output_type')
                         _set_text(output,'text',output_e,'text')
                         _set_binary(output,'png',output_e,'png')
@@ -147,9 +147,9 @@ class XMLWriter(NotebookWriter):
                         _set_text(output,'latex',output_e,'latex')
                         _set_text(output,'json',output_e,'json')
                         _set_text(output,'javascript',output_e,'javascript')
-                elif cell_type == 'text':
-                    cell_e = ET.SubElement(cells_e, 'textcell')
-                    _set_text(cell,'text',cell_e,'text')
+                elif cell_type == 'html':
+                    cell_e = ET.SubElement(cells_e, 'htmlcell')
+                    _set_text(cell,'source',cell_e,'source')
 
         indent(nb_e)
         txt = ET.tostring(nb_e, encoding="utf-8")

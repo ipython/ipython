@@ -1,14 +1,14 @@
 from ..nbbase import (
     NotebookNode,
-    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_html_cell, new_worksheet, new_notebook, new_output
 )
 
 
 
 ws = new_worksheet(name='worksheet1')
 
-ws.cells.append(new_text_cell(
-    text='Some NumPy Examples'
+ws.cells.append(new_html_cell(
+    source='Some NumPy Examples'
 ))
 
 
@@ -33,7 +33,8 @@ ws.cells.append(new_code_cell(
         output_png=b'data',
         output_svg=u'<svg>',
         output_json=u'json data',
-        output_javascript=u'var i=0;'
+        output_javascript=u'var i=0;',
+        prompt_number=3
     ),new_output(
         output_type=u'display_data',
         output_text=u'<array a>',
@@ -42,7 +43,8 @@ ws.cells.append(new_code_cell(
         output_png=b'data',
         output_svg=u'<svg>',
         output_json=u'json data',
-        output_javascript=u'var i=0;'
+        output_javascript=u'var i=0;',
+        prompt_number=4
     )]
 ))
 

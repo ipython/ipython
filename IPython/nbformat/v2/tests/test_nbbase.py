@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from ..nbbase import (
     NotebookNode,
-    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_html_cell, new_worksheet, new_notebook, new_output
 )
 
 class TestCell(TestCase):
@@ -16,21 +16,23 @@ class TestCell(TestCase):
 
     def test_code_cell(self):
         cc = new_code_cell(input='a=10', prompt_number=0)
-        cc.outputs = [new_output(output_type='pyout',output_svg='foo',output_text='10')]
+        cc.outputs = [new_output(output_type='pyout',
+            output_svg='foo',output_text='10',prompt_number=0)]
         self.assertEquals(cc.input, u'a=10')
         self.assertEquals(cc.prompt_number, 0)
         self.assertEquals(cc.language, u'python')
         self.assertEquals(cc.outputs[0].svg, u'foo')
         self.assertEquals(cc.outputs[0].text, u'10')
+        self.assertEquals(cc.outputs[0].prompt_number, 0)
 
-    def test_empty_text_cell(self):
-        tc = new_text_cell()
-        self.assertEquals(tc.cell_type, 'text')
-        self.assertEquals('text' not in tc, True)
+    def test_empty_html_cell(self):
+        tc = new_html_cell()
+        self.assertEquals(tc.cell_type, 'html')
+        self.assertEquals('source' not in tc, True)
 
-    def test_text_cell(self):
-        tc = new_text_cell('hi')
-        self.assertEquals(tc.text, u'hi')
+    def test_html_cell(self):
+        tc = new_html_cell('hi')
+        self.assertEquals(tc.source, u'hi')
 
 
 class TestWorksheet(TestCase):
@@ -41,7 +43,7 @@ class TestWorksheet(TestCase):
         self.assertEquals('name' not in ws, True)
 
     def test_worksheet(self):
-        cells = [new_code_cell(), new_text_cell()]
+        cells = [new_code_cell(), new_html_cell()]
         ws = new_worksheet(cells=cells,name='foo')
         self.assertEquals(ws.cells,cells)
         self.assertEquals(ws.name,u'foo')

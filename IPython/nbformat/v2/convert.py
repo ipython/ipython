@@ -1,5 +1,5 @@
 from .nbbase import (
-    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_html_cell, new_worksheet, new_notebook, new_output
 )
 
 def convert_to_this_nbformat(nb, orig_version=1):
@@ -10,7 +10,7 @@ def convert_to_this_nbformat(nb, orig_version=1):
             if cell.cell_type == 'code':
                 newcell = new_code_cell(input=cell.get('code'),prompt_number=cell.get('prompt_number'))
             elif cell.cell_type == 'text':
-                newcell = new_text_cell(text=cell.get('text'))
+                newcell = new_html_cell(source=cell.get('text'))
             ws.cells.append(newcell)
         newnb.worksheets.append(ws)
         return newnb
