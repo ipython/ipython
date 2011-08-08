@@ -12,6 +12,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import socket
 import sys
 from threading import Thread
 
@@ -33,13 +34,16 @@ class Heartbeat(Thread):
         self.addr = addr
         self.ip = addr[0]
         self.port = addr[1]
+        if self.port == 0:
+            s = socket.socket()
+            s.bind(self.addr)
+            self.port = s.getsockname()[1]
+            s.close()
+            self.addr = (self.ip, self.port)
         self.daemon = True
 
     def run(self):
         self.socket = self.context.socket(zmq.REP)
-        if self.port == 0:
-            self.port = self.socket.bind_to_random_port('tcp://%s' % self.ip)
-        else:
-            self.socket.bind('tcp://%s:%i' % self.addr)
+        self.socket.bind('tcp://%s:%i' % self.addr)
         zmq.device(zmq.FORWARDER, self.socket, self.socket)
 
