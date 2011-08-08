@@ -20,11 +20,13 @@ Authors:
 import os
 import signal
 import sys
+from getpass import getpass
 
 # System library imports
 from IPython.external.qt import QtGui
 from pygments.styles import get_all_styles
 
+# from IPython.external.ssh import tunnel
 # Local imports
 from IPython.config.application import boolean_flag
 from IPython.core.application import BaseIPythonApplication
@@ -34,6 +36,7 @@ from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.kernelmanager import QtKernelManager
+from IPython.parallel.util import select_random_ports
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
 )
@@ -219,6 +222,7 @@ qt_aliases = dict(
 
     editor = 'IPythonWidget.editor',
     paging = 'ConsoleWidget.paging',
+    ssh = 'IPythonQtConsoleApp.sshserver',
 )
 aliases.update(qt_aliases)
 # also scrub aliases from the frontend
@@ -266,6 +270,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         Consoles on other machines will be able to connect
         to the Kernel, so be careful!"""
     )
+    
+    sshserver = Unicode('', config=True,
+        help="""The SSH server to use to connect to the kernel.""")
+    sshkey = Unicode('', config=True,
+        help="""Path to the ssh key to use for logging in to the ssh server.""")
+    
     hb_port = Int(0, config=True,
         help="set the heartbeat port [default: random]")
     shell_port = Int(0, config=True,
@@ -322,7 +332,33 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                 key = a.lstrip('-').split('=')[0]
                 if key in qt_flags:
                     self.kernel_argv.remove(a)
-
+    
+    def init_ssh(self):
+        # import here, to prevent circular import
+        from IPython.external.ssh import tunnel
+        if not self.sshserver and not self.sshkey:
+            return
+        
+        if self.sshkey and not self.sshserver:
+            self.sshserver = self.ip
+            self.ip=LOCALHOST
+        
+        lports = select_random_ports(4)
+        rports = self.shell_port, self.iopub_port, self.stdin_port, self.hb_port
+        self.shell_port, self.iopub_port, self.stdin_port, self.hb_port = lports
+        
+        remote_ip = self.ip
+        self.ip = LOCALHOST
+        self.log.info("Forwarding connections to %s via %s"%(remote_ip, self.sshserver))
+        
+        if tunnel.try_passwordless_ssh(self.sshserver, self.sshkey):
+            password=False
+        else:
+            password = getpass("SSH Password for %s: "%self.sshserver)
+        
+        for lp,rp in zip(lports, rports):
+            tunnel.ssh_tunnel(lp, rp, self.sshserver, remote_ip, self.sshkey, password)
+        
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
         signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -420,6 +456,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
     def initialize(self, argv=None):
         super(IPythonQtConsoleApp, self).initialize(argv)
+        self.init_ssh()
         self.init_kernel_manager()
         self.init_qt_elements()
         self.init_colors()
