@@ -162,6 +162,10 @@ class BaseParallelApplication(BaseIPythonApplication):
             self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
             self._log_handler.setFormatter(self._log_formatter)
             self.log.addHandler(self._log_handler)
+        # do not propagate log messages to root logger
+        # ipcluster app will sometimes print duplicate messages during shutdown
+        # if this is 1 (default):
+        self.log.propagate = False
 
     def write_pid_file(self, overwrite=False):
         """Create a .pid file in the pid_dir with my pid.
