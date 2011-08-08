@@ -1,37 +1,38 @@
 
 //============================================================================
-// TextCell
+// HTMLCell
 //============================================================================
 
 var IPython = (function (IPython) {
 
-    var TextCell = function (notebook) {
+    var HTMLCell = function (notebook) {
         IPython.Cell.apply(this, arguments);
         this.placeholder = "Type <strong>HTML</strong> and LaTeX: $\\alpha^2$"
         this.rendered = false;
     };
 
 
-    TextCell.prototype = new IPython.Cell();
+    HTMLCell.prototype = new IPython.Cell();
 
 
-    TextCell.prototype.create_element = function () {
-        var cell = $("<div>").addClass('cell text_cell border-box-sizing').
-                   append(
-                       $("<textarea>" + this.placeholder + "</textarea>").
-                       addClass('text_cell_input').
-                       attr('rows',1).
-                       attr('cols',80).
-                       autogrow()
-                   ).append(
-                       // The tabindex=-1 makes this div focusable.
-                       $('<div></div>').addClass('text_cell_render').attr('tabindex','-1')
-                   )
+
+    HTMLCell.prototype.create_element = function () {
+        var cell = $("<div>").addClass('cell html_cell border-box-sizing');
+        var input_area = $('<div/>').addClass('html_cell_input');
+        this.code_mirror = CodeMirror(input_area.get(0), {
+            indentUnit : 4,
+            enterMode : 'flat',
+            tabMode: 'shift',
+            value: this.placeholder
+        });
+        // The tabindex=-1 makes this div focusable.
+        var render_area = $('<div/>').addClass('html_cell_render').attr('tabindex','-1');
+        cell.append(input_area).append(render_area);
         this.element = cell;
     };
 
 
-    TextCell.prototype.bind_events = function () {
+    HTMLCell.prototype.bind_events = function () {
         IPython.Cell.prototype.bind_events.apply(this);
         var that = this;
         this.element.keydown(function (event) {
@@ -45,71 +46,71 @@ var IPython = (function (IPython) {
     };
 
 
-    TextCell.prototype.select = function () {
+    HTMLCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
-        var output = this.element.find("div.text_cell_render");
+        var output = this.element.find("div.html_cell_render");
         output.trigger('focus');
     };
 
 
-    TextCell.prototype.edit = function () {
+    HTMLCell.prototype.edit = function () {
         if (this.rendered === true) {
-            var text_cell = this.element;
-            var input = text_cell.find("textarea.text_cell_input");
-            var output = text_cell.find("div.text_cell_render");  
+            var html_cell = this.element;
+            var output = html_cell.find("div.html_cell_render");  
             output.hide();
-            input.show().trigger('focus');
+            html_cell.find('div.html_cell_input').show();
+            this.code_mirror.focus();
+            this.code_mirror.refresh();
             this.rendered = false;
         };
     };
 
 
-    TextCell.prototype.render = function () {
+    HTMLCell.prototype.render = function () {
         if (this.rendered === false) {
-            var text_cell = this.element;
-            var input = text_cell.find("textarea.text_cell_input");
-            var output = text_cell.find("div.text_cell_render");    
-            var text = input.val();
-            if (text === "") {
-                text = this.placeholder;
-                input.val(text);
-            };
-            output.html(text)
-            input.html(text);
+            var html_cell = this.element;
+            var output = html_cell.find("div.html_cell_render");    
+            var text = this.get_source();
+            if (text === "") {text = this.placeholder;};
+            this.set_render(text);
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-            input.hide();
+            html_cell.find('div.html_cell_input').hide();
             output.show();
             this.rendered = true;
         };
     };
 
 
-    TextCell.prototype.config_mathjax = function () {
-        var text_cell = this.element;
+    HTMLCell.prototype.config_mathjax = function () {
+        var html_cell = this.element;
         var that = this;
-        text_cell.click(function () {
+        html_cell.click(function () {
             that.edit();
         }).focusout(function () {
             that.render();
         });
         
-        text_cell.trigger("focusout");
+        html_cell.trigger("focusout");
     };
 
 
-    TextCell.prototype.get_text = function() {
-        return this.element.find("textarea.text_cell_input").val();
+    HTMLCell.prototype.get_source = function() {
+        return this.code_mirror.getValue();
     };
 
 
-    TextCell.prototype.set_text = function(text) {
-        this.element.find("textarea.text_cell_input").val(text);
-        this.element.find("textarea.text_cell_input").html(text);
-        this.element.find("div.text_cell_render").html(text);
+    HTMLCell.prototype.set_source = function(text) {
+        this.code_mirror.setValue(text);
+        this.code_mirror.refresh();
     };
 
 
-    TextCell.prototype.at_top = function () {
+    HTMLCell.prototype.set_render = function(text) {
+        this.element.find('div.html_cell_render').html(text);
+    };
+
+
+    HTMLCell.prototype.at_top = function () {
         if (this.rendered) {
             return true;
         } else {
@@ -118,7 +119,7 @@ var IPython = (function (IPython) {
     };
 
 
-    TextCell.prototype.at_bottom = function () {
+    HTMLCell.prototype.at_bottom = function () {
         if (this.rendered) {
             return true;
         } else {
@@ -127,24 +128,24 @@ var IPython = (function (IPython) {
     };
 
 
-    TextCell.prototype.fromJSON = function (data) {
-        if (data.cell_type === 'text') {
-            if (data.text !== undefined) {
-                this.set_text(data.text);
-                this.grow(this.element.find("textarea.text_cell_input"));
+    HTMLCell.prototype.fromJSON = function (data) {
+        if (data.cell_type === 'html') {
+            if (data.source !== undefined) {
+                this.set_source(data.source);
+                this.set_render(data.source);
             };
         };
     }
 
 
-    TextCell.prototype.toJSON = function () {
+    HTMLCell.prototype.toJSON = function () {
         var data = {}
-        data.cell_type = 'text';
-        data.text = this.get_text();
+        data.cell_type = 'html';
+        data.source = this.get_source();
         return data;
     };
 
-    IPython.TextCell = TextCell;
+    IPython.HTMLCell = HTMLCell;
 
     return IPython;
 

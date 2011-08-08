@@ -153,10 +153,10 @@ var IPython = (function (IPython) {
             IPython.notebook.move_cell_down();
         });
         this.content.find('#to_code').click(function () {
-            IPython.notebook.text_to_code();
+            IPython.notebook.html_to_code();
         });
-        this.content.find('#to_text').click(function () {
-            IPython.notebook.code_to_text();
+        this.content.find('#to_html').click(function () {
+            IPython.notebook.code_to_html();
         });
         this.content.find('#run_selected_cell').click(function () {
             IPython.notebook.execute_selected_cell();
