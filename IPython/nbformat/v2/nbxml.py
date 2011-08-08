@@ -87,6 +87,7 @@ class XMLReader(NotebookReader):
                     language = _get_text(cell_e,'language')
                     outputs = []
                     for output_e in cell_e.find('outputs').getiterator('output'):
+                        prompt_number = _get_int(output_e,'prompt_number')
                         output_type = _get_text(output_e,'output_type')
                         output_text = _get_text(output_e,'text')
                         output_png = _get_binary(output_e,'png')
@@ -98,7 +99,8 @@ class XMLReader(NotebookReader):
                         output = new_output(output_type=output_type,output_png=output_png,
                             output_text=output_text,output_svg=output_svg,
                             output_html=output_html,output_latex=output_latex,
-                            output_json=output_json,output_javascript=output_javascript
+                            output_json=output_json,output_javascript=output_javascript,
+                            prompt_number=prompt_number
                         )
                         outputs.append(output)
                     cc = new_code_cell(input=input,prompt_number=prompt_number,
@@ -136,6 +138,7 @@ class XMLWriter(NotebookWriter):
                     outputs_e = ET.SubElement(cell_e, 'outputs')
                     for output in cell.outputs:
                         output_e = ET.SubElement(outputs_e, 'output')
+                        _set_int(cell,'prompt_number',output_e,'prompt_number')
                         _set_text(output,'output_type',output_e,'output_type')
                         _set_text(output,'text',output_e,'text')
                         _set_binary(output,'png',output_e,'png')

@@ -24,7 +24,7 @@ def from_dict(d):
 
 def new_output(output_type=None, output_text=None, output_png=None,
     output_html=None, output_svg=None, output_latex=None, output_json=None, 
-    output_javascript=None):
+    output_javascript=None, prompt_number=None):
     """Create a new code cell with input and output"""
     output = NotebookNode()
     if output_type is not None:
@@ -43,7 +43,8 @@ def new_output(output_type=None, output_text=None, output_png=None,
         output.json = unicode(output_json)
     if output_javascript is not None:
         output.javascript = unicode(output_javascript)
-
+    if prompt_number is not None:
+        output.prompt_number = int(prompt_number)
     return output
 
 

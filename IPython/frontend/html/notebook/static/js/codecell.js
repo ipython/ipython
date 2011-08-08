@@ -12,6 +12,7 @@ var IPython = (function (IPython) {
         this.input_prompt_number = ' ';
         this.is_completing = false;
         this.completion_cursor = null;
+        this.outputs = [];
         IPython.Cell.apply(this, arguments);
     };
 
@@ -147,50 +148,77 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.append_pyout = function (data, n) {
+    CodeCell.prototype.append_output = function (json) {
+        this.expand();
+        if (json.output_type === 'pyout') {
+            this.append_pyout(json);
+        } else if (json.output_type === 'pyerr') {
+            this.append_pyerr(json);
+        } else if (json.output_type === 'display_data') {
+            this.append_display_data(json);
+        } else if (json.output_type === 'stream') {
+            this.append_stream(json);
+        };
+        this.outputs.push(json);
+    };
+
+
+    CodeCell.prototype.append_pyout = function (json) {
+        n = json.prompt_number || ' ';
         var toinsert = $("<div/>").addClass("output_area output_pyout hbox");
         toinsert.append($('<div/>').
             addClass('prompt output_prompt').
             html('Out[' + n + ']:')
         );
-        this.append_display_data(data, toinsert);
+        this.append_mime_type(json, toinsert);
         toinsert.children().last().addClass("box_flex1");
         this.element.find("div.output").append(toinsert);
         // If we just output latex, typeset it.
-        if (data["text/latex"] !== undefined) {
+        if (json.latex !== undefined) {
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
         };
     };
 
 
-    CodeCell.prototype.append_pyerr = function (ename, evalue, tb) {
+    CodeCell.prototype.append_pyerr = function (json) {
+        var tb = json.traceback;
         var s = '';
         var len = tb.length;
         for (var i=0; i<len; i++) {
             s = s + tb[i] + '\n';
         }
         s = s + '\n';
-        this.append_stream(s);
+        this.append_text(s);
     };
 
 
-    CodeCell.prototype.append_display_data = function (data, element) {
-        if (data["text/html"] !== undefined) {
-            this.append_html(data["text/html"], element);
-        } else if (data["text/latex"] !== undefined) {
-            this.append_latex(data["text/latex"], element);
+    CodeCell.prototype.append_stream = function (json) {
+        this.append_text(json.text);
+    };
+
+
+    CodeCell.prototype.append_display_data = function (json) {
+        this.append_mime_type(json);
+    };
+
+
+    CodeCell.prototype.append_mime_type = function (json, element) {
+        if (json.html !== undefined) {
+            this.append_html(json.html, element);
+        } else if (json.latex !== undefined) {
+            this.append_latex(json.latex, element);
             // If it is undefined, then we just appended to div.output, which
             // makes the latex visible and we can typeset it. The typesetting
             // has to be done after the latex is on the page.
             if (element === undefined) {
                 MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
             };
-        } else if (data["image/svg+xml"] !== undefined) {
-            this.append_svg(data["image/svg+xml"], element);
-        } else if (data["image/png"] !== undefined) {
-            this.append_png(data["image/png"], element);
-        } else if (data["text/plain"] !== undefined) {
-            this.append_stream(data["text/plain"], element);
+        } else if (json.svg !== undefined) {
+            this.append_svg(json.svg, element);
+        } else if (json.png !== undefined) {
+            this.append_png(json.png, element);
+        } else if (json.text !== undefined) {
+            this.append_text(json.text, element);
         };
         return element;
     };
@@ -205,7 +233,7 @@ var IPython = (function (IPython) {
     }
 
 
-    CodeCell.prototype.append_stream = function (data, element) {
+    CodeCell.prototype.append_text = function (data, element) {
         element = element || this.element.find("div.output");
         var toinsert = $("<div/>").addClass("output_area output_stream");
         toinsert.append($("<pre/>").html(utils.fixConsole(data)));
@@ -245,6 +273,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.clear_output = function () {
         this.element.find("div.output").html("");
+        this.outputs = [];
     };
 
 
@@ -301,6 +330,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.fromJSON = function (data) {
+        // console.log('Import from JSON:', data);
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
                 this.set_code(data.input);
@@ -310,21 +340,32 @@ var IPython = (function (IPython) {
             } else {
                 this.set_input_prompt();
             };
+            var len = data.outputs.length;
+            for (var i=0; i<len; i++) {
+                this.append_output(data.outputs[i]);
+            };
         };
     };
 
 
     CodeCell.prototype.toJSON = function () {
-        var data = {}
+        var data = {};
         data.input = this.get_code();
         data.cell_type = 'code';
         if (this.input_prompt_number !== ' ') {
             data.prompt_number = this.input_prompt_number
         };
-        data.outputs = [];
+        var outputs = [];
+        var len = this.outputs.length;
+        for (var i=0; i<len; i++) {
+            outputs[i] = this.outputs[i];
+        };
+        data.outputs = outputs;
         data.language = 'python';
+        // console.log('Export to JSON:',data);
         return data;
     };
+
 
     IPython.CodeCell = CodeCell;
 

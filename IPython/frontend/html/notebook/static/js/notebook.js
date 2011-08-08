@@ -431,18 +431,9 @@ var IPython = (function (IPython) {
         // console.log(reply);
         var msg_type = reply.header.msg_type;
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
-        if (msg_type === "stream") {
-            cell.expand();
-            cell.append_stream(content.data + "\n");
-        } else if (msg_type === "display_data") {
-            cell.expand();
-            cell.append_display_data(content.data);
-        } else if (msg_type === "pyout") {
-            cell.expand();
-            cell.append_pyout(content.data, content.execution_count)
-        } else if (msg_type === "pyerr") {
-            cell.expand();
-            cell.append_pyerr(content.ename, content.evalue, content.traceback);
+        var output_types = ['stream','display_data','pyout','pyerr'];
+        if (output_types.indexOf(msg_type) >= 0) {
+            this.handle_output(cell, msg_type, content);
         } else if (msg_type === "status") {
             if (content.execution_state === "busy") {
                 IPython.kernel_status_widget.status_busy();
@@ -452,6 +443,50 @@ var IPython = (function (IPython) {
         }
     };
 
+
+    Notebook.prototype.handle_output = function (cell, msg_type, content) {
+        var json = {};
+        json.output_type = msg_type;
+        if (msg_type === "stream") {
+            json.text = content.data + '\n';
+        } else if (msg_type === "display_data") {
+            json = this.convert_mime_types(json, content.data);
+        } else if (msg_type === "pyout") {
+            json.prompt_number = content.execution_count;
+            json = this.convert_mime_types(json, content.data);
+        } else if (msg_type === "pyerr") {
+            json.ename = content.ename;
+            json.evalue = content.evalue;
+            json.traceback = content.traceback;
+        };
+        cell.append_output(json);
+    };
+
+
+    Notebook.prototype.convert_mime_types = function (json, data) {
+        if (data['text/plain'] !== undefined) {
+            json.text = data['text/plain'];
+        };
+        if (data['text/html'] !== undefined) {
+            json.html = data['text/html'];
+        };
+        if (data['image/svg+xml'] !== undefined) {
+            json.svg = data['image/svg+xml'];
+        };
+        if (data['image/png'] !== undefined) {
+            json.png = data['image/png'];
+        };
+        if (data['text/latex'] !== undefined) {
+            json.latex = data['text/latex'];
+        };
+        if (data['application/json'] !== undefined) {
+            json.json = data['application/json'];
+        };
+        if (data['application/javascript'] !== undefined) {
+            json.javascript = data['application/javascript'];
+        }
+        return json;    
+    };
 
     Notebook.prototype.kernel_started = function () {
         console.log("Kernel started: ", this.kernel.kernel_id);
