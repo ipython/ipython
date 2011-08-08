@@ -23,6 +23,8 @@ var IPython = (function (IPython) {
             indentUnit : 4,
             enterMode : 'flat',
             tabMode: 'shift',
+            mode: 'htmlmixed',
+            theme: 'default',
             value: this.placeholder
         });
         // The tabindex=-1 makes this div focusable.

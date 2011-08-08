@@ -29,6 +29,8 @@ var IPython = (function (IPython) {
             indentUnit : 4,
             enterMode : 'flat',
             tabMode: 'shift',
+            mode: 'python',
+            theme: 'ipython',
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         input.append(input_area);
@@ -144,7 +146,14 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
+        // Todo: this dance is needed because as of CodeMirror 2.12, focus is
+        // not causing the cursor to blink if the editor is empty initially.
+        // While this seems to fix the issue, this should be fixed
+        // in CodeMirror proper.
+        var s = this.code_mirror.getValue();
+        if (s === '') this.code_mirror.setValue('.');
         this.code_mirror.focus();
+        if (s === '') this.code_mirror.setValue('');
     };
 
 

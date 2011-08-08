@@ -180,6 +180,10 @@ div.output_prompt {
     color: darkred;
 }
 
+div.input_area {
+    color: black;
+}
+
 div.output_area {
     text-align: left;
     color: black;
@@ -205,16 +209,7 @@ div.html_cell {
     background-color: white;
 }
 
-textarea.html_cell_input {
-    /* Slightly bigger than the rest of the notebook */
-    font-size: 116%;
-    font-family: monospace;
-    outline: none;
-    resize: none;
-    width:  inherit;
-    border-style: none;
-    padding: 0px;
-    margin: 0px;
+div.html_cell_input {
     color: black;
 }
 
@@ -250,11 +245,14 @@ div.html_cell_render ol ol ol {list-style:decimal;}
 div.html_cell_render ol ol ol ol {list-style:lower-alpha;}
 div.html_cell_render ol ol ol ol ol {list-style:lower-roman;}
 
-
 .CodeMirror {
-  overflow: hidden; /* Changed from auto to remove scrollbar */
-  height: auto;     /* Changed to auto to autogrow */
   line-height: 1.231;  /* Changed from 1em to our global default */
+}
+
+.CodeMirror-scroll {
+  height: auto;     /* Changed to auto to autogrow */
+  overflow-y: visible; /* Changed from auto to remove scrollbar */
+  overflow-x: auto; /* Changed from auto to remove scrollbar */
 }
 
 /* CSS font colors for translated ANSI colors. */
