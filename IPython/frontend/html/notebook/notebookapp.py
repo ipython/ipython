@@ -106,7 +106,6 @@ aliases.update(dict(
     ip = 'IPythonNotebookApp.ip',
     port = 'IPythonNotebookApp.port',
     colors = 'ZMQInteractiveShell.colors',
-    editor = 'RichIPythonWidget.editor',
 ))
 
 #-----------------------------------------------------------------------------
@@ -126,7 +125,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
     
     classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session,
                RoutingKernelManager, NotebookManager,
-               KernelManager, SessionManager, RichIPythonWidget]
+               KernelManager, SessionManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
 

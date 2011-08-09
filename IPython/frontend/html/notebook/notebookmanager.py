@@ -27,7 +27,9 @@ from IPython.utils.traitlets import Unicode, List, Dict
 
 class NotebookManager(LoggingConfigurable):
 
-    notebook_dir = Unicode(os.getcwd())
+    notebook_dir = Unicode(os.getcwd(), config=True, help="""
+        The directory to use for notebooks.
+    """)
     filename_ext = Unicode(u'.ipynb')
     allowed_formats = List([u'json',u'xml',u'py'])
 
