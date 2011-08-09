@@ -100,7 +100,7 @@ var IPython = (function (IPython) {
     };
 
 
-    TextCell.prototype.get_rendered = function(text) {
+    TextCell.prototype.get_rendered = function() {
         return this.element.find('div.text_cell_render').html();
     };
 
@@ -129,13 +129,16 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.fromJSON = function (data) {
+        console.log(data);
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_source(data.source);
-                this.set_rendered(data.rendered);
+                this.set_rendered(data.rendered || '');
+                this.rendered = false;
+                this.render();
             };
         };
-    }
+    };
 
 
     TextCell.prototype.toJSON = function () {
