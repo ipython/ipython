@@ -447,6 +447,14 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.set_autoindent = function (state) {
+        var cells = this.cells();
+        len = cells.length;
+        for (var i=0; i<len; i++) {
+            cells[i].set_autoindent(state)
+        };
+    };
+
     // Kernel related things
 
     Notebook.prototype.start_kernel = function () {

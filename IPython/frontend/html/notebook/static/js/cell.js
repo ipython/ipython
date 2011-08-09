@@ -68,6 +68,17 @@ var IPython = (function (IPython) {
     };
 
 
+    Cell.prototype.set_autoindent = function (state) {
+        if (state) {
+            this.code_mirror.setOption('tabMode', 'indent');
+            this.code_mirror.setOption('enterMode', 'indent');
+        } else {
+            this.code_mirror.setOption('tabMode', 'shift');
+            this.code_mirror.setOption('enterMode', 'flat');
+        }
+    };
+
+
     // Subclasses must implement create_element.
     Cell.prototype.create_element = function () {};
 

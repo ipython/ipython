@@ -167,6 +167,10 @@ var IPython = (function (IPython) {
         this.content.find('#run_all_cells').click(function () {
             IPython.notebook.execute_all_cells();
         });
+        this.content.find('#autoindent').change(function () {
+            var state = $('#autoindent').prop('checked');
+            IPython.notebook.set_autoindent(state);
+        });
     };
 
 

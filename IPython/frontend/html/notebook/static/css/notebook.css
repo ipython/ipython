@@ -83,6 +83,10 @@ span.section_row_buttons > button {
     float: right;
 }
 
+#autoindent_span {
+    float: right;
+}
+
 .checkbox_label {
     font-size: 85%;
     float: right;
