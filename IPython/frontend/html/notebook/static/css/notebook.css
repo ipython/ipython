@@ -67,7 +67,6 @@ div.section_content {
     padding: 5px;
 }
 
-
 span.section_row_buttons > button {
     width: 70px;
 }
@@ -112,7 +111,7 @@ span.button_label {
 #download_format {
     float: right;
     font-size: 85%;
-    width: 60px;
+    width: 62px;
     margin: 1px 5px;
 }
 
