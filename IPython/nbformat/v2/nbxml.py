@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ET
 
 from .rwbase import NotebookReader, NotebookWriter
 from .nbbase import (
-    new_code_cell, new_html_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
 )
 
 def indent(elem, level=0):
@@ -108,7 +108,12 @@ class XMLReader(NotebookReader):
                     cells.append(cc)
                 if cell_e.tag == 'htmlcell':
                     source = _get_text(cell_e,'source')
-                    cells.append(new_html_cell(source=source))
+                    rendered = _get_text(cell_e,'rendered')
+                    cells.append(new_text_cell(u'html', source=source, rendered=rendered))
+                if cell_e.tag == 'markdowncell':
+                    source = _get_text(cell_e,'source')
+                    rendered = _get_text(cell_e,'rendered')
+                    cells.append(new_text_cell(u'markdown', source=source, rendered=rendered))
             ws = new_worksheet(name=wsname,cells=cells)
             worksheets.append(ws)
 
@@ -150,6 +155,11 @@ class XMLWriter(NotebookWriter):
                 elif cell_type == 'html':
                     cell_e = ET.SubElement(cells_e, 'htmlcell')
                     _set_text(cell,'source',cell_e,'source')
+                    _set_text(cell,'rendered',cell_e,'rendered')
+                elif cell_type == 'markdown':
+                    cell_e = ET.SubElement(cells_e, 'markdowncell')
+                    _set_text(cell,'source',cell_e,'source')
+                    _set_text(cell,'rendered',cell_e,'rendered')
 
         indent(nb_e)
         txt = ET.tostring(nb_e, encoding="utf-8")

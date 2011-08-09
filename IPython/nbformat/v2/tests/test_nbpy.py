@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from ..nbbase import (
     NotebookNode,
-    new_code_cell, new_html_cell, new_worksheet, new_notebook
+    new_code_cell, new_text_cell, new_worksheet, new_notebook
 )
 
 from ..nbpy import reads, writes

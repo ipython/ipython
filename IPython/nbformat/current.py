@@ -7,7 +7,7 @@ from IPython.nbformat import v1
 
 from IPython.nbformat.v2 import (
     NotebookNode,
-    new_code_cell, new_html_cell, new_notebook, new_output, new_worksheet
+    new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet
 )
 
 

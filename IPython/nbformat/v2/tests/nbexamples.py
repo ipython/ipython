@@ -1,20 +1,28 @@
 from ..nbbase import (
     NotebookNode,
-    new_code_cell, new_html_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
 )
 
 
 
 ws = new_worksheet(name='worksheet1')
 
-ws.cells.append(new_html_cell(
-    source='Some NumPy Examples'
+ws.cells.append(new_text_cell(
+    u'html',
+    source='Some NumPy Examples',
+    rendered='Some NumPy Examples'
 ))
 
 
 ws.cells.append(new_code_cell(
     input='import numpy',
     prompt_number=1
+))
+
+ws.cells.append(new_text_cell(
+    u'markdown',
+    source='Some NumPy Examples',
+    rendered='Some NumPy Examples'
 ))
 
 ws.cells.append(new_code_cell(

@@ -624,6 +624,9 @@ var IPython = (function (IPython) {
                 } else if (cell_data.cell_type === 'html') {
                     new_cell = this.insert_html_cell_after();
                     new_cell.fromJSON(cell_data);
+                } else if (cell_data.cell_type === 'markdown') {
+                    new_cell = this.insert_markdown_cell_after();
+                    new_cell.fromJSON(cell_data);
                 };
             };          
         };

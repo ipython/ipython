@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from ..nbbase import (
     NotebookNode,
-    new_code_cell, new_html_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
 )
 
 class TestCell(TestCase):
@@ -26,13 +26,26 @@ class TestCell(TestCase):
         self.assertEquals(cc.outputs[0].prompt_number, 0)
 
     def test_empty_html_cell(self):
-        tc = new_html_cell()
-        self.assertEquals(tc.cell_type, 'html')
+        tc = new_text_cell(u'html')
+        self.assertEquals(tc.cell_type, u'html')
         self.assertEquals('source' not in tc, True)
+        self.assertEquals('rendered' not in tc, True)
 
     def test_html_cell(self):
-        tc = new_html_cell('hi')
+        tc = new_text_cell(u'html', 'hi', 'hi')
         self.assertEquals(tc.source, u'hi')
+        self.assertEquals(tc.rendered, u'hi')
+
+    def test_empty_markdown_cell(self):
+        tc = new_text_cell(u'markdown')
+        self.assertEquals(tc.cell_type, u'markdown')
+        self.assertEquals('source' not in tc, True)
+        self.assertEquals('rendered' not in tc, True)
+
+    def test_markdown_cell(self):
+        tc = new_text_cell(u'markdown', 'hi', 'hi')
+        self.assertEquals(tc.source, u'hi')
+        self.assertEquals(tc.rendered, u'hi')
 
 
 class TestWorksheet(TestCase):
@@ -43,7 +56,7 @@ class TestWorksheet(TestCase):
         self.assertEquals('name' not in ws, True)
 
     def test_worksheet(self):
-        cells = [new_code_cell(), new_html_cell()]
+        cells = [new_code_cell(), new_text_cell(u'html')]
         ws = new_worksheet(cells=cells,name='foo')
         self.assertEquals(ws.cells,cells)
         self.assertEquals(ws.name,u'foo')

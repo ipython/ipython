@@ -1,7 +1,7 @@
 
 from .nbbase import (
     NotebookNode,
-    new_code_cell, new_html_cell, new_notebook, new_output, new_worksheet
+    new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet
 )
 
 from .nbjson import reads as reads_json, writes as writes_json

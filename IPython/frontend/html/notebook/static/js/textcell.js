@@ -132,7 +132,7 @@ var IPython = (function (IPython) {
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_source(data.source);
-                this.set_rendered(data.source);
+                this.set_rendered(data.rendered);
             };
         };
     }
