@@ -28,7 +28,8 @@ var IPython = (function (IPython) {
             value: this.placeholder
         });
         // The tabindex=-1 makes this div focusable.
-        var render_area = $('<div/>').addClass('html_cell_render').attr('tabindex','-1');
+        var render_area = $('<div/>').addClass('html_cell_render').
+            addClass('rendered_html').attr('tabindex','-1');
         cell.append(input_area).append(render_area);
         this.element = cell;
     };
@@ -74,7 +75,7 @@ var IPython = (function (IPython) {
             var output = html_cell.find("div.html_cell_render");    
             var text = this.get_source();
             if (text === "") {text = this.placeholder;};
-            this.set_render(text);
+            this.set_rendered(text);
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
             html_cell.find('div.html_cell_input').hide();
             output.show();
@@ -107,7 +108,7 @@ var IPython = (function (IPython) {
     };
 
 
-    HTMLCell.prototype.set_render = function(text) {
+    HTMLCell.prototype.set_rendered = function(text) {
         this.element.find('div.html_cell_render').html(text);
     };
 
@@ -134,7 +135,7 @@ var IPython = (function (IPython) {
         if (data.cell_type === 'html') {
             if (data.source !== undefined) {
                 this.set_source(data.source);
-                this.set_render(data.source);
+                this.set_rendered(data.source);
             };
         };
     }

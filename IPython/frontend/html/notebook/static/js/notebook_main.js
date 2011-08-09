@@ -16,6 +16,7 @@ $(document).ready(function () {
             styles: {'.MathJax_Display': {"margin": 0}}
         }
     });
+    IPython.markdown_converter = new Markdown.Converter();
 
     $('div#header').addClass('border-box-sizing');
     $('div#main_app').addClass('border-box-sizing ui-widget ui-widget-content');

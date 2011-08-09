@@ -225,25 +225,42 @@ div.html_cell_render {
     color: black;
 }
 
-div.html_cell_render em {font-style: italic;}
-div.html_cell_render strong {font-weight: bold;}
-div.html_cell_render u {text-decoration: underline;}
-div.html_cell_render :link { text-decoration: underline }
-div.html_cell_render :visited { text-decoration: underline }
-div.html_cell_render h1 {font-size: 197%; margin: .67em 0; font-weight: bold;}
-div.html_cell_render h2 {font-size: 153.9%; margin: .75em 0; font-weight: bold;}
-div.html_cell_render h3 {font-size: 116%; margin: .83em 0; font-weight: bold;}
-div.html_cell_render h4 {margin: 1.12em 0; font-weight: bold;}
-div.html_cell_render h5 {font-size: 85%.; margin: 1.5em 0; font-weight: bold;}
-div.html_cell_render h6 {font-size: 77%; margin: 1.67em 0; font-weight: bold;}
-div.html_cell_render ul {list-style:disc; margin-left: 40px;}
-div.html_cell_render ul ul {list-style:square; margin-left: 40px;}
-div.html_cell_render ul ul ul {list-style:circle; margin-left: 40px;}
-div.html_cell_render ol {list-style:upper-roman; margin-left: 40px;}
-div.html_cell_render ol ol {list-style:upper-alpha;}
-div.html_cell_render ol ol ol {list-style:decimal;}
-div.html_cell_render ol ol ol ol {list-style:lower-alpha;}
-div.html_cell_render ol ol ol ol ol {list-style:lower-roman;}
+div.rst_cell_input {
+    color: black;
+}
+
+div.rst_cell_render {
+    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    /* Slightly bigger than the rest of the notebook */
+    font-size: 116%;
+    outline: none;
+    resize: none;
+    width:  inherit;
+    border-style: none;
+    padding: 5px;
+    color: black;
+}
+
+.rendered_html {color: black;}
+.rendered_html em {font-style: italic;}
+.rendered_html strong {font-weight: bold;}
+.rendered_html u {text-decoration: underline;}
+.rendered_html :link { text-decoration: underline }
+.rendered_html :visited { text-decoration: underline }
+.rendered_html h1 {font-size: 197%; margin: .67em 0; font-weight: bold;}
+.rendered_html h2 {font-size: 153.9%; margin: .75em 0; font-weight: bold;}
+.rendered_html h3 {font-size: 116%; margin: .83em 0; font-weight: bold;}
+.rendered_html h4 {margin: 1.12em 0; font-weight: bold;}
+.rendered_html h5 {font-size: 85%.; margin: 1.5em 0; font-weight: bold;}
+.rendered_html h6 {font-size: 77%; margin: 1.67em 0; font-weight: bold;}
+.rendered_html ul {list-style:disc; margin-left: 40px;}
+.rendered_html ul ul {list-style:square; margin-left: 40px;}
+.rendered_html ul ul ul {list-style:circle; margin-left: 40px;}
+.rendered_html ol {list-style:upper-roman; margin-left: 40px;}
+.rendered_html ol ol {list-style:upper-alpha;}
+.rendered_html ol ol ol {list-style:decimal;}
+.rendered_html ol ol ol ol {list-style:lower-alpha;}
+.rendered_html ol ol ol ol ol {list-style:lower-roman;}
 
 .CodeMirror {
   line-height: 1.231;  /* Changed from 1em to our global default */

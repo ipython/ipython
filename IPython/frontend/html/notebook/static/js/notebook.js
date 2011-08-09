@@ -342,12 +342,34 @@ var IPython = (function (IPython) {
     }
 
 
-    Notebook.prototype.html_to_code = function (index) {
+    Notebook.prototype.insert_rst_cell_before = function (index) {
+        // TODO: Bounds check for i
+        var i = this.index_or_selected(index);
+        var cell = new IPython.RSTCell(this);
+        cell.config_mathjax();
+        this.insert_cell_before(cell, i);
+        this.select(this.find_cell_index(cell));
+        return cell;
+    }
+
+
+    Notebook.prototype.insert_rst_cell_after = function (index) {
+        // TODO: Bounds check for i
+        var i = this.index_or_selected(index);
+        var cell = new IPython.RSTCell(this);
+        cell.config_mathjax();
+        this.insert_cell_after(cell, i);
+        this.select(this.find_cell_index(cell));
+        return cell;
+    }
+
+
+    Notebook.prototype.to_code = function (index) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
         var source_element = this.cell_elements().eq(i);
         var source_cell = source_element.data("cell");
-        if (source_cell instanceof IPython.HTMLCell) {
+        if (source_cell instanceof IPython.HTMLCell || source_cell instanceof IPython.RSTCell) {
             this.insert_code_cell_after(i);
             var target_cell = this.cells()[i+1];
             target_cell.set_code(source_cell.get_source());
@@ -356,21 +378,51 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.code_to_html = function (index) {
+    Notebook.prototype.to_rst = function (index) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
         var source_element = this.cell_elements().eq(i);
         var source_cell = source_element.data("cell");
+        var target_cell = null;
+        if (source_cell instanceof IPython.CodeCell) {
+            this.insert_rst_cell_after(i);
+            var target_cell = this.cells()[i+1];
+            var text = source_cell.get_code();
+        } else if (source_cell instanceof IPython.HTMLCell) {
+            this.insert_rst_cell_after(i);
+            var target_cell = this.cells()[i+1];
+            var text = source_cell.get_source();
+        }
+        if (target_cell !== null) {
+            if (text === "") {text = target_cell.placeholder;};
+            target_cell.set_source(text);
+            source_element.remove();
+            target_cell.edit();
+        }
+    };
+
+
+    Notebook.prototype.to_html = function (index) {
+        // TODO: Bounds check for i
+        var i = this.index_or_selected(index);
+        var source_element = this.cell_elements().eq(i);
+        var source_cell = source_element.data("cell");
+        var target_cell = null;
         if (source_cell instanceof IPython.CodeCell) {
             this.insert_html_cell_after(i);
             var target_cell = this.cells()[i+1];
             var text = source_cell.get_code();
+        } else if (source_cell instanceof IPython.RSTCell) {
+            this.insert_html_cell_after(i);
+            var target_cell = this.cells()[i+1];
+            var text = source_cell.get_source();
+        }
+        if (target_cell !== null) {
             if (text === "") {text = target_cell.placeholder;};
             target_cell.set_source(text);
-            target_cell.set_render(text);
             source_element.remove();
             target_cell.edit();
-        };
+        }
     };
 
 

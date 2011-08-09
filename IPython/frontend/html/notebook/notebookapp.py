@@ -32,7 +32,7 @@ from .sessionmanager import SessionManager
 from .handlers import (
     NBBrowserHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, ZMQStreamHandler,
-    NotebookRootHandler, NotebookHandler
+    NotebookRootHandler, NotebookHandler, RSTHandler
 )
 from .notebookmanager import NotebookManager
 
@@ -75,7 +75,8 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/iopub" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='iopub')),
             (r"/kernels/%s/shell" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='shell')),
             (r"/notebooks", NotebookRootHandler),
-            (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler)
+            (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
+            (r"/rstservice/render", RSTHandler)
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),

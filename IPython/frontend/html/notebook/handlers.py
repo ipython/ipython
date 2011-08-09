@@ -6,10 +6,16 @@
 
 import json
 import logging
+import os
 import urllib
 
 from tornado import web
 from tornado import websocket
+
+try:
+    from docutils.core import publish_string
+except ImportError:
+    publish_string = None
 
 
 #-----------------------------------------------------------------------------
@@ -155,4 +161,52 @@ class NotebookHandler(web.RequestHandler):
         nbm.delete_notebook(notebook_id)
         self.set_status(204)
         self.finish()
+
+#-----------------------------------------------------------------------------
+# RST web service handlers
+#-----------------------------------------------------------------------------
+
+_rst_header = """========
+Heading1
+========
+
+Heading2
+========
+
+Heading3
+--------
+
+Heading4
+^^^^^^^^
+
+"""
+
+class RSTHandler(web.RequestHandler):
+
+    def post(self):
+        if publish_string is None:
+            raise web.HTTPError(503)
+        body = self.request.body.strip()
+        source = _rst_header + body
+        template_path=os.path.join(os.path.dirname(__file__), u'templates', u'rst_template.html')
+        print template_path
+        defaults = {'file_insertion_enabled': 0,
+                    'raw_enabled': 0,
+                    '_disable_config': 1,
+                    'stylesheet_path': 0,
+                    'initial_header_level': 3,
+                    'template': template_path
+        }
+        try:
+            html = publish_string(source, writer_name='html',
+                                  settings_overrides=defaults
+            )
+        except:
+            raise web.HTTPError(400)
+        print html
+#        html = '\n'.join(html.split('\n')[7:-3])
+#        print html
+        self.set_header('Content-Type', 'text/html')
+        self.finish(html)
+
 
