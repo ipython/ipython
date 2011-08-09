@@ -199,7 +199,7 @@ div.output_stream {
 
 div.output_latex {
     /* Slightly bigger than the rest of the notebook */
-    font-size: 116%;
+    font-size: 100%;
 }
 
 div.output_html {
@@ -219,7 +219,7 @@ div.text_cell_input {
 div.text_cell_render {
     font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
     /* Slightly bigger than the rest of the notebook */
-    font-size: 116%;
+    font-size: 100%;
     outline: none;
     resize: none;
     width:  inherit;
