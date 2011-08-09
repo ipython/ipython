@@ -28,6 +28,8 @@
     <link rel="stylesheet" href="static/css/layout.css" type="text/css" />
     <link rel="stylesheet" href="static/css/base.css" type="text/css" />
     <link rel="stylesheet" href="static/css/notebook.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/renderedhtml.css" type="text/css" />
+
 
 </head>
 
@@ -82,6 +84,14 @@
                     <span class="section_row_header">Actions</span>
                 </div>
                 <div class="section_row">
+                    <span id="cell_type" class="section_row_buttons">
+                        <button id="to_code">Code</button>
+                        <button id="to_html">HTML</button>
+                        <button id="to_markdown">Markdown</button>
+                    </span>
+                    <!-- <span class="button_label">Format</span> -->
+                </div>
+                <div class="section_row">
                     <span id="insert" class="section_row_buttons">
                         <button id="insert_cell_above">Above</button>
                         <button id="insert_cell_below">Below</button>
@@ -94,14 +104,6 @@
                         <button id="move_cell_down">Down</button>
                     </span>
                     <span class="button_label">Move</span>
-                </div>
-                <div class="section_row">
-                    <span id="cell_type" class="section_row_buttons">
-                        <button id="to_code">Code</button>
-                        <button id="to_html">HTML</button>
-                        <button id="to_rst">RST</button>
-                    </span>
-                    <span class="button_label">Format</span>
                 </div>
                 <div class="section_row">
                     <span id="toggle_output" class="section_row_buttons">
@@ -173,12 +175,22 @@
 <script src="static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/jquery/js/jquery-ui-1.8.14.custom.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/jquery/js/jquery.autogrow.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="static/codemirror-2.12/lib/codemirror.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/python/python.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/htmlmixed/htmlmixed.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/xml/xml.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/javascript/javascript.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/css/css.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/rst/rst.js" charset="utf-8"></script>
+
+<script src="static/pagedown/Markdown.Converter.js" charset="utf-8"></script>
+
 <script src="static/js/namespace.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/utils.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/cell.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/codecell.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/htmlcell.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/rstcell.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/textcell.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/kernel.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/kernelstatus.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/layout.js" type="text/javascript" charset="utf-8"></script>
@@ -188,14 +200,7 @@
 <script src="static/js/leftpanel.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/notebook.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/notebook_main.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/codemirror-2.12/lib/codemirror.js" charset="utf-8"></script>
-<script src="static/codemirror-2.12/mode/python/python.js" charset="utf-8"></script>
-<script src="static/codemirror-2.12/mode/htmlmixed/htmlmixed.js" charset="utf-8"></script>
-<script src="static/codemirror-2.12/mode/xml/xml.js" charset="utf-8"></script>
-<script src="static/codemirror-2.12/mode/javascript/javascript.js" charset="utf-8"></script>
-<script src="static/codemirror-2.12/mode/css/css.js" charset="utf-8"></script>
-<script src="static/codemirror-2.12/mode/rst/rst.js" charset="utf-8"></script>
-<script src="static/pagedown/Markdown.Converter.js" charset="utf-8"></script>
+
 
 </body>
 

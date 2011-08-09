@@ -342,10 +342,10 @@ var IPython = (function (IPython) {
     }
 
 
-    Notebook.prototype.insert_rst_cell_before = function (index) {
+    Notebook.prototype.insert_markdown_cell_before = function (index) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
-        var cell = new IPython.RSTCell(this);
+        var cell = new IPython.MarkdownCell(this);
         cell.config_mathjax();
         this.insert_cell_before(cell, i);
         this.select(this.find_cell_index(cell));
@@ -353,10 +353,10 @@ var IPython = (function (IPython) {
     }
 
 
-    Notebook.prototype.insert_rst_cell_after = function (index) {
+    Notebook.prototype.insert_markdown_cell_after = function (index) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
-        var cell = new IPython.RSTCell(this);
+        var cell = new IPython.MarkdownCell(this);
         cell.config_mathjax();
         this.insert_cell_after(cell, i);
         this.select(this.find_cell_index(cell));
@@ -369,7 +369,8 @@ var IPython = (function (IPython) {
         var i = this.index_or_selected(index);
         var source_element = this.cell_elements().eq(i);
         var source_cell = source_element.data("cell");
-        if (source_cell instanceof IPython.HTMLCell || source_cell instanceof IPython.RSTCell) {
+        if (source_cell instanceof IPython.HTMLCell || 
+            source_cell instanceof IPython.MarkdownCell) {
             this.insert_code_cell_after(i);
             var target_cell = this.cells()[i+1];
             target_cell.set_code(source_cell.get_source());
@@ -378,20 +379,23 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.to_rst = function (index) {
+    Notebook.prototype.to_markdown = function (index) {
         // TODO: Bounds check for i
         var i = this.index_or_selected(index);
         var source_element = this.cell_elements().eq(i);
         var source_cell = source_element.data("cell");
         var target_cell = null;
         if (source_cell instanceof IPython.CodeCell) {
-            this.insert_rst_cell_after(i);
+            this.insert_markdown_cell_after(i);
             var target_cell = this.cells()[i+1];
             var text = source_cell.get_code();
         } else if (source_cell instanceof IPython.HTMLCell) {
-            this.insert_rst_cell_after(i);
+            this.insert_markdown_cell_after(i);
             var target_cell = this.cells()[i+1];
             var text = source_cell.get_source();
+            if (text === source_cell.placeholder) {
+                text = target_cell.placeholder;
+            }
         }
         if (target_cell !== null) {
             if (text === "") {text = target_cell.placeholder;};
@@ -412,10 +416,13 @@ var IPython = (function (IPython) {
             this.insert_html_cell_after(i);
             var target_cell = this.cells()[i+1];
             var text = source_cell.get_code();
-        } else if (source_cell instanceof IPython.RSTCell) {
+        } else if (source_cell instanceof IPython.MarkdownCell) {
             this.insert_html_cell_after(i);
             var target_cell = this.cells()[i+1];
             var text = source_cell.get_source();
+            if (text === source_cell.placeholder) {
+                text = target_cell.placeholder;
+            }
         }
         if (target_cell !== null) {
             if (text === "") {text = target_cell.placeholder;};

@@ -12,7 +12,7 @@ var IPython = (function (IPython) {
         this.left_panel_element = $(left_panel_selector);
         this.left_panel_splitter_element = $(left_panel_splitter_selector);
         this.expanded = true;
-        this.width = 250;
+        this.width = 300;
         this.style();
         this.bind_events();
         this.create_children();

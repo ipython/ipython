@@ -23,7 +23,7 @@ var IPython = (function (IPython) {
     Cell.prototype.select = function () {
         this.element.addClass('ui-widget-content ui-corner-all');
         this.selected = true;
-        // TODO: we need t test across browsers to see if both of these are needed.
+        // TODO: we need to test across browsers to see if both of these are needed.
         // In the meantime, there should not be any harm in having them both.
         this.element.find('textarea').trigger('focusin');
         this.element.find('textarea').trigger('focus');
