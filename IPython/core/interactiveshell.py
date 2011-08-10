@@ -2454,7 +2454,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                           # Skip our own frame in searching for locals:
                           sys._getframe(depth+1).f_locals # locals
                           )
-        return str(res).decode(res.codec)
+        return py3compat.str_to_unicode(str(res), res.codec)
 
     def mktempfile(self, data=None, prefix='ipython_edit_'):
         """Make a new tempfile and return its filename.

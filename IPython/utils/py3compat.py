@@ -1,6 +1,7 @@
 # coding: utf-8
 """Compatibility tricks for Python 3. Mainly to do with unicode."""
 import sys
+import types
 
 orig_open = open
 
@@ -43,6 +44,8 @@ if sys.version_info[0] >= 3:
         return s.isidentifier()
     
     open = orig_open
+    
+    MethodType = types.MethodType
 
 else:
     PY3 = False
@@ -83,6 +86,9 @@ else:
         
         def __exit__(self, etype, value, traceback):
             self.f.close()
+    
+    def MethodType(func, instance):
+        return types.MethodType(func, instance, type(instance))
 
 def execfile(fname, glob, loc=None):
     loc = loc if (loc is not None) else glob

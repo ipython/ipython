@@ -23,12 +23,12 @@ from __future__ import print_function
 import __builtin__ as builtin_mod
 import os
 import sys
-from types import MethodType
 
 # our own
 from . import tools
 
 from IPython.utils import io
+from IPython.utils import py3compat
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 
 #-----------------------------------------------------------------------------
@@ -204,11 +204,10 @@ def start_ipython():
     # Modify the IPython system call with one that uses getoutput, so that we
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
-    shell.system = MethodType(xsys, shell, TerminalInteractiveShell)
+    shell.system = py3compat.MethodType(xsys, shell)
                        
 
-    shell._showtraceback = MethodType(_showtraceback, shell,
-                                      TerminalInteractiveShell)
+    shell._showtraceback = py3compat.MethodType(_showtraceback, shell)
 
     # IPython is ready, now clean up some global state...
     
