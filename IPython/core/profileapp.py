@@ -193,6 +193,15 @@ class ProfileCreate(BaseIPythonApplication):
             pass
         else:
             apps.append(IPythonQtConsoleApp)
+        try:
+            from IPython.frontend.html.notebook.notebookapp import IPythonNotebookApp
+        except Exception:
+            # this should be ImportError, but under weird circumstances
+            # this might be an AttributeError, or possibly others
+            # in any case, nothing should cause the profile creation to crash.
+            pass
+        else:
+            apps.append(IPythonNotebookApp)
         if self.parallel:
             from IPython.parallel.apps.ipcontrollerapp import IPControllerApp
             from IPython.parallel.apps.ipengineapp import IPEngineApp

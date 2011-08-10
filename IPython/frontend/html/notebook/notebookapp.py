@@ -38,7 +38,6 @@ from .notebookmanager import NotebookManager
 
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.zmq.session import Session
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.zmq.ipkernel import (
@@ -57,6 +56,14 @@ _kernel_action_regex = r"(?P<action>restart|interrupt)"
 _notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
 
 LOCALHOST = '127.0.0.1'
+
+_examples = """
+ipython notebook                       # start the notebook
+ipython notebook --profile=sympy       # use the sympy profile
+ipython notebook --pylab=inline        # pylab in inline plotting mode
+ipython notebook --certfile=mycert.pem # use SSL/TLS certificate
+ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
+"""
 
 #-----------------------------------------------------------------------------
 # The Tornado web application
@@ -102,17 +109,21 @@ notebook_flags = []
 
 aliases = dict(ipkernel_aliases)
 
-aliases.update(dict(
-    ip = 'IPythonNotebookApp.ip',
-    port = 'IPythonNotebookApp.port',
-    colors = 'ZMQInteractiveShell.colors',
-))
+aliases.update({
+    'ip': 'IPythonNotebookApp.ip',
+    'port': 'IPythonNotebookApp.port',
+    'keyfile': 'IPythonNotebookApp.keyfile',
+    'certfile': 'IPythonNotebookApp.certfile',
+    'colors': 'ZMQInteractiveShell.colors',
+    'notebook-dir': 'NotebookManager.notebook_dir'
+})
 
 #-----------------------------------------------------------------------------
 # IPythonNotebookApp
 #-----------------------------------------------------------------------------
 
 class IPythonNotebookApp(BaseIPythonApplication):
+
     name = 'ipython-notebook'
     default_config_file_name='ipython_notebook_config.py'
     
@@ -122,6 +133,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
         This launches a Tornado based HTML Notebook Server that serves up an
         HTML5/Javascript Notebook client.
     """
+    examples = _examples
     
     classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session,
                RoutingKernelManager, NotebookManager,
@@ -136,17 +148,26 @@ class IPythonNotebookApp(BaseIPythonApplication):
                     config=True,
                     help="Set the log level by value or name.")
 
-    # connection info:
+    # Network related information.
+
     ip = Unicode(LOCALHOST, config=True,
         help="The IP address the notebook server will listen on."
     )
+
+    def _ip_changed(self, name, old, new):
+        if new == u'*': self.ip = u''
 
     port = Int(8888, config=True,
         help="The port the notebook server will listen on."
     )
 
-    # the factory for creating a widget
-    widget_factory = Any(RichIPythonWidget)
+    certfile = Unicode(u'', config=True, 
+        help="""The full path to an SSL/TLS certificate file."""
+    )
+    
+    keyfile = Unicode(u'', config=True, 
+        help="""The full path to a private key file for usage with SSL/TLS."""
+    )
 
     def parse_command_line(self, argv=None):
         super(IPythonNotebookApp, self).parse_command_line(argv)
@@ -185,11 +206,22 @@ class IPythonNotebookApp(BaseIPythonApplication):
         self.web_app = NotebookWebApplication(
             self.routing_kernel_manager, self.notebook_manager, self.log
         )
-        self.http_server = httpserver.HTTPServer(self.web_app)
-        self.http_server.listen(self.port)
+        if self.certfile:
+            ssl_options = dict(certfile=self.certfile)
+            if self.keyfile:
+                ssl_options['keyfile'] = self.keyfile
+        else:
+            ssl_options = None
+        self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options)
+        if ssl_options is None and not self.ip:
+            self.log.critical('WARNING: the notebook server is listening on all IP addresses '
+                              'but not using any encryption or authentication. This is highly '
+                              'insecure and not recommended.')
+        self.http_server.listen(self.port, self.ip)
 
     def start(self):
-        self.log.info("The IPython Notebook is running at: http://%s:%i" % (self.ip, self.port))
+        ip = self.ip if self.ip else '[all ip addresses on your system]'
+        self.log.info("The IPython Notebook is running at: http://%s:%i" % (ip, self.port))
         ioloop.IOLoop.instance().start()
 
 #-----------------------------------------------------------------------------
