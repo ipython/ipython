@@ -83,6 +83,17 @@ span.section_row_buttons > button {
     float: right;
 }
 
+.help_string {
+    float: right;
+    width: 170px;
+    padding: 0px 5px;
+    text-align: center;
+}
+
+.help_string_label {
+    float: right;
+}
+
 #autoindent_span {
     float: right;
 }
