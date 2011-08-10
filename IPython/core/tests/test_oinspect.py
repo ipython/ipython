@@ -20,6 +20,7 @@ import nose.tools as nt
 
 # Our own imports
 from .. import oinspect
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -96,7 +97,8 @@ def test_info():
     "Check that Inspector.info fills out various fields as expected."
     i = inspector.info(Call, oname='Call')
     nt.assert_equal(i['type_name'], 'type')
-    nt.assert_equal(i['base_class'], "<type 'type'>")
+    expted_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
+    nt.assert_equal(i['base_class'], expted_class)
     nt.assert_equal(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'>")
     fname = __file__
     if fname.endswith(".pyc"):
@@ -125,9 +127,10 @@ def test_info():
     nt.assert_equal(i['call_docstring'], c.__call__.__doc__)
     
     # Test old-style classes, which for example may not have an __init__ method.
-    i = inspector.info(OldStyle)
-    nt.assert_equal(i['type_name'], 'classobj')
-    
-    i = inspector.info(OldStyle())
-    nt.assert_equal(i['type_name'], 'instance')
-    nt.assert_equal(i['docstring'], OldStyle.__doc__)
+    if not py3compat.PY3:
+        i = inspector.info(OldStyle)
+        nt.assert_equal(i['type_name'], 'classobj')
+        
+        i = inspector.info(OldStyle())
+        nt.assert_equal(i['type_name'], 'instance')
+        nt.assert_equal(i['docstring'], OldStyle.__doc__)
