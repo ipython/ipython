@@ -37,7 +37,7 @@ def test_find_cmd_python():
 def test_find_cmd_ls():
     """Make sure we can find the full path to ls."""
     path = find_cmd('ls')
-    nt.assert_true(path.endswith('ls'))
+    nt.assert_true(path.endswith(b'ls'))
 
     
 def has_pywin32():

@@ -882,7 +882,9 @@ class CInt(Int):
         except:
             self.error(obj, value)
 
-if not py3compat.PY3:
+if py3compat.PY3:
+    Long, CLong = Int, CInt
+else:
     class Long(TraitType):
         """A long integer trait."""
 

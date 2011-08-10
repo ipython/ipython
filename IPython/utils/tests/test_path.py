@@ -31,17 +31,24 @@ from IPython.testing import decorators as dec
 from IPython.testing.decorators import skip_if_not_win32, skip_win32
 from IPython.testing.tools import make_tempfile
 from IPython.utils import path, io
+from IPython.utils import py3compat
 
 # Platform-dependent imports
 try:
     import _winreg as wreg
 except ImportError:
     #Fake _winreg module on none windows platforms
-    import new
-    sys.modules["_winreg"] = new.module("_winreg")
+    import types
+    wr_name = "winreg" if py3compat.PY3 else "_winreg"
+    sys.modules[wr_name] = types.ModuleType(wr_name)
     import _winreg as wreg
     #Add entries that needs to be stubbed by the testing code
     (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
+    
+try:
+    reload
+except NameError:   # Python 3
+    from imp import reload
 
 #-----------------------------------------------------------------------------
 # Globals

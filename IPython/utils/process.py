@@ -66,7 +66,7 @@ def find_cmd(cmd):
     except OSError:
         raise FindCmdError('command could not be found: %s' % cmd)
     # which returns empty if not found
-    if path == '':
+    if path == b'':
         raise FindCmdError('command could not be found: %s' % cmd)
     return os.path.abspath(path)
 
