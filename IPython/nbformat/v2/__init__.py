@@ -19,3 +19,39 @@ from .nbpy import to_notebook as to_notebook_py
 from .convert import convert_to_this_nbformat
 
 
+def parse_filename(fname):
+    """Parse a notebook filename.
+
+    This function takes a notebook filename and returns the notebook
+    format (xml/json/py) and the notebook name. This logic can be
+    summarized as follows:
+
+    * notebook.ipynb -> (notebook.ipynb, notebook, xml) 
+    * notebook.json  -> (notebook.json, notebook, json)
+    * notebook.py    -> (notebook.py, notebook, py)
+    * notebook       -> (notebook.ipynb, notebook, xml)
+
+    Parameters
+    ----------
+    fname : unicode
+        The notebook filename. The filename can use a specific filename
+        extention (.ipynb, .json, .py) or none, in which case .ipynb will
+        be assumed.
+
+    Returns
+    -------
+    (fname, name, format) : (unicode, unicode, unicode)  
+        The filename, notebook name and format.      
+    """
+    if fname.endswith(u'.ipynb'):
+        format = u'xml'
+    elif fname.endswith(u'.json'):
+        format = u'json'
+    elif fname.endswith(u'.py'):
+        format = u'py'
+    else:
+        fname = fname + u'.ipynb'
+        format = u'xml'
+    name = fname.split('.')[0]
+    return fname, name, format
+
