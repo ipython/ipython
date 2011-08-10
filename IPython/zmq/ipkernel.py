@@ -124,7 +124,9 @@ class Kernel(Configurable):
         ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
         if msg is None:
             return
-        
+
+        msg_type = msg['header']['msg_type']
+
         # This assert will raise in versions of zeromq 2.0.7 and lesser.
         # We now require 2.0.8 or above, so we can uncomment for safety.
         # print(ident,msg, file=sys.__stdout__)
@@ -133,11 +135,11 @@ class Kernel(Configurable):
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
-        self.log.debug('\n*** MESSAGE TYPE:'+str(msg['msg_type'])+'***')
+        self.log.debug('\n*** MESSAGE TYPE:'+str(msg_type)+'***')
         self.log.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
 
         # Find and call actual handler for message
-        handler = self.handlers.get(msg['msg_type'], None)
+        handler = self.handlers.get(msg_type, None)
         if handler is None:
             self.log.error("UNKNOWN MESSAGE TYPE:" +str(msg))
         else:
@@ -375,7 +377,7 @@ class Kernel(Configurable):
                        "Unexpected missing message part."
 
             self.log.debug("Aborting:\n"+str(Message(msg)))
-            msg_type = msg['msg_type']
+            msg_type = msg['header']['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             reply_msg = self.session.send(self.shell_socket, reply_type,
                     {'status' : 'aborted'}, msg, ident=ident)

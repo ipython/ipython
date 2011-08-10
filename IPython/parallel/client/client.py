@@ -670,7 +670,7 @@ class Client(HasTraits):
         while msg is not None:
             if self.debug:
                 pprint(msg)
-            msg_type = msg['msg_type']
+            msg_type = msg['header']['msg_type']
             handler = self._notification_handlers.get(msg_type, None)
             if handler is None:
                 raise Exception("Unhandled message type: %s"%msg.msg_type)
@@ -684,7 +684,7 @@ class Client(HasTraits):
         while msg is not None:
             if self.debug:
                 pprint(msg)
-            msg_type = msg['msg_type']
+            msg_type = msg['header']['msg_type']
             handler = self._queue_handlers.get(msg_type, None)
             if handler is None:
                 raise Exception("Unhandled message type: %s"%msg.msg_type)
@@ -729,7 +729,7 @@ class Client(HasTraits):
             msg_id = parent['msg_id']
             content = msg['content']
             header = msg['header']
-            msg_type = msg['msg_type']
+            msg_type = msg['header']['msg_type']
             
             # init metadata:
             md = self.metadata[msg_id]
@@ -994,7 +994,7 @@ class Client(HasTraits):
         msg = self.session.send(socket, "apply_request", buffers=bufs, ident=ident,
                             subheader=subheader, track=track)
         
-        msg_id = msg['msg_id']
+        msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)
         if ident:
             # possibly routed to a specific engine

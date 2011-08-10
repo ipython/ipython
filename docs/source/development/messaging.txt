@@ -101,17 +101,17 @@ generic structure::
       # collaborative settings where multiple users may be interacting with the
       # same kernel simultaneously, so that frontends can label the various
       # messages in a meaningful way.
-      'header' : { 'msg_id' : uuid,
-                   'username' : str,
-           'session' : uuid
+      'header' : {
+                    'msg_id' : uuid,
+                    'username' : str,
+                    'session' : uuid
+                    # All recognized message type strings are listed below.
+                    'msg_type' : str,
          },
 
       # In a chain of messages, the header from the parent is copied so that
       # clients can track where messages come from.
       'parent_header' : dict,
-
-      # All recognized message type strings are listed below.
-      'msg_type' : str,
 
       # The actual content of the message must be a dict, whose structure
       # depends on the message type.x

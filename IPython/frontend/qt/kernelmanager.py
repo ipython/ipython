@@ -66,7 +66,7 @@ class QtShellSocketChannel(SocketChannelQObject, ShellSocketChannel):
         self.message_received.emit(msg)
         
         # Emit signals for specialized message types.
-        msg_type = msg['msg_type']
+        msg_type = msg['header']['msg_type']
         signal = getattr(self, msg_type, None)
         if signal:
             signal.emit(msg)
@@ -122,7 +122,7 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
         # Emit the generic signal.
         self.message_received.emit(msg)
         # Emit signals for specialized message types.
-        msg_type = msg['msg_type']
+        msg_type = msg['header']['msg_type']
         signal = getattr(self, msg_type + '_received', None)
         if signal:
             signal.emit(msg)
@@ -155,7 +155,7 @@ class QtStdInSocketChannel(SocketChannelQObject, StdInSocketChannel):
         self.message_received.emit(msg)
         
         # Emit signals for specialized message types.
-        msg_type = msg['msg_type']
+        msg_type = msg['header']['msg_type']
         if msg_type == 'input_request':
             self.input_requested.emit(msg)
 

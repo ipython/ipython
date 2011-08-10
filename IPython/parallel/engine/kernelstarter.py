@@ -40,11 +40,11 @@ class KernelStarter(object):
     def dispatch_request(self, raw_msg):
         idents, msg = self.session.feed_identities()
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unserialize(msg, content=False)
         except:
             print ("bad msg: %s"%msg)
         
-        msgtype = msg['msg_type']
+        msgtype = msg['header']['msg_type']
         handler = self.handlers.get(msgtype, None)
         if handler is None:
             self.downstream.send_multipart(raw_msg, copy=False)
@@ -54,11 +54,11 @@ class KernelStarter(object):
     def dispatch_reply(self, raw_msg):
         idents, msg = self.session.feed_identities()
         try:
-            msg = self.session.unpack_message(msg, content=False)
+            msg = self.session.unserialize(msg, content=False)
         except:
             print ("bad msg: %s"%msg)
         
-        msgtype = msg['msg_type']
+        msgtype = msg['header']['msg_type']
         handler = self.handlers.get(msgtype, None)
         if handler is None:
             self.upstream.send_multipart(raw_msg, copy=False)

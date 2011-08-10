@@ -150,7 +150,7 @@ class Kernel(SessionFactory):
                 
             self.log.info("Aborting:")
             self.log.info(str(msg))
-            msg_type = msg['msg_type']
+            msg_type = msg['header']['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             # reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
             # self.reply_socket.send(ident,zmq.SNDMORE)
@@ -195,7 +195,7 @@ class Kernel(SessionFactory):
     def dispatch_control(self, msg):
         idents,msg = self.session.feed_identities(msg, copy=False)
         try:
-            msg = self.session.unpack_message(msg, content=True, copy=False)
+            msg = self.session.unserialize(msg, content=True, copy=False)
         except:
             self.log.error("Invalid Message", exc_info=True)
             return
@@ -204,10 +204,11 @@ class Kernel(SessionFactory):
         
         header = msg['header']
         msg_id = header['msg_id']
-        
-        handler = self.control_handlers.get(msg['msg_type'], None)
+        msg_type = header['msg_type']
+
+        handler = self.control_handlers.get(msg_type, None)
         if handler is None:
-            self.log.error("UNKNOWN CONTROL MESSAGE TYPE: %r"%msg['msg_type'])
+            self.log.error("UNKNOWN CONTROL MESSAGE TYPE: %r"%msg_type)
         else:
             handler(self.control_stream, idents, msg)
     
@@ -373,7 +374,7 @@ class Kernel(SessionFactory):
         self.control_stream.flush()
         idents,msg = self.session.feed_identities(msg, copy=False)
         try:
-            msg = self.session.unpack_message(msg, content=True, copy=False)
+            msg = self.session.unserialize(msg, content=True, copy=False)
         except:
             self.log.error("Invalid Message", exc_info=True)
             return
@@ -383,17 +384,18 @@ class Kernel(SessionFactory):
         
         header = msg['header']
         msg_id = header['msg_id']
+        msg_type = msg['header']['msg_type']
         if self.check_aborted(msg_id):
             self.aborted.remove(msg_id)
             # is it safe to assume a msg_id will not be resubmitted?
-            reply_type = msg['msg_type'].split('_')[0] + '_reply'
+            reply_type = msg_type.split('_')[0] + '_reply'
             status = {'status' : 'aborted'}
             reply_msg = self.session.send(stream, reply_type, subheader=status,
                         content=status, parent=msg, ident=idents)
             return
-        handler = self.shell_handlers.get(msg['msg_type'], None)
+        handler = self.shell_handlers.get(msg_type, None)
         if handler is None:
-            self.log.error("UNKNOWN MESSAGE TYPE: %r"%msg['msg_type'])
+            self.log.error("UNKNOWN MESSAGE TYPE: %r"%msg_type)
         else:
             handler(stream, idents, msg)
     

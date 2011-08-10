@@ -244,7 +244,7 @@ class Session(Configurable):
     def _session_default(self):
         return bytes(uuid.uuid4())
     
-    username = Unicode(os.environ.get('USER','username'), config=True,
+    username = Unicode(os.environ.get('USER',u'username'), config=True,
         help="""Username for the Session. Default is your system username.""")
     
     # message signature related traits:
@@ -350,18 +350,16 @@ class Session(Configurable):
     def msg_header(self, msg_type):
         return msg_header(self.msg_id, msg_type, self.username, self.session)
 
-    def msg(self, msg_type, content=None, parent=None, subheader=None):
+    def msg(self, msg_type, content=None, parent=None, subheader=None, header=None):
         """Return the nested message dict.
 
         This format is different from what is sent over the wire. The
-        self.serialize method converts this nested message dict to the wire
-        format, which uses a message list.
+        serialize/unserialize methods converts this nested message dict to the wire
+        format, which is a list of message parts.
         """
         msg = {}
-        msg['header'] = self.msg_header(msg_type)
-        msg['msg_id'] = msg['header']['msg_id']
+        msg['header'] = self.msg_header(msg_type) if header is None else header
         msg['parent_header'] = {} if parent is None else extract_header(parent)
-        msg['msg_type'] = msg_type
         msg['content'] = {} if content is None else content
         sub = {} if subheader is None else subheader
         msg['header'].update(sub)
@@ -384,6 +382,10 @@ class Session(Configurable):
     
     def serialize(self, msg, ident=None):
         """Serialize the message components to bytes.
+
+        This is roughly the inverse of unserialize. The serialize/unserialize
+        methods work with full message lists, whereas pack/unpack work with
+        the individual message parts in the message list.
 
         Parameters
         ----------
@@ -434,8 +436,8 @@ class Session(Configurable):
 
         return to_send
         
-    def send(self, stream, msg_or_type, content=None, parent=None, ident=None, 
-                                    buffers=None, subheader=None, track=False):
+    def send(self, stream, msg_or_type, content=None, parent=None, ident=None,
+             buffers=None, subheader=None, track=False, header=None):
         """Build and send a message via stream or socket.
 
         The message format used by this function internally is as follows:
@@ -443,37 +445,42 @@ class Session(Configurable):
         [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_content,
          buffer1,buffer2,...] 
 
-        The self.serialize method converts the nested message dict into this
+        The serialize/unserialize methods convert the nested message dict into this
         format.
 
         Parameters
         ----------
         
         stream : zmq.Socket or ZMQStream
-            the socket-like object used to send the data
+            The socket-like object used to send the data.
         msg_or_type : str or Message/dict
             Normally, msg_or_type will be a msg_type unless a message is being 
-            sent more than once.
+            sent more than once. If a header is supplied, this can be set to
+            None and the msg_type will be pulled from the header.
         
         content : dict or None
-            the content of the message (ignored if msg_or_type is a message)
+            The content of the message (ignored if msg_or_type is a message).
+        header : dict or None
+            The header dict for the message (ignores if msg_to_type is a message).
         parent : Message or dict or None
-            the parent or parent header describing the parent of this message
+            The parent or parent header describing the parent of this message
+            (ignored if msg_or_type is a message).
         ident : bytes or list of bytes
-            the zmq.IDENTITY routing path
+            The zmq.IDENTITY routing path.
         subheader : dict or None
-            extra header keys for this message's header
+            Extra header keys for this message's header (ignored if msg_or_type
+            is a message).
         buffers : list or None
-            the already-serialized buffers to be appended to the message
+            The already-serialized buffers to be appended to the message.
         track : bool
-            whether to track.  Only for use with Sockets, 
-            because ZMQStream objects cannot track messages.
+            Whether to track.  Only for use with Sockets, because ZMQStream
+            objects cannot track messages.
         
         Returns
         -------
-        msg : message dict
-            the constructed message
-        (msg,tracker) : (message dict, MessageTracker)
+        msg : dict
+            The constructed message.
+        (msg,tracker) : (dict, MessageTracker)
             if track=True, then a 2-tuple will be returned, 
             the first element being the constructed
             message, and the second being the MessageTracker
@@ -486,12 +493,13 @@ class Session(Configurable):
             raise TypeError("ZMQStream cannot track messages")
         
         if isinstance(msg_or_type, (Message, dict)):
-            # we got a Message, not a msg_type
-            # don't build a new Message
+            # We got a Message or message dict, not a msg_type so don't
+            # build a new Message.
             msg = msg_or_type
         else:
-            msg = self.msg(msg_or_type, content, parent, subheader)
-        
+            msg = self.msg(msg_or_type, content=content, parent=parent, 
+                           subheader=subheader, header=header)
+
         buffers = [] if buffers is None else buffers
         to_send = self.serialize(msg, ident)
         flag = 0
@@ -521,7 +529,7 @@ class Session(Configurable):
         msg['tracker'] = tracker
         
         return msg
-    
+
     def send_raw(self, stream, msg_list, flags=0, copy=True, ident=None):
         """Send a raw message via ident path.
 
@@ -543,7 +551,7 @@ class Session(Configurable):
             ident = [ident]
         if ident is not None:
             to_send.extend(ident)
-            
+
         to_send.append(DELIM)
         to_send.append(self.sign(msg_list))
         to_send.extend(msg_list)
@@ -578,7 +586,7 @@ class Session(Configurable):
         # invalid large messages can cause very expensive string comparisons
         idents, msg_list = self.feed_identities(msg_list, copy)
         try:
-            return idents, self.unpack_message(msg_list, content=content, copy=copy)
+            return idents, self.unserialize(msg_list, content=content, copy=copy)
         except Exception as e:
             print (idents, msg_list)
             # TODO: handle it
@@ -600,10 +608,12 @@ class Session(Configurable):
         
         Returns
         -------
-        (idents,msg_list) : two lists
-            idents will always be a list of bytes - the indentity prefix
-            msg_list will be a list of bytes or Messages, unchanged from input
-            msg_list should be unpackable via self.unpack_message at this point.
+        (idents, msg_list) : two lists
+            idents will always be a list of bytes, each of which is a ZMQ
+            identity. msg_list will be a list of bytes or zmq.Messages of the
+            form [HMAC,p_header,p_parent,p_content,buffer1,buffer2,...] and
+            should be unpackable/unserializable via self.unserialize at this
+            point.
         """
         if copy:
             idx = msg_list.index(DELIM)
@@ -619,21 +629,30 @@ class Session(Configurable):
             idents, msg_list = msg_list[:idx], msg_list[idx+1:]
             return [m.bytes for m in idents], msg_list
     
-    def unpack_message(self, msg_list, content=True, copy=True):
-        """Return a message object from the format
-        sent by self.send.
-        
+    def unserialize(self, msg_list, content=True, copy=True):
+        """Unserialize a msg_list to a nested message dict.
+
+        This is roughly the inverse of serialize. The serialize/unserialize
+        methods work with full message lists, whereas pack/unpack work with
+        the individual message parts in the message list.
+
         Parameters:
         -----------
-        
+        msg_list : list of bytes or Message objects
+            The list of message parts of the form [HMAC,p_header,p_parent,
+            p_content,buffer1,buffer2,...].
         content : bool (True)
-            whether to unpack the content dict (True), 
-            or leave it serialized (False)
-        
+            Whether to unpack the content dict (True), or leave it packed
+            (False).
         copy : bool (True)
-            whether to return the bytes (True), 
-            or the non-copying Message object in each place (False)
-        
+            Whether to return the bytes (True), or the non-copying Message
+            object in each place (False).
+
+        Returns
+        -------
+        msg : dict
+            The nested message dict with top-level keys [header, parent_header,
+            content, buffers].
         """
         minlen = 4
         message = {}
@@ -651,7 +670,6 @@ class Session(Configurable):
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
         message['header'] = self.unpack(msg_list[1])
-        message['msg_type'] = message['header']['msg_type']
         message['parent_header'] = self.unpack(msg_list[2])
         if content:
             message['content'] = self.unpack(msg_list[3])

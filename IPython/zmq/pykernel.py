@@ -190,7 +190,7 @@ class Kernel(HasTraits):
             else:
                 assert ident is not None, "Missing message part."
             self.log.debug("Aborting: %s"%Message(msg))
-            msg_type = msg['msg_type']
+            msg_type = msg['header']['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             reply_msg = self.session.send(self.shell_socket, reply_type, {'status':'aborted'}, msg, ident=ident)
             self.log.debug(Message(reply_msg))
