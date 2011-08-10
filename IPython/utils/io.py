@@ -196,7 +196,7 @@ def raw_input_multi(header='', ps1='==> ', ps2='..> ',terminate_str = '.'):
 
         return lines[:-1]  # don't return the termination command
     except EOFError:
-        print
+        print()
         return lines
 
 
@@ -232,7 +232,7 @@ def ask_yes_no(prompt,default=None):
         except EOFError:
             if default in answers.keys():
                 ans = default
-                print
+                print()
             else:
                 raise
 

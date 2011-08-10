@@ -1,4 +1,4 @@
-.. _ip1par:
+.. _parallel_overview:
 
 ============================
 Overview and getting started
@@ -46,6 +46,16 @@ the ``I`` in IPython.  The following are some example usage cases for IPython:
   local IPython session for plotting and analysis.
 
 * Run a set of tasks on a set of CPUs using dynamic load balancing.
+
+.. tip::
+
+   At the SciPy 2011 conference in Austin, Min Ragan-Kelley presented a
+   complete 4-hour tutorial on the use of these features, and all the materials
+   for the tutorial are now `available online`__.  That tutorial provides an
+   excellent, hands-on oriented complement to the reference documentation
+   presented here.
+
+.. __: http://minrk.github.com/scipy-tutorial-2011
 
 Architecture overview
 =====================

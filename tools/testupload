@@ -1,6 +1,21 @@
-#!/bin/sh
-# Simple upload script to push up into the testing directory a local build
-ipdir=$PWD/..
+#!/usr/bin/env python
+"""Simple upload script to push up into the testing directory a local build
+"""
+from __future__ import print_function
 
-cd $ipdir/dist
-scp * ipython@ipython.scipy.org:www/dist/testing/
+from toollib import *
+
+# Get main ipython dir, this will raise if it doesn't pass some checks
+ipdir = get_ipdir()
+distdir = pjoin(ipdir, 'dist')
+
+# Load release info
+execfile(pjoin(ipdir, 'IPython','core','release.py'))
+
+# Build site addresses for file uploads
+testing_site = '%s/testing/%s' % (archive, version)
+
+cd(distdir)
+
+# FIXME: this assumes the path *with the version number* exists on the server
+sh('scp * %s' % testing_site)

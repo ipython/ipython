@@ -22,7 +22,7 @@ within and between hosts.
    
 The basic design is explained in the following diagram:
 
-.. image:: frontend-kernel.png
+.. image:: figs/frontend-kernel.png
    :width: 450px
    :alt: IPython kernel/frontend messaging architecture.
    :align: center

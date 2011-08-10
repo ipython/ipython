@@ -7,7 +7,7 @@ Under Windows, the command sdist is not supported, since IPython
 requires utilities which are not available under Windows."""
 
 #-----------------------------------------------------------------------------
-#  Copyright (c) 2008-2010, IPython Development Team.
+#  Copyright (c) 2008-2011, IPython Development Team.
 #  Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
 #  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
 #  Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
@@ -130,6 +130,10 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   ['docs/man/ipengine.1'],
                   'cd docs/man && gzip -9c ipengine.1 > ipengine.1.gz'),
 
+                 ('docs/man/iplogger.1.gz',
+                  ['docs/man/iplogger.1'],
+                  'cd docs/man && gzip -9c iplogger.1 > iplogger.1.gz'),
+
                  ('docs/man/ipython.1.gz',
                   ['docs/man/ipython.1'],
                   'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
@@ -166,10 +170,9 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
         for dirpath,dirnames,filenames in os.walk('docs/example'):
             docdeps += [ pjoin(dirpath,f) for f in filenames
                          if not f.endswith('~') ]
-        # then, make them all dependencies for the main PDF (the html will get
-        # auto-generated as well).
+        # then, make them all dependencies for the main html docs
         to_update.append(
-            ('docs/dist/ipython.pdf',
+            ('docs/dist/index.html',
              docdeps,
              "cd docs && make dist")
             )
@@ -214,8 +217,8 @@ if 'setuptools' in sys.modules:
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.4',
         zmq = 'pyzmq>=2.1.4',
-        doc='Sphinx>=0.3',
-        test='nose>=0.10.1',
+        doc = 'Sphinx>=0.3',
+        test = 'nose>=0.10.1',
     )
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False
@@ -240,7 +243,9 @@ if 'setuptools' in sys.modules:
             print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
             sys.exit(1)
         setup_args['scripts'] = [pjoin('scripts','ipython_win_post_install.py')]
-        setup_args['options'] = {"bdist_wininst": {"install_script": "ipython_win_post_install.py"}}
+        setup_args['options'] = {"bdist_wininst":
+                                 {"install_script":
+                                  "ipython_win_post_install.py"}}
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is

@@ -1,11 +1,11 @@
 # encoding: utf-8
 """
-IPython.
+IPython: tools for interactive and parallel computing in Python.
 
-IPython is a set of tools for interactive and exploratory computing in Python.
+http://ipython.org
 """
 #-----------------------------------------------------------------------------
-#  Copyright (c) 2008-2010, IPython Development Team.
+#  Copyright (c) 2008-2011, IPython Development Team.
 #  Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
 #  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
 #  Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
@@ -30,7 +30,6 @@ import sys
 # Don't forget to also update setup.py when this changes!
 if sys.version[0:3] < '2.6':
     raise ImportError('Python Version 2.6 or above is required for IPython.')
-
 
 # Make it easy to import extensions - they are always directly on pythonpath.
 # Therefore, non-IPython modules can be added to extensions directory.

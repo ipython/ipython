@@ -1,0 +1,98 @@
+.TH IPLOGGER 1 "July 21, 2011" "" ""
+.\" Man page generated from reStructeredText.
+.SH NAME
+\fBiplogger \- IPython logger for parallel computing.
+.SH DESCRIPTION
+Start an IPython logger for parallel computing.
+.sp
+IPython controllers and engines (and your own processes) can broadcast log
+messages by registering a \fIzmq.log.handlers.PUBHandler\fP with the \fIlogging\fP
+module. The logger can be configured using command line options or using a
+cluster directory. Cluster directories contain config, log and security files
+and are usually located in your ipython directory and named as "profile_name".
+See the \fIprofile\fP and \fIprofile\-dir\fP options for details.
+.SH OPTIONS
+.sp
+IPython command\-line arguments are passed as \(aq\-\-<flag>\(aq, or \(aq\-\-<name>=<value>\(aq.
+.sp
+Arguments that take values are actually convenience aliases to full
+Configurables, whose aliases are listed on the help line. For more information
+on full configurables, see \(aq\-\-help\-all\(aq.
+.TP
+.B \-\-debug
+.
+set log level to logging.DEBUG (maximize logging output)
+.TP
+.B \-\-init
+.
+Initialize profile with default config files. This is equivalent
+to running \fIipython profile create <profile>\fP prior to startup.
+.TP
+.B \-\-log\-to\-file
+.
+send log output to a file
+.TP
+.B \-\-quiet
+.
+set log level to logging.CRITICAL (minimize logging output)
+.TP
+.B \-\-profile=<Unicode> (BaseIPythonApplication.profile)
+.
+Default: u\(aqdefault\(aq
+The IPython profile to use.
+.TP
+.B \-\-log\-to\-file=<Bool> (BaseParallelApplication.log_to_file)
+.
+Default: False
+whether to log to a file
+.TP
+.B \-\-ipython\-dir=<Unicode> (BaseIPythonApplication.ipython_dir)
+.
+The name of the IPython directory. This directory is used for logging
+configuration (through profiles), history storage, etc. The default is
+usually $XDG_CONFIG_HOME/ipython. This options can also be specified
+through the environment variable IPYTHON_DIR.
+.TP
+.B \-\-url=<Unicode> (LogWatcher.url)
+.
+Default: \(aq\fI\%tcp://127.0.0.1:20202\fP\(aq
+ZMQ url on which to listen for log messages
+.TP
+.B \-\-topics=<List> (LogWatcher.topics)
+.
+Default: [\(aq\(aq]
+The ZMQ topics to subscribe to. Default is to subscribe to all messages
+.TP
+.B \-\-log\-level=<Enum> (Application.log_level)
+.
+Default: 30
+Choices: (0, 10, 20, 30, 40, 50, \(aqDEBUG\(aq, \(aqINFO\(aq, \(aqWARN\(aq, \(aqERROR\(aq, \(aqCRITICAL\(aq)
+Set the log level by value or name.
+.TP
+.B \-\-log\-url=<Unicode> (BaseParallelApplication.log_url)
+.
+Default: \(aq\(aq
+The ZMQ URL of the iplogger to aggregate logging.
+.TP
+.B \-\-clean\-logs=<Bool> (BaseParallelApplication.clean_logs)
+.
+Default: False
+whether to cleanup old logfiles before starting
+.TP
+.B \-\-profile\-dir=<Unicode> (ProfileDir.location)
+.
+Default: u\(aq\(aq
+Set the profile location directly. This overrides the logic used by the
+\fIprofile\fP option.
+.TP
+.B \-\-work\-dir=<Unicode> (BaseParallelApplication.work_dir)
+.
+Set the working dir for the process.
+.SH SEE ALSO
+.BR ipython(1),
+.BR ipcontroller(1),
+.BR ipengine(1)
+.br
+.SH AUTHOR
+\fBiplogger\fP is a tool that ships with IPython, created by
+the IPython Development Team.

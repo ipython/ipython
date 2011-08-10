@@ -39,12 +39,15 @@ pdf: latex
 
 all: html pdf
 
-dist: all
-	mkdir -p dist
-	rm -rf dist/*
-	ln build/latex/ipython.pdf dist/
-	cp -al build/html dist/
-	@echo "Build finished.  Final docs are in dist/"
+# For final distribution, only build HTML (our pdf is now so large as to be
+# unusable, takes forever to build and just bloats the downloads).  We leave
+# them hardlinked at the top-level so users find them easily, though the
+# original build/html dir is left in-place (useful to reload builds while
+# testing).
+dist: html
+	rm -rf html
+	cp -al build/html .
+	@echo "Build finished.  Final docs are in html/"
 
 html: api
 	mkdir -p build/html build/doctrees

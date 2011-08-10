@@ -1024,6 +1024,8 @@ class Client(HasTraits):
         targets: list,slice,int,etc. [default: use all engines]
             The subset of engines across which to load-balance
         """
+        if targets == 'all':
+            targets = None
         if targets is not None:
             targets = self._build_targets(targets)[1]
         return LoadBalancedView(client=self, socket=self._task_socket, targets=targets)
@@ -1041,7 +1043,9 @@ class Client(HasTraits):
             The engines to use for the View
         """
         single = isinstance(targets, int)
-        targets = self._build_targets(targets)[1]
+        # allow 'all' to be lazily evaluated at each execution
+        if targets != 'all':
+            targets = self._build_targets(targets)[1]
         if single:
             targets = targets[0]
         return DirectView(client=self, socket=self._mux_socket, targets=targets)

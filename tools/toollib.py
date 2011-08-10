@@ -1,5 +1,7 @@
 """Various utilities common to IPython release and maintenance tools.
 """
+from __future__ import print_function
+
 # Library imports
 import os
 import sys
@@ -10,10 +12,15 @@ from distutils.dir_util import remove_tree
 pjoin = os.path.join
 cd = os.chdir
 
+# Constants
+
+# SSH root address of the archive site
+archive = 'ipython@archive.ipython.org:archive.ipython.org'
+
 # Utility functions
 def sh(cmd):
     """Run system command in shell, raise SystemExit if it returns an error."""
-    print "$",cmd
+    print("$", cmd)
     stat = os.system(cmd)
     #stat = 0  # Uncomment this and comment previous to run in debug mode
     if stat:

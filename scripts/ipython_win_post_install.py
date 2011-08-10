@@ -10,11 +10,13 @@ try:
 except ImportError:
     pass
 
+
 def mkshortcut(target,description,link_file,*args,**kw):
     """make a shortcut if it doesn't exist, and register its creation"""
     
     create_shortcut(target, description, link_file,*args,**kw)
     file_created(link_file)
+
 
 def install():
     """Routine to be run by the win32 installer with the -install switch."""
@@ -111,11 +113,7 @@ def install():
     cmd = '"%s"' % cmdbase
     mkshortcut(pythonw, 'IPython Qt Console', link, cmd, workdir)
     # Create documentation shortcuts ...
-    t = prefix + r'\share\doc\ipython\manual\ipython.pdf'
-    f = ip_start_menu + r'\Manual in PDF.lnk'
-    mkshortcut(t,r'IPython Manual - PDF-Format',f)
-    
-    t = prefix + r'\share\doc\ipython\manual\html\index.html'
+    t = prefix + r'\share\doc\ipython\manual\index.html'
     f = ip_start_menu + r'\Manual in HTML.lnk'
     mkshortcut(t,'IPython Manual - HTML-Format',f)
     
@@ -123,6 +121,7 @@ def install():
 def remove():
     """Routine to be run by the win32 installer with the -remove switch."""
     pass
+
 
 # main()
 if len(sys.argv) > 1:

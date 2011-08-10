@@ -112,5 +112,13 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip = get_ipython()
         ip.run_cell('!(true)\n', False)
         ip.run_cell('!(true)\n\n\n', False)
-
-
+    
+    def test_gh_597(self):
+        """Pretty-printing lists of objects with non-ascii reprs may cause
+        problems."""
+        class Spam(object):
+          def __repr__(self):
+            return "\xe9"*50
+        import IPython.core.formatters
+        f = IPython.core.formatters.PlainTextFormatter()
+        f([Spam(),Spam()])

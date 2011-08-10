@@ -143,9 +143,10 @@ class Application(SingletonConfigurable):
 
     def __init__(self, **kwargs):
         SingletonConfigurable.__init__(self, **kwargs)
-        # Add my class to self.classes so my attributes appear in command line
-        # options.
-        self.classes.insert(0, self.__class__)
+        # Ensure my class is in self.classes, so my attributes appear in command line
+        # options and config files.
+        if self.__class__ not in self.classes:
+            self.classes.insert(0, self.__class__)
         
         self.init_logging()
 
@@ -366,8 +367,17 @@ class Application(SingletonConfigurable):
     def load_config_file(self, filename, path=None):
         """Load a .py based config file by filename and path."""
         loader = PyFileConfigLoader(filename, path=path)
-        config = loader.load_config()
-        self.update_config(config)
+        try:
+            config = loader.load_config()
+        except IOError:
+            # problem with the file (probably doesn't exist), raise
+            raise
+        except Exception:
+            # problem while running the file
+            self.log.error("Exception while loading config file %s [path=%s]"%
+                            (filename, path), exc_info=True)
+        else:
+            self.update_config(config)
     
     def generate_config_file(self):
         """generate default config file from Configurables"""

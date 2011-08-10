@@ -1220,8 +1220,10 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
                                    not self._in_buffer(position))
 
         # Don't move the cursor if Control/Cmd is pressed to allow copy-paste
-        # using the keyboard in any part of the buffer.
-        if not self._control_key_down(event.modifiers(), include_command=True):
+        # using the keyboard in any part of the buffer. Also, permit scrolling
+        # with Page Up/Down keys.
+        if not (self._control_key_down(event.modifiers(), include_command=True)
+                or key in (QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown)):
             self._keep_cursor_in_buffer()
 
         return intercepted

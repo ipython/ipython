@@ -37,14 +37,14 @@ Oops, {app_name} crashed. We do our best to make it stable, but...
 A crash report was automatically generated with the following information:
   - A verbatim copy of the crash traceback.
   - A copy of your input history during this session.
-  - Data on your current $self.app_name configuration.
+  - Data on your current {app_name} configuration.
 
 It was left in the file named:
 \t'{crash_report_fname}'
 If you can email this file to the developers, the information in it will help
 them in understanding and correcting the problem.
 
-You can mail it to: $self.contact_name at {contact_email}
+You can mail it to: {contact_name} at {contact_email}
 with the subject '{app_name} Crash Report'.
 
 If you want to do it now, the following command will work (under Unix):
@@ -126,6 +126,7 @@ class CrashHandler(object):
         # write the report filename into the instance dict so it can get
         # properly expanded out in the user message template
         self.crash_report_fname = report_name
+        self.info['crash_report_fname'] = report_name
         TBhandler = ultratb.VerboseTB(
             color_scheme=color_scheme,
             long_header=1,

@@ -82,7 +82,8 @@ class HistoryConsoleWidget(ConsoleWidget):
                 self._history_prefix = input_buffer[:col]
 
             # Perform the search.
-            self.history_previous(self._history_prefix)
+            self.history_previous(self._history_prefix,
+                                    as_prefix=not shift_modifier)
 
             # Go to the first line of the prompt for seemless history scrolling.
             # Emulate readline: keep the cursor position fixed for a prefix
@@ -110,7 +111,8 @@ class HistoryConsoleWidget(ConsoleWidget):
                 return False
 
             # Perform the search.
-            replaced = self.history_next(self._history_prefix)
+            replaced = self.history_next(self._history_prefix, 
+                                            as_prefix=not shift_modifier)
 
             # Emulate readline: keep the cursor position fixed for a prefix
             # search. (We don't need to move the cursor to the end of the buffer
@@ -130,13 +132,15 @@ class HistoryConsoleWidget(ConsoleWidget):
     # 'HistoryConsoleWidget' public interface
     #---------------------------------------------------------------------------
 
-    def history_previous(self, prefix=''):
+    def history_previous(self, substring='', as_prefix=True):
         """ If possible, set the input buffer to a previous history item.
 
         Parameters:
         -----------
-        prefix : str, optional
-            If specified, search for an item with this prefix.
+        substring : str, optional
+            If specified, search for an item with this substring.
+        as_prefix : bool, optional
+            If True, the substring must match at the beginning (default).
 
         Returns:
         --------
@@ -147,7 +151,8 @@ class HistoryConsoleWidget(ConsoleWidget):
         while index > 0:
             index -= 1
             history = self._get_edited_history(index)
-            if history.startswith(prefix):
+            if (as_prefix and history.startswith(substring)) \
+                or (not as_prefix and substring in history):
                 replace = True
                 break
         
@@ -158,13 +163,15 @@ class HistoryConsoleWidget(ConsoleWidget):
 
         return replace
 
-    def history_next(self, prefix=''):
+    def history_next(self, substring='', as_prefix=True):
         """ If possible, set the input buffer to a subsequent history item.
 
         Parameters:
         -----------
-        prefix : str, optional
-            If specified, search for an item with this prefix.
+        substring : str, optional
+            If specified, search for an item with this substring.
+        as_prefix : bool, optional
+            If True, the substring must match at the beginning (default).
 
         Returns:
         --------
@@ -175,7 +182,8 @@ class HistoryConsoleWidget(ConsoleWidget):
         while self._history_index < len(self._history):
             index += 1
             history = self._get_edited_history(index)
-            if history.startswith(prefix):
+            if (as_prefix and history.startswith(substring)) \
+                or (not as_prefix and substring in history):
                 replace = True
                 break
             

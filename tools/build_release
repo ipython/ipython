@@ -8,14 +8,14 @@ ipdir = get_ipdir()
 cd(ipdir)
 
 # Load release info
-execfile(pjoin('IPython','core','release.py'))
+execfile(pjoin('IPython', 'core', 'release.py'))
 
 # Check that everything compiles
 compile_tree()
 
 # Cleanup
-for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist'),
-          pjoin('docs','source','api','generated')]:
+for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
+          pjoin('docs', 'source', 'api', 'generated')]:
     if os.path.isdir(d):
         remove_tree(d)
 
@@ -23,7 +23,7 @@ for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist'),
 sh('./setup.py sdist --formats=gztar,zip')
 
 # Build eggs
-sh('python2.6 ./setupegg.py bdist_egg')
+sh('python ./setupegg.py bdist_egg')
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for

@@ -40,6 +40,7 @@ import zmq
 from zmq.log import handlers
 
 # IPython imports
+from IPython.config.application import Application
 from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
 from IPython.utils.newserialized import serialize, unserialize
 from IPython.zmq.log import EnginePUBHandler
@@ -391,7 +392,8 @@ def select_random_ports(n):
 def signal_children(children):
     """Relay interupt/term signals to children, for more solid process cleanup."""
     def terminate_children(sig, frame):
-        logging.critical("Got signal %i, terminating children..."%sig)
+        log = Application.instance().log
+        log.critical("Got signal %i, terminating children..."%sig)
         for child in children:
             child.terminate()
         
