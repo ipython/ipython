@@ -90,7 +90,7 @@ class EngineFactory(RegistrationFactory):
         loop = self.loop
         identity = self.bident
         idents,msg = self.session.feed_identities(msg)
-        msg = Message(self.session.unpack_message(msg))
+        msg = Message(self.session.unserialize(msg))
         
         if msg.content.status == 'ok':
             self.id = int(msg.content.id)
