@@ -13,9 +13,10 @@ class TestCell(TestCase):
         self.assertEquals('input' not in cc, True)
         self.assertEquals('prompt_number' not in cc, True)
         self.assertEquals(cc.outputs, [])
+        self.assertEquals(cc.collapsed, False)
 
     def test_code_cell(self):
-        cc = new_code_cell(input='a=10', prompt_number=0)
+        cc = new_code_cell(input='a=10', prompt_number=0, collapsed=True)
         cc.outputs = [new_output(output_type='pyout',
             output_svg='foo',output_text='10',prompt_number=0)]
         self.assertEquals(cc.input, u'a=10')
@@ -24,6 +25,8 @@ class TestCell(TestCase):
         self.assertEquals(cc.outputs[0].svg, u'foo')
         self.assertEquals(cc.outputs[0].text, u'10')
         self.assertEquals(cc.outputs[0].prompt_number, 0)
+        self.assertEquals(cc.collapsed, True)
+
 
     def test_empty_html_cell(self):
         tc = new_text_cell(u'html')

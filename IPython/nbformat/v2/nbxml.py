@@ -52,6 +52,23 @@ def _set_int(nbnode, attr, parent, tag):
         e.text = unicode(nbnode[attr])
 
 
+def _get_bool(e, tag):
+    sub_e = e.find(tag)
+    if sub_e is None:
+        return None
+    else:
+        return bool(int(sub_e.text))
+
+
+def _set_bool(nbnode, attr, parent, tag):
+    if attr in nbnode:
+        e = ET.SubElement(parent, tag)
+        if nbnode[attr]:
+            e.text = u'1'
+        else:
+            e.text = u'0'
+
+
 def _get_binary(e, tag):
     sub_e = e.find(tag)
     if sub_e is None:
@@ -84,6 +101,7 @@ class XMLReader(NotebookReader):
                 if cell_e.tag == 'codecell':
                     input = _get_text(cell_e,'input')
                     prompt_number = _get_int(cell_e,'prompt_number')
+                    collapsed = _get_bool(cell_e,'collapsed')
                     language = _get_text(cell_e,'language')
                     outputs = []
                     for output_e in cell_e.find('outputs').getiterator('output'):
@@ -105,7 +123,7 @@ class XMLReader(NotebookReader):
                         )
                         outputs.append(output)
                     cc = new_code_cell(input=input,prompt_number=prompt_number,
-                                       language=language,outputs=outputs)
+                                       language=language,outputs=outputs,collapsed=collapsed)
                     cells.append(cc)
                 if cell_e.tag == 'htmlcell':
                     source = _get_text(cell_e,'source')
@@ -141,6 +159,7 @@ class XMLWriter(NotebookWriter):
                     _set_text(cell,'input',cell_e,'input')
                     _set_text(cell,'language',cell_e,'language')
                     _set_int(cell,'prompt_number',cell_e,'prompt_number')
+                    _set_bool(cell,'collapsed',cell_e,'collapsed')
                     outputs_e = ET.SubElement(cell_e, 'outputs')
                     for output in cell.outputs:
                         output_e = ET.SubElement(outputs_e, 'output')

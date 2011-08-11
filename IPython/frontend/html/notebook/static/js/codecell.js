@@ -13,6 +13,7 @@ var IPython = (function (IPython) {
         this.is_completing = false;
         this.completion_cursor = null;
         this.outputs = [];
+        this.collapsed = false;
         IPython.Cell.apply(this, arguments);
     };
 
@@ -317,12 +318,18 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.collapse = function () {
-        this.element.find('div.output').hide();
+        if (!this.collapsed) {
+            this.element.find('div.output').hide();
+            this.collapsed = true;
+        };
     };
 
 
     CodeCell.prototype.expand = function () {
-        this.element.find('div.output').show();
+        if (this.collapsed) {
+            this.element.find('div.output').show();
+            this.collapsed = false;
+        };
     };
 
 
@@ -378,6 +385,11 @@ var IPython = (function (IPython) {
             for (var i=0; i<len; i++) {
                 this.append_output(data.outputs[i]);
             };
+            if (data.collapsed !== undefined) {
+                if (data.collapsed) {
+                    this.collapse();
+                };
+            };
         };
     };
 
@@ -396,6 +408,7 @@ var IPython = (function (IPython) {
         };
         data.outputs = outputs;
         data.language = 'python';
+        data.collapsed = this.collapsed;
         // console.log('Export to JSON:',data);
         return data;
     };

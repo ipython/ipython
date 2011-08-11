@@ -50,7 +50,8 @@ def new_output(output_type=None, output_text=None, output_png=None,
     return output
 
 
-def new_code_cell(input=None, prompt_number=None, outputs=None, language=u'python'):
+def new_code_cell(input=None, prompt_number=None, outputs=None,
+    language=u'python', collapsed=False):
     """Create a new code cell with input and output"""
     cell = NotebookNode()
     cell.cell_type = u'code'
@@ -64,6 +65,8 @@ def new_code_cell(input=None, prompt_number=None, outputs=None, language=u'pytho
         cell.outputs = []
     else:
         cell.outputs = outputs
+    if collapsed is not None:
+        cell.collapsed = collapsed
 
     return cell
 

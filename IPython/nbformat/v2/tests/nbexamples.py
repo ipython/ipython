@@ -16,7 +16,8 @@ ws.cells.append(new_text_cell(
 
 ws.cells.append(new_code_cell(
     input='import numpy',
-    prompt_number=1
+    prompt_number=1,
+    collapsed=False
 ))
 
 ws.cells.append(new_text_cell(
@@ -27,12 +28,14 @@ ws.cells.append(new_text_cell(
 
 ws.cells.append(new_code_cell(
     input='a = numpy.random.rand(100)',
-    prompt_number=2
+    prompt_number=2,
+    collapsed=True
 ))
 
 ws.cells.append(new_code_cell(
     input='print a',
     prompt_number=3,
+    collapsed=False,
     outputs=[new_output(
         output_type=u'pyout',
         output_text=u'<array a>',
