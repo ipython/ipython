@@ -91,16 +91,17 @@ class XMLReader(NotebookReader):
                         output_type = _get_text(output_e,'output_type')
                         output_text = _get_text(output_e,'text')
                         output_png = _get_binary(output_e,'png')
+                        output_jpeg = _get_binary(output_e,'jpeg')
                         output_svg = _get_text(output_e,'svg')
                         output_html = _get_text(output_e,'html')
                         output_latex = _get_text(output_e,'latex')
                         output_json = _get_text(output_e,'json')
                         output_javascript = _get_text(output_e,'javascript')
                         output = new_output(output_type=output_type,output_png=output_png,
-                            output_text=output_text,output_svg=output_svg,
-                            output_html=output_html,output_latex=output_latex,
-                            output_json=output_json,output_javascript=output_javascript,
-                            prompt_number=out_prompt_number
+                            output_text=output_text, output_svg=output_svg,
+                            output_html=output_html, output_latex=output_latex,
+                            output_json=output_json, output_javascript=output_javascript,
+                            output_jpeg=output_jpeg, prompt_number=out_prompt_number
                         )
                         outputs.append(output)
                     cc = new_code_cell(input=input,prompt_number=prompt_number,
@@ -147,6 +148,7 @@ class XMLWriter(NotebookWriter):
                         _set_text(output,'output_type',output_e,'output_type')
                         _set_text(output,'text',output_e,'text')
                         _set_binary(output,'png',output_e,'png')
+                        _set_binary(output,'jpeg',output_e,'jpeg')
                         _set_text(output,'html',output_e,'html')
                         _set_text(output,'svg',output_e,'svg')
                         _set_text(output,'latex',output_e,'latex')

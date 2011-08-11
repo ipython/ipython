@@ -2119,7 +2119,8 @@ Currently the magic system has the following functions:\n"""
             response = urllib2.urlopen(arg_s)
             content = response.read()
         else:
-            content = open(arg_s).read()
+            with open(arg_s) as f:
+                content = f.read()
         self.set_next_input(content)
         
     def _find_edit_target(self, args, opts, last_call):

@@ -8,6 +8,8 @@ def base64_decode(nb):
             if cell.cell_type == 'code':
                 if 'png' in cell:
                     cell.png = bytes(decodestring(cell.png))
+                if 'jpeg' in cell:
+                    cell.jpeg = bytes(decodestring(cell.jpeg))
     return nb
 
 
@@ -18,6 +20,8 @@ def base64_encode(nb):
             if cell.cell_type == 'code':
                 if 'png' in cell:
                     cell.png = unicode(encodestring(cell.png))
+                if 'jpeg' in cell:
+                    cell.jpeg = unicode(encodestring(cell.jpeg))
     return nb
 
 

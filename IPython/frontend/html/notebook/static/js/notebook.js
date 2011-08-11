@@ -544,6 +544,9 @@ var IPython = (function (IPython) {
         if (data['image/png'] !== undefined) {
             json.png = data['image/png'];
         };
+        if (data['image/jpeg'] !== undefined) {
+            json.jpeg = data['image/jpeg'];
+        };
         if (data['text/latex'] !== undefined) {
             json.latex = data['text/latex'];
         };

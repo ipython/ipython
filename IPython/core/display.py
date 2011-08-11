@@ -21,7 +21,7 @@ from .displaypub import (
     publish_pretty, publish_html,
     publish_latex, publish_svg,
     publish_png, publish_json,
-    publish_javascript
+    publish_javascript, publish_jpeg
 )
 
 #-----------------------------------------------------------------------------
@@ -86,7 +86,7 @@ def display_html(*objs, **kwargs):
     Parameters
     ----------
     objs : tuple of objects
-        The Python objects to display, or if raw=True raw html data to
+        The Python objects to display, or if raw=True raw HTML data to
         display.
     raw : bool
         Are the data objects raw data or Python objects that need to be
@@ -138,6 +138,26 @@ def display_png(*objs, **kwargs):
             publish_png(obj)
     else:
         display(*objs, include=['text/plain','image/png'])
+
+
+def display_jpeg(*objs, **kwargs):
+    """Display the JPEG representation of an object.
+
+    Parameters
+    ----------
+    objs : tuple of objects
+        The Python objects to display, or if raw=True raw JPEG data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    """
+    raw = kwargs.pop('raw',False)
+    if raw:
+        for obj in objs:
+            publish_png(obj)
+    else:
+        display(*objs, include=['text/plain','image/jpeg'])
 
 
 def display_latex(*objs, **kwargs):
@@ -207,28 +227,49 @@ def display_javascript(*objs, **kwargs):
 class DisplayObject(object):
     """An object that wraps data to be displayed."""
 
-    def __init__(self, data):
-        """Create a display object given raw data of a MIME type or a URL.
+    _read_flags = 'r'
+
+    def __init__(self, data=None, url=None, filename=None):
+        """Create a display object given raw data.
 
         When this object is returned by an expression or passed to the
         display function, it will result in the data being displayed
         in the frontend. The MIME type of the data should match the
         subclasses used, so the Png subclass should be used for 'image/png'
         data. If the data is a URL, the data will first be downloaded
-        and then displayed.
+        and then displayed. If 
 
         Parameters
         ----------
         data : unicode, str or bytes
             The raw data or a URL to download the data from.
+        url : unicode
+            A URL to download the data from.
+        filename : unicode
+            Path to a local file to load the data from.
         """
-        if data.startswith('http'):
-            import urllib2
-            response = urllib2.urlopen(data)
-            self.data = response.read()
+        if data is not None and data.startswith('http'):
+            self.url = data
+            self.filename = None
+            self.data = None
         else:
             self.data = data
+            self.url = url
+            self.filename = None if filename is None else unicode(filename)
+        self.reload()
 
+    def reload(self):
+        """Reload the raw data from file or URL."""
+        if self.filename is not None:
+            with open(self.filename, self._read_flags) as f:
+                self.data = f.read()
+        elif self.url is not None:
+            try:
+                import urllib2
+                response = urllib2.urlopen(self.url)
+                self.data = response.read()
+            except:
+                self.data = None
 
 class Pretty(DisplayObject):
 
@@ -236,39 +277,97 @@ class Pretty(DisplayObject):
         return self.data
 
 
-class Html(DisplayObject):
+class HTML(DisplayObject):
 
     def _repr_html_(self):
         return self.data
 
 
-class Latex(DisplayObject):
+class Math(DisplayObject):
 
     def _repr_latex_(self):
         return self.data
 
 
-class Png(DisplayObject):
-
-    def _repr_png_(self):
-        return self.data
-
-
-class Svg(DisplayObject):
+class SVG(DisplayObject):
 
     def _repr_svg_(self):
         return self.data
 
 
-class Json(DisplayObject):
+class JSON(DisplayObject):
 
     def _repr_json_(self):
         return self.data
 
 
-class Javscript(DisplayObject):
+class Javascript(DisplayObject):
 
     def _repr_javascript_(self):
         return self.data
 
 
+class Image(DisplayObject):
+
+    _read_flags = 'rb'
+
+    def __init__(self, data=None, url=None, filename=None, format=u'png', embed=False):
+        """Create a display an PNG/JPEG image given raw data.
+
+        When this object is returned by an expression or passed to the
+        display function, it will result in the image being displayed
+        in the frontend.
+
+        Parameters
+        ----------
+        data : unicode, str or bytes
+            The raw data or a URL to download the data from.
+        url : unicode
+            A URL to download the data from.
+        filename : unicode
+            Path to a local file to load the data from.
+        format : unicode
+            The format of the image data (png/jpeg/jpg). If a filename or URL is given
+            for format will be inferred from the filename extension.
+        embed : bool
+            Should the image data be embedded in the notebook using a data URI (True)
+            or be loaded using an <img> tag. Set this to True if you want the image
+            to be viewable later with no internet connection. If a filename is given
+            embed is always set to True.
+        """
+        if filename is not None:
+            ext = self._find_ext(filename)
+        elif url is not None:
+            ext = self._find_ext(url)
+        elif data.startswith('http'):
+            ext = self._find_ext(data)
+        else:
+            ext = None
+        if ext is not None:
+            if ext == u'jpg' or ext == u'jpeg':
+                format = u'jpeg'
+            if ext == u'png':
+                format = u'png'
+        self.format = unicode(format).lower()
+        self.embed = True if filename is not None else embed
+        super(Image, self).__init__(data=data, url=url, filename=filename)
+
+    def reload(self):
+        """Reload the raw data from file or URL."""
+        if self.embed:
+            super(Image,self).reload()
+
+    def _repr_html_(self):
+        if not self.embed:
+            return u'<img src="%s" />' % self.url
+
+    def _repr_png_(self):
+        if self.embed and self.format == u'png':
+            return self.data
+
+    def _repr_jpeg_(self):
+        if self.embed and (self.format == u'jpeg' or self.format == u'jpg'):
+            return self.data
+
+    def _find_ext(self, s):
+        return unicode(s.split('.')[-1].lower())

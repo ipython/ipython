@@ -205,13 +205,15 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_pyerr = function (json) {
         var tb = json.traceback;
-        var s = '';
-        var len = tb.length;
-        for (var i=0; i<len; i++) {
-            s = s + tb[i] + '\n';
-        }
-        s = s + '\n';
-        this.append_text(s);
+        if (tb !== undefined) {
+            var s = '';
+            var len = tb.length;
+            for (var i=0; i<len; i++) {
+                s = s + tb[i] + '\n';
+            }
+            s = s + '\n';
+            this.append_text(s);
+        };
     };
 
 
@@ -240,6 +242,8 @@ var IPython = (function (IPython) {
             this.append_svg(json.svg, element);
         } else if (json.png !== undefined) {
             this.append_png(json.png, element);
+        } else if (json.jpeg !== undefined) {
+            this.append_jpeg(json.jpeg, element);
         } else if (json.text !== undefined) {
             this.append_text(json.text, element);
         };
@@ -278,6 +282,15 @@ var IPython = (function (IPython) {
         element = element || this.element.find("div.output");
         var toinsert = $("<div/>").addClass("output_area output_png");
         toinsert.append($("<img/>").attr('src','data:image/png;base64,'+png));
+        element.append(toinsert);
+        return element;
+    };
+
+
+    CodeCell.prototype.append_jpeg = function (jpeg, element) {
+        element = element || this.element.find("div.output");
+        var toinsert = $("<div/>").addClass("output_area output_jpeg");
+        toinsert.append($("<img/>").attr('src','data:image/jpeg;base64,'+jpeg));
         element.append(toinsert);
         return element;
     };

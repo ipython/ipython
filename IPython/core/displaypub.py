@@ -78,6 +78,7 @@ class DisplayPublisher(Configurable):
         * application/json
         * application/javascript
         * image/png
+        * image/jpeg
         * image/svg+xml
 
         Parameters
@@ -118,6 +119,7 @@ def publish_display_data(source, data, metadata=None):
     * application/json
     * application/javascript
     * image/png
+    * image/jpeg
     * image/svg+xml
 
     Parameters
@@ -166,12 +168,12 @@ def publish_pretty(data, metadata=None):
 
 
 def publish_html(data, metadata=None):
-    """Publish raw html data to all frontends.
+    """Publish raw HTML data to all frontends.
 
     Parameters
     ----------
     data : unicode
-        The raw html data to publish.
+        The raw HTML data to publish.
     metadata : dict
         A dictionary for metadata related to the data. This can contain
         arbitrary key, value pairs that frontends can use to interpret
@@ -185,12 +187,12 @@ def publish_html(data, metadata=None):
 
 
 def publish_latex(data, metadata=None):
-    """Publish raw latex data to all frontends.
+    """Publish raw LaTeX data to all frontends.
 
     Parameters
     ----------
     data : unicode
-        The raw latex data to publish.
+        The raw LaTeX data to publish.
     metadata : dict
         A dictionary for metadata related to the data. This can contain
         arbitrary key, value pairs that frontends can use to interpret
@@ -203,12 +205,12 @@ def publish_latex(data, metadata=None):
     )
 
 def publish_png(data, metadata=None):
-    """Publish raw binary png data to all frontends.
+    """Publish raw binary PNG data to all frontends.
 
     Parameters
     ----------
     data : str/bytes
-        The raw binary png data to publish.
+        The raw binary PNG data to publish.
     metadata : dict
         A dictionary for metadata related to the data. This can contain
         arbitrary key, value pairs that frontends can use to interpret
@@ -220,13 +222,33 @@ def publish_png(data, metadata=None):
         metadata=metadata
     )
 
+
+def publish_jpeg(data, metadata=None):
+    """Publish raw binary JPEG data to all frontends.
+
+    Parameters
+    ----------
+    data : str/bytes
+        The raw binary JPEG data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_jpeg',
+        {'image/jpeg':data},
+        metadata=metadata
+    )
+
+
 def publish_svg(data, metadata=None):
-    """Publish raw svg data to all frontends.
+    """Publish raw SVG data to all frontends.
 
     Parameters
     ----------
     data : unicode
-        The raw svg data to publish.
+        The raw SVG data to publish.
     metadata : dict
         A dictionary for metadata related to the data. This can contain
         arbitrary key, value pairs that frontends can use to interpret
@@ -239,12 +261,12 @@ def publish_svg(data, metadata=None):
     )
 
 def publish_json(data, metadata=None):
-    """Publish raw json data to all frontends.
+    """Publish raw JSON data to all frontends.
 
     Parameters
     ----------
     data : unicode
-        The raw json data to publish.
+        The raw JSON data to publish.
     metadata : dict
         A dictionary for metadata related to the data. This can contain
         arbitrary key, value pairs that frontends can use to interpret
@@ -257,12 +279,12 @@ def publish_json(data, metadata=None):
     )
 
 def publish_javascript(data, metadata=None):
-    """Publish raw javascript data to all frontends.
+    """Publish raw Javascript data to all frontends.
 
     Parameters
     ----------
     data : unicode
-        The raw javascript data to publish.
+        The raw Javascript data to publish.
     metadata : dict
         A dictionary for metadata related to the data. This can contain
         arbitrary key, value pairs that frontends can use to interpret
