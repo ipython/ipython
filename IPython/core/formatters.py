@@ -72,8 +72,9 @@ class DisplayFormatter(Configurable):
         * text/html
         * text/latex
         * application/json
+        * application/javascript
         * image/png
-        * immage/svg+xml
+        * image/svg+xml
 
         Parameters
         ----------
@@ -562,8 +563,9 @@ def format_display_data(obj, include=None, exclude=None):
     * text/html
     * text/latex
     * application/json
+    * application/javascript
     * image/png
-    * immage/svg+xml
+    * image/svg+xml
 
     Parameters
     ----------

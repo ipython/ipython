@@ -17,6 +17,13 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from .displaypub import (
+    publish_pretty, publish_html,
+    publish_latex, publish_svg,
+    publish_png, publish_json,
+    publish_javascript
+)
+
 #-----------------------------------------------------------------------------
 # Main functions
 #-----------------------------------------------------------------------------
@@ -53,78 +60,215 @@ def display(*objs, **kwargs):
         publish('IPython.core.display.display', format_dict)
 
 
-def display_pretty(*objs):
+def display_pretty(*objs, **kwargs):
     """Display the pretty (default) representation of an object.
 
     Parameters
     ----------
     objs : tuple of objects
-        The Python objects to display.
+        The Python objects to display, or if raw=True raw text data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
     """
-    display(*objs, include=['text/plain'])
+    raw = kwargs.pop('raw',False)
+    if raw:
+        for obj in objs:
+            publish_pretty(obj)
+    else:
+        display(*objs, include=['text/plain'])
 
 
-def display_html(*objs):
+def display_html(*objs, **kwargs):
     """Display the HTML representation of an object.
 
     Parameters
     ----------
     objs : tuple of objects
-        The Python objects to display.
-        """
-    display(*objs, include=['text/plain','text/html'])
+        The Python objects to display, or if raw=True raw html data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    """
+    raw = kwargs.pop('raw',False)
+    if raw:
+        for obj in objs:
+            publish_html(obj)
+    else:
+        display(*objs, include=['text/plain','text/html'])
 
 
-def display_svg(*objs):
+def display_svg(*objs, **kwargs):
     """Display the SVG representation of an object.
 
     Parameters
     ----------
     objs : tuple of objects
-        The Python objects to display.
+        The Python objects to display, or if raw=True raw svg data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
     """
-    display(*objs, include=['text/plain','image/svg+xml'])
+    raw = kwargs.pop('raw',False)
+    if raw:
+        for obj in objs:
+            publish_svg(obj)
+    else:
+        display(*objs, include=['text/plain','image/svg+xml'])
 
 
-def display_png(*objs):
+def display_png(*objs, **kwargs):
     """Display the PNG representation of an object.
 
     Parameters
     ----------
     objs : tuple of objects
-        The Python objects to display.
+        The Python objects to display, or if raw=True raw png data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
     """
-    display(*objs, include=['text/plain','image/png'])
+    raw = kwargs.pop('raw',False)
+    if raw:
+        for obj in objs:
+            publish_png(obj)
+    else:
+        display(*objs, include=['text/plain','image/png'])
 
 
-def display_latex(*objs):
+def display_latex(*objs, **kwargs):
     """Display the LaTeX representation of an object.
 
     Parameters
     ----------
     objs : tuple of objects
-        The Python objects to display.
+        The Python objects to display, or if raw=True raw latex data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
     """
-    display(*objs, include=['text/plain','text/latex'])
+    raw = kwargs.pop('raw',False)
+    if raw:
+        for obj in objs:
+            publish_latex(obj)
+    else:
+        display(*objs, include=['text/plain','text/latex'])
 
 
-def display_json(*objs):
+def display_json(*objs, **kwargs):
     """Display the JSON representation of an object.
 
     Parameters
     ----------
     objs : tuple of objects
-        The Python objects to display.
+        The Python objects to display, or if raw=True raw json data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
     """
-    display(*objs, include=['text/plain','application/json'])
+    raw = kwargs.pop('raw',False)
+    if raw:
+        for obj in objs:
+            publish_json(obj)
+    else:
+        display(*objs, include=['text/plain','application/json'])
 
 
-def display_javascript(*objs):
+def display_javascript(*objs, **kwargs):
     """Display the Javascript representation of an object.
 
     Parameters
     ----------
     objs : tuple of objects
-        The Python objects to display.
+        The Python objects to display, or if raw=True raw javascript data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
     """
-    display(*objs, include=['text/plain','application/javascript'])
+    raw = kwargs.pop('raw',False)
+    if raw:
+        for obj in objs:
+            publish_javascript(obj)
+    else:
+        display(*objs, include=['text/plain','application/javascript'])
+
+#-----------------------------------------------------------------------------
+# Smart classes
+#-----------------------------------------------------------------------------
+
+
+class DisplayObject(object):
+    """An object that wraps data to be displayed."""
+
+    def __init__(self, data):
+        """Create a display object given raw data of a MIME type or a URL.
+
+        When this object is returned by an expression or passed to the
+        display function, it will result in the data being displayed
+        in the frontend. The MIME type of the data should match the
+        subclasses used, so the Png subclass should be used for 'image/png'
+        data. If the data is a URL, the data will first be downloaded
+        and then displayed.
+
+        Parameters
+        ----------
+        data : unicode, str or bytes
+            The raw data or a URL to download the data from.
+        """
+        if data.startswith('http'):
+            import urllib2
+            response = urllib2.urlopen(data)
+            self.data = response.read()
+        else:
+            self.data = data
+
+
+class Pretty(DisplayObject):
+
+    def _repr_pretty_(self):
+        return self.data
+
+
+class Html(DisplayObject):
+
+    def _repr_html_(self):
+        return self.data
+
+
+class Latex(DisplayObject):
+
+    def _repr_latex_(self):
+        return self.data
+
+
+class Png(DisplayObject):
+
+    def _repr_png_(self):
+        return self.data
+
+
+class Svg(DisplayObject):
+
+    def _repr_svg_(self):
+        return self.data
+
+
+class Json(DisplayObject):
+
+    def _repr_json_(self):
+        return self.data
+
+
+class Javscript(DisplayObject):
+
+    def _repr_javascript_(self):
+        return self.data
+
+
