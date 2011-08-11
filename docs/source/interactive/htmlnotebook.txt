@@ -1,0 +1,39 @@
+.. _htmlnotebook:
+
+=========================
+An HTML Notebook IPython
+=========================
+
+The IPython Notebook consists of two related components:
+
+* An XML/JSON based Notebook document format for recording and distributing
+  Python code and rich text.
+* A web-based user interface for authoring and running notebook documents.
+
+The Notebook can be used by starting the Notebook server with the 
+command::
+
+    $ ipython notebook
+
+This server uses the same ZeroMQ-based two process kernel architecture as
+the QT Console as well Tornado for serving HTTP requests. Some of the main
+features of the Notebook include:
+
+* Display rich data (png/html/latex/svg) in the browser as a result of
+  computations.
+* Compose text cells using HTML and Markdown.
+* Import and export notebook documents in range of formats (.ipynb, .json, .py).
+* In browser syntax highlighting, tab completion and autoindentation.
+* Inline matplotlib plots that can be stored in Notebook documents and opened
+  later.
+
+See :ref:`our installation documentation <install_index>` for directions on
+how to install the notebook and its dependencies.
+
+Basic Usage
+===========
+
+Notebook document format
+========================
+
+

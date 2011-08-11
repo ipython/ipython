@@ -284,7 +284,7 @@ which uses ZeroMQ for all communication.
 
 IPython.parallel provides a nice architecture for parallel computing.  The
 main focus of this architecture is on interactive parallel computing.  These
-features require just one package: pyzmq.  See the next section for pyzmq
+features require just one package: PyZMQ.  See the next section for PyZMQ
 details.
 
 On a Unix style platform (including OS X), if you want to use
@@ -306,14 +306,14 @@ pyzmq
 
 IPython 0.11 introduced some new functionality, including a two-process
 execution model using ZeroMQ for communication [ZeroMQ]_. The Python bindings
-to ZeroMQ are found in the pyzmq project, which is easy_install-able once you
+to ZeroMQ are found in the pyzmq project [PyZMQ]_, which is easy_install-able once you
 have ZeroMQ installed.  If you are on Python 2.6 or 2.7 on OSX, or 2.7 on Windows,
 pyzmq has eggs that include ZeroMQ itself.
 
 IPython.zmq depends on pyzmq >= 2.1.4.
 
-Dependencies for ipython qtconsole (new GUI)
-============================================
+Dependencies for the IPython QT console
+=======================================
 
 Qt
 --
@@ -330,7 +330,46 @@ pygments
 The syntax-highlighting in ``ipython qtconsole`` is done with the pygments project, 
 which is easy_install-able [pygments]_.
 
+Dependencies for the IPython HTML notebook
+==========================================
+
+The IPython notebook is a notebook-style web interface to IPython and can be
+started withe command ``ipython notebook``.
+
+pyzmq
+-----
+
+Like the :mod:`IPython.parallel` and :mod:`IPython.frontend.qt.console` packages, 
+the HTML notebook requires ZeroMQ and PyZMQ.
+
+Tornado
+-------
+
+The IPython notebook uses the Tornado project [Tornado]_ for its HTTP server and requires
+version 2.0 or greater. Tornado can be installed with ``easy_install tornado``.
+
+Browser Compatiblity
+--------------------
+
+The notebook uses WebSockets and the flexible box model. These features are
+available in the following browsers:
+
+* Chrome.
+* Safari.
+* Firefox 4 and 5. These browesrs have WebSocket support, but it is disabled by
+  default. You can enable it by entering ``about:config`` in the URL bar and then
+  setting ``network.websocket.enabled`` and ``network.websocket.override-security-block``
+  to ``true``.
+* Firefox 6. Starting with version 6, Firefox has WebSocket support enabled by default.
+
+Internet Explorer 9 does not support WebSockets or the flexible box model, but
+these features should appear in Internet Explorer 10.
+
+
 .. [ZeroMQ] ZeroMQ.  http://www.zeromq.org
+.. [PyZMQ] PyZMQ. https://github.com/zeromq/pyzmq
 .. [paramiko] paramiko. https://github.com/robey/paramiko
 .. [pygments] Pygments syntax highlighting. http://pygments.org
 .. [pexpect] Pexpect. http://www.noah.org/wiki/Pexpect
+.. [Tornado] Tornado. http://www.tornadoweb.org/
+
