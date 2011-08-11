@@ -149,7 +149,8 @@ div#notebook {
     overflow-y: scroll;
     overflow-x: auto;
     width: 100%;
-    padding: 0px 15px 0px 15px;
+    /* This spaces the cell away from the edge of the notebook area */
+    padding: 15px 15px 15px 15px;
     margin: 0px
     background-color: white;
 }
@@ -167,7 +168,7 @@ div.cell {
     width: 100%;
     padding: 5px;
     /* This acts as a spacer between cells, that is outside the border */
-    margin: 15px 0px 15px 0px;
+    margin: 5px 0px 5px 0px;
 }
 
 div.code_cell {
@@ -175,7 +176,9 @@ div.code_cell {
 }
 
 div.prompt {
-    width: 80px;
+    /* No width is used so the prompt area can expand as the prompt number
+       increases in width */
+    /* This 0.4em is tuned to match the padding on the CodeMirror editor. */
     padding: 0.4em;
     margin: 0px;
     font-family: monospace;
@@ -187,7 +190,7 @@ div.input_prompt {
 
 div.output {
     /* This is a spacer between the input and output of each cell */
-    margin-top: 15px;
+    margin-top: 5px;
 }
 
 div.output_prompt {
