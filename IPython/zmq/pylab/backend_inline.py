@@ -111,7 +111,6 @@ def send_figure(fig):
     sys.stdout.flush(); sys.stderr.flush()
     publish_display_data(
         'IPython.zmq.pylab.backend_inline.send_figure',
-        'Matplotlib Plot',
         {mime : data}
     )
 

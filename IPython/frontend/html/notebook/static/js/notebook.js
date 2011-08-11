@@ -477,18 +477,22 @@ var IPython = (function (IPython) {
             cell.finish_completing(content.matched_text, content.matches);
         };
         var payload = content.payload || [];
-        this.handle_payload(payload);
+        this.handle_payload(cell, payload);
     };
 
 
-    Notebook.prototype.handle_payload = function (payload) {
+    Notebook.prototype.handle_payload = function (cell, payload) {
         var l = payload.length;
-        if (l > 0) {
-            IPython.pager.clear();
-            IPython.pager.expand();
-        };
         for (var i=0; i<l; i++) {
-            IPython.pager.append_text(payload[i].text);
+            if (payload[i].source === 'IPython.zmq.page.page') {
+                IPython.pager.clear();
+                IPython.pager.expand();
+                IPython.pager.append_text(payload[i].text);
+            } else if (payload[i].source === 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input') {
+                var index = this.find_cell_index(cell);
+                var new_cell = this.insert_code_cell_after(index);
+                new_cell.set_code(payload[i].text);
+            }
         };
     };
 
