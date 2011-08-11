@@ -143,7 +143,6 @@ var IPython = (function (IPython) {
         var data = {}
         data.cell_type = this.cell_type;
         data.source = this.get_source();
-        data.rendered = this.get_rendered();
         return data;
     };
 
