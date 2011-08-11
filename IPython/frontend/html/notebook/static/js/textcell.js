@@ -24,8 +24,6 @@ var IPython = (function (IPython) {
         var input_area = $('<div/>').addClass('text_cell_input');
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
-            enterMode : 'flat',
-            tabMode: 'shift',
             mode: this.code_mirror_mode,
             theme: 'default',
             value: this.placeholder

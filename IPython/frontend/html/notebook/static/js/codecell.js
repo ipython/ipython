@@ -27,8 +27,6 @@ var IPython = (function (IPython) {
         var input_area = $('<div/>').addClass('input_area box-flex1');
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
-            enterMode : 'flat',
-            tabMode: 'shift',
             mode: 'python',
             theme: 'ipython',
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
@@ -64,7 +62,8 @@ var IPython = (function (IPython) {
                 IPython.notebook.complete_cell(this, line, cur.ch);
                 return true;
             }
-        } else if (event.keyCode === 8) {
+        } else if (event.keyCode === 8 && event.type == 'keydown') {
+            console.log(event);
             // If backspace and the line ends with 4 spaces, remove them.
             var cur = editor.getCursor();
             var line = editor.getLine(cur.line);

@@ -10,9 +10,10 @@ var IPython = (function (IPython) {
     var Cell = function (notebook) {
         this.notebook = notebook;
         this.selected = false;
-        this.element;
+        this.element = null;
         this.create_element();
-        if (this.element !== undefined) {
+        if (this.element !== null) {
+            this.set_autoindent(true);
             this.element.data("cell", this);
             this.bind_events();
         }
