@@ -184,6 +184,10 @@ div.prompt {
     font-family: monospace;
 }
 
+div.input_area {
+    color: black;
+}
+
 div.input_prompt {
     color: navy;
 }
@@ -197,29 +201,41 @@ div.output_prompt {
     color: darkred;
 }
 
-div.input_area {
-    color: black;
+/* This class is applied to all types of output (pyout, pyerr, stream, display_data) */
+div.output_area {
+    padding: 0px 0.4em
 }
 
-div.output_area {
+/* This is the output area after the Out[] prompt of type pyout */
+div.pyout_area {
+    padding: 0.4em;
+}
+
+/* The rest of the output_* classes are for special styling of the different
+   output types */
+
+div.output_pyout {
+    padding: 0px;
+}
+
+div.output_stream {
     text-align: left;
     color: black;
     font-family: monospace;
 }
 
-div.output_stream {
-    padding: 0.4em;
-}
-
 div.output_latex {
-    /* Slightly bigger than the rest of the notebook */
-    font-size: 100%;
+    text-align: left;
+    color: black;
 }
 
 div.output_html {
 }
 
 div.output_png {
+}
+
+div.output_jpeg {
 }
 
 div.text_cell {
@@ -232,8 +248,6 @@ div.text_cell_input {
 
 div.text_cell_render {
     font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    /* Slightly bigger than the rest of the notebook */
-    font-size: 100%;
     outline: none;
     resize: none;
     width:  inherit;

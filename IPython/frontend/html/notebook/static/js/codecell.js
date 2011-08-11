@@ -63,7 +63,6 @@ var IPython = (function (IPython) {
                 return true;
             }
         } else if (event.keyCode === 8 && event.type == 'keydown') {
-            console.log(event);
             // If backspace and the line ends with 4 spaces, remove them.
             var cur = editor.getCursor();
             var line = editor.getLine(cur.line);
@@ -187,13 +186,13 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_pyout = function (json) {
         n = json.prompt_number || ' ';
-        var toinsert = $("<div/>").addClass("output_area output_pyout hbox");
+        var toinsert = $("<div/>").addClass("output_pyout hbox");
         toinsert.append($('<div/>').
             addClass('prompt output_prompt').
             html('Out[' + n + ']:')
         );
-        this.append_mime_type(json, toinsert);
-        toinsert.children().last().addClass("box_flex1");
+        this.append_mime_type(json, toinsert).addClass('output_area');
+        toinsert.children().last().addClass("box_flex1 pyout_area");
         this.element.find("div.output").append(toinsert);
         // If we just output latex, typeset it.
         if (json.latex !== undefined) {
@@ -211,18 +210,18 @@ var IPython = (function (IPython) {
                 s = s + tb[i] + '\n';
             }
             s = s + '\n';
-            this.append_text(s);
+            this.append_text(s).addClass('output_area');
         };
     };
 
 
     CodeCell.prototype.append_stream = function (json) {
-        this.append_text(json.text);
+        this.append_text(json.text).addClass('output_area');
     };
 
 
     CodeCell.prototype.append_display_data = function (json) {
-        this.append_mime_type(json);
+        this.append_mime_type(json).addClass('output_area');
     };
 
 
@@ -252,7 +251,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_html = function (html, element) {
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_area output_html");
+        var toinsert = $("<div/>").addClass("output_html");
         toinsert.append(html);
         element.append(toinsert);
         return element;
@@ -261,7 +260,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_text = function (data, element) {
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_area output_stream");
+        var toinsert = $("<div/>").addClass("output_stream");
         toinsert.append($("<pre/>").html(utils.fixConsole(data)));
         element.append(toinsert);
         return element;
@@ -270,7 +269,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_svg = function (svg, element) {
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_area output_svg");
+        var toinsert = $("<div/>").addClass("output_svg");
         toinsert.append(svg);
         element.append(toinsert);
         return element;
@@ -279,7 +278,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_png = function (png, element) {
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_area output_png");
+        var toinsert = $("<div/>").addClass("output_png");
         toinsert.append($("<img/>").attr('src','data:image/png;base64,'+png));
         element.append(toinsert);
         return element;
@@ -288,7 +287,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_jpeg = function (jpeg, element) {
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_area output_jpeg");
+        var toinsert = $("<div/>").addClass("output_jpeg");
         toinsert.append($("<img/>").attr('src','data:image/jpeg;base64,'+jpeg));
         element.append(toinsert);
         return element;
@@ -299,7 +298,7 @@ var IPython = (function (IPython) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_area output_latex");
+        var toinsert = $("<div/>").addClass("output_latex");
         toinsert.append(latex);
         element.append(toinsert);
         return element;
