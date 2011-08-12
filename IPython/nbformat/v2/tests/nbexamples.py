@@ -22,8 +22,8 @@ ws.cells.append(new_code_cell(
 
 ws.cells.append(new_text_cell(
     u'markdown',
-    source='Some NumPy Examples',
-    rendered='Some NumPy Examples'
+    source='A random array',
+    rendered='A random array'
 ))
 
 ws.cells.append(new_code_cell(
@@ -63,26 +63,36 @@ ws.cells.append(new_code_cell(
 
 nb0 = new_notebook(
     name='nb0',
-    worksheets=[ws, new_worksheet(name='worksheet2')]
+    worksheets=[ws, new_worksheet(name='worksheet2')],
+    author='Bart Simpson',
+    email='bsimple@fox.com',
+    saved='ISO8601_goes_here',
+    created='ISO8601_goes_here',
+    license='BSD'
 )
 
 nb0_py = """# <nbformat>2</nbformat>
+
+# <htmlcell>
+
+# Some NumPy Examples
 
 # <codecell>
 
 import numpy
 
-# </codecell>
+# <markdowncell>
+
+# A random array
+
 # <codecell>
 
 a = numpy.random.rand(100)
 
-# </codecell>
 # <codecell>
 
 print a
 
-# </codecell>
 """
 
 

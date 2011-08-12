@@ -66,7 +66,7 @@ def new_code_cell(input=None, prompt_number=None, outputs=None,
     else:
         cell.outputs = outputs
     if collapsed is not None:
-        cell.collapsed = collapsed
+        cell.collapsed = bool(collapsed)
 
     return cell
 
@@ -93,7 +93,8 @@ def new_worksheet(name=None, cells=None):
     return ws
 
 
-def new_notebook(name=None, id=None, worksheets=None):
+def new_notebook(name=None, id=None, worksheets=None, author=None, email=None,
+    created=None, saved=None, license=None):
     """Create a notebook by name, id and a list of worksheets."""
     nb = NotebookNode()
     nb.nbformat = 2
@@ -107,5 +108,15 @@ def new_notebook(name=None, id=None, worksheets=None):
         nb.worksheets = []
     else:
         nb.worksheets = list(worksheets)
+    if author is not None:
+        nb.author = unicode(author)
+    if email is not None:
+        nb.email = unicode(email)
+    if created is not None:
+        nb.created = unicode(created)
+    if saved is not None:
+        nb.saved = unicode(saved)
+    if license is not None:
+        nb.license = unicode(license)
     return nb
 

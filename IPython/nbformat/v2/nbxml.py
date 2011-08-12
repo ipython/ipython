@@ -92,6 +92,11 @@ class XMLReader(NotebookReader):
     def to_notebook(self, root, **kwargs):
         nbname = _get_text(root,'name')
         nbid = _get_text(root,'id')
+        nbauthor = _get_text(root,'author')
+        nbemail = _get_text(root,'email')
+        nblicense = _get_text(root,'license')
+        nbcreated = _get_text(root,'created')
+        nbsaved = _get_text(root,'saved')
         
         worksheets = []
         for ws_e in root.find('worksheets').getiterator('worksheet'):
@@ -136,7 +141,8 @@ class XMLReader(NotebookReader):
             ws = new_worksheet(name=wsname,cells=cells)
             worksheets.append(ws)
 
-        nb = new_notebook(name=nbname,id=nbid,worksheets=worksheets)
+        nb = new_notebook(name=nbname,id=nbid,worksheets=worksheets,author=nbauthor,
+            email=nbemail,license=nblicense,saved=nbsaved,created=nbcreated)
         return nb
 
 
@@ -146,6 +152,11 @@ class XMLWriter(NotebookWriter):
         nb_e = ET.Element('notebook')
         _set_text(nb,'name',nb_e,'name')
         _set_text(nb,'id',nb_e,'id')
+        _set_text(nb,'author',nb_e,'author')
+        _set_text(nb,'email',nb_e,'email')
+        _set_text(nb,'license',nb_e,'license')
+        _set_text(nb,'created',nb_e,'created')
+        _set_text(nb,'saved',nb_e,'saved')
         _set_int(nb,'nbformat',nb_e,'nbformat')
         wss_e = ET.SubElement(nb_e,'worksheets')
         for ws in nb.worksheets:

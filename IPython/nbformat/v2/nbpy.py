@@ -1,7 +1,7 @@
 """Read and write notebooks as regular .py files."""
 
 from .rwbase import NotebookReader, NotebookWriter
-from .nbbase import new_code_cell, new_worksheet, new_notebook
+from .nbbase import new_code_cell, new_text_cell, new_worksheet, new_notebook
 
 
 class PyReaderError(Exception):
@@ -17,38 +17,63 @@ class PyReader(NotebookReader):
         lines = s.splitlines()
         cells = []
         cell_lines = []
-        code_cell = False
+        state = u'codecell'
         for line in lines:
             if line.startswith(u'# <nbformat>'):
                 pass
             elif line.startswith(u'# <codecell>'):
-                if code_cell:
-                    raise PyReaderError('Unexpected <codecell>')
-                # We can't use the ast to split blocks because there can be
-                # IPython syntax in the files.
-                # if cell_lines:
-                #     for block in self.split_lines_into_blocks(cell_lines):
-                #         cells.append(new_code_cell(input=block))
+                cell = self.new_cell(state, cell_lines)
+                if cell is not None:
+                    cells.append(cell)
+                state = u'codecell'
                 cell_lines = []
-                code_cell = True
-            elif line.startswith(u'# </codecell>'):
-                if not code_cell:
-                    raise PyReaderError('Unexpected </codecell>')
-                code = u'\n'.join(cell_lines)
-                code = code.strip(u'\n')
-                if code:
-                    cells.append(new_code_cell(input=code))
-                code_cell = False
+            elif line.startswith(u'# <htmlcell>'):                
+                cell = self.new_cell(state, cell_lines)
+                if cell is not None:
+                    cells.append(cell)
+                state = u'htmlcell'
+                cell_lines = []
+            elif line.startswith(u'# <markdowncell>'):
+                cell = self.new_cell(state, cell_lines)
+                if cell is not None:
+                    cells.append(cell)
+                state = u'markdowncell'
+                cell_lines = []
             else:
                 cell_lines.append(line)
-        # We can't use the ast to split blocks because there can be
-        # IPython syntax in the files.
-        # if cell_lines:
-        #     for block in self.split_lines_into_blocks(cell_lines):
-        #         cells.append(new_code_cell(input=block))
+        if cell_lines and state == u'codecell':
+            cell = self.new_cell(state, cell_lines)
+            if cell is not None:
+                cells.append(cell)
         ws = new_worksheet(cells=cells)
         nb = new_notebook(worksheets=[ws])
         return nb
+
+    def new_cell(self, state, lines):
+        if state == u'codecell':
+            input = u'\n'.join(lines)
+            input = input.strip(u'\n')
+            if input:
+                return new_code_cell(input=input)
+        elif state == u'htmlcell':
+            text = self._remove_comments(lines)
+            if text:
+                return new_text_cell(u'html',source=text)
+        elif state == u'markdowncell':
+            text = self._remove_comments(lines)
+            if text:
+                return new_text_cell(u'markdown',source=text)
+
+    def _remove_comments(self, lines):
+        new_lines = []
+        for line in lines:
+            if line.startswith(u'#'):
+                new_lines.append(line[2:])
+            else:
+                new_lines.append(line)
+        text = u'\n'.join(new_lines)
+        text = text.strip(u'\n')
+        return text
 
     def split_lines_into_blocks(self, lines):
         if len(lines) == 1:
@@ -67,15 +92,27 @@ class PyWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
         lines = []
-        lines.extend(['# <nbformat>2</nbformat>',''])
+        lines.extend([u'# <nbformat>2</nbformat>',''])
         for ws in nb.worksheets:
             for cell in ws.cells:
-                if cell.cell_type == 'code':
-                    input = cell.get('input')
+                if cell.cell_type == u'code':
+                    input = cell.get(u'input')
                     if input is not None:
                         lines.extend([u'# <codecell>',u''])
                         lines.extend(input.splitlines())
-                        lines.extend([u'',u'# </codecell>'])
+                        lines.append(u'')
+                elif cell.cell_type == u'html':
+                    input = cell.get(u'source')
+                    if input is not None:
+                        lines.extend([u'# <htmlcell>',u''])
+                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.append(u'')
+                elif cell.cell_type == u'markdown':
+                    input = cell.get(u'source')
+                    if input is not None:
+                        lines.extend([u'# <markdowncell>',u''])
+                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.append(u'')
         lines.append('')
         return unicode('\n'.join(lines))
 
