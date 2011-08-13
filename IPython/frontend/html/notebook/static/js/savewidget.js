@@ -32,17 +32,6 @@ var IPython = (function (IPython) {
         this.element.find('button#save_notebook').click(function () {
             IPython.notebook.save_notebook();
         });
-
-        $(window).bind('beforeunload', function () {
-            var kill_kernel = $('#kill_kernel').prop('checked');
-            IPython.notebook.save_notebook();
-            if (kill_kernel) {
-                IPython.notebook.kernel.kill();
-                return "You are about to exit this notebook and kill the kernel.";
-            } else {
-                return "You are about the exit this notebook and leave the kernel running.";
-            };
-        });
     };
 
 

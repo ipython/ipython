@@ -87,6 +87,16 @@ var IPython = (function (IPython) {
             var new_margin = splitter_width + left_panel_width;
             $('div#notebook_panel').animate({marginLeft : new_margin + 'px'}, 'fast');
         });
+
+        $(window).bind('beforeunload', function () {
+            var kill_kernel = $('#kill_kernel').prop('checked');
+            if (kill_kernel) {
+                that.kernel.kill();
+                return "You are about to exit this notebook and kill the kernel.";
+            } else {
+                return "You are about the exit this notebook and leave the kernel running.";
+            };
+        });
     };
 
 
