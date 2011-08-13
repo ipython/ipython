@@ -252,7 +252,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_html = function (html, element) {
         element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_html");
+        var toinsert = $("<div/>").addClass("output_html rendered_html");
         toinsert.append(html);
         element.append(toinsert);
         return element;
