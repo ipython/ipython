@@ -56,8 +56,12 @@ ws.cells.append(new_code_cell(
         output_jpeg=b'data',
         output_svg=u'<svg>',
         output_json=u'json data',
-        output_javascript=u'var i=0;',
-        prompt_number=4
+        output_javascript=u'var i=0;'
+    ),new_output(
+        output_type=u'pyerr',
+        etype=u'NameError',
+        evalue=u'NameError was here',
+        traceback=[u'frame 0', u'frame 1', u'frame 2']
     )]
 ))
 
@@ -65,7 +69,7 @@ nb0 = new_notebook(
     name='nb0',
     worksheets=[ws, new_worksheet(name='worksheet2')],
     author='Bart Simpson',
-    email='bsimple@fox.com',
+    email='bsimpson@fox.com',
     saved='ISO8601_goes_here',
     created='ISO8601_goes_here',
     license='BSD'

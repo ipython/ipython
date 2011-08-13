@@ -520,7 +520,7 @@ var IPython = (function (IPython) {
         var json = {};
         json.output_type = msg_type;
         if (msg_type === "stream") {
-            json.text = content.data + '\n';
+            json.text = utils.fixConsole(content.data + '\n');
         } else if (msg_type === "display_data") {
             json = this.convert_mime_types(json, content.data);
         } else if (msg_type === "pyout") {
@@ -529,7 +529,11 @@ var IPython = (function (IPython) {
         } else if (msg_type === "pyerr") {
             json.ename = content.ename;
             json.evalue = content.evalue;
-            json.traceback = content.traceback;
+            var traceback = [];
+            for (var i=0; i<content.traceback.length; i++) {
+                traceback.push(utils.fixConsole(content.traceback[i]));
+            }
+            json.traceback = traceback;
         };
         cell.append_output(json);
     };
@@ -537,7 +541,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.convert_mime_types = function (json, data) {
         if (data['text/plain'] !== undefined) {
-            json.text = data['text/plain'];
+            json.text = utils.fixConsole(data['text/plain']);
         };
         if (data['text/html'] !== undefined) {
             json.html = data['text/html'];
@@ -688,7 +692,6 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.notebook_saved = function (data, status, xhr) {
         setTimeout($.proxy(IPython.save_widget.status_save,IPython.save_widget),500);
-//        IPython.save_widget.status_save();
     }
 
 

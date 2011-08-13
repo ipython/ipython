@@ -27,6 +27,14 @@ class TestCell(TestCase):
         self.assertEquals(cc.outputs[0].prompt_number, 0)
         self.assertEquals(cc.collapsed, True)
 
+    def test_pyerr(self):
+        o = new_output(output_type=u'pyerr', etype=u'NameError',
+            evalue=u'Name not found', traceback=[u'frame 0', u'frame 1', u'frame 2']
+        )
+        self.assertEquals(o.output_type, u'pyerr')
+        self.assertEquals(o.etype, u'NameError')
+        self.assertEquals(o.evalue, u'Name not found')
+        self.assertEquals(o.traceback, [u'frame 0', u'frame 1', u'frame 2'])
 
     def test_empty_html_cell(self):
         tc = new_text_cell(u'html')

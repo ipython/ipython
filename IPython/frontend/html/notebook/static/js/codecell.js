@@ -204,7 +204,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_pyerr = function (json) {
         var tb = json.traceback;
-        if (tb !== undefined) {
+        if (tb !== undefined && tb.length > 0) {
             var s = '';
             var len = tb.length;
             for (var i=0; i<len; i++) {
@@ -262,7 +262,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype.append_text = function (data, element) {
         element = element || this.element.find("div.output");
         var toinsert = $("<div/>").addClass("output_stream");
-        toinsert.append($("<pre/>").html(utils.fixConsole(data)));
+        toinsert.append($("<pre/>").html(data));
         element.append(toinsert);
         return element;
     };
