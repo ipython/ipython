@@ -26,5 +26,19 @@ from IPython.utils import text
 #-----------------------------------------------------------------------------
 
 def test_columnize():
-    """Test columnize with very long inputs"""
-    text.columnize(['a'*180, 'b'*180])
+    """Basic columnize tests."""
+    size = 5
+    items = [l*size for l in 'abc']
+    out = text.columnize(items, displaywidth=80)
+    nt.assert_equals(out, 'aaaaa  bbbbb  ccccc\n')
+    out = text.columnize(items, displaywidth=10)
+    nt.assert_equals(out, 'aaaaa  ccccc\nbbbbb\n')
+
+
+def test_columnize_long():
+    """Test columnize with inputs longer than the display window"""
+    text.columnize(['a'*81, 'b'*81], displaywidth=80)
+    size = 11
+    items = [l*size for l in 'abc']
+    out = text.columnize(items, displaywidth=size-1)
+    nt.assert_equals(out, '\n'.join(items+['']))

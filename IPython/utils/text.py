@@ -639,6 +639,13 @@ def columnize(items, separator='  ', displaywidth=80):
     elif size == 1:
         return '%s\n' % items[0]
 
+    # Special case: if any item is longer than the maximum width, there's no
+    # point in triggering the logic below...
+    item_len = map(len, items) # save these, we can reuse them below
+    longest = max(item_len)
+    if longest >= displaywidth:
+        return '\n'.join(items+[''])
+
     # Try every row count from 1 upwards
     array_index = lambda nrows, row, col: nrows*col + row
     for nrows in range(1, size):
@@ -651,8 +658,8 @@ def columnize(items, separator='  ', displaywidth=80):
             for row in range(nrows):
                 i = array_index(nrows, row, col)
                 if i >= size: break
-                x = items[i]
-                colwidth = max(colwidth, len(x))
+                x, len_x = items[i], item_len[i]
+                colwidth = max(colwidth, len_x)
             colwidths.append(colwidth)
             totwidth += colwidth + len(separator)
             if totwidth > displaywidth: 
