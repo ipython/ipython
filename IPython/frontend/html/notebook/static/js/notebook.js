@@ -443,7 +443,7 @@ var IPython = (function (IPython) {
     };
 
 
-    // Cell collapsing
+    // Cell collapsing and output clearing
 
     Notebook.prototype.collapse = function (index) {
         var i = this.index_or_selected(index);
@@ -464,6 +464,18 @@ var IPython = (function (IPython) {
             cells[i].set_autoindent(state)
         };
     };
+
+
+    Notebook.prototype.clear_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].clear_output();
+            }
+        };
+    };
+
 
     // Kernel related things
 

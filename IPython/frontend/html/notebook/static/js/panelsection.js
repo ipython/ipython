@@ -137,6 +137,9 @@ var IPython = (function (IPython) {
         this.content.find('#expand_cell').click(function () {
             IPython.notebook.expand();
         });
+        this.content.find('#clear_all_output').click(function () {
+            IPython.notebook.clear_all_output();
+        });
         this.content.find('#delete_cell').click(function () {
             IPython.notebook.delete_cell();
         });
