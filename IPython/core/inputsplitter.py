@@ -560,12 +560,13 @@ def _make_help_call(target, esc, lspace, next_input=None):
     method  = 'pinfo2' if esc == '??' \
                 else 'psearch' if '*' in target \
                 else 'pinfo'
-        
+    arg = make_quoted_expr(" ".join([method, target]))
+    
     if next_input:
-        tpl = '%sget_ipython().magic(u"%s %s", next_input=%s)'
-        return tpl % (lspace, method, target, make_quoted_expr(next_input))
+        tpl = '%sget_ipython().magic(%s, next_input=%s)'
+        return tpl % (lspace, arg, make_quoted_expr(next_input))
     else:
-        return '%sget_ipython().magic(u"%s %s")' % (lspace, method, target)
+        return '%sget_ipython().magic(%s)' % (lspace, arg)
 
 _initial_space_re = re.compile(r'\s*')
 _help_end_re = re.compile(r"""(%?
