@@ -184,11 +184,11 @@ class Parser:
 
         error = False
         try:
-            for token in generate_tokens(text.readline):
-                self(*token)
-        except tokenize.TokenError, ex:
-            msg = ex[0]
-            line = ex[1][0]
+            for atoken in generate_tokens(text.readline):
+                self(*atoken)
+        except tokenize.TokenError as ex:
+            msg = ex.args[0]
+            line = ex.args[1][0]
             self.out.write("%s\n\n*** ERROR: %s%s%s\n" %
                            (colors[token.ERRORTOKEN],
                             msg, self.raw[self.lines[line]:],
