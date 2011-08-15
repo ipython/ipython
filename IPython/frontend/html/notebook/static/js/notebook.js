@@ -535,9 +535,11 @@ var IPython = (function (IPython) {
         var l = payload.length;
         for (var i=0; i<l; i++) {
             if (payload[i].source === 'IPython.zmq.page.page') {
-                IPython.pager.clear();
-                IPython.pager.expand();
-                IPython.pager.append_text(payload[i].text);
+                if (payload[i].text.trim() !== '') {
+                    IPython.pager.clear();
+                    IPython.pager.expand();
+                    IPython.pager.append_text(payload[i].text);
+                }
             } else if (payload[i].source === 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input') {
                 var index = this.find_cell_index(cell);
                 var new_cell = this.insert_code_cell_after(index);
