@@ -101,9 +101,24 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         """
         idents, msg_list = self.session.feed_identities(msg_list)
         msg = self.session.unserialize(msg_list)
-        msg['header'].pop('date')
+        try:
+            msg['header'].pop('date')
+        except KeyError:
+            pass
+        try:
+            msg['parent_header'].pop('date')
+        except KeyError:
+            pass
         msg.pop('buffers')
         return jsonapi.dumps(msg)
+
+    def _on_zmq_reply(self, msg_list):
+        try:
+            msg = self._reserialize_reply(msg_list)
+        except:
+            self.application.kernel_manager.log.critical("Malformed message: %r" % msg_list)
+        else:
+            self.write_message(msg)
 
 
 class IOPubHandler(ZMQStreamHandler):
@@ -121,10 +136,6 @@ class IOPubHandler(ZMQStreamHandler):
         self.hb_stream = km.create_hb_stream(kernel_id)
         self.iopub_stream.on_recv(self._on_zmq_reply)
         self.start_hb(self.kernel_died)
-
-    def _on_zmq_reply(self, msg_list):
-        msg = self._reserialize_reply(msg_list)
-        self.write_message(msg)
 
     def on_close(self):
         self.stop_hb()
@@ -185,10 +196,6 @@ class ShellHandler(ZMQStreamHandler):
         self.session = Session()
         self.shell_stream = self.application.kernel_manager.create_shell_stream(kernel_id)
         self.shell_stream.on_recv(self._on_zmq_reply)
-
-    def _on_zmq_reply(self, msg_list):
-        msg = self._reserialize_reply(msg_list)
-        self.write_message(msg)
 
     def on_message(self, msg):
         if len(msg) < self.max_msg_size:
