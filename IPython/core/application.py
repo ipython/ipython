@@ -172,6 +172,7 @@ class BaseIPythonApplication(Application):
         printed on screen. For testing, the suppress_errors option is set
         to False, so errors will make tests fail.
         """
+        self.log.debug("Searching path %s for config files", self.config_file_paths)
         base_config = 'ipython_config.py'
         self.log.debug("Attempting to load config file: %s" %
                        base_config)
@@ -183,6 +184,7 @@ class BaseIPythonApplication(Application):
             )
         except IOError:
             # ignore errors loading parent
+            self.log.debug("Config file %s not found", base_config)
             pass
         if self.config_file_name == base_config:
             # don't load secondary config
@@ -198,8 +200,10 @@ class BaseIPythonApplication(Application):
         except IOError:
             # Only warn if the default config file was NOT being used.
             if self.config_file_specified:
-                self.log.warn("Config file not found, skipping: %s" %
-                               self.config_file_name)
+                msg = self.log.warn
+            else:
+                msg = self.log.debug
+            msg("Config file not found, skipping: %s", self.config_file_name)
         except:
             # For testing purposes.
             if not suppress_errors:
