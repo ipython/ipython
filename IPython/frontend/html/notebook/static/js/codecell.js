@@ -47,7 +47,8 @@ var IPython = (function (IPython) {
         if (event.keyCode === 13 && event.shiftKey) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        } else if (event.keyCode === 9) {
+        } else if (event.keyCode === 9 && event.type == 'keydown') {
+            // Tab completion.
             var cur = editor.getCursor();
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur).trim();
             if (pre_cursor === "") {
@@ -79,18 +80,24 @@ var IPython = (function (IPython) {
                 return false;
             };
         } else {
-            if (this.is_completing && this.completion_cursor !== editor.getCursor()) {
-                this.is_completing = false;
-                this.completion_cursor = null;
-            }
+            // keypress/keyup also trigger on TAB press, and we don't want to use those
+            // to disable tab completion.
+            if (this.is_completing && event.keyCode !== 9) {
+                var ed_cur = editor.getCursor();
+                var cc_cur = this.completion_cursor;
+                if (ed_cur.line !== cc_cur.line || ed_cur.ch !== cc_cur.ch) {
+                    this.is_completing = false;
+                    this.completion_cursor = null;
+                };
+            };
             return false;
         };
     };
 
 
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
-        if (!this.is_completing || matches.length === 0) {return;}
         // console.log("Got matches", matched_text, matches);
+        if (!this.is_completing || matches.length === 0) {return;}
 
         var that = this;
         var cur = this.completion_cursor;
@@ -151,7 +158,7 @@ var IPython = (function (IPython) {
                 // but we want the default action.
                 event.stopPropagation();
             } else {
-                // All other key presses simple exit completion.
+                // All other key presses exit completion.
                 event.stopPropagation();
                 event.preventDefault();
                 close();
