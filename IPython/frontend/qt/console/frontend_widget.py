@@ -75,6 +75,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     """ A Qt frontend for a generic Python kernel.
     """
 
+    enable_calltips = Bool(True, config=True,
+        help="Whether to draw information calltips on open-parentheses.")
+
     # An option and corresponding signal for overriding the default kernel
     # interrupt behavior.
     custom_interrupt = Bool(False)
@@ -508,6 +511,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Shows a call tip, if appropriate, at the current cursor location.
         """
         # Decide if it makes sense to show a call tip
+        if not self.enable_calltips:
+            return False
         cursor = self._get_cursor()
         cursor.movePosition(QtGui.QTextCursor.Left)
         if cursor.document().characterAt(cursor.position()) != '(':
