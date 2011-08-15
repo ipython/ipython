@@ -31,6 +31,7 @@ var IPython = (function (IPython) {
         var that = this;
         this.element.find('button#save_notebook').click(function () {
             IPython.notebook.save_notebook();
+            that.set_document_title();
         });
     };
 
@@ -42,8 +43,15 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.set_notebook_name = function (nbname) {
         this.element.find('input#notebook_name').attr('value',nbname);
+        this.set_document_title();
     }
 
+
+    SaveWidget.prototype.set_document_title = function () {
+        nbname = this.get_notebook_name();
+        document.title = 'IPy: ' + nbname;
+    };
+        
 
     SaveWidget.prototype.get_notebook_id = function () {
         return this.element.find('span#notebook_id').text()
