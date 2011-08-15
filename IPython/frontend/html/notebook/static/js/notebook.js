@@ -745,7 +745,6 @@ var IPython = (function (IPython) {
             var data = this.toJSON();
             data.name = nbname;
             data.nbformat = 2;
-            data.id = notebook_id
             // We do the call with settings so we can set cache to false.
             var settings = {
                 processData : false,

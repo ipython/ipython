@@ -91,7 +91,6 @@ class XMLReader(NotebookReader):
 
     def to_notebook(self, root, **kwargs):
         nbname = _get_text(root,u'name')
-        nbid = _get_text(root,u'id')
         nbauthor = _get_text(root,u'author')
         nbemail = _get_text(root,u'email')
         nblicense = _get_text(root,u'license')
@@ -152,7 +151,7 @@ class XMLReader(NotebookReader):
             ws = new_worksheet(name=wsname,cells=cells)
             worksheets.append(ws)
 
-        nb = new_notebook(name=nbname,id=nbid,worksheets=worksheets,author=nbauthor,
+        nb = new_notebook(name=nbname,worksheets=worksheets,author=nbauthor,
             email=nbemail,license=nblicense,saved=nbsaved,created=nbcreated)
         return nb
 
@@ -162,7 +161,6 @@ class XMLWriter(NotebookWriter):
     def writes(self, nb, **kwargs):
         nb_e = ET.Element(u'notebook')
         _set_text(nb,u'name',nb_e,u'name')
-        _set_text(nb,u'id',nb_e,u'id')
         _set_text(nb,u'author',nb_e,u'author')
         _set_text(nb,u'email',nb_e,u'email')
         _set_text(nb,u'license',nb_e,u'license')

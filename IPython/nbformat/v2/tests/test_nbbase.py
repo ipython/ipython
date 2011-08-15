@@ -76,7 +76,6 @@ class TestNotebook(TestCase):
 
     def test_empty_notebook(self):
         nb = new_notebook()
-        self.assertEquals('id' in nb, True)
         self.assertEquals(nb.worksheets, [])
         self.assertEquals('name' not in nb, True)
         self.assertEquals(nb.nbformat,2)

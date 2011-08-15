@@ -107,17 +107,13 @@ def new_worksheet(name=None, cells=None):
     return ws
 
 
-def new_notebook(name=None, id=None, worksheets=None, author=None, email=None,
+def new_notebook(name=None, worksheets=None, author=None, email=None,
     created=None, saved=None, license=None):
     """Create a notebook by name, id and a list of worksheets."""
     nb = NotebookNode()
     nb.nbformat = 2
     if name is not None:
         nb.name = unicode(name)
-    if id is None:
-        nb.id = unicode(uuid.uuid4())
-    else:
-        nb.id = unicode(id)
     if worksheets is None:
         nb.worksheets = []
     else:
