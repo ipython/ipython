@@ -392,6 +392,7 @@ var IPython = (function (IPython) {
             var target_cell = this.cells()[i+1];
             target_cell.set_code(source_cell.get_source());
             source_element.remove();
+            target_cell.select();
         };
         this.dirty = true;
     };
