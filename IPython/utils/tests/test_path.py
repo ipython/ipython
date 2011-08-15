@@ -16,6 +16,7 @@ import os
 import shutil
 import sys
 import tempfile
+import StringIO
 
 from os.path import join, abspath, split
 
@@ -26,7 +27,7 @@ from nose import with_setup
 import IPython
 from IPython.testing import decorators as dec
 from IPython.testing.decorators import skip_if_not_win32, skip_win32
-from IPython.utils import path
+from IPython.utils import path, io
 
 # Platform-dependent imports
 try:
@@ -92,7 +93,8 @@ def teardown_environment():
     """Restore things that were remebered by the setup_environment function
     """
     (oldenv, os.name, path.get_home_dir, IPython.__file__,) = oldstuff
-        
+    reload(path)
+    
     for key in env.keys():
         if key not in oldenv:
             del env[key]
@@ -229,6 +231,7 @@ def test_get_home_dir_8():
 def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
     env_ipdir = os.path.join("someplace", ".ipython")
+    path._writable_dir = lambda path: True
     env['IPYTHON_DIR'] = env_ipdir
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, env_ipdir)
@@ -238,6 +241,8 @@ def test_get_ipython_dir_1():
 def test_get_ipython_dir_2():
     """test_get_ipython_dir_2, Testcase to see if we can call get_ipython_dir without Exceptions."""
     path.get_home_dir = lambda : "someplace"
+    path.get_xdg_dir = lambda : None
+    path._writable_dir = lambda path: True
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
@@ -249,6 +254,7 @@ def test_get_ipython_dir_2():
 def test_get_ipython_dir_3():
     """test_get_ipython_dir_3, use XDG if defined, and .ipython doesn't exist."""
     path.get_home_dir = lambda : "someplace"
+    path._writable_dir = lambda path: True
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
@@ -283,18 +289,23 @@ def test_get_ipython_dir_5():
 @with_environment
 def test_get_ipython_dir_6():
     """test_get_ipython_dir_6, use XDG if defined and neither exist."""
-    path.get_home_dir = lambda : 'somehome'
-    path.get_xdg_dir = lambda : 'somexdg'
+    xdg = os.path.join(HOME_TEST_DIR, 'somexdg')
+    os.mkdir(xdg)
+    shutil.rmtree(os.path.join(HOME_TEST_DIR, '.ipython'))
+    path.get_home_dir = lambda : HOME_TEST_DIR
+    path.get_xdg_dir = lambda : xdg
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
-    xdg_ipdir = os.path.join("somexdg", "ipython")
+    env.pop('XDG_CONFIG_HOME', None)
+    xdg_ipdir = os.path.join(xdg, "ipython")
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, xdg_ipdir)
 
 @with_environment
 def test_get_ipython_dir_7():
     """test_get_ipython_dir_7, test home directory expansion on IPYTHON_DIR"""
+    path._writable_dir = lambda path: True
     home_dir = os.path.expanduser('~')
     env['IPYTHON_DIR'] = os.path.join('~', 'somewhere')
     ipdir = path.get_ipython_dir()
@@ -305,6 +316,7 @@ def test_get_ipython_dir_7():
 def test_get_xdg_dir_1():
     """test_get_xdg_dir_1, check xdg_dir"""
     reload(path)
+    path._writable_dir = lambda path: True
     path.get_home_dir = lambda : 'somewhere'
     os.name = "posix"
     env.pop('IPYTHON_DIR', None)
@@ -369,3 +381,24 @@ def test_get_long_path_name():
     p = path.get_long_path_name('/usr/local')
     nt.assert_equals(p,'/usr/local')
 
+@dec.skip_win32 # can't create not-user-writable dir on win
+@with_environment
+def test_not_writable_ipdir():
+    tmpdir = tempfile.mkdtemp()
+    os.name = "posix"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env.pop('XDG_CONFIG_HOME', None)
+    env['HOME'] = tmpdir
+    ipdir = os.path.join(tmpdir, '.ipython')
+    os.mkdir(ipdir)
+    os.chmod(ipdir, 600)
+    stderr = io.stderr
+    pipe = StringIO.StringIO()
+    io.stderr = pipe
+    ipdir = path.get_ipython_dir()
+    io.stderr.flush()
+    io.stderr = stderr
+    nt.assert_true('WARNING' in pipe.getvalue())
+    env.pop('IPYTHON_DIR', None)
+    

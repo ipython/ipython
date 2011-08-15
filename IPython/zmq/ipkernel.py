@@ -164,8 +164,14 @@ class Kernel(Configurable):
                 # reason for this to be anything less than ~ 0.1s
                 # since it is a real poller and will respond
                 # to events immediately
-                poller.poll(10*1000*self._poll_interval)
-                self.do_one_iteration()
+                
+                # double nested try/except, to properly catch KeyboardInterrupt
+                # due to pyzmq Issue #130
+                try:
+                    poller.poll(10*1000*self._poll_interval)
+                    self.do_one_iteration()
+                except:
+                    raise
             except KeyboardInterrupt:
                 # Ctrl-C shouldn't crash the kernel
                 io.raw_print("KeyboardInterrupt caught in kernel")
