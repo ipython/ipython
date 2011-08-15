@@ -175,6 +175,7 @@ class IOPubHandler(ZMQStreamHandler):
                 self.hb_stream.on_recv(None)
 
     def kernel_died(self):
+        self.application.kernel_manager.delete_mapping_for_kernel(self.kernel_id)
         self.write_message(
             {'header': {'msg_type': 'status'},
              'parent_header': {},
