@@ -31,7 +31,7 @@ var IPython = (function (IPython) {
         // i) provide a margin between the last cell and the end of the notebook
         // ii) to prevent the div from scrolling up when the last cell is being
         // edited, but is too low on the page, which browsers will do automatically.
-        this.element.append($('<div class="end_space"></div>').height(50));
+        this.element.append($('<div class="end_space"></div>').height(150));
         $('div#notebook').addClass('border-box-sizing');
     };
 
