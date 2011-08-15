@@ -13,6 +13,7 @@ var IPython = (function (IPython) {
         this.element.data("notebook", this);
         this.next_prompt_number = 1;
         this.kernel = null;
+        this.dirty = false;
         this.msg_cell_map = {};
         this.style();
         this.create_elements();
@@ -89,12 +90,12 @@ var IPython = (function (IPython) {
         });
 
         $(window).bind('beforeunload', function () {
-            var kill_kernel = $('#kill_kernel').prop('checked');
+            var kill_kernel = $('#kill_kernel').prop('checked');                
             if (kill_kernel) {
                 that.kernel.kill();
-                return "You are about to exit this notebook and kill the kernel.";
-            } else {
-                return "You are about the exit this notebook and leave the kernel running.";
+            }
+            if (that.dirty) {
+                return "You have unsaved changes that will be lost if you leave this page.";
             };
         });
     };
@@ -222,12 +223,14 @@ var IPython = (function (IPython) {
                 this.select(i);
             };
         };
+        this.dirty = true;
         return this;
     };
 
 
     Notebook.prototype.append_cell = function (cell) {
         this.element.find('div.end_space').before(cell.element);
+        this.dirty = true;
         return this;
     };
 
@@ -241,6 +244,7 @@ var IPython = (function (IPython) {
         if (index >= 0 && index < ncells) {
             this.cell_elements().eq(index).after(cell.element);
         };
+        this.dirty = true;
         return this
     };
 
@@ -254,6 +258,7 @@ var IPython = (function (IPython) {
         if (index >= 0 && index < ncells) {
             this.cell_elements().eq(index).before(cell.element);
         };
+        this.dirty = true;
         return this;
     };
 
@@ -269,6 +274,7 @@ var IPython = (function (IPython) {
                 this.select(i-1);
             };
         };
+        this.dirty = true;
         return this;
     }
 
@@ -284,6 +290,7 @@ var IPython = (function (IPython) {
                 this.select(i+1);
             };
         };
+        this.dirty = true;
         return this;
     }
 
@@ -386,6 +393,7 @@ var IPython = (function (IPython) {
             target_cell.set_code(source_cell.get_source());
             source_element.remove();
         };
+        this.dirty = true;
     };
 
 
@@ -413,6 +421,7 @@ var IPython = (function (IPython) {
             source_element.remove();
             target_cell.edit();
         }
+        this.dirty = true;
     };
 
 
@@ -440,6 +449,7 @@ var IPython = (function (IPython) {
             source_element.remove();
             target_cell.edit();
         }
+        this.dirty = true;
     };
 
 
@@ -448,12 +458,14 @@ var IPython = (function (IPython) {
     Notebook.prototype.collapse = function (index) {
         var i = this.index_or_selected(index);
         this.cells()[i].collapse();
+        this.dirty = true;
     };
 
 
     Notebook.prototype.expand = function (index) {
         var i = this.index_or_selected(index);
         this.cells()[i].expand();
+        this.dirty = true;
     };
 
 
@@ -474,6 +486,7 @@ var IPython = (function (IPython) {
                 cells[i].clear_output();
             }
         };
+        this.dirty = true;
     };
 
 
@@ -508,6 +521,7 @@ var IPython = (function (IPython) {
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
             cell.set_input_prompt(content.execution_count);
+            this.dirty = true;
         } else if (msg_type === "complete_reply") {
             cell.finish_completing(content.matched_text, content.matches);
         };
@@ -527,6 +541,7 @@ var IPython = (function (IPython) {
                 var index = this.find_cell_index(cell);
                 var new_cell = this.insert_code_cell_after(index);
                 new_cell.set_code(payload[i].text);
+                this.dirty = true;
             }
         };
     };
@@ -596,6 +611,7 @@ var IPython = (function (IPython) {
             json.traceback = traceback;
         };
         cell.append_output(json);
+        this.dirty = true;
     };
 
 
@@ -655,6 +671,7 @@ var IPython = (function (IPython) {
                 that.select(cell_index+1);
             };
         };
+        this.dirty = true;
     };
 
 
@@ -745,6 +762,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.notebook_saved = function (data, status, xhr) {
+        this.dirty = false;
         setTimeout($.proxy(IPython.save_widget.status_save,IPython.save_widget),500);
     }
 
@@ -778,6 +796,7 @@ var IPython = (function (IPython) {
         IPython.save_widget.status_save();
         IPython.save_widget.set_notebook_name(data.name);
         this.start_kernel();
+        this.dirty = false;
         // fromJSON always selects the last cell inserted. We need to wait
         // until that is done before scrolling to the top.
         setTimeout(function () {
