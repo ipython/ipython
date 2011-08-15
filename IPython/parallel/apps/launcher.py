@@ -56,7 +56,7 @@ from zmq.eventloop import ioloop
 from IPython.config.application import Application
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.text import EvalFormatter
-from IPython.utils.traitlets import Any, Int, List, Unicode, Dict, Instance
+from IPython.utils.traitlets import Any, Int, CFloat, List, Unicode, Dict, Instance
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
 
@@ -364,6 +364,12 @@ class LocalEngineSetLauncher(BaseLauncher):
         ['--log-to-file','--log-level=%i'%logging.INFO], config=True,
         help="command-line arguments to pass to ipengine"
     )
+    delay = CFloat(0.1, config=True,
+        help="""delay (in seconds) between starting each engine after the first.
+        This can help force the engines to get their ids in order, or limit
+        process flood when starting many engines."""
+    )
+    
     # launcher class
     launcher_class = LocalEngineLauncher
     
@@ -381,6 +387,8 @@ class LocalEngineSetLauncher(BaseLauncher):
         self.profile_dir = unicode(profile_dir)
         dlist = []
         for i in range(n):
+            if i > 0:
+                time.sleep(self.delay)
             el = self.launcher_class(work_dir=self.work_dir, config=self.config, log=self.log)
             # Copy the engine args over to each engine launcher.
             el.engine_args = copy.deepcopy(self.engine_args)
@@ -603,6 +611,8 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
             else:
                 user=None
             for i in range(n):
+                if i > 0:
+                    time.sleep(self.delay)
                 el = self.launcher_class(work_dir=self.work_dir, config=self.config, log=self.log)
                 
                 # Copy the engine args over to each engine launcher.
