@@ -227,6 +227,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.append_mime_type = function (json, element) {
+        element = element || this.element.find("div.output");
         if (json.html !== undefined) {
             this.append_html(json.html, element);
         } else if (json.latex !== undefined) {
