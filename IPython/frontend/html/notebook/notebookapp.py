@@ -27,12 +27,11 @@ tornado.ioloop = ioloop
 from tornado import httpserver
 from tornado import web
 
-from .kernelmanager import KernelManager, RoutingKernelManager
-from .sessionmanager import SessionManager
+from .kernelmanager import MappingKernelManager
 from .handlers import (
     NBBrowserHandler, NewHandler, NamedNotebookHandler,
-    MainKernelHandler, KernelHandler, KernelActionHandler, ZMQStreamHandler,
-    NotebookRootHandler, NotebookHandler, RSTHandler
+    MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
+    ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
 )
 from .notebookmanager import NotebookManager
 
@@ -45,7 +44,7 @@ from IPython.zmq.ipkernel import (
     aliases as ipkernel_aliases,
     IPKernelApp
 )
-from IPython.utils.traitlets import Dict, Unicode, Int, Any, List, Enum
+from IPython.utils.traitlets import Dict, Unicode, Int, List, Enum
 
 #-----------------------------------------------------------------------------
 # Module globals
@@ -71,7 +70,7 @@ ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, routing_kernel_manager, notebook_manager, log):
+    def __init__(self, kernel_manager, notebook_manager, log):
         handlers = [
             (r"/", NBBrowserHandler),
             (r"/new", NewHandler),
@@ -79,8 +78,8 @@ class NotebookWebApplication(web.Application):
             (r"/kernels", MainKernelHandler),
             (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
             (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
-            (r"/kernels/%s/iopub" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='iopub')),
-            (r"/kernels/%s/shell" % _kernel_id_regex, ZMQStreamHandler, dict(stream_name='shell')),
+            (r"/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
+            (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
             (r"/rstservice/render", RSTHandler)
@@ -91,7 +90,7 @@ class NotebookWebApplication(web.Application):
         )
         web.Application.__init__(self, handlers, **settings)
 
-        self.routing_kernel_manager = routing_kernel_manager
+        self.kernel_manager = kernel_manager
         self.log = log
         self.notebook_manager = notebook_manager
 
@@ -114,7 +113,6 @@ aliases.update({
     'port': 'IPythonNotebookApp.port',
     'keyfile': 'IPythonNotebookApp.keyfile',
     'certfile': 'IPythonNotebookApp.certfile',
-    'colors': 'ZMQInteractiveShell.colors',
     'notebook-dir': 'NotebookManager.notebook_dir'
 })
 
@@ -136,8 +134,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
     examples = _examples
     
     classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session,
-               RoutingKernelManager, NotebookManager,
-               KernelManager, SessionManager]
+               MappingKernelManager, NotebookManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
 
@@ -187,9 +184,8 @@ class IPythonNotebookApp(BaseIPythonApplication):
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         # Create a KernelManager and start a kernel.
-        self.kernel_manager = KernelManager(config=self.config, log=self.log)
-        self.routing_kernel_manager = RoutingKernelManager(config=self.config, log=self.log,
-            kernel_manager=self.kernel_manager, kernel_argv=self.kernel_argv
+        self.kernel_manager = MappingKernelManager(
+            config=self.config, log=self.log, kernel_argv=self.kernel_argv
         )
         self.notebook_manager = NotebookManager(config=self.config, log=self.log)
 
@@ -204,7 +200,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
         super(IPythonNotebookApp, self).initialize(argv)
         self.init_configurables()
         self.web_app = NotebookWebApplication(
-            self.routing_kernel_manager, self.notebook_manager, self.log
+            self.kernel_manager, self.notebook_manager, self.log
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)

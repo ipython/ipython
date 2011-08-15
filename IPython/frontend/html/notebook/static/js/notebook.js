@@ -482,7 +482,20 @@ var IPython = (function (IPython) {
     Notebook.prototype.start_kernel = function () {
         this.kernel = new IPython.Kernel();
         var notebook_id = IPython.save_widget.get_notebook_id();
-        this.kernel.start_kernel(notebook_id, $.proxy(this.kernel_started, this));
+        this.kernel.start(notebook_id, $.proxy(this.kernel_started, this));
+    };
+
+
+    Notebook.prototype.restart_kernel = function () {
+        var notebook_id = IPython.save_widget.get_notebook_id();
+        this.kernel.restart($.proxy(this.kernel_started, this));
+    };
+
+
+    Notebook.prototype.kernel_started = function () {
+        console.log("Kernel started: ", this.kernel.kernel_id);
+        this.kernel.shell_channel.onmessage = $.proxy(this.handle_shell_reply,this);
+        this.kernel.iopub_channel.onmessage = $.proxy(this.handle_iopub_reply,this);
     };
 
 
@@ -528,13 +541,38 @@ var IPython = (function (IPython) {
         var output_types = ['stream','display_data','pyout','pyerr'];
         if (output_types.indexOf(msg_type) >= 0) {
             this.handle_output(cell, msg_type, content);
-        } else if (msg_type === "status") {
-            if (content.execution_state === "busy") {
+        } else if (msg_type === 'status') {
+            if (content.execution_state === 'busy') {
                 IPython.kernel_status_widget.status_busy();
-            } else if (content.execution_state === "idle") {
+            } else if (content.execution_state === 'idle') {
                 IPython.kernel_status_widget.status_idle();
+            } else if (content.execution_state === 'dead') {
+                this.handle_status_dead();
             };
         }
+    };
+
+
+    Notebook.prototype.handle_status_dead = function () {
+        var that = this;
+        this.kernel.stop_channels();
+        var dialog = $('<div/>');
+        dialog.html('The kernel has died, would you like to restart it? If you do not restart the kernel, you will be able to save the notebook, but running code will not work until the notebook is reopened.');
+        $(document).append(dialog);
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Dead kernel",
+            buttons : {
+                "Yes": function () {
+                    that.start_kernel();
+                    $(this).dialog('close');
+                },
+                "No": function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
     };
 
 
@@ -587,12 +625,6 @@ var IPython = (function (IPython) {
             json.javascript = data['application/javascript'];
         }
         return json;    
-    };
-
-    Notebook.prototype.kernel_started = function () {
-        console.log("Kernel started: ", this.kernel.kernel_id);
-        this.kernel.shell_channel.onmessage = $.proxy(this.handle_shell_reply,this);
-        this.kernel.iopub_channel.onmessage = $.proxy(this.handle_iopub_reply,this);
     };
 
 

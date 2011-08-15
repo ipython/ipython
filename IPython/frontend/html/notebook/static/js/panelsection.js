@@ -198,7 +198,7 @@ var IPython = (function (IPython) {
     KernelSection.prototype.bind_events = function () {
         PanelSection.prototype.bind_events.apply(this);
         this.content.find('#restart_kernel').click(function () {
-            IPython.notebook.kernel.restart();
+            IPython.notebook.restart_kernel();
         });
         this.content.find('#int_kernel').click(function () {
             IPython.notebook.kernel.interrupt();

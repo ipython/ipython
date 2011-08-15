@@ -11,6 +11,9 @@ var IPython = (function (IPython) {
         this.kernel_id = null;
         this.base_url = "/kernels";
         this.kernel_url = null;
+        this.shell_channel = null;
+        this.iopub_channel = null;
+        this.running = false;
     };
 
 
@@ -28,32 +31,64 @@ var IPython = (function (IPython) {
         return msg;
     }
 
-    Kernel.prototype.start_kernel = function (notebook_id, callback) {
+    Kernel.prototype.start = function (notebook_id, callback) {
         var that = this;
-        var qs = $.param({notebook:notebook_id});
-        $.post(this.base_url + '?' + qs,
-            function (kernel_id) {
-                that._handle_start_kernel(kernel_id, callback);
-            }, 
-            'json'
-        );
+        if (!this.running) {
+            var qs = $.param({notebook:notebook_id});
+            $.post(this.base_url + '?' + qs,
+                function (kernel_id) {
+                    that._handle_start_kernel(kernel_id, callback);
+                }, 
+                'json'
+            );
+        };
+    };
+
+
+    Kernel.prototype.restart = function (callback) {
+        IPython.kernel_status_widget.status_restarting();
+        var url = this.kernel_url + "/restart";
+        var that = this;
+        if (this.running) {
+            this.stop_channels();
+            $.post(url,
+                function (kernel_id) {
+                    that._handle_start_kernel(kernel_id, callback);
+                },
+                'json'
+            );
+        };
     };
 
 
     Kernel.prototype._handle_start_kernel = function (kernel_id, callback) {
+        this.running = true;
         this.kernel_id = kernel_id;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
-        this._start_channels();
+        this.start_channels();
         callback();
+        IPython.kernel_status_widget.status_idle();
     };
 
 
-    Kernel.prototype._start_channels = function () {
+    Kernel.prototype.start_channels = function () {
+        this.stop_channels();
         var ws_url = "ws://127.0.0.1:8888" + this.kernel_url;
         this.shell_channel = new WebSocket(ws_url + "/shell");
         this.iopub_channel = new WebSocket(ws_url + "/iopub");
-    }
+    };
 
+
+    Kernel.prototype.stop_channels = function () {
+        if (this.shell_channel !== null) {
+            this.shell_channel.close();
+            this.shell_channel = null;
+        };
+        if (this.iopub_channel !== null) {
+            this.iopub_channel.close();
+            this.iopub_channel = null;
+        };
+    };
 
     Kernel.prototype.execute = function (code) {
         var content = {
@@ -81,29 +116,21 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype.interrupt = function () {
-        $.post(this.kernel_url + "/interrupt");
-    };
-
-
-    Kernel.prototype.restart = function () {
-        IPython.kernel_status_widget.status_restarting();
-        var url = this.kernel_url + "/restart"
-        var that = this;
-        $.post(url, function (kernel_id) {
-            console.log("Kernel restarted: " + kernel_id);
-            that.kernel_id = kernel_id;
-            that.kernel_url = that.base_url + "/" + that.kernel_id;
-            IPython.kernel_status_widget.status_idle();
-        }, 'json');
+        if (this.running) {
+            $.post(this.kernel_url + "/interrupt");
+        };
     };
 
 
     Kernel.prototype.kill = function () {
-        var settings = {
-            cache : false,
-            type : "DELETE",
+        if (this.running) {
+            this.running = false;
+            var settings = {
+                cache : false,
+                type : "DELETE",
+            };
+            $.ajax(this.kernel_url, settings);
         };
-        $.ajax(this.kernel_url, settings);
     };
 
     IPython.Kernel = Kernel;
