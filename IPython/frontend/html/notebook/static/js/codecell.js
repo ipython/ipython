@@ -223,6 +223,10 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_display_data = function (json) {
         this.append_mime_type(json).addClass('output_area');
+        // If we just output latex, typeset it.
+        if (json.latex !== undefined) {
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+        };
     };
 
 
@@ -232,12 +236,6 @@ var IPython = (function (IPython) {
             this.append_html(json.html, element);
         } else if (json.latex !== undefined) {
             this.append_latex(json.latex, element);
-            // If it is undefined, then we just appended to div.output, which
-            // makes the latex visible and we can typeset it. The typesetting
-            // has to be done after the latex is on the page.
-            if (element === undefined) {
-                MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-            };
         } else if (json.svg !== undefined) {
             this.append_svg(json.svg, element);
         } else if (json.png !== undefined) {
