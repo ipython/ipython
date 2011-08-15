@@ -11,9 +11,11 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import errno
 import logging
 import os
 import signal
+import socket
 import sys
 
 import zmq
@@ -213,7 +215,18 @@ class IPythonNotebookApp(BaseIPythonApplication):
             self.log.critical('WARNING: the notebook server is listening on all IP addresses '
                               'but not using any encryption or authentication. This is highly '
                               'insecure and not recommended.')
-        self.http_server.listen(self.port, self.ip)
+        for i in range(10):
+            try:
+                port = self.port + i
+                self.http_server.listen(port, self.ip)
+            except socket.error, e:
+                if e.errno != errno.EADDRINUSE:
+                    raise
+                self.log.info('The port %i is already in use, trying: %i' % (port, port+1))
+            else:
+                self.port = port
+                break
+    
 
     def start(self):
         ip = self.ip if self.ip else '[all ip addresses on your system]'
