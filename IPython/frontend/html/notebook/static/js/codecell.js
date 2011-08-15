@@ -94,6 +94,21 @@ var IPython = (function (IPython) {
 
         var that = this;
         var cur = this.completion_cursor;
+
+        var insert = function (selected_text) {
+            that.code_mirror.replaceRange(
+                selected_text,
+                {line: cur.line, ch: (cur.ch-matched_text.length)},
+                {line: cur.line, ch: cur.ch}
+            );
+        };
+
+        if (matches.length === 1) {
+            insert(matches[0]);
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+            return;
+        };
+
         var complete = $('<div/>').addClass('completions');
         var select = $('<select/>').attr('multiple','true');
         for (var i=0; i<matches.length; ++i) {
@@ -108,14 +123,6 @@ var IPython = (function (IPython) {
 
         $('body').append(complete);
         var done = false;
-
-        var insert = function (selected_text) {
-            that.code_mirror.replaceRange(
-                selected_text,
-                {line: cur.line, ch: (cur.ch-matched_text.length)},
-                {line: cur.line, ch: cur.ch}
-            );
-        };
 
         var close = function () {
             if (done) return;

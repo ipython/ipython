@@ -127,7 +127,6 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.fromJSON = function (data) {
-        console.log(data);
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_source(data.source);

@@ -220,7 +220,7 @@ class NotebookManager(LoggingConfigurable):
             else:
                 i = i+1
         notebook_id = self.new_notebook_id(name)
-        nb = current.new_notebook(name=name, id=notebook_id)
+        nb = current.new_notebook(name=name)
         with open(path,'w') as f:
             current.write(nb, f, u'xml')
         return notebook_id
