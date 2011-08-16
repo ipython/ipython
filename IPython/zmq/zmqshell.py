@@ -236,16 +236,16 @@ class ZMQInteractiveShell(InteractiveShell):
           %edit [options] [args]
 
         %edit runs IPython's editor hook.  The default version of this hook is
-        set to call the __IPYTHON__.rc.editor command.  This is read from your
+        set to call the __IPYTHON__.rc.dditor command.  This is read from your
         environment variable $EDITOR.  If this isn't found, it will default to
         vi under Linux/Unix and to notepad under Windows.  See the end of this
         docstring for how to change the editor hook.
 
-        You can also set the value of this editor via the command line option
-        '-editor' or via the 'editor' option in your configuration file. 
-        This is useful if you wish to use  specifically for IPython an editor 
-        different from your typical default (and for Windows users who typically
-        don't set environment variables).
+        You can also set the value of this editor via the 
+        ``TerminalInteractiveShell.editor`` option in your configuration file. 
+        This is useful if you wish to use a different editor from your typical 
+        default with IPython (and for Windows users who typically don't set 
+        environment variables).
 
         This command allows you to conveniently edit multi-line code right in
         your IPython session.

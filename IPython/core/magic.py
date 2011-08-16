@@ -2268,11 +2268,10 @@ Currently the magic system has the following functions:\n"""
         vi under Linux/Unix and to notepad under Windows.  See the end of this
         docstring for how to change the editor hook.
 
-        You can also set the value of this editor via the command line option
-        '-editor' or in your configuration file (via the 
-        ``TerminalInteractiveShell.editor`` option). This is useful if you wish 
-        to use an editor specifcally for  IPython that is different from your  
-        typical default (and for Windows users who typically don't set  
+        You can also set the value of this editor via the 
+        ``TerminalInteractiveShell.editor`` option in your configuration file. 
+        This is useful if you wish to use a different editor from your typical 
+        default with IPython (and for Windows users who typically don't set 
         environment variables).
 
         This command allows you to conveniently edit multi-line code right in
