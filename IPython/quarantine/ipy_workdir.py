@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from IPython.core import ipapi
 ip = ipapi.get()
 

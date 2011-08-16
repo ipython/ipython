@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 """
 Add %global magic for GNU Global usage.
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """An Application for launching a kernel
 
 Authors
