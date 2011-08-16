@@ -105,9 +105,6 @@ use OpenSSH or Paramiko, or the tunneling utilities are insufficient, then they 
 construct the tunnels themselves, and simply connect clients and engines as if the
 controller were on loopback on the connecting machine.
 
-.. note::
-
-    There is not currently tunneling available for engines.
 
 Authentication
 --------------

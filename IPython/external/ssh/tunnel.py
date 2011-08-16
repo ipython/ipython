@@ -110,6 +110,22 @@ def tunnel_connection(socket, addr, server, keyfile=None, password=None, paramik
     selected local port of the tunnel.
     
     """
+    new_url, tunnel = open_tunnel(addr, server, keyfile=keyfile, password=password, paramiko=paramiko)
+    socket.connect(new_url)
+    return tunnel
+
+
+def open_tunnel(addr, server, keyfile=None, password=None, paramiko=None):
+    """Open a tunneled connection from a 0MQ url.
+    
+    For use inside tunnel_connection.
+    
+    Returns
+    -------
+    
+    (url, tunnel): The 0MQ url that has been forwarded, and the tunnel object
+    """
+    
     lport = select_random_ports(1)[0]
     transport, addr = addr.split('://')
     ip,rport = addr.split(':')
@@ -121,8 +137,7 @@ def tunnel_connection(socket, addr, server, keyfile=None, password=None, paramik
     else:
         tunnelf = openssh_tunnel
     tunnel = tunnelf(lport, rport, server, remoteip=ip, keyfile=keyfile, password=password)
-    socket.connect('tcp://127.0.0.1:%i'%lport)
-    return tunnel
+    return 'tcp://127.0.0.1:%i'%lport, tunnel
 
 def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=15):
     """Create an ssh tunnel using command-line ssh that connects port lport

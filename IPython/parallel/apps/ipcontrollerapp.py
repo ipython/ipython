@@ -116,6 +116,7 @@ flags.update(boolean_flag('secure', 'IPControllerApp.secure',
 aliases = dict(
     secure = 'IPControllerApp.secure',
     ssh = 'IPControllerApp.ssh_server',
+    enginessh = 'IPControllerApp.engine_ssh_server',
     location = 'IPControllerApp.location',
 
     ident = 'Session.session',
@@ -155,6 +156,11 @@ class IPControllerApp(BaseParallelApplication):
     )
     ssh_server = Unicode(u'', config=True,
         help="""ssh url for clients to use when connecting to the Controller
+        processes. It should be of the form: [user@]server[:port]. The
+        Controller's listening addresses must be accessible from the ssh server""",
+    )
+    engine_ssh_server = Unicode(u'', config=True,
+        help="""ssh url for engines to use when connecting to the Controller
         processes. It should be of the form: [user@]server[:port]. The
         Controller's listening addresses must be accessible from the ssh server""",
     )
@@ -218,6 +224,8 @@ class IPControllerApp(BaseParallelApplication):
         c.HubFactory.engine_ip = ip
         c.HubFactory.regport = int(ports)
         self.location = cfg['location']
+        if not self.engine_ssh_server:
+            self.engine_ssh_server = cfg['ssh']
         # load client config
         with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-client.json')) as f:
             cfg = json.loads(f.read())
@@ -226,7 +234,8 @@ class IPControllerApp(BaseParallelApplication):
         c.HubFactory.client_transport = xport
         ip,ports = addr.split(':')
         c.HubFactory.client_ip = ip
-        self.ssh_server = cfg['ssh']
+        if not self.ssh_server:
+            self.ssh_server = cfg['ssh']
         assert int(ports) == c.HubFactory.regport, "regport mismatch"
     
     def init_hub(self):
@@ -271,6 +280,7 @@ class IPControllerApp(BaseParallelApplication):
             self.save_connection_dict('ipcontroller-client.json', cdict)
             edict = cdict
             edict['url']="%s://%s:%s"%((f.client_transport, f.client_ip, f.regport))
+            edict['ssh'] = self.engine_ssh_server
             self.save_connection_dict('ipcontroller-engine.json', edict)
 
     #

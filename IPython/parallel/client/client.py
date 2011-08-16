@@ -171,7 +171,7 @@ class Client(HasTraits):
         A string of the form passed to ssh, i.e. 'server.tld' or 'user@server.tld:port'
         If keyfile or password is specified, and this is not, it will default to
         the ip given in addr.
-    sshkey : str; path to public ssh key file
+    sshkey : str; path to ssh private key file
         This specifies a key to be used in ssh login, default None.
         Regular default ssh keys will be used without specifying this argument.
     password : str 
