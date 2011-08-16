@@ -57,7 +57,7 @@ class EngineFactory(RegistrationFactory):
     sshserver=Unicode(config=True,
         help="""The SSH server to use for tunneling connections to the Controller.""")
     sshkey=Unicode(config=True,
-        help="""The SSH keyfile to use when tunneling connections to the Controller.""")
+        help="""The SSH private key file to use when tunneling connections to the Controller.""")
     paramiko=Bool(sys.platform == 'win32', config=True,
         help="""Whether to use paramiko instead of openssh for tunnels.""")
     
