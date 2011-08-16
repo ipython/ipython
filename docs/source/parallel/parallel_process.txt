@@ -484,6 +484,49 @@ The ``file`` flag works like this::
     (:file:`~/.ipython/profile_<name>/security` is the same on all of them), then things
     will just work!
 
+SSH Tunnels
+***********
+
+If your engines are not on the same LAN as the controller, or you are on a highly
+restricted network where your nodes cannot see each others ports, then you can
+use SSH tunnels to connect engines to the controller.
+
+.. note::
+
+    This does not work in all cases.  Manual tunnels may be an option, but are
+    highly inconvenient. Support for manual tunnels will be improved.
+
+You can instruct all engines to use ssh, by specifying the ssh server in 
+:file:`ipcontroller-engine.json`:
+
+.. I know this is really JSON, but the example is a subset of Python:
+.. sourcecode:: python
+
+    {
+      "url":"tcp://192.168.1.123:56951",
+      "exec_key":"26f4c040-587d-4a4e-b58b-030b96399584",
+      "ssh":"user@example.com",
+      "location":"192.168.1.123"
+    }
+
+This will be specified if you give the ``--enginessh=use@example.com`` argument when
+starting :command:`ipcontroller`.
+
+Or you can specify an ssh server on the command-line when starting an engine::
+
+    $> ipengine --profile=foo --ssh=my.login.node
+
+For example, if your system is totally restricted, then all connections will actually be
+loopback, and ssh tunnels will be used to connect engines to the controller::
+
+    [node1] $> ipcontroller --enginessh=node1
+    [node2] $> ipengine
+    [node3] $> ipcluster engines --n=4
+
+Or if you want to start many engines on each node, the command `ipcluster engines --n=4`
+without any configuration is equivalent to running ipengine 4 times.
+
+
 Make JSON files persistent
 --------------------------
 
