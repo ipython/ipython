@@ -22,6 +22,7 @@ from tempfile import mktemp
 from StringIO import StringIO
 
 import zmq
+from nose import SkipTest
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -40,6 +41,7 @@ class TestView(ClusterTestCase):
     
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
+        raise SkipTest("crash tests disabled, due to undesirable crash reports")
         # self.add_engines(1)
         eid = self.client.ids[-1]
         ar = self.client[eid].apply_async(crash)
@@ -185,8 +187,8 @@ class TestView(ClusterTestCase):
         
         ar = v.push(ns, block=False, track=True)
         self.assertTrue(isinstance(ar._tracker, zmq.MessageTracker))
-        self.assertEquals(ar.sent, ar._tracker.done)
         ar._tracker.wait()
+        self.assertEquals(ar.sent, ar._tracker.done)
         self.assertTrue(ar.sent)
         ar.get()
         
@@ -271,7 +273,7 @@ class TestView(ClusterTestCase):
     
     def test_abort(self):
         view = self.client[-1]
-        ar = view.execute('import time; time.sleep(0.25)', block=False)
+        ar = view.execute('import time; time.sleep(1)', block=False)
         ar2 = view.apply_async(lambda : 2)
         ar3 = view.apply_async(lambda : 3)
         view.abort(ar2)
@@ -316,7 +318,9 @@ class TestView(ClusterTestCase):
         sio = StringIO()
         savestdout = sys.stdout
         sys.stdout = sio
-        ip.magic_px('print a')
+        # just 'print a' worst ~99% of the time, but this ensures that
+        # the stdout message has arrived when the result is finished:
+        ip.magic_px('import sys,time;print a; sys.stdout.flush();time.sleep(0.2)')
         sys.stdout = savestdout
         buf = sio.getvalue()
         self.assertTrue('[stdout:' in buf, buf)
