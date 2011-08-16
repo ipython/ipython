@@ -3530,7 +3530,6 @@ Defaulting color scheme to 'NoColor'"""
         formats include (xml/ipynb, json, py).
         """
         args = magic_arguments.parse_argstring(self.magic_notebook, s)
-        print args
 
         from IPython.nbformat import current
         if args.export:
