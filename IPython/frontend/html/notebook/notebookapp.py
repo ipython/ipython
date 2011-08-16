@@ -120,6 +120,9 @@ aliases.update({
     'notebook-dir': 'NotebookManager.notebook_dir'
 })
 
+notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile', u'ws-hostname',
+                    u'notebook-dir']
+
 #-----------------------------------------------------------------------------
 # IPythonNotebookApp
 #-----------------------------------------------------------------------------
@@ -197,6 +200,12 @@ class IPythonNotebookApp(BaseIPythonApplication):
         for a in argv:
             if a.startswith('-') and a.lstrip('-') in notebook_flags:
                 self.kernel_argv.remove(a)
+        for a in argv:
+            if a.startswith('-'):
+                alias = a.lstrip('-').split('=')[0]
+                if alias in notebook_aliases:
+                    self.kernel_argv.remove(a)
+        print self.kernel_argv
 
     def init_configurables(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
