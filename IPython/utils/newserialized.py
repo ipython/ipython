@@ -35,6 +35,8 @@ if sys.version_info[0] >= 3:
     py3k = True
 else:
     py3k = False
+    if sys.version_info[:2] <= (2,6):
+        memoryview = buffer
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -101,10 +103,7 @@ class SerializeIt(object):
         self.data = None
         self.obj = unSerialized.getObject()
         if numpy is not None and isinstance(self.obj, numpy.ndarray):
-            if py3k or len(self.obj.shape) == 0: # length 0 arrays are just pickled
-                # FIXME:
-                # also use pickle for numpy arrays on py3k, since
-                # pyzmq doesn't rebuild from memoryviews properly
+            if len(self.obj.shape) == 0: # length 0 arrays are just pickled
                 self.typeDescriptor = 'pickle'
                 self.metadata = {}
             else:
@@ -125,7 +124,7 @@ class SerializeIt(object):
     
     def _generateData(self):
         if self.typeDescriptor == 'ndarray':
-            self.data = numpy.getbuffer(self.obj)
+            self.data = buffer(self.obj)
         elif self.typeDescriptor in ('bytes', 'buffer'):
             self.data = self.obj
         elif self.typeDescriptor == 'pickle':
@@ -158,11 +157,10 @@ class UnSerializeIt(UnSerialized):
         typeDescriptor = self.serialized.getTypeDescriptor()
         if numpy is not None and typeDescriptor == 'ndarray':
                 buf = self.serialized.getData()
-                if isinstance(buf, (bytes, buffer)):
+                if isinstance(buf, (bytes, buffer, memoryview)):
                     result = numpy.frombuffer(buf, dtype = self.serialized.metadata['dtype'])
                 else:
-                    # memoryview
-                    result = numpy.array(buf, dtype = self.serialized.metadata['dtype'])
+                    raise TypeError("Expected bytes or buffer/memoryview, but got %r"%type(buf))
                 result.shape = self.serialized.metadata['shape']
         elif typeDescriptor == 'pickle':
             result = pickle.loads(self.serialized.getData())

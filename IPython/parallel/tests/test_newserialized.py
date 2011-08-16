@@ -16,6 +16,8 @@ Authors:
 # Imports
 #-------------------------------------------------------------------------------
 
+import sys
+
 from unittest import TestCase
 
 from IPython.testing.decorators import parametric
@@ -23,6 +25,8 @@ from IPython.utils import newserialized as ns
 from IPython.utils.pickleutil import can, uncan, CannedObject, CannedFunction
 from IPython.parallel.tests.clienttest import skip_without
 
+if sys.version_info[0] >= 3:
+    buffer = memoryview
 
 class CanningTestCase(TestCase):
     def test_canning(self):
@@ -88,10 +92,10 @@ class CanningTestCase(TestCase):
         self.assertEquals(md['shape'], a.shape)
         self.assertEquals(md['dtype'], a.dtype.str)
         buff = ser1.getData()
-        self.assertEquals(buff, numpy.getbuffer(a))
+        self.assertEquals(buff, buffer(a))
         s = ns.Serialized(buff, td, md)
         final = ns.unserialize(s)
-        self.assertEquals(numpy.getbuffer(a), numpy.getbuffer(final))
+        self.assertEquals(buffer(a), buffer(final))
         self.assertTrue((a==final).all())
         self.assertEquals(a.dtype.str, final.dtype.str)
         self.assertEquals(a.shape, final.shape)
