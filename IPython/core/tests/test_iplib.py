@@ -30,9 +30,6 @@ ip = get_ipython()
 
 def test_reset():
     """reset must clear most namespaces."""
-    # The number of variables in the private user_ns_hidden is not zero, but it
-    # should be constant regardless of what we do
-    nvars_hidden = len(ip.user_ns_hidden)
 
     # Check that reset runs without error
     ip.reset()
@@ -40,6 +37,7 @@ def test_reset():
     # Once we've reset it (to clear of any junk that might have been there from
     # other tests, we can count how many variables are in the user's namespace
     nvars_user_ns = len(ip.user_ns)
+    nvars_hidden = len(ip.user_ns_hidden)
 
     # Now add a few variables to user_ns, and check that reset clears them
     ip.user_ns['x'] = 1

@@ -1073,6 +1073,16 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # Finally, update the real user's namespace
         self.user_ns.update(ns)
+    
+    @property
+    def all_ns_refs(self):
+        """Get a list of references to all the namespace dictionaries in which
+        IPython might store a user-created object.
+        
+        Note that this does not include the displayhook, which also caches
+        objects from the output."""
+        return [self.user_ns, self.user_global_ns,
+                self._user_main_module.__dict__] + self._main_ns_cache.values()
 
     def reset(self, new_session=True):
         """Clear all internal namespaces, and attempt to release references to
@@ -1102,6 +1112,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         drop_keys.discard('__name__')
         for k in drop_keys:
             del ns[k]
+        
+        self.user_ns_hidden.clear()
         
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
@@ -1133,8 +1145,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         if varname in ('__builtin__', '__builtins__'):
             raise ValueError("Refusing to delete %s" % varname)
 
-        ns_refs = [self.user_ns, self.user_global_ns,
-                self._user_main_module.__dict__] + self._main_ns_cache.values()
+        ns_refs = self.all_ns_refs
         
         if by_name:                    # Delete by name
             for ns in ns_refs:
@@ -1176,7 +1187,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 raise TypeError('regex must be a string or compiled pattern')
             # Search for keys in each namespace that match the given regex
             # If a match is found, delete the key/value pair.
-            for ns in [self.user_ns, self.user_global_ns]:
+            for ns in self.all_ns_refs:
                 for var in ns:
                     if m.search(var):
                         del ns[var]
@@ -1224,11 +1235,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # And configure interactive visibility
         user_ns_hidden = self.user_ns_hidden
         if interactive:
-            for name in vdict:
-                user_ns_hidden.discard(name)
+            user_ns_hidden.difference_update(vdict)
         else:
-            for name in vdict:
-                user_ns_hidden.add(name)
+            user_ns_hidden.update(vdict)
     
     def drop_by_id(self, variables):
         """Remove a dict of variables from the user namespace, if they are the
