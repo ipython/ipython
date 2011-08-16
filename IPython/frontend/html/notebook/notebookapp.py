@@ -72,7 +72,7 @@ ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, kernel_manager, notebook_manager, log):
+    def __init__(self, ipython_app, kernel_manager, notebook_manager, log):
         handlers = [
             (r"/", NBBrowserHandler),
             (r"/new", NewHandler),
@@ -95,6 +95,7 @@ class NotebookWebApplication(web.Application):
         self.kernel_manager = kernel_manager
         self.log = log
         self.notebook_manager = notebook_manager
+        self.ipython_app = ipython_app
 
 
 #-----------------------------------------------------------------------------
@@ -115,6 +116,7 @@ aliases.update({
     'port': 'IPythonNotebookApp.port',
     'keyfile': 'IPythonNotebookApp.keyfile',
     'certfile': 'IPythonNotebookApp.certfile',
+    'ws-hostname': 'IPythonNotebookApp.ws_hostname',
     'notebook-dir': 'NotebookManager.notebook_dir'
 })
 
@@ -160,6 +162,13 @@ class IPythonNotebookApp(BaseIPythonApplication):
         help="The port the notebook server will listen on."
     )
 
+    ws_hostname = Unicode(LOCALHOST, config=True,
+        help="""The FQDN or IP for WebSocket connections. The default will work
+                fine when the server is listening on localhost, but this needs to
+                be set if the ip option is used. It will be used as the hostname part
+                of the WebSocket url: ws://hostname/path."""
+    )
+
     certfile = Unicode(u'', config=True, 
         help="""The full path to an SSL/TLS certificate file."""
     )
@@ -167,6 +176,14 @@ class IPythonNotebookApp(BaseIPythonApplication):
     keyfile = Unicode(u'', config=True, 
         help="""The full path to a private key file for usage with SSL/TLS."""
     )
+
+    def get_ws_url(self):
+        """Return the WebSocket URL for this server."""
+        if self.certfile:
+            prefix = u'wss://'
+        else:
+            prefix = u'ws://'
+        return prefix + self.ws_hostname + u':' + unicode(self.port)
 
     def parse_command_line(self, argv=None):
         super(IPythonNotebookApp, self).parse_command_line(argv)
@@ -202,7 +219,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
         super(IPythonNotebookApp, self).initialize(argv)
         self.init_configurables()
         self.web_app = NotebookWebApplication(
-            self.kernel_manager, self.notebook_manager, self.log
+            self, self.kernel_manager, self.notebook_manager, self.log
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)

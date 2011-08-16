@@ -61,8 +61,10 @@ class MainKernelHandler(web.RequestHandler):
         km = self.application.kernel_manager
         notebook_id = self.get_argument('notebook', default=None)
         kernel_id = km.start_kernel(notebook_id)
+        ws_url = self.application.ipython_app.get_ws_url()
+        data = {'ws_url':ws_url,'kernel_id':kernel_id}
         self.set_header('Location', '/'+kernel_id)
-        self.finish(jsonapi.dumps(kernel_id))
+        self.finish(jsonapi.dumps(data))
 
 
 class KernelHandler(web.RequestHandler):
@@ -85,7 +87,10 @@ class KernelActionHandler(web.RequestHandler):
             self.set_status(204)
         if action == 'restart':
             new_kernel_id = km.restart_kernel(kernel_id)
-            self.write(jsonapi.dumps(new_kernel_id))
+            ws_url = self.application.ipython_app.get_ws_url()
+            data = {'ws_url':ws_url,'kernel_id':new_kernel_id}
+            self.set_header('Location', '/'+new_kernel_id)
+            self.write(jsonapi.dumps(data))
         self.finish()
 
 
@@ -126,21 +131,36 @@ class IOPubHandler(ZMQStreamHandler):
     def initialize(self, *args, **kwargs):
         self._kernel_alive = True
         self._beating = False
+        self.iopub_stream = None
+        self.hb_stream = None
 
     def open(self, kernel_id):
         km = self.application.kernel_manager
         self.kernel_id = kernel_id
         self.session = Session()
         self.time_to_dead = km.time_to_dead
-        self.iopub_stream = km.create_iopub_stream(kernel_id)
-        self.hb_stream = km.create_hb_stream(kernel_id)
-        self.iopub_stream.on_recv(self._on_zmq_reply)
-        self.start_hb(self.kernel_died)
+        try:
+            self.iopub_stream = km.create_iopub_stream(kernel_id)
+            self.hb_stream = km.create_hb_stream(kernel_id)
+        except web.HTTPError:
+            # WebSockets don't response to traditional error codes so we
+            # close the connection.
+            if not self.stream.closed():
+                self.stream.close()
+        else:
+            self.iopub_stream.on_recv(self._on_zmq_reply)
+            self.start_hb(self.kernel_died)
 
     def on_close(self):
+        # This method can be called twice, once by self.kernel_died and once 
+        # from the WebSocket close event. If the WebSocket connection is
+        # closed before the ZMQ streams are setup, they could be None.
         self.stop_hb()
-        self.iopub_stream.close()
-        self.hb_stream.close()
+        if self.iopub_stream is not None and not self.iopub_stream.closed():
+            self.iopub_stream.on_recv(None)
+            self.iopub_stream.close()
+        if self.hb_stream is not None and not self.hb_stream.closed():
+            self.hb_stream.close()
  
     def start_hb(self, callback):
         """Start the heartbeating and call the callback if the kernel dies."""
@@ -188,15 +208,22 @@ class IOPubHandler(ZMQStreamHandler):
 class ShellHandler(ZMQStreamHandler):
 
     def initialize(self, *args, **kwargs):
-        pass
+        self.shell_stream = None
 
     def open(self, kernel_id):
         km = self.application.kernel_manager
         self.max_msg_size = km.max_msg_size
         self.kernel_id = kernel_id
-        self.session = Session()
-        self.shell_stream = self.application.kernel_manager.create_shell_stream(kernel_id)
-        self.shell_stream.on_recv(self._on_zmq_reply)
+        try:
+            self.shell_stream = km.create_shell_stream(kernel_id)
+        except web.HTTPError:
+            # WebSockets don't response to traditional error codes so we
+            # close the connection.
+            if not self.stream.closed():
+                self.stream.close()
+        else:
+            self.session = Session()
+            self.shell_stream.on_recv(self._on_zmq_reply)
 
     def on_message(self, msg):
         if len(msg) < self.max_msg_size:
@@ -204,7 +231,9 @@ class ShellHandler(ZMQStreamHandler):
             self.session.send(self.shell_stream, msg)
 
     def on_close(self):
-        self.shell_stream.close()
+        # Make sure the stream exists and is not already closed.
+        if self.shell_stream is not None and not self.shell_stream.closed():
+            self.shell_stream.close()
 
 
 #-----------------------------------------------------------------------------

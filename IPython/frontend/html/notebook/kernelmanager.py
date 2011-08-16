@@ -300,7 +300,21 @@ class MappingKernelManager(KernelManager):
         # Now save the new kernel/notebook association. We have to save it
         # after the old kernel is killed as that will delete the mapping.
         self.set_kernel_for_notebook(notebook_id, new_kernel_id)
-        self.log.debug("Kernel restarted: %s" % new_kernel_id)
+        self.log.info("Kernel restarted: %s" % new_kernel_id)
         return new_kernel_id
 
+    def create_iopub_stream(self, kernel_id):
+        if kernel_id not in self:
+            raise web.HTTPError(404)
+        return super(MappingKernelManager, self).create_iopub_stream(kernel_id)
+
+    def create_shell_stream(self, kernel_id):
+        if kernel_id not in self:
+            raise web.HTTPError(404)
+        return super(MappingKernelManager, self).create_shell_stream(kernel_id)
+
+    def create_hb_stream(self, kernel_id):
+        if kernel_id not in self:
+            raise web.HTTPError(404)
+        return super(MappingKernelManager, self).create_hb_stream(kernel_id)
 

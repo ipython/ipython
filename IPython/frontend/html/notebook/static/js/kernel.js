@@ -61,9 +61,10 @@ var IPython = (function (IPython) {
     };
 
 
-    Kernel.prototype._handle_start_kernel = function (kernel_id, callback) {
+    Kernel.prototype._handle_start_kernel = function (json, callback) {
         this.running = true;
-        this.kernel_id = kernel_id;
+        this.kernel_id = json.kernel_id;
+        this.ws_url = json.ws_url;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this.start_channels();
         callback();
@@ -73,7 +74,8 @@ var IPython = (function (IPython) {
 
     Kernel.prototype.start_channels = function () {
         this.stop_channels();
-        var ws_url = "ws://127.0.0.1:8888" + this.kernel_url;
+        var ws_url = this.ws_url + this.kernel_url;
+        console.log("Starting WS:", ws_url);
         this.shell_channel = new WebSocket(ws_url + "/shell");
         this.iopub_channel = new WebSocket(ws_url + "/iopub");
     };
