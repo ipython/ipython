@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 """
 Inputhook management for GUI event loop integration.

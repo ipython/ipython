@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 """
 Support for creating GUI apps and starting event loops.

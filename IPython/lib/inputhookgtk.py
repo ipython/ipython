@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 """
 Enable pygtk to be used interacive by setting PyOS_InputHook.

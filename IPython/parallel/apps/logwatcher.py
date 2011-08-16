@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 A simple logger object that consolidates messages incoming from ipcluster processes.
 

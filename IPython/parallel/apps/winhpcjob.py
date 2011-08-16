@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 """
 Job and task components for writing .xml files that the Windows HPC Server 

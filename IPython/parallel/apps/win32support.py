@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Utility for forwarding file read events over a zmq socket.
 
 This is necessary because select on Windows only supports sockets, not FDs.

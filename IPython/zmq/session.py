@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Session object for building, serializing, sending, and receiving messages in
 IPython. The Session object supports serialization, HMAC signatures, and
 metadata on messages.
