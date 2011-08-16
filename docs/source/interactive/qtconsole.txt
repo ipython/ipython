@@ -28,10 +28,10 @@ is not yet configurable.
 
    Since the Qt console tries hard to behave like a terminal, by default it
    immediately executes single lines of input that are complete.  If you want
-   to force multiline input, hit :key:`Ctrl-Enter` at the end of the first line
-   instead of :key:`Enter`, and it will open a new line for input.  At any
+   to force multiline input, hit :kbd:`Ctrl-Enter` at the end of the first line
+   instead of :kbd:`Enter`, and it will open a new line for input.  At any
    point in a multiline block, you can force its execution (without having to
-   go to the bottom) with :key:`Shift-Enter`.
+   go to the bottom) with :kbd:`Shift-Enter`.
 
 ``%loadpy``
 ===========
