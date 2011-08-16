@@ -59,6 +59,7 @@ class TestLoadBalancedView(ClusterTestCase):
     def test_abort(self):
         view = self.view
         ar = self.client[:].apply_async(time.sleep, .5)
+        ar = self.client[:].apply_async(time.sleep, .5)
         ar2 = view.apply_async(lambda : 2)
         ar3 = view.apply_async(lambda : 3)
         view.abort(ar2)
