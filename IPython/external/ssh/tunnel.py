@@ -122,7 +122,7 @@ def _try_passwordless_paramiko(server, keyfile):
         return True
 
 
-def tunnel_connection(socket, addr, server, keyfile=None, password=None, paramiko=None):
+def tunnel_connection(socket, addr, server, keyfile=None, password=None, paramiko=None, timeout=60):
     """Connect a socket to an address via an ssh tunnel.
     
     This is a wrapper for socket.connect(addr), when addr is not accessible
@@ -131,12 +131,12 @@ def tunnel_connection(socket, addr, server, keyfile=None, password=None, paramik
     selected local port of the tunnel.
     
     """
-    new_url, tunnel = open_tunnel(addr, server, keyfile=keyfile, password=password, paramiko=paramiko)
+    new_url, tunnel = open_tunnel(addr, server, keyfile=keyfile, password=password, paramiko=paramiko, timeout=timeout)
     socket.connect(new_url)
     return tunnel
 
 
-def open_tunnel(addr, server, keyfile=None, password=None, paramiko=None):
+def open_tunnel(addr, server, keyfile=None, password=None, paramiko=None, timeout=60):
     """Open a tunneled connection from a 0MQ url.
     
     For use inside tunnel_connection.
@@ -157,10 +157,11 @@ def open_tunnel(addr, server, keyfile=None, password=None, paramiko=None):
         tunnelf = paramiko_tunnel
     else:
         tunnelf = openssh_tunnel
-    tunnel = tunnelf(lport, rport, server, remoteip=ip, keyfile=keyfile, password=password)
+    
+    tunnel = tunnelf(lport, rport, server, remoteip=ip, keyfile=keyfile, password=password, timeout=timeout)
     return 'tcp://127.0.0.1:%i'%lport, tunnel
 
-def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=15):
+def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=60):
     """Create an ssh tunnel using command-line ssh that connects port lport
     on this machine to localhost:rport on server.  The tunnel
     will automatically close when not in use, remaining open
@@ -192,7 +193,9 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
         password : str; 
             Your ssh password to the ssh server. Note that if this is left None,
             you will be prompted for it if passwordless key based login is unavailable.
-    
+        timeout : int [default: 60]
+            The time (in seconds) after which no activity will result in the tunnel
+            closing.  This prevents orphaned tunnels from running forever.
     """
     if pexpect is None:
         raise ImportError("pexpect unavailable, use paramiko_tunnel")
@@ -236,7 +239,7 @@ def _split_server(server):
         port = 22
     return username, server, port
 
-def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=15):
+def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=60):
     """launch a tunner with paramiko in a subprocess. This should only be used
     when shell ssh is unavailable (e.g. Windows).
     
@@ -271,6 +274,9 @@ def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pa
         password : str; 
             Your ssh password to the ssh server. Note that if this is left None,
             you will be prompted for it if passwordless key based login is unavailable.
+        timeout : int [default: 60]
+            The time (in seconds) after which no activity will result in the tunnel
+            closing.  This prevents orphaned tunnels from running forever.
     
     """
     if paramiko is None:
