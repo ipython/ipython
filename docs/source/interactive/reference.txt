@@ -697,7 +697,7 @@ Even object attributes can be expanded::
 System command aliases
 ----------------------
 
-The %alias magic functionallows you to define magic functions which are in fact
+The %alias magic function allows you to define magic functions which are in fact
 system shell commands. These aliases can have parameters.
 
 ``%alias alias_name cmd`` defines 'alias_name' as an alias for 'cmd'
