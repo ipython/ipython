@@ -2263,7 +2263,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                     cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
                 except AliasError as e:
                     error(e)
-                    prefilter_failed=True
+                    prefilter_failed = True
                 except Exception:
                     # don't allow prefilter errors to crash IPython
                     self.showtraceback()
@@ -2294,7 +2294,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                         return None
             
                     self.run_ast_nodes(code_ast.body, cell_name,
-                                                        interactivity="last_expr")
+                                       interactivity="last_expr")
             
                     # Execute any registered post-execution functions.
                     for func, status in self._post_execute.iteritems():
@@ -2351,18 +2351,30 @@ class InteractiveShell(SingletonConfigurable, Magic):
             raise ValueError("Interactivity was %r" % interactivity)
             
         exec_count = self.execution_count
-        
-        for i, node in enumerate(to_run_exec):
-            mod = ast.Module([node])
-            code = self.compile(mod, cell_name, "exec")
-            if self.run_code(code):
-                return True
 
-        for i, node in enumerate(to_run_interactive):
-            mod = ast.Interactive([node])
-            code = self.compile(mod, cell_name, "single")
-            if self.run_code(code):
-                return True
+        try:
+            for i, node in enumerate(to_run_exec):
+                mod = ast.Module([node])
+                code = self.compile(mod, cell_name, "exec")
+                if self.run_code(code):
+                    return True
+
+            for i, node in enumerate(to_run_interactive):
+                mod = ast.Interactive([node])
+                code = self.compile(mod, cell_name, "single")
+                if self.run_code(code):
+                    return True
+        except:
+            # It's possible to have exceptions raised here, typically by
+            # compilation of odd code (such as a naked 'return' outside a
+            # function) that did parse but isn't valid. Typically the exception
+            # is a SyntaxError, but it's safest just to catch anything and show
+            # the user a traceback.
+
+            # We do only one try/except outside the loop to minimize the impact
+            # on runtime, and also because if any node in the node list is
+            # broken, we should stop execution completely.
+            self.showtraceback()
 
         return False
     
