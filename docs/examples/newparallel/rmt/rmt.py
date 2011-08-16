@@ -1,56 +1,146 @@
-#-------------------------------------------------------------------------------
-# Driver code that the client runs.
-#-------------------------------------------------------------------------------
-# To run this code start a controller and engines using:
-# ipcluster -n 2
-# Then run the scripts by doing irunner rmt.ipy or by starting ipython and
-# doing run rmt.ipy.
+# <nbformat>2</nbformat>
 
-from rmtkernel import *
-import numpy
+# <markdowncell>
+
+# # Eigenvalue distribution of Gaussian orthogonal random matrices
+
+# <markdowncell>
+
+# The eigenvalues of random matrices obey certain statistical laws. Here we construct random matrices 
+# from the Gaussian Orthogonal Ensemble (GOE), find their eigenvalues and then investigate the nearest
+# neighbor eigenvalue distribution $\rho(s)$.
+
+# <codecell>
+
+from rmtkernel import ensemble_diffs, normalize_diffs, GOE
+import numpy as np
 from IPython.parallel import Client
 
+# <markdowncell>
 
-def wignerDistribution(s):
+# ## Wigner's nearest neighbor eigenvalue distribution
+
+# <markdowncell>
+
+# The Wigner distribution gives the theoretical result for the nearest neighbor eigenvalue distribution
+# for the GOE:
+# 
+# $$\rho(s) = \frac{\pi s}{2} \exp(-\pi s^2/4)$$
+
+# <codecell>
+
+def wigner_dist(s):
     """Returns (s, rho(s)) for the Wigner GOE distribution."""
-    return (numpy.pi*s/2.0) * numpy.exp(-numpy.pi*s**2/4.)
+    return (np.pi*s/2.0) * np.exp(-np.pi*s**2/4.)
 
+# <codecell>
 
-def generateWignerData():
-    s = numpy.linspace(0.0,4.0,400)
-    rhos = wignerDistribution(s)
+def generate_wigner_data():
+    s = np.linspace(0.0,4.0,400)
+    rhos = wigner_dist(s)
     return s, rhos
-    
 
-def serialDiffs(num, N):
-    diffs = ensembleDiffs(num, N)
-    normalizedDiffs = normalizeDiffs(diffs)
-    return normalizedDiffs
+# <codecell>
 
+s, rhos = generate_wigner_data()
 
-def parallelDiffs(rc, num, N):
+# <codecell>
+
+plot(s, rhos)
+xlabel('Normalized level spacing s')
+ylabel('Probability $\rho(s)$')
+
+# <markdowncell>
+
+# ## Serial calculation of nearest neighbor eigenvalue distribution
+
+# <markdowncell>
+
+# In this section we numerically construct and diagonalize a large number of GOE random matrices
+# and compute the nerest neighbor eigenvalue distribution. This comptation is done on a single core.
+
+# <codecell>
+
+def serial_diffs(num, N):
+    """Compute the nearest neighbor distribution for num NxX matrices."""
+    diffs = ensemble_diffs(num, N)
+    normalized_diffs = normalize_diffs(diffs)
+    return normalized_diffs
+
+# <codecell>
+
+serial_nmats = 1000
+serial_matsize = 50
+
+# <codecell>
+
+%timeit -r1 -n1 serial_diffs(serial_nmats, serial_matsize)
+
+# <codecell>
+
+serial_diffs = serial_diffs(serial_nmats, serial_matsize)
+
+# <markdowncell>
+
+# The numerical computation agrees with the predictions of Wigner, but it would be nice to get more
+# statistics. For that we will do a parallel computation.
+
+# <codecell>
+
+hist_data = hist(serial_diffs, bins=30, normed=True)
+plot(s, rhos)
+xlabel('Normalized level spacing s')
+ylabel('Probability $P(s)$')
+
+# <markdowncell>
+
+# ## Parallel calculation of nearest neighbor eigenvalue distribution
+
+# <markdowncell>
+
+# Here we perform a parallel computation, where each process constructs and diagonalizes a subset of
+# the overall set of random matrices.
+
+# <codecell>
+
+def parallel_diffs(rc, num, N):
     nengines = len(rc.targets)
     num_per_engine = num/nengines
     print "Running with", num_per_engine, "per engine."
-    ar = rc.apply_async(ensembleDiffs, num_per_engine, N)
-    return numpy.array(ar.get()).flatten()
+    ar = rc.apply_async(ensemble_diffs, num_per_engine, N)
+    diffs = np.array(ar.get()).flatten()
+    normalized_diffs = normalize_diffs(diffs)
+    return normalized_diffs
 
+# <codecell>
 
-# Main code
-if __name__ == '__main__':
-    rc = Client()
-    view = rc[:]
-    print "Distributing code to engines..."
-    view.run('rmtkernel.py')
-    view.block = False
+client = Client()
+view = client[:]
+view.run('rmtkernel.py')
+view.block = False
 
-    # Simulation parameters
-    nmats = 100
-    matsize = 30
-    # tic = time.time()
-    %timeit -r1 -n1 serialDiffs(nmats,matsize)
-    %timeit -r1 -n1 parallelDiffs(view, nmats, matsize)
+# <codecell>
 
-    # Uncomment these to plot the histogram
-    # import pylab
-    # pylab.hist(parallelDiffs(rc,matsize,matsize))
+parallel_nmats = 40*serial_nmats
+parallel_matsize = 50
+
+# <codecell>
+
+%timeit -r1 -n1 parallel_diffs(view, parallel_nmats, parallel_matsize)
+
+# <codecell>
+
+pdiffs = parallel_diffs(view, parallel_nmats, parallel_matsize)
+
+# <markdowncell>
+
+# Again, the agreement with the Wigner distribution is excellent, but now we have better
+# statistics.
+
+# <codecell>
+
+hist_data = hist(pdiffs, bins=30, normed=True)
+plot(s, rhos)
+xlabel('Normalized level spacing s')
+ylabel('Probability $P(s)$')
+
