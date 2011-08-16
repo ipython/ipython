@@ -56,7 +56,7 @@ class DisplayPublisher(Configurable):
             Any metadata for the data.
         """
 
-        if not isinstance(source, (str,unicode)):
+        if not isinstance(source, basestring):
             raise TypeError('source must be a str, got: %r' % source)
         if not isinstance(data, dict):
             raise TypeError('data must be a dict, got: %r' % data)

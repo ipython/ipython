@@ -155,7 +155,7 @@ def display_jpeg(*objs, **kwargs):
     raw = kwargs.pop('raw',False)
     if raw:
         for obj in objs:
-            publish_png(obj)
+            publish_jpeg(obj)
     else:
         display(*objs, include=['text/plain','image/jpeg'])
 
