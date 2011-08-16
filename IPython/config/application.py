@@ -373,10 +373,14 @@ class Application(SingletonConfigurable):
             # problem with the file (probably doesn't exist), raise
             raise
         except Exception:
+            # try to get the full filename, but it will be empty in the
+            # unlikely event that the error raised before filefind finished
+            filename = loader.full_filename or filename
             # problem while running the file
-            self.log.error("Exception while loading config file %s [path=%s]"%
-                            (filename, path), exc_info=True)
+            self.log.error("Exception while loading config file %s",
+                            filename, exc_info=True)
         else:
+            self.log.debug("Loaded config file: %s", loader.full_filename)
             self.update_config(config)
     
     def generate_config_file(self):
