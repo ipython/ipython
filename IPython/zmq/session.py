@@ -588,7 +588,6 @@ class Session(Configurable):
         try:
             return idents, self.unserialize(msg_list, content=content, copy=copy)
         except Exception as e:
-            print (idents, msg_list)
             # TODO: handle it
             raise e
     
@@ -661,6 +660,8 @@ class Session(Configurable):
                 msg_list[i] = msg_list[i].bytes
         if self.auth is not None:
             signature = msg_list[0]
+            if not signature:
+                raise ValueError("Unsigned Message")
             if signature in self.digest_history:
                 raise ValueError("Duplicate Signature: %r"%signature)
             self.digest_history.add(signature)
