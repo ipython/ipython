@@ -26,7 +26,9 @@ from getpass import getpass
 from IPython.external.qt import QtGui
 from pygments.styles import get_all_styles
 
-# from IPython.external.ssh import tunnel
+# external imports
+from IPython.external.ssh import tunnel
+
 # Local imports
 from IPython.config.application import boolean_flag
 from IPython.core.application import BaseIPythonApplication
@@ -334,8 +336,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                     self.kernel_argv.remove(a)
     
     def init_ssh(self):
-        # import here, to prevent circular import
-        from IPython.external.ssh import tunnel
+        """set up ssh tunnels, if needed."""
         if not self.sshserver and not self.sshkey:
             return
         
