@@ -121,7 +121,11 @@ class Kernel(Configurable):
     def do_one_iteration(self):
         """Do one iteration of the kernel's evaluation loop.
         """
-        ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
+        try:
+            ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
+        except Exception:
+            self.log.warn("Invalid Message:", exc_info=True)
+            return
         if msg is None:
             return
 
@@ -375,7 +379,11 @@ class Kernel(Configurable):
 
     def _abort_queue(self):
         while True:
-            ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
+            try:
+                ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
+            except Exception:
+                self.log.warn("Invalid Message:", exc_info=True)
+                continue
             if msg is None:
                 break
             else:
@@ -402,7 +410,13 @@ class Kernel(Configurable):
         msg = self.session.send(self.stdin_socket, u'input_request', content, parent)
 
         # Await a response.
-        ident, reply = self.session.recv(self.stdin_socket, 0)
+        while True:
+            try:
+                ident, reply = self.session.recv(self.stdin_socket, 0)
+            except Exception:
+                self.log.warn("Invalid Message:", exc_info=True)
+            else:
+                break
         try:
             value = reply['content']['value']
         except:
