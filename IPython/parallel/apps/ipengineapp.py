@@ -118,6 +118,8 @@ aliases = dict(
     keyfile = 'Session.keyfile',
 
     url = 'EngineFactory.url',
+    ssh = 'EngineFactory.sshserver',
+    sshkey = 'EngineFactory.sshkey',
     ip = 'EngineFactory.ip',
     transport = 'EngineFactory.transport',
     port = 'EngineFactory.regport',
@@ -192,6 +194,40 @@ class IPEngineApp(BaseParallelApplication):
                 self.profile_dir.security_dir,
                 self.url_file_name
             )
+    
+    def load_connector_file(self):
+        """load config from a JSON connector file,
+        at a *lower* priority than command-line/config files.
+        """
+        
+        self.log.info("Loading url_file %r"%self.url_file)
+        config = self.config
+        
+        with open(self.url_file) as f:
+            d = json.loads(f.read())
+        
+        try:
+            config.Session.key
+        except AttributeError:
+            if d['exec_key']:
+                config.Session.key = asbytes(d['exec_key'])
+                
+        try:
+            config.EngineFactory.location
+        except AttributeError:
+            config.EngineFactory.location = d['location']
+        
+        d['url'] = disambiguate_url(d['url'], config.EngineFactory.location)
+        try:
+            config.EngineFactory.url
+        except AttributeError:
+            config.EngineFactory.url = d['url']
+        
+        try:
+            config.EngineFactory.sshserver
+        except AttributeError:
+            config.EngineFactory.sshserver = d['ssh']
+        
     def init_engine(self):
         # This is the working dir by now.
         sys.path.insert(0, '')
@@ -219,14 +255,7 @@ class IPEngineApp(BaseParallelApplication):
                 time.sleep(0.1)
             
         if os.path.exists(self.url_file):
-            self.log.info("Loading url_file %r"%self.url_file)
-            with open(self.url_file) as f:
-                d = json.loads(f.read())
-            if d['exec_key']:
-                config.Session.key = asbytes(d['exec_key'])
-            d['url'] = disambiguate_url(d['url'], d['location'])
-            config.EngineFactory.url = d['url']
-            config.EngineFactory.location = d['location']
+            self.load_connector_file()
         elif not url_specified:
             self.log.critical("Fatal: url file never arrived: %s"%self.url_file)
             self.exit(1)
@@ -253,7 +282,7 @@ class IPEngineApp(BaseParallelApplication):
         except:
             self.log.error("Couldn't start the Engine", exc_info=True)
             self.exit(1)
-        
+    
     def forward_logging(self):
         if self.log_url:
             self.log.info("Forwarding logging to %s"%self.log_url)
@@ -265,7 +294,7 @@ class IPEngineApp(BaseParallelApplication):
             handler.setLevel(self.log_level)
             self.log.addHandler(handler)
             self._log_handler = handler
-    #
+    
     def init_mpi(self):
         global mpi
         self.mpi = MPI(config=self.config)
