@@ -46,8 +46,6 @@ from IPython.utils.text import indent, wrap_paragraphs, dedent
 
 # merge flags&aliases into options
 option_description = """
-IPython command-line arguments are passed as '--<flag>', or '--<name>=<value>'.
-
 Arguments that take values are actually convenience aliases to full
 Configurables, whose aliases are listed on the help line. For more information
 on full configurables, see '--help-all'.
