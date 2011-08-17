@@ -219,132 +219,140 @@ def superreload(module, reload=reload, old_objects={}):
 
     return module
 
-reloader = ModuleReloader()
-
 #------------------------------------------------------------------------------
 # IPython connectivity
 #------------------------------------------------------------------------------
-from IPython.core import ipapi
-from IPython.core.error import TryNext
 
-ip = ipapi.get()
+from IPython.core.plugin import Plugin
+from IPython.core.hooks import TryNext
 
-autoreload_enabled = False
+class Autoreload(Plugin):
+    def __init__(self, shell=None, config=None):
+        super(Autoreload, self).__init__(shell=shell, config=config)
 
-def runcode_hook(self):
-    if not autoreload_enabled:
-        raise TryNext
-    try:
-        reloader.check()
-    except:
-        pass
+        self.shell.define_magic('autoreload', self.magic_autoreload)
+        self.shell.define_magic('aimport', self.magic_aimport)
+        self.shell.set_hook('pre_run_code_hook', self.pre_run_code_hook)
 
-def enable_autoreload():
-    global autoreload_enabled
-    autoreload_enabled = True
+        self._enabled = False
+        self._reloader = ModuleReloader()
+        self._reloader.check_all = False
 
-def disable_autoreload():
-    global autoreload_enabled
-    autoreload_enabled = False
+    def pre_run_code_hook(self, ipself):
+        if not self._enabled:
+            raise TryNext
+        try:
+            self._reloader.check()
+        except:
+            pass
 
-def autoreload_f(self, parameter_s=''):
-    r""" %autoreload => Reload modules automatically
+    def magic_autoreload(self, ipself, parameter_s=''):
+        r"""%autoreload => Reload modules automatically
 
-    %autoreload
-    Reload all modules (except those excluded by %aimport) automatically now.
+        %autoreload
+        Reload all modules (except those excluded by %aimport) automatically
+        now.
 
-    %autoreload 0
-    Disable automatic reloading.
+        %autoreload 0
+        Disable automatic reloading.
 
-    %autoreload 1
-    Reload all modules imported with %aimport every time before executing
-    the Python code typed.
+        %autoreload 1
+        Reload all modules imported with %aimport every time before executing
+        the Python code typed.
 
-    %autoreload 2
-    Reload all modules (except those excluded by %aimport) every time
-    before executing the Python code typed.
+        %autoreload 2
+        Reload all modules (except those excluded by %aimport) every time
+        before executing the Python code typed.
 
-    Reloading Python modules in a reliable way is in general
-    difficult, and unexpected things may occur. %autoreload tries to
-    work around common pitfalls by replacing function code objects and
-    parts of classes previously in the module with new versions. This
-    makes the following things to work:
+        Reloading Python modules in a reliable way is in general
+        difficult, and unexpected things may occur. %autoreload tries to
+        work around common pitfalls by replacing function code objects and
+        parts of classes previously in the module with new versions. This
+        makes the following things to work:
 
-    - Functions and classes imported via 'from xxx import foo' are upgraded
-      to new versions when 'xxx' is reloaded.
+        - Functions and classes imported via 'from xxx import foo' are upgraded
+          to new versions when 'xxx' is reloaded.
 
-    - Methods and properties of classes are upgraded on reload, so that
-      calling 'c.foo()' on an object 'c' created before the reload causes
-      the new code for 'foo' to be executed.
+        - Methods and properties of classes are upgraded on reload, so that
+          calling 'c.foo()' on an object 'c' created before the reload causes
+          the new code for 'foo' to be executed.
 
-    Some of the known remaining caveats are:
+        Some of the known remaining caveats are:
 
-    - Replacing code objects does not always succeed: changing a @property
-      in a class to an ordinary method or a method to a member variable
-      can cause problems (but in old objects only).
+        - Replacing code objects does not always succeed: changing a @property
+          in a class to an ordinary method or a method to a member variable
+          can cause problems (but in old objects only).
 
-    - Functions that are removed (eg. via monkey-patching) from a module
-      before it is reloaded are not upgraded.
+        - Functions that are removed (eg. via monkey-patching) from a module
+          before it is reloaded are not upgraded.
 
-    - C extension modules cannot be reloaded, and so cannot be
-      autoreloaded.
+        - C extension modules cannot be reloaded, and so cannot be
+          autoreloaded.
 
-    """
-    if parameter_s == '':
-        reloader.check(True)
-    elif parameter_s == '0':
-        disable_autoreload()
-    elif parameter_s == '1':
-        reloader.check_all = False
-        enable_autoreload()
-    elif parameter_s == '2':
-        reloader.check_all = True
-        enable_autoreload()
+        """
+        if parameter_s == '':
+            self._reloader.check(True)
+        elif parameter_s == '0':
+            self._enabled = False
+        elif parameter_s == '1':
+            self._reloader.check_all = False
+            self._enabled = True
+        elif parameter_s == '2':
+            self._reloader.check_all = True
+            self._enabled = True
 
-def aimport_f(self, parameter_s=''):
-    """%aimport => Import modules for automatic reloading.
+    def magic_aimport(self, ipself, parameter_s=''):
+        """%aimport => Import modules for automatic reloading.
 
-    %aimport
-    List modules to automatically import and not to import.
+        %aimport
+        List modules to automatically import and not to import.
 
-    %aimport foo
-    Import module 'foo' and mark it to be autoreloaded for %autoreload 1
+        %aimport foo
+        Import module 'foo' and mark it to be autoreloaded for %autoreload 1
 
-    %aimport -foo
-    Mark module 'foo' to not be autoreloaded for %autoreload 1
+        %aimport -foo
+        Mark module 'foo' to not be autoreloaded for %autoreload 1
 
-    """
+        """
 
-    modname = parameter_s
-    if not modname:
-        to_reload = reloader.modules.keys()
-        to_reload.sort()
-        to_skip = reloader.skip_modules.keys()
-        to_skip.sort()
-        if reloader.check_all:
-            print "Modules to reload:\nall-expect-skipped"
+        modname = parameter_s
+        if not modname:
+            to_reload = self._reloader.modules.keys()
+            to_reload.sort()
+            to_skip = self._reloader.skip_modules.keys()
+            to_skip.sort()
+            if self._reloader.check_all:
+                print "Modules to reload:\nall-expect-skipped"
+            else:
+                print "Modules to reload:\n%s" % ' '.join(to_reload)
+            print "\nModules to skip:\n%s" % ' '.join(to_skip)
+        elif modname.startswith('-'):
+            modname = modname[1:]
+            try:
+                del self._reloader.modules[modname]
+            except KeyError:
+                pass
+            self._reloader.skip_modules[modname] = True
         else:
-            print "Modules to reload:\n%s" % ' '.join(to_reload)
-        print "\nModules to skip:\n%s" % ' '.join(to_skip)
-    elif modname.startswith('-'):
-        modname = modname[1:]
-        try: del reloader.modules[modname]
-        except KeyError: pass
-        reloader.skip_modules[modname] = True
-    else:
-        try: del reloader.skip_modules[modname]
-        except KeyError: pass
-        reloader.modules[modname] = True
+            try:
+                del self._reloader.skip_modules[modname]
+            except KeyError:
+                pass
+            self._reloader.modules[modname] = True
 
-        # Inject module to user namespace; handle also submodules properly
-        __import__(modname)
-        basename = modname.split('.')[0]
-        mod = sys.modules[basename]
-        ip.push({basename: mod})
+            # Inject module to user namespace; handle also submodules properly
+            __import__(modname)
+            basename = modname.split('.')[0]
+            mod = sys.modules[basename]
+            ipself.push({basename: mod})
 
-def init():
-    ip.define_magic('autoreload', autoreload_f)
-    ip.define_magic('aimport', aimport_f)
-    ip.set_hook('pre_runcode_hook', runcode_hook)
 
-init()
+_loaded = False
+
+def load_ipython_extension(ip):
+    """Load the extension in IPython."""
+    global _loaded
+    if not _loaded:
+        plugin = Autoreload(shell=ip, config=ip.config)
+        ip.plugin_manager.register_plugin('autoreload', plugin)
+        _loaded = True
