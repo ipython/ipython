@@ -25,7 +25,7 @@ var IPython = (function (IPython) {
         } else if (typeof(MozWebSocket) !== 'undefined') {
             this.WebSocket = MozWebSocket
         } else {
-            alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox 6');
+            alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox 6. Firefox 4 and 5 are also supported by you have to enable WebSockets in about:config.');
         };
     };
 
