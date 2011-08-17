@@ -28,10 +28,10 @@ is not yet configurable.
 
    Since the Qt console tries hard to behave like a terminal, by default it
    immediately executes single lines of input that are complete.  If you want
-   to force multiline input, hit :key:`Ctrl-Enter` at the end of the first line
-   instead of :key:`Enter`, and it will open a new line for input.  At any
+   to force multiline input, hit :kbd:`Ctrl-Enter` at the end of the first line
+   instead of :kbd:`Enter`, and it will open a new line for input.  At any
    point in a multiline block, you can force its execution (without having to
-   go to the bottom) with :key:`Shift-Enter`.
+   go to the bottom) with :kbd:`Shift-Enter`.
 
 ``%loadpy``
 ===========
@@ -213,6 +213,8 @@ blocking execution. The frontend can also know, via a heartbeat mechanism, that
 the kernel has died. This means that the frontend can safely restart the
 kernel.
 
+.. _multiple_consoles:
+
 Multiple Consoles
 *****************
 
@@ -225,10 +227,37 @@ like::
     [IPKernelApp] --existing --shell=60690 --iopub=44045 --stdin=38323 --hb=41797
 
 Other frontends can connect to your kernel, and share in the execution. This is
-great for collaboration. The `-e` flag is for 'external'. Starting other
+great for collaboration.  The ``--existing`` flag means connect to a kernel
+that already exists.  Starting other
 consoles with that flag will not try to start their own, but rather connect to
 yours. Ultimately, you will not have to specify each port individually, but for
 now this copy-paste method is best.
+
+You can even launch a standalone kernel, and connect and disconnect Qt Consoles
+from various machines.  This lets you keep the same running IPython session
+on your work machine (with matplotlib plots and everything), logging in from home,
+cafés, etc.::
+
+    $> ipython kernel
+    [IPKernelApp] To connect another client to this kernel, use:
+    [IPKernelApp] --existing --shell=60690 --iopub=44045 --stdin=38323 --hb=41797
+
+This is actually exactly the same as the subprocess launched by the qtconsole, so
+all the information about connecting to a standalone kernel is identical to that
+of connecting to the kernel attached to a running console.
+
+.. _kernel_security:
+
+Security
+--------
+
+.. warning::
+
+    Since the ZMQ code currently has no security, listening on an
+    external-facing IP is dangerous.  You are giving any computer that can see
+    you on the network the ability to issue arbitrary shell commands as you on
+    your machine. Read the rest of this section before listening on external ports
+    or running an IPython kernel on a shared machine.
 
 By default (for security reasons), the kernel only listens on localhost, so you
 can only connect multiple frontends to the kernel from your local machine. You
@@ -238,14 +267,134 @@ argument::
     $> ipython qtconsole --ip=192.168.1.123
 
 If you specify the ip as 0.0.0.0, that refers to all interfaces, so any
-computer that can see yours can connect to the kernel.
+computer that can see yours on the network can connect to the kernel.
+
+Messages are not encrypted, so users with access to the ports your kernel is using will be
+able to see any output of the kernel. They will also be able to issue shell commands as
+you, unless you enable HMAC digests, which are **DISABLED** by default.
+
+The one security feature IPython does provide is protection from unauthorized
+execution. IPython's messaging system can sign messages with HMAC digests using
+a shared-key.  The key is never sent over the network, it is only used to generate
+a unique hash for each message, based on its content.  When IPython receives a
+message, it will check that the digest matches. You can use any file that only you
+have access to to generate this key.  One logical choice would be to use your own 
+SSH private key. Or you can generate a new random private key with::
+
+    # generate 1024b of random data, and store in a file only you can read:
+    # (assumes IPYTHON_DIR is defined, otherwise use your IPython directory)
+    $> python -c "import os; print os.urandom(128).encode('base64')" > $IPYTHON_DIR/sessionkey
+    $> chmod 600 $IPYTHON_DIR/sessionkey
+
+To enable HMAC digests, simply specify the ``Session.keyfile`` configurable
+in :file:`ipython_config.py` or at the command-line, as in::
+
+    # instruct IPython to sign messages with that key:
+    $> ipython qtconsole --Session.keyfile=$IPYTHON_DIR/sessionkey
+
+You must use the same key you used to start the kernel with all frontends, or
+they will be treated as an unauthorized peer (all messages will be ignored).
+
+.. note::
+
+    IPython will move to using files to store connection information, as is
+    done in :mod:`IPython.parallel`, at which point HMAC signatures will be
+    enabled *by default*.
+
+.. _ssh_tunnels:
+
+SSH Tunnels
+-----------
+
+Sometimes you want to connect to machines across the internet, or just across
+a LAN that either doesn't permit open ports or you don't trust the other
+machines on the network.  To do this, you can use SSH tunnels.  SSH tunnels
+are a way to securely forward ports on your local machine to ports on another
+machine, to which you have SSH access.
+
+In simple cases, IPython's tools can forward ports over ssh by simply adding the
+``--ssh=remote`` argument to the usual ``--existing...`` set of flags for connecting
+to a running kernel.
 
 .. warning::
 
-    Since the ZMQ code currently has no security, listening on an
-    external-facing IP is dangerous.  You are giving any computer that can see
-    you on the network the ability to issue arbitrary shell commands as you on
-    your machine. Be very careful with this.
+    Using SSH tunnels does *not* increase localhost security.  In fact, when
+    tunneling from one machine to another *both* machines have open
+    ports on localhost available for connections.
+
+There are two primary models for using SSH tunnels with IPython.  The first
+is to have the Kernel listen only on localhost, and connect to it from
+another machine on the same LAN.
+
+First, let's start a kernel on machine **worker**, listening only
+on loopback::
+
+    user@worker $> ipython kernel
+    [IPKernelApp] To connect another client to this kernel, use:
+    [IPKernelApp] --existing --shell=59480 --iopub=62199 --stdin=64898 --hb=56511
+
+In this case, the IP that you would connect
+to would still be 127.0.0.1, but you want to specify the additional ``--ssh`` argument
+with the hostname of the kernel (in this example, it's 'worker')::
+
+    user@client $> ipython qtconsole  --ssh=worker --existing --shell=59480 --iopub=62199 --stdin=64898 --hb=56511
+
+Note again that this opens ports on the *client* machine that point to your kernel.
+Be sure to use a Session key, as described above, if localhost on *either* the
+client or kernel machines is untrusted.
+
+.. note::
+
+    the ssh argument is simply passed to openssh, so it can be fully specified ``user@host:port``
+    but it will also respect your aliases, etc. in :file:`.ssh/config` if you have any.
+
+The second pattern is for connecting to a machine behind a firewall across the internet
+(or otherwise wide network). This time, we have a machine **login** that you have ssh access
+to, which can see **kernel**, but **client** is on another network. The important difference
+now is that **client** can see **login**, but *not* **worker**. So we need to forward ports from
+client to worker *via* login. This means that the kernel must be started listening
+on external interfaces, so that its ports are visible to `login`::
+
+    user@worker $> ipython kernel --ip=0.0.0.0
+    [IPKernelApp] To connect another client to this kernel, use:
+    [IPKernelApp] --existing --shell=59480 --iopub=62199 --stdin=64898 --hb=56511
+
+Which we can connect to from the client with::
+
+    user@client $> ipython qtconsole --ssh=login --ip=192.168.1.123 --existing --shell=59480 --iopub=62199 --stdin=64898 --hb=56511
+
+Note that now the IP is the address of worker as seen from login.
+
+Manual SSH tunnels
+------------------
+
+It's possible that IPython's ssh helper functions won't work for you, for various
+reasons.  You can still connect to remote machines, as long as you set up the tunnels
+yourself.  The basic format of forwarding a local port to a remote one is::
+
+    [client] $> ssh <server> <localport>:<remoteip>:<remoteport> -f -N
+
+This will forward local connections to **localport** on client to **remoteip:remoteport**
+*via* **server**. Note that remoteip is interpreted relative to *server*, not the client.
+So if you have direct ssh access to the machine to which you want to forward connections,
+then the server *is* the remote machine, and remoteip should be server's IP as seen from the
+server itself, i.e. 127.0.0.1.  Thus, to forward local port 12345 to remote port 54321 on
+a machine you can see, do::
+
+    [client] $> ssh machine 12345:127.0.0.1:54321 -f -N
+
+But if your target is actually on a LAN at 192.168.1.123, behind another machine called **login**,
+then you would do::
+
+    [client] $> ssh login 12345:192.168.1.16:54321 -f -N
+
+The ``-f -N`` on the end are flags that tell ssh to run in the background,
+and don't actually run any commands beyond creating the tunnel.
+
+.. seealso::
+
+    A short discussion of ssh tunnels: http://www.revsys.com/writings/quicktips/ssh-tunnel.html
+
 
 
 Stopping Kernels and Consoles
