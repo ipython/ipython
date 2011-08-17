@@ -164,9 +164,9 @@ var IPython = (function (IPython) {
         this.content.find('#to_code').click(function () {
             IPython.notebook.to_code();
         });
-        this.content.find('#to_html').click(function () {
-            IPython.notebook.to_html();
-        });
+//        this.content.find('#to_html').click(function () {
+//            IPython.notebook.to_html();
+//        });
         this.content.find('#to_markdown').click(function () {
             IPython.notebook.to_markdown();
         });

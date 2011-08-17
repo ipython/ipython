@@ -72,6 +72,9 @@ var IPython = (function (IPython) {
             this.code_mirror.focus();
             this.code_mirror.refresh();
             this.rendered = false;
+            if (this.get_source() === this.placeholder) {
+                this.set_source('');
+            };
         };
     };
 
