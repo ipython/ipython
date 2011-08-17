@@ -20,10 +20,12 @@ var IPython = (function (IPython) {
         this.shell_channel = null;
         this.iopub_channel = null;
         this.running = false;
-        if (typeof(WebSocket) === 'undefined') {
+        if (typeof(WebSocket) !== 'undefined') {
+            this.WebSocket = WebSocket
+        } else if (typeof(MozWebSocket) !== 'undefined') {
             this.WebSocket = MozWebSocket
         } else {
-            this.WebSocket = WebSocket
+            alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox 6');
         };
     };
 
