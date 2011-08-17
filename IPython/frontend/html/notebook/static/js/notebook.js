@@ -768,6 +768,7 @@ var IPython = (function (IPython) {
                    $('head').clone().html() +
                    '<style type="text/css">' +
                    '@media print { body { overflow: visible !important; } }' +
+                   '.ui-widget-content { border: 0px; }' +
                    '</style>' +
                    '</head><body style="overflow: auto;">' +
                    $('#notebook').clone().html() +
