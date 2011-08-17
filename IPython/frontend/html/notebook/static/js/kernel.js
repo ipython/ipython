@@ -20,6 +20,11 @@ var IPython = (function (IPython) {
         this.shell_channel = null;
         this.iopub_channel = null;
         this.running = false;
+        if (typeof(WebSocket) === 'undefined') {
+            this.WebSocket = MozWebSocket
+        } else {
+            this.WebSocket = WebSocket
+        };
     };
 
 
@@ -82,8 +87,8 @@ var IPython = (function (IPython) {
         this.stop_channels();
         var ws_url = this.ws_url + this.kernel_url;
         console.log("Starting WS:", ws_url);
-        this.shell_channel = new WebSocket(ws_url + "/shell");
-        this.iopub_channel = new WebSocket(ws_url + "/iopub");
+        this.shell_channel = new this.WebSocket(ws_url + "/shell");
+        this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
     };
 
 
