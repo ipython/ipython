@@ -194,6 +194,9 @@ def start_ipython():
 
     # A few more tweaks needed for playing nicely with doctests...
     
+    # remove history file
+    shell.tempfiles.append(config.HistoryManager.hist_file)
+    
     # These traps are normally only active for interactive use, set them
     # permanently since we'll be mocking interactive sessions.
     shell.builtin_trap.activate()

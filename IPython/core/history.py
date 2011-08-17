@@ -129,7 +129,8 @@ class HistoryManager(Configurable):
         
     def init_db(self):
         """Connect to the database, and create tables if necessary."""
-        self.db = sqlite3.connect(self.hist_file)
+        # use detect_types so that timestamps return datetime objects
+        self.db = sqlite3.connect(self.hist_file, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self.db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
                         primary key autoincrement, start timestamp,
                         end timestamp, num_cmds integer, remark text)""")
@@ -211,6 +212,33 @@ class HistoryManager(Configurable):
         if output:    # Regroup into 3-tuples, and parse JSON
             return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
+        
+    
+    def get_session_info(self, session=0):
+        """get info about a session
+        
+        Parameters
+        ----------
+        
+        session : int
+            Session number to retrieve. The current session is 0, and negative
+            numbers count back from current session, so -1 is previous session.
+        
+        Returns
+        -------
+        
+        (session_id [int], start [datetime], end [datetime], num_cmds [int], remark [unicode])
+        
+        Sessions that are running or did not exit cleanly will have `end=None`
+        and `num_cmds=None`.
+        
+        """
+        
+        if session <= 0:
+            session += self.session_number
+        
+        query = "SELECT * from sessions where session == ?"
+        return self.db.execute(query, (session,)).fetchone()
         
     
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):

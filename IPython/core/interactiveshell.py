@@ -2552,15 +2552,17 @@ class InteractiveShell(SingletonConfigurable, Magic):
         code that has the appropriate information, rather than trying to
         clutter 
         """
+        # Close the history session (this stores the end time and line count)
+        # this must be *before* the tempfile cleanup, in case of temporary
+        # history db
+        self.history_manager.end_session()
+        
         # Cleanup all tempfiles left around
         for tfile in self.tempfiles:
             try:
                 os.unlink(tfile)
             except OSError:
                 pass
-        
-        # Close the history session (this stores the end time and line count)
-        self.history_manager.end_session()
         
         # Clear all user namespaces to release all references cleanly.
         self.reset(new_session=False)
