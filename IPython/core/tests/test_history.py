@@ -9,7 +9,7 @@
 import os
 import sys
 import unittest
-
+from datetime import datetime
 # third party
 import nose.tools as nt
 
@@ -107,3 +107,8 @@ def test_magic_rerun():
     nt.assert_equal(ip.user_ns["a"], 11)
     ip.run_cell("%rerun")
     nt.assert_equal(ip.user_ns["a"], 12)
+
+def test_timestamp_type():
+    ip = get_ipython()
+    info = ip.history_manager.get_session_info()
+    nt.assert_true(isinstance(info[1], datetime))
