@@ -1,9 +1,29 @@
+"""Unfinished code for ZMQ/HTTP bridging. We use WebSockets instead.
+
+Authors:
+
+* Brian Granger
+"""
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2011  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import json
+import logging
 
 from tornado import web
 
-import logging
-
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 class ZMQHandler(web.RequestHandler):
 
@@ -74,7 +94,3 @@ class ZMQXReqHandler(ZMQHandler):
             stream.send_json(msg)
             stream.on_recv(self._handle_msgs)
 
-
-
-
-    

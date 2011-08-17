@@ -48,8 +48,7 @@ from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
 from IPython.core.profiledir import ProfileDir
 from IPython.core.macro import Macro
-from IPython.core import magic_arguments
-from IPython.core import page
+from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest

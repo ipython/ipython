@@ -1,10 +1,29 @@
-"""Read and write notebooks in JSON format."""
+"""Read and write notebooks in JSON format.
+
+Authors:
+
+* Brian Granger
+"""
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2011  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
 from base64 import encodestring
 from .rwbase import NotebookReader, NotebookWriter
 from .nbbase import from_dict
 import json
 
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 class JSONReader(NotebookReader):
 

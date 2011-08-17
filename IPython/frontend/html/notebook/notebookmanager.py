@@ -1,8 +1,15 @@
+"""A notebook manager that uses the local file system for storage.
+
+Authors:
+
+* Brian Granger
+"""
+
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
+#  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
+#  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -46,7 +53,7 @@ class NotebookManager(LoggingConfigurable):
             dict(notebook_id=notebook,name=name)
         """
         names = os.listdir(self.notebook_dir)
-        names = [name.split(u'.')[0] \
+        names = [name.split(u'.')[0]
             for name in names if name.endswith(self.filename_ext)]
         data = []
         for name in names:
@@ -76,9 +83,7 @@ class NotebookManager(LoggingConfigurable):
         if notebook_id not in self.mapping:
             return False
         path = self.get_path_by_name(self.mapping[notebook_id])
-        if not os.path.isfile(path):
-            return False
-        return True        
+        return os.path.isfile(path)
 
     def find_path(self, notebook_id):
         """Return a full path to a notebook given its notebook_id."""

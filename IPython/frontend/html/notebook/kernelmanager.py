@@ -1,10 +1,15 @@
-"""A kernel manager for multiple kernels."""
+"""A kernel manager for multiple kernels.
+
+Authors:
+
+* Brian Granger
+"""
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
+#  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
+#  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------

@@ -195,11 +195,12 @@ class ProfileCreate(BaseIPythonApplication):
             apps.append(IPythonQtConsoleApp)
         try:
             from IPython.frontend.html.notebook.notebookapp import IPythonNotebookApp
-        except Exception:
-            # this should be ImportError, but under weird circumstances
-            # this might be an AttributeError, or possibly others
-            # in any case, nothing should cause the profile creation to crash.
+        except ImportError:
             pass
+        except Exception:
+            self.log.debug('Unexpected error when importing IPythonNotebookApp',
+                           exc_info=True
+            )
         else:
             apps.append(IPythonNotebookApp)
         if self.parallel:

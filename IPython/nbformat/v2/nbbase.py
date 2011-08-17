@@ -1,10 +1,34 @@
-"""The basic dict based notebook format."""
+"""The basic dict based notebook format.
+
+The Python representation of a notebook is a nested structure of 
+dictionary subclasses that support attribute access
+(IPython.utils.ipstruct.Struct). The functions in this module are merely
+helpers to build the structs in the right form.
+
+Authors:
+
+* Brian Granger
+"""
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2011  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
 import pprint
 import uuid
 
 from IPython.utils.ipstruct import Struct
 
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 class NotebookNode(Struct):
     pass

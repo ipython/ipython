@@ -43,14 +43,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 from .config.loader import Config
 from .core import release
 from .core.application import Application
-# Todo: Should these be imported here? We need to rethink what is imported in
-# this module.
-#from .core.display import (
-#    display, display_pretty, display_html, display_latex,
-#    display_png, display_jpeg, display_svg, display_json,
-#    display_javascript, HTML, SVG, Math, Image, JSON,
-#    Javascript, Pretty
-#)
 from .frontend.terminal.embed import embed
 from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell

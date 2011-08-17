@@ -3,7 +3,6 @@
 from unittest import TestCase
 
 from IPython.frontend.html.notebook.kernelmanager import KernelManager
-from IPython.frontend.html.notebook.sessionmanager import SessionManagerRunningError
 
 class TestKernelManager(TestCase):
 
@@ -24,16 +23,4 @@ class TestKernelManager(TestCase):
         self.assert_('hb_port' in port_dict)
         km.get_kernel_process(kid)
 
-    def test_session_manager(self):
-        km = KernelManager()
-        kid = km.start_kernel()
-        sm = km.create_session_manager(kid)
-        self.assert_(sm._running)
-        sm.stop()
-        self.assert_(not sm._running)
-        sm.start()
-        self.assertRaises(SessionManagerRunningError, sm.start)
-        sm.get_iopub_stream()
-        sm.get_shell_stream()
-        sm.session
 

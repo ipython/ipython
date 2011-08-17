@@ -1,10 +1,15 @@
-"""A tornado based IPython notebook server."""
+"""A tornado based IPython notebook server.
+
+Authors:
+
+* Brian Granger
+"""
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
+#  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
+#  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -194,9 +199,9 @@ class IPythonNotebookApp(BaseIPythonApplication):
             argv = sys.argv[1:]
 
         self.kernel_argv = list(argv) # copy
-        # kernel should inherit default config file from frontend
+        # Kernel should inherit default config file from frontend
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
-        # scrub frontend-specific flags
+        # Scrub frontend-specific flags
         for a in argv:
             if a.startswith('-') and a.lstrip('-') in notebook_flags:
                 self.kernel_argv.remove(a)
@@ -205,7 +210,6 @@ class IPythonNotebookApp(BaseIPythonApplication):
                 alias = a.lstrip('-').split('=')[0]
                 if alias in notebook_aliases:
                     self.kernel_argv.remove(a)
-        print self.kernel_argv
 
     def init_configurables(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
@@ -241,18 +245,20 @@ class IPythonNotebookApp(BaseIPythonApplication):
             self.log.critical('WARNING: the notebook server is listening on all IP addresses '
                               'but not using any encryption or authentication. This is highly '
                               'insecure and not recommended.')
-        for i in range(10):
+
+        # Try random ports centered around the default.
+        from random import randint
+        n = 50  # Max number of attempts, keep reasonably large.
+        for port in [self.port] + [self.port + randint(-2*n, 2*n) for i in range(n)]:
             try:
-                port = self.port + i
                 self.http_server.listen(port, self.ip)
             except socket.error, e:
                 if e.errno != errno.EADDRINUSE:
                     raise
-                self.log.info('The port %i is already in use, trying: %i' % (port, port+1))
+                self.log.info('The port %i is already in use, trying another random port.' % port)
             else:
                 self.port = port
                 break
-    
 
     def start(self):
         ip = self.ip if self.ip else '[all ip addresses on your system]'

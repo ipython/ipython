@@ -1,3 +1,20 @@
+"""The main API for the v2 notebook format.
+
+Authors:
+
+* Brian Granger
+"""
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2011  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
 from .nbbase import (
     NotebookNode,
@@ -18,6 +35,9 @@ from .nbpy import to_notebook as to_notebook_py
 
 from .convert import convert_to_this_nbformat
 
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 def parse_filename(fname):
     """Parse a notebook filename.
