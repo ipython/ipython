@@ -171,7 +171,7 @@ def default_config():
     config.TerminalInteractiveShell.colors = 'NoColor'
     config.TerminalTerminalInteractiveShell.term_title = False,
     config.TerminalInteractiveShell.autocall = 0
-    config.HistoryManager.hist_file = os.path.join(tempfile.mkdtemp(), u'test_hist.sqlite')
+    config.HistoryManager.hist_file = tempfile.mktemp(u'test_hist.sqlite')
     config.HistoryManager.db_cache_size = 10000
     return config
 
