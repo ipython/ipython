@@ -283,7 +283,7 @@ def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pa
         raise ImportError("Paramiko not available")
     
     if password is None:
-        if not _check_passwordless_paramiko(server, keyfile):
+        if not _try_passwordless_paramiko(server, keyfile):
             password = getpass("%s's password: "%(server))
 
     p = Process(target=_paramiko_tunnel, 
