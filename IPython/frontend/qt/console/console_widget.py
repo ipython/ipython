@@ -19,6 +19,7 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.config.configurable import Configurable
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
+from IPython.utils.text import columnize
 from IPython.utils.traitlets import Bool, Enum, Int, Unicode
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
@@ -1295,52 +1296,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         width = self._control.viewport().width()
         char_width = QtGui.QFontMetrics(self.font).width(' ')
         displaywidth = max(10, (width / char_width) - 1)
-
-        # Some degenerate cases.
-        size = len(items)
-        if size == 0: 
-            return '\n'
-        elif size == 1:
-            return '%s\n' % items[0]
-
-        # Try every row count from 1 upwards
-        array_index = lambda nrows, row, col: nrows*col + row
-        for nrows in range(1, size):
-            ncols = (size + nrows - 1) // nrows
-            colwidths = []
-            totwidth = -len(separator)
-            for col in range(ncols):
-                # Get max column width for this column
-                colwidth = 0
-                for row in range(nrows):
-                    i = array_index(nrows, row, col)
-                    if i >= size: break
-                    x = items[i]
-                    colwidth = max(colwidth, len(x))
-                colwidths.append(colwidth)
-                totwidth += colwidth + len(separator)
-                if totwidth > displaywidth: 
-                    break
-            if totwidth <= displaywidth: 
-                break
-
-        # The smallest number of rows computed and the max widths for each
-        # column has been obtained. Now we just have to format each of the rows.
-        string = ''
-        for row in range(nrows):
-            texts = []
-            for col in range(ncols):
-                i = row + nrows*col
-                if i >= size:
-                    texts.append('')
-                else:
-                    texts.append(items[i])
-            while texts and not texts[-1]:
-                del texts[-1]
-            for col in range(len(texts)):
-                texts[col] = texts[col].ljust(colwidths[col])
-            string += '%s\n' % separator.join(texts)
-        return string
+        return columnize(items, separator, displaywidth)
 
     def _get_block_plain_text(self, block):
         """ Given a QTextBlock, return its unformatted text.

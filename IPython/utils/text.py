@@ -611,3 +611,76 @@ class EvalFormatter(Formatter):
                 raise KeyError(key)
 
 
+def columnize(items, separator='  ', displaywidth=80):
+    """ Transform a list of strings into a single string with columns.
+
+    Parameters
+    ----------
+    items : sequence of strings
+        The strings to process.
+
+    separator : str, optional [default is two spaces]
+        The string that separates columns.
+
+    displaywidth : int, optional [default is 80]
+        Width of the display in number of characters.
+    
+    Returns
+    -------
+    The formatted string.
+    """
+    # Note: this code is adapted from columnize 0.3.2.
+    # See http://code.google.com/p/pycolumnize/
+
+    # Some degenerate cases.
+    size = len(items)
+    if size == 0: 
+        return '\n'
+    elif size == 1:
+        return '%s\n' % items[0]
+
+    # Special case: if any item is longer than the maximum width, there's no
+    # point in triggering the logic below...
+    item_len = map(len, items) # save these, we can reuse them below
+    longest = max(item_len)
+    if longest >= displaywidth:
+        return '\n'.join(items+[''])
+
+    # Try every row count from 1 upwards
+    array_index = lambda nrows, row, col: nrows*col + row
+    for nrows in range(1, size):
+        ncols = (size + nrows - 1) // nrows
+        colwidths = []
+        totwidth = -len(separator)
+        for col in range(ncols):
+            # Get max column width for this column
+            colwidth = 0
+            for row in range(nrows):
+                i = array_index(nrows, row, col)
+                if i >= size: break
+                x, len_x = items[i], item_len[i]
+                colwidth = max(colwidth, len_x)
+            colwidths.append(colwidth)
+            totwidth += colwidth + len(separator)
+            if totwidth > displaywidth: 
+                break
+        if totwidth <= displaywidth: 
+            break
+
+    # The smallest number of rows computed and the max widths for each
+    # column has been obtained. Now we just have to format each of the rows.
+    string = ''
+    for row in range(nrows):
+        texts = []
+        for col in range(ncols):
+            i = row + nrows*col
+            if i >= size:
+                texts.append('')
+            else:
+                texts.append(items[i])
+        while texts and not texts[-1]:
+            del texts[-1]
+        for col in range(len(texts)):
+            texts[col] = texts[col].ljust(colwidths[col])
+        string += '%s\n' % separator.join(texts)
+    return string
