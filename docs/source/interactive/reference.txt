@@ -83,7 +83,7 @@ All options with a [no] prepended can be specified in negated form
     ``--[no-]banner``
 	Print the initial information banner (default on).
 
-    ``--c=<command>``
+    ``-c <command>``
 	execute the given command string. This is similar to the -c
 	option in the normal Python interpreter.
 
@@ -158,7 +158,7 @@ All options with a [no] prepended can be specified in negated form
         ipython_log.py in your current directory (which prevents logs
         from multiple IPython sessions from trampling each other). You
         can use this to later restore a session by loading your
-        logfile with ``ipython --i ipython_log.py``
+        logfile with ``ipython -i ipython_log.py``
 
     ``--logplay=<name>``
     

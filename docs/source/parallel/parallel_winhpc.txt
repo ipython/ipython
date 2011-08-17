@@ -257,7 +257,7 @@ Starting the cluster profile
 Once a cluster profile has been configured, starting an IPython cluster using
 the profile is simple::
 
-    ipcluster start --profile=mycluster --n=32
+    ipcluster start --profile=mycluster -n 32
 
 The ``-n`` option tells :command:`ipcluster` how many engines to start (in
 this case 32). Stopping the cluster is as simple as typing Control-C.

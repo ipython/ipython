@@ -386,23 +386,39 @@ Is the same as adding:
 to your config file. Key/Value arguments *always* take a value, separated by '='
 and no spaces.
 
-Aliases
--------
+Common Arguments
+****************
 
-For convenience, applications have a mapping of commonly
-used traits, so you don't have to specify the whole class name. For these **aliases**, the class need not be specified:
+Since the strictness and verbosity of the KVLoader above are not ideal for everyday
+use, common arguments can be specified as flags_ or aliases_.
+
+Flags and Aliases are handled by :mod:`argparse` instead, allowing for more flexible
+parsing. In general, flags and aliases are prefixed by ``--``, except for those
+that are single characters, in which case they can be specified with a single ``-``, e.g.:
 
 .. code-block:: bash
 
+    $> ipython -i -c "import numpy; x=numpy.linspace(0,1)" --profile testing --colors=lightbg
+
+Aliases
+-------
+
+For convenience, applications have a mapping of commonly used traits, so you don't have
+to specify the whole class name:
+
+.. code-block:: bash
+
+    $> ipython --profile myprofile
+    # and
     $> ipython --profile='myprofile'
-    # is equivalent to
+    # are equivalent to
     $> ipython --BaseIPythonApplication.profile='myprofile'
 
 Flags
 -----
 
 Applications can also be passed **flags**. Flags are options that take no
-arguments, and are always prefixed with ``--``. They are simply wrappers for
+arguments. They are simply wrappers for
 setting one or more configurables with predefined values, often True/False.
 
 For instance:
@@ -412,13 +428,17 @@ For instance:
     $> ipcontroller --debug
     # is equivalent to
     $> ipcontroller --Application.log_level=DEBUG
-    # and 
+    # and
     $> ipython --pylab
     # is equivalent to
     $> ipython --pylab=auto
+    # or
+    $> ipython --no-banner
+    # is equivalent to
+    $> ipython --TerminalIPythonApp.display_banner=False
 
 Subcommands
------------
+***********
 
 
 Some IPython applications have **subcommands**. Subcommands are modeled after

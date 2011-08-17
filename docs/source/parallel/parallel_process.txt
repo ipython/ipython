@@ -109,7 +109,7 @@ The simplest way to use ipcluster requires no configuration, and will
 launch a controller and a number of engines on the local machine. For instance, 
 to start one controller and 4 engines on localhost, just do::
 
-    $ ipcluster start --n=4
+    $ ipcluster start -n 4
 
 To see other command line options, do::
 
@@ -174,7 +174,7 @@ There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
-    $ ipcluster start --n=4 --profile=mpi
+    $ ipcluster start -n 4 --profile=mpi
 
 This does the following:
 
@@ -324,7 +324,7 @@ connections on all its interfaces, by adding in :file:`ipcontroller_config`:
 
 You can now run the cluster with::
 
-    $ ipcluster start --profile=pbs --n=128
+    $ ipcluster start --profile=pbs -n 128
 
 Additional configuration options can be found in the PBS section of :file:`ipcluster_config`.
 

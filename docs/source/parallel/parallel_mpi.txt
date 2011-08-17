@@ -52,7 +52,7 @@ The easiest approach is to use the `MPIExec` Launchers in :command:`ipcluster`,
 which will first start a controller and then a set of engines using
 :command:`mpiexec`::
 
-    $ ipcluster start --n=4 --elauncher=MPIExecEngineSetLauncher
+    $ ipcluster start -n 4 --elauncher=MPIExecEngineSetLauncher
 
 This approach is best as interrupting :command:`ipcluster` will automatically
 stop and clean up the controller and engines.
@@ -105,7 +105,7 @@ distributed array. Save the following text in a file called :file:`psum.py`:
 
 Now, start an IPython cluster::
 
-    $ ipcluster start --profile=mpi --n=4
+    $ ipcluster start --profile=mpi -n 4
     
 .. note::
 
