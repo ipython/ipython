@@ -184,7 +184,6 @@ var IPython = (function (IPython) {
         // While this seems to fix the issue, this should be fixed
         // in CodeMirror proper.
         var s = this.code_mirror.getValue();
-        if (s === '') this.code_mirror.setValue('.');
         this.code_mirror.focus();
         if (s === '') this.code_mirror.setValue('');
     };
