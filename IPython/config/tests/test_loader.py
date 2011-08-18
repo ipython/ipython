@@ -69,7 +69,7 @@ class TestPyFileCL(TestCase):
         self.assertEquals(config.D.C.value, 'hi there')
 
 class MyLoader1(ArgParseConfigLoader):
-    def _add_arguments(self):
+    def _add_arguments(self, aliases=None, flags=None):
         p = self.parser
         p.add_argument('-f', '--foo', dest='Global.foo', type=str)
         p.add_argument('-b', dest='MyClass.bar', type=int)
@@ -77,7 +77,7 @@ class MyLoader1(ArgParseConfigLoader):
         p.add_argument('Global.bam', type=str)
 
 class MyLoader2(ArgParseConfigLoader):
-    def _add_arguments(self):
+    def _add_arguments(self, aliases=None, flags=None):
         subparsers = self.parser.add_subparsers(dest='subparser_name')
         subparser1 = subparsers.add_parser('1')
         subparser1.add_argument('-x',dest='Global.x')

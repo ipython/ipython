@@ -27,7 +27,7 @@ from copy import deepcopy
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
-    KeyValueConfigLoader, PyFileConfigLoader, Config, ArgumentError
+    KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError
 )
 
 from IPython.utils.traitlets import (
@@ -46,8 +46,6 @@ from IPython.utils.text import indent, wrap_paragraphs, dedent
 
 # merge flags&aliases into options
 option_description = """
-IPython command-line arguments are passed as '--<flag>', or '--<name>=<value>'.
-
 Arguments that take values are actually convenience aliases to full
 Configurables, whose aliases are listed on the help line. For more information
 on full configurables, see '--help-all'.
@@ -210,6 +208,8 @@ class Application(SingletonConfigurable):
             help = cls.class_get_trait_help(trait).splitlines()
             # reformat first line
             help[0] = help[0].replace(longname, alias) + ' (%s)'%longname
+            if len(alias) == 1:
+                help[0] = help[0].replace('--%s='%alias, '-%s '%alias)
             lines.extend(help)
         # lines.append('')
         print os.linesep.join(lines)
@@ -221,7 +221,8 @@ class Application(SingletonConfigurable):
         
         lines = []
         for m, (cfg,help) in self.flags.iteritems():
-            lines.append('--'+m)
+            prefix = '--' if len(m) > 1 else '-'
+            lines.append(prefix+m)
             lines.append(indent(dedent(help.strip())))
         # lines.append('')
         print os.linesep.join(lines)
@@ -350,7 +351,7 @@ class Application(SingletonConfigurable):
             self.print_version()
             self.exit(0)
         
-        loader = KeyValueConfigLoader(argv=argv, aliases=self.aliases,
+        loader = KVArgParseConfigLoader(argv=argv, aliases=self.aliases,
                                         flags=self.flags)
         try:
             config = loader.load_config()
