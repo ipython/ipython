@@ -390,14 +390,6 @@ def test_LineInfo():
     linfo = isp.LineInfo('  %cd /home')
     nt.assert_equals(str(linfo), 'LineInfo [  |%|cd|/home]')
 
-
-def test_split_user_input():
-    """Unicode test - split_user_input already has good doctests"""
-    line = u"Pérez Fernando"
-    parts_expected = (u'', u'', u'', line)
-    tt.check_pairs(isp.split_user_input, [(line, parts_expected),])
-
-
 # Transformer tests
 def transform_checker(tests, func):
     """Utility to loop over test inputs"""
