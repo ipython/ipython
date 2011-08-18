@@ -965,6 +965,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             self._cancel_text_completion()
 
             if self._in_buffer(position):
+                # Special handling when a reading a line of raw input.
                 if self._reading:
                     self._append_plain_text('\n')
                     self._reading = False
@@ -1222,9 +1223,12 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
 
         # Don't move the cursor if Control/Cmd is pressed to allow copy-paste
         # using the keyboard in any part of the buffer. Also, permit scrolling
-        # with Page Up/Down keys.
+        # with Page Up/Down keys. Finally, if we're executing, don't move the
+        # cursor (if even this made sense, we can't guarantee that the prompt
+        # position is still valid due to text truncation).
         if not (self._control_key_down(event.modifiers(), include_command=True)
-                or key in (QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown)):
+                or key in (QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown)
+                or self._executing):
             self._keep_cursor_in_buffer()
 
         return intercepted
@@ -1289,13 +1293,11 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         -------
         The formatted string.
         """
-        # Note: this code is adapted from columnize 0.3.2.
-        # See http://code.google.com/p/pycolumnize/
-
         # Calculate the number of characters available.
         width = self._control.viewport().width()
         char_width = QtGui.QFontMetrics(self.font).width(' ')
         displaywidth = max(10, (width / char_width) - 1)
+        
         return columnize(items, separator, displaywidth)
 
     def _get_block_plain_text(self, block):
