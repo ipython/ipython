@@ -21,7 +21,6 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.style = function () {
         this.element.find('input#notebook_name').addClass('ui-widget ui-widget-content');
         this.element.find('button#save_notebook').button();
-        this.element.find('button#publish_notebook').button();
         var left_panel_width = $('div#left_panel').outerWidth();
         var left_panel_splitter_width = $('div#left_panel_splitter').outerWidth();
         $('span#save_widget').css({marginLeft:left_panel_width+left_panel_splitter_width});
@@ -33,10 +32,6 @@ var IPython = (function (IPython) {
         this.element.find('button#save_notebook').click(function () {
             IPython.notebook.save_notebook();
             that.set_document_title();
-        });
-
-        this.element.find('button#publish_notebook').click(function () {
-            IPython.notebook.publish_notebook();
         });
     };
 
@@ -89,23 +84,23 @@ var IPython = (function (IPython) {
 
 
     SaveWidget.prototype.status_save = function () {
-        $('button#save_notebook').button('option', 'label', 'Save');
-        $('button#save_notebook').button('enable');
-        $('button#publish_notebook').button('enable');
+        this.element.find('button#save_notebook').button('option', 'label', 'Save');
+        this.element.find('button#save_notebook').button('enable');
+        IPython.print_widget.enable();
     };
 
 
     SaveWidget.prototype.status_saving = function () {
-        $('button#save_notebook').button('option', 'label', 'Saving');
-        $('button#save_notebook').button('disable');
-        $('button#publish_notebook').button('disable');
+        this.element.find('button#save_notebook').button('option', 'label', 'Saving');
+        this.element.find('button#save_notebook').button('disable');
+        IPython.print_widget.disable();
     };
 
 
     SaveWidget.prototype.status_loading = function () {
-        $('button#save_notebook').button('option', 'label', 'Loading');
-        $('button#save_notebook').button('disable');
-        $('button#publish_notebook').button('disable');
+        this.element.find('button#save_notebook').button('option', 'label', 'Loading');
+        this.element.find('button#save_notebook').button('disable');
+        IPython.print_widget.disable();
     };    
 
 
