@@ -178,74 +178,10 @@ class XMLReader(NotebookReader):
             email=nbemail,license=nblicense,saved=nbsaved,created=nbcreated)
         return nb
 
-
-class XMLWriter(NotebookWriter):
-
-    def writes(self, nb, **kwargs):
-        warnings.warn('The XML notebook format is no longer supported, '
-                      'please convert your notebooks to JSON.', DeprecationWarning)
-        nb_e = ET.Element(u'notebook')
-        _set_text(nb,u'name',nb_e,u'name')
-        _set_text(nb,u'author',nb_e,u'author')
-        _set_text(nb,u'email',nb_e,u'email')
-        _set_text(nb,u'license',nb_e,u'license')
-        _set_text(nb,u'created',nb_e,u'created')
-        _set_text(nb,u'saved',nb_e,u'saved')
-        _set_int(nb,u'nbformat',nb_e,u'nbformat')
-        wss_e = ET.SubElement(nb_e,u'worksheets')
-        for ws in nb.worksheets:
-            ws_e = ET.SubElement(wss_e, u'worksheet')
-            _set_text(ws,u'name',ws_e,u'name')
-            cells_e = ET.SubElement(ws_e,u'cells')
-            for cell in ws.cells:
-                cell_type = cell.cell_type
-                if cell_type == u'code':
-                    cell_e = ET.SubElement(cells_e, u'codecell')
-                    _set_text(cell,u'input',cell_e,u'input')
-                    _set_text(cell,u'language',cell_e,u'language')
-                    _set_int(cell,u'prompt_number',cell_e,u'prompt_number')
-                    _set_bool(cell,u'collapsed',cell_e,u'collapsed')
-                    outputs_e = ET.SubElement(cell_e, u'outputs')
-                    for output in cell.outputs:
-                        output_e = ET.SubElement(outputs_e, u'output')
-                        _set_text(output,u'output_type',output_e,u'output_type')
-                        _set_text(output,u'text',output_e,u'text')
-                        _set_binary(output,u'png',output_e,u'png')
-                        _set_binary(output,u'jpeg',output_e,u'jpeg')
-                        _set_text(output,u'html',output_e,u'html')
-                        _set_text(output,u'svg',output_e,u'svg')
-                        _set_text(output,u'latex',output_e,u'latex')
-                        _set_text(output,u'json',output_e,u'json')
-                        _set_text(output,u'javascript',output_e,u'javascript')
-                        _set_int(output,u'prompt_number',output_e,u'prompt_number')
-                        _set_text(output,u'etype',output_e,u'etype')
-                        _set_text(output,u'evalue',output_e,u'evalue')
-                        if u'traceback' in output:
-                            tb_e = ET.SubElement(output_e, u'traceback')
-                            for frame in output.traceback:
-                                frame_e = ET.SubElement(tb_e, u'frame')
-                                frame_e.text = frame
-                elif cell_type == u'html':
-                    cell_e = ET.SubElement(cells_e, u'htmlcell')
-                    _set_text(cell,u'source',cell_e,u'source')
-                    _set_text(cell,u'rendered',cell_e,u'rendered')
-                elif cell_type == u'markdown':
-                    cell_e = ET.SubElement(cells_e, u'markdowncell')
-                    _set_text(cell,u'source',cell_e,u'source')
-                    _set_text(cell,u'rendered',cell_e,u'rendered')
-
-        indent(nb_e)
-        txt = ET.tostring(nb_e, encoding="utf-8")
-        txt = '<?xml version="1.0" encoding="utf-8"?>\n' + txt
-        return txt
-        
-                    
+            
 _reader = XMLReader()
-_writer = XMLWriter()
 
 reads = _reader.reads
 read = _reader.read
 to_notebook = _reader.to_notebook
-write = _writer.write
-writes = _writer.writes
 

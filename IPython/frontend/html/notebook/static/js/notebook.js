@@ -21,6 +21,7 @@ var IPython = (function (IPython) {
         this.kernel = null;
         this.dirty = false;
         this.msg_cell_map = {};
+        this.metadata = {};
         this.style();
         this.create_elements();
         this.bind_events();
@@ -711,6 +712,8 @@ var IPython = (function (IPython) {
             // Always delete cell 0 as they get renumbered as they are deleted.
             this.delete_cell(0);
         };
+        // Save the metadata
+        this.metadata = data.metadata;
         // Only handle 1 worksheet for now.
         var worksheet = data.worksheets[0];
         if (worksheet !== undefined) {
@@ -744,7 +747,8 @@ var IPython = (function (IPython) {
         };
         data = {
             // Only handle 1 worksheet for now.
-            worksheets : [{cells:cell_array}]
+            worksheets : [{cells:cell_array}],
+            metadata : this.metadata
         }
         return data
     };
@@ -755,7 +759,7 @@ var IPython = (function (IPython) {
             var nbname = IPython.save_widget.get_notebook_name();
             // We may want to move the name/id/nbformat logic inside toJSON?
             var data = this.toJSON();
-            data.name = nbname;
+            data.metadata.name = nbname;
             data.nbformat = 2;
             // We do the call with settings so we can set cache to false.
             var settings = {
@@ -805,7 +809,7 @@ var IPython = (function (IPython) {
             this.insert_code_cell_after();
         };
         IPython.save_widget.status_save();
-        IPython.save_widget.set_notebook_name(data.name);
+        IPython.save_widget.set_notebook_name(data.metadata.name);
         this.start_kernel();
         this.dirty = false;
         // fromJSON always selects the last cell inserted. We need to wait

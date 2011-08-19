@@ -1,6 +1,7 @@
 from ..nbbase import (
     NotebookNode,
-    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
+    new_metadata, new_author
 )
 
 
@@ -65,14 +66,14 @@ ws.cells.append(new_code_cell(
     )]
 ))
 
+authors = [new_author(name='Bart Simpson',email='bsimpson@fox.com',
+           affiliation=u'Fox',url=u'http://www.fox.com')]
+md = new_metadata(name=u'My Notebook',license=u'BSD',created=u'8601_goes_here',
+    modified=u'8601_goes_here',gistid=u'21341231',authors=authors)
+
 nb0 = new_notebook(
-    name='nb0',
     worksheets=[ws, new_worksheet(name='worksheet2')],
-    author='Bart Simpson',
-    email='bsimpson@fox.com',
-    saved='ISO8601_goes_here',
-    created='ISO8601_goes_here',
-    license='BSD'
+    metadata=md
 )
 
 nb0_py = """# <nbformat>2</nbformat>

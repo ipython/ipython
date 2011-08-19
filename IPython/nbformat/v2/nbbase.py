@@ -131,26 +131,49 @@ def new_worksheet(name=None, cells=None):
     return ws
 
 
-def new_notebook(name=None, worksheets=None, author=None, email=None,
-    created=None, saved=None, license=None):
+def new_notebook(metadata=None, worksheets=None):
     """Create a notebook by name, id and a list of worksheets."""
     nb = NotebookNode()
     nb.nbformat = 2
-    if name is not None:
-        nb.name = unicode(name)
     if worksheets is None:
         nb.worksheets = []
     else:
         nb.worksheets = list(worksheets)
-    if author is not None:
-        nb.author = unicode(author)
-    if email is not None:
-        nb.email = unicode(email)
-    if created is not None:
-        nb.created = unicode(created)
-    if saved is not None:
-        nb.saved = unicode(saved)
-    if license is not None:
-        nb.license = unicode(license)
+    if metadata is None:
+        nb.metadata = new_metadata()
+    else:
+        nb.metadata = NotebookNode(metadata)
     return nb
+
+
+def new_metadata(name=None, authors=None, license=None, created=None,
+    modified=None, gistid=None):
+    """Create a new metadata node."""
+    metadata = NotebookNode()
+    if name is not None:
+        metadata.name = unicode(name)
+    if authors is not None:
+        metadata.authors = list(authors)
+    if created is not None:
+        metadata.created = unicode(created)
+    if modified is not None:
+        metadata.modified = unicode(modified)
+    if license is not None:
+        metadata.license = unicode(license)
+    if gistid is not None:
+        metadata.gistid = unicode(gistid)
+    return metadata
+
+def new_author(name=None, email=None, affiliation=None, url=None):
+    """Create a new author."""
+    author = NotebookNode()
+    if name is not None:
+        author.name = unicode(name)
+    if email is not None:
+        author.email = unicode(email)
+    if affiliation is not None:
+        author.affiliation = unicode(affiliation)
+    if url is not None:
+        author.url = unicode(url)
+    return author
 

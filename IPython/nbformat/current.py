@@ -16,6 +16,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
 import json
 from xml.etree import ElementTree as ET
 import re
@@ -26,7 +27,7 @@ from IPython.nbformat import v1
 from IPython.nbformat.v2 import (
     NotebookNode,
     new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet,
-    parse_filename
+    parse_filename, new_metadata, new_author
 )
 
 #-----------------------------------------------------------------------------
@@ -96,10 +97,6 @@ def reads_xml(s, **kwargs):
     return nb
 
 
-def writes_xml(nb, **kwargs):
-    return v2.writes_xml(nb, **kwargs)
-
-
 def reads_py(s, **kwargs):
     """Read a .py notebook from a string and return the NotebookNode object."""
     nbformat, s = parse_py(s, **kwargs)
@@ -125,9 +122,9 @@ def reads(s, format, **kwargs):
 
     Parameters
     ----------
-    s : str
-        The raw string to read the notebook from.
-    format : ('json','py')
+    s : unicode
+        The raw unicode string to read the notebook from.
+    format : (u'json', u'ipynb', u'py')
         The format that the string is in.
 
     Returns
@@ -135,11 +132,12 @@ def reads(s, format, **kwargs):
     nb : NotebookNode
         The notebook that was read.
     """
-    if format == 'xml':
+    format = unicode(format)
+    if format == u'xml':
         return reads_xml(s, **kwargs)
-    elif format == 'json':
+    elif format == u'json' or format == u'ipynb':
         return reads_json(s, **kwargs)
-    elif format == 'py':
+    elif format == u'py':
         return reads_py(s, **kwargs)
     else:
         raise NBFormatError('Unsupported format: %s' % format)
@@ -154,19 +152,20 @@ def writes(nb, format, **kwargs):
     ----------
     nb : NotebookNode
         The notebook to write.
-    format : ('json','py')
+    format : (u'json', u'ipynb', u'py')
         The format to write the notebook in.
 
     Returns
     -------
-    s : str
+    s : unicode
         The notebook string.
     """
-    if format == 'xml':
-        return writes_xml(nb, **kwargs)
-    elif format == 'json':
+    format = unicode(format)
+    if format == u'xml':
+        raise NotImplementedError('Write to XML files is not implemented.')
+    elif format == u'json' or format == u'ipynb':
         return writes_json(nb, **kwargs)
-    elif format == 'py':
+    elif format == u'py':
         return writes_py(nb, **kwargs)
     else:
         raise NBFormatError('Unsupported format: %s' % format)
@@ -182,7 +181,7 @@ def read(fp, format, **kwargs):
     ----------
     fp : file
         Any file-like object with a read method.
-    format : ('json','py')
+    format : (u'json', u'ipynb', u'py')
         The format that the string is in.
 
     Returns
@@ -204,14 +203,28 @@ def write(nb, fp, format, **kwargs):
         The notebook to write.
     fp : file
         Any file-like object with a write method.
-    format : ('json','py')
+    format : (u'json', u'ipynb', u'py')
         The format to write the notebook in.
 
     Returns
     -------
-    s : str
+    s : unicode
         The notebook string.
     """
     return fp.write(writes(nb, format, **kwargs))
 
+def _convert_to_metadata():
+    """Convert to a notebook having notebook metadata."""
+    import glob
+    for fname in glob.glob('*.ipynb'):
+        print('Converting file:',fname)
+        with open(fname,'r') as f:
+            nb = read(f,u'json')
+        md = new_metadata()
+        if u'name' in nb:
+            md.name = nb.name
+            del nb[u'name']            
+        nb.metadata = md
+        with open(fname,'w') as f:
+            write(nb, f, u'json')
 

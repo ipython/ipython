@@ -147,10 +147,10 @@ class NotebookManager(LoggingConfigurable):
 
         if name is None:
             try:
-                name = nb.name
+                name = nb.metadata.name
             except AttributeError:
                 raise web.HTTPError(400)
-        nb.name = name
+        nb.metadata.name = name
 
         notebook_id = self.new_notebook_id(name)
         self.save_notebook_object(notebook_id, nb)
@@ -167,7 +167,7 @@ class NotebookManager(LoggingConfigurable):
             raise web.HTTPError(400)
 
         if name is not None:
-            nb.name = name
+            nb.metadata.name = name
         self.save_notebook_object(notebook_id, nb)
 
     def save_notebook_object(self, notebook_id, nb):
@@ -176,7 +176,7 @@ class NotebookManager(LoggingConfigurable):
             raise web.HTTPError(404)
         old_name = self.mapping[notebook_id]
         try:
-            new_name = nb.name
+            new_name = nb.metadata.name
         except AttributeError:
             raise web.HTTPError(400)
         path = self.get_path_by_name(new_name)
