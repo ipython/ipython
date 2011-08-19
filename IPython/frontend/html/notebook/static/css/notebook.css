@@ -266,13 +266,15 @@ div.text_cell_render {
 }
 
 .CodeMirror {
-  line-height: 1.231;  /* Changed from 1em to our global default */
+    line-height: 1.231;  /* Changed from 1em to our global default */
 }
 
 .CodeMirror-scroll {
-  height: auto;     /* Changed to auto to autogrow */
-  overflow-y: visible; /* Changed from auto to remove scrollbar */
-  overflow-x: auto; /* Changed from auto to remove scrollbar */
+    height: auto;     /* Changed to auto to autogrow */
+    /*  The CodeMirror docs are a bit fuzzy on if overflow-y should be hidden or visible.*/
+    /*  We have found that if it is visible, vertical scrollbars appear with font size changes.*/
+    overflow-y: hidden;
+    overflow-x: auto; /* Changed from auto to remove scrollbar */
 }
 
 /* CSS font colors for translated ANSI colors. */
