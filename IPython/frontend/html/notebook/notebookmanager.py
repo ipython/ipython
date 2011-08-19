@@ -52,9 +52,13 @@ class NotebookManager(LoggingConfigurable):
 
             dict(notebook_id=notebook,name=name)
         """
-        names = os.listdir(self.notebook_dir)
-        names = [name.split(u'.')[0]
-            for name in names if name.endswith(self.filename_ext)]
+        import glob
+
+        names = glob.glob(os.path.join(self.notebook_dir,
+                                       '*' + self.filename_ext))
+        names = [os.path.splitext(os.path.basename(name))[0]
+                 for name in names]
+
         data = []
         for name in names:
             if name not in self.rev_mapping:
