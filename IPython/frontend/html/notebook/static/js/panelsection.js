@@ -130,18 +130,15 @@ var IPython = (function (IPython) {
         this.content.find('#insert').buttonset();
         this.content.find('#move').buttonset();
         this.content.find('#cell_type').buttonset();
-        this.content.find('#toggle_output').buttonset();
+        this.content.find('#cell_output').buttonset();
         this.content.find('#run_cells').buttonset();
     };
 
 
     CellSection.prototype.bind_events = function () {
         PanelSection.prototype.bind_events.apply(this);
-        this.content.find('#collapse_cell').click(function () {
-            IPython.notebook.collapse();
-        });
-        this.content.find('#expand_cell').click(function () {
-            IPython.notebook.expand();
+        this.content.find('#toggle_output').click(function () {
+            IPython.notebook.toggle_output();
         });
         this.content.find('#clear_all_output').click(function () {
             IPython.notebook.clear_all_output();
@@ -164,9 +161,6 @@ var IPython = (function (IPython) {
         this.content.find('#to_code').click(function () {
             IPython.notebook.to_code();
         });
-//        this.content.find('#to_html').click(function () {
-//            IPython.notebook.to_html();
-//        });
         this.content.find('#to_markdown').click(function () {
             IPython.notebook.to_markdown();
         });

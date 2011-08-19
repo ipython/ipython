@@ -480,6 +480,13 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.toggle_output = function (index) {
+        var i = this.index_or_selected(index);
+        this.cells()[i].toggle_output();
+        this.dirty = true;
+    };
+
+
     Notebook.prototype.set_autoindent = function (state) {
         var cells = this.cells();
         len = cells.length;

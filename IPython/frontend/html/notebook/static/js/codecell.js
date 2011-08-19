@@ -352,6 +352,14 @@ var IPython = (function (IPython) {
     };
 
 
+    CodeCell.prototype.toggle_output = function () {
+        if (this.collapsed) {
+            this.expand();
+        } else {
+            this.collapse();
+        };
+    };
+
     CodeCell.prototype.set_input_prompt = function (number) {
         var n = number || ' ';
         this.input_prompt_number = n
