@@ -39,7 +39,7 @@ class NotebookManager(LoggingConfigurable):
         The directory to use for notebooks.
     """)
     filename_ext = Unicode(u'.ipynb')
-    allowed_formats = List([u'json',u'xml',u'py'])
+    allowed_formats = List([u'json',u'py'])
 
     # Map notebook_ids to notebook names
     mapping = Dict()
@@ -120,19 +120,15 @@ class NotebookManager(LoggingConfigurable):
             raise web.HTTPError(404)
         info = os.stat(path)
         last_modified = datetime.datetime.utcfromtimestamp(info.st_mtime)
-        try:
-            with open(path,'r') as f:
-                s = f.read()
-                try:
-                    # v2 and later have xml in the .ipynb files.
-                    nb = current.reads(s, 'xml')
-                except:
-                    # v1 had json in the .ipynb files.
-                    nb = current.reads(s, 'json')
-                    # v1 notebooks don't have a name field, so use the filename.
-                    nb.name = os.path.split(path)[-1].split(u'.')[0]
-        except:
-            raise web.HTTPError(404)
+        with open(path,'r') as f:
+            s = f.read()
+            try:
+                # v1 and v2 and json in the .ipynb files.
+                nb = current.reads(s, u'json')
+            except:
+                raise web.HTTPError(404)
+        if 'name' not in nb:
+            nb.name = os.path.split(path)[-1].split(u'.')[0]
         return last_modified, nb
 
     def save_new_notebook(self, data, name=None, format=u'json'):
@@ -147,14 +143,7 @@ class NotebookManager(LoggingConfigurable):
         try:
             nb = current.reads(data, format)
         except:
-            if format == u'xml':
-                # v1 notebooks might come in with a format='xml' but be json.
-                try:
-                    nb = current.reads(data, u'json')
-                except:
-                    raise web.HTTPError(400)
-            else:
-                raise web.HTTPError(400)
+            raise web.HTTPError(400)
 
         if name is None:
             try:
@@ -175,14 +164,7 @@ class NotebookManager(LoggingConfigurable):
         try:
             nb = current.reads(data, format)
         except:
-            if format == u'xml':
-                # v1 notebooks might come in with a format='xml' but be json.
-                try:
-                    nb = current.reads(data, u'json')
-                except:
-                    raise web.HTTPError(400)
-            else:
-                raise web.HTTPError(400)
+            raise web.HTTPError(400)
 
         if name is not None:
             nb.name = name
@@ -200,7 +182,7 @@ class NotebookManager(LoggingConfigurable):
         path = self.get_path_by_name(new_name)
         try:
             with open(path,'w') as f:
-                current.write(nb, f, u'xml')
+                current.write(nb, f, u'json')
         except:
             raise web.HTTPError(400)
         if old_name != new_name:
@@ -231,6 +213,6 @@ class NotebookManager(LoggingConfigurable):
         notebook_id = self.new_notebook_id(name)
         nb = current.new_notebook(name=name)
         with open(path,'w') as f:
-            current.write(nb, f, u'xml')
+            current.write(nb, f, u'json')
         return notebook_id
 

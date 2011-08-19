@@ -3526,7 +3526,7 @@ Defaulting color scheme to 'NoColor'"""
         example, to export the history to "foo.ipynb" do "%notebook -e foo.ipynb".
         To export the history to "foo.py" do "%notebook -e foo.py". To convert
         "foo.ipynb" to "foo.json" do "%notebook -f json foo.ipynb". Possible
-        formats include (xml/ipynb, json, py).
+        formats include (json/ipynb, py).
         """
         args = magic_arguments.parse_argstring(self.magic_notebook, s)
 
@@ -3544,17 +3544,21 @@ Defaulting color scheme to 'NoColor'"""
         elif args.format is not None:
             old_fname, old_name, old_format = current.parse_filename(args.filename)
             new_format = args.format
-            if new_format == u'xml' or new_format == u'ipynb':
+            if new_format == u'xml':
+                raise ValueError('Notebooks cannot be written as xml.')
+            elif new_format == u'ipynb' or new_format == u'json':
                 new_fname = old_name + u'.ipynb'
-                new_format = u'xml'
+                new_format = u'json'
             elif new_format == u'py':
                 new_fname = old_name + u'.py'
-            elif new_format == u'json':
-                new_fname = old_name + u'.json'
             else:
-                raise ValueError('Invalid notebook format: %s' % newformat)
+                raise ValueError('Invalid notebook format: %s' % new_format)
             with open(old_fname, 'r') as f:
-                nb = current.read(f, old_format)
+                s = f.read()
+                try:
+                    nb = current.reads(s, old_format)
+                except:
+                    nb = current.reads(s, u'xml')
             with open(new_fname, 'w') as f:
                 current.write(nb, f, new_format)
             

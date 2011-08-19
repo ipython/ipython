@@ -127,7 +127,7 @@ def reads(s, format, **kwargs):
     ----------
     s : str
         The raw string to read the notebook from.
-    format : ('xml','json','py')
+    format : ('json','py')
         The format that the string is in.
 
     Returns
@@ -154,7 +154,7 @@ def writes(nb, format, **kwargs):
     ----------
     nb : NotebookNode
         The notebook to write.
-    format : ('xml','json','py')
+    format : ('json','py')
         The format to write the notebook in.
 
     Returns
@@ -182,7 +182,7 @@ def read(fp, format, **kwargs):
     ----------
     fp : file
         Any file-like object with a read method.
-    format : ('xml','json','py')
+    format : ('json','py')
         The format that the string is in.
 
     Returns
@@ -204,7 +204,7 @@ def write(nb, fp, format, **kwargs):
         The notebook to write.
     fp : file
         Any file-like object with a write method.
-    format : ('xml','json','py')
+    format : ('json','py')
         The format to write the notebook in.
 
     Returns

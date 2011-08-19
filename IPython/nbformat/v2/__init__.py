@@ -43,13 +43,13 @@ def parse_filename(fname):
     """Parse a notebook filename.
 
     This function takes a notebook filename and returns the notebook
-    format (xml/json/py) and the notebook name. This logic can be
+    format (json/py) and the notebook name. This logic can be
     summarized as follows:
 
-    * notebook.ipynb -> (notebook.ipynb, notebook, xml) 
+    * notebook.ipynb -> (notebook.ipynb, notebook, json) 
     * notebook.json  -> (notebook.json, notebook, json)
     * notebook.py    -> (notebook.py, notebook, py)
-    * notebook       -> (notebook.ipynb, notebook, xml)
+    * notebook       -> (notebook.ipynb, notebook, json)
 
     Parameters
     ----------
@@ -64,14 +64,14 @@ def parse_filename(fname):
         The filename, notebook name and format.      
     """
     if fname.endswith(u'.ipynb'):
-        format = u'xml'
+        format = u'json'
     elif fname.endswith(u'.json'):
         format = u'json'
     elif fname.endswith(u'.py'):
         format = u'py'
     else:
         fname = fname + u'.ipynb'
-        format = u'xml'
+        format = u'json'
     name = fname.split('.')[0]
     return fname, name, format
 

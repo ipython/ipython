@@ -282,9 +282,6 @@ class NotebookHandler(web.RequestHandler):
         if format == u'json':
             self.set_header('Content-Type', 'application/json')
             self.set_header('Content-Disposition','attachment; filename="%s.json"' % name)
-        elif format == u'xml':
-            self.set_header('Content-Type', 'application/xml')
-            self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
         elif format == u'py':
             self.set_header('Content-Type', 'application/x-python')
             self.set_header('Content-Disposition','attachment; filename="%s.py"' % name)

@@ -17,6 +17,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from base64 import encodestring, decodestring
+import warnings
 from xml.etree import ElementTree as ET
 
 from .rwbase import NotebookReader, NotebookWriter
@@ -110,6 +111,8 @@ class XMLReader(NotebookReader):
         return self.to_notebook(root, **kwargs)
 
     def to_notebook(self, root, **kwargs):
+        warnings.warn('The XML notebook format is no longer supported, '
+                      'please convert your notebooks to JSON.', DeprecationWarning)
         nbname = _get_text(root,u'name')
         nbauthor = _get_text(root,u'author')
         nbemail = _get_text(root,u'email')
@@ -179,6 +182,8 @@ class XMLReader(NotebookReader):
 class XMLWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
+        warnings.warn('The XML notebook format is no longer supported, '
+                      'please convert your notebooks to JSON.', DeprecationWarning)
         nb_e = ET.Element(u'notebook')
         _set_text(nb,u'name',nb_e,u'name')
         _set_text(nb,u'author',nb_e,u'author')

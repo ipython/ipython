@@ -39,8 +39,8 @@ var IPython = (function (IPython) {
                 var fname = f.name.split('.'); 
                 var nbname = fname[0];
                 var nbformat = fname[1];
-                if (nbformat === 'ipynb') {nbformat = 'xml';};
-                if (nbformat === 'xml' || nbformat === 'py' || nbformat === 'json') {
+                if (nbformat === 'ipynb') {nbformat = 'json';};
+                if (nbformat === 'py' || nbformat === 'json') {
                     var item = that.new_notebook_item(0);
                     that.add_name_input(nbname, item);
                     item.data('nbformat', nbformat);
@@ -198,9 +198,7 @@ var IPython = (function (IPython) {
                 var nbformat = item.data('nbformat');
                 var nbdata = item.data('nbdata');
                 var content_type = 'text/plain';
-                if (nbformat === 'xml') {
-                    content_type = 'application/xml';
-                } else if (nbformat === 'json') {
+                if (nbformat === 'json') {
                     content_type = 'application/json';
                 } else if (nbformat === 'py') {
                     content_type = 'application/x-python';
