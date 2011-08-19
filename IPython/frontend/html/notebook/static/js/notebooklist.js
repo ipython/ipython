@@ -37,8 +37,8 @@ var IPython = (function (IPython) {
                 var reader = new FileReader();
                 reader.readAsText(f);
                 var fname = f.name.split('.'); 
-                var nbname = fname[0];
-                var nbformat = fname[1];
+                var nbname = fname.slice(0,-1).join('.');
+                var nbformat = fname.slice(-1)[0];
                 if (nbformat === 'ipynb') {nbformat = 'json';};
                 if (nbformat === 'py' || nbformat === 'json') {
                     var item = that.new_notebook_item(0);
