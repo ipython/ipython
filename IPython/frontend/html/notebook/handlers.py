@@ -281,7 +281,7 @@ class NotebookHandler(web.RequestHandler):
         last_mod, name, data = nbm.get_notebook(notebook_id, format)
         if format == u'json':
             self.set_header('Content-Type', 'application/json')
-            self.set_header('Content-Disposition','attachment; filename="%s.json"' % name)
+            self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
         elif format == u'py':
             self.set_header('Content-Type', 'application/x-python')
             self.set_header('Content-Disposition','attachment; filename="%s.py"' % name)
