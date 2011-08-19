@@ -29,6 +29,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
+        cell.attr('tabindex','2');
         var input = $('<div></div>').addClass('input hbox');
         input.append($('<div/>').addClass('prompt input_prompt'));
         var input_area = $('<div/>').addClass('input_area box-flex1');

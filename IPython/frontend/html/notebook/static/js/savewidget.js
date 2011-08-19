@@ -30,6 +30,7 @@ var IPython = (function (IPython) {
         var left_panel_width = $('div#left_panel').outerWidth();
         var left_panel_splitter_width = $('div#left_panel_splitter').outerWidth();
         $('span#save_widget').css({marginLeft:left_panel_width+left_panel_splitter_width});
+        $('input#notebook_name').attr('tabindex','1');
     };
 
 
