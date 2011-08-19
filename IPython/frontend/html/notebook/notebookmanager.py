@@ -19,6 +19,7 @@ Authors:
 import datetime
 import os
 import uuid
+import glob
 
 from tornado import web
 
@@ -52,8 +53,6 @@ class NotebookManager(LoggingConfigurable):
 
             dict(notebook_id=notebook,name=name)
         """
-        import glob
-
         names = glob.glob(os.path.join(self.notebook_dir,
                                        '*' + self.filename_ext))
         names = [os.path.splitext(os.path.basename(name))[0]
