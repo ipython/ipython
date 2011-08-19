@@ -188,7 +188,7 @@ class ShellSocketChannel(ZMQSocketChannel):
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.DEALER)
-        self.socket.setsockopt(zmq.IDENTITY, self.session.session.encode("ascii"))
+        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.iostate = POLLERR|POLLIN
         self.ioloop.add_handler(self.socket, self._handle_events, 
@@ -395,7 +395,7 @@ class SubSocketChannel(ZMQSocketChannel):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.SUB)
         self.socket.setsockopt(zmq.SUBSCRIBE,b'')
-        self.socket.setsockopt(zmq.IDENTITY, self.session.session.encode("ascii"))
+        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.iostate = POLLIN|POLLERR
         self.ioloop.add_handler(self.socket, self._handle_events, 
@@ -483,7 +483,7 @@ class StdInSocketChannel(ZMQSocketChannel):
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.DEALER)
-        self.socket.setsockopt(zmq.IDENTITY, self.session.session.encode("ascii"))
+        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.iostate = POLLERR|POLLIN
         self.ioloop.add_handler(self.socket, self._handle_events, 
@@ -562,7 +562,7 @@ class HBSocketChannel(ZMQSocketChannel):
 
     def _create_socket(self):
         self.socket = self.context.socket(zmq.REQ)
-        self.socket.setsockopt(zmq.IDENTITY, self.session.session.encode("ascii"))
+        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.poller = zmq.Poller()
         self.poller.register(self.socket, zmq.POLLIN)

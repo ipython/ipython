@@ -242,7 +242,15 @@ class Session(Configurable):
     session = CUnicode(u'', config=True,
         help="""The UUID identifying this session.""")
     def _session_default(self):
-        return unicode(uuid.uuid4())
+        u = unicode(uuid.uuid4())
+        self.bsession = u.encode('ascii')
+        return u
+    
+    def _session_changed(self, name, old, new):
+        self.bsession = self.session.encode('ascii')
+    
+    # bsession is the session as bytes
+    bsession = CBytes(b'')
     
     username = Unicode(os.environ.get('USER',u'username'), config=True,
         help="""Username for the Session. Default is your system username.""")
@@ -296,9 +304,11 @@ class Session(Configurable):
         pack/unpack : callables
             You can also set the pack/unpack callables for serialization
             directly.
-        session : bytes
+        session : unicode (must be ascii)
             the ID of this Session object.  The default is to generate a new 
             UUID.
+        bsession : bytes
+            The session as bytes
         username : unicode
             username added to message headers.  The default is to ask the OS.
         key : bytes
@@ -311,6 +321,8 @@ class Session(Configurable):
         super(Session, self).__init__(**kwargs)
         self._check_packers()
         self.none = self.pack({})
+        # ensure self._session_default() if necessary, so bsession is defined:
+        self.session
 
     @property
     def msg_id(self):
