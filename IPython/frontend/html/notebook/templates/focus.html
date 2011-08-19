@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+
+    <title>Event ordering</title>
+
+    <style>
+        div#outer {
+            width: 400px;
+            height: 300px;
+            border: solid 2px black;
+        }
+
+        div#inner {
+            width: 80%;
+            height: 80%;
+            border: solid 2px black;
+        }
+
+        div#innerinner {
+            width: 80%;
+            height: 80%;
+            border: solid 2px black;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div id="outer" tabindex="-1">
+    This is the outer div.
+
+    <div id="inner" tabindex="-1">
+        This is the inner div.
+        <div id="innerinner" tabindex="-1">
+            This is the innerinner div
+        </div>
+    </div>
+
+</div>
+
+<script src="static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+    $(document).ready(function () {
+        $('div#outer').click(function (e) {
+            console.log("outer.click");
+        });
+        $('div#outer').focus(function (e) {
+            console.log("outer.focus");
+        });
+        $('div#outer').focusin(function (e) {
+            console.log("outer.focusin");
+        });
+
+        $('div#inner').click(function (e) {
+            console.log("--inner.click");
+        });
+        $('div#inner').focus(function (e) {
+            console.log("--inner.focus");
+        });
+        $('div#inner').focusin(function (e) {
+            console.log("--inner.focusin");
+            e.stopPropagation();
+        });
+
+        $('div#innerinner').click(function (e) {
+            console.log("----innerinner.click");
+        });
+        $('div#innerinner').focus(function (e) {
+            console.log("----innerinner.focus");
+        });
+        $('div#innerinner').focusin(function (e) {
+            console.log("----innerinner.focusin");
+        });
+
+    });
+</script>
+
+</body>
+
+</html>
+
+
+

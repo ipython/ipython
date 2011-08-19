@@ -48,7 +48,7 @@ from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
 from IPython.core.profiledir import ProfileDir
 from IPython.core.macro import Macro
-from IPython.core import page
+from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
@@ -2118,7 +2118,8 @@ Currently the magic system has the following functions:\n"""
             response = urllib2.urlopen(arg_s)
             content = response.read()
         else:
-            content = open(arg_s).read()
+            with open(arg_s) as f:
+                content = f.read()
         self.set_next_input(content)
         
     def _find_edit_target(self, args, opts, last_call):
@@ -3494,5 +3495,72 @@ Defaulting color scheme to 'NoColor'"""
         ptformatter = self.shell.display_formatter.formatters['text/plain']
         ptformatter.float_precision = s
         return ptformatter.float_format
+
+
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '-e', '--export', action='store_true', default=False,
+        help='Export IPython history as a notebook. The filename argument '
+             'is used to specify the notebook name and format. For example '
+             'a filename of notebook.ipynb will result in a notebook name '
+             'of "notebook" and a format of "xml". Likewise using a ".json" '
+             'or ".py" file extension will write the notebook in the json '
+             'or py formats.'
+    )
+    @magic_arguments.argument(
+        '-f', '--format',
+        help='Convert an existing IPython notebook to a new format. This option '
+             'specifies the new format and can have the values: xml, json, py. '
+             'The target filename is choosen automatically based on the new '
+             'format. The filename argument gives the name of the source file.'
+    )
+    @magic_arguments.argument(
+        'filename', type=unicode,
+        help='Notebook name or filename'
+    )
+    def magic_notebook(self, s):
+        """Export and convert IPython notebooks.
+
+        This function can export the current IPython history to a notebook file
+        or can convert an existing notebook file into a different format. For
+        example, to export the history to "foo.ipynb" do "%notebook -e foo.ipynb".
+        To export the history to "foo.py" do "%notebook -e foo.py". To convert
+        "foo.ipynb" to "foo.json" do "%notebook -f json foo.ipynb". Possible
+        formats include (json/ipynb, py).
+        """
+        args = magic_arguments.parse_argstring(self.magic_notebook, s)
+
+        from IPython.nbformat import current
+        if args.export:
+            fname, name, format = current.parse_filename(args.filename)
+            cells = []
+            hist = list(self.history_manager.get_range())
+            for session, prompt_number, input in hist[:-1]:
+                cells.append(current.new_code_cell(prompt_number=prompt_number, input=input))
+            worksheet = current.new_worksheet(cells=cells)
+            nb = current.new_notebook(name=name,worksheets=[worksheet])
+            with open(fname, 'w') as f:
+                current.write(nb, f, format);
+        elif args.format is not None:
+            old_fname, old_name, old_format = current.parse_filename(args.filename)
+            new_format = args.format
+            if new_format == u'xml':
+                raise ValueError('Notebooks cannot be written as xml.')
+            elif new_format == u'ipynb' or new_format == u'json':
+                new_fname = old_name + u'.ipynb'
+                new_format = u'json'
+            elif new_format == u'py':
+                new_fname = old_name + u'.py'
+            else:
+                raise ValueError('Invalid notebook format: %s' % new_format)
+            with open(old_fname, 'r') as f:
+                s = f.read()
+                try:
+                    nb = current.reads(s, old_format)
+                except:
+                    nb = current.reads(s, u'xml')
+            with open(new_fname, 'w') as f:
+                current.write(nb, f, new_format)
+            
 
 # end Magic

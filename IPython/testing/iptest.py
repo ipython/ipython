@@ -299,7 +299,7 @@ def make_runners():
 
     # Packages to be tested via nose, that only depend on the stdlib
     nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
-                     'scripts', 'testing', 'utils' ]
+                     'scripts', 'testing', 'utils', 'nbformat' ]
     
     if have['zmq']:
         nose_pkg_names.append('parallel')

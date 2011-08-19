@@ -56,7 +56,7 @@ class DisplayPublisher(Configurable):
             Any metadata for the data.
         """
 
-        if not isinstance(source, str):
+        if not isinstance(source, basestring):
             raise TypeError('source must be a str, got: %r' % source)
         if not isinstance(data, dict):
             raise TypeError('data must be a dict, got: %r' % data)
@@ -76,8 +76,10 @@ class DisplayPublisher(Configurable):
         * text/html
         * text/latex
         * application/json
+        * application/javascript
         * image/png
-        * immage/svg+xml
+        * image/jpeg
+        * image/svg+xml
 
         Parameters
         ----------
@@ -103,7 +105,7 @@ class DisplayPublisher(Configurable):
             print(data['text/plain'], file=io.stdout)
 
 
-def publish_display_data(self, source, data, metadata=None):
+def publish_display_data(source, data, metadata=None):
     """Publish data and metadata to all frontends.
 
     See the ``display_data`` message in the messaging documentation for
@@ -115,8 +117,10 @@ def publish_display_data(self, source, data, metadata=None):
     * text/html
     * text/latex
     * application/json
+    * application/javascript
     * image/png
-    * immage/svg+xml
+    * image/jpeg
+    * image/svg+xml
 
     Parameters
     ----------
@@ -141,5 +145,154 @@ def publish_display_data(self, source, data, metadata=None):
         source,
         data,
         metadata
+    )
+
+
+def publish_pretty(data, metadata=None):
+    """Publish raw text data to all frontends.
+
+    Parameters
+    ----------
+    data : unicode
+        The raw text data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_pretty',
+        {'text/plain':data},
+        metadata=metadata
+    )
+
+
+def publish_html(data, metadata=None):
+    """Publish raw HTML data to all frontends.
+
+    Parameters
+    ----------
+    data : unicode
+        The raw HTML data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_html',
+        {'text/html':data},
+        metadata=metadata
+    )
+
+
+def publish_latex(data, metadata=None):
+    """Publish raw LaTeX data to all frontends.
+
+    Parameters
+    ----------
+    data : unicode
+        The raw LaTeX data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_latex',
+        {'text/latex':data},
+        metadata=metadata
+    )
+
+def publish_png(data, metadata=None):
+    """Publish raw binary PNG data to all frontends.
+
+    Parameters
+    ----------
+    data : str/bytes
+        The raw binary PNG data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_png',
+        {'image/png':data},
+        metadata=metadata
+    )
+
+
+def publish_jpeg(data, metadata=None):
+    """Publish raw binary JPEG data to all frontends.
+
+    Parameters
+    ----------
+    data : str/bytes
+        The raw binary JPEG data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_jpeg',
+        {'image/jpeg':data},
+        metadata=metadata
+    )
+
+
+def publish_svg(data, metadata=None):
+    """Publish raw SVG data to all frontends.
+
+    Parameters
+    ----------
+    data : unicode
+        The raw SVG data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_svg',
+        {'image/svg+xml':data},
+        metadata=metadata
+    )
+
+def publish_json(data, metadata=None):
+    """Publish raw JSON data to all frontends.
+
+    Parameters
+    ----------
+    data : unicode
+        The raw JSON data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_json',
+        {'application/json':data},
+        metadata=metadata
+    )
+
+def publish_javascript(data, metadata=None):
+    """Publish raw Javascript data to all frontends.
+
+    Parameters
+    ----------
+    data : unicode
+        The raw Javascript data to publish.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data.
+    """
+    publish_display_data(
+        u'IPython.core.displaypub.publish_javascript',
+        {'application/javascript':data},
+        metadata=metadata
     )
 
