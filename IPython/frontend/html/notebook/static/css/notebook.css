@@ -67,7 +67,11 @@ div.section_content {
     padding: 5px;
 }
 
-span.section_row_buttons > button {
+span.section_row_buttons button {
+    width: 70px;
+}
+
+span.section_row_buttons a {
     width: 70px;
 }
 
