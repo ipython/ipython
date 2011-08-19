@@ -220,6 +220,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
             config=self.config, log=self.log, kernel_argv=self.kernel_argv
         )
         self.notebook_manager = NotebookManager(config=self.config, log=self.log)
+        self.notebook_manager.list_notebooks()
 
     def init_logging(self):
         super(IPythonNotebookApp, self).init_logging()
