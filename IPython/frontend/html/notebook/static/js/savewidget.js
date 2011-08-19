@@ -90,20 +90,23 @@ var IPython = (function (IPython) {
 
 
     SaveWidget.prototype.status_save = function () {
-        this.element.find('span.ui-button-text').text('Save');
+        this.element.find('button#save_notebook').button('option', 'label', 'Save');
         this.element.find('button#save_notebook').button('enable');
-    };    
+        IPython.print_widget.enable();
+    };
 
 
     SaveWidget.prototype.status_saving = function () {
-        this.element.find('span.ui-button-text').text('Saving');
+        this.element.find('button#save_notebook').button('option', 'label', 'Saving');
         this.element.find('button#save_notebook').button('disable');
-    };    
+        IPython.print_widget.disable();
+    };
 
 
     SaveWidget.prototype.status_loading = function () {
-        this.element.find('span.ui-button-text').text('Loading');
+        this.element.find('button#save_notebook').button('option', 'label', 'Loading');
         this.element.find('button#save_notebook').button('disable');
+        IPython.print_widget.disable();
     };    
 
 

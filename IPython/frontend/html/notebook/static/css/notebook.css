@@ -184,6 +184,10 @@ div.prompt {
     font-family: monospace;
 }
 
+div.input {
+    page-break-inside: avoid;
+}
+
 div.input_area {
     color: black;
 }
@@ -203,7 +207,8 @@ div.output_prompt {
 
 /* This class is applied to all types of output (pyout, pyerr, stream, display_data) */
 div.output_area {
-    padding: 0px 0.4em
+    padding: 0px 0.4em;
+    page-break-inside: avoid;
 }
 
 /* This is the output area after the Out[] prompt of type pyout */
@@ -293,5 +298,10 @@ div.text_cell_render {
     padding: 0px;
     margin: 0px;
     font-family: monospace;
+}
+
+@media print {
+    body { overflow: visible !important; }
+    .ui-widget-content { border: 0px; }
 }
 

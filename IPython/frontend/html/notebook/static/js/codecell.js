@@ -206,12 +206,12 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_pyout = function (json) {
         n = json.prompt_number || ' ';
-        var toinsert = $("<div/>").addClass("output_pyout hbox");
+        var toinsert = $("<div/>").addClass("output_pyout hbox output_area");
         toinsert.append($('<div/>').
             addClass('prompt output_prompt').
             html('Out[' + n + ']:')
         );
-        this.append_mime_type(json, toinsert).addClass('output_area');
+        this.append_mime_type(json, toinsert);
         toinsert.children().last().addClass("box_flex1 pyout_area");
         this.element.find("div.output").append(toinsert);
         // If we just output latex, typeset it.
@@ -252,19 +252,19 @@ var IPython = (function (IPython) {
     CodeCell.prototype.append_mime_type = function (json, element) {
         element = element || this.element.find("div.output");
         if (json.html !== undefined) {
-            this.append_html(json.html, element);
+            inserted = this.append_html(json.html, element);
         } else if (json.latex !== undefined) {
-            this.append_latex(json.latex, element);
+            inserted = this.append_latex(json.latex, element);
         } else if (json.svg !== undefined) {
-            this.append_svg(json.svg, element);
+            inserted = this.append_svg(json.svg, element);
         } else if (json.png !== undefined) {
-            this.append_png(json.png, element);
+            inserted = this.append_png(json.png, element);
         } else if (json.jpeg !== undefined) {
-            this.append_jpeg(json.jpeg, element);
+            inserted = this.append_jpeg(json.jpeg, element);
         } else if (json.text !== undefined) {
-            this.append_text(json.text, element);
+            inserted = this.append_text(json.text, element);
         };
-        return element;
+        return inserted;
     };
 
 
@@ -273,7 +273,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("output_html rendered_html");
         toinsert.append(html);
         element.append(toinsert);
-        return element;
+        return toinsert;
     }
 
 
@@ -282,7 +282,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("output_stream");
         toinsert.append($("<pre/>").html(data));
         element.append(toinsert);
-        return element;
+        return toinsert;
     };
 
 
@@ -291,7 +291,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("output_svg");
         toinsert.append(svg);
         element.append(toinsert);
-        return element;
+        return toinsert;
     };
 
 
@@ -300,7 +300,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("output_png");
         toinsert.append($("<img/>").attr('src','data:image/png;base64,'+png));
         element.append(toinsert);
-        return element;
+        return toinsert;
     };
 
 
@@ -309,7 +309,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("output_jpeg");
         toinsert.append($("<img/>").attr('src','data:image/jpeg;base64,'+jpeg));
         element.append(toinsert);
-        return element;
+        return toinsert;
     };
 
 
@@ -320,7 +320,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("output_latex");
         toinsert.append(latex);
         element.append(toinsert);
-        return element;
+        return toinsert;
     }
 
 
