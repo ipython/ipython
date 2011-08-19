@@ -1228,7 +1228,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
         # position is still valid due to text truncation).
         if not (self._control_key_down(event.modifiers(), include_command=True)
                 or key in (QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown)
-                or self._executing):
+                or (self._executing and not self._reading)):
             self._keep_cursor_in_buffer()
 
         return intercepted
