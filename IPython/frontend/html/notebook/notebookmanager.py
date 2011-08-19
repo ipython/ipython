@@ -211,7 +211,8 @@ class NotebookManager(LoggingConfigurable):
             else:
                 i = i+1
         notebook_id = self.new_notebook_id(name)
-        nb = current.new_notebook(name=name)
+        metadata = current.new_metadata(name=name)
+        nb = current.new_notebook(metadata=metadata)
         with open(path,'w') as f:
             current.write(nb, f, u'json')
         return notebook_id
