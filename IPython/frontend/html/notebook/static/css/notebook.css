@@ -92,10 +92,12 @@ span.section_row_buttons a {
     width: 170px;
     padding: 0px 5px;
     text-align: center;
+    font-size: 85%;
 }
 
 .help_string_label {
     float: right;
+    font-size: 85%;
 }
 
 #autoindent_span {

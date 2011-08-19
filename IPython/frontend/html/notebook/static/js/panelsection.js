@@ -223,6 +223,7 @@ var IPython = (function (IPython) {
         this.content.find('div.section_row').addClass('ui-helper-clearfix');
         this.content.find('#help_buttons0').buttonset();
         this.content.find('#help_buttons1').buttonset();
+        this.content.find('#help_buttons2').buttonset();
     };
 
 
