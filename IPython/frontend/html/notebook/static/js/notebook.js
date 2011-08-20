@@ -120,13 +120,13 @@ var IPython = (function (IPython) {
                 that.move_cell_up();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 38 && that.control_key_active) {
-                // Select previous = up arrow
+            } else if (event.which === 80 && that.control_key_active) {
+                // Select previous = p
                 that.select_prev();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 40 && that.control_key_active) {
-                // Select next = down arrow
+            } else if (event.which === 78 && that.control_key_active) {
+                // Select next = n
                 that.select_next();
                 that.control_key_active = false;
                 return false;
@@ -195,8 +195,8 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m k', help: 'move cell up'},
             {key: 'Ctrl-m c', help: 'code cell'},
             {key: 'Ctrl-m m', help: 'markdown cell'},
-            {key: 'Ctrl-m up', help: 'select previous'},
-            {key: 'Ctrl-m down', help: 'select next'},
+            {key: 'Ctrl-m p', help: 'select previous'},
+            {key: 'Ctrl-m n', help: 'select next'},
             {key: 'Ctrl-m h', help: 'display keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
