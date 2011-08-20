@@ -22,7 +22,8 @@ from xml.etree import ElementTree as ET
 
 from .rwbase import NotebookReader, NotebookWriter
 from .nbbase import (
-    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output
+    new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
+    new_metadata
 )
 
 #-----------------------------------------------------------------------------
@@ -174,8 +175,8 @@ class XMLReader(NotebookReader):
             ws = new_worksheet(name=wsname,cells=cells)
             worksheets.append(ws)
 
-        nb = new_notebook(name=nbname,worksheets=worksheets,author=nbauthor,
-            email=nbemail,license=nblicense,saved=nbsaved,created=nbcreated)
+        md = new_metadata(name=nbname)
+        nb = new_notebook(metadata=md,worksheets=worksheets)
         return nb
 
             
