@@ -327,3 +327,5 @@ class DisplayHook(Configurable):
         # TODO: Is this really needed?
         gc.collect()
 
+        self.shell.execution_count = 0
+
