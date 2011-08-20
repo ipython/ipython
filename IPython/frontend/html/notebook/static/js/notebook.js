@@ -201,8 +201,8 @@ var IPython = (function (IPython) {
         ];
         for (var i=0; i<shortcuts.length; i++) {
             dialog.append($('<div>').
-                append($('<span/>').addClass('shortcut_key').html(shortcuts[i].key+' : ')).
-                append($('<span/>').html(shortcuts[i].help))
+                append($('<span/>').addClass('shortcut_key').html(shortcuts[i].key)).
+                append($('<span/>').addClass('shortcut_descr').html(' : ' + shortcuts[i].help))
             );
         };
         dialog.dialog({title: 'Keyboard shortcuts'});
