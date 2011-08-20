@@ -53,7 +53,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.bind_events = function () {
         var that = this;
         $(document).keydown(function (event) {
-            // console.log(event);
+            console.log(event);
             if (event.which === 38) {
                 var cell = that.selected_cell();
                 if (cell.at_top()) {
@@ -87,7 +87,7 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 66 && that.control_key_active) {
-                // Insert code cell before selected = a
+                // Insert code cell before selected = b
                 that.insert_code_cell_before();
                 that.control_key_active = false;
                 return false;
@@ -129,6 +129,11 @@ var IPython = (function (IPython) {
             } else if (event.which === 40 && that.control_key_active) {
                 // Select next = down arrow
                 that.select_next();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 72 && that.control_key_active) {
+                // Show keyboard shortcuts = h
+                that.show_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
             } else if (that.control_key_active) {
@@ -174,6 +179,35 @@ var IPython = (function (IPython) {
                 return "You have unsaved changes that will be lost if you leave this page.";
             };
         });
+    };
+
+
+    Notebook.prototype.show_keyboard_shortcuts = function () {
+        console.log('showing');
+        var dialog = $('<div/>');
+        var shortcuts = [
+            {key: 'Shift-Enter', help: 'run cell'},
+            {key: 'Ctrl-Enter', help: 'run cell in terminal mode'},
+            {key: 'Ctrl-m d', help: 'delete cell'},
+            {key: 'Ctrl-m a', help: 'insert cell above'},
+            {key: 'Ctrl-m b', help: 'insert cell below'},
+            {key: 'Ctrl-m t', help: 'toggle output'},
+            {key: 'Ctrl-m s', help: 'save notebook'},
+            {key: 'Ctrl-m j', help: 'move cell down'},
+            {key: 'Ctrl-m k', help: 'move cell up'},
+            {key: 'Ctrl-m c', help: 'code cell'},
+            {key: 'Ctrl-m m', help: 'markdown cell'},
+            {key: 'Ctrl-m up', help: 'select previous'},
+            {key: 'Ctrl-m down', help: 'select next'},
+            {key: 'Ctrl-m h', help: 'display keyboard shortcuts'}
+        ];
+        for (var i=0; i<shortcuts.length; i++) {
+            dialog.append($('<div>').
+                append($('<span/>').addClass('shortcut_key').html(shortcuts[i].key+' : ')).
+                append($('<span/>').html(shortcuts[i].help))
+            );
+        };
+        dialog.dialog({title: 'Keyboard shortcuts'});
     };
 
 
