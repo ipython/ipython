@@ -53,7 +53,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.bind_events = function () {
         var that = this;
         $(document).keydown(function (event) {
-            console.log(event);
+            // console.log(event);
             if (event.which === 38) {
                 var cell = that.selected_cell();
                 if (cell.at_top()) {
@@ -73,7 +73,6 @@ var IPython = (function (IPython) {
                 that.execute_selected_cell({terminal:true});
                 return false;
             } else if (event.which === 77 && event.ctrlKey) {
-                console.log("Activating control key")
                 that.control_key_active = true;
                 return false;
             } else if (event.which === 68 && that.control_key_active) {
@@ -183,7 +182,6 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.show_keyboard_shortcuts = function () {
-        console.log('showing');
         var dialog = $('<div/>');
         var shortcuts = [
             {key: 'Shift-Enter', help: 'run cell'},
