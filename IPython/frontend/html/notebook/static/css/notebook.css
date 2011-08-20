@@ -311,3 +311,11 @@ div.text_cell_render {
     .ui-widget-content { border: 0px; }
 }
 
+.shortcut_key {
+    display: inline-block;
+    width: 10ex;
+    text-align: right;
+}
+
+.shortcut_descr {
+}
