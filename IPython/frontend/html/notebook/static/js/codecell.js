@@ -205,16 +205,19 @@ var IPython = (function (IPython) {
     };
 
 
+    CodeCell.prototype.create_output_area = function () {
+        var oa = $("<div/>").addClass("hbox output_area");
+        oa.append($('<div/>').addClass('prompt'));
+        return oa;
+    };
+
+
     CodeCell.prototype.append_pyout = function (json) {
         n = json.prompt_number || ' ';
-        var toinsert = $("<div/>").addClass("output_pyout hbox output_area");
-        toinsert.append($('<div/>').
-            addClass('prompt output_prompt').
-            html('Out[' + n + ']:')
-        );
+        var toinsert = this.create_output_area();
+        toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
         this.append_mime_type(json, toinsert);
-        toinsert.children().last().addClass("box_flex1 pyout_area");
-        this.element.find("div.output").append(toinsert);
+        this.element.find('div.output').append(toinsert);
         // If we just output latex, typeset it.
         if (json.latex !== undefined) {
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
@@ -231,18 +234,24 @@ var IPython = (function (IPython) {
                 s = s + tb[i] + '\n';
             }
             s = s + '\n';
-            this.append_text(s).addClass('output_area');
+            var toinsert = this.create_output_area();
+            this.append_text(s, toinsert);
+            this.element.find('div.output').append(toinsert);
         };
     };
 
 
     CodeCell.prototype.append_stream = function (json) {
-        this.append_text(json.text).addClass('output_area');
+        var toinsert = this.create_output_area();
+        this.append_text(json.text, toinsert);
+        this.element.find('div.output').append(toinsert);
     };
 
 
     CodeCell.prototype.append_display_data = function (json) {
-        this.append_mime_type(json).addClass('output_area');
+        var toinsert = this.create_output_area();
+        this.append_mime_type(json, toinsert)
+        this.element.find('div.output').append(toinsert);
         // If we just output latex, typeset it.
         if (json.latex !== undefined) {
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
@@ -251,77 +260,63 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.append_mime_type = function (json, element) {
-        element = element || this.element.find("div.output");
         if (json.html !== undefined) {
-            inserted = this.append_html(json.html, element);
+            this.append_html(json.html, element);
         } else if (json.latex !== undefined) {
-            inserted = this.append_latex(json.latex, element);
+            this.append_latex(json.latex, element);
         } else if (json.svg !== undefined) {
-            inserted = this.append_svg(json.svg, element);
+            this.append_svg(json.svg, element);
         } else if (json.png !== undefined) {
-            inserted = this.append_png(json.png, element);
+            this.append_png(json.png, element);
         } else if (json.jpeg !== undefined) {
-            inserted = this.append_jpeg(json.jpeg, element);
+            this.append_jpeg(json.jpeg, element);
         } else if (json.text !== undefined) {
-            inserted = this.append_text(json.text, element);
+            this.append_text(json.text, element);
         };
-        return inserted;
     };
 
 
     CodeCell.prototype.append_html = function (html, element) {
-        element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_html rendered_html");
+        var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_html rendered_html");
         toinsert.append(html);
         element.append(toinsert);
-        return toinsert;
     }
 
 
     CodeCell.prototype.append_text = function (data, element) {
-        element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_stream");
+        var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_stream");
         toinsert.append($("<pre/>").html(data));
         element.append(toinsert);
-        return toinsert;
     };
 
 
     CodeCell.prototype.append_svg = function (svg, element) {
-        element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_svg");
+        var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_svg");
         toinsert.append(svg);
         element.append(toinsert);
-        return toinsert;
     };
 
 
     CodeCell.prototype.append_png = function (png, element) {
-        element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_png");
+        var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_png");
         toinsert.append($("<img/>").attr('src','data:image/png;base64,'+png));
         element.append(toinsert);
-        return toinsert;
     };
 
 
     CodeCell.prototype.append_jpeg = function (jpeg, element) {
-        element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_jpeg");
+        var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_jpeg");
         toinsert.append($("<img/>").attr('src','data:image/jpeg;base64,'+jpeg));
         element.append(toinsert);
-        return toinsert;
     };
 
 
     CodeCell.prototype.append_latex = function (latex, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
-        element = element || this.element.find("div.output");
-        var toinsert = $("<div/>").addClass("output_latex");
+        var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_latex");
         toinsert.append(latex);
         element.append(toinsert);
-        return toinsert;
     }
 
 
