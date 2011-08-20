@@ -22,6 +22,7 @@ var IPython = (function (IPython) {
         this.dirty = false;
         this.msg_cell_map = {};
         this.metadata = {};
+        this.control_key_active = false;
         this.style();
         this.create_elements();
         this.bind_events();
@@ -71,6 +72,68 @@ var IPython = (function (IPython) {
             } else if (event.which === 13 && event.ctrlKey) {
                 that.execute_selected_cell({terminal:true});
                 return false;
+            } else if (event.which === 77 && event.ctrlKey) {
+                console.log("Activating control key")
+                that.control_key_active = true;
+                return false;
+            } else if (event.which === 68 && that.control_key_active) {
+                // Delete selected cell = d
+                that.delete_cell();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 65 && that.control_key_active) {
+                // Insert code cell after selected = a
+                that.insert_code_cell_after();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 66 && that.control_key_active) {
+                // Insert code cell before selected = a
+                that.insert_code_cell_before();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 67 && that.control_key_active) {
+                // To code = c
+                that.to_code();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 77 && that.control_key_active) {
+                // To markdown = m
+                that.to_markdown();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 84 && that.control_key_active) {
+                // Toggle output = t
+                that.toggle_output();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 83 && that.control_key_active) {
+                // Save notebook = s
+                IPython.save_widget.save_notebook();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 74 && that.control_key_active) {
+                // Move cell down = j
+                that.move_cell_down();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 75 && that.control_key_active) {
+                // Move cell up = k
+                that.move_cell_up();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 38 && that.control_key_active) {
+                // Select previous = up arrow
+                that.select_prev();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 40 && that.control_key_active) {
+                // Select next = down arrow
+                that.select_next();
+                that.control_key_active = false;
+                return false;
+            } else if (that.control_key_active) {
+                that.control_key_active = false;
+                return true;
             };
         });
 

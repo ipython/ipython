@@ -39,13 +39,18 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.bind_events = function () {
         var that = this;
         this.element.find('button#save_notebook').click(function () {
-            IPython.notebook.save_notebook();
-            that.set_document_title();
-            that.last_saved_name = that.get_notebook_name();
+            that.save_notebook();
         });
         this.element.find('input#notebook_name').keyup(function () {
             that.is_renaming();
         });
+    };
+
+
+    SaveWidget.prototype.save_notebook = function () {
+        IPython.notebook.save_notebook();
+        this.set_document_title();
+        this.last_saved_name = this.get_notebook_name();
     };
 
 
