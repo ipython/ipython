@@ -33,6 +33,7 @@ from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
 from IPython.utils import io
+from IPython.utils import py3compat
 from IPython.utils.jsonutil import json_clean
 from IPython.lib import pylabtools
 from IPython.utils.traitlets import (
@@ -219,7 +220,10 @@ class Kernel(Configurable):
         # Replace raw_input. Note that is not sufficient to replace 
         # raw_input in the user namespace.
         raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
-        __builtin__.raw_input = raw_input
+        if py3compat.PY3:
+            __builtin__.input = raw_input
+        else:
+            __builtin__.raw_input = raw_input
 
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
