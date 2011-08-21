@@ -597,18 +597,47 @@ class EvalFormatter(Formatter):
     Out[4]: '6'
     """
     
-    def get_value(self, key, args, kwargs):
-        if isinstance(key, (int, long)):
-            return args[key]
-        elif key in kwargs:
-            return kwargs[key]
-        else:
-            # evaluate the expression using kwargs as namespace
-            try:
-                return eval(key, kwargs)
-            except Exception:
-                # classify all bad expressions as key errors
-                raise KeyError(key)
+    # should we allow slicing by disabling the format_spec feature?
+    allow_slicing = True
+    
+    # copied from Formatter._vformat with minor changes to allow eval
+    # and replace the format_spec code with slicing
+    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth):
+        if recursion_depth < 0:
+            raise ValueError('Max string recursion exceeded')
+        result = []
+        for literal_text, field_name, format_spec, conversion in \
+                self.parse(format_string):
+
+            # output the literal text
+            if literal_text:
+                result.append(literal_text)
+
+            # if there's a field, output it
+            if field_name is not None:
+                # this is some markup, find the object and do
+                #  the formatting
+
+                if self.allow_slicing and format_spec:
+                    # override format spec, to allow slicing:
+                    field_name = ':'.join([field_name, format_spec])
+                    format_spec = ''
+
+                # eval the contents of the field for the object
+                # to be formatted
+                obj = eval(field_name, kwargs)
+
+                # do any conversion on the resulting object
+                obj = self.convert_field(obj, conversion)
+
+                # expand the format spec, if needed
+                format_spec = self._vformat(format_spec, args, kwargs,
+                                            used_args, recursion_depth-1)
+
+                # format the object and append to the result
+                result.append(self.format_field(obj, format_spec))
+
+        return ''.join(result)
 
 
 def columnize(items, separator='  ', displaywidth=80):
