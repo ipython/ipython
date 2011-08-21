@@ -84,6 +84,7 @@ setup_args = dict(
       license          = license,
       platforms        = platforms,
       keywords         = keywords,
+      classifiers      = classifiers,
       cmdclass         = {'install_data': install_data_ext},
       )
 

@@ -123,3 +123,18 @@ download_url = 'http://archive.ipython.org/release/%s' % version
 platforms = ['Linux','Mac OSX','Windows XP/2000/NT']
 
 keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed']
+
+classifiers = [
+    'Intended Audience :: Developers',
+    'Intended Audience :: Science/Research'
+    'License :: OSI Approved :: BSD License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 2',
+    'Programming Language :: Python :: 2.6',
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.1',
+    'Programming Language :: Python :: 3.2',
+    'Topic :: System :: Distributed Computing',
+    'Topic :: System :: Shells'
+    ]
