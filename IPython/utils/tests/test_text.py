@@ -13,6 +13,7 @@
 #-----------------------------------------------------------------------------
 
 import os
+import math
 
 import nose.tools as nt
 
@@ -42,3 +43,45 @@ def test_columnize_long():
     items = [l*size for l in 'abc']
     out = text.columnize(items, displaywidth=size-1)
     nt.assert_equals(out, '\n'.join(items+['']))
+
+def test_eval_formatter():
+    f = text.EvalFormatter()
+    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+    s = f.format("{n} {n/4} {stuff.split()[0]}", **ns)
+    nt.assert_equals(s, "12 3 hello")
+    s = f.format(' '.join(['{n//%i}'%i for i in range(1,8)]), **ns)
+    nt.assert_equals(s, "12 6 4 3 2 2 1")
+    s = f.format('{[n//i for i in range(1,8)]}', **ns)
+    nt.assert_equals(s, "[12, 6, 4, 3, 2, 2, 1]")
+    s = f.format("{stuff!s}", **ns)
+    nt.assert_equals(s, ns['stuff'])
+    s = f.format("{stuff!r}", **ns)
+    nt.assert_equals(s, repr(ns['stuff']))
+    
+    nt.assert_raises(NameError, f.format, '{dne}', **ns)
+
+
+def test_eval_formatter_slicing():
+    f = text.EvalFormatter()
+    f.allow_slicing = True
+    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+    s = f.format(" {stuff.split()[:]} ", **ns)
+    nt.assert_equals(s, " ['hello', 'there'] ")
+    s = f.format(" {stuff.split()[::-1]} ", **ns)
+    nt.assert_equals(s, " ['there', 'hello'] ")
+    s = f.format("{stuff[::2]}", **ns)
+    nt.assert_equals(s, ns['stuff'][::2])
+    
+    nt.assert_raises(SyntaxError, f.format, "{n:x}", **ns)
+    
+
+def test_eval_formatter_no_slicing():
+    f = text.EvalFormatter()
+    f.allow_slicing = False
+    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+    
+    s = f.format('{n:x} {pi**2:+f}', **ns)
+    nt.assert_equals(s, "c +9.869604")
+    
+    nt.assert_raises(SyntaxError, f.format, "{a[:]}")
+
