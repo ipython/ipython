@@ -112,7 +112,7 @@ var IPython = (function (IPython) {
 
 
     SaveWidget.prototype.status_save = function () {
-        this.element.find('button#save_notebook').button('option', 'label', 'Save');
+        this.element.find('button#save_notebook').button('option', 'label', '<u>S</u>ave');
         this.element.find('button#save_notebook').button('enable');
         IPython.print_widget.enable();
     };
