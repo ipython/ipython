@@ -3175,7 +3175,7 @@ Defaulting color scheme to 'NoColor'"""
         from IPython.core import interactiveshell
         print "Pasting code; enter '%s' alone on the line to stop." % sentinel
         while True:
-            l = interactiveshell.raw_input_original(':')
+            l = self.shell.raw_input_original(':')
             if l == sentinel:
                 return
             else:

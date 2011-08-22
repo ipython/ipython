@@ -47,11 +47,6 @@ def get_default_editor():
             ed = 'notepad' # same in Windows!
     return ed
 
-
-# store the builtin raw_input globally, and use this always, in case user code
-# overwrites it (like wx.py.PyShell does)
-raw_input_original = raw_input
-
 #-----------------------------------------------------------------------------
 # Main class
 #-----------------------------------------------------------------------------
@@ -337,7 +332,7 @@ class TerminalInteractiveShell(InteractiveShell):
             self.set_readline_completer()
         
         try:
-            line = raw_input_original(prompt).decode(self.stdin_encoding)
+            line = self.raw_input_original(prompt).decode(self.stdin_encoding)
         except ValueError:
             warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
                  " or sys.stdout.close()!\nExiting IPython!")
