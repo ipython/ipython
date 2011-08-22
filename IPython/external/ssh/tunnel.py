@@ -1,7 +1,13 @@
-"""Basic ssh tunneling utilities."""
+"""Basic ssh tunnel utilities, and convenience functions for tunneling
+zeromq connections.
+
+Authors
+-------
+* Min RK
+"""
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2010  The IPython Development Team
+#  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
