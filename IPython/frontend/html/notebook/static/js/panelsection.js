@@ -147,10 +147,10 @@ var IPython = (function (IPython) {
             IPython.notebook.delete_cell();
         });
         this.content.find('#insert_cell_above').click(function () {
-            IPython.notebook.insert_code_cell_before();
+            IPython.notebook.insert_code_cell_above();
         });
         this.content.find('#insert_cell_below').click(function () {
-            IPython.notebook.insert_code_cell_after();
+            IPython.notebook.insert_code_cell_below();
         });
         this.content.find('#move_cell_up').click(function () {
             IPython.notebook.move_cell_up();
