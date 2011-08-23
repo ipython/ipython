@@ -51,6 +51,7 @@ class DisplayFormatter(Configurable):
             HTMLFormatter,
             SVGFormatter,
             PNGFormatter,
+            JPEGFormatter,
             LatexFormatter,
             JSONFormatter,
             JavascriptFormatter
@@ -72,8 +73,10 @@ class DisplayFormatter(Configurable):
         * text/html
         * text/latex
         * application/json
+        * application/javascript
         * image/png
-        * immage/svg+xml
+        * image/jpeg
+        * image/svg+xml
 
         Parameters
         ----------
@@ -495,6 +498,22 @@ class PNGFormatter(BaseFormatter):
     print_method = ObjectName('_repr_png_')
 
 
+class JPEGFormatter(BaseFormatter):
+    """A JPEG formatter.
+
+    To define the callables that compute the JPEG representation of your
+    objects, define a :meth:`_repr_jpeg_` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+
+    The return value of this formatter should be raw JPEG data, *not*
+    base64 encoded.
+    """
+    format_type = Unicode('image/jpeg')
+
+    print_method = ObjectName('_repr_jpeg_')
+
+
 class LatexFormatter(BaseFormatter):
     """A LaTeX formatter.
 
@@ -546,6 +565,7 @@ FormatterABC.register(PlainTextFormatter)
 FormatterABC.register(HTMLFormatter)
 FormatterABC.register(SVGFormatter)
 FormatterABC.register(PNGFormatter)
+FormatterABC.register(JPEGFormatter)
 FormatterABC.register(LatexFormatter)
 FormatterABC.register(JSONFormatter)
 FormatterABC.register(JavascriptFormatter)
@@ -562,8 +582,10 @@ def format_display_data(obj, include=None, exclude=None):
     * text/html
     * text/latex
     * application/json
+    * application/javascript
     * image/png
-    * immage/svg+xml
+    * image/jpeg
+    * image/svg+xml
 
     Parameters
     ----------
@@ -594,3 +616,4 @@ def format_display_data(obj, include=None, exclude=None):
         include,
         exclude
     )
+

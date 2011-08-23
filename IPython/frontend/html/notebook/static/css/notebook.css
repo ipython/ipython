@@ -1,0 +1,321 @@
+
+/**
+ * Primary styles
+ *
+ * Author: IPython Development Team
+ */
+
+
+body {
+    background-color: white;
+    /* This makes sure that the body covers the entire window and needs to
+       be in a different element than the display: box in wrapper below */
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    overflow: hidden;
+}
+
+span#save_widget {
+    position: absolute;
+    left: 0px;
+    padding: 5px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+input#notebook_name {
+    height: 1em;
+    line-height: 1em;
+    padding: 5px;
+}
+
+span#kernel_status {
+    position: absolute;
+    padding: 8px 5px 5px 5px;
+    right: 10px;
+	font-weight: bold;
+}
+
+.status_idle {
+    color: gray;
+}
+
+.status_busy {
+    color: red;
+}
+
+.status_restarting {
+    color: black;
+}
+
+div#left_panel {
+    overflow-y: auto;
+    top: 0px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    position: absolute;
+}
+
+h3.section_header {
+    padding: 5px;
+}
+
+div.section_content {
+    padding: 5px;
+}
+
+span.section_row_buttons button {
+    width: 70px;
+}
+
+span.section_row_buttons a {
+    width: 70px;
+}
+
+.section_row {
+    margin: 5px 0px;
+}
+
+.section_row_buttons {
+    float: right;
+}
+
+#kernel_persist {
+    float: right;
+}
+
+.help_string {
+    float: right;
+    width: 170px;
+    padding: 0px 5px;
+    text-align: left;
+    font-size: 85%;
+}
+
+.help_string_label {
+    float: right;
+    font-size: 85%;
+}
+
+#autoindent_span {
+    float: right;
+}
+
+.checkbox_label {
+    font-size: 85%;
+    float: right;
+    padding: 0.3em;
+}
+
+.section_row_header {
+    float: left;
+    font-size: 85%;
+    padding: 0.4em 0em;
+    font-weight: bold;
+}
+
+span.button_label {
+    padding: 0.2em 1em;
+    font-size: 77%;
+    float: right;
+}
+
+/* This is needed because FF was adding a 2px margin top and bottom. */
+.section_row .ui-button {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+#download_format {
+    float: right;
+    font-size: 85%;
+    width: 62px;
+    margin: 1px 5px;
+}
+
+div#left_panel_splitter {
+    width: 8px;
+    top: 0px;
+    left: 202px;
+    margin: 0px;
+    padding: 0px;
+    position: absolute;
+}
+
+div#notebook_panel {
+/*    The L margin will be set in the Javascript code*/
+    margin: 0px 0px 0px 0px;
+    padding: 0px;
+}
+
+div#notebook {
+    overflow-y: scroll;
+    overflow-x: auto;
+    width: 100%;
+    /* This spaces the cell away from the edge of the notebook area */
+    padding: 15px 15px 15px 15px;
+    margin: 0px
+    background-color: white;
+}
+
+div#pager_splitter {
+    height: 8px;
+}
+
+div#pager {
+    padding: 15px;
+    overflow: auto;
+}
+
+div.cell {
+    width: 100%;
+    padding: 5px;
+    /* This acts as a spacer between cells, that is outside the border */
+    margin: 5px 0px 5px 0px;
+}
+
+div.code_cell {
+    background-color: white;
+}
+
+div.prompt {
+    /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
+    width: 11ex;
+    /* This 0.4em is tuned to match the padding on the CodeMirror editor. */
+    padding: 0.4em;
+    margin: 0px;
+    font-family: monospace;
+    text-align:right;
+}
+
+div.input {
+    page-break-inside: avoid;
+}
+
+div.input_area {
+    color: black;
+}
+
+div.input_prompt {
+    color: navy;
+}
+
+div.output {
+    /* This is a spacer between the input and output of each cell */
+    margin-top: 5px;
+}
+
+div.output_prompt {
+    color: darkred;
+}
+
+/* This class is the outer container of all output sections. */
+div.output_area {
+    padding: 0px;
+    page-break-inside: avoid;
+}
+
+/* This class is for the output subarea inside the output_area and after
+   the prompt div. */
+div.output_subarea {
+    padding: 0.4em;
+}
+
+/* The rest of the output_* classes are for special styling of the different
+   output types */
+
+div.output_stream {
+    text-align: left;
+    color: black;
+    font-family: monospace;
+}
+
+div.output_latex {
+    text-align: left;
+    color: black;
+}
+
+div.output_html {
+}
+
+div.output_png {
+}
+
+div.output_jpeg {
+}
+
+div.text_cell {
+    background-color: white;
+}
+
+div.text_cell_input {
+    color: black;
+}
+
+div.text_cell_render {
+    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    outline: none;
+    resize: none;
+    width:  inherit;
+    border-style: none;
+    padding: 5px;
+    color: black;
+}
+
+.CodeMirror {
+    line-height: 1.231;  /* Changed from 1em to our global default */
+}
+
+.CodeMirror-scroll {
+    height: auto;     /* Changed to auto to autogrow */
+    /*  The CodeMirror docs are a bit fuzzy on if overflow-y should be hidden or visible.*/
+    /*  We have found that if it is visible, vertical scrollbars appear with font size changes.*/
+    overflow-y: hidden;
+    overflow-x: auto; /* Changed from auto to remove scrollbar */
+}
+
+/* CSS font colors for translated ANSI colors. */
+
+
+.ansiblack {color: black;}
+.ansired {color: darkred;}
+.ansigreen {color: darkgreen;}
+.ansiyellow {color: brown;}
+.ansiblue {color: darkblue;}
+.ansipurple {color: darkviolet;}
+.ansicyan {color: steelblue;}
+.ansigrey {color: grey;}
+.ansibold {font-weight: bold;}
+
+.completions {
+    position: absolute;
+    z-index: 10;
+    overflow: auto;
+    border: 1px solid black;
+}
+
+.completions select {
+    background: white;
+    outline: none;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+    font-family: monospace;
+}
+
+@media print {
+    body { overflow: visible !important; }
+    .ui-widget-content { border: 0px; }
+}
+
+.shortcut_key {
+    display: inline-block;
+    width: 10ex;
+    text-align: right;
+}
+
+.shortcut_descr {
+}

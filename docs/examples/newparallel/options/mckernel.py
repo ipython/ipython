@@ -1,4 +1,3 @@
-
 def price_options(S=100.0, K=100.0, sigma=0.25, r=0.05, days=260, paths=10000):
     """
     Price European and Asian options using a Monte Carlo method.

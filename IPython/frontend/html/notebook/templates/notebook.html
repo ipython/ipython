@@ -1,0 +1,244 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>IPython Notebook</title>
+
+    <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
+<!--     <link rel="stylesheet" href="static/jquery/css/themes/rocket/jquery-wijmo.css" type="text/css" /> -->
+<!--    <link rel="stylesheet" href="static/jquery/css/themes/smoothness/jquery-ui-1.8.14.custom.css" type="text/css" />-->
+
+    <!-- <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" charset="utf-8"></script> -->
+    <script type='text/javascript' src='static/mathjax/MathJax.js?config=TeX-AMS_HTML' charset='utf-8'></script>
+    <script type="text/javascript">
+    if (typeof MathJax == 'undefined') {
+        console.log("No local MathJax, loading from CDN");
+        document.write(unescape("%3Cscript type='text/javascript' src='http://cdn.mathjax.org/mathjax/latest/MathJax.js%3Fconfig=TeX-AMS_HTML' charset='utf-8'%3E%3C/script%3E"));
+    }else{
+        console.log("Using local MathJax");
+    }
+    </script>
+
+    <link rel="stylesheet" href="static/codemirror-2.12/lib/codemirror.css">
+    <link rel="stylesheet" href="static/codemirror-2.12/mode/rst/rst.css">
+    <link rel="stylesheet" href="static/codemirror-2.12/theme/ipython.css">
+    <link rel="stylesheet" href="static/codemirror-2.12/theme/default.css">
+
+    <link rel="stylesheet" href="static/prettify/prettify.css"/>
+
+    <link rel="stylesheet" href="static/css/boilerplate.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/layout.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/base.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/notebook.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/renderedhtml.css" type="text/css" />
+
+
+</head>
+
+<body>
+
+<div id="header">
+    <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
+    <span id="save_widget">
+        <input type="text" id="notebook_name" size="20"></textarea>
+        <span id="notebook_id" style="display:none">{{notebook_id}}</span>
+        <button id="save_notebook"><u>S</u>ave</button>
+    </span>
+    <span id="kernel_status">Idle</span>
+</div>
+
+<div id="main_app">
+
+    <div id="left_panel">
+
+        <div id="notebook_section">
+            <h3 class="section_header">Notebook</h3>
+            <div class="section_content">
+                <div class="section_row">
+                    <span id="new_open" class="section_row_buttons">
+                        <button id="new_notebook">New</button>
+                        <button id="open_notebook">Open</button>
+                    </span>
+                    <span class="section_row_header">Actions</span>
+                </div>
+                <div class="section_row">
+                    <span>
+                        <select id="download_format">
+                            <option value="json">ipynb</option>
+                            <option value="py">py</option>
+                        </select>
+                    </span>
+                    <span class="section_row_buttons">
+                        <button id="download_notebook">Download</button>
+                    </span>
+                </div>
+                <div class="section_row">
+                    <span class="section_row_buttons">
+                        <span id="print_widget">
+                            <button id="print_notebook">Print</button>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div id="cell_section">
+            <h3 class="section_header">Cell</h3>
+            <div class="section_content">
+                <div class="section_row">
+                    <span class="section_row_buttons">
+                        <button id="delete_cell"><u>D</u>elete</button>
+                    </span>
+                    <span class="section_row_header">Actions</span>
+                </div>
+                <div class="section_row">
+                    <span id="cell_type" class="section_row_buttons">
+                        <button id="to_code"><u>C</u>ode</button>
+<!--                        <button id="to_html">HTML</button>-->
+                        <button id="to_markdown"><u>M</u>arkdown</button>
+                    </span>
+                     <span class="button_label">Format</span> 
+                </div>
+                <div class="section_row">
+                    <span id="cell_output" class="section_row_buttons">
+                        <button id="toggle_output"><u>T</u>oggle</button>
+                        <button id="clear_all_output">ClearAll</button>
+                    </span>
+                    <span class="button_label">Output</span>
+                </div>
+                <div class="section_row">
+                    <span id="insert" class="section_row_buttons">
+                        <button id="insert_cell_above"><u>A</u>bove</button>
+                        <button id="insert_cell_below"><u>B</u>elow</button>
+                    </span>
+                    <span class="button_label">Insert</span>
+                </div>
+                <div class="section_row">
+                    <span id="move" class="section_row_buttons">
+                        <button id="move_cell_up">Up</button>
+                        <button id="move_cell_down">Down</button>
+                    </span>
+                    <span class="button_label">Move</span>
+                </div>
+                <div class="section_row">
+                    <span id="run_cells" class="section_row_buttons">
+                        <button id="run_selected_cell">Selected</button>
+                        <button id="run_all_cells">All</button>
+                    </span>
+                    <span class="button_label">Run</span>
+                </div>
+                <div class="section_row">
+                    <span id="autoindent_span">
+                        <input type="checkbox" id="autoindent" checked="true"></input>
+                    </span>
+                    <span class="checkbox_label">Autoindent:</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="kernel_section">
+            <h3 class="section_header">Kernel</h3>
+            <div class="section_content">
+                <div class="section_row">
+                    <span id="int_restart" class="section_row_buttons">
+                        <button id="int_kernel">Interrupt</button>
+                        <button id="restart_kernel">Restart</button>
+                    </span>
+                    <span class="section_row_header">Actions</span>
+                </div>
+                <div class="section_row">
+                    <span id="kernel_persist">
+                        <input type="checkbox" id="kill_kernel"></input>
+                    </span>
+                    <span class="checkbox_label">Kill kernel upon exit:</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="help_section">
+            <h3 class="section_header">Help</h3>
+            <div class="section_content">
+                <div class="section_row">
+                    <span id="help_buttons0" class="section_row_buttons">
+                        <a id="python_help" href="http://docs.python.org" target="_blank">Python</a>
+                        <a id="ipython_help" href="http://ipython.org/documentation.html" target="_blank">IPython</a>
+                    </span>
+                    <span class="section_row_header">Links</span>
+                </div>
+                <div class="section_row">
+                    <span id="help_buttons1" class="section_row_buttons">
+                        <a id="numpy_help" href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a>
+                        <a id="scipy_help" href="http://docs.scipy.org/doc/scipy/reference/" target="_blank">SciPy</a>
+                    </span>
+                </div>
+                <div class="section_row">
+                    <span id="help_buttons2" class="section_row_buttons">
+                        <a id="matplotlib_help" href="http://matplotlib.sourceforge.net/" target="_blank">MPL</a>
+                        <a id="sympy_help" href="http://docs.sympy.org/dev/index.html" target="_blank">SymPy</a>
+                    </span>
+                </div>
+                <div class="section_row">
+                    <span class="help_string">run selected cell</span>
+                    <span class="help_string_label">Shift-Enter :</span>
+                </div>
+                <div class="section_row">
+                    <span class="help_string">run in terminal mode</span>
+                    <span class="help_string_label">Ctrl-Enter  :</span>
+                </div>
+                <div class="section_row">
+                    <span class="help_string">show keyboard shortcuts</span>
+                    <span class="help_string_label">Ctrl-m h  :</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div id="left_panel_splitter"></div>
+    <div id="notebook_panel">
+        <div id="notebook"></div>
+        <div id="pager_splitter"></div>
+        <div id="pager"></div>
+    </div>
+
+</div>
+
+<script src="static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/jquery/js/jquery-ui-1.8.14.custom.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/jquery/js/jquery.autogrow.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="static/codemirror-2.12/lib/codemirror.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/python/python.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/htmlmixed/htmlmixed.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/xml/xml.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/javascript/javascript.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/css/css.js" charset="utf-8"></script>
+<script src="static/codemirror-2.12/mode/rst/rst.js" charset="utf-8"></script>
+
+<script src="static/pagedown/Markdown.Converter.js" charset="utf-8"></script>
+
+<script src="static/prettify/prettify.js" charset="utf-8"></script>
+
+<script src="static/js/namespace.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/utils.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/cell.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/codecell.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/textcell.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/kernel.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/kernelstatus.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/layout.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/savewidget.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/pager.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/panelsection.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/printwidget.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/leftpanel.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/notebook.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/notebook_main.js" type="text/javascript" charset="utf-8"></script>
+
+
+</body>
+
+</html>
+
+

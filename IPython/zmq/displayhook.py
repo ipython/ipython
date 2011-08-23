@@ -27,10 +27,14 @@ class ZMQDisplayHook(object):
         self.parent_header = extract_header(parent)
 
 
-def _encode_png(data):
-    pngdata = data.get('image/png')
+def _encode_binary(format_dict):
+    pngdata = format_dict.get('image/png')
     if pngdata is not None:
-        data['image/png'] = encodestring(pngdata)
+        format_dict['image/png'] = encodestring(pngdata)
+    jpegdata = format_dict.get('image/jpeg')
+    if jpegdata is not None:
+        format_dict['image/jpeg'] = encodestring(jpegdata)
+
 
 class ZMQShellDisplayHook(DisplayHook):
     """A displayhook subclass that publishes data using ZeroMQ. This is intended
@@ -54,11 +58,11 @@ class ZMQShellDisplayHook(DisplayHook):
             self.msg['content']['execution_count'] = self.prompt_count
 
     def write_format_data(self, format_dict):
-        pngdata = format_dict.get('image/png')
-        _encode_png(format_dict)
+        _encode_binary(format_dict)
         self.msg['content']['data'] = format_dict
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
         self.session.send(self.pub_socket, self.msg)
         self.msg = None
+
