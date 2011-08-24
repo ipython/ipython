@@ -776,7 +776,7 @@ var IPython = (function (IPython) {
             cell.render();
         }
         if (default_options.terminal) {
-            cell.clear_input();
+            cell.select_all();
         } else {
             if ((cell_index === (that.ncells()-1)) && default_options.add_new) {
                 that.insert_code_cell_below();

@@ -53,7 +53,7 @@ class NamedNotebookHandler(web.RequestHandler):
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
         if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404)
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         self.render('notebook.html', notebook_id=notebook_id)
 
 
@@ -311,7 +311,7 @@ class RSTHandler(web.RequestHandler):
 
     def post(self):
         if publish_string is None:
-            raise web.HTTPError(503)
+            raise web.HTTPError(503, u'docutils not available')
         body = self.request.body.strip()
         source = body
         # template_path=os.path.join(os.path.dirname(__file__), u'templates', u'rst_template.html')
@@ -326,7 +326,7 @@ class RSTHandler(web.RequestHandler):
                                   settings_overrides=defaults
             )
         except:
-            raise web.HTTPError(400)
+            raise web.HTTPError(400, u'Invalid RST')
         print html
         self.set_header('Content-Type', 'text/html')
         self.finish(html)
