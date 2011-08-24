@@ -72,3 +72,4 @@
 .. _indefero: http://www.indefero.net
 .. _git: http://git-scm.com
 .. _github: http://github.com
+.. _MarkDown: http://daringfireball.net/projects/markdown/

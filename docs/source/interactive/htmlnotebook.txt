@@ -62,7 +62,7 @@ A notebook is a combination of two things:
 1. an interactive session connected to an IPython kernel, controlled by a web
 application that can send input to the console and display many types of output
 (text, graphics, mathematics and more).  This is the same kernel used by the
-:ref:`Qt console <qt_console>`, but in this case the web console sends input in
+:ref:`Qt console <qtconsole>`, but in this case the web console sends input in
 persistent cells that you can edit in-place instead of the vertically scrolling
 terminal style used by the Qt console.
 

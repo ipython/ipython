@@ -352,22 +352,26 @@ MathJax
 -------
 
 The IPython notebook uses the MathJax [MathJax]_ Javascript library for rendering LaTeX
-in web browsers. Because MathJax is large, we don't include it with IPython. We do, however,
+in web browsers. Because MathJax is large, we don't include it with IPython. Normally
+IPython will load MathJax from a CDN, but if you have a slow network connection, or
+want to use LaTeX without an internet connection at all, we do
 include a utility to aid in downloading MathJax and installing it into the proper location::
 
     from IPython.external.mathjax import install_mathjax
     install_mathjax()
 
+This function does require write access to the IPython install directory, so if you
+have a system-wide Python install, it may need to be done from a ``sudo python`` session.
 
-Browser Compatiblity
---------------------
+Browser Compatibility
+---------------------
 
 The notebook uses WebSockets and the flexible box model. These features are
 available in the following browsers:
 
 * Chrome.
 * Safari.
-* Firefox 4 and 5. These browesrs have WebSocket support, but it is disabled by
+* Firefox 4 and 5. These browsers have WebSocket support, but it is disabled by
   default. You can enable it by entering ``about:config`` in the URL bar and then
   setting ``network.websocket.enabled`` and ``network.websocket.override-security-block``
   to ``true``.
