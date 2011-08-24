@@ -70,8 +70,7 @@ class NotebookManager(LoggingConfigurable):
 
     def new_notebook_id(self, name):
         """Generate a new notebook_id for a name and store its mappings."""
-        notebook_id = unicode(uuid.uuid5(uuid.NAMESPACE_URL,
-            'file://'+self.get_path_by_name(name).encode('utf-8')))
+        notebook_id = unicode(uuid.uuid4())
         self.mapping[notebook_id] = name
         self.rev_mapping[name] = notebook_id
         return notebook_id
