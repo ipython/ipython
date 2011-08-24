@@ -15,6 +15,17 @@ command::
 
     $ ipython notebook
 
+Note that by default, the notebook doesn't load pylab, it's just a normal
+IPython session like any other.  If you want pylab support, you must use::
+    
+    $ ipython notebook --pylab
+
+which will behave similar to the terminal and Qt console versions, using your
+default matplotlib backend and providing floating interactive plot windows.  If
+you want inline figures, you must manually select the ``inline`` backend::
+
+    $ ipython notebook --pylab inline
+
 This server uses the same ZeroMQ-based two process kernel architecture as
 the QT Console as well Tornado for serving HTTP requests. Some of the main
 features of the Notebook include:
@@ -30,8 +41,161 @@ features of the Notebook include:
 See :ref:`our installation documentation <install_index>` for directions on
 how to install the notebook and its dependencies.
 
+.. note::
+
+   You can start more than one notebook server at the same time, if you want to
+   work on notebooks in different directories.  By default the first notebook
+   server starts in port 8888, later notebooks search for random ports near
+   that one.  You can also manually specify the port with the ``--port``
+   option, if you want persistent URLs you can bookmark.
+   
+
 Basic Usage
 ===========
+
+The landing page of the notebook server application, which we call the IPython
+Notebook *dashboard*, shows the notebooks currently available in the directory
+in which the application was started, and allows you to create new notebooks.
+
+A notebook is a combination of two things:
+
+1. an interactive session connected to an IPython kernel, controlled by a web
+application that can send input to the console and display many types of output
+(text, graphics, mathematics and more).  This is the same kernel used by the
+:ref:`Qt console <qt_console>`, but in this case the web console sends input in
+persistent cells that you can edit in-place instead of the vertically scrolling
+terminal style used by the Qt console.
+
+2. a document that can save the inputs and outputs of the session as well as
+additional text that accompanies the code but is not meant for execution.  In
+this way, notebook files serve as a complete computational record of a session
+including explanatory text and mathematics, code and resulting figures.  These
+documents are internally JSON files and are saved with the ``.ipynb``
+extension.
+
+If you have ever used the Mathematica or Sage notebooks (the latter is also
+web-based__) you should feel right at home.  If you have not, you should be
+able to learn how to use it in just a few minutes.
+
+.. __: http://sagenb.org
+
+
+Creating and editing notebooks
+------------------------------
+
+You can create new notebooks from the dashboard with the ``New Notebook``
+button or open existing ones by clicking on their name.  Once in a notebook,
+your browser tab will reflect the name of that notebook (prefixed with "IPy:").
+The URL for that notebook is not meant to be human-readable, but it is
+persistent across invocations of the notebook server *as long as you don't
+rename the notebook*, so you can bookmark them for future use.
+
+You can also drag and dropp into the area listing files any python file: it
+will be imported into a notebook with the same name (but ``.ipynb`` extension)
+located in the directory where the notebook server was started.  This notebook
+will consist of a single cell with all the code in the file, which you can
+later manually partition into individual cells for gradual execution, add text
+and graphics, etc.
+
+Workflow and limitations
+------------------------
+
+The normal workflow in a notebook is quite similar to a normal IPython session,
+with the difference that you can edit a cell in-place multiple times until you
+obtain the desired results rather than having to rerun separate scripts with
+the ``%run`` magic (though magics also work in the notebook).   Typically
+you'll work on a problem in pieces, organizing related pieces into cells and
+moving forward as previous parts work correctly.  This is much more convenient
+for interactive exploration than breaking up a computation into scripts that
+must be executed together, especially if parts of them take a long time to run
+(you can use tricks with namespaces and ``%run -i``, but we think the notebook
+is a more natural solution for  that kind of problem).
+
+The only significant limitation the notebook currently has, compared to the qt
+console, is that it can not run any code that expects input from the kernel
+(such as scripts that call :func:`raw_input`).  Very importantly, this means
+that the ``%debug`` magic does *not* work in the notebook!  We intend to
+correct this limitation, but in the meantime, there is a way to debug problems
+in the notebook: you can attach a Qt console to your existing notebook kernel,
+and run ``%debug`` from the Qt console.  Simply look for the lines in the
+terminal where you started the kernel that read something like::
+
+    [IPKernelApp] To connect another client to this kernel, use:
+    [IPKernelApp] --existing --shell=53328 --iopub=53817 --stdin=34736 --hb=45543
+
+and then start a qt console pointing to that kernel::
+
+    ipython qtconsole --existing --shell=53328 --iopub=53817 --stdin=34736 --hb=45543
+
+    
+Text input
+----------
+
+In addition to code cells and the output they procude (such as figures), you
+can also type text not meant for execution.  To type text, change the type of a
+cell from ``Code`` to ``Markdown`` by using the button or the :kbd:`C-m m`
+keybinding (see below).  You can then type any text in Markdown_ syntax, as
+well as mathematical expressions if you use ``$...$`` for inline math or
+``$$...$$`` for displayed math.
+
+Exporting a notebook
+--------------------
+
+If you want to provide others with a static HTML or PDF view of your notebook,
+use the ``Print`` button.  This opens a static view of the document, which you
+can print to PDF using your operating system's facilities, or save to a file
+with your web browser's 'Save' option (note that typically, this will create
+both an html file *and* a directory called `notebook_name_files` next to it
+that contains all the necessary style information, so if you intend to share
+this, you must send the directory along with the main html file).
+
+The `Download` button lets you save a notebook file to the Download area
+configured by your web browser (particularly useful if you are running the
+notebook server on a remote host and need a file locally).  The notebook is
+saved by default with the ``.ipynb`` extension and the files contain JSON data
+that is not meant for human editing or consumption.  But you can always export
+the input part of a notebook to a plain python script by choosing Python format
+in the `Download` drop list.  This removes all output and saves the text cells
+in comment areas.
+
+.. warning::
+
+   While in simple cases you can roundtrip a notebook to Python, edit the
+   python file and import it back without loss, this is in general *not
+   guaranteed to work at all*.  As the notebook format evolves in complexity,
+   there will be attributes of the notebook that will not survive a roundtrip
+   through the Python form.  You should think of the Python format as a way to
+   output a script version of a notebook and the import capabilities as a way
+   to load existing code to get a notebook started.  But the Python version is
+   *not* an alternate Python format.
+
+    
+Keyboard use
+------------
+
+All actions in the notebook can be achieved with the mouse, but we have also
+added keyboard shortcuts for the most common ones, so that productive use of
+the notebook can be achieved with minimal mouse intervention.  The main
+key bindings you need to remember are:
+
+* :kbd:`Shift-Enter`: execute the current cell (similar to the Qt console),
+  show output (if any) and create a new cell below.  Note that in the notebook,
+  simply using :kbd:`Enter` *never* forces execution, it simply inserts a new
+  line in the current cell.  Therefore, in the notebook you must always use
+  :kbd:`Shift-Enter` to get execution (or use the mouse and click on the ``Run
+  Selected`` button).
+
+* :kbd:`Control-Enter`: execute the current cell in "terminal mode", where any
+  output is shown but the cursor cursor stays in the current cell, whose input
+  area is flushed empty.  This is convenient to do quick in-place experiments
+  or query things like filesystem content without creating additional cells you
+  may not want saved in your notebook.
+
+* :kbd:`Control-m`: this is the prefix for all other keybindings, which consist
+  of an additional single letter.  Type :kbd:`Ctrl-m h` (that is, the sole
+  letter :kbd:`h` after :kbd:`Ctrl-m`) and IPython will show you the remaining
+  available keybindings.
+
 
 Notebook document format
 ========================
