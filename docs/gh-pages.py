@@ -83,7 +83,7 @@ if __name__ == '__main__':
         tag = sys.argv[1]
     except IndexError:
         try:
-            tag = sh2('git describe')
+            tag = sh2('git describe --exact-match')
         except CalledProcessError:
             tag = "dev"   # Fallback
     
@@ -102,12 +102,16 @@ if __name__ == '__main__':
 
     # don't `make html` here, because gh-pages already depends on html in Makefile
     # sh('make html')
+    if tag != 'dev':
+        # only build pdf for non-dev targets
+        sh2('make pdf')
 
     # This is pretty unforgiving: we unconditionally nuke the destination
     # directory, and then copy the html tree in there
     shutil.rmtree(dest, ignore_errors=True)
     shutil.copytree(html_dir, dest)
-    shutil.copy(pjoin(pdf_dir, 'ipython.pdf'), pjoin(dest, 'ipython.pdf'))
+    if tag != 'dev':
+        shutil.copy(pjoin(pdf_dir, 'ipython.pdf'), pjoin(dest, 'ipython.pdf'))
 
     try:
         cd(pages_dir)
@@ -118,7 +122,7 @@ if __name__ == '__main__':
                                                                  branch)
             raise RuntimeError(e)
 
-        sh('git add %s' % tag)
+        sh('git add -A %s' % tag)
         sh('git commit -m"Updated doc release: %s"' % tag)
         print
         print 'Most recent 3 commits:'
