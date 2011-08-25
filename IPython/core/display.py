@@ -268,6 +268,16 @@ class DisplayObject(object):
                 import urllib2
                 response = urllib2.urlopen(self.url)
                 self.data = response.read()
+                # extract encoding from header, if there is one:
+                encoding = None
+                for sub in response.headers['content-type'].split(';'):
+                    sub = sub.strip()
+                    if sub.startswith('charset'):
+                        encoding = sub.split('=')[-1].strip()
+                        break
+                # decode data, if an encoding was specified
+                if encoding:
+                    self.data = self.data.decode(encoding, 'replace')
             except:
                 self.data = None
 
