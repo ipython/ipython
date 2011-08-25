@@ -278,24 +278,20 @@ class MappingKernelManager(KernelManager):
 
     def kill_kernel(self, kernel_id):
         """Kill a kernel and remove its notebook association."""
-        if kernel_id not in self:
-            raise web.HTTPError(404)
+        self._check_kernel_id(kernel_id)
         super(MappingKernelManager, self).kill_kernel(kernel_id)
         self.delete_mapping_for_kernel(kernel_id)
         self.log.info("Kernel killed: %s" % kernel_id)
 
     def interrupt_kernel(self, kernel_id):
         """Interrupt a kernel."""
-        if kernel_id not in self:
-            raise web.HTTPError(404)
+        self._check_kernel_id(kernel_id)
         super(MappingKernelManager, self).interrupt_kernel(kernel_id)
         self.log.info("Kernel interrupted: %s" % kernel_id)
 
     def restart_kernel(self, kernel_id):
         """Restart a kernel while keeping clients connected."""
-        if kernel_id not in self:
-            raise web.HTTPError(404)
-
+        self._check_kernel_id(kernel_id)
         # Get the notebook_id to preserve the kernel/notebook association.
         notebook_id = self.notebook_for_kernel(kernel_id)
         # Create the new kernel first so we can move the clients over.
@@ -309,17 +305,22 @@ class MappingKernelManager(KernelManager):
         return new_kernel_id
 
     def create_iopub_stream(self, kernel_id):
-        if kernel_id not in self:
-            raise web.HTTPError(404)
+        """Create a new iopub stream."""
+        self._check_kernel_id(kernel_id)
         return super(MappingKernelManager, self).create_iopub_stream(kernel_id)
 
     def create_shell_stream(self, kernel_id):
-        if kernel_id not in self:
-            raise web.HTTPError(404)
+        """Create a new shell stream."""
+        self._check_kernel_id(kernel_id)
         return super(MappingKernelManager, self).create_shell_stream(kernel_id)
 
     def create_hb_stream(self, kernel_id):
-        if kernel_id not in self:
-            raise web.HTTPError(404)
+        """Create a new hb stream."""
+        self._check_kernel_id(kernel_id)
         return super(MappingKernelManager, self).create_hb_stream(kernel_id)
+
+    def _check_kernel_id(self, kernel_id):
+        """Check a that a kernel_id exists and raise 404 if not."""
+        if kernel_id not in self:
+            raise web.HTTPError(404, u'Kernel does not exist: %s' % kernel_id)
 

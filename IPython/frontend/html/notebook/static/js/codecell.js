@@ -190,6 +190,15 @@ var IPython = (function (IPython) {
     };
 
 
+    CodeCell.prototype.select_all = function () {
+        var start = {line: 0, ch: 0};
+        var nlines = this.code_mirror.lineCount();
+        var last_line = this.code_mirror.getLine(nlines-1);
+        var end = {line: nlines-1, ch: last_line.length};
+        this.code_mirror.setSelection(start, end);
+    };
+
+
     CodeCell.prototype.append_output = function (json) {
         this.expand();
         if (json.output_type === 'pyout') {

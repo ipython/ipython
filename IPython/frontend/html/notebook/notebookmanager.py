@@ -70,8 +70,17 @@ class NotebookManager(LoggingConfigurable):
 
     def new_notebook_id(self, name):
         """Generate a new notebook_id for a name and store its mappings."""
-        notebook_id = unicode(uuid.uuid5(uuid.NAMESPACE_URL,
-            'file://'+self.get_path_by_name(name).encode('utf-8')))
+        # TODO: the following will give stable urls for notebooks, but unless
+        # the notebooks are immediately redirected to their new urls when their
+        # filemname changes, nasty inconsistencies result.  So for now it's
+        # disabled and instead we use a random uuid4() call.  But we leave the
+        # logic here so that we can later reactivate it, whhen the necessary
+        # url redirection code is written.
+        #notebook_id = unicode(uuid.uuid5(uuid.NAMESPACE_URL,
+        #                 'file://'+self.get_path_by_name(name).encode('utf-8')))
+        
+        notebook_id = unicode(uuid.uuid4())
+        
         self.mapping[notebook_id] = name
         self.rev_mapping[name] = notebook_id
         return notebook_id
@@ -94,7 +103,7 @@ class NotebookManager(LoggingConfigurable):
         try:
             name = self.mapping[notebook_id]
         except KeyError:
-            raise web.HTTPError(404)
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         return self.get_path_by_name(name)
 
     def get_path_by_name(self, name):
@@ -107,7 +116,7 @@ class NotebookManager(LoggingConfigurable):
         """Get the representation of a notebook in format by notebook_id."""
         format = unicode(format)
         if format not in self.allowed_formats:
-            raise web.HTTPError(415)
+            raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
         last_modified, nb = self.get_notebook_object(notebook_id)
         data = current.writes(nb, format)
         name = nb.get('name','notebook')
@@ -117,7 +126,7 @@ class NotebookManager(LoggingConfigurable):
         """Get the NotebookNode representation of a notebook by notebook_id."""
         path = self.find_path(notebook_id)
         if not os.path.isfile(path):
-            raise web.HTTPError(404)
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         info = os.stat(path)
         last_modified = datetime.datetime.utcfromtimestamp(info.st_mtime)
         with open(path,'r') as f:
@@ -126,7 +135,7 @@ class NotebookManager(LoggingConfigurable):
                 # v1 and v2 and json in the .ipynb files.
                 nb = current.reads(s, u'json')
             except:
-                raise web.HTTPError(404)
+                raise web.HTTPError(500, u'Unreadable JSON notebook.')
         if 'name' not in nb:
             nb.name = os.path.split(path)[-1].split(u'.')[0]
         return last_modified, nb
@@ -138,18 +147,18 @@ class NotebookManager(LoggingConfigurable):
         and the value in the data is updated to use that value.
         """
         if format not in self.allowed_formats:
-            raise web.HTTPError(415)
+            raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
 
         try:
             nb = current.reads(data, format)
         except:
-            raise web.HTTPError(400)
+            raise web.HTTPError(400, u'Invalid JSON data')
 
         if name is None:
             try:
                 name = nb.metadata.name
             except AttributeError:
-                raise web.HTTPError(400)
+                raise web.HTTPError(400, u'Missing notebook name')
         nb.metadata.name = name
 
         notebook_id = self.new_notebook_id(name)
@@ -159,12 +168,12 @@ class NotebookManager(LoggingConfigurable):
     def save_notebook(self, notebook_id, data, name=None, format=u'json'):
         """Save an existing notebook by notebook_id."""
         if format not in self.allowed_formats:
-            raise web.HTTPError(415)
+            raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
 
         try:
             nb = current.reads(data, format)
         except:
-            raise web.HTTPError(400)
+            raise web.HTTPError(400, u'Invalid JSON data')
 
         if name is not None:
             nb.metadata.name = name
@@ -173,18 +182,18 @@ class NotebookManager(LoggingConfigurable):
     def save_notebook_object(self, notebook_id, nb):
         """Save an existing notebook object by notebook_id."""
         if notebook_id not in self.mapping:
-            raise web.HTTPError(404)
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         old_name = self.mapping[notebook_id]
         try:
             new_name = nb.metadata.name
         except AttributeError:
-            raise web.HTTPError(400)
+            raise web.HTTPError(400, u'Missing notebook name')
         path = self.get_path_by_name(new_name)
         try:
             with open(path,'w') as f:
                 current.write(nb, f, u'json')
         except:
-            raise web.HTTPError(400)
+            raise web.HTTPError(400, u'Unexpected error while saving notebook')
         if old_name != new_name:
             old_path = self.get_path_by_name(old_name)
             if os.path.isfile(old_path):
@@ -196,7 +205,7 @@ class NotebookManager(LoggingConfigurable):
         """Delete notebook by notebook_id."""
         path = self.find_path(notebook_id)
         if not os.path.isfile(path):
-            raise web.HTTPError(404)
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         os.unlink(path)
         self.delete_notebook_id(notebook_id)
 
