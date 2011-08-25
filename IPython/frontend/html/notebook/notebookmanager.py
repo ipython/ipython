@@ -70,7 +70,17 @@ class NotebookManager(LoggingConfigurable):
 
     def new_notebook_id(self, name):
         """Generate a new notebook_id for a name and store its mappings."""
+        # TODO: the following will give stable urls for notebooks, but unless
+        # the notebooks are immediately redirected to their new urls when their
+        # filemname changes, nasty inconsistencies result.  So for now it's
+        # disabled and instead we use a random uuid4() call.  But we leave the
+        # logic here so that we can later reactivate it, whhen the necessary
+        # url redirection code is written.
+        #notebook_id = unicode(uuid.uuid5(uuid.NAMESPACE_URL,
+        #                 'file://'+self.get_path_by_name(name).encode('utf-8')))
+        
         notebook_id = unicode(uuid.uuid4())
+        
         self.mapping[notebook_id] = name
         self.rev_mapping[name] = notebook_id
         return notebook_id
