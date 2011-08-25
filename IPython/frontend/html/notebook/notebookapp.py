@@ -263,7 +263,10 @@ class IPythonNotebookApp(BaseIPythonApplication):
 
     def start(self):
         ip = self.ip if self.ip else '[all ip addresses on your system]'
-        self.log.info("The IPython Notebook is running at: http://%s:%i" % (ip, self.port))
+        proto = 'https' if self.certfile else 'http'
+        self.log.info("The IPython Notebook is running at: %s://%s:%i" % (proto,
+                                                                          ip,
+                                                                          self.port))
         ioloop.IOLoop.instance().start()
 
 #-----------------------------------------------------------------------------
