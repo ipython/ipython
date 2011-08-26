@@ -331,3 +331,15 @@ def mute_warn():
         yield
     finally:
         warn.warn = save_warn
+
+@contextmanager
+def make_tempfile(name):
+    """ Create an empty, named, temporary file for the duration of the context.
+    """
+    f = open(name, 'w')
+    f.close()
+    try:
+        yield
+    finally:
+        os.unlink(name)
+

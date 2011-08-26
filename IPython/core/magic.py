@@ -593,7 +593,7 @@ Currently the magic system has the following functions:\n"""
         # if not, try the input as a filename
         if out == 'not found':
             try:
-                filename = get_py_filename(parameter_s)
+                filename = get_py_filename(parameter_s, sys.platform == 'win32')
             except IOError,msg:
                 print msg
                 return
@@ -1369,7 +1369,7 @@ Currently the magic system has the following functions:\n"""
             namespace = self.shell.user_ns
         else:  # called to run a program by %run -p
             try:
-                filename = get_py_filename(arg_lst[0])
+                filename = get_py_filename(arg_lst[0], sys.platform == 'win32')
             except IOError,msg:
                 error(msg)
                 return
@@ -1558,7 +1558,7 @@ Currently the magic system has the following functions:\n"""
                                           mode='list',list_all=1)
 
         try:
-            filename = file_finder(arg_lst[0])
+            filename = file_finder(arg_lst[0], sys.platform == 'win32')
         except IndexError:
             warn('you must provide at least a filename.')
             print '\n%run:\n',oinspect.getdoc(self.magic_run)
@@ -2128,7 +2128,7 @@ Currently the magic system has the following functions:\n"""
         def make_filename(arg):
             "Make a filename from the given args"
             try:
-                filename = get_py_filename(arg)
+                filename = get_py_filename(arg, win32=sys.platform == 'win32')
             except IOError:
                 # If it ends with .py but doesn't already exist, assume we want
                 # a new file. 
@@ -3148,7 +3148,7 @@ Defaulting color scheme to 'NoColor'"""
         to be Python source and will show it with syntax highlighting. """
         
         try:
-            filename = get_py_filename(parameter_s)
+            filename = get_py_filename(parameter_s, sys.platform == 'win32')
             cont = file_read(filename)
         except IOError:
             try:

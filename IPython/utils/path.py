@@ -82,13 +82,20 @@ def get_long_path_name(path):
     return _get_long_path_name(path)
 
 
-def get_py_filename(name):
+def get_py_filename(name, win32=False):
     """Return a valid python filename in the current directory.
 
     If the given name is not a file, it adds '.py' and searches again.
-    Raises IOError with an informative message if the file isn't found."""
+    Raises IOError with an informative message if the file isn't found.
+    
+    If the win32 argument is True, then apply Windows semantics to the filename.
+    In particular, remove any quoting that has been applied to it.
+    """
 
     name = os.path.expanduser(name)
+    if win32:
+        if name.startswith(("'", '"')) and name.endswith(("'", '"')):
+            name = name[1:-1]
     if not os.path.isfile(name) and not name.endswith('.py'):
         name += '.py'
     if os.path.isfile(name):
