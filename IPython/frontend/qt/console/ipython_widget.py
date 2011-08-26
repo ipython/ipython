@@ -20,7 +20,6 @@ from IPython.external.qt import QtCore, QtGui
 # Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter, \
     transform_ipy_prompt
-from IPython.core.usage import default_gui_banner
 from IPython.utils.traitlets import Bool, Unicode
 from frontend_widget import FrontendWidget
 import styles
@@ -278,11 +277,6 @@ class IPythonWidget(FrontendWidget):
         info = self._CompletionRequest(msg_id, pos)
         self._request_info['complete'] = info
 
-    def _get_banner(self):
-        """ Reimplemented to return IPython's default banner.
-        """
-        return default_gui_banner
-
     def _process_execute_error(self, msg):
         """ Reimplemented for IPython-style traceback formatting.
         """
@@ -512,3 +506,8 @@ class IPythonWidget(FrontendWidget):
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 
+    #------ Trait default initializers -----------------------------------------
+
+    def _banner_default(self):
+        from IPython.core.usage import default_gui_banner
+        return default_gui_banner

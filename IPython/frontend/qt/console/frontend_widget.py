@@ -13,7 +13,7 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
 from IPython.core.oinspect import call_tip
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
-from IPython.utils.traitlets import Bool, Instance
+from IPython.utils.traitlets import Bool, Instance, Unicode
 from bracket_matcher import BracketMatcher
 from call_tip_widget import CallTipWidget
 from completion_lexer import CompletionLexer
@@ -75,8 +75,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     """ A Qt frontend for a generic Python kernel.
     """
 
-    enable_calltips = Bool(True, config=True,
-        help="Whether to draw information calltips on open-parentheses.")
+    # The text to show when the kernel is (re)started.
+    banner = Unicode()
 
     # An option and corresponding signal for overriding the default kernel
     # interrupt behavior.
@@ -88,6 +88,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     custom_restart = Bool(False)
     custom_restart_kernel_died = QtCore.Signal(float)
     custom_restart_requested = QtCore.Signal()
+
+    # Whether to automatically show calltips on open-parentheses.
+    enable_calltips = Bool(True, config=True,
+        help="Whether to draw information calltips on open-parentheses.")
 
     # Emitted when a user visible 'execute_request' has been submitted to the
     # kernel from the FrontendWidget. Contains the code to be executed.
@@ -463,7 +467,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._highlighter.highlighting_on = False
 
         self._control.clear()
-        self._append_plain_text(self._get_banner())
+        self._append_plain_text(self.banner)
         self._show_interpreter_prompt()
 
     def restart_kernel(self, message, now=False):
@@ -543,13 +547,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             info = self._CompletionRequest(msg_id, pos)
             self._request_info['complete'] = info
 
-    def _get_banner(self):
-        """ Gets a banner to display at the beginning of a session.
-        """
-        banner = 'Python %s on %s\nType "help", "copyright", "credits" or ' \
-            '"license" for more information.'
-        return banner % (sys.version, sys.platform)
-
     def _get_context(self, cursor=None):
         """ Gets the context for the specified cursor (or the current cursor
             if none is specified).
@@ -620,3 +617,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         document = self._control.document()
         if position == self._get_cursor().position():
             self._call_tip()
+
+    #------ Trait default initializers -----------------------------------------
+
+    def _banner_default(self):
+        """ Returns the standard Python banner.
+        """
+        banner = 'Python %s on %s\nType "help", "copyright", "credits" or ' \
+            '"license" for more information.'
+        return banner % (sys.version, sys.platform)
