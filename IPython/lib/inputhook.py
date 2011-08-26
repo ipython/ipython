@@ -29,6 +29,7 @@ GUI_QT4 = 'qt4'
 GUI_GTK = 'gtk'
 GUI_TK = 'tk'
 GUI_OSX = 'osx'
+GUI_GLUT = 'glut'
 GUI_PYGLET = 'pyglet'
 
 #-----------------------------------------------------------------------------
@@ -285,9 +286,14 @@ class InputHookManager(object):
         self.clear_inputhook()
 
 
+<<<<<<< HEAD
 
     def enable_pyglet(self, app=None):
         """Enable event loop integration with pyglet.
+=======
+    def enable_glut(self, app=None):
+        """Enable event loop integration with GLUT.
+>>>>>>> Added code for the GLUT interactive session
 
         Parameters
         ----------
@@ -298,6 +304,7 @@ class InputHookManager(object):
 
         Notes
         -----
+<<<<<<< HEAD
         This methods sets the ``PyOS_InputHook`` for pyglet, which allows
         pyglet to integrate with terminal based applications like
         IPython.
@@ -314,6 +321,129 @@ class InputHookManager(object):
 
         This merely sets PyOS_InputHook to NULL.
         """
+=======
+        This methods sets the PyOS_InputHook for GLUT, which allows
+        the GLUT to integrate with terminal based applications like
+        IPython.
+
+        GLUT is a quite old library and it is difficult to ensure proper
+        integration within IPython since original GLUT does not allow to handle
+        events one by one. Instead, it requires for the mainloop to be entered
+        and never returned (there is not event a function to exit he
+        mainloop). Fortunately, there are alternatives such as freeglut
+        (avaialble for linux and windows) and the OSX implementation gives
+        access to a glutCheckLoop() function that blocks itself until a new
+        event is received. This means we have to setup a default timer to
+        ensure we got at least one event that will unblock the function.
+
+        Furthermore, it is not possible to install these handlers wihtout a
+        window being first created. We choose to make this window visible for
+        the user to realize that it does not need to create a new one (or this
+        will bring troubles). But, display mode options are then set here and
+        it won't be possible for the user to change them without modifying the
+        code or this has to be made availble via IPython options system.
+
+        Script integration
+        ------------------
+
+        ::
+
+          interactive = False
+          if glut.glutGetWindow() > 0:
+              interactive = True
+          else:
+              glut.glutInit(sys.argv)
+              glut.glutInitDisplayMode( glut.GLUT_DOUBLE |
+                                        glut.GLUT_RGBA   |
+                                        glut.GLUT_DEPTH )
+          ...
+          if not interactive:
+              glut.glutMainLoop()
+        """
+        import OpenGL.GLUT as glut
+        import OpenGL.platform as platform
+
+        def timer_none(fps):
+            ''' Dummy timer function '''
+            pass
+
+        def display():
+            ''' Dummy display function '''
+            pass
+
+        def timer(fps):
+            # We should normally set the active window to 1 and post a
+            # redisplay for each window.  The problem is that we do not know
+            # how much active windows we have and there is no function in glut
+            # to get that number.
+            # glut.glutSetWindow(1)
+            glut.glutTimerFunc( int(1000.0/fps), timer, fps)
+            glut.glutPostRedisplay()
+
+        glutMainLoopEvent = None
+        if sys.platform == 'darwin':
+            try:
+                glutCheckLoop = platform.createBaseFunction(
+                    'glutCheckLoop', dll=platform.GLUT, resultType=None,
+                    argTypes=[],
+                    doc='glutCheckLoop(  ) -> None',
+                    argNames=(),
+                    )
+            except AttributeError:
+                raise RuntimeError,\
+                    'Your glut implementation does not allow interactive sessions' \
+                    'Consider installing freeglut.'
+            glutMainLoopEvent = glutCheckLoop
+        elif glut.HAVE_FREEGLUT:
+            glutMainLoopEvent = glut.glutMainLoopEvent
+        else:
+            raise RuntimeError,\
+                'Your glut implementation does not allow interactive sessions. ' \
+                'Consider installing freeglut.'
+
+        def inputhook_glut():
+            """ Process pending GLUT events only. """
+            # We need to protect against a user pressing Control-C when IPython is
+            # idle and this is running. We trap KeyboardInterrupt and pass.
+            try:
+                glutMainLoopEvent()
+            except KeyboardInterrupt:
+                pass
+            return 0
+
+        # Frame per second : 60
+        # Should be probably an IPython option
+        fps = 60
+        if not self._apps.has_key(GUI_GLUT):
+            glut.glutInit(sys.argv)
+
+            # Display mode shoudl be also an Ipython option since user won't be able
+            # to change it later
+            glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH)
+            glut.glutCreateWindow(sys.argv[0])
+            glut.glutReshapeWindow(1,1)
+            glut.glutHideWindow()
+            glut.glutDisplayFunc(display)
+            glut.glutTimerFunc( int(1000.0/fps), timer, fps)
+        else:
+            glut.glutDisplayFunc(display)
+            glut.glutTimerFunc( int(1000.0/fps), timer, fps)
+
+        self.set_inputhook(inputhook_glut)
+        self._current_gui = GUI_GLUT
+        self._apps[GUI_GLUT] = True
+
+
+    def disable_glut(self):
+        """Disable event loop integration with glut.
+
+        This sets PyOS_InputHook to NULL and set the display function to a
+        dummy one and set the timer to a dummy timer that will be triggered
+        very far in the future.
+        """
+        glut.HideWindow()
+        glut.glutTimerFunc( sys.maxint-1, null_timer_none, 0)
+>>>>>>> Added code for the GLUT interactive session
         self.clear_inputhook()
 
 
@@ -331,8 +461,13 @@ enable_gtk = inputhook_manager.enable_gtk
 disable_gtk = inputhook_manager.disable_gtk
 enable_tk = inputhook_manager.enable_tk
 disable_tk = inputhook_manager.disable_tk
+<<<<<<< HEAD
 enable_pyglet = inputhook_manager.enable_pyglet
 disable_pyglet = inputhook_manager.disable_pyglet
+=======
+enable_glut = inputhook_manager.enable_glut
+disable_glut = inputhook_manager.disable_glut
+>>>>>>> Added code for the GLUT interactive session
 clear_inputhook = inputhook_manager.clear_inputhook
 set_inputhook = inputhook_manager.set_inputhook
 current_gui = inputhook_manager.current_gui
@@ -371,8 +506,12 @@ def enable_gui(gui=None, app=None):
             GUI_WX: enable_wx,
             GUI_QT: enable_qt4, # qt3 not supported
             GUI_QT4: enable_qt4,
+<<<<<<< HEAD
             GUI_PYGLET: enable_pyglet,
             }
+=======
+            GUI_GLUT: enable_glut}
+>>>>>>> Added code for the GLUT interactive session
     try:
         gui_hook = guis[gui]
     except KeyError:
