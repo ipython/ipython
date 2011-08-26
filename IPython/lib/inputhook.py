@@ -326,32 +326,33 @@ class InputHookManager(object):
         the GLUT to integrate with terminal based applications like
         IPython.
 
-        GLUT is a quite old library and it is difficult to ensure proper
+        GLUT is quite an old library and it is difficult to ensure proper
         integration within IPython since original GLUT does not allow to handle
         events one by one. Instead, it requires for the mainloop to be entered
         and never returned (there is not event a function to exit he
         mainloop). Fortunately, there are alternatives such as freeglut
-        (avaialble for linux and windows) and the OSX implementation gives
+        (available for linux and windows) and the OSX implementation gives
         access to a glutCheckLoop() function that blocks itself until a new
         event is received. This means we have to setup a default timer to
-        ensure we got at least one event that will unblock the function.
+        ensure we got at least one event that will unblock the function. We set
+        a default timer of 60fps.
 
-        Furthermore, it is not possible to install these handlers wihtout a
-        window being first created. We choose to make this window visible for
-        the user to realize that it does not need to create a new one (or this
-        will bring troubles). But, display mode options are then set here and
-        it won't be possible for the user to change them without modifying the
-        code or this has to be made availble via IPython options system.
+        Furthermore, it is not possible to install these handlers without a
+        window being first created. We choose to make this window invisible and
+        the user is supposed to akeit visible when needed (see gui-glut.py in
+        the docs/examples/lib directory). This means that display mode options
+        are set ath this level and user won't be able to change them later
+        without modifying the code. This should probably be made available via
+        IPython options system.
 
         Script integration
         ------------------
 
-        ::
-
-          interactive = False
           if glut.glutGetWindow() > 0:
               interactive = True
+              glut.glutShowWindow()
           else:
+              interactive = False
               glut.glutInit(sys.argv)
               glut.glutInitDisplayMode( glut.GLUT_DOUBLE |
                                         glut.GLUT_RGBA   |
@@ -421,7 +422,7 @@ class InputHookManager(object):
             # to change it later
             glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH)
             glut.glutCreateWindow(sys.argv[0])
-            glut.glutReshapeWindow(1,1)
+            # glut.glutReshapeWindow(1,1)
             glut.glutHideWindow()
             glut.glutDisplayFunc(display)
             glut.glutTimerFunc( int(1000.0/fps), timer, fps)
