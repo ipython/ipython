@@ -57,7 +57,7 @@ class LoginHandler(BaseHandler):
         user_id = self.get_secure_cookie("user")
         self.write('<html><body><form action="/login" method="post">'
                    'Name: <input type="text" name="name" value=%s>'
-                   'Keyword: <input type="text" name="keyword">'
+                   'Keyword: <input type="password" name="keyword">'
                    '<input type="submit" value="Sign in">'
                    '</form></body></html>'%user_id)
 
