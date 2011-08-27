@@ -329,7 +329,7 @@ class InputHookManager(object):
         GLUT is quite an old library and it is difficult to ensure proper
         integration within IPython since original GLUT does not allow to handle
         events one by one. Instead, it requires for the mainloop to be entered
-        and never returned (there is not event a function to exit he
+        and never returned (there is not even a function to exit he
         mainloop). Fortunately, there are alternatives such as freeglut
         (available for linux and windows) and the OSX implementation gives
         access to a glutCheckLoop() function that blocks itself until a new
@@ -339,9 +339,9 @@ class InputHookManager(object):
 
         Furthermore, it is not possible to install these handlers without a
         window being first created. We choose to make this window invisible and
-        the user is supposed to akeit visible when needed (see gui-glut.py in
+        the user is supposed to make it visible when needed (see gui-glut.py in
         the docs/examples/lib directory). This means that display mode options
-        are set ath this level and user won't be able to change them later
+        are set at this level and user won't be able to change them later
         without modifying the code. This should probably be made available via
         IPython options system.
 
