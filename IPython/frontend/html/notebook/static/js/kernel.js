@@ -20,6 +20,10 @@ var IPython = (function (IPython) {
         this.shell_channel = null;
         this.iopub_channel = null;
         this.running = false;
+        
+        this.username = "username";
+        this.session_id = utils.uuid();
+        
         if (typeof(WebSocket) !== 'undefined') {
             this.WebSocket = WebSocket
         } else if (typeof(MozWebSocket) !== 'undefined') {
@@ -34,8 +38,8 @@ var IPython = (function (IPython) {
         var msg = {
             header : {
                 msg_id : utils.uuid(),
-                username : "username",
-                session: this.session_id,
+                username : this.username,
+                session : this.session_id,
                 msg_type : msg_type
             },
             content : content,
