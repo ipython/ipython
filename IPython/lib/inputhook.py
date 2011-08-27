@@ -29,6 +29,7 @@ GUI_QT4 = 'qt4'
 GUI_GTK = 'gtk'
 GUI_TK = 'tk'
 GUI_OSX = 'osx'
+GUI_PYGLET = 'pyglet'
 
 #-----------------------------------------------------------------------------
 # Utility classes
@@ -283,6 +284,39 @@ class InputHookManager(object):
         """
         self.clear_inputhook()
 
+
+
+    def enable_pyglet(self, app=None):
+        """Enable event loop integration with pyglet.
+
+        Parameters
+        ----------
+        app : ignored
+           Ignored, it's only a placeholder to keep the call signature of all
+           gui activation methods consistent, which simplifies the logic of
+           supporting magics.
+
+        Notes
+        -----
+        This methods sets the ``PyOS_InputHook`` for wxPython, which allows
+        pyglet to integrate with terminal based applications like
+        IPython.
+
+        """
+        import pyglet
+        from IPython.lib.inputhookpyglet import inputhook_pyglet
+        self.set_inputhook(inputhook_pyglet)
+        self._current_gui = GUI_PYGLET
+        return app
+
+    def disable_pyglet(self):
+        """Disable event loop integration with pyglet.
+
+        This merely sets PyOS_InputHook to NULL.
+        """
+        self.clear_inputhook()
+
+
     def current_gui(self):
         """Return a string indicating the currently active GUI or None."""
         return self._current_gui
@@ -297,6 +331,8 @@ enable_gtk = inputhook_manager.enable_gtk
 disable_gtk = inputhook_manager.disable_gtk
 enable_tk = inputhook_manager.enable_tk
 disable_tk = inputhook_manager.disable_tk
+enable_pyglet = inputhook_manager.enable_pyglet
+disable_pyglet = inputhook_manager.disable_pyglet
 clear_inputhook = inputhook_manager.clear_inputhook
 set_inputhook = inputhook_manager.set_inputhook
 current_gui = inputhook_manager.current_gui
@@ -334,7 +370,9 @@ def enable_gui(gui=None, app=None):
             GUI_GTK: enable_gtk,
             GUI_WX: enable_wx,
             GUI_QT: enable_qt4, # qt3 not supported
-            GUI_QT4: enable_qt4 }
+            GUI_QT4: enable_qt4,
+            GUI_PYGLET: enable_pyglet,
+            }
     try:
         gui_hook = guis[gui]
     except KeyError:
