@@ -35,13 +35,36 @@ except ImportError:
 # Top-level handlers
 #-----------------------------------------------------------------------------
 
+class BaseHandler(web.RequestHandler):
+    def get_current_user(self):
+        user_id = self.get_secure_cookie("user")
+        keyword = self.get_secure_cookie("keyword")
+        if self.application.keyword and self.application.keyword != keyword:
+            return None
+        if not user_id:
+            user_id = 'anonymous'
+        return user_id
 
-class NBBrowserHandler(web.RequestHandler):
+class NBBrowserHandler(BaseHandler):
+    @web.authenticated
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         self.render('nbbrowser.html', project=project)
 
+class LoginHandler(BaseHandler):
+    def get(self):
+        user_id = self.get_secure_cookie("user")
+        self.write('<html><body><form action="/login" method="post">'
+                   'Name: <input type="text" name="name" value=%s>'
+                   'Keyword: <input type="text" name="keyword">'
+                   '<input type="submit" value="Sign in">'
+                   '</form></body></html>'%user_id)
+
+    def post(self):
+        self.set_secure_cookie("user", self.get_argument("name", default=u''))
+        self.set_secure_cookie("keyword", self.get_argument("keyword", default=u''))
+        self.redirect("/")
 
 class NewHandler(web.RequestHandler):
     def get(self):
