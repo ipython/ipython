@@ -130,7 +130,7 @@ aliases.update({
 })
 
 notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile', u'ws-hostname',
-                    u'notebook-dir']
+                    u'notebook-dir', u'keyword']
 
 #-----------------------------------------------------------------------------
 # IPythonNotebookApp
