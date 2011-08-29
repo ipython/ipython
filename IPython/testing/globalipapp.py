@@ -63,14 +63,14 @@ class py_file_finder(object):
     def __init__(self,test_filename):
         self.test_filename = test_filename
         
-    def __call__(self,name):
+    def __call__(self,name,win32=False):
         from IPython.utils.path import get_py_filename
         try:
-            return get_py_filename(name)
+            return get_py_filename(name,win32=win32)
         except IOError:
             test_dir = os.path.dirname(self.test_filename)
             new_path = os.path.join(test_dir,name)
-            return get_py_filename(new_path)
+            return get_py_filename(new_path,win32=win32)
     
 
 def _run_ns_sync(self,arg_s,runner=None):
