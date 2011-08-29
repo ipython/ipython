@@ -391,16 +391,16 @@ class InputHookManager(object):
                     argNames=(),
                     )
             except AttributeError:
-                raise RuntimeError,\
-                    'Your glut implementation does not allow interactive sessions' \
-                    'Consider installing freeglut.'
+                raise RuntimeError(
+                    '''Your glut implementation does not allow interactive sessions'''
+                    '''Consider installing freeglut.''')
             glutMainLoopEvent = glutCheckLoop
         elif glut.HAVE_FREEGLUT:
             glutMainLoopEvent = glut.glutMainLoopEvent
         else:
-            raise RuntimeError,\
-                'Your glut implementation does not allow interactive sessions. ' \
-                'Consider installing freeglut.'
+            raise RuntimeError(
+                '''Your glut implementation does not allow interactive sessions. '''
+                '''Consider installing freeglut.''')
 
         def inputhook_glut():
             """ Process pending GLUT events only. """
