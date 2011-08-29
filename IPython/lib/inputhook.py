@@ -463,10 +463,10 @@ class InputHookManager(object):
         glutMainLoopEvent = None
         if sys.platform == 'darwin':
             try:
-                glutCheckLoop = platform.createBaseFunction( 
-                    'glutCheckLoop', dll=platform.GLUT, resultType=None, 
+                glutCheckLoop = platform.createBaseFunction(
+                    'glutCheckLoop', dll=platform.GLUT, resultType=None,
                     argTypes=[],
-                    doc='glutCheckLoop(  ) -> None', 
+                    doc='glutCheckLoop(  ) -> None',
                     argNames=(),
                     )
             except AttributeError:
