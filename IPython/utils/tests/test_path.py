@@ -406,25 +406,38 @@ def test_not_writable_ipdir():
     nt.assert_true('WARNING' in pipe.getvalue())
     env.pop('IPYTHON_DIR', None)
 
+def test_unquote_filename():
+    for win32 in (True, False):
+        nt.assert_equals(path.unquote_filename('foo.py', win32=win32), 'foo.py')
+        nt.assert_equals(path.unquote_filename('foo bar.py', win32=win32), 'foo bar.py')
+    nt.assert_equals(path.unquote_filename('"foo.py"', win32=True), 'foo.py')
+    nt.assert_equals(path.unquote_filename('"foo bar.py"', win32=True), 'foo bar.py')
+    nt.assert_equals(path.unquote_filename("'foo.py'", win32=True), 'foo.py')
+    nt.assert_equals(path.unquote_filename("'foo bar.py'", win32=True), 'foo bar.py')
+    nt.assert_equals(path.unquote_filename('"foo.py"', win32=False), '"foo.py"')
+    nt.assert_equals(path.unquote_filename('"foo bar.py"', win32=False), '"foo bar.py"')
+    nt.assert_equals(path.unquote_filename("'foo.py'", win32=False), "'foo.py'")
+    nt.assert_equals(path.unquote_filename("'foo bar.py'", win32=False), "'foo bar.py'")
+
 @with_environment
 def test_get_py_filename():
     os.chdir(TMP_TEST_DIR)
     for win32 in (True, False):
         with make_tempfile('foo.py'):
-            nt.assert_equals(path.get_py_filename('foo.py', win32=win32), 'foo.py')
-            nt.assert_equals(path.get_py_filename('foo', win32=win32), 'foo.py')
+            nt.assert_equals(path.get_py_filename('foo.py', force_win32=win32), 'foo.py')
+            nt.assert_equals(path.get_py_filename('foo', force_win32=win32), 'foo.py')
         with make_tempfile('foo'):
-            nt.assert_equals(path.get_py_filename('foo', win32=win32), 'foo')
-            nt.assert_raises(IOError, path.get_py_filename, 'foo.py', win32=win32)
-        nt.assert_raises(IOError, path.get_py_filename, 'foo', win32=win32)
-        nt.assert_raises(IOError, path.get_py_filename, 'foo.py', win32=win32)
+            nt.assert_equals(path.get_py_filename('foo', force_win32=win32), 'foo')
+            nt.assert_raises(IOError, path.get_py_filename, 'foo.py', force_win32=win32)
+        nt.assert_raises(IOError, path.get_py_filename, 'foo', force_win32=win32)
+        nt.assert_raises(IOError, path.get_py_filename, 'foo.py', force_win32=win32)
         true_fn = 'foo with spaces.py'
         with make_tempfile(true_fn):
-            nt.assert_equals(path.get_py_filename('foo with spaces', win32=win32), true_fn)
-            nt.assert_equals(path.get_py_filename('foo with spaces.py', win32=win32), true_fn)
+            nt.assert_equals(path.get_py_filename('foo with spaces', force_win32=win32), true_fn)
+            nt.assert_equals(path.get_py_filename('foo with spaces.py', force_win32=win32), true_fn)
             if win32:
-                nt.assert_equals(path.get_py_filename('"foo with spaces.py"', win32=True), true_fn)
-                nt.assert_equals(path.get_py_filename("'foo with spaces.py'", win32=True), true_fn)
+                nt.assert_equals(path.get_py_filename('"foo with spaces.py"', force_win32=True), true_fn)
+                nt.assert_equals(path.get_py_filename("'foo with spaces.py'", force_win32=True), true_fn)
             else:
-                nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"', win32=False)
-                nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", win32=False)
+                nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"', force_win32=False)
+                nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", force_win32=False)

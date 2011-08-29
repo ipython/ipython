@@ -53,7 +53,7 @@ from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
-from IPython.utils.path import get_py_filename
+from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
 from IPython.utils.text import LSString, SList, format_screen
@@ -593,7 +593,7 @@ Currently the magic system has the following functions:\n"""
         # if not, try the input as a filename
         if out == 'not found':
             try:
-                filename = get_py_filename(parameter_s, sys.platform == 'win32')
+                filename = get_py_filename(parameter_s)
             except IOError,msg:
                 print msg
                 return
@@ -1369,7 +1369,7 @@ Currently the magic system has the following functions:\n"""
             namespace = self.shell.user_ns
         else:  # called to run a program by %run -p
             try:
-                filename = get_py_filename(arg_lst[0], sys.platform == 'win32')
+                filename = get_py_filename(arg_lst[0])
             except IOError,msg:
                 error(msg)
                 return
@@ -1426,10 +1426,12 @@ Currently the magic system has the following functions:\n"""
         dump_file = opts.D[0]
         text_file = opts.T[0]
         if dump_file:
+            dump_file = unquote_filename(dump_file)
             prof.dump_stats(dump_file)
             print '\n*** Profile stats marshalled to file',\
                   `dump_file`+'.',sys_exit
         if text_file:
+            text_file = unquote_filename(text_file)
             pfile = file(text_file,'w')
             pfile.write(output)
             pfile.close()
@@ -1558,7 +1560,7 @@ Currently the magic system has the following functions:\n"""
                                           mode='list',list_all=1)
 
         try:
-            filename = file_finder(arg_lst[0], sys.platform == 'win32')
+            filename = file_finder(arg_lst[0])
         except IndexError:
             warn('you must provide at least a filename.')
             print '\n%run:\n',oinspect.getdoc(self.magic_run)
@@ -2071,7 +2073,7 @@ Currently the magic system has the following functions:\n"""
         it asks for confirmation before overwriting existing files."""
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
-        fname, codefrom = args[0], " ".join(args[1:])
+        fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
         if not fname.endswith('.py'):
             fname += '.py'
         if os.path.isfile(fname):
@@ -2111,6 +2113,7 @@ Currently the magic system has the following functions:\n"""
         %loadpy myscript.py
         %loadpy http://www.example.com/myscript.py
         """
+        arg_s = unquote_filename(arg_s)
         if not arg_s.endswith('.py'):
             raise ValueError('%%load only works with .py files: %s' % arg_s)
         if arg_s.startswith('http'):
@@ -2127,12 +2130,13 @@ Currently the magic system has the following functions:\n"""
         
         def make_filename(arg):
             "Make a filename from the given args"
+            arg = unquote_filename(arg)
             try:
-                filename = get_py_filename(arg, win32=sys.platform == 'win32')
+                filename = get_py_filename(arg)
             except IOError:
                 # If it ends with .py but doesn't already exist, assume we want
                 # a new file. 
-                if args.endswith('.py'):
+                if arg.endswith('.py'):
                     filename = arg
                 else:
                     filename = None
@@ -2826,8 +2830,7 @@ Defaulting color scheme to 'NoColor'"""
                               "Use '%%bookmark -l' to see your bookmarks." % ps)
 
         # strip extra quotes on Windows, because os.chdir doesn't like them
-        if sys.platform == 'win32':
-            ps = ps.strip('\'"')
+        ps = unquote_filename(ps)
         # at this point ps should point to the target dir
         if ps:
             try:
@@ -2870,7 +2873,7 @@ Defaulting color scheme to 'NoColor'"""
         """
         
         dir_s = self.shell.dir_stack
-        tgt = os.path.expanduser(parameter_s)
+        tgt = os.path.expanduser(unquote_filename(parameter_s))
         cwd = os.getcwdu().replace(self.home_dir,'~')
         if tgt:
             self.magic_cd(parameter_s)
@@ -3148,7 +3151,7 @@ Defaulting color scheme to 'NoColor'"""
         to be Python source and will show it with syntax highlighting. """
         
         try:
-            filename = get_py_filename(parameter_s, sys.platform == 'win32')
+            filename = get_py_filename(parameter_s)
             cont = file_read(filename)
         except IOError:
             try:
@@ -3531,6 +3534,7 @@ Defaulting color scheme to 'NoColor'"""
         args = magic_arguments.parse_argstring(self.magic_notebook, s)
 
         from IPython.nbformat import current
+        args.filename = unquote_filename(args.filename)
         if args.export:
             fname, name, format = current.parse_filename(args.filename)
             cells = []

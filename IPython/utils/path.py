@@ -82,20 +82,32 @@ def get_long_path_name(path):
     return _get_long_path_name(path)
 
 
-def get_py_filename(name, win32=False):
+def unquote_filename(name, win32=(sys.platform=='win32')):
+    """ On Windows, remove leading and trailing quotes from filenames.
+    """
+    if win32:
+        if name.startswith(("'", '"')) and name.endswith(("'", '"')):
+            name = name[1:-1]
+    return name
+
+
+def get_py_filename(name, force_win32=None):
     """Return a valid python filename in the current directory.
 
     If the given name is not a file, it adds '.py' and searches again.
     Raises IOError with an informative message if the file isn't found.
     
-    If the win32 argument is True, then apply Windows semantics to the filename.
-    In particular, remove any quoting that has been applied to it.
+    On Windows, apply Windows semantics to the filename. In particular, remove
+    any quoting that has been applied to it. This option can be forced for
+    testing purposes.
     """
 
     name = os.path.expanduser(name)
-    if win32:
-        if name.startswith(("'", '"')) and name.endswith(("'", '"')):
-            name = name[1:-1]
+    if force_win32 is None:
+        win32 = (sys.platform == 'win32')
+    else:
+        win32 = force_win32
+    name = unquote_filename(name, win32=win32)
     if not os.path.isfile(name) and not name.endswith('.py'):
         name += '.py'
     if os.path.isfile(name):
