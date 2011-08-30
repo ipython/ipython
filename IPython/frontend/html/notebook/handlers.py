@@ -16,6 +16,9 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import logging
+import Cookie
+
 from tornado import web
 from tornado import websocket
 
@@ -165,20 +168,58 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         else:
             self.write_message(msg)
 
+class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
+    def open(self, kernel_id):
+        self.kernel_id = kernel_id
+        self.session = Session()
+        self.save_on_message = self.on_message
+        self.on_message = self.on_first_message
+    
+    def get_current_user(self):
+        password = self.get_secure_cookie("password")
+        if password is None:
+            # clear cookies, to prevent future Invalid cookie signature warnings
+            self._cookies = Cookie.SimpleCookie()
+        if self.application.password and self.application.password != password:
+            return None
+        return self.get_secure_cookie("user") or 'anonymous'
+    
+    def _inject_cookie_message(self, msg):
+        """Inject the first message, which is the document cookie,
+        for authentication."""
+        if isinstance(msg, unicode):
+            # Cookie can't constructor doesn't accept unicode strings for some reason
+            msg = msg.encode('utf8', 'replace')
+        try:
+            self._cookies = Cookie.SimpleCookie(msg)
+        except:
+            logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
+    
+    def on_first_message(self, msg):
+        self._inject_cookie_message(msg)
+        if self.get_current_user() is None:
+            logging.warn("Couldn't authenticate WebSocket connection")
+            raise web.HTTPError(403)
+        self.on_message = self.save_on_message
+                
 
-class IOPubHandler(ZMQStreamHandler):
+class IOPubHandler(AuthenticatedZMQStreamHandler):
 
     def initialize(self, *args, **kwargs):
         self._kernel_alive = True
         self._beating = False
         self.iopub_stream = None
         self.hb_stream = None
-
-    def open(self, kernel_id):
+    
+    def on_first_message(self, msg):
+        try:
+            super(IOPubHandler, self).on_first_message(msg)
+        except web.HTTPError:
+            self.close()
+            return
         km = self.application.kernel_manager
-        self.kernel_id = kernel_id
-        self.session = Session()
         self.time_to_dead = km.time_to_dead
+        kernel_id = self.kernel_id
         try:
             self.iopub_stream = km.create_iopub_stream(kernel_id)
             self.hb_stream = km.create_hb_stream(kernel_id)
@@ -187,9 +228,13 @@ class IOPubHandler(ZMQStreamHandler):
             # close the connection.
             if not self.stream.closed():
                 self.stream.close()
+            self.close()
         else:
             self.iopub_stream.on_recv(self._on_zmq_reply)
             self.start_hb(self.kernel_died)
+    
+    def on_message(self, msg):
+        pass
 
     def on_close(self):
         # This method can be called twice, once by self.kernel_died and once 
@@ -245,15 +290,20 @@ class IOPubHandler(ZMQStreamHandler):
         self.on_close()
 
 
-class ShellHandler(ZMQStreamHandler):
+class ShellHandler(AuthenticatedZMQStreamHandler):
 
     def initialize(self, *args, **kwargs):
         self.shell_stream = None
 
-    def open(self, kernel_id):
+    def on_first_message(self, msg):
+        try:
+            super(ShellHandler, self).on_first_message(msg)
+        except web.HTTPError:
+            self.close()
+            return
         km = self.application.kernel_manager
         self.max_msg_size = km.max_msg_size
-        self.kernel_id = kernel_id
+        kernel_id = self.kernel_id
         try:
             self.shell_stream = km.create_shell_stream(kernel_id)
         except web.HTTPError:
@@ -261,8 +311,8 @@ class ShellHandler(ZMQStreamHandler):
             # close the connection.
             if not self.stream.closed():
                 self.stream.close()
+            self.close()
         else:
-            self.session = Session()
             self.shell_stream.on_recv(self._on_zmq_reply)
 
     def on_message(self, msg):
