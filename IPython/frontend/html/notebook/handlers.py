@@ -35,48 +35,46 @@ except ImportError:
 # Top-level handlers
 #-----------------------------------------------------------------------------
 
-class BaseHandler(web.RequestHandler):
+class AuthenticatedHandler(web.RequestHandler):
+    """A RequestHandler with an authenticated user."""
     def get_current_user(self):
-        user_id = self.get_secure_cookie("user")
-        if user_id is None:
-            self.clear_cookie('user')
-            self.clear_cookie('password')
         password = self.get_secure_cookie("password")
+        if password is None:
+            # cookie doesn't exist, or is invalid. Clear to prevent repeated
+            # 'Invalid cookie signature' warnings.
+            self.clear_cookie('password')
+            self.clear_cookie("user_id")
         if self.application.password and self.application.password != password:
             return None
-        if not user_id:
-            user_id = 'anonymous'
-        return user_id
+        return self.get_secure_cookie("user") or 'anonymous'
 
-class NBBrowserHandler(BaseHandler):
+class NBBrowserHandler(AuthenticatedHandler):
     @web.authenticated
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         self.render('nbbrowser.html', project=project)
 
-class LoginHandler(BaseHandler):
+class LoginHandler(AuthenticatedHandler):
     def get(self):
-        user_id = self.get_secure_cookie("user")
-        if user_id is None:
-            self.clear_cookie('user')
-            self.clear_cookie('password')
-            user_id = ''
-        
+        user_id = self.get_secure_cookie("user") or ''
         self.render('login.html', user_id=user_id)
 
     def post(self):
         self.set_secure_cookie("user", self.get_argument("name", default=u''))
         self.set_secure_cookie("password", self.get_argument("password", default=u''))
-        self.redirect("/")
+        url = self.get_argument("next", default="/")
+        self.redirect(url)
 
-class NewHandler(web.RequestHandler):
+class NewHandler(AuthenticatedHandler):
+    @web.authenticated
     def get(self):
         notebook_id = self.application.notebook_manager.new_notebook()
         self.render('notebook.html', notebook_id=notebook_id)
 
 
-class NamedNotebookHandler(web.RequestHandler):
+class NamedNotebookHandler(AuthenticatedHandler):
+    @web.authenticated
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
         if not nbm.notebook_exists(notebook_id):
@@ -89,12 +87,14 @@ class NamedNotebookHandler(web.RequestHandler):
 #-----------------------------------------------------------------------------
 
 
-class MainKernelHandler(web.RequestHandler):
+class MainKernelHandler(AuthenticatedHandler):
 
+    @web.authenticated
     def get(self):
         km = self.application.kernel_manager
         self.finish(jsonapi.dumps(km.kernel_ids))
 
+    @web.authenticated
     def post(self):
         km = self.application.kernel_manager
         notebook_id = self.get_argument('notebook', default=None)
@@ -105,10 +105,11 @@ class MainKernelHandler(web.RequestHandler):
         self.finish(jsonapi.dumps(data))
 
 
-class KernelHandler(web.RequestHandler):
+class KernelHandler(AuthenticatedHandler):
 
     SUPPORTED_METHODS = ('DELETE')
 
+    @web.authenticated
     def delete(self, kernel_id):
         km = self.application.kernel_manager
         km.kill_kernel(kernel_id)
@@ -116,8 +117,9 @@ class KernelHandler(web.RequestHandler):
         self.finish()
 
 
-class KernelActionHandler(web.RequestHandler):
+class KernelActionHandler(AuthenticatedHandler):
 
+    @web.authenticated
     def post(self, kernel_id, action):
         km = self.application.kernel_manager
         if action == 'interrupt':
@@ -278,13 +280,15 @@ class ShellHandler(ZMQStreamHandler):
 # Notebook web service handlers
 #-----------------------------------------------------------------------------
 
-class NotebookRootHandler(web.RequestHandler):
+class NotebookRootHandler(AuthenticatedHandler):
 
+    @web.authenticated
     def get(self):
         nbm = self.application.notebook_manager
         files = nbm.list_notebooks()
         self.finish(jsonapi.dumps(files))
 
+    @web.authenticated
     def post(self):
         nbm = self.application.notebook_manager
         body = self.request.body.strip()
@@ -298,10 +302,11 @@ class NotebookRootHandler(web.RequestHandler):
         self.finish(jsonapi.dumps(notebook_id))
 
 
-class NotebookHandler(web.RequestHandler):
+class NotebookHandler(AuthenticatedHandler):
 
     SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
 
+    @web.authenticated
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
         format = self.get_argument('format', default='json')
@@ -315,6 +320,7 @@ class NotebookHandler(web.RequestHandler):
         self.set_header('Last-Modified', last_mod)
         self.finish(data)
 
+    @web.authenticated
     def put(self, notebook_id):
         nbm = self.application.notebook_manager
         format = self.get_argument('format', default='json')
@@ -323,6 +329,7 @@ class NotebookHandler(web.RequestHandler):
         self.set_status(204)
         self.finish()
 
+    @web.authenticated
     def delete(self, notebook_id):
         nbm = self.application.notebook_manager
         nbm.delete_notebook(notebook_id)
@@ -334,8 +341,9 @@ class NotebookHandler(web.RequestHandler):
 #-----------------------------------------------------------------------------
 
 
-class RSTHandler(web.RequestHandler):
+class RSTHandler(AuthenticatedHandler):
 
+    @web.authenticated
     def post(self):
         if publish_string is None:
             raise web.HTTPError(503, u'docutils not available')
