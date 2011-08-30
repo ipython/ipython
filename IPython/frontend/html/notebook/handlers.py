@@ -38,8 +38,11 @@ except ImportError:
 class BaseHandler(web.RequestHandler):
     def get_current_user(self):
         user_id = self.get_secure_cookie("user")
-        keyword = self.get_secure_cookie("keyword")
-        if self.application.keyword and self.application.keyword != keyword:
+        if user_id is None:
+            self.clear_cookie('user')
+            self.clear_cookie('password')
+        password = self.get_secure_cookie("password")
+        if self.application.password and self.application.password != password:
             return None
         if not user_id:
             user_id = 'anonymous'
@@ -55,15 +58,16 @@ class NBBrowserHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     def get(self):
         user_id = self.get_secure_cookie("user")
-        self.write('<html><body><form action="/login" method="post">'
-                   'Name: <input type="text" name="name" value=%s>'
-                   'Keyword: <input type="password" name="keyword">'
-                   '<input type="submit" value="Sign in">'
-                   '</form></body></html>'%user_id)
+        if user_id is None:
+            self.clear_cookie('user')
+            self.clear_cookie('password')
+            user_id = ''
+        
+        self.render('login.html', user_id=user_id)
 
     def post(self):
         self.set_secure_cookie("user", self.get_argument("name", default=u''))
-        self.set_secure_cookie("keyword", self.get_argument("keyword", default=u''))
+        self.set_secure_cookie("password", self.get_argument("password", default=u''))
         self.redirect("/")
 
 class NewHandler(web.RequestHandler):

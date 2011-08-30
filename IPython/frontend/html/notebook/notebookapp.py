@@ -95,7 +95,7 @@ class NotebookWebApplication(web.Application):
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            cookie_secret="61oETzKXQAGaYdkL5gEmGeJJFuYh7EQnp2XdTP1o/Vo=",
+            cookie_secret=os.urandom(1024),
             login_url="/login",
         )
         web.Application.__init__(self, handlers, **settings)
@@ -126,11 +126,10 @@ aliases.update({
     'certfile': 'IPythonNotebookApp.certfile',
     'ws-hostname': 'IPythonNotebookApp.ws_hostname',
     'notebook-dir': 'NotebookManager.notebook_dir',
-    'keyword' : 'IPythonNotebookApp.keyword'
 })
 
 notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile', u'ws-hostname',
-                    u'notebook-dir', u'keyword']
+                    u'notebook-dir']
 
 #-----------------------------------------------------------------------------
 # IPythonNotebookApp
@@ -189,8 +188,8 @@ class IPythonNotebookApp(BaseIPythonApplication):
         help="""The full path to a private key file for usage with SSL/TLS."""
     )
 
-    keyword = Unicode(u'', config=True,
-                      help="""Keyword to use for web authentication"""
+    password = Unicode(u'', config=True,
+                      help="""Password to use for web authentication"""
     )
 
     def get_ws_url(self):
@@ -249,7 +248,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
                 ssl_options['keyfile'] = self.keyfile
         else:
             ssl_options = None
-        self.web_app.keyword = self.keyword
+        self.web_app.password = self.password
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options)
         if ssl_options is None and not self.ip:
             self.log.critical('WARNING: the notebook server is listening on all IP addresses '
