@@ -48,8 +48,6 @@ generating release notes is as painless and accurate as possible.
   touch the code too much.
 
 
-.. [Git] The Git version control system. 
-.. [Github.com] Github.com. http://github.com
 
 
 Commit messages
@@ -80,3 +78,5 @@ moment to read it (it's short but very informative).
 
 .. _this blog post: http://who-t.blogspot.com/2009/12/on-commit-messages.html
 
+.. [Git] The Git version control system. http://git-scm.com
+.. [Github.com] Github.com. http://github.com
