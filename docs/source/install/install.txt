@@ -315,6 +315,12 @@ IPython.zmq depends on pyzmq >= 2.1.4.
 Dependencies for the IPython QT console
 =======================================
 
+pyzmq
+-----
+
+Like the :mod:`IPython.parallel` package,
+the QT Console requires ZeroMQ and PyZMQ.
+
 Qt
 --
 
