@@ -18,4 +18,7 @@ New features
 Backwards incompatible changes
 ------------------------------
 
+* Messaging protocol: ``msg['msg_type']`` has been removed.
+  Use ``msg['header']['msg_type']``, which also works in 0.11.x
+
 .. * use bullet list
