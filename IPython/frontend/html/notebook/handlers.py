@@ -41,15 +41,16 @@ except ImportError:
 class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
     def get_current_user(self):
-        password = self.get_secure_cookie("password")
-        if password is None:
-            # cookie doesn't exist, or is invalid. Clear to prevent repeated
-            # 'Invalid cookie signature' warnings.
-            self.clear_cookie('password')
-            self.clear_cookie("user_id")
-        if self.application.password and self.application.password != password:
-            return None
-        return self.get_secure_cookie("user") or 'anonymous'
+        user_id = self.get_secure_cookie("user")
+        if user_id == '':
+            user_id = 'anonymous'
+        if user_id is None:
+            # prevent extra Invalid cookie sig warnings:
+            self.clear_cookie('user')
+            if not self.application.password:
+                user_id = 'anonymous'
+        return user_id
+        
 
 class NBBrowserHandler(AuthenticatedHandler):
     @web.authenticated
@@ -64,8 +65,9 @@ class LoginHandler(AuthenticatedHandler):
         self.render('login.html', user_id=user_id)
 
     def post(self):
-        self.set_secure_cookie("user", self.get_argument("name", default=u''))
-        self.set_secure_cookie("password", self.get_argument("password", default=u''))
+        pwd = self.get_argument("password", default=u'')
+        if self.application.password and pwd == self.application.password:
+            self.set_secure_cookie("user", self.get_argument("name", default=u''))
         url = self.get_argument("next", default="/")
         self.redirect(url)
 
@@ -176,13 +178,10 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         self.on_message = self.on_first_message
     
     def get_current_user(self):
-        password = self.get_secure_cookie("password")
-        if password is None:
-            # clear cookies, to prevent future Invalid cookie signature warnings
-            self._cookies = Cookie.SimpleCookie()
-        if self.application.password and self.application.password != password:
-            return None
-        return self.get_secure_cookie("user") or 'anonymous'
+        user_id = self.get_secure_cookie("user")
+        if user_id == '' or (user_id is None and not self.application.password):
+            user_id = 'anonymous'
+        return user_id
     
     def _inject_cookie_message(self, msg):
         """Inject the first message, which is the document cookie,
