@@ -127,5 +127,9 @@ the IPython user list.
 .. Now I have a nice little directory with everything I ever type in,
    organized by project and date.
 
+.. warning::
+   
+   This example uses the outdated ipythonrc-style configuration files, which no
+   longer work as of IPython 0.11
 
 

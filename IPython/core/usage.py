@@ -81,7 +81,7 @@ MAIN FEATURES
 
 * Magic commands: type %magic for information on the magic subsystem.
 
-* System command aliases, via the %alias command or the ipythonrc config file.
+* System command aliases, via the %alias command or the configuration file(s).
 
 * Dynamic object information:
 
