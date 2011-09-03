@@ -7,10 +7,9 @@ How to contribute to IPython
 Overview
 ========
 
-IPython development is done using Git [Git]_ and Github.com [Github.com]_.
-(Github Ipython Repository: [IPyGithub]_) This makes it easy for people to
-contribute to the development of IPython.  There are several ways in which you
-can join in.
+IPython development is done using Git_ and Github_ (`Github Ipython Repository`_).
+This makes it easy for people to contribute to the development of IPython.
+There are several ways in which you can join in.
 
 
 Merging a branch into trunk
@@ -78,7 +77,6 @@ An excellent reference on commits message is `this blog post`_, please take a
 moment to read it (it's short but very informative).
 
 .. _this blog post: http://who-t.blogspot.com/2009/12/on-commit-messages.html
+.. _Github IPython Repository: ipython_github_
 
-.. [Git] The Git version control system. http://git-scm.com
-.. [Github.com] Github.com. http://github.com
-.. [IPyGithub] IPython repository on github. https://github.com/ipython/ipython
+.. include:: ../links.rst
