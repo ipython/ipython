@@ -328,9 +328,10 @@ class PythonRunner(InteractiveRunner):
 class SAGERunner(InteractiveRunner):
     """Interactive SAGE runner.
     
-    WARNING: this runner only works if you manually configure your SAGE copy
-    to use 'colors NoColor' in the ipythonrc config file, since currently the
-    prompt matching regexp does not identify color sequences."""
+    WARNING: this runner only works if you manually adjust your SAGE 
+    configuration so that the 'color' option in the configuration file is set to
+    'NoColor', because currently the prompt matching regexp does not identify 
+    color sequences."""
 
     def __init__(self,program='sage',args=None,out=sys.stdout,echo=True):
         """New runner, optionally passing the sage command to use."""
