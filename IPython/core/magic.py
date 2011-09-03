@@ -2262,11 +2262,11 @@ Currently the magic system has the following functions:\n"""
         Usage:
           %edit [options] [args]
 
-        %edit runs IPython's editor hook.  The default version of this hook is
-        set to call the __IPYTHON__.rc.editor command.  This is read from your
-        environment variable $EDITOR.  If this isn't found, it will default to
-        vi under Linux/Unix and to notepad under Windows.  See the end of this
-        docstring for how to change the editor hook.
+        %edit runs IPython's editor hook. The default version of this hook is
+        set to call the editor specified by your $EDITOR environment variable.
+        If this isn't found, it will default to vi under Linux/Unix and to
+        notepad under Windows. See the end of this docstring for how to change
+        the editor hook.
 
         You can also set the value of this editor via the 
         ``TerminalInteractiveShell.editor`` option in your configuration file. 
@@ -2311,25 +2311,25 @@ Currently the magic system has the following functions:\n"""
         If arguments are given, the following possibilites exist:
         
         - If the argument is a filename, IPython will load that into the
-        editor. It will execute its contents with execfile() when you exit,
-        loading any code in the file into your interactive namespace.
+          editor. It will execute its contents with execfile() when you exit,
+          loading any code in the file into your interactive namespace.
 
         - The arguments are ranges of input history,  e.g. "7 ~1/4-6".
-        The syntax is the same as in the %history magic.
+          The syntax is the same as in the %history magic.
 
         - If the argument is a string variable, its contents are loaded
-        into the editor. You can thus edit any string which contains
-        python code (including the result of previous edits).
+          into the editor. You can thus edit any string which contains
+          python code (including the result of previous edits).
 
         - If the argument is the name of an object (other than a string),
-        IPython will try to locate the file where it was defined and open the
-        editor at the point where it is defined. You can use `%edit function`
-        to load an editor exactly at the point where 'function' is defined,
-        edit it and have the file be executed automatically.
+          IPython will try to locate the file where it was defined and open the
+          editor at the point where it is defined. You can use `%edit function`
+          to load an editor exactly at the point where 'function' is defined,
+          edit it and have the file be executed automatically.
 
-        If the object is a macro (see %macro for details), this opens up your
-        specified editor with a temporary file containing the macro's data.
-        Upon exit, the macro is reloaded with the contents of the file.
+        - If the object is a macro (see %macro for details), this opens up your
+          specified editor with a temporary file containing the macro's data.
+          Upon exit, the macro is reloaded with the contents of the file.
 
         Note: opening at an exact line is only supported under Unix, and some
         editors (like kedit and gedit up to Gnome 2.8) do not understand the
