@@ -30,6 +30,8 @@ import os
 import re
 import sys
 import tempfile
+import subprocess
+import time
 
 from IPython.core import ipapi
 from IPython.core.error import TryNext
@@ -38,13 +40,15 @@ from IPython.utils.data import chop
 from IPython.utils import io
 from IPython.utils.process import system
 from IPython.utils.terminal import get_terminal_size
-
+from IPython.lib.inputhook import InputHookManager
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
 esc_re = re.compile(r"(\x1b[^m]+m)")
+
+_input_hook_manager = InputHookManager()
 
 def page_dumb(strng, start=0, screen_lines=25):
     """Very dumb 'pager' in Python, for when nothing else works.
@@ -151,7 +155,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
             # http://bugs.python.org/issue10144
             NCURSES_NO_SETBUF = os.environ.get('NCURSES_NO_SETBUF', None)
             os.environ['NCURSES_NO_SETBUF'] = ''
-            
+
             # Proceed with curses initialization
             scr = curses.initscr()
             screen_lines_real,screen_cols = scr.getmaxyx()
@@ -162,7 +166,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                 del os.environ['NCURSES_NO_SETBUF']
             else:
                 os.environ['NCURSES_NO_SETBUF'] = NCURSES_NO_SETBUF
-                
+
             # Restore terminal state in case endwin() didn't.
             termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
             # Now we have what we needed: the screen size in rows/columns
@@ -176,47 +180,65 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     if numlines <= screen_lines :
         #print '*** normal print'  # dbg
         print >>io.stdout, str_toprint
-    else:
-        # Try to open pager and default to internal one if that fails.
-        # All failure modes are tagged as 'retval=1', to match the return
-        # value of a failed system command.  If any intermediate attempt
-        # sets retval to 1, at the end we resort to our own page_dumb() pager.
-        pager_cmd = get_pager_cmd(pager_cmd)
-        pager_cmd += ' ' + get_pager_start(pager_cmd,start)
-        if os.name == 'nt':
-            if pager_cmd.startswith('type'):
-                # The default WinXP 'type' command is failing on complex strings.
+        return
+
+    # Try to open pager and default to internal one if that fails.
+    # All failure modes are tagged as 'retval=1', to match the return
+    # value of a failed system command.  If any intermediate attempt
+    # sets retval to 1, at the end we resort to our own page_dumb() pager.
+    pager_cmd = get_pager_cmd(pager_cmd)
+    pager_cmd += ' ' + get_pager_start(pager_cmd,start)
+    if os.name == 'nt':
+        if pager_cmd.startswith('type'):
+            # The default WinXP 'type' command is failing on complex strings.
+            retval = 1
+        else:
+            tmpname = tempfile.mktemp('.txt')
+            tmpfile = file(tmpname,'wt')
+            tmpfile.write(strng)
+            tmpfile.close()
+            cmd = "%s < %s" % (pager_cmd,tmpname)
+            if os.system(cmd):
                 retval = 1
             else:
-                tmpname = tempfile.mktemp('.txt')
-                tmpfile = file(tmpname,'wt')
-                tmpfile.write(strng)
-                tmpfile.close()
-                cmd = "%s < %s" % (pager_cmd,tmpname)
-                if os.system(cmd):
-                  retval = 1
-                else:
-                  retval = None
-                os.remove(tmpname)
-        else:
-            try:
                 retval = None
-                # if I use popen4, things hang. No idea why.
-                #pager,shell_out = os.popen4(pager_cmd)
-                pager = os.popen(pager_cmd,'w')
-                pager.write(strng)
-                pager.close()
-                retval = pager.close()  # success returns None
-            except IOError,msg:  # broken pipe when user quits
-                if msg.args == (32,'Broken pipe'):
-                    retval = None
-                else:
-                    retval = 1
-            except OSError:
-                # Other strange problems, sometimes seen in Win2k/cygwin
-                retval = 1
-        if retval is not None:
-            page_dumb(strng,screen_lines=screen_lines)
+            os.remove(tmpname)
+    else:
+        try:
+            # Block keyboard interrupts; otherwise the terminal
+            # may be left in a bizarre state.
+            import signal
+            oldint = signal.signal(signal.SIGINT, signal.SIG_IGN)
+            retval = None
+            hook = None
+            if _input_hook_manager.get_pyos_inputhook():
+                hook = _input_hook_manager.get_pyos_inputhook_as_func()
+            pager = subprocess.Popen(pager_cmd, shell=True,
+                                        stdin=subprocess.PIPE)
+            pager.stdin.write(strng)
+            pager.stdin.close()
+            while True:
+                if hook is not None:
+                    hook()
+                pager.poll()
+                if pager.returncode is not None:
+                    retval = pager.returncode
+                    if retval <=0:  # normally 0; negative for signal;
+                                    # pager ran, so we have finished.
+                        retval = None
+                    else:
+                        retval = 1
+                    break
+                time.sleep(0.1)
+
+        except OSError:
+            # Other strange problems, sometimes seen in Win2k/cygwin
+            retval = 1
+        finally:
+            signal.signal(signal.SIGINT, oldint)
+
+    if retval is not None:
+        page_dumb(strng,screen_lines=screen_lines)
 
 
 def page_file(fname, start=0, pager_cmd=None):
