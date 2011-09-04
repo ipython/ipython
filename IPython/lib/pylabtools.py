@@ -19,7 +19,7 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-from cStringIO import StringIO
+from io import BytesIO
 
 from IPython.utils.decorators import flag_calls
 
@@ -99,11 +99,11 @@ def print_figure(fig, fmt='png'):
     fig.set_facecolor('white')
     fig.set_edgecolor('white')
     try:
-        string_io = StringIO()
+        bytes_io = BytesIO()
         # use 72 dpi to match QTConsole's dpi
-        fig.canvas.print_figure(string_io, format=fmt, dpi=72,
+        fig.canvas.print_figure(bytes_io, format=fmt, dpi=72,
                                 bbox_inches='tight')
-        data = string_io.getvalue()
+        data = bytes_io.getvalue()
     finally:
         fig.set_facecolor(fc)
         fig.set_edgecolor(ec)
