@@ -389,7 +389,7 @@ Pure ZMQ Scheduler
 ------------------
 
 For maximum throughput, the 'pure' scheme is not Python at all, but a C-level
-:class:`MonitoredQueue` from PyZMQ, which uses a ZeroMQ ``XREQ`` socket to perform all
+:class:`MonitoredQueue` from PyZMQ, which uses a ZeroMQ ``DEALER`` socket to perform all
 load-balancing. This scheduler does not support any of the advanced features of the Python
 :class:`.Scheduler`.
 

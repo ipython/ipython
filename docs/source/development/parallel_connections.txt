@@ -48,11 +48,11 @@ Registration
     :alt: IPython Registration connections
     :align: center
 
-    Engines and Clients only need to know where the Query ``XREP`` is located to start
+    Engines and Clients only need to know where the Query ``ROUTER`` is located to start
     connecting. 
 
 Once a controller is launched, the only information needed for connecting clients and/or
-engines is the IP/port of the Hub's ``XREP`` socket called the Registrar. This socket
+engines is the IP/port of the Hub's ``ROUTER`` socket called the Registrar. This socket
 handles connections from both clients and engines, and replies with the remaining
 information necessary to establish the remaining connections. Clients use this same socket for 
 querying the Hub for state information.
@@ -69,12 +69,12 @@ Heartbeat
 
 The heartbeat process has been described elsewhere. To summarize: the Heartbeat Monitor
 publishes a distinct message periodically via a ``PUB`` socket. Each engine has a
-``zmq.FORWARDER`` device with a ``SUB`` socket for input, and ``XREQ`` socket for output.
-The ``SUB`` socket is connected to the ``PUB`` socket labeled *ping*, and the ``XREQ`` is
-connected to the ``XREP`` labeled *pong*. This results in the same message being relayed
-back to the Heartbeat Monitor with the addition of the ``XREQ`` prefix. The Heartbeat
-Monitor receives all the replies via an ``XREP`` socket, and identifies which hearts are
-still beating by the ``zmq.IDENTITY`` prefix of the ``XREQ`` sockets, which information
+``zmq.FORWARDER`` device with a ``SUB`` socket for input, and ``DEALER`` socket for output.
+The ``SUB`` socket is connected to the ``PUB`` socket labeled *ping*, and the ``DEALER`` is
+connected to the ``ROUTER`` labeled *pong*. This results in the same message being relayed
+back to the Heartbeat Monitor with the addition of the ``DEALER`` prefix. The Heartbeat
+Monitor receives all the replies via an ``ROUTER`` socket, and identifies which hearts are
+still beating by the ``zmq.IDENTITY`` prefix of the ``DEALER`` sockets, which information
 the Hub uses to notify clients of any changes in the available engines.
 
 Schedulers
@@ -94,16 +94,16 @@ queue, all messages sent through these queues (both directions) are also sent vi
 ``PUB`` socket to a monitor, which allows the Hub to monitor queue traffic without
 interfering with it.
 
-For tasks, the engine need not be specified. Messages sent to the ``XREP`` socket from the
-client side are assigned to an engine via ZMQ's ``XREQ`` round-robin load balancing.
+For tasks, the engine need not be specified. Messages sent to the ``ROUTER`` socket from the
+client side are assigned to an engine via ZMQ's ``DEALER`` round-robin load balancing.
 Engine replies are directed to specific clients via the IDENTITY of the client, which is
 received as a prefix at the Engine.
 
-For Multiplexing, ``XREP`` is used for both in and output sockets in the device. Clients must
-specify the destination by the ``zmq.IDENTITY`` of the ``XREP`` socket connected to
+For Multiplexing, ``ROUTER`` is used for both in and output sockets in the device. Clients must
+specify the destination by the ``zmq.IDENTITY`` of the ``ROUTER`` socket connected to
 the downstream end of the device.
 
-At the Kernel level, both of these ``XREP`` sockets are treated in the same way as the ``REP``
+At the Kernel level, both of these ``ROUTER`` sockets are treated in the same way as the ``REP``
 socket in the serial version (except using ZMQStreams instead of explicit sockets).
 
 Execution can be done in a load-balanced (engine-agnostic) or multiplexed (engine-specified)
@@ -135,10 +135,10 @@ Client connections
     :alt: IPython client query connections
     :align: center
 
-    Clients connect to an ``XREP`` socket to query the hub.
+    Clients connect to an ``ROUTER`` socket to query the hub.
 
-The hub's registrar ``XREP`` socket also listens for queries from clients as to queue status,
-and control instructions. Clients connect to this socket via an ``XREQ`` during registration.
+The hub's registrar ``ROUTER`` socket also listens for queries from clients as to queue status,
+and control instructions. Clients connect to this socket via an ``DEALER`` during registration.
 
 .. figure:: figs/notiffade.png
     :width: 432px

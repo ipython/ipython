@@ -38,7 +38,7 @@ class Heart(object):
     You can specify the XREQ's IDENTITY via the optional heart_id argument."""
     device=None
     id=None
-    def __init__(self, in_addr, out_addr, in_type=zmq.SUB, out_type=zmq.XREQ, heart_id=None):
+    def __init__(self, in_addr, out_addr, in_type=zmq.SUB, out_type=zmq.DEALER, heart_id=None):
         self.device = ThreadDevice(zmq.FORWARDER, in_type, out_type)
         self.device.daemon=True
         self.device.connect_in(in_addr)
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     context = zmq.Context()
     pub = context.socket(zmq.PUB)
     pub.bind('tcp://127.0.0.1:5555')
-    xrep = context.socket(zmq.XREP)
+    xrep = context.socket(zmq.ROUTER)
     xrep.bind('tcp://127.0.0.1:5556')
     
     outstream = zmqstream.ZMQStream(pub, loop)

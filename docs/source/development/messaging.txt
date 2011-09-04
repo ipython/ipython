@@ -40,7 +40,7 @@ kernel has three sockets that serve the following functions:
    otherwise indicating that the user is to type input for the kernel instead
    of normal commands in the frontend.
 
-2. XREP: this single sockets allows multiple incoming connections from
+2. ROUTER: this single sockets allows multiple incoming connections from
    frontends, and this is the socket where requests for code execution, object
    information, prompts, etc. are made to the kernel by any frontend.  The
    communication on this socket is a sequence of request/reply actions from
@@ -48,13 +48,13 @@ kernel has three sockets that serve the following functions:
 
 3. PUB: this socket is the 'broadcast channel' where the kernel publishes all
    side effects (stdout, stderr, etc.) as well as the requests coming from any
-   client over the XREP socket and its own requests on the REP socket.  There
+   client over the ROUTER socket and its own requests on the REP socket.  There
    are a number of actions in Python which generate side effects: :func:`print`
    writes to ``sys.stdout``, errors generate tracebacks, etc.  Additionally, in
    a multi-client scenario, we want all frontends to be able to know what each
    other has sent to the kernel (this can be useful in collaborative scenarios,
    for example).  This socket allows both side effects and the information
-   about communications taking place with one client over the XREQ/XREP channel
+   about communications taking place with one client over the ROUTER/DEALER channel
    to be made available to all clients in a uniform manner.
 
    All messages are tagged with enough information (details below) for clients
@@ -122,7 +122,7 @@ For each message type, the actual content will differ and all existing message
 types are specified in what follows of this document.
 
 
-Messages on the XREP/XREQ socket
+Messages on the ROUTER/DEALER socket
 ================================
 
 .. _execute:
@@ -633,7 +633,7 @@ Connect
 When a client connects to the request/reply socket of the kernel, it can issue
 a connect request to get basic information about the kernel, such as the ports
 the other ZeroMQ sockets are listening on. This allows clients to only have
-to know about a single port (the XREQ/XREP channel) to connect to a kernel.
+to know about a single port (the DEALER/ROUTER channel) to connect to a kernel.
 
 Message type: ``connect_request``::
 
@@ -643,7 +643,7 @@ Message type: ``connect_request``::
 Message type: ``connect_reply``::
 
     content = {
-        'xrep_port' : int  # The port the XREP socket is listening on.
+        'xrep_port' : int  # The port the ROUTER socket is listening on.
         'pub_port' : int   # The port the PUB socket is listening on.
         'req_port' : int   # The port the REQ socket is listening on.
         'hb_port' : int    # The port the heartbeat socket is listening on.
@@ -901,7 +901,7 @@ heartbeat with pure ZMQ, without using any Python messaging at all.
 
 The monitor sends out a single zmq message (right now, it is a str of the
 monitor's lifetime in seconds), and gets the same message right back, prefixed
-with the zmq identity of the XREQ socket in the heartbeat process. This can be
+with the zmq identity of the DEALER socket in the heartbeat process. This can be
 a uuid, or even a full message, but there doesn't seem to be a need for packing
 up a message when the sender and receiver are the exact same Python object.
 
@@ -913,7 +913,7 @@ and the monitor receives some number of messages of the form::
 
     ['uuid-abcd-dead-beef', '1.2345678910']
 
-where the first part is the zmq.IDENTITY of the heart's XREQ on the engine, and
+where the first part is the zmq.IDENTITY of the heart's DEALER on the engine, and
 the rest is the message sent by the monitor.  No Python code ever has any
 access to the message between the monitor's send, and the monitor's recv.
 
