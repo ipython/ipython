@@ -369,7 +369,7 @@ class Client(HasTraits):
                 extra_args['key'] = exec_key
         self.session = Session(**extra_args)
         
-        self._query_socket = self._context.socket(zmq.XREQ)
+        self._query_socket = self._context.socket(zmq.DEALER)
         self._query_socket.setsockopt(zmq.IDENTITY, util.asbytes(self.session.session))
         if self._ssh:
             tunnel.tunnel_connection(self._query_socket, url, sshserver, **ssh_kwargs)
@@ -498,12 +498,12 @@ class Client(HasTraits):
         if content.status == 'ok':
             ident = util.asbytes(self.session.session)
             if content.mux:
-                self._mux_socket = self._context.socket(zmq.XREQ)
+                self._mux_socket = self._context.socket(zmq.DEALER)
                 self._mux_socket.setsockopt(zmq.IDENTITY, ident)
                 connect_socket(self._mux_socket, content.mux)
             if content.task:
                 self._task_scheme, task_addr = content.task
-                self._task_socket = self._context.socket(zmq.XREQ)
+                self._task_socket = self._context.socket(zmq.DEALER)
                 self._task_socket.setsockopt(zmq.IDENTITY, ident)
                 connect_socket(self._task_socket, task_addr)
             if content.notification:
@@ -511,11 +511,11 @@ class Client(HasTraits):
                 connect_socket(self._notification_socket, content.notification)
                 self._notification_socket.setsockopt(zmq.SUBSCRIBE, b'')
             # if content.query:
-            #     self._query_socket = self._context.socket(zmq.XREQ)
+            #     self._query_socket = self._context.socket(zmq.DEALER)
             #     self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
             #     connect_socket(self._query_socket, content.query)
             if content.control:
-                self._control_socket = self._context.socket(zmq.XREQ)
+                self._control_socket = self._context.socket(zmq.DEALER)
                 self._control_socket.setsockopt(zmq.IDENTITY, ident)
                 connect_socket(self._control_socket, content.control)
             if content.iopub:
