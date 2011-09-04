@@ -372,6 +372,10 @@ class IPTester(object):
             # reliably in win32.
             # What types of problems are you having. They may be related to
             # running Python in unboffered mode. BG.
+            for ndx, arg in enumerate(self.call_args):
+                # Enclose in quotes if necessary and legal
+                if ' ' in arg and os.path.isfile(arg) and arg[0] != '"':
+                    self.call_args[ndx] = '"%s"' % arg
             return os.system(' '.join(self.call_args))
     else:
         def _run_cmd(self):
