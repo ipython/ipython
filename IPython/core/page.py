@@ -226,6 +226,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                     if retval <=0:  # normally 0; negative for signal;
                                     # pager ran, so we have finished.
                         retval = None
+                        io.stdout.flush()   # This gets the prompt back.
                     else:
                         retval = 1
                     break
@@ -239,6 +240,8 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
 
     if retval is not None:
         page_dumb(strng,screen_lines=screen_lines)
+
+
 
 
 def page_file(fname, start=0, pager_cmd=None):
