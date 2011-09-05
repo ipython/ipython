@@ -209,28 +209,31 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
             # may be left in a bizarre state.
             import signal
             oldint = signal.signal(signal.SIGINT, signal.SIG_IGN)
-            retval = None
-            hook = None
+            def hook():
+                time.sleep(0.1)
             if _input_hook_manager.get_pyos_inputhook():
                 hook = _input_hook_manager.get_pyos_inputhook_as_func()
             pager = subprocess.Popen(pager_cmd, shell=True,
                                         stdin=subprocess.PIPE)
             pager.stdin.write(strng)
             pager.stdin.close()
-            while True:
-                if hook is not None:
-                    hook()
-                pager.poll()
-                if pager.returncode is not None:
-                    retval = pager.returncode
-                    if retval <=0:  # normally 0; negative for signal;
-                                    # pager ran, so we have finished.
-                        retval = None
-                        io.stdout.flush()   # This gets the prompt back.
-                    else:
-                        retval = 1
-                    break
-                time.sleep(0.1)
+            while pager.poll() is None: # sets and returns pager.returncode
+                hook()
+                # The PyOS_InputHook provided by qt4 and gtk
+                # blocks until the pager process ends; I don't know
+                # how this notification occurs.
+                # Usually, the user has to hit CR to get the prompt
+                # displayed, although even if it isn't, the input
+                # line is processed.
+                # Tk is not setting the input hook, and doesn't work
+                # with this code; if there is plot displayed, the
+                # terminal hangs upon returning from the pager.
+
+            if pager.returncode <=0:  # normally 0; negative for signal;
+                                      # pager ran, so we have finished.
+                retval = None
+            else:
+                retval = 1
 
         except OSError:
             # Other strange problems, sometimes seen in Win2k/cygwin
