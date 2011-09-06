@@ -123,7 +123,7 @@ class EngineFactory(RegistrationFactory):
         self.log.info("Registering with controller at %s"%self.url)
         ctx = self.context
         connect,maybe_tunnel = self.init_connector()
-        reg = ctx.socket(zmq.XREQ)
+        reg = ctx.socket(zmq.DEALER)
         reg.setsockopt(zmq.IDENTITY, self.bident)
         connect(reg, self.url)
         self.registrar = zmqstream.ZMQStream(reg, self.loop)
@@ -164,13 +164,13 @@ class EngineFactory(RegistrationFactory):
             # Uncomment this to go back to two-socket model
             # shell_streams = []
             # for addr in shell_addrs:
-            #     stream = zmqstream.ZMQStream(ctx.socket(zmq.XREP), loop)
+            #     stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
             #     stream.setsockopt(zmq.IDENTITY, identity)
             #     stream.connect(disambiguate_url(addr, self.location))
             #     shell_streams.append(stream)
             
             # Now use only one shell stream for mux and tasks
-            stream = zmqstream.ZMQStream(ctx.socket(zmq.XREP), loop)
+            stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
             stream.setsockopt(zmq.IDENTITY, identity)
             shell_streams = [stream]
             for addr in shell_addrs:
@@ -179,7 +179,7 @@ class EngineFactory(RegistrationFactory):
             
             # control stream:
             control_addr = str(msg.content.control)
-            control_stream = zmqstream.ZMQStream(ctx.socket(zmq.XREP), loop)
+            control_stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
             control_stream.setsockopt(zmq.IDENTITY, identity)
             connect(control_stream, control_addr)
             

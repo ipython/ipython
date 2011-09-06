@@ -145,9 +145,9 @@ class KernelApp(BaseIPythonApplication):
         # Uncomment this to try closing the context.
         # atexit.register(context.term)
 
-        self.shell_socket = context.socket(zmq.XREP)
+        self.shell_socket = context.socket(zmq.ROUTER)
         self.shell_port = self._bind_socket(self.shell_socket, self.shell_port)
-        self.log.debug("shell XREP Channel on port: %i"%self.shell_port)
+        self.log.debug("shell ROUTER Channel on port: %i"%self.shell_port)
 
         self.iopub_socket = context.socket(zmq.PUB)
         self.iopub_port = self._bind_socket(self.iopub_socket, self.iopub_port)

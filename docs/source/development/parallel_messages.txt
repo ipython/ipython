@@ -29,14 +29,14 @@ requests and results.  It has no role in execution and does no relay of messages
 large blocking requests or database actions in the Hub do not have the ability to impede
 job submission and results.
 
-Registration (``XREP``)
+Registration (``ROUTER``)
 ***********************
 
 The first function of the Hub is to facilitate and monitor connections of clients
 and engines. Both client and engine registration are handled by the same socket, so only
 one ip/port pair is needed to connect any number of connections and clients.
 
-Engines register with the ``zmq.IDENTITY`` of their two ``XREQ`` sockets, one for the
+Engines register with the ``zmq.IDENTITY`` of their two ``DEALER`` sockets, one for the
 queue, which receives execute requests, and one for the heartbeat, which is used to
 monitor the survival of the Engine process.
 
@@ -120,7 +120,7 @@ Message type : ``unregistration_notification``::
     }
 
 
-Client Queries (``XREP``)
+Client Queries (``ROUTER``)
 *************************
 
 The hub monitors and logs all queue traffic, so that clients can retrieve past
@@ -229,18 +229,18 @@ There are three basic schedulers:
   * MUX Scheduler
   * Control Scheduler
 
-The MUX and Control schedulers are simple MonitoredQueue ØMQ devices, with ``XREP``
+The MUX and Control schedulers are simple MonitoredQueue ØMQ devices, with ``ROUTER``
 sockets on either side. This allows the queue to relay individual messages to particular
 targets via ``zmq.IDENTITY`` routing. The Task scheduler may be a MonitoredQueue ØMQ
-device, in which case the client-facing socket is ``XREP``, and the engine-facing socket
-is ``XREQ``.  The result of this is that client-submitted messages are load-balanced via 
-the ``XREQ`` socket, but the engine's replies to each message go to the requesting client.
+device, in which case the client-facing socket is ``ROUTER``, and the engine-facing socket
+is ``DEALER``.  The result of this is that client-submitted messages are load-balanced via 
+the ``DEALER`` socket, but the engine's replies to each message go to the requesting client.
 
-Raw ``XREQ`` scheduling is quite primitive, and doesn't allow message introspection, so
+Raw ``DEALER`` scheduling is quite primitive, and doesn't allow message introspection, so
 there are also Python Schedulers that can be used. These Schedulers behave in much the
 same way as a MonitoredQueue does from the outside, but have rich internal logic to
 determine destinations, as well as handle dependency graphs Their sockets are always
-``XREP`` on both sides.
+``ROUTER`` on both sides.
 
 The Python task schedulers have an additional message type, which informs the Hub of
 the destination of a task as soon as that destination is known.

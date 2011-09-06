@@ -179,7 +179,7 @@ def main():
     
     # Create initial sockets
     c = zmq.Context()
-    request_socket = c.socket(zmq.XREQ)
+    request_socket = c.socket(zmq.DEALER)
     request_socket.connect(req_conn)
     
     sub_socket = c.socket(zmq.SUB)
