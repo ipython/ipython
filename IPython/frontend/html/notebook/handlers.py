@@ -57,7 +57,8 @@ class NBBrowserHandler(AuthenticatedHandler):
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
-        self.render('nbbrowser.html', project=project)
+        self.render('nbbrowser.html', project=project,
+            base_project_url=u'/', base_kernel_url=u'/')
 
 class LoginHandler(AuthenticatedHandler):
     def get(self):
@@ -75,7 +76,8 @@ class NewHandler(AuthenticatedHandler):
     @web.authenticated
     def get(self):
         notebook_id = self.application.notebook_manager.new_notebook()
-        self.render('notebook.html', notebook_id=notebook_id)
+        self.render('notebook.html', notebook_id=notebook_id,
+            base_project_url=u'/', base_kernel_url=u'/')
 
 
 class NamedNotebookHandler(AuthenticatedHandler):
@@ -84,7 +86,8 @@ class NamedNotebookHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        self.render('notebook.html', notebook_id=notebook_id)
+        self.render('notebook.html', notebook_id=notebook_id,
+            base_project_url=u'/', base_kernel_url=u'/')
 
 
 #-----------------------------------------------------------------------------

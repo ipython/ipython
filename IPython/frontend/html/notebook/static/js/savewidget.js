@@ -87,7 +87,7 @@ var IPython = (function (IPython) {
         
 
     SaveWidget.prototype.get_notebook_id = function () {
-        return this.element.find('span#notebook_id').text()
+        return $('body').data('notebookId');
     };
 
 

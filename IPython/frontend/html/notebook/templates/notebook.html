@@ -47,13 +47,13 @@
 
 </head>
 
-<body onload='CheckMathJax();'>
+<body data-base-project-url={{base_project_url}} data-base-kernel-url={{base_kernel_url}}
+      data-notebook-id={{notebook_id}} onload='CheckMathJax();'>
 
 <div id="header">
     <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
     <span id="save_widget">
         <input type="text" id="notebook_name" size="20"></textarea>
-        <span id="notebook_id" style="display:none">{{notebook_id}}</span>
         <button id="save_notebook"><u>S</u>ave</button>
     </span>
     <span id="quick_help_area">
