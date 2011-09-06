@@ -303,6 +303,7 @@ class Kernel(Configurable):
             time.sleep(self._execute_sleep)
         
         # Send the reply.
+        reply_content = json_clean(reply_content)
         reply_msg = self.session.send(self.shell_socket, u'execute_reply',
                                       reply_content, parent, ident=ident)
         self.log.debug(str(reply_msg))
@@ -321,6 +322,7 @@ class Kernel(Configurable):
         matches = {'matches' : matches,
                    'matched_text' : txt,
                    'status' : 'ok'}
+        matches = json_clean(matches)
         completion_msg = self.session.send(self.shell_socket, 'complete_reply',
                                            matches, parent, ident)
         self.log.debug(str(completion_msg))
@@ -358,6 +360,7 @@ class Kernel(Configurable):
         else:
             hist = []
         content = {'history' : list(hist)}
+        content = json_clean(content)
         msg = self.session.send(self.shell_socket, 'history_reply',
                                 content, parent, ident)
         self.log.debug(str(msg))
@@ -409,7 +412,7 @@ class Kernel(Configurable):
         sys.stdout.flush()
 
         # Send the input request.
-        content = dict(prompt=prompt)
+        content = json_clean(dict(prompt=prompt))
         msg = self.session.send(self.stdin_socket, u'input_request', content, parent)
 
         # Await a response.
