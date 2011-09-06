@@ -41,8 +41,10 @@ except ImportError:
 
 class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
+
     def get_current_user(self):
         user_id = self.get_secure_cookie("user")
+        # For now the user_id should not return empty, but it could eventually
         if user_id == '':
             user_id = 'anonymous'
         if user_id is None:
@@ -54,6 +56,7 @@ class AuthenticatedHandler(web.RequestHandler):
 
 
 class NBBrowserHandler(AuthenticatedHandler):
+
     @web.authenticated
     def get(self):
         nbm = self.application.notebook_manager
@@ -61,10 +64,11 @@ class NBBrowserHandler(AuthenticatedHandler):
         self.render('nbbrowser.html', project=project,
             base_project_url=u'/', base_kernel_url=u'/')
 
+
 class LoginHandler(AuthenticatedHandler):
+
     def get(self):
-        user_id = self.get_secure_cookie("user") or ''
-        self.render('login.html', user_id=user_id)
+        self.render('login.html')
 
     def post(self):
         pwd = self.get_argument("password", default=u'')
@@ -73,7 +77,9 @@ class LoginHandler(AuthenticatedHandler):
         url = self.get_argument("next", default="/")
         self.redirect(url)
 
+
 class NewHandler(AuthenticatedHandler):
+
     @web.authenticated
     def get(self):
         notebook_id = self.application.notebook_manager.new_notebook()
@@ -82,6 +88,7 @@ class NewHandler(AuthenticatedHandler):
 
 
 class NamedNotebookHandler(AuthenticatedHandler):
+
     @web.authenticated
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
