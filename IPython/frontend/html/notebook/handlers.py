@@ -18,6 +18,7 @@ Authors:
 
 import logging
 import Cookie
+import uuid
 
 from tornado import web
 from tornado import websocket
@@ -68,7 +69,7 @@ class LoginHandler(AuthenticatedHandler):
     def post(self):
         pwd = self.get_argument("password", default=u'')
         if self.application.password and pwd == self.application.password:
-            self.set_secure_cookie("user", self.get_argument("name", default=u''))
+            self.set_secure_cookie("user", str(uuid.uuid4()))
         url = self.get_argument("next", default="/")
         self.redirect(url)
 
