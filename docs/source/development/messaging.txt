@@ -108,6 +108,10 @@ generic structure::
                     # All recognized message type strings are listed below.
                     'msg_type' : str,
          },
+      # The msg's unique identifier and type are stored in the header, but
+      # are also accessible at the top-level for convenience.
+      'msg_id' : uuid,
+      'msg_type' : str,
 
       # In a chain of messages, the header from the parent is copied so that
       # clients can track where messages come from.
