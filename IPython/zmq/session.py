@@ -357,7 +357,10 @@ class Session(Configurable):
         format, which is a list of message parts.
         """
         msg = {}
-        msg['header'] = self.msg_header(msg_type) if header is None else header
+        header = self.msg_header(msg_type) if header is None else header
+        msg['header'] = header
+        msg['msg_id'] = header['msg_id']
+        msg['msg_type'] = header['msg_type']
         msg['parent_header'] = {} if parent is None else extract_header(parent)
         msg['content'] = {} if content is None else content
         sub = {} if subheader is None else subheader
@@ -669,7 +672,10 @@ class Session(Configurable):
                 raise ValueError("Invalid Signature: %r"%signature)
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
-        message['header'] = self.unpack(msg_list[1])
+        header = self.unpack(msg_list[1])
+        message['header'] = header
+        message['msg_id'] = header['msg_id']
+        message['msg_type'] = header['msg_type']
         message['parent_header'] = self.unpack(msg_list[2])
         if content:
             message['content'] = self.unpack(msg_list[3])
