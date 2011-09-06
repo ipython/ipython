@@ -36,7 +36,7 @@
 ;; always in ``pylab`` mode with hardcoded light-background colors, you can
 ;; use::
 ;;
-;; (setq py-python-command-args '("-pylab" "--colors" "LightBG"))
+;; (setq py-python-command-args '("-pylab" "--colors=LightBG"))
 ;;
 ;;
 ;; NOTE: This mode is currently somewhat alpha and although I hope that it
@@ -217,17 +217,19 @@ the second for a 'normal' command, and the third for a multiline command.")
     (setq py-shell-input-prompt-1-regexp "^In \\[[0-9]+\\]: *"
           py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )
     ;; select a suitable color-scheme
-    (unless (member "--colors" py-python-command-args)
+    (unless (delq nil
+          (mapcar (lambda (x) (eq (string-match "^--colors=*" x) 0))
+              py-python-command-args))
       (setq py-python-command-args
-            (nconc py-python-command-args
-                   (list "--colors"
-                         (cond
-                           ((eq frame-background-mode 'dark)
-                            "Linux")
-                           ((eq frame-background-mode 'light)
-                            "LightBG")
-                           (t ; default (backg-mode isn't always set by XEmacs)
-                            "LightBG"))))))
+            (cons (format "--colors=%s"
+              (cond
+               ((eq frame-background-mode 'dark)
+                "Linux")
+               ((eq frame-background-mode 'light)
+                "LightBG")
+               (t ; default (backg-mode isn't always set by XEmacs)
+                "LightBG")))
+          py-python-command-args)))
     (unless (equal ipython-backup-of-py-python-command py-python-command)
       (setq ipython-backup-of-py-python-command py-python-command))
     (setq py-python-command ipython-command))
@@ -243,7 +245,7 @@ buffer already exists."
       ad-do-it
     (setq comint-input-ring-file-name
           (if (string-equal py-python-command ipython-command)
-              (concat (or (getenv "IPYTHONDIR") "~/.ipython") "/history")
+              (concat (or (getenv "IPYTHON_DIR") "~/.ipython") "/history")
             (or (getenv "PYTHONHISTORY") "~/.python-history.py")))
     (comint-read-input-ring t)
     (let ((buf (current-buffer)))
@@ -263,8 +265,8 @@ buffer already exists."
   "HACK: if `py-shell' is not active or ASYNC is explicitly desired, fall back
   to python instead of ipython."
   (let ((py-which-shell (if (and (comint-check-proc "*Python*") (not async))
-			    py-python-command
-			  ipython-backup-of-py-python-command)))
+                py-python-command
+              ipython-backup-of-py-python-command)))
     ad-do-it))
 (ad-activate 'py-execute-region)
 
@@ -347,12 +349,12 @@ in the current *Python* session."
                           (setq ugly-return (concat ugly-return string))
                           (delete-region comint-last-output-start
                                          (process-mark (get-buffer-process (current-buffer)))))))))
-	;(message (format "#DEBUG pattern: '%s'" pattern))
+    ;(message (format "#DEBUG pattern: '%s'" pattern))
         (process-send-string python-process
                               (format ipython-completion-command-string pattern))
         (accept-process-output python-process)
-	
-	;(message (format "DEBUG return: %s" ugly-return))
+    
+    ;(message (format "DEBUG return: %s" ugly-return))
         (setq completions
               (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
         (setq completion-table (loop for str in completions
@@ -473,10 +475,10 @@ matches last process output."
         (text (ansi-color-filter-apply (buffer-substring start-marker end-marker))))
    ;; XXX if `text' matches both pattern, it MUST be the last prompt-2
    (when (and (string-match py-shell-input-prompt-2-regexp text)
-	      (not (string-match "\n$" text)))
+          (not (string-match "\n$" text)))
      (with-current-buffer (ipython-get-indenting-buffer)
        (setq ipython-indentation-string
-	     (buffer-substring (point-at-bol) (point))))
+         (buffer-substring (point-at-bol) (point))))
      (goto-char end-marker)
      (insert ipython-indentation-string)
      (setq ipython-indentation-string nil))))
