@@ -12,6 +12,7 @@
 #-----------------------------------------------------------------------------
 # stdlib
 import re
+import sys
 import types
 from datetime import datetime
 
@@ -121,14 +122,17 @@ def json_clean(obj):
     """
     # types that are 'atomic' and ok in json as-is.  bool doesn't need to be
     # listed explicitly because bools pass as int instances
-    atomic_ok = (basestring, int, float, types.NoneType)
+    atomic_ok = (unicode, int, float, types.NoneType)
     
     # containers that we need to convert into lists
     container_to_list = (tuple, set, types.GeneratorType)
     
     if isinstance(obj, atomic_ok):
         return obj
-
+    
+    if isinstance(obj, bytes):
+        return obj.decode(sys.getdefaultencoding(), 'replace')
+    
     if isinstance(obj, container_to_list) or (
         hasattr(obj, '__iter__') and hasattr(obj, 'next')):
         obj = list(obj)
