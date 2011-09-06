@@ -35,7 +35,7 @@ from tornado import httpserver
 from tornado import web
 
 from .kernelmanager import MappingKernelManager
-from .handlers import (
+from .handlers import (LoginHandler,
     NBBrowserHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
@@ -80,6 +80,7 @@ class NotebookWebApplication(web.Application):
     def __init__(self, ipython_app, kernel_manager, notebook_manager, log):
         handlers = [
             (r"/", NBBrowserHandler),
+            (r"/login", LoginHandler),
             (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
             (r"/kernels", MainKernelHandler),
@@ -94,6 +95,8 @@ class NotebookWebApplication(web.Application):
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
+            cookie_secret=os.urandom(1024),
+            login_url="/login",
         )
         web.Application.__init__(self, handlers, **settings)
 
@@ -122,7 +125,7 @@ aliases.update({
     'keyfile': 'IPythonNotebookApp.keyfile',
     'certfile': 'IPythonNotebookApp.certfile',
     'ws-hostname': 'IPythonNotebookApp.ws_hostname',
-    'notebook-dir': 'NotebookManager.notebook_dir'
+    'notebook-dir': 'NotebookManager.notebook_dir',
 })
 
 notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile', u'ws-hostname',
@@ -185,6 +188,10 @@ class IPythonNotebookApp(BaseIPythonApplication):
         help="""The full path to a private key file for usage with SSL/TLS."""
     )
 
+    password = Unicode(u'', config=True,
+                      help="""Password to use for web authentication"""
+    )
+
     def get_ws_url(self):
         """Return the WebSocket URL for this server."""
         if self.certfile:
@@ -241,6 +248,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
                 ssl_options['keyfile'] = self.keyfile
         else:
             ssl_options = None
+        self.web_app.password = self.password
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options)
         if ssl_options is None and not self.ip:
             self.log.critical('WARNING: the notebook server is listening on all IP addresses '
