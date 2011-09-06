@@ -82,7 +82,7 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.set_document_title = function () {
         nbname = this.get_notebook_name();
-        document.title = 'IPy: ' + nbname;
+        document.title = nbname;
     };
         
 

@@ -125,11 +125,11 @@ notebook_flags = ['no-browser']
 aliases = dict(ipkernel_aliases)
 
 aliases.update({
-    'ip': 'IPythonNotebookApp.ip',
-    'port': 'IPythonNotebookApp.port',
-    'keyfile': 'IPythonNotebookApp.keyfile',
-    'certfile': 'IPythonNotebookApp.certfile',
-    'ws-hostname': 'IPythonNotebookApp.ws_hostname',
+    'ip': 'NotebookApp.ip',
+    'port': 'NotebookApp.port',
+    'keyfile': 'NotebookApp.keyfile',
+    'certfile': 'NotebookApp.certfile',
+    'ws-hostname': 'NotebookApp.ws_hostname',
     'notebook-dir': 'NotebookManager.notebook_dir',
 })
 
@@ -141,10 +141,10 @@ notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile', u'ws-hostname',
                     u'notebook-dir']
 
 #-----------------------------------------------------------------------------
-# IPythonNotebookApp
+# NotebookApp
 #-----------------------------------------------------------------------------
 
-class IPythonNotebookApp(BaseIPythonApplication):
+class NotebookApp(BaseIPythonApplication):
 
     name = 'ipython-notebook'
     default_config_file_name='ipython_notebook_config.py'
@@ -213,7 +213,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
         return prefix + self.ws_hostname + u':' + unicode(self.port)
 
     def parse_command_line(self, argv=None):
-        super(IPythonNotebookApp, self).parse_command_line(argv)
+        super(NotebookApp, self).parse_command_line(argv)
         if argv is None:
             argv = sys.argv[1:]
 
@@ -254,14 +254,14 @@ class IPythonNotebookApp(BaseIPythonApplication):
         self.notebook_manager.list_notebooks()
 
     def init_logging(self):
-        super(IPythonNotebookApp, self).init_logging()
+        super(NotebookApp, self).init_logging()
         # This prevents double log messages because tornado use a root logger that
         # self.log is a child of. The logging module dipatches log messages to a log
         # and all of its ancenstors until propagate is set to False.
         self.log.propagate = False
 
     def initialize(self, argv=None):
-        super(IPythonNotebookApp, self).initialize(argv)
+        super(NotebookApp, self).initialize(argv)
         self.init_configurables()
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.notebook_manager, self.log
@@ -309,7 +309,7 @@ class IPythonNotebookApp(BaseIPythonApplication):
 #-----------------------------------------------------------------------------
 
 def launch_new_instance():
-    app = IPythonNotebookApp()
+    app = NotebookApp()
     app.initialize()
     app.start()
 
