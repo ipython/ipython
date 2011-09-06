@@ -111,6 +111,7 @@ if os.name == 'nt':
 else:
     have['zmq'] = test_for('zmq', '2.1.4')
 have['qt'] = test_for('IPython.external.qt')
+have['tornado'] = test_for('tornado')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -204,6 +205,9 @@ def make_exclude():
     if not have['matplotlib']:
         exclusions.extend([ipjoin('lib', 'pylabtools'),
                            ipjoin('lib', 'tests', 'test_pylabtools')])
+
+    if not have['tornado']:
+        exclusions.append(ipjoin('frontend', 'html'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
