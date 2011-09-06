@@ -300,7 +300,7 @@ class IPControllerApp(BaseParallelApplication):
         children.append(q)
 
         # Multiplexer Queue (in a Process)
-        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, b'in', b'out')
+        q = mq(zmq.ROUTER, zmq.ROUTER, zmq.PUB, b'in', b'out')
         q.bind_in(hub.client_info['mux'])
         q.setsockopt_in(zmq.IDENTITY, b'mux')
         q.bind_out(hub.engine_info['mux'])
@@ -309,7 +309,7 @@ class IPControllerApp(BaseParallelApplication):
         children.append(q)
 
         # Control Queue (in a Process)
-        q = mq(zmq.XREP, zmq.XREP, zmq.PUB, b'incontrol', b'outcontrol')
+        q = mq(zmq.ROUTER, zmq.ROUTER, zmq.PUB, b'incontrol', b'outcontrol')
         q.bind_in(hub.client_info['control'])
         q.setsockopt_in(zmq.IDENTITY, b'control')
         q.bind_out(hub.engine_info['control'])
@@ -323,7 +323,7 @@ class IPControllerApp(BaseParallelApplication):
         # Task Queue (in a Process)
         if scheme == 'pure':
             self.log.warn("task::using pure XREQ Task scheduler")
-            q = mq(zmq.XREP, zmq.XREQ, zmq.PUB, b'intask', b'outtask')
+            q = mq(zmq.ROUTER, zmq.DEALER, zmq.PUB, b'intask', b'outtask')
             # q.setsockopt_out(zmq.HWM, hub.hwm)
             q.bind_in(hub.client_info['task'][1])
             q.setsockopt_in(zmq.IDENTITY, b'task')

@@ -219,9 +219,9 @@ def make_starter(up_addr, down_addr, *args, **kwargs):
     loop = ioloop.IOLoop.instance()
     ctx = zmq.Context()
     session = Session()
-    upstream = zmqstream.ZMQStream(ctx.socket(zmq.XREQ),loop)
+    upstream = zmqstream.ZMQStream(ctx.socket(zmq.DEALER),loop)
     upstream.connect(up_addr)
-    downstream = zmqstream.ZMQStream(ctx.socket(zmq.XREQ),loop)
+    downstream = zmqstream.ZMQStream(ctx.socket(zmq.DEALER),loop)
     downstream.connect(down_addr)
     
     starter = KernelStarter(session, upstream, downstream, *args, **kwargs)

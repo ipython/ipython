@@ -679,11 +679,11 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,
         # for safety with multiprocessing
         ctx = zmq.Context()
         loop = ioloop.IOLoop()
-    ins = ZMQStream(ctx.socket(zmq.XREP),loop)
+    ins = ZMQStream(ctx.socket(zmq.ROUTER),loop)
     ins.setsockopt(zmq.IDENTITY, identity)
     ins.bind(in_addr)
     
-    outs = ZMQStream(ctx.socket(zmq.XREP),loop)
+    outs = ZMQStream(ctx.socket(zmq.ROUTER),loop)
     outs.setsockopt(zmq.IDENTITY, identity)
     outs.bind(out_addr)
     mons = zmqstream.ZMQStream(ctx.socket(zmq.PUB),loop)

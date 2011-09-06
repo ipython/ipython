@@ -187,7 +187,7 @@ class ShellSocketChannel(ZMQSocketChannel):
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
-        self.socket = self.context.socket(zmq.XREQ)
+        self.socket = self.context.socket(zmq.DEALER)
         self.socket.setsockopt(zmq.IDENTITY, self.session.session)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.iostate = POLLERR|POLLIN
@@ -482,7 +482,7 @@ class StdInSocketChannel(ZMQSocketChannel):
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
-        self.socket = self.context.socket(zmq.XREQ)
+        self.socket = self.context.socket(zmq.DEALER)
         self.socket.setsockopt(zmq.IDENTITY, self.session.session)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.iostate = POLLERR|POLLIN
