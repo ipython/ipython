@@ -86,10 +86,6 @@ dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 # Utilities
 #-----------------------------------------------------------------------------
 
-# store the builtin raw_input globally, and use this always, in case user code
-# overwrites it (like wx.py.PyShell does)
-raw_input_original = raw_input
-
 def softspace(file, newvalue):
     """Copied from code.py, to remove the dependency"""
 
@@ -411,6 +407,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # init_readline() must come before init_io(), because init_io uses
         # readline related things.
         self.init_readline()
+        # We save this here in case user code replaces raw_input, but it needs
+        # to be after init_readline(), because PyPy's readline works by replacing
+        # raw_input.
+        self.raw_input_original = raw_input
         # init_completer must come after init_readline, because it needs to
         # know whether readline is present or not system-wide to configure the
         # completers, since the completion machinery can now operate
