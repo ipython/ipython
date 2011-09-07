@@ -106,15 +106,15 @@ var IPython = (function (IPython) {
         PanelSection.prototype.bind_events.apply(this);
         var that = this;
         this.content.find('#new_notebook').click(function () {
-            window.open('/new');
+            window.open($('body').data('baseProjectUrl')+'new');
         });
         this.content.find('#open_notebook').click(function () {
-            window.open('/');
+            window.open($('body').data('baseProjectUrl'));
         });
         this.content.find('#download_notebook').click(function () {
             var format = that.content.find('#download_format').val();
             var notebook_id = IPython.save_widget.get_notebook_id();
-            var url = '/notebooks/' + notebook_id + '?format=' + format;
+            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id + '?format=' + format;
             window.open(url,'_newtab');
         });
     };

@@ -989,7 +989,9 @@ var IPython = (function (IPython) {
         }, 50);
     };
 
+
     IPython.Notebook = Notebook;
+
 
     return IPython;
 

@@ -21,7 +21,7 @@ $(document).ready(function () {
     $('div#content_toolbar').addClass('ui-widget ui-helper-clearfix');    
 
     $('#new_notebook').button().click(function (e) {
-        window.open('/new');
+        window.open($('body').data('baseProjectUrl')+'new');
     });
 
     $('div#left_panel').addClass('box-flex');

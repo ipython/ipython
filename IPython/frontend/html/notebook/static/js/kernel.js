@@ -96,7 +96,6 @@ var IPython = (function (IPython) {
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
         send_cookie = function(){
             this.send(document.cookie);
-            console.log(this);
         }
         this.shell_channel.onopen = send_cookie;
         this.iopub_channel.onopen = send_cookie;
