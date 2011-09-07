@@ -62,7 +62,7 @@ class NBBrowserHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         self.render(
-            'nbbrowser.html', project=project,
+            'projectdashboard.html', project=project,
             base_project_url=u'/', base_kernel_url=u'/'
         )
 
