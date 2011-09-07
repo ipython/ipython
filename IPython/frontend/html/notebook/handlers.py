@@ -55,7 +55,7 @@ class AuthenticatedHandler(web.RequestHandler):
         return user_id
 
 
-class NBBrowserHandler(AuthenticatedHandler):
+class ProjectDashboardHandler(AuthenticatedHandler):
 
     @web.authenticated
     def get(self):

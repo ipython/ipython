@@ -37,7 +37,7 @@ from tornado import web
 
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler,
-    NBBrowserHandler, NewHandler, NamedNotebookHandler,
+    ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
 )
@@ -80,7 +80,7 @@ class NotebookWebApplication(web.Application):
 
     def __init__(self, ipython_app, kernel_manager, notebook_manager, log):
         handlers = [
-            (r"/", NBBrowserHandler),
+            (r"/", ProjectDashboardHandler),
             (r"/login", LoginHandler),
             (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
