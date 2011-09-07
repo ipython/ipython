@@ -3,7 +3,6 @@ launchers.
 """
 
 # Standard library imports.
-import atexit
 import os
 import socket
 from subprocess import Popen, PIPE
