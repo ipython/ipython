@@ -36,7 +36,7 @@
 ;; always in ``pylab`` mode with hardcoded light-background colors, you can
 ;; use::
 ;;
-;; (setq py-python-command-args '("-pylab" "--colors" "LightBG"))
+;; (setq py-python-command-args '("--pylab" "--colors=LightBG"))
 ;;
 ;;
 ;; NOTE: This mode is currently somewhat alpha and although I hope that it
@@ -217,17 +217,18 @@ the second for a 'normal' command, and the third for a multiline command.")
     (setq py-shell-input-prompt-1-regexp "^In \\[[0-9]+\\]: *"
           py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )
     ;; select a suitable color-scheme
-    (unless (member "--colors" py-python-command-args)
-      (setq py-python-command-args
-            (nconc py-python-command-args
-                   (list "--colors"
-                         (cond
-                           ((eq frame-background-mode 'dark)
-                            "Linux")
-                           ((eq frame-background-mode 'light)
-                            "LightBG")
-                           (t ; default (backg-mode isn't always set by XEmacs)
-                            "LightBG"))))))
+    (unless (delq nil
+                  (mapcar (lambda (x) (eq (string-match "^--colors=*" x) 0))
+                          py-python-command-args))
+      (push (format "--colors=%s"
+                    (cond
+                     ((eq frame-background-mode 'dark)
+                      "Linux")
+                     ((eq frame-background-mode 'light)
+                      "LightBG")
+                     (t ; default (backg-mode isn't always set by XEmacs)
+                      "LightBG")))
+            py-python-command-args))
     (unless (equal ipython-backup-of-py-python-command py-python-command)
       (setq ipython-backup-of-py-python-command py-python-command))
     (setq py-python-command ipython-command))
