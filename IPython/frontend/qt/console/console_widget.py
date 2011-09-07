@@ -233,19 +233,22 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
             printkey = "Ctrl+Shift+P"
         action.setShortcut(printkey)
+        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.print_)
         self.addAction(action)
         self._print_action = action
 
         action = QtGui.QAction('Save as HTML/XML', None)
         action.setShortcut(QtGui.QKeySequence.Save)
+        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.export_html)
         self.addAction(action)
         self._export_action = action
-        
+
         action = QtGui.QAction('Select All', None)
         action.setEnabled(True)
         action.setShortcut(QtGui.QKeySequence.SelectAll)
+        action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.select_all)
         self.addAction(action)
         self._select_all_action = action
