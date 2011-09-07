@@ -70,13 +70,13 @@ class NBBrowserHandler(AuthenticatedHandler):
 class LoginHandler(AuthenticatedHandler):
 
     def get(self):
-        self.render('login.html')
+        self.render('login.html', next='/')
 
     def post(self):
-        pwd = self.get_argument("password", default=u'')
+        pwd = self.get_argument('password', default=u'')
         if self.application.password and pwd == self.application.password:
-            self.set_secure_cookie("user", str(uuid.uuid4()))
-        url = self.get_argument("next", default="/")
+            self.set_secure_cookie('user', str(uuid.uuid4()))
+        url = self.get_argument('next', default='/')
         self.redirect(url)
 
 
