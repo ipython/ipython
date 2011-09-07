@@ -929,7 +929,8 @@ var IPython = (function (IPython) {
                 error : $.proxy(this.notebook_save_failed,this)
             };
             IPython.save_widget.status_saving();
-            $.ajax("/notebooks/" + notebook_id, settings);
+            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id
+            $.ajax(url, settings);
         };
     };
 
@@ -966,7 +967,8 @@ var IPython = (function (IPython) {
             }
         };
         IPython.save_widget.status_loading();
-        $.ajax("/notebooks/" + notebook_id, settings);
+        var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id
+        $.ajax(url, settings);
     }
 
 
