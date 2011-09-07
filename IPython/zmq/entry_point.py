@@ -90,26 +90,6 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
         arguments.append('--ip=%s'%ip)
     arguments.extend(extra_arguments)
 
-    # Popen will fail (sometimes with a deadlock) if stdin, stdout, and stderr
-    # are invalid. Unfortunately, there is in general no way to detect whether
-    # they are valid.  The following two blocks redirect them to (temporary)
-    # pipes in certain important cases.
-
-    # If this process has been backgrounded, our stdin is invalid. Since there
-    # is no compelling reason for the kernel to inherit our stdin anyway, we'll
-    # place this one safe and always redirect.
-    redirect_in = True
-    _stdin = PIPE if stdin is None else stdin
-
-    # If this process in running on pythonw, we know that stdin, stdout, and
-    # stderr are all invalid.
-    redirect_out = sys.executable.endswith('pythonw.exe')
-    if redirect_out:        
-        _stdout = PIPE if stdout is None else stdout
-        _stderr = PIPE if stderr is None else stderr
-    else:
-        _stdout, _stderr = stdout, stderr 
-
     # Spawn a kernel.
     if sys.platform == 'win32':
         # Create a Win32 event for interrupting the kernel.
@@ -122,6 +102,27 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
         # long time; see http://bugs.python.org/issue706263.
         # A cleaner solution to this problem would be to pass os.devnull to
         # Popen directly. Unfortunately, that does not work.
+
+        # Popen will fail (sometimes with a deadlock) if stdin, stdout, and stderr
+        # are invalid. Unfortunately, there is in general no way to detect whether
+        # they are valid.  The following two blocks redirect them to (temporary)
+        # pipes in certain important cases.
+
+        # If this process has been backgrounded, our stdin is invalid. Since there
+        # is no compelling reason for the kernel to inherit our stdin anyway, we'll
+        # place this one safe and always redirect.
+        redirect_in = True
+        _stdin = PIPE if stdin is None else stdin
+
+        # If this process in running on pythonw, we know that stdin, stdout, and
+        # stderr are all invalid.
+        redirect_out = sys.executable.endswith('pythonw.exe')
+        if redirect_out:
+            _stdout = PIPE if stdout is None else stdout
+            _stderr = PIPE if stderr is None else stderr
+        else:
+            _stdout, _stderr = stdout, stderr
+
         if executable.endswith('pythonw.exe'):
             if stdout is None:
                 arguments.append('--no-stdout')
@@ -143,25 +144,25 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
             proc = Popen(arguments + ['--parent=%i'%int(handle)],
                          stdin=_stdin, stdout=_stdout, stderr=_stderr)
 
-        # Attach the interrupt event to the Popen objet so it can be used later.
+        # Attach the interrupt event to the Popen object so it can be used later.
         proc.win32_interrupt_event = interrupt_event
+
+        # Clean up pipes created to work around windows Popen bug.
+        if redirect_in:
+            if stdin is None:
+                proc.stdin.close()
+        if redirect_out:
+            if stdout is None:
+                proc.stdout.close()
+            if stderr is None:
+                proc.stderr.close()
 
     else:
         if independent:
             proc = Popen(arguments, preexec_fn=lambda: os.setsid(),
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
+                         stdin=stdin, stdout=stdout, stderr=stderr)
         else:
             proc = Popen(arguments + ['--parent=1'],
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
+                         stdin=stdin, stdout=stdout, stderr=stderr)
 
-    # Clean up pipes created to work around Popen bug.
-    if redirect_in:
-        if stdin is None:
-            proc.stdin.close()
-    if redirect_out:
-        if stdout is None:
-            proc.stdout.close()
-        if stderr is None:
-            proc.stderr.close()
-            
     return proc, shell_port, iopub_port, stdin_port, hb_port
