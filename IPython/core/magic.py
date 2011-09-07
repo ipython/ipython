@@ -91,6 +91,43 @@ def needs_local_scope(func):
     func.needs_local_scope = True
     return func
 
+import imp, os
+
+def find_module(name, path=None):
+    """imp.find_module variant that only return path of module
+    """
+    file, filename, _ = imp.find_module(name, path)
+    if file is None:
+        return filename
+    else:
+        file.close()
+    return filename
+
+def get_init(dirname):
+    """Get __init__ file path for module with directory dirname
+    """
+    fbase =  os.path.join(dirname, "__init__")
+    for ext in [".py", ".pyw", ".pyc", ".pyo"]:
+        fname = fbase + ext
+        if os.path.isfile(fname):
+            return fname
+
+
+def find_mod(name):
+    """Find module *name* on sys.path
+    """
+    parts = name.split(".")
+    if len(parts) == 1:
+        basepath = find_module(parts[0])
+    else:
+        basepath = find_module(parts[0])
+        for submodname in parts[1:]:
+            basepath = find_module(submodname, [basepath])
+    if os.path.isdir(basepath):
+        basepath = get_init(basepath)
+    return basepath
+
+    
 # Used for exception handling in magic_edit
 class MacroToEdit(ValueError): pass
 
@@ -1557,11 +1594,22 @@ Currently the magic system has the following functions:\n"""
         There is one special usage for which the text above doesn't apply:
         if the filename ends with .ipy, the file is run as ipython script,
         just as if the commands were written on IPython prompt.
+
+        -m: specify module name to load instead of script path. Similar to
+        the -m option for the python interpreter. For example:
+
+            %run -m example
+
+        will run the example module.
+
         """
 
         # get arguments and set sys.argv for program to be run.
-        opts,arg_lst = self.parse_options(parameter_s,'nidtN:b:pD:l:rs:T:e',
+        opts,arg_lst = self.parse_options(parameter_s,'nidtN:b:pD:l:rs:T:em:',
                                           mode='list',list_all=1)
+        if opts.has_key("m"):
+            modulename = opts.get("m")[0]
+            arg_lst = [find_mod(modulename)]
 
         try:
             filename = file_finder(arg_lst[0])
