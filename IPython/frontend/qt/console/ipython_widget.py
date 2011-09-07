@@ -253,6 +253,18 @@ class IPythonWidget(FrontendWidget):
         if sys.platform == 'win32':
             path = os.path.normpath(path).replace('\\', '/')
 
+        # Perhaps we should not be using %run directly, but while we
+        # are, it is necessary to quote filenames containing spaces or quotes.
+        # Escaping quotes in filename in %run seems tricky and inconsistent,
+        # so not trying it at present.
+        if '"' in path:
+            if "'" in path:
+                raise ValueError("Can't run filename containing both single "
+                                 "and double quotes: %s" % path)
+            path = "'%s'" % path
+        elif ' ' in path or "'" in path:
+            path = '"%s"' % path
+
         self.execute('%%run %s' % path, hidden=hidden)
 
     #---------------------------------------------------------------------------
