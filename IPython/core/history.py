@@ -25,7 +25,7 @@ from IPython.config.configurable import Configurable
 
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
-from IPython.utils.traitlets import Bool, Dict, Instance, Int, List, Unicode
+from IPython.utils.traitlets import Bool, Dict, Instance, Int, CInt, List, Unicode
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
@@ -63,7 +63,7 @@ class HistoryManager(Configurable):
     # The SQLite database
     db = Instance(sqlite3.Connection)
     # The number of the current session in the history database
-    session_number = Int()
+    session_number = CInt()
     # Should we log output to the database? (default no)
     db_log_output = Bool(False, config=True)
     # Write to database every x commands (higher values save disk access & power)
