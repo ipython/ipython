@@ -36,7 +36,7 @@
 ;; always in ``pylab`` mode with hardcoded light-background colors, you can
 ;; use::
 ;;
-;; (setq py-python-command-args '("-pylab" "--colors" "LightBG"))
+;; (setq py-python-command-args '("-pylab" "--colors=LightBG"))
 ;;
 ;;
 ;; NOTE: This mode is currently somewhat alpha and although I hope that it
@@ -220,14 +220,14 @@ the second for a 'normal' command, and the third for a multiline command.")
     (unless (member "--colors" py-python-command-args)
       (setq py-python-command-args
             (nconc py-python-command-args
-                   (list "--colors"
-                         (cond
-                           ((eq frame-background-mode 'dark)
-                            "Linux")
-                           ((eq frame-background-mode 'light)
-                            "LightBG")
-                           (t ; default (backg-mode isn't always set by XEmacs)
-                            "LightBG"))))))
+                   (list (concat "--colors="
+                           (cond
+                            ((eq frame-background-mode 'dark)
+                             "Linux")
+                            ((eq frame-background-mode 'light)
+                             "LightBG")
+                            (t ; default (backg-mode isn't always set by XEmacs)
+                             "LightBG")))))))
     (unless (equal ipython-backup-of-py-python-command py-python-command)
       (setq ipython-backup-of-py-python-command py-python-command))
     (setq py-python-command ipython-command))
@@ -351,7 +351,7 @@ in the current *Python* session."
         (process-send-string python-process
                               (format ipython-completion-command-string pattern))
         (accept-process-output python-process)
-	
+
 	;(message (format "DEBUG return: %s" ugly-return))
         (setq completions
               (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
