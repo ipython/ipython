@@ -938,7 +938,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.notebook_saved = function (data, status, xhr) {
         this.dirty = false;
         IPython.save_widget.notebook_saved();
-        setTimeout($.proxy(IPython.save_widget.status_save,IPython.save_widget),500);
+        IPython.save_widget.status_save();
     }
 
 
@@ -946,7 +946,7 @@ var IPython = (function (IPython) {
         // Notify the user and reset the save button
         // TODO: Handle different types of errors (timeout etc.)
         alert('An unexpected error occured while saving the notebook.');
-        setTimeout($.proxy(IPython.save_widget.reset_status,IPython.save_widget),500);                                                                               
+        IPython.save_widget.reset_status();
     }
 
 
