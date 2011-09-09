@@ -265,9 +265,9 @@ iptest command:
 pexpect
 -------
 
-The pexpect package is used in IPython's :command:`irunner` script, as well as
-for managing subprocesses [pexpect]_. IPython now includes a version of pexpect
-in :mod:`IPython.external`, but if you have installed pexpect, IPython will use
+The pexpect_ package is used in IPython's :command:`irunner` script, as well as
+for managing subprocesses. IPython now includes a version of pexpect in
+:mod:`IPython.external`, but if you have installed pexpect, IPython will use
 that instead. On Unix platforms (including OS X), just do:
 
 .. code-block:: bash
@@ -296,7 +296,7 @@ On a Unix style platform (including OS X), if you want to use
 
 Security in IPython.parallel is provided by SSH tunnels.  By default, Linux
 and OSX clients will use the shell ssh command, but on Windows, we also
-support tunneling with paramiko [paramiko]_.
+support tunneling with paramiko_.
 
 Dependencies for IPython.zmq
 ============================
@@ -305,9 +305,9 @@ pyzmq
 -----
 
 IPython 0.11 introduced some new functionality, including a two-process
-execution model using ZeroMQ for communication [ZeroMQ]_. The Python bindings
-to ZeroMQ are found in the pyzmq project [PyZMQ]_, which is easy_install-able once you
-have ZeroMQ installed.  If you are on Python 2.6 or 2.7 on OSX, or 2.7 on Windows,
+execution model using ZeroMQ_ for communication. The Python bindings to ZeroMQ
+are found in the PyZMQ_ project, which is easy_install-able once you have
+ZeroMQ installed.  If you are on Python 2.6 or 2.7 on OSX, or 2.7 on Windows,
 pyzmq has eggs that include ZeroMQ itself.
 
 IPython.zmq depends on pyzmq >= 2.1.4.
@@ -318,23 +318,24 @@ Dependencies for the IPython QT console
 pyzmq
 -----
 
-Like the :mod:`IPython.parallel` package,
-the QT Console requires ZeroMQ and PyZMQ.
+Like the :mod:`IPython.parallel` package, the QT Console requires ZeroMQ and
+PyZMQ.
 
 Qt
 --
 
-Also with 0.11, a new GUI was added using the work in :mod:`IPython.zmq`,
-which can be launched with ``ipython qtconsole``. The GUI is built on Qt, and works
-with either PyQt, which can be installed from the 
-`PyQt website <http://www.riverbankcomputing.co.uk/>`_, or 
-`PySide <http://www.pyside.org/>`_, from Nokia.
+Also with 0.11, a new GUI was added using the work in :mod:`IPython.zmq`, which
+can be launched with ``ipython qtconsole``. The GUI is built on Qt, and works
+with either PyQt, which can be installed from the `PyQt website
+<http://www.riverbankcomputing.co.uk/>`_, or `PySide
+<http://www.pyside.org/>`_, from Nokia.
 
 pygments
 --------
 
-The syntax-highlighting in ``ipython qtconsole`` is done with the pygments project, 
-which is easy_install-able [pygments]_.
+The syntax-highlighting in ``ipython qtconsole`` is done with the pygments_
+project, which is easy_install-able.
+
 
 Dependencies for the IPython HTML notebook
 ==========================================
@@ -351,17 +352,23 @@ the HTML notebook requires ZeroMQ and PyZMQ.
 Tornado
 -------
 
-The IPython notebook uses the Tornado project [Tornado]_ for its HTTP server and requires
-version 2.0 or greater. Tornado can be installed with ``easy_install tornado``.
+The IPython notebook uses the Tornado_ project for its HTTP server.  As of this
+writing, we require a development version from github, as version 2.0 is *not
+sufficient*.  You can either clone their git repository yourself and install it
+manually, or install directly from github with::
 
+    easy_install https://github.com/facebook/tornado/tarball/master
+
+    
 MathJax
 -------
 
-The IPython notebook uses the MathJax [MathJax]_ Javascript library for rendering LaTeX
-in web browsers. Because MathJax is large, we don't include it with IPython. Normally
-IPython will load MathJax from a CDN, but if you have a slow network connection, or
-want to use LaTeX without an internet connection at all, we do
-include a utility to aid in downloading MathJax and installing it into the proper location::
+The IPython notebook uses the MathJax_ Javascript library for rendering LaTeX
+in web browsers. Because MathJax is large, we don't include it with
+IPython. Normally IPython will load MathJax from a CDN, but if you have a slow
+network connection, or want to use LaTeX without an internet connection at all,
+we do include a utility to aid in downloading MathJax and installing it into
+the proper location::
 
     from IPython.external.mathjax import install_mathjax
     install_mathjax()
@@ -387,11 +394,10 @@ Internet Explorer 9 does not support WebSockets or the flexible box model, but
 these features should appear in Internet Explorer 10.
 
 
-.. [ZeroMQ] ZeroMQ.  http://www.zeromq.org
-.. [PyZMQ] PyZMQ. https://github.com/zeromq/pyzmq
-.. [paramiko] paramiko. https://github.com/robey/paramiko
-.. [pygments] Pygments syntax highlighting. http://pygments.org
-.. [pexpect] Pexpect. http://www.noah.org/wiki/Pexpect
-.. [Tornado] Tornado. http://www.tornadoweb.org/
-.. [MathJax] MathJax. http://www.mathjax.org/
-
+.. _ZeroMQ: http://www.zeromq.org
+.. _PyZMQ: https://github.com/zeromq/pyzmq
+.. _paramiko: https://github.com/robey/paramiko
+.. _pygments: http://pygments.org
+.. _pexpect: http://www.noah.org/wiki/Pexpect
+.. _Tornado: http://www.tornadoweb.org
+.. _MathJax: http://www.mathjax.org
