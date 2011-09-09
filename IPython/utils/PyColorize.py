@@ -42,6 +42,13 @@ import sys
 import token
 import tokenize
 
+try:
+    generate_tokens = tokenize.generate_tokens
+except AttributeError:
+    # Python 3. Note that we use the undocumented _tokenize because it expects
+    # strings, not bytes. See also Python issue #9969.
+    generate_tokens = tokenize._tokenize
+
 from IPython.utils.coloransi import *
 
 #############################################################################
@@ -177,10 +184,11 @@ class Parser:
 
         error = False
         try:
-            tokenize.tokenize(text.readline, self)
-        except tokenize.TokenError, ex:
-            msg = ex[0]
-            line = ex[1][0]
+            for atoken in generate_tokens(text.readline):
+                self(*atoken)
+        except tokenize.TokenError as ex:
+            msg = ex.args[0]
+            line = ex.args[1][0]
             self.out.write("%s\n\n*** ERROR: %s%s%s\n" %
                            (colors[token.ERRORTOKEN],
                             msg, self.raw[self.lines[line]:],

@@ -83,6 +83,11 @@ import tokenize
 import traceback
 import types
 
+try:                           # Python 2
+    generate_tokens = tokenize.generate_tokens
+except AttributeError:         # Python 3
+    generate_tokens = tokenize.tokenize
+
 # For purposes of monkeypatching inspect to fix a bug in it.
 from inspect import getsourcefile, getfile, getmodule,\
      ismodule, isclass, ismethod, isfunction, istraceback, isframe, iscode
@@ -94,6 +99,7 @@ from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
 from IPython.utils.warn import info, error
 
@@ -278,8 +284,7 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
         # serious refactoring, so that all of the ultratb and PyColorize code
         # is unicode-safe.  So for now this is rather an ugly hack, but
         # necessary to at least have readable tracebacks. Improvements welcome!
-        if type(line)==unicode:
-            line = line.encode('utf-8', 'replace')
+        line = py3compat.cast_bytes_py2(line, 'utf-8')
             
         new_line, err = _line_format(line, 'str', scheme)
         if not err: line = new_line
@@ -872,7 +877,8 @@ class VerboseTB(TBTools):
             try:
                 # This builds the names list in-place by capturing it from the
                 # enclosing scope.
-                tokenize.tokenize(linereader, tokeneater)
+                for token in generate_tokens(linereader):
+                    tokeneater(*token)
             except IndexError:
                 # signals exit of tokenizer
                 pass
@@ -933,7 +939,7 @@ class VerboseTB(TBTools):
         # ... and format it
         exception = ['%s%s%s: %s' % (Colors.excName, etype_str,
                                      ColorsNormal, evalue_str)]
-        if type(evalue) is types.InstanceType:
+        if (not py3compat.PY3) and type(evalue) is types.InstanceType:
             try:
                 names = [w for w in dir(evalue) if isinstance(w, basestring)]
             except:

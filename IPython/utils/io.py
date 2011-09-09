@@ -103,7 +103,7 @@ class Tee(object):
     # Inspired by:
     # http://mail.python.org/pipermail/python-list/2007-May/442737.html
 
-    def __init__(self, file_or_name, mode=None, channel='stdout'):
+    def __init__(self, file_or_name, mode="w", channel='stdout'):
         """Construct a new Tee object.
 
         Parameters
@@ -119,7 +119,7 @@ class Tee(object):
         if channel not in ['stdout', 'stderr']:
             raise ValueError('Invalid channel spec %s' % channel)
         
-        if hasattr(file, 'write') and hasattr(file, 'seek'):
+        if hasattr(file_or_name, 'write') and hasattr(file_or_name, 'seek'):
             self.file = file_or_name
         else:
             self.file = open(file_or_name, mode)

@@ -370,7 +370,7 @@ class Client(HasTraits):
         self.session = Session(**extra_args)
         
         self._query_socket = self._context.socket(zmq.DEALER)
-        self._query_socket.setsockopt(zmq.IDENTITY, util.asbytes(self.session.session))
+        self._query_socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         if self._ssh:
             tunnel.tunnel_connection(self._query_socket, url, sshserver, **ssh_kwargs)
         else:
@@ -496,7 +496,7 @@ class Client(HasTraits):
         content = msg.content
         self._config['registration'] = dict(content)
         if content.status == 'ok':
-            ident = util.asbytes(self.session.session)
+            ident = self.session.bsession
             if content.mux:
                 self._mux_socket = self._context.socket(zmq.DEALER)
                 self._mux_socket.setsockopt(zmq.IDENTITY, ident)
@@ -512,7 +512,7 @@ class Client(HasTraits):
                 self._notification_socket.setsockopt(zmq.SUBSCRIBE, b'')
             # if content.query:
             #     self._query_socket = self._context.socket(zmq.DEALER)
-            #     self._query_socket.setsockopt(zmq.IDENTITY, self.session.session)
+            #     self._query_socket.setsockopt(zmq.IDENTITY, self.session.bsession)
             #     connect_socket(self._query_socket, content.query)
             if content.control:
                 self._control_socket = self._context.socket(zmq.DEALER)

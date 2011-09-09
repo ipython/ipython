@@ -30,6 +30,7 @@ from zipimport import zipimporter
 # Our own imports
 from IPython.core.completer import expand_user, compress_user
 from IPython.core.error import TryNext
+from IPython.utils import py3compat
 
 # FIXME: this should be pulled in with the right call via the component system
 from IPython.core.ipapi import get as get_ipython
@@ -66,10 +67,9 @@ def shlex_split(x):
     # Example:
     # %run "c:/python -> ['%run','"c:/python']
 
-    # shlex.split has unicode bugs, so encode first to str
-    if isinstance(x, unicode):
-        # don't raise errors on encoding:
-        x = x.encode(sys.stdin.encoding or sys.getdefaultencoding(), 'replace')
+    # shlex.split has unicode bugs in Python 2, so encode first to str
+    if not py3compat.PY3:
+        x = py3compat.cast_bytes(x)
 
     endofline = []
     while x != '':

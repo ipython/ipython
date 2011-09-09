@@ -177,7 +177,7 @@ class TaskScheduler(SessionFactory):
     ident = CBytes() # ZMQ identity. This should just be self.session.session
                      # but ensure Bytes
     def _ident_default(self):
-        return asbytes(self.session.session)
+        return self.session.bsession
     
     def start(self):
         self.engine_stream.on_recv(self.dispatch_result, copy=False)

@@ -35,8 +35,8 @@ License: MIT open source license.
 
 from IPython.external.path import path as Path
 import os,stat,time
+import collections
 import cPickle as pickle
-import UserDict
 import glob
 
 def gethashfile(key):
@@ -44,7 +44,7 @@ def gethashfile(key):
 
 _sentinel = object()
 
-class PickleShareDB(UserDict.DictMixin):
+class PickleShareDB(collections.MutableMapping):
     """ The main 'connection' object for PickleShare database """
     def __init__(self,root):
         """ Return a db object that will manage the specied directory"""
@@ -187,6 +187,12 @@ class PickleShareDB(UserDict.DictMixin):
         else:
             files = [Path(p) for p in glob.glob(self.root/globpat)]
         return [self._normalized(p) for p in files if p.isfile()]
+    
+    def __iter__(self):
+        return iter(keys)
+    
+    def __len__(self):
+        return len(keys)
 
     def uncache(self,*items):
         """ Removes all, or specified items from cache

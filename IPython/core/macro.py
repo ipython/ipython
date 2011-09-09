@@ -10,6 +10,8 @@
 import re
 import sys
 
+from IPython.utils import py3compat
+
 coding_declaration = re.compile(r"#\s*coding[:=]\s*([-\w.]+)")
 
 class Macro(object):
@@ -37,8 +39,7 @@ class Macro(object):
         self.value = code + '\n'
     
     def __str__(self):
-        enc = sys.stdin.encoding or sys.getdefaultencoding()
-        return self.value.encode(enc, "replace")
+        return py3compat.unicode_to_str(self.value)
     
     def __unicode__(self):
         return self.value

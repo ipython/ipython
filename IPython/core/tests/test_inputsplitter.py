@@ -125,7 +125,7 @@ def test_get_input_encoding():
     nt.assert_true(isinstance(encoding, basestring))
     # simple-minded check that at least encoding a simple string works with the
     # encoding we got.
-    nt.assert_equal('test'.encode(encoding), 'test')
+    nt.assert_equal(u'test'.encode(encoding), b'test')
 
 
 class NoInputEncodingTestCase(unittest.TestCase):
@@ -390,15 +390,6 @@ def test_LineInfo():
     linfo = isp.LineInfo('  %cd /home')
     nt.assert_equals(str(linfo), 'LineInfo [  |%|cd|/home]')
 
-
-def test_split_user_input():
-    """Unicode test - split_user_input already has good doctests"""
-    line = u"Pérez Fernando"
-    parts = isp.split_user_input(line)
-    parts_expected = (u'', u'', u'', line)
-    nt.assert_equal(parts, parts_expected)
-
-
 # Transformer tests
 def transform_checker(tests, func):
     """Utility to loop over test inputs"""
@@ -611,7 +602,8 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 
                 isp.push(raw)
                 out, out_raw = isp.source_raw_reset()
-                self.assertEqual(out.rstrip(), out_t)
+                self.assertEqual(out.rstrip(), out_t,
+                        tt.pair_fail_msg.format("inputsplitter",raw, out_t, out))
                 self.assertEqual(out_raw.rstrip(), raw.rstrip())
 
     def test_syntax_multiline(self):

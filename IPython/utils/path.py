@@ -23,20 +23,13 @@ import IPython
 from IPython.utils import warn
 from IPython.utils.process import system
 from IPython.utils.importstring import import_item
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
 fs_encoding = sys.getfilesystemencoding()
-
-def _cast_unicode(s, enc=None):
-    """Turn 8-bit strings into unicode."""
-    if isinstance(s, bytes):
-        enc = enc or sys.getdefaultencoding()
-        return s.decode(enc)
-    return s
-
 
 def _get_long_path_name(path):
     """Dummy no-op."""
@@ -203,7 +196,7 @@ def get_home_dir():
         root=os.path.abspath(root).rstrip('\\')
         if _writable_dir(os.path.join(root, '_ipython')):
             os.environ["IPYKITROOT"] = root
-        return _cast_unicode(root, fs_encoding)
+        return py3compat.cast_unicode(root, fs_encoding)
 
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
@@ -218,11 +211,11 @@ def get_home_dir():
             homedir = Popen('echo $HOME', shell=True, 
                             stdout=PIPE).communicate()[0].strip()
             if homedir:
-                return _cast_unicode(homedir, fs_encoding)
+                return py3compat.cast_unicode(homedir, fs_encoding)
             else:
                 raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
         else:
-            return _cast_unicode(homedir, fs_encoding)
+            return py3compat.cast_unicode(homedir, fs_encoding)
     elif os.name == 'nt':
         # Now for win9x, XP, Vista, 7?
         # For some strange reason all of these return 'nt' for os.name.
@@ -236,7 +229,7 @@ def get_home_dir():
             pass
         else:
             if _writable_dir(homedir):
-                return _cast_unicode(homedir, fs_encoding)
+                return py3compat.cast_unicode(homedir, fs_encoding)
 
         # Now look for a local home directory
         try:
@@ -245,7 +238,7 @@ def get_home_dir():
             pass
         else:
             if _writable_dir(homedir):
-                return _cast_unicode(homedir, fs_encoding)
+                return py3compat.cast_unicode(homedir, fs_encoding)
 
         # Now the users profile directory
         try:
@@ -254,7 +247,7 @@ def get_home_dir():
             pass
         else:
             if _writable_dir(homedir):
-                return _cast_unicode(homedir, fs_encoding)
+                return py3compat.cast_unicode(homedir, fs_encoding)
 
         # Use the registry to get the 'My Documents' folder.
         try:
@@ -269,7 +262,7 @@ def get_home_dir():
             pass
         else:
             if _writable_dir(homedir):
-                return _cast_unicode(homedir, fs_encoding)
+                return py3compat.cast_unicode(homedir, fs_encoding)
 
         # A user with a lot of unix tools in win32 may have defined $HOME.
         # Try this as a last ditch option.
@@ -279,7 +272,7 @@ def get_home_dir():
             pass
         else:
             if _writable_dir(homedir):
-                return _cast_unicode(homedir, fs_encoding)
+                return py3compat.cast_unicode(homedir, fs_encoding)
 
         # If all else fails, raise HomeDirError
         raise HomeDirError('No valid home directory could be found')
@@ -302,7 +295,7 @@ def get_xdg_dir():
         # use ~/.config if not set OR empty
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
         if xdg and _writable_dir(xdg):
-            return _cast_unicode(xdg, fs_encoding)
+            return py3compat.cast_unicode(xdg, fs_encoding)
     
     return None
     
@@ -311,7 +304,7 @@ def get_ipython_dir():
     """Get the IPython directory for this platform and user.
     
     This uses the logic in `get_home_dir` to find the home directory
-    and the adds .ipython to the end of the path.
+    and then adds .ipython to the end of the path.
     """
     
     env = os.environ
@@ -356,13 +349,13 @@ def get_ipython_dir():
                         " using a temp directory."%parent)
             ipdir = tempfile.mkdtemp()
 
-    return _cast_unicode(ipdir, fs_encoding)
+    return py3compat.cast_unicode(ipdir, fs_encoding)
 
 
 def get_ipython_package_dir():
     """Get the base directory where IPython itself is installed."""
     ipdir = os.path.dirname(IPython.__file__)
-    return _cast_unicode(ipdir, fs_encoding)
+    return py3compat.cast_unicode(ipdir, fs_encoding)
 
 
 def get_ipython_module_path(module_str):
@@ -377,7 +370,7 @@ def get_ipython_module_path(module_str):
     mod = import_item(module_str)
     the_path = mod.__file__.replace('.pyc', '.py')
     the_path = the_path.replace('.pyo', '.py')
-    return _cast_unicode(the_path, fs_encoding)
+    return py3compat.cast_unicode(the_path, fs_encoding)
 
 
 def expand_path(s):
@@ -442,7 +435,7 @@ def filehash(path):
     """Make an MD5 hash of a file, ignoring any differences in line
     ending characters."""
     with open(path, "rU") as f:
-        return md5(f.read()).hexdigest()
+        return md5(py3compat.str_to_bytes(f.read())).hexdigest()
 
 # If the config is unmodified from the default, we'll just delete it.
 # These are consistent for 0.10.x, thankfully. We're not going to worry about

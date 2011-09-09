@@ -16,9 +16,10 @@ import nose.tools as nt
 # our own packages
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
+from IPython.utils import py3compat
 
 def setUp():
-    nt.assert_equal(sys.getdefaultencoding(), "ascii")
+    nt.assert_equal(sys.getdefaultencoding(), "utf-8" if py3compat.PY3 else "ascii")
 
 def test_history():
     ip = get_ipython()

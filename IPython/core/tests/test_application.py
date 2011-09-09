@@ -6,6 +6,7 @@ import tempfile
 
 from IPython.core.application import BaseIPythonApplication
 from IPython.testing import decorators as testdec
+from IPython.utils import py3compat
 
 @testdec.onlyif_unicode_paths
 def test_unicode_cwd():
@@ -35,7 +36,7 @@ def test_unicode_ipdir():
     
     old_ipdir1 = os.environ.pop("IPYTHONDIR", None)
     old_ipdir2 = os.environ.pop("IPYTHON_DIR", None)
-    os.environ["IPYTHONDIR"] = ipdir.encode("utf-8")
+    os.environ["IPYTHONDIR"] = py3compat.unicode_to_str(ipdir, "utf-8")
     try:
         app = BaseIPythonApplication()
         # The lines below are copied from Application.initialize()

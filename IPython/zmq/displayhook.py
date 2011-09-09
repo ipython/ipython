@@ -30,10 +30,10 @@ class ZMQDisplayHook(object):
 def _encode_binary(format_dict):
     pngdata = format_dict.get('image/png')
     if pngdata is not None:
-        format_dict['image/png'] = encodestring(pngdata)
+        format_dict['image/png'] = encodestring(pngdata).decode('ascii')
     jpegdata = format_dict.get('image/jpeg')
     if jpegdata is not None:
-        format_dict['image/jpeg'] = encodestring(jpegdata)
+        format_dict['image/jpeg'] = encodestring(jpegdata).decode('ascii')
 
 
 class ZMQShellDisplayHook(DisplayHook):

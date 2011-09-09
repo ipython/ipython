@@ -23,6 +23,7 @@ import nose.tools as nt
 
 # Our own imports
 from IPython.core import compilerop
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -51,7 +52,7 @@ def test_cache():
 def setUp():
     # Check we're in a proper Python 2 environment (some imports, such
     # as GTK, can change the default encoding, which can hide bugs.)
-    nt.assert_equal(sys.getdefaultencoding(), "ascii")
+    nt.assert_equal(sys.getdefaultencoding(), "utf-8" if py3compat.PY3 else "ascii")
 
 def test_cache_unicode():
     cp = compilerop.CachingCompiler()

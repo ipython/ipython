@@ -83,7 +83,7 @@ class RichIPythonWidget(IPythonWidget):
                 self._append_html(self._make_out_prompt(prompt_number), True)
                 # This helps the output to look nice.
                 self._append_plain_text('\n', True)
-                self._append_png(decodestring(data['image/png']), True)
+                self._append_png(decodestring(data['image/png'].encode('ascii')), True)
                 self._append_html(self.output_sep2, True)
             else:
                 # Default back to the plain text representation.
@@ -104,7 +104,7 @@ class RichIPythonWidget(IPythonWidget):
             elif data.has_key('image/png'):
                 # PNG data is base64 encoded as it passes over the network
                 # in a JSON structure so we decode it.
-                png = decodestring(data['image/png'])
+                png = decodestring(data['image/png'].encode('ascii'))
                 self._append_png(png, True)
             else:
                 # Default back to the plain text representation.

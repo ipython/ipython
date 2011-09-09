@@ -185,4 +185,26 @@ class TestSession(SessionTestCase):
         content = dict(code='whoda',stuff=object())
         themsg = self.session.msg('execute',content=content)
         pmsg = theids
+    
+    def test_session_id(self):
+        session = ss.Session()
+        # get bs before us
+        bs = session.bsession
+        us = session.session
+        self.assertEquals(us.encode('ascii'), bs)
+        session = ss.Session()
+        # get us before bs
+        us = session.session
+        bs = session.bsession
+        self.assertEquals(us.encode('ascii'), bs)
+        # change propagates:
+        session.session = 'something else'
+        bs = session.bsession
+        us = session.session
+        self.assertEquals(us.encode('ascii'), bs)
+        session = ss.Session(session='stuff')
+        # get us before bs
+        self.assertEquals(session.bsession, session.session.encode('ascii'))
+        self.assertEquals(b'stuff', session.bsession)
+        
 

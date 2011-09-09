@@ -46,8 +46,9 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
+from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
-                                        DottedObjectName)
+                                        DottedObjectName, CUnicode)
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -238,10 +239,18 @@ class Session(Configurable):
         else:
             self.unpack = import_item(str(new))
         
-    session = CBytes(b'', config=True,
+    session = CUnicode(u'', config=True,
         help="""The UUID identifying this session.""")
     def _session_default(self):
-        return bytes(uuid.uuid4())
+        u = unicode(uuid.uuid4())
+        self.bsession = u.encode('ascii')
+        return u
+    
+    def _session_changed(self, name, old, new):
+        self.bsession = self.session.encode('ascii')
+    
+    # bsession is the session as bytes
+    bsession = CBytes(b'')
     
     username = Unicode(os.environ.get('USER',u'username'), config=True,
         help="""Username for the Session. Default is your system username.""")
@@ -295,9 +304,11 @@ class Session(Configurable):
         pack/unpack : callables
             You can also set the pack/unpack callables for serialization
             directly.
-        session : bytes
+        session : unicode (must be ascii)
             the ID of this Session object.  The default is to generate a new 
             UUID.
+        bsession : bytes
+            The session as bytes
         username : unicode
             username added to message headers.  The default is to ask the OS.
         key : bytes
@@ -310,6 +321,8 @@ class Session(Configurable):
         super(Session, self).__init__(**kwargs)
         self._check_packers()
         self.none = self.pack({})
+        # ensure self._session_default() if necessary, so bsession is defined:
+        self.session
 
     @property
     def msg_id(self):
@@ -380,7 +393,7 @@ class Session(Configurable):
         h = self.auth.copy()
         for m in msg_list:
             h.update(m)
-        return h.hexdigest()
+        return str_to_bytes(h.hexdigest())
     
     def serialize(self, msg, ident=None):
         """Serialize the message components to bytes.
@@ -401,7 +414,7 @@ class Session(Configurable):
             [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_content,
              buffer1,buffer2,...]. In this list, the p_* entities are
             the packed or serialized versions, so if JSON is used, these
-            are uft8 encoded JSON strings.
+            are utf8 encoded JSON strings.
         """
         content = msg.get('content', {})
         if content is None:

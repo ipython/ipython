@@ -75,8 +75,10 @@ class HistoryManager(Configurable):
     
     # History saving in separate thread
     save_thread = Instance('IPython.core.history.HistorySavingThread')
-    # N.B. Event is a function returning an instance of _Event.
-    save_flag = Instance(threading._Event)
+    try:               # Event is a function returning an instance of _Event...
+        save_flag = Instance(threading._Event)
+    except AttributeError:         # ...until Python 3.3, when it's a class.
+        save_flag = Instance(threading.Event)
     
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
