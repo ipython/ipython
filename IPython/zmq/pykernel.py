@@ -25,6 +25,7 @@ import traceback
 import zmq
 
 # Local imports.
+from IPython.utils import py3compat
 from IPython.utils.traitlets import HasTraits, Instance, Dict, Float
 from completer import KernelCompleter
 from entry_point import base_launch_kernel
@@ -116,7 +117,10 @@ class Kernel(HasTraits):
             # Replace raw_input. Note that is not sufficient to replace 
             # raw_input in the user namespace.
             raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
-            __builtin__.raw_input = raw_input
+            if py3compat.PY3:
+                __builtin__.input = raw_input
+            else:
+                __builtin__.raw_input = raw_input
 
             # Set the parent message of the display hook and out streams.
             sys.displayhook.set_parent(parent)

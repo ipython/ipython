@@ -20,15 +20,15 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # stdlib
-import __builtin__
+import __builtin__ as builtin_mod
 import os
 import sys
-from types import MethodType
 
 # our own
 from . import tools
 
 from IPython.utils import io
+from IPython.utils import py3compat
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 
 #-----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ class ipnsdict(dict):
         # aggressive low-level cleaning of the execution namespace, we need to
         # correct for that ourselves, to ensure consitency with the 'real'
         # ipython.
-        self['__builtins__'] = __builtin__
+        self['__builtins__'] = builtin_mod
         
     def __delitem__(self, key):
         """Part of the test suite checks that we can release all
@@ -204,11 +204,10 @@ def start_ipython():
     # Modify the IPython system call with one that uses getoutput, so that we
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
-    shell.system = MethodType(xsys, shell, TerminalInteractiveShell)
+    shell.system = py3compat.MethodType(xsys, shell)
                        
 
-    shell._showtraceback = MethodType(_showtraceback, shell,
-                                      TerminalInteractiveShell)
+    shell._showtraceback = py3compat.MethodType(_showtraceback, shell)
 
     # IPython is ready, now clean up some global state...
     
@@ -223,8 +222,8 @@ def start_ipython():
     # now return this without recursively calling here again.
     _ip = shell
     get_ipython = _ip.get_ipython
-    __builtin__._ip = _ip
-    __builtin__.get_ipython = get_ipython
+    builtin_mod._ip = _ip
+    builtin_mod.get_ipython = get_ipython
     
     # To avoid extra IPython messages during testing, suppress io.stdout/stderr
     io.stdout = StreamProxy('stdout')

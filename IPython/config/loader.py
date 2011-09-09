@@ -18,13 +18,13 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
+import __builtin__ as builtin_mod
 import re
 import sys
 
 from IPython.external import argparse
 from IPython.utils.path import filefind, get_ipython_dir
-from IPython.utils import warn
+from IPython.utils import py3compat, warn
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -131,7 +131,7 @@ class Config(dict):
         # that you can't have section or attribute names that are 
         # builtins.
         try:
-            return getattr(__builtin__, key)
+            return getattr(builtin_mod, key)
         except AttributeError:
             pass
         if is_section_key(key):
@@ -146,7 +146,7 @@ class Config(dict):
 
     def __setitem__(self, key, value):
         # Don't allow names in __builtin__ to be modified.
-        if hasattr(__builtin__, key):
+        if hasattr(builtin_mod, key):
             raise ConfigError('Config variable names cannot have the same name '
                               'as a Python builtin: %s' % key)
         if self._is_section_key(key):
@@ -312,7 +312,7 @@ class PyFileConfigLoader(FileConfigLoader):
         namespace = dict(load_subconfig=load_subconfig, get_config=get_config)
         fs_encoding = sys.getfilesystemencoding() or 'ascii'
         conf_filename = self.full_filename.encode(fs_encoding)
-        execfile(conf_filename, namespace)
+        py3compat.execfile(conf_filename, namespace)
 
     def _convert_to_config(self):
         if self.data is None:
@@ -586,13 +586,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _parse_args(self, args):
         """self.parser->self.parsed_data"""
         # decode sys.argv to support unicode command-line options
-        uargs = []
-        for a in args:
-            if isinstance(a, str):
-                # don't decode if we already got unicode
-                a = a.decode(sys.stdin.encoding or 
-                                            sys.getdefaultencoding())
-            uargs.append(a)
+        uargs = [py3compat.cast_unicode(a) for a in args]
         self.parsed_data, self.extra_args = self.parser.parse_known_args(uargs)
 
     def _convert_to_config(self):

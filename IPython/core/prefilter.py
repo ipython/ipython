@@ -32,7 +32,7 @@ from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
 from IPython.config.configurable import Configurable
 from IPython.core.macro import Macro
-from IPython.core.splitinput import split_user_input
+from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.core import page
 
 from IPython.utils.traitlets import List, Int, Any, Unicode, CBool, Bool, Instance
@@ -89,78 +89,6 @@ def is_shadowed(identifier, ip):
     return (identifier in ip.user_ns \
             or identifier in ip.internal_ns \
             or identifier in ip.ns_table['builtin'])
-
-
-#-----------------------------------------------------------------------------
-# The LineInfo class used throughout
-#-----------------------------------------------------------------------------
-
-
-class LineInfo(object):
-    """A single line of input and associated info.
-
-    Includes the following as properties: 
-
-    line
-      The original, raw line
-    
-    continue_prompt
-      Is this line a continuation in a sequence of multiline input?
-    
-    pre
-      The initial esc character or whitespace.
-    
-    pre_char
-      The escape character(s) in pre or the empty string if there isn't one.
-      Note that '!!' is a possible value for pre_char.  Otherwise it will
-      always be a single character.
-    
-    pre_whitespace
-      The leading whitespace from pre if it exists.  If there is a pre_char,
-      this is just ''.
-    
-    ifun
-      The 'function part', which is basically the maximal initial sequence
-      of valid python identifiers and the '.' character.  This is what is
-      checked for alias and magic transformations, used for auto-calling,
-      etc.
-    
-    the_rest
-      Everything else on the line.
-    """
-    def __init__(self, line, continue_prompt):
-        self.line            = line
-        self.continue_prompt = continue_prompt
-        self.pre, self.ifun, self.the_rest = split_user_input(line)
-
-        self.pre_char       = self.pre.strip()
-        if self.pre_char:
-            self.pre_whitespace = '' # No whitespace allowd before esc chars
-        else: 
-            self.pre_whitespace = self.pre
-
-        self._oinfo = None
-
-    def ofind(self, ip):
-        """Do a full, attribute-walking lookup of the ifun in the various
-        namespaces for the given IPython InteractiveShell instance.
-
-        Return a dict with keys: found,obj,ospace,ismagic
-
-        Note: can cause state changes because of calling getattr, but should
-        only be run if autocall is on and if the line hasn't matched any
-        other, less dangerous handlers.
-
-        Does cache the results of the call, so can be called multiple times
-        without worrying about *further* damaging state.
-        """
-        if not self._oinfo:
-            # ip.shell._ofind is actually on the Magic class!
-            self._oinfo = ip.shell._ofind(self.ifun)
-        return self._oinfo
-
-    def __str__(self):                                                         
-        return "Lineinfo [%s|%s|%s]" %(self.pre, self.ifun, self.the_rest) 
 
 
 #-----------------------------------------------------------------------------
@@ -630,7 +558,7 @@ class MultiLineMagicChecker(PrefilterChecker):
         # both ! and !!.    
         if line_info.continue_prompt \
             and self.prefilter_manager.multi_line_specials:
-                if line_info.ifun.startswith(ESC_MAGIC):
+                if line_info.esc == ESC_MAGIC:
                     return self.prefilter_manager.get_handler_by_name('magic')
         else:
             return None
@@ -644,14 +572,16 @@ class EscCharsChecker(PrefilterChecker):
         """Check for escape character and return either a handler to handle it,
         or None if there is no escape char."""
         if line_info.line[-1] == ESC_HELP \
-               and line_info.pre_char != ESC_SHELL \
-               and line_info.pre_char != ESC_SH_CAP:
+               and line_info.esc != ESC_SHELL \
+               and line_info.esc != ESC_SH_CAP:
             # the ? can be at the end, but *not* for either kind of shell escape,
             # because a ? can be a vaild final char in a shell cmd
             return self.prefilter_manager.get_handler_by_name('help')
         else:
+            if line_info.pre:
+                return None
             # This returns None like it should if no handler exists
-            return self.prefilter_manager.get_handler_by_esc(line_info.pre_char)
+            return self.prefilter_manager.get_handler_by_esc(line_info.esc)
 
 
 class AssignmentChecker(PrefilterChecker):
@@ -872,6 +802,7 @@ class AutoHandler(PrefilterHandler):
         ifun    = line_info.ifun
         the_rest = line_info.the_rest
         pre     = line_info.pre
+        esc     = line_info.esc
         continue_prompt = line_info.continue_prompt
         obj = line_info.ofind(self)['obj']
         #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun,the_rest)  # dbg
@@ -883,13 +814,13 @@ class AutoHandler(PrefilterHandler):
         force_auto = isinstance(obj, IPyAutocall)
         auto_rewrite = getattr(obj, 'rewrite', True)
         
-        if pre == ESC_QUOTE:
+        if esc == ESC_QUOTE:
             # Auto-quote splitting on whitespace
             newcmd = '%s("%s")' % (ifun,'", "'.join(the_rest.split()) )
-        elif pre == ESC_QUOTE2:
+        elif esc == ESC_QUOTE2:
             # Auto-quote whole string
             newcmd = '%s("%s")' % (ifun,the_rest)
-        elif pre == ESC_PAREN:
+        elif esc == ESC_PAREN:
             newcmd = '%s(%s)' % (ifun,",".join(the_rest.split()))
         else:
             # Auto-paren.
@@ -946,7 +877,7 @@ class HelpHandler(PrefilterHandler):
                 line = line[:-1]
             if line:
                 #print 'line:<%r>' % line  # dbg
-                self.shell.magic_pinfo(line)
+                self.shell.magic_pinfo(line_info.ifun)
             else:
                 self.shell.show_usage()
             return '' # Empty string is needed here!

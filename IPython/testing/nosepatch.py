@@ -17,6 +17,7 @@ Note: merely importing this module causes the monkeypatch to be applied."""
 #-----------------------------------------------------------------------------
 
 import unittest
+import sys
 import nose.loader
 from inspect import ismethod, isfunction
 
@@ -64,5 +65,7 @@ def getTestCaseNames(self, testCaseClass):
 
 ##########################################################################
 # Apply monkeypatch here
-nose.loader.TestLoader.getTestCaseNames = getTestCaseNames
+# Python 3 must be running with newer version of Nose, so don't touch anything.
+if sys.version_info[0] < 3:
+    nose.loader.TestLoader.getTestCaseNames = getTestCaseNames
 ##########################################################################

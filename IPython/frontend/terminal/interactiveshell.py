@@ -16,10 +16,14 @@
 
 import __builtin__
 import bdb
-from contextlib import nested
 import os
 import re
 import sys
+
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
 
 from IPython.core.error import TryNext
 from IPython.core.usage import interactive_usage, default_banner
@@ -27,6 +31,7 @@ from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.lib.inputhook import enable_gui
 from IPython.lib.pylabtools import pylab_activate
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn
@@ -332,7 +337,7 @@ class TerminalInteractiveShell(InteractiveShell):
             self.set_readline_completer()
         
         try:
-            line = self.raw_input_original(prompt).decode(self.stdin_encoding)
+            line = py3compat.str_to_unicode(self.raw_input_original(prompt))
         except ValueError:
             warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
                  " or sys.stdout.close()!\nExiting IPython!")

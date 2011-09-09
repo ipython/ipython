@@ -29,6 +29,7 @@ from StringIO import StringIO
 from IPython.config.configurable import Configurable
 from IPython.lib import pretty
 from IPython.utils.traitlets import Bool, Dict, Int, Unicode, CUnicode, ObjectName
+from IPython.utils.py3compat import unicode_to_str
 
 
 #-----------------------------------------------------------------------------
@@ -439,7 +440,7 @@ class PlainTextFormatter(BaseFormatter):
             # ensure that stream does not get a mix of unicode and bytestrings,
             # or it will cause trouble.
             printer = pretty.RepresentationPrinter(stream, self.verbose,
-                self.max_width, self.newline.encode(),
+                self.max_width, unicode_to_str(self.newline),
                 singleton_pprinters=self.singleton_printers,
                 type_pprinters=self.type_printers,
                 deferred_pprinters=self.deferred_printers)

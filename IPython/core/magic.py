@@ -15,7 +15,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
+import __builtin__ as builtin_mod
 import __future__
 import bdb
 import inspect
@@ -52,6 +52,7 @@ from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.lib.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils import py3compat
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import arg_split, abbrev_cwd
@@ -60,7 +61,6 @@ from IPython.utils.text import LSString, SList, format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
-import IPython.utils.generics
 
 #-----------------------------------------------------------------------------
 # Utility functions
@@ -676,7 +676,7 @@ Currently the magic system has the following functions:\n"""
        
         %psearch -a _*         list objects beginning with a single underscore"""
         try:
-            parameter_s = parameter_s.encode('ascii')
+            parameter_s.encode('ascii')
         except UnicodeEncodeError:
             print 'Python identifiers can only contain ascii characters.'
             return
@@ -1729,7 +1729,7 @@ Currently the magic system has the following functions:\n"""
             # Since this seems to be done by the interpreter itself, the best
             # we can do is to at least restore __builtins__ for the user on
             # exit.
-            self.shell.user_ns['__builtins__'] = __builtin__
+            self.shell.user_ns['__builtins__'] = builtin_mod
             
             # Ensure key global structures are restored
             sys.argv = save_argv
@@ -2085,11 +2085,9 @@ Currently the magic system has the following functions:\n"""
         except (TypeError, ValueError) as e:
             print e.args[0]
             return
-        if isinstance(cmds, unicode):
-            cmds = cmds.encode("utf-8")
-        with open(fname,'w') as f:
-            f.write("# coding: utf-8\n")
-            f.write(cmds)
+        with py3compat.open(fname,'w', encoding="utf-8") as f:
+            f.write(u"# coding: utf-8\n")
+            f.write(py3compat.cast_unicode(cmds))
         print 'The following commands were written to file `%s`:' % fname
         print cmds
     

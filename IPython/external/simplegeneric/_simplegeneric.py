@@ -1,20 +1,24 @@
+"""This is version 0.7 of Philip J. Eby's simplegeneric module
+(http://pypi.python.org/pypi/simplegeneric), patched to work with Python 3,
+which doesn't support old-style classes.
+"""
+
 #Name: simplegeneric
-#Version: 0.6
+#Version: 0.7
 #Summary: Simple generic functions (similar to Python's own len(), pickle.dump(), etc.)
-#Home-page: http://cheeseshop.python.org/pypi/simplegeneric
+#Home-page: http://pypi.python.org/pypi/simplegeneric
 #Author: Phillip J. Eby
 #Author-email: peak@eby-sarna.com
 #License: PSF or ZPL
 
-# This is version 0.6 of Philip J. Eby's simplegeneric module
-# (http://cheeseshop.python.org/pypi/simplegeneric) patched to work
-# with Python 2.3 (which doesn't support assigning to __name__)
-
 __all__ = ["generic"]
 
-
-from types import ClassType, InstanceType
-classtypes = type, ClassType
+try:
+    from types import ClassType, InstanceType
+except ImportError:
+    classtypes = type
+else:
+    classtypes = type, ClassType
 
 def generic(func):
     """Create a simple generic function"""
@@ -30,24 +34,29 @@ def generic(func):
         else:
             return func(*args, **kw)
 
-    _by_type = {object: func, InstanceType: _by_class}
+    _by_type = {object: func}
+    try:
+        _by_type[InstanceType] = _by_class
+    except NameError:   # Python 3
+        pass
+    
     _gbt = _by_type.get
 
-    def when_type(t):
-        """Decorator to add a method that will be called for type `t`"""
-        if not isinstance(t, classtypes):
-            raise TypeError(
-                "%r is not a type or class" % (t,)
-            )
-        def decorate(f):
-            if _by_type.setdefault(t,f) is not f:
+    def when_type(*types):
+        """Decorator to add a method that will be called for the given types"""
+        for t in types:
+            if not isinstance(t, classtypes):
                 raise TypeError(
-                    "%r already has method for type %r" % (func, t)
+                    "%r is not a type or class" % (t,)
                 )
+        def decorate(f):
+            for t in types:
+                if _by_type.setdefault(t,f) is not f:
+                    raise TypeError(
+                        "%r already has method for type %r" % (func, t)
+                    )
             return f
         return decorate
-
-
 
 
 
@@ -55,13 +64,14 @@ def generic(func):
     _by_object = {}
     _gbo = _by_object.get
 
-    def when_object(o):
-        """Decorator to add a method that will be called for object `o`"""
+    def when_object(*obs):
+        """Decorator to add a method to be called for the given object(s)"""
         def decorate(f):
-            if _by_object.setdefault(id(o), (o,f))[1] is not f:
-                raise TypeError(
-                    "%r already has method for object %r" % (func, o)
-                )
+            for o in obs:
+                if _by_object.setdefault(id(o), (o,f))[1] is not f:
+                    raise TypeError(
+                        "%r already has method for object %r" % (func, o)
+                    )
             return f
         return decorate
 
@@ -78,10 +88,7 @@ def generic(func):
         else:
             return f[1](*args, **kw)
 
-    try:
-        dispatch.__name__       = func.__name__
-    except TypeError:
-        pass
+    dispatch.__name__       = func.__name__
     dispatch.__dict__       = func.__dict__.copy()
     dispatch.__doc__        = func.__doc__
     dispatch.__module__     = func.__module__
@@ -94,46 +101,9 @@ def generic(func):
     return dispatch
 
 
-
-
 def test_suite():
     import doctest
     return doctest.DocFileSuite(
         'README.txt',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

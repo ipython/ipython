@@ -17,7 +17,7 @@
 from __future__ import with_statement
 from __future__ import absolute_import
 
-import __builtin__
+import __builtin__ as builtin_mod
 import __future__
 import abc
 import ast
@@ -29,7 +29,10 @@ import re
 import sys
 import tempfile
 import types
-from contextlib import nested
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
@@ -61,6 +64,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import py3compat
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
@@ -410,7 +414,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # We save this here in case user code replaces raw_input, but it needs
         # to be after init_readline(), because PyPy's readline works by replacing
         # raw_input.
-        self.raw_input_original = raw_input
+        if py3compat.PY3:
+            self.raw_input_original = input
+        else:
+            self.raw_input_original = raw_input
         # init_completer must come after init_readline, because it needs to
         # know whether readline is present or not system-wide to configure the
         # completers, since the completion machinery can now operate
@@ -925,7 +932,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.ns_table = {'user':user_ns,
                          'user_global':user_global_ns,
                          'internal':self.internal_ns,
-                         'builtin':__builtin__.__dict__
+                         'builtin':builtin_mod.__dict__
                          }
 
         # Similarly, track all namespaces where references can be held and that
@@ -979,13 +986,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # Set __name__ to __main__ to better match the behavior of the
             # normal interpreter.
             user_ns = {'__name__'     :'__main__',
-                       '__builtin__' : __builtin__,
-                       '__builtins__' : __builtin__,
+                       py3compat.builtin_mod_name: builtin_mod,
+                       '__builtins__' : builtin_mod,
                       }
         else:
             user_ns.setdefault('__name__','__main__')
-            user_ns.setdefault('__builtin__',__builtin__)
-            user_ns.setdefault('__builtins__',__builtin__)
+            user_ns.setdefault(py3compat.builtin_mod_name,builtin_mod)
+            user_ns.setdefault('__builtins__',builtin_mod)
 
         if user_global_ns is None:
             user_global_ns = user_ns
@@ -1049,7 +1056,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         
         # For more details:
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-        ns = dict(__builtin__ = __builtin__)
+        ns = dict(__builtin__ = builtin_mod)
         
         # Put 'help' in the user namespace
         try:
@@ -1255,13 +1262,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         Has special code to detect magic functions.
         """
-        #oname = oname.strip()
+        oname = oname.strip()
         #print '1- oname: <%r>' % oname  # dbg
-        try:
-            oname = oname.strip().encode('ascii')
-            #print '2- oname: <%r>' % oname  # dbg
-        except UnicodeEncodeError:
-            print 'Python identifiers can only contain ascii characters.'
+        if not py3compat.isidentifier(oname.lstrip(ESC_MAGIC), dotted=True):
             return dict(found=False)
 
         alias_ns = None
@@ -1271,7 +1274,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # find things in the same order that Python finds them.
             namespaces = [ ('Interactive', self.user_ns),
                            ('IPython internal', self.internal_ns),
-                           ('Python builtin', __builtin__.__dict__),
+                           ('Python builtin', builtin_mod.__dict__),
                            ('Alias', self.alias_manager.alias_table),
                            ]
             alias_ns = self.alias_manager.alias_table
@@ -1283,8 +1286,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # We need to special-case 'print', which as of python2.6 registers as a
         # function but should only be treated as one if print_function was
         # loaded with a future import.  In this case, just bail.
-        if (oname == 'print' and not (self.compile.compiler_flags &
-                                      __future__.CO_FUTURE_PRINT_FUNCTION)):
+        if (oname == 'print' and not py3compat.PY3 and not \
+            (self.compile.compiler_flags & __future__.CO_FUTURE_PRINT_FUNCTION)):
             return {'found':found, 'obj':obj, 'namespace':ospace,
                     'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
 
@@ -1526,7 +1529,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     
             if etype is SyntaxError:
                 # Though this won't be called by syntax errors in the input
-                # line, there may be SyntaxError cases whith imported code.
+                # line, there may be SyntaxError cases with imported code.
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
                 print "UsageError:", value
@@ -1679,7 +1682,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
             # Remove some chars from the delimiters list.  If we encounter
             # unicode chars, discard them.
-            delims = readline.get_completer_delims().encode("ascii", "ignore")
+            delims = readline.get_completer_delims()
+            if not py3compat.PY3:
+                delims = delims.encode("ascii", "ignore")
             for d in self.readline_remove_delims:
                 delims = delims.replace(d, "")
             delims = delims.replace(ESC_MAGIC, '')
@@ -1701,7 +1706,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
                                                         include_latest=True):
             if cell.strip(): # Ignore blank lines
                 for line in cell.splitlines():
-                    self.readline.add_history(line.encode(stdin_encoding, 'replace'))
+                    self.readline.add_history(py3compat.unicode_to_str(line,
+                                                                stdin_encoding))
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
@@ -1907,8 +1913,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
     
         self.define_magic('foo',foo_impl)
         """
-        
-        import new
         im = types.MethodType(func,self)
         old = getattr(self, "magic_" + magicname, None)
         setattr(self, "magic_" + magicname, im)
@@ -2175,15 +2179,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # behavior of running a script from the system command line, where
         # Python inserts the script's directory into sys.path
         dname = os.path.dirname(fname)
-        
-        if isinstance(fname, unicode):
-            # execfile uses default encoding instead of filesystem encoding
-            # so unicode filenames will fail
-            fname = fname.encode(sys.getfilesystemencoding() or sys.getdefaultencoding())
 
         with prepended_to_syspath(dname):
             try:
-                execfile(fname,*where)
+                py3compat.execfile(fname,*where)
             except SystemExit, status:
                 # If the call was made with 0 or None exit status (sys.exit(0)
                 # or sys.exit() ), don't bother showing a traceback, as both of
@@ -2455,7 +2454,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                           # Skip our own frame in searching for locals:
                           sys._getframe(depth+1).f_locals # locals
                           )
-        return str(res).decode(res.codec)
+        return py3compat.str_to_unicode(str(res), res.codec)
 
     def mktempfile(self, data=None, prefix='ipython_edit_'):
         """Make a new tempfile and return its filename.

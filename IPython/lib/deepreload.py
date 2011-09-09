@@ -159,7 +159,10 @@ def deep_reload_hook(module):
     return import_module(name[i+1:], name, parent)
 
 # Save the original hooks
-original_reload = __builtin__.reload
+try:
+    original_reload = __builtin__.reload
+except AttributeError:
+    original_reload = imp.reload    # Python 3
 
 # Replacement for reload()
 def reload(module, exclude=['sys', '__builtin__', '__main__']):

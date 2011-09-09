@@ -23,7 +23,10 @@ from __future__ import print_function
 import os
 import sys
 
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+except:
+    from ConfigParser import ConfigParser
 from distutils.command.build_py import build_py
 from glob import glob
 
@@ -40,6 +43,13 @@ pjoin = os.path.join
 def oscmd(s):
     print(">", s)
     os.system(s)
+    
+try:
+    execfile
+except NameError:
+    def execfile(fname, globs, locs=None):
+        locs = locs or globs
+        exec(compile(open(fname).read(), fname, "exec"), globs, locs)
 
 # A little utility we'll need below, since glob() does NOT allow you to do
 # exclusion on multiple endings!
@@ -58,7 +68,7 @@ def file_doesnt_endwith(test,endings):
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-execfile(pjoin('IPython','core','release.py'))
+execfile(pjoin('IPython','core','release.py'), globals())
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
@@ -74,6 +84,7 @@ setup_args = dict(
       license          = license,
       platforms        = platforms,
       keywords         = keywords,
+      classifiers      = classifiers,
       cmdclass         = {'install_data': install_data_ext},
       )
 
@@ -235,28 +246,31 @@ def make_man_update_target(manpage):
 # Find scripts
 #---------------------------------------------------------------------------
 
-def find_scripts(entry_points=False):
+def find_scripts(entry_points=False, suffix=''):
     """Find IPython's scripts.
     
     if entry_points is True:
         return setuptools entry_point-style definitions
     else:
         return file paths of plain scripts [default]
+    
+    suffix is appended to script names if entry_points is True, so that the
+    Python 3 scripts get named "ipython3" etc.
     """
     if entry_points:
-        console_scripts = [
-            'ipython = IPython.frontend.terminal.ipapp:launch_new_instance',
-            'pycolor = IPython.utils.PyColorize:main',
-            'ipcontroller = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
-            'ipengine = IPython.parallel.apps.ipengineapp:launch_new_instance',
-            'iplogger = IPython.parallel.apps.iploggerapp:launch_new_instance',
-            'ipcluster = IPython.parallel.apps.ipclusterapp:launch_new_instance',
-            'iptest = IPython.testing.iptest:main',
-            'irunner = IPython.lib.irunner:main'
-        ]
-        gui_scripts = [
-            'ipython-qtconsole = IPython.frontend.qt.console.qtconsoleapp:main',
-        ]
+        console_scripts = [s % suffix for s in [
+            'ipython%s = IPython.frontend.terminal.ipapp:launch_new_instance',
+            'pycolor%s = IPython.utils.PyColorize:main',
+            'ipcontroller%s = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
+            'ipengine%s = IPython.parallel.apps.ipengineapp:launch_new_instance',
+            'iplogger%s = IPython.parallel.apps.iploggerapp:launch_new_instance',
+            'ipcluster%s = IPython.parallel.apps.ipclusterapp:launch_new_instance',
+            'iptest%s = IPython.testing.iptest:main',
+            'irunner%s = IPython.lib.irunner:main'
+        ]]
+        gui_scripts = [s % suffix for s in [
+            'ipython%s-qtconsole = IPython.frontend.qt.console.qtconsoleapp:main',
+        ]]
         scripts = dict(console_scripts=console_scripts, gui_scripts=gui_scripts)
     else:
         parallel_scripts = pjoin('IPython','parallel','scripts')

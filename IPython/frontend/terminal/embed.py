@@ -26,7 +26,10 @@ from __future__ import with_statement
 import __main__
 
 import sys
-from contextlib import nested
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
 
 from IPython.core import ultratb
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell

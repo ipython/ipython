@@ -27,6 +27,7 @@ else:
     from ._process_posix import _find_cmd, system, getoutput
 
 from ._process_common import getoutputerror
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Code
@@ -65,7 +66,7 @@ def find_cmd(cmd):
     except OSError:
         raise FindCmdError('command could not be found: %s' % cmd)
     # which returns empty if not found
-    if path == '':
+    if path == b'':
         raise FindCmdError('command could not be found: %s' % cmd)
     return os.path.abspath(path)
 
@@ -115,7 +116,7 @@ def arg_split(s, posix=False):
     # At least encoding the input when it's unicode seems to help, but there
     # may be more problems lurking.  Apparently this is fixed in python3.
     is_unicode = False
-    if isinstance(s, unicode):
+    if (not py3compat.PY3) and isinstance(s, unicode):
         is_unicode = True
         s = s.encode('utf-8')
     lex = shlex.shlex(s, posix=posix)
