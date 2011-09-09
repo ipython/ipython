@@ -12,6 +12,7 @@ import os.path
 import re
 from subprocess import Popen
 import sys
+import time
 from textwrap import dedent
 
 # System library imports
@@ -104,6 +105,7 @@ class IPythonWidget(FrontendWidget):
     _payload_source_exit = zmq_shell_source + '.ask_exit'
     _payload_source_next_input = zmq_shell_source + '.set_next_input'
     _payload_source_page = 'IPython.zmq.page.page'
+    _retrying_history_request = False
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -174,7 +176,25 @@ class IPythonWidget(FrontendWidget):
         """ Implemented to handle history tail replies, which are only supported
             by the IPython kernel.
         """
-        history_items = msg['content']['history']
+        content = msg['content']
+        if 'history' not in content:
+            self.log.error("History request failed: %r"%content)
+            if content.get('status', '') == 'aborted' and \
+                                            not self._retrying_history_request:
+                # a *different* action caused this request to be aborted, so
+                # we should try again.
+                self.log.error("Retrying aborted history request")
+                # prevent multiple retries of aborted requests:
+                self._retrying_history_request = True
+                # wait out the kernel's queue flush, which is currently timed at 0.1s
+                time.sleep(0.25)
+                self.kernel_manager.shell_channel.history(hist_access_type='tail',n=1000)
+            else:
+                self._retrying_history_request = False
+            return
+        # reset retry flag
+        self._retrying_history_request = False
+        history_items = content['history']
         items = [ line.rstrip() for _, _, line in history_items ]
         self._set_history(items)
 

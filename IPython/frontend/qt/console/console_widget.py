@@ -16,7 +16,7 @@ from unicodedata import category
 from IPython.external.qt import QtCore, QtGui
 
 # Local imports
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
@@ -39,7 +39,7 @@ def is_letter_or_number(char):
 # Classes
 #-----------------------------------------------------------------------------
 
-class ConsoleWidget(Configurable, QtGui.QWidget):
+class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     """ An abstract base class for console-type widgets. This class has 
         functionality for:
 
@@ -170,7 +170,7 @@ class ConsoleWidget(Configurable, QtGui.QWidget):
             The parent for this widget.
         """
         QtGui.QWidget.__init__(self, parent)
-        Configurable.__init__(self, **kw)
+        LoggingConfigurable.__init__(self, **kw)
 
         # Create the layout and underlying text widget.
         layout = QtGui.QStackedLayout(self)
