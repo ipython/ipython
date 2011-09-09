@@ -46,6 +46,10 @@ if sys.version_info[0] >= 3:
     open = orig_open
     
     MethodType = types.MethodType
+    
+    def execfile(fname, glob, loc=None):
+        loc = loc if (loc is not None) else glob
+        exec compile(open(fname).read(), fname, 'exec') in glob, loc
 
 else:
     PY3 = False
@@ -89,7 +93,7 @@ else:
     
     def MethodType(func, instance):
         return types.MethodType(func, instance, type(instance))
+    
+    # don't override system execfile on 2.x:
+    execfile = execfile
 
-def execfile(fname, glob, loc=None):
-    loc = loc if (loc is not None) else glob
-    exec compile(open(fname).read(), fname, 'exec') in glob, loc
