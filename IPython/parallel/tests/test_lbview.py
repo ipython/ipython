@@ -126,4 +126,4 @@ class TestLoadBalancedView(ClusterTestCase):
 
         ar.wait()
         ar2.wait()
-        self.assertTrue(ar2.started > ar.completed)
+        self.assertTrue(ar2.started >= ar.completed, "%s not >= %s"%(ar.started, ar.completed))
