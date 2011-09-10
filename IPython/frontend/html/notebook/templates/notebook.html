@@ -191,7 +191,11 @@
                 </div>
                 <div class="section_row">
                     <span id="kernel_persist">
-                        <input type="checkbox" id="kill_kernel"></input>
+                        {% if kill_kernel %}
+                            <input type="checkbox" id="kill_kernel" checked="true"></input>
+                        {% else %}
+                            <input type="checkbox" id="kill_kernel"></input>
+                        {% end %}
                     </span>
                     <span class="checkbox_label" id="kill_kernel_label">Kill kernel upon exit:</span>
                 </div>

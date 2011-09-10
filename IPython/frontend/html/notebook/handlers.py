@@ -90,7 +90,8 @@ class NewHandler(AuthenticatedHandler):
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
-            base_project_url=u'/', base_kernel_url=u'/'
+            base_project_url=u'/', base_kernel_url=u'/',
+            kill_kernel=False
         )
 
 
@@ -105,7 +106,8 @@ class NamedNotebookHandler(AuthenticatedHandler):
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
-            base_project_url=u'/', base_kernel_url=u'/'
+            base_project_url=u'/', base_kernel_url=u'/',
+            kill_kernel=False
         )
 
 
