@@ -188,11 +188,13 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         try:
             msg = self._reserialize_reply(msg_list)
         except:
-            self.application.kernel_manager.log.critical("Malformed message: %r" % msg_list)
+            self.application.log.critical("Malformed message: %r" % msg_list)
         else:
             self.write_message(msg)
 
+
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
+
     def open(self, kernel_id):
         self.kernel_id = kernel_id.decode('ascii')
         try:
