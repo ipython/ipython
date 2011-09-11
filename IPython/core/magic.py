@@ -61,6 +61,7 @@ from IPython.utils.text import LSString, SList, format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
+from IPython.config.application import Application
 
 #-----------------------------------------------------------------------------
 # Utility functions
@@ -3442,7 +3443,17 @@ Defaulting color scheme to 'NoColor'"""
         Backend in use: Qt4Agg
         For more information, type 'help(pylab)'.
         """
-        self.shell.enable_pylab(s)
+        
+        if Application.initialized():
+            app = Application.instance()
+            try:
+                import_all_status = app.pylab_import_all
+            except AttributeError:
+                import_all_status = True 
+        else:
+            import_all_status = True
+        
+        self.shell.enable_pylab(s,import_all=import_all_status)
 
     def magic_tb(self, s):
         """Print the last traceback with the currently active exception mode.
