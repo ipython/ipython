@@ -222,7 +222,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
             # Cookie can't constructor doesn't accept unicode strings for some reason
             msg = msg.encode('utf8', 'replace')
         try:
-            self._cookies = Cookie.SimpleCookie(msg)
+            self.request._cookies = Cookie.SimpleCookie(msg)
         except:
             logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
 
