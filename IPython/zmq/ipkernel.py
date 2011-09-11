@@ -623,10 +623,6 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         selecting a particular matplotlib backend and loop integration.
         """
     )
-    pylab_import_all = Bool(True, config=True,
-        help="""If true, an 'import *' is done from numpy and pylab,
-        when using pylab"""
-    )
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
         self.init_shell()
