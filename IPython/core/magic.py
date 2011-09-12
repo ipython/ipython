@@ -25,7 +25,7 @@ import shutil
 import re
 import time
 import textwrap
-from cStringIO import StringIO
+from StringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
 from xmlrpclib import ServerProxy

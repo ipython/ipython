@@ -20,7 +20,7 @@ Authors
 #-----------------------------------------------------------------------------
 # stdlib
 import unittest
-from cStringIO import StringIO
+from StringIO import StringIO
 
 from IPython.testing import decorators as dec
 from IPython.utils import io

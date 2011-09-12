@@ -34,7 +34,7 @@ __all__ = ['ANSICodeColors','Parser']
 _scheme_default = 'Linux'
 
 # Imports
-import cStringIO
+import StringIO
 import keyword
 import os
 import optparse
@@ -140,13 +140,13 @@ class Parser:
         
         string_output = 0
         if out == 'str' or self.out == 'str' or \
-           isinstance(self.out,cStringIO.OutputType):
+           isinstance(self.out,StringIO.StringIO):
             # XXX - I don't really like this state handling logic, but at this
             # point I don't want to make major changes, so adding the
             # isinstance() check is the simplest I can do to ensure correct
             # behavior.
             out_old = self.out
-            self.out = cStringIO.StringIO()
+            self.out = StringIO.StringIO()
             string_output = 1
         elif out is not None:
             self.out = out
@@ -180,7 +180,7 @@ class Parser:
 
         # parse the source and write it
         self.pos = 0
-        text = cStringIO.StringIO(self.raw)
+        text = StringIO.StringIO(self.raw)
 
         error = False
         try:

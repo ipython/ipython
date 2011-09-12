@@ -6,7 +6,7 @@ Modified from the irunner module but using regex.
 VERBOSE = True
 
 # stdlib imports
-import cStringIO as StringIO
+import StringIO
 import sys
 import unittest
 import re
