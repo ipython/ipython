@@ -1,4 +1,5 @@
 import __builtin__
+import sys
 from base64 import encodestring
 
 from IPython.core.displayhook import DisplayHook
@@ -20,6 +21,8 @@ class ZMQDisplayHook(object):
             return
 
         __builtin__._ = obj
+        sys.stdout.flush()
+        sys.stderr.flush()
         msg = self.session.send(self.pub_socket, u'pyout', {u'data':repr(obj)},
                                parent=self.parent_header, ident=self.topic)
 
@@ -63,6 +66,8 @@ class ZMQShellDisplayHook(DisplayHook):
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
+        sys.stdout.flush()
+        sys.stderr.flush()
         self.session.send(self.pub_socket, self.msg)
         self.msg = None
 
