@@ -346,7 +346,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             try:
                 self.log.info("Enabling GUI event loop integration, "
                               "toolkit=%s, pylab=%s" % (gui, self.pylab) )
-                activate(gui)
+                if self.pylab:
+                    activate(gui, import_all=self.pylab_import_all)
+                else:
+                    activate(gui)
             except:
                 self.log.warn("Error in enabling GUI event loop integration:")
                 self.shell.showtraceback()

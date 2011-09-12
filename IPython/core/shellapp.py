@@ -29,7 +29,7 @@ from IPython.config.application import boolean_flag
 from IPython.config.configurable import Configurable
 from IPython.config.loader import Config
 from IPython.utils.path import filefind
-from IPython.utils.traitlets import Unicode, Instance, List
+from IPython.utils.traitlets import Unicode, Instance, List, Bool
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -132,6 +132,10 @@ class InteractiveShellApp(Configurable):
     )
     code_to_run = Unicode('', config=True,
         help="Execute the given command string."
+    )
+    pylab_import_all = Bool(True, config=True,
+        help="""If true, an 'import *' is done from numpy and pylab,
+        when using pylab"""
     )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 

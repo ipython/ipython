@@ -313,6 +313,8 @@ skip_if_not_osx = skipif(sys.platform != 'darwin',
 # Other skip decorators
 skipif_not_numpy = skipif(module_not_available('numpy'),"This test requires numpy")
 
+skipif_not_matplotlib = skipif(module_not_available('matplotlib'),"This test requires matplotlib")
+
 skipif_not_sympy = skipif(module_not_available('sympy'),"This test requires sympy")
 
 skip_known_failure = knownfailureif(True,'This test is known to fail')
