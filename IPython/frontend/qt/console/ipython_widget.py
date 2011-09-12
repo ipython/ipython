@@ -137,6 +137,7 @@ class IPythonWidget(FrontendWidget):
     def _handle_complete_reply(self, rep):
         """ Reimplemented to support IPython's improved completion machinery.
         """
+        self.log.debug("complete: %s", rep.get('content', ''))
         cursor = self._get_cursor()
         info = self._request_info.get('complete')
         if info and info.id == rep['parent_header']['msg_id'] and \
@@ -176,6 +177,7 @@ class IPythonWidget(FrontendWidget):
         """ Implemented to handle history tail replies, which are only supported
             by the IPython kernel.
         """
+        self.log.debug("history: %s", msg.get('content', ''))
         content = msg['content']
         if 'history' not in content:
             self.log.error("History request failed: %r"%content)
@@ -201,6 +203,7 @@ class IPythonWidget(FrontendWidget):
     def _handle_pyout(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
+        self.log.debug("pyout: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             content = msg['content']
             prompt_number = content['execution_count']
@@ -224,6 +227,7 @@ class IPythonWidget(FrontendWidget):
     def _handle_display_data(self, msg):
         """ The base handler for the ``display_data`` message.
         """
+        self.log.debug("display: %s", msg.get('content', ''))
         # For now, we don't display data from other frontends, but we 
         # eventually will as this allows all frontends to monitor the display
         # data. But we need to figure out how to handle this in the GUI.

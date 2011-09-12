@@ -287,6 +287,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_complete_reply(self, rep):
         """ Handle replies for tab completion.
         """
+        self.log.debug("complete: %s", rep.get('content', ''))
         cursor = self._get_cursor()
         info = self._request_info.get('complete')
         if info and info.id == rep['parent_header']['msg_id'] and \
@@ -298,6 +299,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_execute_reply(self, msg):
         """ Handles replies for code execution.
         """
+        self.log.debug("execute: %s", msg.get('content', ''))
         info = self._request_info.get('execute')
         if info and info.id == msg['parent_header']['msg_id'] and \
                 info.kind == 'user' and not self._hidden:
@@ -326,6 +328,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_input_request(self, msg):
         """ Handle requests for raw_input.
         """
+        self.log.debug("input: %s", msg.get('content', ''))
         if self._hidden:
             raise RuntimeError('Request for raw input during hidden execution.')
 
@@ -340,6 +343,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_kernel_died(self, since_last_heartbeat):
         """ Handle the kernel's death by asking if the user wants to restart.
         """
+        self.log.debug("kernel died: %s", since_last_heartbeat)
         if self.custom_restart:
             self.custom_restart_kernel_died.emit(since_last_heartbeat)
         else:
@@ -352,6 +356,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_object_info_reply(self, rep):
         """ Handle replies for call tips.
         """
+        self.log.debug("oinfo: %s", rep.get('content', ''))
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
         if info and info.id == rep['parent_header']['msg_id'] and \
@@ -375,6 +380,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_pyout(self, msg):
         """ Handle display hook output.
         """
+        self.log.debug("pyout: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             text = msg['content']['data']
             self._append_plain_text(text + '\n', before_prompt=True)
@@ -382,6 +388,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_stream(self, msg):
         """ Handle stdout, stderr, and stdin.
         """
+        self.log.debug("stream: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             # Most consoles treat tabs as being 8 space characters. Convert tabs
             # to spaces so that output looks as expected regardless of this
@@ -394,6 +401,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_shutdown_reply(self, msg):
         """ Handle shutdown signal, only if from other console.
         """
+        self.log.debug("shutdown: %s", msg.get('content', ''))
         if not self._hidden and not self._is_from_this_session(msg):
             if self._local_kernel:
                 if not msg['content']['restart']:

@@ -74,11 +74,13 @@ class RichIPythonWidget(IPythonWidget):
             prompt_number = content['execution_count']
             data = content['data']
             if data.has_key('image/svg+xml'):
+                self.log.debug("pyout: %s", msg.get('content', ''))
                 self._append_plain_text(self.output_sep, True)
                 self._append_html(self._make_out_prompt(prompt_number), True)
                 self._append_svg(data['image/svg+xml'], True)
                 self._append_html(self.output_sep2, True)
             elif data.has_key('image/png'):
+                self.log.debug("pyout: %s", msg.get('content', ''))
                 self._append_plain_text(self.output_sep, True)
                 self._append_html(self._make_out_prompt(prompt_number), True)
                 # This helps the output to look nice.
@@ -99,9 +101,11 @@ class RichIPythonWidget(IPythonWidget):
             # Try to use the svg or html representations.
             # FIXME: Is this the right ordering of things to try?
             if data.has_key('image/svg+xml'):
+                self.log.debug("display: %s", msg.get('content', ''))
                 svg = data['image/svg+xml']
                 self._append_svg(svg, True)
             elif data.has_key('image/png'):
+                self.log.debug("display: %s", msg.get('content', ''))
                 # PNG data is base64 encoded as it passes over the network
                 # in a JSON structure so we decode it.
                 png = decodestring(data['image/png'].encode('ascii'))
