@@ -28,6 +28,7 @@ Authors
 from __future__ import print_function
 
 # Stdlib imports
+from ast import PyCF_ONLY_AST
 import codeop
 import hashlib
 import linecache
@@ -77,6 +78,16 @@ class CachingCompiler(codeop.Compile):
         # stdlib that call it outside our control go through our codepath
         # (otherwise we'd lose our tracebacks).
         linecache.checkcache = self.check_cache
+        
+    def ast_parse(self, source, filename='<unknown>', symbol='exec'):
+        """Parse code to an AST with the current compiler flags active."""
+        return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
+    
+    def reset_compiler_flags(self):
+        """Reset compiler flags to default state."""
+        # This value is copied from codeop.Compile.__init__, so if that ever
+        # changes, it will need to be updated.
+        self.flags = codeop.PyCF_DONT_IMPLY_DEDENT
 
     @property
     def compiler_flags(self):

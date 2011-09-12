@@ -122,3 +122,14 @@ class InteractiveShellTestCase(unittest.TestCase):
         import IPython.core.formatters
         f = IPython.core.formatters.PlainTextFormatter()
         f([Spam(),Spam()])
+    
+    def test_future_flags(self):
+        """Check that future flags are used for parsing code (gh-777)"""
+        ip = get_ipython()
+        ip.run_cell('from __future__ import print_function')
+        try:
+            ip.run_cell('prfunc_return_val = print(1,2, sep=" ")')
+            assert 'prfunc_return_val' in ip.user_ns
+        finally:
+            # Reset compiler flags so we don't mess up other tests.
+            ip.compile.reset_compiler_flags()

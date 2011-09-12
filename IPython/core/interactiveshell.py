@@ -2281,7 +2281,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             
                 with self.display_trap:
                     try:
-                        code_ast = ast.parse(cell, filename=cell_name)
+                        code_ast = self.compile.ast_parse(cell, filename=cell_name)
                     except IndentationError:
                         self.showindentationerror()
                         self.execution_count += 1
