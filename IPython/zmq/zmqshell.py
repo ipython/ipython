@@ -30,6 +30,7 @@ from IPython.core.macro import Macro
 from IPython.core.magic import MacroToEdit
 from IPython.core.payloadpage import install_payload_page
 from IPython.utils import io
+from IPython.utils.jsonutil import json_clean
 from IPython.utils.path import get_py_filename
 from IPython.utils.traitlets import Instance, Type, Dict, CBool
 from IPython.utils.warn import warn
@@ -69,7 +70,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         content['data'] = data
         content['metadata'] = metadata
         self.session.send(
-            self.pub_socket, u'display_data', content,
+            self.pub_socket, u'display_data', json_clean(content),
             parent=self.parent_header
         )
 
@@ -144,7 +145,7 @@ class ZMQInteractiveShell(InteractiveShell):
         dh = self.displayhook
         # Send exception info over pub socket for other clients than the caller
         # to pick up
-        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', exc_content, dh.parent_header)
+        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header)
 
         # FIXME - Hack: store exception info in shell object.  Right now, the
         # caller is reading this info after the fact, we need to fix this logic
