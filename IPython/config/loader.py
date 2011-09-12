@@ -24,7 +24,7 @@ import sys
 
 from IPython.external import argparse
 from IPython.utils.path import filefind, get_ipython_dir
-from IPython.utils import py3compat, warn
+from IPython.utils import py3compat, text, warn
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -425,7 +425,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         """decode argv if bytes, using stin.encoding, falling back on default enc"""
         uargv = []
         if enc is None:
-            enc = sys.stdin.encoding or sys.getdefaultencoding()
+            enc = text.getdefaultencoding()
         for arg in argv:
             if not isinstance(arg, unicode):
                 # only decode if not already decoded
@@ -586,7 +586,8 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _parse_args(self, args):
         """self.parser->self.parsed_data"""
         # decode sys.argv to support unicode command-line options
-        uargs = [py3compat.cast_unicode(a) for a in args]
+        enc = text.getdefaultencoding()
+        uargs = [py3compat.cast_unicode(a, enc) for a in args]
         self.parsed_data, self.extra_args = self.parser.parse_known_args(uargs)
 
     def _convert_to_config(self):

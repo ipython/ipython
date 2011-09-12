@@ -23,6 +23,7 @@ from subprocess import STDOUT
 
 # our own imports
 from ._process_common import read_no_interrupt, process_handler
+from . import text
 
 #-----------------------------------------------------------------------------
 # Function definitions
@@ -88,7 +89,7 @@ def _find_cmd(cmd):
 
 def _system_body(p):
     """Callback for _system."""
-    enc = sys.stdin.encoding or sys.getdefaultencoding()
+    enc = text.getdefaultencoding()
     for line in read_no_interrupt(p.stdout).splitlines():
         line = line.decode(enc, 'replace')
         print(line, file=sys.stdout)
