@@ -7,7 +7,7 @@ functionality."""
 VERBOSE = True
 
 # stdlib imports
-import cStringIO as StringIO
+import StringIO
 import sys
 import unittest
 

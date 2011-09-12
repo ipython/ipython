@@ -12,7 +12,7 @@ import os
 import sys
 import tempfile
 import types
-from cStringIO import StringIO
+from StringIO import StringIO
 
 import nose.tools as nt
 

@@ -14,7 +14,7 @@
 
 import sys
 
-from cStringIO import StringIO
+from StringIO import StringIO
 from subprocess import Popen, PIPE
 
 import nose.tools as nt
