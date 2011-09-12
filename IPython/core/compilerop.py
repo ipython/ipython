@@ -80,7 +80,10 @@ class CachingCompiler(codeop.Compile):
         linecache.checkcache = self.check_cache
         
     def ast_parse(self, source, filename='<unknown>', symbol='exec'):
-        """Parse code to an AST with the current compiler flags active."""
+        """Parse code to an AST with the current compiler flags active.
+        
+        Arguments are exactly the same as ast.parse (in the standard library),
+        and are passed to the built-in compile function."""
         return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
     
     def reset_compiler_flags(self):
