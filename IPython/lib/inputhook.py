@@ -298,7 +298,7 @@ class InputHookManager(object):
 
         Notes
         -----
-        This methods sets the ``PyOS_InputHook`` for wxPython, which allows
+        This methods sets the ``PyOS_InputHook`` for pyglet, which allows
         pyglet to integrate with terminal based applications like
         IPython.
 
