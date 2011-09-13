@@ -1749,12 +1749,14 @@ class InteractiveShell(SingletonConfigurable, Magic):
         from IPython.core.completerlib import (module_completer,
                                                magic_run_completer, cd_completer)
         
-        self.Completer = IPCompleter(self,
-                                     self.user_ns,
-                                     self.user_global_ns,
-                                     self.readline_omit__names,
-                                     self.alias_manager.alias_table,
-                                     self.has_readline)
+        self.Completer = IPCompleter(shell=self,
+                                     namespace=self.user_ns,
+                                     global_namespace=self.user_global_ns,
+                                     omit__names=self.readline_omit__names,
+                                     alias_table=self.alias_manager.alias_table,
+                                     use_readline=self.has_readline,
+                                     config=self.config,
+                                     )
         
         # Add custom completers to the basic ones built into IPCompleter
         sdisp = self.strdispatchers.get('complete_command', StrDispatch())

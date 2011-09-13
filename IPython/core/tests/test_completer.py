@@ -181,3 +181,14 @@ def test_local_file_completions():
     finally:
         # prevent failures from making chdir stick
         os.chdir(cwd)
+
+def test_greedy_completions():
+    ip = get_ipython()
+    ip.Completer.greedy = False
+    ip.ex('a=range(5)')
+    _,c = ip.complete('.',line='a[0].')
+    nt.assert_false('a[0].real' in c, "Shouldn't have completed on a[0]: %s"%c)
+    ip.Completer.greedy = True
+    _,c = ip.complete('.',line='a[0].')
+    nt.assert_true('a[0].real' in c, "Should have completed on a[0]: %s"%c)
+

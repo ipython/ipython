@@ -78,12 +78,14 @@ import re
 import shlex
 import sys
 
+from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.utils import generics
 from IPython.utils import io
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
+from IPython.utils.traitlets import CBool
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -210,6 +212,8 @@ def single_dir_expand(matches):
 
 class Bunch(object): pass
 
+DELIMS = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+GREEDY_DELIMS = ' \r\n'
 
 class CompletionSplitter(object):
     """An object to split an input line in a manner similar to readline.
@@ -228,8 +232,7 @@ class CompletionSplitter(object):
     
     # A string of delimiter characters.  The default value makes sense for
     # IPython's most typical usage patterns.
-    #_delims = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
-    _delims = ' \n\t'
+    _delims = DELIMS
 
     # The expression (a normal string) to be compiled into a regular expression
     # for actual splitting.  We store it as an attribute mostly for ease of
@@ -261,11 +264,20 @@ class CompletionSplitter(object):
         return self._delim_re.split(l)[-1]
 
 
-class Completer(object):
-    def __init__(self, namespace=None, global_namespace=None):
+class Completer(Configurable):
+    
+    greedy = CBool(False, config=True,
+        help="""Activate greedy completion
+        
+        This will enable completion on elements of lists, results of function calls, etc.,
+        but can be unsafe because the code is actually evaluated on TAB.
+        """
+    )
+    
+    def __init__(self, namespace=None, global_namespace=None, config=None):
         """Create a new completer for the command line.
 
-        Completer([namespace,global_namespace]) -> completer instance.
+        Completer(namespace=ns,global_namespace=ns2) -> completer instance.
 
         If unspecified, the default namespace where completions are performed
         is __main__ (technically, __main__.__dict__). Namespaces should be
@@ -295,6 +307,8 @@ class Completer(object):
             self.global_namespace = {}
         else:
             self.global_namespace = global_namespace
+        
+        super(Completer, self).__init__(config=config)
 
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
@@ -356,11 +370,13 @@ class Completer(object):
 
         if m:
             expr, attr = m.group(1, 3)        
-        else:
+        elif self.greedy:
             m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
             if not m2:
                 return []
             expr, attr = m2.group(1,2)
+        else:
+            return []
     
         try:
             obj = eval(expr, self.namespace)
@@ -385,8 +401,19 @@ class Completer(object):
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
-    def __init__(self, shell, namespace=None, global_namespace=None,
-                 omit__names=True, alias_table=None, use_readline=True):
+    def _greedy_changed(self, name, old, new):
+        """update the splitter and readline delims when greedy is changed"""
+        if new:
+            self.splitter.set_delims(GREEDY_DELIMS)
+        else:
+            self.splitter.set_delims(DELIMS)
+        
+        if self.readline:
+            self.readline.set_completer_delims(self.splitter.get_delims())
+    
+    def __init__(self, shell=None, namespace=None, global_namespace=None,
+                 omit__names=True, alias_table=None, use_readline=True,
+                 config=None):
         """IPCompleter() -> completer
 
         Return a completer object suitable for use by the readline library
@@ -416,8 +443,6 @@ class IPCompleter(Completer):
           without readline, though in that case callers must provide some extra
           information on each call about the current line."""
 
-        Completer.__init__(self, namespace, global_namespace)
-
         self.magic_escape = ESC_MAGIC
         self.splitter = CompletionSplitter()
 
@@ -428,6 +453,10 @@ class IPCompleter(Completer):
             self.readline = readline
         else:
             self.readline = None
+
+        # _greedy_changed() depends on splitter and readline being defined:
+        Completer.__init__(self, namespace=namespace, global_namespace=global_namespace,
+                            config=config)
 
         # List where completion matches will be stored
         self.matches = []
