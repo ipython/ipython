@@ -1,9 +1,12 @@
 # encoding: utf-8
-
 """
 Enable pyglet to be used interacive by setting PyOS_InputHook.
 
-Authors:  Nicolas P. Rougier
+Authors
+-------
+
+* Nicolas P. Rougier
+* Fernando Perez
 """
 
 #-----------------------------------------------------------------------------
@@ -24,25 +27,44 @@ import time
 from timeit import default_timer as clock
 import pyglet
 
+#-----------------------------------------------------------------------------
+# Platform-dependent imports and functions
+#-----------------------------------------------------------------------------
+
 if os.name == 'posix':
     import select
-elif sys.platform == 'win32':
-    import msvcrt
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
-
-def stdin_ready():
-    if os.name == 'posix':
+    def stdin_ready():
         infds, outfds, erfds = select.select([sys.stdin],[],[],0)
         if infds:
             return True
         else:
             return False
-    elif sys.platform == 'win32':
+
+elif sys.platform == 'win32':
+    import msvcrt
+
+    def stdin_ready():
         return msvcrt.kbhit()
 
+
+# On linux only, window.flip() has a bug that causes an AttributeError on
+# window close.  For details, see:
+# http://groups.google.com/group/pyglet-users/browse_thread/thread/47c1aab9aa4a3d23/c22f9e819826799e?#c22f9e819826799e
+
+if sys.platform.startswith('linux'):
+    def flip(window):
+        try:
+            window.flip()
+        except AttributeError:
+            pass
+else:
+    def flip(window):
+        window.flip()
+
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 def inputhook_pyglet():
     """Run the pyglet event loop by processing pending events only.
@@ -62,7 +84,7 @@ def inputhook_pyglet():
                 window.switch_to()
                 window.dispatch_events()
                 window.dispatch_event('on_draw')
-                window.flip()
+                flip(window)
 
             # We need to sleep at this point to keep the idle CPU load
             # low.  However, if sleep to long, GUI response is poor.  As 
