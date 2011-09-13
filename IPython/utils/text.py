@@ -51,7 +51,7 @@ def getdefaultencoding():
         try:
             # There are reports of getpreferredencoding raising errors
             # in some cases, which may well be fixed, but let's be conservative here.
-            enc = locale.getpreferredencoding(False)
+            enc = locale.getpreferredencoding()
         except Exception:
             pass
     return enc or sys.getdefaultencoding()
