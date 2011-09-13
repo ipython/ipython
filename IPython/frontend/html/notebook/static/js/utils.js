@@ -70,7 +70,7 @@ IPython.utils = (function (IPython) {
             txt = txt.replace(re, closer + opener)
         }
         if (opened) txt += "</span>"
-        return txt.trim()
+        return txt
     }
 
 
