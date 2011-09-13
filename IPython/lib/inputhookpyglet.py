@@ -1,0 +1,93 @@
+# encoding: utf-8
+
+"""
+Enable pyglet to be used interacive by setting PyOS_InputHook.
+
+Authors:  Nicolas P. Rougier
+"""
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2008-2009  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+import os
+import signal
+import sys
+import time
+from timeit import default_timer as clock
+import pyglet
+
+if os.name == 'posix':
+    import select
+elif sys.platform == 'win32':
+    import msvcrt
+
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
+
+def stdin_ready():
+    if os.name == 'posix':
+        infds, outfds, erfds = select.select([sys.stdin],[],[],0)
+        if infds:
+            return True
+        else:
+            return False
+    elif sys.platform == 'win32':
+        return msvcrt.kbhit()
+
+
+def inputhook_pyglet():
+    """Run the pyglet event loop by processing pending events only.
+    
+    This keeps processing pending events until stdin is ready.  After
+    processing all pending events, a call to time.sleep is inserted.  This is
+    needed, otherwise, CPU usage is at 100%.  This sleep time should be tuned
+    though for best performance.
+    """
+    # We need to protect against a user pressing Control-C when IPython is
+    # idle and this is running. We trap KeyboardInterrupt and pass.
+    try:
+        t = clock()
+        while not stdin_ready():
+            pyglet.clock.tick()
+            for window in pyglet.app.windows:
+                window.switch_to()
+                window.dispatch_events()
+                window.dispatch_event('on_draw')
+                window.flip()
+
+            # We need to sleep at this point to keep the idle CPU load
+            # low.  However, if sleep to long, GUI response is poor.  As 
+            # a compromise, we watch how often GUI events are being processed
+            # and switch between a short and long sleep time.  Here are some
+            # stats useful in helping to tune this.
+            # time    CPU load
+            # 0.001   13%
+            # 0.005   3%
+            # 0.01    1.5%
+            # 0.05    0.5%
+            used_time = clock() - t
+            if used_time > 5*60.0:
+                # print 'Sleep for 5 s'  # dbg
+                time.sleep(5.0)
+            elif used_time > 10.0:
+                # print 'Sleep for 1 s'  # dbg
+                time.sleep(1.0)
+            elif used_time > 0.1:
+                # Few GUI events coming in, so we can sleep longer
+                # print 'Sleep for 0.05 s'  # dbg
+                time.sleep(0.05)
+            else:
+                # Many GUI events coming in, so sleep only very little
+                time.sleep(0.001)
+    except KeyboardInterrupt:
+        pass
+    return 0
