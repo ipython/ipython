@@ -135,8 +135,8 @@ aliases.update(base_aliases)
 
 class IPEngineApp(BaseParallelApplication):
 
-    name = Unicode(u'ipengine')
-    description = Unicode(_description)
+    name = 'ipengine'
+    description = _description
     examples = _examples
     config_file_name = Unicode(default_config_file_name)
     classes = List([ProfileDir, Session, EngineFactory, Kernel, MPI])
@@ -158,7 +158,15 @@ class IPEngineApp(BaseParallelApplication):
         controller and engine are started at the same time and it
         may take a moment for the controller to write the connector files.""")
 
-    url_file_name = Unicode(u'ipcontroller-engine.json')
+    url_file_name = Unicode(u'ipcontroller-engine.json', config=True)
+
+    def _cluster_id_changed(self, name, old, new):
+        if new:
+            base = 'ipcontroller-%s'%new
+        else:
+            base = 'ipcontroller'
+        self.url_file_name = "%s-engine.json"%base
+
     log_url = Unicode('', config=True,
         help="""The URL for the iploggerapp instance, for forwarding
         logging to a central location.""")
