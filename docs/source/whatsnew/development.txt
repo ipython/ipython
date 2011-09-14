@@ -13,6 +13,18 @@ Main `ipython` branch
 New features
 ------------
 
+.. Expand on this:
+* **HTML Notebook**: A powerful new interface puts IPython in your browser. You
+  can start it with the command ``ipython notebook``. See :ref:`the Notebook
+  docs <htmlnotebook>` for technical details.
+
+* **Python 3 compatibility**: IPython can now be installed from a single
+  codebase on Python 2 and Python 3. The installation process for Python 3
+  automatically runs 2to3.
+
+* **PyPy support**: The terminal interface to IPython now runs under
+  `PyPy <http://pypy.org/>`_.
+
 .. * use bullet list
 
 Backwards incompatible changes
