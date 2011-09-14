@@ -2496,7 +2496,8 @@ Currently the magic system has the following functions:\n"""
 
         import IPython.utils.rlineimpl as readline
 
-        if not readline.have_readline and sys.platform == "win32":
+        if not shell.colors_force and \
+                not readline.have_readline and sys.platform == "win32":
             msg = """\
 Proper color support under MS Windows requires the pyreadline library.
 You can find it at:
@@ -2510,7 +2511,7 @@ Defaulting color scheme to 'NoColor'"""
             warn(msg)
         
         # readline option is 0
-        if not shell.has_readline:
+        if not shell.colors_force and not shell.has_readline:
             new_scheme = 'NoColor'
             
         # Set prompt colors

@@ -108,6 +108,11 @@ def softspace(file, newvalue):
 
 def no_op(*a, **kw): pass
 
+class NoOpContext(object):
+    def __enter__(self): pass
+    def __exit__(self, type, value, traceback): pass
+no_op_context = NoOpContext()
+
 class SpaceInInput(Exception): pass
 
 class Bunch: pass
@@ -241,6 +246,15 @@ class InteractiveShell(SingletonConfigurable, Magic):
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'), 
                              default_value=get_default_colors(), config=True,
         help="Set the color scheme (NoColor, Linux, or LightBG)."
+    )
+    colors_force = CBool(False, help=
+        """
+        Force use of ANSI color codes, regardless of OS and readline
+        availability.
+        """
+        # FIXME: This is essentially a hack to allow ZMQShell to show colors
+        # without readline on Win32. When the ZMQ formatting system is
+        # refactored, this should be removed.
     )
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True, help=
@@ -1636,10 +1650,12 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self.has_readline = False
             self.readline = None
             # Set a number of methods that depend on readline to be no-op
+            self.readline_no_record = no_op_context
             self.set_readline_completer = no_op
             self.set_custom_completer = no_op
             self.set_completer_frame = no_op
-            warn('Readline services not available or not loaded.')
+            if self.readline_use:
+                warn('Readline services not available or not loaded.')
         else:
             self.has_readline = True
             self.readline = readline
