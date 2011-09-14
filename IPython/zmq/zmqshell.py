@@ -74,6 +74,11 @@ class ZMQDisplayPublisher(DisplayPublisher):
             parent=self.parent_header
         )
 
+    def clear_output(self):
+        self.session.send(
+            self.pub_socket, u'clear_output', {},
+            parent=self.parent_header
+        )
 
 class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
