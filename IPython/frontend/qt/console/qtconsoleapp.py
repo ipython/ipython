@@ -98,7 +98,7 @@ class MainWindow(QtGui.QMainWindow):
         self._frontend.exit_requested.connect(self.close)
         self._confirm_exit = confirm_exit
         self.setCentralWidget(frontend)
-    
+
     #---------------------------------------------------------------------------
     # QWidget interface
     #---------------------------------------------------------------------------
@@ -461,6 +461,19 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.init_kernel_manager()
         self.init_qt_elements()
         self.init_colors()
+        self.init_window_shortcut()
+
+    def init_window_shortcut(self):
+        fullScreenAction = QtGui.QAction('Toggle Full Screen', self.window)
+        fullScreenAction.setShortcut('Ctrl+Meta+Space')
+        fullScreenAction.triggered.connect(self.toggleFullScreen)
+        self.window.addAction(fullScreenAction)
+
+    def toggleFullScreen(self):
+        if not self.window.isFullScreen():
+            self.window.showFullScreen()
+        else:
+            self.window.showNormal()
 
     def start(self):
 
