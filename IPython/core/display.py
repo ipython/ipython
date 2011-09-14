@@ -381,3 +381,9 @@ class Image(DisplayObject):
 
     def _find_ext(self, s):
         return unicode(s.split('.')[-1].lower())
+
+
+def clear_output():
+    """Clear the output of the current cell receiving output."""
+    from IPython.core.interactiveshell import InteractiveShell
+    InteractiveShell.instance().display_pub.clear_output()
