@@ -29,7 +29,7 @@ import zmq
 # tornado is imported.
 from zmq.eventloop import ioloop
 import tornado.ioloop
-tornado.ioloop = ioloop
+tornado.ioloop.IOLoop = ioloop.IOLoop
 
 from tornado import httpserver
 from tornado import web
