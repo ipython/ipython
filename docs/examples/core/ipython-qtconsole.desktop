@@ -4,12 +4,23 @@
 [Desktop Entry]
 Comment=Enhanced interactive Python qtconsole
 Exec=ipython qtconsole
-GenericName[en_US]=IPython qtconsole
-GenericName=IPython qtconsole
+GenericName[en_US]=Python shell
+GenericName=Python shell
 Icon=gnome-netstatus-idle
-Name[en_US]=ipython qtconsole
-Name=ipython qtconsole
+Name[en_US]=IPython Qt console
+Name=IPython Qt console
 Categories=Development;Utility;
 StartupNotify=false
 Terminal=false
 Type=Application
+X-Ayatana-Desktop-Shortcuts=Pylab;Pylabinline
+
+[Pylab Shortcut Group]
+Name=Pylab
+Exec=ipython qtconsole --pylab
+TargetEnvironment=Unity
+
+[Pylabinline Shortcut Group]
+Name=Pylab (inline plots)
+Exec=ipython qtconsole --pylab=inline
+TargetEnvironment=Unity
