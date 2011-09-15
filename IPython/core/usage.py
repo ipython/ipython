@@ -416,6 +416,7 @@ The keybindings themselves are:
 - ``C-.``: force a kernel restart (a confirmation dialog appears).
 - ``C-+``: increase font size.
 - ``C--``: decrease font size.
+- ``C-M-Space``: toggle full screen. (Command-Control-Space on Mac OS X)
 
 The IPython pager
 =================
