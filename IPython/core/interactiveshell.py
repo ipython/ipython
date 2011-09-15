@@ -472,7 +472,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         If called with no arguments, it acts as a toggle."""
 
-        if not self.has_readline:
+        if value != 0 and not self.has_readline:
             if os.name == 'posix':
                 warn("The auto-indent feature requires the readline library")
             self.autoindent = 0

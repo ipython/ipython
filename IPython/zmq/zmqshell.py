@@ -86,6 +86,9 @@ class ZMQInteractiveShell(InteractiveShell):
     # to the terminal frontend.
     colors_force = CBool(True)
     readline_use = CBool(False)
+    # autoindent has no meaning in a zmqshell, and attempting to enable it
+    # will print a warning in the absence of readline.
+    autoindent = CBool(False)
     
     exiter = Instance(ZMQExitAutocall)
     def _exiter_default(self):
