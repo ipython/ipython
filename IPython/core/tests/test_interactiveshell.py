@@ -138,11 +138,11 @@ class InteractiveShellTestCase(unittest.TestCase):
         """Check that unicode_literals is imported from __future__ (gh #786)"""
         ip = get_ipython()
         try:
-            ip.run_cell(u'len_byte_str = len("\xe9")')
-            assert ip.user_ns['len_byte_str'] == 2
+            ip.run_cell(u'byte_str = "a"')
+            assert isinstance(ip.user_ns['byte_str'], str), 'string literals are byte strings by default'
             ip.run_cell('from __future__ import unicode_literals')
-            ip.run_cell(u'len_unicode_str = len("\xe9")')
-            assert ip.user_ns['len_unicode_str'] == 1
+            ip.run_cell(u'unicode_str = "a"')
+            assert isinstance(ip.user_ns['unicode_str'], unicode), 'strings literals are now unicode'
         finally:
             # Reset compiler flags so we don't mess up other tests.
             ip.compile.reset_compiler_flags()
