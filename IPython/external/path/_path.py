@@ -10,7 +10,7 @@ for f in d.files('*.py'):
 This module requires Python 2.5 or later.
 
 
-URL:     http://www.jorendorff.com/articles/python/path
+URL:     http://pypi.python.org/pypi/path.py
 Author:  Jason Orendorff <jason.orendorff\x40gmail\x2ecom> (and others - see the url!)
 Date:    9 Mar 2007
 """
@@ -99,7 +99,7 @@ class path(unicode):
 
     # --- Operations on path strings.
 
-    isabs = os.path.isabs
+    def isabs(s): return os.path.isabs(s)
     def abspath(self):       return self.__class__(os.path.abspath(self))
     def normcase(self):      return self.__class__(os.path.normcase(self))
     def normpath(self):      return self.__class__(os.path.normpath(self))
@@ -107,7 +107,7 @@ class path(unicode):
     def expanduser(self):    return self.__class__(os.path.expanduser(self))
     def expandvars(self):    return self.__class__(os.path.expandvars(self))
     def dirname(self):       return self.__class__(os.path.dirname(self))
-    basename = os.path.basename
+    def basename(s): return os.path.basename(s)
 
     def expand(self):
         """ Clean up a filename by calling expandvars(),
@@ -752,33 +752,36 @@ class path(unicode):
         return m.digest()
 
     # --- Methods for querying the filesystem.
+    # N.B. We can't assign the functions directly, because they may on some
+    # platforms be implemented in C, and compiled functions don't get bound.
+    # See gh-737 for discussion of this.
 
-    exists = os.path.exists
-    isdir = os.path.isdir
-    isfile = os.path.isfile
-    islink = os.path.islink
-    ismount = os.path.ismount
+    def exists(s): return os.path.exists(s)
+    def isdir(s): return os.path.isdir(s)
+    def isfile(s): return os.path.isfile(s)
+    def islink(s): return os.path.islink(s)
+    def ismount(s): return os.path.ismount(s)
 
     if hasattr(os.path, 'samefile'):
-        samefile = os.path.samefile
+        def samefile(s, o): return os.path.samefile(s, o)
 
-    getatime = os.path.getatime
+    def getatime(s): return os.path.getatime(s)
     atime = property(
         getatime, None, None,
         """ Last access time of the file. """)
 
-    getmtime = os.path.getmtime
+    def getmtime(s): return os.path.getmtime(s)
     mtime = property(
         getmtime, None, None,
         """ Last-modified time of the file. """)
 
     if hasattr(os.path, 'getctime'):
-        getctime = os.path.getctime
+        def getctime(s): return os.path.getctime(s)
         ctime = property(
             getctime, None, None,
             """ Creation time of the file. """)
 
-    getsize = os.path.getsize
+    def getsize(s): return os.path.getsize(s)
     size = property(
         getsize, None, None,
         """ Size of the file, in bytes. """)
