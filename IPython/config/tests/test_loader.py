@@ -35,6 +35,7 @@ from IPython.config.loader import (
     PyFileConfigLoader,
     KeyValueConfigLoader,
     ArgParseConfigLoader,
+    KVArgParseConfigLoader,
     ConfigError
 )
 
@@ -117,9 +118,10 @@ class TestArgParseCL(TestCase):
 
 
 class TestKeyValueCL(TestCase):
+    klass = KeyValueConfigLoader
 
     def test_basic(self):
-        cl = KeyValueConfigLoader()
+        cl = self.klass()
         argv = ['--'+s.strip('c.') for s in pyfile.split('\n')[2:-1]]
         with mute_warn():
             config = cl.load_config(argv)
@@ -130,7 +132,7 @@ class TestKeyValueCL(TestCase):
         self.assertEquals(config.D.C.value, 'hi there')
     
     def test_extra_args(self):
-        cl = KeyValueConfigLoader()
+        cl = self.klass()
         with mute_warn():
             config = cl.load_config(['--a=5', 'b', '--c=10', 'd'])
         self.assertEquals(cl.extra_args, ['b', 'd'])
@@ -141,7 +143,7 @@ class TestKeyValueCL(TestCase):
         self.assertEquals(cl.extra_args, ['--a=5', '--c=10'])
     
     def test_unicode_args(self):
-        cl = KeyValueConfigLoader()
+        cl = self.klass()
         argv = [u'--a=épsîlön']
         with mute_warn():
             config = cl.load_config(argv)
@@ -154,11 +156,21 @@ class TestKeyValueCL(TestCase):
         except (TypeError, UnicodeEncodeError):
             raise SkipTest("sys.stdin.encoding can't handle 'é'")
         
-        cl = KeyValueConfigLoader()
+        cl = self.klass()
         with mute_warn():
             config = cl.load_config([barg])
         self.assertEquals(config.a, u'é')
+    
+    def test_unicode_alias(self):
+        cl = self.klass()
+        argv = [u'--a=épsîlön']
+        with mute_warn():
+            config = cl.load_config(argv, aliases=dict(a='A.a'))
+        self.assertEquals(config.A.a, u'épsîlön')
 
+
+class TestArgParseKVCL(TestKeyValueCL):
+    klass = KVArgParseConfigLoader
 
 class TestConfig(TestCase):
 

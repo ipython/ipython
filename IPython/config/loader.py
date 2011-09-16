@@ -621,9 +621,9 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
             else:
                 nargs = None
             if len(key) is 1:
-                paa('-'+key, '--'+key, type=str, dest=value, nargs=nargs)
+                paa('-'+key, '--'+key, type=unicode, dest=value, nargs=nargs)
             else:
-                paa('--'+key, type=str, dest=value, nargs=nargs)
+                paa('--'+key, type=unicode, dest=value, nargs=nargs)
         for key, (value, help) in flags.iteritems():
             if key in self.aliases:
                 # 
