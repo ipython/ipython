@@ -183,8 +183,8 @@ class IPControllerApp(BaseParallelApplication):
     
     def _cluster_id_changed(self, name, old, new):
         super(IPControllerApp, self)._cluster_id_changed(name, old, new)
-        self.engine_json_file = "%s-engine.json"%self.name
-        self.client_json_file = "%s-client.json"%self.name
+        self.engine_json_file = "%s-engine.json" % self.name
+        self.client_json_file = "%s-client.json" % self.name
 
 
     # internal

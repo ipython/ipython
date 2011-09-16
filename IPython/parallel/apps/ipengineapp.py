@@ -93,7 +93,7 @@ class MPI(Configurable):
         help='How to enable MPI (mpi4py, pytrilinos, or empty string to disable).'
         )
 
-    def _on_use_changed(self, old, new):
+    def _use_changed(self, name, old, new):
         # load default init script if it's not set
         if not self.init_script:
             self.init_script = self.default_inits.get(new, '')
@@ -162,10 +162,10 @@ class IPEngineApp(BaseParallelApplication):
 
     def _cluster_id_changed(self, name, old, new):
         if new:
-            base = 'ipcontroller-%s'%new
+            base = 'ipcontroller-%s' % new
         else:
             base = 'ipcontroller'
-        self.url_file_name = "%s-engine.json"%base
+        self.url_file_name = "%s-engine.json" % base
 
     log_url = Unicode('', config=True,
         help="""The URL for the iploggerapp instance, for forwarding

@@ -119,9 +119,13 @@ class BaseParallelApplication(BaseIPythonApplication):
 
     cluster_id = Unicode('', config=True,
         help="""String id to add to runtime files, to prevent name collisions when
-        using multiple clusters with a single profile.
+        using multiple clusters with a single profile simultaneously.
         
         When set, files will be named like: 'ipcontroller-<cluster_id>-engine.json'
+        
+        Since this is text inserted into filenames, typical recommendations apply:
+        Simple character strings are ideal, and spaces are not recommended (but should
+        generally work).
         """
     )
     def _cluster_id_changed(self, name, old, new):
