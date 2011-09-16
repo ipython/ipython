@@ -311,20 +311,26 @@ class InputHookManager(object):
         glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH
         """
 
-        from glut_support import *
+        import OpenGL.GLUT as glut
+        from IPython.lib.inputhookglut import *
 
         if not self._apps.has_key(GUI_GLUT):
             glut.glutInit(sys.argv)
             glut.glutInitDisplayMode(glut_display_mode)
+            # This is specific to freeglut
+            if bool(glut.glutSetOption):
+                glut.glutSetOption(glut.GLUT_ACTION_ON_WINDOW_CLOSE,
+                                   glut.GLUT_ACTION_GLUTMAINLOOP_RETURNS)
             glut.glutCreateWindow(sys.argv[0])
+            glut.glutReshapeWindow( 1, 1 )
             glut.glutHideWindow()
             glut.glutWMCloseFunc(glut_close)
             glut.glutDisplayFunc(glut_display)
-            glut.glutTimerFunc( int(1000.0/glut_fps), glut_timer, glut_fps)
+            glut.glutIdleFunc( glut_idle)
         else:
             glut.glutWMCloseFunc(glut_close)
             glut.glutDisplayFunc(glut_display)
-            glut.glutTimerFunc( int(1000.0/glut_fps), glut_timer, glut_fps)
+            glut.glutIdleFunc( glut_idle)
         self.set_inputhook(inputhook_glut)
         self._current_gui = GUI_GLUT
         self._apps[GUI_GLUT] = True
