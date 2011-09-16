@@ -232,14 +232,14 @@ class ControllerMixin(ClusterAppMixin):
     controller_cmd = List(ipcontroller_cmd_argv, config=True,
         help="""Popen command to launch ipcontroller.""")
     # Command line arguments to ipcontroller.
-    controller_args = List(['--log-to-file','--log-level=%i'%logging.INFO], config=True,
+    controller_args = List(['--log-to-file','--log-level=%i' % logging.INFO], config=True,
         help="""command-line args to pass to ipcontroller""")
 
 class EngineMixin(ClusterAppMixin):
     engine_cmd = List(ipengine_cmd_argv, config=True,
         help="""command to launch the Engine.""")
     # Command line arguments for ipengine.
-    engine_args = List(['--log-to-file','--log-level=%i'%logging.INFO], config=True,
+    engine_args = List(['--log-to-file','--log-level=%i' % logging.INFO], config=True,
         help="command-line arguments to pass to ipengine"
     )
 
@@ -807,11 +807,18 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher, ClusterAppMixin):
 #-----------------------------------------------------------------------------
 
 class BatchClusterAppMixin(ClusterAppMixin):
-    """ClusterApp mixin that updates context dict, rather than args"""
-    context = Dict({'profile_dir':'', 'cluster_id':''})
+    """ClusterApp mixin that updates the self.context dict, rather than cl-args."""
     def _profile_dir_changed(self, name, old, new):
         self.context[name] = new
     _cluster_id_changed = _profile_dir_changed
+
+    def _profile_dir_default(self):
+        self.context['profile_dir'] = ''
+        return ''
+    def _cluster_id_default(self):
+        self.context['cluster_id'] = ''
+        return ''
+
 
 class BatchSystemLauncher(BaseLauncher):
     """Launch an external process using a batch system.
@@ -956,7 +963,7 @@ class PBSLauncher(BatchSystemLauncher):
     queue_template = Unicode('#PBS -q {queue}')
 
 
-class PBSControllerLauncher(BatchClusterAppMixin, PBSLauncher):
+class PBSControllerLauncher(PBSLauncher, BatchClusterAppMixin):
     """Launch a controller using PBS."""
 
     batch_file_name = Unicode(u'pbs_controller', config=True,
@@ -974,7 +981,7 @@ class PBSControllerLauncher(BatchClusterAppMixin, PBSLauncher):
         return super(PBSControllerLauncher, self).start(1)
 
 
-class PBSEngineSetLauncher(BatchClusterAppMixin, PBSLauncher):
+class PBSEngineSetLauncher(PBSLauncher, BatchClusterAppMixin):
     """Launch Engines using PBS"""
     batch_file_name = Unicode(u'pbs_engines', config=True,
         help="batch file name for the engine(s) job.")
@@ -998,7 +1005,7 @@ class SGELauncher(PBSLauncher):
     queue_regexp = Unicode('#\$\W+-q\W+\$?\w+')
     queue_template = Unicode('#$ -q {queue}')
 
-class SGEControllerLauncher(BatchClusterAppMixin, SGELauncher):
+class SGEControllerLauncher(SGELauncher, BatchClusterAppMixin):
     """Launch a controller using SGE."""
 
     batch_file_name = Unicode(u'sge_controller', config=True,
@@ -1014,7 +1021,7 @@ class SGEControllerLauncher(BatchClusterAppMixin, SGELauncher):
         self.log.info("Starting PBSControllerLauncher: %r" % self.args)
         return super(SGEControllerLauncher, self).start(1)
 
-class SGEEngineSetLauncher(BatchClusterAppMixin, SGELauncher):
+class SGEEngineSetLauncher(SGELauncher, BatchClusterAppMixin):
     """Launch Engines with SGE"""
     batch_file_name = Unicode(u'sge_engines', config=True,
         help="batch file name for the engine(s) job.")
@@ -1066,7 +1073,7 @@ class LSFLauncher(BatchSystemLauncher):
         return job_id
 
 
-class LSFControllerLauncher(BatchClusterAppMixin, LSFLauncher):
+class LSFControllerLauncher(LSFLauncher, BatchClusterAppMixin):
     """Launch a controller using LSF."""
     
     batch_file_name = Unicode(u'lsf_controller', config=True,
@@ -1084,7 +1091,7 @@ class LSFControllerLauncher(BatchClusterAppMixin, LSFLauncher):
         return super(LSFControllerLauncher, self).start(1)
 
 
-class LSFEngineSetLauncher(BatchClusterAppMixin, LSFLauncher):
+class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
     """Launch Engines using LSF"""
     batch_file_name = Unicode(u'lsf_engines', config=True,
                               help="batch file name for the engine(s) job.")
