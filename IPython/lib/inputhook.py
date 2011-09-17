@@ -312,26 +312,28 @@ class InputHookManager(object):
         """
 
         import OpenGL.GLUT as glut
-        from IPython.lib.inputhookglut import *
+        from IPython.lib.inputhookglut import glut_display_mode, \
+                                              glut_close, glut_display, \
+                                              glut_idle, inputhook_glut
 
-        if not self._apps.has_key(GUI_GLUT):
-            glut.glutInit(sys.argv)
-            glut.glutInitDisplayMode(glut_display_mode)
+        if not self._apps.has_key( GUI_GLUT ):
+            glut.glutInit( sys.argv )
+            glut.glutInitDisplayMode( glut_display_mode )
             # This is specific to freeglut
             if bool(glut.glutSetOption):
-                glut.glutSetOption(glut.GLUT_ACTION_ON_WINDOW_CLOSE,
-                                   glut.GLUT_ACTION_GLUTMAINLOOP_RETURNS)
-            glut.glutCreateWindow(sys.argv[0])
+                glut.glutSetOption( glut.GLUT_ACTION_ON_WINDOW_CLOSE,
+                                    glut.GLUT_ACTION_GLUTMAINLOOP_RETURNS )
+            glut.glutCreateWindow( sys.argv[0] )
             glut.glutReshapeWindow( 1, 1 )
-            glut.glutHideWindow()
-            glut.glutWMCloseFunc(glut_close)
-            glut.glutDisplayFunc(glut_display)
-            glut.glutIdleFunc( glut_idle)
+            glut.glutHideWindow( )
+            glut.glutWMCloseFunc( glut_close )
+            glut.glutDisplayFunc( glut_display )
+            glut.glutIdleFunc( glut_idle )
         else:
-            glut.glutWMCloseFunc(glut_close)
-            glut.glutDisplayFunc(glut_display)
+            glut.glutWMCloseFunc( glut_close )
+            glut.glutDisplayFunc( glut_display )
             glut.glutIdleFunc( glut_idle)
-        self.set_inputhook(inputhook_glut)
+        self.set_inputhook( inputhook_glut )
         self._current_gui = GUI_GLUT
         self._apps[GUI_GLUT] = True
 
@@ -343,7 +345,8 @@ class InputHookManager(object):
         dummy one and set the timer to a dummy timer that will be triggered
         very far in the future.
         """
-        from glut_support import *
+        import OpenGL.GLUT as glut
+        from glut_support import glutMainLoopEvent
 
         glut.glutHideWindow() # This is an event to be processed below
         glutMainLoopEvent()
