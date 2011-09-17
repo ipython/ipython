@@ -236,14 +236,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.print_)
         self.addAction(action)
-        self._print_action = action
+        self.print_action = action
 
         action = QtGui.QAction('Save as HTML/XML', None)
         action.setShortcut(QtGui.QKeySequence.Save)
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.export_html)
         self.addAction(action)
-        self._export_action = action
+        self.export_action = action
 
         action = QtGui.QAction('Select All', None)
         action.setEnabled(True)
@@ -251,7 +251,73 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.select_all)
         self.addAction(action)
-        self._select_all_action = action
+        self.select_all_action = action
+
+        self.increase_font_size = QtGui.QAction("Bigger Font",
+                self,
+                shortcut="Ctrl++",
+                statusTip="Increase the font size by one point",
+                triggered=self._increase_font_size)
+        self.addAction(self.increase_font_size)
+
+        self.decrease_font_size = QtGui.QAction("Smaller Font",
+                self,
+                shortcut="Ctrl+-",
+                statusTip="Decrease the font size by one point",
+                triggered=self._decrease_font_size)
+        self.addAction(self.decrease_font_size)
+
+        self.reset_font_size = QtGui.QAction("Normal Font",
+                self,
+                shortcut="Ctrl+0",
+                statusTip="Restore the Normal font size",
+                triggered=self.reset_font)
+        self.addAction(self.reset_font_size)
+
+        self.undo_action = QtGui.QAction("Undo",
+                self,
+                shortcut="Ctrl+Z",
+                statusTip="Undo last action if possible",
+                triggered=self._control.undo)
+        self.addAction(self.undo_action)
+
+        self.redo_action = QtGui.QAction("Redo",
+                self,
+                shortcut="Ctrl+Shift+Z",
+                statusTip="Redo last action if possible",
+                triggered=self._control.redo)
+        self.addAction(self.redo_action)
+
+        self.reset_action = QtGui.QAction("Reset",
+                self,
+                statusTip="Clear all varible from workspace",
+                triggered=self.reset_magic)
+        self.addAction(self.reset_action)
+
+        self.clear_action = QtGui.QAction("Clear",
+                self,
+                statusTip="Clear the console",
+                triggered=self.clear_magic)
+        self.addAction(self.clear_action)
+
+        self.who_action = QtGui.QAction("Who",
+                self,
+                statusTip="List interactive variable",
+                triggered=self.who_magic)
+        self.addAction(self.who_action)
+
+        self.whos_action = QtGui.QAction("Whos",
+                self,
+                statusTip="List interactive variable with detail",
+                triggered=self.whos_magic)
+        self.addAction(self.whos_action)
+
+        self.who_ls_action = QtGui.QAction("Who ls",
+                self,
+                statusTip="Return a list of interactive variable",
+                triggered=self.who_ls_magic)
+        self.addAction(self.who_ls_action)
+
 
     def eventFilter(self, obj, event):
         """ Reimplemented to ensure a console-like behavior in the underlying
@@ -579,12 +645,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
     font = property(_get_font, _set_font)
 
-    def paste(self, mode=QtGui.QClipboard.Clipboard):
-        """ Paste the contents of the clipboard into the input region.
+    def paste(self, mode=QtGui.QClipboard.Clipboard,text=None):
+        """ Paste the contents of the clipboard, or given text,
+            into the input region.
 
         Parameters:
         -----------
         mode : QClipboard::Mode, optional [default QClipboard::Clipboard]
+        text : string, optional, overide mode if given.
 
             Controls which part of the system clipboard is used. This can be
             used to access the selection clipboard in X11 and the Find buffer
@@ -597,8 +665,29 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
             # Remove any trailing newline, which confuses the GUI and forces the
             # user to backspace.
-            text = QtGui.QApplication.clipboard().text(mode).rstrip()
+            if not text:
+                text = QtGui.QApplication.clipboard().text(mode).rstrip()
             self._insert_plain_text_into_buffer(cursor, dedent(text))
+
+    def pasteMagic(self,text):
+        self._keyboard_quit()
+        self.paste(text=text)
+        self.execute()
+
+    def who_magic(self):
+        self.pasteMagic("%who")
+
+    def whos_magic(self):
+        self.pasteMagic("%whos")
+
+    def who_ls_magic(self):
+        self.pasteMagic("%who_ls")
+
+    def clear_magic(self):
+        self.pasteMagic("%clear")
+
+    def reset_magic(self):
+        self.pasteMagic("%reset")
 
     def print_(self, printer = None):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
@@ -651,6 +740,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         size = max(font.pointSize() + delta, 1) # minimum 1 point
         font.setPointSize(size)
         self._set_font(font)
+
+    def _increase_font_size(self):
+        self.change_font_size(1)
+
+    def _decrease_font_size(self):
+        self.change_font_size(-1)
 
     def select_all(self):
         """ Selects all the text in the buffer.
@@ -855,11 +950,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
         menu.addSeparator()
-        menu.addAction(self._select_all_action)
+        menu.addAction(self.select_all_action)
 
         menu.addSeparator()
-        menu.addAction(self._export_action)
-        menu.addAction(self._print_action)
+        menu.addAction(self.export_action)
+        menu.addAction(self.print_action)
 
         return menu
 
@@ -1056,18 +1151,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                     cursor = self._get_word_end_cursor(position)
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
                 self._kill_ring.kill_cursor(cursor)
-                intercepted = True
-
-            elif key in (QtCore.Qt.Key_Plus, QtCore.Qt.Key_Equal):
-                self.change_font_size(1)
-                intercepted = True
-
-            elif key == QtCore.Qt.Key_Minus:
-                self.change_font_size(-1)
-                intercepted = True
-
-            elif key == QtCore.Qt.Key_0:
-                self.reset_font()
                 intercepted = True
 
         #------ Alt modifier ---------------------------------------------------
