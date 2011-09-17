@@ -229,16 +229,16 @@ def run (command, timeout=-1, withexitstatus=False, events=None, extra_args=None
     while 1:
         try:
             index = child.expect (patterns)
-            if type(child.after) in types.StringTypes:
+            if isinstance(child.after, basestring):
                 child_result_list.append(child.before + child.after)
             else: # child.after may have been a TIMEOUT or EOF, so don't cat those.
                 child_result_list.append(child.before)
-            if type(responses[index]) in types.StringTypes:
+            if isinstance(responses[index], basestring):
                 child.send(responses[index])
-            elif type(responses[index]) is types.FunctionType:
+            elif isinstance(responses[index], types.FunctionType):
                 callback_result = responses[index](locals())
                 sys.stdout.flush()
-                if type(callback_result) in types.StringTypes:
+                if isinstance(callback_result, basestring):
                     child.send(callback_result)
                 elif callback_result:
                     break
@@ -399,7 +399,7 @@ class spawn (object):
         self.logfile_read = None # input from child (read_nonblocking)
         self.logfile_send = None # output to send (send, sendline)
         self.maxread = maxread # max bytes to read at one time into buffer
-        self.buffer = '' # This is the read buffer. See maxread.
+        self.buffer = b'' # This is the read buffer. See maxread.
         self.searchwindowsize = searchwindowsize # Anything before searchwindowsize point is preserved, but not searched.
         # Most Linux machines don't like delaybeforesend to be below 0.03 (30 ms).
         self.delaybeforesend = 0.05 # Sets sleep time used just before sending data to child. Time in seconds.
@@ -828,7 +828,7 @@ class spawn (object):
             except OSError, e: # Linux does this
                 self.flag_eof = True
                 raise EOF ('End Of File (EOF) in read_nonblocking(). Exception style platform.')
-            if s == '': # BSD style
+            if s == b'': # BSD style
                 self.flag_eof = True
                 raise EOF ('End Of File (EOF) in read_nonblocking(). Empty string style platform.')
 
@@ -936,12 +936,14 @@ class spawn (object):
         for s in sequence:
             self.write (s)
 
-    def send(self, s):
+    def send(self, s, encoding='utf-8'):
 
         """This sends a string to the child process. This returns the number of
         bytes written. If a log file was set then the data is also written to
         the log. """
 
+        if isinstance(s, unicode):
+            s = s.encode(encoding)
         time.sleep(self.delaybeforesend)
         if self.logfile is not None:
             self.logfile.write (s)
@@ -1208,7 +1210,7 @@ class spawn (object):
 
         if patterns is None:
             return []
-        if type(patterns) is not types.ListType:
+        if not isinstance(patterns, list):
             patterns = [patterns]
 
         compile_flags = re.DOTALL # Allow dot to match \n
@@ -1216,7 +1218,7 @@ class spawn (object):
             compile_flags = compile_flags | re.IGNORECASE
         compiled_pattern_list = []
         for p in patterns:
-            if type(p) in types.StringTypes:
+            if isinstance(p, basestring):
                 compiled_pattern_list.append(re.compile(p, compile_flags))
             elif p is EOF:
                 compiled_pattern_list.append(EOF)
@@ -1337,7 +1339,7 @@ class spawn (object):
         This method is also useful when you don't want to have to worry about
         escaping regular expression characters that you want to match."""
 
-        if type(pattern_list) in types.StringTypes or pattern_list in (TIMEOUT, EOF):
+        if isinstance(pattern_list, basestring) or pattern_list in (TIMEOUT, EOF):
             pattern_list = [pattern_list]
         return self.expect_loop(searcher_string(pattern_list), timeout, searchwindowsize)
 
@@ -1371,7 +1373,7 @@ class spawn (object):
                     self.match_index = index
                     return self.match_index
                 # No match at this point
-                if timeout < 0 and timeout is not None:
+                if timeout is not None and timeout < 0:
                     raise TIMEOUT ('Timeout exceeded in expect_any().')
                 # Still have time left, so read more data
                 c = self.read_nonblocking (self.maxread, timeout)
@@ -1381,7 +1383,7 @@ class spawn (object):
                 if timeout is not None:
                     timeout = end_time - time.time()
         except EOF, e:
-            self.buffer = ''
+            self.buffer = b''
             self.before = incoming
             self.after = EOF
             index = searcher.eof_index
@@ -1484,7 +1486,7 @@ class spawn (object):
         # Flush the buffer.
         self.stdout.write (self.buffer)
         self.stdout.flush()
-        self.buffer = ''
+        self.buffer = b''
         mode = tty.tcgetattr(self.STDIN_FILENO)
         tty.setraw(self.STDIN_FILENO)
         try:
@@ -1700,7 +1702,7 @@ class searcher_re (object):
         self.eof_index = -1
         self.timeout_index = -1
         self._searches = []
-        for n, s in zip(range(len(patterns)), patterns):
+        for n, s in enumerate(patterns):
             if s is EOF:
                 self.eof_index = n
                 continue
@@ -1721,7 +1723,7 @@ class searcher_re (object):
         if self.timeout_index >= 0:
             ss.append ((self.timeout_index,'    %d: TIMEOUT' % self.timeout_index))
         ss.sort()
-        ss = zip(*ss)[1]
+        ss = [a[1] for a in ss]
         return '\n'.join(ss)
 
     def search(self, buffer, freshlen, searchwindowsize=None):
