@@ -31,6 +31,18 @@ class HistoryConsoleWidget(ConsoleWidget):
         self._history_index = 0
         self._history_prefix = ''
 
+        self.history_action = QtGui.QAction("History",
+                self,
+                statusTip="show command history",
+                triggered=self.history_magic)
+        self.addAction(self.history_action)
+
+        self.save_action = QtGui.QAction("Export History ",
+                self,
+                statusTip="Export History as Python File",
+                triggered=self.save_magic)
+        self.addAction(self.save_action)
+
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
@@ -203,6 +215,22 @@ class HistoryConsoleWidget(ConsoleWidget):
             The (maximum) number of history items to get.
         """
         return self._history[-n:]
+
+    def history_magic(self):
+        self.pasteMagic("%history")
+
+    def save_magic(self):
+        file_name, ok = QtGui.QInputDialog.getText(self,
+            'Enter A file Name',
+            'Please enter a filename to wich export the history as python file:',
+            text='untilted.py')
+        if ok:
+            hist_range, ok = QtGui.QInputDialog.getText(self,
+                'Please enter an interval of command to save',
+                'Saving commands:',
+                text='1-500')
+            if ok:
+                self.pasteMagic("%save"+" "+file_name+" "+str(hist_range))
 
     #---------------------------------------------------------------------------
     # 'HistoryConsoleWidget' protected interface

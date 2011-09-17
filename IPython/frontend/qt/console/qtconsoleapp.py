@@ -23,7 +23,7 @@ import signal
 import sys
 
 # System library imports
-from IPython.external.qt import QtGui
+from IPython.external.qt import QtGui,QtCore
 from pygments.styles import get_all_styles
 
 # Local imports
@@ -74,7 +74,7 @@ class MainWindow(QtGui.QMainWindow):
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
-    
+
     def __init__(self, app, frontend, existing=False, may_close=True,
                     confirm_exit=True):
         """ Create a MainWindow for the specified FrontendWidget.
@@ -97,6 +97,49 @@ class MainWindow(QtGui.QMainWindow):
         self._frontend.exit_requested.connect(self.close)
         self._confirm_exit = confirm_exit
         self.setCentralWidget(frontend)
+
+        # MenuBar is always present on Mac Os, so let's populate
+        # it with possible action, don't do it on other platform
+        # as some user might not want the menu bar, or give them
+        # an option to remove it
+        if sys.platform == 'darwin':
+            #create menu in the order they should appear in the menu bar
+            self.fileMenu = self.menuBar().addMenu("File")
+            self.editMenu = self.menuBar().addMenu("Edit")
+            self.fontMenu = self.menuBar().addMenu("Font")
+            self.windowMenu = self.menuBar().addMenu("Window")
+            self.magicMenu = self.menuBar().addMenu("Magic")
+
+            # please keep the Help menu in Mac Os even if empty. It will
+            # automatically contain a search field to search inside menus and
+            # please keep it spelled in English, as long as Qt Doesn't support
+            # a QAction.MenuRole like HelpMenuRole otherwise it will loose
+            # this search field fonctionnality
+
+            self.helpMenu = self.menuBar().addMenu("Help")
+
+            # sould wrap every line of the following block into a try/except,
+            # as we are not sure of instanciating a _frontend which support all
+            # theses actions, but there might be a better way
+
+            self.fileMenu.addAction(self._frontend.print_action)
+            self.fileMenu.addAction(self._frontend.export_action)
+            self.fileMenu.addAction(self._frontend.select_all_action)
+
+            self.editMenu.addAction(self._frontend.undo_action)
+            self.editMenu.addAction(self._frontend.redo_action)
+
+            self.fontMenu.addAction(self._frontend.increase_font_size)
+            self.fontMenu.addAction(self._frontend.decrease_font_size)
+            self.fontMenu.addAction(self._frontend.reset_font_size)
+
+            self.magicMenu.addAction(self._frontend.reset_action)
+            self.magicMenu.addAction(self._frontend.history_action)
+            self.magicMenu.addAction(self._frontend.save_action)
+            self.magicMenu.addAction(self._frontend.clear_action)
+            self.magicMenu.addAction(self._frontend.who_action)
+            self.magicMenu.addAction(self._frontend.who_ls_action)
+            self.magicMenu.addAction(self._frontend.whos_action)
 
     #---------------------------------------------------------------------------
     # QWidget interface
@@ -562,16 +605,76 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.init_window_shortcut()
 
     def init_window_shortcut(self):
-        fullScreenAction = QtGui.QAction('Toggle Full Screen', self.window)
-        fullScreenAction.setShortcut('Ctrl+Meta+Space')
-        fullScreenAction.triggered.connect(self.toggleFullScreen)
-        self.window.addAction(fullScreenAction)
 
+        self.fullScreenAct = QtGui.QAction("Full Screen",
+            self.window,
+            shortcut="Ctrl+Meta+Space",
+            statusTip="Toggle between Fullscreen and Normal Size",
+            triggered=self.toggleFullScreen)
+
+
+        # creating shortcut in menubar only for Mac OS as I don't
+        # know the shortcut or if the windows manager assign it in
+        # other platform.
+        if sys.platform == 'darwin':
+            self.minimizeAct = QtGui.QAction("Minimize",
+                self.window,
+                shortcut="Ctrl+m",
+                statusTip="Minimize the window/Restore Normal Size",
+                triggered=self.toggleMinimized)
+            self.maximizeAct = QtGui.QAction("Maximize",
+                self.window,
+                shortcut="Ctrl+Shift+M",
+                statusTip="Maximize the window/Restore Normal Size",
+                triggered=self.toggleMaximized)
+
+            self.onlineHelpAct = QtGui.QAction("Open Online Help",
+                self.window,
+                triggered=self._open_online_help)
+
+            self.windowMenu = self.window.windowMenu
+            self.windowMenu.addAction(self.minimizeAct)
+            self.windowMenu.addAction(self.maximizeAct)
+            self.windowMenu.addSeparator()
+            self.windowMenu.addAction(self.fullScreenAct)
+
+            self.window.helpMenu.addAction(self.onlineHelpAct)
+        else:
+            # if we don't put it in a menu, we add it to the window so
+            # that it can still be triggerd by shortcut
+            self.window.addAction(self.fullScreenAct)
+
+    def toggleMinimized(self):
+        if not self.window.isMinimized():
+            self.window.showMinimized()
+        else:
+            self.window.showNormal()
+
+    def _open_online_help(self):
+        QtGui.QDesktopServices.openUrl(
+            QtCore.QUrl("http://ipython.org/documentation.html",
+            QtCore.QUrl.TolerantMode)
+            )
+
+    def toggleMaximized(self):
+        if not self.window.isMaximized():
+            self.window.showMaximized()
+        else:
+            self.window.showNormal()
+
+    # Min/Max imizing while in full screen give a bug
+    # when going out of full screen, at least on OSX
     def toggleFullScreen(self):
         if not self.window.isFullScreen():
             self.window.showFullScreen()
+            if sys.platform == 'darwin':
+                self.maximizeAct.setEnabled(False)
+                self.minimizeAct.setEnabled(False)
         else:
             self.window.showNormal()
+            if sys.platform == 'darwin':
+                self.maximizeAct.setEnabled(True)
+                self.minimizeAct.setEnabled(True)
 
     def start(self):
 
