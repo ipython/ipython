@@ -236,12 +236,19 @@ def superreload(module, reload=reload, old_objects={}):
     # reload module
     try:
         # clear namespace first from old cruft
+        old_dict = module.__dict__.copy()
         old_name = module.__name__
         module.__dict__.clear()
         module.__dict__['__name__'] = old_name
     except (TypeError, AttributeError, KeyError):
         pass
-    module = reload(module)
+
+    try:
+        module = reload(module)
+    except:
+        # restore module dictionary on failed reload
+        module.__dict__.update(old_dict)
+        raise
 
     # iterate over all objects and update functions & classes
     for name, new_obj in module.__dict__.items():
