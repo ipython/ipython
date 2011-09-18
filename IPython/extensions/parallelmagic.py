@@ -1,6 +1,27 @@
 # encoding: utf-8
+"""
+=============
+parallelmagic
+=============
 
-"""Magic command interface for interactive parallel work."""
+Magic command interface for interactive parallel work.
+
+Usage
+=====
+
+``%autopx``
+
+@AUTOPX_DOC@
+
+``%px``
+
+@PX_DOC@
+
+``%result``
+
+@RESULT_DOC@
+
+"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2009  The IPython Development Team
@@ -284,6 +305,12 @@ class ParalleMagic(Plugin):
                 return False
 
 
+__doc__ = __doc__.replace('@AUTOPX_DOC@',
+                          "        " + ParalleMagic.magic_autopx.__doc__)
+__doc__ = __doc__.replace('@PX_DOC@',
+                          "        " + ParalleMagic.magic_px.__doc__)
+__doc__ = __doc__.replace('@RESULT_DOC@',
+                          "        " + ParalleMagic.magic_result.__doc__)
 
 
 _loaded = False
