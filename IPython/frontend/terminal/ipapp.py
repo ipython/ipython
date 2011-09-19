@@ -231,8 +231,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.load_config_file = lambda *a, **kw: None
             self.ignore_old_config=True
 
-    gui = CaselessStrEnum(('qt','wx','gtk', 'pyglet'), config=True,
-        help="Enable GUI event loop integration ('qt', 'wx', 'gtk', 'pyglet')."
+    gui = CaselessStrEnum(('qt', 'wx', 'gtk', 'glut', 'pyglet'), config=True,
+        help="Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet')."
     )
     pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'auto'],
         config=True,
