@@ -29,6 +29,7 @@ GUI_QT4 = 'qt4'
 GUI_GTK = 'gtk'
 GUI_TK = 'tk'
 GUI_OSX = 'osx'
+GUI_GLUT = 'glut'
 GUI_PYGLET = 'pyglet'
 
 #-----------------------------------------------------------------------------
@@ -285,6 +286,71 @@ class InputHookManager(object):
         self.clear_inputhook()
 
 
+    def enable_glut(self, app=None):
+        """ Enable event loop integration with GLUT.
+
+        Parameters
+        ----------
+
+        app : ignored
+            Ignored, it's only a placeholder to keep the call signature of all
+            gui activation methods consistent, which simplifies the logic of
+            supporting magics.
+
+        Notes
+        -----
+
+        This methods sets the PyOS_InputHook for GLUT, which allows the GLUT to
+        integrate with terminal based applications like IPython. Due to GLUT
+        limitations, it is currently not possible to start the event loop
+        without first creating a window. You should thus not create another
+        window but use instead the created one. See 'gui-glut.py' in the
+        docs/examples/lib directory.
+        
+        The default screen mode is set to:
+        glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH
+        """
+
+        import OpenGL.GLUT as glut
+        from IPython.lib.inputhookglut import glut_display_mode, \
+                                              glut_close, glut_display, \
+                                              glut_idle, inputhook_glut
+
+        if not self._apps.has_key( GUI_GLUT ):
+            glut.glutInit( sys.argv )
+            glut.glutInitDisplayMode( glut_display_mode )
+            # This is specific to freeglut
+            if bool(glut.glutSetOption):
+                glut.glutSetOption( glut.GLUT_ACTION_ON_WINDOW_CLOSE,
+                                    glut.GLUT_ACTION_GLUTMAINLOOP_RETURNS )
+            glut.glutCreateWindow( sys.argv[0] )
+            glut.glutReshapeWindow( 1, 1 )
+            glut.glutHideWindow( )
+            glut.glutWMCloseFunc( glut_close )
+            glut.glutDisplayFunc( glut_display )
+            glut.glutIdleFunc( glut_idle )
+        else:
+            glut.glutWMCloseFunc( glut_close )
+            glut.glutDisplayFunc( glut_display )
+            glut.glutIdleFunc( glut_idle)
+        self.set_inputhook( inputhook_glut )
+        self._current_gui = GUI_GLUT
+        self._apps[GUI_GLUT] = True
+
+
+    def disable_glut(self):
+        """Disable event loop integration with glut.
+        
+        This sets PyOS_InputHook to NULL and set the display function to a
+        dummy one and set the timer to a dummy timer that will be triggered
+        very far in the future.
+        """
+        import OpenGL.GLUT as glut
+        from glut_support import glutMainLoopEvent
+
+        glut.glutHideWindow() # This is an event to be processed below
+        glutMainLoopEvent()
+        self.clear_inputhook()
 
     def enable_pyglet(self, app=None):
         """Enable event loop integration with pyglet.
@@ -316,7 +382,6 @@ class InputHookManager(object):
         """
         self.clear_inputhook()
 
-
     def current_gui(self):
         """Return a string indicating the currently active GUI or None."""
         return self._current_gui
@@ -331,6 +396,8 @@ enable_gtk = inputhook_manager.enable_gtk
 disable_gtk = inputhook_manager.disable_gtk
 enable_tk = inputhook_manager.enable_tk
 disable_tk = inputhook_manager.disable_tk
+enable_glut = inputhook_manager.enable_glut
+disable_glut = inputhook_manager.disable_glut
 enable_pyglet = inputhook_manager.enable_pyglet
 disable_pyglet = inputhook_manager.disable_pyglet
 clear_inputhook = inputhook_manager.clear_inputhook
@@ -371,6 +438,7 @@ def enable_gui(gui=None, app=None):
             GUI_WX: enable_wx,
             GUI_QT: enable_qt4, # qt3 not supported
             GUI_QT4: enable_qt4,
+            GUI_GLUT: enable_glut,
             GUI_PYGLET: enable_pyglet,
             }
     try:
