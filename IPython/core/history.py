@@ -303,7 +303,7 @@ class HistoryManager(Configurable):
         n = len(input_hist)
         if start < 0:
             start += n
-        if not stop:
+        if not stop or (stop > n):
             stop = n
         elif stop < 0:
             stop += n
