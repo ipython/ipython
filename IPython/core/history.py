@@ -32,79 +32,27 @@ from IPython.utils.warn import warn
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class HistoryManager(Configurable):
-    """A class to organize all history-related functionality in one place.
-    """
-    # Public interface
-
-    # An instance of the IPython shell we are attached to
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    # Lists to hold processed and raw history. These start with a blank entry
-    # so that we can index them starting from 1
-    input_hist_parsed = List([""])
-    input_hist_raw = List([""])
-    # A list of directories visited during session
-    dir_hist = List()
-    def _dir_hist_default(self):
-        try:
-            return [os.getcwdu()]
-        except OSError:
-            return []
-
-    # A dict of output history, keyed with ints from the shell's
-    # execution count.
-    output_hist = Dict()
-    # The text/plain repr of outputs.
-    output_hist_reprs = Dict()
-
+class HistoryAccessor(Configurable):
+    """Access the history database without adding to it. For use by standalone
+    history tools."""
     # String holding the path to the history file
     hist_file = Unicode(config=True)
 
     # The SQLite database
     db = Instance(sqlite3.Connection)
-    # The number of the current session in the history database
-    session_number = CInt()
-    # Should we log output to the database? (default no)
-    db_log_output = Bool(False, config=True)
-    # Write to database every x commands (higher values save disk access & power)
-    #  Values of 1 or less effectively disable caching.
-    db_cache_size = Int(0, config=True)
-    # The input and output caches
-    db_input_cache = List()
-    db_output_cache = List()
-
-    # History saving in separate thread
-    save_thread = Instance('IPython.core.history.HistorySavingThread')
-    try:               # Event is a function returning an instance of _Event...
-        save_flag = Instance(threading._Event)
-    except AttributeError:         # ...until Python 3.3, when it's a class.
-        save_flag = Instance(threading.Event)
-
-    # Private interface
-    # Variables used to store the three last inputs from the user.  On each new
-    # history update, we populate the user's namespace with these, shifted as
-    # necessary.
-    _i00 = Unicode(u'')
-    _i = Unicode(u'')
-    _ii = Unicode(u'')
-    _iii = Unicode(u'')
-
-    # A regex matching all forms of the exit command, so that we don't store
-    # them in the history (it's annoying to rewind the first entry and land on
-    # an exit call).
-    _exit_re = re.compile(r"(exit|quit)(\s*\(.*\))?$")
-
-    def __init__(self, shell, config=None, **traits):
-        """Create a new history manager associated with a shell instance.
+    
+    def __init__(self, hist_file=u'', shell=None, config=None, **traits):
+        """Create a new history accessor.
+        
+        hist_file must be given, either as an argument or through config.
         """
         # We need a pointer back to the shell for various tasks.
-        super(HistoryManager, self).__init__(shell=shell, config=config,
-            **traits)
+        super(HistoryAccessor, self).__init__(shell=shell, config=config,
+                                              hist_file=hist_file, **traits)
 
         if self.hist_file == u'':
             # No one has set the hist_file, yet.
-            histfname = 'history'
-            self.hist_file = os.path.join(shell.profile_dir.location, histfname + '.sqlite')
+            self.hist_file = self._get_hist_file_name(hist_file)
 
         try:
             self.init_db()
@@ -119,16 +67,11 @@ class HistoryManager(Configurable):
             else:
                 # The hist_file is probably :memory: or something else.
                 raise
-
-        self.save_flag = threading.Event()
-        self.db_input_cache_lock = threading.Lock()
-        self.db_output_cache_lock = threading.Lock()
-        self.save_thread = HistorySavingThread(self)
-        self.save_thread.start()
-
-        self.new_session()
-
-
+    
+    def _get_hist_file_name(self, hist_file=None):
+        "Override to produce a default history file name."
+        raise NotImplementedError("No default history file")
+    
     def init_db(self):
         """Connect to the database, and create tables if necessary."""
         # use detect_types so that timestamps return datetime objects
@@ -145,49 +88,6 @@ class HistoryManager(Configurable):
                         (session integer, line integer, output text,
                         PRIMARY KEY (session, line))""")
         self.db.commit()
-
-    def new_session(self, conn=None):
-        """Get a new session number."""
-        if conn is None:
-            conn = self.db
-
-        with conn:
-            # N.B. 'insert into' here is lower case because of a bug in the
-            # sqlite3 module that affects the Turkish locale. This should be
-            # fixed for Python 2.7.3 and 3.2.3, as well as 3.3 onwards.
-            # http://bugs.python.org/issue13099
-            cur = conn.execute("""insert into sessions VALUES (NULL, ?, NULL,
-                            NULL, "") """, (datetime.datetime.now(),))
-            self.session_number = cur.lastrowid
-
-    def end_session(self):
-        """Close the database session, filling in the end time and line count."""
-        self.writeout_cache()
-        with self.db:
-            self.db.execute("""UPDATE sessions SET end=?, num_cmds=? WHERE
-                            session==?""", (datetime.datetime.now(),
-                            len(self.input_hist_parsed)-1, self.session_number))
-        self.session_number = 0
-
-    def name_session(self, name):
-        """Give the current session a name in the history database."""
-        with self.db:
-            self.db.execute("UPDATE sessions SET remark=? WHERE session==?",
-                            (name, self.session_number))
-
-    def reset(self, new_session=True):
-        """Clear the session history, releasing all object references, and
-        optionally open a new session."""
-        self.output_hist.clear()
-        # The directory history can't be completely empty
-        self.dir_hist[:] = [os.getcwdu()]
-
-        if new_session:
-            if self.session_number:
-                self.end_session()
-            self.input_hist_parsed[:] = [""]
-            self.input_hist_raw[:] = [""]
-            self.new_session()
 
     ## -------------------------------
     ## Methods for retrieving history:
@@ -299,26 +199,6 @@ class HistoryManager(Configurable):
         return self._run_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
                                     raw=raw, output=output)
 
-    def _get_range_session(self, start=1, stop=None, raw=True, output=False):
-        """Get input and output history from the current session. Called by
-        get_range, and takes similar parameters."""
-        input_hist = self.input_hist_raw if raw else self.input_hist_parsed
-
-        n = len(input_hist)
-        if start < 0:
-            start += n
-        if not stop or (stop > n):
-            stop = n
-        elif stop < 0:
-            stop += n
-
-        for i in range(start, stop):
-            if output:
-                line = (input_hist[i], self.output_hist_reprs.get(i))
-            else:
-                line = input_hist[i]
-            yield (0, i, line)
-
     def get_range(self, session=0, start=1, stop=None, raw=True,output=False):
         """Retrieve input by session.
 
@@ -380,6 +260,144 @@ class HistoryManager(Configurable):
         for sess, s, e in extract_hist_ranges(rangestr):
             for line in self.get_range(sess, s, e, raw=raw, output=output):
                 yield line
+
+
+class HistoryManager(HistoryAccessor):
+    """A class to organize all history-related functionality in one place.
+    """
+    # Public interface
+
+    # An instance of the IPython shell we are attached to
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    # Lists to hold processed and raw history. These start with a blank entry
+    # so that we can index them starting from 1
+    input_hist_parsed = List([""])
+    input_hist_raw = List([""])
+    # A list of directories visited during session
+    dir_hist = List()
+    def _dir_hist_default(self):
+        try:
+            return [os.getcwdu()]
+        except OSError:
+            return []
+
+    # A dict of output history, keyed with ints from the shell's
+    # execution count.
+    output_hist = Dict()
+    # The text/plain repr of outputs.
+    output_hist_reprs = Dict()
+
+    # The number of the current session in the history database
+    session_number = CInt()
+    # Should we log output to the database? (default no)
+    db_log_output = Bool(False, config=True)
+    # Write to database every x commands (higher values save disk access & power)
+    #  Values of 1 or less effectively disable caching. 
+    db_cache_size = Int(0, config=True)
+    # The input and output caches
+    db_input_cache = List()
+    db_output_cache = List()
+    
+    # History saving in separate thread
+    save_thread = Instance('IPython.core.history.HistorySavingThread')
+    try:               # Event is a function returning an instance of _Event...
+        save_flag = Instance(threading._Event)
+    except AttributeError:         # ...until Python 3.3, when it's a class.
+        save_flag = Instance(threading.Event)
+    
+    # Private interface
+    # Variables used to store the three last inputs from the user.  On each new
+    # history update, we populate the user's namespace with these, shifted as
+    # necessary.
+    _i00 = Unicode(u'')
+    _i = Unicode(u'')
+    _ii = Unicode(u'')
+    _iii = Unicode(u'')
+
+    # A regex matching all forms of the exit command, so that we don't store
+    # them in the history (it's annoying to rewind the first entry and land on
+    # an exit call).
+    _exit_re = re.compile(r"(exit|quit)(\s*\(.*\))?$")
+
+    def __init__(self, shell=None, config=None, **traits):
+        """Create a new history manager associated with a shell instance.
+        """
+        # We need a pointer back to the shell for various tasks.
+        super(HistoryManager, self).__init__(shell=shell, config=config,
+            **traits)
+        self.save_flag = threading.Event()
+        self.db_input_cache_lock = threading.Lock()
+        self.db_output_cache_lock = threading.Lock()
+        self.save_thread = HistorySavingThread(self)
+        self.save_thread.start()
+
+        self.new_session()
+    
+    def _get_hist_file_name(self, hist_file=None):
+        profile_dir = self.shell.profile_dir.location
+        return os.path.join(profile_dir, 'history.sqlite')
+    
+    def new_session(self, conn=None):
+        """Get a new session number."""
+        if conn is None:
+            conn = self.db
+        
+        with conn:
+            cur = conn.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
+                            NULL, "") """, (datetime.datetime.now(),))
+            self.session_number = cur.lastrowid
+            
+    def end_session(self):
+        """Close the database session, filling in the end time and line count."""
+        self.writeout_cache()
+        with self.db:
+            self.db.execute("""UPDATE sessions SET end=?, num_cmds=? WHERE
+                            session==?""", (datetime.datetime.now(),
+                            len(self.input_hist_parsed)-1, self.session_number))
+        self.session_number = 0
+                            
+    def name_session(self, name):
+        """Give the current session a name in the history database."""
+        with self.db:
+            self.db.execute("UPDATE sessions SET remark=? WHERE session==?",
+                            (name, self.session_number))
+                            
+    def reset(self, new_session=True):
+        """Clear the session history, releasing all object references, and
+        optionally open a new session."""
+        self.output_hist.clear()
+        # The directory history can't be completely empty
+        self.dir_hist[:] = [os.getcwdu()]
+        
+        if new_session:
+            if self.session_number:
+                self.end_session()
+            self.input_hist_parsed[:] = [""]
+            self.input_hist_raw[:] = [""]
+            self.new_session()
+    
+    # ------------------------------
+    # Methods for retrieving history
+    # ------------------------------
+    def _get_range_session(self, start=1, stop=None, raw=True, output=False):
+        """Get input and output history from the current session. Called by
+        get_range, and takes similar parameters."""
+        input_hist = self.input_hist_raw if raw else self.input_hist_parsed
+            
+        n = len(input_hist)
+        if start < 0:
+            start += n
+        if not stop or (stop > n):
+            stop = n
+        elif stop < 0:
+            stop += n
+        
+        for i in range(start, stop):
+            if output:
+                line = (input_hist[i], self.output_hist_reprs.get(i))
+            else:
+                line = input_hist[i]
+            yield (0, i, line)
 
     ## ----------------------------
     ## Methods for storing history:
