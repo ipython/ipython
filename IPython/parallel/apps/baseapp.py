@@ -75,6 +75,7 @@ base_aliases.update({
     'log-to-file' : 'BaseParallelApplication.log_to_file',
     'clean-logs' : 'BaseParallelApplication.clean_logs',
     'log-url' : 'BaseParallelApplication.log_url',
+    'cluster-id' : 'BaseParallelApplication.cluster_id',
 })
 
 base_flags = {
@@ -116,6 +117,22 @@ class BaseParallelApplication(BaseIPythonApplication):
     log_url = Unicode('', config=True,
         help="The ZMQ URL of the iplogger to aggregate logging.")
 
+    cluster_id = Unicode('', config=True,
+        help="""String id to add to runtime files, to prevent name collisions when
+        using multiple clusters with a single profile simultaneously.
+        
+        When set, files will be named like: 'ipcontroller-<cluster_id>-engine.json'
+        
+        Since this is text inserted into filenames, typical recommendations apply:
+        Simple character strings are ideal, and spaces are not recommended (but should
+        generally work).
+        """
+    )
+    def _cluster_id_changed(self, name, old, new):
+        self.name = self.__class__.name
+        if new:
+            self.name += '-%s'%new
+    
     def _config_files_default(self):
         return ['ipcontroller_config.py', 'ipengine_config.py', 'ipcluster_config.py']
     
