@@ -89,6 +89,11 @@ class HistoryAccessor(Configurable):
                         PRIMARY KEY (session, line))""")
         self.db.commit()
 
+    def writeout_cache(self):
+        """Overridden by HistoryManager to dump the cache before certain
+        database lookups."""
+        pass
+
     ## -------------------------------
     ## Methods for retrieving history:
     ## -------------------------------
@@ -119,7 +124,6 @@ class HistoryAccessor(Configurable):
             return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
 
-
     def get_session_info(self, session=0):
         """get info about a session
 
@@ -145,7 +149,6 @@ class HistoryAccessor(Configurable):
 
         query = "SELECT * from sessions where session == ?"
         return self.db.execute(query, (session,)).fetchone()
-
 
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
         """Get the last n lines from the history database.
@@ -198,15 +201,14 @@ class HistoryAccessor(Configurable):
         self.writeout_cache()
         return self._run_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
                                     raw=raw, output=output)
-
-    def get_range(self, session=0, start=1, stop=None, raw=True,output=False):
+    
+    def get_range(self, session, start=1, stop=None, raw=True,output=False):
         """Retrieve input by session.
 
         Parameters
         ----------
         session : int
-            Session number to retrieve. The current session is 0, and negative
-            numbers count back from current session, so -1 is previous session.
+            Session number to retrieve.
         start : int
             First line to retrieve.
         stop : int
@@ -226,11 +228,6 @@ class HistoryAccessor(Configurable):
         (session, line, input) if output is False, or
         (session, line, (input, output)) if output is True.
         """
-        if session == 0 or session==self.session_number:   # Current session
-            return self._get_range_session(start, stop, raw, output)
-        if session < 0:
-            session += self.session_number
-
         if stop:
             lineclause = "line >= ? AND line < ?"
             params = (session, start, stop)
@@ -398,6 +395,39 @@ class HistoryManager(HistoryAccessor):
             else:
                 line = input_hist[i]
             yield (0, i, line)
+    
+    def get_range(self, session, start=1, stop=None, raw=True,output=False):
+        """Retrieve input by session.
+        
+        Parameters
+        ----------
+        session : int
+            Session number to retrieve. The current session is 0, and negative
+            numbers count back from current session, so -1 is previous session.
+        start : int
+            First line to retrieve.
+        stop : int
+            End of line range (excluded from output itself). If None, retrieve
+            to the end of the session.
+        raw : bool
+            If True, return untranslated input
+        output : bool
+            If True, attempt to include output. This will be 'real' Python
+            objects for the current session, or text reprs from previous
+            sessions if db_log_output was enabled at the time. Where no output
+            is found, None is used.
+            
+        Returns
+        -------
+        An iterator over the desired lines. Each line is a 3-tuple, either
+        (session, line, input) if output is False, or
+        (session, line, (input, output)) if output is True.
+        """
+        if session <= 0:
+            session += self.session_number
+        if session==self.session_number:          # Current session
+            return self._get_range_session(start, stop, raw, output)
+        return super(HistoryManager, self).get_range(session, start, stop, raw, output)
 
     ## ----------------------------
     ## Methods for storing history:
