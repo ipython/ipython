@@ -360,6 +360,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         for lp,rp in zip(lports, rports):
             tunnel.ssh_tunnel(lp, rp, self.sshserver, remote_ip, self.sshkey, password)
         
+        self.log.critical("To connect another client to this tunnel, use:")
+        self.log.critical(
+            "--existing --shell={0} --iopub={1} --stdin={2} --hb={3}".format(
+                self.shell_port, self.iopub_port, self.stdin_port,
+                self.hb_port))
+
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
         signal.signal(signal.SIGINT, signal.SIG_DFL)
