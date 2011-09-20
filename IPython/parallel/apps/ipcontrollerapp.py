@@ -174,7 +174,18 @@ class IPControllerApp(BaseParallelApplication):
 
     use_threads = Bool(False, config=True,
         help='Use threads instead of processes for the schedulers',
-        )
+    )
+
+    engine_json_file = Unicode('ipcontroller-engine.json', config=True,
+        help="JSON filename where engine connection info will be stored.")
+    client_json_file = Unicode('ipcontroller-client.json', config=True,
+        help="JSON filename where client connection info will be stored.")
+    
+    def _cluster_id_changed(self, name, old, new):
+        super(IPControllerApp, self)._cluster_id_changed(name, old, new)
+        self.engine_json_file = "%s-engine.json" % self.name
+        self.client_json_file = "%s-client.json" % self.name
+
 
     # internal
     children = List()
@@ -215,7 +226,7 @@ class IPControllerApp(BaseParallelApplication):
         """load config from existing json connector files."""
         c = self.config
         # load from engine config
-        with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-engine.json')) as f:
+        with open(os.path.join(self.profile_dir.security_dir, self.engine_json_file)) as f:
             cfg = json.loads(f.read())
         key = c.Session.key = asbytes(cfg['exec_key'])
         xport,addr = cfg['url'].split('://')
@@ -227,7 +238,7 @@ class IPControllerApp(BaseParallelApplication):
         if not self.engine_ssh_server:
             self.engine_ssh_server = cfg['ssh']
         # load client config
-        with open(os.path.join(self.profile_dir.security_dir, 'ipcontroller-client.json')) as f:
+        with open(os.path.join(self.profile_dir.security_dir, self.client_json_file)) as f:
             cfg = json.loads(f.read())
         assert key == cfg['exec_key'], "exec_key mismatch between engine and client keys"
         xport,addr = cfg['url'].split('://')
@@ -277,11 +288,11 @@ class IPControllerApp(BaseParallelApplication):
                     'url' : "%s://%s:%s"%(f.client_transport, f.client_ip, f.regport),
                     'location' : self.location
                     }
-            self.save_connection_dict('ipcontroller-client.json', cdict)
+            self.save_connection_dict(self.client_json_file, cdict)
             edict = cdict
             edict['url']="%s://%s:%s"%((f.client_transport, f.client_ip, f.regport))
             edict['ssh'] = self.engine_ssh_server
-            self.save_connection_dict('ipcontroller-engine.json', edict)
+            self.save_connection_dict(self.engine_json_file, edict)
 
     #
     def init_schedulers(self):

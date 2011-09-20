@@ -275,19 +275,22 @@ class IPClusterEngines(BaseParallelApplication):
         self.init_launchers()
     
     def init_launchers(self):
-        self.engine_launcher = self.build_launcher(self.engine_launcher_class)
+        self.engine_launcher = self.build_launcher(self.engine_launcher_class, 'EngineSet')
         self.engine_launcher.on_stop(lambda r: self.loop.stop())
     
     def init_signal(self):
         # Setup signals
         signal.signal(signal.SIGINT, self.sigint_handler)
     
-    def build_launcher(self, clsname):
+    def build_launcher(self, clsname, kind=None):
         """import and instantiate a Launcher based on importstring"""
         if '.' not in clsname:
             # not a module, presume it's the raw name in apps.launcher
+            if kind and kind not in clsname:
+                # doesn't match necessary full class name, assume it's
+                # just 'PBS' or 'MPIExec' prefix:
+                clsname = clsname + kind + 'Launcher'
             clsname = 'IPython.parallel.apps.launcher.'+clsname
-        # print repr(clsname)
         try:
             klass = import_item(clsname)
         except (ImportError, KeyError):
@@ -295,16 +298,14 @@ class IPClusterEngines(BaseParallelApplication):
             self.exit(1)
 
         launcher = klass(
-            work_dir=u'.', config=self.config, log=self.log
+            work_dir=u'.', config=self.config, log=self.log,
+            profile_dir=self.profile_dir.location, cluster_id=self.cluster_id,
         )
         return launcher
     
     def start_engines(self):
         self.log.info("Starting %i engines"%self.n)
-        self.engine_launcher.start(
-            self.n,
-            self.profile_dir.location
-        )
+        self.engine_launcher.start(self.n)
 
     def stop_engines(self):
         self.log.info("Stopping Engines...")
@@ -424,14 +425,12 @@ class IPClusterStart(IPClusterEngines):
     aliases = Dict(start_aliases)
 
     def init_launchers(self):
-        self.controller_launcher = self.build_launcher(self.controller_launcher_class)
-        self.engine_launcher = self.build_launcher(self.engine_launcher_class)
+        self.controller_launcher = self.build_launcher(self.controller_launcher_class, 'Controller')
+        self.engine_launcher = self.build_launcher(self.engine_launcher_class, 'EngineSet')
         self.controller_launcher.on_stop(self.stop_launchers)
     
     def start_controller(self):
-        self.controller_launcher.start(
-            self.profile_dir.location
-        )
+        self.controller_launcher.start()
         
     def stop_controller(self):
         # self.log.info("In stop_controller")

@@ -207,8 +207,9 @@ class Configurable(HasTraits):
         for parent in cls.mro():
             # only include parents that are not base classes
             # and are not the class itself
-            if issubclass(parent, Configurable) and \
-                    not parent in (Configurable, SingletonConfigurable, cls):
+            # and have some configurable traits to inherit
+            if parent is not cls and issubclass(parent, Configurable) and \
+                    parent.class_traits(config=True):
                 parents.append(parent)
         
         if parents:
