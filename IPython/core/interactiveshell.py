@@ -68,7 +68,8 @@ from IPython.utils import py3compat
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
-from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
+from IPython.utils.path import (get_home_dir, get_ipython_dir, 
+                            HomeDirError, getcwdu)
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
@@ -521,7 +522,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # keep track of where we started running (mainly for crash post-mortem)
         # This is not being used anywhere currently.
-        self.starting_dir = os.getcwdu()
+        self.starting_dir = getcwdu()
 
         # Indentation management
         self.indent_current_nsp = 0

@@ -31,6 +31,7 @@ from __future__ import generators
 
 import sys, warnings, os, fnmatch, glob, shutil, codecs
 from hashlib import md5
+from IPython.utils.path import getcwdu
 
 __version__ = '2.2'
 __all__ = ['path']
@@ -93,7 +94,7 @@ class path(unicode):
 
     def getcwd(cls):
         """ Return the current working directory as a path object. """
-        return cls(os.getcwdu())
+        return cls(getcwdu())
     getcwd = classmethod(getcwd)
 
 
@@ -245,7 +246,7 @@ class path(unicode):
         """ Return this path as a relative path,
         based from the current working directory.
         """
-        cwd = self.__class__(os.getcwdu())
+        cwd = self.__class__(getcwdu())
         return cwd.relpathto(self)
 
     def relpathto(self, dest):

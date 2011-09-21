@@ -16,7 +16,7 @@ from StringIO import StringIO
 
 import nose.tools as nt
 
-from IPython.utils.path import get_long_path_name
+from IPython.utils.path import get_long_path_name, getcwdu
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
@@ -301,9 +301,9 @@ def test_parse_options():
     
 def test_dirops():
     """Test various directory handling operations."""
-    # curpath = lambda :os.path.splitdrive(os.getcwdu())[1].replace('\\','/')
-    curpath = os.getcwdu
-    startdir = os.getcwdu()
+    # curpath = lambda :os.path.splitdrive(getcwdu())[1].replace('\\','/')
+    curpath = getcwdu
+    startdir = getcwdu()
     ipdir = _ip.ipython_dir
     try:
         _ip.magic('cd "%s"' % ipdir)

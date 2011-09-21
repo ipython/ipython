@@ -7,15 +7,16 @@ import tempfile
 from IPython.core.application import BaseIPythonApplication
 from IPython.testing import decorators as testdec
 from IPython.utils import py3compat
+from IPython.utils.path import getcwdu
 
 @testdec.onlyif_unicode_paths
 def test_unicode_cwd():
     """Check that IPython starts with non-ascii characters in the path."""
     wd = tempfile.mkdtemp(suffix=u"€")
     
-    old_wd = os.getcwdu()
+    old_wd = getcwdu()
     os.chdir(wd)
-    #raise Exception(repr(os.getcwdu()))
+    #raise Exception(repr(getcwdu()))
     try:
         app = BaseIPythonApplication()
         # The lines below are copied from Application.initialize()

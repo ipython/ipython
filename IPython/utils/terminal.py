@@ -24,6 +24,7 @@ import os
 import struct
 import sys
 import warnings
+from IPython.utils.path import getcwdu
 
 #-----------------------------------------------------------------------------
 # Code
@@ -102,7 +103,7 @@ if sys.platform == 'win32':
 
             try:
                 # Cannot be on network share when issuing system commands
-                curr = os.getcwdu()
+                curr = getcwdu()
                 os.chdir("C:")
                 ret = os.system("title " + title)
             finally:

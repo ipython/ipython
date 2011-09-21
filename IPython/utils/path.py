@@ -106,7 +106,7 @@ def get_py_filename(name, force_win32=None):
     if os.path.isfile(name):
         return name
     else:
-        raise IOError,'File `%s` not found.' % name
+        raise IOError('File `%s` not found.' % name)
 
 
 def filefind(filename, path_dirs=None):
@@ -475,4 +475,16 @@ def check_for_old_config(ipython_dir=None):
   If you need to leave the old config files in place for an older version of
   IPython and want to suppress this warning message, set
   `c.InteractiveShellApp.ignore_old_config=True` in the new config.""")
-
+  
+def getcwdu():
+    """Graciously handles cases when PWD does not exist.
+    
+    Defaults to home directory eliminating the OSError exception.
+    """
+    try:
+        current_dir_path = os.getcwdu()
+    except OSError ,e :
+        if e.errno is 2:
+            warn.warn("Path does not exist , defaulting to Home Directory")
+            current_dir_path = get_home_dir()
+    return current_dir_path

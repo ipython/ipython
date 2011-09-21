@@ -38,7 +38,7 @@ from IPython.config.configurable import Configurable
 from IPython.config.loader import Config
 from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
-from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
+from IPython.utils.path import get_ipython_dir, get_ipython_package_dir, getcwdu
 from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict
 from IPython.utils import py3compat
 
@@ -101,7 +101,7 @@ class BaseIPythonApplication(Application):
 
     config_file_paths = List(Unicode)
     def _config_file_paths_default(self):
-        return [os.getcwdu()]
+        return [getcwdu()]
 
     profile = Unicode(u'', config=True,
         help="""The IPython profile to use."""
