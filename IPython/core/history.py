@@ -27,6 +27,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 from IPython.utils.traitlets import Bool, Dict, Instance, Int, CInt, List, Unicode
 from IPython.utils.warn import warn
+from IPython.utils.path import getcwdu
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -47,7 +48,7 @@ class HistoryManager(Configurable):
     dir_hist = List()
     def _dir_hist_default(self):
         try:
-            return [os.getcwdu()]
+            return [getcwdu()]
         except OSError:
             return []
 
@@ -176,7 +177,7 @@ class HistoryManager(Configurable):
         optionally open a new session."""
         self.output_hist.clear()
         # The directory history can't be completely empty
-        self.dir_hist[:] = [os.getcwdu()]
+        self.dir_hist[:] = [getcwdu()]
         
         if new_session:
             if self.session_number:

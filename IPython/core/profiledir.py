@@ -27,7 +27,7 @@ import sys
 
 from IPython.config.configurable import Configurable
 from IPython.config.loader import Config
-from IPython.utils.path import get_ipython_package_dir, expand_path
+from IPython.utils.path import get_ipython_package_dir, expand_path,getcwdu
 from IPython.utils.traitlets import List, Unicode, Bool
 
 #-----------------------------------------------------------------------------
@@ -167,7 +167,7 @@ class ProfileDir(Configurable):
         is not found, a :class:`ProfileDirError` exception will be raised.
 
         The search path algorithm is:
-        1. ``os.getcwdu()``
+        1. ``getcwdu()``
         2. ``ipython_dir``
 
         Parameters
@@ -179,7 +179,7 @@ class ProfileDir(Configurable):
             will be "profile_<profile>".
         """
         dirname = u'profile_' + name
-        paths = [os.getcwdu(), ipython_dir]
+        paths = [getcwdu(), ipython_dir]
         for p in paths:
             profile_dir = os.path.join(p, dirname)
             if os.path.isdir(profile_dir):

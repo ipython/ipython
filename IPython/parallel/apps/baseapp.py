@@ -36,7 +36,7 @@ from IPython.core.application import (
     base_aliases as base_ip_aliases,
     base_flags as base_ip_flags
 )
-from IPython.utils.path import expand_path
+from IPython.utils.path import expand_path, getcwdu
 
 from IPython.utils.traitlets import Unicode, Bool, Instance, Dict, List
 
@@ -102,7 +102,7 @@ class BaseParallelApplication(BaseIPythonApplication):
         # temporarily override default_log_level to INFO
         return logging.INFO
 
-    work_dir = Unicode(os.getcwdu(), config=True,
+    work_dir = Unicode(getcwdu(), config=True,
         help='Set the working dir for the process.'
     )
     def _work_dir_changed(self, name, old, new):
@@ -152,7 +152,7 @@ class BaseParallelApplication(BaseIPythonApplication):
         
     def to_work_dir(self):
         wd = self.work_dir
-        if unicode(wd) != os.getcwdu():
+        if unicode(wd) != getcwdu():
             os.chdir(wd)
             self.log.info("Changing to working dir: %s" % wd)
         # This is the working dir by now.

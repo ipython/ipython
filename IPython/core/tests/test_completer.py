@@ -16,6 +16,7 @@ import nose.tools as nt
 from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.path import getcwdu
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -159,7 +160,7 @@ def test_abspath_file_completions():
 
 def test_local_file_completions():
     ip = get_ipython()
-    cwd = os.getcwdu()
+    cwd = getcwdu()
     try:
         with TemporaryDirectory() as tmpdir:
             os.chdir(tmpdir)

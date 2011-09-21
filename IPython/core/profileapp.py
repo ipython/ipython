@@ -29,7 +29,7 @@ from IPython.core.application import (
     BaseIPythonApplication, base_flags, base_aliases
 )
 from IPython.core.profiledir import ProfileDir
-from IPython.utils.path import get_ipython_dir
+from IPython.utils.path import get_ipython_dir,getcwdu
 from IPython.utils.traitlets import Unicode, Bool, Dict
 
 #-----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ class ProfileList(Application):
     
     def list_profile_dirs(self):
         # Find the search paths
-        paths = [os.getcwdu(), self.ipython_dir]
+        paths = [getcwdu(), self.ipython_dir]
 
         self.log.warn('Searching for IPython profiles in paths: %r' % paths)
         for path in paths:
