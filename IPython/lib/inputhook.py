@@ -15,8 +15,13 @@ Inputhook management for GUI event loop integration.
 #-----------------------------------------------------------------------------
 
 import ctypes
+import os
 import sys
 import warnings
+if os.name == 'posix':
+    import select
+elif sys.platform == 'win32':
+    import msvcrt
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -33,8 +38,18 @@ GUI_GLUT = 'glut'
 GUI_PYGLET = 'pyglet'
 
 #-----------------------------------------------------------------------------
-# Utility classes
+# Utilities
 #-----------------------------------------------------------------------------
+
+def stdin_ready():
+    if os.name == 'posix':
+        infds, outfds, erfds = select.select([sys.stdin],[],[],0)
+        if infds:
+            return True
+        else:
+            return False
+    elif sys.platform == 'win32':
+        return msvcrt.kbhit()
 
 
 #-----------------------------------------------------------------------------
