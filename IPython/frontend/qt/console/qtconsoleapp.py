@@ -49,6 +49,7 @@ from IPython.zmq.ipkernel import (
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 
+import application_rc
 
 #-----------------------------------------------------------------------------
 # Network Constants
@@ -183,6 +184,9 @@ class MainWindow(QtGui.QMainWindow):
                     box.addButton(closeall, QtGui.QMessageBox.YesRole)
                     box.setDefaultButton(closeall)
                     box.setEscapeButton(cancel)
+                    pixmap = QtGui.QPixmap(':/icon/IPythonConsole.png')
+                    scaledpixmap = pixmap.scaledToWidth(64,mode=QtCore.Qt.SmoothTransformation)
+                    box.setIconPixmap(scaledpixmap)
                     reply = box.exec_()
                     if reply == 1: # close All
                         kernel_manager.shutdown_kernel()
@@ -522,6 +526,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     def init_qt_elements(self):
         # Create the widget.
         self.app = QtGui.QApplication([])
+        pixmap=QtGui.QPixmap(':/icon/IPythonConsole.png')
+        icon=QtGui.QIcon(pixmap)
+        QtGui.QApplication.setWindowIcon(icon)
+
         local_kernel = (not self.existing) or self.ip in LOCAL_IPS
         self.widget = self.widget_factory(config=self.config,
                                         local_kernel=local_kernel)
