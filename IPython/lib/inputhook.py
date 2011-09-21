@@ -18,10 +18,6 @@ import ctypes
 import os
 import sys
 import warnings
-if os.name == 'posix':
-    import select
-elif sys.platform == 'win32':
-    import msvcrt
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -43,13 +39,16 @@ GUI_PYGLET = 'pyglet'
 
 def stdin_ready():
     if os.name == 'posix':
+        import select
         infds, outfds, erfds = select.select([sys.stdin],[],[],0)
         if infds:
             return True
         else:
             return False
-    elif sys.platform == 'win32':
+    elif os.name == 'nt':
+        import msvcrt
         return msvcrt.kbhit()
+    return True # assume there's something so that we won't wait forever
 
 
 #-----------------------------------------------------------------------------
