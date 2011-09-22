@@ -142,6 +142,7 @@ else:
     def doctest_refactor_print(func_or_str):
         return func_or_str
 
+
     # Abstract u'abc' syntax:
     @_modify_str_or_docstring
     def u_format(s):
@@ -149,3 +150,14 @@ else:
         
         Accepts a string or a function, so it can be used as a decorator."""
         return s.format(u='u')
+
+    def execfile(fname, glob, loc=None):
+        loc = loc if (loc is not None) else glob
+        scripttext = file(fname).read()
+        #compile converts unicode filename to str assuming
+        #ascii. Let's do the conversion before calling compile
+        if isinstance(fname, unicode):
+            filename = unicode_to_str(fname)
+        else:
+            filename = fname
+        exec compile(scripttext, filename, 'exec') in glob, loc
