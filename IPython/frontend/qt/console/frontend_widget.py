@@ -324,6 +324,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
             self._show_interpreter_prompt_for_reply(msg)
             self.executed.emit(msg)
+        else:
+            super(FrontendWidget, self)._handle_execute_reply(msg)
 
     def _handle_input_request(self, msg):
         """ Handle requests for raw_input.
