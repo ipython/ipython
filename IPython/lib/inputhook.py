@@ -197,31 +197,31 @@ class InputHookManager(object):
         """
         from IPython.external.qt_for_kernel import QtCore, QtGui
 
-        if 'pyreadline' in sys.modules:
-            # see IPython GitHub Issue #281 for more info on this issue
-            # Similar intermittent behavior has been reported on OSX,
-            # but not consistently reproducible
-            warnings.warn("""PyReadline's inputhook can conflict with Qt, causing delays
-            in interactive input. If you do see this issue, we recommend using another GUI
-            toolkit if you can, or disable readline with the configuration option
-            'TerminalInteractiveShell.readline_use=False', specified in a config file or
-            at the command-line""",
-            RuntimeWarning)
-        
-        # PyQt4 has had this since 4.3.1.  In version 4.2, PyOS_InputHook
-        # was set when QtCore was imported, but if it ever got removed,
-        # you couldn't reset it.  For earlier versions we can
-        # probably implement a ctypes version.
-        try:
-            QtCore.pyqtRestoreInputHook()
-        except AttributeError:
-            pass
-
-        self._current_gui = GUI_QT4
         if app is None:
             app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtGui.QApplication([" "])
+
+        # Always use the following input hook instead of PyQt4's
+        # default one, as it interacts better with readline packages
+        # (issue #481)
+
+        def inputhook_qt4():
+            try:
+                app.processEvents(QtCore.QEventLoop.AllEvents, 300)
+                if not stdin_ready():
+                    timer = QtCore.QTimer()
+                    timer.timeout.connect(app.quit)
+                    while not stdin_ready():
+                        timer.start(50)
+                        app.exec_()
+                        timer.stop()
+            except KeyboardInterrupt:
+                pass
+            return 0
+        self.set_inputhook(inputhook_qt4)
+
+        self._current_gui = GUI_QT4
         app._in_event_loop = True
         self._apps[GUI_QT4] = app
         return app
