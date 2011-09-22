@@ -1370,7 +1370,11 @@ Currently the magic system has the following functions:\n"""
         else:  # called to run a program by %run -p
             try:
                 filename = get_py_filename(arg_lst[0])
-            except IOError,msg:
+            except IOError as e:
+                try:
+                    msg = str(e)
+                except UnicodeError:
+                    msg = e.message
                 error(msg)
                 return
 
@@ -1565,7 +1569,11 @@ Currently the magic system has the following functions:\n"""
             warn('you must provide at least a filename.')
             print '\n%run:\n',oinspect.getdoc(self.magic_run)
             return
-        except IOError,msg:
+        except IOError as e:
+            try:
+                msg = str(e)
+            except UnicodeError:
+                msg = e.message
             error(msg)
             return
 
