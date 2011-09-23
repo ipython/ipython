@@ -4,6 +4,10 @@
 An HTML Notebook IPython
 =========================
 
+.. seealso::
+
+    :ref:`Installation requirements <installnotebook>` for the Notebook.
+
 The IPython Notebook consists of two related components:
 
 * An JSON based Notebook document format for recording and distributing

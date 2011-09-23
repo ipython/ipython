@@ -111,7 +111,15 @@ if os.name == 'nt':
 else:
     have['zmq'] = test_for('zmq', '2.1.4')
 have['qt'] = test_for('IPython.external.qt')
-have['tornado'] = test_for('tornado')
+
+try:
+    import tornado
+    if tornado.version_info < (2,1,0):
+        raise ImportError
+except ImportError:
+    have['tornado'] = False
+else:
+    have['tornado'] = True
 
 #-----------------------------------------------------------------------------
 # Functions and classes
