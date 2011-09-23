@@ -45,6 +45,7 @@ import nose.plugins.builtin
 from nose.core import TestProgram
 
 # Our own imports
+from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv
 from IPython.utils.sysinfo import sys_info
@@ -81,18 +82,38 @@ warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
 #-----------------------------------------------------------------------------
 # Logic for skipping doctests
 #-----------------------------------------------------------------------------
+def extract_version(mod):
+    return mod.__version__
 
-def test_for(mod, min_version=None):
-    """Test to see if mod is importable."""
+def test_for(item, min_version=None, callback=extract_version):
+    """Test to see if item is importable, and optionally check against a minimum
+    version.
+    
+    If min_version is given, the default behavior is to check against the
+    `__version__` attribute of the item, but specifying `callback` allows you to
+    extract the value you are interested in. e.g::
+    
+        In [1]: import sys
+        
+        In [2]: from IPython.testing.iptest import test_for
+        
+        In [3]: test_for('sys', (2,6), callback=lambda sys: sys.version_info)
+        Out[3]: True
+    
+    """
     try:
-        __import__(mod)
+        check = import_item(item)
     except (ImportError, RuntimeError):
-        # GTK reports Runtime error if it can't be initialized even if  it's
+        # GTK reports Runtime error if it can't be initialized even if it's
         # importable.
         return False
     else:
         if min_version:
-            return sys.modules[mod].__version__ >= min_version
+            if callback:
+                # extra processing step to get version to compare
+                check = callback(check)
+            
+            return check >= min_version
         else:
             return True
 
@@ -102,24 +123,27 @@ have = {}
 
 have['curses'] = test_for('_curses')
 have['matplotlib'] = test_for('matplotlib')
-have['pexpect'] = test_for('pexpect')
+have['pexpect'] = test_for('IPython.external.pexpect')
 have['pymongo'] = test_for('pymongo')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
-if os.name == 'nt':
-    have['zmq'] = test_for('zmq', '2.1.7')
-else:
-    have['zmq'] = test_for('zmq', '2.1.4')
 have['qt'] = test_for('IPython.external.qt')
 
-try:
-    import tornado
-    if tornado.version_info < (2,1,0):
-        raise ImportError
-except ImportError:
-    have['tornado'] = False
+have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
+
+if os.name == 'nt':
+    min_zmq = (2,1,7)
 else:
-    have['tornado'] = True
+    min_zmq = (2,1,4)
+
+def version_tuple(mod):
+    "turn '2.1.9' into (2,1,9), and '2.1dev' into (2,1,999)"
+    # turn 'dev' into 999, because Python3 rejects str-int comparisons
+    vs = mod.__version__.replace('dev', '.999')
+    tup = tuple([int(v) for v in vs.split('.') ])
+    return tup
+
+have['zmq'] = test_for('zmq', min_zmq, version_tuple)
 
 #-----------------------------------------------------------------------------
 # Functions and classes
