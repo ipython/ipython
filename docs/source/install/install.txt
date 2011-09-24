@@ -336,6 +336,7 @@ pygments
 The syntax-highlighting in ``ipython qtconsole`` is done with the pygments_
 project, which is easy_install-able.
 
+.. _installnotebook:
 
 Dependencies for the IPython HTML notebook
 ==========================================
@@ -352,14 +353,11 @@ the HTML notebook requires ZeroMQ and PyZMQ.
 Tornado
 -------
 
-The IPython notebook uses the Tornado_ project for its HTTP server.  As of this
-writing, we require a development version from github, as version 2.0 is *not
-sufficient*.  You can either clone their git repository yourself and install it
-manually, or install directly from github with::
+The IPython notebook uses the Tornado_ project for its HTTP server.  Tornado 2.1
+is required, in order to support current versions of browsers, due to an update
+to the websocket protocol.
 
-    easy_install https://github.com/facebook/tornado/tarball/master
 
-    
 MathJax
 -------
 
