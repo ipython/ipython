@@ -103,44 +103,110 @@ class MainWindow(QtGui.QMainWindow):
         # it with possible action, don't do it on other platform
         # as some user might not want the menu bar, or give them
         # an option to remove it
-        if sys.platform == 'darwin':
-            #create menu in the order they should appear in the menu bar
-            self.fileMenu = self.menuBar().addMenu("File")
-            self.editMenu = self.menuBar().addMenu("Edit")
-            self.fontMenu = self.menuBar().addMenu("Font")
-            self.windowMenu = self.menuBar().addMenu("Window")
-            self.magicMenu = self.menuBar().addMenu("Magic")
 
-            # please keep the Help menu in Mac Os even if empty. It will
-            # automatically contain a search field to search inside menus and
-            # please keep it spelled in English, as long as Qt Doesn't support
-            # a QAction.MenuRole like HelpMenuRole otherwise it will loose
-            # this search field fonctionnality
+    def initMenuBar(self):
+        #create menu in the order they should appear in the menu bar
+        self.fileMenu = self.menuBar().addMenu("File")
+        self.editMenu = self.menuBar().addMenu("Edit")
+        self.fontMenu = self.menuBar().addMenu("Font")
+        self.windowMenu = self.menuBar().addMenu("Window")
+        self.magicMenu = self.menuBar().addMenu("Magic")
 
-            self.helpMenu = self.menuBar().addMenu("Help")
+        # please keep the Help menu in Mac Os even if empty. It will
+        # automatically contain a search field to search inside menus and
+        # please keep it spelled in English, as long as Qt Doesn't support
+        # a QAction.MenuRole like HelpMenuRole otherwise it will loose
+        # this search field fonctionnality
 
-            # sould wrap every line of the following block into a try/except,
-            # as we are not sure of instanciating a _frontend which support all
-            # theses actions, but there might be a better way
+        self.helpMenu = self.menuBar().addMenu("Help")
 
+        # sould wrap every line of the following block into a try/except,
+        # as we are not sure of instanciating a _frontend which support all
+        # theses actions, but there might be a better way
+        try:
             self.fileMenu.addAction(self._frontend.print_action)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.fileMenu.addAction(self._frontend.export_action)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.fileMenu.addAction(self._frontend.select_all_action)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
 
+        try:
             self.editMenu.addAction(self._frontend.undo_action)
+            self._frontend.undo_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.editMenu.addAction(self._frontend.redo_action)
+            self._frontend.redo_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
 
+        try:
             self.fontMenu.addAction(self._frontend.increase_font_size)
-            self.fontMenu.addAction(self._frontend.decrease_font_size)
-            self.fontMenu.addAction(self._frontend.reset_font_size)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
 
+        try:
+            self.fontMenu.addAction(self._frontend.decrease_font_size)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
+            self.fontMenu.addAction(self._frontend.reset_font_size)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.magicMenu.addAction(self._frontend.reset_action)
+            self._frontend.reset_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.magicMenu.addAction(self._frontend.history_action)
+            self._frontend.history_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.magicMenu.addAction(self._frontend.save_action)
+            self._frontend.save_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.magicMenu.addAction(self._frontend.clear_action)
+            self._frontend.clear_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.magicMenu.addAction(self._frontend.who_action)
+            self._frontend.who_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.magicMenu.addAction(self._frontend.who_ls_action)
+            self._frontend.who_ls_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
+        try:
             self.magicMenu.addAction(self._frontend.whos_action)
+            self._frontend.whos_action.setEnabled(True)
+        except AttributeError:
+            print "trying to add unexisting action, skipping"
+
 
     #---------------------------------------------------------------------------
     # QWidget interface
@@ -537,6 +603,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.window = MainWindow(self.app, self.widget, self.existing,
                                 may_close=local_kernel,
                                 confirm_exit=self.confirm_exit)
+        self.window.initMenuBar()
         self.window.setWindowTitle('Python' if self.pure else 'IPython')
 
     def init_colors(self):

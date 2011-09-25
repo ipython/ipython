@@ -35,12 +35,14 @@ class HistoryConsoleWidget(ConsoleWidget):
                 self,
                 statusTip="show command history",
                 triggered=self.history_magic)
+        self.history_action.setDisabled(True)
         self.addAction(self.history_action)
 
         self.save_action = QtGui.QAction("Export History ",
                 self,
                 statusTip="Export History as Python File",
                 triggered=self.save_magic)
+        self.save_action.setDisabled(True)
         self.addAction(self.save_action)
 
     #---------------------------------------------------------------------------
