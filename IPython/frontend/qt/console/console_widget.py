@@ -279,6 +279,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 shortcut="Ctrl+Z",
                 statusTip="Undo last action if possible",
                 triggered=self._control.undo)
+        self.undo_action.setDisabled(True)
         self.addAction(self.undo_action)
 
         self.redo_action = QtGui.QAction("Redo",
@@ -286,36 +287,42 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 shortcut="Ctrl+Shift+Z",
                 statusTip="Redo last action if possible",
                 triggered=self._control.redo)
+        self.redo_action.setDisabled(True)
         self.addAction(self.redo_action)
 
         self.reset_action = QtGui.QAction("Reset",
                 self,
                 statusTip="Clear all varible from workspace",
                 triggered=self.reset_magic)
+        self.reset_action.setDisabled(True)
         self.addAction(self.reset_action)
 
         self.clear_action = QtGui.QAction("Clear",
                 self,
                 statusTip="Clear the console",
                 triggered=self.clear_magic)
+        self.clear_action.setDisabled(True)
         self.addAction(self.clear_action)
 
         self.who_action = QtGui.QAction("Who",
                 self,
                 statusTip="List interactive variable",
                 triggered=self.who_magic)
+        self.who_action.setDisabled(True)
         self.addAction(self.who_action)
 
         self.whos_action = QtGui.QAction("Whos",
                 self,
                 statusTip="List interactive variable with detail",
                 triggered=self.whos_magic)
+        self.whos_action.setDisabled(True)
         self.addAction(self.whos_action)
 
         self.who_ls_action = QtGui.QAction("Who ls",
                 self,
                 statusTip="Return a list of interactive variable",
                 triggered=self.who_ls_magic)
+        self.who_ls_action.setDisabled(True)
         self.addAction(self.who_ls_action)
 
 
