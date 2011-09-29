@@ -19,17 +19,12 @@ from __future__ import print_function
 import subprocess as sp
 import sys
 
-# Third-party
-# We ship our own copy of pexpect (it's a single file) to minimize dependencies
-# for users, but it's only used if we don't find the system copy.
-try:
-    import pexpect
-except ImportError:
-    from IPython.external import pexpect
+from IPython.external import pexpect
 
 # Our own
 from .autoattr import auto_attr
 from ._process_common import getoutput
+from IPython.utils import text
 
 #-----------------------------------------------------------------------------
 # Function definitions
@@ -132,6 +127,9 @@ class ProcessHandler(object):
         -------
         int : child's exitstatus
         """
+        # Get likely encoding for the output.
+        enc = text.getdefaultencoding()
+        
         pcmd = self._make_cmd(cmd)
         # Patterns to match on the output, for pexpect.  We read input and
         # allow either a short timeout or EOF
@@ -155,7 +153,7 @@ class ProcessHandler(object):
                 # res is the index of the pattern that caused the match, so we
                 # know whether we've finished (if we matched EOF) or not
                 res_idx = child.expect_list(patterns, self.read_timeout)
-                print(child.before[out_size:], end='')
+                print(child.before[out_size:].decode(enc, 'replace'), end='')
                 flush()
                 if res_idx==EOF_index:
                     break
@@ -171,7 +169,7 @@ class ProcessHandler(object):
             try:
                 out_size = len(child.before)
                 child.expect_list(patterns, self.terminate_timeout)
-                print(child.before[out_size:], end='')
+                print(child.before[out_size:].decode(enc, 'replace'), end='')
                 sys.stdout.flush()
             except KeyboardInterrupt:
                 # Impatient users tend to type it multiple times
