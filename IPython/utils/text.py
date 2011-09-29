@@ -47,7 +47,7 @@ def getdefaultencoding():
     and usually ASCII.
     """
     enc = sys.stdin.encoding
-    if not enc:
+    if not enc or enc=='ascii':
         try:
             # There are reports of getpreferredencoding raising errors
             # in some cases, which may well be fixed, but let's be conservative here.
