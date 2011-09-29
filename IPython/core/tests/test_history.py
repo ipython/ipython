@@ -39,6 +39,9 @@ def test_history():
             
             nt.assert_equal(ip.history_manager.input_hist_raw, [''] + hist)
             
+            # Check whether specifying a range beyond the end of the current 
+            # session results in an error (gh-804)
+            ip.magic('%hist 2-500')
             
             # New session
             ip.history_manager.reset()
