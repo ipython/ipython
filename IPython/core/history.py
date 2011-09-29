@@ -396,7 +396,7 @@ class HistoryManager(HistoryAccessor):
                 line = input_hist[i]
             yield (0, i, line)
     
-    def get_range(self, session, start=1, stop=None, raw=True,output=False):
+    def get_range(self, session=0, start=1, stop=None, raw=True,output=False):
         """Retrieve input by session.
         
         Parameters
