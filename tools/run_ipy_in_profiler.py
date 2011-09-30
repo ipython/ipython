@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """XXX - What exactly is the use of this script?
 
 I (fperez) tried it quickly and it doesn't work in its current form.  Either it
