@@ -184,17 +184,22 @@ class MainWindow(QtGui.QMainWindow):
             print "trying to add unexisting action (reset), skipping"
 
         try:
-            self.magicMenu.addAction(self._frontend.history_action)
-            self._frontend.history_action.setEnabled(True)
+            self.history_action = QtGui.QAction("History",
+                    self,
+                    statusTip="show command history",
+                    triggered=self._frontend.history_magic)
+            self.magicMenu.addAction(self.history_action)
         except AttributeError:
             print "trying to add unexisting action (history), skipping"
 
         try:
-            self.magicMenu.addAction(self._frontend.save_action)
-            self._frontend.save_action.setEnabled(True)
+            self.save_action = QtGui.QAction("Export History ",
+                    self,
+                    statusTip="Export History as Python File",
+                    triggered=self._frontend.save_magic)
+            self.magicMenu.addAction(self.save_action)
         except AttributeError:
             print "trying to add unexisting action (save), skipping"
-            self._frontend.reset_action.setEnabled(True)
 
         try:
             self.clear_action = QtGui.QAction("Clear",

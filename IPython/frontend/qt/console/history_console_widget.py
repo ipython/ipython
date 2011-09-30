@@ -31,20 +31,6 @@ class HistoryConsoleWidget(ConsoleWidget):
         self._history_index = 0
         self._history_prefix = ''
 
-        self.history_action = QtGui.QAction("History",
-                self,
-                statusTip="show command history",
-                triggered=self.history_magic)
-        self.history_action.setDisabled(True)
-        self.addAction(self.history_action)
-
-        self.save_action = QtGui.QAction("Export History ",
-                self,
-                statusTip="Export History as Python File",
-                triggered=self.save_magic)
-        self.save_action.setDisabled(True)
-        self.addAction(self.save_action)
-
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
