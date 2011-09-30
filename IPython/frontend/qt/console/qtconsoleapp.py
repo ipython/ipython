@@ -139,14 +139,23 @@ class MainWindow(QtGui.QMainWindow):
             print "trying to add unexisting action, skipping"
 
         try:
-            self.editMenu.addAction(self._frontend.undo_action)
-            self._frontend.undo_action.setEnabled(True)
+            self.undo_action = QtGui.QAction("Undo",
+                    self,
+                    shortcut="Ctrl+Z",
+                    statusTip="Undo last action if possible",
+                    triggered=self._frontend.undo)
+
+            self.editMenu.addAction(self.undo_action)
         except AttributeError:
             print "trying to add unexisting action, skipping"
 
         try:
-            self.editMenu.addAction(self._frontend.redo_action)
-            self._frontend.redo_action.setEnabled(True)
+            self.redo_action = QtGui.QAction("Redo",
+                self,
+                shortcut="Ctrl+Shift+Z",
+                statusTip="Redo last action if possible",
+                triggered=self._frontend.redo)
+            self.editMenu.addAction(self.redo_action)
         except AttributeError:
             print "trying to add unexisting action, skipping"
 
@@ -166,46 +175,62 @@ class MainWindow(QtGui.QMainWindow):
             print "trying to add unexisting action, skipping"
 
         try:
-            self.magicMenu.addAction(self._frontend.reset_action)
-            self._frontend.reset_action.setEnabled(True)
+            self.reset_action = QtGui.QAction("Reset",
+                    self,
+                    statusTip="Clear all varible from workspace",
+                    triggered=self._frontend.reset_magic)
+            self.magicMenu.addAction(self.reset_action)
         except AttributeError:
-            print "trying to add unexisting action, skipping"
+            print "trying to add unexisting action (reset), skipping"
 
         try:
             self.magicMenu.addAction(self._frontend.history_action)
             self._frontend.history_action.setEnabled(True)
         except AttributeError:
-            print "trying to add unexisting action, skipping"
+            print "trying to add unexisting action (history), skipping"
 
         try:
             self.magicMenu.addAction(self._frontend.save_action)
             self._frontend.save_action.setEnabled(True)
         except AttributeError:
-            print "trying to add unexisting action, skipping"
+            print "trying to add unexisting action (save), skipping"
+            self._frontend.reset_action.setEnabled(True)
 
         try:
-            self.magicMenu.addAction(self._frontend.clear_action)
-            self._frontend.clear_action.setEnabled(True)
+            self.clear_action = QtGui.QAction("Clear",
+                    self,
+                    statusTip="Clear the console",
+                    triggered=self._frontend.clear_magic)
+            self.magicMenu.addAction(self.clear_action)
         except AttributeError:
             print "trying to add unexisting action, skipping"
 
         try:
-            self.magicMenu.addAction(self._frontend.who_action)
-            self._frontend.who_action.setEnabled(True)
+            self.who_action = QtGui.QAction("Who",
+                    self,
+                    statusTip="List interactive variable",
+                    triggered=self._frontend.who_magic)
+            self.magicMenu.addAction(self.who_action)
         except AttributeError:
-            print "trying to add unexisting action, skipping"
+            print "trying to add unexisting action (who), skipping"
 
         try:
-            self.magicMenu.addAction(self._frontend.who_ls_action)
-            self._frontend.who_ls_action.setEnabled(True)
+            self.who_ls_action = QtGui.QAction("Who ls",
+                    self,
+                    statusTip="Return a list of interactive variable",
+                    triggered=self._frontend.who_ls_magic)
+            self.magicMenu.addAction(self.who_ls_action)
         except AttributeError:
-            print "trying to add unexisting action, skipping"
+            print "trying to add unexisting action (who_ls), skipping"
 
         try:
-            self.magicMenu.addAction(self._frontend.whos_action)
-            self._frontend.whos_action.setEnabled(True)
+            self.whos_action = QtGui.QAction("Whos",
+                    self,
+                    statusTip="List interactive variable with detail",
+                    triggered=self._frontend.whos_magic)
+            self.magicMenu.addAction(self.whos_action)
         except AttributeError:
-            print "trying to add unexisting action, skipping"
+            print "trying to add unexisting action (whos), skipping"
 
 
     #---------------------------------------------------------------------------
