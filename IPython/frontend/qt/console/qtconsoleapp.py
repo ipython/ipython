@@ -99,10 +99,9 @@ class MainWindow(QtGui.QMainWindow):
         self._confirm_exit = confirm_exit
         self.setCentralWidget(frontend)
 
-        # MenuBar is always present on Mac Os, so let's populate
-        # it with possible action, don't do it on other platform
-        # as some user might not want the menu bar, or give them
-        # an option to remove it
+    # MenuBar is always present on Mac Os, so let's populate it with possible
+    # action, don't do it on other platform as some user might not want the
+    # menu bar, or give them an option to remove it
 
     def initMenuBar(self):
         #create menu in the order they should appear in the menu bar
