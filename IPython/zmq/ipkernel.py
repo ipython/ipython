@@ -624,6 +624,7 @@ class OSXKernel(TkKernel):
             self.do_one_iteration()
             # and back:
             sys.excepthook = handle_int
+        
         t = TimerMac(poll_interval)
         t.add_callback(doi)
         t.start()
@@ -651,6 +652,9 @@ class OSXKernel(TkKernel):
             except KeyboardInterrupt:
                 # Ctrl-C shouldn't crash the kernel
                 io.raw_print("KeyboardInterrupt caught in kernel")
+            finally:
+                # ensure excepthook is restored
+                sys.excepthook = real_excepthook
 
 
 #-----------------------------------------------------------------------------
