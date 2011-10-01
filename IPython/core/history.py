@@ -33,8 +33,10 @@ from IPython.utils.warn import warn
 #-----------------------------------------------------------------------------
 
 class HistoryAccessor(Configurable):
-    """Access the history database without adding to it. For use by standalone
-    history tools."""
+    """Access the history database without adding to it.
+    
+    This is intended for use by standalone history tools. IPython shells use
+    HistoryManager, below, which is a subclass of this."""
     # String holding the path to the history file
     hist_file = Unicode(config=True)
 
