@@ -89,6 +89,8 @@ Some of the known remaining caveats are:
 
 """
 
+skip_doctest = True
+
 # Pauli Virtanen <pav@iki.fi>, 2008.
 # Thomas Heller, 2000.
 #
