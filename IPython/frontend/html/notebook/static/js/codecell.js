@@ -256,20 +256,21 @@ var IPython = (function (IPython) {
         if (json.stream == undefined){
             json.stream = 'stdout';
         }
+        var subclass = "output_"+json.stream;
         if (this.outputs.length > 0){
             // have at least one output to consider
             var last = this.outputs[this.outputs.length-1];
             if (last.output_type == 'stream' && json.stream == last.stream){
                 // latest output was in the same stream,
                 // so append directly into its pre tag
-                this.element.find('div.output_stream').last().find('pre').append(json.text);
+                this.element.find('div.'+subclass).last().find('pre').append(json.text);
                 return;
             }
         }
         
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(json.text, toinsert);
+        this.append_text(json.text, toinsert, subclass);
         this.element.find('div.output').append(toinsert);
     };
 
@@ -309,8 +310,11 @@ var IPython = (function (IPython) {
     }
 
 
-    CodeCell.prototype.append_text = function (data, element) {
+    CodeCell.prototype.append_text = function (data, element, extra_class) {
         var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_stream");
+        if (extra_class){
+            toinsert.addClass(extra_class);
+        }
         toinsert.append($("<pre/>").html(data));
         element.append(toinsert);
     };
@@ -419,7 +423,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.fromJSON = function (data) {
-        // console.log('Import from JSON:', data);
+        console.log('Import from JSON:', data);
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
                 this.set_code(data.input);

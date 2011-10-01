@@ -232,6 +232,9 @@ div.output_stream {
     color: black;
     font-family: monospace;
 }
+div.output_stderr {
+    color: darkred;
+}
 
 div.output_latex {
     text-align: left;
