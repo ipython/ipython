@@ -206,8 +206,11 @@ which already exists. But you must first start the logging process with
         made, possibly (though not necessarily) with a new filename, mode and
         other options."""
         
-        self.logfile.close()
-        self.logfile = None
+        if self.logfile is not None:
+            self.logfile.close()
+            self.logfile = None
+        else:
+            print "Logging hadn't been started."
         self.log_active = False
 
     # For backwards compatibility, in case anyone was using this.
