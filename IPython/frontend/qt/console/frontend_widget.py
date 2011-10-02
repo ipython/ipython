@@ -102,7 +102,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     executed = QtCore.Signal(object)
 
     # Emitted when an exit request has been received from the kernel.
-    exit_requested = QtCore.Signal()
+    exit_requested = QtCore.Signal(object)
 
     # Protected class variables.
     _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
@@ -422,7 +422,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                         "Close the Console?",
                         QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
-                        sys.exit(0)
+                        self.exit_requested.emit(self)
                 else:
                     reply = QtGui.QMessageBox.question(self, title,
                         "Kernel has been reset. Clear the Console?",
@@ -583,7 +583,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if content['ename']=='SystemExit':
             keepkernel = content['evalue']=='-k' or content['evalue']=='True'
             self._keep_kernel_on_exit = keepkernel
-            self.exit_requested.emit()
+            self.exit_requested.emit(self)
         else:
             traceback = ''.join(content['traceback'])
             self._append_plain_text(traceback)
