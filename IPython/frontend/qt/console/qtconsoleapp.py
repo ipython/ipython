@@ -181,11 +181,10 @@ class MainWindow(QtGui.QMainWindow):
         # as we are not sure of instanciating a _frontend which support all
         # theses actions, but there might be a better way
         try:
-            pass
             self.print_action = QtGui.QAction("Print",
                 self,
                 shortcut="Ctrl+P",
-                triggered=self.undo_active_frontend)
+                triggered=self.print_action_active_frontend)
             self.fileMenu.addAction(self.print_action)
         except AttributeError:
             print "trying to add unexisting action (print), skipping"
@@ -201,17 +200,22 @@ class MainWindow(QtGui.QMainWindow):
             print "trying to add unexisting action (Export), skipping"
 
         try:
-            self.fileMenu.addAction(self._frontend.select_all_action)
+            self.select_all_action = QtGui.QAction("Select All",
+                self,
+                shortcut="Ctrl+A",
+                triggered=self.select_all_active_frontend
+                )
+            self.fileMenu.addAction(self.select_all_action)
         except AttributeError:
-            print "trying to add unexisting action, skipping"
+            print "trying to add unexisting action (select all), skipping"
 
         try:
             self.undo_action = QtGui.QAction("Undo",
-                    self,
-                    shortcut="Ctrl+Z",
-                    statusTip="Undo last action if possible",
-                    triggered=self.undo_active_frontend)
-
+                self,
+                shortcut="Ctrl+Z",
+                statusTip="Undo last action if possible",
+                triggered=self.undo_active_frontend
+                )
             self.editMenu.addAction(self.undo_action)
         except AttributeError:
             print "trying to add unexisting action (undo), skipping"
@@ -224,20 +228,35 @@ class MainWindow(QtGui.QMainWindow):
                 triggered=self.redo_active_frontend)
             self.editMenu.addAction(self.redo_action)
         except AttributeError:
-            print "trying to add unexisting action(redo), skipping"
+            print "trying to add unexisting action (redo), skipping"
 
         try:
-            pass#self.fontMenu.addAction(self.increase_font_size_active_frontend)
+            self.increase_font_size = QtGui.QAction("Increase Font Size",
+                self,
+                shortcut="Ctrl++",
+                triggered=self.increase_font_size_active_frontend
+                )
+            self.fontMenu.addAction(self.increase_font_size)
         except AttributeError:
             print "trying to add unexisting action (increase font size), skipping"
 
         try:
-            pass#self.fontMenu.addAction(self.decrease_font_size_active_frontend)
+            self.decrease_font_size = QtGui.QAction("Decrease Font Size",
+                self,
+                shortcut="Ctrl+-",
+                triggered=self.decrease_font_size_active_frontend
+                )
+            self.fontMenu.addAction(self.decrease_font_size)
         except AttributeError:
             print "trying to add unexisting action (decrease font size), skipping"
 
         try:
-            pass#self.fontMenu.addAction(self.reset_font_size_active_frontend)
+            self.reset_font_size = QtGui.QAction("Reset Font Size",
+                self,
+                shortcut="Ctrl+0",
+                triggered=self.reset_font_size_active_frontend
+                )
+            self.fontMenu.addAction(self.reset_font_size)
         except AttributeError:
             print "trying to add unexisting action (reset font size), skipping"
 
@@ -325,20 +344,20 @@ class MainWindow(QtGui.QMainWindow):
         self.activeFrontend().whos_magic()
 
     def print_action_active_frontend(self):
-        self.activeFrontend().print_action()
+        self.activeFrontend().print_action.trigger()
 
     def export_action_active_frontend(self):
-        self.activeFrontend().export_action()
+        self.activeFrontend().export_action.trigger()
 
-    def select_all_action_frontend(self):
-        self.activeFrontend().select_all_action()
+    def select_all_active_frontend(self):
+        self.activeFrontend().select_all_action.trigger()
 
     def increase_font_size_active_frontend(self):
-        self.activeFrontend().increase_font_size()
+        self.activeFrontend().increase_font_size.trigger()
     def decrease_font_size_active_frontend(self):
-        self.activeFrontend().decrease_font_size()
+        self.activeFrontend().decrease_font_size.trigger()
     def reset_font_size_active_frontend(self):
-        self.activeFrontend().reset_font_size()
+        self.activeFrontend().reset_font_size.trigger()
     #---------------------------------------------------------------------------
     # QWidget interface
     #---------------------------------------------------------------------------
