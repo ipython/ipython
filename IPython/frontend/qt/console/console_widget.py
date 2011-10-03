@@ -1265,7 +1265,8 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 self.layout().setCurrentWidget(self._control)
             return True
 
-        elif key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+        elif key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return,
+                     QtCore.Qt.Key_Tab):
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_PageDown,
                                         QtCore.Qt.NoModifier)
