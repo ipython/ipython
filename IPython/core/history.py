@@ -152,7 +152,11 @@ class HistoryManager(Configurable):
             conn = self.db
         
         with conn:
-            cur = conn.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
+            # N.B. 'insert into' here is lower case because of a bug in the
+            # sqlite3 module that affects the Turkish locale. This should be
+            # fixed for Python 2.7.3 and 3.2.3, as well as 3.3 onwards.
+            # http://bugs.python.org/issue13099
+            cur = conn.execute("""insert into sessions VALUES (NULL, ?, NULL,
                             NULL, "") """, (datetime.datetime.now(),))
             self.session_number = cur.lastrowid
             
