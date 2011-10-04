@@ -631,6 +631,9 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.paste(text=text)
         self.execute()
 
+    def exit_magic(self):
+        self.pasteMagic("%exit")
+
     def who_magic(self):
         self.pasteMagic("%who")
 
