@@ -111,7 +111,7 @@ class Kernel(Configurable):
         self.shell._reply_content = None
 
         # Build dict of handlers for message types
-        msg_types = [ 'execute_request', 'complete_request', 
+        msg_types = [ 'execute_request', 'complete_request',
                       'object_info_request', 'history_request',
                       'connect_request', 'shutdown_request']
         self.handlers = {}
@@ -135,7 +135,7 @@ class Kernel(Configurable):
         # We now require 2.0.8 or above, so we can uncomment for safety.
         # print(ident,msg, file=sys.__stdout__)
         assert ident is not None, "Missing message part."
-        
+
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
@@ -148,7 +148,7 @@ class Kernel(Configurable):
             self.log.error("UNKNOWN MESSAGE TYPE:" +str(msg))
         else:
             handler(ident, msg)
-            
+
         # Check whether we should exit, in case the incoming message set the
         # exit flag on
         if self.shell.exit_now:
@@ -169,7 +169,7 @@ class Kernel(Configurable):
                 # reason for this to be anything less than ~ 0.1s
                 # since it is a real poller and will respond
                 # to events immediately
-                
+
                 # double nested try/except, to properly catch KeyboardInterrupt
                 # due to pyzmq Issue #130
                 try:
@@ -199,17 +199,17 @@ class Kernel(Configurable):
         pyin_msg = self.session.send(self.iopub_socket, u'pyin',{u'code':code}, parent=parent)
 
     def execute_request(self, ident, parent):
-        
+
         status_msg = self.session.send(self.iopub_socket,
             u'status',
             {u'execution_state':u'busy'},
             parent=parent
         )
-        
+
         try:
             content = parent[u'content']
             code = content[u'code']
-            silent = content[u'silent'] 
+            silent = content[u'silent']
         except:
             self.log.error("Got bad msg: ")
             self.log.error(str(Message(parent)))
@@ -217,7 +217,7 @@ class Kernel(Configurable):
 
         shell = self.shell # we'll need this a lot here
 
-        # Replace raw_input. Note that is not sufficient to replace 
+        # Replace raw_input. Note that is not sufficient to replace
         # raw_input in the user namespace.
         raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
         if py3compat.PY3:
@@ -261,7 +261,7 @@ class Kernel(Configurable):
             status = u'ok'
 
         reply_content[u'status'] = status
-        
+
         # Return the execution counter so clients can display prompts
         reply_content['execution_count'] = shell.execution_count -1
 
@@ -301,7 +301,7 @@ class Kernel(Configurable):
         # to better understand what's going on.
         if self._execute_sleep:
             time.sleep(self._execute_sleep)
-        
+
         # Send the reply.
         reply_content = json_clean(reply_content)
         reply_msg = self.session.send(self.shell_socket, u'execute_reply',
@@ -345,18 +345,18 @@ class Kernel(Configurable):
             n = parent['content']['n']
             hist = self.shell.history_manager.get_tail(n, raw=raw, output=output,
                                                             include_latest=True)
-        
+
         elif hist_access_type == 'range':
             session = parent['content']['session']
             start = parent['content']['start']
             stop = parent['content']['stop']
             hist = self.shell.history_manager.get_range(session, start, stop,
                                                         raw=raw, output=output)
-        
+
         elif hist_access_type == 'search':
             pattern = parent['content']['pattern']
             hist = self.shell.history_manager.search(pattern, raw=raw, output=output)
-        
+
         else:
             hist = []
         content = {'history' : list(hist)}
@@ -430,7 +430,7 @@ class Kernel(Configurable):
             self.log.error(str(Message(parent)))
             value = ''
         return value
-    
+
     def _complete(self, msg):
         c = msg['content']
         try:
@@ -562,11 +562,11 @@ class TkKernel(Kernel):
                 self.app = Tkinter.Tk()
                 self.app.withdraw()
                 self.func = func
-                
+
             def on_timer(self):
                 self.func()
                 self.app.after(poll_interval, self.on_timer)
-                
+
             def start(self):
                 self.on_timer()  # Call it once to get things going.
                 self.app.mainloop()
@@ -577,11 +577,11 @@ class TkKernel(Kernel):
 
 class GTKKernel(Kernel):
     """A Kernel subclass with GTK support."""
-    
+
     def start(self):
         """Start the kernel, coordinating with the GTK event loop"""
         from .gui.gtkembed import GTKEmbed
-        
+
         gtk_kernel = GTKEmbed(self)
         gtk_kernel.start()
 
@@ -666,7 +666,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
             import_all = self.pylab_import_all
             pylabtools.import_pylab(kernel.shell.user_ns, backend, import_all,
                                     shell=kernel.shell)
-    
+
     def init_shell(self):
         self.shell = self.kernel.shell
 

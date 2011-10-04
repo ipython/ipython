@@ -1,5 +1,5 @@
 """Test suite for pylab_import_all magic
-Modified from the irunner module but using regex. 
+Modified from the irunner module but using regex.
 """
 
 # Global to make tests extra verbose and help debugging
@@ -24,7 +24,7 @@ class RunnerTestCase(unittest.TestCase):
 
     def _test_runner(self,runner,source,output):
         """Test that a given runner's input/output match."""
-        
+
         runner.run_source(source)
         out = self.out.getvalue()
         #out = ''

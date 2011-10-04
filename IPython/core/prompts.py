@@ -42,7 +42,7 @@ PromptColors.add_scheme(coloransi.ColorScheme(
     in_number  = InputColors.NoColor,  # Input prompt number
     in_prompt2 = InputColors.NoColor, # Continuation prompt
     in_normal  = InputColors.NoColor,  # color off (usu. Colors.Normal)
-    
+
     out_prompt = Colors.NoColor, # Output prompt
     out_number = Colors.NoColor, # Output prompt number
 
@@ -255,7 +255,7 @@ class BasePrompt(object):
         # by all prompt classes through the cache.  Nice OO spaghetti code!
         self.cache = cache
         self.sep = sep
-        
+
         # regexp to count the number of spaces at the end of a prompt
         # expression, useful for prompt auto-rewriting
         self.rspace = re.compile(r'(\s*)$')
@@ -281,7 +281,7 @@ class BasePrompt(object):
                                 ('${self.sep}${self.col_p}',
                                  multiple_replace(prompt_specials, self.p_template),
                                  '${self.col_norm}'),self.cache.shell.user_ns,loc)
-    
+
             self.p_str_nocolor = ItplNS(multiple_replace(prompt_specials_nocolor,
                                                          self.p_template),
                                         self.cache.shell.user_ns,loc)
@@ -369,8 +369,8 @@ class Prompt1(BasePrompt):
         self.col_norm = Colors.in_normal
         # We need a non-input version of these escapes for the '--->'
         # auto-call prompts used in the auto_rewrite() method.
-        self.col_p_ni = self.col_p.replace('\001','').replace('\002','') 
-        self.col_norm_ni = Colors.normal        
+        self.col_p_ni = self.col_p.replace('\001','').replace('\002','')
+        self.col_norm_ni = Colors.normal
 
     def __str__(self):
         self.cache.last_prompt = str_safe(self.p_str_nocolor).split('\n')[-1]
@@ -405,7 +405,7 @@ class PromptOut(BasePrompt):
 
 class Prompt2(BasePrompt):
     """Interactive continuation prompt."""
-    
+
     def __init__(self, cache, prompt='   .\\D.: ', pad_left=True):
         self.cache = cache
         self.p_template = prompt

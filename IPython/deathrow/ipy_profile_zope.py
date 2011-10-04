@@ -186,7 +186,7 @@ class ZopeDebug(object):
             query = {}
             if indexes.get('path'):
                 from string import join
-                path = join(obj.getPhysicalPath(), '/') 
+                path = join(obj.getPhysicalPath(), '/')
                 query.update({'path': path})
             if indexes.get('getID'):
                 query.update({'getID': obj.id, })
@@ -288,7 +288,7 @@ def main():
     ip = ipapi.get()
     o = ip.options
     # autocall to "full" mode (smart mode is default, I like full mode)
-    
+
     SOFTWARE_HOME = os.environ.get( "SOFTWARE_HOME" )
     sys.path.append( SOFTWARE_HOME )
     print "SOFTWARE_HOME=%s\n" % SOFTWARE_HOME
@@ -310,7 +310,7 @@ def main():
            app
            portal
            utils.{ %s }
-  
+
         Uses the $SOFTWARE_HOME and $CONFIG_FILE environment
         variables.
         """ % ( ",".join([ x for x in dir(zope_debug.utils) if not x.startswith("_") ] ) ) )

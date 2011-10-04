@@ -117,7 +117,7 @@ class TerminalInteractiveShell(InteractiveShell):
             self.system = self.system_piped
         else:
             self.system = self.system_raw
-        
+
         self.init_term_title()
         self.init_usage(usage)
         self.init_banner(banner1, banner2, display_banner)
@@ -214,13 +214,13 @@ class TerminalInteractiveShell(InteractiveShell):
         If an optional banner argument is given, it will override the
         internally created default banner.
         """
-        
+
         with nested(self.builtin_trap, self.display_trap):
 
             while 1:
                 try:
                     self.interact(display_banner=display_banner)
-                    #self.interact_with_readline()                
+                    #self.interact_with_readline()
                     # XXX for testing of a readline-decoupled repl loop, call
                     # interact_with_readline above
                     break
@@ -232,23 +232,23 @@ class TerminalInteractiveShell(InteractiveShell):
     def interact(self, display_banner=None):
         """Closely emulate the interactive Python console."""
 
-        # batch run -> do not interact        
+        # batch run -> do not interact
         if self.exit_now:
             return
 
         if display_banner is None:
             display_banner = self.display_banner
-        
+
         if isinstance(display_banner, basestring):
             self.show_banner(display_banner)
         elif display_banner:
             self.show_banner()
 
         more = False
-        
+
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
-        
+
         if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
         # exit_now is set by a call to %Exit or %Quit, through the
@@ -263,7 +263,7 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.showtraceback()
                 if self.autoindent:
                     self.rl_do_indent = True
-                    
+
             else:
                 try:
                     prompt = self.hooks.generate_prompt(False)
@@ -276,7 +276,7 @@ class TerminalInteractiveShell(InteractiveShell):
                     break
                 if self.autoindent:
                     self.rl_do_indent = False
-                    
+
             except KeyboardInterrupt:
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
@@ -310,7 +310,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 if not more:
                     source_raw = self.input_splitter.source_raw_reset()[1]
                     self.run_cell(source_raw)
-                
+
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
 
@@ -335,7 +335,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         if self.has_readline:
             self.set_readline_completer()
-        
+
         try:
             line = py3compat.str_to_unicode(self.raw_input_original(prompt))
         except ValueError:
@@ -351,7 +351,7 @@ class TerminalInteractiveShell(InteractiveShell):
             if num_ini_spaces(line) > self.indent_current_nsp:
                 line = line[self.indent_current_nsp:]
                 self.indent_current_nsp = 0
-        
+
         return line
 
     #-------------------------------------------------------------------------
@@ -378,7 +378,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 try:
                     f = file(err.filename)
                     try:
-                        # This should be inside a display_trap block and I 
+                        # This should be inside a display_trap block and I
                         # think it is.
                         sys.displayhook(f.read())
                     finally:
@@ -392,10 +392,10 @@ class TerminalInteractiveShell(InteractiveShell):
         if e.filename in ('<ipython console>','<input>','<string>',
                           '<console>','<BackgroundJob compilation>',
                           None):
-                              
+
             return False
         try:
-            if (self.autoedit_syntax and 
+            if (self.autoedit_syntax and
                 not self.ask_yes_no('Return to editor to correct syntax error? '
                               '[Y/n] ','y')):
                 return False
@@ -468,7 +468,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.ask_exit()
         else:
             self.ask_exit()
-            
+
     #------------------------------------------------------------------------
     # Magic overrides
     #------------------------------------------------------------------------
@@ -486,38 +486,38 @@ class TerminalInteractiveShell(InteractiveShell):
     @skip_doctest
     def magic_cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
-        
+
         You must terminate the block with '--' (two minus-signs) alone on the
-        line. You can also provide your own sentinel with '%paste -s %%' ('%%' 
+        line. You can also provide your own sentinel with '%paste -s %%' ('%%'
         is the new sentinel for this operation)
-        
+
         The block is dedented prior to execution to enable execution of method
         definitions. '>' and '+' characters at the beginning of a line are
         ignored, to allow pasting directly from e-mails, diff files and
         doctests (the '...' continuation prompt is also stripped).  The
         executed block is also assigned to variable named 'pasted_block' for
         later editing with '%edit pasted_block'.
-        
+
         You can also pass a variable name as an argument, e.g. '%cpaste foo'.
-        This assigns the pasted block to variable 'foo' as string, without 
+        This assigns the pasted block to variable 'foo' as string, without
         dedenting or executing it (preceding >>> and + is still stripped)
-        
+
         '%cpaste -r' re-executes the block previously entered by cpaste.
-        
-        Do not be alarmed by garbled output on Windows (it's a readline bug). 
-        Just press enter and type -- (and press enter again) and the block 
+
+        Do not be alarmed by garbled output on Windows (it's a readline bug).
+        Just press enter and type -- (and press enter again) and the block
         will be what was just pasted.
-        
+
         IPython statements (magics, shell escapes) are not supported (yet).
 
         See also
         --------
         paste: automatically pull code from clipboard.
-        
+
         Examples
         --------
         ::
-        
+
           In [8]: %cpaste
           Pasting code; enter '--' alone on the line to stop.
           :>>> a = ["world!", "Hello"]
@@ -525,13 +525,13 @@ class TerminalInteractiveShell(InteractiveShell):
           :--
           Hello world!
         """
-        
+
         opts,args = self.parse_options(parameter_s,'rs:',mode='string')
         par = args.strip()
         if opts.has_key('r'):
             self._rerun_pasted()
             return
-        
+
         sentinel = opts.get('s','--')
 
         block = self._strip_pasted_lines_for_code(
@@ -541,7 +541,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def magic_paste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
-        
+
         The text is pulled directly from the clipboard without user
         intervention and printed back on the screen before execution (unless
         the -q flag is given to force quiet mode).
@@ -552,18 +552,18 @@ class TerminalInteractiveShell(InteractiveShell):
         doctests (the '...' continuation prompt is also stripped).  The
         executed block is also assigned to variable named 'pasted_block' for
         later editing with '%edit pasted_block'.
-        
+
         You can also pass a variable name as an argument, e.g. '%paste foo'.
-        This assigns the pasted block to variable 'foo' as string, without 
+        This assigns the pasted block to variable 'foo' as string, without
         dedenting or executing it (preceding >>> and + is still stripped)
 
         Options
         -------
-        
+
           -r: re-executes the block previously entered by cpaste.
 
           -q: quiet mode: do not echo the pasted text back to the terminal.
-        
+
         IPython statements (magics, shell escapes) are not supported (yet).
 
         See also
@@ -586,9 +586,9 @@ class TerminalInteractiveShell(InteractiveShell):
             if not block.endswith('\n'):
                 write('\n')
             write("## -- End pasted text --\n")
-            
+
         self._execute_block(block, par)
-    
+
     def showindentationerror(self):
         super(TerminalInteractiveShell, self).showindentationerror()
         print("If you want to paste code into IPython, try the %paste magic function.")

@@ -196,7 +196,7 @@ except error.CompositeError:
 try:
     ar.r
 except error.CompositeError:
-    print "Caught ZeroDivisionError OK."  
+    print "Caught ZeroDivisionError OK."
 
 # push/pull
 

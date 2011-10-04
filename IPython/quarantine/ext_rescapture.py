@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-""" IPython extension: new prefilters for output grabbing 
+""" IPython extension: new prefilters for output grabbing
 
-Provides 
+Provides
 
 var = %magic blah blah
 
@@ -41,7 +41,7 @@ def init_handlers():
     install_re_handler('(?P<varname>[\w\.]+)\s*=\s*%(?P<cmd>.*)',
                        hnd_magic
                        )
-    
+
     install_re_handler('(?P<varname>[\w\.]+)\s*=\s*!(?P<cmd>.*)',
                        hnd_syscmd
                        )
@@ -53,7 +53,7 @@ def regex_prefilter_f(self,line):
         mo = pat.match(line)
         if mo:
             return handler(line,mo)
-    
+
     raise TryNext
 
-ip.set_hook('input_prefilter', regex_prefilter_f)     
+ip.set_hook('input_prefilter', regex_prefilter_f)

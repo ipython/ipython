@@ -12,7 +12,7 @@ Installation instructions for ColorTB:
     import sys,ultratb
     sys.excepthook = ultratb.ColorTB()
 
-* VerboseTB  
+* VerboseTB
 I've also included a port of Ka-Ping Yee's "cgitb.py" that produces all kinds
 of useful info when a traceback occurs.  Ping originally had it spit out HTML
 and intended it for CGI programmers, but why should they have all the fun?  I
@@ -34,7 +34,7 @@ Note:
   Verbose_novars mode instead of the regular Verbose, which avoids formatting
   variables (but otherwise includes the information and context given by
   Verbose).
-  
+
 
 Installation instructions for ColorTB:
     import sys,ultratb
@@ -121,7 +121,7 @@ def inspect_error():
     """Print a message about internal inspect errors.
 
     These are unfortunately quite common."""
-    
+
     error('Internal Python error in the inspect module.\n'
           'Below is the traceback from this internal error.\n')
 
@@ -197,7 +197,7 @@ def findsource(object):
         while lnum > 0:
             if pmatch(lines[lnum]): break
             lnum -= 1
- 
+
         return lines, lnum
     raise IOError('could not find code object')
 
@@ -262,7 +262,7 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
 _parser = PyColorize.Parser()
-    
+
 def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
     numbers_width = INDENT_SIZE - 1
     res = []
@@ -285,10 +285,10 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
         # is unicode-safe.  So for now this is rather an ugly hack, but
         # necessary to at least have readable tracebacks. Improvements welcome!
         line = py3compat.cast_bytes_py2(line, 'utf-8')
-            
+
         new_line, err = _line_format(line, 'str', scheme)
         if not err: line = new_line
-        
+
         if i == lnum:
             # This is the line with the error
             pad = numbers_width - len(str(i))
@@ -301,11 +301,11 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
             else:
                 marker = ''
             num = marker + str(i)
-            line = '%s%s%s %s%s' %(Colors.linenoEm, num, 
+            line = '%s%s%s %s%s' %(Colors.linenoEm, num,
                                    Colors.line, line, Colors.Normal)
         else:
             num = '%*s' % (numbers_width,i)
-            line = '%s%s%s %s' %(Colors.lineno, num, 
+            line = '%s%s%s %s' %(Colors.lineno, num,
                                  Colors.Normal, line)
 
         res.append(line)
@@ -352,7 +352,7 @@ class TBTools(object):
         """Output stream that exceptions are written to.
 
         Valid values are:
-        
+
         - None: the default, which means that IPython will dynamically resolve
         to io.stdout.  This ensures compatibility with most tools, including
         Windows (where plain stdout doesn't recognize ANSI escapes).
@@ -364,7 +364,7 @@ class TBTools(object):
     def _set_ostream(self, val):
         assert val is None or (hasattr(val, 'write') and hasattr(val, 'flush'))
         self._ostream = val
-        
+
     ostream = property(_get_ostream, _set_ostream)
 
     def set_colors(self,*args,**kw):
@@ -380,7 +380,7 @@ class TBTools(object):
 
     def color_toggle(self):
         """Toggle between the currently active color scheme and NoColor."""
-        
+
         if self.color_scheme_table.active_scheme_name == 'NoColor':
             self.color_scheme_table.set_active_scheme(self.old_scheme)
             self.Colors = self.color_scheme_table.active_colors
@@ -414,7 +414,7 @@ class TBTools(object):
 #---------------------------------------------------------------------------
 class ListTB(TBTools):
     """Print traceback information from a traceback list, with optional color.
-        
+
     Calling: requires 3 arguments:
       (etype, evalue, elist)
     as would be obtained by:
@@ -434,7 +434,7 @@ class ListTB(TBTools):
     def __init__(self,color_scheme = 'NoColor', call_pdb=False, ostream=None):
         TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
                          ostream=ostream)
-        
+
     def __call__(self, etype, value, elist):
         self.ostream.flush()
         self.ostream.write(self.text(etype, value, elist))
@@ -458,7 +458,7 @@ class ListTB(TBTools):
         tb_offset : int, optional
           Number of frames in the traceback to skip.  If not given, the
           instance value is used (set in constructor).
-          
+
         context : int, optional
           Number of lines of context information to print.
 
@@ -473,7 +473,7 @@ class ListTB(TBTools):
 
             if tb_offset and len(elist) > tb_offset:
                 elist = elist[tb_offset:]
-            
+
             out_list.append('Traceback %s(most recent call last)%s:' %
                                 (Colors.normalEm, Colors.Normal) + '\n')
             out_list.extend(self._format_list(elist))
@@ -482,7 +482,7 @@ class ListTB(TBTools):
         out_list.append(lines)
 
         # Note: this code originally read:
-        
+
         ## for line in lines[:-1]:
         ##     out_list.append(" "+line)
         ## out_list.append(lines[-1])
@@ -490,7 +490,7 @@ class ListTB(TBTools):
         # This means it was indenting everything but the last line by a little
         # bit.  I've disabled this for now, but if we see ugliness somewhre we
         # can restore it.
-        
+
         return out_list
 
     def _format_list(self, extracted_list):
@@ -502,7 +502,7 @@ class ListTB(TBTools):
         same index in the argument list.  Each string ends in a newline;
         the strings may contain internal newlines as well, for those items
         whose source text line is not None.
-        
+
         Lifted almost verbatim from traceback.py
         """
 
@@ -510,7 +510,7 @@ class ListTB(TBTools):
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
             item = '  File %s"%s"%s, line %s%d%s, in %s%s%s\n' % \
-                    (Colors.filename, filename, Colors.Normal, 
+                    (Colors.filename, filename, Colors.Normal,
                      Colors.lineno, lineno, Colors.Normal,
                      Colors.name, name, Colors.Normal)
             if line:
@@ -530,7 +530,7 @@ class ListTB(TBTools):
         list.append(item)
         #from pprint import pformat; print 'LISTTB', pformat(list) # dbg
         return list
-        
+
     def _format_exception_only(self, etype, value):
         """Format the exception part of a traceback.
 
@@ -541,7 +541,7 @@ class ListTB(TBTools):
         printed) display detailed information about where the syntax error
         occurred.  The message indicating which exception occurred is the
         always last string in the list.
-        
+
         Also lifted nearly verbatim from traceback.py
         """
 
@@ -573,7 +573,7 @@ class ListTB(TBTools):
                         while i < len(line) and line[i].isspace():
                             i = i+1
                         list.append('%s    %s%s\n' % (Colors.line,
-                                                      line.strip(), 
+                                                      line.strip(),
                                                       Colors.Normal))
                         if offset is not None:
                             s = '    '
@@ -602,7 +602,7 @@ class ListTB(TBTools):
 
     def get_exception_only(self, etype, value):
         """Only print the exception type and message, without a traceback.
-        
+
         Parameters
         ----------
         etype : exception type
@@ -613,7 +613,7 @@ class ListTB(TBTools):
 
     def show_exception_only(self, etype, evalue):
         """Only print the exception type and message, without a traceback.
-        
+
         Parameters
         ----------
         etype : exception type
@@ -725,7 +725,7 @@ class VerboseTB(TBTools):
             # Header with the exception type, python version, and date
             pyver = 'Python ' + sys.version.split()[0] + ': ' + sys.executable
             date = time.ctime(time.time())
-            
+
             head = '%s%s%s\n%s%s%s\n%s' % (Colors.topline, '-'*75, ColorsNormal,
                                            exc, ' '*(75-len(str(etype))-len(pyver)),
                                            pyver, date.rjust(75) )
@@ -797,7 +797,7 @@ class VerboseTB(TBTools):
                 inspect_error()
                 traceback.print_exc(file=self.ostream)
                 info("\nIPython's exception reporting continues...\n")
-                
+
             if func == '?':
                 call = ''
             else:
@@ -838,7 +838,7 @@ class VerboseTB(TBTools):
                 there is no way to disambguate partial dotted structures until
                 the full list is known.  The caller is responsible for pruning
                 the final list of duplicates before using it."""
-                
+
                 # build composite names
                 if token == '.':
                     try:
@@ -887,7 +887,7 @@ class VerboseTB(TBTools):
                       "The following traceback may be corrupted or invalid\n"
                       "The error message is: %s\n" % msg)
                 error(_m)
-            
+
             # prune names list of duplicates, but keep the right order
             unique_names = uniq_stable(names)
 
@@ -965,11 +965,11 @@ class VerboseTB(TBTools):
              if ipinst is not None:
                  ipinst.hooks.synchronize_with_editor(filepath, lnum, 0)
         # vds: <<
-                
+
         # return all our info assembled as a single string
         # return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
         return [head] + frames + [''.join(exception[0])]
-    
+
     def debugger(self,force=False):
         """Call up the pdb debugger if desired, always clean up the tb
         reference.
@@ -1048,9 +1048,9 @@ class FormattedTB(VerboseTB, ListTB):
     one needs to remove a number of topmost frames from the traceback (such as
     occurs with python programs that themselves execute other python code,
     like Python shells).  """
-    
+
     def __init__(self, mode='Plain', color_scheme='Linux', call_pdb=False,
-                 ostream=None, 
+                 ostream=None,
                  tb_offset=0, long_header=False, include_vars=False,
                  check_cache=None):
 
@@ -1068,7 +1068,7 @@ class FormattedTB(VerboseTB, ListTB):
         self._join_chars = dict(Plain='', Context='\n', Verbose='\n')
         # set_mode also sets the tb_join_char attribute
         self.set_mode(mode)
-        
+
     def _extract_tb(self,tb):
         if tb:
             return traceback.extract_tb(tb)
@@ -1096,7 +1096,7 @@ class FormattedTB(VerboseTB, ListTB):
     def stb2text(self, stb):
         """Convert a structured traceback (a list) to a string."""
         return self.tb_join_char.join(stb)
-        
+
 
     def set_mode(self,mode=None):
         """Switch to the desired mode.
@@ -1134,14 +1134,14 @@ class AutoFormattedTB(FormattedTB):
     It will find out about exceptions by itself.
 
     A brief example:
-    
+
     AutoTB = AutoFormattedTB(mode = 'Verbose',color_scheme='Linux')
     try:
       ...
     except:
       AutoTB()  # or AutoTB(out=logfile) where logfile is an open file object
     """
-    
+
     def __call__(self,etype=None,evalue=None,etb=None,
                  out=None,tb_offset=None):
         """Print out a formatted exception traceback.
@@ -1153,7 +1153,7 @@ class AutoFormattedTB(FormattedTB):
           per-call basis (this overrides temporarily the instance's tb_offset
           given at initialization time.  """
 
-        
+
         if out is None:
             out = self.ostream
         out.flush()
@@ -1230,7 +1230,7 @@ if __name__ == "__main__":
     except:
         traceback.print_exc()
     print ''
-    
+
     handler = ColorTB()
     print '*** ColorTB ***'
     try:
@@ -1238,7 +1238,7 @@ if __name__ == "__main__":
     except:
         apply(handler, sys.exc_info() )
     print ''
-    
+
     handler = VerboseTB()
     print '*** VerboseTB ***'
     try:
@@ -1246,4 +1246,4 @@ if __name__ == "__main__":
     except:
         apply(handler, sys.exc_info() )
     print ''
-    
+

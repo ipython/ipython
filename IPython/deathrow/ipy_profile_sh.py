@@ -2,7 +2,7 @@
 
 Start ipython in shell mode by invoking "ipython -p sh"
 
-(the old version, "ipython -p pysh" still works but this is the more "modern" 
+(the old version, "ipython -p pysh" still works but this is the more "modern"
 shell mode and is recommended for users who don't care about pysh-mode
 compatibility)
 """
@@ -16,29 +16,29 @@ import os,re,textwrap
 
 import ipy_defaults
 
-def main():    
+def main():
     ip = ipapi.get()
     o = ip.options
     # autocall to "full" mode (smart mode is default, I like full mode)
-    
+
     o.autocall = 2
-    
+
     # Jason Orendorff's path class is handy to have in user namespace
     # if you are doing shell-like stuff
     try:
         ip.ex("from IPython.external.path import path" )
     except ImportError:
         pass
-    
+
     # beefed up %env is handy in shell mode
     import envpersist
-    
-    # To see where mycmd resides (in path/aliases), do %which mycmd 
+
+    # To see where mycmd resides (in path/aliases), do %which mycmd
     import ipy_which
-    
+
     # tab completers for hg, svn, ...
     import ipy_app_completers
-    
+
     # To make executables foo and bar in mybin usable without PATH change, do:
     # %rehashdir c:/mybin
     # %store foo
@@ -47,45 +47,45 @@ def main():
 
     # does not work without subprocess module!
     #import ipy_signals
-    
+
     ip.ex('import os')
     ip.ex("def up(): os.chdir('..')")
-    ip.user_ns['LA'] = LastArgFinder() 
-    
-    # You can assign to _prompt_title variable 
+    ip.user_ns['LA'] = LastArgFinder()
+
+    # You can assign to _prompt_title variable
     # to provide some extra information for prompt
     # (e.g. the current mode, host/username...)
 
     ip.user_ns['_prompt_title'] = ''
-    
+
     # Nice prompt
     o.prompt_in1= r'\C_Green${_prompt_title}\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#> '
     o.prompt_in2= r'\C_Green|\C_LightGreen\D\C_Green> '
     o.prompt_out= '<\#> '
-    
+
     from IPython.core import release
 
     import sys
     # Non-chatty banner
     o.banner = "IPython %s   [on Py %s]\n" % (release.version,sys.version.split(None,1)[0])
-    
-    
+
+
     ip.default_option('cd','-q')
     ip.default_option('macro', '-r')
-    # If you only rarely want to execute the things you %edit...  
+    # If you only rarely want to execute the things you %edit...
     #ip.default_option('edit','-x')
-    
+
 
     o.prompts_pad_left="1"
     # Remove all blank lines in between prompts, like a normal shell.
     o.separate_in="0"
     o.separate_out="0"
     o.separate_out2="0"
-    
+
     # now alias all syscommands
-    
+
     db = ip.db
-    
+
     syscmds = db.get("syscmdlist",[] )
     if not syscmds:
         print textwrap.dedent("""
@@ -95,47 +95,47 @@ def main():
         """)
         ip.magic('rehashx')
         syscmds = db.get("syscmdlist")
-    
+
     # lowcase aliases on win32 only
     if os.name == 'posix':
         mapper = lambda s:s
     else:
         def mapper(s): return s.lower()
-        
+
     for cmd in syscmds:
         # print "sys",cmd #dbg
         noext, ext = os.path.splitext(cmd)
         if ext.lower() == '.exe':
             cmd = noext
-        
+
         key = mapper(cmd)
         if key not in ip.alias_manager.alias_table:
             # Dots will be removed from alias names, since ipython
             # assumes names with dots to be python code
-            
+
             ip.define_alias(key.replace('.',''), cmd)
 
     # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
-    ip.load("IPython.external.mglob")    
+    ip.load("IPython.external.mglob")
 
     # win32 is crippled w/o cygwin, try to help it a little bit
     if sys.platform == 'win32':
-        if 'cygwin' in os.environ['PATH'].lower():          
+        if 'cygwin' in os.environ['PATH'].lower():
             # use the colors of cygwin ls (recommended)
             ip.define_alias('d', 'ls -F --color=auto')
         else:
             # get icp, imv, imkdir, igrep, irm,...
             ip.load('ipy_fsops')
-            
+
             # and the next best thing to real 'ls -F'
             ip.define_alias('d','dir /w /og /on')
-    
+
     ip.set_hook('input_prefilter', slash_prefilter_f)
     extend_shell_behavior(ip)
 
 class LastArgFinder:
     """ Allow $LA to work as "last argument of previous command", like $! in bash
-    
+
     To call this in normal IPython code, do LA()
     """
     def __call__(self, hist_idx = None):
@@ -144,7 +144,7 @@ class LastArgFinder:
             return str(self)
         return ip.input_hist_raw[hist_idx].strip().split()[-1]
     def __str__(self):
-        ip = ipapi.get()        
+        ip = ipapi.get()
         for cmd in reversed(ip.input_hist_raw):
             parts = cmd.strip().split()
             if len(parts) < 2 or parts[-1] in ['$LA', 'LA()']:
@@ -154,7 +154,7 @@ class LastArgFinder:
 
 def slash_prefilter_f(self,line):
     """ ./foo, ~/foo and /bin/foo now run foo as system command
-    
+
     Removes the need for doing !./foo, !~/foo or !/bin/foo
     """
     from IPython.utils import genutils
@@ -253,7 +253,7 @@ def extend_shell_behavior(ip):
                 if command or more:
                     # push to raw history, so hist line numbers stay in sync
                     ip.input_hist_raw.append("# " + command + "\n")
-                    
+
                     more = ip.push_line(ip.prefilter(command,more))
                     command = ''
                     # IPython's runsource returns None if there was an error

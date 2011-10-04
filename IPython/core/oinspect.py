@@ -197,7 +197,7 @@ def call_tip(oinfo, format_call=True):
       When format_call is True, the whole call information is formattted as a
       single string.  Otherwise, the object's name and its argspec dict are
       returned.  If no call information is available, None is returned.
-      
+
     docstring : str or None
       The most relevant docstring for calling purposes is returned, if
       available.  The priority is: call docstring for callable instances, then
@@ -219,7 +219,7 @@ def call_tip(oinfo, format_call=True):
         else:
             if has_self:
                 argspec['args'] = argspec['args'][1:]
-                
+
         call_line = oinfo['name']+format_argspec(argspec)
 
     # Now get docstring.
@@ -249,14 +249,14 @@ class Inspector:
 
         If any exception is generated, None is returned instead and the
         exception is suppressed."""
-        
+
         try:
             # We need a plain string here, NOT unicode!
             hdef = oname + inspect.formatargspec(*getargspec(obj))
             return py3compat.unicode_to_str(hdef, 'ascii')
         except:
             return None
- 
+
     def __head(self,h):
         """Return a header string with proper colors."""
         return '%s%s%s' % (self.color_table.active_colors.header,h,
@@ -265,7 +265,7 @@ class Inspector:
     def set_active_scheme(self,scheme):
         self.color_table.set_active_scheme(scheme)
         self.parser.color_table.set_active_scheme(scheme)
-    
+
     def noinfo(self,msg,oname):
         """Generic message when no information is found."""
         print 'No %s found' % msg,
@@ -273,7 +273,7 @@ class Inspector:
             print 'for %s' % oname
         else:
             print
-            
+
     def pdef(self,obj,oname=''):
         """Print the definition header for any callable object.
 
@@ -303,30 +303,30 @@ class Inspector:
         Optional:
         -formatter: a function to run the docstring through for specially
         formatted docstrings.
-        
+
         Examples
         --------
-        
+
         In [1]: class NoInit:
            ...:     pass
-        
+
         In [2]: class NoDoc:
            ...:     def __init__(self):
            ...:         pass
-        
+
         In [3]: %pdoc NoDoc
         No documentation found for NoDoc
-        
+
         In [4]: %pdoc NoInit
         No documentation found for NoInit
 
         In [5]: obj = NoInit()
-        
+
         In [6]: %pdoc obj
         No documentation found for obj
 
         In [5]: obj2 = NoDoc()
-        
+
         In [6]: %pdoc obj2
         No documentation found for obj2
         """
@@ -355,14 +355,14 @@ class Inspector:
             self.noinfo('documentation',oname)
         else:
             page.page('\n'.join(lines))
-    
+
     def psource(self,obj,oname=''):
         """Print the source code for an object."""
 
         # Flush the source cache because inspect can return out-of-date source
         linecache.checkcache()
         try:
-            src = getsource(obj) 
+            src = getsource(obj)
         except:
             self.noinfo('source',oname)
         else:
@@ -385,7 +385,7 @@ class Inspector:
             return
 
         # We only reach this point if object was successfully queried
-        
+
         # run contents of file through pager starting at line
         # where the object is defined
         ofile = inspect.getabsfile(obj)
@@ -399,10 +399,10 @@ class Inspector:
             # getsourcelines returns lineno with 1-offset and page() uses
             # 0-offset, so we must adjust.
             page.page(self.format(open(ofile).read()),lineno-1)
-            
+
     def _format_fields(self, fields, title_width=12):
         """Formats a list of fields for display.
-        
+
         Parameters
         ----------
         fields : list
@@ -428,17 +428,17 @@ class Inspector:
                     ("Length", "length"),
                     ("File", "file"),
                     ("Definition", "definition")]
-    
+
     pinfo_fields_obj = [("Class Docstring", "class_docstring"),
                         ("Constructor Docstring","init_docstring"),
                         ("Call def", "call_def"),
                         ("Call docstring", "call_docstring")]
-                    
+
     def pinfo(self,obj,oname='',formatter=None,info=None,detail_level=0):
         """Show detailed information about an object.
 
         Optional arguments:
-        
+
         - oname: name of the variable pointing to the object.
 
         - formatter: special formatter for docstrings (see pdoc)
@@ -455,14 +455,14 @@ class Inspector:
             field = info[key]
             if field is not None:
                 displayfields.append((title, field.rstrip()))
-        
+
         # Source or docstring, depending on detail level and whether
         # source found.
         if detail_level > 0 and info['source'] is not None:
             displayfields.append(("Source", self.format(py3compat.unicode_to_str(info['source']))))
         elif info['docstring'] is not None:
             displayfields.append(("Docstring", info["docstring"]))
-        
+
         # Constructor info for classes
         if info['isclass']:
             if info['init_definition'] or info['init_docstring']:
@@ -473,14 +473,14 @@ class Inspector:
                 if info['init_docstring'] is not None:
                     displayfields.append((" Docstring",
                                         indent(info['init_docstring'])))
-                                        
+
         # Info for objects:
         else:
             for title, key in self.pinfo_fields_obj:
                 field = info[key]
                 if field is not None:
                     displayfields.append((title, field.rstrip()))
-        
+
         # Finally send to printer/pager:
         if displayfields:
             page.page(self._format_fields(displayfields))
@@ -489,7 +489,7 @@ class Inspector:
         """Compute a dict with detailed information about an object.
 
         Optional arguments:
-        
+
         - oname: name of the variable pointing to the object.
 
         - formatter: special formatter for docstrings (see pdoc)
@@ -532,7 +532,7 @@ class Inspector:
 
         # store output in a dict, we initialize it here and fill it as we go
         out = dict(name=oname, found=True, isalias=isalias, ismagic=ismagic)
-        
+
         string_max = 200 # max size of strings to show (snipped if longer)
         shalf = int((string_max -5)/2)
 
@@ -599,7 +599,7 @@ class Inspector:
         # avoid repetitions).  If source fails, we add them back, see below.
         if ds and detail_level == 0:
                 out['docstring'] = ds
-                
+
         # Original source code for any callable
         if detail_level:
             # Flush the source cache because inspect can return out-of-date
@@ -616,10 +616,10 @@ class Inspector:
                     out['source'] = source.rstrip()
             except Exception:
                 pass
-                
+
             if ds and source is None:
                 out['docstring'] = ds
-                
+
 
         # Constructor docstring for classes
         if inspect.isclass(obj):
@@ -692,7 +692,7 @@ class Inspector:
         # Compute the object's argspec as a callable.  The key is to decide
         # whether to pull it from the object itself, from its __init__ or
         # from its __call__ method.
-        
+
         if inspect.isclass(obj):
             # Old-style classes need not have an __init__
             callable_obj = getattr(obj, "__init__", None)
@@ -727,7 +727,7 @@ class Inspector:
         - ns_table: dict of name->namespaces for search.
 
         Optional arguments:
-        
+
           - ns_search: list of namespace names to include in search.
 
           - ignore_case(False): make the search case-insensitive.
@@ -736,7 +736,7 @@ class Inspector:
           underscores.
         """
         #print 'ps pattern:<%r>' % pattern # dbg
-        
+
         # defaults
         type_pattern = 'all'
         filter = ''

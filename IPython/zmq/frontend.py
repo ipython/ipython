@@ -69,14 +69,14 @@ class Console(code.InteractiveConsole):
 
     def print_pyerr(self, err):
         print >> sys.stderr, err.etype,':', err.evalue
-        print >> sys.stderr, ''.join(err.traceback)       
+        print >> sys.stderr, ''.join(err.traceback)
 
     def handle_pyerr(self, omsg):
         if omsg.parent_header.session == self.session.session:
             return
         print >> sys.stderr, '[ERR from %s]' % omsg.parent_header.username
         self.print_pyerr(omsg.content)
-        
+
     def handle_stream(self, omsg):
         if omsg.content.name == 'stdout':
             outstream = sys.stdout
@@ -104,7 +104,7 @@ class Console(code.InteractiveConsole):
         if rep is None:
             return
         if rep.content.status == 'error':
-            self.print_pyerr(rep.content)            
+            self.print_pyerr(rep.content)
         elif rep.content.status == 'aborted':
             print >> sys.stderr, "ERROR: ABORTED"
             ab = self.messages[rep.parent_header.msg_id].content
@@ -137,7 +137,7 @@ class Console(code.InteractiveConsole):
         omsg = self.session.send(self.request_socket,
                                  'execute_request', dict(code=src))
         self.messages[omsg.header.msg_id] = omsg
-        
+
         # Fake asynchronicity by letting the user put ';' at the end of the line
         if src.endswith(';'):
             self.backgrounded += 1
@@ -162,7 +162,7 @@ class InteractiveClient(object):
         self.sub_socket = sub_socket
         self.console = Console(None, '<zmq-console>',
                                session, request_socket, sub_socket)
-        
+
     def interact(self):
         self.console.interact()
 
@@ -176,12 +176,12 @@ def main():
     connection = ('tcp://%s' % ip) + ':%i'
     req_conn = connection % port_base
     sub_conn = connection % (port_base+1)
-    
+
     # Create initial sockets
     c = zmq.Context()
     request_socket = c.socket(zmq.DEALER)
     request_socket.connect(req_conn)
-    
+
     sub_socket = c.socket(zmq.SUB)
     sub_socket.connect(sub_conn)
     sub_socket.setsockopt(zmq.SUBSCRIBE, '')

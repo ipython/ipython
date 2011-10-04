@@ -81,7 +81,7 @@ class IPythonWidget(FrontendWidget):
             2. Pygments: .c, .k, .o, etc. (see PygmentsHighlighter)
             3. IPython: .error, .in-prompt, .out-prompt, etc
         """)
-    
+
     syntax_style = Unicode(config=True,
         help="""
         If not empty, use this Pygments style for syntax highlighting.
@@ -110,12 +110,12 @@ class IPythonWidget(FrontendWidget):
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
-    
+
     def __init__(self, *args, **kw):
         super(IPythonWidget, self).__init__(*args, **kw)
 
         # IPythonWidget protected variables.
-        self._payload_handlers = { 
+        self._payload_handlers = {
             self._payload_source_edit : self._handle_payload_edit,
             self._payload_source_exit : self._handle_payload_exit,
             self._payload_source_page : self._handle_payload_page,
@@ -151,7 +151,7 @@ class IPythonWidget(FrontendWidget):
             # but the last component and then suitably decreasing the offset
             # between the current cursor position and the start of completion.
             if len(matches) > 1 and matches[0][:offset] == text:
-                parts = re.split(r'[./\\]', text) 
+                parts = re.split(r'[./\\]', text)
                 sep_count = len(parts) - 1
                 if sep_count:
                     chop_length = sum(map(len, parts[:sep_count])) + sep_count
@@ -228,7 +228,7 @@ class IPythonWidget(FrontendWidget):
         """ The base handler for the ``display_data`` message.
         """
         self.log.debug("display: %s", msg.get('content', ''))
-        # For now, we don't display data from other frontends, but we 
+        # For now, we don't display data from other frontends, but we
         # eventually will as this allows all frontends to monitor the display
         # data. But we need to figure out how to handle this in the GUI.
         if not self._hidden and self._is_from_this_session(msg):
@@ -302,13 +302,13 @@ class IPythonWidget(FrontendWidget):
         # text field. Readline-based frontends do get a real text field which
         # they can use.
         text = ''
-        
+
         # Send the completion request to the kernel
         msg_id = self.kernel_manager.shell_channel.complete(
             text,                                    # text
             self._get_input_buffer_cursor_line(),    # line
             self._get_input_buffer_cursor_column(),  # cursor_pos
-            self.input_buffer)                       # block 
+            self.input_buffer)                       # block
         pos = self._get_cursor().position()
         info = self._CompletionRequest(msg_id, pos)
         self._request_info['complete'] = info
@@ -332,7 +332,7 @@ class IPythonWidget(FrontendWidget):
             self._append_html(traceback)
         else:
             # This is the fallback for now, using plain text with ansi escapes
-            self._append_plain_text(traceback)    
+            self._append_plain_text(traceback)
 
     def _process_execute_payload(self, item):
         """ Reimplemented to dispatch payloads to handler methods.
@@ -344,7 +344,7 @@ class IPythonWidget(FrontendWidget):
         else:
             handler(item)
             return True
-        
+
     def _show_interpreter_prompt(self, number=None):
         """ Reimplemented for IPython-style prompts.
         """
@@ -383,7 +383,7 @@ class IPythonWidget(FrontendWidget):
                 # Remove the old prompt and insert a new prompt.
                 cursor = QtGui.QTextCursor(block)
                 cursor.movePosition(QtGui.QTextCursor.Right,
-                                    QtGui.QTextCursor.KeepAnchor, 
+                                    QtGui.QTextCursor.KeepAnchor,
                                     self._previous_prompt_obj.length)
                 prompt = self._make_in_prompt(previous_prompt_number)
                 self._prompt = self._insert_html_fetching_plain_text(
@@ -485,7 +485,7 @@ class IPythonWidget(FrontendWidget):
         space_count = len(prompt.lstrip('\n')) - len(end_chars)
         body = '&nbsp;' * space_count + end_chars
         return '<span class="in-prompt">%s</span>' % body
-        
+
     def _make_out_prompt(self, number):
         """ Given a prompt number, returns an HTML Out prompt.
         """

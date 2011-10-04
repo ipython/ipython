@@ -84,13 +84,13 @@ def compress_dhist(dh):
         newhead.append(h)
         done.add(h)
 
-    return newhead + tail        
+    return newhead + tail
 
 def needs_local_scope(func):
     """Decorator to mark magic functions which need to local scope to run."""
     func.needs_local_scope = True
     return func
-    
+
 # Used for exception handling in magic_edit
 class MacroToEdit(ValueError): pass
 
@@ -101,7 +101,7 @@ class MacroToEdit(ValueError): pass
 # on construction of the main InteractiveShell object.  Something odd is going
 # on with super() calls, Configurable and the MRO... For now leave it as-is, but
 # eventually this needs to be clarified.
-# BG: This is because InteractiveShell inherits from this, but is itself a 
+# BG: This is because InteractiveShell inherits from this, but is itself a
 # Configurable. This messes up the MRO in some way. The fix is that we need to
 # make Magic a configurable that InteractiveShell does not subclass.
 
@@ -124,7 +124,7 @@ class Magic:
     # some utility functions
 
     def __init__(self,shell):
-        
+
         self.options_table = {}
         if profile is None:
             self.magic_prun = self.profile_missing_notice
@@ -153,7 +153,7 @@ python-profiler package from non-free.""")
         ['magic_ls','magic_cd',...]"""
 
         # FIXME. This needs a cleanup, in the way the magics list is built.
-        
+
         # magics in class definition
         class_magic = lambda fn: fn.startswith('magic_') and \
                       callable(Magic.__dict__[fn])
@@ -171,13 +171,13 @@ python-profiler package from non-free.""")
             out.append(fn.replace('magic_','',1))
         out.sort()
         return out
-    
+
     def extract_input_lines(self, range_str, raw=False):
         """Return as a string a set of input history slices.
 
         Inputs:
 
-          - range_str: the set of slices is given as a string, like 
+          - range_str: the set of slices is given as a string, like
           "~5/6-~4/2 4:8 9", since this function is for use by magic functions
           which get their arguments as strings. The number before the / is the
           session number: ~n goes n back from the current session.
@@ -195,7 +195,7 @@ python-profiler package from non-free.""")
         lines = self.shell.history_manager.\
                                     get_range_by_str(range_str, raw=raw)
         return "\n".join(x for _, _, x in lines)
-            
+
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
         print 'Error in arguments:'
@@ -209,7 +209,7 @@ python-profiler package from non-free.""")
         # Magic command names as headers:
         cmd_name_re = re.compile(r'^(%s.*?):' % ESC_MAGIC,
                                  re.MULTILINE)
-        # Magic commands 
+        # Magic commands
         cmd_re = re.compile(r'(?P<cmd>%s.+?\b)(?!\}\}:)' % ESC_MAGIC,
                             re.MULTILINE)
         # Paragraph continue
@@ -249,11 +249,11 @@ python-profiler package from non-free.""")
           -posix (True): whether to split the input line in POSIX mode or not,
           as per the conventions outlined in the shlex module from the
           standard library."""
- 
+
         # inject default options at the beginning of the input line
         caller = sys._getframe(1).f_code.co_name.replace('magic_','')
         arg_str = '%s %s' % (self.options_table.get(caller,''),arg_str)
-        
+
         mode = kw.get('mode','string')
         if mode not in ['string','list']:
             raise ValueError,'incorrect mode given: %s' % mode
@@ -272,7 +272,7 @@ python-profiler package from non-free.""")
             try:
                 opts,args = getopt(argv,opt_str,*long_opts)
             except GetoptError,e:
-                raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str, 
+                raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
                                         " ".join(long_opts)))
             for o,a in opts:
                 if o.startswith('--'):
@@ -295,7 +295,7 @@ python-profiler package from non-free.""")
             args = ' '.join(args)
 
         return opts,args
-    
+
     #......................................................................
     # And now the actual magic functions
 
@@ -307,11 +307,11 @@ python-profiler package from non-free.""")
               ('  '+mesc).join(self.lsmagic())
         print '\n' + Magic.auto_status[self.shell.automagic]
         return None
-        
+
     def magic_magic(self, parameter_s = ''):
         """Print information about the magic function system.
-        
-        Supported formats: -latex, -brief, -rest        
+
+        Supported formats: -latex, -brief, -rest
         """
 
         mode = ''
@@ -338,30 +338,30 @@ python-profiler package from non-free.""")
                     break
             if mode == 'brief':
                 # only first line
-                if fn.__doc__:                    
+                if fn.__doc__:
                     fndoc = fn.__doc__.split('\n',1)[0]
                 else:
                     fndoc = 'No documentation'
             else:
                 if fn.__doc__:
-                    fndoc = fn.__doc__.rstrip()       
+                    fndoc = fn.__doc__.rstrip()
                 else:
                     fndoc = 'No documentation'
-                
-                
+
+
             if mode == 'rest':
                 rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(ESC_MAGIC,
                                                     fname,fndoc))
-                
+
             else:
                 magic_docs.append('%s%s:\n\t%s\n' %(ESC_MAGIC,
                                                     fname,fndoc))
-                
+
         magic_docs = ''.join(magic_docs)
 
         if mode == 'rest':
             return "".join(rest_docs)
-        
+
         if mode == 'latex':
             print self.format_latex(magic_docs)
             return
@@ -369,7 +369,7 @@ python-profiler package from non-free.""")
             magic_docs = format_screen(magic_docs)
         if mode == 'brief':
             return magic_docs
-        
+
         outmsg = """
 IPython's 'magic' functions
 ===========================
@@ -495,11 +495,11 @@ Currently the magic system has the following functions:\n"""
 
     def magic_page(self, parameter_s=''):
         """Pretty print the object and display it through a pager.
-        
+
         %page [options] OBJECT
 
         If no object is given, use _ (last output).
-        
+
         Options:
 
           -r: page str(object), don't pretty-print it."""
@@ -524,12 +524,12 @@ Currently the magic system has the following functions:\n"""
 
     def magic_pinfo(self, parameter_s='', namespaces=None):
         """Provide detailed information about an object.
-    
+
         '%pinfo object' is just a synonym for object? or ?object."""
-    
+
         #print 'pinfo par: <%s>' % parameter_s  # dbg
-    
-        
+
+
         # detail_level: 0 -> obj? , 1 -> obj??
         detail_level = 0
         # We need to detect if we got called as 'pinfo pinfo foo', which can
@@ -546,7 +546,7 @@ Currently the magic system has the following functions:\n"""
 
     def magic_pinfo2(self, parameter_s='', namespaces=None):
         """Provide extra detailed information about an object.
-    
+
         '%pinfo2 object' is just a synonym for object?? or ??object."""
         self.shell._inspect('pinfo', parameter_s, detail_level=1,
                             namespaces=namespaces)
@@ -556,11 +556,11 @@ Currently the magic system has the following functions:\n"""
         """Print the definition header for any callable object.
 
         If the object is a class, print the constructor information.
-        
+
         Examples
         --------
         ::
-        
+
           In [3]: %pdef urllib.urlopen
           urllib.urlopen(url, data=None, proxies=None)
         """
@@ -615,7 +615,7 @@ Currently the magic system has the following functions:\n"""
         ?-i a* function
 
         Arguments:
-        
+
           PATTERN
 
           where PATTERN is a string containing * as a wildcard similar to its
@@ -642,8 +642,8 @@ Currently the magic system has the following functions:\n"""
 
           -i/-c: make the pattern case insensitive/sensitive.  If neither of
           these options are given, the default is read from your configuration
-          file, with the option ``InteractiveShell.wildcards_case_sensitive``. 
-          If this option is not specified in your configuration file, IPython's 
+          file, with the option ``InteractiveShell.wildcards_case_sensitive``.
+          If this option is not specified in your configuration file, IPython's
           internal default is to do a case sensitive search.
 
           -e/-s NAMESPACE: exclude/search a given namespace.  The pattern you
@@ -659,9 +659,9 @@ Currently the magic system has the following functions:\n"""
           and it contains module-level globals.  You can add namespaces to the
           search with -s or exclude them with -e (these options can be given
           more than once).
-    
+
         Examples:
-       
+
         %psearch a*            -> objects beginning with an a
         %psearch -e builtin a* -> objects NOT in the builtin space starting in a
         %psearch a* function   -> all functions beginning with an a
@@ -670,11 +670,11 @@ Currently the magic system has the following functions:\n"""
         %psearch r*.* string   -> all strings in modules beginning with r
 
         Case sensitve search:
-       
+
         %psearch -c a*         list all object beginning with lower case a
 
         Show objects beginning with a single _:
-       
+
         %psearch -a _*         list objects beginning with a single underscore"""
         try:
             parameter_s.encode('ascii')
@@ -703,14 +703,14 @@ Currently the magic system has the following functions:\n"""
         def_search.extend(opt('s',[]))
         ns_exclude = ns_exclude=opt('e',[])
         ns_search = [nm for nm in def_search if nm not in ns_exclude]
-        
+
         # Call the actual search
         try:
             psearch(args,shell.ns_table,ns_search,
                     show_all=opt('a'),ignore_case=ignore_case)
         except:
             shell.showtraceback()
-        
+
     @skip_doctest
     def magic_who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
@@ -751,7 +751,7 @@ Currently the magic system has the following functions:\n"""
 
         out.sort()
         return out
-        
+
     @skip_doctest
     def magic_who(self, parameter_s=''):
         """Print all interactive variables, with some minimal formatting.
@@ -820,7 +820,7 @@ Currently the magic system has the following functions:\n"""
         The same type filtering of %who can be applied here.
 
         For all variables, the type is printed. Additionally it prints:
-        
+
           - For {},[],(): their length.
 
           - For numpy arrays, a summary with shape, number of
@@ -844,7 +844,7 @@ Currently the magic system has the following functions:\n"""
           alpha      int         123
           beta       str         test
         """
-        
+
         varnames = self.magic_who_ls(parameter_s)
         if not varnames:
             if parameter_s:
@@ -875,13 +875,13 @@ Currently the magic system has the following functions:\n"""
         # Find all variable names and types so we can figure out column sizes
         def get_vars(i):
             return self.shell.user_ns[i]
-        
+
         # some types are well known and can be shorter
         abbrevs = {'IPython.core.macro.Macro' : 'Macro'}
         def type_name(v):
             tn = type(v).__name__
             return abbrevs.get(tn,tn)
-            
+
         varlist = map(get_vars,varnames)
 
         typelist = []
@@ -927,7 +927,7 @@ Currently the magic system has the following functions:\n"""
                     vsize  = Numeric.size(var)
                     vbytes = vsize*var.itemsize()
                     vdtype = var.typecode()
-                    
+
                 if vbytes < 100000:
                     print aformat % (vshape,vsize,vdtype,vbytes)
                 else:
@@ -947,19 +947,19 @@ Currently the magic system has the following functions:\n"""
                     print vstr
                 else:
                     print vstr[:25] + "<...>" + vstr[-25:]
-                
+
     def magic_reset(self, parameter_s=''):
         """Resets the namespace by removing all names defined by the user.
 
         Parameters
         ----------
           -f : force reset without asking for confirmation.
-          
+
           -s : 'Soft' reset: Only clears your namespace, leaving history intact.
           References to objects may be kept. By default (without this option),
           we do a 'hard' reset, giving you a new session and removing all
           references to objects from the current session.
-        
+
         Examples
         --------
         In [6]: a = 1
@@ -984,16 +984,16 @@ Currently the magic system has the following functions:\n"""
         if not ans:
             print 'Nothing done.'
             return
-        
+
         if 's' in opts:                     # Soft reset
             user_ns = self.shell.user_ns
             for i in self.magic_who_ls():
                 del(user_ns[i])
-            
+
         else:                     # Hard reset
             self.shell.reset(new_session = False)
-            
-        
+
+
 
     def magic_reset_selective(self, parameter_s=''):
         """Resets the namespace by removing names defined by the user.
@@ -1003,7 +1003,7 @@ Currently the magic system has the following functions:\n"""
         %reset_selective [-f] regex
 
         No action is taken if regex is not included
-        
+
         Options
           -f : force reset without asking for confirmation.
 
@@ -1013,7 +1013,7 @@ Currently the magic system has the following functions:\n"""
         We first fully reset the namespace so your output looks identical to
         this example for pedagogical reasons; in practice you do not need a
         full reset.
-        
+
         In [1]: %reset -f
 
         Now, with a clean namespace we can make a few variables and use
@@ -1044,9 +1044,9 @@ Currently the magic system has the following functions:\n"""
         In [11]: who_ls
         Out[11]: ['a']
         """
-        
+
         opts, regex = self.parse_options(parameter_s,'f')
-        
+
         if opts.has_key('f'):
             ans = True
         else:
@@ -1065,16 +1065,16 @@ Currently the magic system has the following functions:\n"""
             except TypeError:
                 raise TypeError('regex must be a string or compiled pattern')
             for i in self.magic_who_ls():
-                if m.search(i): 
+                if m.search(i):
                     del(user_ns[i])
-                    
+
     def magic_xdel(self, parameter_s=''):
         """Delete a variable, trying to clear it from anywhere that
         IPython's machinery has references to it. By default, this uses
         the identity of the named object in the user namespace to remove
         references held under other names. The object is also removed
         from the output history.
-        
+
         Options
           -n : Delete the specified name from all namespaces, without
           checking their identity.
@@ -1084,7 +1084,7 @@ Currently the magic system has the following functions:\n"""
             self.shell.del_var(varname, ('n' in opts))
         except (NameError, ValueError) as e:
             print type(e).__name__ +": "+ str(e)
-        
+
     def magic_logstart(self,parameter_s=''):
         """Start logging anywhere in a session.
 
@@ -1125,7 +1125,7 @@ Currently the magic system has the following functions:\n"""
 
           -t: put timestamps before each input line logged (these are put in
           comments)."""
-        
+
         opts,par = self.parse_options(parameter_s,'ort')
         log_output = 'o' in opts
         log_raw_input = 'r' in opts
@@ -1172,7 +1172,7 @@ Currently the magic system has the following functions:\n"""
                 input_hist = self.shell.history_manager.input_hist_raw
             else:
                 input_hist = self.shell.history_manager.input_hist_parsed
-                
+
             if log_output:
                 log_write = logger.log_write
                 output_hist = self.shell.history_manager.output_hist
@@ -1186,7 +1186,7 @@ Currently the magic system has the following functions:\n"""
             if timestamp:
                 # re-enable timestamping
                 logger.timestamp = True
-                
+
             print ('Activating auto-logging. '
                    'Current session state plus future input saved.')
             logger.logstate()
@@ -1204,7 +1204,7 @@ Currently the magic system has the following functions:\n"""
 
         You must have previously started logging."""
         self.shell.logger.switch_log(0)
-        
+
     def magic_logon(self,parameter_s=''):
         """Restart logging.
 
@@ -1212,14 +1212,14 @@ Currently the magic system has the following functions:\n"""
         stopped with %logoff. For starting logging for the first time, you
         must use the %logstart function, which allows you to specify an
         optional log filename."""
-        
+
         self.shell.logger.switch_log(1)
-    
+
     def magic_logstate(self,parameter_s=''):
         """Print the status of the logging system."""
 
         self.shell.logger.logstate()
-        
+
     def magic_pdb(self, parameter_s=''):
         """Control the automatic calling of the pdb interactive debugger.
 
@@ -1314,7 +1314,7 @@ Currently the magic system has the following functions:\n"""
         When more than one key is provided, additional keys are used as
         secondary criteria when the there is equality in all keys selected
         before them.
-        
+
         Abbreviations can be used for any key names, as long as the
         abbreviation is unambiguous.  The following are the keys currently
         defined:
@@ -1353,16 +1353,16 @@ Currently the magic system has the following functions:\n"""
         If you want to run complete programs under the profiler's control, use
         '%run -p [prof_opts] filename.py [args to program]' where prof_opts
         contains profiler specific options as described here.
-        
+
         You can read the complete documentation for the profile module with::
-        
+
           In [1]: import profile; profile.help()
         """
 
         opts_def = Struct(D=[''],l=[],s=['time'],T=[''])
         # protect user quote marks
         parameter_s = parameter_s.replace('"',r'\"').replace("'",r"\'")
-        
+
         if user_mode:  # regular user call
             opts,arg_str = self.parse_options(parameter_s,'D:l:rs:T:',
                                               list_all=1)
@@ -1382,7 +1382,7 @@ Currently the magic system has the following functions:\n"""
             namespace = locals()
 
         opts.merge(opts_def)
-        
+
         prof = profile.Profile()
         try:
             prof = prof.runctx(arg_str,namespace,namespace)
@@ -1403,7 +1403,7 @@ Currently the magic system has the following functions:\n"""
                         lims.append(float(lim))
                     except ValueError:
                         lims.append(lim)
-                    
+
         # Trap output.
         stdout_trap = StringIO()
 
@@ -1420,7 +1420,7 @@ Currently the magic system has the following functions:\n"""
                 stats.print_stats(*lims)
             finally:
                 sys.stdout = sys_stdout
-                
+
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
@@ -1454,7 +1454,7 @@ Currently the magic system has the following functions:\n"""
 
         Usage:\\
           %run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options]] file [args]
-        
+
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
         prompt.
@@ -1475,7 +1475,7 @@ Currently the magic system has the following functions:\n"""
         interactive work, while giving each program a 'clean sheet' to run in.
 
         Options:
-        
+
         -n: __name__ is NOT set to '__main__', but to the running file's name
         without extension (as python does under import).  This allows running
         scripts and reloading the definitions in them without calling code
@@ -1520,7 +1520,7 @@ Currently the magic system has the following functions:\n"""
         -d: run your program under the control of pdb, the Python debugger.
         This allows you to execute your program step by step, watch variables,
         etc.  Internally, what IPython does is similar to calling:
-        
+
           pdb.run('execfile("YOURFILENAME")')
 
         with a breakpoint set on line 1 of your file.  You can change the line
@@ -1580,10 +1580,10 @@ Currently the magic system has the following functions:\n"""
         if filename.lower().endswith('.ipy'):
             self.shell.safe_execfile_ipy(filename)
             return
-        
+
         # Control the response to exit() calls made by the script being run
         exit_ignore = opts.has_key('e')
-        
+
         # Make sure that the running script gets a proper sys.argv as if it
         # were run from a system shell.
         save_argv = sys.argv # save it for later restoring
@@ -1626,7 +1626,7 @@ Currently the magic system has the following functions:\n"""
         # This needs to be undone at the end to prevent holding references to
         # every single object ever created.
         sys.modules[main_mod_name] = main_mod
-        
+
         try:
             stats = None
             with self.readline_no_record:
@@ -1663,7 +1663,7 @@ Currently the magic system has the following functions:\n"""
                         print "%s prompt to start your script." % deb.prompt
                         try:
                             deb.run('execfile("%s")' % filename,prog_ns)
-                            
+
                         except:
                             etype, value, tb = sys.exc_info()
                             # Skip three frames in the traceback: the %run one,
@@ -1739,7 +1739,7 @@ Currently the magic system has the following functions:\n"""
             # we can do is to at least restore __builtins__ for the user on
             # exit.
             self.shell.user_ns['__builtins__'] = builtin_mod
-            
+
             # Ensure key global structures are restored
             sys.argv = save_argv
             if restore_main:
@@ -1749,7 +1749,7 @@ Currently the magic system has the following functions:\n"""
                 # added.  Otherwise it will trap references to objects
                 # contained therein.
                 del sys.modules[main_mod_name]
-                
+
         return stats
 
     @skip_doctest
@@ -1764,14 +1764,14 @@ Currently the magic system has the following functions:\n"""
 
         Options:
         -n<N>: execute the given statement <N> times in a loop. If this value
-        is not given, a fitting value is chosen. 
-        
+        is not given, a fitting value is chosen.
+
         -r<R>: repeat the loop iteration <R> times and take the best result.
         Default: 3
-        
+
         -t: use time.time to measure the time, which is the default on Unix.
         This function measures wall time.
-        
+
         -c: use time.clock to measure the time, which is the default on
         Windows and measures wall time. On Unix, resource.getrusage is used
         instead and returns the CPU user time.
@@ -1779,7 +1779,7 @@ Currently the magic system has the following functions:\n"""
         -p<P>: use a precision of <P> digits to display the timing result.
         Default: 3
 
-        
+
         Examples:
 
           In [1]: %timeit pass
@@ -1797,7 +1797,7 @@ Currently the magic system has the following functions:\n"""
 
           In [6]: %timeit -n1 time.sleep(2)
           1 loops, best of 3: 2 s per loop
-          
+
 
         The times reported by %timeit will be slightly higher than those
         reported by the timeit.py script when variables are accessed. This is
@@ -1828,10 +1828,10 @@ Currently the magic system has the following functions:\n"""
         # succeeds
         #
         # See bug: https://bugs.launchpad.net/ipython/+bug/348466
-        
+
         #units = [u"s", u"ms",u'\xb5',"ns"]
         units = [u"s", u"ms",u'us',"ns"]
-        
+
         scaling = [1, 1e3, 1e6, 1e9]
 
         opts, stmt = self.parse_options(parameter_s,'n:r:tcp:',
@@ -1857,15 +1857,15 @@ Currently the magic system has the following functions:\n"""
         # Track compilation time so it can be reported if too long
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
-        
+
         t0 = clock()
         code = compile(src, "<magic-timeit>", "exec")
         tc = clock()-t0
-        
+
         ns = {}
         exec code in self.shell.user_ns, ns
         timer.inner = ns["inner"]
-        
+
         if number == 0:
             # determine number so that 0.2 <= total time < 2.0
             number = 1
@@ -1873,7 +1873,7 @@ Currently the magic system has the following functions:\n"""
                 if timer.timeit(number) >= 0.2:
                     break
                 number *= 10
-        
+
         best = min(timer.repeat(repeat, number)) / number
 
         if best > 0.0 and best < 1000.0:
@@ -1901,7 +1901,7 @@ Currently the magic system has the following functions:\n"""
         This function provides very basic timing functionality.  In Python
         2.3, the timeit module offers more control and sophistication, so this
         could be rewritten to use it (patches welcome).
-        
+
         Some examples:
 
           In [1]: time 2**128
@@ -1936,14 +1936,14 @@ Currently the magic system has the following functions:\n"""
           Wall time: 0.00 s
           Compiler : 0.78 s
           """
-        
+
         # fail immediately if the given expression can't be compiled
-        
+
         expr = self.shell.prefilter(parameter_s,False)
 
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
-        
+
         try:
             mode = 'eval'
             t0 = clock()
@@ -1992,7 +1992,7 @@ Currently the magic system has the following functions:\n"""
           %macro [options] name n1-n2 n3-n4 ... n5 .. n6 ...
 
         Options:
-        
+
           -r: use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed as the
@@ -2011,7 +2011,7 @@ Currently the magic system has the following functions:\n"""
         notation, where N:M means numbers N through M-1.
 
         For example, if your history contains (%hist prints it):
-        
+
           44: x=1
           45: y=3
           46: z=x+y
@@ -2036,9 +2036,9 @@ Currently the magic system has the following functions:\n"""
         code instead of printing them when you type their name.
 
         You can view a macro's contents by explicitly printing it with:
-        
+
           'print macro_name'.
-          
+
         """
         opts,args = self.parse_options(parameter_s,'r',mode='list')
         if not args:   # List existing macros
@@ -2048,7 +2048,7 @@ Currently the magic system has the following functions:\n"""
             raise UsageError(
                 "%macro insufficient args; usage '%macro name n1-n2 n3-4...")
         name, codefrom = args[0], " ".join(args[1:])
-        
+
         #print 'rng',ranges  # dbg
         try:
             lines = self.shell.find_user_code(codefrom, 'r' in opts)
@@ -2068,13 +2068,13 @@ Currently the magic system has the following functions:\n"""
           %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
 
         Options:
-        
+
           -r: use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed as the
           command line is used instead.
 
-        This function uses the same syntax as %history for input ranges, 
+        This function uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
 
         It adds a '.py' extension to the file if you don't do so yourself, and
@@ -2099,7 +2099,7 @@ Currently the magic system has the following functions:\n"""
             f.write(py3compat.cast_unicode(cmds))
         print 'The following commands were written to file `%s`:' % fname
         print cmds
-    
+
     def magic_pastebin(self, parameter_s = ''):
         """Upload code to the 'Lodge it' paste bin, returning the URL."""
         try:
@@ -2110,7 +2110,7 @@ Currently the magic system has the following functions:\n"""
         pbserver = ServerProxy('http://paste.pocoo.org/xmlrpc/')
         id = pbserver.pastes.newPaste("python", code)
         return "http://paste.pocoo.org/show/" + id
-        
+
     def magic_loadpy(self, arg_s):
         """Load a .py python script into the GUI console.
 
@@ -2130,10 +2130,10 @@ Currently the magic system has the following functions:\n"""
             with open(arg_s) as f:
                 content = f.read()
         self.set_next_input(content)
-        
+
     def _find_edit_target(self, args, opts, last_call):
         """Utility method used by magic_edit to find what to edit."""
-        
+
         def make_filename(arg):
             "Make a filename from the given args"
             arg = unquote_filename(arg)
@@ -2141,20 +2141,20 @@ Currently the magic system has the following functions:\n"""
                 filename = get_py_filename(arg)
             except IOError:
                 # If it ends with .py but doesn't already exist, assume we want
-                # a new file. 
+                # a new file.
                 if arg.endswith('.py'):
                     filename = arg
                 else:
                     filename = None
             return filename
-        
+
         # Set a few locals from the options for convenience:
         opts_prev = 'p' in opts
         opts_raw = 'r' in opts
 
         # custom exceptions
         class DataIsObject(Exception): pass
-        
+
         # Default line number value
         lineno = opts.get('n',None)
 
@@ -2162,7 +2162,7 @@ Currently the magic system has the following functions:\n"""
             args = '_%s' % last_call[0]
             if not self.shell.user_ns.has_key(args):
                 args = last_call[1]
-            
+
         # use last_call to remember the state of the previous call, but don't
         # let it be clobbered by successive '-p' calls.
         try:
@@ -2177,7 +2177,7 @@ Currently the magic system has the following functions:\n"""
         use_temp = True
 
         data = ''
-        
+
         # First, see if the arguments should be a filename.
         filename = make_filename(args)
         if filename:
@@ -2203,16 +2203,16 @@ Currently the magic system has the following functions:\n"""
                              "or as a filename." % args)
                         return
                     use_temp = False
-                
+
                 except DataIsObject:
                     # macros have a special edit function
                     if isinstance(data, Macro):
                         raise MacroToEdit(data)
-                                    
+
                     # For objects, try to edit the file where they are defined
                     try:
                         filename = inspect.getabsfile(data)
-                        if 'fakemodule' in filename.lower() and inspect.isclass(data):                     
+                        if 'fakemodule' in filename.lower() and inspect.isclass(data):
                             # class created by %edit? Try to find source
                             # by looking for method definitions instead, the
                             # __module__ in those classes is FakeModule.
@@ -2223,9 +2223,9 @@ Currently the magic system has the following functions:\n"""
                                 filename = inspect.getabsfile(attr)
                                 if filename and 'fakemodule' not in filename.lower():
                                     # change the attribute to be the edit target instead
-                                    data = attr 
+                                    data = attr
                                     break
-                        
+
                         datafile = 1
                     except TypeError:
                         filename = make_filename(args)
@@ -2249,7 +2249,7 @@ Currently the magic system has the following functions:\n"""
         if use_temp:
             filename = self.shell.mktempfile(data)
             print 'IPython will make a temporary file named:',filename
-        
+
         return filename, lineno, use_temp
 
     def _edit_macro(self,mname,macro):
@@ -2266,7 +2266,7 @@ Currently the magic system has the following functions:\n"""
     def magic_ed(self,parameter_s=''):
         """Alias to %edit."""
         return self.magic_edit(parameter_s)
-    
+
     @skip_doctest
     def magic_edit(self,parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
@@ -2280,15 +2280,15 @@ Currently the magic system has the following functions:\n"""
         notepad under Windows. See the end of this docstring for how to change
         the editor hook.
 
-        You can also set the value of this editor via the 
-        ``TerminalInteractiveShell.editor`` option in your configuration file. 
-        This is useful if you wish to use a different editor from your typical 
-        default with IPython (and for Windows users who typically don't set 
+        You can also set the value of this editor via the
+        ``TerminalInteractiveShell.editor`` option in your configuration file.
+        This is useful if you wish to use a different editor from your typical
+        default with IPython (and for Windows users who typically don't set
         environment variables).
 
         This command allows you to conveniently edit multi-line code right in
         your IPython session.
-        
+
         If called without arguments, %edit opens up an empty editor with a
         temporary file and will execute the contents of this file when you
         close it (don't forget to save it!).
@@ -2301,7 +2301,7 @@ Currently the magic system has the following functions:\n"""
         you can configure this by providing your own modified hook if your
         favorite editor supports line-number specifications with a different
         syntax.
-        
+
         -p: this will call the editor with the same data as the previous time
         it was used, regardless of how long ago (in your current session) it
         was.
@@ -2312,7 +2312,7 @@ Currently the magic system has the following functions:\n"""
         this option is given, the raw input as typed as the command line is
         used instead.  When you exit the editor, it will be executed by
         IPython's own processor.
-        
+
         -x: do not execute the edited code immediately upon exit. This is
         mainly useful if you are editing programs which need to be called with
         command line arguments, which you can then do using %run.
@@ -2321,7 +2321,7 @@ Currently the magic system has the following functions:\n"""
         Arguments:
 
         If arguments are given, the following possibilites exist:
-        
+
         - If the argument is a filename, IPython will load that into the
           editor. It will execute its contents with execfile() when you exit,
           loading any code in the file into your interactive namespace.
@@ -2364,18 +2364,18 @@ Currently the magic system has the following functions:\n"""
         Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
 
         We can then call the function foo():
-        
+
         In [2]: foo()
         foo() was defined in an editing session
 
         Now we edit foo.  IPython automatically loads the editor with the
         (temporary) file where foo() was previously defined:
-        
+
         In [3]: ed foo
         Editing... done. Executing edited code...
 
         And if we call foo() again we get the modified version:
-        
+
         In [4]: foo()
         foo() has now been changed!
 
@@ -2411,7 +2411,7 @@ Currently the magic system has the following functions:\n"""
         general instructions on how to set a new hook for use once you've
         defined it."""
         opts,args = self.parse_options(parameter_s,'prxn:')
-        
+
         try:
             filename, lineno, is_temp = self._find_edit_target(args, opts, last_call)
         except MacroToEdit as e:
@@ -2429,12 +2429,12 @@ Currently the magic system has the following functions:\n"""
         except TryNext:
             warn('Could not open editor')
             return
-        
+
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
         if args.strip() == 'pasted_block':
             self.shell.user_ns['pasted_block'] = file_read(filename)
-        
+
         if 'x' in opts:  # -x prevents actual execution
             print
         else:
@@ -2445,7 +2445,7 @@ Currently the magic system has the following functions:\n"""
             else:
                 self.shell.safe_execfile(filename,self.shell.user_ns,
                                          self.shell.user_ns)
-                                                     
+
         if is_temp:
             try:
                 return open(filename).read()
@@ -2481,19 +2481,19 @@ Currently the magic system has the following functions:\n"""
         Currently implemented schemes: NoColor, Linux, LightBG.
 
         Color scheme names are not case-sensitive.
-        
+
         Examples
         --------
         To get a plain black and white terminal::
-        
+
           %colors nocolor
         """
 
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
                  (name,sys.exc_info()[1]))
-            
-        
+
+
         new_scheme = parameter_s.strip()
         if not new_scheme:
             raise UsageError(
@@ -2517,11 +2517,11 @@ http://starship.python.net/crew/theller/ctypes
 Defaulting color scheme to 'NoColor'"""
             new_scheme = 'NoColor'
             warn(msg)
-        
+
         # readline option is 0
         if not shell.colors_force and not shell.has_readline:
             new_scheme = 'NoColor'
-            
+
         # Set prompt colors
         try:
             shell.displayhook.set_colors(new_scheme)
@@ -2545,7 +2545,7 @@ Defaulting color scheme to 'NoColor'"""
                 color_switch_err('object inspector')
         else:
             shell.inspector.set_active_scheme('NoColor')
-                
+
     def magic_pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
         ptformatter = self.shell.display_formatter.formatters['text/plain']
@@ -2578,7 +2578,7 @@ Defaulting color scheme to 'NoColor'"""
 
         You can also define aliases with parameters using %s specifiers (one
         per parameter):
-        
+
           In [1]: alias parts echo first %s second %s
           In [2]: %parts A B
           first A second B
@@ -2589,7 +2589,7 @@ Defaulting color scheme to 'NoColor'"""
         Note that %l and %s are mutually exclusive.  You can only use one or
         the other in your aliases.
 
-        Aliases expand Python variables just like system calls using ! or !! 
+        Aliases expand Python variables just like system calls using ! or !!
         do: all expressions prefixed with '$' get expanded.  For details of
         the semantic rules, see PEP-215:
         http://www.python.org/peps/pep-0215.html.  This is the library used by
@@ -2619,7 +2619,7 @@ Defaulting color scheme to 'NoColor'"""
             print "Total number of aliases:", len(aliases)
             sys.stdout.flush()
             return aliases
-        
+
         # Now try to define a new one
         try:
             alias,cmd = par.split(None, 1)
@@ -2649,7 +2649,7 @@ Defaulting color scheme to 'NoColor'"""
         Under Windows, it checks executability as a match agains a
         '|'-separated string of extensions, stored in the IPython config
         variable win_exec_ext.  This defaults to 'exe|com|bat'.
-        
+
         This function also resets the root module cache of module completer,
         used on slow filesystems.
         """
@@ -2657,8 +2657,8 @@ Defaulting color scheme to 'NoColor'"""
 
         # for the benefit of module completer in ipy_completers.py
         del self.db['rootmodules']
-        
-        path = [os.path.abspath(os.path.expanduser(p)) for p in 
+
+        path = [os.path.abspath(os.path.expanduser(p)) for p in
             os.environ.get('PATH','').split(os.pathsep)]
         path = filter(os.path.isdir,path)
 
@@ -2717,20 +2717,20 @@ Defaulting color scheme to 'NoColor'"""
             db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
-    
-    @skip_doctest    
+
+    @skip_doctest
     def magic_pwd(self, parameter_s = ''):
         """Return the current working directory path.
-        
+
         Examples
         --------
         ::
-        
+
           In [9]: pwd
           Out[9]: '/home/tsuser/sprint/ipython'
         """
         return os.getcwdu()
-    
+
     @skip_doctest
     def magic_cd(self, parameter_s=''):
         """Change the current working directory.
@@ -2749,25 +2749,25 @@ Defaulting color scheme to 'NoColor'"""
           cd -<n>: changes to the n-th directory in the directory history.
 
           cd --foo: change to directory that matches 'foo' in history
-            
+
           cd -b <bookmark_name>: jump to a bookmark set by %bookmark
              (note: cd <bookmark_name> is enough if there is no
               directory <bookmark_name>, but a bookmark with the name exists.)
-              'cd -b <tab>' allows you to tab-complete bookmark names. 
+              'cd -b <tab>' allows you to tab-complete bookmark names.
 
         Options:
 
         -q: quiet.  Do not print the working directory after the cd command is
         executed.  By default IPython's cd command does print this directory,
         since the default prompts do not display path information.
-        
+
         Note that !cd doesn't work for this purpose because the shell where
         !command runs is immediately discarded after executing 'command'.
-        
+
         Examples
         --------
         ::
-        
+
           In [10]: cd parent/child
           /home/tsuser/parent/child
         """
@@ -2797,25 +2797,25 @@ Defaulting color scheme to 'NoColor'"""
                 if pat in os.path.basename(ent) and os.path.isdir(ent):
                     ps = ent
                     break
-            
+
                 if fallback is None and pat in ent and os.path.isdir(ent):
                     fallback = ent
-                
+
             # if we have no last part match, pick the first full path match
             if ps is None:
                 ps = fallback
-            
+
             if ps is None:
                 print "No matching entry in directory history"
                 return
             else:
                 opts = {}
-                
-            
+
+
         else:
-            #turn all non-space-escaping backslashes to slashes, 
+            #turn all non-space-escaping backslashes to slashes,
             # for c:\windows\directory\names\
-            parameter_s = re.sub(r'\\(?! )','/', parameter_s)            
+            parameter_s = re.sub(r'\\(?! )','/', parameter_s)
             opts,ps = self.parse_options(parameter_s,'qb',mode='string')
         # jump to previous
         if ps == '-':
@@ -2827,7 +2827,7 @@ Defaulting color scheme to 'NoColor'"""
         else:
             if not os.path.isdir(ps) or opts.has_key('b'):
                 bkms = self.db.get('bookmarks', {})
-            
+
                 if bkms.has_key(ps):
                     target = bkms[ps]
                     print '(bookmark:%s) -> %s' % (ps,target)
@@ -2853,14 +2853,14 @@ Defaulting color scheme to 'NoColor'"""
                 if oldcwd != cwd:
                     dhist.append(cwd)
                     self.db['dhist'] = compress_dhist(dhist)[-100:]
-                
+
         else:
             os.chdir(self.shell.home_dir)
             if hasattr(self.shell, 'term_title') and self.shell.term_title:
                 set_term_title('IPython: ' + '~')
             cwd = os.getcwdu()
             dhist = self.shell.user_ns['_dh']
-            
+
             if oldcwd != cwd:
                 dhist.append(cwd)
                 self.db['dhist'] = compress_dhist(dhist)[-100:]
@@ -2870,16 +2870,16 @@ Defaulting color scheme to 'NoColor'"""
 
     def magic_env(self, parameter_s=''):
         """List environment variables."""
-        
+
         return os.environ.data
 
     def magic_pushd(self, parameter_s=''):
         """Place the current dir on stack and change directory.
-        
+
         Usage:\\
           %pushd ['dirname']
         """
-        
+
         dir_s = self.shell.dir_stack
         tgt = os.path.expanduser(unquote_filename(parameter_s))
         cwd = os.getcwdu().replace(self.home_dir,'~')
@@ -2912,10 +2912,10 @@ Defaulting color scheme to 'NoColor'"""
         This history is automatically maintained by the %cd command, and
         always available as the global list variable _dh. You can use %cd -<n>
         to go to directory number <n>.
-        
+
         Note that most of time, you should view directory history by entering
         cd -<TAB>.
-        
+
         """
 
         dh = self.shell.user_ns['_dh']
@@ -2943,13 +2943,13 @@ Defaulting color scheme to 'NoColor'"""
         """Shell capture - execute a shell command and capture its output.
 
         DEPRECATED. Suboptimal, retained for backwards compatibility.
-        
+
         You should use the form 'var = !command' instead. Example:
-         
+
          "%sc -l myfiles = ls ~" should now be written as
-            
+
          "myfiles = !ls ~"
-         
+
         myfiles.s, myfiles.l and myfiles.n still apply as documented
         below.
 
@@ -2963,7 +2963,7 @@ Defaulting color scheme to 'NoColor'"""
 
         The '=' sign in the syntax is mandatory, and the variable name you
         supply must follow Python's standard conventions for valid names.
-        
+
         (A special format without variable name exists for internal use)
 
         Options:
@@ -2983,7 +2983,7 @@ Defaulting color scheme to 'NoColor'"""
         For example:
 
         # all-random
-        
+
             # Capture into variable a
             In [1]: sc a=ls *py
 
@@ -3074,7 +3074,7 @@ Defaulting color scheme to 'NoColor'"""
           !!ls
         is a shorthand equivalent to:
           %sx ls
-        
+
         2) %sx differs from %sc in that %sx automatically splits into a list,
         like '%sc -l'.  The reason for this is to make it as easy as possible
         to process line-oriented shell output via further python commands.
@@ -3093,7 +3093,7 @@ Defaulting color scheme to 'NoColor'"""
         if parameter_s:
             return self.shell.getoutput(parameter_s)
 
-    
+
     def magic_bookmark(self, parameter_s=''):
         """Manage IPython's bookmark system.
 
@@ -3116,7 +3116,7 @@ Defaulting color scheme to 'NoColor'"""
             raise UsageError("%bookmark: too many arguments")
 
         bkms = self.db.get('bookmarks',{})
-            
+
         if opts.has_key('d'):
             try:
                 todel = args[0]
@@ -3157,7 +3157,7 @@ Defaulting color scheme to 'NoColor'"""
 
         This magic is similar to the cat utility, but it will assume the file
         to be Python source and will show it with syntax highlighting. """
-        
+
         try:
             filename = get_py_filename(parameter_s)
             cont = file_read(filename)
@@ -3205,13 +3205,13 @@ Defaulting color scheme to 'NoColor'"""
                      ]
 
         strip_from_start = map(re.compile,strip_re)
-        
+
         lines = []
         for l in raw_lines:
-            for pat in strip_from_start: 
+            for pat in strip_from_start:
                 l = pat.sub('',l)
             lines.append(l)
-                         
+
         block = "\n".join(lines) + '\n'
         #print "block:\n",block
         return block
@@ -3231,7 +3231,7 @@ Defaulting color scheme to 'NoColor'"""
         """ Show a quick reference sheet """
         import IPython.core.usage
         qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
-        
+
         page.page(qr)
 
     def magic_doctest_mode(self,parameter_s=''):
@@ -3298,7 +3298,7 @@ Defaulting color scheme to 'NoColor'"""
 
             ptformatter.pprint = False
             disp_formatter.plain_text_only = True
-            
+
             shell.magic_xmode('Plain')
         else:
             # turn off
@@ -3385,7 +3385,7 @@ Defaulting color scheme to 'NoColor'"""
                 name = src.replace('profile_', '')
                 print "    %s"%name
                 pd = ProfileDir.create_profile_dir_by_name(ipython_dir, name)
-                pd.copy_config_file('ipython_config.py', path=src, 
+                pd.copy_config_file('ipython_config.py', path=src,
                                 overwrite=overwrite)
 
     @skip_doctest
@@ -3452,16 +3452,16 @@ Defaulting color scheme to 'NoColor'"""
         Backend in use: Qt4Agg
         For more information, type 'help(pylab)'.
         """
-        
+
         if Application.initialized():
             app = Application.instance()
             try:
                 import_all_status = app.pylab_import_all
             except AttributeError:
-                import_all_status = True 
+                import_all_status = True
         else:
             import_all_status = True
-        
+
         self.shell.enable_pylab(s,import_all=import_all_status)
 
     def magic_tb(self, s):
@@ -3469,50 +3469,50 @@ Defaulting color scheme to 'NoColor'"""
 
         See %xmode for changing exception reporting modes."""
         self.shell.showtraceback()
-    
+
     @skip_doctest
     def magic_precision(self, s=''):
         """Set floating point precision for pretty printing.
-        
+
         Can set either integer precision or a format string.
-        
+
         If numpy has been imported and precision is an int,
         numpy display precision will also be set, via ``numpy.set_printoptions``.
-        
+
         If no argument is given, defaults will be restored.
-        
+
         Examples
         --------
         ::
-        
+
             In [1]: from math import pi
-        
+
             In [2]: %precision 3
             Out[2]: u'%.3f'
-        
+
             In [3]: pi
             Out[3]: 3.142
-        
+
             In [4]: %precision %i
             Out[4]: u'%i'
-        
+
             In [5]: pi
             Out[5]: 3
-        
+
             In [6]: %precision %e
             Out[6]: u'%e'
-        
+
             In [7]: pi**10
             Out[7]: 9.364805e+04
-        
+
             In [8]: %precision
             Out[8]: u'%r'
-        
+
             In [9]: pi**10
             Out[9]: 93648.047476082982
-        
+
         """
-        
+
         ptformatter = self.shell.display_formatter.formatters['text/plain']
         ptformatter.float_precision = s
         return ptformatter.float_format
@@ -3583,6 +3583,6 @@ Defaulting color scheme to 'NoColor'"""
                     nb = current.reads(s, u'xml')
             with open(new_fname, 'w') as f:
                 current.write(nb, f, new_format)
-            
+
 
 # end Magic

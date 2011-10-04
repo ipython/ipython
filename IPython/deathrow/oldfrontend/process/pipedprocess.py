@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Object for encapsulating process execution by using callbacks for stdout, 
+Object for encapsulating process execution by using callbacks for stdout,
 stderr and stdin.
 """
 __docformat__ = "restructuredtext en"
@@ -26,10 +26,10 @@ class PipedProcess(Thread):
         killing it.
     """
 
-    def __init__(self, command_string, out_callback, 
+    def __init__(self, command_string, out_callback,
                         end_callback=None,):
         """ command_string: the command line executed to start the
-        process. 
+        process.
 
         out_callback: the python callable called on stdout/stderr.
 
@@ -43,7 +43,7 @@ class PipedProcess(Thread):
         self.out_callback = out_callback
         self.end_callback = end_callback
         Thread.__init__(self)
-    
+
 
     def run(self):
         """ Start the process and hook up the callbacks.
@@ -70,5 +70,5 @@ class PipedProcess(Thread):
 
         if self.end_callback is not None:
             self.end_callback()
-    
+
 

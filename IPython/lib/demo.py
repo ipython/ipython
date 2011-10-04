@@ -44,7 +44,7 @@ subclassing more convenient.  Their docstrings below have some more details:
 
   - post_cmd(): run right after the execution of each block.  If the block
     raises an exception, this is NOT called.
-    
+
 
 Operation
 =========
@@ -72,14 +72,14 @@ The supported tags are:
   word 'stop', to help visually distinguish the blocks in a text editor:
 
   # <demo> --- stop ---
-  
+
 
 # <demo> silent
 
   Make a block execute silently (and hence automatically).  Typically used in
   cases where you have some boilerplate or initialization code which you need
   executed but do not want to be seen in the demo.
-  
+
 # <demo> auto
 
   Make a block execute automatically, but still being printed.  Useful for
@@ -116,7 +116,7 @@ been added to the "docs/examples/core" directory.  Just cd to this directory in
 an IPython session, and type::
 
   %run demo-exercizer.py
-  
+
 and then follow the directions.
 
 Example
@@ -200,14 +200,14 @@ class Demo(object):
         IPython.Demo? in IPython to see it).
 
         Inputs:
-        
+
           - src is either a file, or file-like object, or a
               string that can be resolved to a filename.
 
         Optional inputs:
-        
+
           - title: a string to use as the demo name.  Of most use when the demo
-          you are making comes from an object that has no filename, or if you 
+          you are making comes from an object that has no filename, or if you
           want an alternate denotation distinct from the filename.
 
           - arg_str(''): a string of arguments, internally converted to a list
@@ -238,7 +238,7 @@ class Demo(object):
         self.sys_argv = [src] + shlex.split(arg_str)
         self.auto_all = auto_all
         self.src = src
-        
+
         # get a few things from ipython.  While it's a bit ugly design-wise,
         # it ensures that things like color scheme and the like are always in
         # sync with the ipython mode being used.  This class is only meant to
@@ -268,7 +268,7 @@ class Demo(object):
     def reload(self):
         """Reload source from disk and initialize state."""
         self.fload()
-        
+
         self.src     = self.fobj.read()
         src_b        = [b.strip() for b in self.re_stop.split(self.src) if b]
         self._silent = [bool(self.re_silent.findall(b)) for b in src_b]
@@ -315,7 +315,7 @@ class Demo(object):
         """Get the current block index, validating and checking status.
 
         Returns None if the demo is finished"""
-        
+
         if index is None:
             if self.finished:
                 print >>io.stdout, 'Demo finished.  Use <demo_name>.reset() if you want to rerun it.'
@@ -369,7 +369,7 @@ class Demo(object):
         # that the default demo.edit() call opens up the sblock we've last run
         if index>0:
             index -= 1
-            
+
         filename = self.shell.mktempfile(self.src_blocks[index])
         self.shell.hooks.editor(filename,1)
         new_block = file_read(filename)
@@ -379,7 +379,7 @@ class Demo(object):
         self.block_index = index
         # call to run with the newly edited index
         self()
-        
+
     def show(self,index=None):
         """Show a single block on screen"""
 
@@ -414,7 +414,7 @@ class Demo(object):
         """Execute a string with one or more lines of code"""
 
         exec source in self.user_ns
-        
+
     def __call__(self,index=None):
         """run a block of the demo.
 
@@ -452,7 +452,7 @@ class Demo(object):
                 self.post_cmd()
             finally:
                 sys.argv = save_argv
-            
+
         except:
             self.ip_showtb(filename=self.fname)
         else:
@@ -499,7 +499,7 @@ class IPythonDemo(Demo):
         """Execute a string with one or more lines of code"""
 
         self.shell.run_cell(source)
-        
+
 class LineDemo(Demo):
     """Demo where each line is executed as a separate block.
 
@@ -513,7 +513,7 @@ class LineDemo(Demo):
     Note: the input can not have *any* indentation, which means that only
     single-lines of input are accepted, not even function definitions are
     valid."""
-    
+
     def reload(self):
         """Reload source from disk and initialize state."""
         # read data and parse into blocks
@@ -542,26 +542,26 @@ class IPythonLineDemo(IPythonDemo,LineDemo):
 
 class ClearMixin(object):
     """Use this mixin to make Demo classes with less visual clutter.
-    
+
     Demos using this mixin will clear the screen before every block and use
     blank marquees.
-    
+
     Note that in order for the methods defined here to actually override those
     of the classes it's mixed with, it must go /first/ in the inheritance
     tree.  For example:
-    
+
         class ClearIPDemo(ClearMixin,IPythonDemo): pass
-    
+
     will provide an IPythonDemo class with the mixin's features.
     """
-    
+
     def marquee(self,txt='',width=78,mark='*'):
         """Blank marquee that returns '' no matter what the input."""
         return ''
-    
+
     def pre_cmd(self):
         """Method called before executing each block.
-        
+
         This one simply clears the screen."""
         from IPython.utils.terminal import term_clear
         term_clear()

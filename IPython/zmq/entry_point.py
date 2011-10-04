@@ -44,7 +44,7 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
     executable : str, optional (default sys.executable)
         The Python executable to use for the kernel process.
 
-    independent : bool, optional (default False) 
+    independent : bool, optional (default False)
         If set, the kernel process is guaranteed to survive if this process
         dies. If not set, an effort is made to ensure that the kernel is killed
         when this process dies. Note that in this case it is still good practice
@@ -104,11 +104,11 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
     # If this process in running on pythonw, we know that stdin, stdout, and
     # stderr are all invalid.
     redirect_out = sys.executable.endswith('pythonw.exe')
-    if redirect_out:        
+    if redirect_out:
         _stdout = PIPE if stdout is None else stdout
         _stderr = PIPE if stderr is None else stderr
     else:
-        _stdout, _stderr = stdout, stderr 
+        _stdout, _stderr = stdout, stderr
 
     # Spawn a kernel.
     if sys.platform == 'win32':
@@ -130,14 +130,14 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
 
         # Launch the kernel process.
         if independent:
-            proc = Popen(arguments, 
+            proc = Popen(arguments,
                          creationflags=512, # CREATE_NEW_PROCESS_GROUP
                          stdin=_stdin, stdout=_stdout, stderr=_stderr)
         else:
             from _subprocess import DuplicateHandle, GetCurrentProcess, \
                 DUPLICATE_SAME_ACCESS
             pid = GetCurrentProcess()
-            handle = DuplicateHandle(pid, pid, pid, 0, 
+            handle = DuplicateHandle(pid, pid, pid, 0,
                                      True, # Inheritable by new processes.
                                      DUPLICATE_SAME_ACCESS)
             proc = Popen(arguments + ['--parent=%i'%int(handle)],
@@ -163,5 +163,5 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
             proc.stdout.close()
         if stderr is None:
             proc.stderr.close()
-            
+
     return proc, shell_port, iopub_port, stdin_port, hb_port

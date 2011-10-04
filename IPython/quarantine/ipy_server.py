@@ -6,7 +6,7 @@ import ipy_server
 ipy_server.serve_thread(16455)
 
 Now, to execute the statements in this ipython instance, open a TCP socket
-(port 16455), write out the statements, and close the socket. 
+(port 16455), write out the statements, and close the socket.
 You can use e.g. "telnet localhost 16455" or a script to do this.
 
 This is a bit like 'M-x server-start" or gnuserv in the emacs world.

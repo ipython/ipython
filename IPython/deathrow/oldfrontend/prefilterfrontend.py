@@ -51,7 +51,7 @@ def mk_system_call(system_call_function, command):
     return my_system_call
 
 #-----------------------------------------------------------------------------
-# Frontend class using ipython0 to do the prefiltering. 
+# Frontend class using ipython0 to do the prefiltering.
 #-----------------------------------------------------------------------------
 
 class PrefilterFrontEnd(LineFrontEndBase):
@@ -65,7 +65,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
     """
 
     debug = False
-    
+
     def __init__(self, ipython0=None, *args, **kwargs):
         """ Parameters
             ----------
@@ -99,7 +99,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
             __builtin__.raw_input = old_rawinput
         self.ipython0 = ipython0
         # Set the pager:
-        self.ipython0.set_hook('show_in_pager', 
+        self.ipython0.set_hook('show_in_pager',
                     lambda s, string: self.write("\n" + string))
         self.ipython0.write = self.write
         self._ip = _ip = self.ipython0
@@ -109,7 +109,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # XXX: Muck around with magics so that they work better
         # in our environment
         if not sys.platform.startswith('win'):
-            self.ipython0.magic_ls = mk_system_call(self.system_call, 
+            self.ipython0.magic_ls = mk_system_call(self.system_call,
                                                                 'ls -CF')
         # And now clean up the mess created by ipython0
         self.release_output()
@@ -122,7 +122,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         self.start()
 
     #--------------------------------------------------------------------------
-    # FrontEndBase interface 
+    # FrontEndBase interface
     #--------------------------------------------------------------------------
 
     def show_traceback(self):
@@ -147,8 +147,8 @@ class PrefilterFrontEnd(LineFrontEndBase):
 
     def save_output_hooks(self):
         """ Store all the output hooks we can think of, to be able to
-        restore them. 
-        
+        restore them.
+
         We need to do this early, as starting the ipython0 instance will
         screw ouput hooks.
         """
@@ -178,8 +178,8 @@ class PrefilterFrontEnd(LineFrontEndBase):
         Term.cerr.write = self.__old_cerr_write
         sys.stdout = self.__old_stdout
         sys.stderr = self.__old_stderr
-        pydoc.help.output = self.__old_help_output 
-        sys.displayhook = self.__old_display_hook 
+        pydoc.help.output = self.__old_help_output
+        sys.displayhook = self.__old_display_hook
 
 
     def complete(self, line):
@@ -191,12 +191,12 @@ class PrefilterFrontEnd(LineFrontEndBase):
         key = lambda x: x.replace('_', '')
         completions.sort(key=key)
         if completions:
-            prefix = common_prefix(completions) 
+            prefix = common_prefix(completions)
             line = line[:-len(word)] + prefix
         return line, completions
-    
+
     #--------------------------------------------------------------------------
-    # LineFrontEndBase interface 
+    # LineFrontEndBase interface
     #--------------------------------------------------------------------------
 
     def prefilter_input(self, input_string):
@@ -209,7 +209,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # capture it.
         self.capture_output()
         self.last_result = dict(number=self.prompt_number)
-        
+
         try:
             try:
                 for line in input_string.split('\n'):
@@ -227,9 +227,9 @@ class PrefilterFrontEnd(LineFrontEndBase):
         return filtered_string
 
     #--------------------------------------------------------------------------
-    # PrefilterFrontEnd interface 
+    # PrefilterFrontEnd interface
     #--------------------------------------------------------------------------
- 
+
     def system_call(self, command_string):
         """ Allows for frontend to define their own system call, to be
             able capture output and redirect input.
@@ -250,7 +250,7 @@ class PrefilterFrontEnd(LineFrontEndBase):
         # that in the 'pyreadline' module (modes/basemode.py) where we break at
         # each delimiter and try to complete the residual line, until we get a
         # successful list of completions.
-        expression = '\s|=|,|:|\((?!.*\))|\[(?!.*\])|\{(?!.*\})' 
+        expression = '\s|=|,|:|\((?!.*\))|\[(?!.*\])|\{(?!.*\})'
         complete_sep = re.compile(expression)
         text = complete_sep.split(line)[-1]
         return text

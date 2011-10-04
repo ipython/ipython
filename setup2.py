@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """Setup script for IPython.
 
-Under Posix environments it works like a typical setup.py script. 
-Under Windows, the command sdist is not supported, since IPython 
+Under Posix environments it works like a typical setup.py script.
+Under Windows, the command sdist is not supported, since IPython
 requires utilities which are not available under Windows."""
 
 #-----------------------------------------------------------------------------
@@ -54,9 +54,9 @@ from distutils.core import setup
 from IPython.utils.path import target_update
 
 from setupbase import (
-    setup_args, 
-    find_packages, 
-    find_package_data, 
+    setup_args,
+    find_packages,
+    find_package_data,
     find_scripts,
     find_data_files,
     check_for_dependencies,
@@ -113,7 +113,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     # target_update()
     to_update = [
                   # FIXME - Disabled for now: we need to redo an automatic way
-                  # of generating the magic info inside the rst.                
+                  # of generating the magic info inside the rst.
                   #('docs/magic.tex',
                   #['IPython/Magic.py'],
                   #"cd doc && ./update_magic.sh" ),
@@ -176,9 +176,9 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
              docdeps,
              "cd docs && make dist")
             )
-        
+
     [ target_update(*t) for t in to_update ]
-    
+
 #---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
 #---------------------------------------------------------------------------
@@ -207,7 +207,7 @@ if sys.platform == 'win32':
 if len(needs_setuptools.intersection(sys.argv)) > 0:
     import setuptools
 
-# This dict is used for passing extra arguments that are setuptools 
+# This dict is used for passing extra arguments that are setuptools
 # specific to setup
 setuptools_extra_args = {}
 
@@ -233,7 +233,7 @@ if 'setuptools' in sys.modules:
         else:
             pass
             # do we want to install readline here?
-    
+
     # Script to be run by the windows binary installer after the default setup
     # routine, to add shortcuts and similar windows-only things.  Windows
     # post-install scripts MUST reside in the scripts/ dir, otherwise distutils

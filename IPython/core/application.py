@@ -5,7 +5,7 @@ An application for IPython.
 All top-level applications should use the classes in this module for
 handling configuration and creating componenets.
 
-The job of an :class:`Application` is to create the master configuration 
+The job of an :class:`Application` is to create the master configuration
 object and then create the configurable objects, passing the config to them.
 
 Authors:
@@ -78,15 +78,15 @@ class BaseIPythonApplication(Application):
     name = Unicode(u'ipython')
     description = Unicode(u'IPython: an enhanced interactive Python shell.')
     version = Unicode(release.version)
-    
+
     aliases = Dict(base_aliases)
     flags = Dict(base_flags)
     classes = List([ProfileDir])
-    
+
     # Track whether the config_file has changed,
     # because some logic happens only if we aren't using the default.
     config_file_specified = Bool(False)
-    
+
     config_file_name = Unicode(u'ipython_config.py')
     def _config_file_name_default(self):
         return self.name.replace('-','_') + u'_config.py'
@@ -108,13 +108,13 @@ class BaseIPythonApplication(Application):
     )
     def _profile_default(self):
         return "python3" if py3compat.PY3 else "default"
-    
+
     def _profile_changed(self, name, old, new):
         self.builtin_profile_dir = os.path.join(
                 get_ipython_package_dir(), u'config', u'profile', new
         )
-    
-    ipython_dir = Unicode(get_ipython_dir(), config=True, 
+
+    ipython_dir = Unicode(get_ipython_dir(), config=True,
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
@@ -122,16 +122,16 @@ class BaseIPythonApplication(Application):
         the environment variable IPYTHON_DIR.
         """
     )
-    
+
     overwrite = Bool(False, config=True,
         help="""Whether to overwrite existing config files when copying""")
     auto_create = Bool(False, config=True,
         help="""Whether to create profile dir if it doesn't exist""")
-    
+
     config_files = List(Unicode)
     def _config_files_default(self):
         return [u'ipython_config.py']
-    
+
     copy_config_files = Bool(False, config=True,
         help="""Whether to install the default config files into the profile dir.
         If a new profile is being created, and IPython contains config files for that
@@ -147,7 +147,7 @@ class BaseIPythonApplication(Application):
         # ensure even default IPYTHON_DIR exists
         if not os.path.exists(self.ipython_dir):
             self._ipython_dir_changed('ipython_dir', self.ipython_dir, self.ipython_dir)
-    
+
     #-------------------------------------------------------------------------
     # Various stages of Application creation
     #-------------------------------------------------------------------------
@@ -183,7 +183,7 @@ class BaseIPythonApplication(Application):
         try:
             Application.load_config_file(
                 self,
-                base_config, 
+                base_config,
                 path=self.config_file_paths
             )
         except IOError:
@@ -198,7 +198,7 @@ class BaseIPythonApplication(Application):
         try:
             Application.load_config_file(
                 self,
-                self.config_file_name, 
+                self.config_file_name,
                 path=self.config_file_paths
             )
         except IOError:
@@ -258,17 +258,17 @@ class BaseIPythonApplication(Application):
                     self.exit(1)
             else:
                 self.log.info("Using existing profile dir: %r"%location)
-        
+
         self.profile_dir = p
         self.config_file_paths.append(p.location)
-    
+
     def init_config_files(self):
         """[optionally] copy default config files into profile dir."""
         # copy config files
         path = self.builtin_profile_dir
         if self.copy_config_files:
             src = self.profile
-            
+
             cfg = self.config_file_name
             if path and os.path.exists(os.path.join(path, cfg)):
                 self.log.warn("Staging %r from %s into %r [overwrite=%s]"%(
@@ -289,8 +289,8 @@ class BaseIPythonApplication(Application):
                     self.log.warn("Staging bundled %s from %s into %r"%(
                             cfg, self.profile, self.profile_dir.location)
                     )
-            
-    
+
+
     def stage_default_config_file(self):
         """auto generate default config file, and stage it into the profile."""
         s = self.generate_config_file()
@@ -299,8 +299,8 @@ class BaseIPythonApplication(Application):
             self.log.warn("Generating default config file: %r"%(fname))
             with open(fname, 'w') as f:
                 f.write(s)
-        
-    
+
+
     def initialize(self, argv=None):
         # don't hook up crash handler before parsing command-line
         self.parse_command_line(argv)

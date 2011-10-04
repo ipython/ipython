@@ -45,7 +45,7 @@ from timeit import default_timer as clock
 # Frame per second : 60
 # Should probably be an IPython option
 glut_fps = 60
-        
+
 
 # Display mode : double buffeed + rgba + depth
 # Should probably be an IPython option
@@ -56,10 +56,10 @@ glut_display_mode = (glut.GLUT_DOUBLE |
 glutMainLoopEvent = None
 if sys.platform == 'darwin':
     try:
-        glutCheckLoop = platform.createBaseFunction( 
-            'glutCheckLoop', dll=platform.GLUT, resultType=None, 
+        glutCheckLoop = platform.createBaseFunction(
+            'glutCheckLoop', dll=platform.GLUT, resultType=None,
             argTypes=[],
-            doc='glutCheckLoop(  ) -> None', 
+            doc='glutCheckLoop(  ) -> None',
             argNames=(),
             )
     except AttributeError:
@@ -125,7 +125,7 @@ def glut_int_handler(signum, frame):
 #-----------------------------------------------------------------------------
 def inputhook_glut():
     """Run the pyglet event loop by processing pending events only.
-    
+
     This keeps processing pending events until stdin is ready.  After
     processing all pending events, a call to time.sleep is inserted.  This is
     needed, otherwise, CPU usage is at 100%.  This sleep time should be tuned
@@ -148,7 +148,7 @@ def inputhook_glut():
         while not stdin_ready():
             glutMainLoopEvent()
             # We need to sleep at this point to keep the idle CPU load
-            # low.  However, if sleep to long, GUI response is poor.  As 
+            # low.  However, if sleep to long, GUI response is poor.  As
             # a compromise, we watch how often GUI events are being processed
             # and switch between a short and long sleep time.  Here are some
             # stats useful in helping to tune this.

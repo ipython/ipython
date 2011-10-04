@@ -100,7 +100,7 @@ class PrefilterManager(Configurable):
     """Main prefilter component.
 
     The IPython prefilter is run on all user input before it is run.  The
-    prefilter consumes lines of input and produces transformed lines of 
+    prefilter consumes lines of input and produces transformed lines of
     input.
 
     The iplementation consists of two phases:
@@ -119,12 +119,12 @@ class PrefilterManager(Configurable):
 
     After all the transformers have been run, the line is fed to the checkers,
     which are instances of :class:`PrefilterChecker`.  The line is passed to
-    the :meth:`check` method, which either returns `None` or a 
+    the :meth:`check` method, which either returns `None` or a
     :class:`PrefilterHandler` instance.  If `None` is returned, the other
     checkers are tried.  If an :class:`PrefilterHandler` instance is returned,
     the line is passed to the :meth:`handle` method of the returned
     handler and no further checkers are tried.
-    
+
     Both transformers and checkers have a `priority` attribute, that determines
     the order in which they are called.  Smaller priorities are tried first.
 
@@ -317,7 +317,7 @@ class PrefilterManager(Configurable):
 
         # Now we compute line_info for the checkers and handlers
         line_info = LineInfo(line, continue_prompt)
-        
+
         # the input history needs to track even empty lines
         stripped = line.strip()
 
@@ -358,7 +358,7 @@ class PrefilterManager(Configurable):
                              for lnum, line in enumerate(llines) ])
         else:
             out = self.prefilter_line(llines[0], continue_prompt)
-            
+
         return out
 
 #-----------------------------------------------------------------------------
@@ -522,9 +522,9 @@ class ShellEscapeChecker(PrefilterChecker):
 
 
 class MacroChecker(PrefilterChecker):
-    
+
     priority = Int(250, config=True)
-    
+
     def check(self, line_info):
         obj = self.shell.user_ns.get(line_info.ifun)
         if isinstance(obj, Macro):
@@ -555,7 +555,7 @@ class MultiLineMagicChecker(PrefilterChecker):
         "Allow ! and !! in multi-line statements if multi_line_specials is on"
         # Note that this one of the only places we check the first character of
         # ifun and *not* the pre_char.  Also note that the below test matches
-        # both ! and !!.    
+        # both ! and !!.
         if line_info.continue_prompt \
             and self.prefilter_manager.multi_line_specials:
                 if line_info.esc == ESC_MAGIC:
@@ -591,7 +591,7 @@ class AssignmentChecker(PrefilterChecker):
     def check(self, line_info):
         """Check to see if user is assigning to a var for the first time, in
         which case we want to avoid any sort of automagic / autocall games.
-    
+
         This allows users to assign to either alias or magic names true python
         variables (the magic/alias systems always take second seat to true
         python code).  E.g. ls='hi', or ls,that=1,2"""
@@ -669,7 +669,7 @@ class AutocallChecker(PrefilterChecker):
         oinfo = line_info.ofind(self.shell) # This can mutate state via getattr
         if not oinfo['found']:
             return None
-        
+
         if callable(oinfo['obj']) \
                and (not re_exclude_auto.match(line_info.the_rest)) \
                and re_fun_name.match(line_info.ifun):
@@ -735,7 +735,7 @@ class AliasHandler(PrefilterHandler):
         # aliases won't work in indented sections.
         line_out = '%sget_ipython().system(%s)' % (line_info.pre_whitespace,
                                          make_quoted_expr(transformed))
-        
+
         return line_out
 
 
@@ -769,7 +769,7 @@ class ShellEscapeHandler(PrefilterHandler):
 
 class MacroHandler(PrefilterHandler):
     handler_name = Unicode("macro")
-    
+
     def handle(self, line_info):
         obj = self.shell.user_ns.get(line_info.ifun)
         pre_space = line_info.pre_whitespace
@@ -813,7 +813,7 @@ class AutoHandler(PrefilterHandler):
 
         force_auto = isinstance(obj, IPyAutocall)
         auto_rewrite = getattr(obj, 'rewrite', True)
-        
+
         if esc == ESC_QUOTE:
             # Auto-quote splitting on whitespace
             newcmd = '%s("%s")' % (ifun,'", "'.join(the_rest.split()) )
@@ -848,7 +848,7 @@ class AutoHandler(PrefilterHandler):
 
         if auto_rewrite:
             self.shell.auto_rewrite_input(newcmd)
-            
+
         return newcmd
 
 

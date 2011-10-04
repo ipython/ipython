@@ -46,7 +46,7 @@ class PyReader(NotebookReader):
                     cells.append(cell)
                 state = u'codecell'
                 cell_lines = []
-            elif line.startswith(u'# <htmlcell>'):                
+            elif line.startswith(u'# <htmlcell>'):
                 cell = self.new_cell(state, cell_lines)
                 if cell is not None:
                     cells.append(cell)

@@ -94,7 +94,7 @@ def matchorfail(text, pos):
 
 class Itpl:
     """Class representing a string with interpolation abilities.
-    
+
     Upon creation, an instance works out what parts of the format
     string are literal and what parts need to be evaluated.  The
     evaluation and substitution happens in the namespace of the
@@ -106,10 +106,10 @@ class Itpl:
 
         The format string is parsed according to the following rules:
 
-        1.  A dollar sign and a name, possibly followed by any of: 
-              - an open-paren, and anything up to the matching paren 
-              - an open-bracket, and anything up to the matching bracket 
-              - a period and a name 
+        1.  A dollar sign and a name, possibly followed by any of:
+              - an open-paren, and anything up to the matching paren
+              - an open-bracket, and anything up to the matching bracket
+              - a period and a name
             any number of times, is evaluated as a Python expression.
 
         2.  A dollar sign immediately followed by an open-brace, and
@@ -135,7 +135,7 @@ class Itpl:
         self.format = format
         self.codec = codec
         self.encoding_errors = encoding_errors
-        
+
         namechars = "abcdefghijklmnopqrstuvwxyz" \
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
         chunks = []
@@ -212,7 +212,7 @@ class Itpl:
         loc, glob = frame.f_locals, frame.f_globals
 
         return self._str(glob,loc)
-    
+
 class ItplNS(Itpl):
     """Class representing a string with interpolation abilities.
 
@@ -221,7 +221,7 @@ class ItplNS(Itpl):
     efficient, as no traceback needs to be extracte.  It also allows the
     caller to supply a different namespace for the interpolation to occur than
     its own."""
-    
+
     def __init__(self, format,globals,locals=None,
                  codec='utf_8',encoding_errors='backslashreplace'):
         """ItplNS(format,globals[,locals]) -> interpolating string instance.
@@ -236,7 +236,7 @@ class ItplNS(Itpl):
         self.globals = globals
         self.locals = locals
         Itpl.__init__(self,format,codec,encoding_errors)
-        
+
     def __str__(self):
         """Evaluate and substitute the appropriate parts of the string."""
         return self._str(self.globals,self.locals)
@@ -260,7 +260,7 @@ class ItplFile:
 
 def filter(file=sys.stdout):
     """Return an ItplFile that filters writes to the given file object.
-    
+
     'file = filter(file)' replaces 'file' with a filtered object that
     has a write() method.  When called with no argument, this creates
     a filter to sys.stdout."""
@@ -268,7 +268,7 @@ def filter(file=sys.stdout):
 
 def unfilter(ifile=None):
     """Return the original file that corresponds to the given ItplFile.
-    
+
     'file = unfilter(file)' undoes the effect of 'file = filter(file)'.
     'sys.stdout = unfilter()' undoes the effect of 'sys.stdout = filter()'."""
     return ifile and ifile.file or sys.stdout.file

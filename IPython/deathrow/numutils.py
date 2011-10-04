@@ -40,7 +40,7 @@ from Numeric import *
 inf = infty = Infinity = (array([1])/0.0)[0]
 
 #****************************************************************************
-# function definitions        
+# function definitions
 exp_safe_MIN = math.log(2.2250738585072014e-308)
 exp_safe_MAX = 1.7976931348623157e+308
 
@@ -140,12 +140,12 @@ def norm(a,p=2):
 
     Ref: http://mathworld.wolfram.com/VectorNorm.html
          http://mathworld.wolfram.com/L-Infinity-Norm.html"""
-    
+
     if p in ('inf','Infinity'):
         return max(absolute(a).flat)
     else:
-        return (sum_flat(absolute(a)**p))**(1.0/p)    
-    
+        return (sum_flat(absolute(a)**p))**(1.0/p)
+
 def frange(xini,xfin=None,delta=None,**kw):
     """frange([start,] stop[, step, keywords]) -> array of floats
 
@@ -183,14 +183,14 @@ def frange(xini,xfin=None,delta=None,**kw):
     #defaults
     kw.setdefault('closed',1)
     endpoint = kw['closed'] != 0
-        
+
     # funny logic to allow the *first* argument to be optional (like range())
     # This was modified with a simpler version from a similar frange() found
     # at http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66472
     if xfin == None:
         xfin = xini + 0.0
         xini = 0.0
-        
+
     if delta == None:
         delta = 1.0
 
@@ -223,7 +223,7 @@ def identity(n,rank=2,typecode='l'):
 
     Since rank defaults to 2, this function behaves in the default case (when
     only n is given) like the Numeric identity function."""
-    
+
     iden = zeros((n,)*rank,typecode=typecode)
     for i in range(n):
         idx = (i,)*rank
@@ -250,7 +250,7 @@ def binary_repr(number, max_length = 1025):
     Increase the value of max_length for very large numbers. Note that on
     32-bit machines, 2**1023 is the largest integer power of 2 which can be
     converted to a Python float."""
-    
+
     assert number < 2L << max_length
     shifts = map (operator.rshift, max_length * [number], \
                   range (max_length - 1, -1, -1))
@@ -261,7 +261,7 @@ def binary_repr(number, max_length = 1025):
 
 def log2(x,ln2 = math.log(2.0)):
     """Return the log(x) in base 2.
-    
+
     This is a _slow_ function but which is guaranteed to return the correct
     integer value if the input is an ineger exact power of 2."""
 
@@ -288,7 +288,7 @@ def ispower2(n):
 
 def fromfunction_kw(function, dimensions, **kwargs):
     """Drop-in replacement for fromfunction() from Numerical Python.
- 
+
     Allows passing keyword arguments to the desired function.
 
     Call it as (keywords are optional):

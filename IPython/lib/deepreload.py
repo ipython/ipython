@@ -9,11 +9,11 @@ To enable it type::
 You can then disable it with::
 
     __builtin__.reload = deepreload.original_reload
-    
+
 Alternatively, you can add a dreload builtin alongside normal reload with::
 
     __builtin__.dreload = deepreload.reload
-    
+
 This code is almost entirely based on knee.py from the standard library.
 """
 
@@ -30,7 +30,7 @@ import sys
 
 # Replacement for __import__()
 def deep_import_hook(name, globals=None, locals=None, fromlist=None, level=-1):
-    # For now level is ignored, it's just there to prevent crash  
+    # For now level is ignored, it's just there to prevent crash
     # with from __future__ import absolute_import
     parent = determine_parent(globals)
     q, tail = find_head_package(parent, name)
@@ -94,7 +94,7 @@ def load_tail(q, tail):
         # to:
         mname = m.__name__
         # This needs more testing!!! (I don't understand this module too well)
-        
+
         #print '** head,tail=|%s|->|%s|, mname=|%s|' % (head,tail,mname)  # dbg
         m = import_module(head, mname, m)
         if not m:
@@ -125,25 +125,25 @@ def import_module(partname, fqname, parent):
     global found_now
     if found_now.has_key(fqname):
         try:
-            return sys.modules[fqname]    
+            return sys.modules[fqname]
         except KeyError:
             pass
-    
+
     print 'Reloading', fqname #, sys.excepthook is sys.__excepthook__, \
             #sys.displayhook is sys.__displayhook__
-    
+
     found_now[fqname] = 1
     try:
         fp, pathname, stuff = imp.find_module(partname,
                                               parent and parent.__path__)
     except ImportError:
         return None
-        
+
     try:
         m = imp.load_module(fqname, fp, pathname, stuff)
     finally:
         if fp: fp.close()
-        
+
     if parent:
         setattr(parent, partname, m)
 
@@ -168,14 +168,14 @@ except AttributeError:
 def reload(module, exclude=['sys', '__builtin__', '__main__']):
     """Recursively reload all modules used in the given module.  Optionally
     takes a list of modules to exclude from reloading.  The default exclude
-    list contains sys, __main__, and __builtin__, to prevent, e.g., resetting 
+    list contains sys, __main__, and __builtin__, to prevent, e.g., resetting
     display, exception, and io hooks.
     """
     global found_now
     for i in exclude:
         found_now[i] = 1
     original_import = __builtin__.__import__
-    __builtin__.__import__ = deep_import_hook    
+    __builtin__.__import__ = deep_import_hook
     try:
         ret = deep_reload_hook(module)
     finally:

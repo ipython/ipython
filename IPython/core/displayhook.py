@@ -123,7 +123,7 @@ class DisplayHook(Configurable):
                 return no_cache_def
         else:
             return p_str
-                
+
     def set_colors(self, colors):
         """Set the active color scheme and configure colors for the three
         prompt subsystems."""
@@ -135,7 +135,7 @@ class DisplayHook(Configurable):
             prompts.prompt_specials = prompts.prompt_specials_nocolor
         else:
             prompts.prompt_specials = prompts.prompt_specials_color
-        
+
         self.color_table.set_active_scheme(colors)
         self.prompt1.set_colors()
         self.prompt2.set_colors()
@@ -227,7 +227,7 @@ class DisplayHook(Configurable):
         format_dict : dict
             The format dict for the object passed to `sys.displayhook`.
         """
-        # We want to print because we want to always make sure we have a 
+        # We want to print because we want to always make sure we have a
         # newline, even if all the prompt separators are ''. This is the
         # standard IPython behavior.
         result_repr = format_dict['text/plain']
@@ -291,7 +291,7 @@ class DisplayHook(Configurable):
 
     def __call__(self, result=None):
         """Printing with history cache management.
-        
+
         This is invoked everytime the interpreter needs to print, and is
         activated by setting the variable sys.displayhook to it.
         """
@@ -310,17 +310,17 @@ class DisplayHook(Configurable):
             raise ValueError,"You shouldn't have reached the cache flush "\
                   "if full caching is not enabled!"
         # delete auto-generated vars from global namespace
-        
+
         for n in range(1,self.prompt_count + 1):
             key = '_'+`n`
             try:
                 del self.shell.user_ns[key]
             except: pass
         self.shell.user_ns['_oh'].clear()
-        
+
         # Release our own references to objects:
         self._, self.__, self.___ = '', '', ''
-        
+
         if '_' not in __builtin__.__dict__:
             self.shell.user_ns.update({'_':None,'__':None, '___':None})
         import gc

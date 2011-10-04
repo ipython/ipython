@@ -2,15 +2,15 @@
 
 The two files plotting_frontend.py and plotting_backend.py go together.
 
-This file (plotting_backend.py) performs the actual computation.  For this 
+This file (plotting_backend.py) performs the actual computation.  For this
 example, the computation just generates a set of random numbers that
-look like a distribution of particles with 2D position (x,y) and 
+look like a distribution of particles with 2D position (x,y) and
 momentum (px,py).  In a real situation, this file would do some time
 consuming and complicated calculation, and could possibly make calls
 to MPI.
 
 One important feature is that this script can also be run standalone without
-IPython.  This is nice as it allows it to be run in more traditional 
+IPython.  This is nice as it allows it to be run in more traditional
 settings where IPython isn't being used.
 
 When used with IPython.parallel, this code is run on the engines.  Because this

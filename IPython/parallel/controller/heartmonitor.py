@@ -31,10 +31,10 @@ class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
     This is a simple wrapper with defaults for the most common
     Device model for responding to heartbeats.
-    
-    It simply builds a threadsafe zmq.FORWARDER Device, defaulting to using 
+
+    It simply builds a threadsafe zmq.FORWARDER Device, defaulting to using
     SUB/XREQ for in/out.
-    
+
     You can specify the XREQ's IDENTITY via the optional heart_id argument."""
     device=None
     id=None
@@ -49,27 +49,27 @@ class Heart(object):
             heart_id = uuid.uuid4().bytes
         self.device.setsockopt_out(zmq.IDENTITY, heart_id)
         self.id = heart_id
-    
+
     def start(self):
         return self.device.start()
-        
+
 class HeartMonitor(LoggingConfigurable):
     """A basic HeartMonitor class
     pingstream: a PUB stream
     pongstream: an XREP stream
     period: the period of the heartbeat in milliseconds"""
-    
+
     period=CFloat(1000, config=True,
         help='The frequency at which the Hub pings the engines for heartbeats '
         ' (in ms) [default: 100]',
     )
-    
+
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         return ioloop.IOLoop.instance()
-    
+
     # not settable:
     hearts=Set()
     responses=Set()
@@ -79,30 +79,30 @@ class HeartMonitor(LoggingConfigurable):
     _failure_handlers = Set()
     lifetime = CFloat(0)
     tic = CFloat(0)
-    
+
     def __init__(self, **kwargs):
         super(HeartMonitor, self).__init__(**kwargs)
-        
+
         self.pongstream.on_recv(self.handle_pong)
-    
+
     def start(self):
         self.caller = ioloop.PeriodicCallback(self.beat, self.period, self.loop)
         self.caller.start()
-    
+
     def add_new_heart_handler(self, handler):
         """add a new handler for new hearts"""
         self.log.debug("heartbeat::new_heart_handler: %s"%handler)
         self._new_handlers.add(handler)
-        
+
     def add_heart_failure_handler(self, handler):
         """add a new handler for heart failure"""
         self.log.debug("heartbeat::new heart failure handler: %s"%handler)
         self._failure_handlers.add(handler)
-            
+
     def beat(self):
-        self.pongstream.flush() 
+        self.pongstream.flush()
         self.last_ping = self.lifetime
-        
+
         toc = time.time()
         self.lifetime += toc-self.tic
         self.tic = toc
@@ -118,7 +118,7 @@ class HeartMonitor(LoggingConfigurable):
         # print self.on_probation, self.hearts
         # self.log.debug("heartbeat::beat %.3f, %i beating hearts"%(self.lifetime, len(self.hearts)))
         self.pingstream.send(asbytes(str(self.lifetime)))
-    
+
     def handle_new_heart(self, heart):
         if self._new_handlers:
             for handler in self._new_handlers:
@@ -126,7 +126,7 @@ class HeartMonitor(LoggingConfigurable):
         else:
             self.log.info("heartbeat::yay, got new heart %s!"%heart)
         self.hearts.add(heart)
-    
+
     def handle_heart_failure(self, heart):
         if self._failure_handlers:
             for handler in self._failure_handlers:
@@ -138,8 +138,8 @@ class HeartMonitor(LoggingConfigurable):
         else:
             self.log.info("heartbeat::Heart %s failed :("%heart)
         self.hearts.remove(heart)
-        
-    
+
+
     def handle_pong(self, msg):
         "a heart just beat"
         current = asbytes(str(self.lifetime))
@@ -164,10 +164,10 @@ if __name__ == '__main__':
     pub.bind('tcp://127.0.0.1:5555')
     xrep = context.socket(zmq.ROUTER)
     xrep.bind('tcp://127.0.0.1:5556')
-    
+
     outstream = zmqstream.ZMQStream(pub, loop)
     instream = zmqstream.ZMQStream(xrep, loop)
-    
+
     hb = HeartMonitor(loop, outstream, instream)
-    
+
     loop.start()

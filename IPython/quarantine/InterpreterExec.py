@@ -61,7 +61,7 @@ def pysh():
     """Pysh is a set of modules and extensions to IPython which make shell-like
     usage with Python syntax more convenient.  Keep in mind that pysh is NOT a
     full-blown shell, so don't try to make it your /etc/passwd entry!
-    
+
     In particular, it has no job control, so if you type Ctrl-Z (under Unix),
     you'll suspend pysh itself, not the process you just started.
 
@@ -72,7 +72,7 @@ def pysh():
     ALIASES
     -------
     All of your $PATH has been loaded as IPython aliases, so you should be
-    able to type any normal system command and have it executed.  See %alias? 
+    able to type any normal system command and have it executed.  See %alias?
     and %unalias? for details on the alias facilities.
 
     SPECIAL SYNTAX
@@ -139,7 +139,7 @@ def pysh():
         sys.platform is: linux2
 
     IPython's input history handling is still active, which allows you to
-    rerun a single block of multi-line input by simply using exec:    
+    rerun a single block of multi-line input by simply using exec:
         fperez[~/test]|14> $$alist = ls *.eps
         fperez[~/test]|15> exec _i11
         file image2.eps    921 image2.eps
@@ -155,7 +155,7 @@ def pysh():
     automatically loaded.  Some additional functions, useful for shell usage,
     are listed below.  You can request more help about them with '?'.
 
-    shell   - execute a command in the underlying system shell    
+    shell   - execute a command in the underlying system shell
     system  - like shell(), but return the exit status of the command
     sout    - capture the output of a command as a string
     lout    - capture the output of a command as a list (split on '\\n')
@@ -180,7 +180,7 @@ def pysh():
 
     PROMPT CUSTOMIZATION
     --------------------
-    
+
     The supplied ipythonrc-pysh profile comes with an example of a very
     colored and detailed prompt, mainly to serve as an illustration.  The
     valid escape sequences, besides color names, are:

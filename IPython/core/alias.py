@@ -49,7 +49,7 @@ def default_aliases():
     # their case.  For example, things like 'less' or 'clear' that manipulate
     # the terminal should NOT be declared here, as they will only work if the
     # kernel is running inside a true terminal, and not over the network.
-    
+
     if os.name == 'posix':
         default_aliases = [('mkdir', 'mkdir'), ('rmdir', 'rmdir'),
                            ('mv', 'mv -i'), ('rm', 'rm -i'), ('cp', 'cp -i'),
@@ -94,7 +94,7 @@ def default_aliases():
                            ]
     else:
         default_aliases = []
-        
+
     return default_aliases
 
 
@@ -213,33 +213,33 @@ class AliasManager(Configurable):
         return cmd
 
     def expand_alias(self, line):
-        """ Expand an alias in the command line 
-        
-        Returns the provided command line, possibly with the first word 
+        """ Expand an alias in the command line
+
+        Returns the provided command line, possibly with the first word
         (command) translated according to alias expansion rules.
-        
+
         [ipython]|16> _ip.expand_aliases("np myfile.txt")
                  <16> 'q:/opt/np/notepad++.exe myfile.txt'
         """
-        
+
         pre,_,fn,rest = split_user_input(line)
         res = pre + self.expand_aliases(fn, rest)
         return res
 
     def expand_aliases(self, fn, rest):
         """Expand multiple levels of aliases:
-        
+
         if:
-        
+
         alias foo bar /tmp
         alias baz foo
-        
+
         then:
-        
+
         baz huhhahhei -> bar /tmp huhhahhei
         """
         line = fn + " " + rest
-        
+
         done = set()
         while 1:
             pre,_,fn,rest = split_user_input(line, shell_line_split)
@@ -259,5 +259,5 @@ class AliasManager(Configurable):
                 line=l2
             else:
                 break
-                
+
         return line

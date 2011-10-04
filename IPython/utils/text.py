@@ -39,7 +39,7 @@ from IPython.utils.data import flatten
 # won't need to make changes all over IPython.
 def getdefaultencoding():
     """Return IPython's guess for the default encoding for bytes as text.
-    
+
     Asks for stdin.encoding first, to match the calling Terminal, but that
     is often None for subprocesses.  Fall back on locale.getpreferredencoding()
     which should be a sensible platform default (that respects LANG environment),
@@ -124,8 +124,8 @@ class LSString(str):
 #     """ Prettier (non-repr-like) and more informative printer for LSString """
 #     print "LSString (.p, .n, .l, .s available). Value:"
 #     print arg
-# 
-# 
+#
+#
 # print_lsstring = result_display.when_type(LSString)(print_lsstring)
 
 
@@ -283,9 +283,9 @@ class SList(list):
 #     if hasattr(arg,  'hideonce') and arg.hideonce:
 #         arg.hideonce = False
 #         return
-# 
+#
 #     nlprint(arg)
-# 
+#
 # print_slist = result_display.when_type(SList)(print_slist)
 
 
@@ -421,10 +421,10 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
     """Indent a string a given number of spaces or tabstops.
 
     indent(str,nspaces=4,ntabs=0) -> indent str by ntabs+nspaces.
-    
+
     Parameters
     ----------
-    
+
     instr : basestring
         The string to be indented.
     nspaces : int (default: 4)
@@ -435,12 +435,12 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
         Whether to scrub existing indentation.  If True, all lines will be
         aligned to the same indentation.  If False, existing indentation will
         be strictly increased.
-    
+
     Returns
     -------
-    
+
     str|unicode : string indented by ntabs and nspaces.
-    
+
     """
     if instr is None:
         return
@@ -547,25 +547,25 @@ def format_screen(strng):
 
 def dedent(text):
     """Equivalent of textwrap.dedent that ignores unindented first line.
-    
+
     This means it will still dedent strings like:
     '''foo
     is a bar
     '''
-    
+
     For use in wrap_paragraphs.
     """
-    
+
     if text.startswith('\n'):
         # text starts with blank line, don't ignore the first line
         return textwrap.dedent(text)
-    
+
     # split first line
     splits = text.split('\n',1)
     if len(splits) == 1:
         # only one line
         return textwrap.dedent(text)
-    
+
     first, rest = splits
     # dedent everything but the first line
     rest = textwrap.dedent(rest)
@@ -573,13 +573,13 @@ def dedent(text):
 
 def wrap_paragraphs(text, ncols=80):
     """Wrap multiple paragraphs to fit a specified width.
-    
+
     This is equivalent to textwrap.wrap, but with support for multiple
     paragraphs, as separated by empty lines.
-    
+
     Returns
     -------
-    
+
     list of complete paragraphs, wrapped to fill `ncols` columns.
     """
     paragraph_re = re.compile(r'\n(\s*\n)+', re.MULTILINE)
@@ -588,42 +588,42 @@ def wrap_paragraphs(text, ncols=80):
     out_ps = []
     indent_re = re.compile(r'\n\s+', re.MULTILINE)
     for p in paragraphs:
-        # presume indentation that survives dedent is meaningful formatting, 
+        # presume indentation that survives dedent is meaningful formatting,
         # so don't fill unless text is flush.
         if indent_re.search(p) is None:
             # wrap paragraph
             p = textwrap.fill(p, ncols)
         out_ps.append(p)
     return out_ps
-    
+
 
 
 class EvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
-    
+
     Any time a format key is not found in the kwargs,
     it will be tried as an expression in the kwargs namespace.
-    
+
     This is to be used in templating cases, such as the parallel batch
     script templates, where simple arithmetic on arguments is useful.
-    
+
     Examples
     --------
-    
+
     In [1]: f = EvalFormatter()
     In [2]: f.format('{n//4}', n=8)
     Out[2]: '2'
-    
+
     In [3]: f.format('{list(range(3))}')
     Out[3]: '[0, 1, 2]'
 
     In [4]: f.format('{3*2}')
     Out[4]: '6'
     """
-    
+
     # should we allow slicing by disabling the format_spec feature?
     allow_slicing = True
-    
+
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
     def _vformat(self, format_string, args, kwargs, used_args, recursion_depth):
@@ -677,7 +677,7 @@ def columnize(items, separator='  ', displaywidth=80):
 
     displaywidth : int, optional [default is 80]
         Width of the display in number of characters.
-    
+
     Returns
     -------
     The formatted string.
@@ -687,7 +687,7 @@ def columnize(items, separator='  ', displaywidth=80):
 
     # Some degenerate cases.
     size = len(items)
-    if size == 0: 
+    if size == 0:
         return '\n'
     elif size == 1:
         return '%s\n' % items[0]
@@ -715,9 +715,9 @@ def columnize(items, separator='  ', displaywidth=80):
                 colwidth = max(colwidth, len_x)
             colwidths.append(colwidth)
             totwidth += colwidth + len(separator)
-            if totwidth > displaywidth: 
+            if totwidth > displaywidth:
                 break
-        if totwidth <= displaywidth: 
+        if totwidth <= displaywidth:
             break
 
     # The smallest number of rows computed and the max widths for each

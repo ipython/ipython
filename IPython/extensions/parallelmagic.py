@@ -53,19 +53,19 @@ class ParalleMagic(Plugin):
     def magic_result(self, ipself, parameter_s=''):
         """Print the result of command i on all engines..
 
-        To use this a :class:`DirectView` instance must be created 
+        To use this a :class:`DirectView` instance must be created
         and then activated by calling its :meth:`activate` method.
 
         Then you can do the following::
 
             In [23]: %result
-            Out[23]: 
+            Out[23]:
             <Results List>
             [0] In [6]: a = 10
             [1] In [6]: a = 10
-    
+
             In [22]: %result 6
-            Out[22]: 
+            Out[22]:
             <Results List>
             [0] In [6]: a = 10
             [1] In [6]: a = 10
@@ -85,14 +85,14 @@ class ParalleMagic(Plugin):
     def magic_px(self, ipself, parameter_s=''):
         """Executes the given python command in parallel.
 
-        To use this a :class:`DirectView` instance must be created 
+        To use this a :class:`DirectView` instance must be created
         and then activated by calling its :meth:`activate` method.
-        
+
         Then you can do the following::
 
             In [24]: %px a = 5
             Parallel execution on engine(s): all
-            Out[24]: 
+            Out[24]:
             <Results List>
             [0] In [7]: a = 5
             [1] In [7]: a = 5
@@ -111,7 +111,7 @@ class ParalleMagic(Plugin):
     def magic_autopx(self, ipself, parameter_s=''):
         """Toggles auto parallel mode.
 
-        To use this a :class:`DirectView` instance must be created 
+        To use this a :class:`DirectView` instance must be created
         and then activated by calling its :meth:`activate` method. Once this
         is called, all commands typed at the command line are send to
         the engines to be executed in parallel. To control which engine
@@ -142,7 +142,7 @@ class ParalleMagic(Plugin):
             self._enable_autopx()
 
     def _enable_autopx(self):
-        """Enable %autopx mode by saving the original run_cell and installing 
+        """Enable %autopx mode by saving the original run_cell and installing
         pxrun_cell.
         """
         if self.active_view is None:
@@ -157,7 +157,7 @@ class ParalleMagic(Plugin):
 
         self.autopx = True
         print "%autopx enabled"
-    
+
     def _disable_autopx(self):
         """Disable %autopx by restoring the original InteractiveShell.run_cell.
         """
@@ -178,7 +178,7 @@ class ParalleMagic(Plugin):
             stdouts = [result.stdout.rstrip()]
         else:
             stdouts = [s.rstrip() for s in result.stdout]
-        
+
         targets = self.active_view.targets
         if isinstance(targets, int):
             targets = [targets]
@@ -192,29 +192,29 @@ class ParalleMagic(Plugin):
 
     def pxrun_cell(self, raw_cell, store_history=True):
         """drop-in replacement for InteractiveShell.run_cell.
-        
+
         This executes code remotely, instead of in the local namespace.
 
         See InteractiveShell.run_cell for details.
         """
-        
+
         if (not raw_cell) or raw_cell.isspace():
             return
-        
+
         ipself = self.shell
-        
+
         with ipself.builtin_trap:
             cell = ipself.prefilter_manager.prefilter_lines(raw_cell)
-        
+
             # Store raw and processed history
             if store_history:
-                ipself.history_manager.store_inputs(ipself.execution_count, 
+                ipself.history_manager.store_inputs(ipself.execution_count,
                                                   cell, raw_cell)
 
             # ipself.logger.log(cell, raw_cell)
-        
+
             cell_name = ipself.compile.cache(cell, ipself.execution_count)
-        
+
             try:
                 code_ast = ast.parse(cell, filename=cell_name)
             except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
@@ -232,7 +232,7 @@ class ParalleMagic(Plugin):
             ipself.history_manager.store_output(ipself.execution_count)
             # Each cell is a *single* input, regardless of how many lines it has
             ipself.execution_count += 1
-        
+
         if re.search(r'get_ipython\(\)\.magic\(u?"%?autopx', cell):
             self._disable_autopx()
             return False

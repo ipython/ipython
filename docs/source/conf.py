@@ -42,7 +42,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'inheritance_diagram',
-    'ipython_console_highlighting', 
+    'ipython_console_highlighting',
     'numpydoc',  # to preprocess docstrings
 ]
 

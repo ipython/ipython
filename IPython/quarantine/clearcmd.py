@@ -7,14 +7,14 @@ ip = ipapi.get()
 
 def clear_f(self,arg):
     """ Clear various data (e.g. stored history data)
-    
+
     %clear in  - clear input history
     %clear out - clear output history
     %clear shadow_compress - Compresses shadow history (to speed up ipython)
     %clear shadow_nuke - permanently erase all entries in shadow history
     %clear dhist - clear dir history
     %clear array - clear only variables that are NumPy arrays
-    
+
     Examples:
 
     In [1]: clear in
@@ -29,11 +29,11 @@ def clear_f(self,arg):
     In [4]: clear dhist
     Clearing directory history
     """
-    
+
     api = self.getapi()
     user_ns = self.user_ns  # local lookup, heavily used
-        
-    
+
+
     for target in arg.split():
 
         if target == 'out':
@@ -50,7 +50,7 @@ def clear_f(self,arg):
                     del user_ns[key]
                 except: pass
             # must be done in-place
-            self.history_manager.input_hist_parsed[:] = ['\n'] * pc 
+            self.history_manager.input_hist_parsed[:] = ['\n'] * pc
             self.history_manager.input_hist_raw[:] = ['\n'] * pc
 
         elif target == 'array':
@@ -68,7 +68,7 @@ def clear_f(self,arg):
         elif target == 'shadow_compress':
             print "Compressing shadow history"
             api.db.hcompress('shadowhist')
-            
+
         elif target == 'shadow_nuke':
             print "Erased all keys from shadow history "
             for k in ip.db.keys('shadowhist/*'):
@@ -78,7 +78,7 @@ def clear_f(self,arg):
             print "Clearing directory history"
             del user_ns['_dh'][:]
 
-    gc.collect()        
+    gc.collect()
 
 # Activate the extension
 ip.define_magic("clear",clear_f)

@@ -79,7 +79,7 @@ class PygmentsBlockUserData(QtGui.QTextBlockUserData):
 
     def __repr__(self):
         attrs = ['syntax_stack']
-        kwds = ', '.join([ '%s=%r' % (attr, getattr(self, attr)) 
+        kwds = ', '.join([ '%s=%r' % (attr, getattr(self, attr))
                            for attr in attrs ])
         return 'PygmentsBlockUserData(%s)' % kwds
 
@@ -172,7 +172,7 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         return result
 
     def _get_format_from_document(self, token, document):
-        """ Returns a QTextCharFormat for token by 
+        """ Returns a QTextCharFormat for token by
         """
         code, html = self._formatter._format_lines([(token, 'dummy')]).next()
         self._document.setHtml(html)

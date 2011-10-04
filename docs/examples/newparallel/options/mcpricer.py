@@ -50,7 +50,7 @@ c = Client(profile=cluster_profile)
 
 # <markdowncell>
 
-# A LoadBalancedView is an interface to the engines that provides dynamic load 
+# A LoadBalancedView is an interface to the engines that provides dynamic load
 # balancing at the expense of not knowing which engine will execute the code.
 
 # <codecell>
@@ -115,7 +115,7 @@ prices = np.empty(n_strikes*n_sigmas,
 
 for i, price in enumerate(results):
     prices[i] = tuple(price)
-    
+
 prices.shape = (n_strikes, n_sigmas)
 strike_mesh, sigma_mesh = np.meshgrid(strike_vals, sigma_vals)
 

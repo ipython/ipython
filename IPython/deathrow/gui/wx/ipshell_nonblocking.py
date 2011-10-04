@@ -38,13 +38,13 @@ class _Helper(object):
     def __repr__(self):
         return "Type help() for interactive help, " \
                "or help(object) for help about object."
-    
+
     def __call__(self, *args, **kwds):
         class DummyWriter(object):
-            '''Dumy class to handle help output'''      
+            '''Dumy class to handle help output'''
             def __init__(self, pager):
                 self._pager = pager
-                
+
             def write(self, data):
                 '''hook to fill self._pager'''
                 self._pager(data)
@@ -52,17 +52,17 @@ class _Helper(object):
         import pydoc
         pydoc.help.output = DummyWriter(self._pager)
         pydoc.help.interact = lambda :1
-        
+
         return pydoc.help(*args, **kwds)
 
-  
+
 ##############################################################################
 class _CodeExecutor(ThreadEx):
     ''' Thread that execute ipython code '''
     def __init__(self, instance):
         ThreadEx.__init__(self)
         self.instance = instance
-        
+
     def run(self):
         '''Thread main loop'''
         try:
@@ -70,17 +70,17 @@ class _CodeExecutor(ThreadEx):
             self.instance._help_text = None
             self.instance._execute()
             # used for uper class to generate event after execution
-            self.instance._after_execute() 
-            
+            self.instance._after_execute()
+
         except KeyboardInterrupt:
             pass
- 
+
 
 ##############################################################################
 class NonBlockingIPShell(object):
     '''
     Create an IPython instance, running the commands in a separate,
-    non-blocking thread. 
+    non-blocking thread.
     This allows embedding in any GUI without blockage.
 
     Note: The ThreadEx class supports asynchroneous function call
@@ -111,7 +111,7 @@ class NonBlockingIPShell(object):
         self.init_ipython0(user_ns, user_global_ns,
                            cin, cout, cerr,
                            ask_exit_handler)
-        
+
         #vars used by _execute
         self._iter_more = 0
         self._history_level = 0
@@ -121,7 +121,7 @@ class NonBlockingIPShell(object):
         #thread working vars
         self._line_to_execute = ''
         self._threading = True
-        
+
         #vars that will be checked by GUI loop to handle thread states...
         #will be replaced later by PostEvent GUI funtions...
         self._doc_text = None
@@ -132,7 +132,7 @@ class NonBlockingIPShell(object):
                      cin=None, cout=None, cerr=None,
                      ask_exit_handler=None):
         ''' Initialize an ipython0 instance '''
-        
+
         #first we redefine in/out/error functions of IPython
         #BUG: we've got a limitation form ipython0 there
         #only one instance can be instanciated else tehre will be
@@ -143,7 +143,7 @@ class NonBlockingIPShell(object):
             Term.cout = cout
         if cerr:
             Term.cerr = cerr
-        
+
         excepthook = sys.excepthook
 
         #Hack to save sys.displayhook, because ipython seems to overwrite it...
@@ -165,11 +165,11 @@ class NonBlockingIPShell(object):
             self._IP.stdin_encoding = loc
         #we replace the ipython default pager by our pager
         self._IP.set_hook('show_in_pager', self._pager)
-        
-        #we replace the ipython default shell command caller 
+
+        #we replace the ipython default shell command caller
         #by our shell handler
         self._IP.set_hook('shell_hook', self._shell)
-        
+
         #we replace the ipython default input command caller by our method
         iplib.raw_input_original = self._raw_input_original
         #we replace the ipython default exit command by our method
@@ -184,10 +184,10 @@ class NonBlockingIPShell(object):
 
         import __builtin__
         __builtin__.raw_input = self._raw_input
-        
+
         sys.excepthook = excepthook
 
-    #----------------------- Thread management section ----------------------   
+    #----------------------- Thread management section ----------------------
     def do_execute(self, line):
         """
         Tell the thread to process the 'line' command
@@ -196,8 +196,8 @@ class NonBlockingIPShell(object):
         self._line_to_execute = line
 
         if self._threading:
-            #we launch the ipython line execution in a thread to make it 
-            #interruptible with include it in self namespace to be able 
+            #we launch the ipython line execution in a thread to make it
+            #interruptible with include it in self namespace to be able
             #to call  ce.raise_exc(KeyboardInterrupt)
             self.ce = _CodeExecutor(self)
             self.ce.start()
@@ -207,8 +207,8 @@ class NonBlockingIPShell(object):
                 self._help_text = None
                 self._execute()
                 # used for uper class to generate event after execution
-                self._after_execute() 
-            
+                self._after_execute()
+
             except KeyboardInterrupt:
                 pass
 
@@ -225,7 +225,7 @@ class NonBlockingIPShell(object):
         @rtype: bool
         """
         return self._threading
-    
+
     def set_threading(self, state):
         """
         Sets threading state, if set to True, then each command sent to
@@ -247,7 +247,7 @@ class NonBlockingIPShell(object):
         @rtype: string
         """
         return self._doc_text
-        
+
     def get_help_text(self):
         """
         Returns the output of the processing that need to be paged via help pager(if any)
@@ -265,7 +265,7 @@ class NonBlockingIPShell(object):
         @rtype: string
         """
         return self._IP.banner
-    
+
     def get_prompt_count(self):
         """
         Returns the prompt number.
@@ -295,7 +295,7 @@ class NonBlockingIPShell(object):
         @rtype: int
         """
         return self._IP.indent_current_nsp
-        
+
     def update_namespace(self, ns_dict):
         '''
         Add the current dictionary to the shell namespace.
@@ -354,7 +354,7 @@ class NonBlockingIPShell(object):
         while((history == '' or history == '\n') and self._history_level >0):
             if self._history_level >= 1:
                 self._history_level -= 1
-            history = self._get_history()            
+            history = self._get_history()
         return history
 
     def history_forward(self):
@@ -406,7 +406,7 @@ class NonBlockingIPShell(object):
         @rtype: int
         '''
         return len(self._IP.input_hist_raw)-1
-        
+
     def _get_history(self):
         '''
         Get's the command string of the current history level.
@@ -428,7 +428,7 @@ class NonBlockingIPShell(object):
             self._help_text = text
         else:
             self._help_text += text
-    
+
     def _pager(self, IP, text):
         '''
         This function is used as a callback replacment to IPython pager function
@@ -437,7 +437,7 @@ class NonBlockingIPShell(object):
         get_doc_text function.
         '''
         self._doc_text = text
-    
+
     def _raw_input_original(self, prompt=''):
         '''
         Custom raw_input() replacement. Get's current line from console buffer.
@@ -454,7 +454,7 @@ class NonBlockingIPShell(object):
         """ A replacement from python's raw_input.
         """
         raise NotImplementedError
-    
+
     def _execute(self):
         '''
         Executes the current line provided by the shell object.
@@ -464,7 +464,7 @@ class NonBlockingIPShell(object):
         sys.stdout = Term.cout
         #self.sys_displayhook_ori = sys.displayhook
         #sys.displayhook = self.displayhook
-        
+
         try:
             line = self._IP.raw_input(None, self._iter_more)
             if self._IP.autoindent:
@@ -497,7 +497,7 @@ class NonBlockingIPShell(object):
 
         sys.stdout = orig_stdout
         #sys.displayhook = self.sys_displayhook_ori
-                
+
     def _shell(self, ip, cmd):
         '''
         Replacement method to allow shell commands without them blocking.

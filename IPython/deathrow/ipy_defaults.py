@@ -1,10 +1,10 @@
-""" Set default options for IPython. 
+""" Set default options for IPython.
 
 Just import this module to get reasonable defaults for everything.
 
-These configurations used to be performed in ipythonrc (or ipythonrc.ini). 
+These configurations used to be performed in ipythonrc (or ipythonrc.ini).
 Therefore importing this in your config files makes ipython basically
-ignore your ipythonrc. This is *not* imported by default, you need to import 
+ignore your ipythonrc. This is *not* imported by default, you need to import
 this manually in one of your config files.
 
 You can further override these defaults in e.g. your ipy_user_config.py,
@@ -58,5 +58,5 @@ set show-all-if-ambiguous on
 if readline.have_readline:
     for cmd in rlopts.split('\n'):
         readline.parse_and_bind(cmd)
-    
-    
+
+

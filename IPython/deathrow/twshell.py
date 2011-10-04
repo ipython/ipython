@@ -10,7 +10,7 @@ import sys
 from twisted.internet import reactor, threads
 
 from IPython.core.ipmaker import make_IPython
-from IPython.core.iplib import InteractiveShell 
+from IPython.core.iplib import InteractiveShell
 from IPython.utils.ipstruct import Struct
 import Queue,thread,threading,signal
 from signal import signal, SIGINT
@@ -43,7 +43,7 @@ def hijack_reactor():
             return getattr(orig_reactor, name)
         def __setattr__(self, name, value):
             return setattr(orig_reactor, name, value)
-    
+
     internet.reactor = DummyReactor()
     return orig_reactor
 
@@ -62,12 +62,12 @@ class TwistedInteractiveShell(InteractiveShell):
     def __init__(self,name,usage=None,rc=Struct(opts=None,args=None),
                  user_ns=None,user_global_ns=None,banner2='',**kw):
         """Similar to the normal InteractiveShell, but with threading control"""
-        
+
         InteractiveShell.__init__(self,name,usage,rc,user_ns,
                                   user_global_ns,banner2)
 
 
-        # A queue to hold the code to be executed. 
+        # A queue to hold the code to be executed.
         self.code_queue = Queue.Queue()
 
         # Stuff to do at closing time
@@ -82,13 +82,13 @@ class TwistedInteractiveShell(InteractiveShell):
         self.worker_ident = None
         self.reactor_started = False
         self.first_run = True
-        
+
     def runsource(self, source, filename="<input>", symbol="single"):
         """Compile and run some source in the interpreter.
 
         Modified version of code.py's runsource(), to handle threading issues.
         See the original for full docstring details."""
-        
+
         # If Ctrl-C was typed, we reset the flag and return right away
         if shellglobals.KBINT:
             shellglobals.KBINT = False
@@ -97,7 +97,7 @@ class TwistedInteractiveShell(InteractiveShell):
         if self._kill:
             # can't queue new code if we are being killed
             return True
-        
+
         try:
             code = self.compile(source, filename, symbol)
         except (OverflowError, SyntaxError, ValueError):
@@ -109,21 +109,21 @@ class TwistedInteractiveShell(InteractiveShell):
             # Case 2
             return True
 
-        # shortcut - if we are in worker thread, or the worker thread is not running, 
-        # execute directly (to allow recursion and prevent deadlock if code is run early 
+        # shortcut - if we are in worker thread, or the worker thread is not running,
+        # execute directly (to allow recursion and prevent deadlock if code is run early
         # in IPython construction)
-        
-        if (not self.reactor_started or (self.worker_ident is None and not self.first_run) 
+
+        if (not self.reactor_started or (self.worker_ident is None and not self.first_run)
             or self.worker_ident == thread.get_ident() or shellglobals.run_in_frontend(source)):
             InteractiveShell.runcode(self,code)
             return
 
         # Case 3
         # Store code in queue, so the execution thread can handle it.
- 
+
         self.first_run = False
-        completed_ev, received_ev = threading.Event(), threading.Event() 
-        
+        completed_ev, received_ev = threading.Event(), threading.Event()
+
         self.code_queue.put((code,completed_ev, received_ev))
 
         reactor.callLater(0.0,self.runcode)
@@ -133,18 +133,18 @@ class TwistedInteractiveShell(InteractiveShell):
             print "Warning: Timeout for mainloop thread exceeded"
             print "switching to nonthreaded mode (until mainloop wakes up again)"
             self.worker_ident = None
-        else:            
+        else:
             completed_ev.wait()
-        
+
         return False
 
     def runcode(self):
         """Execute a code object.
 
         Multithreaded wrapper around IPython's runcode()."""
-        
-        
-        # we are in worker thread, stash out the id for runsource() 
+
+
+        # we are in worker thread, stash out the id for runsource()
         self.worker_ident = thread.get_ident()
 
         if self._kill:
@@ -172,12 +172,12 @@ class TwistedInteractiveShell(InteractiveShell):
         code_to_run = None
         while 1:
             try:
-                code_to_run, completed_ev, received_ev = self.code_queue.get_nowait()                
+                code_to_run, completed_ev, received_ev = self.code_queue.get_nowait()
             except Queue.Empty:
                 break
             received_ev.set()
 
-            
+
             # Exceptions need to be raised differently depending on which
             # thread is active.  This convoluted try/except is only there to
             # protect against asynchronous exceptions, to ensure that a shellglobals.KBINT
@@ -196,8 +196,8 @@ class TwistedInteractiveShell(InteractiveShell):
             finally:
                 shellglobals.CODE_RUN = False
                 # allow runsource() return from wait
-                completed_ev.set()                
-        
+                completed_ev.set()
+
         # This MUST return true for gtk threading to work
         return True
 
@@ -237,7 +237,7 @@ class IPShellTwisted:
             while True and not self.quitting:
                 reactorrun_orig()
         self.reactor.run = reactorrun
-        
+
         self.IP = make_IPython(argv, user_ns=user_ns, debug=debug,
                                shell_class=shell_class,
                                on_kill=[mainquit])
@@ -258,8 +258,8 @@ class IPShellTwisted:
         reactor.callWhenRunning(spawnMainloopThread)
         self.IP.reactor_started = True
         self.reactor.run()
-        print "mainloop ending...."   
-        
+        print "mainloop ending...."
+
 exists = True
 
 

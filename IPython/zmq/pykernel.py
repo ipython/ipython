@@ -71,7 +71,7 @@ class Kernel(HasTraits):
         self.completer = KernelCompleter(self.user_ns)
 
         # Build dict of handlers for message types
-        msg_types = [ 'execute_request', 'complete_request', 
+        msg_types = [ 'execute_request', 'complete_request',
                       'object_info_request', 'shutdown_request' ]
         self.handlers = {}
         for msg_type in msg_types:
@@ -114,7 +114,7 @@ class Kernel(HasTraits):
         try:
             comp_code = self.compiler(code, '<zmq-kernel>')
 
-            # Replace raw_input. Note that is not sufficient to replace 
+            # Replace raw_input. Note that is not sufficient to replace
             # raw_input in the user namespace.
             raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
             if py3compat.PY3:
@@ -141,7 +141,7 @@ class Kernel(HasTraits):
             reply_content = exc_content
         else:
             reply_content = { 'status' : 'ok', 'payload' : {} }
-            
+
         # Flush output before sending the reply.
         sys.stderr.flush()
         sys.stdout.flush()
@@ -259,7 +259,7 @@ class Kernel(HasTraits):
 
 def launch_kernel(*args, **kwargs):
     """ Launches a simple Python kernel, binding to the specified ports.
-    
+
     This function simply calls entry_point.base_launch_kernel with the right first
     command to start a pykernel.  See base_launch_kernel for arguments.
 

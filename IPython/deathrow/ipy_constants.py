@@ -3,18 +3,18 @@
 
 Definition of Fundamental Physical Constants, CODATA Recommended Values
 
-Source, Peter J. Mohr and Barry N. Taylor,  
+Source, Peter J. Mohr and Barry N. Taylor,
 CODATA Recommended Values of the Fundamental
-Physical Constants, 1998                    
-                                            
-Website: physics.nist.gov/constants         
+Physical Constants, 1998
+
+Website: physics.nist.gov/constants
 """
 # License: BSD-like
 # Copyright: Gael Varoquaux (gael.varoquaux@normalesup.org)
 
 # inspired by maxima's physconst.mac by Cliff Yapp
 
-#from math import * # math MUST be imported BEFORE PhysicalQInteractive 
+#from math import * # math MUST be imported BEFORE PhysicalQInteractive
 from IPython.extensions.PhysicalQInteractive import PhysicalQuantityInteractive
 
 # Math constants:
@@ -111,7 +111,7 @@ ueVT_N.__doc__ = """nuclear magneton in eV T-1      """
 # Atomic and Nuclear Constants
 # General
 #-------------------------------------------------------------------------
-# fine-structure constant 
+# fine-structure constant
 alpha = 7.297352533E-3
 
 
@@ -163,19 +163,19 @@ me_MeV.__doc__ = """electron mass - energy equivalent in MeV"""
 # electron-muon mass ratio
 memu = 4.83633210E-3
 
-# electron-tau mass ratio    
+# electron-tau mass ratio
 metau = 2.87555E-4
 
-# electron-proton mass ratio    
+# electron-proton mass ratio
 memp = 5.446170232E-4
 
-# electron-neutron mass ratio 
+# electron-neutron mass ratio
 memn = 5.438673462E-4
 
-# electron-deuteron mass ratio    
+# electron-deuteron mass ratio
 memd = 2.7244371170E-4
 
-# electron to alpha particle mass ratio    
+# electron to alpha particle mass ratio
 memalpha = 1.3709335611E-4
 
 
@@ -202,31 +202,31 @@ sigma_e.__doc__ = """Thomson cross section """
 u_e = PhysicalQuantityInteractive(-928.476362E-26 , 'J/T')
 u_e.__doc__ = """electron magnetic moment    """
 
-# electron magnetic moment to Bohr magneton ratio     
+# electron magnetic moment to Bohr magneton ratio
 ueuB = -1.0011596521869
 
-# electron magnetic moment to nuclear magneton ratio    
+# electron magnetic moment to nuclear magneton ratio
 ueuN = -1838.2819660
 
-# electron magnetic moment anomaly |ue|/uB - 1    
+# electron magnetic moment anomaly |ue|/uB - 1
 a_e = 1.1596521869E-3
 
-# electron g-factor 
+# electron g-factor
 g_e = -2.0023193043737
 
-# electron-muon magnetic moment ratio   
+# electron-muon magnetic moment ratio
 ueuu = 206.7669720
 
-# electron-proton magnetic moment ratio    
+# electron-proton magnetic moment ratio
 ueup = -658.2106875
 
 # electron to shielded proton magnetic moment ratio  (H2O, sphere, 25  C)
 ueusp = -658.2275954
 
-# electron-neutron magnetic moment ratio    
+# electron-neutron magnetic moment ratio
 ueun = 960.92050
 
-# electron-deuteron magnetic moment ratio    
+# electron-deuteron magnetic moment ratio
 ueud = -2143.923498
 
 # electron to shielded helione magnetic moment ratio  (gas, sphere, 25  C)
@@ -252,7 +252,7 @@ muc2_J.__doc__ = """energy equivalent    """
 muc2_MeV = PhysicalQuantityInteractive(105.6583568 , 'MeV')
 muc2_MeV.__doc__ = """energy equivalent in MeV """
 
-# muon-electron mass ratio    
+# muon-electron mass ratio
 mume = 206.7682657
 
 # muon-tau mass ratio
@@ -261,7 +261,7 @@ mum = 5.94572E-2
 # muon-proton mass ratio
 mump = 0.1126095173
 
-# muon-neutron mass ratio 
+# muon-neutron mass ratio
 mumn = 0.1124545079
 
 
@@ -276,19 +276,19 @@ lambda_C_u.__doc__ = """muon Compton wavelength """
 uu = PhysicalQuantityInteractive(-4.49044813E-26 , 'J/T')
 uu.__doc__ = """muon magnetic moment    """
 
-# ratio of muon magnetic moment to Bohr magneton ratio 
+# ratio of muon magnetic moment to Bohr magneton ratio
 uuuB = -4.84197085E-3
 
-# ratio of muon magnetic moment to nuclear magneton ratio    
+# ratio of muon magnetic moment to nuclear magneton ratio
 uuuN = -8.89059770
 
-# muon magnetic moment anomaly |uu|/(e /2mu) - 1    
+# muon magnetic moment anomaly |uu|/(e /2mu) - 1
 a_u = 1.16591602E-3
 
 # muon g-factor -2(1 + au)
 g_u = -2.0023318320
 
-# muon-proton magnetic moment ratio    
+# muon-proton magnetic moment ratio
 uuup = -3.18334539
 
 # Tau, tau-
@@ -308,16 +308,16 @@ mtauc2_J.__doc__ = """tau mass energy equivalent    """
 mtauc2_MeV = PhysicalQuantityInteractive(1777.05 , 'MeV')
 mtauc2_MeV.__doc__ = """tau mass energy equivalent in MeV """
 
-# tau-electron mass ratio   
+# tau-electron mass ratio
 mtaume = 3477.60
 
-# tau-muon mass ratio    
+# tau-muon mass ratio
 mtaumu = 16.8188
 
-# tau-proton mass ratio    
+# tau-proton mass ratio
 mtaump = 1.89396
 
-# tau-neutron mass ratio    
+# tau-neutron mass ratio
 mtaumn = 1.89135
 
 
@@ -344,16 +344,16 @@ mpc2_J.__doc__ = """energy equivalent   """
 mpc2_MeV = PhysicalQuantityInteractive(938.271998 , 'MeV')
 mpc2_MeV.__doc__ = """energy equivalent in MeV  """
 
-# proton-electron mass ratio 
+# proton-electron mass ratio
 mpme = 1836.1526675
 
 # proton-muon mass ratio
 mpmu = 8.88024408
 
-# proton-tau mass ratio 
+# proton-tau mass ratio
 mpmtau = 0.527994
 
-# proton-neutron mass ratio 
+# proton-neutron mass ratio
 mpmn = 0.99862347855
 
 
@@ -372,26 +372,26 @@ lambda_C_p.__doc__ = """proton Compton wavelength h/mpc  """
 up = PhysicalQuantityInteractive(1.410606633E-26 , 'J/T')
 up.__doc__ = """proton magnetic moment   """
 
-# proton magnetic moment to Bohr magneton ratio 
+# proton magnetic moment to Bohr magneton ratio
 upuB = 1.521032203E-3
 
-# proton magnetic moment to nuclear magneton ratio 
+# proton magnetic moment to nuclear magneton ratio
 upuN = 2.792847337
 
-# proton g-factor 2up/uN  
+# proton g-factor 2up/uN
 g_p = 5.585694675
 
-# proton-neutron magnetic moment ratio  
+# proton-neutron magnetic moment ratio
 upun = -1.45989805
 
 
 usp = PhysicalQuantityInteractive(1.410570399E-26 , 'J/T')
 usp.__doc__ = """shielded proton magnetic moment  (H2O, sphere, 25  C)"""
 
-# shielded proton magnetic moment to Bohr magneton ratio 
+# shielded proton magnetic moment to Bohr magneton ratio
 uspuB = 1.520993132E-3
 
-# shielded proton magnetic moment to nuclear magneton ratio 
+# shielded proton magnetic moment to nuclear magneton ratio
 uspuN = 2.792775597
 
 # proton magnetic shielding correction 1 - u p/up  (H2O, sphere, 25  C)
@@ -422,16 +422,16 @@ mnc2_J.__doc__ = """neutron mass energy equivalent  """
 mnc2_MeV = PhysicalQuantityInteractive(939.565330 , 'MeV')
 mnc2_MeV.__doc__ = """neutron mass energy equivalent  in MeV  """
 
-# neutron-electron mass ratio 
+# neutron-electron mass ratio
 mnme = 1838.6836550
 
-# neutron-muon mass ratio 
+# neutron-muon mass ratio
 mnmu = 8.89248478
 
-# neutron-tau mass ratio 
+# neutron-tau mass ratio
 mnm = 0.528722
 
-# neutron-proton mass ratio 
+# neutron-proton mass ratio
 mnmp = 1.00137841887
 
 
@@ -446,19 +446,19 @@ lambda_C_n.__doc__ = """neutron Compton wavelength"""
 un = PhysicalQuantityInteractive(-0.96623640E-26 , 'J/T')
 un.__doc__ = """neutron magnetic moment """
 
-# neutron magnetic moment to Bohr magneton ratio 
+# neutron magnetic moment to Bohr magneton ratio
 unuB = -1.04187563E-3
 
-# neutron magnetic moment to nuclear magneton ratio 
+# neutron magnetic moment to nuclear magneton ratio
 unuN = -1.91304272
 
-# neutron g-factor 
+# neutron g-factor
 g_n = -3.82608545
 
-# neutron-electron magnetic moment ratio  
+# neutron-electron magnetic moment ratio
 unue = 1.04066882E-3
 
-# neutron-proton magnetic moment ratio 
+# neutron-proton magnetic moment ratio
 unup = -0.68497934
 
 # neutron to shielded proton magnetic moment ratio (H2O, sphere, 25  C)
@@ -486,10 +486,10 @@ mdc2_J.__doc__ = """deuteron mass energy equivalent """
 mdc2_eV = PhysicalQuantityInteractive(1875.612762 , 'MeV')
 mdc2_eV.__doc__ = """deuteron mass energy equivalent in MeV  """
 
-# deuteron-electron mass ratio  
+# deuteron-electron mass ratio
 mdme = 3670.4829550
 
-# deuteron-proton mass ratio 
+# deuteron-proton mass ratio
 mdmp = 1.99900750083
 
 
@@ -500,19 +500,19 @@ Molar_d.__doc__ = """deuteron molar mass """
 ud = PhysicalQuantityInteractive(0.433073457E-26 , 'J/T')
 ud.__doc__ = """deuteron magnetic moment  """
 
-# deuteron magnetic moment to Bohr magneton ratio 
+# deuteron magnetic moment to Bohr magneton ratio
 uduB = 0.4669754556E-3
 
-# deuteron magnetic moment to nuclear magneton ratio 
+# deuteron magnetic moment to nuclear magneton ratio
 uduN = 0.8574382284
 
-# deuteron-electron magnetic moment ratio 
+# deuteron-electron magnetic moment ratio
 udue = -4.664345537E-4
 
-# deuteron-proton magnetic moment ratio 
+# deuteron-proton magnetic moment ratio
 udup = 0.3070122083
 
-# deuteron-neutron magnetic moment ratio 
+# deuteron-neutron magnetic moment ratio
 udun = -0.44820652
 
 # Helion, h
@@ -532,10 +532,10 @@ mhc2_J.__doc__ = """helion mass energy equivalent """
 mhc2_MeV = PhysicalQuantityInteractive(2808.39132 , 'MeV')
 mhc2_MeV.__doc__ = """helion mass energy equivalent in MeV """
 
-# helion-electron mass ratio 
+# helion-electron mass ratio
 mhme = 5495.885238
 
-# helion-proton mass ratio 
+# helion-proton mass ratio
 mhmp = 2.99315265850
 
 
@@ -546,10 +546,10 @@ Molar_h.__doc__ = """helion molar mass """
 ush = PhysicalQuantityInteractive(-1.074552967E-26 , 'J/T')
 ush.__doc__ = """shielded helion magnetic moment (gas, sphere, 25  C)"""
 
-# shielded helion magnetic moment to Bohr magneton ratio 
+# shielded helion magnetic moment to Bohr magneton ratio
 ushuB = -1.158671474E-3
 
-# shielded helion magnetic moment to nuclear magneton ratio  
+# shielded helion magnetic moment to nuclear magneton ratio
 ushuN = -2.127497718
 
 # shielded helion to proton magnetic moment ratio  (gas, sphere, 25  C)
@@ -562,7 +562,7 @@ ushusp = -0.7617861313
 gamma_h = PhysicalQuantityInteractive(2.037894764E8 , '1/(s*T)')
 gamma_h.__doc__ = """shielded helion gyromagnetic  (gas, sphere, 25  C) """
 
-# Alpha particle, 
+# Alpha particle,
 #-------------------------------------------------------------------------
 
 m_alpha = PhysicalQuantityInteractive(6.64465598E-27 , 'kg')
@@ -579,10 +579,10 @@ malphac2_J.__doc__ = """alpha particle mass energy equivalent  """
 malphac2_MeV = PhysicalQuantityInteractive(3727.37904 , 'MeV')
 malphac2_MeV.__doc__ = """alpha particle mass energy equivalent in MeV  """
 
-# alpha particle to electron mass ratio 
+# alpha particle to electron mass ratio
 malphame = 7294.299508
 
-# alpha particle to proton mass ratio 
+# alpha particle to proton mass ratio
 malphamp = 3.9725996846
 
 
@@ -642,9 +642,9 @@ Vm_2 = PhysicalQuantityInteractive(22.710981E-3 , 'm**3/mol')
 Vm_2.__doc__ = """molar volume of ideal gas RT/p   T = 273.15 K, p = 100 kPa  """
 
 # Sackur-Tetrode constant (absolute entropy constant) 52 + ln_(2 mukT1/h2)3/2kT1/p0
-# T1 = 1 K, p0 = 100 kPa 
+# T1 = 1 K, p0 = 100 kPa
 S_0R_1 = -1.1517048
-# T1 = 1 K, p0 = 101.325 kPa  
+# T1 = 1 K, p0 = 101.325 kPa
 S_0R_2 = -1.1648678
 
 

@@ -78,7 +78,7 @@ def shlex_split(x):
             if len(endofline) >= 1:
                 comps.append(''.join(endofline))
             return comps
-        
+
         except ValueError:
             endofline = [x[-1:]]+endofline
             x = x[:-1]
@@ -108,7 +108,7 @@ def module_list(path):
     isfile = os.path.isfile
     pjoin = os.path.join
     basename = os.path.basename
-    
+
     # Now find actual path matches for packages or modules
     folder_list = [p for p in folder_list
                    if isfile(pjoin(path, p,'__init__.py'))
@@ -125,12 +125,12 @@ def get_root_modules():
 
     if 'rootmodules' in ip.db:
         return ip.db['rootmodules']
-    
+
     t = time()
     store = False
     modules = list(sys.builtin_module_names)
     for path in sys.path:
-        modules += module_list(path)        
+        modules += module_list(path)
         if time() - t >= TIMEOUT_STORAGE and not store:
             store = True
             print("\nCaching the list of root modules, please wait!")
@@ -141,7 +141,7 @@ def get_root_modules():
             print("This is taking too long, we give up.\n")
             ip.db['rootmodules'] = []
             return []
-    
+
     modules = set(modules)
     if '__init__' in modules:
         modules.remove('__init__')
@@ -173,7 +173,7 @@ def try_import(mod, only_modules=False):
     if (not hasattr(m, '__file__')) or (not only_modules) or m_is_init:
         completions.extend( [attr for attr in dir(m) if
                              is_importable(m, attr, only_modules)])
-        
+
     completions.extend(getattr(m, '__all__', []))
     if m_is_init:
         completions.extend(module_list(os.path.dirname(m.__file__)))
@@ -192,22 +192,22 @@ def quick_completer(cmd, completions):
 
     Takes either a list of completions, or all completions in string (that will
     be split on whitespace).
-    
+
     Example::
-    
+
         [d:\ipython]|1> import ipy_completers
         [d:\ipython]|2> ipy_completers.quick_completer('foo', ['bar','baz'])
         [d:\ipython]|3> foo b<TAB>
         bar baz
         [d:\ipython]|3> foo ba
     """
-    
+
     if isinstance(completions, basestring):
         completions = completions.split()
 
     def do_complete(self, event):
         return completions
-    
+
     get_ipython().set_hook('complete_command',do_complete, str_key = cmd)
 
 
@@ -226,7 +226,7 @@ def module_completion(line):
     # from whatever <tab> -> 'import '
     if nwords == 3 and words[0] == 'from':
         return ['import ']
-    
+
     # 'from xy<tab>' or 'import xy<tab>'
     if nwords < 3 and (words[0] in ['import','from']) :
         if nwords == 1:
@@ -236,7 +236,7 @@ def module_completion(line):
             return get_root_modules()
         completion_list = try_import('.'.join(mod[:-1]), True)
         return ['.'.join(mod[:-1] + [el]) for el in completion_list]
-    
+
     # 'from xyz import abc<tab>'
     if nwords >= 3 and words[0] == 'from':
         mod = words[1]
@@ -275,7 +275,7 @@ def magic_run_completer(self, event):
     lglob = glob.glob
     isdir = os.path.isdir
     relpath, tilde_expand, tilde_val = expand_user(relpath)
-        
+
     dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*') if isdir(f)]
 
     # Find if the user has already typed the first filename, after which we
@@ -305,7 +305,7 @@ def cd_completer(self, event):
             return bkms.keys()
         else:
             return []
-    
+
     if event.symbol == '-':
         width_dh = str(len(str(len(ip.user_ns['_dh']) + 1)))
         # jump in directory history by number
@@ -329,7 +329,7 @@ def cd_completer(self, event):
             # we don't want to deal with any of that, complex code
             # for this is elsewhere
             raise TryNext
-        
+
         found.append(d)
 
     if not found:
@@ -341,7 +341,7 @@ def cd_completer(self, event):
         bkmatches = [s for s in bks if s.startswith(event.symbol)]
         if bkmatches:
             return bkmatches
-        
+
         raise TryNext
 
     return [compress_user(p, tilde_expand, tilde_val) for p in found]

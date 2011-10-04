@@ -5,14 +5,14 @@ import os, subprocess
 
 workdir = None
 def workdir_f(ip,line):
-    """ Exceute commands residing in cwd elsewhere 
-    
+    """ Exceute commands residing in cwd elsewhere
+
     Example::
-      
+
       workdir /myfiles
       cd bin
-      workdir myscript.py 
-      
+      workdir myscript.py
+
     executes myscript.py (stored in bin, but not in path) in /myfiles
     """
     global workdir

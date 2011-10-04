@@ -38,7 +38,7 @@ class IPythonXController(WxController):
                 self._input_state == 'readline':
             wx.CallAfter(self.ask_exit)
         else:
-            WxController._on_key_down(self, event, skip=skip) 
+            WxController._on_key_down(self, event, skip=skip)
 
 
     def ask_exit(self):
@@ -56,7 +56,7 @@ class IPythonXController(WxController):
         else:
             wx.CallAfter(wx.GetApp().Exit)
         self.write('Exiting ...', refresh=False)
- 
+
 
     def do_exit(self):
         """ Exits the interpreter, kills the windows.
@@ -81,10 +81,10 @@ class IPythonX(wx.Frame):
         self.Show(True)
         wx.EVT_CLOSE(self, self.on_close)
 
-        
+
     def on_close(self, event):
-        """ Called on closing the windows. 
-            
+        """ Called on closing the windows.
+
             Stops the event loop, to close all the child windows.
         """
         wx.CallAfter(wx.Exit)

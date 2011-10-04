@@ -80,7 +80,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
     displayhook_class = Type(ZMQShellDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
-    
+
     # Override the traitlet in the parent class, because there's no point using
     # readline for the kernel. Can be removed when the readline code is moved
     # to the terminal frontend.
@@ -89,7 +89,7 @@ class ZMQInteractiveShell(InteractiveShell):
     # autoindent has no meaning in a zmqshell, and attempting to enable it
     # will print a warning in the absence of readline.
     autoindent = CBool(False)
-    
+
     exiter = Instance(ZMQExitAutocall)
     def _exiter_default(self):
         return ZMQExitAutocall(self)
@@ -122,7 +122,7 @@ class ZMQInteractiveShell(InteractiveShell):
             transformed_input=new,
             )
         self.payload_manager.write_payload(payload)
-        
+
     def ask_exit(self):
         """Engage the exit actions."""
         payload = dict(
@@ -153,7 +153,7 @@ class ZMQInteractiveShell(InteractiveShell):
         exc_content[u'status'] = u'error'
         self._reply_content = exc_content
         # /FIXME
-        
+
         return exc_content
 
     #------------------------------------------------------------------------
@@ -205,7 +205,7 @@ class ZMQInteractiveShell(InteractiveShell):
         save_dstore('rc_pprint', ptformatter.pprint)
         save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
         save_dstore('xmode', shell.InteractiveTB.mode)
-        
+
         if mode == False:
             # turn on
             ptformatter.pprint = False
@@ -221,7 +221,7 @@ class ZMQInteractiveShell(InteractiveShell):
         dstore.mode = bool(1-int(mode))
         mode_label = ['OFF','ON'][dstore.mode]
         print('Doctest mode is:', mode_label)
-        
+
         # Send the payload back so that clients can modify their prompt display
         payload = dict(
             source='IPython.zmq.zmqshell.ZMQInteractiveShell.magic_doctest_mode',
@@ -240,7 +240,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
         This command allows you to conveniently edit multi-line code right in
         your IPython session.
-        
+
         If called without arguments, %edit opens up an empty editor with a
         temporary file and will execute the contents of this file when you
         close it (don't forget to save it!).
@@ -253,7 +253,7 @@ class ZMQInteractiveShell(InteractiveShell):
         you can configure this by providing your own modified hook if your
         favorite editor supports line-number specifications with a different
         syntax.
-        
+
         -p: this will call the editor with the same data as the previous time
         it was used, regardless of how long ago (in your current session) it
         was.
@@ -264,7 +264,7 @@ class ZMQInteractiveShell(InteractiveShell):
         this option is given, the raw input as typed as the command line is
         used instead.  When you exit the editor, it will be executed by
         IPython's own processor.
-        
+
         -x: do not execute the edited code immediately upon exit. This is
         mainly useful if you are editing programs which need to be called with
         command line arguments, which you can then do using %run.
@@ -319,18 +319,18 @@ class ZMQInteractiveShell(InteractiveShell):
         Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
 
         We can then call the function foo():
-        
+
         In [2]: foo()
         foo() was defined in an editing session
 
         Now we edit foo.  IPython automatically loads the editor with the
         (temporary) file where foo() was previously defined:
-        
+
         In [3]: ed foo
         Editing... done. Executing edited code...
 
         And if we call foo() again we get the modified version:
-        
+
         In [4]: foo()
         foo() has now been changed!
 
@@ -356,9 +356,9 @@ class ZMQInteractiveShell(InteractiveShell):
         hello again
         Out[7]: "print 'hello again'n"
         """
-        
+
         opts,args = self.parse_options(parameter_s,'prn:')
-        
+
         try:
             filename, lineno, _ = self._find_edit_target(args, opts, last_call)
         except MacroToEdit as e:
@@ -400,7 +400,7 @@ class ZMQInteractiveShell(InteractiveShell):
         magic_cls = magic_clear
 
     # Terminal pagers won't work over pexpect, but we do have our own pager
-    
+
     def magic_less(self, arg_s):
         """Show a file through the pager.
 
@@ -427,12 +427,12 @@ class ZMQInteractiveShell(InteractiveShell):
         """Show a basic reference about the GUI console."""
         from IPython.core.usage import gui_reference
         page.page(gui_reference, auto_html=True)
-    
+
     def set_next_input(self, text):
         """Send the specified text to the frontend to be presented at the next
         input cell."""
         payload = dict(
-            source='IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input', 
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input',
             text=text
         )
         self.payload_manager.write_payload(payload)

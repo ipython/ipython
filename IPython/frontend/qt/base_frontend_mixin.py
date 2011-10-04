@@ -12,7 +12,7 @@ class BaseFrontendMixin(object):
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' concrete interface
     #---------------------------------------------------------------------------
-    
+
     def _get_kernel_manager(self):
         """ Returns the current kernel manager.
         """
@@ -34,7 +34,7 @@ class BaseFrontendMixin(object):
             old_manager.stdin_channel.message_received.disconnect(self._dispatch)
             old_manager.hb_channel.kernel_died.disconnect(
                 self._handle_kernel_died)
-    
+
             # Handle the case where the old kernel manager is still listening.
             if old_manager.channels_running:
                 self._stopped_channels()
@@ -77,9 +77,9 @@ class BaseFrontendMixin(object):
         since_last_heartbeat : float
             The time since the heartbeat was last received.
         """
-    
+
     def _started_channels(self):
-        """ Called when the KernelManager channels have started listening or 
+        """ Called when the KernelManager channels have started listening or
             when the frontend is assigned an already listening KernelManager.
         """
 
@@ -93,7 +93,7 @@ class BaseFrontendMixin(object):
     #---------------------------------------------------------------------------
 
     def _dispatch(self, msg):
-        """ Calls the frontend handler associated with the message type of the 
+        """ Calls the frontend handler associated with the message type of the
             given message.
         """
         msg_type = msg['header']['msg_type']

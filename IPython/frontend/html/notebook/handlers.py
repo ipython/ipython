@@ -50,7 +50,7 @@ class AuthenticatedHandler(web.RequestHandler):
             if not self.application.password:
                 user_id = 'anonymous'
         return user_id
-        
+
 
 class NBBrowserHandler(AuthenticatedHandler):
     @web.authenticated
@@ -176,13 +176,13 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         self.session = Session()
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
-    
+
     def get_current_user(self):
         user_id = self.get_secure_cookie("user")
         if user_id == '' or (user_id is None and not self.application.password):
             user_id = 'anonymous'
         return user_id
-    
+
     def _inject_cookie_message(self, msg):
         """Inject the first message, which is the document cookie,
         for authentication."""
@@ -193,14 +193,14 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
             self._cookies = Cookie.SimpleCookie(msg)
         except:
             logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
-    
+
     def on_first_message(self, msg):
         self._inject_cookie_message(msg)
         if self.get_current_user() is None:
             logging.warn("Couldn't authenticate WebSocket connection")
             raise web.HTTPError(403)
         self.on_message = self.save_on_message
-                
+
 
 class IOPubHandler(AuthenticatedZMQStreamHandler):
 
@@ -209,7 +209,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         self._beating = False
         self.iopub_stream = None
         self.hb_stream = None
-    
+
     def on_first_message(self, msg):
         try:
             super(IOPubHandler, self).on_first_message(msg)
@@ -231,12 +231,12 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         else:
             self.iopub_stream.on_recv(self._on_zmq_reply)
             self.start_hb(self.kernel_died)
-    
+
     def on_message(self, msg):
         pass
 
     def on_close(self):
-        # This method can be called twice, once by self.kernel_died and once 
+        # This method can be called twice, once by self.kernel_died and once
         # from the WebSocket close event. If the WebSocket connection is
         # closed before the ZMQ streams are setup, they could be None.
         self.stop_hb()
@@ -245,7 +245,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             self.iopub_stream.close()
         if self.hb_stream is not None and not self.hb_stream.closed():
             self.hb_stream.close()
- 
+
     def start_hb(self, callback):
         """Start the heartbeating and call the callback if the kernel dies."""
         if not self._beating:

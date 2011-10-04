@@ -1,7 +1,7 @@
 """Compute statistics on the digits of pi.
 
 This uses precomputed digits of pi from the website
-of Professor Yasumasa Kanada at the University of 
+of Professor Yasumasa Kanada at the University of
 Tokoyo: http://www.super-computing.org/
 
 Currently, there are only functions to read the
@@ -70,7 +70,7 @@ def compute_n_digit_freqs(filename, n):
     return freqs
 
 # Read digits from a txt file
-    
+
 def txt_file_to_digits(filename, the_type=str):
     """
     Yield the digits of pi read from a .txt file.
@@ -81,7 +81,7 @@ def txt_file_to_digits(filename, the_type=str):
                 if c != '\n' and c!= ' ':
                     yield the_type(c)
 
-# Actual counting functions                    
+# Actual counting functions
 
 def one_digit_freqs(digits, normalize=False):
     """
@@ -93,7 +93,7 @@ def one_digit_freqs(digits, normalize=False):
     if normalize:
         freqs = freqs/freqs.sum()
     return freqs
-    
+
 def two_digit_freqs(digits, normalize=False):
     """
     Consume digits of pi and compute 2 digits freq. counts.

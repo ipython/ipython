@@ -201,7 +201,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             PlainTextFormatter,
             Completer,
         ]
-    
+
     subcommands = Dict(dict(
         qtconsole=('IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             """Launch the IPython Qt Console."""
@@ -216,7 +216,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             "Start a kernel without an attached frontend."
         ),
     ))
-    
+
     # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)
     # configurables
@@ -253,7 +253,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     def _force_interact_changed(self, name, old, new):
         if new:
             self.interact = True
-    
+
     def _file_to_run_changed(self, name, old, new):
         if new and not self.force_interact:
                 self.interact = False
@@ -283,7 +283,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
                     sub = '--pylab='+gui
                     argv.pop(idx+1)
             argv[idx] = sub
-        
+
         return super(TerminalIPythonApp, self).parse_command_line(argv)
 
     def initialize(self, argv=None):
@@ -313,7 +313,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         sys.path.insert(0, '')
 
         # Create an InteractiveShell instance.
-        # shell.display_banner should always be False for the terminal 
+        # shell.display_banner should always be False for the terminal
         # based app, because we call shell.show_banner() by hand below
         # so the banner shows *before* all extension loading stuff.
         self.shell = TerminalInteractiveShell.instance(config=self.config,
