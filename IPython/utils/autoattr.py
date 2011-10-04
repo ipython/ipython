@@ -20,7 +20,7 @@ Hettinger. http://users.rcn.com/python/download/Descriptor.htm
 
 Notes
 -----
-This module is taken from the NiPy project 
+This module is taken from the NiPy project
 (http://neuroimaging.scipy.org/site/index.html), and is BSD licensed.
 
 Authors
@@ -57,7 +57,7 @@ class ResetMixin(object):
    ...     def y(self):
    ...         print '*** y computation executed ***'
    ...         return self.x / 2.0
-   ... 
+   ...
 
    >>> a = A(10)
 
@@ -70,7 +70,7 @@ class ResetMixin(object):
 
    Changing x
    >>> a.x = 20
-   
+
    a.y doesn't change to 10, since it is a static attribute:
    >>> a.y
    5.0
@@ -111,7 +111,7 @@ class OneTimeProperty(object):
         Parameters
         ----------
           func : method
-          
+
             The method that will be called the first time to compute a value.
             Afterwards, the method's name will be a standard attribute holding
             the value of this computation.
@@ -150,7 +150,7 @@ def auto_attr(func):
     ...     @auto_attr
     ...     def a(self):
     ...         return 99
-    ...     
+    ...
     >>> x = MagicProp()
     >>> 'a' in x.__dict__
     False

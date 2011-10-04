@@ -32,7 +32,7 @@ def doctest_refbug():
 
     In [1]: _ip.clear_main_mod_cache()
     # random
-    
+
     In [2]: %run refbug
 
     In [3]: call_f()
@@ -81,7 +81,7 @@ def doctest_run_builtins():
        ....:     os.unlink(fname)
        ....: except:
        ....:     pass
-       ....: 
+       ....:
     """
 
 def doctest_reset_del():
@@ -90,7 +90,7 @@ def doctest_reset_del():
     In [2]: class A(object):
        ...:     def __del__(self):
        ...:         print str("Hi")
-       ...: 
+       ...:
 
     In [3]: a = A()
 
@@ -127,7 +127,7 @@ class TestMagicRunPass(tt.TempFileMixin):
 
     def test_builtins_type(self):
         """Check that the type of __builtins__ doesn't change with %run.
-        
+
         However, the above could pass if __builtins__ was already modified to
         be a dict (it should be a module) by a previous use of %run.  So we
         also check explicitly that it really is a module:
@@ -168,8 +168,8 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "a = A()\n")
         self.mktmp(src)
         tt.ipexec_validate(self.fname, 'object A deleted')
-    
-    @dec.skip_known_failure 
+
+    @dec.skip_known_failure
     def test_aggressive_namespace_cleanup(self):
         """Test that namespace cleanup is not too aggressive GH-238
 

@@ -20,21 +20,21 @@ class StrDispatch(object):
     >>> print list(dis.flat_matches('hei'))
     [123, 34, 686]
     """
-    
+
     def __init__(self):
         self.strs = {}
         self.regexs = {}
 
     def add_s(self, s, obj, priority= 0 ):
         """ Adds a target 'string' for dispatching """
-        
+
         chain = self.strs.get(s, CommandChainDispatcher())
         chain.add(obj,priority)
         self.strs[s] = chain
 
     def add_re(self, regex, obj, priority= 0 ):
         """ Adds a target regexp for dispatching """
-        
+
         chain = self.regexs.get(regex, CommandChainDispatcher())
         chain.add(obj,priority)
         self.regexs[regex] = chain
@@ -43,23 +43,23 @@ class StrDispatch(object):
         """ Get a seq of Commandchain objects that match key """
         if key in self.strs:
             yield self.strs[key]
-        
+
         for r, obj in self.regexs.items():
             if re.match(r, key):
                 yield obj
-            else: 
+            else:
                 #print "nomatch",key  # dbg
                 pass
 
     def __repr__(self):
         return "<Strdispatch %s, %s>" % (self.strs, self.regexs)
-    
+
     def s_matches(self, key):
         if key not in self.strs:
              return
         for el in self.strs[key]:
             yield el[1]
-        
+
     def flat_matches(self, key):
         """ Yield all 'value' targets, without priority """
         for val in self.dispatch(key):

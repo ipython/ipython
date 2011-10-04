@@ -59,11 +59,11 @@ def pexpect_monkeypatch():
     self.close() will trigger an exception because it tries to call os.close(),
     and os is now None.
     """
-    
+
     if pexpect.__version__[:3] >= '2.2':
         # No need to patch, fix is already the upstream version.
         return
-    
+
     def __del__(self):
         """This makes sure that no system resources are left open.
         Python only garbage collects Python objects. OS file descriptors
@@ -84,7 +84,7 @@ pexpect_monkeypatch()
 # The generic runner class
 class InteractiveRunner(object):
     """Class to run a sequence of commands through an interactive program."""
-    
+
     def __init__(self,program,prompts,args=None,out=sys.stdout,echo=True):
         """Construct a runner.
 
@@ -121,7 +121,7 @@ class InteractiveRunner(object):
           increase this value (it is measured in seconds).  Note that this
           variable is not honored at all by older versions of pexpect.
         """
-        
+
         self.program = program
         self.prompts = prompts
         if args is None: args = []
@@ -201,7 +201,7 @@ class InteractiveRunner(object):
         else:
             # Quiet mode, all writes are no-ops
             write = lambda s: None
-            
+
         c = self.child
         prompts = c.compile_pattern_list(self.prompts)
         prompt_idx = c.expect_list(prompts)
@@ -214,7 +214,7 @@ class InteractiveRunner(object):
         if get_output:
             output = []
             store_output = output.append
-        
+
         for cmd in source:
             # skip blank lines for all matches to the 'main' prompt, while the
             # secondary prompts do not
@@ -233,7 +233,7 @@ class InteractiveRunner(object):
                 write(c.before)
                 end_normal = False
                 break
-            
+
             write(c.before)
 
             # With an echoing process, the output we get in c.before contains
@@ -266,11 +266,11 @@ class InteractiveRunner(object):
         # hangs on the second invocation.
         if c.isalive():
             c.send('\n')
-        
+
         # Return any requested output
         if get_output:
             return ''.join(output)
-                
+
     def main(self,argv=None):
         """Run as a command-line script."""
 
@@ -301,7 +301,7 @@ class IPythonRunner(InteractiveRunner):
     pexpect need to be matched to the actual prompts, so user-customized
     prompts would break this.
     """
-    
+
     def __init__(self,program = 'ipython',args=None,out=sys.stdout,echo=True):
         """New runner, optionally passing the ipython command to use."""
         args0 = ['--colors=NoColor',
@@ -327,10 +327,10 @@ class PythonRunner(InteractiveRunner):
 
 class SAGERunner(InteractiveRunner):
     """Interactive SAGE runner.
-    
-    WARNING: this runner only works if you manually adjust your SAGE 
+
+    WARNING: this runner only works if you manually adjust your SAGE
     configuration so that the 'color' option in the configuration file is set to
-    'NoColor', because currently the prompt matching regexp does not identify 
+    'NoColor', because currently the prompt matching regexp does not identify
     color sequences."""
 
     def __init__(self,program='sage',args=None,out=sys.stdout,echo=True):
@@ -354,7 +354,7 @@ class RunnerFactory(object):
 
     def __init__(self,out=sys.stdout):
         """Instantiate a code runner."""
-        
+
         self.out = out
         self.runner = None
         self.runnerClass = None
@@ -363,7 +363,7 @@ class RunnerFactory(object):
         self.runnerClass = runnerClass
         self.runner = runnerClass(out=self.out)
         return self.runner
-          
+
     def __call__(self,fname):
         """Return a runner for the given filename."""
 

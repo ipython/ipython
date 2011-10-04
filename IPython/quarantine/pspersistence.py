@@ -36,56 +36,56 @@ def refresh_variables(ip):
         else:
             #print "restored",justkey,"=",obj #dbg
             ip.user_ns[justkey] = obj
-    
+
 
 def restore_dhist(ip):
     db = ip.db
     ip.user_ns['_dh'] = db.get('dhist',[])
-    
+
 def restore_data(self):
     ip = self.getapi()
     refresh_variables(ip)
     restore_aliases(self)
     restore_dhist(self)
     raise TryNext
-    
+
 ip.set_hook('late_startup_hook', restore_data)
 
 def magic_store(self, parameter_s=''):
     """Lightweight persistence for python variables.
 
     Example:
-    
+
     ville@badger[~]|1> A = ['hello',10,'world']\\
     ville@badger[~]|2> %store A\\
     ville@badger[~]|3> Exit
-    
+
     (IPython session is closed and started again...)
-    
+
     ville@badger:~$ ipython -p pysh\\
     ville@badger[~]|1> print A
-    
+
     ['hello', 10, 'world']
-    
+
     Usage:
-    
+
     %store          - Show list of all variables and their current values\\
     %store <var>    - Store the *current* value of the variable to disk\\
     %store -d <var> - Remove the variable and its value from storage\\
     %store -z       - Remove all variables from storage\\
     %store -r       - Refresh all variables from store (delete current vals)\\
     %store foo >a.txt  - Store value of foo to new file a.txt\\
-    %store foo >>a.txt - Append value of foo to file a.txt\\   
-    
+    %store foo >>a.txt - Append value of foo to file a.txt\\
+
     It should be noted that if you change the value of a variable, you
     need to %store it again if you want to persist the new value.
-    
+
     Note also that the variables will need to be pickleable; most basic
     python types can be safely %stored.
-    
+
     Also aliases can be %store'd across sessions.
     """
-    
+
     opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
     args = argsl.split(None,1)
     ip = self.getapi()
@@ -109,16 +109,16 @@ def magic_store(self, parameter_s=''):
     elif opts.has_key('r'):
         refresh_variables(ip)
 
-    
+
     # run without arguments -> list variables & values
     elif not args:
         vars = self.db.keys('autorestore/*')
-        vars.sort()            
+        vars.sort()
         if vars:
             size = max(map(len,vars))
         else:
             size = 0
-            
+
         print 'Stored variables and their in-db values:'
         fmt = '%-'+str(size)+'s -> %s'
         get = db.get
@@ -126,7 +126,7 @@ def magic_store(self, parameter_s=''):
             justkey = os.path.basename(var)
             # print 30 first characters from every var
             print fmt % (justkey,repr(get(var,'<unavailable>'))[:50])
-    
+
     # default action - store the variable
     else:
         # %store foo >file.txt or >>file.txt
@@ -140,7 +140,7 @@ def magic_store(self, parameter_s=''):
             print "Writing '%s' (%s) to file '%s'." % (args[0],
               obj.__class__.__name__, fnam)
 
-            
+
             if not isinstance (obj,basestring):
                 from pprint import pprint
                 pprint(obj,fil)
@@ -148,10 +148,10 @@ def magic_store(self, parameter_s=''):
                 fil.write(obj)
                 if not obj.endswith('\n'):
                     fil.write('\n')
-            
+
             fil.close()
             return
-        
+
         # %store foo
         try:
             obj = ip.user_ns[args[0]]
@@ -161,20 +161,20 @@ def magic_store(self, parameter_s=''):
             if args[0] in self.alias_table:
                 staliases = db.get('stored_aliases',{})
                 staliases[ args[0] ] = self.alias_table[ args[0] ]
-                db['stored_aliases'] = staliases                
+                db['stored_aliases'] = staliases
                 print "Alias stored:", args[0], self.alias_table[ args[0] ]
                 return
             else:
                 raise UsageError("Unknown variable '%s'" % args[0])
-            
+
         else:
             if isinstance(inspect.getmodule(obj), FakeModule):
                 print textwrap.dedent("""\
-                Warning:%s is %s 
+                Warning:%s is %s
                 Proper storage of interactively declared classes (or instances
                 of those classes) is not possible! Only instances
                 of classes in real modules on file system can be %%store'd.
-                """ % (args[0], obj) ) 
+                """ % (args[0], obj) )
                 return
             #pickled = pickle.dumps(obj)
             self.db[ 'autorestore/' + args[0] ] = obj

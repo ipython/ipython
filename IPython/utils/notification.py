@@ -29,7 +29,7 @@ class NotificationError(Exception):
 
 class NotificationCenter(object):
     """Synchronous notification center.
-    
+
     Examples
     --------
     Here is a simple example of how to use this::
@@ -83,9 +83,9 @@ class NotificationCenter(object):
                 "Notification type and sender are required.")
 
         # If there are no registered observers for the type/sender pair
-        if((ntype not in self.registered_types and 
+        if((ntype not in self.registered_types and
                 None not in self.registered_types) or
-            (sender not in self.registered_senders and 
+            (sender not in self.registered_senders and
                 None not in self.registered_senders)):
             return
 
@@ -110,11 +110,11 @@ class NotificationCenter(object):
 
     def add_observer(self, callback, ntype, sender):
         """Add an observer callback to this notification center.
-        
+
         The given callback will be called upon posting of notifications of
         the given type/sender and will receive any additional arguments passed
         to post_notification.
-        
+
         Parameters
         ----------
         callback : callable
@@ -131,12 +131,12 @@ class NotificationCenter(object):
         self.registered_types.add(ntype)
         self.registered_senders.add(sender)
         self.observers.setdefault((ntype,sender), set()).add(callback)
-    
+
     def remove_all_observers(self):
         """Removes all observers from this notification center"""
-        
+
         self._init_observers()
-    
+
 
 
 shared_center = NotificationCenter()

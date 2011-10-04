@@ -4,7 +4,7 @@ Ken Kinder <ken@kenkinder.com>
 
 Updated for newparallel by Min Ragan-Kelley <benjaminrk@gmail.com>
 
-This module gives an example of how the task interface to the 
+This module gives an example of how the task interface to the
 IPython controller works.  Before running this script start the IPython controller
 and some engines using something like::
 
@@ -34,42 +34,42 @@ def fetchAndParse(url, data=None):
         return links
 
 class DistributedSpider(object):
-    
+
     # Time to wait between polling for task results.
     pollingDelay = 0.5
-    
+
     def __init__(self, site):
         self.client = Client()
         self.view = self.client.load_balanced_view()
         self.mux = self.client[:]
-        
+
         self.allLinks = []
         self.linksWorking = {}
         self.linksDone = {}
-        
+
         self.site = site
-        
+
     def visitLink(self, url):
         if url not in self.allLinks:
             self.allLinks.append(url)
             if url.startswith(self.site):
                 print '    ', url
                 self.linksWorking[url] = self.view.apply(fetchAndParse, url)
-        
+
     def onVisitDone(self, links, url):
         print url, ':'
         self.linksDone[url] = None
         del self.linksWorking[url]
         for link in links:
             self.visitLink(link)
-                
+
     def run(self):
         self.visitLink(self.site)
         while self.linksWorking:
             print len(self.linksWorking), 'pending...'
             self.synchronize()
             time.sleep(self.pollingDelay)
-    
+
     def synchronize(self):
         for url, ar in self.linksWorking.items():
             # Calling get_task_result with block=False will return None if the

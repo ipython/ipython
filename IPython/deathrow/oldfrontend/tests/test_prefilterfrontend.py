@@ -27,7 +27,7 @@ from IPython.testing.globalipapp import get_ipython
 #-----------------------------------------------------------------------------
 
 class TestPrefilterFrontEnd(PrefilterFrontEnd):
-    
+
     input_prompt_template = string.Template('')
     output_prompt_template = string.Template('')
     banner = ''
@@ -42,7 +42,7 @@ class TestPrefilterFrontEnd(PrefilterFrontEnd):
         self.out.truncate()
 
     def write(self, string, *args, **kwargs):
-       self.out.write(string) 
+       self.out.write(string)
 
     def _on_enter(self):
         self.input_buffer += '\n'
@@ -151,11 +151,11 @@ def test_capture():
     out_value = f.out.getvalue()
     yield assert_equal, out_value, '1'
 
-     
+
 @isolate_ipython0
 def test_magic():
     """ Test the magic expansion and history.
-    
+
         This test is fairly fragile and will break when magics change.
     """
     f = TestPrefilterFrontEnd()
@@ -188,7 +188,7 @@ def test_help():
     assert 'traceback' not in f.last_result
     ## XXX: ipython doctest magic breaks this. I have no clue why
     #out_value = f.out.getvalue()
-    #assert out_value.split()[-1] == 'foobar' 
+    #assert out_value.split()[-1] == 'foobar'
 
 
 @isolate_ipython0

@@ -3,10 +3,10 @@
 Limitations:
 
 - When generating examples for use as doctests, make sure that you have
-  pretty-printing OFF.  This can be done either by setting the 
-  ``PlainTextFormatter.pprint`` option in your configuration file to  False, or 
+  pretty-printing OFF.  This can be done either by setting the
+  ``PlainTextFormatter.pprint`` option in your configuration file to  False, or
   by interactively disabling it with  %Pprint.  This is required so that IPython
-  output matches that of normal Python, which is used by doctest for internal 
+  output matches that of normal Python, which is used by doctest for internal
   execution.
 
 - Do not rely on specific prompt numbers for results (such as using
@@ -68,7 +68,7 @@ def is_extension_module(filename):
 
 class DocTestSkip(object):
     """Object wrapper for doctests to be skipped."""
-    
+
     ds_skip = """Doctest to skip.
     >>> 1 #doctest: +SKIP
     """
@@ -166,13 +166,13 @@ class DocTestFinder(doctest.DocTestFinder):
 
 class IPDoctestOutputChecker(doctest.OutputChecker):
     """Second-chance checker with support for random tests.
-    
+
     If the default comparison doesn't pass, this checker looks in the expected
     output string for flags that tell us to ignore the output.
     """
 
     random_re = re.compile(r'#\s*random\s+')
-    
+
     def check_output(self, want, got, optionflags):
         """Check output, accepting special markers embedded in the output.
 
@@ -236,7 +236,7 @@ class DocTestCase(doctests.DocTestCase):
     def runTest(self):
         test = self._dt_test
         runner = self._dt_runner
-        
+
         old = sys.stdout
         new = StringIO()
         optionflags = self._dt_optionflags
@@ -289,7 +289,7 @@ class DocTestCase(doctests.DocTestCase):
             # Restore the behavior of the '_' key in the user namespace to
             # normal after each doctest, so that unittests behave normally
             _ip.user_ns.protect_underscore = False
-            
+
         # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
         # it does look like one to me: its tearDown method tries to run
         #
@@ -376,7 +376,7 @@ class IPDocTestParser(doctest.DocTestParser):
 
     # Mark tests to be executed in an external process - currently unsupported.
     _EXTERNAL_IP = re.compile(r'#\s*ipdoctest:\s*EXTERNAL')
-    
+
     def ip2py(self,source):
         """Convert input IPython source into valid Python."""
         out = []
@@ -459,7 +459,7 @@ class IPDocTestParser(doctest.DocTestParser):
             # Append the random-output marker (it defaults to empty in most
             # cases, it's only non-empty for 'all-random' tests):
             want += random_marker
-                
+
             if Example is IPExternalExample:
                 options[doctest.NORMALIZE_WHITESPACE] = True
                 want += '\n'
@@ -569,7 +569,7 @@ SKIP = doctest.register_optionflag('SKIP')
 class IPDocTestRunner(doctest.DocTestRunner,object):
     """Test runner that synchronizes the IPython namespace with test globals.
     """
-    
+
     def run(self, test, compileflags=None, out=None, clear_globs=True):
 
         # Hack: ipython needs access to the execution context of the example,
@@ -582,7 +582,7 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
         #_ip._ipdoctest_test_filename = test.filename
 
         test.globs.update(_ip.user_ns)
-        
+
         return super(IPDocTestRunner,self).run(test,
                                                compileflags,out,clear_globs)
 
@@ -669,7 +669,7 @@ class ExtensionDoctest(doctests.Doctest):
 
     def loadTestsFromModule(self, module):
         #print '*** ipdoctest - lTM',module  # dbg
-        
+
         if not self.matches(module.__name__):
             log.debug("Doctest doesn't want module %s", module)
             return
@@ -691,7 +691,7 @@ class ExtensionDoctest(doctests.Doctest):
                 continue
             if not test.filename:
                 test.filename = module_file
-            
+
             yield DocTestCase(test,
                               optionflags=optionflags,
                               checker=self.checker)

@@ -5,41 +5,41 @@
 #
 # Copyright (c) 2006 Conan C. Albrecht
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy 
-# of this software and associated documentation files (the "Software"), to deal 
-# in the Software without restriction, including without limitation the rights 
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is furnished 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is furnished
 # to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all 
+# The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
-# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
-# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
 
 
 ##################################################################################################
-###   A globally-unique identifier made up of time and ip and 8 digits for a counter: 
+###   A globally-unique identifier made up of time and ip and 8 digits for a counter:
 ###   each GUID is 40 characters wide
 ###
-###   A globally unique identifier that combines ip, time, and a counter.  Since the 
-###   time is listed first, you can sort records by guid.  You can also extract the time 
-###   and ip if needed.  
+###   A globally unique identifier that combines ip, time, and a counter.  Since the
+###   time is listed first, you can sort records by guid.  You can also extract the time
+###   and ip if needed.
 ###
-###   Since the counter has eight hex characters, you can create up to 
+###   Since the counter has eight hex characters, you can create up to
 ###   0xffffffff (4294967295) GUIDs every millisecond.  If your processor
 ###   is somehow fast enough to create more than that in a millisecond (looking
 ###   toward the future, of course), the function will wait until the next
 ###   millisecond to return.
-###     
-###   GUIDs make wonderful database keys.  They require no access to the 
-###   database (to get the max index number), they are extremely unique, and they sort 
+###
+###   GUIDs make wonderful database keys.  They require no access to the
+###   database (to get the max index number), they are extremely unique, and they sort
 ###   automatically by time.   GUIDs prevent key clashes when merging
 ###   two databases together, combining data, or generating keys in distributed
 ###   systems.
@@ -57,9 +57,9 @@
 # December 2, 2003   Fixed duplicating GUIDs.  Sometimes they duplicate if multiples are created
 #                    in the same millisecond (it checks the last 100 GUIDs now and has a larger random part)
 # December 9, 2003   Fixed MAX_RANDOM, which was going over sys.maxint
-# June 12, 2004      Allowed a custom IP address to be sent in rather than always using the 
-#                    local IP address.  
-# November 4, 2005   Changed the random part to a counter variable.  Now GUIDs are totally 
+# June 12, 2004      Allowed a custom IP address to be sent in rather than always using the
+#                    local IP address.
+# November 4, 2005   Changed the random part to a counter variable.  Now GUIDs are totally
 #                    unique and more efficient, as long as they are created by only
 #                    on runtime on a given machine.  The counter part is after the time
 #                    part so it sorts correctly.
@@ -87,7 +87,7 @@ import threading
 
 #Makes a hex IP from a decimal dot-separated ip (eg: 127.0.0.1)
 make_hexip = lambda ip: ''.join(["%04x" % long(i) for i in ip.split('.')]) # leave space for ip v6 (65K in each sub)
-  
+
 MAX_COUNTER = 0xfffffffe
 counter = 0L
 firstcounter = MAX_COUNTER
@@ -104,7 +104,7 @@ except: # if we don't have an ip, default to someting in the 10.x.x.x private ra
     ip += '.' + str(rand.randrange(1, 0xffff))  # might as well use IPv6 range if we're making it up
   hexip = make_hexip(ip)
 
-  
+
 #################################
 ###   Public module functions
 
@@ -121,7 +121,7 @@ def generate(ip=None):
 
     # do we need to wait for the next millisecond (are we out of counters?)
     now = long(time.time() * 1000)
-    while lasttime == now and counter == firstcounter: 
+    while lasttime == now and counter == firstcounter:
       time.sleep(.01)
       now = long(time.time() * 1000)
 
@@ -136,7 +136,7 @@ def generate(ip=None):
     if counter > MAX_COUNTER:
       counter = 0
     lasttime = now
-    parts.append("%08x" % (counter)) 
+    parts.append("%08x" % (counter))
 
     # ip part
     parts.append(hexip)
@@ -145,10 +145,10 @@ def generate(ip=None):
     return ''.join(parts)
   finally:
     lock.release()
-    
+
 
 def extract_time(guid):
-  '''Extracts the time portion out of the guid and returns the 
+  '''Extracts the time portion out of the guid and returns the
      number of seconds since the epoch as a float'''
   return float(long(guid[0:16], 16)) / 1000.0
 

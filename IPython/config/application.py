@@ -109,10 +109,10 @@ class Application(SingletonConfigurable):
             new = getattr(logging, new)
             self.log_level = new
         self.log.setLevel(new)
-    
+
     # the alias map for configurables
     aliases = Dict({'log-level' : 'Application.log_level'})
-    
+
     # flags for loading Configurables or store_const style flags
     # flags are loaded from this dict by '--key' flags
     # this must be a dict of two-tuples, the first element being the Config/dict
@@ -124,20 +124,20 @@ class Application(SingletonConfigurable):
             assert len(value) == 2, "Bad flag: %r:%s"%(key,value)
             assert isinstance(value[0], (dict, Config)), "Bad flag: %r:%s"%(key,value)
             assert isinstance(value[1], basestring), "Bad flag: %r:%s"%(key,value)
-        
-    
+
+
     # subcommands for launching other applications
     # if this is not empty, this will be a parent Application
-    # this must be a dict of two-tuples, 
+    # this must be a dict of two-tuples,
     # the first element being the application class/import string
     # and the second being the help string for the subcommand
     subcommands = Dict()
     # parse_command_line will initialize a subapp, if requested
     subapp = Instance('IPython.config.application.Application', allow_none=True)
-    
+
     # extra command-line arguments that don't set config values
     extra_args = List(Unicode)
-    
+
 
     def __init__(self, **kwargs):
         SingletonConfigurable.__init__(self, **kwargs)
@@ -145,7 +145,7 @@ class Application(SingletonConfigurable):
         # options and config files.
         if self.__class__ not in self.classes:
             self.classes.insert(0, self.__class__)
-        
+
         self.init_logging()
 
     def _config_changed(self, name, old, new):
@@ -157,7 +157,7 @@ class Application(SingletonConfigurable):
         """Start logging for this application.
 
         The default is to log to stdout using a StreaHandler. The log level
-        starts at loggin.WARN, but this can be adjusted by setting the 
+        starts at loggin.WARN, but this can be adjusted by setting the
         ``log_level`` attribute.
         """
         self.log = logging.getLogger(self.__class__.__name__)
@@ -174,36 +174,36 @@ class Application(SingletonConfigurable):
 
     def initialize(self, argv=None):
         """Do the basic steps to configure me.
-        
+
         Override in subclasses.
         """
         self.parse_command_line(argv)
-        
-    
+
+
     def start(self):
         """Start the app mainloop.
-        
+
         Override in subclasses.
         """
         if self.subapp is not None:
             return self.subapp.start()
-    
+
     def print_alias_help(self):
         """Print the alias part of the help."""
         if not self.aliases:
             return
-        
+
         lines = []
         classdict = {}
         for cls in self.classes:
             # include all parents (up to, but excluding Configurable) in available names
             for c in cls.mro()[:-3]:
                 classdict[c.__name__] = c
-        
+
         for alias, longname in self.aliases.iteritems():
             classname, traitname = longname.split('.',1)
             cls = classdict[classname]
-            
+
             trait = cls.class_traits(config=True)[traitname]
             help = cls.class_get_trait_help(trait).splitlines()
             # reformat first line
@@ -213,12 +213,12 @@ class Application(SingletonConfigurable):
             lines.extend(help)
         # lines.append('')
         print os.linesep.join(lines)
-    
+
     def print_flag_help(self):
         """Print the flag part of the help."""
         if not self.flags:
             return
-        
+
         lines = []
         for m, (cfg,help) in self.flags.iteritems():
             prefix = '--' if len(m) > 1 else '-'
@@ -226,7 +226,7 @@ class Application(SingletonConfigurable):
             lines.append(indent(dedent(help.strip())))
         # lines.append('')
         print os.linesep.join(lines)
-    
+
     def print_options(self):
         if not self.flags and not self.aliases:
             return
@@ -240,12 +240,12 @@ class Application(SingletonConfigurable):
         self.print_flag_help()
         self.print_alias_help()
         print
-    
+
     def print_subcommands(self):
         """Print the subcommand part of the help."""
         if not self.subcommands:
             return
-        
+
         lines = ["Subcommands"]
         lines.append('-'*len(lines[0]))
         lines.append('')
@@ -258,15 +258,15 @@ class Application(SingletonConfigurable):
                 lines.append(indent(dedent(help.strip())))
         lines.append('')
         print os.linesep.join(lines)
-    
+
     def print_help(self, classes=False):
         """Print the help for each Configurable class in self.classes.
-        
+
         If classes=False (the default), only flags and aliases are printed.
         """
         self.print_subcommands()
         self.print_options()
-        
+
         if classes:
             if self.classes:
                 print "Class parameters"
@@ -275,7 +275,7 @@ class Application(SingletonConfigurable):
                 for p in wrap_paragraphs(self.keyvalue_description):
                     print p
                     print
-        
+
             for cls in self.classes:
                 cls.class_print_help()
                 print
@@ -315,21 +315,21 @@ class Application(SingletonConfigurable):
         # Save the combined config as self.config, which triggers the traits
         # events.
         self.config = newconfig
-    
+
     def initialize_subcommand(self, subc, argv=None):
         """Initialize a subcommand with argv."""
         subapp,help = self.subcommands.get(subc)
-        
+
         if isinstance(subapp, basestring):
             subapp = import_item(subapp)
-        
+
         # clear existing instances
         self.__class__.clear_instance()
         # instantiate
         self.subapp = subapp.instance()
         # and initialize subapp
         self.subapp.initialize(argv)
-        
+
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
@@ -340,7 +340,7 @@ class Application(SingletonConfigurable):
             if re.match(r'^\w(\-?\w)*$', subc) and subc in self.subcommands:
                 # it's a subcommand, and *not* a flag or class parameter
                 return self.initialize_subcommand(subc, subargv)
-            
+
         if '-h' in argv or '--help' in argv or '--help-all' in argv:
             self.print_description()
             self.print_help('--help-all' in argv)
@@ -350,7 +350,7 @@ class Application(SingletonConfigurable):
         if '--version' in argv:
             self.print_version()
             self.exit(0)
-        
+
         loader = KVArgParseConfigLoader(argv=argv, aliases=self.aliases,
                                         flags=self.flags)
         try:
@@ -383,7 +383,7 @@ class Application(SingletonConfigurable):
         else:
             self.log.debug("Loaded config file: %s", loader.full_filename)
             self.update_config(config)
-    
+
     def generate_config_file(self):
         """generate default config file from Configurables"""
         lines = ["# Configuration file for %s."%self.name]
@@ -404,10 +404,10 @@ class Application(SingletonConfigurable):
 
 def boolean_flag(name, configurable, set_help='', unset_help=''):
     """Helper for building basic --trait, --no-trait flags.
-    
+
     Parameters
     ----------
-    
+
     name : str
         The name of the flag.
     configurable : str
@@ -416,10 +416,10 @@ def boolean_flag(name, configurable, set_help='', unset_help=''):
         help string for --name flag
     unset_help : unicode
         help string for --no-name flag
-    
+
     Returns
     -------
-    
+
     cfg : dict
         A dict with two keys: 'name', and 'no-name', for setting and unsetting
         the trait, respectively.
@@ -427,9 +427,9 @@ def boolean_flag(name, configurable, set_help='', unset_help=''):
     # default helpstrings
     set_help = set_help or "set %s=True"%configurable
     unset_help = unset_help or "set %s=False"%configurable
-    
+
     cls,trait = configurable.split('.')
-    
+
     setter = {cls : {trait : True}}
     unsetter = {cls : {trait : False}}
     return {name : (setter, set_help), 'no-'+name : (unsetter, unset_help)}

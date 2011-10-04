@@ -36,13 +36,13 @@ class ExtensionManager(Configurable):
         def load_ipython_extension(ipython):
             # Do things with ipython
 
-    This function is called after your extension is imported and the 
+    This function is called after your extension is imported and the
     currently active :class:`InteractiveShell` instance is passed as
     the only argument.  You can do anything you want with IPython at
     that point, including defining new magic and aliases, adding new
     components, etc.
 
-    The :func:`load_ipython_extension` will be called again is you 
+    The :func:`load_ipython_extension` will be called again is you
     load or reload the extension again.  It is up to the extension
     author to add code to manage that.
 

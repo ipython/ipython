@@ -3,12 +3,12 @@
 ##   Copyright (c) 2005, Michele Simionato
 ##   All rights reserved.
 ##
-##   Redistributions of source code must retain the above copyright 
+##   Redistributions of source code must retain the above copyright
 ##   notice, this list of conditions and the following disclaimer.
 ##   Redistributions in bytecode form must reproduce the above copyright
 ##   notice, this list of conditions and the following disclaimer in
 ##   the documentation and/or other materials provided with the
-##   distribution. 
+##   distribution.
 
 ##   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ##   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -39,7 +39,7 @@ except ImportError: # for Python version < 2.5
         "A simple replacement of functools.partial"
         def __init__(self, func, *args, **kw):
             self.func = func
-            self.args = args                
+            self.args = args
             self.keywords = kw
         def __call__(self, *otherargs, **otherkw):
             kw = self.keywords.copy()
@@ -61,7 +61,7 @@ class FunctionMaker(object):
             # func can be a class or a callable, but not an instance method
             self.name = func.__name__
             if self.name == '<lambda>': # small hack for lambda functions
-                self.name = '_lambda_' 
+                self.name = '_lambda_'
             self.doc = func.__doc__
             self.module = func.__module__
             if inspect.isfunction(func):
@@ -138,7 +138,7 @@ class FunctionMaker(object):
         """
         if isinstance(obj, str): # "name(signature)"
             name, rest = obj.strip().split('(', 1)
-            signature = rest[:-1] #strip a right parens            
+            signature = rest[:-1] #strip a right parens
             func = None
         else: # a function
             name = None
@@ -146,9 +146,9 @@ class FunctionMaker(object):
             func = obj
         fun = cls(func, name, signature, defaults, doc, module)
         ibody = '\n'.join('    ' + line for line in body.splitlines())
-        return fun.make('def %(name)s(%(signature)s):\n' + ibody, 
+        return fun.make('def %(name)s(%(signature)s):\n' + ibody,
                         evaldict, addsource, **attrs)
-  
+
 def decorator(caller, func=None):
     """
     decorator(caller) converts a caller function into a decorator;
@@ -164,7 +164,7 @@ def decorator(caller, func=None):
         # otherwise assume caller is a function
         f = inspect.getargspec(caller)[0][0] # first arg
         return FunctionMaker.create(
-            '%s(%s)' % (caller.__name__, f), 
+            '%s(%s)' % (caller.__name__, f),
             'return decorator(_call_, %s)' % f,
             dict(_call_=caller, decorator=decorator), undecorated=caller,
             doc=caller.__doc__, module=caller.__module__)
@@ -191,7 +191,7 @@ def getinfo(func):
     - doc (the docstring : str)
     - module (the module name : str)
     - dict (the function __dict__ : str)
-    
+
     >>> def f(self, x=1, y=2, *args, **kw): pass
 
     >>> info = getinfo(f)
@@ -200,7 +200,7 @@ def getinfo(func):
     'f'
     >>> info["argnames"]
     ['self', 'x', 'y', 'args', 'kw']
-    
+
     >>> info["defaults"]
     (1, 2)
 
@@ -237,7 +237,7 @@ def update_wrapper(wrapper, model, infodict=None):
 def new_wrapper(wrapper, model):
     """
     An improvement over functools.update_wrapper. The wrapper is a generic
-    callable object. It works by generating a copy of the wrapper with the 
+    callable object. It works by generating a copy of the wrapper with the
     right signature and by updating the copy, not the original.
     Moreovoer, 'model' can be a dictionary with keys 'name', 'doc', 'module',
     'dict', 'defaults'.

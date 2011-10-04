@@ -40,7 +40,7 @@ if QT_API is None:
             QT_API = QT_API_PYQT
         except ImportError:
             raise ImportError('Cannot import PySide >= 1.0.3 or PyQt4 >= 4.7')
-        
+
 elif QT_API == QT_API_PYQT:
     # Note: This must be called *before* PyQt4 is imported.
     prepare_pyqt4()
@@ -62,5 +62,5 @@ elif QT_API == QT_API_PYSIDE:
     from PySide import QtCore, QtGui, QtSvg
 
 else:
-    raise RuntimeError('Invalid Qt API %r, valid values are: %r or %r' % 
+    raise RuntimeError('Invalid Qt API %r, valid values are: %r or %r' %
                        (QT_API, QT_API_PYQT, QT_API_PYSIDE))

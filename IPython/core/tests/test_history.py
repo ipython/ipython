@@ -31,18 +31,18 @@ def test_history():
             hist = ['a=1', 'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
-            
+
             ip.history_manager.db_log_output = True
             # Doesn't match the input, but we'll just check it's stored.
             ip.history_manager.output_hist_reprs[3] = "spam"
             ip.history_manager.store_output(3)
-            
+
             nt.assert_equal(ip.history_manager.input_hist_raw, [''] + hist)
-            
-            # Check whether specifying a range beyond the end of the current 
+
+            # Check whether specifying a range beyond the end of the current
             # session results in an error (gh-804)
             ip.magic('%hist 2-500')
-            
+
             # New session
             ip.history_manager.reset()
             newcmds = ["z=5","class X(object):\n    pass", "k='p'"]
@@ -53,7 +53,7 @@ def test_history():
             # Previous session:
             gothist = ip.history_manager.get_range(-1, 1, 4)
             nt.assert_equal(list(gothist), zip([1,1,1],[1,2,3], hist))
-            
+
             # Check get_hist_tail
             gothist = ip.history_manager.get_tail(4, output=True,
                                                     include_latest=True)
@@ -62,25 +62,25 @@ def test_history():
                         (2, 2, (newcmds[1], None)),
                         (2, 3, (newcmds[2], None)),]
             nt.assert_equal(list(gothist), expected)
-            
+
             gothist = ip.history_manager.get_tail(2)
             expected = [(2, 1, newcmds[0]),
                         (2, 2, newcmds[1])]
             nt.assert_equal(list(gothist), expected)
-            
+
             # Check get_hist_search
             gothist = ip.history_manager.search("*test*")
             nt.assert_equal(list(gothist), [(1,2,hist[1])] )
             gothist = ip.history_manager.search("b*", output=True)
             nt.assert_equal(list(gothist), [(1,3,(hist[2],"spam"))] )
-            
+
             # Cross testing: check that magic %save can get previous session.
             testfilename = os.path.realpath(os.path.join(tmpdir, "test.py"))
             ip.magic_save(testfilename + " ~1/1-3")
             testfile = open(testfilename, "r")
             nt.assert_equal(testfile.read().decode("utf-8"),
                     "# coding: utf-8\n" + "\n".join(hist))
-            
+
             # Duplicate line numbers - check that it doesn't crash, and
             # gets a new session
             ip.history_manager.store_inputs(1, "rogue")
@@ -102,7 +102,7 @@ def test_extract_hist_ranges():
                 (-7, 1, 6)]
     actual = list(extract_hist_ranges(instr))
     nt.assert_equal(actual, expected)
-    
+
 def test_magic_rerun():
     """Simple test for %rerun (no args -> rerun last line)"""
     ip = get_ipython()

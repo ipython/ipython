@@ -87,7 +87,7 @@ class DisplayPublisher(Configurable):
             A string that give the function or method that created the data,
             such as 'IPython.core.page'.
         data : dict
-            A dictionary having keys that are valid MIME types (like 
+            A dictionary having keys that are valid MIME types (like
             'text/plain' or 'image/svg+xml') and values that are the data for
             that MIME type. The data itself must be a JSON'able data
             structure. Minimally all data should have the 'text/plain' data,
@@ -128,7 +128,7 @@ def publish_display_data(source, data, metadata=None):
         A string that give the function or method that created the data,
         such as 'IPython.core.page'.
     data : dict
-        A dictionary having keys that are valid MIME types (like 
+        A dictionary having keys that are valid MIME types (like
         'text/plain' or 'image/svg+xml') and values that are the data for
         that MIME type. The data itself must be a JSON'able data
         structure. Minimally all data should have the 'text/plain' data,

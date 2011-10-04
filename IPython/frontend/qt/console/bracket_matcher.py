@@ -9,7 +9,7 @@ class BracketMatcher(QtCore.QObject):
     """ Matches square brackets, braces, and parentheses based on cursor
         position.
     """
-    
+
     # Protected class variables.
     _opening_map = { '(':')', '{':'}', '[':']' }
     _closing_map = { ')':'(', '}':'{', ']':'[' }
@@ -75,7 +75,7 @@ class BracketMatcher(QtCore.QObject):
         selection = QtGui.QTextEdit.ExtraSelection()
         cursor = self._text_edit.textCursor()
         cursor.setPosition(position)
-        cursor.movePosition(QtGui.QTextCursor.NextCharacter, 
+        cursor.movePosition(QtGui.QTextCursor.NextCharacter,
                             QtGui.QTextCursor.KeepAnchor)
         selection.cursor = cursor
         selection.format = self.format

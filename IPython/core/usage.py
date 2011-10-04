@@ -36,7 +36,7 @@ Usage
 
     Almost all configuration in IPython is available via the command-line. Do
     `ipython --help-all` to see all available options.  For persistent
-    configuration, look into your `ipython_config.py` configuration file for 
+    configuration, look into your `ipython_config.py` configuration file for
     details.
 
     This file is typically installed in the `IPYTHON_DIR` directory, and there
@@ -45,11 +45,11 @@ Usage
     IPYTHON_DIR defaults to `$HOME/.config/ipython`, and for other Unix systems
     to `$HOME/.ipython`.  For Windows users, $HOME resolves to C:\\Documents
     and Settings\\YourUserName in most instances.
-    
+
     To initialize a profile with the default configuration file, do::
-    
+
       $> ipython profile create
-    
+
     and start editing `IPYTHON_DIR/profile_default/ipython_config.py`
 
     In IPython's documentation, we will refer to this directory as
@@ -129,7 +129,7 @@ MAIN FEATURES
 * Persistent command history across sessions.
 
 * Logging of input with the ability to save and restore a working session.
-  
+
 * System escape with !. Typing !ls will run 'ls' in the current directory.
 
 * The reload command does a 'deep' reload of a module: changes made to the
@@ -201,7 +201,7 @@ MAIN FEATURES
         Note that the '/' MUST be the first character on the line!  This
         won't work:
             >>> print /globals    # syntax error
-            
+
         In most cases the automatic algorithm should work, so you should
         rarely need to explicitly invoke /. One notable exception is if you
         are trying to call a function with a list of tuples as arguments (the
@@ -210,12 +210,12 @@ MAIN FEATURES
         but this will work:
             In [2]: /zip (1,2,3),(4,5,6)
             ------> zip ((1,2,3),(4,5,6))
-            Out[2]= [(1, 4), (2, 5), (3, 6)]        
+            Out[2]= [(1, 4), (2, 5), (3, 6)]
 
         IPython tells you that it has altered your command line by
         displaying the new command line preceded by -->.  e.g.:
             In [18]: callable list
-            -------> callable (list) 
+            -------> callable (list)
 
     2. Auto-Quoting
         You can force auto-quoting of a function's arguments by using ',' as
@@ -255,7 +255,7 @@ obj?, obj??      : Get help, or more help for object (also works as
 
 Magic functions are prefixed by %, and typically take their arguments without
 parentheses, quotes or even commas for convenience.
- 
+
 Example magic function calls:
 
 %alias d ls -F   : 'd' is now an alias for 'ls -F'
@@ -265,7 +265,7 @@ cd /usr/share    : Obvious. cd -<tab> to choose from visited dirs.
 %cd??            : See help AND source for magic %cd
 
 System commands:
-    
+
 !cp a.txt b/     : System command escape, calls os.system()
 cp a.txt b/      : after %rehashx, most system commands work without !
 cp ${f}.txt $bar : Variable expansion in magics and system commands
@@ -277,7 +277,7 @@ History:
 _i, _ii, _iii    : Previous, next previous, next next previous input
 _i4, _ih[2:5]    : Input history line 4, lines 2-4
 exec _i81        : Execute input history line #81 again
-%rep 81          : Edit input history line #81        
+%rep 81          : Edit input history line #81
 _, __, ___       : previous, next previous, next next previous output
 _dh              : Directory history
 _oh              : Output history
@@ -327,10 +327,10 @@ blocks are evaluated once a single blank line is entered::
 
     In [1]: print "Hello IPython!"  # Enter was pressed at the end of the line
     Hello IPython!
-    
+
     In [2]: for i in range(10):
        ...: 	print i,
-       ...: 	
+       ...:
     0 1 2 3 4 5 6 7 8 9
 
 If you want to enter more than one expression in a single input block
@@ -348,7 +348,7 @@ cell is executed as if it was a script.  An example should clarify this::
        ...: z=3
        ...: x**2  # This does *not* produce an Out[] value
        ...: x+y+z  # Only the last expression does
-       ...: 
+       ...:
     Out[3]: 6
 
 The behavior where an extra blank line forces execution is only active if you

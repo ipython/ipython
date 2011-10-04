@@ -24,7 +24,7 @@ def create_typestr2type_dicts(dont_include_in_type2typestr=["lambda"]):
     objects from the types package, and vice versa."""
     typenamelist = [tname for tname in dir(types) if tname.endswith("Type")]
     typestr2type, type2typestr = {}, {}
-    
+
     for tname in typenamelist:
         name = tname[:-4].lower()          # Cut 'Type' off the end of the name
         obj = getattr(types, tname)
@@ -36,10 +36,10 @@ def create_typestr2type_dicts(dont_include_in_type2typestr=["lambda"]):
 typestr2type, type2typestr = create_typestr2type_dicts()
 
 def is_type(obj, typestr_or_type):
-    """is_type(obj, typestr_or_type) verifies if obj is of a certain type. It 
+    """is_type(obj, typestr_or_type) verifies if obj is of a certain type. It
     can take strings or actual python types for the second argument, i.e.
     'tuple'<->TupleType. 'all' matches all types.
-    
+
     TODO: Should be extended for choosing more than one type."""
     if typestr_or_type == "all":
         return True
@@ -71,7 +71,7 @@ def dict_dir(obj):
        except AttributeError:
            pass
     return ns
-        
+
 def filter_ns(ns, name_pattern="*", type_pattern="all", ignore_case=True,
             show_all=True):
     """Filter a namespace dictionary by name pattern and item type."""
@@ -80,7 +80,7 @@ def filter_ns(ns, name_pattern="*", type_pattern="all", ignore_case=True,
         reg = re.compile(pattern+"$", re.I)
     else:
         reg = re.compile(pattern+"$")
-    
+
     # Check each one matches regex; shouldn't be hidden; of correct type.
     return dict((key,obj) for key, obj in ns.iteritems() if reg.match(key) \
                                             and show_hidden(key, show_all) \
@@ -103,7 +103,7 @@ def list_namespace(namespace, type_pattern, filter, ignore_case=False, show_all=
                             ignore_case=ignore_case, show_all=show_all)
         results = {}
         for name, obj in filtered.iteritems():
-            ns = list_namespace(dict_dir(obj), type_pattern, 
+            ns = list_namespace(dict_dir(obj), type_pattern,
                                 ".".join(pattern_list[1:]),
                                 ignore_case=ignore_case, show_all=show_all)
             for inner_name, inner_obj in ns.iteritems():

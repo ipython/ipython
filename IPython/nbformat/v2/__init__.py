@@ -47,7 +47,7 @@ def parse_filename(fname):
     format (json/py) and the notebook name. This logic can be
     summarized as follows:
 
-    * notebook.ipynb -> (notebook.ipynb, notebook, json) 
+    * notebook.ipynb -> (notebook.ipynb, notebook, json)
     * notebook.json  -> (notebook.json, notebook, json)
     * notebook.py    -> (notebook.py, notebook, py)
     * notebook       -> (notebook.ipynb, notebook, json)
@@ -61,8 +61,8 @@ def parse_filename(fname):
 
     Returns
     -------
-    (fname, name, format) : (unicode, unicode, unicode)  
-        The filename, notebook name and format.      
+    (fname, name, format) : (unicode, unicode, unicode)
+        The filename, notebook name and format.
     """
     if fname.endswith(u'.ipynb'):
         format = u'json'

@@ -88,18 +88,18 @@ def extract_version(mod):
 def test_for(item, min_version=None, callback=extract_version):
     """Test to see if item is importable, and optionally check against a minimum
     version.
-    
+
     If min_version is given, the default behavior is to check against the
     `__version__` attribute of the item, but specifying `callback` allows you to
     extract the value you are interested in. e.g::
-    
+
         In [1]: import sys
-        
+
         In [2]: from IPython.testing.iptest import test_for
-        
+
         In [3]: test_for('sys', (2,6), callback=lambda sys: sys.version_info)
         Out[3]: True
-    
+
     """
     try:
         check = import_item(item)
@@ -112,7 +112,7 @@ def test_for(item, min_version=None, callback=extract_version):
             if callback:
                 # extra processing step to get version to compare
                 check = callback(check)
-            
+
             return check >= min_version
         else:
             return True
@@ -156,7 +156,7 @@ def report():
 
     avail = []
     not_avail = []
-    
+
     for k, is_avail in have.items():
         if is_avail:
             avail.append(k)
@@ -172,7 +172,7 @@ def report():
         out.append('\nTools and libraries NOT available at test time:\n')
         not_avail.sort()
         out.append('   ' + ' '.join(not_avail)+'\n')
-        
+
     return ''.join(out)
 
 
@@ -188,7 +188,7 @@ def make_exclude():
     # Simple utility to make IPython paths more readably, we need a lot of
     # these below
     ipjoin = lambda *paths: pjoin('IPython', *paths)
-    
+
     exclusions = [ipjoin('external'),
                   pjoin('IPython_doctest_plugin'),
                   ipjoin('quarantine'),
@@ -207,7 +207,7 @@ def make_exclude():
 
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
-        
+
     # We do this unconditionally, so that the test suite doesn't import
     # gtk, changing the default encoding and masking some unicode bugs.
     exclusions.append(ipjoin('lib', 'inputhookgtk'))
@@ -229,7 +229,7 @@ def make_exclude():
         exclusions.append(ipjoin('parallel'))
     elif not have['qt']:
         exclusions.append(ipjoin('frontend', 'qt'))
-    
+
     if not have['pymongo']:
         exclusions.append(ipjoin('parallel', 'controller', 'mongodb'))
         exclusions.append(ipjoin('parallel', 'tests', 'test_mongodb'))
@@ -259,7 +259,7 @@ class IPTester(object):
     call_args = None
     #: list, process ids of subprocesses we start (for cleanup)
     pids = None
-    
+
     def __init__(self, runner='iptest', params=None):
         """Create new test runner."""
         p = os.path
@@ -303,7 +303,7 @@ class IPTester(object):
             retcode = subp.wait()
             self.pids.pop()
             return retcode
-        
+
     def run(self):
         """Run the stored commands"""
         try:
@@ -318,7 +318,7 @@ class IPTester(object):
 
         if not hasattr(os, 'kill'):
             return
-        
+
         for pid in self.pids:
             try:
                 print 'Cleaning stale PID:', pid
@@ -326,7 +326,7 @@ class IPTester(object):
             except OSError:
                 # This is just a best effort, if we fail or the process was
                 # really gone, ignore it.
-                pass     
+                pass
 
 
 def make_runners():
@@ -336,10 +336,10 @@ def make_runners():
     # Packages to be tested via nose, that only depend on the stdlib
     nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
                      'scripts', 'testing', 'utils', 'nbformat' ]
-    
+
     if have['zmq']:
         nose_pkg_names.append('parallel')
-    
+
     # For debugging this code, only load quick stuff
     #nose_pkg_names = ['core', 'extensions']  # dbg
 
@@ -348,29 +348,29 @@ def make_runners():
 
     # Make runners
     runners = [ (v, IPTester('iptest', params=v)) for v in nose_packages ]
-    
+
     return runners
 
 
 def run_iptest():
     """Run the IPython test suite using nose.
-    
+
     This function is called when this script is **not** called with the form
     `iptest all`.  It simply calls nose with appropriate command line flags
     and accepts all of the standard nose arguments.
     """
 
-    warnings.filterwarnings('ignore', 
+    warnings.filterwarnings('ignore',
         'This will be removed soon.  Use IPython.testing.util instead')
 
     argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
-                                                
+
                         # Loading ipdoctest causes problems with Twisted, but
                         # our test suite runner now separates things and runs
                         # all Twisted tests with trial.
                         '--with-ipdoctest',
                         '--ipdoctest-tests','--ipdoctest-extension=txt',
-                        
+
                         # We add --exe because of setuptools' imbecility (it
                         # blindly does chmod +x on ALL files).  Nose does the
                         # right thing and it tries to avoid executables,
@@ -402,7 +402,7 @@ def run_iptest():
 
 def run_iptestall():
     """Run the entire IPython test suite by calling nose and trial.
-    
+
     This function constructs :class:`IPTester` instances for all IPython
     modules and package and then runs each of them.  This causes the modules
     and packages of IPython to be tested each in their own subprocess using

@@ -17,7 +17,7 @@ class HistoryConsoleWidget(ConsoleWidget):
     # an edit is made to a multi-line input buffer. To override the lock, use
     # Shift in conjunction with the standard history cycling keys.
     history_lock = Bool(False, config=True)
-    
+
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
@@ -45,7 +45,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             source, hidden, interactive)
 
         if executed and not hidden:
-            # Save the command unless it was an empty string or was identical 
+            # Save the command unless it was an empty string or was identical
             # to the previous command.
             history = history.rstrip()
             if history and (not self._history or self._history[-1] != history):
@@ -90,7 +90,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             # search.
             cursor = self._get_prompt_cursor()
             if self._history_prefix:
-                cursor.movePosition(QtGui.QTextCursor.Right, 
+                cursor.movePosition(QtGui.QTextCursor.Right,
                                     n=len(self._history_prefix))
             else:
                 cursor.movePosition(QtGui.QTextCursor.EndOfLine)
@@ -111,7 +111,7 @@ class HistoryConsoleWidget(ConsoleWidget):
                 return False
 
             # Perform the search.
-            replaced = self.history_next(self._history_prefix, 
+            replaced = self.history_next(self._history_prefix,
                                             as_prefix=not shift_modifier)
 
             # Emulate readline: keep the cursor position fixed for a prefix
@@ -120,7 +120,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             # input buffer is set.)
             if self._history_prefix and replaced:
                 cursor = self._get_prompt_cursor()
-                cursor.movePosition(QtGui.QTextCursor.Right, 
+                cursor.movePosition(QtGui.QTextCursor.Right,
                                     n=len(self._history_prefix))
                 self._set_cursor(cursor)
 
@@ -155,7 +155,7 @@ class HistoryConsoleWidget(ConsoleWidget):
                 or (not as_prefix and substring in history):
                 replace = True
                 break
-        
+
         if replace:
             self._store_edits()
             self._history_index = index
@@ -186,7 +186,7 @@ class HistoryConsoleWidget(ConsoleWidget):
                 or (not as_prefix and substring in history):
                 replace = True
                 break
-            
+
         if replace:
             self._store_edits()
             self._history_index = index
@@ -203,7 +203,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             The (maximum) number of history items to get.
         """
         return self._history[-n:]
-        
+
     #---------------------------------------------------------------------------
     # 'HistoryConsoleWidget' protected interface
     #---------------------------------------------------------------------------
@@ -211,8 +211,8 @@ class HistoryConsoleWidget(ConsoleWidget):
     def _history_locked(self):
         """ Returns whether history movement is locked.
         """
-        return (self.history_lock and 
-                (self._get_edited_history(self._history_index) != 
+        return (self.history_lock and
+                (self._get_edited_history(self._history_index) !=
                  self.input_buffer) and
                 (self._get_prompt_cursor().blockNumber() !=
                  self._get_end_cursor().blockNumber()))

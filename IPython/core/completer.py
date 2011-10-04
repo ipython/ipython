@@ -126,7 +126,7 @@ def has_open_quotes(s):
 
 def protect_filename(s):
     """Escape a string to protect certain characters."""
-    
+
     return "".join([(ch in PROTECTABLES and '\\' + ch or ch)
                     for ch in s])
 
@@ -156,7 +156,7 @@ def expand_user(path):
     path : str
       String to be expanded.  If no ~ is present, the output is the same as the
       input.
-      
+
     Returns
     -------
     newpath : str
@@ -170,7 +170,7 @@ def expand_user(path):
     tilde_expand = False
     tilde_val = ''
     newpath = path
-    
+
     if path.startswith('~'):
         tilde_expand = True
         rest = path[1:]
@@ -229,7 +229,7 @@ class CompletionSplitter(object):
     automatically builds the necessary """
 
     # Private interface
-    
+
     # A string of delimiter characters.  The default value makes sense for
     # IPython's most typical usage patterns.
     _delims = DELIMS
@@ -265,15 +265,15 @@ class CompletionSplitter(object):
 
 
 class Completer(Configurable):
-    
+
     greedy = CBool(False, config=True,
         help="""Activate greedy completion
-        
+
         This will enable completion on elements of lists, results of function calls, etc.,
         but can be unsafe because the code is actually evaluated on TAB.
         """
     )
-    
+
     def __init__(self, namespace=None, global_namespace=None, config=None):
         """Create a new completer for the command line.
 
@@ -307,7 +307,7 @@ class Completer(Configurable):
             self.global_namespace = {}
         else:
             self.global_namespace = global_namespace
-        
+
         super(Completer, self).__init__(config=config)
 
     def complete(self, text, state):
@@ -319,7 +319,7 @@ class Completer(Configurable):
         """
         if self.use_main_ns:
             self.namespace = __main__.__dict__
-            
+
         if state == 0:
             if "." in text:
                 self.matches = self.attr_matches(text)
@@ -369,7 +369,7 @@ class Completer(Configurable):
         m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
 
         if m:
-            expr, attr = m.group(1, 3)        
+            expr, attr = m.group(1, 3)
         elif self.greedy:
             m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
             if not m2:
@@ -377,7 +377,7 @@ class Completer(Configurable):
             expr, attr = m2.group(1,2)
         else:
             return []
-    
+
         try:
             obj = eval(expr, self.namespace)
         except:
@@ -387,7 +387,7 @@ class Completer(Configurable):
                 return []
 
         words = dir2(obj)
-        
+
         try:
             words = generics.complete_object(obj, words)
         except TryNext:
@@ -407,10 +407,10 @@ class IPCompleter(Completer):
             self.splitter.set_delims(GREEDY_DELIMS)
         else:
             self.splitter.set_delims(DELIMS)
-        
+
         if self.readline:
             self.readline.set_completer_delims(self.splitter.get_delims())
-    
+
     def __init__(self, shell=None, namespace=None, global_namespace=None,
                  omit__names=True, alias_table=None, use_readline=True,
                  config=None):
@@ -448,7 +448,7 @@ class IPCompleter(Completer):
 
         # Readline configuration, only used by the rlcompleter method.
         if use_readline:
-            # We store the right version of readline so that later code 
+            # We store the right version of readline so that later code
             import IPython.utils.rlineimpl as readline
             self.readline = readline
         else:
@@ -475,7 +475,7 @@ class IPCompleter(Completer):
         # buffers, to avoid completion problems.
         term = os.environ.get('TERM','xterm')
         self.dumb_terminal = term in ['dumb','emacs']
-        
+
         # Special handling of backslashes needed in win32 platforms
         if sys.platform == "win32":
             self.clean_glob = self._clean_glob_win32
@@ -489,7 +489,7 @@ class IPCompleter(Completer):
                          self.alias_matches,
                          self.python_func_kw_matches,
                          ]
-    
+
     def all_completions(self, text):
         """
         Wrapper around the complete method for the benefit of emacs
@@ -502,7 +502,7 @@ class IPCompleter(Completer):
 
     def _clean_glob_win32(self,text):
         return [f.replace("\\","/")
-                for f in self.glob("%s*" % text)]            
+                for f in self.glob("%s*" % text)]
 
     def file_matches(self, text):
         """Match filenames, expanding ~USER type strings.
@@ -569,7 +569,7 @@ class IPCompleter(Completer):
             # beginning of filename so that we don't double-write the part
             # of the filename we have so far
             len_lsplit = len(lsplit)
-            matches = [text_prefix + text0 + 
+            matches = [text_prefix + text0 +
                        protect_filename(f[len_lsplit:]) for f in m0]
         else:
             if open_quotes:
@@ -578,7 +578,7 @@ class IPCompleter(Completer):
                 # would cause bugs when the filesystem call is made).
                 matches = m0
             else:
-                matches = [text_prefix + 
+                matches = [text_prefix +
                            protect_filename(f) for f in m0]
 
         #io.rprint('mm', matches)  # dbg
@@ -595,7 +595,7 @@ class IPCompleter(Completer):
         return [ pre+m for m in magics if m.startswith(baretext)]
 
     def alias_matches(self, text):
-        """Match internal system aliases"""        
+        """Match internal system aliases"""
         #print 'Completer->alias_matches:',text,'lb',self.text_until_cursor # dbg
 
         # if we are not in the first 'item', alias matching
@@ -715,10 +715,10 @@ class IPCompleter(Completer):
 
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
-        line = self.line_buffer        
+        line = self.line_buffer
         if not line.strip():
             return None
-        
+
         # Create a little structure to pass all the relevant information about
         # the current completion to any custom completer.
         event = Bunch()
@@ -727,16 +727,16 @@ class IPCompleter(Completer):
         cmd = line.split(None,1)[0]
         event.command = cmd
         event.text_until_cursor = self.text_until_cursor
-        
+
         #print "\ncustom:{%s]\n" % event # dbg
-        
+
         # for foo etc, try also to find completer for %foo
         if not cmd.startswith(self.magic_escape):
             try_magic = self.custom_completers.s_matches(
-                self.magic_escape + cmd)            
+                self.magic_escape + cmd)
         else:
-            try_magic = []        
-        
+            try_magic = []
+
         for c in itertools.chain(self.custom_completers.s_matches(cmd),
                  try_magic,
                  self.custom_completers.flat_matches(self.text_until_cursor)):
@@ -753,9 +753,9 @@ class IPCompleter(Completer):
                     return [r for r in res if r.lower().startswith(text_low)]
             except TryNext:
                 pass
-            
+
         return None
-               
+
     def complete(self, text=None, line_buffer=None, cursor_pos=None):
         """Find completions for the given text and line context.
 
@@ -785,7 +785,7 @@ class IPCompleter(Completer):
         -------
         text : str
           Text that was actually used in the completion.
-          
+
         matches : list
           A list of completion matches.
         """
@@ -803,7 +803,7 @@ class IPCompleter(Completer):
         # If no line buffer is given, assume the input text is all there was
         if line_buffer is None:
             line_buffer = text
-        
+
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
         #io.rprint('\nCOMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
@@ -893,7 +893,7 @@ class IPCompleter(Completer):
                     import traceback; traceback.print_exc()
             else:
                 # The normal production version is here
-                
+
                 # This method computes the self.matches array
                 self.complete(text, line_buffer, cursor_pos)
 

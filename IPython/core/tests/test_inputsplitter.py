@@ -41,7 +41,7 @@ def mini_interactive_loop(input_func):
     raw_input that simulates interactive input."""
 
     from IPython.core.inputsplitter import InputSplitter
-    
+
     isp = InputSplitter()
     # In practice, this input loop would be wrapped in an outside loop to read
     # input indefinitely, until some exit/quit command was issued.  Here we
@@ -106,7 +106,7 @@ def test_remove_comments():
               'line \nline\nline\nline \n\n'),
              ]
     tt.check_pairs(isp.remove_comments, tests)
-        
+
 def test_has_comment():
     tests = [('text', False),
              ('text #comment', True),
@@ -134,13 +134,13 @@ class NoInputEncodingTestCase(unittest.TestCase):
         class X: pass
         fake_stdin = X()
         sys.stdin = fake_stdin
-        
+
     def test(self):
         # Verify that if sys.stdin has no 'encoding' attribute we do the right
         # thing
         enc = isp.get_input_encoding()
         self.assertEqual(enc, 'ascii')
-        
+
     def tearDown(self):
         sys.stdin = self.old_stdin
 
@@ -167,7 +167,7 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertEqual(self.isp.source_reset(), '1\n2\n')
         self.assertEqual(self.isp._buffer, [])
         self.assertEqual(self.isp.source, '')
-        
+
     def test_indent(self):
         isp = self.isp # shorthand
         isp.push('x=1')
@@ -200,7 +200,7 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push("if 1:")
         isp.push("    x = (1+\n    2)")
         self.assertEqual(isp.indent_spaces, 4)
-    
+
     def test_indent4(self):
         # In cell mode, inputs must be fed in whole blocks, so skip this test
         if self.isp.input_mode == 'cell': return
@@ -261,13 +261,13 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertFalse(isp.push('if 1:'))
         for line in ['  x=1', '# a comment', '  y=2']:
             self.assertTrue(isp.push(line))
-            
+
     def test_push3(self):
         isp = self.isp
         isp.push('if True:')
         isp.push('  a = 1')
         self.assertFalse(isp.push('b = [1,'))
-            
+
     def test_replace_mode(self):
         isp = self.isp
         isp.input_mode = 'cell'
@@ -292,7 +292,7 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertTrue(isp.push_accepts_more())
         isp.push('')
         self.assertFalse(isp.push_accepts_more())
-        
+
     def test_push_accepts_more3(self):
         isp = self.isp
         isp.push("x = (2+\n3)")
@@ -318,7 +318,7 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertTrue(isp.push_accepts_more())
         isp.push('')
         self.assertFalse(isp.push_accepts_more())
-        
+
     def test_push_accepts_more5(self):
         # In cell mode, inputs must be fed in whole blocks, so skip this test
         if self.isp.input_mode == 'cell': return
@@ -368,7 +368,7 @@ class InteractiveLoopTestCase(unittest.TestCase):
         # we can check that the given dict is *contained* in test_ns
         for k,v in ns.iteritems():
             self.assertEqual(test_ns[k], v)
-        
+
     def test_simple(self):
         self.check_ns(['x=1'], dict(x=1))
 
@@ -380,10 +380,10 @@ class InteractiveLoopTestCase(unittest.TestCase):
 
     def test_abc(self):
         self.check_ns(['if 1:','a=1','b=2','c=3'], dict(a=1, b=2, c=3))
-    
+
     def test_multi(self):
         self.check_ns(['x =(1+','1+','2)'], dict(x=4))
-    
+
 
 def test_LineInfo():
     """Simple test for LineInfo construction and str()"""
@@ -453,7 +453,7 @@ syntax = \
          ('?%hist', 'get_ipython().magic(u"pinfo %hist")'),
          ('?abc = qwe', 'get_ipython().magic(u"pinfo abc")'),
          ],
-         
+
       end_help =
       [ ('x3?', 'get_ipython().magic(u"pinfo x3")'),
         ('x4??', 'get_ipython().magic(u"pinfo2 x4")'),
@@ -473,7 +473,7 @@ syntax = \
          ('%cd /home', 'get_ipython().magic(u"cd /home")'),
          ('    %magic', '    get_ipython().magic(u"magic")'),
          ],
-       
+
        # Quoting with separate arguments
        escaped_quote =
        [ (',f', 'f("")'),
@@ -481,23 +481,23 @@ syntax = \
          ('  ,f y', '  f("y")'),
          (',f a b', 'f("a", "b")'),
          ],
-       
+
        # Quoting with single argument
-       escaped_quote2 = 
+       escaped_quote2 =
        [ (';f', 'f("")'),
          (';f x', 'f("x")'),
          ('  ;f y', '  f("y")'),
          (';f a b', 'f("a b")'),
          ],
-       
+
        # Simply apply parens
-       escaped_paren = 
+       escaped_paren =
        [ ('/f', 'f()'),
          ('/f x', 'f(x)'),
          ('  /f y', '  f(y)'),
          ('/f a b', 'f(a, b)'),
          ],
-         
+
        # Check that we transform prompts before other transforms
        mixed =
        [ ('In [1]: %lsmagic', 'get_ipython().magic(u"lsmagic")'),
@@ -532,7 +532,7 @@ syntax_ml = \
 def test_assign_system():
     tt.check_pairs(isp.transform_assign_system, syntax['assign_system'])
 
-    
+
 def test_assign_magic():
     tt.check_pairs(isp.transform_assign_magic, syntax['assign_magic'])
 
@@ -541,7 +541,7 @@ def test_classic_prompt():
     transform_checker(syntax['classic_prompt'], isp.transform_classic_prompt)
     for example in syntax_ml['classic_prompt']:
         transform_checker(example, isp.transform_classic_prompt)
-    
+
 
 def test_ipy_prompt():
     transform_checker(syntax['ipy_prompt'], isp.transform_ipy_prompt)
@@ -599,7 +599,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
             for raw, out_t in example:
                 if raw.startswith(' '):
                     continue
-                
+
                 isp.push(raw)
                 out, out_raw = isp.source_raw_reset()
                 self.assertEqual(out.rstrip(), out_t,
@@ -622,13 +622,13 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 raw = '\n'.join(raw_parts).rstrip()
                 self.assertEqual(out.rstrip(), out_t)
                 self.assertEqual(out_raw.rstrip(), raw)
-                
+
 
 class BlockIPythonInputTestCase(IPythonInputTestCase):
 
     # Deactivate tests that don't make sense for the block mode
     test_push3 = test_split = lambda s: None
-    
+
     def setUp(self):
         self.isp = isp.IPythonInputSplitter(input_mode='cell')
 
@@ -650,7 +650,7 @@ class BlockIPythonInputTestCase(IPythonInputTestCase):
                 # Match ignoring trailing whitespace
                 self.assertEqual(out.rstrip(), out_t.rstrip())
                 self.assertEqual(out_raw.rstrip(), raw.rstrip())
-    
+
 
 #-----------------------------------------------------------------------------
 # Main - use as a script, mostly for developer experiments
@@ -667,7 +667,7 @@ if __name__ == '__main__':
 
     autoindent = True
     #autoindent = False
-    
+
     try:
         while True:
             prompt = start_prompt

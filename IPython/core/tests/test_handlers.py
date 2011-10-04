@@ -81,7 +81,7 @@ def test_handlers():
          #("a = b # PYTHON-MODE", '_i'),          # emacs -- avoids _in cache
 
          # post-esc-char whitespace goes inside
-         ("! true",   'get_ipython().system(u" true")'),  
+         ("! true",   'get_ipython().system(u" true")'),
 
          # handle_help
 
@@ -111,32 +111,32 @@ def test_handlers():
          ('if 1:\n    !!true',   'if 1:\n    get_ipython().magic(u"sx true")'),
 
          # Even with m_l_s on, autocall is off even with special chars
-         ('if 1:\n    /fun 1 2', 'if 1:\n    /fun 1 2'), 
+         ('if 1:\n    /fun 1 2', 'if 1:\n    /fun 1 2'),
          ('if 1:\n    ;fun 1 2', 'if 1:\n    ;fun 1 2'),
          ('if 1:\n    ,fun 1 2', 'if 1:\n    ,fun 1 2'),
          ('if 1:\n    ?fun 1 2', 'if 1:\n    ?fun 1 2'),
-         # What about !!  
+         # What about !!
          ])
 
     # Objects which are instances of IPyAutocall are *always* autocalled
     autocallable = Autocallable()
     ip.user_ns['autocallable'] = autocallable
 
-    # auto 
+    # auto
     ip.magic('autocall 0')
     # Only explicit escapes or instances of IPyAutocallable should get
     # expanded
     run([
-        ('len "abc"',       'len "abc"'),        
-        ('autocallable',    'autocallable()'),     
+        ('len "abc"',       'len "abc"'),
+        ('autocallable',    'autocallable()'),
         (",list 1 2 3",     'list("1", "2", "3")'),
-        (";list 1 2 3",     'list("1 2 3")'),      
+        (";list 1 2 3",     'list("1 2 3")'),
         ("/len range(1,4)", 'len(range(1,4))'),
         ])
     ip.magic('autocall 1')
     run([
         (",list 1 2 3", 'list("1", "2", "3")'),
-        (";list 1 2 3", 'list("1 2 3")'),      
+        (";list 1 2 3", 'list("1 2 3")'),
         ("/len range(1,4)", 'len(range(1,4))'),
         ('len "abc"', 'len("abc")'),
         ('len "abc";', 'len("abc");'),  # ; is special -- moves out of parens
@@ -150,11 +150,11 @@ def test_handlers():
     ip.magic('autocall 2')
     run([
         (",list 1 2 3", 'list("1", "2", "3")'),
-        (";list 1 2 3", 'list("1 2 3")'),      
+        (";list 1 2 3", 'list("1 2 3")'),
         ("/len range(1,4)", 'len(range(1,4))'),
         ('len "abc"', 'len("abc")'),
         ('len "abc";', 'len("abc");'),
-        ('len [1,2]', 'len([1,2])'),   
+        ('len [1,2]', 'len([1,2])'),
         ('call_idx [1]', 'call_idx [1]'),
         ('call_idx 1', 'call_idx(1)'),
         # This is what's different:

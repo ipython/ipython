@@ -87,7 +87,7 @@ def _convert_bufs(bs):
 
 class SQLiteDB(BaseDB):
     """SQLite3 TaskRecord backend."""
-    
+
     filename = Unicode('tasks.db', config=True,
         help="""The filename of the sqlite task database. [default: 'tasks.db']""")
     location = Unicode('', config=True,
@@ -98,7 +98,7 @@ class SQLiteDB(BaseDB):
         a new table will be created with the Hub's IDENT.  Specifying the table will result
         in tasks from previous sessions being available via Clients' db_query and
         get_result methods.""")
-    
+
     _db = Instance('sqlite3.Connection')
     # the ordered list of column names
     _keys = List(['msg_id' ,
@@ -142,7 +142,7 @@ class SQLiteDB(BaseDB):
             'stdout' : 'text',
             'stderr' : 'text',
         })
-    
+
     def __init__(self, **kwargs):
         super(SQLiteDB, self).__init__(**kwargs)
         if not self.table:
@@ -160,14 +160,14 @@ class SQLiteDB(BaseDB):
             else:
                 self.location = u'.'
         self._init_db()
-        
+
         # register db commit as 2s periodic callback
         # to prevent clogging pipes
         # assumes we are being run in a zmq ioloop app
         loop = ioloop.IOLoop.instance()
         pc = ioloop.PeriodicCallback(self._db.commit, 2000, loop)
         pc.start()
-    
+
     def _defaults(self, keys=None):
         """create an empty record"""
         d = {}
@@ -175,10 +175,10 @@ class SQLiteDB(BaseDB):
         for key in keys:
             d[key] = None
         return d
-    
+
     def _check_table(self):
         """Ensure that an incorrect table doesn't exist
-        
+
         If a bad (old) table does exist, return False
         """
         cursor = self._db.execute("PRAGMA table_info(%s)"%self.table)
@@ -202,7 +202,7 @@ class SQLiteDB(BaseDB):
                 )
                 return False
         return True
-        
+
     def _init_db(self):
         """Connect to the database and get new session number."""
         # register adapters
@@ -212,7 +212,7 @@ class SQLiteDB(BaseDB):
         sqlite3.register_converter('bufs', _convert_bufs)
         # connect to the db
         dbfile = os.path.join(self.location, self.filename)
-        self._db = sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES, 
+        self._db = sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES,
             # isolation_level = None)#,
              cached_statements=64)
         # print dir(self._db)
@@ -225,8 +225,8 @@ class SQLiteDB(BaseDB):
                 "Table %s exists and doesn't match db format, trying %s"%
                 (first_table,self.table)
             )
-        
-        self._db.execute("""CREATE TABLE IF NOT EXISTS %s 
+
+        self._db.execute("""CREATE TABLE IF NOT EXISTS %s
                 (msg_id text PRIMARY KEY,
                 header dict text,
                 content dict text,
@@ -248,32 +248,32 @@ class SQLiteDB(BaseDB):
                 stderr text)
                 """%self.table)
         self._db.commit()
-    
+
     def _dict_to_list(self, d):
         """turn a mongodb-style record dict into a list."""
-        
+
         return [ d[key] for key in self._keys ]
-    
+
     def _list_to_dict(self, line, keys=None):
         """Inverse of dict_to_list"""
         keys = self._keys if keys is None else keys
         d = self._defaults(keys)
         for key,value in zip(keys, line):
             d[key] = value
-        
+
         return d
-    
+
     def _render_expression(self, check):
         """Turn a mongodb-style search dict into an SQL query."""
         expressions = []
         args = []
-        
+
         skeys = set(check.keys())
         skeys.difference_update(set(self._keys))
         skeys.difference_update(set(['buffers', 'result_buffers']))
         if skeys:
             raise KeyError("Illegal testing key(s): %s"%skeys)
-        
+
         for name,sub_check in check.iteritems():
             if isinstance(sub_check, dict):
                 for test,value in sub_check.iteritems():
@@ -283,7 +283,7 @@ class SQLiteDB(BaseDB):
                         raise KeyError("Unsupported operator: %r"%test)
                     if isinstance(op, tuple):
                         op, join = op
-                    
+
                     if value is None and op in null_operators:
                             expr = "%s %s"%null_operators[op]
                     else:
@@ -304,10 +304,10 @@ class SQLiteDB(BaseDB):
                 else:
                     expressions.append("%s = ?"%name)
                     args.append(sub_check)
-        
+
         expr = " AND ".join(expressions)
         return expr, args
-    
+
     def add_record(self, msg_id, rec):
         """Add a new Task Record, by msg_id."""
         d = self._defaults()
@@ -317,7 +317,7 @@ class SQLiteDB(BaseDB):
         tups = '(%s)'%(','.join(['?']*len(line)))
         self._db.execute("INSERT INTO %s VALUES %s"%(self.table, tups), line)
         # self._db.commit()
-    
+
     def get_record(self, msg_id):
         """Get a specific Task Record, by msg_id."""
         cursor = self._db.execute("""SELECT * FROM %s WHERE msg_id==?"""%self.table, (msg_id,))
@@ -325,7 +325,7 @@ class SQLiteDB(BaseDB):
         if line is None:
             raise KeyError("No such msg: %r"%msg_id)
         return self._list_to_dict(line)
-    
+
     def update_record(self, msg_id, rec):
         """Update the data in an existing record."""
         query = "UPDATE %s SET "%self.table
@@ -340,27 +340,27 @@ class SQLiteDB(BaseDB):
         values.append(msg_id)
         self._db.execute(query, values)
         # self._db.commit()
-    
+
     def drop_record(self, msg_id):
         """Remove a record from the DB."""
         self._db.execute("""DELETE FROM %s WHERE msg_id==?"""%self.table, (msg_id,))
         # self._db.commit()
-    
+
     def drop_matching_records(self, check):
         """Remove a record from the DB."""
         expr,args = self._render_expression(check)
         query = "DELETE FROM %s WHERE %s"%(self.table, expr)
         self._db.execute(query,args)
         # self._db.commit()
-        
+
     def find_records(self, check, keys=None):
         """Find records matching a query dict, optionally extracting subset of keys.
-        
+
         Returns list of matching records.
-        
+
         Parameters
         ----------
-        
+
         check: dict
             mongodb-style query argument
         keys: list of strs [optional]
@@ -371,7 +371,7 @@ class SQLiteDB(BaseDB):
             bad_keys = [ key for key in keys if key not in self._keys ]
             if bad_keys:
                 raise KeyError("Bad record key(s): %s"%bad_keys)
-        
+
         if keys:
             # ensure msg_id is present and first:
             if 'msg_id' in keys:
@@ -389,7 +389,7 @@ class SQLiteDB(BaseDB):
             rec = self._list_to_dict(line, keys)
             records.append(rec)
         return records
-    
+
     def get_history(self):
         """get all msg_ids, ordered by time submitted."""
         query = """SELECT msg_id FROM %s ORDER by submitted ASC"""%self.table

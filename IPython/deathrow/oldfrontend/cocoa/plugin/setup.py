@@ -2,7 +2,7 @@
 """
 setup.py
 
-Setuptools installer script for generating a Cocoa plugin for the 
+Setuptools installer script for generating a Cocoa plugin for the
 IPython cocoa frontend
 
 Author: Barry Wark

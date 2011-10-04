@@ -40,7 +40,7 @@ class WaveSolver(object):
     tstop is the stop time for the simulation.
 
     I, f are functions: I(x,y), f(x,y,t)
-    
+
     user_action: function of (u, x, y, t) called at each time
     level (x and y are one-dimensional coordinate vectors).
     This function allows the calling code to plot the solution,
@@ -67,13 +67,13 @@ class WaveSolver(object):
     final_test: true means the discrete L2-norm of the final solution is
     to be computed.
     """
-    
+
     def __init__(self, I, f, c, bc, Lx, Ly, partitioner=None, dt=-1,
-                user_action=None, 
+                user_action=None,
                 implementation={'ic': 'vectorized',  # or 'scalar'
                                 'inner': 'vectorized',
                                 'bc': 'vectorized'}):
-        
+
         nx = partitioner.global_num_cells[0]  # number of global cells in x dir
         ny = partitioner.global_num_cells[1]  # number of global cells in y dir
         dx = Lx/float(nx)
@@ -130,7 +130,7 @@ class WaveSolver(object):
                     u_2[i,j] = u_1[i,j] + \
                            0.5*Cx2*(u_1[i-1,j] - 2*u_1[i,j] + u_1[i+1,j]) + \
                            0.5*Cy2*(u_1[i,j-1] - 2*u_1[i,j] + u_1[i,j+1]) + \
-                           dt2*f(x[i], y[j], 0.0)                       
+                           dt2*f(x[i], y[j], 0.0)
 
             # boundary values of u_2 (equals u(t=dt) due to du/dt=0)
             i = 0
@@ -162,8 +162,8 @@ class WaveSolver(object):
             user_action(u_1, x, y, t)  # allow user to plot etc.
         # print list(self.us[2][2])
         self.us = (u,u_1,u_2)
-    
-    
+
+
     def solve(self, tstop, dt=-1, user_action=None, verbose=False, final_test=False):
         t0=time.time()
         f=self.f
@@ -191,7 +191,7 @@ class WaveSolver(object):
         upper_y_neigh = partitioner.upper_neighbors[1]
         u,u_1,u_2 = self.us
         # u_1 = self.u_1
-        
+
         t = 0.0
         while t <= tstop:
             t_old = t;  t += dt
@@ -211,7 +211,7 @@ class WaveSolver(object):
                Cx2*(u_1[0:nx-1,1:ny] - 2*u_1[1:nx,1:ny] + u_1[2:nx+1,1:ny]) + \
                Cy2*(u_1[1:nx,0:ny-1] - 2*u_1[1:nx,1:ny] + u_1[1:nx,2:ny+1]) + \
                dt2*f(xv[1:nx,1:ny], yv[1:nx,1:ny], t_old)
-            
+
             # insert boundary conditions (if there's no neighbor):
             if lower_x_neigh < 0:
                 if implementation['bc'] == 'scalar':

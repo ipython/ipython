@@ -32,7 +32,7 @@ class IPythonCoreError(Exception):
 
 class TryNext(IPythonCoreError):
     """Try next hook exception.
-     
+
     Raise this in your hook function to indicate that the next hook handler
     should be used to handle the operation.  If you pass arguments to the
     constructor those arguments will be used by the next hook instead of the
@@ -45,7 +45,7 @@ class TryNext(IPythonCoreError):
 
 class UsageError(IPythonCoreError):
     """Error in magic function arguments, etc.
-    
+
     Something that probably won't warrant a full traceback, but should
-    nevertheless interrupt a macro / batch file.   
+    nevertheless interrupt a macro / batch file.
     """

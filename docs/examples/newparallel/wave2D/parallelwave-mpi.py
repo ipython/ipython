@@ -11,7 +11,7 @@ An example of running the program is (8 processors, 4x2 partition,
    $ ipclusterz start --profile mpi -n 8 # start 8 engines (assuming mpi profile has been configured)
    $ ./parallelwave-mpi.py --grid 400 100 --partition 4 2 --profile mpi
 
-See also parallelwave-mpi, which runs the same program, but uses MPI 
+See also parallelwave-mpi, which runs the same program, but uses MPI
 (via mpi4py) for the inter-engine communication.
 
 Authors
@@ -50,11 +50,11 @@ def wave_saver(u, x, y, t):
     global t_hist
     t_hist.append(t)
     u_hist.append(1.0*u)
-    
+
 
 # main program:
 if __name__ == '__main__':
-    
+
     parser = argparse.ArgumentParser()
     paa = parser.add_argument
     paa('--grid', '-g',
@@ -75,16 +75,16 @@ if __name__ == '__main__':
     paa('-t', '--tstop',
         type=float, default=1.,
         help="Time units to run")
-    paa('--profile', 
+    paa('--profile',
         type=unicode, default=u'default',
         help="Specify the ipcluster profile for the client to connect to.")
-    paa('--save', 
+    paa('--save',
         action='store_true',
         help="Add this flag to save the time/wave history during the run.")
-    paa('--scalar', 
+    paa('--scalar',
         action='store_true',
         help="Also run with scalar interior implementation, to see vector speedup.")
-    
+
     ns = parser.parse_args()
     # set up arguments
     grid = ns.grid
@@ -97,22 +97,22 @@ if __name__ == '__main__':
         user_action = wave_saver
     else:
         user_action = None
-    
+
     num_cells = 1.0*(grid[0]-1)*(grid[1]-1)
     final_test = True
-    
+
     # create the Client
     rc = Client(profile=ns.profile)
     num_procs = len(rc.ids)
-    
+
     if partition is None:
         partition = [1,num_procs]
-    
+
     assert partition[0]*partition[1] == num_procs, "can't map partition %s to %i engines"%(partition, num_procs)
-    
+
     view = rc[:]
     print "Running %s system on %s processes until %f"%(grid, partition, tstop)
-    
+
     # functions defining initial/boundary/source conditions
     def I(x,y):
         from numpy import exp
@@ -123,28 +123,28 @@ if __name__ == '__main__':
         # return 10*exp(-(x - sin(100*t))**2)
     def bc(x,y,t):
         return 0.0
-    
+
     # initial imports, setup rank
     view.execute('\n'.join([
     "from mpi4py import MPI",
     "import numpy",
     "mpi = MPI.COMM_WORLD",
     "my_id = MPI.COMM_WORLD.Get_rank()"]), block=True)
-    
+
     # initialize t_hist/u_hist for saving the state at each step (optional)
     view['t_hist'] = []
     view['u_hist'] = []
-    
+
     # set vector/scalar implementation details
     impl = {}
     impl['ic'] = 'vectorized'
     impl['inner'] = 'scalar'
     impl['bc'] = 'vectorized'
-    
+
     # execute some files so that the classes we need will be defined on the engines:
     view.run('RectPartitioner.py')
     view.run('wavesolver.py')
-    
+
     # setup remote partitioner
     # note that Reference means that the argument passed to setup_partitioner will be the
     # object named 'my_id' in the engine's namespace
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 
     # lambda for calling solver.solve:
     _solve = lambda *args, **kwargs: solver.solve(*args, **kwargs)
-    
+
     if ns.scalar:
         impl['inner'] = 'scalar'
         # run first with element-wise Python operations for each cell
@@ -171,12 +171,12 @@ if __name__ == '__main__':
             norm = -1
         t1 = time.time()
         print 'scalar inner-version, Wtime=%g, norm=%g'%(t1-t0, norm)
-    
+
     impl['inner'] = 'vectorized'
     # setup new solvers
     view.apply_sync(setup_solver, I,f,c,bc,Lx,Ly,partitioner=Reference('partitioner'), dt=0,implementation=impl)
     view.execute('mpi.barrier()')
-    
+
     # run again with numpy vectorized inner-implementation
     t0 = time.time()
     ar = view.apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test)#, user_action=wave_saver)
@@ -189,7 +189,7 @@ if __name__ == '__main__':
         norm = -1
     t1 = time.time()
     print 'vector inner-version, Wtime=%g, norm=%g'%(t1-t0, norm)
-    
+
     # if ns.save is True, then u_hist stores the history of u as a list
     # If the partion scheme is Nx1, then u can be reconstructed via 'gather':
     if ns.save and partition[-1] == 1:

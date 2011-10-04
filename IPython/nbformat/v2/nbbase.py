@@ -1,6 +1,6 @@
 """The basic dict based notebook format.
 
-The Python representation of a notebook is a nested structure of 
+The Python representation of a notebook is a nested structure of
 dictionary subclasses that support attribute access
 (IPython.utils.ipstruct.Struct). The functions in this module are merely
 helpers to build the structs in the right form.
@@ -47,7 +47,7 @@ def from_dict(d):
 
 
 def new_output(output_type=None, output_text=None, output_png=None,
-    output_html=None, output_svg=None, output_latex=None, output_json=None, 
+    output_html=None, output_svg=None, output_latex=None, output_json=None,
     output_javascript=None, output_jpeg=None, prompt_number=None,
     etype=None, evalue=None, traceback=None):
     """Create a new code cell with input and output"""

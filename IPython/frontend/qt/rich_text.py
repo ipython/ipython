@@ -87,7 +87,7 @@ class HtmlExporter(object):
                     ib.setShortcut('I')
                     eb = QtGui.QPushButton("&External")
                     eb.setShortcut('E')
-                    box = QtGui.QMessageBox(QtGui.QMessageBox.Question, 
+                    box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
                                             dialog.windowTitle(), msg)
                     box.setInformativeText(info)
                     box.addButton(ib, QtGui.QMessageBox.NoRole)
@@ -190,12 +190,12 @@ def default_image_tag(match, path = None, format = "png"):
     """ Return (X)HTML mark-up for the image-tag given by match.
 
     This default implementation merely removes the image, and exists mostly
-    for documentation purposes. More information than is present in the Qt 
+    for documentation purposes. More information than is present in the Qt
     HTML is required to supply the images.
 
     Parameters
     ----------
-    match : re.SRE_Match 
+    match : re.SRE_Match
         A match to an HTML image tag as exported by Qt, with match.group("Name")
         containing the matched image ID.
 
@@ -212,7 +212,7 @@ def default_image_tag(match, path = None, format = "png"):
 
 def fix_html(html):
     """ Transforms a Qt-generated HTML string into a standards-compliant one.
-    
+
     Parameters:
     -----------
     html : str,

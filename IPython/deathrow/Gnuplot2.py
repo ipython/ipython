@@ -150,13 +150,13 @@ def zip_items(items,titles=None):
     with their index. Leave other plot items alone."""
 
     class StandaloneItem(Exception): pass
-    
+
     def get_titles(titles):
         """Return the next title and the input titles array.
 
         The input array may be changed to None when no titles are left to
         prevent extra unnecessary calls to this function."""
-        
+
         try:
             title = titles[tit_ct[0]]  # tit_ct[0] is in zip_items'scope
         except IndexError:
@@ -258,33 +258,33 @@ class Gnuplot(Gnuplot_ori.Gnuplot):
         explicit '' argument must be given as the limit to be kept.
 
         Similar functions exist for [y{2}z{2}rtuv]range."""
-        
+
         self('set xrange [%s:%s]' % (min,max))
-             
+
     def yrange(self,min='*',max='*'):
         self('set yrange [%s:%s]' % (min,max))
-             
+
     def zrange(self,min='*',max='*'):
         self('set zrange [%s:%s]' % (min,max))
-             
+
     def x2range(self,min='*',max='*'):
         self('set xrange [%s:%s]' % (min,max))
-             
+
     def y2range(self,min='*',max='*'):
         self('set yrange [%s:%s]' % (min,max))
-             
+
     def z2range(self,min='*',max='*'):
         self('set zrange [%s:%s]' % (min,max))
-             
+
     def rrange(self,min='*',max='*'):
         self('set rrange [%s:%s]' % (min,max))
-             
+
     def trange(self,min='*',max='*'):
         self('set trange [%s:%s]' % (min,max))
-             
+
     def urange(self,min='*',max='*'):
         self('set urange [%s:%s]' % (min,max))
-             
+
     def vrange(self,min='*',max='*'):
         self('set vrange [%s:%s]' % (min,max))
 
@@ -319,7 +319,7 @@ class Gnuplot(Gnuplot_ori.Gnuplot):
         # Filter out other options the original plot doesn't know
         hardcopy = popkey(keyw,'hardcopy',psargs['filename'] is not None)
         titles = popkey(keyw,'titles',0)
-        
+
         # the filename keyword should control hardcopy generation, this is an
         # override switch only which needs to be explicitly set to zero
         if hardcopy:
@@ -410,7 +410,7 @@ class Gnuplot(Gnuplot_ori.Gnuplot):
 
         - filename: a string, typically ending in .eps. If given, the plot is
         sent to this file in PostScript format.
-        
+
         - hardcopy: this can be set to 0 to override 'filename'. It does not
         need to be given to produce PostScript, its purpose is to allow
         switching PostScript output off globally in scripts without having to
@@ -421,7 +421,7 @@ class Gnuplot(Gnuplot_ori.Gnuplot):
         PostScript.
 
         For example:
-        
+
         In [1]: x=frange(0,2*pi,npts=100)
 
         Generate a plot in file 'sin.eps':
@@ -439,16 +439,16 @@ class Gnuplot(Gnuplot_ori.Gnuplot):
         PostScript generation through plot() is useful mainly for scripting
         uses where you are not interested in interactive plotting. For
         interactive use, the hardcopy() function is typically more convenient:
-        
+
         In [5]: plot(x,sin(x))
 
         In [6]: hardcopy('sin.eps')  """
-        
+
         self.__plot_ps(Gnuplot_ori.Gnuplot.plot,*items,**keyw)
-        
+
     def plot2(self,arg,**kw):
-        """Plot the entries of a dictionary or a list/tuple of arrays.        
-        
+        """Plot the entries of a dictionary or a list/tuple of arrays.
+
         This simple utility calls plot() with a list of Gnuplot.Data objects
         constructed either from the values of the input dictionary, or the entries
         in it if it is a tuple or list.  Each item gets labeled with the key/index
@@ -493,7 +493,7 @@ class Gnuplot(Gnuplot_ori.Gnuplot):
         Gnuplot.py, this version has several enhancements, listed in the
         plot() documentation.
         """
-        
+
         self.__plot_ps(Gnuplot_ori.Gnuplot.splot,*items,**keyw)
 
     def replot(self, *items, **keyw):
@@ -508,7 +508,7 @@ class Gnuplot(Gnuplot_ori.Gnuplot):
         'filename' keyword argument in each call to replot. The Gnuplot python
         interface has no way of knowing that your previous call to
         Gnuplot.plot() was meant for PostScript output."""
-        
+
         self.__plot_ps(Gnuplot_ori.Gnuplot.replot,*items,**keyw)
 
     # The original hardcopy has a bug. See fix at the end. The rest of the code

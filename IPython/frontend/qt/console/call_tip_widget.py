@@ -134,7 +134,7 @@ class CallTipWidget(QtGui.QLabel):
                 doc = doc[:match.end()] + '\n[Documentation continues...]'
         else:
             doc = ''
-            
+
         if call_line:
             doc = '\n\n'.join([call_line, doc])
         return self.show_tip(doc)
@@ -147,7 +147,7 @@ class CallTipWidget(QtGui.QLabel):
         document = text_edit.document()
         cursor = text_edit.textCursor()
         search_pos = cursor.position() - 1
-        self._start_position, _ = self._find_parenthesis(search_pos, 
+        self._start_position, _ = self._find_parenthesis(search_pos,
                                                          forward=False)
         if self._start_position == -1:
             return False
@@ -155,7 +155,7 @@ class CallTipWidget(QtGui.QLabel):
         # Set the text and resize the widget accordingly.
         self.setText(tip)
         self.resize(self.sizeHint())
-    
+
         # Locate and show the widget. Place the tip below the current line
         # unless it would be off the screen. In that case, place it above
         # the current line.
@@ -171,7 +171,7 @@ class CallTipWidget(QtGui.QLabel):
         self.move(point)
         self.show()
         return True
-            
+
     #--------------------------------------------------------------------------
     # Protected interface
     #--------------------------------------------------------------------------

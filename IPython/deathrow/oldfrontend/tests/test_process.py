@@ -35,7 +35,7 @@ def test_io():
     """ Checks that we can send characters on stdin to the process.
     """
     s = StringIO()
-    p = PipedProcess(sys.executable + ' -c "a = raw_input(); print a"', 
+    p = PipedProcess(sys.executable + ' -c "a = raw_input(); print a"',
                             out_callback=s.write, )
     p.start()
     test_string = '12345\n'
@@ -52,12 +52,12 @@ def test_kill():
     """ Check that we can kill a process, and its subprocess.
     """
     s = StringIO()
-    p = PipedProcess(sys.executable + ' -c "a = raw_input();"', 
+    p = PipedProcess(sys.executable + ' -c "a = raw_input();"',
                             out_callback=s.write, )
     p.start()
     while not hasattr(p, 'process'):
         sleep(0.1)
-    p.process.kill() 
+    p.process.kill()
     assert p.process.poll() is not None
 
 

@@ -58,7 +58,7 @@ class Logger(object):
         return self._logmode
 
     logmode = property(_get_mode,_set_mode)
-    
+
     def logstart(self,logfname=None,loghead=None,logmode=None,
                  log_output=False,timestamp=False,log_raw_input=False):
         """Generate a new log-file with a default header.
@@ -68,7 +68,7 @@ class Logger(object):
         if self.logfile is not None:
             raise RuntimeError('Log file is already active: %s' %
                                self.logfname)
-        
+
         # The parameters can override constructor defaults
         if logfname is not None: self.logfname = logfname
         if loghead is not None: self.loghead = loghead
@@ -78,7 +78,7 @@ class Logger(object):
         self.timestamp = timestamp
         self.log_output = log_output
         self.log_raw_input = log_raw_input
-        
+
         # init depending on the log mode requested
         isfile = os.path.isfile
         logmode = self.logmode
@@ -102,12 +102,12 @@ class Logger(object):
 
         elif logmode == 'over':
             if isfile(self.logfname):
-                os.remove(self.logfname) 
+                os.remove(self.logfname)
             self.logfile = open(self.logfname,'w')
 
         elif logmode == 'rotate':
             if isfile(self.logfname):
-                if isfile(self.logfname+'.001~'): 
+                if isfile(self.logfname+'.001~'):
                     old = glob.glob(self.logfname+'.*~')
                     old.sort()
                     old.reverse()
@@ -117,7 +117,7 @@ class Logger(object):
                         os.rename(f, root+'.'+`num`.zfill(3)+'~')
                 os.rename(self.logfname, self.logfname+'.001~')
             self.logfile = open(self.logfname,'w')
-            
+
         if logmode != 'append':
             self.logfile.write(self.loghead)
 
@@ -130,7 +130,7 @@ class Logger(object):
         if val not in [False,True,0,1]:
             raise ValueError, \
                   'Call switch_log ONLY with a boolean argument, not with:',val
-        
+
         label = {0:'OFF',1:'ON',False:'OFF',True:'ON'}
 
         if self.logfile is None:
@@ -140,7 +140,7 @@ Logging hasn't been started yet (use logstart for that).
 %logon/%logoff are for temporarily starting and stopping logging for a logfile
 which already exists. But you must first start the logging process with
 %logstart (optionally giving a logfile name)."""
-            
+
         else:
             if self.log_active == val:
                 print 'Logging is already',label[val]
@@ -205,7 +205,7 @@ which already exists. But you must first start the logging process with
         In order to start logging again, a new logstart() call needs to be
         made, possibly (though not necessarily) with a new filename, mode and
         other options."""
-        
+
         if self.logfile is not None:
             self.logfile.close()
             self.logfile = None

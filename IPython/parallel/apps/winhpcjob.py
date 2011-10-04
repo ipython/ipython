@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Job and task components for writing .xml files that the Windows HPC Server 
+Job and task components for writing .xml files that the Windows HPC Server
 2008 can use to start jobs.
 
 Authors:
@@ -297,7 +297,7 @@ class IPEngineTask(WinHPCTask):
         the_uuid = uuid.uuid1()
         self.std_out_file_path = os.path.join('log','ipengine-%s.out' % the_uuid)
         self.std_err_file_path = os.path.join('log','ipengine-%s.err' % the_uuid)
-    
+
     @property
     def command_line(self):
         return ' '.join(self.engine_cmd + self.engine_args)
@@ -307,7 +307,7 @@ class IPEngineTask(WinHPCTask):
 # j.job_name = 'IPCluster'
 # j.username = 'GNET\\bgranger'
 # j.requested_nodes = 'GREEN'
-# 
+#
 # t = WinHPCTask(None)
 # t.task_name = 'Controller'
 # t.command_line = r"\\blue\domainusers$\bgranger\Python\Python25\Scripts\ipcontroller.exe --log-to-file -p default --log-level 10"

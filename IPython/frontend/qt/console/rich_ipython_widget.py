@@ -56,7 +56,7 @@ class RichIPythonWidget(IPythonWidget):
             if svg is not None:
                 menu.addSeparator()
                 menu.addAction('Copy SVG', lambda: svg_to_clipboard(svg))
-                menu.addAction('Save SVG As...', 
+                menu.addAction('Save SVG As...',
                                lambda: save_svg(svg, self._control))
         else:
             menu = super(RichIPythonWidget, self)._context_menu_make(pos)
@@ -209,7 +209,7 @@ class RichIPythonWidget(IPythonWidget):
             # Chop stand-alone header from matplotlib SVG
             offset = svg.find("<svg")
             assert(offset > -1)
-            
+
             return svg[offset:]
 
         else:

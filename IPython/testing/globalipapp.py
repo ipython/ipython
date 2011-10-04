@@ -38,20 +38,20 @@ from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 class StreamProxy(io.IOStream):
     """Proxy for sys.stdout/err.  This will request the stream *at call time*
     allowing for nose's Capture plugin's redirection of sys.stdout/err.
-    
+
     Parameters
     ----------
     name : str
         The name of the stream. This will be requested anew at every call
     """
-    
+
     def __init__(self, name):
         self.name=name
-    
+
     @property
     def stream(self):
         return getattr(sys, self.name)
-    
+
     def flush(self):
         self.stream.flush()
 
@@ -62,7 +62,7 @@ class StreamProxy(io.IOStream):
 class py_file_finder(object):
     def __init__(self,test_filename):
         self.test_filename = test_filename
-        
+
     def __call__(self,name,win32=False):
         from IPython.utils.path import get_py_filename
         try:
@@ -71,7 +71,7 @@ class py_file_finder(object):
             test_dir = os.path.dirname(self.test_filename)
             new_path = os.path.join(test_dir,name)
             return get_py_filename(new_path,win32=win32)
-    
+
 
 def _run_ns_sync(self,arg_s,runner=None):
     """Modified version of %run that syncs testing namespaces.
@@ -94,7 +94,7 @@ class ipnsdict(dict):
     which is needed because of how Python's doctest machinery operates with
     '_'.  See constructor and :meth:`update` for details.
     """
-    
+
     def __init__(self,*a):
         dict.__init__(self,*a)
         self._savedict = {}
@@ -102,11 +102,11 @@ class ipnsdict(dict):
         # remove a key named '_'.  This is so that such a dict can be used as a
         # namespace in doctests that call '_'.
         self.protect_underscore = False
-        
+
     def clear(self):
         dict.clear(self)
         self.update(self._savedict)
-        
+
     def _checkpoint(self):
         self._savedict.clear()
         self._savedict.update(self)
@@ -132,7 +132,7 @@ class ipnsdict(dict):
         # correct for that ourselves, to ensure consitency with the 'real'
         # ipython.
         self['__builtins__'] = builtin_mod
-        
+
     def __delitem__(self, key):
         """Part of the test suite checks that we can release all
         references to an object. So we need to make sure that we're not
@@ -177,7 +177,7 @@ def start_ipython():
     if hasattr(start_ipython, 'already_called'):
         return
     start_ipython.already_called = True
-    
+
     # Store certain global objects that IPython modifies
     _displayhook = sys.displayhook
     _excepthook = sys.excepthook
@@ -187,16 +187,16 @@ def start_ipython():
     config = tools.default_config()
 
     # Create and initialize our test-friendly IPython instance.
-    shell = TerminalInteractiveShell.instance(config=config, 
+    shell = TerminalInteractiveShell.instance(config=config,
                                               user_ns=ipnsdict(),
                                               user_global_ns={}
                                               )
 
     # A few more tweaks needed for playing nicely with doctests...
-    
+
     # remove history file
     shell.tempfiles.append(config.HistoryManager.hist_file)
-    
+
     # These traps are normally only active for interactive use, set them
     # permanently since we'll be mocking interactive sessions.
     shell.builtin_trap.activate()
@@ -205,12 +205,12 @@ def start_ipython():
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
     shell.system = py3compat.MethodType(xsys, shell)
-                       
+
 
     shell._showtraceback = py3compat.MethodType(_showtraceback, shell)
 
     # IPython is ready, now clean up some global state...
-    
+
     # Deactivate the various python system hooks added by ipython for
     # interactive convenience so we don't confuse the doctest system
     sys.modules['__main__'] = _main
@@ -224,7 +224,7 @@ def start_ipython():
     get_ipython = _ip.get_ipython
     builtin_mod._ip = _ip
     builtin_mod.get_ipython = get_ipython
-    
+
     # To avoid extra IPython messages during testing, suppress io.stdout/stderr
     io.stdout = StreamProxy('stdout')
     io.stderr = StreamProxy('stderr')

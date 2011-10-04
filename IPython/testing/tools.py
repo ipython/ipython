@@ -134,7 +134,7 @@ def parse_test_output(txt):
         nerr = int(err_m.group(1))
         nfail = 0
         return  nerr, nfail
-    
+
     fail_m = re.search(r'^FAILED \(failures=(\d+)\)', txt, re.MULTILINE)
     if fail_m:
         nerr = 0
@@ -147,7 +147,7 @@ def parse_test_output(txt):
         nerr = int(both_m.group(1))
         nfail = int(both_m.group(2))
         return  nerr, nfail
-    
+
     # If the input didn't match any of these forms, assume no error/failures
     return 0, 0
 
@@ -197,15 +197,15 @@ def ipexec(fname, options=None):
     (stdout, stderr) of ipython subprocess.
     """
     if options is None: options = []
-    
+
     # For these subprocess calls, eliminate all prompt printing so we only see
     # output from script execution
-    prompt_opts = [ '--InteractiveShell.prompt_in1=""', 
-                    '--InteractiveShell.prompt_in2=""', 
+    prompt_opts = [ '--InteractiveShell.prompt_in1=""',
+                    '--InteractiveShell.prompt_in2=""',
                     '--InteractiveShell.prompt_out=""'
     ]
     cmdargs = ' '.join(default_argv() + prompt_opts + options)
-    
+
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
 
@@ -256,7 +256,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
     """
 
     import nose.tools as nt
-    
+
     out, err = ipexec(fname)
     #print 'OUT', out  # dbg
     #print 'ERR', err  # dbg
@@ -276,7 +276,7 @@ class TempFileMixin(object):
     """Utility class to create temporary Python/IPython files.
 
     Meant as a mixin class for test cases."""
-    
+
     def mktmp(self, src, ext='.py'):
         """Make a valid python temp file."""
         fname, f = temp_pyfile(src, ext)
@@ -303,16 +303,16 @@ pair_fail_msg = ("Testing {0}\n\n"
                 "Got:\n"
                 "  {3!r}\n")
 def check_pairs(func, pairs):
-    """Utility function for the common case of checking a function with a 
+    """Utility function for the common case of checking a function with a
     sequence of input/output pairs.
-    
+
     Parameters
     ----------
     func : callable
       The function to be tested. Should accept a single argument.
     pairs : iterable
       A list of (input, expected_output) tuples.
-    
+
     Returns
     -------
     None. Raises an AssertionError if any output does not match the expected

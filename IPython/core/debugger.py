@@ -39,7 +39,7 @@ has_pydb = False
 prompt = 'ipdb> '
 #We have to check this directly from sys.argv, config struct not yet available
 if '-pydb' in sys.argv:
-    try:        
+    try:
         import pydb
         if hasattr(pydb.pydb, "runl") and pydb.version>'1.17':
             # Version 1.17 is broken, and that's what ships with Ubuntu Edgy, so we
@@ -130,7 +130,7 @@ class Tracer(object):
 
         This is similar to the pdb.set_trace() function from the std lib, but
         using IPython's enhanced debugger."""
-        
+
         self.debugger.set_trace(sys._getframe().f_back)
 
 
@@ -173,9 +173,9 @@ class Pdb(OldPdb):
             OldPdb.__init__(self,stdin=stdin,stdout=io.stdout)
         else:
             OldPdb.__init__(self,completekey,stdin,stdout)
-            
+
         self.prompt = prompt # The default prompt is '(Pdb)'
-        
+
         # IPython changes...
         self.is_pydb = has_pydb
 
@@ -207,7 +207,7 @@ class Pdb(OldPdb):
         # module and add a few attributes needed for debugging
         self.color_scheme_table = exception_colors()
 
-        # shorthands 
+        # shorthands
         C = coloransi.TermColors
         cst = self.color_scheme_table
 
@@ -250,11 +250,11 @@ class Pdb(OldPdb):
         self.shell.set_completer_frame(self.curframe)
 
     def new_do_quit(self, arg):
-        
+
         if hasattr(self, 'old_all_completions'):
             self.shell.Completer.all_completions=self.old_all_completions
-        
-        
+
+
         return OldPdb.do_quit(self, arg)
 
     do_q = do_quit = decorate_fn_with_doc(new_do_quit, OldPdb.do_quit)
@@ -288,9 +288,9 @@ class Pdb(OldPdb):
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
         import linecache, repr
-        
+
         ret = []
-        
+
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
         tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
@@ -298,9 +298,9 @@ class Pdb(OldPdb):
         tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
         tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
                                             ColorsNormal)
-        
+
         frame, lineno = frame_lineno
-        
+
         return_value = ''
         if '__return__' in frame.f_locals:
             rv = frame.f_locals['__return__']
@@ -311,14 +311,14 @@ class Pdb(OldPdb):
         #s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
         link = tpl_link % filename
-        
+
         if frame.f_code.co_name:
             func = frame.f_code.co_name
         else:
             func = "<lambda>"
-            
+
         call = ''
-        if func != '?':         
+        if func != '?':
             if '__args__' in frame.f_locals:
                 args = repr.repr(frame.f_locals['__args__'])
             else:
@@ -332,13 +332,13 @@ class Pdb(OldPdb):
         else:
             ret.append('  ')
         ret.append('%s(%s)%s\n' % (link,lineno,call))
-            
+
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
         start = max(start, 0)
         start = min(start, len(lines) - context)
         lines = lines[start : start + context]
-            
+
         for i,line in enumerate(lines):
             show_arrow = (start + 1 + i == lineno)
             linetpl = (frame is self.curframe or show_arrow) \
@@ -362,7 +362,7 @@ class Pdb(OldPdb):
         if lineno in self.get_file_breaks(filename):
             bps = self.get_breaks(filename, lineno)
             bp = bps[-1]
-        
+
         if bp:
             Colors = self.color_scheme_table.active_colors
             bp_mark = str(bp.number)
@@ -387,7 +387,7 @@ class Pdb(OldPdb):
         else:
             num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
             line = tpl_line % (bp_mark_color + bp_mark, num, line)
-            
+
         return line
 
     def list_command_pydb(self, arg):
@@ -395,7 +395,7 @@ class Pdb(OldPdb):
         filename, first, last = OldPdb.parse_list_cmd(self, arg)
         if filename is not None:
             self.print_list_lines(filename, first, last)
-        
+
     def print_list_lines(self, filename, first, last):
         """The printing (as opposed to the parsing part of a 'list'
         command."""
@@ -496,7 +496,7 @@ class Pdb(OldPdb):
         #
         # End hack.  The rest of this method is copied verbatim from 2.6 pdb.py
         #######################################################################
-        
+
         if not line:
             print >>self.stdout, 'End of file'
             return 0

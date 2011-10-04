@@ -67,19 +67,19 @@ class HistoryManager(Configurable):
     # Should we log output to the database? (default no)
     db_log_output = Bool(False, config=True)
     # Write to database every x commands (higher values save disk access & power)
-    #  Values of 1 or less effectively disable caching. 
+    #  Values of 1 or less effectively disable caching.
     db_cache_size = Int(0, config=True)
     # The input and output caches
     db_input_cache = List()
     db_output_cache = List()
-    
+
     # History saving in separate thread
     save_thread = Instance('IPython.core.history.HistorySavingThread')
     try:               # Event is a function returning an instance of _Event...
         save_flag = Instance(threading._Event)
     except AttributeError:         # ...until Python 3.3, when it's a class.
         save_flag = Instance(threading.Event)
-    
+
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new
     # history update, we populate the user's namespace with these, shifted as
@@ -119,7 +119,7 @@ class HistoryManager(Configurable):
             else:
                 # The hist_file is probably :memory: or something else.
                 raise
-                
+
         self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
         self.db_output_cache_lock = threading.Lock()
@@ -128,7 +128,7 @@ class HistoryManager(Configurable):
 
         self.new_session()
 
-        
+
     def init_db(self):
         """Connect to the database, and create tables if necessary."""
         # use detect_types so that timestamps return datetime objects
@@ -136,7 +136,7 @@ class HistoryManager(Configurable):
         self.db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
                         primary key autoincrement, start timestamp,
                         end timestamp, num_cmds integer, remark text)""")
-        self.db.execute("""CREATE TABLE IF NOT EXISTS history 
+        self.db.execute("""CREATE TABLE IF NOT EXISTS history
                 (session integer, line integer, source text, source_raw text,
                 PRIMARY KEY (session, line))""")
         # Output history is optional, but ensure the table's there so it can be
@@ -145,17 +145,17 @@ class HistoryManager(Configurable):
                         (session integer, line integer, output text,
                         PRIMARY KEY (session, line))""")
         self.db.commit()
-    
+
     def new_session(self, conn=None):
         """Get a new session number."""
         if conn is None:
             conn = self.db
-        
+
         with conn:
             cur = conn.execute("""INSERT INTO sessions VALUES (NULL, ?, NULL,
                             NULL, "") """, (datetime.datetime.now(),))
             self.session_number = cur.lastrowid
-            
+
     def end_session(self):
         """Close the database session, filling in the end time and line count."""
         self.writeout_cache()
@@ -164,33 +164,33 @@ class HistoryManager(Configurable):
                             session==?""", (datetime.datetime.now(),
                             len(self.input_hist_parsed)-1, self.session_number))
         self.session_number = 0
-                            
+
     def name_session(self, name):
         """Give the current session a name in the history database."""
         with self.db:
             self.db.execute("UPDATE sessions SET remark=? WHERE session==?",
                             (name, self.session_number))
-                            
+
     def reset(self, new_session=True):
         """Clear the session history, releasing all object references, and
         optionally open a new session."""
         self.output_hist.clear()
         # The directory history can't be completely empty
         self.dir_hist[:] = [os.getcwdu()]
-        
+
         if new_session:
             if self.session_number:
                 self.end_session()
             self.input_hist_parsed[:] = [""]
             self.input_hist_raw[:] = [""]
             self.new_session()
-    
+
     ## -------------------------------
     ## Methods for retrieving history:
     ## -------------------------------
     def _run_sql(self, sql, params, raw=True, output=False):
         """Prepares and runs an SQL query for the history database.
-        
+
         Parameters
         ----------
         sql : str
@@ -199,7 +199,7 @@ class HistoryManager(Configurable):
           Parameters passed to the SQL query (to replace "?")
         raw, output : bool
           See :meth:`get_range`
-        
+
         Returns
         -------
         Tuples as :meth:`get_range`
@@ -214,38 +214,38 @@ class HistoryManager(Configurable):
         if output:    # Regroup into 3-tuples, and parse JSON
             return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
-        
-    
+
+
     def get_session_info(self, session=0):
         """get info about a session
-        
+
         Parameters
         ----------
-        
+
         session : int
             Session number to retrieve. The current session is 0, and negative
             numbers count back from current session, so -1 is previous session.
-        
+
         Returns
         -------
-        
+
         (session_id [int], start [datetime], end [datetime], num_cmds [int], remark [unicode])
-        
+
         Sessions that are running or did not exit cleanly will have `end=None`
         and `num_cmds=None`.
-        
+
         """
-        
+
         if session <= 0:
             session += self.session_number
-        
+
         query = "SELECT * from sessions where session == ?"
         return self.db.execute(query, (session,)).fetchone()
-        
-    
+
+
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
         """Get the last n lines from the history database.
-        
+
         Parameters
         ----------
         n : int
@@ -256,7 +256,7 @@ class HistoryManager(Configurable):
           If False (default), n+1 lines are fetched, and the latest one
           is discarded. This is intended to be used where the function
           is called by a user command, which it should not return.
-        
+
         Returns
         -------
         Tuples as :meth:`get_range`
@@ -269,12 +269,12 @@ class HistoryManager(Configurable):
         if not include_latest:
             return reversed(list(cur)[1:])
         return reversed(list(cur))
-        
+
     def search(self, pattern="*", raw=True, search_raw=True,
                                                         output=False):
         """Search the database using unix glob-style matching (wildcards
         * and ?).
-        
+
         Parameters
         ----------
         pattern : str
@@ -283,7 +283,7 @@ class HistoryManager(Configurable):
           If True, search the raw input, otherwise, the parsed input
         raw, output : bool
           See :meth:`get_range`
-        
+
         Returns
         -------
         Tuples as :meth:`get_range`
@@ -294,12 +294,12 @@ class HistoryManager(Configurable):
         self.writeout_cache()
         return self._run_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
                                     raw=raw, output=output)
-                                
+
     def _get_range_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
         get_range, and takes similar parameters."""
         input_hist = self.input_hist_raw if raw else self.input_hist_parsed
-            
+
         n = len(input_hist)
         if start < 0:
             start += n
@@ -307,17 +307,17 @@ class HistoryManager(Configurable):
             stop = n
         elif stop < 0:
             stop += n
-        
+
         for i in range(start, stop):
             if output:
                 line = (input_hist[i], self.output_hist_reprs.get(i))
             else:
                 line = input_hist[i]
             yield (0, i, line)
-            
+
     def get_range(self, session=0, start=1, stop=None, raw=True,output=False):
         """Retrieve input by session.
-        
+
         Parameters
         ----------
         session : int
@@ -335,7 +335,7 @@ class HistoryManager(Configurable):
             objects for the current session, or text reprs from previous
             sessions if db_log_output was enabled at the time. Where no output
             is found, None is used.
-            
+
         Returns
         -------
         An iterator over the desired lines. Each line is a 3-tuple, either
@@ -346,21 +346,21 @@ class HistoryManager(Configurable):
             return self._get_range_session(start, stop, raw, output)
         if session < 0:
             session += self.session_number
-            
+
         if stop:
             lineclause = "line >= ? AND line < ?"
             params = (session, start, stop)
         else:
             lineclause = "line>=?"
             params = (session, start)
-        
+
         return self._run_sql("WHERE session==? AND %s""" % lineclause,
                                     params, raw=raw, output=output)
-        
+
     def get_range_by_str(self, rangestr, raw=True, output=False):
         """Get lines of history from a string of ranges, as used by magic
         commands %hist, %save, %macro, etc.
-        
+
         Parameters
         ----------
         rangestr : str
@@ -368,7 +368,7 @@ class HistoryManager(Configurable):
           :func:`magic_history` for full details.
         raw, output : bool
           As :meth:`get_range`
-          
+
         Returns
         -------
         Tuples as :meth:`get_range`
@@ -376,19 +376,19 @@ class HistoryManager(Configurable):
         for sess, s, e in extract_hist_ranges(rangestr):
             for line in self.get_range(sess, s, e, raw=raw, output=output):
                 yield line
-    
+
     ## ----------------------------
     ## Methods for storing history:
     ## ----------------------------
     def store_inputs(self, line_num, source, source_raw=None):
         """Store source and raw input in history and create input cache
         variables _i*.
-        
+
         Parameters
         ----------
         line_num : int
           The prompt number of this input.
-        
+
         source : str
           Python input.
 
@@ -400,14 +400,14 @@ class HistoryManager(Configurable):
             source_raw = source
         source = source.rstrip('\n')
         source_raw = source_raw.rstrip('\n')
-            
+
         # do not store exit/quit commands
         if self._exit_re.match(source_raw.strip()):
             return
-        
+
         self.input_hist_parsed.append(source)
         self.input_hist_raw.append(source_raw)
-        
+
         with self.db_input_cache_lock:
             self.db_input_cache.append((line_num, source, source_raw))
             # Trigger to flush cache and write to DB.
@@ -427,12 +427,12 @@ class HistoryManager(Configurable):
                    '_iii': self._iii,
                    new_i : self._i00 }
         self.shell.user_ns.update(to_main)
-        
+
     def store_output(self, line_num):
         """If database output logging is enabled, this saves all the
         outputs from the indicated prompt number to the database. It's
         called by run_cell after code has been executed.
-        
+
         Parameters
         ----------
         line_num : int
@@ -441,29 +441,29 @@ class HistoryManager(Configurable):
         if (not self.db_log_output) or (line_num not in self.output_hist_reprs):
             return
         output = self.output_hist_reprs[line_num]
-        
+
         with self.db_output_cache_lock:
             self.db_output_cache.append((line_num, output))
         if self.db_cache_size <= 1:
             self.save_flag.set()
-    
+
     def _writeout_input_cache(self, conn):
         with conn:
             for line in self.db_input_cache:
                 conn.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
                                 (self.session_number,)+line)
-    
+
     def _writeout_output_cache(self, conn):
         with conn:
             for line in self.db_output_cache:
                 conn.execute("INSERT INTO output_history VALUES (?, ?, ?)",
                                 (self.session_number,)+line)
-    
+
     def writeout_cache(self, conn=None):
         """Write any entries in the cache to the database."""
         if conn is None:
             conn = self.db
-            
+
         with self.db_input_cache_lock:
             try:
                 self._writeout_input_cache(conn)
@@ -492,7 +492,7 @@ class HistoryManager(Configurable):
 class HistorySavingThread(threading.Thread):
     """This thread takes care of writing history to the database, so that
     the UI isn't held up while that happens.
-    
+
     It waits for the HistoryManager's save_flag to be set, then writes out
     the history cache. The main thread is responsible for setting the flag when
     the cache size reaches a defined threshold."""
@@ -502,7 +502,7 @@ class HistorySavingThread(threading.Thread):
         super(HistorySavingThread, self).__init__()
         self.history_manager = history_manager
         atexit.register(self.stop)
-        
+
     def run(self):
         # We need a separate db connection per thread:
         try:
@@ -516,10 +516,10 @@ class HistorySavingThread(threading.Thread):
         except Exception as e:
             print(("The history saving thread hit an unexpected error (%s)."
                    "History will not be written to the database.") % repr(e))
-        
+
     def stop(self):
         """This can be called from the main thread to safely stop this thread.
-        
+
         Note that it does not attempt to write out remaining history before
         exiting. That should be done by calling the HistoryManager's
         end_session method."""
@@ -527,7 +527,7 @@ class HistorySavingThread(threading.Thread):
         self.history_manager.save_flag.set()
         self.join()
 
-        
+
 # To match, e.g. ~5/8-~2/3
 range_re = re.compile(r"""
 ((?P<startsess>~?\d+)/)?
@@ -539,7 +539,7 @@ $""", re.VERBOSE)
 
 def extract_hist_ranges(ranges_str):
     """Turn a string of history ranges into 3-tuples of (session, start, stop).
-    
+
     Examples
     --------
     list(extract_input_ranges("~8/5-~7/4 2"))
@@ -578,7 +578,7 @@ def _format_lineno(session, line):
 @skip_doctest
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
-    
+
     %history       -> print at most 40 inputs (some may be multi-line)\\
     %history n     -> print at most n inputs\\
     %history n1 n2 -> print inputs between n1 and n2 (n2 not included)\\
@@ -594,7 +594,7 @@ def magic_history(self, parameter_s = ''):
     ~8/1-~6/5 : From the first line of 8 sessions ago, to the fifth line
                 of 6 sessions ago.
     Multiple ranges can be entered, separated by spaces
-    
+
     The same syntax is used by %macro, %save, %edit, %rerun
 
     Options:
@@ -609,29 +609,29 @@ def magic_history(self, parameter_s = ''):
        doctest-ready output.
 
       -r: (default) print the 'raw' history, i.e. the actual commands you typed.
-      
+
       -t: print the 'translated' history, as IPython understands it.  IPython
       filters your input and converts it all into valid Python source before
       executing it (things like magics or aliases are turned into function
       calls, for example). With this option, you'll see the native history
       instead of the user-entered version: '%cd /' will be seen as
       'get_ipython().magic("%cd /")' instead of '%cd /'.
-      
+
       -g: treat the arg as a pattern to grep for in (full) history.
       This includes the saved history (almost all commands ever written).
       Use '%hist -g' to show full saved history (may be very long).
-      
+
       -l: get the last n lines from all sessions. Specify n as a single arg, or
       the default is the last 10 lines.
 
       -f FILENAME: instead of printing the output to the screen, redirect it to
        the given file.  The file is always overwritten, though IPython asks for
        confirmation first if it already exists.
-       
+
     Examples
     --------
     ::
-    
+
       In [6]: %hist -n 4 6
       4:a = 12
       5:print a**2
@@ -642,10 +642,10 @@ def magic_history(self, parameter_s = ''):
         print('This feature is only available if numbered prompts are in use.')
         return
     opts,args = self.parse_options(parameter_s,'noprtglf:',mode='string')
-    
+
     # For brevity
     history_manager = self.shell.history_manager
-    
+
     def _format_lineno(session, line):
         """Helper function to format line numbers properly."""
         if session in (0, history_manager.session_number):
@@ -661,22 +661,22 @@ def magic_history(self, parameter_s = ''):
         close_at_end = False
     else:
         if os.path.exists(outfname):
-            if not io.ask_yes_no("File %r exists. Overwrite?" % outfname): 
+            if not io.ask_yes_no("File %r exists. Overwrite?" % outfname):
                 print('Aborting.')
                 return
 
         outfile = open(outfname,'w')
         close_at_end = True
-    
+
     print_nums = 'n' in opts
     get_output = 'o' in opts
     pyprompts = 'p' in opts
     # Raw history is the default
     raw = not('t' in opts)
-            
+
     default_length = 40
     pattern = None
-    
+
     if 'g' in opts:         # Glob search
         pattern = "*" + args + "*" if args else "*"
         hist = history_manager.search(pattern, raw=raw, output=get_output)
@@ -692,11 +692,11 @@ def magic_history(self, parameter_s = ''):
             hist = history_manager.get_range_by_str(args, raw, get_output)
         else:               # Just get history for the current session
             hist = history_manager.get_range(raw=raw, output=get_output)
-    
-    # We could be displaying the entire history, so let's not try to pull it 
+
+    # We could be displaying the entire history, so let's not try to pull it
     # into a list in memory. Anything that needs more space will just misalign.
     width = 4
-        
+
     for session, lineno, inline in hist:
         # Print user history with tabs expanded to 4 spaces.  The GUI clients
         # use hard tabs for easier usability in auto-indented code, but we want
@@ -704,7 +704,7 @@ def magic_history(self, parameter_s = ''):
         if get_output:
             inline, output = inline
         inline = inline.expandtabs(4).rstrip()
-            
+
         multiline = "\n" in inline
         line_sep = '\n' if multiline else ' '
         if print_nums:
@@ -727,29 +727,29 @@ def magic_rep(self, arg):
     %rep are equivalent.
 
     - %recall (no arguments):
-    
+
     Place a string version of last computation result (stored in the special '_'
     variable) to the next input prompt. Allows you to create elaborate command
     lines without using copy-paste::
-    
+
          In[1]: l = ["hei", "vaan"]
          In[2]: "".join(l)
         Out[2]: heivaan
          In[3]: %rep
          In[4]: heivaan_ <== cursor blinking
-    
+
     %recall 45
-    
+
     Place history line 45 on the next input prompt. Use %hist to find
     out the number.
-    
+
     %recall 1-4
-    
+
     Combine the specified lines into one cell, and place it on the next
     input prompt. See %history for the slice syntax.
-    
+
     %recall foo+bar
-    
+
     If foo+bar can be evaluated in the user namespace, the result is
     placed at the next input prompt. Otherwise, the history is searched
     for lines which contain that substring, and the most recent one is
@@ -777,18 +777,18 @@ def magic_rep(self, arg):
     else:
         self.set_next_input(cmd.rstrip())
     print("Couldn't evaluate or find in history:", arg)
-        
+
 def magic_rerun(self, parameter_s=''):
     """Re-run previous input
-    
+
     By default, you can specify ranges of input history to be repeated
     (as with %history). With no arguments, it will repeat the last line.
-    
+
     Options:
-    
+
       -l <n> : Repeat the last n lines of input, not including the
       current command.
-      
+
       -g foo : Repeat the most recent line which contains foo
     """
     opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
@@ -820,7 +820,7 @@ def magic_rerun(self, parameter_s=''):
 
 
 def init_ipython(ip):
-    ip.define_magic("rep", magic_rep) 
+    ip.define_magic("rep", magic_rep)
     ip.define_magic("recall", magic_rep)
     ip.define_magic("rerun", magic_rerun)
     ip.define_magic("hist",magic_history)    # Alternative name

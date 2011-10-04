@@ -45,7 +45,7 @@ class IndentOut(object):
 
     Instances of this class trap output to a given stream and first reformat it
     to indent every input line."""
-    
+
     def __init__(self,out=sys.stdout,indent=4):
         """Create an indented writer.
 
@@ -57,7 +57,7 @@ class IndentOut(object):
         - `indent` : int
           Number of spaces to indent every input line by.
         """
-        
+
         self.indent_text = ' '*indent
         self.indent = re.compile('^',re.MULTILINE).sub
         self.out = out
@@ -77,7 +77,7 @@ class IndentOut(object):
             data = ''.join(self.buffer)
             self.buffer[:] = []
             self._write(self.indent(self.indent_text,data))
-        
+
     def close(self):
         self.flush()
         self._closed = True
@@ -96,7 +96,7 @@ class RunnerFactory(object):
 
     def __init__(self,out=sys.stdout):
         """Instantiate a code runner."""
-        
+
         self.out = out
         self.runner = None
         self.runnerClass = None
@@ -105,7 +105,7 @@ class RunnerFactory(object):
         self.runnerClass = runnerClass
         self.runner = runnerClass(out=self.out)
         return self.runner
-          
+
     def __call__(self,fname):
         """Return a runner for the given filename."""
 
@@ -199,7 +199,7 @@ def main():
         outfile = open(outfname,'w')
 
 
-    # all output from included files will be indented 
+    # all output from included files will be indented
     indentOut = IndentOut(outfile,4)
     getRunner = RunnerFactory(indentOut)
 

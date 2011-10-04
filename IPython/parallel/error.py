@@ -56,7 +56,7 @@ class NotDefined(KernelError):
 
     def __repr__(self):
         return '<NotDefined: %s>' % self.name
-    
+
     __str__ = __repr__
 
 
@@ -175,35 +175,35 @@ class RemoteError(KernelError):
     evalue=None
     traceback=None
     engine_info=None
-    
+
     def __init__(self, ename, evalue, traceback, engine_info=None):
         self.ename=ename
         self.evalue=evalue
         self.traceback=traceback
         self.engine_info=engine_info or {}
         self.args=(ename, evalue)
-    
+
     def __repr__(self):
         engineid = self.engine_info.get('engine_id', ' ')
         return "<Remote[%s]:%s(%s)>"%(engineid, self.ename, self.evalue)
-        
+
     def __str__(self):
         sig = "%s(%s)"%(self.ename, self.evalue)
         if self.traceback:
             return sig + '\n' + self.traceback
         else:
             return sig
-    
+
 
 class TaskRejectError(KernelError):
     """Exception to raise when a task should be rejected by an engine.
-    
+
     This exception can be used to allow a task running on an engine to test
     if the engine (or the user's namespace on the engine) has the needed
     task dependencies.  If not, the task should raise this exception.  For
     the task to be retried on another engine, the task should be created
     with the `retries` argument > 1.
-    
+
     The advantage of this approach over our older properties system is that
     tasks have full access to the user's namespace on the engines and the
     properties don't have to be managed or tested by the controller.
@@ -240,7 +240,7 @@ class CompositeError(RemoteError):
             engine_str = self._get_engine_str(ei)
             s = s + '\n' + engine_str + en + ': ' + str(ev)
         return s
-    
+
     def __repr__(self):
         return "CompositeError(%i)"%len(self.elist)
 
@@ -258,7 +258,7 @@ class CompositeError(RemoteError):
             else:
                 print (self._get_engine_str(ei))
                 print (etb or 'No traceback available')
-    
+
     def raise_exception(self, excid=0):
         try:
             en,ev,etb,ei = self.elist[excid]
@@ -280,7 +280,7 @@ def collect_exceptions(rdict_or_list, method='unspecified'):
         if isinstance(r, RemoteError):
             en, ev, etb, ei = r.ename, r.evalue, r.traceback, r.engine_info
             # Sometimes we could have CompositeError in our list.  Just take
-            # the errors out of them and put them in our new list.  This 
+            # the errors out of them and put them in our new list.  This
             # has the effect of flattening lists of CompositeErrors into one
             # CompositeError
             if en=='CompositeError':
@@ -312,7 +312,7 @@ def wrap_exception(engine_info={}):
     return exc_content
 
 def unwrap_exception(content):
-    err = RemoteError(content['ename'], content['evalue'], 
+    err = RemoteError(content['ename'], content['evalue'],
                 ''.join(content['traceback']),
                 content.get('engine_info', {}))
     return err

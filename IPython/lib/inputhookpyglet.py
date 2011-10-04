@@ -68,7 +68,7 @@ else:
 
 def inputhook_pyglet():
     """Run the pyglet event loop by processing pending events only.
-    
+
     This keeps processing pending events until stdin is ready.  After
     processing all pending events, a call to time.sleep is inserted.  This is
     needed, otherwise, CPU usage is at 100%.  This sleep time should be tuned
@@ -87,7 +87,7 @@ def inputhook_pyglet():
                 flip(window)
 
             # We need to sleep at this point to keep the idle CPU load
-            # low.  However, if sleep to long, GUI response is poor.  As 
+            # low.  However, if sleep to long, GUI response is poor.  As
             # a compromise, we watch how often GUI events are being processed
             # and switch between a short and long sleep time.  Here are some
             # stats useful in helping to tune this.

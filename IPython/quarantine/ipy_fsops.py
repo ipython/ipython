@@ -27,30 +27,30 @@ import IPython.utils.generics
 
 def parse_args(args):
     """ Given arg string 'CMD files... target', return ([files], target) """
-    
+
     tup = args.split(None, 1)
     if len(tup) == 1:
         raise UsageError("Expected arguments for " + tup[0])
-    
+
     tup2 = shlex.split(tup[1])
-    
+
     flist, trg = mglob.expand(tup2[0:-1]), tup2[-1]
     if not flist:
         raise UsageError("No files found:" + str(tup2[0:-1]))
     return flist, trg
-    
+
 def icp(ip,arg):
     """ icp files... targetdir
-    
+
     Copy all files to target, creating dirs for target if necessary
-    
+
     icp srcdir dstdir
-    
+
     Copy srcdir to distdir
-    
+
     """
     import distutils.dir_util
-    
+
     fs, targetdir = parse_args(arg)
     if not os.path.isdir(targetdir) and len(fs) > 1:
         distutils.dir_util.mkpath(targetdir,verbose =1)
@@ -64,21 +64,21 @@ ip.define_alias("icp",icp)
 
 def imv(ip,arg):
     """ imv src tgt
-    
+
     Move source to target.
     """
-    
+
     fs, target = parse_args(arg)
     if len(fs) > 1:
         assert os.path.isdir(target)
-    for f in fs:        
+    for f in fs:
         shutil.move(f, target)
     return fs
-ip.define_alias("imv",imv)        
+ip.define_alias("imv",imv)
 
 def irm(ip,arg):
     """ irm path[s]...
-    
+
     Remove file[s] or dir[s] path. Dirs are deleted recursively.
     """
     try:
@@ -97,24 +97,24 @@ ip.define_alias("irm",irm)
 
 def imkdir(ip,arg):
     """ imkdir path
-    
+
     Creates dir path, and all dirs on the road
     """
     import distutils.dir_util
     targetdir = arg.split(None,1)[1]
-    distutils.dir_util.mkpath(targetdir,verbose =1)    
+    distutils.dir_util.mkpath(targetdir,verbose =1)
 
-ip.define_alias("imkdir",imkdir)    
+ip.define_alias("imkdir",imkdir)
 
 def igrep(ip,arg):
     """ igrep PAT files...
-    
+
     Very dumb file scan, case-insensitive.
-    
+
     e.g.
-    
+
     igrep "test this" rec:*.py
-    
+
     """
     elems = shlex.split(arg)
     dummy, pat, fs = elems[0], elems[1], mglob.expand(elems[2:])
@@ -130,19 +130,19 @@ def igrep(ip,arg):
                 print l.rstrip()
     return res
 
-ip.define_alias("igrep",igrep)    
+ip.define_alias("igrep",igrep)
 
 def collect(ip,arg):
     """ collect foo/a.txt rec:bar=*.py
-    
+
     Copies foo/a.txt to ~/_ipython/collect/foo/a.txt and *.py from bar,
     likewise
-    
+
     Without args, try to open ~/_ipython/collect dir (in win32 at least).
     """
     from IPython.external.path import path
     basedir = path(ip.ipython_dir + '/collect')
-    try:    
+    try:
         fs = mglob.expand(arg.split(None,1)[1])
     except IndexError:
         os.startfile(basedir)
@@ -160,23 +160,23 @@ def collect(ip,arg):
         print f,"=>",trg
         shutil.copy2(f,trg)
 
-ip.define_alias("collect",collect)            
+ip.define_alias("collect",collect)
 
 def inote(ip,arg):
     """ inote Hello world
-    
+
     Adds timestamp and Hello world to ~/_ipython/notes.txt
-    
+
     Without args, opens notes.txt for editing.
     """
     import time
     fname = ip.ipython_dir + '/notes.txt'
-    
+
     try:
         entry = " === " + time.asctime() + ': ===\n' + arg.split(None,1)[1] + '\n'
-        f= open(fname, 'a').write(entry)    
+        f= open(fname, 'a').write(entry)
     except IndexError:
-        ip.hooks.editor(fname)        
+        ip.hooks.editor(fname)
 
 ip.define_alias("inote",inote)
 
@@ -186,7 +186,7 @@ def pathobj_unmangle(s):
     return s.replace('__',' ').replace('DOT','.')
 
 
-    
+
 class PathObj(path):
     def __init__(self,p):
         self.path = p
@@ -205,7 +205,7 @@ class PathObj(path):
                 sep = ''
             else:
                 sep = '/'
-                
+
             tgt = self.path + sep + pathobj_unmangle(name)
             #print "tgt",tgt
             if os.path.isdir(tgt):
@@ -216,15 +216,15 @@ class PathObj(path):
         raise AttributeError, name  # <<< DON'T FORGET THIS LINE !!
     def __str__(self):
         return self.path
-        
+
     def __repr__(self):
         return "<PathObj to %s>" % self.path
-    
+
     def __call__(self):
         print "cd:",self.path
         os.chdir(self.path)
-        
-def complete_pathobj(obj, prev_completions):    
+
+def complete_pathobj(obj, prev_completions):
     if hasattr(obj,'__complete__'):
         res = obj.__complete__()
         if res:
@@ -242,5 +242,5 @@ def test_pathobj():
     startmenu = PathObj("d:/Documents and Settings/All Users/Start Menu/Programs")
     cwd = PathObj('.')
     ip.push("rootdir startmenu cwd")
-    
+
 #test_pathobj()

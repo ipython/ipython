@@ -1,10 +1,10 @@
 """ Integration with gvim, by Erich Heine
 
-Provides a %vim magic command, and reuses the same vim session. Uses 
-unix domain sockets for communication between vim and IPython. ipy.vim is 
+Provides a %vim magic command, and reuses the same vim session. Uses
+unix domain sockets for communication between vim and IPython. ipy.vim is
 available in doc/examples of the IPython distribution.
 
-Slightly touched up email announcement (and description how to use it) by 
+Slightly touched up email announcement (and description how to use it) by
 Erich Heine is here:
 
 Ive recently been playing with ipython, and like it quite a bit. I did
@@ -22,7 +22,7 @@ for having gvim and ipython work very nicely together. Ive attached
 both to this email (hoping of course that the mailing list allows such
 things).
 
-There are 2 files: 
+There are 2 files:
 
 ipy_vimserver.py -- this file contains the ipython stuff
 ipy.vim -- this file contains the gvim stuff

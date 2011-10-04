@@ -32,8 +32,8 @@ class CannedObject(object):
         self.obj = copy.copy(obj)
         for key in keys:
             setattr(self.obj, key, can(getattr(obj, key)))
-            
-    
+
+
     def getObject(self, g=None):
         if g is None:
             g = globals()
@@ -47,10 +47,10 @@ class Reference(CannedObject):
         if not isinstance(name, basestring):
             raise TypeError("illegal name: %r"%name)
         self.name = name
-    
+
     def __repr__(self):
         return "<Reference: %r>"%self.name
-    
+
     def getObject(self, g=None):
         if g is None:
             g = globals()
@@ -58,20 +58,20 @@ class Reference(CannedObject):
             return g[self.name]
         except KeyError:
             raise NameError("name %r is not defined"%self.name)
-    
+
 
 class CannedFunction(CannedObject):
-    
+
     def __init__(self, f):
-        self._checkType(f)    
+        self._checkType(f)
         self.code = f.func_code
         self.defaults = f.func_defaults
         self.module = f.__module__ or '__main__'
         self.__name__ = f.__name__
-    
+
     def _checkType(self, obj):
         assert isinstance(obj, FunctionType), "Not a function type"
-    
+
     def getObject(self, g=None):
         # try to load function back into its module:
         if not self.module.startswith('__'):
@@ -81,7 +81,7 @@ class CannedFunction(CannedObject):
                 pass
             else:
                 g = sys.modules[self.module].__dict__
-            
+
         if g is None:
             g = globals()
         newFunc = FunctionType(self.code, g, self.__name__, self.defaults)

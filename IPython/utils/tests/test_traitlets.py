@@ -75,7 +75,7 @@ class TestTraitType(TestCase):
                 return -1
         class A(HasTraitsStub):
             tt = MyTT
-        
+
         a = A()
         a.tt = 10
         self.assertEquals(a.tt, -1)
@@ -393,7 +393,7 @@ class TestHasTraits(TestCase):
         traits = a.traits(config_key='VALUE1', other_thing='VALUE2')
         self.assertEquals(traits, dict(i=A.i))
 
-        # This passes, but it shouldn't because I am replicating a bug in 
+        # This passes, but it shouldn't because I am replicating a bug in
         # traits.
         traits = a.traits(config_key=lambda v: True)
         self.assertEquals(traits, dict(i=A.i, f=A.f, j=A.j))
@@ -432,7 +432,7 @@ class TestType(TestCase):
         class C(object): pass
         class A(HasTraits):
             klass = Type(B)
-        
+
         a = A()
         self.assertEquals(a.klass, B)
         self.assertRaises(TraitError, setattr, a, 'klass', C)
@@ -486,7 +486,7 @@ class TestType(TestCase):
         a = A()
         a.klass = Struct
         self.assertEquals(a.klass, Struct)
-        
+
         self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
 class TestInstance(TestCase):
@@ -495,7 +495,7 @@ class TestInstance(TestCase):
         class Foo(object): pass
         class Bar(Foo): pass
         class Bah(object): pass
-        
+
         class A(HasTraits):
             inst = Instance(Foo)
 
@@ -547,7 +547,7 @@ class TestInstance(TestCase):
 
         class A(HasTraits):
             inst = Instance(Foo, allow_none=False)
-        
+
         self.assertRaises(TraitError, A)
 
     def test_instance(self):
@@ -556,7 +556,7 @@ class TestInstance(TestCase):
         def inner():
             class A(HasTraits):
                 inst = Instance(Foo())
-        
+
         self.assertRaises(TraitError, inner)
 
 
@@ -576,7 +576,7 @@ class TestThis(TestCase):
     def test_this_inst(self):
         class Foo(HasTraits):
             this = This()
-        
+
         f = Foo()
         f.this = Foo()
         self.assert_(isinstance(f.this, Foo))
@@ -696,7 +696,7 @@ class TestComplex(TraitTestBase):
     obj = ComplexTrait()
 
     _default_value = 99.0-99.0j
-    _good_values   = [10, -10, 10.1, -10.1, 10j, 10+10j, 10-10j, 
+    _good_values   = [10, -10, 10.1, -10.1, 10j, 10+10j, 10-10j,
                       10.1j, 10.1+10.1j, 10.1-10.1j]
     _bad_values    = [10L, -10L, u'10L', u'-10L', 'ten', [10], {'ten': 10},(10,), None]
 
@@ -725,7 +725,7 @@ class TestUnicode(TraitTestBase):
     obj = UnicodeTrait()
 
     _default_value = u'unicode'
-    _good_values   = ['10', '-10', '10L', '-10L', '10.1', 
+    _good_values   = ['10', '-10', '10L', '-10L', '10.1',
                       '-10.1', '', u'', 'string', u'string', u"€"]
     _bad_values    = [10, -10, 10L, -10L, 10.1, -10.1, 1j,
                       [10], ['ten'], [u'ten'], {'ten': 10},(10,), None]
@@ -733,10 +733,10 @@ class TestUnicode(TraitTestBase):
 
 class ObjectNameTrait(HasTraits):
     value = ObjectName("abc")
-    
+
 class TestObjectName(TraitTestBase):
     obj = ObjectNameTrait()
-    
+
     _default_value = "abc"
     _good_values = ["a", "gh", "g9", "g_", "_G", u"a345_"]
     _bad_values = [1, "", u"€", "9g", "!", "#abc", "aj@", "a.b", "a()", "a[0]",
@@ -752,7 +752,7 @@ class DottedObjectNameTrait(HasTraits):
 
 class TestDottedObjectName(TraitTestBase):
     obj = DottedObjectNameTrait()
-    
+
     _default_value = "a.b"
     _good_values = ["A", "y.t", "y765.__repr__", "os.path.join", u"os.path.join"]
     _bad_values = [1, u"abc.€", "_.@", ".", ".abc", "abc.", ".abc."]

@@ -49,7 +49,7 @@ def display(*objs, **kwargs):
     """
     include = kwargs.get('include')
     exclude = kwargs.get('exclude')
-    
+
     from IPython.core.interactiveshell import InteractiveShell
     inst = InteractiveShell.instance()
     format = inst.display_formatter.format
@@ -237,7 +237,7 @@ class DisplayObject(object):
         in the frontend. The MIME type of the data should match the
         subclasses used, so the Png subclass should be used for 'image/png'
         data. If the data is a URL, the data will first be downloaded
-        and then displayed. If 
+        and then displayed. If
 
         Parameters
         ----------

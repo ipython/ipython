@@ -55,16 +55,16 @@ class Configurable(HasTraits):
         Parameters
         ----------
         config : Config
-            If this is empty, default values are used. If config is a 
+            If this is empty, default values are used. If config is a
             :class:`Config` instance, it will be used to configure the
             instance.
-        
+
         Notes
         -----
         Subclasses of Configurable must call the :meth:`__init__` method of
-        :class:`Configurable` *before* doing anything else and using 
+        :class:`Configurable` *before* doing anything else and using
         :func:`super`::
-        
+
             class MyConfigurable(Configurable):
                 def __init__(self, config=None):
                     super(MyConfigurable, self).__init__(config)
@@ -82,7 +82,7 @@ class Configurable(HasTraits):
             # making that a class attribute.
             # self.config = deepcopy(config)
             self.config = config
-        # This should go second so individual keyword arguments override 
+        # This should go second so individual keyword arguments override
         # the values in config.
         super(Configurable, self).__init__(**kwargs)
         self.created = datetime.datetime.now()
@@ -105,11 +105,11 @@ class Configurable(HasTraits):
         # classes that are Configurable subclasses.  This starts with Configurable
         # and works down the mro loading the config for each section.
         section_names = [cls.__name__ for cls in \
-            reversed(self.__class__.__mro__) if 
+            reversed(self.__class__.__mro__) if
             issubclass(cls, Configurable) and issubclass(self.__class__, cls)]
 
         for sname in section_names:
-            # Don't do a blind getattr as that would cause the config to 
+            # Don't do a blind getattr as that would cause the config to
             # dynamically create the section with name self.__class__.__name__.
             if new._has_section(sname):
                 my_config = new[sname]
@@ -149,7 +149,7 @@ class Configurable(HasTraits):
             help = cls.class_get_trait_help(v)
             final_help.append(help)
         return '\n'.join(final_help)
-    
+
     @classmethod
     def class_get_trait_help(cls, trait):
         """Get the help string for a single trait."""
@@ -167,7 +167,7 @@ class Configurable(HasTraits):
         if 'Enum' in trait.__class__.__name__:
             # include Enum choices
             lines.append(indent('Choices: %r'%(trait.values,)))
-        
+
         help = trait.get_metadata('help')
         if help is not None:
             help = '\n'.join(wrap_paragraphs(help, 76))
@@ -185,9 +185,9 @@ class Configurable(HasTraits):
         def c(s):
             """return a commented, wrapped block."""
             s = '\n\n'.join(wrap_paragraphs(s, 78))
-            
+
             return '# ' + s.replace('\n', '\n# ')
-        
+
         # section header
         breaker = '#' + '-'*78
         s = "# %s configuration"%cls.__name__
@@ -202,7 +202,7 @@ class Configurable(HasTraits):
         if desc:
             lines.append(c(desc))
             lines.append('')
-        
+
         parents = []
         for parent in cls.mro():
             # only include parents that are not base classes
@@ -211,20 +211,20 @@ class Configurable(HasTraits):
             if parent is not cls and issubclass(parent, Configurable) and \
                     parent.class_traits(config=True):
                 parents.append(parent)
-        
+
         if parents:
             pstr = ', '.join([ p.__name__ for p in parents ])
             lines.append(c('%s will inherit config from: %s'%(cls.__name__, pstr)))
             lines.append('')
-        
+
         for name,trait in cls.class_traits(config=True).iteritems():
             help = trait.get_metadata('help') or ''
             lines.append(c(help))
             lines.append('# c.%s.%s = %r'%(cls.__name__, name, trait.get_default_value()))
             lines.append('')
         return '\n'.join(lines)
-    
-    
+
+
 
 class SingletonConfigurable(Configurable):
     """A configurable that only allows one instance.
@@ -235,20 +235,20 @@ class SingletonConfigurable(Configurable):
     """
 
     _instance = None
-    
+
     @classmethod
     def _walk_mro(cls):
         """Walk the cls.mro() for parent classes that are also singletons
-        
+
         For use in instance()
         """
-        
+
         for subclass in cls.mro():
             if issubclass(cls, subclass) and \
                     issubclass(subclass, SingletonConfigurable) and \
                     subclass != SingletonConfigurable:
                 yield subclass
-    
+
     @classmethod
     def clear_instance(cls):
         """unset _instance for this class and singleton parents.
@@ -260,7 +260,7 @@ class SingletonConfigurable(Configurable):
                 # only clear instances that are instances
                 # of the calling class
                 subclass._instance = None
-            
+
     @classmethod
     def instance(cls, *args, **kwargs):
         """Returns a global instance of this class.
@@ -297,7 +297,7 @@ class SingletonConfigurable(Configurable):
             # parent classes' _instance attribute.
             for subclass in cls._walk_mro():
                 subclass._instance = inst
-        
+
         if isinstance(cls._instance, cls):
             return cls._instance
         else:
@@ -314,15 +314,15 @@ class SingletonConfigurable(Configurable):
 
 class LoggingConfigurable(Configurable):
     """A parent class for Configurables that log.
-    
+
     Subclasses have a log trait, and the default behavior
     is to get the logger from the currently running Application
     via Application.instance().log.
     """
-    
+
     log = Instance('logging.Logger')
     def _log_default(self):
         from IPython.config.application import Application
         return Application.instance().log
-        
-        
+
+

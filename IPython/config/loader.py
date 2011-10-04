@@ -53,14 +53,14 @@ class ArgumentError(ConfigLoaderError):
 
 class ArgumentParser(argparse.ArgumentParser):
     """Simple argparse subclass that prints help to stdout by default."""
-    
+
     def print_help(self, file=None):
         if file is None:
             file = sys.stdout
         return super(ArgumentParser, self).print_help(file)
-    
+
     print_help.__doc__ = argparse.ArgumentParser.print_help.__doc__
-    
+
 #-----------------------------------------------------------------------------
 # Config class for holding config information
 #-----------------------------------------------------------------------------
@@ -125,10 +125,10 @@ class Config(dict):
         # infinite recursion on top of PyPy. Instead, we manually fish the
         # bound method.
         is_section_key = self.__class__._is_section_key.__get__(self)
-        
+
         # Because we use this for an exec namespace, we need to delegate
         # the lookup of names in __builtin__ to itself.  This means
-        # that you can't have section or attribute names that are 
+        # that you can't have section or attribute names that are
         # builtins.
         try:
             return getattr(builtin_mod, key)
@@ -182,25 +182,25 @@ class Config(dict):
 
 class ConfigLoader(object):
     """A object for loading configurations from just about anywhere.
-    
+
     The resulting configuration is packaged as a :class:`Struct`.
-    
+
     Notes
     -----
-    A :class:`ConfigLoader` does one thing: load a config from a source 
+    A :class:`ConfigLoader` does one thing: load a config from a source
     (file, command line arguments) and returns the data as a :class:`Struct`.
     There are lots of things that :class:`ConfigLoader` does not do.  It does
     not implement complex logic for finding config files.  It does not handle
-    default values or merge multiple configs.  These things need to be 
+    default values or merge multiple configs.  These things need to be
     handled elsewhere.
     """
 
     def __init__(self):
         """A base class for config loaders.
-        
+
         Examples
         --------
-        
+
         >>> cl = ConfigLoader()
         >>> config = cl.load_config()
         >>> config
@@ -213,7 +213,7 @@ class ConfigLoader(object):
 
     def load_config(self):
         """Load a config from somewhere, return a :class:`Config` instance.
-        
+
         Usually, this will cause self.config to be set and then returned.
         However, in most cases, :meth:`ConfigLoader.clear` should be called
         to erase any previous state.
@@ -233,7 +233,7 @@ class FileConfigLoader(ConfigLoader):
 
 class PyFileConfigLoader(FileConfigLoader):
     """A config loader for pure python files.
-    
+
     This calls execfile on a plain python file and looks for attributes
     that are all caps.  These attribute are added to the config Struct.
     """
@@ -276,10 +276,10 @@ class PyFileConfigLoader(FileConfigLoader):
         # and self.config.  The sub-config is loaded with the same path
         # as the parent, but it uses an empty config which is then merged
         # with the parents.
-        
+
         # If a profile is specified, the config file will be loaded
         # from that profile
-        
+
         def load_subconfig(fname, profile=None):
             # import here to prevent circular imports
             from IPython.core.profiledir import ProfileDir, ProfileDirError
@@ -303,7 +303,7 @@ class PyFileConfigLoader(FileConfigLoader):
                 pass
             else:
                 self.config._merge(sub_config)
-        
+
         # Again, this needs to be a closure and should be used in config
         # files to get the config being loaded.
         def get_config():
@@ -340,7 +340,7 @@ class CommandLineConfigLoader(ConfigLoader):
             # it succeeds. If it still fails, we let it raise.
             exec_str = u'self.config.' + lhs + '=' + repr(rhs)
             exec exec_str in locals(), globals()
-    
+
     def _load_flag(self, cfg):
         """update self.config from a flag, which can be a dict or Config"""
         if isinstance(cfg, (dict, Config)):
@@ -373,7 +373,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
     """A config loader that loads key value pairs from the command line.
 
     This allows command line options to be gives in the following form::
-    
+
         ipython --profile="foo" --InteractiveShell.autocall=False
     """
 
@@ -414,13 +414,13 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         self.argv = argv
         self.aliases = aliases or {}
         self.flags = flags or {}
-        
-    
+
+
     def clear(self):
         super(KeyValueConfigLoader, self).clear()
         self.extra_args = []
-        
-    
+
+
     def _decode_argv(self, argv, enc=None):
         """decode argv if bytes, using stin.encoding, falling back on default enc"""
         uargv = []
@@ -432,16 +432,16 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 arg = arg.decode(enc)
             uargv.append(arg)
         return uargv
-                
-                
+
+
     def load_config(self, argv=None, aliases=None, flags=None):
         """Parse the configuration and generate the Config object.
-        
+
         After loading, any arguments that are not key-value or
         flags will be stored in self.extra_args - a list of
         unparsed command-line arguments.  This is used for
         arguments such as input files or subcommands.
-        
+
         Parameters
         ----------
         argv : list, optional
@@ -454,7 +454,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             Of the form: `{'alias' : 'Configurable.trait'}`
         flags : dict
             A dict of flags, keyed by str name. Values can be Config objects
-            or dicts.  When the flag is triggered, The config is loaded as 
+            or dicts.  When the flag is triggered, The config is loaded as
             `self.config.update(cfg)`.
         """
         from IPython.config.configurable import Configurable
@@ -466,20 +466,20 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             aliases = self.aliases
         if flags is None:
             flags = self.flags
-        
+
         # ensure argv is a list of unicode strings:
         uargv = self._decode_argv(argv)
         for idx,raw in enumerate(uargv):
             # strip leading '-'
             item = raw.lstrip('-')
-            
+
             if raw == '--':
                 # don't parse arguments after '--'
                 # this is useful for relaying arguments to scripts, e.g.
                 # ipython -i foo.py --pylab=qt -- args after '--' go-to-foo.py
                 self.extra_args.extend(uargv[idx+1:])
                 break
-            
+
             if kv_pattern.match(raw):
                 lhs,rhs = item.split('=',1)
                 # Substitute longnames for aliases.
@@ -489,7 +489,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     # probably a mistyped alias, but not technically illegal
                     warn.warn("Unrecognized alias: '%s', it will probably have no effect."%lhs)
                 self._exec_config_str(lhs, rhs)
-                
+
             elif flag_pattern.match(raw):
                 if item in flags:
                     cfg,help = flags[item]
@@ -503,7 +503,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 else:
                     raise ArgumentError("Invalid argument: '%s'"%raw)
             else:
-                # keep all args that aren't valid in a list, 
+                # keep all args that aren't valid in a list,
                 # in case our parent knows what to do with them.
                 self.extra_args.append(item)
         return self.config
@@ -541,7 +541,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         self.argv = argv
         self.aliases = aliases or {}
         self.flags = flags or {}
-        
+
         self.parser_args = parser_args
         self.version = parser_kw.pop("version", None)
         kwargs = dict(argument_default=argparse.SUPPRESS)
@@ -597,10 +597,10 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
 class KVArgParseConfigLoader(ArgParseConfigLoader):
     """A config loader that loads aliases and flags with argparse,
-    but will use KVLoader for the rest.  This allows better parsing 
+    but will use KVLoader for the rest.  This allows better parsing
     of common args, such as `ipython -c 'print 5'`, but still gets
     arbitrary config with `ipython --InteractiveShell.use_readline=False`"""
-    
+
     def _convert_to_config(self):
         """self.parsed_data->self.config"""
         for k, v in vars(self.parsed_data).iteritems():
@@ -626,14 +626,14 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
                 paa('--'+key, type=unicode, dest=value, nargs=nargs)
         for key, (value, help) in flags.iteritems():
             if key in self.aliases:
-                # 
+                #
                 self.alias_flags[self.aliases[key]] = value
                 continue
             if len(key) is 1:
                 paa('-'+key, '--'+key, action='append_const', dest='_flags', const=value)
             else:
                 paa('--'+key, action='append_const', dest='_flags', const=value)
-    
+
     def _convert_to_config(self):
         """self.parsed_data->self.config, parse unrecognized extra args via KVLoader."""
         # remove subconfigs list from namespace before transforming the Namespace
@@ -642,7 +642,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
             del self.parsed_data._flags
         else:
             subcs = []
-        
+
         for k, v in vars(self.parsed_data).iteritems():
             if v is None:
                 # it was a flag that shares the name of an alias
@@ -650,10 +650,10 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
             else:
                 # eval the KV assignment
                 self._exec_config_str(k, v)
-        
+
         for subc in subcs:
             self._load_flag(subc)
-        
+
         if self.extra_args:
             sub_parser = KeyValueConfigLoader()
             sub_parser.load_config(self.extra_args)
