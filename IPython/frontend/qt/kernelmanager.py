@@ -51,20 +51,20 @@ class QtShellSocketChannel(SocketChannelQObject, ShellSocketChannel):
     # Emitted when the first reply comes back.
     first_reply = QtCore.Signal()
 
-    # Used by the first_reply signal logic to determine if a reply is the 
+    # Used by the first_reply signal logic to determine if a reply is the
     # first.
     _handlers_called = False
 
     #---------------------------------------------------------------------------
     # 'ShellSocketChannel' interface
     #---------------------------------------------------------------------------
-    
+
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
         # Emit the generic signal.
         self.message_received.emit(msg)
-        
+
         # Emit signals for specialized message types.
         msg_type = msg['header']['msg_type']
         signal = getattr(self, msg_type, None)
@@ -115,7 +115,7 @@ class QtSubSocketChannel(SocketChannelQObject, SubSocketChannel):
     #---------------------------------------------------------------------------
     # 'SubSocketChannel' interface
     #---------------------------------------------------------------------------
-    
+
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
@@ -153,7 +153,7 @@ class QtStdInSocketChannel(SocketChannelQObject, StdInSocketChannel):
         """
         # Emit the generic signal.
         self.message_received.emit(msg)
-        
+
         # Emit signals for specialized message types.
         msg_type = msg['header']['msg_type']
         if msg_type == 'input_request':
@@ -208,7 +208,7 @@ class QtKernelManager(KernelManager, SuperQObject):
         super(QtKernelManager, self).start_kernel(*args, **kw)
 
     #------ Channel management -------------------------------------------------
-    
+
     def start_channels(self, *args, **kw):
         """ Reimplemented to emit signal.
         """
@@ -217,7 +217,7 @@ class QtKernelManager(KernelManager, SuperQObject):
 
     def stop_channels(self):
         """ Reimplemented to emit signal.
-        """ 
+        """
         super(QtKernelManager, self).stop_channels()
         self.stopped_channels.emit()
 
@@ -233,7 +233,7 @@ class QtKernelManager(KernelManager, SuperQObject):
     #---------------------------------------------------------------------------
     # Protected interface
     #---------------------------------------------------------------------------
-    
+
     def _first_reply(self):
         """ Unpauses the heartbeat channel when the first reply is received on
             the execute channel. Note that this will *not* start the heartbeat

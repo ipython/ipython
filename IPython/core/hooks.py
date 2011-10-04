@@ -64,24 +64,24 @@ def editor(self,filename, linenum=None):
     # IPython configures a default editor at startup by reading $EDITOR from
     # the environment, and falling back on vi (unix) or notepad (win32).
     editor = self.editor
-    
+
     # marker for at which line to open the file (for existing objects)
     if linenum is None or editor=='notepad':
         linemark = ''
     else:
         linemark = '+%d' % int(linenum)
-    
+
     # Enclose in quotes if necessary and legal
     if ' ' in editor and os.path.isfile(editor) and editor[0] != '"':
         editor = '"%s"' % editor
-        
+
     # Call the actual editor
     if os.system('%s %s %s' % (editor,linemark,filename)) != 0:
         raise TryNext()
 
 import tempfile
 def fix_error_editor(self,filename,linenum,column,msg):
-    """Open the editor at the given filename, linenumber, column and 
+    """Open the editor at the given filename, linenumber, column and
     show an error message. This is used for correcting syntax errors.
     The current implementation only has special support for the VIM editor,
     and falls back on the 'editor' hook if VIM is not used.
@@ -110,25 +110,25 @@ def synchronize_with_editor(self, filename, linenum, column):
 
 class CommandChainDispatcher:
     """ Dispatch calls to a chain of commands until some func can handle it
-    
+
     Usage: instantiate, execute "add" to add commands (with optional
     priority), execute normally via f() calling mechanism.
-    
+
     """
     def __init__(self,commands=None):
         if commands is None:
             self.chain = []
         else:
             self.chain = commands
-            
-            
+
+
     def __call__(self,*args, **kw):
-        """ Command chain is called just like normal func. 
-        
+        """ Command chain is called just like normal func.
+
         This will call all funcs in chain with the same args as were given to this
         function, and return the result of first func that didn't raise
         TryNext """
-        
+
         for prio,cmd in self.chain:
             #print "prio",prio,"cmd",cmd #dbg
             try:
@@ -139,32 +139,32 @@ class CommandChainDispatcher:
                     kw = exc.kwargs
         # if no function will accept it, raise TryNext up to the caller
         raise TryNext
-                
+
     def __str__(self):
         return str(self.chain)
-    
+
     def add(self, func, priority=0):
         """ Add a func to the cmd chain with given priority """
         bisect.insort(self.chain,(priority,func))
 
     def __iter__(self):
         """ Return all objects in chain.
-        
+
         Handy if the objects are not callable.
         """
         return iter(self.chain)
 
 
-def input_prefilter(self,line):     
+def input_prefilter(self,line):
     """ Default input prefilter
-    
+
     This returns the line as unchanged, so that the interpreter
     knows that nothing was done and proceeds with "classic" prefiltering
-    (%magics, !shell commands etc.). 
-    
+    (%magics, !shell commands etc.).
+
     Note that leading whitespace is not passed to this hook. Prefilter
     can't alter indentation.
-    
+
     """
     #print "attempt to rewrite",line #dbg
     return line
@@ -172,17 +172,17 @@ def input_prefilter(self,line):
 
 def shutdown_hook(self):
     """ default shutdown hook
-    
+
     Typically, shotdown hooks should raise TryNext so all shutdown ops are done
     """
-    
+
     #print "default shutdown hook ok" # dbg
     return
 
 
 def late_startup_hook(self):
-    """ Executed after ipython has been constructed and configured 
-    
+    """ Executed after ipython has been constructed and configured
+
     """
     #print "default startup hook ok" # dbg
 
@@ -202,11 +202,11 @@ def show_in_pager(self,s):
 
 def pre_prompt_hook(self):
     """ Run before displaying the next prompt
-    
-    Use this e.g. to display output from asynchronous operations (in order 
-    to not mess up text entry)   
+
+    Use this e.g. to display output from asynchronous operations (in order
+    to not mess up text entry)
     """
-    
+
     return None
 
 
@@ -219,7 +219,7 @@ def clipboard_get(self):
     """ Get text from the clipboard.
     """
     from IPython.lib.clipboard import (
-        osx_clipboard_get, tkinter_clipboard_get, 
+        osx_clipboard_get, tkinter_clipboard_get,
         win32_clipboard_get
     )
     if sys.platform == 'win32':

@@ -33,14 +33,14 @@ from .asyncresult import AsyncMapResult
 @skip_doctest
 def remote(view, block=None, **flags):
     """Turn a function into a remote function.
-    
+
     This method can be used for map:
-    
+
     In [1]: @remote(view,block=True)
        ...: def func(a):
        ...:    pass
     """
-    
+
     def remote_function(f):
         return RemoteFunction(view, f, block=block, **flags)
     return remote_function
@@ -48,14 +48,14 @@ def remote(view, block=None, **flags):
 @skip_doctest
 def parallel(view, dist='b', block=None, **flags):
     """Turn a function into a parallel remote function.
-    
+
     This method can be used for map:
-    
+
     In [1]: @parallel(view, block=True)
        ...: def func(a):
        ...:    pass
     """
-    
+
     def parallel_function(f):
         return ParallelFunction(view, f, dist=dist, block=block, **flags)
     return parallel_function
@@ -66,10 +66,10 @@ def parallel(view, dist='b', block=None, **flags):
 
 class RemoteFunction(object):
     """Turn an existing function into a remote function.
-    
+
     Parameters
     ----------
-    
+
     view : View instance
         The view to be used for execution
     f : callable
@@ -77,37 +77,37 @@ class RemoteFunction(object):
     block : bool [default: None]
         Whether to wait for results or not.  The default behavior is
         to use the current `block` attribute of `view`
-    
+
     **flags : remaining kwargs are passed to View.temp_flags
     """
-    
+
     view = None # the remote connection
     func = None # the wrapped function
     block = None # whether to block
     flags = None # dict of extra kwargs for temp_flags
-    
+
     def __init__(self, view, f, block=None, **flags):
         self.view = view
         self.func = f
         self.block=block
         self.flags=flags
-    
+
     def __call__(self, *args, **kwargs):
         block = self.view.block if self.block is None else self.block
         with self.view.temp_flags(block=block, **self.flags):
             return self.view.apply(self.func, *args, **kwargs)
-    
+
 
 class ParallelFunction(RemoteFunction):
     """Class for mapping a function to sequences.
-    
+
     This will distribute the sequences according the a mapper, and call
     the function on each sub-sequence.  If called via map, then the function
     will be called once on each element, rather that each sub-sequence.
-    
+
     Parameters
     ----------
-    
+
     view : View instance
         The view to be used for execution
     f : callable
@@ -124,17 +124,17 @@ class ParallelFunction(RemoteFunction):
         The size of chunk to use when breaking up sequences in a load-balanced manner
     **flags : remaining kwargs are passed to View.temp_flags
     """
-    
+
     chunksize=None
     mapObject=None
-    
+
     def __init__(self, view, f, dist='b', block=None, chunksize=None, **flags):
         super(ParallelFunction, self).__init__(view, f, block=block, **flags)
         self.chunksize = chunksize
-        
+
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
-    
+
     def __call__(self, *sequences):
         # check that the length of sequences match
         len_0 = len(sequences[0])
@@ -155,7 +155,7 @@ class ParallelFunction(RemoteFunction):
             # multiplexed:
             targets = self.view.targets
             nparts = len(targets)
-        
+
         msg_ids = []
         # my_f = lambda *a: map(self.func, *a)
         client = self.view.client
@@ -169,7 +169,7 @@ class ParallelFunction(RemoteFunction):
                     args.append(part)
             if not args:
                 continue
-            
+
             # print (args)
             if hasattr(self, '_map'):
                 if sys.version_info[0] >= 3:
@@ -179,15 +179,15 @@ class ParallelFunction(RemoteFunction):
                 args = [self.func]+args
             else:
                 f=self.func
-            
+
             view = self.view if balanced else client[t]
             with view.temp_flags(block=False, **self.flags):
                 ar = view.apply(f, *args)
-            
+
             msg_ids.append(ar.msg_ids[0])
-        
+
         r = AsyncMapResult(self.view.client, msg_ids, self.mapObject, fname=self.func.__name__)
-        
+
         if self.block:
             try:
                 return r.get()
@@ -195,9 +195,9 @@ class ParallelFunction(RemoteFunction):
                 return r
         else:
             return r
-    
+
     def map(self, *sequences):
-        """call a function on each element of a sequence remotely. 
+        """call a function on each element of a sequence remotely.
         This should behave very much like the builtin map, but return an AsyncMapResult
         if self.block is False.
         """

@@ -37,7 +37,7 @@ from IPython.utils import py3compat
 
 # Although it's not solely driven by the regex, note that:
 # ,;/% only trigger if they are the first character on the line
-# ! and !! trigger if they are first char(s) *or* follow an indent 
+# ! and !! trigger if they are first char(s) *or* follow an indent
 # ? triggers as first or last char.
 
 line_split = re.compile("""
@@ -54,7 +54,7 @@ def split_user_input(line, pattern=None):
     """
     # We need to ensure that the rest of this routine deals only with unicode
     line = py3compat.cast_unicode(line, sys.stdin.encoding or 'utf-8')
-        
+
     if pattern is None:
         pattern = line_split
     match = pattern.match(line)
@@ -77,29 +77,29 @@ def split_user_input(line, pattern=None):
 class LineInfo(object):
     """A single line of input and associated info.
 
-    Includes the following as properties: 
+    Includes the following as properties:
 
     line
       The original, raw line
-    
+
     continue_prompt
       Is this line a continuation in a sequence of multiline input?
-    
+
     pre
       Any leading whitespace.
-    
+
     esc
       The escape character(s) in pre or the empty string if there isn't one.
       Note that '!!' and '??' are possible values for esc. Otherwise it will
       always be a single character.
-    
+
     ifun
       The 'function part', which is basically the maximal initial sequence
       of valid python identifiers and the '.' character. This is what is
       checked for alias and magic transformations, used for auto-calling,
       etc. In contrast to Python identifiers, it may start with "%" and contain
       "*".
-    
+
     the_rest
       Everything else on the line.
     """
@@ -111,7 +111,7 @@ class LineInfo(object):
         self.pre_char       = self.pre.strip()
         if self.pre_char:
             self.pre_whitespace = '' # No whitespace allowd before esc chars
-        else: 
+        else:
             self.pre_whitespace = self.pre
 
         self._oinfo = None
@@ -134,5 +134,5 @@ class LineInfo(object):
             self._oinfo = ip.shell._ofind(self.ifun)
         return self._oinfo
 
-    def __str__(self):                                                         
-        return "LineInfo [%s|%s|%s|%s]" %(self.pre, self.esc, self.ifun, self.the_rest) 
+    def __str__(self):
+        return "LineInfo [%s|%s|%s|%s]" %(self.pre, self.esc, self.ifun, self.the_rest)

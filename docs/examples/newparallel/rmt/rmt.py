@@ -6,7 +6,7 @@
 
 # <markdowncell>
 
-# The eigenvalues of random matrices obey certain statistical laws. Here we construct random matrices 
+# The eigenvalues of random matrices obey certain statistical laws. Here we construct random matrices
 # from the Gaussian Orthogonal Ensemble (GOE), find their eigenvalues and then investigate the nearest
 # neighbor eigenvalue distribution $\rho(s)$.
 
@@ -24,7 +24,7 @@ from IPython.parallel import Client
 
 # The Wigner distribution gives the theoretical result for the nearest neighbor eigenvalue distribution
 # for the GOE:
-# 
+#
 # $$\rho(s) = \frac{\pi s}{2} \exp(-\pi s^2/4)$$
 
 # <codecell>

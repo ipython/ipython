@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Test the LineFrontEnd 
+Test the LineFrontEnd
 """
 
 __docformat__ = "restructuredtext en"

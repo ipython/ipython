@@ -150,7 +150,7 @@ def make_label_dec(label,ds=None):
         labels = [label]
     else:
         labels = label
-        
+
     # Validate that the given label(s) are OK for use in setattr() by doing a
     # dry run on a dummy function.
     tmp = lambda : None
@@ -162,12 +162,12 @@ def make_label_dec(label,ds=None):
         for label in labels:
             setattr(f,label,True)
         return f
-    
+
     # Apply the user's docstring, or autogenerate a basic one
     if ds is None:
         ds = "Labels a test as %r." % label
     decor.__doc__ = ds
-    
+
     return decor
 
 
@@ -179,11 +179,11 @@ def skipif(skip_condition, msg=None):
 
     Parameters
     ----------
-    skip_condition : bool or callable. 
-    Flag to determine whether to skip test.  If the condition is a 
-    callable, it is used at runtime to dynamically make the decision.  This 
-    is useful for tests that may require costly imports, to delay the cost 
-    until the test suite is actually executed.        
+    skip_condition : bool or callable.
+    Flag to determine whether to skip test.  If the condition is a
+    callable, it is used at runtime to dynamically make the decision.  This
+    is useful for tests that may require costly imports, to delay the cost
+    until the test suite is actually executed.
     msg : string
         Message to give on raising a SkipTest exception
 
@@ -202,8 +202,8 @@ def skipif(skip_condition, msg=None):
     '''
 
     def skip_decorator(f):
-        # Local import to avoid a hard nose dependency and only incur the 
-        # import time overhead at actual test-time. 
+        # Local import to avoid a hard nose dependency and only incur the
+        # import time overhead at actual test-time.
         import nose
 
         # Allow for both boolean or callable skip conditions.
@@ -225,7 +225,7 @@ def skipif(skip_condition, msg=None):
             if skip_val():
                 raise nose.SkipTest(get_msg(f,msg))
             else:
-                return f(*args, **kwargs) 
+                return f(*args, **kwargs)
 
         def skipper_gen(*args, **kwargs):
             """Skipper for test generators."""
@@ -240,7 +240,7 @@ def skipif(skip_condition, msg=None):
             skipper = skipper_gen
         else:
             skipper = skipper_func
-            
+
         return nose.tools.make_decorator(f)(skipper)
 
     return skip_decorator

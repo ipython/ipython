@@ -3,7 +3,7 @@
 """Utilities to enable code objects to be pickled.
 
 Any process that import this module will be able to pickle code objects.  This
-includes the func_code attribute of any function.  Once unpickled, new 
+includes the func_code attribute of any function.  Once unpickled, new
 functions can be built using new.function(code, globals()).  Eventually
 we need to automate all of this so that functions themselves can be pickled.
 
@@ -28,7 +28,7 @@ import types, copy_reg
 
 def code_ctor(*args):
     return types.CodeType(*args)
-    
+
 def reduce_code(co):
     if co.co_freevars or co.co_cellvars:
         raise ValueError("Sorry, cannot pickle code objects with closures")

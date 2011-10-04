@@ -45,7 +45,7 @@ class Call(object):
 
     def method(self, x, z=2):
         """Some method's docstring"""
-        
+
 class OldStyle:
     """An old-style class for testing."""
     pass
@@ -62,7 +62,7 @@ def check_calltip(obj, name, call, docstring):
     info = inspector.info(obj, name)
     call_line, ds = oinspect.call_tip(info)
     nt.assert_equal(call_line, call)
-    nt.assert_equal(ds, docstring)    
+    nt.assert_equal(ds, docstring)
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -92,7 +92,7 @@ def test_calltip_function2():
 
 def test_calltip_builtin():
     check_calltip(sum, 'sum', None, sum.__doc__)
-    
+
 def test_info():
     "Check that Inspector.info fills out various fields as expected."
     i = inspector.info(Call, oname='Call')
@@ -112,11 +112,11 @@ def test_info():
     nt.assert_true(i['isclass'])
     nt.assert_equal(i['init_definition'], "Call(self, x, y=1)\n")
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
-    
+
     i = inspector.info(Call, detail_level=1)
     nt.assert_not_equal(i['source'], None)
     nt.assert_equal(i['docstring'], None)
-    
+
     c = Call(1)
     c.__doc__ = "Modified instance docstring"
     i = inspector.info(c)
@@ -125,12 +125,12 @@ def test_info():
     nt.assert_equal(i['class_docstring'], Call.__doc__)
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
     nt.assert_equal(i['call_docstring'], c.__call__.__doc__)
-    
+
     # Test old-style classes, which for example may not have an __init__ method.
     if not py3compat.PY3:
         i = inspector.info(OldStyle)
         nt.assert_equal(i['type_name'], 'classobj')
-        
+
         i = inspector.info(OldStyle())
         nt.assert_equal(i['type_name'], 'instance')
         nt.assert_equal(i['docstring'], OldStyle.__doc__)

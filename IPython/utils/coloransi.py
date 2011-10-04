@@ -19,7 +19,7 @@ def make_color_table(in_class):
     """Build a set of color attributes in a class.
 
     Helper function for building the *TermColors classes."""
-    
+
     color_templates = (
         # Dark colors
         ("Black"       , "0;30"),
@@ -38,7 +38,7 @@ def make_color_table(in_class):
         ("LightBlue"   , "1;34"),
         ("LightPurple" , "1;35"),
         ("LightCyan"   , "1;36"),
-        ("White"       , "1;37"),  
+        ("White"       , "1;37"),
         # Blinking colors.  Probably should not be used in anything serious.
         ("BlinkBlack"  , "5;30"),
         ("BlinkRed"    , "5;31"),
@@ -56,13 +56,13 @@ def make_color_table(in_class):
 class TermColors:
     """Color escape sequences.
 
-    This class defines the escape sequences for all the standard (ANSI?) 
+    This class defines the escape sequences for all the standard (ANSI?)
     colors in terminals. Also defines a NoColor escape which is just the null
     string, suitable for defining 'dummy' color schemes in terminals which get
     confused by color escapes.
 
     This class should be used as a mixin for building color schemes."""
-    
+
     NoColor = ''  # for color schemes in color-less terminals.
     Normal = '\033[0m'   # Reset normal coloring
     _base  = '\033[%sm'  # Template for all other colors
@@ -78,13 +78,13 @@ class InputTermColors:
     can wrap lines accordingly.  Use this class for any colored text which
     needs to be used in input prompts, such as in calls to raw_input().
 
-    This class defines the escape sequences for all the standard (ANSI?) 
+    This class defines the escape sequences for all the standard (ANSI?)
     colors in terminals. Also defines a NoColor escape which is just the null
     string, suitable for defining 'dummy' color schemes in terminals which get
     confused by color escapes.
 
     This class should be used as a mixin for building color schemes."""
-    
+
     NoColor = ''  # for color schemes in color-less terminals.
 
     if os.name == 'nt' and os.environ.get('TERM','dumb') == 'emacs':
@@ -112,13 +112,13 @@ class ColorScheme:
         if name is None:
             name = self.name
         return ColorScheme(name, self.colors.dict())
-        
+
 class ColorSchemeTable(dict):
     """General class to handle tables of color schemes.
 
     It's basically a dict of color schemes with a couple of shorthand
     attributes and some convenient methods.
-    
+
     active_scheme_name -> obvious
     active_colors -> actual color table of the active scheme"""
 
@@ -129,11 +129,11 @@ class ColorSchemeTable(dict):
         created with a list of valid color schemes AND the specification for
         the default active scheme.
         """
-        
+
         # create object attributes to be set later
         self.active_scheme_name = ''
         self.active_colors = None
-        
+
         if scheme_list:
             if default_scheme == '':
                 raise ValueError,'you must specify the default color scheme'
@@ -150,7 +150,7 @@ class ColorSchemeTable(dict):
         if not isinstance(new_scheme,ColorScheme):
             raise ValueError,'ColorSchemeTable only accepts ColorScheme instances'
         self[new_scheme.name] = new_scheme
-        
+
     def set_active_scheme(self,scheme,case_sensitive=0):
         """Set the currently active scheme.
 

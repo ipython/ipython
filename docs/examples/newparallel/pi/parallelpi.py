@@ -12,9 +12,9 @@ variable below.
 The dataset we have been using for this is the 200 million digit one here:
 ftp://pi.super-computing.org/.2/pi200m/
 
-and the files used will be downloaded if they are not in the working directory 
+and the files used will be downloaded if they are not in the working directory
 of the IPython engines.
-""" 
+"""
 
 from IPython.parallel import Client
 from matplotlib import pyplot as plt

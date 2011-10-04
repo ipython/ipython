@@ -1,7 +1,7 @@
 # encoding: utf-8
 """A dict subclass that supports attribute style access.
 
-Authors:  
+Authors:
 
 * Fernando Perez (original)
 * Brian Granger (refactoring to a dict subclass)
@@ -81,7 +81,7 @@ class Struct(dict):
         ...     s['b'] = 20
         ... except KeyError:
         ...     print 'this is not allowed'
-        ...     
+        ...
         this is not allowed
         """
         if not self._allownew and not self.has_key(key):
@@ -92,7 +92,7 @@ class Struct(dict):
     def __setattr__(self, key, value):
         """Set an attr with protection of class members.
 
-        This calls :meth:`self.__setitem__` but convert :exc:`KeyError` to 
+        This calls :meth:`self.__setitem__` but convert :exc:`KeyError` to
         :exc:`AttributeError`.
 
         Examples
@@ -106,13 +106,13 @@ class Struct(dict):
         ...     s.get = 10
         ... except AttributeError:
         ...     print "you can't set a class member"
-        ...     
+        ...
         you can't set a class member
         """
         # If key is an str it might be a class member or instance var
         if isinstance(key, str):
             # I can't simply call hasattr here because it calls getattr, which
-            # calls self.__getattr__, which returns True for keys in 
+            # calls self.__getattr__, which returns True for keys in
             # self._data.  But I only want keys in the class and in
             # self.__dict__
             if key in self.__dict__ or hasattr(Struct, key):
@@ -127,7 +127,7 @@ class Struct(dict):
     def __getattr__(self, key):
         """Get an attr by calling :meth:`dict.__getitem__`.
 
-        Like :meth:`__setattr__`, this method converts :exc:`KeyError` to 
+        Like :meth:`__setattr__`, this method converts :exc:`KeyError` to
         :exc:`AttributeError`.
 
         Examples
@@ -142,7 +142,7 @@ class Struct(dict):
         ...     s.b
         ... except AttributeError:
         ...     print "I don't have that key"
-        ...     
+        ...
         I don't have that key
         """
         try:
@@ -154,10 +154,10 @@ class Struct(dict):
 
     def __iadd__(self, other):
         """s += s2 is a shorthand for s.merge(s2).
-        
+
         Examples
         --------
-        
+
         >>> s = Struct(a=10,b=30)
         >>> s2 = Struct(a=20,c=40)
         >>> s += s2
@@ -169,10 +169,10 @@ class Struct(dict):
 
     def __add__(self,other):
         """s + s2 -> New Struct made from s.merge(s2).
-        
+
         Examples
         --------
-        
+
         >>> s1 = Struct(a=10,b=30)
         >>> s2 = Struct(a=20,c=40)
         >>> s = s1 + s2
@@ -185,10 +185,10 @@ class Struct(dict):
 
     def __sub__(self,other):
         """s1 - s2 -> remove keys in s2 from s1.
-        
+
         Examples
         --------
-        
+
         >>> s1 = Struct(a=10,b=30)
         >>> s2 = Struct(a=40)
         >>> s = s1 - s2
@@ -201,10 +201,10 @@ class Struct(dict):
 
     def __isub__(self,other):
         """Inplace remove keys from self that are in other.
-        
+
         Examples
         --------
-        
+
         >>> s1 = Struct(a=10,b=30)
         >>> s2 = Struct(a=40)
         >>> s1 -= s2
@@ -217,9 +217,9 @@ class Struct(dict):
         return self
 
     def __dict_invert(self, data):
-        """Helper function for merge. 
+        """Helper function for merge.
 
-        Takes a dictionary whose values are lists and returns a dict with 
+        Takes a dictionary whose values are lists and returns a dict with
         the elements of each list as keys and the original keys as values.
         """
         outdict = {}
@@ -235,10 +235,10 @@ class Struct(dict):
 
     def copy(self):
         """Return a copy as a Struct.
-        
+
         Examples
         --------
-        
+
         >>> s = Struct(a=10,b=30)
         >>> s2 = s.copy()
         >>> s2
@@ -304,14 +304,14 @@ class Struct(dict):
 
         The `__conflict_solve` dict is a dictionary of binary functions which will be used to
         solve key conflicts.  Here is an example::
-        
+
             __conflict_solve = dict(
                 func1=['a','b','c'],
                 func2=['d','e']
             )
-        
+
         In this case, the function :func:`func1` will be used to resolve
-        keys 'a', 'b' and 'c' and the function :func:`func2` will be used for 
+        keys 'a', 'b' and 'c' and the function :func:`func2` will be used for
         keys 'd' and 'e'.  This could also be written as::
 
             __conflict_solve = dict(func1='a b c',func2='d e')
@@ -344,15 +344,15 @@ class Struct(dict):
         --------
 
         This show the default policy:
-        
+
         >>> s = Struct(a=10,b=30)
         >>> s2 = Struct(a=20,c=40)
         >>> s.merge(s2)
         >>> s
         {'a': 10, 'c': 40, 'b': 30}
-        
+
         Now, show how to specify a conflict dict:
-        
+
         >>> s = Struct(a=10,b=30)
         >>> s2 = Struct(a=20,b=40)
         >>> conflict = {'update':'a','add':'b'}

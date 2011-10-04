@@ -16,12 +16,12 @@ class IPythonHistoryPanel(wx.Panel):
 
     def __init__(self, parent,flt_empty=True,
                  flt_doc=True,flt_cmd=True,flt_magic=True):
-        
+
         wx.Panel.__init__(self,parent,-1)
         #text_ctrl = wx.TextCtrl(self, -1, style=wx.TE_MULTILINE)
         text_ctrl = PythonSTC(self, -1)
-        
-        
+
+
         st_filt = wx.StaticText(self, -1, " Filter:")
 
         self.filter_empty = wx.CheckBox(self, -1, "Empty commands")
@@ -52,12 +52,12 @@ class IPythonHistoryPanel(wx.Panel):
         self.filter_doc.Bind(wx.EVT_CHECKBOX, self.evtCheckDocFilter)
         self.filter_cmd.Bind(wx.EVT_CHECKBOX, self.evtCheckCmdFilter)
         self.filter_magic.Bind(wx.EVT_CHECKBOX, self.evtCheckMagicFilter)
-        
+
         #self.filter_empty.SetValue(flt_empty)
         #self.filter_doc.SetValue(flt_doc)
         #self.filter_cmd.SetValue(flt_cmd)
         #self.filter_magic.SetValue(flt_magic)
-        
+
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         sizer.Add(text_ctrl, 1, wx.EXPAND)
@@ -83,7 +83,7 @@ class IPythonHistoryPanel(wx.Panel):
         text_ctrl.SetMarginType(1, stc.STC_MARGIN_NUMBER)
         text_ctrl.SetMarginWidth(1, 15)
 
-        
+
     def write(self,history_line):
         add = True
         if self.filter_empty.GetValue() == True and history_line == '':
@@ -106,10 +106,10 @@ class IPythonHistoryPanel(wx.Panel):
             self.options[name]['value']='False'
         self.updateOptionTracker(name,
                                  self.options[name]['value'])
-        
+
     def evtCheckEmptyFilter(self, event):
         self.processOptionCheckedEvt(event, 'filter_empty')
-        
+
     def evtCheckDocFilter(self, event):
         self.processOptionCheckedEvt(event, 'filter_doc')
 
@@ -118,10 +118,10 @@ class IPythonHistoryPanel(wx.Panel):
 
     def evtCheckMagicFilter(self, event):
         self.processOptionCheckedEvt(event, 'filter_magic')
-        
+
     def getOptions(self):
         return self.options
-    
+
     def reloadOptions(self,options):
         self.options = options
         for key in self.options.keys():
@@ -135,14 +135,14 @@ class IPythonHistoryPanel(wx.Panel):
         Default history tracker (does nothing)
         '''
         pass
-    
+
     def setOptionTrackerHook(self,func):
         '''
         Define a new history tracker
         '''
         self.updateOptionTracker = func
 
-            
+
 #----------------------------------------------------------------------
 # Font definition for Styled Text Control
 
@@ -177,7 +177,7 @@ else:
 class PythonSTC(stc.StyledTextCtrl):
 
     fold_symbols = 3
-    
+
     def __init__(self, parent, ID,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=0):
@@ -197,14 +197,14 @@ class PythonSTC(stc.StyledTextCtrl):
         #self.SetViewEOL(True)
         self.SetEOLMode(stc.STC_EOL_CRLF)
         #self.SetUseAntiAliasing(True)
-        
+
         self.SetEdgeMode(stc.STC_EDGE_LINE)
         self.SetEdgeColumn(80)
         self.SetEdgeColour(wx.LIGHT_GREY)
         self.SetLayoutCache(stc.STC_CACHE_PAGE)
 
         # Setup a margin to hold fold markers
-        #self.SetFoldFlags(16)  
+        #self.SetFoldFlags(16)
         ###  WHAT IS THIS VALUE?  WHAT ARE THE OTHER FLAGS?  DOES IT MATTER?
         self.SetMarginType(2, stc.STC_MARGIN_SYMBOL)
         self.SetMarginMask(2, stc.STC_MASK_FOLDERS)
@@ -212,7 +212,7 @@ class PythonSTC(stc.StyledTextCtrl):
         self.SetMarginWidth(2, 12)
 
         if self.fold_symbols == 0:
-            # Arrow pointing right for contracted folders, 
+            # Arrow pointing right for contracted folders,
             # arrow pointing down for expanded
             self.MarkerDefine(stc.STC_MARKNUM_FOLDEROPEN, \
                                         stc.STC_MARK_ARROWDOWN, "black", "black")
@@ -228,7 +228,7 @@ class PythonSTC(stc.StyledTextCtrl):
                                         stc.STC_MARK_EMPTY,     "white", "black")
             self.MarkerDefine(stc.STC_MARKNUM_FOLDERMIDTAIL, \
                                         stc.STC_MARK_EMPTY,     "white", "black")
-            
+
         elif self.fold_symbols == 1:
             # Plus for contracted folders, minus for expanded
             self.MarkerDefine(stc.STC_MARKNUM_FOLDEROPEN, \
@@ -301,7 +301,7 @@ class PythonSTC(stc.StyledTextCtrl):
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,    "fore:#000000,back:#FF0000,bold")
 
         # Python styles
-        # Default 
+        # Default
         self.StyleSetSpec(stc.STC_P_DEFAULT, "fore:#000000,face:%(helv)s,size:%(size)d" % faces)
         # Comments
         self.StyleSetSpec(stc.STC_P_COMMENTLINE, "fore:#007F00,face:%(other)s,size:%(size)d" % faces)
@@ -335,9 +335,9 @@ class PythonSTC(stc.StyledTextCtrl):
 
         # register some images for use in the AutoComplete box.
         #self.RegisterImage(1, images.getSmilesBitmap())
-        #self.RegisterImage(2, 
+        #self.RegisterImage(2,
         #    wx.ArtProvider.GetBitmap(wx.ART_NEW, size=(16,16)))
-        #self.RegisterImage(3, 
+        #self.RegisterImage(3,
         #    wx.ArtProvider.GetBitmap(wx.ART_COPY, size=(16,16)))
 
 
@@ -365,7 +365,7 @@ class PythonSTC(stc.StyledTextCtrl):
                 #self.AutoCompShow(0, st)
 
                 kw = keyword.kwlist[:]
-                
+
                 kw.sort()  # Python sorts are case sensitive
                 self.AutoCompSetIgnoreCase(False)  # so this needs to match
 
@@ -398,7 +398,7 @@ class PythonSTC(stc.StyledTextCtrl):
         if braceAtCaret < 0:
             charAfter = self.GetCharAt(caretPos)
             styleAfter = self.GetStyleAt(caretPos)
-            
+
             if charAfter and chr(charAfter) in "[]{}()" and styleAfter == stc.STC_P_OPERATOR:
                 braceAtCaret = caretPos
 

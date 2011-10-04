@@ -39,15 +39,15 @@ class CompletionWidget(QtGui.QListWidget):
 
             if etype == QtCore.QEvent.KeyPress:
                 key, text = event.key(), event.text()
-                if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, 
+                if key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter,
                            QtCore.Qt.Key_Tab):
                     self._complete_current()
                     return True
                 elif key == QtCore.Qt.Key_Escape:
                     self.hide()
                     return True
-                elif key in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down, 
-                             QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown, 
+                elif key in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down,
+                             QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown,
                              QtCore.Qt.Key_Home, QtCore.Qt.Key_End):
                     self.keyPressEvent(event)
                     return True
@@ -114,16 +114,16 @@ class CompletionWidget(QtGui.QListWidget):
         """
         cursor = self._text_edit.textCursor()
         if cursor.position() >= self._start_position:
-            cursor.setPosition(self._start_position, 
+            cursor.setPosition(self._start_position,
                                QtGui.QTextCursor.KeepAnchor)
         return cursor
-        
+
     def _update_current(self):
         """ Updates the current item based on the current text.
         """
         prefix = self._current_text_cursor().selection().toPlainText()
         if prefix:
-            items = self.findItems(prefix, (QtCore.Qt.MatchStartsWith | 
+            items = self.findItems(prefix, (QtCore.Qt.MatchStartsWith |
                                             QtCore.Qt.MatchCaseSensitive))
             if items:
                 self.setCurrentItem(items[0])

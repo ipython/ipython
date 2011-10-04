@@ -8,11 +8,11 @@ session. IPython has two different types of GUI integration:
 1. The terminal based IPython supports GUI event loops through Python's
    PyOS_InputHook. PyOS_InputHook is a hook that Python calls periodically
    whenever raw_input is waiting for a user to type code. We implement GUI
-   support in the terminal by setting PyOS_InputHook to a function that 
+   support in the terminal by setting PyOS_InputHook to a function that
    iterates the event loop for a short while. It is important to note that
    in this situation, the real GUI event loop is NOT run in the normal
    manner, so you can't use the normal means to detect that it is running.
-2. In the two process IPython kernel/frontend, the GUI event loop is run in 
+2. In the two process IPython kernel/frontend, the GUI event loop is run in
    the kernel. In this case, the event loop is run in the normal manner by
    calling the function or method of the GUI toolkit that starts the event
    loop.
@@ -47,7 +47,7 @@ we proposed the following informal protocol:
   *must* use its value. If it has not been set, you can query the toolkit
   in the normal manner.
 * If you want GUI support and no one else has created an application or
-  started the event loop you *must* do this. We don't want projects to 
+  started the event loop you *must* do this. We don't want projects to
   attempt to defer these things to someone else if they themselves need it.
 
 The functions below implement this logic for each GUI toolkit. If you need

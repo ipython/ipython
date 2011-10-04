@@ -24,7 +24,7 @@ from IPython.utils.notification import shared_center
 
 class Observer(object):
 
-    def __init__(self, expected_ntype, expected_sender, 
+    def __init__(self, expected_ntype, expected_sender,
                     center=shared_center, *args, **kwargs):
         super(Observer, self).__init__()
         self.expected_ntype = expected_ntype
@@ -32,10 +32,10 @@ class Observer(object):
         self.expected_args = args
         self.expected_kwargs = kwargs
         self.recieved = False
-        center.add_observer(self.callback, 
-                            self.expected_ntype, 
+        center.add_observer(self.callback,
+                            self.expected_ntype,
                             self.expected_sender)
-    
+
     def callback(self, ntype, sender, *args, **kwargs):
         assert(ntype == self.expected_ntype or
                 self.expected_ntype == None)
@@ -44,10 +44,10 @@ class Observer(object):
         assert(args == self.expected_args)
         assert(kwargs == self.expected_kwargs)
         self.recieved = True
-    
+
     def verify(self):
         assert(self.recieved)
-    
+
     def reset(self):
         self.recieved = False
 
@@ -74,7 +74,7 @@ class NotificationTests(unittest.TestCase):
 
     def tearDown(self):
         shared_center.remove_all_observers()
-    
+
     def test_notification_delivered(self):
         """Test that notifications are delivered"""
 
@@ -100,7 +100,7 @@ class NotificationTests(unittest.TestCase):
 
     def test_sender_specificity(self):
         """Test that observers are registered by sender"""
-        
+
         expected_ntype = "EXPECTED_TYPE"
         sender1 = Notifier(expected_ntype)
         sender2 = Notifier(expected_ntype)
@@ -117,7 +117,7 @@ class NotificationTests(unittest.TestCase):
         for i in xrange(10):
             Observer('TYPE', None, center=shared_center)
 
-        self.assert_(len(shared_center.observers[('TYPE',None)]) >= 10, 
+        self.assert_(len(shared_center.observers[('TYPE',None)]) >= 10,
             "observers registered")
 
         shared_center.remove_all_observers()
@@ -139,7 +139,7 @@ class NotificationTests(unittest.TestCase):
     def test_post_performance(self):
         """Test that post_notification, even with many registered irrelevant
         observers is fast"""
-        
+
         for i in xrange(10):
             Observer("UNRELATED_TYPE", None)
 

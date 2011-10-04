@@ -67,14 +67,14 @@ class CrashHandler(object):
     message_template = _default_message_template
     section_sep = '\n\n'+'*'*75+'\n\n'
 
-    def __init__(self, app, contact_name=None, contact_email=None, 
+    def __init__(self, app, contact_name=None, contact_email=None,
                  bug_tracker=None, show_crash_traceback=True, call_pdb=False):
         """Create a new crash handler
 
         Parameters
         ----------
         app :  Application
-            A running :class:`Application` instance, which will be queried at 
+            A running :class:`Application` instance, which will be queried at
             crash time for internal information.
 
         contact_name : str
@@ -106,7 +106,7 @@ class CrashHandler(object):
                     contact_email = contact_email,
                     bug_tracker = bug_tracker,
                     crash_report_fname = self.crash_report_fname)
-        
+
 
     def __call__(self, etype, evalue, etb):
         """Handle an exception, call for compatible with sys.excepthook"""
@@ -160,13 +160,13 @@ class CrashHandler(object):
 
     def make_report(self,traceback):
         """Return a string containing a crash report."""
-        
+
         sec_sep = self.section_sep
-        
+
         report = ['*'*75+'\n\n'+'IPython post-mortem report\n\n']
         rpt_add = report.append
         rpt_add(sys_info())
-        
+
         try:
             config = pformat(self.app.config)
             rpt_add(sec_sep)

@@ -122,12 +122,12 @@ class ZMQSocketChannel(Thread):
                     raise
             else:
                 break
-    
+
     def stop(self):
         """Stop the channel's activity.
 
         This calls :method:`Thread.join` and returns when the thread
-        terminates. :class:`RuntimeError` will be raised if 
+        terminates. :class:`RuntimeError` will be raised if
         :method:`self.start` is called again.
         """
         self.join()
@@ -135,7 +135,7 @@ class ZMQSocketChannel(Thread):
     @property
     def address(self):
         """Get the channel's address as an (ip, port) tuple.
-        
+
         By the default, the address is (localhost, 0), where 0 means a random
         port.
         """
@@ -191,7 +191,7 @@ class ShellSocketChannel(ZMQSocketChannel):
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.iostate = POLLERR|POLLIN
-        self.ioloop.add_handler(self.socket, self._handle_events, 
+        self.ioloop.add_handler(self.socket, self._handle_events,
                                 self.iostate)
         self._run_loop()
 
@@ -217,7 +217,7 @@ class ShellSocketChannel(ZMQSocketChannel):
         ----------
         code : str
             A string of Python code.
-            
+
         silent : bool, optional (default False)
             If set, the kernel will execute the code as quietly possible.
 
@@ -225,7 +225,7 @@ class ShellSocketChannel(ZMQSocketChannel):
             A list of variable names to pull from the user's namespace.  They
             will come back as a dict with these names as keys and their
             :func:`repr` as values.
-            
+
         user_expressions : dict, optional
             A dict with string keys and  to pull from the user's
             namespace.  They will come back as a dict with these names as keys
@@ -239,7 +239,7 @@ class ShellSocketChannel(ZMQSocketChannel):
             user_variables = []
         if user_expressions is None:
             user_expressions = {}
-            
+
         # Don't waste network traffic if inputs are invalid
         if not isinstance(code, basestring):
             raise ValueError('code %r must be a string' % code)
@@ -263,7 +263,7 @@ class ShellSocketChannel(ZMQSocketChannel):
         text : str
             The text to complete.
         line : str
-            The full line of text that is the surrounding context for the 
+            The full line of text that is the surrounding context for the
             text to complete.
         cursor_pos : int
             The position of the cursor in the line where the completion was
@@ -287,7 +287,7 @@ class ShellSocketChannel(ZMQSocketChannel):
         ----------
         oname : str
             A string specifying the object name.
-        
+
         Returns
         -------
         The msg_id of the message sent.
@@ -309,7 +309,7 @@ class ShellSocketChannel(ZMQSocketChannel):
         hist_access_type : str
             'range' (fill in session, start and stop params), 'tail' (fill in n)
              or 'search' (fill in pattern param).
-        
+
         session : int
             For a range request, the session from which to get lines. Session
             numbers are positive integers; negative ones count back from the
@@ -318,10 +318,10 @@ class ShellSocketChannel(ZMQSocketChannel):
             The first line number of a history range.
         stop : int
             The final (excluded) line number of a history range.
-        
+
         n : int
             The number of lines of history to get for a tail request.
-            
+
         pattern : str
             The glob-syntax pattern for a search request.
 
@@ -398,7 +398,7 @@ class SubSocketChannel(ZMQSocketChannel):
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.iostate = POLLIN|POLLERR
-        self.ioloop.add_handler(self.socket, self._handle_events, 
+        self.ioloop.add_handler(self.socket, self._handle_events,
                                 self.iostate)
         self._run_loop()
 
@@ -486,7 +486,7 @@ class StdInSocketChannel(ZMQSocketChannel):
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect('tcp://%s:%i' % self.address)
         self.iostate = POLLERR|POLLIN
-        self.ioloop.add_handler(self.socket, self._handle_events, 
+        self.ioloop.add_handler(self.socket, self._handle_events,
                                 self.iostate)
         self._run_loop()
 
@@ -616,7 +616,7 @@ class HBSocketChannel(ZMQSocketChannel):
                                                 raise
                                         else:
                                             break
-                            
+
                                 since_last_heartbeat = time.time()-request_time
                                 if since_last_heartbeat > self.time_to_dead:
                                     self.call_handlers(since_last_heartbeat)
@@ -671,15 +671,15 @@ class KernelManager(HasTraits):
 
     The SUB channel is for the frontend to receive messages published by the
     kernel.
-        
+
     The REQ channel is for the frontend to make requests of the kernel.
-    
+
     The REP channel is for the kernel to request stdin (raw_input) from the
     frontend.
     """
     # config object for passing to child configurables
     config = Instance(Config)
-    
+
     # The PyZMQ Context to use for communication with the kernel.
     context = Instance(zmq.Context)
     def _context_default(self):
@@ -691,7 +691,7 @@ class KernelManager(HasTraits):
     # The kernel process with which the KernelManager is communicating.
     kernel = Instance(Popen)
 
-    # The addresses for the communication channels. 
+    # The addresses for the communication channels.
     shell_address = TCPAddress((LOCALHOST, 0))
     sub_address = TCPAddress((LOCALHOST, 0))
     stdin_address = TCPAddress((LOCALHOST, 0))
@@ -788,7 +788,7 @@ class KernelManager(HasTraits):
                                "configured properly. "
                                "Currently valid addresses are: %s"%LOCAL_IPS
                                )
-                    
+
         self._launch_args = kw.copy()
         launch_kernel = kw.pop('launcher', None)
         if launch_kernel is None:
@@ -830,10 +830,10 @@ class KernelManager(HasTraits):
             # OK, we've waited long enough.
             if self.has_kernel:
                 self.kill_kernel()
-    
+
     def restart_kernel(self, now=False, **kw):
         """Restarts a kernel with the arguments that were used to launch it.
-        
+
         If the old kernel was launched with random ports, the same ports will be
         used for the new kernel.
 
@@ -977,7 +977,7 @@ class KernelManager(HasTraits):
         """Get the heartbeat socket channel object to check that the
         kernel is alive."""
         if self._hb_channel is None:
-            self._hb_channel = self.hb_channel_class(self.context, 
+            self._hb_channel = self.hb_channel_class(self.context,
                                                        self.session,
                                                        self.hb_address)
         return self._hb_channel

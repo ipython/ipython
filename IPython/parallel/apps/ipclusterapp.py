@@ -38,7 +38,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
 from IPython.utils.sysinfo import num_cpus
-from IPython.utils.traitlets import (Int, Unicode, Bool, CFloat, Dict, List, 
+from IPython.utils.traitlets import (Int, Unicode, Bool, CFloat, Dict, List,
                                         DottedObjectName)
 
 from IPython.parallel.apps.baseapp import (
@@ -114,7 +114,7 @@ Start an ipython cluster by its profile name or cluster
 directory. Cluster directories contain configuration, log and
 security related files and are named using the convention
 'profile_<name>' and should be creating using the 'start'
-subcommand of 'ipcluster'. If your cluster directory is in 
+subcommand of 'ipcluster'. If your cluster directory is in
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster start --n=4 --profile=<profile>`,
 otherwise use the 'profile-dir' option.
@@ -123,7 +123,7 @@ stop_help = """Stop a running IPython cluster
 
 Stop a running ipython cluster by its profile name or cluster
 directory. Cluster directories are named using the convention
-'profile_<name>'. If your cluster directory is in 
+'profile_<name>'. If your cluster directory is in
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster stop --profile=<profile>`, otherwise
 use the '--profile-dir' option.
@@ -135,7 +135,7 @@ by profile name or cluster directory.
 Cluster directories contain configuration, log and
 security related files and are named using the convention
 'profile_<name>' and should be creating using the 'start'
-subcommand of 'ipcluster'. If your cluster directory is in 
+subcommand of 'ipcluster'. If your cluster directory is in
 the cwd or the ipython directory, you can simply refer to it
 using its profile name, 'ipcluster engines --n=4 --profile=<profile>`,
 otherwise use the 'profile-dir' option.
@@ -150,12 +150,12 @@ class IPClusterStop(BaseParallelApplication):
     description = stop_help
     examples = _stop_examples
     config_file_name = Unicode(default_config_file_name)
-    
+
     signal = Int(signal.SIGINT, config=True,
         help="signal to use for stopping processes.")
-        
+
     aliases = Dict(stop_aliases)
-    
+
     def start(self):
         """Start the app for the stop subcommand."""
         try:
@@ -168,7 +168,7 @@ class IPClusterStop(BaseParallelApplication):
             # can watch for to learn how I existed.
             self.remove_pid_file()
             self.exit(ALREADY_STOPPED)
-        
+
         if not self.check_pid(pid):
             self.log.critical(
                 'Cluster [pid=%r] is not running.' % pid
@@ -177,7 +177,7 @@ class IPClusterStop(BaseParallelApplication):
             # Here I exit with a unusual exit status that other processes
             # can watch for to learn how I existed.
             self.exit(ALREADY_STOPPED)
-            
+
         elif os.name=='posix':
             sig = self.signal
             self.log.info(
@@ -197,7 +197,7 @@ class IPClusterStop(BaseParallelApplication):
                 self.log.error("Stopping cluster failed, assuming already dead.",
                     exc_info=True)
             self.remove_pid_file()
-    
+
 engine_aliases = {}
 engine_aliases.update(base_aliases)
 engine_aliases.update(dict(
@@ -228,7 +228,7 @@ class IPClusterEngines(BaseParallelApplication):
         launchers = launcher.all_launchers
         eslaunchers = [ l for l in launchers if 'EngineSet' in l.__name__]
         return [ProfileDir]+eslaunchers
-    
+
     n = Int(num_cpus(), config=True,
         help="""The number of engines to start. The default is to use one for each
         CPU on your machine""")
@@ -239,12 +239,12 @@ class IPClusterEngines(BaseParallelApplication):
         to use various batch systems to launch your engines, such as PBS,SGE,MPIExec,etc.
         Each launcher class has its own set of configuration options, for making sure
         it will work in your environment.
-        
+
         You can also write your own launcher, and specify it's absolute import path,
         as in 'mymodule.launcher.FTLEnginesLauncher`.
-        
+
         Examples include:
-        
+
             LocalEngineSetLauncher : start engines locally as subprocesses [default]
             MPIExecEngineSetLauncher : use mpiexec to launch in an MPI environment
             PBSEngineSetLauncher : use PBS (qsub) to submit engines to a batch queue
@@ -273,15 +273,15 @@ class IPClusterEngines(BaseParallelApplication):
         super(IPClusterEngines, self).initialize(argv)
         self.init_signal()
         self.init_launchers()
-    
+
     def init_launchers(self):
         self.engine_launcher = self.build_launcher(self.engine_launcher_class, 'EngineSet')
         self.engine_launcher.on_stop(lambda r: self.loop.stop())
-    
+
     def init_signal(self):
         # Setup signals
         signal.signal(signal.SIGINT, self.sigint_handler)
-    
+
     def build_launcher(self, clsname, kind=None):
         """import and instantiate a Launcher based on importstring"""
         if '.' not in clsname:
@@ -302,7 +302,7 @@ class IPClusterEngines(BaseParallelApplication):
             profile_dir=self.profile_dir.location, cluster_id=self.cluster_id,
         )
         return launcher
-    
+
     def start_engines(self):
         self.log.info("Starting %i engines"%self.n)
         self.engine_launcher.start(self.n)
@@ -327,7 +327,7 @@ class IPClusterEngines(BaseParallelApplication):
     def sigint_handler(self, signum, frame):
         self.log.debug("SIGINT received, stopping launchers...")
         self.stop_launchers()
-        
+
     def start_logging(self):
         # Remove old log files of the controller and engine
         if self.clean_logs:
@@ -342,7 +342,7 @@ class IPClusterEngines(BaseParallelApplication):
         """Start the app for the engines subcommand."""
         self.log.info("IPython cluster: started")
         # First see if the cluster is already running
-        
+
         # Now log and daemonize
         self.log.info(
             'Starting engines with [daemon=%r]' % self.daemonize
@@ -392,8 +392,8 @@ class IPClusterStart(IPClusterEngines):
     def _classes_default(self,):
         from IPython.parallel.apps import launcher
         return [ProfileDir] + [IPClusterEngines] + launcher.all_launchers
-    
-    clean_logs = Bool(True, config=True, 
+
+    clean_logs = Bool(True, config=True,
         help="whether to cleanup old logs before starting")
 
     delay = CFloat(1., config=True,
@@ -403,12 +403,12 @@ class IPClusterStart(IPClusterEngines):
         config=True,
         helep="""The class for launching a Controller. Change this value if you want
         your controller to also be launched by a batch system, such as PBS,SGE,MPIExec,etc.
-        
+
         Each launcher class has its own set of configuration options, for making sure
         it will work in your environment.
-        
+
         Examples include:
-        
+
             LocalControllerLauncher : start engines locally as subprocesses
             MPIExecControllerLauncher : use mpiexec to launch engines in an MPI universe
             PBSControllerLauncher : use PBS (qsub) to submit engines to a batch queue
@@ -420,7 +420,7 @@ class IPClusterStart(IPClusterEngines):
     reset = Bool(False, config=True,
         help="Whether to reset config files as part of '--create'."
         )
-    
+
     # flags = Dict(flags)
     aliases = Dict(start_aliases)
 
@@ -428,10 +428,10 @@ class IPClusterStart(IPClusterEngines):
         self.controller_launcher = self.build_launcher(self.controller_launcher_class, 'Controller')
         self.engine_launcher = self.build_launcher(self.engine_launcher_class, 'EngineSet')
         self.controller_launcher.on_stop(self.stop_launchers)
-    
+
     def start_controller(self):
         self.controller_launcher.start()
-        
+
     def stop_controller(self):
         # self.log.info("In stop_controller")
         if self.controller_launcher and self.controller_launcher.running:
@@ -460,7 +460,7 @@ class IPClusterStart(IPClusterEngines):
                 self.exit(ALREADY_STARTED)
             else:
                 self.remove_pid_file()
-                
+
 
         # Now log and daemonize
         self.log.info(
@@ -501,11 +501,11 @@ class IPClusterApp(Application):
                 'stop' : (base+'Stop', stop_help),
                 'engines' : (base+'Engines', engines_help),
     }
-    
+
     # no aliases or flags for parent App
     aliases = Dict()
     flags = Dict()
-    
+
     def start(self):
         if self.subapp is None:
             print "No subcommand specified. Must specify one of: %s"%(self.subcommands.keys())

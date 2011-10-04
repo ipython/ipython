@@ -82,7 +82,7 @@ def bzr_commands():
         return __bzr_commands
     out = os.popen('bzr help commands')
     __bzr_commands = [l.split()[0] for l in out]
-    return __bzr_commands                
+    return __bzr_commands
 
 def bzr_completer(self,event):
     """ Completer for bazaar commands """
@@ -113,8 +113,8 @@ def apt_get_packages(prefix):
     for p in out:
         if p.startswith(prefix):
             yield p.rstrip()
-    
-    
+
+
 apt_commands = """\
 update upgrade install remove purge source build-dep dist-upgrade
 dselect-upgrade clean autoclean check"""

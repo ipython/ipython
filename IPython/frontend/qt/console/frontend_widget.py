@@ -103,7 +103,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
     # Emitted when an exit request has been received from the kernel.
     exit_requested = QtCore.Signal()
-    
+
     # Protected class variables.
     _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
     _CompletionRequest = namedtuple('_CompletionRequest', ['id', 'pos'])
@@ -115,7 +115,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
-    
+
     def __init__(self, *args, **kw):
         super(FrontendWidget, self).__init__(*args, **kw)
 
@@ -151,9 +151,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Connect signal handlers.
         document = self._control.document()
         document.contentsChange.connect(self._document_contents_change)
-        
+
         # Set flag for whether we are connected via localhost.
-        self._local_kernel = kw.get('local_kernel', 
+        self._local_kernel = kw.get('local_kernel',
                                     FrontendWidget._local_kernel)
 
     #---------------------------------------------------------------------------
@@ -193,7 +193,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._hidden = hidden
         if not hidden:
             self.executing.emit(source)
-        
+
     def _prompt_started_hook(self):
         """ Called immediately after a new prompt is displayed.
         """
@@ -394,7 +394,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # to spaces so that output looks as expected regardless of this
             # widget's tab width.
             text = msg['content']['data'].expandtabs(8)
-            
+
             self._append_plain_text(text, before_prompt=True)
             self._control.moveCursor(QtGui.QTextCursor.End)
 
@@ -432,7 +432,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                         self.reset()
 
     def _started_channels(self):
-        """ Called when the KernelManager channels have started listening or 
+        """ Called when the KernelManager channels have started listening or
             when the frontend is assigned an already listening KernelManager.
         """
         self.reset()
@@ -467,7 +467,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def reset(self):
         """ Resets the widget to its initial state. Similar to ``clear``, but
             also re-writes the banner and aborts execution if necessary.
-        """ 
+        """
         if self._executing:
             self._executing = False
             self._request_info['execute'] = None
@@ -550,7 +550,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 '.'.join(context),                       # text
                 self._get_input_buffer_cursor_line(),    # line
                 self._get_input_buffer_cursor_column(),  # cursor_pos
-                self.input_buffer)                       # block 
+                self.input_buffer)                       # block
             pos = self._get_cursor().position()
             info = self._CompletionRequest(msg_id, pos)
             self._request_info['complete'] = info
@@ -561,7 +561,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         if cursor is None:
             cursor = self._get_cursor()
-        cursor.movePosition(QtGui.QTextCursor.StartOfBlock, 
+        cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
                             QtGui.QTextCursor.KeepAnchor)
         text = cursor.selection().toPlainText()
         return self._completion_lexer.get_context(text)

@@ -18,15 +18,15 @@ def indent(s, ind= '    '):
 
 class ExtUtil:
     """ IPython extensios (ipy_* etc.) management utilities """
-    
+
     def describe(self):
         for n,mod in self._active():
             doc = inspect.getdoc(mod)
             if doc:
                 print '== %s ==' % n
                 print indent(doc)
-            
-            
+
+
     def ls(self):
         """ Show list of installed extensions. """
         for n,m in self._active():
@@ -37,8 +37,8 @@ class ExtUtil:
             o = getattr(m, 'ip', None)
             if isinstance(o, InteractiveShell):
                 act.append((mname,m))
-        act.sort()                
+        act.sort()
         return act
 
-extutil = ExtUtil()                
+extutil = ExtUtil()
 ip.push('extutil')

@@ -10,14 +10,14 @@ from IPython.utils.warn import warn
 
 
 class ParentPollerUnix(Thread):
-    """ A Unix-specific daemon thread that terminates the program immediately 
+    """ A Unix-specific daemon thread that terminates the program immediately
     when the parent process no longer exists.
     """
 
     def __init__(self):
         super(ParentPollerUnix, self).__init__()
         self.daemon = True
-    
+
     def run(self):
         # We cannot use os.waitpid because it works only for child processes.
         from errno import EINTR
@@ -37,7 +37,7 @@ class ParentPollerWindows(Thread):
     signals an interrupt and, optionally, terminates the program immediately
     when the parent process no longer exists.
     """
-    
+
     def __init__(self, interrupt_handle=None, parent_handle=None):
         """ Create the poller. At least one of the optional parameters must be
         provided.
@@ -49,7 +49,7 @@ class ParentPollerWindows(Thread):
             handle is signaled.
 
         parent_handle : HANDLE (int), optional
-            If provided, the program will terminate immediately when this 
+            If provided, the program will terminate immediately when this
             handle is signaled.
         """
         assert(interrupt_handle or parent_handle)
@@ -71,8 +71,8 @@ class ParentPollerWindows(Thread):
         # handle by new processes.
         # FIXME: We can clean up this mess by requiring pywin32 for IPython.
         class SECURITY_ATTRIBUTES(ctypes.Structure):
-            _fields_ = [ ("nLength", ctypes.c_int), 
-                         ("lpSecurityDescriptor", ctypes.c_void_p), 
+            _fields_ = [ ("nLength", ctypes.c_int),
+                         ("lpSecurityDescriptor", ctypes.c_void_p),
                          ("bInheritHandle", ctypes.c_int) ]
         sa = SECURITY_ATTRIBUTES()
         sa_p = ctypes.pointer(sa)

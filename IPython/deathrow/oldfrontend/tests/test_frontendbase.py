@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Test the basic functionality of frontendbase. 
+Test the basic functionality of frontendbase.
 """
 
 __docformat__ = "restructuredtext en"
@@ -15,7 +15,7 @@ __docformat__ = "restructuredtext en"
 from IPython.frontend.frontendbase import FrontEndBase
 
 def test_iscomplete():
-    """ Check that is_complete works. 
+    """ Check that is_complete works.
     """
     f = FrontEndBase()
     assert f.is_complete('(a + a)')

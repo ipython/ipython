@@ -14,7 +14,7 @@ In [6]: %run gui-wx.py
 
 Ref: Modified from wxPython source code wxPython/samples/simple/simple.py
 
-This example can only be run once in a given IPython session because when 
+This example can only be run once in a given IPython session because when
 the frame is closed, wx goes through its shutdown sequence, killing further
 attempts.  I am sure someone who knows wx can fix this issue.
 
@@ -42,7 +42,7 @@ class MyFrame(wx.Frame):
         # Create the menubar
         menuBar = wx.MenuBar()
 
-        # and a menu 
+        # and a menu
         menu = wx.Menu()
 
         # add an item to the menu, using \tKeyName automatically

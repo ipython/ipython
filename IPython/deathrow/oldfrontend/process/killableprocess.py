@@ -1,4 +1,4 @@
-# Addapted from killableprocess.py.  
+# Addapted from killableprocess.py.
 #______________________________________________________________________________
 #
 # killableprocess - subprocesses which can be reliably killed
@@ -118,10 +118,10 @@ else:
 
             if startupinfo is None:
                 startupinfo = winprocess.STARTUPINFO()
-            
+
             if None not in (p2cread, c2pwrite, errwrite):
                 startupinfo.dwFlags |= winprocess.STARTF_USESTDHANDLES
-                
+
                 startupinfo.hStdInput = int(p2cread)
                 startupinfo.hStdOutput = int(c2pwrite)
                 startupinfo.hStdError = int(errwrite)
@@ -132,7 +132,7 @@ else:
                 args = comspec + " /c " + args
 
             # We create a new job for this process, so that we can kill
-            # the process and any sub-processes 
+            # the process and any sub-processes
             self._job = winprocess.CreateJobObject()
 
             creationflags |= winprocess.CREATE_SUSPENDED
@@ -145,7 +145,7 @@ else:
                 creationflags,
                 winprocess.EnvironmentBlock(env),
                 cwd, startupinfo)
-            
+
             self._child_created = True
             self._handle = hp
             self._thread = ht
@@ -173,7 +173,7 @@ else:
                 winprocess.TerminateJobObject(self._job, 127)
             else:
                 winprocess.TerminateProcess(self._handle, 127)
-            self.returncode = 127    
+            self.returncode = 127
         else:
             if group:
                 os.killpg(self.pid, signal.SIGKILL)

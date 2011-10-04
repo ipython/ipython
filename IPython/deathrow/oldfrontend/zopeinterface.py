@@ -4,7 +4,7 @@
 zope.interface mock. If zope is installed, this module provides a zope
 interface classes, if not it provides mocks for them.
 
-Classes provided: 
+Classes provided:
 Interface, Attribute, implements, classProvides
 """
 __docformat__ = "restructuredtext en"

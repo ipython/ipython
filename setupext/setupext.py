@@ -69,7 +69,7 @@ def check_for_sphinx():
         print_status('sphinx', "Not found (required for building documentation)")
         return False
     else:
-        print_status('sphinx', sphinx.__version__) 
+        print_status('sphinx', sphinx.__version__)
         return True
 
 def check_for_pygments():
@@ -142,7 +142,7 @@ def check_for_pyzmq():
         if zmq.__version__ < '2.1.4':
             print_status('pyzmq', "no (have %s, but require >= 2.1.4 for"
             " qtconsole and parallel computing capabilities)"%zmq.__version__)
-            
+
         else:
             print_status("pyzmq", zmq.__version__)
             return True

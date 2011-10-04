@@ -43,7 +43,7 @@ pjoin = os.path.join
 def oscmd(s):
     print(">", s)
     os.system(s)
-    
+
 try:
     execfile
 except NameError:
@@ -120,7 +120,7 @@ def find_package_data():
     """
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
-    
+
     # walk notebook resources:
     cwd = os.getcwd()
     os.chdir(os.path.join('IPython', 'frontend', 'html', 'notebook'))
@@ -130,7 +130,7 @@ def find_package_data():
     for parent, dirs, files in static_walk:
         for f in files:
             static_data.append(os.path.join(parent, f))
-    
+
     package_data = {
         'IPython.config.profile' : ['README', '*/*.py'],
         'IPython.testing' : ['*.txt'],
@@ -151,23 +151,23 @@ def make_dir_struct(tag,base,out_base):
 
     XXX - this needs a proper docstring!
     """
-    
+
     # we'll use these a lot below
     lbase = len(base)
     pathsep = os.path.sep
     lpathsep = len(pathsep)
-    
+
     out = []
     for (dirpath,dirnames,filenames) in os.walk(base):
         # we need to strip out the dirpath from the base to map it to the
         # output (installation) path.  This requires possibly stripping the
         # path separator, because otherwise pjoin will not work correctly
         # (pjoin('foo/','/bar') returns '/bar').
-        
+
         dp_eff = dirpath[lbase:]
         if dp_eff.startswith(pathsep):
             dp_eff = dp_eff[lpathsep:]
-        # The output path must be anchored at the out_base marker    
+        # The output path must be anchored at the out_base marker
         out_path = pjoin(out_base,dp_eff)
         # Now we can generate the final filenames. Since os.walk only produces
         # filenames, we must join back with the dirpath to get full valid file
@@ -178,7 +178,7 @@ def make_dir_struct(tag,base,out_base):
         out.append((out_path, pfiles))
 
     return out
-    
+
 
 def find_data_files():
     """
@@ -186,10 +186,10 @@ def find_data_files():
 
     Most of these are docs.
     """
-    
+
     docdirbase  = pjoin('share', 'doc', 'ipython')
     manpagebase = pjoin('share', 'man', 'man1')
-    
+
     # Simple file lists can be made by hand
     manpages  = filter(isfile, glob(pjoin('docs','man','*.1.gz')))
     if not manpages:
@@ -241,19 +241,19 @@ def make_man_update_target(manpage):
     gz_cmd = ( "cd %(man_dir)s && gzip -9c %(manpage)s > %(manpage_gz)s" %
                locals() )
     return (manpath_gz, [manpath], gz_cmd)
-    
+
 #---------------------------------------------------------------------------
 # Find scripts
 #---------------------------------------------------------------------------
 
 def find_scripts(entry_points=False, suffix=''):
     """Find IPython's scripts.
-    
+
     if entry_points is True:
         return setuptools entry_point-style definitions
     else:
         return file paths of plain scripts [default]
-    
+
     suffix is appended to script names if entry_points is True, so that the
     Python 3 scripts get named "ipython3" etc.
     """
@@ -293,7 +293,7 @@ def find_scripts(entry_points=False, suffix=''):
 
 def check_for_dependencies():
     """Check for IPython's dependencies.
-    
+
     This function should NOT be called if running under setuptools!
     """
     from setupext.setupext import (
@@ -308,7 +308,7 @@ def check_for_dependencies():
     print_status('platform', sys.platform)
     if sys.platform == 'win32':
         print_status('Windows version', sys.getwindowsversion())
-    
+
     print_raw("")
     print_raw("OPTIONAL DEPENDENCIES")
 

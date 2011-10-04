@@ -41,7 +41,7 @@ def complete_object(obj, prev_completions):
         List of attributes discovered so far.
 
     This should return the list of attributes in obj. If you only wish to
-    add to the attributes already discovered normally, return 
+    add to the attributes already discovered normally, return
     own_attrs + prev_completions.
     """
     raise TryNext

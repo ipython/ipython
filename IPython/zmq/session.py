@@ -92,36 +92,36 @@ class SessionFactory(LoggingConfigurable):
     """The Base class for configurables that have a Session, Context, logger,
     and IOLoop.
     """
-    
+
     logname = Unicode('')
     def _logname_changed(self, name, old, new):
         self.log = logging.getLogger(new)
-    
+
     # not configurable:
     context = Instance('zmq.Context')
     def _context_default(self):
         return zmq.Context.instance()
-    
+
     session = Instance('IPython.zmq.session.Session')
-    
+
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
     def _loop_default(self):
         return IOLoop.instance()
-    
+
     def __init__(self, **kwargs):
         super(SessionFactory, self).__init__(**kwargs)
-        
+
         if self.session is None:
             # construct the session
             self.session = Session(**kwargs)
-    
+
 
 class Message(object):
     """A simple message object that maps dict keys to attributes.
 
     A Message can be created from a dict and a dict from a Message instance
     simply by calling dict(msg_obj)."""
-    
+
     def __init__(self, msg_dict):
         dct = self.__dict__
         for k, v in dict(msg_dict).iteritems():
@@ -132,7 +132,7 @@ class Message(object):
     # Having this iterator lets dict(msg_obj) work out of the box.
     def __iter__(self):
         return iter(self.__dict__.iteritems())
-    
+
     def __repr__(self):
         return repr(self.__dict__)
 
@@ -171,28 +171,28 @@ def extract_header(msg_or_header):
 
 class Session(Configurable):
     """Object for handling serialization and sending of messages.
-    
+
     The Session object handles building messages and sending them
     with ZMQ sockets or ZMQStream objects.  Objects can communicate with each
     other over the network via Session objects, and only need to work with the
-    dict-based IPython message spec. The Session will handle 
+    dict-based IPython message spec. The Session will handle
     serialization/deserialization, security, and metadata.
-    
+
     Sessions support configurable serialiization via packer/unpacker traits,
     and signing with HMAC digests via the key/keyfile traits.
-    
+
     Parameters
     ----------
-    
+
     debug : bool
         whether to trigger extra debugging statements
     packer/unpacker : str : 'json', 'pickle' or import_string
         importstrings for methods to serialize message parts.  If just
         'json' or 'pickle', predefined JSON and pickle packers will be used.
         Otherwise, the entire importstring must be used.
-        
+
         The functions must accept at least valid JSON input, and output *bytes*.
-        
+
         For example, to use msgpack:
         packer = 'msgpack.packb', unpacker='msgpack.unpackb'
     pack/unpack : callables
@@ -207,11 +207,11 @@ class Session(Configurable):
     keyfile : filepath
         The file containing a key.  If this is set, `key` will be initialized
         to the contents of the file.
-    
+
     """
-    
+
     debug=Bool(False, config=True, help="""Debug output in the Session""")
-    
+
     packer = DottedObjectName('json',config=True,
             help="""The name of the packer for serializing messages.
             Should be one of 'json', 'pickle', or an import name
@@ -238,23 +238,23 @@ class Session(Configurable):
             self.unpack = pickle_unpacker
         else:
             self.unpack = import_item(str(new))
-        
+
     session = CUnicode(u'', config=True,
         help="""The UUID identifying this session.""")
     def _session_default(self):
         u = unicode(uuid.uuid4())
         self.bsession = u.encode('ascii')
         return u
-    
+
     def _session_changed(self, name, old, new):
         self.bsession = self.session.encode('ascii')
-    
+
     # bsession is the session as bytes
     bsession = CBytes(b'')
-    
+
     username = Unicode(os.environ.get('USER',u'username'), config=True,
         help="""Username for the Session. Default is your system username.""")
-    
+
     # message signature related traits:
     key = CBytes(b'', config=True,
         help="""execution key, for extra authentication.""")
@@ -265,7 +265,7 @@ class Session(Configurable):
             self.auth = None
     auth = Instance(hmac.HMAC)
     digest_history = Set()
-    
+
     keyfile = Unicode('', config=True,
         help="""path to file containing execution key.""")
     def _keyfile_changed(self, name, old, new):
@@ -276,16 +276,16 @@ class Session(Configurable):
     def _pack_changed(self, name, old, new):
         if not callable(new):
             raise TypeError("packer must be callable, not %s"%type(new))
-    
+
     unpack = Any(default_unpacker) # the actual packer function
     def _unpack_changed(self, name, old, new):
-        # unpacker is not checked - it is assumed to be 
+        # unpacker is not checked - it is assumed to be
         if not callable(new):
             raise TypeError("unpacker must be callable, not %s"%type(new))
 
     def __init__(self, **kwargs):
         """create a Session object
-        
+
         Parameters
         ----------
 
@@ -305,7 +305,7 @@ class Session(Configurable):
             You can also set the pack/unpack callables for serialization
             directly.
         session : unicode (must be ascii)
-            the ID of this Session object.  The default is to generate a new 
+            the ID of this Session object.  The default is to generate a new
             UUID.
         bsession : bytes
             The session as bytes
@@ -315,7 +315,7 @@ class Session(Configurable):
             The key used to initialize an HMAC signature.  If unset, messages
             will not be signed or checked.
         keyfile : filepath
-            The file containing a key.  If this is set, `key` will be 
+            The file containing a key.  If this is set, `key` will be
             initialized to the contents of the file.
         """
         super(Session, self).__init__(**kwargs)
@@ -333,24 +333,24 @@ class Session(Configurable):
         """check packers for binary data and datetime support."""
         pack = self.pack
         unpack = self.unpack
-        
+
         # check simple serialization
         msg = dict(a=[1,'hi'])
         try:
             packed = pack(msg)
         except Exception:
             raise ValueError("packer could not serialize a simple message")
-        
+
         # ensure packed message is bytes
         if not isinstance(packed, bytes):
             raise ValueError("message packed to %r, but bytes are required"%type(packed))
-        
+
         # check that unpack is pack's inverse
         try:
             unpacked = unpack(packed)
         except Exception:
             raise ValueError("unpacker could not handle the packer's output")
-        
+
         # check datetime support
         msg = dict(t=datetime.now())
         try:
@@ -358,7 +358,7 @@ class Session(Configurable):
         except Exception:
             self.pack = lambda o: pack(squash_dates(o))
             self.unpack = lambda s: extract_dates(unpack(s))
-    
+
     def msg_header(self, msg_type):
         return msg_header(self.msg_id, msg_type, self.username, self.session)
 
@@ -386,7 +386,7 @@ class Session(Configurable):
         Parameters
         ----------
         msg_list : list
-            The [p_header,p_parent,p_content] part of the message list. 
+            The [p_header,p_parent,p_content] part of the message list.
         """
         if self.auth is None:
             return b''
@@ -394,7 +394,7 @@ class Session(Configurable):
         for m in msg_list:
             h.update(m)
         return str_to_bytes(h.hexdigest())
-    
+
     def serialize(self, msg, ident=None):
         """Serialize the message components to bytes.
 
@@ -429,12 +429,12 @@ class Session(Configurable):
             content = content.encode('utf8')
         else:
             raise TypeError("Content incorrect type: %s"%type(content))
-        
-        real_message = [self.pack(msg['header']), 
-                        self.pack(msg['parent_header']), 
+
+        real_message = [self.pack(msg['header']),
+                        self.pack(msg['parent_header']),
                         content
         ]
-        
+
         to_send = []
 
         if isinstance(ident, list):
@@ -443,14 +443,14 @@ class Session(Configurable):
         elif ident is not None:
             to_send.append(ident)
         to_send.append(DELIM)
-        
+
         signature = self.sign(real_message)
         to_send.append(signature)
-        
+
         to_send.extend(real_message)
 
         return to_send
-        
+
     def send(self, stream, msg_or_type, content=None, parent=None, ident=None,
              buffers=None, subheader=None, track=False, header=None):
         """Build and send a message via stream or socket.
@@ -458,21 +458,21 @@ class Session(Configurable):
         The message format used by this function internally is as follows:
 
         [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_content,
-         buffer1,buffer2,...] 
+         buffer1,buffer2,...]
 
         The serialize/unserialize methods convert the nested message dict into this
         format.
 
         Parameters
         ----------
-        
+
         stream : zmq.Socket or ZMQStream
             The socket-like object used to send the data.
         msg_or_type : str or Message/dict
-            Normally, msg_or_type will be a msg_type unless a message is being 
+            Normally, msg_or_type will be a msg_type unless a message is being
             sent more than once. If a header is supplied, this can be set to
             None and the msg_type will be pulled from the header.
-        
+
         content : dict or None
             The content of the message (ignored if msg_or_type is a message).
         header : dict or None
@@ -490,29 +490,29 @@ class Session(Configurable):
         track : bool
             Whether to track.  Only for use with Sockets, because ZMQStream
             objects cannot track messages.
-        
+
         Returns
         -------
         msg : dict
             The constructed message.
         (msg,tracker) : (dict, MessageTracker)
-            if track=True, then a 2-tuple will be returned, 
+            if track=True, then a 2-tuple will be returned,
             the first element being the constructed
             message, and the second being the MessageTracker
-            
+
         """
 
         if not isinstance(stream, (zmq.Socket, ZMQStream)):
             raise TypeError("stream must be Socket or ZMQStream, not %r"%type(stream))
         elif track and isinstance(stream, ZMQStream):
             raise TypeError("ZMQStream cannot track messages")
-        
+
         if isinstance(msg_or_type, (Message, dict)):
             # We got a Message or message dict, not a msg_type so don't
             # build a new Message.
             msg = msg_or_type
         else:
-            msg = self.msg(msg_or_type, content=content, parent=parent, 
+            msg = self.msg(msg_or_type, content=content, parent=parent,
                            subheader=subheader, header=header)
 
         buffers = [] if buffers is None else buffers
@@ -540,9 +540,9 @@ class Session(Configurable):
             pprint.pprint(msg)
             pprint.pprint(to_send)
             pprint.pprint(buffers)
-        
+
         msg['tracker'] = tracker
-        
+
         return msg
 
     def send_raw(self, stream, msg_list, flags=0, copy=True, ident=None):
@@ -571,7 +571,7 @@ class Session(Configurable):
         to_send.append(self.sign(msg_list))
         to_send.extend(msg_list)
         stream.send_multipart(msg_list, flags, copy=copy)
-    
+
     def recv(self, socket, mode=zmq.NOBLOCK, content=True, copy=True):
         """Receive and unpack a message.
 
@@ -605,21 +605,21 @@ class Session(Configurable):
         except Exception as e:
             # TODO: handle it
             raise e
-    
+
     def feed_identities(self, msg_list, copy=True):
         """Split the identities from the rest of the message.
 
         Feed until DELIM is reached, then return the prefix as idents and
         remainder as msg_list. This is easily broken by setting an IDENT to DELIM,
         but that would be silly.
-        
+
         Parameters
         ----------
         msg_list : a list of Message or bytes objects
             The message to be split.
         copy : bool
             flag determining whether the arguments are bytes or Messages
-        
+
         Returns
         -------
         (idents, msg_list) : two lists
@@ -642,7 +642,7 @@ class Session(Configurable):
                 raise ValueError("DELIM not in msg_list")
             idents, msg_list = msg_list[:idx], msg_list[idx+1:]
             return [m.bytes for m in idents], msg_list
-    
+
     def unserialize(self, msg_list, content=True, copy=True):
         """Unserialize a msg_list to a nested message dict.
 
@@ -694,7 +694,7 @@ class Session(Configurable):
             message['content'] = self.unpack(msg_list[3])
         else:
             message['content'] = msg_list[3]
-        
+
         message['buffers'] = msg_list[4:]
         return message
 
@@ -706,10 +706,10 @@ def test_msg2obj():
     am['y'] = dict(z=1)
     ao = Message(am)
     assert ao.y.z == am['y']['z']
-    
+
     k1, k2 = 'y', 'z'
     assert ao[k1][k2] == am[k1][k2]
-    
+
     am2 = dict(ao)
     assert am['x'] == am2['x']
     assert am['y']['z'] == am2['y']['z']

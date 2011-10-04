@@ -1,9 +1,9 @@
-""" Fun magic line editor for ipython 
+""" Fun magic line editor for ipython
 
-Use this to easily edit lists of strings gradually without crafting long 
+Use this to easily edit lists of strings gradually without crafting long
 list comprehensions.
 
-'l' is the magic variable name for every line (array element). Save the current 
+'l' is the magic variable name for every line (array element). Save the current
 result (or more exactly, retrieve the last ipython computation result into
 %led work area) by running '%led s'. Just run '%led' to show the current work
 area data.
@@ -51,9 +51,9 @@ curdata = []
 
 def line_edit_f(self, cmd ):
     global curdata
-    
+
     if not cmd:
-        
+
         print "Magic line editor (for lists of strings)"
         if curdata:
             print "current data is:"
@@ -62,12 +62,12 @@ def line_edit_f(self, cmd ):
             print "No current data, you should set it by running '%led s'"
             print "When you have your data in _ (result of last computation)."
         return
-        
+
     if cmd == 's':
         curdata = ip.ev('_')
         print "Data set from last result (_)"
         newlines = curdata
-        
+
     else:
         # simple method call, e.g. upper
         if cmd.isalpha():
@@ -83,16 +83,16 @@ def line_edit_f(self, cmd ):
                 continue
             newlines.append(l2)
 
-    
+
     return newlines
 
 def line_edit_complete_f(self,event):
     """ Show all string methods in completions """
     if event.symbol.startswith('l.'):
         return ['l.' + func for func in dir('')]
-    
+
     return dir('') + ['l.' + func for func in dir('')]
 
 ip.set_hook('complete_command', line_edit_complete_f , str_key = '%led')
-        
+
 ip.define_magic('led', line_edit_f)

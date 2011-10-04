@@ -32,13 +32,13 @@ class IOStream:
                 raise ValueError("fallback required, but not specified")
         self.stream = stream
         self._swrite = stream.write
-        
+
         # clone all methods not overridden:
         def clone(meth):
             return not hasattr(self, meth) and not meth.startswith('_')
         for meth in filter(clone, dir(stream)):
             setattr(self, meth, getattr(stream, meth))
-    
+
     def write(self,data):
         try:
             self._swrite(data)
@@ -52,7 +52,7 @@ class IOStream:
                 # if we get here, something is seriously broken.
                 print('ERROR - failed to write data to stream:', self.stream,
                       file=sys.stderr)
-    
+
     def writelines(self, lines):
         if isinstance(lines, basestring):
             lines = [lines]
@@ -66,7 +66,7 @@ class IOStream:
     @property
     def closed(self):
         return self.stream.closed
-    
+
     def close(self):
         pass
 
@@ -114,11 +114,11 @@ class Tee(object):
         mode : optional, valid mode for open().
           If a filename was give, open with this mode.
 
-        channel : str, one of ['stdout', 'stderr']  
+        channel : str, one of ['stdout', 'stderr']
         """
         if channel not in ['stdout', 'stderr']:
             raise ValueError('Invalid channel spec %s' % channel)
-        
+
         if hasattr(file_or_name, 'write') and hasattr(file_or_name, 'seek'):
             self.file = file_or_name
         else:
@@ -302,7 +302,7 @@ def temp_pyfile(src, ext='.py'):
 
 def raw_print(*args, **kw):
     """Raw print to sys.__stdout__, otherwise identical interface to print()."""
-    
+
     print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
           file=sys.__stdout__)
     sys.__stdout__.flush()
@@ -310,7 +310,7 @@ def raw_print(*args, **kw):
 
 def raw_print_err(*args, **kw):
     """Raw print to sys.__stderr__, otherwise identical interface to print()."""
-    
+
     print(*args, sep=kw.get('sep', ' '), end=kw.get('end', '\n'),
           file=sys.__stderr__)
     sys.__stderr__.flush()

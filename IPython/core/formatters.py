@@ -361,26 +361,26 @@ class PlainTextFormatter(BaseFormatter):
 
     # The newline character.
     newline = Unicode('\n', config=True)
-    
+
     # format-string for pprinting floats
     float_format = Unicode('%r')
     # setter for float precision, either int or direct format-string
     float_precision = CUnicode('', config=True)
-    
+
     def _float_precision_changed(self, name, old, new):
         """float_precision changed, set float_format accordingly.
-        
+
         float_precision can be set by int or str.
         This will set float_format, after interpreting input.
         If numpy has been imported, numpy print precision will also be set.
-        
+
         integer `n` sets format to '%.nf', otherwise, format set directly.
-        
+
         An empty string returns to defaults (repr for float, 8 for numpy).
-        
+
         This parameter can be set via the '%precision' magic.
         """
-        
+
         if '%' in new:
             # got explicit format string
             fmt = new
@@ -397,7 +397,7 @@ class PlainTextFormatter(BaseFormatter):
                 raise ValueError("Precision must be int or format string, not %r"%new)
             except AssertionError:
                 raise ValueError("int precision must be non-negative, not %r"%i)
-            
+
             fmt = '%%.%if'%i
             if 'numpy' in sys.modules:
                 # set numpy precision if it has been imported
@@ -458,7 +458,7 @@ class HTMLFormatter(BaseFormatter):
     this.
 
     The return value of this formatter should be a valid HTML snippet that
-    could be injected into an existing DOM. It should *not* include the 
+    could be injected into an existing DOM. It should *not* include the
     ```<html>`` or ```<body>`` tags.
     """
     format_type = Unicode('text/html')
@@ -550,7 +550,7 @@ class JavascriptFormatter(BaseFormatter):
     """A Javascript formatter.
 
     To define the callables that compute the Javascript representation of
-    your objects, define a :meth:`_repr_javascript_` method or use the 
+    your objects, define a :meth:`_repr_javascript_` method or use the
     :meth:`for_type` or :meth:`for_type_by_name` methods to register functions
     that handle this.
 

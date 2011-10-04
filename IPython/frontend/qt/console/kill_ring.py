@@ -14,7 +14,7 @@ from IPython.external.qt import QtCore, QtGui
 class KillRing(object):
     """ A generic Emacs-style kill ring.
     """
-    
+
     def __init__(self):
         self.clear()
 
@@ -41,7 +41,7 @@ class KillRing(object):
 
     def rotate(self):
         """ Rotate the kill ring, then yank back the new top.
-        
+
         Returns:
         --------
         A text string or None.
@@ -50,7 +50,7 @@ class KillRing(object):
         if self._index >= 0:
             return self._ring[self._index]
         return None
-        
+
 class QtKillRing(QtCore.QObject):
     """ A kill ring attached to Q[Plain]TextEdit.
     """
@@ -109,12 +109,12 @@ class QtKillRing(QtCore.QObject):
             if text:
                 self._skip_cursor = True
                 cursor = self._text_edit.textCursor()
-                cursor.movePosition(QtGui.QTextCursor.Left, 
-                                    QtGui.QTextCursor.KeepAnchor, 
+                cursor.movePosition(QtGui.QTextCursor.Left,
+                                    QtGui.QTextCursor.KeepAnchor,
                                     n = len(self._prev_yank))
                 cursor.insertText(text)
                 self._prev_yank = text
-        
+
     #--------------------------------------------------------------------------
     # Protected interface
     #--------------------------------------------------------------------------

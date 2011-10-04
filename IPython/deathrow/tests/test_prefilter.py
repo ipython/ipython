@@ -23,7 +23,7 @@ if len(sys.argv) > 1:
     if sys.argv[1] == '-v':
         sys.argv = sys.argv[:-1]  # IPython is confused by -v, apparently
         verbose = True
-    
+
 IPython.Shell.start()
 
 ip = IPython.ipapi.get()
@@ -41,7 +41,7 @@ def install_mock_handler(name):
     handler func always returns '', which causes ipython to cease handling
     the string immediately.  That way, that it doesn't echo output, raise
     exceptions, etc.  But do note that testing multiline strings thus gets
-    a bit hard."""    
+    a bit hard."""
     def mock_handler(self, line, continue_prompt=None,
                      pre=None,iFun=None,theRest=None,
                      obj=None):
@@ -76,7 +76,7 @@ def reset_esc_handlers():
                       s.ESC_SH_CAP : s.handle_shell_escape,
                       }
 reset_esc_handlers()
-    
+
 # This is so I don't have to quote over and over.  Gotta be a better way.
 handle_normal       = 'handle_normal'
 handle_auto         = 'handle_auto'
@@ -96,18 +96,18 @@ def check(assertion, failure_msg):
     if assertion:
         if verbose:
             sys.stdout.write('.')
-            sys.stdout.flush()        
+            sys.stdout.flush()
     else:
         if verbose:
             sys.stdout.write('F')
             sys.stdout.flush()
         failures.append(failure_msg)
-    
+
 
 def check_handler(expected_handler, line):
     """Verify that the expected hander was called (for the given line,
     passed in for failure reporting).
-    
+
     Pulled out to its own function so that tests which don't use
     run_handler_tests can still take advantage of it."""
     check(handler_called == expected_handler,
@@ -115,16 +115,16 @@ def check_handler(expected_handler, line):
           "instead %s called" % (expected_handler,
                                  repr(line),
                                  handler_called))
-    
+
 
 def run_handler_tests(h_tests):
     """Loop through a series of (input_line, handler_name) pairs, verifying
-    that, for each ip calls the given handler for the given line. 
+    that, for each ip calls the given handler for the given line.
 
     The verbose complaint includes the line passed in, so if that line can
     include enough info to find the error, the tests are modestly
     self-documenting.
-    """    
+    """
     for ln, expected_handler in h_tests:
         global handler_called
         handler_called = None
@@ -133,7 +133,7 @@ def run_handler_tests(h_tests):
 
 def run_one_test(ln, expected_handler):
     run_handler_tests([(ln, expected_handler)])
-    
+
 
 # =========================================
 # Tests
@@ -153,12 +153,12 @@ esc_handler_tests = [
     ( '%magic',    handle_magic),
     # XXX Possibly, add test for /,; once those are unhooked from %autocall
     ( 'emacs_mode # PYTHON-MODE', handle_emacs ),
-    ( ' ',         handle_normal), 
+    ( ' ',         handle_normal),
 
     # Trailing qmark combos.  Odd special cases abound
 
     # ! always takes priority!
-    ( '!thing?',      handle_shell_escape), 
+    ( '!thing?',      handle_shell_escape),
     ( '!thing arg?',  handle_shell_escape),
     ( '!!thing?',     handle_shell_escape),
     ( '!!thing arg?', handle_shell_escape),
@@ -186,8 +186,8 @@ run_handler_tests(esc_handler_tests)
 old_mls = ip.options.multi_line_specials
 for ln in [ '    !ls $f multi_line_specials %s',
             '    !!ls $f multi_line_specials %s',  # !! escapes work on mls
-            # Trailing ? doesn't trigger help:            
-            '    !ls $f multi_line_specials %s ?', 
+            # Trailing ? doesn't trigger help:
+            '    !ls $f multi_line_specials %s ?',
             '    !!ls $f multi_line_specials %s ?',
             ]:
     ip.options.multi_line_specials = 1
@@ -271,16 +271,16 @@ class AttributeMutator(object):
 attr_mutator = AttributeMutator()
 ip.to_user_ns('attr_mutator')
 
-ip.options.autocall = 1 
+ip.options.autocall = 1
 
 run_one_test('attr_mutator.foo should mutate', handle_normal)
 check(attr_mutator.called, 'ofind should be called in absence of assign characters')
 
-for c in list('!=()<>+*/%^&|'): 
+for c in list('!=()<>+*/%^&|'):
     attr_mutator.called = False
     run_one_test('attr_mutator.foo %s should *not* mutate' % c, handle_normal)
     run_one_test('attr_mutator.foo%s should *not* mutate' % c, handle_normal)
-    
+
     check(not attr_mutator.called,
           'ofind should not be called near character %s' % c)
 
@@ -302,7 +302,7 @@ for ac_state in [0,1]:
     run_handler_tests([
         ("alias_cmd",           handle_alias),
         # XXX See note above
-        #("alias_head.with_dot unshadowed, autocall=%s" % ac_state, handle_alias), 
+        #("alias_head.with_dot unshadowed, autocall=%s" % ac_state, handle_alias),
         ("alias_cmd.something aliases must match whole expr", handle_normal),
         ("alias_cmd /", handle_alias),
         ])
@@ -331,7 +331,7 @@ import IPython.ipapi
 class Autocallable(IPython.ipapi.IPyAutocall):
     def __call__(self):
         return "called"
-    
+
 autocallable = Autocallable()
 ip.to_user_ns('autocallable')
 
@@ -344,13 +344,13 @@ run_handler_tests( [
     ( 'len autocall_0',     handle_normal),
     ( 'thing autocall_0',   handle_normal),
     ( 'autocallable',       handle_auto),
-    
+
     # With explicit escapes, callable and non-callables both get expanded,
     # regardless of the %autocall setting:
     ( '/len autocall_0',    handle_auto),
     ( ',len autocall_0 b0', handle_auto),
     ( ';len autocall_0 b0', handle_auto),
-    
+
     ( '/thing autocall_0',    handle_auto),
     ( ',thing autocall_0 b0', handle_auto),
     ( ';thing autocall_0 b0', handle_auto),
@@ -370,7 +370,7 @@ run_handler_tests( [
 
 
 # Now, with autocall in default, 'smart' mode
-ip.options.autocall = 1 
+ip.options.autocall = 1
 run_handler_tests( [
     # Autocalls without escapes -- only expand if it's callable
     ( 'len a1',       handle_auto),
@@ -416,8 +416,8 @@ for b in bin_ops:
     bin_tests.append((';len %s binop_autocall' % b, handle_auto))
     bin_tests.append((',len %s binop_autocall' % b, handle_auto))
     bin_tests.append(('/len %s binop_autocall' % b, handle_auto))
-    
-# Who loves auto-generating tests? 
+
+# Who loves auto-generating tests?
 run_handler_tests(bin_tests)
 
 
@@ -431,7 +431,7 @@ run_handler_tests(bin_tests)
 # ============
 num_f = len(failures)
 if verbose:
-    print 
+    print
 print "%s tests run, %s failure%s" % (num_tests,
                                       num_f,
                                       num_f != 1 and "s" or "")

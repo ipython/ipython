@@ -112,7 +112,7 @@ class AnsiCodeProcessor(object):
         ----------
         command : str
             The code identifier, i.e. the final character in the sequence.
-        
+
         params : sequence of integers, optional
             The parameter codes for the command.
         """
@@ -143,7 +143,7 @@ class AnsiCodeProcessor(object):
 
     def set_osc_code(self, params):
         """ Set attributes based on OSC (Operating System Command) parameters.
-        
+
         Parameters
         ----------
         params : sequence of str
@@ -162,7 +162,7 @@ class AnsiCodeProcessor(object):
                 self.color_map[color] = self._parse_xterm_color_spec(spec)
             except (IndexError, ValueError):
                 pass
-        
+
     def set_sgr_code(self, params):
         """ Set attributes based on SGR (Select Graphic Rendition) codes.
 
@@ -200,7 +200,7 @@ class AnsiCodeProcessor(object):
             self.underline = False
         elif code >= 30 and code <= 37:
             self.foreground_color = code - 30
-        elif code == 38 and params and params.pop(0) == 5: 
+        elif code == 38 and params and params.pop(0) == 5:
             # xterm-specific: 256 color support.
             if params:
                 self.foreground_color = params.pop(0)
@@ -226,7 +226,7 @@ class AnsiCodeProcessor(object):
         if spec.startswith('rgb:'):
             return tuple(map(lambda x: int(x, 16), spec[4:].split('/')))
         elif spec.startswith('rgbi:'):
-            return tuple(map(lambda x: int(float(x) * 255), 
+            return tuple(map(lambda x: int(float(x) * 255),
                              spec[5:].split('/')))
         elif spec == '?':
             raise ValueError('Unsupported xterm color spec')
@@ -237,7 +237,7 @@ class AnsiCodeProcessor(object):
         if special == '\f':
             self.actions.append(ScrollAction('scroll', 'down', 'page', 1))
         return ''
-        
+
 
 class QtAnsiCodeProcessor(AnsiCodeProcessor):
     """ Translates ANSI escape codes into QTextCharFormats.
@@ -288,7 +288,7 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
             return QtGui.QColor(*constructor)
 
         return None
-    
+
     def get_format(self):
         """ Returns a QTextCharFormat that encodes the current style attributes.
         """
@@ -322,7 +322,7 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
         self.default_color_map = self.darkbg_color_map.copy()
 
         if color.value() >= 127:
-            # Colors appropriate for a terminal with a light background. For 
+            # Colors appropriate for a terminal with a light background. For
             # now, only use non-bright colors...
             for i in xrange(8):
                 self.default_color_map[i + 8] = self.default_color_map[i]

@@ -27,7 +27,7 @@ from IPython.external.ssh import tunnel
 from IPython.utils.traitlets import (
     Instance, Dict, Int, Type, CFloat, Unicode, CBytes, Bool
 )
-# from IPython.utils.localinterfaces import LOCALHOST 
+# from IPython.utils.localinterfaces import LOCALHOST
 
 from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
@@ -39,7 +39,7 @@ from .streamkernel import Kernel
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""
-    
+
     # configurables:
     out_stream_factory=Type('IPython.zmq.iostream.OutStream', config=True,
         help="""The OutStream for handling stdout/err.
@@ -60,32 +60,32 @@ class EngineFactory(RegistrationFactory):
         help="""The SSH private key file to use when tunneling connections to the Controller.""")
     paramiko=Bool(sys.platform == 'win32', config=True,
         help="""Whether to use paramiko instead of openssh for tunnels.""")
-    
+
     # not configurable:
     user_ns=Dict()
     id=Int(allow_none=True)
     registrar=Instance('zmq.eventloop.zmqstream.ZMQStream')
     kernel=Instance(Kernel)
-    
+
     bident = CBytes()
     ident = Unicode()
     def _ident_changed(self, name, old, new):
         self.bident = asbytes(new)
     using_ssh=Bool(False)
-    
-    
+
+
     def __init__(self, **kwargs):
         super(EngineFactory, self).__init__(**kwargs)
         self.ident = self.session.session
-    
+
     def init_connector(self):
         """construct connection function, which handles tunnels."""
         self.using_ssh = bool(self.sshkey or self.sshserver)
-        
+
         if self.sshkey and not self.sshserver:
             # We are using ssh directly to the controller, tunneling localhost to localhost
             self.sshserver = self.url.split('://')[1].split(':')[0]
-        
+
         if self.using_ssh:
             if tunnel.try_passwordless_ssh(self.sshserver, self.sshkey, self.paramiko):
                 password=False
@@ -93,7 +93,7 @@ class EngineFactory(RegistrationFactory):
                 password = getpass("SSH Password for %s: "%self.sshserver)
         else:
             password = False
-        
+
         def connect(s, url):
             url = disambiguate_url(url, self.location)
             if self.using_ssh:
@@ -104,7 +104,7 @@ class EngineFactory(RegistrationFactory):
                 )
             else:
                 return s.connect(url)
-        
+
         def maybe_tunnel(url):
             """like connect, but don't complete the connection (for use by heartbeat)"""
             url = disambiguate_url(url, self.location)
@@ -116,10 +116,10 @@ class EngineFactory(RegistrationFactory):
                 )
             return url
         return connect, maybe_tunnel
-        
+
     def register(self):
         """send the registration_request"""
-        
+
         self.log.info("Registering with controller at %s"%self.url)
         ctx = self.context
         connect,maybe_tunnel = self.init_connector()
@@ -127,13 +127,13 @@ class EngineFactory(RegistrationFactory):
         reg.setsockopt(zmq.IDENTITY, self.bident)
         connect(reg, self.url)
         self.registrar = zmqstream.ZMQStream(reg, self.loop)
-        
-        
+
+
         content = dict(queue=self.ident, heartbeat=self.ident, control=self.ident)
         self.registrar.on_recv(lambda msg: self.complete_registration(msg, connect, maybe_tunnel))
         # print (self.session.key)
         self.session.send(self.registrar, "registration_request",content=content)
-    
+
     def complete_registration(self, msg, connect, maybe_tunnel):
         # print msg
         self._abort_dc.stop()
@@ -142,25 +142,25 @@ class EngineFactory(RegistrationFactory):
         identity = self.bident
         idents,msg = self.session.feed_identities(msg)
         msg = Message(self.session.unserialize(msg))
-        
+
         if msg.content.status == 'ok':
             self.id = int(msg.content.id)
-            
+
             # launch heartbeat
             hb_addrs = msg.content.heartbeat
-            
+
             # possibly forward hb ports with tunnels
             hb_addrs = [ maybe_tunnel(addr) for addr in hb_addrs ]
             heart = Heart(*map(str, hb_addrs), heart_id=identity)
             heart.start()
-            
+
             # create Shell Streams (MUX, Task, etc.):
             queue_addr = msg.content.mux
             shell_addrs = [ str(queue_addr) ]
             task_addr = msg.content.task
             if task_addr:
                 shell_addrs.append(str(task_addr))
-            
+
             # Uncomment this to go back to two-socket model
             # shell_streams = []
             # for addr in shell_addrs:
@@ -168,7 +168,7 @@ class EngineFactory(RegistrationFactory):
             #     stream.setsockopt(zmq.IDENTITY, identity)
             #     stream.connect(disambiguate_url(addr, self.location))
             #     shell_streams.append(stream)
-            
+
             # Now use only one shell stream for mux and tasks
             stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
             stream.setsockopt(zmq.IDENTITY, identity)
@@ -176,19 +176,19 @@ class EngineFactory(RegistrationFactory):
             for addr in shell_addrs:
                 connect(stream, addr)
             # end single stream-socket
-            
+
             # control stream:
             control_addr = str(msg.content.control)
             control_stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
             control_stream.setsockopt(zmq.IDENTITY, identity)
             connect(control_stream, control_addr)
-            
+
             # create iopub stream:
             iopub_addr = msg.content.iopub
             iopub_stream = zmqstream.ZMQStream(ctx.socket(zmq.PUB), loop)
             iopub_stream.setsockopt(zmq.IDENTITY, identity)
             connect(iopub_stream, iopub_addr)
-            
+
             # # Redirect input streams and set a display hook.
             if self.out_stream_factory:
                 sys.stdout = self.out_stream_factory(self.session, iopub_stream, u'stdout')
@@ -199,25 +199,25 @@ class EngineFactory(RegistrationFactory):
                 sys.displayhook = self.display_hook_factory(self.session, iopub_stream)
                 sys.displayhook.topic = 'engine.%i.pyout'%self.id
 
-            self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session, 
-                    control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream, 
+            self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
+                    control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream,
                     loop=loop, user_ns = self.user_ns, log=self.log)
             self.kernel.start()
-            
-            
+
+
         else:
             self.log.fatal("Registration Failed: %s"%msg)
             raise Exception("Registration Failed: %s"%msg)
-        
+
         self.log.info("Completed registration with id %i"%self.id)
-    
-    
+
+
     def abort(self):
         self.log.fatal("Registration timed out after %.1f seconds"%self.timeout)
         self.session.send(self.registrar, "unregistration_request", content=dict(id=self.id))
         time.sleep(1)
         sys.exit(255)
-    
+
     def start(self):
         dc = ioloop.DelayedCallback(self.register, 0, self.loop)
         dc.start()

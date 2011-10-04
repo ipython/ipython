@@ -11,12 +11,12 @@ def clip_f( self, parameter_s = '' ):
     This function uses the same syntax as %macro for line extraction, but
     instead of creating a macro it saves the resulting string to the
     clipboard.
-    
-    When used without arguments, this returns the text contents of the clipboard. 
+
+    When used without arguments, this returns the text contents of the clipboard.
     E.g.
-    
+
     mytext = %clip
-    
+
     """
 
     import win32clipboard as cl
@@ -28,7 +28,7 @@ def clip_f( self, parameter_s = '' ):
         cl.CloseClipboard()
         return data
     api = self.getapi()
-    
+
     if parameter_s.lstrip().startswith('='):
         rest = parameter_s[parameter_s.index('=')+1:].strip()
         val = str(api.ev(rest))
@@ -41,5 +41,5 @@ def clip_f( self, parameter_s = '' ):
     cl.CloseClipboard()
     print 'The following text was written to the clipboard'
     print val
-    
+
 ip.define_magic( "clip", clip_f )

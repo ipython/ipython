@@ -48,13 +48,13 @@ class LineFrontEndBase(FrontEndBase):
     to be the base class behind all the frontend that are line-oriented,
     rather than block-oriented.
     """
-    
+
     # We need to keep the prompt number, to be able to increment
     # it when there is an exception.
     prompt_number = 1
 
     # We keep a reference to the last result: it helps testing and
-    # programatic control of the frontend. 
+    # programatic control of the frontend.
     last_result = dict(number=0)
 
     # The last prompt displayed. Useful for continuation prompts.
@@ -93,11 +93,11 @@ class LineFrontEndBase(FrontEndBase):
 
     def complete(self, line):
         """Complete line in engine's user_ns
-        
+
         Parameters
         ----------
         line : string
-        
+
         Returns
         -------
         The replacement for the line and the list of possible completions.
@@ -105,11 +105,11 @@ class LineFrontEndBase(FrontEndBase):
         completions = self.shell.complete(line)
         complete_sep =  re.compile('[\s\{\}\[\]\(\)\=]')
         if completions:
-            prefix = common_prefix(completions) 
+            prefix = common_prefix(completions)
             residual = complete_sep.split(line)[:-1]
             line = line[:-len(residual)] + prefix
-        return line, completions 
- 
+        return line, completions
+
 
     def render_result(self, result):
         """ Frontend-specific rendering of the result of a calculation
@@ -118,15 +118,15 @@ class LineFrontEndBase(FrontEndBase):
         if 'stdout' in result and result['stdout']:
             self.write('\n' + result['stdout'])
         if 'display' in result and result['display']:
-            self.write("%s%s\n" % ( 
+            self.write("%s%s\n" % (
                             self.output_prompt_template.substitute(
                                     number=result['number']),
                             result['display']['pprint']
                             ) )
-       
+
 
     def render_error(self, failure):
-        """ Frontend-specific rendering of error. 
+        """ Frontend-specific rendering of error.
         """
         self.write('\n\n'+str(failure)+'\n\n')
         return failure
@@ -146,7 +146,7 @@ class LineFrontEndBase(FrontEndBase):
             # thus want to consider an empty string as a complete
             # statement.
             return True
-        elif ( len(self.input_buffer.split('\n'))>2 
+        elif ( len(self.input_buffer.split('\n'))>2
                         and not re.findall(r"\n[\t ]*\n[\t ]*$", string)):
             return False
         else:
@@ -157,7 +157,7 @@ class LineFrontEndBase(FrontEndBase):
                 # This should probably be done in a different place (like
                 # maybe 'prefilter_input' method? For now, this works.
                 clean_string = string.rstrip('\n')
-                if not clean_string.endswith('\\'): clean_string +='\n\n' 
+                if not clean_string.endswith('\\'): clean_string +='\n\n'
                 is_complete = codeop.compile_command(clean_string,
                             "<string>", "exec")
                 self.release_output()
@@ -228,10 +228,10 @@ class LineFrontEndBase(FrontEndBase):
 
 
     def complete_current_input(self):
-        """ Do code completion on current line. 
+        """ Do code completion on current line.
         """
         if self.debug:
-            print >>sys.__stdout__, "complete_current_input", 
+            print >>sys.__stdout__, "complete_current_input",
         line = self.input_buffer
         new_line, completions = self.complete(line)
         if len(completions)>1:
@@ -241,7 +241,7 @@ class LineFrontEndBase(FrontEndBase):
         if self.debug:
             print >>sys.__stdout__, 'line', line
             print >>sys.__stdout__, 'new_line', new_line
-            print >>sys.__stdout__, completions 
+            print >>sys.__stdout__, completions
 
 
     def get_line_width(self):
@@ -259,10 +259,10 @@ class LineFrontEndBase(FrontEndBase):
         """
         if new_line is None:
             new_line = self.input_buffer
-        
+
         self.write('\n')
         max_len = len(max(possibilities, key=len)) + 1
-        
+
         # Now we check how much symbol we can put on a line...
         chars_per_line = self.get_line_width()
         symbols_per_line = max(1, chars_per_line/max_len)
@@ -283,7 +283,7 @@ class LineFrontEndBase(FrontEndBase):
 
 
     def new_prompt(self, prompt):
-        """ Prints a prompt and starts a new editing buffer. 
+        """ Prints a prompt and starts a new editing buffer.
 
             Subclasses should use this method to make sure that the
             terminal is put in a state favorable for a new line
@@ -297,7 +297,7 @@ class LineFrontEndBase(FrontEndBase):
         """Returns the current continuation prompt.
         """
         return ("."*(len(self.last_prompt)-2) + ': ')
- 
+
 
     def execute_command(self, command, hidden=False):
         """ Execute a command, not only in the model, but also in the
@@ -308,7 +308,7 @@ class LineFrontEndBase(FrontEndBase):
     #--------------------------------------------------------------------------
     # Private API
     #--------------------------------------------------------------------------
- 
+
     def _on_enter(self, new_line_pos=0):
         """ Called when the return key is pressed in a line editing
             buffer.
@@ -339,7 +339,7 @@ class LineFrontEndBase(FrontEndBase):
             new_line_pos = -new_line_pos
             lines = current_buffer.split('\n')[:-1]
             prompt_less_lines = prompt_less_buffer.split('\n')
-            # Create the new line, with the continuation prompt, and the 
+            # Create the new line, with the continuation prompt, and the
             # same amount of indent than the line above it.
             new_line = self.continuation_prompt() + \
                   self._get_indent_string('\n'.join(
@@ -356,7 +356,7 @@ class LineFrontEndBase(FrontEndBase):
             else:
                 lines.insert(new_line_pos, new_line)
             self.input_buffer = '\n'.join(lines)
-            
+
 
     def _get_indent_string(self, string):
         """ Return the string of whitespace that prefixes a line. Used to
@@ -369,5 +369,5 @@ class LineFrontEndBase(FrontEndBase):
                             ' '*(indent_chars % 4)
 
         return indent_string
- 
-    
+
+

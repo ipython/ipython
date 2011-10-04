@@ -1,4 +1,4 @@
-""" Preliminary "job control" extensions for IPython 
+""" Preliminary "job control" extensions for IPython
 
 requires python 2.4 (or separate 'subprocess' module
 
@@ -39,7 +39,7 @@ Now launch a new IPython prompt and kill the process:
     [Q:/ipython]|4>
 
 (you don't need to specify PID for %kill if only one task is running)
-"""                     
+"""
 
 from subprocess import *
 import os,shlex,sys,time
@@ -55,8 +55,8 @@ if os.name == 'nt':
 else:
     def kill_process(pid):
         os.system('kill -9 %d' % pid)
-    
-    
+
+
 
 class IpyPopen(Popen):
     def go(self):
@@ -66,7 +66,7 @@ class IpyPopen(Popen):
 
     def kill(self):
         kill_process(self.pid)
-                  
+
 def startjob(job):
     p = IpyPopen(shlex.split(job), stdout=PIPE, shell = False)
     p.line = job
@@ -85,7 +85,7 @@ class AsyncJobQ(threading.Thread):
                 self.output.append("** Discarding: '%s' - %s" % (cmd,cwd))
                 continue
             self.output.append("** Task started: '%s' - %s" % (cmd,cwd))
-            
+
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT, cwd = cwd)
             out = p.stdout.read()
             self.output.append("** Task complete: '%s'\n" % cmd)
@@ -93,16 +93,16 @@ class AsyncJobQ(threading.Thread):
 
     def add(self,cmd):
         self.q.put_nowait((cmd, os.getcwdu()))
-        
+
     def dumpoutput(self):
         while self.output:
             item = self.output.pop(0)
-            print item            
+            print item
 
 _jobq = None
 
 def jobqueue_f(self, line):
-     
+
     global _jobq
     if not _jobq:
         print "Starting jobqueue - do '&some_long_lasting_system_command' to enqueue"
@@ -118,11 +118,11 @@ def jobqueue_f(self, line):
     if line.strip() == 'start':
         _jobq.stop = False
         return
-        
-def jobctrl_prefilter_f(self,line):    
+
+def jobctrl_prefilter_f(self,line):
     if line.startswith('&'):
         pre,fn,rest = self.split_user_input(line[1:])
-        
+
         line = ip.expand_aliases(fn,rest)
         if not _jobq:
             return 'get_ipython().startjob(%s)' % make_quoted_expr(line)
@@ -147,7 +147,7 @@ def magic_tasks(self,line):
 
     A 'task' is a process that has been started in IPython when 'jobctrl' extension is enabled.
     Tasks can be killed with %kill.
-    
+
     '%tasks clear' clears the task list (from stale tasks)
     """
     ip = self.getapi()
@@ -156,7 +156,7 @@ def magic_tasks(self,line):
             print "Clearing",ip.db[k]
             del ip.db[k]
         return
-        
+
     ents = job_list(ip)
     if not ents:
         print "No tasks running"
@@ -181,19 +181,19 @@ def magic_kill(self,line):
         else:
             magic_tasks(self,line)
         return
-        
+
     try:
         pid = int(line)
         kill_process(pid)
     except ValueError:
         magic_tasks(self,line)
-        
+
 if sys.platform == 'win32':
     shell_internal_commands = 'break chcp cls copy ctty date del erase dir md mkdir path prompt rd rmdir start time type ver vol'.split()
     PopenExc = WindowsError
 else:
     # todo linux commands
-    shell_internal_commands = [] 
+    shell_internal_commands = []
     PopenExc = OSError
 
 
@@ -218,10 +218,10 @@ def jobctrl_shellcmd(ip,cmd):
             else:
                 # have to go via shell, sucks
                 p = Popen(cmd,shell = True)
-            
+
         jobentry = 'tasks/t' + str(p.pid)
         ip.db[jobentry] = (p.pid,cmd,os.getcwdu(),time.time())
-        p.communicate()        
+        p.communicate()
 
     finally:
         if jobentry:
@@ -238,5 +238,5 @@ def install():
     ip.define_magic('kill',magic_kill)
     ip.define_magic('tasks',magic_tasks)
     ip.define_magic('jobqueue',jobqueue_f)
-    ip.set_hook('pre_prompt_hook', jobq_output_hook) 
+    ip.set_hook('pre_prompt_hook', jobq_output_hook)
 install()

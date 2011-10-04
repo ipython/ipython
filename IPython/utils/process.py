@@ -40,7 +40,7 @@ class FindCmdError(Exception):
 
 def find_cmd(cmd):
     """Find absolute path to executable cmd in a cross platform manner.
-    
+
     This function tries to determine the full path to a command line program
     using `which` on Unix/Linux/OS X and `win32api` on Windows.  Most of the
     time it will use the version that is first on the users `PATH`.  If
@@ -49,7 +49,7 @@ def find_cmd(cmd):
     Warning, don't use this to find IPython command line programs as there
     is a risk you will find the wrong one.  Instead find those using the
     following code and looking for the application itself::
-    
+
         from IPython.utils.path import get_ipython_module_path
         from IPython.utils.process import pycmd2argv
         argv = pycmd2argv(get_ipython_module_path('IPython.frontend.terminal.ipapp'))
@@ -79,7 +79,7 @@ def pycmd2argv(cmd):
     sure the right version is used.
 
     For a given path ``cmd``, this returns [cmd] if cmd's extension is .exe,
-    .com or .bat, and [, cmd] otherwise.  
+    .com or .bat, and [, cmd] otherwise.
 
     Parameters
     ----------
@@ -97,7 +97,7 @@ def pycmd2argv(cmd):
         if sys.platform == 'win32':
             # The -u option here turns on unbuffered output, which is required
             # on Win32 to prevent wierd conflict and problems with Twisted.
-            # Also, use sys.executable to make sure we are picking up the 
+            # Also, use sys.executable to make sure we are picking up the
             # right python exe.
             return [sys.executable, '-u', cmd]
         else:

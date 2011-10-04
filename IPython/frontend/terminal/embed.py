@@ -53,7 +53,7 @@ def kill_embedded(self,parameter_s=''):
     figured out what you needed from it, you may then kill it and the program
     will then continue to run without the interactive shell interfering again.
     """
-    
+
     kill = ask_yes_no("Are you sure you want to kill this embedded instance "
                      "(y/n)? [y/N] ",'n')
     if kill:
@@ -206,7 +206,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         with nested(self.builtin_trap, self.display_trap):
             self.interact(display_banner=display_banner)
-        
+
             # now, purge out the user namespace from anything we might have added
             # from the caller's local namespace
             delvar = self.user_ns.pop
@@ -234,7 +234,7 @@ def embed(**kwargs):
         d = 40
         embed
 
-    Full customization can be done by passing a :class:`Struct` in as the 
+    Full customization can be done by passing a :class:`Struct` in as the
     config argument.
     """
     config = kwargs.get('config')

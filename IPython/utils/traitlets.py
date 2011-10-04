@@ -58,7 +58,7 @@ try:
     ClassTypes = (ClassType, type)
 except:
     ClassTypes = (type,)
-    
+
 from .importstring import import_item
 from IPython.utils import py3compat
 
@@ -119,10 +119,10 @@ def repr_type(obj):
 
 def parse_notifier_name(name):
     """Convert the name argument to a list of names.
-    
+
     Examples
     --------
-    
+
     >>> parse_notifier_name('a')
     ['a']
     >>> parse_notifier_name(['a','b'])
@@ -153,7 +153,7 @@ class _SimpleTest:
 def getmembers(object, predicate=None):
     """A safe version of inspect.getmembers that handles missing attributes.
 
-    This is useful when there are descriptor based attributes that for 
+    This is useful when there are descriptor based attributes that for
     some reason raise AttributeError even though they exist.  This happens
     in zope.inteface with the __provides__ attribute.
     """
@@ -192,7 +192,7 @@ class TraitType(object):
        This is used by the :class:`This` trait to allow subclasses to
        accept superclasses for :class:`This` values.
     """
-    
+
 
     metadata = {}
     default_value = Undefined
@@ -231,7 +231,7 @@ class TraitType(object):
         created.
 
         This method trigger the creation and validation of default values
-        and also things like the resolution of str given class names in 
+        and also things like the resolution of str given class names in
         :class:`Type` and :class`Instance`.
 
         Parameters
@@ -246,7 +246,7 @@ class TraitType(object):
         """Set the default value on a per instance basis.
 
         This method is called by :meth:`instance_init` to create and
-        validate the default value.  The creation and validation of 
+        validate the default value.  The creation and validation of
         default values must be delayed until the parent :class:`HasTraits`
         class has been instantiated.
         """
@@ -270,7 +270,7 @@ class TraitType(object):
         """Get the value of the trait by self.name for the instance.
 
         Default values are instantiated when :meth:`HasTraits.__new__`
-        is called.  Thus by the time this method gets called either the 
+        is called.  Thus by the time this method gets called either the
         default value or a user defined value (they called :meth:`__set__`)
         is in the :class:`HasTraits` instance.
         """
@@ -347,14 +347,14 @@ class TraitType(object):
 
 class MetaHasTraits(type):
     """A metaclass for HasTraits.
-    
+
     This metaclass makes sure that any TraitType class attributes are
     instantiated and sets their name attribute.
     """
-    
+
     def __new__(mcls, name, bases, classdict):
         """Create the HasTraits class.
-        
+
         This instantiates all TraitTypes in the class dict and sets their
         :attr:`name` attribute.
         """
@@ -373,7 +373,7 @@ class MetaHasTraits(type):
 
     def __init__(cls, name, bases, classdict):
         """Finish initializing the HasTraits class.
-        
+
         This sets the :attr:`this_class` attribute of each TraitType in the
         class dict to the newly created class ``cls``.
         """
@@ -398,7 +398,7 @@ class HasTraits(object):
         inst._trait_notifiers = {}
         inst._trait_dyn_inits = {}
         # Here we tell all the TraitType instances to set their default
-        # values on the instance. 
+        # values on the instance.
         for key in dir(cls):
             # Some descriptors raise AttributeError like zope.interface's
             # __provides__ attributes even though they exist.  This causes
@@ -462,7 +462,7 @@ class HasTraits(object):
             else:
                 raise TraitError('a trait changed callback '
                                     'must be callable.')
-                
+
 
     def _add_notifiers(self, handler, name):
         if not self._trait_notifiers.has_key(name):
@@ -487,17 +487,17 @@ class HasTraits(object):
         """Setup a handler to be called when a trait changes.
 
         This is used to setup dynamic notifications of trait changes.
-        
+
         Static handlers can be created by creating methods on a HasTraits
         subclass with the naming convention '_[traitname]_changed'.  Thus,
         to create static handler for the trait 'a', create the method
         _a_changed(self, name, old, new) (fewer arguments can be used, see
         below).
-        
+
         Parameters
         ----------
         handler : callable
-            A callable that is called when a trait changes.  Its 
+            A callable that is called when a trait changes.  Its
             signature can be handler(), handler(name), handler(name, new)
             or handler(name, old, new).
         name : list, str, None
@@ -651,12 +651,12 @@ class Type(ClassBasedTraitType):
         default_value : class, str or None
             The default value must be a subclass of klass.  If an str,
             the str must be a fully specified class name, like 'foo.bar.Bah'.
-            The string is resolved into real class, when the parent 
+            The string is resolved into real class, when the parent
             :class:`HasTraits` class is instantiated.
         klass : class, str, None
             Values of this trait must be a subclass of klass.  The klass
             may be specified in a string like: 'foo.bar.MyClass'.
-            The string is resolved into real class, when the parent 
+            The string is resolved into real class, when the parent
             :class:`HasTraits` class is instantiated.
         allow_none : boolean
             Indicates whether None is allowed as an assignable value. Even if
@@ -725,11 +725,11 @@ class DefaultValueGenerator(object):
 
 class Instance(ClassBasedTraitType):
     """A trait whose value must be an instance of a specified class.
-    
+
     The value can also be an instance of a subclass of the specified class.
     """
 
-    def __init__(self, klass=None, args=None, kw=None, 
+    def __init__(self, klass=None, args=None, kw=None,
                  allow_none=True, **metadata ):
         """Construct an Instance trait.
 
@@ -754,7 +754,7 @@ class Instance(ClassBasedTraitType):
         -------------
         If both ``args`` and ``kw`` are None, then the default value is None.
         If ``args`` is a tuple and ``kw`` is a dict, then the default is
-        created as ``klass(*args, **kw)``.  If either ``args`` or ``kw`` is 
+        created as ``klass(*args, **kw)``.  If either ``args`` or ``kw`` is
         not (but not both), None is replace by ``()`` or ``{}``.
         """
 
@@ -764,7 +764,7 @@ class Instance(ClassBasedTraitType):
             raise TraitError('The klass argument must be a class'
                                 ' you gave: %r' % klass)
         self.klass = klass
-        
+
         # self.klass is a class, so handle default_value
         if args is None and kw is None:
             default_value = None
@@ -775,12 +775,12 @@ class Instance(ClassBasedTraitType):
             elif kw is None:
                 # args is not None
                 kw = {}
-        
+
             if not isinstance(kw, dict):
                 raise TraitError("The 'kw' argument must be a dict or None.")
             if not isinstance(args, tuple):
                 raise TraitError("The 'args' argument must be a tuple or None.")
-            
+
             default_value = DefaultValueGenerator(*args, **kw)
 
         super(Instance, self).__init__(default_value, **metadata)
@@ -817,7 +817,7 @@ class Instance(ClassBasedTraitType):
 
     def get_default_value(self):
         """Instantiate a default value instance.
-        
+
         This is called when the containing HasTraits classes'
         :meth:`__new__` method is called to ensure that a unique instance
         is created for each HasTraits instance.
@@ -833,7 +833,7 @@ class This(ClassBasedTraitType):
     """A trait for instances of the class containing this trait.
 
     Because how how and when class bodies are executed, the ``This``
-    trait can only have a default value of None.  This, and because we 
+    trait can only have a default value of None.  This, and because we
     always validate default values, ``allow_none`` is *always* true.
     """
 
@@ -1002,18 +1002,18 @@ class CUnicode(Unicode):
             return unicode(value)
         except:
             self.error(obj, value)
-  
-            
+
+
 class ObjectName(TraitType):
     """A string holding a valid object name in this version of Python.
-    
+
     This does not check that the name exists in any scope."""
     info_text = "a valid object identifier in Python"
 
     if py3compat.PY3:
         # Python 3:
         coerce_str = staticmethod(lambda _,s: s)
-    
+
     else:
         # Python 2:
         def coerce_str(self, obj, value):
@@ -1024,10 +1024,10 @@ class ObjectName(TraitType):
                 except UnicodeEncodeError:
                     self.error(obj, value)
             return value
-    
+
     def validate(self, obj, value):
         value = self.coerce_str(obj, value)
-        
+
         if isinstance(value, str) and py3compat.isidentifier(value):
             return value
         self.error(obj, value)
@@ -1036,7 +1036,7 @@ class DottedObjectName(ObjectName):
     """A string holding a valid dotted object name in Python, such as A.b3._c"""
     def validate(self, obj, value):
         value = self.coerce_str(obj, value)
-        
+
         if isinstance(value, str) and py3compat.isidentifier(value, dotted=True):
             return value
         self.error(obj, value)
@@ -1360,7 +1360,7 @@ class Dict(Instance):
     def __init__(self, default_value=None, allow_none=True, **metadata):
         """Create a dict trait type from a dict.
 
-        The default value is created by doing ``dict(default_value)``, 
+        The default value is created by doing ``dict(default_value)``,
         which creates a copy of the ``default_value``.
         """
         if default_value is None:
@@ -1372,7 +1372,7 @@ class Dict(Instance):
         else:
             raise TypeError('default value of Dict was %s' % default_value)
 
-        super(Dict,self).__init__(klass=dict, args=args, 
+        super(Dict,self).__init__(klass=dict, args=args,
                                   allow_none=allow_none, **metadata)
 
 class TCPAddress(TraitType):

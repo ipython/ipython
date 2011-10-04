@@ -1,7 +1,7 @@
 """Simple utility for building a list of local IPs using the socket module.
 This module defines two constants:
 
-LOCALHOST : The loopback interface, or the first interface that points to this 
+LOCALHOST : The loopback interface, or the first interface that points to this
             machine.  It will *almost* always be '127.0.0.1'
 
 LOCAL_IPS : A list of IP addresses, loopback first, that point to this machine.

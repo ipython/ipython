@@ -44,7 +44,7 @@ except ImportError:
     import _winreg as wreg
     #Add entries that needs to be stubbed by the testing code
     (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
-    
+
 try:
     reload
 except NameError:   # Python 3
@@ -65,7 +65,7 @@ IP_TEST_DIR = join(HOME_TEST_DIR,'.ipython')
 
 def setup():
     """Setup testenvironment for the module:
-    
+
             - Adds dummy home dir tree
     """
     # Do not mask exceptions here.  In particular, catching WindowsError is a
@@ -76,7 +76,7 @@ def setup():
 
 def teardown():
     """Teardown testenvironment for the module:
-    
+
             - Remove dummy home dir tree
     """
     # Note: we remove the parent test dir, which is the root of all test
@@ -86,10 +86,10 @@ def teardown():
 
 
 def setup_environment():
-    """Setup testenvironment for some functions that are tested 
+    """Setup testenvironment for some functions that are tested
     in this module. In particular this functions stores attributes
     and other things that we need to stub in some test functions.
-    This needs to be done on a function level and not module level because 
+    This needs to be done on a function level and not module level because
     each testfunction needs a pristine environment.
     """
     global oldstuff, platformstuff
@@ -105,7 +105,7 @@ def teardown_environment():
     (oldenv, os.name, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
     os.chdir(old_wd)
     reload(path)
-    
+
     for key in env.keys():
         if key not in oldenv:
             del env[key]
@@ -125,10 +125,10 @@ def test_get_home_dir_1():
     """Testcase for py2exe logic, un-compressed lib
     """
     sys.frozen = True
-    
+
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
-    
+
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
@@ -141,7 +141,7 @@ def test_get_home_dir_2():
     sys.frozen = True
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
-    
+
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
 
@@ -158,9 +158,9 @@ def test_get_home_dir_3():
 @with_environment
 @skip_win32
 def test_get_home_dir_4():
-    """Testcase $HOME is not set, os=='posix'. 
+    """Testcase $HOME is not set, os=='posix'.
     This should fail with HomeDirError"""
-    
+
     os.name = 'posix'
     if 'HOME' in env: del env['HOME']
     nt.assert_raises(path.HomeDirError, path.get_home_dir)
@@ -208,13 +208,13 @@ def test_get_home_dir_7():
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
-    
+
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_8():
     """Using registry hack for 'My Documents', os=='nt'
-    
+
     HOMESHARE, HOMEDRIVE, HOMEPATH, USERPROFILE and others are missing.
     """
     os.name = 'nt'
@@ -333,7 +333,7 @@ def test_get_xdg_dir_1():
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
-    
+
     nt.assert_equal(path.get_xdg_dir(), os.path.join('somewhere', '.config'))
 
 
@@ -359,7 +359,7 @@ def test_get_xdg_dir_2():
     env.pop('XDG_CONFIG_HOME', None)
     cfgdir=os.path.join(path.get_home_dir(), '.config')
     os.makedirs(cfgdir)
-    
+
     nt.assert_equal(path.get_xdg_dir(), cfgdir)
 
 def test_filefind():
@@ -384,7 +384,7 @@ def test_get_ipython_module_path():
 @dec.skip_if_not_win32
 def test_get_long_path_name_win32():
     p = path.get_long_path_name('c:\\docume~1')
-    nt.assert_equals(p,u'c:\\Documents and Settings') 
+    nt.assert_equals(p,u'c:\\Documents and Settings')
 
 
 @dec.skip_win32

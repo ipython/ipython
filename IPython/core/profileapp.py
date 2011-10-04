@@ -107,7 +107,7 @@ class ProfileList(Application):
         )
     ))
 
-    ipython_dir = Unicode(get_ipython_dir(), config=True, 
+    ipython_dir = Unicode(get_ipython_dir(), config=True,
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
@@ -115,7 +115,7 @@ class ProfileList(Application):
         the environment variable IPYTHON_DIR.
         """
     )
-    
+
     def list_profile_dirs(self):
         # Find the search paths
         paths = [os.getcwdu(), self.ipython_dir]
@@ -129,7 +129,7 @@ class ProfileList(Application):
                     profile = f.split('_',1)[-1]
                     start_cmd = 'ipython profile=%s' % profile
                     print start_cmd + " ==> " + full_path
-    
+
     def start(self):
         self.list_profile_dirs()
 
@@ -150,15 +150,15 @@ class ProfileCreate(BaseIPythonApplication):
     description = create_help
     examples = _create_examples
     auto_create = Bool(True, config=False)
-    
+
     def _copy_config_files_default(self):
         return True
-    
+
     parallel = Bool(False, config=True,
         help="whether to include parallel computing config files")
     def _parallel_changed(self, name, old, new):
-        parallel_files = [   'ipcontroller_config.py', 
-                            'ipengine_config.py', 
+        parallel_files = [   'ipcontroller_config.py',
+                            'ipengine_config.py',
                             'ipcluster_config.py'
                         ]
         if new:
@@ -168,17 +168,17 @@ class ProfileCreate(BaseIPythonApplication):
             for cf in parallel_files:
                 if cf in self.config_files:
                     self.config_files.remove(cf)
-    
+
     def parse_command_line(self, argv):
         super(ProfileCreate, self).parse_command_line(argv)
         # accept positional arg as profile name
         if self.extra_args:
             self.profile = self.extra_args[0]
-    
+
     flags = Dict(create_flags)
-    
+
     classes = [ProfileDir]
-    
+
     def init_config_files(self):
         super(ProfileCreate, self).init_config_files()
         # use local imports, since these classes may import from here
@@ -223,7 +223,7 @@ class ProfileCreate(BaseIPythonApplication):
             app.profile = self.profile
             app.init_profile_dir()
             app.init_config_files()
-    
+
     def stage_default_config_file(self):
         pass
 
@@ -237,7 +237,7 @@ class ProfileApp(Application):
         create = (ProfileCreate, "Create a new profile dir with default config files"),
         list = (ProfileList, "List existing profiles")
     ))
-    
+
     def start(self):
         if self.subapp is None:
             print "No subcommand specified. Must specify one of: %s"%(self.subcommands.keys())

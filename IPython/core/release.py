@@ -73,13 +73,13 @@ The enhanced interactive Python shells have the following main features:
 
 * Easily embeddable in other Python programs and wxPython GUIs.
 
-* Integrated access to the pdb debugger and the Python profiler. 
+* Integrated access to the pdb debugger and the Python profiler.
 
 The parallel computing architecture has the following main features:
 
 * Quickly parallelize Python code from an interactive Python/IPython session.
 
-* A flexible and dynamic process model that be deployed on anything from 
+* A flexible and dynamic process model that be deployed on anything from
   multicore workstations to supercomputers.
 
 * An architecture that supports many different styles of parallelism, from
@@ -90,7 +90,7 @@ The parallel computing architecture has the following main features:
 * High level APIs that enable many things to be parallelized in a few lines
   of code.
 
-* Share live parallel jobs with other users securely.  
+* Share live parallel jobs with other users securely.
 
 * Dynamically load balanced task farming system.
 

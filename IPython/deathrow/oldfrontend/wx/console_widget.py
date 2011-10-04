@@ -36,7 +36,7 @@ import re
 # FIXME: Need to provide an API for non user-generated display on the
 # screen: this should not be editable by the user.
 #-------------------------------------------------------------------------------
-# Constants 
+# Constants
 #-------------------------------------------------------------------------------
 _COMPLETE_BUFFER_MARKER = 31
 _ERROR_MARKER = 30
@@ -75,7 +75,7 @@ _DEFAULT_STYLE = {
     # Default scintilla settings
     'antialiasing'  : True,
     'carret_color'  : 'BLACK',
-    'background_color' :'WHITE', 
+    'background_color' :'WHITE',
 
     #prompt definition
     'prompt_in1'    : \
@@ -94,14 +94,14 @@ _TRACE_STYLE  = 17
 # system colors
 #SYS_COLOUR_BACKGROUND = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BACKGROUND)
 
-# Translation table from ANSI escape sequences to color. 
+# Translation table from ANSI escape sequences to color.
 ANSI_STYLES = {'0;30': [0, 'BLACK'],            '0;31': [1, 'RED'],
                '0;32': [2, 'GREEN'],           '0;33': [3, 'BROWN'],
                '0;34': [4, 'BLUE'],            '0;35': [5, 'PURPLE'],
                '0;36': [6, 'CYAN'],            '0;37': [7, 'LIGHT GREY'],
                '1;30': [8, 'DARK GREY'],       '1;31': [9, 'RED'],
                '1;32': [10, 'SEA GREEN'],      '1;33': [11, 'YELLOW'],
-               '1;34': [12, 'LIGHT BLUE'],     '1;35': 
+               '1;34': [12, 'LIGHT BLUE'],     '1;35':
                                                  [13, 'MEDIUM VIOLET RED'],
                '1;36': [14, 'LIGHT STEEL BLUE'], '1;37': [15, 'YELLOW']}
 
@@ -133,7 +133,7 @@ else:
                 'size' : 10,
                 'size2': 8,
                 }
- 
+
 
 #-----------------------------------------------------------------------------
 # The console widget class
@@ -174,36 +174,36 @@ class ConsoleWidget(editwindow.EditWindow):
     # Translation table from ANSI escape sequences to color. Override
     # this to specify your colors.
     ANSI_STYLES = ANSI_STYLES.copy()
-    
+
     # Font faces
     faces = FACES.copy()
-                 
+
     # Store the last time a refresh was done
     _last_refresh_time = 0
 
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
-    
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, 
+
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
                         size=wx.DefaultSize, style=wx.WANTS_CHARS, ):
         editwindow.EditWindow.__init__(self, parent, id, pos, size, style)
         self.configure_scintilla()
         # Track if 'enter' key as ever been processed
         # This variable will only be reallowed until key goes up
-        self.enter_catched = False 
+        self.enter_catched = False
         self.current_prompt_pos = 0
 
         self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
         self.Bind(wx.EVT_KEY_UP, self._on_key_up)
-    
+
 
     def write(self, text, refresh=True):
         """ Write given text to buffer, while translating the ansi escape
             sequences.
         """
-        # XXX: do not put print statements to sys.stdout/sys.stderr in 
-        # this method, the print statements will call this method, as 
+        # XXX: do not put print statements to sys.stdout/sys.stderr in
+        # this method, the print statements will call this method, as
         # you will end up with an infinit loop
         title = self.title_pat.split(text)
         if len(title)>1:
@@ -219,7 +219,7 @@ class ConsoleWidget(editwindow.EditWindow):
         except UnicodeDecodeError:
             # XXX: Do I really want to skip the exception?
             pass
-        
+
         if segments:
             for ansi_tag, text in zip(segments[::2], segments[1::2]):
                 self.StartStyling(self.GetLength(), 0xFF)
@@ -234,8 +234,8 @@ class ConsoleWidget(editwindow.EditWindow):
                 else:
                     style = self.ANSI_STYLES[ansi_tag][0]
 
-                self.SetStyling(len(text), style) 
-                
+                self.SetStyling(len(text), style)
+
         self.GotoPos(self.GetLength())
         if refresh:
             current_time = time.time()
@@ -245,9 +245,9 @@ class ConsoleWidget(editwindow.EditWindow):
                 else:
                     wx.Yield()
                 #    self.ProcessEvent(wx.PaintEvent())
-                self._last_refresh_time = current_time 
+                self._last_refresh_time = current_time
 
-   
+
     def new_prompt(self, prompt):
         """ Prints a prompt at start of line, and move the start of the
             current block there.
@@ -270,7 +270,7 @@ class ConsoleWidget(editwindow.EditWindow):
         # ASCII-less prompt
         ascii_less = ''.join(self.color_pat.split(self.last_prompt)[2::2])
         return "."*(len(ascii_less)-2) + ': '
- 
+
 
     def scroll_to_bottom(self):
         maxrange = self.GetScrollRange(wx.VERTICAL)
@@ -299,7 +299,7 @@ class ConsoleWidget(editwindow.EditWindow):
             widget.
         """
         p = self.style.copy()
-        
+
         # Marker for complete buffer.
         self.MarkerDefine(_COMPLETE_BUFFER_MARKER, stc.STC_MARK_BACKGROUND,
                                 background=p['trace'])
@@ -313,14 +313,14 @@ class ConsoleWidget(editwindow.EditWindow):
 
         self.SetEOLMode(stc.STC_EOL_LF)
 
-        # Ctrl"+" or Ctrl "-" can be used to zoomin/zoomout the text inside 
+        # Ctrl"+" or Ctrl "-" can be used to zoomin/zoomout the text inside
         # the widget
         self.CmdKeyAssign(ord('+'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.CmdKeyAssign(ord('-'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
-        # Also allow Ctrl Shift "=" for poor non US keyboard users. 
-        self.CmdKeyAssign(ord('='), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT, 
+        # Also allow Ctrl Shift "=" for poor non US keyboard users.
+        self.CmdKeyAssign(ord('='), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT,
                                             stc.STC_CMD_ZOOMIN)
-        
+
         # Keys: we need to clear some of the keys the that don't play
         # well with a console.
         self.CmdKeyClear(ord('D'), stc.STC_SCMOD_CTRL)
@@ -341,7 +341,7 @@ class ConsoleWidget(editwindow.EditWindow):
         self.SetIndent(4)
         self.SetTabWidth(4)
 
-        # we don't want scintilla's autocompletion to choose 
+        # we don't want scintilla's autocompletion to choose
         # automaticaly out of a single choice list, as we pop it up
         # automaticaly
         self.AutoCompSetChooseSingle(False)
@@ -360,11 +360,11 @@ class ConsoleWidget(editwindow.EditWindow):
         self.title_pat = re.compile('\x1b]0;(.*?)\x07')
 
         # styles
-        
+
         self.SetCaretForeground(p['carret_color'])
-        
+
         background_color = p['background_color']
-            
+
         if 'default' in p:
             if 'back' not in p['default']:
                 p['default'] += ',back:%s' % background_color
@@ -372,20 +372,20 @@ class ConsoleWidget(editwindow.EditWindow):
                 p['default'] += ',size:%s' % self.faces['size']
             if 'face' not in p['default']:
                 p['default'] += ',face:%s' % self.faces['mono']
-            
+
             self.StyleSetSpec(stc.STC_STYLE_DEFAULT, p['default'])
         else:
-            self.StyleSetSpec(stc.STC_STYLE_DEFAULT, 
-                            "fore:%s,back:%s,size:%d,face:%s" 
-                            % (self.ANSI_STYLES['0;30'][1], 
+            self.StyleSetSpec(stc.STC_STYLE_DEFAULT,
+                            "fore:%s,back:%s,size:%d,face:%s"
+                            % (self.ANSI_STYLES['0;30'][1],
                                background_color,
                                self.faces['size'], self.faces['mono']))
-        
+
         self.StyleClearAll()
-        
-        # XXX: two lines below are usefull if not using the lexer        
+
+        # XXX: two lines below are usefull if not using the lexer
         #for style in self.ANSI_STYLES.values():
-        #    self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])        
+        #    self.StyleSetSpec(style[0], "bold,fore:%s" % style[1])
 
         # prompt definition
         self.prompt_in1 = p['prompt_in1']
@@ -417,25 +417,25 @@ class ConsoleWidget(editwindow.EditWindow):
             #we add a vertical line to console widget
             self.SetEdgeMode(stc.STC_EDGE_LINE)
             self.SetEdgeColumn(edge_column)
- 
- 
+
+
     #--------------------------------------------------------------------------
     # EditWindow API
     #--------------------------------------------------------------------------
 
     def OnUpdateUI(self, event):
-        """ Override the OnUpdateUI of the EditWindow class, to prevent 
+        """ Override the OnUpdateUI of the EditWindow class, to prevent
             syntax highlighting both for faster redraw, and for more
             consistent look and feel.
         """
 
-       
+
     #--------------------------------------------------------------------------
     # Private API
     #--------------------------------------------------------------------------
-   
+
     def _on_key_down(self, event, skip=True):
-        """ Key press callback used for correcting behavior for 
+        """ Key press callback used for correcting behavior for
             console-like interfaces: the cursor is constraint to be after
             the last prompt.
 
@@ -487,7 +487,7 @@ class ConsoleWidget(editwindow.EditWindow):
                     if event.ShiftDown():
                         # Try to force execution
                         self.GotoPos(self.GetLength())
-                        self.write('\n' + self.continuation_prompt(), 
+                        self.write('\n' + self.continuation_prompt(),
                                         refresh=False)
                         self._on_enter()
                     else:
@@ -501,7 +501,7 @@ class ConsoleWidget(editwindow.EditWindow):
                 else:
                     # FIXME: This behavior is not ideal: if the selection
                     # is already started, it will jump.
-                    self.SetSelectionStart(self.current_prompt_pos) 
+                    self.SetSelectionStart(self.current_prompt_pos)
                     self.SetSelectionEnd(self.GetCurrentPos())
                     catched = True
 
@@ -591,15 +591,15 @@ class ConsoleWidget(editwindow.EditWindow):
                 # Jump back up
                 self.GotoPos(self.GetLineEndPosition(line_num-1))
             return True
-        elif ( current_pos > self.GetLineEndPosition(line_num) 
-                        and not current_pos == self.GetLength()): 
+        elif ( current_pos > self.GetLineEndPosition(line_num)
+                        and not current_pos == self.GetLength()):
             # Jump to next line
             self.GotoPos(current_pos + 1 +
                                     len(continuation_prompt))
             return True
 
         # We re-allow enter event processing
-        self.enter_catched = False 
+        self.enter_catched = False
         return False
 
 
