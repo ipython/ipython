@@ -978,8 +978,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # We must ensure that __builtin__ (without the final 's') is always
         # available and pointing to the __builtin__ *module*.  For more details:
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-        user_module.__dict__.setdefault('__builtin__',__builtin__)
-        user_module.__dict__.setdefault('__builtins__',__builtin__)
+        user_module.__dict__.setdefault('__builtin__', builtin_mod)
+        user_module.__dict__.setdefault('__builtins__', builtin_mod)
         
         if user_ns is None:
             user_ns = user_module.__dict__
