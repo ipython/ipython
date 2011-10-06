@@ -229,13 +229,12 @@ class TerminalInteractiveShell(InteractiveShell):
                     # handling seems rather unpredictable...
                     self.write("\nKeyboardInterrupt in interact()\n")
 
-    def _store_multiline_history(self, source_raw):
+    def _store_multiline_history(self, source_raw, orig_hlen):
         """Store multiple lines as a single entry in history"""
         if self.multiline_history and self.has_readline:
             hlen = self.readline.get_current_history_length()
-            lines = len(source_raw.splitlines())
-            for i in range(1, min(hlen, lines) + 1):
-                self.readline.remove_history_item(hlen - i)
+            for i in range(hlen - orig_hlen):
+                self.readline.remove_history_item(hlen - i - 1)
             self.readline.add_history(source_raw.rstrip())
 
     def interact(self, display_banner=None):
@@ -254,6 +253,7 @@ class TerminalInteractiveShell(InteractiveShell):
             self.show_banner()
 
         more = False
+        hlen = self.readline.get_current_history_length()
 
         # Mark activity in the builtins
         __builtin__.__dict__['__IPYTHON__active'] += 1
@@ -290,7 +290,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
                     self.write('\nKeyboardInterrupt\n')
-                    self._store_multiline_history(self.input_splitter.source_raw_reset()[1])
+                    source_raw = self.input_splitter.source_raw_reset()[1]
+                    self._store_multiline_history(source_raw, hlen)
+                    hlen = self.readline.get_current_history_length()
                     more = False
                 except KeyboardInterrupt:
                     pass
@@ -318,7 +320,8 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.edit_syntax_error()
                 if not more:
                     source_raw = self.input_splitter.source_raw_reset()[1]
-                    self._store_multiline_history(source_raw)
+                    self._store_multiline_history(source_raw, hlen)
+                    hlen = self.readline.get_current_history_length()
                     self.run_cell(source_raw, store_history=True)
 
         # We are off again...
