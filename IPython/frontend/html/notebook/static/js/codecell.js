@@ -270,7 +270,7 @@ var IPython = (function (IPython) {
         
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(json.text, toinsert, subclass);
+        this.append_text(json.text, toinsert, "output_stream "+subclass);
         this.element.find('div.output').append(toinsert);
     };
 
@@ -311,7 +311,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.append_text = function (data, element, extra_class) {
-        var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_stream");
+        var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_text");
         if (extra_class){
             toinsert.addClass(extra_class);
         }

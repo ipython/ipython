@@ -197,6 +197,7 @@ div.input {
 
 div.input_area {
     color: black;
+    border: 1px solid #ddd;
 }
 
 div.input_prompt {
@@ -227,13 +228,22 @@ div.output_subarea {
 /* The rest of the output_* classes are for special styling of the different
    output types */
 
-div.output_stream {
+/* all text output has this class: */
+div.output_text {
     text-align: left;
     color: black;
     font-family: monospace;
 }
+
+/* stdout/stderr are 'text' as well as 'stream', but pyout/pyerr are *not* streams */
+div.output_stream {
+    padding-top: 0.0em;
+    padding-bottom: 0.0em;
+}
+div.output_stdout {
+}
 div.output_stderr {
-    color: darkred;
+    background: #fdd; /* very light red background for stderr */
 }
 
 div.output_latex {
