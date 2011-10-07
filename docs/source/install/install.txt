@@ -9,15 +9,15 @@ install all of its dependencies.
 
 
 Please let us know if you have problems installing IPython or any of its
-dependencies. Officially, IPython requires Python versions 2.6 to 2.7 and 3.1
-to 3.2.
+dependencies. Officially, IPython requires Python 2.6, 2.7, 3.1, or 3.2.
 
 .. warning::
 
     Officially, IPython supports Python versions 2.6 and 2.7.
 
     IPython 0.11 has a hard syntax dependency on 2.6, and will no longer work
-    on Python <= 2.5.
+    on Python <= 2.5. You can find older versions of IPython which supported
+    Python <= 2.5 `here <http://archive.ipython.org/release/>`_
 
 Some of the installation approaches use the :mod:`setuptools` package and its
 :command:`easy_install` command line program.  In many scenarios, this provides
@@ -88,7 +88,7 @@ Installation from source
 
 If you don't want to use :command:`easy_install`, or don't have it installed,
 just grab the latest stable build of IPython from `here
-<https://github.com/ipython/ipython/downloads>`_.  Then do the following:
+<http://ipython.org/download.html>`_.  Then do the following:
 
 .. code-block:: bash
 
