@@ -61,7 +61,7 @@ Pylab
 =====
 
 One of the most exciting features of the new console is embedded matplotlib
-figures. You can use any standard matplotlib GUI backend (Except native MacOSX)
+figures. You can use any standard matplotlib GUI backend
 to draw the figures, and since there is now a two-process model, there is no
 longer a conflict between user input and the drawing eventloop.
 
