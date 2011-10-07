@@ -21,7 +21,7 @@
 .. _`ipython manual`: http://ipython.org/documentation.html
 .. _ipython_github: http://github.com/ipython/ipython/
 .. _ipython_github_repo: http://github.com/ipython/ipython/
-.. _ipython_downloads: http://ipython.scipy.org/dist
+.. _ipython_downloads: http://ipython.org/download.html
 .. _ipython_pypi: http://pypi.python.org/pypi/ipython
 
 .. _ZeroMQ: http://zeromq.org
@@ -35,7 +35,7 @@
 .. _docutils: http://docutils.sourceforge.net
 .. _lyx: http://www.lyx.org
 .. _pep8: http://www.python.org/dev/peps/pep-0008
-.. _numpy_coding_guide: http://projects.scipy.org/numpy/wiki/CodingStyleGuidelines
+.. _numpy_coding_guide: https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 
 .. Licenses
 .. _GPL: http://www.gnu.org/licenses/gpl.html
