@@ -122,8 +122,9 @@ you'll work on a problem in pieces, organizing related pieces into cells and
 moving forward as previous parts work correctly.  This is much more convenient
 for interactive exploration than breaking up a computation into scripts that
 must be executed together, especially if parts of them take a long time to run
-(you can use tricks with namespaces and ``%run -i``, but we think the notebook
-is a more natural solution for  that kind of problem).
+(In the traditional terminal-based IPython, you can use tricks with namespaces
+and ``%run -i`` to achieve this capability, but we think the notebook is a more
+natural solution for  that kind of problem).
 
 The only significant limitation the notebook currently has, compared to the qt
 console, is that it can not run any code that expects input from the kernel
@@ -145,7 +146,7 @@ and then start a qt console pointing to that kernel::
 Text input
 ----------
 
-In addition to code cells and the output they procude (such as figures), you
+In addition to code cells and the output they produce (such as figures), you
 can also type text not meant for execution.  To type text, change the type of a
 cell from ``Code`` to ``Markdown`` by using the button or the :kbd:`Ctrl-m m`
 keybinding (see below).  You can then type any text in Markdown_ syntax, as
@@ -200,7 +201,7 @@ key bindings you need to remember are:
   Selected`` button).
 
 * :kbd:`Ctrl-Enter`: execute the current cell in "terminal mode", where any
-  output is shown but the cursor cursor stays in the current cell, whose input
+  output is shown but the cursor stays in the current cell, whose input
   area is flushed empty.  This is convenient to do quick in-place experiments
   or query things like filesystem content without creating additional cells you
   may not want saved in your notebook.

@@ -9,9 +9,8 @@ install all of its dependencies.
 
 
 Please let us know if you have problems installing IPython or any of its
-dependencies. Officially, IPython requires Python version 2.6 or 2.7.  There
-is an experimental port of IPython for Python3 `on GitHub 
-<https://github.com/ipython/ipython-py3k>`_
+dependencies. Officially, IPython requires Python versions 2.6 to 2.7 and 3.1
+to 3.2.
 
 .. warning::
 
@@ -117,7 +116,7 @@ use any of the following alternatives:
 1. Install using :command:`easy_install`.
 
 2. Install using our binary ``.exe`` Windows installer, which can be found
-   `here <http://ipython.scipy.org/dist/>`_
+   `here <http://ipython.org/download.html>`_
 
 3. Install from source, but using :mod:`setuptools` (``python setupegg.py
    install``).
@@ -228,7 +227,8 @@ installed):
     have to do this step.
 
 If needed, the readline egg can be build and installed from source (see the
-wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard).
+wiki page at
+http://web.archive.org/web/20090614162410/ipython.scipy.org/moin/InstallationOSXLeopard).
 
 On Windows, you will need the PyReadline module. PyReadline is a separate,
 Windows only implementation of readline that uses native Windows calls through
