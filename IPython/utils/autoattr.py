@@ -21,7 +21,7 @@ Hettinger. http://users.rcn.com/python/download/Descriptor.htm
 Notes
 -----
 This module is taken from the NiPy project
-(http://neuroimaging.scipy.org/site/index.html), and is BSD licensed.
+(http://nipy.sourceforge.net/nipy/stable/index.html), and is BSD licensed.
 
 Authors
 -------

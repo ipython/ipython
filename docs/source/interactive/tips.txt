@@ -4,8 +4,8 @@
 IPython Tips & Tricks
 =====================
 
-The `IPython cookbook <http://ipython.scipy.org/moin/Cookbook>`_ details more
-things you can do with IPython.
+The `IPython cookbook <http://wiki.ipython.org/Cookbook>`_ details more things
+you can do with IPython.
 
 .. This is not in the current version:
 

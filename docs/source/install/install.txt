@@ -9,16 +9,15 @@ install all of its dependencies.
 
 
 Please let us know if you have problems installing IPython or any of its
-dependencies. Officially, IPython requires Python version 2.6 or 2.7.  There
-is an experimental port of IPython for Python3 `on GitHub 
-<https://github.com/ipython/ipython-py3k>`_
+dependencies. Officially, IPython requires Python 2.6, 2.7, 3.1, or 3.2.
 
 .. warning::
 
     Officially, IPython supports Python versions 2.6 and 2.7.
 
     IPython 0.11 has a hard syntax dependency on 2.6, and will no longer work
-    on Python <= 2.5.
+    on Python <= 2.5. You can find older versions of IPython which supported
+    Python <= 2.5 `here <http://archive.ipython.org/release/>`_
 
 Some of the installation approaches use the :mod:`setuptools` package and its
 :command:`easy_install` command line program.  In many scenarios, this provides
@@ -89,7 +88,7 @@ Installation from source
 
 If you don't want to use :command:`easy_install`, or don't have it installed,
 just grab the latest stable build of IPython from `here
-<https://github.com/ipython/ipython/downloads>`_.  Then do the following:
+<http://ipython.org/download.html>`_.  Then do the following:
 
 .. code-block:: bash
 
@@ -117,7 +116,7 @@ use any of the following alternatives:
 1. Install using :command:`easy_install`.
 
 2. Install using our binary ``.exe`` Windows installer, which can be found
-   `here <http://ipython.scipy.org/dist/>`_
+   `here <http://ipython.org/download.html>`_
 
 3. Install from source, but using :mod:`setuptools` (``python setupegg.py
    install``).
@@ -228,7 +227,8 @@ installed):
     have to do this step.
 
 If needed, the readline egg can be build and installed from source (see the
-wiki page at http://ipython.scipy.org/moin/InstallationOSXLeopard).
+wiki page at
+http://web.archive.org/web/20090614162410/ipython.scipy.org/moin/InstallationOSXLeopard).
 
 On Windows, you will need the PyReadline module. PyReadline is a separate,
 Windows only implementation of readline that uses native Windows calls through

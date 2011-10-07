@@ -275,7 +275,7 @@ New features
 * %edit: If you do '%edit pasted_block', pasted_block variable gets updated
   with new data (so repeated editing makes sense)
 
-.. _Numpy Documentation Standard: http://projects.scipy.org/numpy/wiki/CodingStyleGuidelines#docstring-standard
+.. _Numpy Documentation Standard: https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard
 
 .. _argparse: http://code.google.com/p/argparse/
 
