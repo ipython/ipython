@@ -404,7 +404,7 @@ def test_not_writable_ipdir():
     ipdir = os.path.join(tmpdir, '.ipython')
     os.mkdir(ipdir)
     os.chmod(ipdir, 600)
-    with AssertPrints('WARNING', channel='stderr'):
+    with AssertPrints('is not a writable location', channel='stderr'):
         ipdir = path.get_ipython_dir()
     env.pop('IPYTHON_DIR', None)
 
