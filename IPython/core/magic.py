@@ -94,20 +94,29 @@ def needs_local_scope(func):
 import imp, os
 
 def find_module(name, path=None):
-    """imp.find_module variant that only return path of module
+    """imp.find_module variant that only return path of module.
+    Return None if module is missing or does not have .py or .pyw extension
     """
-    file, filename, _ = imp.find_module(name, path)
+    if name is None:
+        return None
+    try:
+        file, filename, _ = imp.find_module(name, path)
+    except ImportError:
+        return None
     if file is None:
         return filename
     else:
         file.close()
-    return filename
+    if os.path.splitext(filename)[1] in [".py", "pyc"]:
+        return filename
+    else:
+        return None
 
 def get_init(dirname):
     """Get __init__ file path for module with directory dirname
     """
     fbase =  os.path.join(dirname, "__init__")
-    for ext in [".py", ".pyw", ".pyc", ".pyo"]:
+    for ext in [".py", ".pyw"]:
         fname = fbase + ext
         if os.path.isfile(fname):
             return fname
@@ -117,13 +126,10 @@ def find_mod(name):
     """Find module *name* on sys.path
     """
     parts = name.split(".")
-    if len(parts) == 1:
-        basepath = find_module(parts[0])
-    else:
-        basepath = find_module(parts[0])
-        for submodname in parts[1:]:
-            basepath = find_module(submodname, [basepath])
-    if os.path.isdir(basepath):
+    basepath = find_module(parts[0])
+    for submodname in parts[1:]:
+        basepath = find_module(submodname, [basepath])
+    if basepath and os.path.isdir(basepath):
         basepath = get_init(basepath)
     return basepath
 
@@ -1596,7 +1602,10 @@ Currently the magic system has the following functions:\n"""
         just as if the commands were written on IPython prompt.
 
         -m: specify module name to load instead of script path. Similar to
-        the -m option for the python interpreter. For example:
+        the -m option for the python interpreter. Use this option last if you
+        want to combine with other %run options. Unlike the python interpreter
+        only source modules are allowed no .pyc or .pyo files.
+        For example:
 
             %run -m example
 
@@ -1607,10 +1616,13 @@ Currently the magic system has the following functions:\n"""
         # get arguments and set sys.argv for program to be run.
         opts,arg_lst = self.parse_options(parameter_s,'nidtN:b:pD:l:rs:T:em:',
                                           mode='list',list_all=1)
-        if opts.has_key("m"):
-            modulename = opts.get("m")[0]
-            arg_lst = [find_mod(modulename)]
-
+        if "m" in opts:
+            modulename = opts["m"][0]
+            modpath = find_mod(modulename)
+            if modpath is None:
+                warn('%r is not a valid modulename on sys.path'%modulename)
+                return
+            arg_lst = [modpath] + arg_lst
         try:
             filename = file_finder(arg_lst[0])
         except IndexError:
