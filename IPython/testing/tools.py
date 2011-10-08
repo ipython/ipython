@@ -34,6 +34,7 @@ import sys
 import tempfile
 
 from contextlib import contextmanager
+from io import StringIO
 
 try:
     # These tools are used by parts of the runtime, so we make the nose
@@ -46,9 +47,9 @@ except ImportError:
 
 from IPython.config.loader import Config
 from IPython.utils.process import find_cmd, getoutputerror
-from IPython.utils.text import list_strings
-from IPython.utils.io import temp_pyfile
-from IPython.utils.py3compat import PY3
+from IPython.utils.text import list_strings, getdefaultencoding
+from IPython.utils.io import temp_pyfile, Tee
+from IPython.utils import py3compat
 
 from . import decorators as dec
 from . import skipdoctest
@@ -210,7 +211,7 @@ def ipexec(fname, options=None):
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
 
-    ipython_cmd = find_cmd('ipython3' if PY3 else 'ipython')
+    ipython_cmd = find_cmd('ipython3' if py3compat.PY3 else 'ipython')
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
     full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
@@ -323,6 +324,47 @@ def check_pairs(func, pairs):
     for inp, expected in pairs:
         out = func(inp)
         assert out == expected, pair_fail_msg.format(name, inp, expected, out)
+
+if py3compat.PY3:
+    MyStringIO = StringIO
+else:
+    # In Python 2, stdout/stderr can have either bytes or unicode written to them,
+    # so we need a class that can handle both.
+    class MyStringIO(StringIO):
+        def write(self, s):
+            s = py3compat.cast_unicode(s, encoding=getdefaultencoding())
+            super(MyStringIO, self).write(s)
+
+notprinted_msg = """Did not find {0!r} in printed output (on {1}):
+{2!r}"""
+class AssertPrints(object):
+    """Context manager for testing that code prints certain text.
+    
+    Examples
+    --------
+    >>> with AssertPrints("abc"):
+    ...     print "abcd"
+    ...     print "def"
+    ... 
+    abcd
+    def
+    """
+    def __init__(self, s, channel='stdout'):
+        self.s = s
+        self.channel = channel
+    
+    def __enter__(self):
+        self.orig_stream = getattr(sys, self.channel)
+        self.buffer = MyStringIO()
+        self.tee = Tee(self.buffer, channel=self.channel)
+        setattr(sys, self.channel, self.tee)
+    
+    def __exit__(self, etype, value, traceback):
+        self.tee.flush()
+        setattr(sys, self.channel, self.orig_stream)
+        printed = self.buffer.getvalue()
+        assert self.s in printed, notprinted_msg.format(self.s, self.channel, printed)
+        return False
 
 @contextmanager
 def mute_warn():
