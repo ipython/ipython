@@ -174,17 +174,10 @@ def test_macro_run():
         ip.run_cell(cmd)
     nt.assert_equal(ip.user_ns["test"].value,
                             py3compat.doctest_refactor_print("a+=1\nprint a\n"))
-    original_stdout = sys.stdout
-    new_stdout = StringIO()
-    sys.stdout = new_stdout
-    try:
+    with tt.AssertPrints("12"):
         ip.run_cell("test")
-        nt.assert_true("12" in new_stdout.getvalue())
+    with tt.AssertPrints("13"):
         ip.run_cell("test")
-        nt.assert_true("13" in new_stdout.getvalue())
-    finally:
-        sys.stdout = original_stdout
-        new_stdout.close()
 
     
 # XXX failing for now, until we get clearcmd out of quarantine.  But we should
