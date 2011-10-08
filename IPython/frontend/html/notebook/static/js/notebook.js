@@ -710,7 +710,8 @@ var IPython = (function (IPython) {
         var json = {};
         json.output_type = msg_type;
         if (msg_type === "stream") {
-            json.text = utils.fixConsole(content.data + '\n');
+            json.text = utils.fixConsole(content.data);
+            json.stream = content.name;
         } else if (msg_type === "display_data") {
             json = this.convert_mime_types(json, content.data);
         } else if (msg_type === "pyout") {
