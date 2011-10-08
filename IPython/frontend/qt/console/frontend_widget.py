@@ -407,7 +407,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if not self._hidden and not self._is_from_this_session(msg):
             if self._local_kernel:
                 if not msg['content']['restart']:
-                    sys.exit(0)
+                    self.exit_requested.emit(self)
                 else:
                     # we just got notified of a restart!
                     time.sleep(0.25) # wait 1/4 sec to reset

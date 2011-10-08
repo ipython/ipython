@@ -203,7 +203,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             The (maximum) number of history items to get.
         """
         return self._history[-n:]
-        
+
     def history_magic(self):
         self.pasteMagic("%history")
 
