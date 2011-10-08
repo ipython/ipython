@@ -195,6 +195,7 @@ div.input {
     page-break-inside: avoid;
 }
 
+/* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
     color: black;
     border: 1px solid #ddd;
@@ -204,6 +205,7 @@ div.input_area {
 
 div.input_prompt {
     color: navy;
+    border-top: 1px solid transparent;
 }
 
 div.output {
