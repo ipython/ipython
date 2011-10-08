@@ -7,6 +7,7 @@ import time
 from StringIO import StringIO
 
 import nose.tools as nt
+import IPython.testing.tools as tt
 
 from IPython.extensions.autoreload import AutoreloadInterface
 from IPython.core.hooks import TryNext
@@ -197,19 +198,11 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
 a syntax error
 """)
 
-        old_stderr = sys.stderr
-        new_stderr = StringIO()
-        sys.stderr = new_stderr
-        try:
+        with tt.AssertPrints(('[autoreload of %s failed:' % mod_name), channel='stderr'):
             self.shell.run_code("pass") # trigger reload
+        with tt.AssertNotPrints(('[autoreload of %s failed:' % mod_name), channel='stderr'):
             self.shell.run_code("pass") # trigger another reload
-            check_module_contents()
-        finally:
-            sys.stderr = old_stderr
-
-        nt.assert_true(('[autoreload of %s failed:' % mod_name) in
-                       new_stderr.getvalue())
-        nt.assert_equal(new_stderr.getvalue().count('[autoreload of'), 1)
+        check_module_contents()
 
         #
         # Rewrite module (this time reload should succeed)

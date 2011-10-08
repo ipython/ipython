@@ -342,28 +342,40 @@ class AssertPrints(object):
     
     Examples
     --------
-    >>> with AssertPrints("abc"):
+    >>> with AssertPrints("abc", suppress=False):
     ...     print "abcd"
     ...     print "def"
     ... 
     abcd
     def
     """
-    def __init__(self, s, channel='stdout'):
+    def __init__(self, s, channel='stdout', suppress=True):
         self.s = s
         self.channel = channel
+        self.suppress = suppress
     
     def __enter__(self):
         self.orig_stream = getattr(sys, self.channel)
         self.buffer = MyStringIO()
         self.tee = Tee(self.buffer, channel=self.channel)
-        setattr(sys, self.channel, self.tee)
+        setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
     
     def __exit__(self, etype, value, traceback):
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
         assert self.s in printed, notprinted_msg.format(self.s, self.channel, printed)
+        return False
+    
+class AssertNotPrints(AssertPrints):
+    """Context manager for checking that certain output *isn't* produced.
+    
+    Counterpart of AssertPrints"""
+    def __exit__(self, etype, value, traceback):
+        self.tee.flush()
+        setattr(sys, self.channel, self.orig_stream)
+        printed = self.buffer.getvalue()
+        assert self.s not in printed, notprinted_msg.format(self.s, self.channel, printed)
         return False
 
 @contextmanager
