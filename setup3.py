@@ -1,7 +1,11 @@
 import os.path
 from setuptools import setup
 
-from setupbase import (setup_args, find_scripts, find_packages, find_package_data)
+from setupbase import (setup_args,
+                       find_scripts,
+                       find_packages,
+                       find_package_data,
+                       )
     
 setup_args['entry_points'] = find_scripts(True, suffix='3')
 setup_args['packages'] = find_packages()
