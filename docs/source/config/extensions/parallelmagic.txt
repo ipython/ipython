@@ -1,0 +1,7 @@
+.. _extensions_parallelmagic:
+
+=============
+parallelmagic
+=============
+
+.. automodule:: IPython.extensions.parallelmagic

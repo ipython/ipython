@@ -1,7 +1,14 @@
-"""A print function that pretty prints sympy Basic objects.
+"""
+A print function that pretty prints sympy Basic objects.
 
-Authors:
-* Brian Granger
+:moduleauthor: Brian Granger
+
+Usage
+=====
+
+Once the extension is loaded, Sympy Basic objects are automatically
+pretty-printed.
+
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
