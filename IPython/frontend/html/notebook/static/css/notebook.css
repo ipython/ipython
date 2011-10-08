@@ -198,6 +198,8 @@ div.input {
 div.input_area {
     color: black;
     border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fafafa;
 }
 
 div.input_prompt {
