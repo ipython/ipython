@@ -27,7 +27,7 @@ from copy import deepcopy
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
-    KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError
+    KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound,
 )
 
 from IPython.utils.traitlets import (
@@ -370,8 +370,8 @@ class Application(SingletonConfigurable):
         loader = PyFileConfigLoader(filename, path=path)
         try:
             config = loader.load_config()
-        except IOError:
-            # problem with the file (probably doesn't exist), raise
+        except ConfigFileNotFound:
+            # problem finding the file, raise
             raise
         except Exception:
             # try to get the full filename, but it will be empty in the

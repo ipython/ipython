@@ -34,8 +34,10 @@ from IPython.utils import py3compat, text, warn
 class ConfigError(Exception):
     pass
 
-
 class ConfigLoaderError(ConfigError):
+    pass
+
+class ConfigFileNotFound(ConfigError):
     pass
 
 class ArgumentError(ConfigLoaderError):
@@ -258,7 +260,10 @@ class PyFileConfigLoader(FileConfigLoader):
     def load_config(self):
         """Load the config from a file and return it as a Struct."""
         self.clear()
-        self._find_file()
+        try:
+            self._find_file()
+        except IOError as e:
+            raise ConfigFileNotFound(str(e))
         self._read_file_as_dict()
         self._convert_to_config()
         return self.config
@@ -297,7 +302,7 @@ class PyFileConfigLoader(FileConfigLoader):
             loader = PyFileConfigLoader(fname, path)
             try:
                 sub_config = loader.load_config()
-            except IOError:
+            except ConfigFileNotFound:
                 # Pass silently if the sub config is not there. This happens
                 # when a user s using a profile, but not the default config.
                 pass
