@@ -12,6 +12,7 @@ from IPython.core import autocall
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.testing.globalipapp import get_ipython
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Globals

@@ -15,6 +15,7 @@ import nose.tools as nt
 # our own packages
 from IPython.testing import decorators as dec
 from IPython.testing.globalipapp import get_ipython
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Globals

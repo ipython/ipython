@@ -21,7 +21,7 @@ from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
-from IPython.utils.py3compat import doctest_refactor_print
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -85,7 +85,7 @@ def doctest_run_builtins():
        ....:
     """
 
-@doctest_refactor_print
+@py3compat.doctest_refactor_print
 def doctest_reset_del():
     """Test that resetting doesn't cause errors in __del__ methods.
 
@@ -168,7 +168,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "    def __del__(self):\n"
                "        print 'object A deleted'\n"
                "a = A()\n")
-        self.mktmp(src)
+        self.mktmp(py3compat.doctest_refactor_print(src))
         tt.ipexec_validate(self.fname, 'object A deleted')
 
     @dec.skip_known_failure
@@ -186,7 +186,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "       ip.magic('run %s')\n"
                "   except NameError, e:\n"
                "       print i;break\n" % empty.fname)
-        self.mktmp(src)
+        self.mktmp(py3compat.doctest_refactor_print(src))
         _ip.magic('run %s' % self.fname)
         _ip.run_cell('ip == get_ipython()')
         tt.assert_equals(_ip.user_ns['i'], 5)
@@ -200,11 +200,11 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "%%run '%s' C-third\n") % (tc, tc, tc)
         self.mktmp(src, '.ipy')
         out = """\
-ARGV 1-: [u'C-first']
-ARGV 1-: [u'C-second']
+ARGV 1-: [{u}'C-first']
+ARGV 1-: [{u}'C-second']
 tclass.py: deleting object: C-first
-ARGV 1-: [u'C-third']
+ARGV 1-: [{u}'C-third']
 tclass.py: deleting object: C-second
 tclass.py: deleting object: C-third
 """
-        tt.ipexec_validate(self.fname, out)
+        tt.ipexec_validate(self.fname, py3compat.u_format(out))

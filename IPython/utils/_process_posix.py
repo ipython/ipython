@@ -25,6 +25,7 @@ from IPython.external import pexpect
 from .autoattr import auto_attr
 from ._process_common import getoutput
 from IPython.utils import text
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Function definitions
@@ -33,8 +34,9 @@ from IPython.utils import text
 def _find_cmd(cmd):
     """Find the full path to a command using which."""
 
-    return sp.Popen(['/usr/bin/env', 'which', cmd],
+    path = sp.Popen(['/usr/bin/env', 'which', cmd],
                     stdout=sp.PIPE).communicate()[0]
+    return py3compat.bytes_to_str(path)
 
 
 class ProcessHandler(object):
