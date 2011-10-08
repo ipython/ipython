@@ -38,6 +38,12 @@ def test_history():
             ip.history_manager.store_output(3)
 
             nt.assert_equal(ip.history_manager.input_hist_raw, [''] + hist)
+            
+            # Detailed tests for _get_range_session
+            grs = ip.history_manager._get_range_session
+            nt.assert_equal(list(grs(start=2,stop=-1)), zip([0], [2], hist[1:-1]))
+            nt.assert_equal(list(grs(start=-2)), zip([0,0], [2,3], hist[-2:]))
+            nt.assert_equal(list(grs(output=True)), zip([0,0,0], [1,2,3], zip(hist, [None,None,'spam'])))
 
             # Check whether specifying a range beyond the end of the current
             # session results in an error (gh-804)
