@@ -150,7 +150,7 @@ class NotebookManager(LoggingConfigurable):
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
 
         try:
-            nb = current.reads(data, format)
+            nb = current.reads(data.decode('utf-8'), format)
         except:
             raise web.HTTPError(400, u'Invalid JSON data')
 
@@ -171,7 +171,7 @@ class NotebookManager(LoggingConfigurable):
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
 
         try:
-            nb = current.reads(data, format)
+            nb = current.reads(data.decode('utf-8'), format)
         except:
             raise web.HTTPError(400, u'Invalid JSON data')
 
