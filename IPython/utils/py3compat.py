@@ -1,6 +1,7 @@
 # coding: utf-8
 """Compatibility tricks for Python 3. Mainly to do with unicode."""
 import sys
+import re
 import types
 
 orig_open = open
@@ -50,6 +51,30 @@ if sys.version_info[0] >= 3:
     def execfile(fname, glob, loc=None):
         loc = loc if (loc is not None) else glob
         exec compile(open(fname).read(), fname, 'exec') in glob, loc
+    
+    # Refactor print statements in doctests.
+    _print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
+    def _print_statement_sub(match):
+        expr = match.groups('expr')
+        return "print(%s)" % expr
+    def doctest_refactor_print(func_or_str):
+        """Refactor 'print x' statements in a doctest to print(x) style. 2to3
+        unfortunately doesn't pick up on our doctests.
+        
+        Can accept a string or a function, so it can be used as a decorator."""
+        if isinstance(func_or_str, str):
+            func = None
+            doc = func_or_str
+        else:
+            func = func_or_str
+            doc = func.__doc__
+        doc = _print_statement_re.sub(_print_statement_sub, doc)
+        
+        if func:
+            func.__doc__ = doc
+            return func
+        return doc
+        
 
 else:
     PY3 = False
@@ -96,4 +121,7 @@ else:
     
     # don't override system execfile on 2.x:
     execfile = execfile
+    
+    def doctest_refactor_print(func_or_str):
+        return func_or_str
 
