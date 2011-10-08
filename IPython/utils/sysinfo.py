@@ -70,9 +70,13 @@ def pkg_commit_hash(pkg_path):
         raise IOError('Missing commit info file %s' % pth)
     cfg_parser = ConfigParser()
     cfg_parser.read(pth)
-    archive_subst = cfg_parser.get('commit hash', 'archive_subst_hash')
-    if not archive_subst.startswith('$Format'): # it has been substituted
-        return 'archive substitution', archive_subst
+    try:
+        archive_subst = cfg_parser.get('commit hash', 'archive_subst_hash')
+    except Exception:
+        pass
+    else:
+        if not archive_subst.startswith('$Format'): # it has been substituted
+            return 'archive substitution', archive_subst
     install_subst = cfg_parser.get('commit hash', 'install_hash')
     if install_subst != '':
         return 'installation', install_subst
