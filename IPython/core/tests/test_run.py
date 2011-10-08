@@ -21,6 +21,7 @@ from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
+from IPython.utils.py3compat import doctest_refactor_print
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -57,7 +58,7 @@ def doctest_run_builtins():
 
     In [3]: f = open(fname,'w')
 
-    In [4]: f.write('pass\n')
+    In [4]: dummy= f.write('pass\n')
 
     In [5]: f.flush()
 
@@ -84,6 +85,7 @@ def doctest_run_builtins():
        ....:
     """
 
+@doctest_refactor_print
 def doctest_reset_del():
     """Test that resetting doesn't cause errors in __del__ methods.
 
