@@ -1,5 +1,6 @@
 # coding: utf-8
 """Compatibility tricks for Python 3. Mainly to do with unicode."""
+import functools
 import sys
 import re
 import types
@@ -26,6 +27,24 @@ def cast_bytes(s, encoding=None):
     if not isinstance(s, bytes):
         return encode(s, encoding)
     return s
+
+def _modify_str_or_docstring(str_change_func):
+    @functools.wraps(str_change_func)
+    def wrapper(func_or_str):
+        if isinstance(func_or_str, str):
+            func = None
+            doc = func_or_str
+        else:
+            func = func_or_str
+            doc = func.__doc__
+        
+        doc = str_change_func(doc)
+        
+        if func:
+            func.__doc__ = doc
+            return func
+        return doc
+    return wrapper
 
 if sys.version_info[0] >= 3:
     PY3 = True
@@ -57,24 +76,22 @@ if sys.version_info[0] >= 3:
     def _print_statement_sub(match):
         expr = match.groups('expr')
         return "print(%s)" % expr
-    def doctest_refactor_print(func_or_str):
+    
+    @_modify_str_or_docstring
+    def doctest_refactor_print(doc):
         """Refactor 'print x' statements in a doctest to print(x) style. 2to3
         unfortunately doesn't pick up on our doctests.
         
         Can accept a string or a function, so it can be used as a decorator."""
-        if isinstance(func_or_str, str):
-            func = None
-            doc = func_or_str
-        else:
-            func = func_or_str
-            doc = func.__doc__
-        doc = _print_statement_re.sub(_print_statement_sub, doc)
+        return _print_statement_re.sub(_print_statement_sub, doc)
+    
+    # Abstract u'abc' syntax:
+    @_modify_str_or_docstring
+    def u_format(s):
+        """"{u}'abc'" --> "'abc'" (Python 3)
         
-        if func:
-            func.__doc__ = doc
-            return func
-        return doc
-        
+        Accepts a string or a function, so it can be used as a decorator."""
+        return s.format(u='')
 
 else:
     PY3 = False
@@ -125,3 +142,10 @@ else:
     def doctest_refactor_print(func_or_str):
         return func_or_str
 
+    # Abstract u'abc' syntax:
+    @_modify_str_or_docstring
+    def u_format(s):
+        """"{u}'abc'" --> "u'abc'" (Python 2)
+        
+        Accepts a string or a function, so it can be used as a decorator."""
+        return s.format(u='u')
