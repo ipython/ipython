@@ -1491,7 +1491,7 @@ Currently the magic system has the following functions:\n"""
             return None
 
     @skip_doctest
-    def magic_run(self, parameter_s ='',runner=None,
+    def magic_run(self, parameter_s ='', runner=None,
                   file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
 
@@ -1614,8 +1614,8 @@ Currently the magic system has the following functions:\n"""
         """
 
         # get arguments and set sys.argv for program to be run.
-        opts,arg_lst = self.parse_options(parameter_s,'nidtN:b:pD:l:rs:T:em:',
-                                          mode='list',list_all=1)
+        opts, arg_lst = self.parse_options(parameter_s, 'nidtN:b:pD:l:rs:T:em:',
+                                           mode='list', list_all=1)
         if "m" in opts:
             modulename = opts["m"][0]
             modpath = find_mod(modulename)
@@ -1627,7 +1627,7 @@ Currently the magic system has the following functions:\n"""
             filename = file_finder(arg_lst[0])
         except IndexError:
             warn('you must provide at least a filename.')
-            print '\n%run:\n',oinspect.getdoc(self.magic_run)
+            print '\n%run:\n', oinspect.getdoc(self.magic_run)
             return
         except IOError as e:
             try:
@@ -1642,7 +1642,7 @@ Currently the magic system has the following functions:\n"""
             return
 
         # Control the response to exit() calls made by the script being run
-        exit_ignore = opts.has_key('e')
+        exit_ignore = 'e' in opts
 
         # Make sure that the running script gets a proper sys.argv as if it
         # were run from a system shell.
@@ -1651,9 +1651,9 @@ Currently the magic system has the following functions:\n"""
         # simulate shell expansion on arguments, at least tilde expansion
         args = [ os.path.expanduser(a) for a in arg_lst[1:] ]
 
-        sys.argv = [filename]+ args  # put in the proper filename
+        sys.argv = [filename] + args  # put in the proper filename
 
-        if opts.has_key('i'):
+        if 'i' in opts:
             # Run in user's interactive namespace
             prog_ns = self.shell.user_ns
             __name__save = self.shell.user_ns['__name__']
@@ -1661,7 +1661,7 @@ Currently the magic system has the following functions:\n"""
             main_mod = self.shell.new_main_mod(prog_ns)
         else:
             # Run in a fresh, empty namespace
-            if opts.has_key('n'):
+            if 'n' in opts:
                 name = os.path.splitext(os.path.basename(filename))[0]
             else:
                 name = '__main__'
@@ -1690,10 +1690,10 @@ Currently the magic system has the following functions:\n"""
         try:
             stats = None
             with self.readline_no_record:
-                if opts.has_key('p'):
-                    stats = self.magic_prun('',0,opts,arg_lst,prog_ns)
+                if 'p' in opts:
+                    stats = self.magic_prun('', 0, opts, arg_lst, prog_ns)
                 else:
-                    if opts.has_key('d'):
+                    if 'd' in opts:
                         deb = debugger.Pdb(self.shell.colors)
                         # reset Breakpoint state, which is moronically kept
                         # in a class
@@ -1702,11 +1702,11 @@ Currently the magic system has the following functions:\n"""
                         bdb.Breakpoint.bpbynumber = [None]
                         # Set an initial breakpoint to stop execution
                         maxtries = 10
-                        bp = int(opts.get('b',[1])[0])
-                        checkline = deb.checkline(filename,bp)
+                        bp = int(opts.get('b', [1])[0])
+                        checkline = deb.checkline(filename, bp)
                         if not checkline:
-                            for bp in range(bp+1,bp+maxtries+1):
-                                if deb.checkline(filename,bp):
+                            for bp in range(bp + 1, bp + maxtries + 1):
+                                if deb.checkline(filename, bp):
                                     break
                             else:
                                 msg = ("\nI failed to find a valid line to set "
@@ -1717,23 +1717,23 @@ Currently the magic system has the following functions:\n"""
                                 error(msg)
                                 return
                         # if we find a good linenumber, set the breakpoint
-                        deb.do_break('%s:%s' % (filename,bp))
+                        deb.do_break('%s:%s' % (filename, bp))
                         # Start file run
                         print "NOTE: Enter 'c' at the",
                         print "%s prompt to start your script." % deb.prompt
                         try:
-                            deb.run('execfile("%s")' % filename,prog_ns)
+                            deb.run('execfile("%s")' % filename, prog_ns)
 
                         except:
                             etype, value, tb = sys.exc_info()
                             # Skip three frames in the traceback: the %run one,
                             # one inside bdb.py, and the command-line typed by the
                             # user (run by exec in pdb itself).
-                            self.shell.InteractiveTB(etype,value,tb,tb_offset=3)
+                            self.shell.InteractiveTB(etype, value, tb, tb_offset=3)
                     else:
                         if runner is None:
                             runner = self.shell.safe_execfile
-                        if opts.has_key('t'):
+                        if 't' in opts:
                             # timed execution
                             try:
                                 nruns = int(opts['N'][0])
@@ -1745,11 +1745,11 @@ Currently the magic system has the following functions:\n"""
                             twall0 = time.time()
                             if nruns == 1:
                                 t0 = clock2()
-                                runner(filename,prog_ns,prog_ns,
+                                runner(filename, prog_ns, prog_ns,
                                        exit_ignore=exit_ignore)
                                 t1 = clock2()
-                                t_usr = t1[0]-t0[0]
-                                t_sys = t1[1]-t0[1]
+                                t_usr = t1[0] - t0[0]
+                                t_sys = t1[1] - t0[1]
                                 print "\nIPython CPU timings (estimated):"
                                 print "  User   : %10.2f s." % t_usr
                                 print "  System : %10.2f s." % t_sys
@@ -1757,30 +1757,30 @@ Currently the magic system has the following functions:\n"""
                                 runs = range(nruns)
                                 t0 = clock2()
                                 for nr in runs:
-                                    runner(filename,prog_ns,prog_ns,
+                                    runner(filename, prog_ns, prog_ns,
                                            exit_ignore=exit_ignore)
                                 t1 = clock2()
-                                t_usr = t1[0]-t0[0]
-                                t_sys = t1[1]-t0[1]
+                                t_usr = t1[0] - t0[0]
+                                t_sys = t1[1] - t0[1]
                                 print "\nIPython CPU timings (estimated):"
-                                print "Total runs performed:",nruns
-                                print "  Times  : %10.2f    %10.2f" % ('Total','Per run')
-                                print "  User   : %10.2f s, %10.2f s." % (t_usr,t_usr/nruns)
-                                print "  System : %10.2f s, %10.2f s." % (t_sys,t_sys/nruns)
+                                print "Total runs performed:", nruns
+                                print "  Times  : %10.2f    %10.2f" % ('Total', 'Per run')
+                                print "  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns)
+                                print "  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns)
                             twall1 = time.time()
-                            print "Wall time: %10.2f s." % (twall1-twall0)
+                            print "Wall time: %10.2f s." % (twall1 - twall0)
 
                         else:
                             # regular execution
-                            runner(filename,prog_ns,prog_ns,exit_ignore=exit_ignore)
+                            runner(filename, prog_ns, prog_ns, exit_ignore=exit_ignore)
 
-                if opts.has_key('i'):
+                if 'i' in opts:
                     self.shell.user_ns['__name__'] = __name__save
                 else:
                     # The shell MUST hold a reference to prog_ns so after %run
                     # exits, the python deletion mechanism doesn't zero it out
                     # (leaving dangling references).
-                    self.shell.cache_main_mod(prog_ns,filename)
+                    self.shell.cache_main_mod(prog_ns, filename)
                     # update IPython interactive namespace
 
                     # Some forms of read errors on the file may mean the
