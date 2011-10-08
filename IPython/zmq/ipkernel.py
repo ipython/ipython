@@ -586,6 +586,77 @@ class GTKKernel(Kernel):
         gtk_kernel.start()
 
 
+class OSXKernel(TkKernel):
+    """A Kernel subclass with Cocoa support via the matplotlib OSX backend."""
+    
+    def start(self):
+        """Start the kernel, coordinating with the Cocoa CFRunLoop event loop
+        via the matplotlib MacOSX backend.
+        """
+        import matplotlib
+        if matplotlib.__version__ < '1.1.0':
+            self.log.warn(
+            "MacOSX backend in matplotlib %s doesn't have a Timer, "
+            "falling back on Tk for CFRunLoop integration.  Note that "
+            "even this won't work if Tk is linked against X11 instead of "
+            "Cocoa (e.g. EPD).  To use the MacOSX backend in the kernel, "
+            "you must use matplotlib >= 1.1.0, or a native libtk."
+            )
+            return TkKernel.start(self)
+        
+        from matplotlib.backends.backend_macosx import TimerMac, show
+        
+        # scale interval for sec->ms
+        poll_interval = int(1000*self._poll_interval)
+        
+        real_excepthook = sys.excepthook
+        def handle_int(etype, value, tb):
+            """don't let KeyboardInterrupts look like crashes"""
+            if etype is KeyboardInterrupt:
+                io.raw_print("KeyboardInterrupt caught in CFRunLoop")
+            else:
+                real_excepthook(etype, value, tb)
+        
+        # add doi() as a Timer to the CFRunLoop
+        def doi():
+            # restore excepthook during IPython code
+            sys.excepthook = real_excepthook
+            self.do_one_iteration()
+            # and back:
+            sys.excepthook = handle_int
+        
+        t = TimerMac(poll_interval)
+        t.add_callback(doi)
+        t.start()
+        
+        # but still need a Poller for when there are no active windows,
+        # during which time mainloop() returns immediately
+        poller = zmq.Poller()
+        poller.register(self.shell_socket, zmq.POLLIN)
+        
+        while True:
+            try:
+                # double nested try/except, to properly catch KeyboardInterrupt
+                # due to pyzmq Issue #130
+                try:
+                    # don't let interrupts during mainloop invoke crash_handler:
+                    sys.excepthook = handle_int
+                    show.mainloop()
+                    sys.excepthook = real_excepthook
+                    # use poller if mainloop returned (no windows)
+                    # scale by extra factor of 10, since it's a real poll
+                    poller.poll(10*poll_interval)
+                    self.do_one_iteration()
+                except:
+                    raise
+            except KeyboardInterrupt:
+                # Ctrl-C shouldn't crash the kernel
+                io.raw_print("KeyboardInterrupt caught in kernel")
+            finally:
+                # ensure excepthook is restored
+                sys.excepthook = real_excepthook
+
+
 #-----------------------------------------------------------------------------
 # Aliases and Flags for the IPKernelApp
 #-----------------------------------------------------------------------------
@@ -639,7 +710,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
             'qt' : QtKernel,
             'qt4': QtKernel,
             'inline': Kernel,
-            'osx': TkKernel,
+            'osx': OSXKernel,
             'wx' : WxKernel,
             'tk' : TkKernel,
             'gtk': GTKKernel,
