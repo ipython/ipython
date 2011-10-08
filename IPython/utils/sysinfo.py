@@ -23,6 +23,7 @@ import subprocess
 from ConfigParser import ConfigParser
 
 from IPython.core import release
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -113,6 +114,7 @@ def pkg_info(pkg_path):
         )
 
 
+@py3compat.doctest_refactor_print
 def sys_info():
     """Return useful information about IPython and the system, as a string.
 

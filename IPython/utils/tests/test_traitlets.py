@@ -30,7 +30,7 @@ from IPython.utils.traitlets import (
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName
 )
-
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Helper classes for testing
@@ -622,7 +622,10 @@ class TraitTestBase(TestCase):
     def test_bad_values(self):
         if hasattr(self, '_bad_values'):
             for value in self._bad_values:
-                self.assertRaises(TraitError, self.assign, value)
+                try:
+                    self.assertRaises(TraitError, self.assign, value)
+                except AssertionError:
+                    assert False, value
 
     def test_default_value(self):
         if hasattr(self, '_default_value'):
@@ -651,9 +654,11 @@ class TestInt(TraitTestBase):
     obj = IntTrait()
     _default_value = 99
     _good_values   = [10, -10]
-    _bad_values    = ['ten', u'ten', [10], {'ten': 10},(10,), None, 1j, 10L,
-                      -10L, 10.1, -10.1, '10L', '-10L', '10.1', '-10.1', u'10L',
+    _bad_values    = ['ten', u'ten', [10], {'ten': 10},(10,), None, 1j,
+                      10.1, -10.1, '10L', '-10L', '10.1', '-10.1', u'10L',
                       u'-10L', u'10.1', u'-10.1',  '10', '-10', u'10', u'-10']
+    if not py3compat.PY3:
+        _bad_values.extend([10L, -10L])
 
 
 class LongTrait(HasTraits):
@@ -682,9 +687,11 @@ class TestFloat(TraitTestBase):
 
     _default_value = 99.0
     _good_values   = [10, -10, 10.1, -10.1]
-    _bad_values    = [10L, -10L, 'ten', u'ten', [10], {'ten': 10},(10,), None,
+    _bad_values    = ['ten', u'ten', [10], {'ten': 10},(10,), None,
                       1j, '10', '-10', '10L', '-10L', '10.1', '-10.1', u'10',
                       u'-10', u'10L', u'-10L', u'10.1', u'-10.1']
+    if not py3compat.PY3:
+        _bad_values.extend([10L, -10L])
 
 
 class ComplexTrait(HasTraits):
@@ -698,7 +705,9 @@ class TestComplex(TraitTestBase):
     _default_value = 99.0-99.0j
     _good_values   = [10, -10, 10.1, -10.1, 10j, 10+10j, 10-10j,
                       10.1j, 10.1+10.1j, 10.1-10.1j]
-    _bad_values    = [10L, -10L, u'10L', u'-10L', 'ten', [10], {'ten': 10},(10,), None]
+    _bad_values    = [u'10L', u'-10L', 'ten', [10], {'ten': 10},(10,), None]
+    if not py3compat.PY3:
+        _bad_values.extend([10L, -10L])
 
 
 class BytesTrait(HasTraits):
@@ -835,12 +844,12 @@ class TestLooseTupleTrait(TraitTestBase):
 
 class MultiTupleTrait(HasTraits):
 
-    value = Tuple(Int, Bytes, default_value=[99,'bottles'])
+    value = Tuple(Int, Bytes, default_value=[99,b'bottles'])
 
 class TestMultiTuple(TraitTestBase):
 
     obj = MultiTupleTrait()
 
-    _default_value = (99,'bottles')
-    _good_values = [(1,'a'), (2,'b')]
-    _bad_values = ((),10, 'a', (1,'a',3), ('a',1))
+    _default_value = (99,b'bottles')
+    _good_values = [(1,b'a'), (2,b'b')]
+    _bad_values = ((),10, b'a', (1,b'a',3), (b'a',1), (1, u'a'))

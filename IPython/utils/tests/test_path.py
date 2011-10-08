@@ -18,7 +18,7 @@ import os
 import shutil
 import sys
 import tempfile
-import StringIO
+from io import StringIO
 
 from os.path import join, abspath, split
 
@@ -405,7 +405,7 @@ def test_not_writable_ipdir():
     os.mkdir(ipdir)
     os.chmod(ipdir, 600)
     stderr = io.stderr
-    pipe = StringIO.StringIO()
+    pipe = StringIO()
     io.stderr = pipe
     ipdir = path.get_ipython_dir()
     io.stderr.flush()

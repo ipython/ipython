@@ -15,11 +15,13 @@ Utilities for working with stack frames.
 #-----------------------------------------------------------------------------
 
 import sys
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
+@py3compat.doctest_refactor_print
 def extract_vars(*names,**kw):
     """Extract a set of variables by name from another frame.
 

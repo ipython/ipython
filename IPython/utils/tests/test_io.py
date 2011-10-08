@@ -21,6 +21,7 @@ import nose.tools as nt
 
 from IPython.testing import decorators as dec
 from IPython.utils.io import Tee
+from IPython.utils.py3compat import doctest_refactor_print
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -32,8 +33,8 @@ def test_tee_simple():
     chan = StringIO()
     text = 'Hello'
     tee = Tee(chan, channel='stdout')
-    print >> chan, text,
-    nt.assert_equal(chan.getvalue(), text)
+    print >> chan, text
+    nt.assert_equal(chan.getvalue(), text+"\n")
 
 
 class TeeTestCase(dec.ParametricTestCase):
@@ -64,8 +65,11 @@ class TeeTestCase(dec.ParametricTestCase):
 def test_io_init():
     """Test that io.stdin/out/err exist at startup"""
     for name in ('stdin', 'stdout', 'stderr'):
-        p = Popen([sys.executable, '-c', "from IPython.utils import io;print io.%s.__class__"%name],
+        cmd = doctest_refactor_print("from IPython.utils import io;print io.%s.__class__"%name)
+        p = Popen([sys.executable, '-c', cmd],
                     stdout=PIPE)
         p.wait()
-        classname = p.stdout.read().strip()
-        nt.assert_equals(classname, 'IPython.utils.io.IOStream')
+        classname = p.stdout.read().strip().decode('ascii')
+        # __class__ is a reference to the class object in Python 3, so we can't
+        # just test for string equality.
+        assert 'IPython.utils.io.IOStream' in classname, classname
