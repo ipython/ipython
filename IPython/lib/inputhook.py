@@ -37,18 +37,27 @@ GUI_PYGLET = 'pyglet'
 # Utilities
 #-----------------------------------------------------------------------------
 
-def stdin_ready():
-    if os.name == 'posix':
-        import select
-        infds, outfds, erfds = select.select([sys.stdin],[],[],0)
-        if infds:
-            return True
-        else:
-            return False
-    elif os.name == 'nt':
-        import msvcrt
-        return msvcrt.kbhit()
-    return True # assume there's something so that we won't wait forever
+def _stdin_ready_posix():
+    """Return True if there's something to read on stdin (posix version)."""
+    infds, outfds, erfds = select.select([sys.stdin],[],[],0)
+    return bool(infds)
+
+def _stdin_ready_nt():
+    """Return True if there's something to read on stdin (nt version)."""
+    return msvcrt.kbhit()
+
+def _stdin_ready_other():
+    """Return True, assuming there's something to read on stdin."""
+    return True #
+
+if os.name == 'posix':
+    import select
+    stdin_ready = _stdin_ready_posix
+elif os.name == 'nt':
+    import msvcrt
+    stdin_ready = _stdin_ready_nt
+else:
+    stdin_ready = _stdin_ready_other
 
 
 #-----------------------------------------------------------------------------
