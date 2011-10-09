@@ -204,10 +204,6 @@ qt_flags.update(boolean_flag(
     """
 ))
 flags.update(qt_flags)
-# the flags that are specific to the frontend
-# these must be scrubbed before being passed to the kernel,
-# or it will raise an error on unrecognized flags
-qt_flags = qt_flags.keys()
 
 aliases = dict(ipkernel_aliases)
 
@@ -227,8 +223,6 @@ qt_aliases = dict(
     ssh = 'IPythonQtConsoleApp.sshserver',
 )
 aliases.update(qt_aliases)
-# also scrub aliases from the frontend
-qt_flags.extend(qt_aliases.keys())
 
 
 #-----------------------------------------------------------------------------
@@ -327,13 +321,24 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.kernel_argv = list(argv) # copy
         # kernel should inherit default config file from frontend
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
-        # scrub frontend-specific flags
+        # Scrub frontend-specific flags
         for a in argv:
-            
+            if a.startswith('-') and a.lstrip('-') in qt_flags:
+                self.kernel_argv.remove(a)
+        swallow_next = False
+        for a in argv:
+            if swallow_next:
+                self.kernel_argv.remove(a)
+                swallow_next = False
+                continue
             if a.startswith('-'):
-                key = a.lstrip('-').split('=')[0]
-                if key in qt_flags:
+                split = a.lstrip('-').split('=')[0]
+                alias = split[0]
+                if alias in qt_aliases:
                     self.kernel_argv.remove(a)
+                    if len(split) == 1:
+                        # alias passed with arg via space
+                        swallow_next = True
     
     def init_ssh(self):
         """set up ssh tunnels, if needed."""

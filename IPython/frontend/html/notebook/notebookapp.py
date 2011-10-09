@@ -212,11 +212,20 @@ class IPythonNotebookApp(BaseIPythonApplication):
         for a in argv:
             if a.startswith('-') and a.lstrip('-') in notebook_flags:
                 self.kernel_argv.remove(a)
+        swallow_next = False
         for a in argv:
+            if swallow_next:
+                self.kernel_argv.remove(a)
+                swallow_next = False
+                continue
             if a.startswith('-'):
-                alias = a.lstrip('-').split('=')[0]
+                split = a.lstrip('-').split('=')[0]
+                alias = split[0]
                 if alias in notebook_aliases:
                     self.kernel_argv.remove(a)
+                    if len(split) == 1:
+                        # alias passed with arg via space
+                        swallow_next = True
 
     def init_configurables(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
