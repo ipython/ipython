@@ -709,7 +709,7 @@ class KernelManager(HasTraits):
     connection_file = Unicode('')
     ip = Unicode(LOCALHOST)
     shell_port = Int(0)
-    sub_port = Int(0)
+    iopub_port = Int(0)
     stdin_port = Int(0)
     hb_port = Int(0)
 
@@ -793,12 +793,12 @@ class KernelManager(HasTraits):
             return
         self.connection_file,cfg = write_connection_file(self.connection_file,
             ip=self.ip, key=self.session.key,
-            stdin_port=self.stdin_port, iopub_port=self.sub_port,
+            stdin_port=self.stdin_port, iopub_port=self.iopub_port,
             shell_port=self.shell_port, hb_port=self.hb_port)
         # write_connection_file also sets default ports:
         self.shell_port = cfg['shell_port']
         self.stdin_port = cfg['stdin_port']
-        self.sub_port = cfg['iopub_port']
+        self.iopub_port = cfg['iopub_port']
         self.hb_port = cfg['hb_port']
         
         self._connection_file_written = True
@@ -1005,7 +1005,7 @@ class KernelManager(HasTraits):
         if self._sub_channel is None:
             self._sub_channel = self.sub_channel_class(self.context,
                                                        self.session,
-                                                       (self.ip, self.sub_port))
+                                                       (self.ip, self.iopub_port))
         return self._sub_channel
 
     @property

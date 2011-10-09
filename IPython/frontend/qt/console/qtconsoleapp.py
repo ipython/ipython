@@ -455,7 +455,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.kernel_manager = QtKernelManager(
                                 ip=self.ip,
                                 shell_port=self.shell_port,
-                                sub_port=self.iopub_port,
+                                iopub_port=self.iopub_port,
                                 stdin_port=self.stdin_port,
                                 hb_port=self.hb_port,
                                 connection_file=cf,
