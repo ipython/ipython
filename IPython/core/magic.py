@@ -19,6 +19,7 @@ import __builtin__ as builtin_mod
 import __future__
 import bdb
 import inspect
+import imp
 import os
 import sys
 import shutil
@@ -91,11 +92,24 @@ def needs_local_scope(func):
     func.needs_local_scope = True
     return func
 
-import imp, os
-
 def find_module(name, path=None):
     """imp.find_module variant that only return path of module.
-    Return None if module is missing or does not have .py or .pyw extension
+    
+    The `imp.find_module` returns a filehandle that we are not interested in.
+    Also we ignore any bytecode files that `imp.find_module` finds.
+
+    Parameters
+    ----------
+    name : str
+        name of module to locate
+    path : list of str
+        list of paths to search for `name`. If path=None then search sys.path
+
+    Returns
+    -------
+    filename : str
+        Return full path of module or None if module is missing or does not have
+        .py or .pyw extension
     """
     if name is None:
         return None
@@ -113,7 +127,17 @@ def find_module(name, path=None):
         return None
 
 def get_init(dirname):
-    """Get __init__ file path for module with directory dirname
+    """Get __init__ file path for module directory
+    
+    Parameters
+    ----------
+    dirname : str
+        Find the __init__ file in directory `dirname`
+
+    Returns
+    -------
+    init_path : str
+        Path to __init__ file
     """
     fbase =  os.path.join(dirname, "__init__")
     for ext in [".py", ".pyw"]:
@@ -122,10 +146,24 @@ def get_init(dirname):
             return fname
 
 
-def find_mod(name):
-    """Find module *name* on sys.path
+def find_mod(module_name):
+    """Find module `module_name` on sys.path
+    
+    Return the path to module `module_name`. If `module_name` refers to
+    a module directory then return path to __init__ file. Return full 
+    path of module or None if module is missing or does not have .py or .pyw
+    extension. We are not interested in running bytecode.
+    
+    Parameters
+    ----------
+    module_name : str
+    
+    Returns
+    -------
+    modulepath : str
+        Path to module `module_name`.
     """
-    parts = name.split(".")
+    parts = module_name.split(".")
     basepath = find_module(parts[0])
     for submodname in parts[1:]:
         basepath = find_module(submodname, [basepath])
