@@ -325,6 +325,7 @@ def check_pairs(func, pairs):
         out = func(inp)
         assert out == expected, pair_fail_msg.format(name, inp, expected, out)
 
+
 if py3compat.PY3:
     MyStringIO = StringIO
 else:
@@ -337,6 +338,7 @@ else:
 
 notprinted_msg = """Did not find {0!r} in printed output (on {1}):
 {2!r}"""
+
 class AssertPrints(object):
     """Context manager for testing that code prints certain text.
     

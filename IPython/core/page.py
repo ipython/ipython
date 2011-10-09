@@ -69,6 +69,11 @@ def page_dumb(strng, start=0, screen_lines=25):
         print >>io.stdout, last_escape + os.linesep.join(screens[-1])
 
 def _detect_screen_size(use_curses, screen_lines_def):
+    """Attempt to work out the number of lines on the screen.
+    
+    This is called by page(). It can raise an error (e.g. when run in the
+    test suite), so it's separated out so it can easily be called in a try block.
+    """
     if (TERM=='xterm' or TERM=='xterm-color') and sys.platform != 'sunos5':
         local_use_curses = use_curses
     else:
