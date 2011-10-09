@@ -35,7 +35,7 @@ import sys
 
 from IPython.config.application import Application
 from IPython.config.configurable import Configurable
-from IPython.config.loader import Config
+from IPython.config.loader import Config, ConfigFileNotFound
 from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
@@ -186,7 +186,7 @@ class BaseIPythonApplication(Application):
                 base_config,
                 path=self.config_file_paths
             )
-        except IOError:
+        except ConfigFileNotFound:
             # ignore errors loading parent
             self.log.debug("Config file %s not found", base_config)
             pass
@@ -201,7 +201,7 @@ class BaseIPythonApplication(Application):
                 self.config_file_name,
                 path=self.config_file_paths
             )
-        except IOError:
+        except ConfigFileNotFound:
             # Only warn if the default config file was NOT being used.
             if self.config_file_specified:
                 msg = self.log.warn

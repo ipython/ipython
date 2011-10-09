@@ -30,7 +30,7 @@ import os
 import sys
 
 from IPython.config.loader import (
-    Config, PyFileConfigLoader
+    Config, PyFileConfigLoader, ConfigFileNotFound
 )
 from IPython.config.application import boolean_flag
 from IPython.core import release
@@ -378,7 +378,7 @@ def load_default_config(ipython_dir=None):
     cl = PyFileConfigLoader(default_config_file_name, profile_dir)
     try:
         config = cl.load_config()
-    except IOError:
+    except ConfigFileNotFound:
         # no config found
         config = Config()
     return config
