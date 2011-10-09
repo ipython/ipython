@@ -233,7 +233,8 @@ class IPythonNotebookApp(BaseIPythonApplication):
 
         # Create a KernelManager and start a kernel.
         self.kernel_manager = MappingKernelManager(
-            config=self.config, log=self.log, kernel_argv=self.kernel_argv
+            config=self.config, log=self.log, kernel_argv=self.kernel_argv,
+            connection_dir = self.profile_dir.security_dir,
         )
         self.notebook_manager = NotebookManager(config=self.config, log=self.log)
         self.notebook_manager.list_notebooks()

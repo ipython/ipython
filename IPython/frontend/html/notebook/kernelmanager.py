@@ -16,6 +16,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
 import signal
 import sys
 import uuid
@@ -27,6 +28,7 @@ from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.zmq.ipkernel import launch_kernel
+from IPython.zmq.kernelmanager import KernelManager
 from IPython.utils.traitlets import Instance, Dict, List, Unicode, Float, Int
 
 #-----------------------------------------------------------------------------
@@ -37,12 +39,14 @@ class DuplicateKernelError(Exception):
     pass
 
 
-class KernelManager(LoggingConfigurable):
+class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
 
     context = Instance('zmq.Context')
     def _context_default(self):
         return zmq.Context.instance()
+    
+    connection_dir = Unicode('')
 
     _kernels = Dict()
 
@@ -64,18 +68,12 @@ class KernelManager(LoggingConfigurable):
     def start_kernel(self, **kwargs):
         """Start a new kernel."""
         kernel_id = unicode(uuid.uuid4())
-        (process, shell_port, iopub_port, stdin_port, hb_port) = launch_kernel(**kwargs)
-        # Store the information for contacting the kernel. This assumes the kernel is
-        # running on localhost.
-        d = dict(
-            process = process,
-            stdin_port = stdin_port,
-            iopub_port = iopub_port,
-            shell_port = shell_port,
-            hb_port = hb_port,
-            ip = '127.0.0.1'
+        # use base KernelManager for each Kernel
+        km = KernelManager(connection_file=os.path.join(
+                    self.connection_dir, "kernel-%s.json" % kernel_id)
         )
-        self._kernels[kernel_id] = d
+        km.start_kernel(**kwargs)
+        self._kernels[kernel_id] = km
         return kernel_id
 
     def kill_kernel(self, kernel_id):
@@ -86,17 +84,8 @@ class KernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to kill.
         """
-        kernel_process = self.get_kernel_process(kernel_id)
-        if kernel_process is not None:
-            # Attempt to kill the kernel.
-            try:
-                kernel_process.kill()
-            except OSError, e:
-                # In Windows, we will get an Access Denied error if the process
-                # has already terminated. Ignore it.
-                if not (sys.platform == 'win32' and e.winerror == 5):
-                    raise
-            del self._kernels[kernel_id]
+        self.get_kernel(kernel_id).kill_kernel()
+        del self._kernels[kernel_id]
 
     def interrupt_kernel(self, kernel_id):
         """Interrupt (SIGINT) the kernel by its uuid.
@@ -106,14 +95,7 @@ class KernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to interrupt.
         """
-        kernel_process = self.get_kernel_process(kernel_id)
-        if kernel_process is not None:
-            if sys.platform == 'win32':
-                from parentpoller import ParentPollerWindows as Poller
-                Poller.send_interrupt(kernel_process.win32_interrupt_event)
-            else:
-                kernel_process.send_signal(signal.SIGINT)
-
+        return self.get_kernel(kernel_id).interrupt_kernel()
 
     def signal_kernel(self, kernel_id, signum):
         """ Sends a signal to the kernel by its uuid.
@@ -126,21 +108,19 @@ class KernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to signal.
         """
-        kernel_process = self.get_kernel_process(kernel_id)
-        if kernel_process is not None:
-            kernel_process.send_signal(signum)
+        return self.get_kernel(kernel_id).signal_kernel(signum)
 
-    def get_kernel_process(self, kernel_id):
-        """Get the process object for a kernel by its uuid.
+    def get_kernel(self, kernel_id):
+        """Get the single KernelManager object for a kernel by its uuid.
 
         Parameters
         ==========
         kernel_id : uuid
             The id of the kernel.
         """
-        d = self._kernels.get(kernel_id)
-        if d is not None:
-            return d['process']
+        km = self._kernels.get(kernel_id)
+        if km is not None:
+            return km
         else:
             raise KeyError("Kernel with id not found: %s" % kernel_id)
 
@@ -159,14 +139,13 @@ class KernelManager(LoggingConfigurable):
             (stdin_port,iopub_port,shell_port) and the values are the
             integer port numbers for those channels.
         """
-        d = self._kernels.get(kernel_id)
-        if d is not None:
-            dcopy = d.copy()
-            dcopy.pop('process')
-            dcopy.pop('ip')
-            return dcopy
-        else:
-            raise KeyError("Kernel with id not found: %s" % kernel_id)
+        # this will raise a KeyError if not found:
+        km = self.get_kernel(kernel_id)
+        return dict(shell_port=km.shell_port,
+                    iopub_port=km.iopub_port,
+                    stdin_port=km.stdin_port,
+                    hb_port=km.hb_port,
+        )
 
     def get_kernel_ip(self, kernel_id):
         """Return ip address for a kernel.
@@ -181,11 +160,7 @@ class KernelManager(LoggingConfigurable):
         ip : str
             The ip address of the kernel.
         """
-        d = self._kernels.get(kernel_id)
-        if d is not None:
-            return d['ip']
-        else:
-            raise KeyError("Kernel with id not found: %s" % kernel_id)
+        return self.get_kernel(kernel_id).ip
 
     def create_connected_stream(self, ip, port, socket_type):
         sock = self.context.socket(socket_type)
@@ -214,7 +189,7 @@ class KernelManager(LoggingConfigurable):
         return hb_stream
 
 
-class MappingKernelManager(KernelManager):
+class MappingKernelManager(MultiKernelManager):
     """A KernelManager that handles notebok mapping and HTTP error handling"""
 
     kernel_argv = List(Unicode)
@@ -292,6 +267,13 @@ class MappingKernelManager(KernelManager):
     def restart_kernel(self, kernel_id):
         """Restart a kernel while keeping clients connected."""
         self._check_kernel_id(kernel_id)
+        km = self.get_kernel(kernel_id)
+        km.restart_kernel(now=True)
+        self.log.info("Kernel restarted: %s" % kernel_id)
+        return kernel_id
+        
+        # the following remains, in case the KM restart machinery is
+        # somehow unacceptable
         # Get the notebook_id to preserve the kernel/notebook association.
         notebook_id = self.notebook_for_kernel(kernel_id)
         # Create the new kernel first so we can move the clients over.
