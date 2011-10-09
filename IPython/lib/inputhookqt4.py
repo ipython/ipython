@@ -85,6 +85,7 @@ def create_inputhook_qt4(mgr, app=None):
     def preprompthook_qt4(ishell):
         if got_kbdint[0]:
             mgr.set_inputhook(inputhook_qt4)
+        got_kbdint[0] = False
     ipapi.get().set_hook('pre_prompt_hook', preprompthook_qt4)
 
     return app, inputhook_qt4
