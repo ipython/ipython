@@ -208,23 +208,16 @@ class InputHookManager(object):
         # #481).
 
         # Note that we can't let KeyboardInterrupt escape from that
-        # hook, (no exception can't be raised from within a ctypes
-        # python callback). We need to make a compromise: a trapped
-        # KeyboardInterrupt will prevent the input hook to re-enter
-        # the exec loop, until we start over with a new prompt line.
-        # This means one needs a double CTRL+C to get back to the
-        # prompt.
+        # hook, as no exception can be raised from within a ctypes
+        # python callback. We need to make a compromise: a trapped
+        # KeyboardInterrupt will temporarily disable the input hook
+        # until we start over with a new prompt line with a second
+        # CTRL+C.
 
         got_kbdint = [False]
 
-        def preprompthook_qt4(self):
-            got_kbdint[0] = False
-        ipapi.get().set_hook('pre_prompt_hook', preprompthook_qt4)
-
         def inputhook_qt4():
             try:
-                if got_kbdint[0]:
-                    return 0
                 app.processEvents(QtCore.QEventLoop.AllEvents, 300)
                 if not stdin_ready():
                     timer = QtCore.QTimer()
@@ -235,10 +228,16 @@ class InputHookManager(object):
                         timer.stop()
             except KeyboardInterrupt:
                 got_kbdint[0] = True
+                self.clear_inputhook()
                 print("\n(event loop interrupted - "
                       "hit CTRL+C again to clear the prompt)")
             return 0
         self.set_inputhook(inputhook_qt4)
+
+        def preprompthook_qt4(ishell):
+            if got_kbdint[0]:
+                self.set_inputhook(inputhook_qt4)
+        ipapi.get().set_hook('pre_prompt_hook', preprompthook_qt4)
 
         self._current_gui = GUI_QT4
         app._in_event_loop = True
