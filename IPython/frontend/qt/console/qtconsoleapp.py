@@ -17,6 +17,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
+import glob
 import os
 import signal
 import sys
@@ -25,6 +26,7 @@ from getpass import getpass
 # System library imports
 from IPython.external.qt import QtGui
 from pygments.styles import get_all_styles
+from zmq.utils import jsonapi as json
 
 # external imports
 from IPython.external.ssh import tunnel
@@ -39,6 +41,7 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.parallel.util import select_random_ports
+from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
 )
@@ -182,8 +185,8 @@ class MainWindow(QtGui.QMainWindow):
 
 flags = dict(ipkernel_flags)
 qt_flags = {
-    'existing' : ({'IPythonQtConsoleApp' : {'existing' : True}},
-            "Connect to an existing kernel."),
+    'existing' : ({'IPythonQtConsoleApp' : {'existing' : 'kernel*.json'}},
+            "Connect to an existing kernel. If no argument specified, guess most recent"),
     'pure' : ({'IPythonQtConsoleApp' : {'pure' : True}},
             "Use a pure Python kernel instead of an IPython kernel."),
     'plain' : ({'ConsoleWidget' : {'kind' : 'plain'}},
@@ -213,6 +216,8 @@ qt_aliases = dict(
     iopub = 'IPythonQtConsoleApp.iopub_port',
     stdin = 'IPythonQtConsoleApp.stdin_port',
     ip = 'IPythonQtConsoleApp.ip',
+    existing = 'IPythonQtConsoleApp.existing',
+    f = 'IPythonQtConsoleApp.connection_file',
 
     style = 'IPythonWidget.syntax_style',
     stylesheet = 'IPythonQtConsoleApp.stylesheet',
@@ -280,9 +285,18 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         help="set the iopub (PUB) port [default: random]")
     stdin_port = Int(0, config=True,
         help="set the stdin (XREQ) port [default: random]")
+    connection_file = Unicode('', config=True,
+        help="""JSON file in which to store connection info [default: kernel-<pid>.json]
 
-    existing = CBool(False, config=True,
-        help="Whether to connect to an already running Kernel.")
+        This file will contain the IP, ports, and authentication key needed to connect
+        clients to this kernel. By default, this file will be created in the security-dir
+        of the current profile, but can be specified by absolute path.
+        """)
+    def _connection_file_default(self):
+        return 'kernel-%i.json' % os.getpid()
+
+    existing = Unicode('', config=True,
+        help="""Connect to an already running kernel""")
 
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
@@ -340,6 +354,58 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                         # alias passed with arg via space
                         swallow_next = True
     
+    def init_connection_file(self):
+        sec = self.profile_dir.security_dir
+        if self.existing:
+            try:
+                # first, try explicit name
+                cf = filefind(self.existing, ['.', sec])
+            except IOError:
+                # not found by full name
+                if '*' in self.existing:
+                    # given as a glob already
+                    pat = self.existing
+                else:
+                    # accept any substring match
+                    pat = '*%s*'
+                matches = glob.glob( os.path.join(sec, pat) )
+                if not matches:
+                    self.log.critical("Could not find existing kernel connection file %s", self.existing)
+                    self.exit(1)
+                else:
+                    # get most recent match:
+                    cf = sorted(matches, key=lambda f: os.stat(f).st_atime)[-1]
+            self.log.info("Connecting to existing kernel: %s" % cf)
+            self.connection_file = cf
+        # should load_connection_file only be used for existing?
+        # as it is now, this allows reusing ports if an existing
+        # file is requested
+        self.load_connection_file()
+    
+    def load_connection_file(self):
+        """load ip/port/hmac config from JSON connection file"""
+        # this is identical to KernelApp.load_connection_file
+        # perhaps it can be centralized somewhere?
+        try:
+            fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
+        except IOError:
+            self.log.debug("Connection File not found: %s", self.connection_file)
+            return
+        self.log.debug(u"Loading connection file %s", fname)
+        with open(fname) as f:
+            s = f.read()
+        cfg = json.loads(s)
+        if self.ip == LOCALHOST and 'ip' in cfg:
+            # not overridden by config or cl_args
+            self.ip = cfg['ip']
+        for channel in ('hb', 'shell', 'iopub', 'stdin'):
+            name = channel + '_port'
+            if getattr(self, name) == 0 and name in cfg:
+                # not overridden by config or cl_args
+                setattr(self, name, cfg[name])
+        if 'key' in cfg:
+            self.config.Session.key = cfg['key']
+    
     def init_ssh(self):
         """set up ssh tunnels, if needed."""
         if not self.sshserver and not self.sshkey:
@@ -374,18 +440,30 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
         signal.signal(signal.SIGINT, signal.SIG_DFL)
+        sec = self.profile_dir.security_dir
+        try:
+            cf = filefind(self.connection_file, ['.', sec])
+        except IOError:
+            # file might not exist, use 
+            if self.connection_file == os.path.basename(self.connection_file):
+                # just shortname, put it in security dir
+                cf = os.path.join(sec, self.connection_file)
+            else:
+                cf = self.connection_file
 
         # Create a KernelManager and start a kernel.
-        self.kernel_manager = QtKernelManager(ip=self.ip,
+        self.kernel_manager = QtKernelManager(
+                                ip=self.ip,
                                 shell_port=self.shell_port,
                                 sub_port=self.iopub_port,
                                 stdin_port=self.stdin_port,
                                 hb_port=self.hb_port,
+                                connection_file=cf,
                                 config=self.config,
         )
         # start the kernel
         if not self.existing:
-            kwargs = dict(ip=self.ip, ipython=not self.pure)
+            kwargs = dict(ipython=not self.pure)
             kwargs['extra_arguments'] = self.kernel_argv
             self.kernel_manager.start_kernel(**kwargs)
         self.kernel_manager.start_channels()
@@ -469,6 +547,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     def initialize(self, argv=None):
         super(IPythonQtConsoleApp, self).initialize(argv)
         self.init_ssh()
+        self.init_connection_file()
         self.init_kernel_manager()
         self.init_qt_elements()
         self.init_colors()

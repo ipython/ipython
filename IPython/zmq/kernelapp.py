@@ -21,6 +21,7 @@ import sys
 
 # System library imports.
 import zmq
+from zmq.utils import jsonapi as json
 
 # IPython imports.
 from IPython.core.ultratb import FormattedTB
@@ -29,10 +30,12 @@ from IPython.core.application import (
 )
 from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.path import filefind
 from IPython.utils.traitlets import (Any, Instance, Dict, Unicode, Int, Bool,
                                         DottedObjectName)
 from IPython.utils.importstring import import_item
 # local imports
+from IPython.zmq.entry_point import write_connection_file
 from IPython.zmq.heartbeat import Heartbeat
 from IPython.zmq.parentpoller import ParentPollerUnix, ParentPollerWindows
 from IPython.zmq.session import Session
@@ -49,6 +52,7 @@ kernel_aliases.update({
     'shell' : 'KernelApp.shell_port',
     'iopub' : 'KernelApp.iopub_port',
     'stdin' : 'KernelApp.stdin_port',
+    'f' : 'KernelApp.connection_file',
     'parent': 'KernelApp.parent',
 })
 if sys.platform.startswith('win'):
@@ -99,6 +103,13 @@ class KernelApp(BaseIPythonApplication):
     shell_port = Int(0, config=True, help="set the shell (XREP) port [default: random]")
     iopub_port = Int(0, config=True, help="set the iopub (PUB) port [default: random]")
     stdin_port = Int(0, config=True, help="set the stdin (XREQ) port [default: random]")
+    connection_file = Unicode('', config=True, 
+    help="""JSON file in which to store connection info [default: kernel-<pid>.json]
+    
+    This file will contain the IP, ports, and authentication key needed to connect
+    clients to this kernel. By default, this file will be created in the security-dir
+    of the current profile, but can be specified by absolute path.
+    """)
 
     # streams, etc.
     no_stdout = Bool(False, config=True, help="redirect stdout to the null device")
@@ -138,6 +149,44 @@ class KernelApp(BaseIPythonApplication):
             s.bind(iface + ':%i'%port)
         return port
 
+    def load_connection_file(self):
+        """load ip/port/hmac config from JSON connection file"""
+        try:
+            fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
+        except IOError:
+            self.log.debug("Connection file not found: %s", self.connection_file)
+            return
+        self.log.debug(u"Loading connection file %s", fname)
+        with open(fname) as f:
+            s = f.read()
+        cfg = json.loads(s)
+        if self.ip == LOCALHOST and 'ip' in cfg:
+            # not overridden by config or cl_args
+            self.ip = cfg['ip']
+        for channel in ('hb', 'shell', 'iopub', 'stdin'):
+            name = channel + '_port'
+            if getattr(self, name) == 0 and name in cfg:
+                # not overridden by config or cl_args
+                setattr(self, name, cfg[name])
+        if 'key' in cfg:
+            self.config.Session.key = cfg['key']
+    
+    def write_connection_file(self):
+        """write connection info to JSON file"""
+        if os.path.basename(self.connection_file) == self.connection_file:
+            cf = os.path.join(self.profile_dir.security_dir, self.connection_file)
+        else:
+            cf = self.connection_file
+        write_connection_file(cf, ip=self.ip, key=self.session.key,
+        shell_port=self.shell_port, stdin_port=self.stdin_port, hb_port=self.hb_port,
+        iopub_port=self.iopub_port)
+    
+    def init_connection_file(self):
+        if not self.connection_file:
+            self.connection_file = "kernel-%s.json"%os.getpid()
+        
+        self.load_connection_file()
+
     def init_sockets(self):
         # Create a context, a session, and the kernel sockets.
         self.log.info("Starting the kernel at pid: %i", os.getpid())
@@ -161,12 +210,17 @@ class KernelApp(BaseIPythonApplication):
         self.hb_port = self.heartbeat.port
         self.log.debug("Heartbeat REP Channel on port: %i"%self.hb_port)
 
-        # Helper to make it easier to connect to an existing kernel, until we have
-        # single-port connection negotiation fully implemented.
+        # Helper to make it easier to connect to an existing kernel.
         # set log-level to critical, to make sure it is output
         self.log.critical("To connect another client to this kernel, use:")
-        self.log.critical("--existing --shell={0} --iopub={1} --stdin={2} --hb={3}".format(
-            self.shell_port, self.iopub_port, self.stdin_port, self.hb_port))
+        if os.path.dirname(self.connection_file) == self.profile_dir.security_dir:
+            # use shortname
+            tail = os.path.basename(self.connection_file)
+            if self.profile != 'default':
+                tail += " --profile %s" % self.profile_name
+        else:
+            tail = self.connection_file
+        self.log.critical("--existing %s", tail)
 
 
         self.ports = dict(shell=self.shell_port, iopub=self.iopub_port,
@@ -209,9 +263,12 @@ class KernelApp(BaseIPythonApplication):
     def initialize(self, argv=None):
         super(KernelApp, self).initialize(argv)
         self.init_blackhole()
+        self.init_connection_file()
         self.init_session()
         self.init_poller()
         self.init_sockets()
+        # writing connection file must be *after* init_sockets
+        self.write_connection_file()
         self.init_io()
         self.init_kernel()
 

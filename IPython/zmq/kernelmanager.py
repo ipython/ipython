@@ -19,6 +19,7 @@ TODO
 import errno
 from Queue import Queue, Empty
 from subprocess import Popen
+import os
 import signal
 import sys
 from threading import Thread
@@ -32,7 +33,10 @@ from zmq.eventloop import ioloop
 # Local imports.
 from IPython.config.loader import Config
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
-from IPython.utils.traitlets import HasTraits, Any, Instance, Type, Unicode, Int
+from IPython.utils.traitlets import (
+    HasTraits, Any, Instance, Type, Unicode, Int, Bool
+)
+from IPython.zmq.entry_point import write_connection_file
 from session import Session
 
 #-----------------------------------------------------------------------------
@@ -702,6 +706,7 @@ class KernelManager(HasTraits):
     kernel = Instance(Popen)
 
     # The addresses for the communication channels.
+    connection_file = Unicode('')
     ip = Unicode(LOCALHOST)
     shell_port = Int(0)
     sub_port = Int(0)
@@ -720,13 +725,22 @@ class KernelManager(HasTraits):
     _sub_channel = Any
     _stdin_channel = Any
     _hb_channel = Any
+    _connection_file_written=Bool(False)
 
     def __init__(self, **kwargs):
         super(KernelManager, self).__init__(**kwargs)
         if self.session is None:
             self.session = Session(config=self.config)
-        # Uncomment this to try closing the context.
-        # atexit.register(self.context.term)
+    
+    def __del__(self):
+        if self._connection_file_written:
+            # cleanup connection files on full shutdown of kernel we started
+            self._connection_file_written = False
+            try:
+                os.remove(self.connection_file)
+            except IOError:
+                pass
+
 
     #--------------------------------------------------------------------------
     # Channel management methods:
@@ -773,7 +787,22 @@ class KernelManager(HasTraits):
     #--------------------------------------------------------------------------
     # Kernel process management methods:
     #--------------------------------------------------------------------------
-
+    
+    def write_connection_file(self):
+        if self._connection_file_written:
+            return
+        self.connection_file,cfg = write_connection_file(self.connection_file,
+            ip=self.ip, key=self.session.key,
+            stdin_port=self.stdin_port, iopub_port=self.sub_port,
+            shell_port=self.shell_port, hb_port=self.hb_port)
+        # write_connection_file also sets default ports:
+        self.shell_port = cfg['shell_port']
+        self.stdin_port = cfg['stdin_port']
+        self.sub_port = cfg['iopub_port']
+        self.hb_port = cfg['hb_port']
+        
+        self._connection_file_written = True
+    
     def start_kernel(self, **kw):
         """Starts a kernel process and configures the manager to use it.
 
@@ -799,6 +828,9 @@ class KernelManager(HasTraits):
                                "configured properly. "
                                "Currently valid addresses are: %s"%LOCAL_IPS
                                )
+        
+        # write connection file / get default ports
+        self.write_connection_file()
 
         self._launch_args = kw.copy()
         launch_kernel = kw.pop('launcher', None)
@@ -807,13 +839,7 @@ class KernelManager(HasTraits):
                 from ipkernel import launch_kernel
             else:
                 from pykernel import launch_kernel
-        self.kernel, shell, sub, stdin, hb = launch_kernel(
-            shell_port=self.shell_port, iopub_port=self.sub_port,
-            stdin_port=self.stdin_port, hb_port=self.hb_port, **kw)
-        self.shell_port = shell
-        self.sub_port = sub
-        self.stdin_port = stdin
-        self.hb_port = hb
+        self.kernel = launch_kernel(fname=self.connection_file, **kw)
 
     def shutdown_kernel(self, restart=False):
         """ Attempts to the stop the kernel process cleanly. If the kernel
@@ -841,6 +867,14 @@ class KernelManager(HasTraits):
             # OK, we've waited long enough.
             if self.has_kernel:
                 self.kill_kernel()
+
+        if not restart and self._connection_file_written:
+            # cleanup connection files on full shutdown of kernel we started
+            self._connection_file_written = False
+            try:
+                os.remove(self.connection_file)
+            except IOError:
+                pass
 
     def restart_kernel(self, now=False, **kw):
         """Restarts a kernel with the arguments that were used to launch it.
