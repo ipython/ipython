@@ -31,6 +31,8 @@ import re
 import sys
 import tempfile
 
+from io import UnsupportedOperation
+
 from IPython.core import ipapi
 from IPython.core.error import TryNext
 from IPython.utils.cursesimport import use_curses
@@ -180,7 +182,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     if screen_lines <= 0:
         try:
             screen_lines += _detect_screen_size(use_curses, screen_lines_def)
-        except Exception:
+        except (TypeError, UnsupportedOperation):
             print >>io.stdout, str_toprint
             return
 
