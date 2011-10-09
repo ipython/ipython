@@ -77,9 +77,9 @@ def test_history():
             # Cross testing: check that magic %save can get previous session.
             testfilename = os.path.realpath(os.path.join(tmpdir, "test.py"))
             ip.magic_save(testfilename + " ~1/1-3")
-            testfile = open(testfilename, "r")
-            nt.assert_equal(testfile.read().decode("utf-8"),
-                    "# coding: utf-8\n" + "\n".join(hist))
+            with py3compat.open(testfilename) as testfile:
+                nt.assert_equal(testfile.read(),
+                                        u"# coding: utf-8\n" + u"\n".join(hist))
 
             # Duplicate line numbers - check that it doesn't crash, and
             # gets a new session

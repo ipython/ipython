@@ -359,7 +359,7 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
     class MyBuildPy(build_cmd):
         ''' Subclass to write commit data into installation tree '''
         def run(self):
-            build_py.run(self)
+            build_cmd.run(self)
             import subprocess
             proc = subprocess.Popen('git rev-parse --short HEAD',
                                     stdout=subprocess.PIPE,
@@ -369,7 +369,7 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
             # We write the installation commit even if it's empty
             cfg_parser = ConfigParser()
             cfg_parser.read(pjoin(pkg_dir, '.git_commit_info.ini'))
-            cfg_parser.set('commit hash', 'install_hash', repo_commit)
+            cfg_parser.set('commit hash', 'install_hash', repo_commit.decode('ascii'))
             out_pth = pjoin(self.build_lib, pkg_dir, '.git_commit_info.ini')
             out_file = open(out_pth, 'wt')
             cfg_parser.write(out_file)

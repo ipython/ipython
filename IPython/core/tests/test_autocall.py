@@ -5,7 +5,9 @@ directory, which we are removing.  For now putting this here ensures at least
 we do run the test, though ultimately this functionality should all be tested
 with better-isolated tests that don't rely on the global instance in iptest.
 """
+from IPython.utils import py3compat
 
+@py3compat.doctest_refactor_print
 def doctest_autocall():
     """
     In [1]: def f1(a,b,c):

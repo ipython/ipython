@@ -31,6 +31,8 @@ import re
 import sys
 import tempfile
 
+from io import UnsupportedOperation
+
 from IPython.core import ipapi
 from IPython.core.error import TryNext
 from IPython.utils.cursesimport import use_curses
@@ -68,6 +70,61 @@ def page_dumb(strng, start=0, screen_lines=25):
                 last_escape = esc_list[-1]
         print >>io.stdout, last_escape + os.linesep.join(screens[-1])
 
+def _detect_screen_size(use_curses, screen_lines_def):
+    """Attempt to work out the number of lines on the screen.
+    
+    This is called by page(). It can raise an error (e.g. when run in the
+    test suite), so it's separated out so it can easily be called in a try block.
+    """
+    TERM = os.environ.get('TERM',None)
+    if (TERM=='xterm' or TERM=='xterm-color') and sys.platform != 'sunos5':
+        local_use_curses = use_curses
+    else:
+        # curses causes problems on many terminals other than xterm, and
+        # some termios calls lock up on Sun OS5.
+        local_use_curses = False
+    if local_use_curses:
+        import termios
+        import curses
+        # There is a bug in curses, where *sometimes* it fails to properly
+        # initialize, and then after the endwin() call is made, the
+        # terminal is left in an unusable state.  Rather than trying to
+        # check everytime for this (by requesting and comparing termios
+        # flags each time), we just save the initial terminal state and
+        # unconditionally reset it every time.  It's cheaper than making
+        # the checks.
+        term_flags = termios.tcgetattr(sys.stdout)
+
+        # Curses modifies the stdout buffer size by default, which messes
+        # up Python's normal stdout buffering.  This would manifest itself
+        # to IPython users as delayed printing on stdout after having used
+        # the pager.
+        #
+        # We can prevent this by manually setting the NCURSES_NO_SETBUF
+        # environment variable.  For more details, see:
+        # http://bugs.python.org/issue10144
+        NCURSES_NO_SETBUF = os.environ.get('NCURSES_NO_SETBUF', None)
+        os.environ['NCURSES_NO_SETBUF'] = ''
+        
+        # Proceed with curses initialization
+        scr = curses.initscr()
+        screen_lines_real,screen_cols = scr.getmaxyx()
+        curses.endwin()
+
+        # Restore environment
+        if NCURSES_NO_SETBUF is None:
+            del os.environ['NCURSES_NO_SETBUF']
+        else:
+            os.environ['NCURSES_NO_SETBUF'] = NCURSES_NO_SETBUF
+            
+        # Restore terminal state in case endwin() didn't.
+        termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
+        # Now we have what we needed: the screen size in rows/columns
+        return screen_lines_real
+        #print '***Screen size:',screen_lines_real,'lines x',\
+        #screen_cols,'columns.' # dbg
+    else:
+        return screen_lines_def
 
 def page(strng, start=0, screen_lines=0, pager_cmd=None):
     """Print a string, piping through a pager after a certain length.
@@ -123,54 +180,11 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
 
     # auto-determine screen size
     if screen_lines <= 0:
-        if (TERM=='xterm' or TERM=='xterm-color') and sys.platform != 'sunos5':
-            local_use_curses = use_curses
-        else:
-            # curses causes problems on many terminals other than xterm, and
-            # some termios calls lock up on Sun OS5.
-            local_use_curses = False
-        if local_use_curses:
-            import termios
-            import curses
-            # There is a bug in curses, where *sometimes* it fails to properly
-            # initialize, and then after the endwin() call is made, the
-            # terminal is left in an unusable state.  Rather than trying to
-            # check everytime for this (by requesting and comparing termios
-            # flags each time), we just save the initial terminal state and
-            # unconditionally reset it every time.  It's cheaper than making
-            # the checks.
-            term_flags = termios.tcgetattr(sys.stdout)
-
-            # Curses modifies the stdout buffer size by default, which messes
-            # up Python's normal stdout buffering.  This would manifest itself
-            # to IPython users as delayed printing on stdout after having used
-            # the pager.
-            #
-            # We can prevent this by manually setting the NCURSES_NO_SETBUF
-            # environment variable.  For more details, see:
-            # http://bugs.python.org/issue10144
-            NCURSES_NO_SETBUF = os.environ.get('NCURSES_NO_SETBUF', None)
-            os.environ['NCURSES_NO_SETBUF'] = ''
-            
-            # Proceed with curses initialization
-            scr = curses.initscr()
-            screen_lines_real,screen_cols = scr.getmaxyx()
-            curses.endwin()
-
-            # Restore environment
-            if NCURSES_NO_SETBUF is None:
-                del os.environ['NCURSES_NO_SETBUF']
-            else:
-                os.environ['NCURSES_NO_SETBUF'] = NCURSES_NO_SETBUF
-                
-            # Restore terminal state in case endwin() didn't.
-            termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
-            # Now we have what we needed: the screen size in rows/columns
-            screen_lines += screen_lines_real
-            #print '***Screen size:',screen_lines_real,'lines x',\
-            #screen_cols,'columns.' # dbg
-        else:
-            screen_lines += screen_lines_def
+        try:
+            screen_lines += _detect_screen_size(use_curses, screen_lines_def)
+        except (TypeError, UnsupportedOperation):
+            print >>io.stdout, str_toprint
+            return
 
     #print 'numlines',numlines,'screenlines',screen_lines  # dbg
     if numlines <= screen_lines :

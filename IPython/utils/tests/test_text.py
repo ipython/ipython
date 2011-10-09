@@ -47,7 +47,7 @@ def test_columnize_long():
 def test_eval_formatter():
     f = text.EvalFormatter()
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
-    s = f.format("{n} {n/4} {stuff.split()[0]}", **ns)
+    s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     nt.assert_equals(s, "12 3 hello")
     s = f.format(' '.join(['{n//%i}'%i for i in range(1,8)]), **ns)
     nt.assert_equals(s, "12 6 4 3 2 2 1")

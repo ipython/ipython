@@ -18,7 +18,7 @@ import os
 import shutil
 import sys
 import tempfile
-import StringIO
+from io import StringIO
 
 from os.path import join, abspath, split
 
@@ -29,7 +29,7 @@ from nose import with_setup
 import IPython
 from IPython.testing import decorators as dec
 from IPython.testing.decorators import skip_if_not_win32, skip_win32
-from IPython.testing.tools import make_tempfile
+from IPython.testing.tools import make_tempfile, AssertPrints
 from IPython.utils import path, io
 from IPython.utils import py3compat
 
@@ -404,13 +404,8 @@ def test_not_writable_ipdir():
     ipdir = os.path.join(tmpdir, '.ipython')
     os.mkdir(ipdir)
     os.chmod(ipdir, 600)
-    stderr = io.stderr
-    pipe = StringIO.StringIO()
-    io.stderr = pipe
-    ipdir = path.get_ipython_dir()
-    io.stderr.flush()
-    io.stderr = stderr
-    nt.assert_true('WARNING' in pipe.getvalue())
+    with AssertPrints('is not a writable location', channel='stderr'):
+        ipdir = path.get_ipython_dir()
     env.pop('IPYTHON_DIR', None)
 
 def test_unquote_filename():

@@ -42,5 +42,5 @@ def doctest_refs():
     """DocTest reference holding issues when running scripts.
 
     In [32]: run show_refs.py
-    c referrers: [<type 'dict'>]
+    c referrers: [<... 'dict'>]
     """
