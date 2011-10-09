@@ -67,7 +67,7 @@ class PickleShareDB(collections.MutableMapping):
             return self.cache[fil][0]
         try:
             # The cached item has expired, need to read
-            obj = pickle.load(fil.open())
+            obj = pickle.load(fil.open("rb"))
         except:
             raise KeyError(key)
 
@@ -80,7 +80,7 @@ class PickleShareDB(collections.MutableMapping):
         parent = fil.parent
         if parent and not parent.isdir():
             parent.makedirs()
-        pickled = pickle.dump(value,fil.open('w'))
+        pickled = pickle.dump(value,fil.open('wb'))
         try:
             self.cache[fil] = (value,fil.mtime)
         except OSError,e:

@@ -103,6 +103,10 @@ skip_doctest = True
 
 import time, os, threading, sys, types, imp, inspect, traceback, atexit
 import weakref
+try:
+    reload
+except NameError:
+    from imp import reload
 
 def _get_compiled_ext():
     """Official way to get the extension of compiled files (.pyc or .pyo)"""

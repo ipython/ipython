@@ -26,6 +26,7 @@ import nose.tools as nt
 # Our own
 from IPython.core import inputsplitter as isp
 from IPython.testing import tools as tt
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -403,18 +404,20 @@ def transform_checker(tests, func):
 
 syntax = \
   dict(assign_system =
-       [('a =! ls', 'a = get_ipython().getoutput(u"ls")'),
-        ('b = !ls', 'b = get_ipython().getoutput(u"ls")'),
+       [(i,py3compat.u_format(o)) for i,o in \
+       [('a =! ls', 'a = get_ipython().getoutput({u}"ls")'),
+        ('b = !ls', 'b = get_ipython().getoutput({u}"ls")'),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
-        ],
+        ]],
 
        assign_magic =
-       [('a =% who', 'a = get_ipython().magic(u"who")'),
-        ('b = %who', 'b = get_ipython().magic(u"who")'),
+       [(i,py3compat.u_format(o)) for i,o in \
+       [('a =% who', 'a = get_ipython().magic({u}"who")'),
+        ('b = %who', 'b = get_ipython().magic({u}"who")'),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
-        ],
+        ]],
 
        classic_prompt =
        [('>>> x=1', 'x=1'),
@@ -438,41 +441,45 @@ syntax = \
 
        # System calls
        escaped_shell =
-       [ ('!ls', 'get_ipython().system(u"ls")'),
+       [(i,py3compat.u_format(o)) for i,o in \
+       [ ('!ls', 'get_ipython().system({u}"ls")'),
          # Double-escape shell, this means to capture the output of the
          # subprocess and return it
-         ('!!ls', 'get_ipython().getoutput(u"ls")'),
-         ],
+         ('!!ls', 'get_ipython().getoutput({u}"ls")'),
+         ]],
 
        # Help/object info
        escaped_help =
+       [(i,py3compat.u_format(o)) for i,o in \
        [ ('?', 'get_ipython().show_usage()'),
-         ('?x1', 'get_ipython().magic(u"pinfo x1")'),
-         ('??x2', 'get_ipython().magic(u"pinfo2 x2")'),
-         ('?a.*s', 'get_ipython().magic(u"psearch a.*s")'),
-         ('?%hist', 'get_ipython().magic(u"pinfo %hist")'),
-         ('?abc = qwe', 'get_ipython().magic(u"pinfo abc")'),
-         ],
+         ('?x1', 'get_ipython().magic({u}"pinfo x1")'),
+         ('??x2', 'get_ipython().magic({u}"pinfo2 x2")'),
+         ('?a.*s', 'get_ipython().magic({u}"psearch a.*s")'),
+         ('?%hist', 'get_ipython().magic({u}"pinfo %hist")'),
+         ('?abc = qwe', 'get_ipython().magic({u}"pinfo abc")'),
+         ]],
 
       end_help =
-      [ ('x3?', 'get_ipython().magic(u"pinfo x3")'),
-        ('x4??', 'get_ipython().magic(u"pinfo2 x4")'),
-        ('%hist?', 'get_ipython().magic(u"pinfo %hist")'),
-        ('f*?', 'get_ipython().magic(u"psearch f*")'),
-        ('ax.*aspe*?', 'get_ipython().magic(u"psearch ax.*aspe*")'),
-        ('a = abc?', 'get_ipython().magic(u"pinfo abc", next_input=u"a = abc")'),
-        ('a = abc.qe??', 'get_ipython().magic(u"pinfo2 abc.qe", next_input=u"a = abc.qe")'),
-        ('a = *.items?', 'get_ipython().magic(u"psearch *.items", next_input=u"a = *.items")'),
-        ('plot(a?', 'get_ipython().magic(u"pinfo a", next_input=u"plot(a")'),
+      [(i,py3compat.u_format(o)) for i,o in \
+      [ ('x3?', 'get_ipython().magic({u}"pinfo x3")'),
+        ('x4??', 'get_ipython().magic({u}"pinfo2 x4")'),
+        ('%hist?', 'get_ipython().magic({u}"pinfo %hist")'),
+        ('f*?', 'get_ipython().magic({u}"psearch f*")'),
+        ('ax.*aspe*?', 'get_ipython().magic({u}"psearch ax.*aspe*")'),
+        ('a = abc?', 'get_ipython().magic({u}"pinfo abc", next_input={u}"a = abc")'),
+        ('a = abc.qe??', 'get_ipython().magic({u}"pinfo2 abc.qe", next_input={u}"a = abc.qe")'),
+        ('a = *.items?', 'get_ipython().magic({u}"psearch *.items", next_input={u}"a = *.items")'),
+        ('plot(a?', 'get_ipython().magic({u}"pinfo a", next_input={u}"plot(a")'),
         ('a*2 #comment?', 'a*2 #comment?'),
-        ],
+        ]],
 
        # Explicit magic calls
        escaped_magic =
-       [ ('%cd', 'get_ipython().magic(u"cd")'),
-         ('%cd /home', 'get_ipython().magic(u"cd /home")'),
-         ('    %magic', '    get_ipython().magic(u"magic")'),
-         ],
+       [(i,py3compat.u_format(o)) for i,o in \
+       [ ('%cd', 'get_ipython().magic({u}"cd")'),
+         ('%cd /home', 'get_ipython().magic({u}"cd /home")'),
+         ('    %magic', '    get_ipython().magic({u}"magic")'),
+         ]],
 
        # Quoting with separate arguments
        escaped_quote =
@@ -500,12 +507,13 @@ syntax = \
 
        # Check that we transform prompts before other transforms
        mixed =
-       [ ('In [1]: %lsmagic', 'get_ipython().magic(u"lsmagic")'),
-         ('>>> %lsmagic', 'get_ipython().magic(u"lsmagic")'),
-         ('In [2]: !ls', 'get_ipython().system(u"ls")'),
-         ('In [3]: abs?', 'get_ipython().magic(u"pinfo abs")'),
-         ('In [4]: b = %who', 'b = get_ipython().magic(u"who")'),
-         ],
+       [(i,py3compat.u_format(o)) for i,o in \
+       [ ('In [1]: %lsmagic', 'get_ipython().magic({u}"lsmagic")'),
+         ('>>> %lsmagic', 'get_ipython().magic({u}"lsmagic")'),
+         ('In [2]: !ls', 'get_ipython().system({u}"ls")'),
+         ('In [3]: abs?', 'get_ipython().magic({u}"pinfo abs")'),
+         ('In [4]: b = %who', 'b = get_ipython().magic({u}"who")'),
+         ]],
        )
 
 # multiline syntax examples.  Each of these should be a list of lists, with

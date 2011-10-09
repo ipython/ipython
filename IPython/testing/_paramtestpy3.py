@@ -46,9 +46,11 @@ class ParametricTestCase(unittest.TestCase):
        # For normal tests, we just call the base class and return that
        if isgenerator(testMethod):
            def adapter(next_test):
-               return unittest.FunctionTestCase(next_test,
-                                                self.setUp,
-                                                self.tearDown)
+               ftc = unittest.FunctionTestCase(next_test,
+                                               self.setUp,
+                                               self.tearDown)
+               self._nose_case = ftc   # Nose 1.0 rejects the test without this
+               return ftc
 
            return IterCallableSuite(testMethod(),adapter).run(result)
        else:

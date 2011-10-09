@@ -17,6 +17,7 @@ from __future__ import with_statement
 
 import os
 import sys
+import unittest
 
 import nose.tools as nt
 
@@ -71,3 +72,19 @@ def test_temp_pyfile():
     with open(fname) as fh2:
         src2 = fh2.read()
     yield nt.assert_equal(src2, src)
+
+class TestAssertPrints(unittest.TestCase):
+    def test_passing(self):
+        with tt.AssertPrints("abc"):
+            print "abcd"
+            print "def"
+            print b"ghi"
+    
+    def test_failing(self):
+        def func():
+            with tt.AssertPrints("abc"):
+                print "acd"
+                print "def"
+                print b"ghi"
+        
+        self.assertRaises(AssertionError, func)

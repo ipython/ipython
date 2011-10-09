@@ -19,6 +19,7 @@ import nose.tools as nt
 from IPython.utils.path import get_long_path_name
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -88,20 +89,20 @@ def doctest_hist_r():
 def doctest_hist_op():
     """Test %hist -op
 
-    In [1]: class b:
-       ...:         pass
+    In [1]: class b(float):
+       ...:     pass
        ...: 
 
-    In [2]: class s(b):
-       ...:         def __str__(self):
-       ...:             return 's'
+    In [2]: class s(object):
+       ...:     def __str__(self):
+       ...:         return 's'
        ...: 
 
     In [3]: 
 
     In [4]: class r(b):
-       ...:         def __repr__(self):
-       ...:             return 'r'
+       ...:     def __repr__(self):
+       ...:         return 'r'
        ...: 
 
     In [5]: class sr(s,r): pass
@@ -117,11 +118,11 @@ def doctest_hist_op():
 
     In [10]: ssrr=sr()
 
-    In [11]: bb
-    Out[11]: <...b instance at ...>
+    In [11]: 4.5
+    Out[11]: 4.5
 
-    In [12]: ss
-    Out[12]: <...s instance at ...>
+    In [12]: str(ss)
+    Out[12]: 's'
 
     In [13]: 
 
@@ -144,10 +145,10 @@ def doctest_hist_op():
     >>> ss=s()
     >>> rr=r()
     >>> ssrr=sr()
-    >>> bb
-    <...b instance at ...>
-    >>> ss
-    <...s instance at ...>
+    >>> 4.5
+    4.5
+    >>> str(ss)
+    's'
     >>> 
     """
   
@@ -167,21 +168,16 @@ def test_macro_run():
     """Test that we can run a multi-line macro successfully."""
     ip = get_ipython()
     ip.history_manager.reset()
-    cmds = ["a=10", "a+=1", "print a", "%macro test 2-3"]
+    cmds = ["a=10", "a+=1", py3compat.doctest_refactor_print("print a"),
+                                                            "%macro test 2-3"]
     for cmd in cmds:
         ip.run_cell(cmd)
-    nt.assert_equal(ip.user_ns["test"].value, "a+=1\nprint a\n")
-    original_stdout = sys.stdout
-    new_stdout = StringIO()
-    sys.stdout = new_stdout
-    try:
+    nt.assert_equal(ip.user_ns["test"].value,
+                            py3compat.doctest_refactor_print("a+=1\nprint a\n"))
+    with tt.AssertPrints("12"):
         ip.run_cell("test")
-        nt.assert_true("12" in new_stdout.getvalue())
+    with tt.AssertPrints("13"):
         ip.run_cell("test")
-        nt.assert_true("13" in new_stdout.getvalue())
-    finally:
-        sys.stdout = original_stdout
-        new_stdout.close()
 
     
 # XXX failing for now, until we get clearcmd out of quarantine.  But we should
@@ -213,11 +209,6 @@ def test_paste():
     original_clip = hooks.clipboard_get
 
     try:
-        # This try/except with an emtpy except clause is here only because
-        # try/yield/finally is invalid syntax in Python 2.4.  This will be
-        # removed when we drop 2.4-compatibility, and the emtpy except below
-        # will be changed to a finally.
-
         # Run tests with fake clipboard function
         user_ns.pop('x', None)
         paste('x=1')
@@ -260,7 +251,6 @@ def test_paste():
         yield nt.assert_equal(out, code+"\n## -- End pasted text --\n")
         
     finally:
-        # This should be in a finally clause, instead of the bare except above.
         # Restore original hook
         hooks.clipboard_get = original_clip
 
@@ -269,6 +259,7 @@ def test_time():
     _ip.magic('time None')
 
 
+@py3compat.doctest_refactor_print
 def doctest_time():
     """
     In [10]: %time None
@@ -442,21 +433,22 @@ def doctest_who():
     Out[7]: ['alpha', 'beta']
     """
 
+@py3compat.u_format
 def doctest_precision():
     """doctest for %precision
     
     In [1]: f = get_ipython().shell.display_formatter.formatters['text/plain']
     
     In [2]: %precision 5
-    Out[2]: u'%.5f'
+    Out[2]: {u}'%.5f'
     
     In [3]: f.float_format
-    Out[3]: u'%.5f'
+    Out[3]: {u}'%.5f'
     
     In [4]: %precision %e
-    Out[4]: u'%e'
+    Out[4]: {u}'%e'
     
     In [5]: f(3.1415927)
-    Out[5]: u'3.141593e+00'
+    Out[5]: {u}'3.141593e+00'
     """
 

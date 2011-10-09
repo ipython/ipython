@@ -17,10 +17,10 @@ Utilities for path handling.
 import os
 import sys
 import tempfile
+import warnings
 from hashlib import md5
 
 import IPython
-from IPython.utils import warn
 from IPython.utils.process import system
 from IPython.utils.importstring import import_item
 from IPython.utils import py3compat
@@ -338,14 +338,14 @@ def get_ipython_dir():
 
     if os.path.exists(ipdir) and not _writable_dir(ipdir):
         # ipdir exists, but is not writable
-        warn.warn("IPython dir '%s' is not a writable location,"
+        warnings.warn("IPython dir '%s' is not a writable location,"
                         " using a temp directory."%ipdir)
         ipdir = tempfile.mkdtemp()
     elif not os.path.exists(ipdir):
         parent = ipdir.rsplit(os.path.sep, 1)[0]
         if not _writable_dir(parent):
             # ipdir does not exist and parent isn't writable
-            warn.warn("IPython parent '%s' is not a writable location,"
+            warnings.warn("IPython parent '%s' is not a writable location,"
                         " using a temp directory."%parent)
             ipdir = tempfile.mkdtemp()
 
@@ -462,11 +462,11 @@ def check_for_old_config(ipython_dir=None):
             if filehash(f) == old_config_md5.get(cfg, ''):
                 os.unlink(f)
             else:
-                warn.warn("Found old IPython config file %r (modified by user)"%f)
+                warnings.warn("Found old IPython config file %r (modified by user)"%f)
                 warned = True
 
     if warned:
-        warn.info("""
+        warnings.warn("""
   The IPython configuration system has changed as of 0.11, and these files will
   be ignored. See http://ipython.github.com/ipython-doc/dev/config for details
   of the new config system.

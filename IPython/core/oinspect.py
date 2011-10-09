@@ -344,8 +344,7 @@ class Inspector:
             if init_ds is not None:
                 lines.append(head("Constructor Docstring:"))
                 lines.append(indent(init_ds))
-        elif (type(obj) is types.InstanceType or isinstance(obj,object)) \
-                 and hasattr(obj,'__call__'):
+        elif hasattr(obj,'__call__'):
             call_ds = getdoc(obj.__call__)
             if call_ds:
                 lines.append(head("Calling Docstring:"))
