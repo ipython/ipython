@@ -59,3 +59,13 @@ To load that same extension at runtime, use the ``%load_ext`` magic:
 To summarize, in conjunction with configuration files and profiles, IPython
 extensions give you complete and flexible control over your IPython
 setup.
+
+Extensions bundled with IPython
+===============================
+
+.. toctree::
+   :maxdepth: 1
+
+   autoreload
+   parallelmagic
+   sympyprinting

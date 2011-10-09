@@ -8,7 +8,7 @@ Configuration and customization
    :maxdepth: 2
 
    overview.txt
-   extensions.txt
+   extensions/index.txt
    plugins.txt
    ipython.txt
    editors.txt
