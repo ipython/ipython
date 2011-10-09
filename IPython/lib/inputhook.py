@@ -204,49 +204,9 @@ class InputHookManager(object):
             from PyQt4 import QtCore
             app = QtGui.QApplication(sys.argv)
         """
-        from IPython.external.qt_for_kernel import QtCore, QtGui
-        from IPython.core import ipapi
-
-        if app is None:
-            app = QtCore.QCoreApplication.instance()
-        if app is None:
-            app = QtGui.QApplication([" "])
-
-        # Always use a custom input hook instead of PyQt4's default
-        # one, as it interacts better with readline packages (issue
-        # #481).
-
-        # Note that we can't let KeyboardInterrupt escape from that
-        # hook, as no exception can be raised from within a ctypes
-        # python callback. We need to make a compromise: a trapped
-        # KeyboardInterrupt will temporarily disable the input hook
-        # until we start over with a new prompt line with a second
-        # CTRL+C.
-
-        got_kbdint = [False]
-
-        def inputhook_qt4():
-            try:
-                app.processEvents(QtCore.QEventLoop.AllEvents, 300)
-                if not stdin_ready():
-                    timer = QtCore.QTimer()
-                    timer.timeout.connect(app.quit)
-                    while not stdin_ready():
-                        timer.start(50)
-                        app.exec_()
-                        timer.stop()
-            except KeyboardInterrupt:
-                got_kbdint[0] = True
-                self.clear_inputhook()
-                print("\n(event loop interrupted - "
-                      "hit CTRL+C again to clear the prompt)")
-            return 0
+        from IPython.lib.inputhookqt4 import create_inputhook_qt4
+        app, inputhook_qt4 = create_inputhook_qt4(self, app)
         self.set_inputhook(inputhook_qt4)
-
-        def preprompthook_qt4(ishell):
-            if got_kbdint[0]:
-                self.set_inputhook(inputhook_qt4)
-        ipapi.get().set_hook('pre_prompt_hook', preprompthook_qt4)
 
         self._current_gui = GUI_QT4
         app._in_event_loop = True
