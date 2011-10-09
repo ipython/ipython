@@ -132,7 +132,6 @@ CodeMirror.defineMode("xml", function(config, parserConfig) {
       var err = false;
       if (curState.context) {
         err = curState.context.tagName != tagName;
-        popContext();
       } else {
         err = true;
       }
@@ -158,8 +157,9 @@ CodeMirror.defineMode("xml", function(config, parserConfig) {
   function endclosetag(err) {
     return function(type) {
       if (err) setStyle = "error";
-      if (type == "endTag") return cont();
-      return pass();
+      if (type == "endTag") { popContext(); return cont(); }
+      setStyle = "error";
+      return cont(arguments.callee);
     }
   }
 
@@ -216,7 +216,7 @@ CodeMirror.defineMode("xml", function(config, parserConfig) {
     },
 
     compareStates: function(a, b) {
-      if (a.indented != b.indented || a.tagName != b.tagName) return false;
+      if (a.indented != b.indented) return false;
       for (var ca = a.context, cb = b.context; ; ca = ca.prev, cb = cb.prev) {
         if (!ca || !cb) return ca == cb;
         if (ca.tagName != cb.tagName) return false;
