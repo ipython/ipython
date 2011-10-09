@@ -74,6 +74,7 @@ def _detect_screen_size(use_curses, screen_lines_def):
     This is called by page(). It can raise an error (e.g. when run in the
     test suite), so it's separated out so it can easily be called in a try block.
     """
+    TERM = os.environ.get('TERM',None)
     if (TERM=='xterm' or TERM=='xterm-color') and sys.platform != 'sunos5':
         local_use_curses = use_curses
     else:
