@@ -371,12 +371,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         # Create a KernelManager and start a kernel.
-        self.kernel_manager = QtKernelManager(
-                                shell_address=(self.ip, self.shell_port),
-                                sub_address=(self.ip, self.iopub_port),
-                                stdin_address=(self.ip, self.stdin_port),
-                                hb_address=(self.ip, self.hb_port),
-                                config=self.config
+        self.kernel_manager = QtKernelManager(ip=self.ip,
+                                shell_port=self.shell_port,
+                                sub_port=self.iopub_port,
+                                stdin_port=self.stdin_port,
+                                hb_port=self.hb_port,
+                                config=self.config,
         )
         # start the kernel
         if not self.existing:

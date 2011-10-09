@@ -16,7 +16,6 @@ TODO
 #-----------------------------------------------------------------------------
 
 # Standard library imports.
-import atexit
 import errno
 from Queue import Queue, Empty
 from subprocess import Popen
@@ -24,7 +23,6 @@ import signal
 import sys
 from threading import Thread
 import time
-import logging
 
 # System library imports.
 import zmq
@@ -33,10 +31,9 @@ from zmq.eventloop import ioloop
 
 # Local imports.
 from IPython.config.loader import Config
-from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
-from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
-from session import Session, Message
+from IPython.utils.traitlets import HasTraits, Any, Instance, Type, Unicode, Int
+from session import Session
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -705,10 +702,11 @@ class KernelManager(HasTraits):
     kernel = Instance(Popen)
 
     # The addresses for the communication channels.
-    shell_address = TCPAddress((LOCALHOST, 0))
-    sub_address = TCPAddress((LOCALHOST, 0))
-    stdin_address = TCPAddress((LOCALHOST, 0))
-    hb_address = TCPAddress((LOCALHOST, 0))
+    ip = Unicode(LOCALHOST)
+    shell_port = Int(0)
+    sub_port = Int(0)
+    stdin_port = Int(0)
+    hb_port = Int(0)
 
     # The classes to use for the various channels.
     shell_channel_class = Type(ShellSocketChannel)
@@ -795,10 +793,7 @@ class KernelManager(HasTraits):
         **kw : optional
              See respective options for IPython and Python kernels.
         """
-        shell, sub, stdin, hb = self.shell_address, self.sub_address, \
-            self.stdin_address, self.hb_address
-        if shell[0] not in LOCAL_IPS or sub[0] not in LOCAL_IPS or \
-                stdin[0] not in LOCAL_IPS or hb[0] not in LOCAL_IPS:
+        if self.ip not in LOCAL_IPS:
             raise RuntimeError("Can only launch a kernel on a local interface. "
                                "Make sure that the '*_address' attributes are "
                                "configured properly. "
@@ -812,13 +807,13 @@ class KernelManager(HasTraits):
                 from ipkernel import launch_kernel
             else:
                 from pykernel import launch_kernel
-        self.kernel, xrep, pub, req, _hb = launch_kernel(
-            shell_port=shell[1], iopub_port=sub[1],
-            stdin_port=stdin[1], hb_port=hb[1], **kw)
-        self.shell_address = (shell[0], xrep)
-        self.sub_address = (sub[0], pub)
-        self.stdin_address = (stdin[0], req)
-        self.hb_address = (hb[0], _hb)
+        self.kernel, shell, sub, stdin, hb = launch_kernel(
+            shell_port=self.shell_port, iopub_port=self.sub_port,
+            stdin_port=self.stdin_port, hb_port=self.hb_port, **kw)
+        self.shell_port = shell
+        self.sub_port = sub
+        self.stdin_port = stdin
+        self.hb_port = hb
 
     def shutdown_kernel(self, restart=False):
         """ Attempts to the stop the kernel process cleanly. If the kernel
@@ -967,7 +962,7 @@ class KernelManager(HasTraits):
         if self._shell_channel is None:
             self._shell_channel = self.shell_channel_class(self.context,
                                                          self.session,
-                                                         self.shell_address)
+                                                         (self.ip, self.shell_port))
         return self._shell_channel
 
     @property
@@ -976,7 +971,7 @@ class KernelManager(HasTraits):
         if self._sub_channel is None:
             self._sub_channel = self.sub_channel_class(self.context,
                                                        self.session,
-                                                       self.sub_address)
+                                                       (self.ip, self.sub_port))
         return self._sub_channel
 
     @property
@@ -985,7 +980,7 @@ class KernelManager(HasTraits):
         if self._stdin_channel is None:
             self._stdin_channel = self.stdin_channel_class(self.context,
                                                        self.session,
-                                                       self.stdin_address)
+                                                       (self.ip, self.stdin_port))
         return self._stdin_channel
 
     @property
@@ -995,5 +990,5 @@ class KernelManager(HasTraits):
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(self.context,
                                                        self.session,
-                                                       self.hb_address)
+                                                       (self.ip, self.hb_port))
         return self._hb_channel
