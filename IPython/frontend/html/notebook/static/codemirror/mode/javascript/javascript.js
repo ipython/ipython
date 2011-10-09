@@ -52,7 +52,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     else if (ch == "0" && stream.eat(/x/i)) {
       stream.eatWhile(/[\da-f]/i);
       return ret("number", "number");
-    }      
+    }
     else if (/\d/.test(ch)) {
       stream.match(/^\d*(?:\.\d*)?(?:e[+\-]?\d+)?/);
       return ret("number", "number");
@@ -134,7 +134,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     // Communicate our context to the combinators.
     // (Less wasteful than consing up a hundred closures on every call.)
     cx.state = state; cx.stream = stream; cx.marked = null, cx.cc = cc;
-  
+
     if (!state.lexical.hasOwnProperty("align"))
       state.lexical.align = true;
 
