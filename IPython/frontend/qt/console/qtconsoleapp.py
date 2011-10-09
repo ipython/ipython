@@ -431,11 +431,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         for lp,rp in zip(lports, rports):
             tunnel.ssh_tunnel(lp, rp, self.sshserver, remote_ip, self.sshkey, password)
         
-        self.log.critical("To connect another client to this tunnel, use:")
-        self.log.critical(
-            "--existing --shell={0} --iopub={1} --stdin={2} --hb={3}".format(
-                self.shell_port, self.iopub_port, self.stdin_port,
-                self.hb_port))
+        cf = self.connection_file
+        base,ext = os.path.splitext(cf)
+        base = os.path.basename(base)
+        self.connection_file = os.path.basename(base)+'-ssh'+ext
+        self.log.critical("To connect another client via this tunnel, use:")
+        self.log.critical("--existing %s" % self.connection_file)
 
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
@@ -466,6 +467,9 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             kwargs = dict(ipython=not self.pure)
             kwargs['extra_arguments'] = self.kernel_argv
             self.kernel_manager.start_kernel(**kwargs)
+        elif self.sshserver:
+            # ssh, write new connection file
+            self.kernel_manager.write_connection_file()
         self.kernel_manager.start_channels()
 
 
@@ -546,8 +550,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
     def initialize(self, argv=None):
         super(IPythonQtConsoleApp, self).initialize(argv)
-        self.init_ssh()
         self.init_connection_file()
+        self.init_ssh()
         self.init_kernel_manager()
         self.init_qt_elements()
         self.init_colors()
