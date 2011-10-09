@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """This calls the setup routine for Python 2 or 3 as required."""
 
 import sys
