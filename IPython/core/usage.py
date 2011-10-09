@@ -192,15 +192,15 @@ MAIN FEATURES
     1. Auto-parentheses
         Callable objects (i.e. functions, methods, etc) can be invoked like
         this (notice the commas between the arguments):
-            >>> callable_ob arg1, arg2, arg3
+            In [1]: callable_ob arg1, arg2, arg3
         and the input will be translated to this:
-            --> callable_ob(arg1, arg2, arg3)
+            ------> callable_ob(arg1, arg2, arg3)
         You can force auto-parentheses by using '/' as the first character
         of a line.  For example:
-            >>> /globals             # becomes 'globals()'
+            In [1]: /globals             # becomes 'globals()'
         Note that the '/' MUST be the first character on the line!  This
         won't work:
-            >>> print /globals    # syntax error
+            In [2]: print /globals    # syntax error
 
         In most cases the automatic algorithm should work, so you should
         rarely need to explicitly invoke /. One notable exception is if you
@@ -220,16 +220,16 @@ MAIN FEATURES
     2. Auto-Quoting
         You can force auto-quoting of a function's arguments by using ',' as
         the first character of a line.  For example:
-            >>> ,my_function /home/me   # becomes my_function("/home/me")
+            In [1]: ,my_function /home/me   # becomes my_function("/home/me")
 
         If you use ';' instead, the whole argument is quoted as a single
         string (while ',' splits on whitespace):
-            >>> ,my_function a b c   # becomes my_function("a","b","c")
-            >>> ;my_function a b c   # becomes my_function("a b c")
+            In [2]: ,my_function a b c   # becomes my_function("a","b","c")
+            In [3]: ;my_function a b c   # becomes my_function("a b c")
 
         Note that the ',' MUST be the first character on the line!  This
         won't work:
-            >>> x = ,my_function /home/me    # syntax error
+            In [4]: x = ,my_function /home/me    # syntax error
 """
 
 interactive_usage_min =  """\
