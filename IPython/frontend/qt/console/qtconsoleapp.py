@@ -235,6 +235,12 @@ class MainWindow(QtGui.QMainWindow):
         self.makeFrontendVisible(frontend)
         frontend.exit_requested.connect(self.closeTab)
 
+    def nextTab(self):
+        self.tabWidget.setCurrentIndex((self.tabWidget.currentIndex()+1))
+
+    def prevTab(self):
+        self.tabWidget.setCurrentIndex((self.tabWidget.currentIndex()-1))
+
     def makeFrontendVisible(self,frontend):
         widgetIndex=self.tabWidget.indexOf(frontend)
         if widgetIndex > 0 :
@@ -969,6 +975,18 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
     def init_window_shortcut(self):
 
+        self.prevTabAct = QtGui.QAction("Pre&vious Tab",
+            self.window,
+            shortcut="Ctrl+PgDown",
+            statusTip="Cahange to next tab",
+            triggered=self.window.prevTab)
+
+        self.nextTabAct = QtGui.QAction("Ne&xt Tab",
+            self.window,
+            shortcut="Ctrl+PgUp",
+            statusTip="Cahange to next tab",
+            triggered=self.window.nextTab)
+
         self.fullScreenAct = QtGui.QAction("Full Screen",
             self.window,
             shortcut="Ctrl+Meta+Space",
@@ -1007,6 +1025,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                 triggered=self._open_online_help)
 
             self.windowMenu = self.window.windowMenu
+
+            self.windowMenu.addAction(self.nextTabAct)
+            self.windowMenu.addAction(self.prevTabAct)
+            self.windowMenu.addSeparator()
             self.windowMenu.addAction(self.minimizeAct)
             self.windowMenu.addAction(self.maximizeAct)
             self.windowMenu.addSeparator()
