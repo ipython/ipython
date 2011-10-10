@@ -363,11 +363,12 @@ class BackgroundJobBase(threading.Thread):
         # reuse the ipython traceback handler if we can get to it, otherwise
         # make a new one
         try:
-            self._make_tb = __IPYTHON__.InteractiveTB.text
+            make_tb = get_ipython().InteractiveTB.text
         except:
-            self._make_tb = AutoFormattedTB(mode = 'Context',
-                                           color_scheme='NoColor',
-                                           tb_offset = 1).text
+            make_tb = AutoFormattedTB(mode = 'Context',
+                                      color_scheme='NoColor',
+                                      tb_offset = 1).text
+        self._make_tb = lambda : make_tb(None, None, None)
         # Hold a formatted traceback if one is generated.
         self._tb = None
         
@@ -454,6 +455,7 @@ class BackgroundJobFunc(BackgroundJobBase):
 
 if __name__=='__main__':
 
+    import sys
     import time
 
     def sleepfunc(interval=2,*a,**kw):
@@ -470,7 +472,8 @@ if __name__=='__main__':
     def printfunc(interval=1,reps=5):
         for n in range(reps):
             time.sleep(interval)
-            print 'In the background...'
+            print 'In the background...', n
+            sys.stdout.flush()
 
     jobs = BackgroundJobManager()
     # first job will have # 0
