@@ -42,31 +42,44 @@ def create_inputhook_qt4(mgr, app=None):
 
     Notes
     -----
+    We use a custom input hook instead of PyQt4's default one, as it
+    interacts better with the readline packages (issue #481).
+
     The inputhook function works in tandem with a 'pre_prompt_hook'
     which automatically restores the hook as an inputhook in case the
     latter has been temporarily disabled after having intercepted a
     KeyboardInterrupt.
     """
+
     if app is None:
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtGui.QApplication([" "])
 
-    # Always use a custom input hook instead of PyQt4's default
-    # one, as it interacts better with readline packages (issue
-    # #481).
+    # Re-use previously created inputhook if any
+    ip = ipapi.get()
+    if hasattr(ip, '_inputhook_qt4'):
+        return app, ip._inputhook_qt4
 
-    # Note that we can't let KeyboardInterrupt escape from that
-    # hook, as no exception can be raised from within a ctypes
-    # python callback. We need to make a compromise: a trapped
-    # KeyboardInterrupt will temporarily disable the input hook
-    # until we start over with a new prompt line with a second
-    # CTRL+C.
+    # Otherwise create the inputhook_qt4/preprompthook_qt4 pair of
+    # hooks (they both share the got_kbdint flag)
 
     got_kbdint = [False]
 
     def inputhook_qt4():
+        """PyOS_InputHook python hook for Qt4.
+
+        Process pending Qt events and if there's no pending keyboard
+        input, spend a short slice of time (50ms) running the Qt event
+        loop.
+
+        As a Python ctypes callback can't raise an exception, we catch
+        the KeyboardInterrupt and temporarily deactivate the hook,
+        which will let a *second* CTRL+C be processed normally and go
+        back to a clean prompt line.
+        """
         try:
+            app = QtCore.QCoreApplication.instance()
             app.processEvents(QtCore.QEventLoop.AllEvents, 300)
             if not stdin_ready():
                 timer = QtCore.QTimer()
@@ -83,9 +96,16 @@ def create_inputhook_qt4(mgr, app=None):
         return 0
 
     def preprompthook_qt4(ishell):
+        """'pre_prompt_hook' used to restore the Qt4 input hook
+
+        (in case the latter was temporarily deactivated after a
+        CTRL+C)
+        """
         if got_kbdint[0]:
             mgr.set_inputhook(inputhook_qt4)
         got_kbdint[0] = False
-    ipapi.get().set_hook('pre_prompt_hook', preprompthook_qt4)
+
+    ip._inputhook_qt4 = inputhook_qt4
+    ip.set_hook('pre_prompt_hook', preprompthook_qt4)
 
     return app, inputhook_qt4
