@@ -232,7 +232,13 @@ class MainWindow(QtGui.QMainWindow):
             name=str('kernel '+str(self.tabWidget.count()))
         self.tabWidget.addTab(frontend,name)
         self.updateTabBarVisibility()
+        self.makeFrontendVisible(frontend)
         frontend.exit_requested.connect(self.closeTab)
+
+    def makeFrontendVisible(self,frontend):
+        widgetIndex=self.tabWidget.indexOf(frontend)
+        if widgetIndex > 0 :
+            self.tabWidget.setCurrentIndex(widgetIndex)
 
     def findMasterTab(self,tab,asList=False):
         """
