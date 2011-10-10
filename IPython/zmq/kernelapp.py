@@ -38,7 +38,9 @@ from IPython.utils.importstring import import_item
 from IPython.zmq.entry_point import write_connection_file
 from IPython.zmq.heartbeat import Heartbeat
 from IPython.zmq.parentpoller import ParentPollerUnix, ParentPollerWindows
-from IPython.zmq.session import Session
+from IPython.zmq.session import (
+    Session, session_flags, session_aliases, default_secure,
+)
 
 
 #-----------------------------------------------------------------------------
@@ -67,6 +69,11 @@ kernel_flags.update({
             {'KernelApp' : {'no_stderr' : True}},
             "redirect stderr to the null device"),
 })
+
+# inherit flags&aliases for Sessions
+kernel_aliases.update(session_aliases)
+kernel_flags.update(session_flags)
+
 
 
 #-----------------------------------------------------------------------------
@@ -186,7 +193,7 @@ class KernelApp(BaseIPythonApplication):
             self.connection_file = "kernel-%s.json"%os.getpid()
         
         self.load_connection_file()
-
+    
     def init_sockets(self):
         # Create a context, a session, and the kernel sockets.
         self.log.info("Starting the kernel at pid: %i", os.getpid())
@@ -228,6 +235,7 @@ class KernelApp(BaseIPythonApplication):
 
     def init_session(self):
         """create our session object"""
+        default_secure(self.config)
         self.session = Session(config=self.config, username=u'kernel')
 
     def init_blackhole(self):

@@ -50,7 +50,7 @@ from IPython.zmq.ipkernel import (
     aliases as ipkernel_aliases,
     IPKernelApp
 )
-from IPython.zmq.session import Session
+from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 
 
@@ -551,6 +551,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     def initialize(self, argv=None):
         super(IPythonQtConsoleApp, self).initialize(argv)
         self.init_connection_file()
+        default_secure(self.config)
         self.init_ssh()
         self.init_kernel_manager()
         self.init_qt_elements()
