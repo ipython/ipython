@@ -231,7 +231,7 @@ class MainWindow(QtGui.QMainWindow):
 
         """
         if not name:
-            name=str('no Name '+str(self.tabWidget.count()))
+            name=str('kernel '+str(self.tabWidget.count()))
         self.tabWidget.addTab(frontend,name)
         self.updateTabBarVisibility()
         frontend.exit_requested.connect(self.closeTab)
@@ -823,20 +823,21 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.kernel_manager.start_channels()
 
     def createTabWithNewFrontend(self):
+        """ Create new tab attached to new kernel, launched on localhost.
+        """
         kernel_manager = QtKernelManager(
-                                shell_address=(self.ip, self.shell_port),
-                                sub_address=(self.ip, self.iopub_port),
-                                stdin_address=(self.ip, self.stdin_port),
-                                hb_address=(self.ip, self.hb_port),
+                                shell_address=(LOCALHOST,0 ),
+                                sub_address=(LOCALHOST, 0),
+                                stdin_address=(LOCALHOST, 0),
+                                hb_address=(LOCALHOST, 0),
                                 config=self.config
         )
         # start the kernel
-        if not self.existing:
-            kwargs = dict(ip=self.ip, ipython=not self.pure)
-            kwargs['extra_arguments'] = self.kernel_argv
-            kernel_manager.start_kernel(**kwargs)
+        kwargs = dict(ip=LOCALHOST, ipython=not self.pure)
+        kwargs['extra_arguments'] = self.kernel_argv
+        kernel_manager.start_kernel(**kwargs)
         kernel_manager.start_channels()
-        local_kernel = (not self.existing) or self.ip in LOCAL_IPS
+        local_kernel = (not False) or self.ip in LOCAL_IPS
         widget = self.widget_factory(config=self.config,
                                    local_kernel=local_kernel)
         widget.kernel_manager = kernel_manager
@@ -846,16 +847,16 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.window.addTabWithFrontend(widget)
 
     def createTabAttachedToCurrentTabKernel(self):
-        currentWidget=self.window.tabWidget.currentWidget()
-        currentWidgetIndex=self.window.tabWidget.indexOf(currentWidget)
-        ckm=currentWidget.kernel_manager;
-        cwname=self.window.tabWidget.tabText(currentWidgetIndex);
+        currentWidget = self.window.tabWidget.currentWidget()
+        currentWidgetIndex = self.window.tabWidget.indexOf(currentWidget)
+        currentWidget.kernel_manager = currentWidget.kernel_manager;
+        currentWidgetName = self.window.tabWidget.tabText(currentWidgetIndex);
         kernel_manager = QtKernelManager(
-                                shell_address=ckm.shell_address,
-                                sub_address=ckm.sub_address,
-                                stdin_address=ckm.stdin_address,
-                                hb_address=ckm.hb_address,
-                                config=self.config
+                                shell_address = currentWidget.kernel_manager.shell_address,
+                                sub_address = currentWidget.kernel_manager.sub_address,
+                                stdin_address = currentWidget.kernel_manager.stdin_address,
+                                hb_address = currentWidget.kernel_manager.hb_address,
+                                config = self.config
         )
         kernel_manager.start_channels()
         local_kernel = (not self.existing) or self.ip in LOCAL_IPS
@@ -864,7 +865,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         widget._confirm_exit=True;
         widget._may_close=False;
         widget.kernel_manager = kernel_manager
-        self.window.addTabWithFrontend(widget,name=str('('+cwname+') slave'))
+        self.window.addTabWithFrontend(widget,name=str('('+currentWidgetName+') slave'))
 
     def init_qt_elements(self):
         # Create the widget.
