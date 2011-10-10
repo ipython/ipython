@@ -44,7 +44,7 @@ from .notebookmanager import NotebookManager
 
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
-from IPython.zmq.session import Session
+from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.zmq.ipkernel import (
     flags as ipkernel_flags,
@@ -127,6 +127,10 @@ aliases.update({
     'ws-hostname': 'IPythonNotebookApp.ws_hostname',
     'notebook-dir': 'NotebookManager.notebook_dir',
 })
+
+# remove ipkernel flags that are singletons, and don't make sense in
+# multi-kernel evironment:
+aliases.pop('f', None)
 
 notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile', u'ws-hostname',
                     u'notebook-dir']
@@ -231,6 +235,8 @@ class IPythonNotebookApp(BaseIPythonApplication):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+        # force Session default to be secure
+        default_secure(self.config)
         # Create a KernelManager and start a kernel.
         self.kernel_manager = MappingKernelManager(
             config=self.config, log=self.log, kernel_argv=self.kernel_argv,

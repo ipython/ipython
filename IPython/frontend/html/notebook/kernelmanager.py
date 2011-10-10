@@ -70,7 +70,8 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id = unicode(uuid.uuid4())
         # use base KernelManager for each Kernel
         km = KernelManager(connection_file=os.path.join(
-                    self.connection_dir, "kernel-%s.json" % kernel_id)
+                    self.connection_dir, "kernel-%s.json" % kernel_id),
+                    config=self.config,
         )
         km.start_kernel(**kwargs)
         self._kernels[kernel_id] = km
