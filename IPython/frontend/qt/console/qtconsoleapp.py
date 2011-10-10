@@ -325,11 +325,11 @@ class MainWindow(QtGui.QMainWindow):
     # menu bar, or give them an option to remove it
     def initMenuBar(self):
         #create menu in the order they should appear in the menu bar
-        self.fileMenu = self.menuBar().addMenu("File")
-        self.editMenu = self.menuBar().addMenu("Edit")
-        self.fontMenu = self.menuBar().addMenu("Font")
-        self.windowMenu = self.menuBar().addMenu("Window")
-        self.magicMenu = self.menuBar().addMenu("Magic")
+        self.fileMenu = self.menuBar().addMenu("&File")
+        self.editMenu = self.menuBar().addMenu("&Edit")
+        self.fontMenu = self.menuBar().addMenu("F&ont")
+        self.windowMenu = self.menuBar().addMenu("&Window")
+        self.magicMenu = self.menuBar().addMenu("&Magic")
 
         # please keep the Help menu in Mac Os even if empty. It will
         # automatically contain a search field to search inside menus and
@@ -337,13 +337,13 @@ class MainWindow(QtGui.QMainWindow):
         # a QAction.MenuRole like HelpMenuRole otherwise it will loose
         # this search field fonctionnality
 
-        self.helpMenu = self.menuBar().addMenu("Help")
+        self.helpMenu = self.menuBar().addMenu("&Help")
 
         # sould wrap every line of the following block into a try/except,
         # as we are not sure of instanciating a _frontend which support all
         # theses actions, but there might be a better way
         try:
-            self.print_action = QtGui.QAction("Print",
+            self.print_action = QtGui.QAction("&Print",
                 self,
                 shortcut="Ctrl+P",
                 triggered=self.print_action_active_frontend)
@@ -352,7 +352,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (print), skipping")
 
         try:
-            self.export_action=QtGui.QAction("Export",
+            self.export_action=QtGui.QAction("E&xport",
                 self,
                 shortcut="Ctrl+S",
                 triggered=self.export_action_active_frontend
@@ -362,7 +362,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (Export), skipping")
 
         try:
-            self.select_all_action = QtGui.QAction("Select All",
+            self.select_all_action = QtGui.QAction("Select &All",
                 self,
                 shortcut="Ctrl+A",
                 triggered=self.select_all_active_frontend
@@ -372,7 +372,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (select all), skipping")
 
         try:
-            self.undo_action = QtGui.QAction("Undo",
+            self.undo_action = QtGui.QAction("&Undo",
                 self,
                 shortcut="Ctrl+Z",
                 statusTip="Undo last action if possible",
@@ -383,7 +383,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (undo), skipping")
 
         try:
-            self.redo_action = QtGui.QAction("Redo",
+            self.redo_action = QtGui.QAction("&Redo",
                 self,
                 shortcut="Ctrl+Shift+Z",
                 statusTip="Redo last action if possible",
@@ -393,7 +393,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (redo), skipping")
 
         try:
-            self.increase_font_size = QtGui.QAction("Increase Font Size",
+            self.increase_font_size = QtGui.QAction("&Increase Font Size",
                 self,
                 shortcut="Ctrl++",
                 triggered=self.increase_font_size_active_frontend
@@ -403,7 +403,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (increase font size), skipping")
 
         try:
-            self.decrease_font_size = QtGui.QAction("Decrease Font Size",
+            self.decrease_font_size = QtGui.QAction("&Decrease Font Size",
                 self,
                 shortcut="Ctrl+-",
                 triggered=self.decrease_font_size_active_frontend
@@ -413,7 +413,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (decrease font size), skipping")
 
         try:
-            self.reset_font_size = QtGui.QAction("Reset Font Size",
+            self.reset_font_size = QtGui.QAction("&Reset Font Size",
                 self,
                 shortcut="Ctrl+0",
                 triggered=self.reset_font_size_active_frontend
@@ -423,7 +423,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (reset font size), skipping")
 
         try:
-            self.reset_action = QtGui.QAction("Reset",
+            self.reset_action = QtGui.QAction("&Reset",
                     self,
                     statusTip="Clear all varible from workspace",
                     triggered=self.reset_magic_active_frontend)
@@ -432,7 +432,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (reset), skipping")
 
         try:
-            self.history_action = QtGui.QAction("History",
+            self.history_action = QtGui.QAction("&History",
                     self,
                     statusTip="show command history",
                     triggered=self.history_magic_active_frontend)
@@ -441,7 +441,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (history), skipping")
 
         try:
-            self.save_action = QtGui.QAction("Export History ",
+            self.save_action = QtGui.QAction("E&xport History ",
                     self,
                     statusTip="Export History as Python File",
                     triggered=self.save_magic_active_frontend)
@@ -450,7 +450,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (save), skipping")
 
         try:
-            self.clear_action = QtGui.QAction("Clear",
+            self.clear_action = QtGui.QAction("&Clear",
                     self,
                     statusTip="Clear the console",
                     triggered=self.clear_magic_active_frontend)
@@ -459,7 +459,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action, skipping")
 
         try:
-            self.who_action = QtGui.QAction("Who",
+            self.who_action = QtGui.QAction("&Who",
                     self,
                     statusTip="List interactive variable",
                     triggered=self.who_magic_active_frontend)
@@ -468,7 +468,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (who), skipping")
 
         try:
-            self.who_ls_action = QtGui.QAction("Who ls",
+            self.who_ls_action = QtGui.QAction("Wh&o ls",
                     self,
                     statusTip="Return a list of interactive variable",
                     triggered=self.who_ls_magic_active_frontend)
@@ -477,7 +477,7 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (who_ls), skipping")
 
         try:
-            self.whos_action = QtGui.QAction("Whos",
+            self.whos_action = QtGui.QAction("Who&s",
                     self,
                     statusTip="List interactive variable with detail",
                     triggered=self.whos_magic_active_frontend)
@@ -895,18 +895,18 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             statusTip="Cahange to next tab",
             triggered=self.window.nextTab)
 
-        self.fullScreenAct = QtGui.QAction("Full Screen",
+        self.fullScreenAct = QtGui.QAction("&Full Screen",
             self.window,
             shortcut="Ctrl+Meta+Space",
             statusTip="Toggle between Fullscreen and Normal Size",
             triggered=self.toggleFullScreen)
 
-        self.tabAndNewKernelAct =QtGui.QAction("Tab with New kernel",
+        self.tabAndNewKernelAct =QtGui.QAction("Tab with &New kernel",
             self.window,
             shortcut="Ctrl+T",
             triggered=self.createTabWithNewFrontend)
         self.window.windowMenu.addAction(self.tabAndNewKernelAct)
-        self.tabSameKernalAct =QtGui.QAction("Tab with Same kernel",
+        self.tabSameKernalAct =QtGui.QAction("Tab with Sa&me kernel",
             self.window,
             shortcut="Ctrl+Shift+T",
             triggered=self.createTabAttachedToCurrentTabKernel)
@@ -917,18 +917,18 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         # know the shortcut or if the windows manager assign it in
         # other platform.
         if sys.platform == 'darwin':
-            self.minimizeAct = QtGui.QAction("Minimize",
+            self.minimizeAct = QtGui.QAction("Mini&mize",
                 self.window,
                 shortcut="Ctrl+m",
                 statusTip="Minimize the window/Restore Normal Size",
                 triggered=self.toggleMinimized)
-            self.maximizeAct = QtGui.QAction("Maximize",
+            self.maximizeAct = QtGui.QAction("Ma&ximize",
                 self.window,
                 shortcut="Ctrl+Shift+M",
                 statusTip="Maximize the window/Restore Normal Size",
                 triggered=self.toggleMaximized)
 
-            self.onlineHelpAct = QtGui.QAction("Open Online Help",
+            self.onlineHelpAct = QtGui.QAction("Open Online &Help",
                 self.window,
                 triggered=self._open_online_help)
 
