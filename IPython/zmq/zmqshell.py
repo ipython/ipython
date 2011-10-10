@@ -18,6 +18,8 @@ from __future__ import print_function
 # Stdlib
 import inspect
 import os
+import sys
+from subprocess import Popen, PIPE
 
 # Our own
 from IPython.core.interactiveshell import (
@@ -442,7 +444,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """
         from IPython.zmq.kernelapp import KernelApp
         if not KernelApp.initialized():
-            error("Not KernelApp is not initialized. I cannot find the connection info")
+            error("KernelApp is not initialized. I cannot find the connection info")
             return
         app = KernelApp.instance()
         try:
@@ -461,6 +463,27 @@ class ZMQInteractiveShell(InteractiveShell):
             "if this is the most recent IPython session you have started."
             % os.path.basename((app.connection_file))
         )
+
+    def magic_qtconsole(self, arg_s):
+        """Open a qtconsole connected to this kernel.
+        
+        Useful for connecting a qtconsole to running notebooks, for better
+        debugging.
+        """
+        from IPython.zmq.kernelapp import KernelApp
+        
+        if not KernelApp.initialized():
+            error("KernelApp is not initialized. %qtconsole magic must be run from a Kernel")
+            return
+        app = KernelApp.instance()
+        
+        cmd = ';'.join([
+            "from IPython.frontend.qt.console import qtconsoleapp",
+            "qtconsoleapp.main()"
+        ])
+        
+        return Popen([sys.executable, '-c', cmd, '--existing', app.connection_file],
+            stdout=PIPE,stderr=PIPE)
 
     def set_next_input(self, text):
         """Send the specified text to the frontend to be presented at the next
