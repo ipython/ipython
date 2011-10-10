@@ -33,7 +33,7 @@ from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.path import get_py_filename
 from IPython.utils.traitlets import Instance, Type, Dict, CBool
-from IPython.utils.warn import warn
+from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_binary
 from IPython.zmq.session import extract_header
 from session import Session
@@ -427,6 +427,40 @@ class ZMQInteractiveShell(InteractiveShell):
         """Show a basic reference about the GUI console."""
         from IPython.core.usage import gui_reference
         page.page(gui_reference, auto_html=True)
+    
+    def magic_connect_info(self, arg_s):
+        """Print information for connecting other clients to this kernel
+        
+        It will print the contents of this session's connection file, as well as
+        shortcuts for local clients.
+        
+        In the simplest case, when called from the most recently launched kernel,
+        secondary clients can be connected, simply with:
+        
+        $> ipython <app> --existing
+        
+        """
+        from IPython.zmq.kernelapp import KernelApp
+        if not KernelApp.initialized():
+            error("Not KernelApp is not initialized. I cannot find the connection info")
+            return
+        app = KernelApp.instance()
+        try:
+            with open(app.connection_file) as f:
+                s = f.read()
+        except Exception as e:
+            error("Could not read connection file: %s" % e)
+            return
+        print (s + '\n')
+        print ("Paste the above JSON into a file, and connect with:\n"
+            "    $> ipython <app> --existing <file>\n"
+            "or, if you are local, you can connect with just:\n"
+            "    $> ipython <app> --existing %s\n"
+            "or even just:\n"
+            "    $> ipython <app> --existing\n"
+            "if this is the most recent IPython session you have started."
+            % os.path.basename((app.connection_file))
+        )
 
     def set_next_input(self, text):
         """Send the specified text to the frontend to be presented at the next
