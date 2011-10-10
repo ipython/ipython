@@ -17,9 +17,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import logging
 from unittest import TestCase
 
 from IPython.config.configurable import Configurable
+from IPython.config.loader import Config
 
 from IPython.config.application import (
     Application
@@ -60,11 +62,14 @@ class MyApp(Application):
                     'j' : 'Foo.j',
                     'name' : 'Foo.name',
                     'enabled' : 'Bar.enabled',
-                    'log-level' : 'MyApp.log_level',
+                    'log-level' : 'Application.log_level',
                 })
     
     flags = Dict(dict(enable=({'Bar': {'enabled' : True}}, "Set Bar.enabled to True"),
-                  disable=({'Bar': {'enabled' : False}}, "Set Bar.enabled to False")))
+                  disable=({'Bar': {'enabled' : False}}, "Set Bar.enabled to False"),
+                  crit=({'Application' : {'log_level' : logging.CRITICAL}},
+                        "set level=CRITICAL"),
+            ))
     
     def init_foo(self):
         self.foo = Foo(config=self.config)
@@ -128,6 +133,30 @@ class TestApplication(TestCase):
         app.init_bar()
         self.assertEquals(app.bar.enabled, True)
         self.assertEquals(app.bar.b, 10)
+    
+    def test_flatten_flags(self):
+        cfg = Config()
+        cfg.MyApp.log_level = logging.WARN
+        app = MyApp()
+        app.update_config(cfg)
+        self.assertEquals(app.log_level, logging.WARN)
+        self.assertEquals(app.config.MyApp.log_level, logging.WARN)
+        app.initialize(["--crit"])
+        self.assertEquals(app.log_level, logging.CRITICAL)
+        # this would be app.config.Application.log_level if it failed:
+        self.assertEquals(app.config.MyApp.log_level, logging.CRITICAL)
+    
+    def test_flatten_aliases(self):
+        cfg = Config()
+        cfg.MyApp.log_level = logging.WARN
+        app = MyApp()
+        app.update_config(cfg)
+        self.assertEquals(app.log_level, logging.WARN)
+        self.assertEquals(app.config.MyApp.log_level, logging.WARN)
+        app.initialize(["--log-level", "CRITICAL"])
+        self.assertEquals(app.log_level, logging.CRITICAL)
+        # this would be app.config.Application.log_level if it failed:
+        self.assertEquals(app.config.MyApp.log_level, "CRITICAL")
     
     def test_extra_args(self):
         app = MyApp()
