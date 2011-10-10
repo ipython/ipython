@@ -374,12 +374,6 @@ start_aliases.update(dict(
 ))
 start_aliases['clean-logs'] = 'IPClusterStart.clean_logs'
 
-# set inherited Start keys directly, to ensure command-line args get higher priority
-# than config file options.
-for key,value in start_aliases.items():
-    if value.startswith('IPClusterEngines'):
-        start_aliases[key] = value.replace('IPClusterEngines', 'IPClusterStart')
-
 class IPClusterStart(IPClusterEngines):
 
     name = u'ipcluster'
