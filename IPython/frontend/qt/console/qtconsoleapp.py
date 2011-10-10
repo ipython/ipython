@@ -211,8 +211,6 @@ class MainWindow(QtGui.QMainWindow):
                         )
                     if reply == okay:
                         self.tabWidget.removeTab(currentTab)
-                    else:
-                        event.ignore()
         elif keepkernel: #close console but leave kernel running (no prompt)
             if kernel_manager and kernel_manager.channels_running:
                 if not closing_widget._existing:
