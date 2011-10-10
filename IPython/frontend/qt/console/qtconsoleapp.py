@@ -201,6 +201,7 @@ class MainWindow(QtGui.QMainWindow):
                     elif reply == 0: # close Console
                         if not closing_widget._existing:
                             # Have kernel: don't quit, just close the window
+                            self._app.setQuitOnLastWindowClosed(False)
                             closing_widget.pasteMagic("exit True")
                 else:
                     reply = QtGui.QMessageBox.question(self, title,
