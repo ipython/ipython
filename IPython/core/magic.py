@@ -1704,7 +1704,7 @@ Currently the magic system has the following functions:\n"""
                                 t_sys = t1[1]-t0[1]
                                 print "\nIPython CPU timings (estimated):"
                                 print "Total runs performed:",nruns
-                                print "  Times  : %10.2f    %10.2f" % ('Total','Per run')
+                                print "  Times  : %10s    %10s" % ('Total','Per run')
                                 print "  User   : %10.2f s, %10.2f s." % (t_usr,t_usr/nruns)
                                 print "  System : %10.2f s, %10.2f s." % (t_sys,t_sys/nruns)
                             twall1 = time.time()
