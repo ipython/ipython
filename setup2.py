@@ -193,9 +193,9 @@ data_files = find_data_files()
 
 # For some commands, use setuptools.  Note that we do NOT list install here!
 # If you want a setuptools-enhanced install, just run 'setupegg.py install'
-needs_setuptools = set(('develop', 'sdist', 'release', 'bdist_egg', 'bdist_rpm',
+needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
            'bdist', 'bdist_dumb', 'bdist_wininst', 'install_egg_info',
-           'build_sphinx', 'egg_info', 'easy_install', 'upload',
+           'egg_info', 'easy_install', 'upload',
             ))
 if sys.platform == 'win32':
     # Depend on setuptools for install on *Windows only*
