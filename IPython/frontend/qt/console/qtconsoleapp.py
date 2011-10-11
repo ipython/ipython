@@ -187,9 +187,8 @@ class MainWindow(QtGui.QMainWindow):
                     box.addButton(closeall, QtGui.QMessageBox.YesRole)
                     box.setDefaultButton(closeall)
                     box.setEscapeButton(cancel)
-                    pixmap = QtGui.QPixmap(':/icon/IPythonConsole.png')
-                    scaledpixmap = pixmap.scaledToWidth(64,mode=QtCore.Qt.SmoothTransformation)
-                    box.setIconPixmap(scaledpixmap)
+                    pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
+                    box.setIconPixmap(pixmap)
                     reply = box.exec_()
                     if reply == 1: # close All
                         for slave in slave_tabs:
@@ -882,8 +881,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
         base_path = os.path.abspath(os.path.dirname(__file__))
         icon_path = os.path.join(base_path, 'resources', 'icon', 'IPythonConsole.svg')
-        icon = QtGui.QIcon(icon_path)
-        QtGui.QApplication.setWindowIcon(icon)
+        self.app.icon = QtGui.QIcon(icon_path)
+        QtGui.QApplication.setWindowIcon(self.app.icon)
 
         local_kernel = (not self.existing) or self.ip in LOCAL_IPS
         self.widget = self.widget_factory(config=self.config,
