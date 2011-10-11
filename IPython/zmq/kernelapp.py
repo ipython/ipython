@@ -31,6 +31,7 @@ from IPython.core.application import (
 from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.path import filefind
+from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (Any, Instance, Dict, Unicode, Int, Bool,
                                         DottedObjectName)
 from IPython.utils.importstring import import_item
@@ -176,7 +177,7 @@ class KernelApp(BaseIPythonApplication):
                 # not overridden by config or cl_args
                 setattr(self, name, cfg[name])
         if 'key' in cfg:
-            self.config.Session.key = cfg['key']
+            self.config.Session.key = str_to_bytes(cfg['key'])
     
     def write_connection_file(self):
         """write connection info to JSON file"""

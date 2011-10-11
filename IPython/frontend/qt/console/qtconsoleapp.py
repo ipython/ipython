@@ -42,6 +42,7 @@ from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.parallel.util import select_random_ports
 from IPython.utils.path import filefind
+from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
 )
@@ -404,7 +405,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                 # not overridden by config or cl_args
                 setattr(self, name, cfg[name])
         if 'key' in cfg:
-            self.config.Session.key = cfg['key']
+            self.config.Session.key = str_to_bytes(cfg['key'])
     
     def init_ssh(self):
         """set up ssh tunnels, if needed."""

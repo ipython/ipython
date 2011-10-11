@@ -15,12 +15,13 @@ from zmq.utils import jsonapi as json
 
 # IPython imports
 from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.py3compat import bytes_to_str
 
 # Local imports.
 from parentpoller import ParentPollerWindows
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
-                         ip=LOCALHOST, key=''):
+                         ip=LOCALHOST, key=b''):
     """Generates a JSON config file, including the selection of random ports.
     
     Parameters
@@ -79,7 +80,7 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
                 hb_port=hb_port,
               )
     cfg['ip'] = ip
-    cfg['key'] = key
+    cfg['key'] = bytes_to_str(key)
     
     with open(fname, 'wb') as f:
         f.write(json.dumps(cfg, indent=2))
