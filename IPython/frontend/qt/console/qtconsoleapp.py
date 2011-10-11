@@ -50,8 +50,6 @@ from IPython.zmq.ipkernel import (
 from IPython.zmq.session import Session
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 
-import application_rc
-
 #-----------------------------------------------------------------------------
 # Network Constants
 #-----------------------------------------------------------------------------
@@ -791,8 +789,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     def init_qt_elements(self):
         # Create the widget.
         self.app = QtGui.QApplication([])
-        pixmap=QtGui.QPixmap(':/icon/IPythonConsole.png')
-        icon=QtGui.QIcon(pixmap)
+
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        icon_path = os.path.join(base_path, 'resources', 'icon', 'IPythonConsole.svg')
+        icon = QtGui.QIcon(icon_path)
         QtGui.QApplication.setWindowIcon(icon)
 
         local_kernel = (not self.existing) or self.ip in LOCAL_IPS
