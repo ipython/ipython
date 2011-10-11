@@ -70,10 +70,11 @@ class BackgroundJobManager(object):
     """
 
     def __init__(self):
-        # Lists for job management
-        self.running  = []
-        self.completed = []
-        self.dead = []
+        # Lists for job management, accessed via a property to ensure they're
+        # up to date.x
+        self._running  = []
+        self._completed = []
+        self._dead = []
         # A dict of all jobs, so users can easily access any of them
         self.all = {}
         # For reporting
@@ -85,7 +86,22 @@ class BackgroundJobManager(object):
         self._s_completed = BackgroundJobBase.stat_completed_c
         self._s_dead      = BackgroundJobBase.stat_dead_c
 
-    def new(self,func_or_exp,*args,**kwargs):
+    @property
+    def running(self):
+        self._update_status()
+        return self._running
+
+    @property
+    def dead(self):
+        self._update_status()
+        return self._dead
+
+    @property
+    def completed(self):
+        self._update_status()
+        return self._completed
+
+    def new(self, func_or_exp, *args, **kwargs):
         """Add a new background job and start it in a separate thread.
 
         There are two types of jobs which can be created:
@@ -108,14 +124,14 @@ class BackgroundJobManager(object):
         2. Jobs given a function object, optionally passing additional
         positional arguments:
 
-          job_manager.new(myfunc,x,y)
+          job_manager.new(myfunc, x, y)
 
         The function is called with the given arguments.
 
         If you need to pass keyword arguments to your function, you must
         supply them as a dict named kw:
 
-          job_manager.new(myfunc,x,y,kw=dict(z=1))
+          job_manager.new(myfunc, x, y, kw=dict(z=1))
 
         The reason for this assymmetry is that the new() method needs to
         maintain access to its own keywords, and this prevents name collisions
@@ -195,23 +211,28 @@ class BackgroundJobManager(object):
         It also copies those jobs to corresponding _report lists.  These lists
         are used to report jobs completed/dead since the last update, and are
         then cleared by the reporting function after each call."""
-        
-        run,comp,dead = self._s_running,self._s_completed,self._s_dead
-        running = self.running
-        for num in range(len(running)):
-            job  = running[num]
+
+        # Status codes
+        srun, scomp, sdead = self._s_running, self._s_completed, self._s_dead
+        # State lists, use the actual lists b/c the public names are properties
+        # that call this very function on access
+        running, completed, dead = self._running, self._completed, self._dead
+
+        # Now, update all state lists
+        for num, job in enumerate(running):
             stat = job.stat_code
-            if stat == run:
+            if stat == srun:
                 continue
-            elif stat == comp:
-                self.completed.append(job)
+            elif stat == scomp:
+                completed.append(job)
                 self._comp_report.append(job)
                 running[num] = False
-            elif stat == dead:
-                self.dead.append(job)
+            elif stat == sdead:
+                dead.append(job)
                 self._dead_report.append(job)
                 running[num] = False
-        self.running = filter(None,self.running)
+        # Remove dead/completed jobs from running list
+        running[:] = filter(None, running)
 
     def _group_report(self,group,name):
         """Report summary for a given job group.
@@ -290,15 +311,10 @@ class BackgroundJobManager(object):
         completed since the last _status_new() call, the flush operation
         aborts."""
 
-        if self._status_new():
-            error('New jobs completed since last '\
-                  '_status_new(), aborting flush.')
-            return
-
         # Remove the finished jobs from the master dict
-        all = self.all
+        alljobs = self.all
         for job in self.completed+self.dead:
-            del(all[job.num])
+            del(alljobs[job.num])
 
         # Now flush these lists completely
         fl_comp = self._group_flush(self.completed, 'Completed')
