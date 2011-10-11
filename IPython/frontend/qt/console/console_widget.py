@@ -602,14 +602,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
     font = property(_get_font, _set_font)
 
-    def paste(self, mode=QtGui.QClipboard.Clipboard,text=None):
-        """ Paste the contents of the clipboard, or given text,
-            into the input region.
+    def paste(self, mode=QtGui.QClipboard.Clipboard):
+        """ Paste the contents of the clipboard into the input region.
 
         Parameters:
         -----------
         mode : QClipboard::Mode, optional [default QClipboard::Clipboard]
-        text : string, optional, overide mode if given.
 
             Controls which part of the system clipboard is used. This can be
             used to access the selection clipboard in X11 and the Find buffer
@@ -625,29 +623,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             if not text:
                 text = QtGui.QApplication.clipboard().text(mode).rstrip()
             self._insert_plain_text_into_buffer(cursor, dedent(text))
-
-    def pasteMagic(self,text):
-        self._keyboard_quit()
-        self.paste(text=text)
-        self.execute()
-
-    def exit_magic(self):
-        self.pasteMagic("%exit")
-
-    def who_magic(self):
-        self.pasteMagic("%who")
-
-    def whos_magic(self):
-        self.pasteMagic("%whos")
-
-    def who_ls_magic(self):
-        self.pasteMagic("%who_ls")
-
-    def clear_magic(self):
-        self.pasteMagic("%clear")
-
-    def reset_magic(self):
-        self.pasteMagic("%reset")
 
     def print_(self, printer = None):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
