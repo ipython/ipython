@@ -205,7 +205,7 @@ class HistoryConsoleWidget(ConsoleWidget):
         return self._history[-n:]
 
     def history_magic(self):
-        self.pasteMagic("%history")
+        self.execute("%history")
 
     def _request_update_session_history_length(self):
         msg_id = self.kernel_manager.shell_channel.execute('',
@@ -246,7 +246,7 @@ class HistoryConsoleWidget(ConsoleWidget):
                 text=str('1-'+str(self._max_session_history))
                 )
             if ok:
-                self.pasteMagic("%save"+" "+file_name+" "+str(hist_range))
+                self.execute("%save"+" "+file_name+" "+str(hist_range))
 
     #---------------------------------------------------------------------------
     # 'HistoryConsoleWidget' protected interface

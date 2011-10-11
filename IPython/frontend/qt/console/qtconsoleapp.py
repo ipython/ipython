@@ -156,7 +156,7 @@ class MainWindow(QtGui.QMainWindow):
                     tab._hidden = True
                 if closing_widget in slaveTabs :
                     try :
-                        self.findMasterTab(closing_widget).pasteMagic('exit')
+                        self.findMasterTab(closing_widget).execute('exit')
                     except AttributeError:
                         self.log.info("Master already closed or not local, closing only current tab")
                         self.tabWidget.removeTab(currentTab)
@@ -196,13 +196,13 @@ class MainWindow(QtGui.QMainWindow):
                     if reply == 1: # close All
                         for slave in slaveTabs:
                             self.tabWidget.removeTab(self.tabWidget.indexOf(slave))
-                        closing_widget.pasteMagic("exit")
+                        closing_widget.execute("exit")
                         self.tabWidget.removeTab(currentTab)
                     elif reply == 0: # close Console
                         if not closing_widget._existing:
                             # Have kernel: don't quit, just close the window
                             self._app.setQuitOnLastWindowClosed(False)
-                            closing_widget.pasteMagic("exit True")
+                            closing_widget.execute("exit True")
                 else:
                     reply = QtGui.QMessageBox.question(self, title,
                         "Are you sure you want to close this Console?"+
@@ -491,19 +491,19 @@ class MainWindow(QtGui.QMainWindow):
     def redo_active_frontend(self):
         self.activeFrontend.redo()
     def reset_magic_active_frontend(self):
-        self.activeFrontend.reset_magic()
+        self.activeFrontend.execute("%reset")
     def history_magic_active_frontend(self):
         self.activeFrontend.history_magic()
     def save_magic_active_frontend(self):
         self.activeFrontend.save_magic()
     def clear_magic_active_frontend(self):
-        self.activeFrontend.clear_magic()
+        self.activeFrontend.execute("%clear")
     def who_magic_active_frontend(self):
-        self.activeFrontend.who_magic()
+        self.activeFrontend.execute("%who")
     def who_ls_magic_active_frontend(self):
-        self.activeFrontend.who_ls_magic()
+        self.activeFrontend.execute("%who_ls")
     def whos_magic_active_frontend(self):
-        self.activeFrontend.whos_magic()
+        self.activeFrontend.execute("%whos")
 
     def print_action_active_frontend(self):
         self.activeFrontend.print_action.trigger()
