@@ -17,7 +17,7 @@ Author: Christian Boos
 #-----------------------------------------------------------------------------
 
 from IPython.external.qt_for_kernel import QtCore, QtGui
-from IPython.lib.inputhook import stdin_ready
+from IPython.lib.inputhook import allow_CTRL_C, ignore_CTRL_C, stdin_ready
 
 #-----------------------------------------------------------------------------
 # Code
@@ -78,6 +78,7 @@ def create_inputhook_qt4(mgr, app=None):
         back to a clean prompt line.
         """
         try:
+            allow_CTRL_C()
             app = QtCore.QCoreApplication.instance()
             app.processEvents(QtCore.QEventLoop.AllEvents, 300)
             if not stdin_ready():
@@ -88,13 +89,14 @@ def create_inputhook_qt4(mgr, app=None):
                     app.exec_()
                     timer.stop()
         except KeyboardInterrupt:
+            ignore_CTRL_C()
             got_kbdint[0] = True
-            mgr.clear_inputhook()
             print("\nKeyboardInterrupt - qt4 event loop interrupted!"
                   "\n  * hit CTRL+C again to clear the prompt"
                   "\n  * use '%gui none' to disable the event loop"
                   " permanently"
                   "\n    and '%gui qt4' to re-enable it later")
+            mgr.clear_inputhook()
         return 0
 
     def preprompthook_qt4(ishell):

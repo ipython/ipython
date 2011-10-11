@@ -51,14 +51,38 @@ def _stdin_ready_other():
     """Return True, assuming there's something to read on stdin."""
     return True #
 
+
+def _ignore_CTRL_C_posix():
+    """Ignore CTRL+C (SIGINT)."""
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+def _allow_CTRL_C_posix():
+    """Take CTRL+C into account (SIGINT)."""
+    signal.signal(signal.SIGINT, signal.default_int_handler)
+
+def _ignore_CTRL_C_other():
+    """Ignore CTRL+C (not implemented)."""
+    pass
+
+def _allow_CTRL_C_other():
+    """Take CTRL+C into account (not implemented)."""
+    pass
+
 if os.name == 'posix':
     import select
+    import signal
     stdin_ready = _stdin_ready_posix
+    ignore_CTRL_C = _ignore_CTRL_C_posix
+    allow_CTRL_C = _allow_CTRL_C_posix
 elif os.name == 'nt':
     import msvcrt
     stdin_ready = _stdin_ready_nt
+    ignore_CTRL_C = _ignore_CTRL_C_other
+    allow_CTRL_C = _allow_CTRL_C_other
 else:
     stdin_ready = _stdin_ready_other
+    ignore_CTRL_C = _ignore_CTRL_C_other
+    allow_CTRL_C = _allow_CTRL_C_other
 
 
 #-----------------------------------------------------------------------------
@@ -94,6 +118,11 @@ class InputHookManager(object):
 
     def set_inputhook(self, callback):
         """Set PyOS_InputHook to callback and return the previous one."""
+        # On platforms with 'readline' support, it's all too likely to
+        # have a KeyboardInterrupt signal delivered *even before* an
+        # initial ``try:`` clause in the callback can be executed, so
+        # we need to disable CTRL+C in this situation.
+        ignore_CTRL_C()
         self._callback = callback
         self._callback_pyfunctype = self.PYFUNC(callback)
         pyos_inputhook_ptr = self.get_pyos_inputhook()
@@ -117,6 +146,7 @@ class InputHookManager(object):
         pyos_inputhook_ptr = self.get_pyos_inputhook()
         original = self.get_pyos_inputhook_as_func()
         pyos_inputhook_ptr.value = ctypes.c_void_p(None).value
+        allow_CTRL_C()
         self._reset()
         return original
 
