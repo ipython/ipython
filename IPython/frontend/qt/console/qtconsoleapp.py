@@ -94,7 +94,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget = QtGui.QTabWidget(self)
         self.tab_widget.setDocumentMode(True)
         self.tab_widget.setTabsClosable(True)
-        self.tab_widget.tabCloseRequested[int].connect(self.closeTab)
+        self.tab_widget.tabCloseRequested[int].connect(self.close_tab)
 
         self.setCentralWidget(self.tab_widget)
         self.updateTabBarVisibility()
@@ -120,7 +120,7 @@ class MainWindow(QtGui.QMainWindow):
     def activeFrontend(self):
         return self.tab_widget.currentWidget()
 
-    def closeTab(self,currentTab):
+    def close_tab(self,currentTab):
         """ Called when you need to try to close a tab.
 
         It takes the number of the tab to be closed as argument, or a referece
@@ -234,7 +234,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget.addTab(frontend,name)
         self.updateTabBarVisibility()
         self.makeFrontendVisible(frontend)
-        frontend.exit_requested.connect(self.closeTab)
+        frontend.exit_requested.connect(self.close_tab)
 
     def nextTab(self):
         self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()+1))
@@ -530,7 +530,7 @@ class MainWindow(QtGui.QMainWindow):
         # Do Not loop on the widget count as it change while closing
         widgetList=[ self.tab_widget.widget(i) for i in  range(self.tab_widget.count())]
         for widget in widgetList:
-            self.closeTab(widget)
+            self.close_tab(widget)
         event.accept()
 
 #-----------------------------------------------------------------------------
