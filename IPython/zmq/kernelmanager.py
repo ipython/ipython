@@ -29,6 +29,7 @@ import time
 import zmq
 from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
+from zmq.utils import jsonapi as json
 
 # Local imports.
 from IPython.config.loader import Config
@@ -36,6 +37,7 @@ from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import (
     HasTraits, Any, Instance, Type, Unicode, Int, Bool
 )
+from IPython.utils.py3compat import str_to_bytes
 from IPython.zmq.entry_point import write_connection_file
 from session import Session
 
@@ -788,7 +790,20 @@ class KernelManager(HasTraits):
     # Kernel process management methods:
     #--------------------------------------------------------------------------
     
+    def load_connection_file(self):
+        """load connection info from JSON dict in self.connection_file"""
+        with open(self.connection_file) as f:
+            cfg = json.loads(f.read())
+        
+        self.ip = cfg['ip']
+        self.shell_port = cfg['shell_port']
+        self.stdin_port = cfg['stdin_port']
+        self.iopub_port = cfg['iopub_port']
+        self.hb_port = cfg['hb_port']
+        self.session.key = str_to_bytes(cfg['key'])
+    
     def write_connection_file(self):
+        """write connection info to JSON dict in self.connection_file"""
         if self._connection_file_written:
             return
         self.connection_file,cfg = write_connection_file(self.connection_file,
