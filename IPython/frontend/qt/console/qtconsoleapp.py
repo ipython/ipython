@@ -120,7 +120,7 @@ class MainWindow(QtGui.QMainWindow):
     def active_frontend(self):
         return self.tab_widget.currentWidget()
 
-    def close_tab(self,currentTab):
+    def close_tab(self,current_tab):
         """ Called when you need to try to close a tab.
 
         It takes the number of the tab to be closed as argument, or a referece
@@ -129,9 +129,9 @@ class MainWindow(QtGui.QMainWindow):
 
         # let's be sure "tab" and "closing widget are respectivey the index of the tab to close
         # and a reference to the trontend to close
-        if type(currentTab) is not int :
-            currentTab = self.tab_widget.indexOf(currentTab)
-        closing_widget=self.tab_widget.widget(currentTab)
+        if type(current_tab) is not int :
+            current_tab = self.tab_widget.indexOf(current_tab)
+        closing_widget=self.tab_widget.widget(current_tab)
 
 
         # when trying to be closed, widget might re-send a request to be closed again, but will
@@ -142,7 +142,7 @@ class MainWindow(QtGui.QMainWindow):
             return
 
         #get a list of all wwidget not owning the kernel.
-        slaveTabs=self.findSlavesTabs(closing_widget)
+        slave_tabs=self.findSlavesTabs(closing_widget)
 
         keepkernel = None #Use the prompt by default
         if hasattr(closing_widget,'_keep_kernel_on_exit'): #set by exit magic
@@ -152,14 +152,14 @@ class MainWindow(QtGui.QMainWindow):
             # restart when they litt get the signal. and the "forward" the 'exit'
             # to the main win
             if keepkernel is not None:
-                for tab in slaveTabs:
+                for tab in slave_tabs:
                     tab._hidden = True
-                if closing_widget in slaveTabs :
+                if closing_widget in slave_tabs :
                     try :
-                        self.findMasterTab(closing_widget).execute('exit')
+                        self.find_master_tab(closing_widget).execute('exit')
                     except AttributeError:
                         self.log.info("Master already closed or not local, closing only current tab")
-                        self.tab_widget.removeTab(currentTab)
+                        self.tab_widget.removeTab(current_tab)
                     return
 
         kernel_manager = closing_widget.kernel_manager
@@ -175,7 +175,7 @@ class MainWindow(QtGui.QMainWindow):
                 cancel = QtGui.QMessageBox.Cancel
                 okay = QtGui.QMessageBox.Ok
                 if closing_widget._may_close:
-                    msg = "You are closing the tab : "+'"'+self.tab_widget.tabText(currentTab)+'"'
+                    msg = "You are closing the tab : "+'"'+self.tab_widget.tabText(current_tab)+'"'
                     info = "Would you like to quit the Kernel and all attached Consoles as well?"
                     justthis = QtGui.QPushButton("&No, just this Console", self)
                     justthis.setShortcut('N')
@@ -194,10 +194,10 @@ class MainWindow(QtGui.QMainWindow):
                     box.setIconPixmap(scaledpixmap)
                     reply = box.exec_()
                     if reply == 1: # close All
-                        for slave in slaveTabs:
+                        for slave in slave_tabs:
                             self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
                         closing_widget.execute("exit")
-                        self.tab_widget.removeTab(currentTab)
+                        self.tab_widget.removeTab(current_tab)
                     elif reply == 0: # close Console
                         if not closing_widget._existing:
                             # Have kernel: don't quit, just close the window
@@ -211,21 +211,21 @@ class MainWindow(QtGui.QMainWindow):
                         defaultButton=okay
                         )
                     if reply == okay:
-                        self.tab_widget.removeTab(currentTab)
+                        self.tab_widget.removeTab(current_tab)
         elif keepkernel: #close console but leave kernel running (no prompt)
             if kernel_manager and kernel_manager.channels_running:
                 if not closing_widget._existing:
                     # I have the kernel: don't quit, just close the window
-                    self.tab_widget.removeTab(currentTab)
+                    self.tab_widget.removeTab(current_tab)
         else: #close console and kernel (no prompt)
             if kernel_manager and kernel_manager.channels_running:
-                for slave in slaveTabs:
+                for slave in slave_tabs:
                     self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
-                self.tab_widget.removeTab(currentTab)
+                self.tab_widget.removeTab(current_tab)
                 kernel_manager.shutdown_kernel()
         self.update_tab_bar_visibility()
 
-    def addTabWithFrontend(self,frontend,name=None):
+    def add_tab_with_frontend(self,frontend,name=None):
         """ insert a tab with a given frontend in the tab bar, and give it a name
 
         """
@@ -233,7 +233,7 @@ class MainWindow(QtGui.QMainWindow):
             name=str('kernel '+str(self.tab_widget.count()))
         self.tab_widget.addTab(frontend,name)
         self.update_tab_bar_visibility()
-        self.makeFrontendVisible(frontend)
+        self.make_frontend_visible(frontend)
         frontend.exit_requested.connect(self.close_tab)
 
     def next_tab(self):
@@ -242,12 +242,12 @@ class MainWindow(QtGui.QMainWindow):
     def prev_tab(self):
         self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()-1))
 
-    def makeFrontendVisible(self,frontend):
+    def make_frontend_visible(self,frontend):
         widgetIndex=self.tab_widget.indexOf(frontend)
         if widgetIndex > 0 :
             self.tab_widget.setCurrentIndex(widgetIndex)
 
-    def findMasterTab(self,tab,asList=False):
+    def find_master_tab(self,tab,asList=False):
         """
         Try to return the frontend that own the kernel attached to the given widget/tab.
 
@@ -315,7 +315,7 @@ class MainWindow(QtGui.QMainWindow):
                                 widget.kernel_manager.hb_address    == km.hb_address)
         # Get a list of all widget owning the same kernel and removed it from
         # the previous cadidate. (better using sets ?)
-        masterWidgetlist = self.findMasterTab(tab,asList=True)
+        masterWidgetlist = self.find_master_tab(tab,asList=True)
         slaveList = [widget for widget in filtredWidgetList if widget not in masterWidgetlist]
 
         return slaveList
@@ -833,7 +833,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             self.kernel_manager.write_connection_file()
         self.kernel_manager.start_channels()
 
-    def createTabWithNewFrontend(self):
+    def create_tab_with_new_frontend(self):
         """ Create new tab attached to new kernel, launched on localhost.
         """
         kernel_manager = QtKernelManager(
@@ -855,9 +855,9 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         widget._existing=False;
         widget._confirm_exit=True;
         widget._may_close=True;
-        self.window.addTabWithFrontend(widget)
+        self.window.add_tab_with_frontend(widget)
 
-    def createTabAttachedToCurrentTabKernel(self):
+    def create_tab_attached_to_current_tab_kernel(self):
         currentWidget = self.window.tab_widget.currentWidget()
         currentWidgetIndex = self.window.tab_widget.indexOf(currentWidget)
         currentWidget.kernel_manager = currentWidget.kernel_manager;
@@ -876,7 +876,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         widget._confirm_exit=True;
         widget._may_close=False;
         widget.kernel_manager = kernel_manager
-        self.window.addTabWithFrontend(widget,name=str('('+currentWidgetName+') slave'))
+        self.window.add_tab_with_frontend(widget,name=str('('+currentWidgetName+') slave'))
 
     def init_qt_elements(self):
         # Create the widget.
@@ -897,7 +897,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                                 may_close=local_kernel,
                                 confirm_exit=self.confirm_exit)
         self.window.log = self.log
-        self.window.addTabWithFrontend(self.widget)
+        self.window.add_tab_with_frontend(self.widget)
         self.window.initMenuBar()
         self.window.setWindowTitle('Python' if self.pure else 'IPython')
 
@@ -997,12 +997,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.tabAndNewKernelAct =QtGui.QAction("Tab with &New kernel",
             self.window,
             shortcut="Ctrl+T",
-            triggered=self.createTabWithNewFrontend)
+            triggered=self.create_tab_with_new_frontend)
         self.window.windowMenu.addAction(self.tabAndNewKernelAct)
         self.tabSameKernalAct =QtGui.QAction("Tab with Sa&me kernel",
             self.window,
             shortcut="Ctrl+Shift+T",
-            triggered=self.createTabAttachedToCurrentTabKernel)
+            triggered=self.create_tab_attached_to_current_tab_kernel)
         self.window.windowMenu.addAction(self.tabSameKernalAct)
         self.window.windowMenu.addSeparator()
 
