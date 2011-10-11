@@ -97,9 +97,9 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget.tabCloseRequested[int].connect(self.close_tab)
 
         self.setCentralWidget(self.tab_widget)
-        self.updateTabBarVisibility()
+        self.update_tab_bar_visibility()
 
-    def updateTabBarVisibility(self):
+    def update_tab_bar_visibility(self):
         """ update visibility of the tabBar depending of the number of tab
 
         0 or 1 tab, tabBar hidden
@@ -223,7 +223,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
                 self.tab_widget.removeTab(currentTab)
                 kernel_manager.shutdown_kernel()
-        self.updateTabBarVisibility()
+        self.update_tab_bar_visibility()
 
     def addTabWithFrontend(self,frontend,name=None):
         """ insert a tab with a given frontend in the tab bar, and give it a name
@@ -232,14 +232,14 @@ class MainWindow(QtGui.QMainWindow):
         if not name:
             name=str('kernel '+str(self.tab_widget.count()))
         self.tab_widget.addTab(frontend,name)
-        self.updateTabBarVisibility()
+        self.update_tab_bar_visibility()
         self.makeFrontendVisible(frontend)
         frontend.exit_requested.connect(self.close_tab)
 
-    def nextTab(self):
+    def next_tab(self):
         self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()+1))
 
-    def prevTab(self):
+    def prev_tab(self):
         self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()-1))
 
     def makeFrontendVisible(self,frontend):
@@ -976,17 +976,17 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
     def init_window_shortcut(self):
 
-        self.prevTabAct = QtGui.QAction("Pre&vious Tab",
+        self.prev_tab_act = QtGui.QAction("Pre&vious Tab",
             self.window,
             shortcut="Ctrl+PgDown",
             statusTip="Cahange to next tab",
-            triggered=self.window.prevTab)
+            triggered=self.window.prev_tab)
 
-        self.nextTabAct = QtGui.QAction("Ne&xt Tab",
+        self.next_tab_act = QtGui.QAction("Ne&xt Tab",
             self.window,
             shortcut="Ctrl+PgUp",
             statusTip="Cahange to next tab",
-            triggered=self.window.nextTab)
+            triggered=self.window.next_tab)
 
         self.fullScreenAct = QtGui.QAction("&Full Screen",
             self.window,
@@ -1027,8 +1027,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
             self.windowMenu = self.window.windowMenu
 
-            self.windowMenu.addAction(self.nextTabAct)
-            self.windowMenu.addAction(self.prevTabAct)
+            self.windowMenu.addAction(self.next_tab_act)
+            self.windowMenu.addAction(self.prev_tab_act)
             self.windowMenu.addSeparator()
             self.windowMenu.addAction(self.minimizeAct)
             self.windowMenu.addAction(self.maximizeAct)
