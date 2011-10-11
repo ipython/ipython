@@ -245,7 +245,7 @@ class MainWindow(QtGui.QMainWindow):
         if widget_index > 0 :
             self.tab_widget.setCurrentIndex(widget_index)
 
-    def find_master_tab(self,tab,asList=False):
+    def find_master_tab(self,tab,as_list=False):
         """
         Try to return the frontend that own the kernel attached to the given widget/tab.
 
@@ -267,25 +267,25 @@ class MainWindow(QtGui.QMainWindow):
         km=tab.kernel_manager;
 
         #build list of all widgets
-        widgetList = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
+        widget_list = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
 
         # widget that are candidate to be the owner of the kernel does have all the same port of the curent widget
         # And should have a _may_close attribute
-        filtredwidgetList = [ widget for widget in widgetList if
+        filtred_widget_list = [ widget for widget in widget_list if
                                 widget.kernel_manager.shell_address == km.shell_address and
                                 widget.kernel_manager.sub_address   == km.sub_address and
                                 widget.kernel_manager.stdin_address == km.stdin_address and
                                 widget.kernel_manager.hb_address    == km.hb_address and
                                 hasattr(widget,'_may_close') ]
         # the master widget is the one that may close the kernel
-        masterWidget= [ widget for widget in filtredwidgetList if widget._may_close]
-        if asList:
-            return masterWidget
-        assert(len(masterWidget)<=1 )
-        if len(masterWidget)==0:
+        master_widget= [ widget for widget in filtred_widget_list if widget._may_close]
+        if as_list:
+            return master_widget
+        assert(len(master_widget)<=1 )
+        if len(master_widget)==0:
             return None
 
-        return masterWidget[0]
+        return master_widget[0]
 
     def find_slaves_tabs(self,tab):
         """
@@ -303,31 +303,31 @@ class MainWindow(QtGui.QMainWindow):
         km=tab.kernel_manager;
 
         #build list of all widgets
-        widgetList = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
+        widget_list = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
 
         # widget that are candidate not to be the owner of the kernel does have all the same port of the curent widget
-        filtredWidgetList = ( widget for widget in widgetList if
+        filtered_widget_list = ( widget for widget in widget_list if
                                 widget.kernel_manager.shell_address == km.shell_address and
                                 widget.kernel_manager.sub_address   == km.sub_address and
                                 widget.kernel_manager.stdin_address == km.stdin_address and
                                 widget.kernel_manager.hb_address    == km.hb_address)
         # Get a list of all widget owning the same kernel and removed it from
         # the previous cadidate. (better using sets ?)
-        masterWidgetlist = self.find_master_tab(tab,asList=True)
-        slaveList = [widget for widget in filtredWidgetList if widget not in masterWidgetlist]
+        master_widget_list = self.find_master_tab(tab,as_list=True)
+        slave_list = [widget for widget in filtered_widget_list if widget not in master_widget_list]
 
-        return slaveList
+        return slave_list
 
     # MenuBar is always present on Mac Os, so let's populate it with possible
     # action, don't do it on other platform as some user might not want the
     # menu bar, or give them an option to remove it
     def init_menu_bar(self):
         #create menu in the order they should appear in the menu bar
-        self.fileMenu = self.menuBar().addMenu("&File")
-        self.editMenu = self.menuBar().addMenu("&Edit")
-        self.fontMenu = self.menuBar().addMenu("F&ont")
-        self.windowMenu = self.menuBar().addMenu("&Window")
-        self.magicMenu = self.menuBar().addMenu("&Magic")
+        self.file_menu = self.menuBar().addMenu("&File")
+        self.edit_menu = self.menuBar().addMenu("&Edit")
+        self.font_menu = self.menuBar().addMenu("F&ont")
+        self.window_menu = self.menuBar().addMenu("&Window")
+        self.magic_menu = self.menuBar().addMenu("&Magic")
 
         # please keep the Help menu in Mac Os even if empty. It will
         # automatically contain a search field to search inside menus and
@@ -335,7 +335,7 @@ class MainWindow(QtGui.QMainWindow):
         # a QAction.MenuRole like HelpMenuRole otherwise it will loose
         # this search field fonctionnality
 
-        self.helpMenu = self.menuBar().addMenu("&Help")
+        self.help_menu = self.menuBar().addMenu("&Help")
 
         # sould wrap every line of the following block into a try/except,
         # as we are not sure of instanciating a _frontend which support all
@@ -345,7 +345,7 @@ class MainWindow(QtGui.QMainWindow):
                 self,
                 shortcut="Ctrl+P",
                 triggered=self.print_action_active_frontend)
-            self.fileMenu.addAction(self.print_action)
+            self.file_menu.addAction(self.print_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (print), skipping")
 
@@ -355,7 +355,7 @@ class MainWindow(QtGui.QMainWindow):
                 shortcut="Ctrl+S",
                 triggered=self.export_action_active_frontend
                 )
-            self.fileMenu.addAction(self.export_action)
+            self.file_menu.addAction(self.export_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (Export), skipping")
 
@@ -365,7 +365,7 @@ class MainWindow(QtGui.QMainWindow):
                 shortcut="Ctrl+A",
                 triggered=self.select_all_active_frontend
                 )
-            self.fileMenu.addAction(self.select_all_action)
+            self.file_menu.addAction(self.select_all_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (select all), skipping")
 
@@ -376,7 +376,7 @@ class MainWindow(QtGui.QMainWindow):
                 statusTip="Undo last action if possible",
                 triggered=self.undo_active_frontend
                 )
-            self.editMenu.addAction(self.undo_action)
+            self.edit_menu.addAction(self.undo_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (undo), skipping")
 
@@ -386,7 +386,7 @@ class MainWindow(QtGui.QMainWindow):
                 shortcut="Ctrl+Shift+Z",
                 statusTip="Redo last action if possible",
                 triggered=self.redo_active_frontend)
-            self.editMenu.addAction(self.redo_action)
+            self.edit_menu.addAction(self.redo_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (redo), skipping")
 
@@ -396,7 +396,7 @@ class MainWindow(QtGui.QMainWindow):
                 shortcut="Ctrl++",
                 triggered=self.increase_font_size_active_frontend
                 )
-            self.fontMenu.addAction(self.increase_font_size)
+            self.font_menu.addAction(self.increase_font_size)
         except AttributeError:
             self.log.error("trying to add unexisting action (increase font size), skipping")
 
@@ -406,7 +406,7 @@ class MainWindow(QtGui.QMainWindow):
                 shortcut="Ctrl+-",
                 triggered=self.decrease_font_size_active_frontend
                 )
-            self.fontMenu.addAction(self.decrease_font_size)
+            self.font_menu.addAction(self.decrease_font_size)
         except AttributeError:
             self.log.error("trying to add unexisting action (decrease font size), skipping")
 
@@ -416,7 +416,7 @@ class MainWindow(QtGui.QMainWindow):
                 shortcut="Ctrl+0",
                 triggered=self.reset_font_size_active_frontend
                 )
-            self.fontMenu.addAction(self.reset_font_size)
+            self.font_menu.addAction(self.reset_font_size)
         except AttributeError:
             self.log.error("trying to add unexisting action (reset font size), skipping")
 
@@ -425,7 +425,7 @@ class MainWindow(QtGui.QMainWindow):
                     self,
                     statusTip="Clear all varible from workspace",
                     triggered=self.reset_magic_active_frontend)
-            self.magicMenu.addAction(self.reset_action)
+            self.magic_menu.addAction(self.reset_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (reset), skipping")
 
@@ -434,7 +434,7 @@ class MainWindow(QtGui.QMainWindow):
                     self,
                     statusTip="show command history",
                     triggered=self.history_magic_active_frontend)
-            self.magicMenu.addAction(self.history_action)
+            self.magic_menu.addAction(self.history_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (history), skipping")
 
@@ -443,7 +443,7 @@ class MainWindow(QtGui.QMainWindow):
                     self,
                     statusTip="Export History as Python File",
                     triggered=self.save_magic_active_frontend)
-            self.magicMenu.addAction(self.save_action)
+            self.magic_menu.addAction(self.save_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (save), skipping")
 
@@ -452,7 +452,7 @@ class MainWindow(QtGui.QMainWindow):
                     self,
                     statusTip="Clear the console",
                     triggered=self.clear_magic_active_frontend)
-            self.magicMenu.addAction(self.clear_action)
+            self.magic_menu.addAction(self.clear_action)
         except AttributeError:
             self.log.error("trying to add unexisting action, skipping")
 
@@ -461,7 +461,7 @@ class MainWindow(QtGui.QMainWindow):
                     self,
                     statusTip="List interactive variable",
                     triggered=self.who_magic_active_frontend)
-            self.magicMenu.addAction(self.who_action)
+            self.magic_menu.addAction(self.who_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (who), skipping")
 
@@ -470,7 +470,7 @@ class MainWindow(QtGui.QMainWindow):
                     self,
                     statusTip="Return a list of interactive variable",
                     triggered=self.who_ls_magic_active_frontend)
-            self.magicMenu.addAction(self.who_ls_action)
+            self.magic_menu.addAction(self.who_ls_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (who_ls), skipping")
 
@@ -479,7 +479,7 @@ class MainWindow(QtGui.QMainWindow):
                     self,
                     statusTip="List interactive variable with detail",
                     triggered=self.whos_magic_active_frontend)
-            self.magicMenu.addAction(self.whos_action)
+            self.magic_menu.addAction(self.whos_action)
         except AttributeError:
             self.log.error("trying to add unexisting action (whos), skipping")
 
@@ -526,8 +526,8 @@ class MainWindow(QtGui.QMainWindow):
         """ Forward the close event to every tabs contained by the windows
         """
         # Do Not loop on the widget count as it change while closing
-        widgetList=[ self.tab_widget.widget(i) for i in  range(self.tab_widget.count())]
-        for widget in widgetList:
+        widget_list=[ self.tab_widget.widget(i) for i in  range(self.tab_widget.count())]
+        for widget in widget_list:
             self.close_tab(widget)
         event.accept()
 
@@ -856,15 +856,15 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.window.add_tab_with_frontend(widget)
 
     def create_tab_attached_to_current_tab_kernel(self):
-        currentWidget = self.window.tab_widget.currentWidget()
-        currentWidgetIndex = self.window.tab_widget.indexOf(currentWidget)
-        currentWidget.kernel_manager = currentWidget.kernel_manager;
-        currentWidgetName = self.window.tab_widget.tabText(currentWidgetIndex);
+        current_widget = self.window.tab_widget.currentWidget()
+        current_widget_index = self.window.tab_widget.indexOf(current_widget)
+        current_widget.kernel_manager = current_widget.kernel_manager;
+        current_widget_name = self.window.tab_widget.tabText(current_widget_index);
         kernel_manager = QtKernelManager(
-                                shell_address = currentWidget.kernel_manager.shell_address,
-                                sub_address = currentWidget.kernel_manager.sub_address,
-                                stdin_address = currentWidget.kernel_manager.stdin_address,
-                                hb_address = currentWidget.kernel_manager.hb_address,
+                                shell_address = current_widget.kernel_manager.shell_address,
+                                sub_address = current_widget.kernel_manager.sub_address,
+                                stdin_address = current_widget.kernel_manager.stdin_address,
+                                hb_address = current_widget.kernel_manager.hb_address,
                                 config = self.config
         )
         kernel_manager.start_channels()
@@ -874,7 +874,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         widget._confirm_exit=True;
         widget._may_close=False;
         widget.kernel_manager = kernel_manager
-        self.window.add_tab_with_frontend(widget,name=str('('+currentWidgetName+') slave'))
+        self.window.add_tab_with_frontend(widget,name=str('('+current_widget_name+') slave'))
 
     def init_qt_elements(self):
         # Create the widget.
@@ -998,13 +998,13 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             self.window,
             shortcut="Ctrl+T",
             triggered=self.create_tab_with_new_frontend)
-        self.window.windowMenu.addAction(self.tabAndNewKernelAct)
+        self.window.window_menu.addAction(self.tabAndNewKernelAct)
         self.tabSameKernalAct =QtGui.QAction("Tab with Sa&me kernel",
             self.window,
             shortcut="Ctrl+Shift+T",
             triggered=self.create_tab_attached_to_current_tab_kernel)
-        self.window.windowMenu.addAction(self.tabSameKernalAct)
-        self.window.windowMenu.addSeparator()
+        self.window.window_menu.addAction(self.tabSameKernalAct)
+        self.window.window_menu.addSeparator()
 
         # creating shortcut in menubar only for Mac OS as I don't
         # know the shortcut or if the windows manager assign it in
@@ -1025,17 +1025,17 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                 self.window,
                 triggered=self._open_online_help)
 
-            self.windowMenu = self.window.windowMenu
+            self.window_menu = self.window.window_menu
 
-            self.windowMenu.addAction(self.next_tab_act)
-            self.windowMenu.addAction(self.prev_tab_act)
-            self.windowMenu.addSeparator()
-            self.windowMenu.addAction(self.minimizeAct)
-            self.windowMenu.addAction(self.maximizeAct)
-            self.windowMenu.addSeparator()
-            self.windowMenu.addAction(self.fullScreenAct)
+            self.window_menu.addAction(self.next_tab_act)
+            self.window_menu.addAction(self.prev_tab_act)
+            self.window_menu.addSeparator()
+            self.window_menu.addAction(self.minimizeAct)
+            self.window_menu.addAction(self.maximizeAct)
+            self.window_menu.addSeparator()
+            self.window_menu.addAction(self.fullScreenAct)
 
-            self.window.helpMenu.addAction(self.onlineHelpAct)
+            self.window.help_menu.addAction(self.onlineHelpAct)
         else:
             # if we don't put it in a menu, we add it to the window so
             # that it can still be triggerd by shortcut
