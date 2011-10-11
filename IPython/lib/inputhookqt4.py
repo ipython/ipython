@@ -16,7 +16,6 @@ Author: Christian Boos
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.core import ipapi
 from IPython.external.qt_for_kernel import QtCore, QtGui
 from IPython.lib.inputhook import stdin_ready
 
@@ -57,7 +56,7 @@ def create_inputhook_qt4(mgr, app=None):
             app = QtGui.QApplication([" "])
 
     # Re-use previously created inputhook if any
-    ip = ipapi.get()
+    ip = get_ipython()
     if hasattr(ip, '_inputhook_qt4'):
         return app, ip._inputhook_qt4
 
