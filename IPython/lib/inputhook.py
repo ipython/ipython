@@ -32,6 +32,7 @@ GUI_TK = 'tk'
 GUI_OSX = 'osx'
 GUI_GLUT = 'glut'
 GUI_PYGLET = 'pyglet'
+GUI_NONE = 'none' # i.e. disable
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -417,8 +418,8 @@ def enable_gui(gui=None, app=None):
     Parameters
     ----------
     gui : optional, string or None
-      If None, clears input hook, otherwise it must be one of the recognized
-      GUI names (see ``GUI_*`` constants in module).
+      If None (or 'none'), clears input hook, otherwise it must be one
+      of the recognized GUI names (see ``GUI_*`` constants in module).
 
     app : optional, existing application object.
       For toolkits that have the concept of a global app, you can supply an
@@ -433,6 +434,7 @@ def enable_gui(gui=None, app=None):
     one.
     """
     guis = {None: clear_inputhook,
+            GUI_NONE: clear_inputhook,
             GUI_OSX: lambda app=False: None,
             GUI_TK: enable_tk,
             GUI_GTK: enable_gtk,

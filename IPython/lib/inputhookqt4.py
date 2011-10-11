@@ -90,8 +90,11 @@ def create_inputhook_qt4(mgr, app=None):
         except KeyboardInterrupt:
             got_kbdint[0] = True
             mgr.clear_inputhook()
-            print("\n(event loop interrupted - "
-                  "hit CTRL+C again to clear the prompt)")
+            print("\nKeyboardInterrupt - qt4 event loop interrupted!"
+                  "\n  * hit CTRL+C again to clear the prompt"
+                  "\n  * use '%gui none' to disable the event loop"
+                  " permanently"
+                  "\n    and '%gui qt4' to re-enable it later")
         return 0
 
     def preprompthook_qt4(ishell):
