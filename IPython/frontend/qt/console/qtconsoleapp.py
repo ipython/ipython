@@ -117,7 +117,7 @@ class MainWindow(QtGui.QMainWindow):
             self.close()
 
     @property
-    def activeFrontend(self):
+    def active_frontend(self):
         return self.tab_widget.currentWidget()
 
     def close_tab(self,currentTab):
@@ -486,40 +486,40 @@ class MainWindow(QtGui.QMainWindow):
             self.log.error("trying to add unexisting action (whos), skipping")
 
     def undo_active_frontend(self):
-        self.activeFrontend.undo()
+        self.active_frontend.undo()
 
     def redo_active_frontend(self):
-        self.activeFrontend.redo()
+        self.active_frontend.redo()
     def reset_magic_active_frontend(self):
-        self.activeFrontend.execute("%reset")
+        self.active_frontend.execute("%reset")
     def history_magic_active_frontend(self):
-        self.activeFrontend.history_magic()
+        self.active_frontend.history_magic()
     def save_magic_active_frontend(self):
-        self.activeFrontend.save_magic()
+        self.active_frontend.save_magic()
     def clear_magic_active_frontend(self):
-        self.activeFrontend.execute("%clear")
+        self.active_frontend.execute("%clear")
     def who_magic_active_frontend(self):
-        self.activeFrontend.execute("%who")
+        self.active_frontend.execute("%who")
     def who_ls_magic_active_frontend(self):
-        self.activeFrontend.execute("%who_ls")
+        self.active_frontend.execute("%who_ls")
     def whos_magic_active_frontend(self):
-        self.activeFrontend.execute("%whos")
+        self.active_frontend.execute("%whos")
 
     def print_action_active_frontend(self):
-        self.activeFrontend.print_action.trigger()
+        self.active_frontend.print_action.trigger()
 
     def export_action_active_frontend(self):
-        self.activeFrontend.export_action.trigger()
+        self.active_frontend.export_action.trigger()
 
     def select_all_active_frontend(self):
-        self.activeFrontend.select_all_action.trigger()
+        self.active_frontend.select_all_action.trigger()
 
     def increase_font_size_active_frontend(self):
-        self.activeFrontend.increase_font_size.trigger()
+        self.active_frontend.increase_font_size.trigger()
     def decrease_font_size_active_frontend(self):
-        self.activeFrontend.decrease_font_size.trigger()
+        self.active_frontend.decrease_font_size.trigger()
     def reset_font_size_active_frontend(self):
-        self.activeFrontend.reset_font_size.trigger()
+        self.active_frontend.reset_font_size.trigger()
     #---------------------------------------------------------------------------
     # QWidget interface
     #---------------------------------------------------------------------------
