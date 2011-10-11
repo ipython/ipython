@@ -142,7 +142,7 @@ class MainWindow(QtGui.QMainWindow):
             return
 
         #get a list of all wwidget not owning the kernel.
-        slave_tabs=self.findSlavesTabs(closing_widget)
+        slave_tabs=self.find_slaves_tabs(closing_widget)
 
         keepkernel = None #Use the prompt by default
         if hasattr(closing_widget,'_keep_kernel_on_exit'): #set by exit magic
@@ -243,9 +243,9 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()-1))
 
     def make_frontend_visible(self,frontend):
-        widgetIndex=self.tab_widget.indexOf(frontend)
-        if widgetIndex > 0 :
-            self.tab_widget.setCurrentIndex(widgetIndex)
+        widget_index=self.tab_widget.indexOf(frontend)
+        if widget_index > 0 :
+            self.tab_widget.setCurrentIndex(widget_index)
 
     def find_master_tab(self,tab,asList=False):
         """
@@ -289,7 +289,7 @@ class MainWindow(QtGui.QMainWindow):
 
         return masterWidget[0]
 
-    def findSlavesTabs(self,tab):
+    def find_slaves_tabs(self,tab):
         """
         Try to return all the frontend that do not own the kernel attached to the given widget/tab.
 
@@ -323,7 +323,7 @@ class MainWindow(QtGui.QMainWindow):
     # MenuBar is always present on Mac Os, so let's populate it with possible
     # action, don't do it on other platform as some user might not want the
     # menu bar, or give them an option to remove it
-    def initMenuBar(self):
+    def init_menu_bar(self):
         #create menu in the order they should appear in the menu bar
         self.fileMenu = self.menuBar().addMenu("&File")
         self.editMenu = self.menuBar().addMenu("&Edit")
@@ -898,7 +898,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                                 confirm_exit=self.confirm_exit)
         self.window.log = self.log
         self.window.add_tab_with_frontend(self.widget)
-        self.window.initMenuBar()
+        self.window.init_menu_bar()
         self.window.setWindowTitle('Python' if self.pure else 'IPython')
 
     def init_colors(self):
