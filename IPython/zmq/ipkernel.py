@@ -29,6 +29,7 @@ import zmq
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag
 from IPython.core.application import ProfileDir
+from IPython.core.error import StdinNotImplementedError
 from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
@@ -219,7 +220,11 @@ class Kernel(Configurable):
 
         # Replace raw_input. Note that is not sufficient to replace
         # raw_input in the user namespace.
-        raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
+        if content.get('allow_stdin', False):
+            raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
+        else:
+            raw_input = lambda prompt='' : self._no_raw_input()
+
         if py3compat.PY3:
             __builtin__.input = raw_input
         else:
@@ -406,6 +411,10 @@ class Kernel(Configurable):
             # be set shorter for true asynchronous clients.
             time.sleep(0.1)
 
+    def _no_raw_input(self):
+        """Raise StdinNotImplentedError if active frontend doesn't support stdin."""
+        raise StdinNotImplementedError("raw_input was called, but this frontend does not support stdin.")
+        
     def _raw_input(self, prompt, ident, parent):
         # Flush output before making the request.
         sys.stderr.flush()
@@ -413,7 +422,7 @@ class Kernel(Configurable):
 
         # Send the input request.
         content = json_clean(dict(prompt=prompt))
-        msg = self.session.send(self.stdin_socket, u'input_request', content, parent)
+        msg = self.session.send(self.stdin_socket, u'input_request', content, parent, ident=ident)
 
         # Await a response.
         while True:

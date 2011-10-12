@@ -153,9 +153,9 @@ class KernelApp(BaseIPythonApplication):
         self.iopub_port = self._bind_socket(self.iopub_socket, self.iopub_port)
         self.log.debug("iopub PUB Channel on port: %i"%self.iopub_port)
 
-        self.stdin_socket = context.socket(zmq.XREQ)
+        self.stdin_socket = context.socket(zmq.ROUTER)
         self.stdin_port = self._bind_socket(self.stdin_socket, self.stdin_port)
-        self.log.debug("stdin XREQ Channel on port: %i"%self.stdin_port)
+        self.log.debug("stdin ROUTER Channel on port: %i"%self.stdin_port)
 
         self.heartbeat = Heartbeat(context, (self.ip, self.hb_port))
         self.hb_port = self.heartbeat.port

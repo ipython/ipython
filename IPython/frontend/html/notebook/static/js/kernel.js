@@ -121,6 +121,7 @@ var IPython = (function (IPython) {
             silent : false,
             user_variables : [],
             user_expressions : {}
+            allow_stdin : false,
         };
         var msg = this.get_msg("execute_request", content);
         this.shell_channel.send(JSON.stringify(msg));
