@@ -1261,6 +1261,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         elif key in (QtCore.Qt.Key_Q, QtCore.Qt.Key_Escape):
             if self._splitter:
                 self._page_control.hide()
+                self._control.setFocus()
             else:
                 self.layout().setCurrentWidget(self._control)
             return True
