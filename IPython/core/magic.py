@@ -3194,6 +3194,7 @@ Defaulting color scheme to 'NoColor'"""
                 else:
                     yield l
             except EOFError:
+                print '<EOF>'
                 return
 
     def _strip_pasted_lines_for_code(self, raw_lines):
