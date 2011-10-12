@@ -1546,7 +1546,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 # line, there may be SyntaxError cases with imported code.
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
-                print "UsageError:", value
+                self.write_err("UsageError: %s" % value)
             else:
                 # WARNING: these variables are somewhat deprecated and not
                 # necessarily safe to use in a threaded environment, but tools

@@ -209,7 +209,7 @@ class Kernel(HasTraits):
 
         # Send the input request.
         content = dict(prompt=prompt)
-        msg = self.session.send(self.stdin_socket, u'input_request', content, parent)
+        msg = self.session.send(self.stdin_socket, u'input_request', content, parent, ident=ident)
 
         # Await a response.
         ident,reply = self.session.recv(self.stdin_socket, 0)

@@ -6,6 +6,7 @@ Authors:
 
 * Brian Granger
 * Fernando Perez
+* Min Ragan-Kelley
 
 Notes
 -----
@@ -48,4 +49,11 @@ class UsageError(IPythonCoreError):
 
     Something that probably won't warrant a full traceback, but should
     nevertheless interrupt a macro / batch file.
+    """
+
+class StdinNotImplementedError(IPythonCoreError, NotImplementedError):
+    """raw_input was requested in a context where it is not supported
+
+    For use in IPython kernels, where only some frontends may support
+    stdin requests.
     """

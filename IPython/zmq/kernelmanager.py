@@ -179,6 +179,8 @@ class ShellSocketChannel(ZMQSocketChannel):
     """
 
     command_queue = None
+    # flag for whether execute requests should be allowed to call raw_input:
+    allow_stdin = True
 
     def __init__(self, context, session, address):
         super(ShellSocketChannel, self).__init__(context, session, address)
@@ -210,7 +212,7 @@ class ShellSocketChannel(ZMQSocketChannel):
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
     def execute(self, code, silent=False,
-                user_variables=None, user_expressions=None):
+                user_variables=None, user_expressions=None, allow_stdin=None):
         """Execute code in the kernel.
 
         Parameters
@@ -231,6 +233,12 @@ class ShellSocketChannel(ZMQSocketChannel):
             namespace.  They will come back as a dict with these names as keys
             and their :func:`repr` as values.
 
+        allow_stdin : bool, optional
+            Flag for 
+            A dict with string keys and  to pull from the user's
+            namespace.  They will come back as a dict with these names as keys
+            and their :func:`repr` as values.
+
         Returns
         -------
         The msg_id of the message sent.
@@ -239,7 +247,10 @@ class ShellSocketChannel(ZMQSocketChannel):
             user_variables = []
         if user_expressions is None:
             user_expressions = {}
-
+        if allow_stdin is None:
+            allow_stdin = self.allow_stdin
+        
+        
         # Don't waste network traffic if inputs are invalid
         if not isinstance(code, basestring):
             raise ValueError('code %r must be a string' % code)
@@ -250,7 +261,9 @@ class ShellSocketChannel(ZMQSocketChannel):
         # not in Session.
         content = dict(code=code, silent=silent,
                        user_variables=user_variables,
-                       user_expressions=user_expressions)
+                       user_expressions=user_expressions,
+                       allow_stdin=allow_stdin,
+                       )
         msg = self.session.msg('execute_request', content)
         self._queue_request(msg)
         return msg['header']['msg_id']
@@ -735,6 +748,9 @@ class KernelManager(HasTraits):
             self.sub_channel.start()
         if stdin:
             self.stdin_channel.start()
+            self.shell_channel.allow_stdin = True
+        else:
+            self.shell_channel.allow_stdin = False
         if hb:
             self.hb_channel.start()
 
