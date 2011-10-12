@@ -31,30 +31,30 @@ The basic design is explained in the following diagram:
 A single kernel can be simultaneously connected to one or more frontends.  The
 kernel has three sockets that serve the following functions:
 
-1. REQ: this socket is connected to a *single* frontend at a time, and it allows
-   the kernel to request input from a frontend when :func:`raw_input` is called.
-   The frontend holding the matching REP socket acts as a 'virtual keyboard'
+1. stdin: this ROUTER socket is connected to all frontends, and it allows
+   the kernel to request input from the active frontend when :func:`raw_input` is called.
+   The frontend that executed the code has a DEALER socket that acts as a 'virtual keyboard'
    for the kernel while this communication is happening (illustrated in the
    figure by the black outline around the central keyboard).  In practice,
    frontends may display such kernel requests using a special input widget or
    otherwise indicating that the user is to type input for the kernel instead
    of normal commands in the frontend.
 
-2. ROUTER: this single sockets allows multiple incoming connections from
+2. Shell: this single ROUTER socket allows multiple incoming connections from
    frontends, and this is the socket where requests for code execution, object
    information, prompts, etc. are made to the kernel by any frontend.  The
    communication on this socket is a sequence of request/reply actions from
    each frontend and the kernel.
 
-3. PUB: this socket is the 'broadcast channel' where the kernel publishes all
+3. IOPub: this socket is the 'broadcast channel' where the kernel publishes all
    side effects (stdout, stderr, etc.) as well as the requests coming from any
-   client over the ROUTER socket and its own requests on the REP socket.  There
+   client over the shell socket and its own requests on the stdin socket.  There
    are a number of actions in Python which generate side effects: :func:`print`
    writes to ``sys.stdout``, errors generate tracebacks, etc.  Additionally, in
    a multi-client scenario, we want all frontends to be able to know what each
    other has sent to the kernel (this can be useful in collaborative scenarios,
    for example).  This socket allows both side effects and the information
-   about communications taking place with one client over the ROUTER/DEALER channel
+   about communications taking place with one client over the shell channel
    to be made available to all clients in a uniform manner.
 
    All messages are tagged with enough information (details below) for clients
@@ -126,8 +126,8 @@ For each message type, the actual content will differ and all existing message
 types are specified in what follows of this document.
 
 
-Messages on the ROUTER/DEALER socket
-================================
+Messages on the shell ROUTER/DEALER sockets
+===========================================
 
 .. _execute:
 
@@ -162,6 +162,12 @@ Message type: ``execute_request``::
     # Similarly, a dict mapping names to expressions to be evaluated in the
     # user's dict.
     'user_expressions' : dict,
+
+    # Some frontends (e.g. the Notebook) do not support stdin requests. If
+    # raw_input is called from code executed from such a frontend, a
+    # StdinNotImplementedError will be raised.
+    'allow_stdin' : True,
+
     }
 
 The ``code`` field contains a single string (possibly multiline).  The kernel
@@ -637,7 +643,7 @@ Connect
 When a client connects to the request/reply socket of the kernel, it can issue
 a connect request to get basic information about the kernel, such as the ports
 the other ZeroMQ sockets are listening on. This allows clients to only have
-to know about a single port (the DEALER/ROUTER channel) to connect to a kernel.
+to know about a single port (the shell channel) to connect to a kernel.
 
 Message type: ``connect_request``::
 
@@ -647,9 +653,9 @@ Message type: ``connect_request``::
 Message type: ``connect_reply``::
 
     content = {
-        'xrep_port' : int  # The port the ROUTER socket is listening on.
-        'pub_port' : int   # The port the PUB socket is listening on.
-        'req_port' : int   # The port the REQ socket is listening on.
+        'shell_port' : int  # The port the shell ROUTER socket is listening on.
+        'iopub_port' : int   # The port the PUB socket is listening on.
+        'stdin_port' : int   # The port the stdin ROUTER socket is listening on.
         'hb_port' : int    # The port the heartbeat socket is listening on.
     }
 
@@ -863,15 +869,17 @@ Message type: ``file``::
     'data' : str,
     }
 
-    
-Messages on the REQ/REP socket
-==============================
 
-This is a socket that goes in the opposite direction: from the kernel to a
-*single* frontend, and its purpose is to allow ``raw_input`` and similar
-operations that read from ``sys.stdin`` on the kernel to be fulfilled by the
-client.  For now we will keep these messages as simple as possible, since they
-basically only mean to convey the ``raw_input(prompt)`` call.
+Messages on the stdin ROUTER/DEALER sockets
+===========================================
+
+This is a socket where the request/reply pattern goes in the opposite direction:
+from the kernel to a *single* frontend, and its purpose is to allow
+``raw_input`` and similar operations that read from ``sys.stdin`` on the kernel
+to be fulfilled by the client. The request should be made to the frontend that
+made the execution request that prompted ``raw_input`` to be called. For now we
+will keep these messages as simple as possible, since they only mean to convey
+the ``raw_input(prompt)`` call.
 
 Message type: ``input_request``::
 

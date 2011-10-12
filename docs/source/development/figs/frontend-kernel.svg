@@ -14,8 +14,8 @@
    height="1052.3622047"
    id="svg2"
    version="1.1"
-   inkscape:version="0.47 r22583"
-   sodipodi:docname="ipython-frontend-kernel.svg"
+   inkscape:version="0.48.2 r9819"
+   sodipodi:docname="frontend-kernel.svg"
    inkscape:export-filename="/home/jtriley/Documents/ipython-frontend-kernel.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -2956,17 +2956,17 @@
      inkscape:pageshadow="2"
      inkscape:zoom="0.90509668"
      inkscape:cx="256.73404"
-     inkscape:cy="303.39911"
+     inkscape:cy="-403.70767"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-width="1440"
-     inkscape:window-height="825"
+     inkscape:window-width="1245"
+     inkscape:window-height="756"
      inkscape:window-x="0"
-     inkscape:window-y="24"
-     inkscape:window-maximized="1"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
      inkscape:snap-nodes="true" />
   <metadata
      id="metadata7">
@@ -3022,7 +3022,7 @@
     <rect
        style="fill:#241c1c;fill-opacity:1"
        id="rect4235"
-       width="151.52289"
+       width="180"
        height="92.934036"
        x="43.015251"
        y="565.53973"
@@ -3032,7 +3032,7 @@
     <rect
        style="fill:#008000;fill-opacity:1"
        id="rect4235-2"
-       width="151.52289"
+       width="180"
        height="92.934036"
        x="285.4671"
        y="565.53973"
@@ -3052,7 +3052,7 @@
     <text
        xml:space="preserve"
        style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
-       x="75.632164"
+       x="49.632164"
        y="624.2724"
        id="text4268"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
@@ -3060,13 +3060,13 @@
        inkscape:export-ydpi="90"><tspan
          sodipodi:role="line"
          id="tspan4270"
-         x="75.632164"
+         x="49.632164"
          y="624.2724"
-         style="fill:#ffffff">REQ</tspan></text>
+         style="fill:#ffffff">ROUTER</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
-       x="308.98245"
+       x="292.98245"
        y="626.58685"
        id="text4268-9"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
@@ -3074,9 +3074,9 @@
        inkscape:export-ydpi="90"><tspan
          sodipodi:role="line"
          id="tspan4270-1"
-         x="308.98245"
+         x="292.98245"
          y="626.58685"
-         style="fill:#ffffff">XREP</tspan></text>
+         style="fill:#ffffff">ROUTER</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
@@ -3148,13 +3148,14 @@
            y="222.01678" /></flowRegion><flowPara
          id="flowPara3620"
          style="font-size:28px;font-weight:bold">Front-end</flowPara></flowRoot>    <path
-       style="fill:#05ff00;stroke:#2af510;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       style="fill:#05ff00;fill-opacity:1;stroke:#2af510;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        d="m 373.73648,243.10253 -0.11904,-45.00016"
        id="path3711"
        inkscape:connector-type="polyline"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
        inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-ydpi="90"
+       inkscape:connector-curvature="0" />
     <rect
        style="fill:#00ff00;fill-opacity:1"
        id="rect3884"
@@ -3192,7 +3193,7 @@
     <text
        xml:space="preserve"
        style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
-       x="454.03732"
+       x="444.03732"
        y="345.68896"
        id="text4861-2"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
@@ -3200,9 +3201,9 @@
        inkscape:export-ydpi="90"><tspan
          sodipodi:role="line"
          id="tspan4863-6"
-         x="454.03732"
+         x="444.03732"
          y="345.68896"
-         style="font-size:28px;fill:#ffffff">REP</tspan></text>
+         style="font-size:28px;fill:#ffffff">DEAL</tspan></text>
     <rect
        style="fill:#ff0000;fill-opacity:1"
        id="rect4859-9-4"
@@ -3250,7 +3251,7 @@
          id="tspan4863-6-97"
          x="239.47998"
          y="344.35312"
-         style="font-size:28px;fill:#ffffff">XREQ</tspan></text>
+         style="font-size:28px;fill:#ffffff">DEAL</tspan></text>
     <rect
        style="fill:#0000ff;fill-rule:evenodd;stroke:#000000;stroke-width:0.80252945px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="rect2816-3"
@@ -3281,7 +3282,8 @@
        style="fill:none;stroke:#06ff00;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        d="m 728.27256,243.10253 -0.1191,-45.00015"
        id="path3711-4"
-       inkscape:connector-type="polyline" />
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
     <rect
        style="fill:#00ff00;fill-opacity:1"
        id="rect3884-4"
@@ -3335,7 +3337,7 @@
          id="tspan4863-6-97-6"
          x="631.95612"
          y="344.35312"
-         style="font-size:28px;fill:#ffffff">XREQ</tspan></text>
+         style="font-size:28px;fill:#ffffff">DEAL</tspan></text>
     <rect
        style="fill:#0000ff;fill-rule:evenodd;stroke:#000000;stroke-width:0.80252945px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="rect2816-3-6"
@@ -3367,7 +3369,8 @@
        d="m 37.276897,243.10252 -0.11904,-45.00015"
        id="path3711-4-8"
        inkscape:connector-type="polyline"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0" />
     <rect
        style="fill:#00ff00;fill-opacity:1"
        id="rect3884-4-1"
@@ -3421,10 +3424,10 @@
          id="tspan4863-6-97-6-1"
          x="-59.039528"
          y="344.35312"
-         style="font-size:28px;fill:#ffffff">XREQ</tspan></text>
+         style="font-size:28px;fill:#ffffff">DEAL</tspan></text>
     <path
        style="fill:#ff0000;stroke:#ff0000;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-mid:url(#Arrow1Mstart)"
-       d="m 123.8316,357.91004 355.72174,187.40953 50.81739,26.77279"
+       d="M 123.8316,357.91004 530.37073,572.09236"
        id="path10788"
        inkscape:connector-type="polyline"
        inkscape:connection-start="#rect4859-9-4-5-6"
@@ -3432,10 +3435,13 @@
        sodipodi:nodetypes="ccc"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
        inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-ydpi="90"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <path
        style="fill:#d40000;fill-opacity:1;stroke:#ff0000;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-mid:url(#Arrow1Mstart)"
-       d="M 759.43823,357.91004 696.80284,461.72488 634.16746,565.53973"
+       d="M 759.43823,357.91004 634.16746,565.53973"
        id="path10790"
        inkscape:connector-type="polyline"
        inkscape:connection-start="#rect4859-9-4-5"
@@ -3443,10 +3449,13 @@
        sodipodi:nodetypes="ccc"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
        inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-ydpi="90"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <path
        style="fill:none;stroke:#278900;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-mid:url(#Arrow1Mstart)"
-       d="M 10.376699,357.91004 297.06778,565.53973"
+       d="M 11.518036,357.91004 308.91123,565.53973"
        id="path10792"
        inkscape:connector-type="polyline"
        inkscape:connection-start="#rect4859-9-3-5-8"
@@ -3454,10 +3463,13 @@
        sodipodi:nodetypes="ccc"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
        inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-ydpi="90"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <path
        style="fill:#008000;fill-opacity:1;stroke:#238800;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-mid:url(#Arrow1Mstart)"
-       d="M 645.98339,357.91004 413.30206,565.53973"
+       d="M 647.12473,357.91004 425.14551,565.53973"
        id="path10794"
        inkscape:connector-type="polyline"
        inkscape:connection-start="#rect4859-9-3-5"
@@ -3465,10 +3477,13 @@
        sodipodi:nodetypes="ccc"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
        inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-ydpi="90"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <path
        style="fill:none;stroke:#ff0000;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-mid:url(#Arrow1Mstart)"
-       d="m 398.42235,357.91004 127.29423,155.72226 42.43141,51.90743"
+       d="M 398.42235,357.91004 568.14799,565.53973"
        id="path10796"
        inkscape:connector-type="polyline"
        inkscape:connection-start="#rect4859-9-4"
@@ -3476,10 +3491,13 @@
        sodipodi:nodetypes="ccc"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
        inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-ydpi="90"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <path
        style="fill:#280b0b;stroke:#000000;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-mid:none"
-       d="M 179.80746,565.53973 452.88606,357.62577"
+       d="M 191.65337,565.53973 454.02622,357.62577"
        id="path10800"
        inkscape:connector-type="polyline"
        inkscape:connection-start="#rect4235"
@@ -3487,10 +3505,13 @@
        sodipodi:nodetypes="ccc"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
        inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-ydpi="90"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <path
        style="fill:#ff0000;stroke:#449900;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-mid:url(#Arrow1Mend)"
-       d="M 347.28257,565.53973 284.96744,357.91004"
+       d="M 359.12602,565.53973 286.10878,357.91004"
        id="path10802"
        inkscape:connector-type="polyline"
        inkscape:connection-start="#rect4235-2"
@@ -3498,7 +3519,10 @@
        sodipodi:nodetypes="ccc"
        inkscape:export-filename="/home/jtriley/Documents/path10411-0-4-9.png"
        inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-ydpi="90"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <rect
        style="fill:#000000;fill-opacity:1;stroke:none"
        id="rect11963"
@@ -6717,20 +6741,28 @@
        id="path6285"
        inkscape:connector-type="polyline"
        inkscape:connection-start="#rect4497"
-       inkscape:connection-end="#rect3695" />
+       inkscape:connection-end="#rect3695"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <path
-       style="fill:none;stroke:#07ff00;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:none;stroke:#07ff00;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        d="m 728.98863,98.204487 0.69887,46.345193"
        id="path7136"
        inkscape:connector-type="polyline"
-       inkscape:connection-start="#g6750" />
+       inkscape:connection-start="#g6750"
+       inkscape:connection-start-point="d4"
+       inkscape:connector-curvature="0" />
     <path
-       style="fill:none;stroke:#06ff00;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:none;stroke:#06ff00;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        d="m 37.066258,97.891987 0.09752,46.781813"
        id="path5028"
        inkscape:connector-type="polyline"
        inkscape:connection-end="#rect3695-4-1"
-       inkscape:connection-start="#g4874" />
+       inkscape:connection-start="#g4874"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end-point="d4"
+       inkscape:connector-curvature="0" />
     <path
        style="fill:none;stroke:#000000;stroke-width:3.20000005;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#Arrow1Send-9);marker-mid:none;marker-end:url(#Arrow1Mend)"
        d="m 97.76109,405.78583 c 49.81163,34.41382 20.9084,50.49106 -23.630766,17.69543"
