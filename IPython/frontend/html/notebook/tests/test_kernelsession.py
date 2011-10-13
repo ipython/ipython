@@ -2,12 +2,12 @@
 
 from unittest import TestCase
 
-from IPython.frontend.html.notebook.kernelmanager import KernelManager
+from IPython.frontend.html.notebook.kernelmanager import MultiKernelManager
 
 class TestKernelManager(TestCase):
 
     def test_km_lifecycle(self):
-        km = KernelManager()
+        km = MultiKernelManager()
         kid = km.start_kernel()
         self.assert_(kid in km)
         self.assertEquals(len(km),1)
@@ -21,6 +21,6 @@ class TestKernelManager(TestCase):
         self.assert_('iopub_port' in port_dict)
         self.assert_('shell_port' in port_dict)
         self.assert_('hb_port' in port_dict)
-        km.get_kernel_process(kid)
+        km.get_kernel(kid)
 
 

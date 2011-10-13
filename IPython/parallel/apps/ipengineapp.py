@@ -36,9 +36,12 @@ from IPython.parallel.apps.baseapp import (
     base_flags,
 )
 from IPython.zmq.log import EnginePUBHandler
+from IPython.zmq.session import (
+    Session, session_aliases, session_flags
+)
 
 from IPython.config.configurable import Configurable
-from IPython.zmq.session import Session
+
 from IPython.parallel.engine.engine import EngineFactory
 from IPython.parallel.engine.streamkernel import Kernel
 from IPython.parallel.util import disambiguate_url, asbytes
@@ -113,10 +116,6 @@ aliases = dict(
     c = 'IPEngineApp.startup_command',
     s = 'IPEngineApp.startup_script',
 
-    ident = 'Session.session',
-    user = 'Session.username',
-    keyfile = 'Session.keyfile',
-
     url = 'EngineFactory.url',
     ssh = 'EngineFactory.sshserver',
     sshkey = 'EngineFactory.sshkey',
@@ -131,7 +130,10 @@ aliases = dict(
 
 )
 aliases.update(base_aliases)
-
+aliases.update(session_aliases)
+flags = {}
+flags.update(base_flags)
+flags.update(session_flags)
 
 class IPEngineApp(BaseParallelApplication):
 
@@ -172,6 +174,7 @@ class IPEngineApp(BaseParallelApplication):
         logging to a central location.""")
 
     aliases = Dict(aliases)
+    flags = Dict(flags)
 
     # def find_key_file(self):
     #     """Set the key file.
@@ -214,12 +217,9 @@ class IPEngineApp(BaseParallelApplication):
         with open(self.url_file) as f:
             d = json.loads(f.read())
         
-        try:
-            config.Session.key
-        except AttributeError:
-            if d['exec_key']:
-                config.Session.key = asbytes(d['exec_key'])
-                
+        if 'exec_key' in d:
+            config.Session.key = asbytes(d['exec_key'])
+        
         try:
             config.EngineFactory.location
         except AttributeError:

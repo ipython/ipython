@@ -27,7 +27,6 @@ import os
 import socket
 import stat
 import sys
-import uuid
 
 from multiprocessing import Process
 
@@ -36,7 +35,6 @@ from zmq.devices import ProcessMonitoredQueue
 from zmq.log.handlers import PUBHandler
 from zmq.utils import jsonapi as json
 
-from IPython.config.application import boolean_flag
 from IPython.core.profiledir import ProfileDir
 
 from IPython.parallel.apps.baseapp import (
@@ -47,8 +45,10 @@ from IPython.parallel.apps.baseapp import (
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict
 
-# from IPython.parallel.controller.controller import ControllerFactory
-from IPython.zmq.session import Session
+from IPython.zmq.session import (
+    Session, session_aliases, session_flags, default_secure
+)
+
 from IPython.parallel.controller.heartmonitor import HeartMonitor
 from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
@@ -109,19 +109,12 @@ flags.update({
                     'reuse existing json connection files')
 })
 
-flags.update(boolean_flag('secure', 'IPControllerApp.secure',
-    "Use HMAC digests for authentication of messages.",
-    "Don't authenticate messages."
-))
+flags.update(session_flags)
+
 aliases = dict(
-    secure = 'IPControllerApp.secure',
     ssh = 'IPControllerApp.ssh_server',
     enginessh = 'IPControllerApp.engine_ssh_server',
     location = 'IPControllerApp.location',
-
-    ident = 'Session.session',
-    user = 'Session.username',
-    keyfile = 'Session.keyfile',
 
     url = 'HubFactory.url',
     ip = 'HubFactory.ip',
@@ -134,6 +127,7 @@ aliases = dict(
     hwm = 'TaskScheduler.hwm',
 )
 aliases.update(base_aliases)
+aliases.update(session_aliases)
 
 
 class IPControllerApp(BaseParallelApplication):
@@ -150,9 +144,6 @@ class IPControllerApp(BaseParallelApplication):
     
     reuse_files = Bool(False, config=True,
         help='Whether to reuse existing json connection files.'
-    )
-    secure = Bool(True, config=True,
-        help='Whether to use HMAC digests for extra message authentication.'
     )
     ssh_server = Unicode(u'', config=True,
         help="""ssh url for clients to use when connecting to the Controller
@@ -225,6 +216,7 @@ class IPControllerApp(BaseParallelApplication):
     def load_config_from_json(self):
         """load config from existing json connector files."""
         c = self.config
+        self.log.debug("loading config from JSON")
         # load from engine config
         with open(os.path.join(self.profile_dir.security_dir, self.engine_json_file)) as f:
             cfg = json.loads(f.read())
@@ -249,28 +241,23 @@ class IPControllerApp(BaseParallelApplication):
             self.ssh_server = cfg['ssh']
         assert int(ports) == c.HubFactory.regport, "regport mismatch"
     
+    def load_secondary_config(self):
+        """secondary config, loading from JSON and setting defaults"""
+        if self.reuse_files:
+            try:
+                self.load_config_from_json()
+            except (AssertionError,IOError) as e:
+                self.log.error("Could not load config from JSON: %s" % e)
+                self.reuse_files=False
+        # switch Session.key default to secure
+        default_secure(self.config)
+        self.log.debug("Config changed")
+        self.log.debug(repr(self.config))
+        
     def init_hub(self):
         c = self.config
         
         self.do_import_statements()
-        reusing = self.reuse_files
-        if reusing:
-            try:
-                self.load_config_from_json()
-            except (AssertionError,IOError):
-                reusing=False
-        # check again, because reusing may have failed:
-        if reusing:
-            pass
-        elif self.secure:
-            key = str(uuid.uuid4())
-            # keyfile = os.path.join(self.profile_dir.security_dir, self.exec_key)
-            # with open(keyfile, 'w') as f:
-            #     f.write(key)
-            # os.chmod(keyfile, stat.S_IRUSR|stat.S_IWUSR)
-            c.Session.key = asbytes(key)
-        else:
-            key = c.Session.key = b''
         
         try:
             self.factory = HubFactory(config=c, log=self.log)
@@ -280,10 +267,10 @@ class IPControllerApp(BaseParallelApplication):
             self.log.error("Couldn't construct the Controller", exc_info=True)
             self.exit(1)
         
-        if not reusing:
+        if not self.reuse_files:
             # save to new json config files
             f = self.factory
-            cdict = {'exec_key' : key,
+            cdict = {'exec_key' : f.session.key,
                     'ssh' : self.ssh_server,
                     'url' : "%s://%s:%s"%(f.client_transport, f.client_ip, f.regport),
                     'location' : self.location
@@ -397,11 +384,11 @@ class IPControllerApp(BaseParallelApplication):
             handler.setLevel(self.log_level)
             self.log.addHandler(handler)
             self._log_handler = handler
-    # #
     
     def initialize(self, argv=None):
         super(IPControllerApp, self).initialize(argv)
         self.forward_logging()
+        self.load_secondary_config()
         self.init_hub()
         self.init_schedulers()
     
