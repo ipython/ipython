@@ -17,7 +17,6 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
-import glob
 import os
 import signal
 import sys
@@ -31,7 +30,7 @@ from zmq.utils import jsonapi as json
 from IPython.config.application import boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
-from IPython.lib.kernel import tunnel_to_kernel
+from IPython.lib.kernel import tunnel_to_kernel, find_connection_file
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
@@ -363,26 +362,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         fileglob, and the matching file in the current profile's security dir
         with the latest access time will be used.
         """
-        sec = self.profile_dir.security_dir
         if self.existing:
             try:
-                # first, try explicit name
-                cf = filefind(self.existing, ['.', sec])
-            except IOError:
-                # not found by full name
-                if '*' in self.existing:
-                    # given as a glob already
-                    pat = self.existing
-                else:
-                    # accept any substring match
-                    pat = '*%s*' % self.existing
-                matches = glob.glob( os.path.join(sec, pat) )
-                if not matches:
-                    self.log.critical("Could not find existing kernel connection file %s", self.existing)
-                    self.exit(1)
-                else:
-                    # get most recent match:
-                    cf = sorted(matches, key=lambda f: os.stat(f).st_atime)[-1]
+                cf = find_connection_file(self.existing)
+            except Exception:
+                self.log.critical("Could not find existing kernel connection file %s", self.existing)
+                self.exit(1)
             self.log.info("Connecting to existing kernel: %s" % cf)
             self.connection_file = cf
         # should load_connection_file only be used for existing?

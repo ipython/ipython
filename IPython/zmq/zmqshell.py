@@ -471,7 +471,7 @@ class ZMQInteractiveShell(InteractiveShell):
         debugging.
         """
         try:
-            p = connect_qtconsole(arg_split(arg_s, os.name=='posix'))
+            p = connect_qtconsole(argv=arg_split(arg_s, os.name=='posix'))
         except Exception as e:
             error("Could not start qtconsole: %r" % e)
             return
