@@ -21,26 +21,22 @@ import glob
 import os
 import signal
 import sys
-from getpass import getpass
 
 # System library imports
 from IPython.external.qt import QtGui
 from pygments.styles import get_all_styles
 from zmq.utils import jsonapi as json
 
-# external imports
-from IPython.external.ssh import tunnel
-
 # Local imports
 from IPython.config.application import boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
+from IPython.lib.kernel import tunnel_to_kernel
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.kernelmanager import QtKernelManager
-from IPython.parallel.util import select_random_ports
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
@@ -424,24 +420,30 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             return
         
         if self.sshkey and not self.sshserver:
+            # specifying just the key implies that we are connecting directly
             self.sshserver = self.ip
-            self.ip=LOCALHOST
+            self.ip = LOCALHOST
         
-        lports = select_random_ports(4)
-        rports = self.shell_port, self.iopub_port, self.stdin_port, self.hb_port
-        self.shell_port, self.iopub_port, self.stdin_port, self.hb_port = lports
+        # build connection dict for tunnels:
+        info = dict(ip=self.ip,
+                    shell_port=self.shell_port,
+                    iopub_port=self.iopub_port,
+                    stdin_port=self.stdin_port,
+                    hb_port=self.hb_port
+        )
         
-        remote_ip = self.ip
+        self.log.info("Forwarding connections to %s via %s"%(self.ip, self.sshserver))
+        
+        # tunnels return a new set of ports, which will be on localhost:
         self.ip = LOCALHOST
-        self.log.info("Forwarding connections to %s via %s"%(remote_ip, self.sshserver))
+        try:
+            newports = tunnel_to_kernel(info, self.sshserver, self.sshkey)
+        except:
+            # even catch KeyboardInterrupt
+            self.log.error("Could not setup tunnels", exc_info=True)
+            self.exit(1)
         
-        if tunnel.try_passwordless_ssh(self.sshserver, self.sshkey):
-            password=False
-        else:
-            password = getpass("SSH Password for %s: "%self.sshserver)
-        
-        for lp,rp in zip(lports, rports):
-            tunnel.ssh_tunnel(lp, rp, self.sshserver, remote_ip, self.sshkey, password)
+        self.shell_port, self.iopub_port, self.stdin_port, self.hb_port = newports
         
         cf = self.connection_file
         base,ext = os.path.splitext(cf)
