@@ -120,7 +120,7 @@ var IPython = (function (IPython) {
             code : code,
             silent : false,
             user_variables : [],
-            user_expressions : {}
+            user_expressions : {},
             allow_stdin : false,
         };
         var msg = this.get_msg("execute_request", content);
