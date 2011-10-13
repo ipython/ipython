@@ -356,6 +356,17 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                         swallow_next = True
     
     def init_connection_file(self):
+        """find the connection file, and load the info if found.
+        
+        The current working directory and the current profile's security
+        directory will be searched for the file if it is not given by
+        absolute path.
+        
+        When attempting to connect to an existing kernel and the `--existing`
+        argument does not match an existing file, it will be interpreted as a
+        fileglob, and the matching file in the current profile's security dir
+        with the latest access time will be used.
+        """
         sec = self.profile_dir.security_dir
         if self.existing:
             try:
@@ -368,7 +379,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                     pat = self.existing
                 else:
                     # accept any substring match
-                    pat = '*%s*'
+                    pat = '*%s*' % self.existing
                 matches = glob.glob( os.path.join(sec, pat) )
                 if not matches:
                     self.log.critical("Could not find existing kernel connection file %s", self.existing)
@@ -446,7 +457,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         try:
             cf = filefind(self.connection_file, ['.', sec])
         except IOError:
-            # file might not exist, use 
+            # file might not exist
             if self.connection_file == os.path.basename(self.connection_file):
                 # just shortname, put it in security dir
                 cf = os.path.join(sec, self.connection_file)
