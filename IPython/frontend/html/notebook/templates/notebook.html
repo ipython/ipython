@@ -12,6 +12,13 @@
 
     <!-- <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" charset="utf-8"></script> -->
     <script type='text/javascript' src='static/mathjax/MathJax.js?config=TeX-AMS_HTML' charset='utf-8'></script>
+    <script language="Javascript">
+    function CheckMathJax(){
+        if(window.MathJax){
+            document.getElementById("MatjaxFetchingWarning").style.visibility='hidden'
+        }
+    }
+    </script>
     <script type="text/javascript">
     if (typeof MathJax == 'undefined') {
         console.log("No local MathJax, loading from CDN");
@@ -37,7 +44,7 @@
 
 </head>
 
-<body>
+<body onload='CheckMathJax();'>
 
 <div id="header">
     <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
@@ -47,6 +54,12 @@
         <button id="save_notebook"><u>S</u>ave</button>
     </span>
     <span id="kernel_status">Idle</span>
+</div>
+
+<div id="MatjaxFetchingWarning">
+    There was an issues trying to fetch MathJax.js from the internet. You might
+    wan't to consider using "install_mathjax()" to be able to use the Notebook
+    fonctionnality offline
 </div>
 
 <div id="main_app">
