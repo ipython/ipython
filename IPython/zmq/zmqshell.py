@@ -31,9 +31,13 @@ from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
 from IPython.core.magic import MacroToEdit
 from IPython.core.payloadpage import install_payload_page
+from IPython.lib.kernel import (
+    get_connection_file, get_connection_info, connect_qtconsole
+)
 from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.path import get_py_filename
+from IPython.utils.process import arg_split
 from IPython.utils.traitlets import Instance, Type, Dict, CBool
 from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_binary
@@ -442,18 +446,14 @@ class ZMQInteractiveShell(InteractiveShell):
         $> ipython <app> --existing
         
         """
-        from IPython.zmq.kernelapp import KernelApp
-        if not KernelApp.initialized():
-            error("KernelApp is not initialized. I cannot find the connection info")
-            return
-        app = KernelApp.instance()
         try:
-            with open(app.connection_file) as f:
-                s = f.read()
+            connection_file = get_connection_file()
+            info = get_connection_info(unpack=False)
         except Exception as e:
-            error("Could not read connection file: %s" % e)
+            error("Could not get connection info: %r" % e)
             return
-        print (s + '\n')
+            
+        print (info + '\n')
         print ("Paste the above JSON into a file, and connect with:\n"
             "    $> ipython <app> --existing <file>\n"
             "or, if you are local, you can connect with just:\n"
@@ -461,7 +461,7 @@ class ZMQInteractiveShell(InteractiveShell):
             "or even just:\n"
             "    $> ipython <app> --existing\n"
             "if this is the most recent IPython session you have started."
-            % os.path.basename((app.connection_file))
+            % os.path.basename(connection_file)
         )
 
     def magic_qtconsole(self, arg_s):
@@ -470,20 +470,12 @@ class ZMQInteractiveShell(InteractiveShell):
         Useful for connecting a qtconsole to running notebooks, for better
         debugging.
         """
-        from IPython.zmq.kernelapp import KernelApp
-        
-        if not KernelApp.initialized():
-            error("KernelApp is not initialized. %qtconsole magic must be run from a Kernel")
+        try:
+            p = connect_qtconsole(arg_split(arg_s, os.name=='posix'))
+        except Exception as e:
+            error("Could not start qtconsole: %r" % e)
             return
-        app = KernelApp.instance()
         
-        cmd = ';'.join([
-            "from IPython.frontend.qt.console import qtconsoleapp",
-            "qtconsoleapp.main()"
-        ])
-        
-        return Popen([sys.executable, '-c', cmd, '--existing', app.connection_file],
-            stdout=PIPE,stderr=PIPE)
 
     def set_next_input(self, text):
         """Send the specified text to the frontend to be presented at the next
