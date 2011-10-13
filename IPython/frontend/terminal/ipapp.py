@@ -215,6 +215,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         kernel = ("IPython.zmq.ipkernel.IPKernelApp",
             "Start a kernel without an attached frontend."
         ),
+        zmq=('IPython.frontend.zmqterminal.app.ZMQTerminalIPythonApp',
+            """Launch two-process Terminal session with 0MQ."""
+        ),
     ))
 
     # *do* autocreate requested profile, but don't create the config file.
