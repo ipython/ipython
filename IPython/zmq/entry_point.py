@@ -8,20 +8,27 @@ import os
 import socket
 from subprocess import Popen, PIPE
 import sys
+import tempfile
+
+# System library imports
+from zmq.utils import jsonapi as json
+
+# IPython imports
+from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.py3compat import bytes_to_str
 
 # Local imports.
 from parentpoller import ParentPollerWindows
 
-
-def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
-                        ip=None, stdin=None, stdout=None, stderr=None,
-                        executable=None, independent=False, extra_arguments=[]):
-    """ Launches a localhost kernel, binding to the specified ports.
-
+def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
+                         ip=LOCALHOST, key=b''):
+    """Generates a JSON config file, including the selection of random ports.
+    
     Parameters
     ----------
-    code : str,
-        A string of Python code that imports and executes a kernel entry point.
+
+    fname : unicode
+        The path to the file to write
 
     shell_port : int, optional
         The port to use for XREP channel.
@@ -38,27 +45,14 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
     ip  : str, optional
         The ip address the kernel will bind to.
 
-    stdin, stdout, stderr : optional (default None)
-        Standards streams, as defined in subprocess.Popen.
+    key : str, optional
+        The Session key used for HMAC authentication.
 
-    executable : str, optional (default sys.executable)
-        The Python executable to use for the kernel process.
-
-    independent : bool, optional (default False)
-        If set, the kernel process is guaranteed to survive if this process
-        dies. If not set, an effort is made to ensure that the kernel is killed
-        when this process dies. Note that in this case it is still good practice
-        to kill kernels manually before exiting.
-
-    extra_arguments = list, optional
-        A list of extra arguments to pass when executing the launch code.
-
-    Returns
-    -------
-    A tuple of form:
-        (kernel_process, shell_port, iopub_port, stdin_port, hb_port)
-    where kernel_process is a Popen object and the ports are integers.
     """
+    # default to temporary connector file
+    if not fname:
+        fname = tempfile.mktemp('.json')
+    
     # Find open ports as necessary.
     ports = []
     ports_needed = int(shell_port <= 0) + int(iopub_port <= 0) + \
@@ -79,15 +73,62 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
         stdin_port = ports.pop(0)
     if hb_port <= 0:
         hb_port = ports.pop(0)
+    
+    cfg = dict( shell_port=shell_port,
+                iopub_port=iopub_port,
+                stdin_port=stdin_port,
+                hb_port=hb_port,
+              )
+    cfg['ip'] = ip
+    cfg['key'] = bytes_to_str(key)
+    
+    with open(fname, 'wb') as f:
+        f.write(json.dumps(cfg, indent=2))
+    
+    return fname, cfg
+    
 
+def base_launch_kernel(code, fname, stdin=None, stdout=None, stderr=None,
+                        executable=None, independent=False, extra_arguments=[]):
+    """ Launches a localhost kernel, binding to the specified ports.
+
+    Parameters
+    ----------
+    code : str,
+        A string of Python code that imports and executes a kernel entry point.
+
+    stdin, stdout, stderr : optional (default None)
+        Standards streams, as defined in subprocess.Popen.
+
+    fname : unicode, optional
+        The JSON connector file, containing ip/port/hmac key information.
+
+    key : str, optional
+        The Session key used for HMAC authentication.
+
+    executable : str, optional (default sys.executable)
+        The Python executable to use for the kernel process.
+
+    independent : bool, optional (default False)
+        If set, the kernel process is guaranteed to survive if this process
+        dies. If not set, an effort is made to ensure that the kernel is killed
+        when this process dies. Note that in this case it is still good practice
+        to kill kernels manually before exiting.
+
+    extra_arguments = list, optional
+        A list of extra arguments to pass when executing the launch code.
+
+    Returns
+    -------
+    A tuple of form:
+        (kernel_process, shell_port, iopub_port, stdin_port, hb_port)
+    where kernel_process is a Popen object and the ports are integers.
+    """
+    
     # Build the kernel launch command.
     if executable is None:
         executable = sys.executable
-    arguments = [ executable, '-c', code, '--shell=%i'%shell_port,
-                  '--iopub=%i'%iopub_port, '--stdin=%i'%stdin_port,
-                  '--hb=%i'%hb_port ]
-    if ip is not None:
-        arguments.append('--ip=%s'%ip)
+    arguments = [ executable, '-c', code, '-f', fname ]
     arguments.extend(extra_arguments)
 
     # Popen will fail (sometimes with a deadlock) if stdin, stdout, and stderr
@@ -164,4 +205,4 @@ def base_launch_kernel(code, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0
         if stderr is None:
             proc.stderr.close()
 
-    return proc, shell_port, iopub_port, stdin_port, hb_port
+    return proc

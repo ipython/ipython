@@ -43,6 +43,7 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
+from IPython.config.application import Application, boolean_flag
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
@@ -71,6 +72,7 @@ def squash_unicode(obj):
 #-----------------------------------------------------------------------------
 # globals and defaults
 #-----------------------------------------------------------------------------
+
 key = 'on_unknown' if jsonapi.jsonmod.__name__ == 'jsonlib' else 'default'
 json_packer = lambda obj: jsonapi.dumps(obj, **{key:date_default})
 json_unpacker = lambda s: extract_dates(jsonapi.loads(s))
@@ -81,8 +83,42 @@ pickle_unpacker = pickle.loads
 default_packer = json_packer
 default_unpacker = json_unpacker
 
-
 DELIM=b"<IDS|MSG>"
+
+
+#-----------------------------------------------------------------------------
+# Mixin tools for apps that use Sessions
+#-----------------------------------------------------------------------------
+
+session_aliases = dict(
+    ident = 'Session.session',
+    user = 'Session.username',
+    keyfile = 'Session.keyfile',
+)
+
+session_flags  = {
+    'secure' : ({'Session' : { 'key' : str_to_bytes(str(uuid.uuid4())),
+                            'keyfile' : '' }},
+        """Use HMAC digests for authentication of messages.
+        Setting this flag will generate a new UUID to use as the HMAC key.
+        """),
+    'no-secure' : ({'Session' : { 'key' : b'', 'keyfile' : '' }},
+        """Don't authenticate messages."""),
+}
+
+def default_secure(cfg):
+    """Set the default behavior for a config environment to be secure.
+    
+    If Session.key/keyfile have not been set, set Session.key to
+    a new random UUID.
+    """
+    
+    if 'Session' in cfg:
+        if 'key' in cfg.Session or 'keyfile' in cfg.Session:
+            return
+    # key/keyfile not specified, generate new UUID:
+    cfg.Session.key = str_to_bytes(str(uuid.uuid4()))
+
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -256,6 +292,7 @@ class Session(Configurable):
         help="""Username for the Session. Default is your system username.""")
 
     # message signature related traits:
+    
     key = CBytes(b'', config=True,
         help="""execution key, for extra authentication.""")
     def _key_changed(self, name, old, new):
@@ -272,6 +309,8 @@ class Session(Configurable):
         with open(new, 'rb') as f:
             self.key = f.read().strip()
 
+    # serialization traits:
+    
     pack = Any(default_packer) # the actual packer function
     def _pack_changed(self, name, old, new):
         if not callable(new):

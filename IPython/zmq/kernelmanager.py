@@ -16,27 +16,30 @@ TODO
 #-----------------------------------------------------------------------------
 
 # Standard library imports.
-import atexit
 import errno
 from Queue import Queue, Empty
 from subprocess import Popen
+import os
 import signal
 import sys
 from threading import Thread
 import time
-import logging
 
 # System library imports.
 import zmq
 from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
+from zmq.utils import jsonapi as json
 
 # Local imports.
 from IPython.config.loader import Config
-from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
-from IPython.utils.traitlets import HasTraits, Any, Instance, Type, TCPAddress
-from session import Session, Message
+from IPython.utils.traitlets import (
+    HasTraits, Any, Instance, Type, Unicode, Int, Bool
+)
+from IPython.utils.py3compat import str_to_bytes
+from IPython.zmq.entry_point import write_connection_file
+from session import Session
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -705,10 +708,12 @@ class KernelManager(HasTraits):
     kernel = Instance(Popen)
 
     # The addresses for the communication channels.
-    shell_address = TCPAddress((LOCALHOST, 0))
-    sub_address = TCPAddress((LOCALHOST, 0))
-    stdin_address = TCPAddress((LOCALHOST, 0))
-    hb_address = TCPAddress((LOCALHOST, 0))
+    connection_file = Unicode('')
+    ip = Unicode(LOCALHOST)
+    shell_port = Int(0)
+    iopub_port = Int(0)
+    stdin_port = Int(0)
+    hb_port = Int(0)
 
     # The classes to use for the various channels.
     shell_channel_class = Type(ShellSocketChannel)
@@ -722,13 +727,22 @@ class KernelManager(HasTraits):
     _sub_channel = Any
     _stdin_channel = Any
     _hb_channel = Any
+    _connection_file_written=Bool(False)
 
     def __init__(self, **kwargs):
         super(KernelManager, self).__init__(**kwargs)
         if self.session is None:
             self.session = Session(config=self.config)
-        # Uncomment this to try closing the context.
-        # atexit.register(self.context.term)
+    
+    def __del__(self):
+        if self._connection_file_written:
+            # cleanup connection files on full shutdown of kernel we started
+            self._connection_file_written = False
+            try:
+                os.remove(self.connection_file)
+            except IOError:
+                pass
+
 
     #--------------------------------------------------------------------------
     # Channel management methods:
@@ -775,7 +789,35 @@ class KernelManager(HasTraits):
     #--------------------------------------------------------------------------
     # Kernel process management methods:
     #--------------------------------------------------------------------------
-
+    
+    def load_connection_file(self):
+        """load connection info from JSON dict in self.connection_file"""
+        with open(self.connection_file) as f:
+            cfg = json.loads(f.read())
+        
+        self.ip = cfg['ip']
+        self.shell_port = cfg['shell_port']
+        self.stdin_port = cfg['stdin_port']
+        self.iopub_port = cfg['iopub_port']
+        self.hb_port = cfg['hb_port']
+        self.session.key = str_to_bytes(cfg['key'])
+    
+    def write_connection_file(self):
+        """write connection info to JSON dict in self.connection_file"""
+        if self._connection_file_written:
+            return
+        self.connection_file,cfg = write_connection_file(self.connection_file,
+            ip=self.ip, key=self.session.key,
+            stdin_port=self.stdin_port, iopub_port=self.iopub_port,
+            shell_port=self.shell_port, hb_port=self.hb_port)
+        # write_connection_file also sets default ports:
+        self.shell_port = cfg['shell_port']
+        self.stdin_port = cfg['stdin_port']
+        self.iopub_port = cfg['iopub_port']
+        self.hb_port = cfg['hb_port']
+        
+        self._connection_file_written = True
+    
     def start_kernel(self, **kw):
         """Starts a kernel process and configures the manager to use it.
 
@@ -795,15 +837,15 @@ class KernelManager(HasTraits):
         **kw : optional
              See respective options for IPython and Python kernels.
         """
-        shell, sub, stdin, hb = self.shell_address, self.sub_address, \
-            self.stdin_address, self.hb_address
-        if shell[0] not in LOCAL_IPS or sub[0] not in LOCAL_IPS or \
-                stdin[0] not in LOCAL_IPS or hb[0] not in LOCAL_IPS:
+        if self.ip not in LOCAL_IPS:
             raise RuntimeError("Can only launch a kernel on a local interface. "
                                "Make sure that the '*_address' attributes are "
                                "configured properly. "
                                "Currently valid addresses are: %s"%LOCAL_IPS
                                )
+        
+        # write connection file / get default ports
+        self.write_connection_file()
 
         self._launch_args = kw.copy()
         launch_kernel = kw.pop('launcher', None)
@@ -812,13 +854,7 @@ class KernelManager(HasTraits):
                 from ipkernel import launch_kernel
             else:
                 from pykernel import launch_kernel
-        self.kernel, xrep, pub, req, _hb = launch_kernel(
-            shell_port=shell[1], iopub_port=sub[1],
-            stdin_port=stdin[1], hb_port=hb[1], **kw)
-        self.shell_address = (shell[0], xrep)
-        self.sub_address = (sub[0], pub)
-        self.stdin_address = (stdin[0], req)
-        self.hb_address = (hb[0], _hb)
+        self.kernel = launch_kernel(fname=self.connection_file, **kw)
 
     def shutdown_kernel(self, restart=False):
         """ Attempts to the stop the kernel process cleanly. If the kernel
@@ -846,6 +882,14 @@ class KernelManager(HasTraits):
             # OK, we've waited long enough.
             if self.has_kernel:
                 self.kill_kernel()
+
+        if not restart and self._connection_file_written:
+            # cleanup connection files on full shutdown of kernel we started
+            self._connection_file_written = False
+            try:
+                os.remove(self.connection_file)
+            except IOError:
+                pass
 
     def restart_kernel(self, now=False, **kw):
         """Restarts a kernel with the arguments that were used to launch it.
@@ -967,7 +1011,7 @@ class KernelManager(HasTraits):
         if self._shell_channel is None:
             self._shell_channel = self.shell_channel_class(self.context,
                                                          self.session,
-                                                         self.shell_address)
+                                                         (self.ip, self.shell_port))
         return self._shell_channel
 
     @property
@@ -976,7 +1020,7 @@ class KernelManager(HasTraits):
         if self._sub_channel is None:
             self._sub_channel = self.sub_channel_class(self.context,
                                                        self.session,
-                                                       self.sub_address)
+                                                       (self.ip, self.iopub_port))
         return self._sub_channel
 
     @property
@@ -985,7 +1029,7 @@ class KernelManager(HasTraits):
         if self._stdin_channel is None:
             self._stdin_channel = self.stdin_channel_class(self.context,
                                                        self.session,
-                                                       self.stdin_address)
+                                                       (self.ip, self.stdin_port))
         return self._stdin_channel
 
     @property
@@ -995,5 +1039,5 @@ class KernelManager(HasTraits):
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(self.context,
                                                        self.session,
-                                                       self.hb_address)
+                                                       (self.ip, self.hb_port))
         return self._hb_channel
