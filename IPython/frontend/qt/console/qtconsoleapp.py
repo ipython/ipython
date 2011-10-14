@@ -17,6 +17,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
+import json
 import os
 import signal
 import sys
@@ -24,7 +25,6 @@ import sys
 # System library imports
 from IPython.external.qt import QtGui
 from pygments.styles import get_all_styles
-from zmq.utils import jsonapi as json
 
 # Local imports
 from IPython.config.application import boolean_flag
@@ -373,7 +373,11 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         # should load_connection_file only be used for existing?
         # as it is now, this allows reusing ports if an existing
         # file is requested
-        self.load_connection_file()
+        try:
+            self.load_connection_file()
+        except Exception:
+            self.log.error("Failed to load connection file: %r", self.connection_file, exc_info=True)
+            self.exit(1)
     
     def load_connection_file(self):
         """load ip/port/hmac config from JSON connection file"""

@@ -16,12 +16,12 @@ Authors
 #-----------------------------------------------------------------------------
 
 # Standard library imports.
+import json
 import os
 import sys
 
 # System library imports.
 import zmq
-from zmq.utils import jsonapi as json
 
 # IPython imports.
 from IPython.core.ultratb import FormattedTB
@@ -192,8 +192,11 @@ class KernelApp(BaseIPythonApplication):
     def init_connection_file(self):
         if not self.connection_file:
             self.connection_file = "kernel-%s.json"%os.getpid()
-        
-        self.load_connection_file()
+        try:
+            self.load_connection_file()
+        except Exception:
+            self.log.error("Failed to load connection file: %r", self.connection_file, exc_info=True)
+            self.exit(1)
     
     def init_sockets(self):
         # Create a context, a session, and the kernel sockets.
