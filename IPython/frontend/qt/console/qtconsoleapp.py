@@ -339,148 +339,115 @@ class MainWindow(QtGui.QMainWindow):
         # sould wrap every line of the following block into a try/except,
         # as we are not sure of instanciating a _frontend which support all
         # theses actions, but there might be a better way
-        try:
-            self.print_action = QtGui.QAction("&Print",
-                self,
-                shortcut="Ctrl+P",
-                triggered=self.print_action_active_frontend)
-            self.file_menu.addAction(self.print_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (print), skipping")
+        self.print_action = QtGui.QAction("&Print",
+            self,
+            shortcut="Ctrl+P",
+            triggered=self.print_action_active_frontend)
+        self.file_menu.addAction(self.print_action)
 
-        try:
-            self.export_action=QtGui.QAction("E&xport",
-                self,
-                shortcut="Ctrl+S",
-                triggered=self.export_action_active_frontend
-                )
-            self.file_menu.addAction(self.export_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (Export), skipping")
+        self.export_action=QtGui.QAction("E&xport",
+            self,
+            shortcut="Ctrl+S",
+            triggered=self.export_action_active_frontend
+            )
+        self.file_menu.addAction(self.export_action)
 
-        try:
-            self.select_all_action = QtGui.QAction("Select &All",
-                self,
-                shortcut="Ctrl+A",
-                triggered=self.select_all_active_frontend
-                )
-            self.file_menu.addAction(self.select_all_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (select all), skipping")
+        self.select_all_action = QtGui.QAction("Select &All",
+            self,
+            shortcut="Ctrl+A",
+            triggered=self.select_all_active_frontend
+            )
+        self.file_menu.addAction(self.select_all_action)
 
-        try:
-            self.undo_action = QtGui.QAction("&Undo",
-                self,
-                shortcut="Ctrl+Z",
-                statusTip="Undo last action if possible",
-                triggered=self.undo_active_frontend
-                )
-            self.edit_menu.addAction(self.undo_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (undo), skipping")
+        self.undo_action = QtGui.QAction("&Undo",
+            self,
+            shortcut="Ctrl+Z",
+            statusTip="Undo last action if possible",
+            triggered=self.undo_active_frontend
+            )
+        self.edit_menu.addAction(self.undo_action)
 
-        try:
-            self.redo_action = QtGui.QAction("&Redo",
-                self,
-                shortcut="Ctrl+Shift+Z",
-                statusTip="Redo last action if possible",
-                triggered=self.redo_active_frontend)
-            self.edit_menu.addAction(self.redo_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (redo), skipping")
+        self.redo_action = QtGui.QAction("&Redo",
+            self,
+            shortcut="Ctrl+Shift+Z",
+            statusTip="Redo last action if possible",
+            triggered=self.redo_active_frontend)
+        self.edit_menu.addAction(self.redo_action)
 
-        try:
-            self.increase_font_size = QtGui.QAction("&Increase Font Size",
-                self,
-                shortcut="Ctrl++",
-                triggered=self.increase_font_size_active_frontend
-                )
-            self.font_menu.addAction(self.increase_font_size)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (increase font size), skipping")
+        self.increase_font_size = QtGui.QAction("&Increase Font Size",
+            self,
+            shortcut="Ctrl++",
+            triggered=self.increase_font_size_active_frontend
+            )
+        self.font_menu.addAction(self.increase_font_size)
 
-        try:
-            self.decrease_font_size = QtGui.QAction("&Decrease Font Size",
-                self,
-                shortcut="Ctrl+-",
-                triggered=self.decrease_font_size_active_frontend
-                )
-            self.font_menu.addAction(self.decrease_font_size)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (decrease font size), skipping")
+        self.decrease_font_size = QtGui.QAction("&Decrease Font Size",
+            self,
+            shortcut="Ctrl+-",
+            triggered=self.decrease_font_size_active_frontend
+            )
+        self.font_menu.addAction(self.decrease_font_size)
 
-        try:
-            self.reset_font_size = QtGui.QAction("&Reset Font Size",
-                self,
-                shortcut="Ctrl+0",
-                triggered=self.reset_font_size_active_frontend
-                )
-            self.font_menu.addAction(self.reset_font_size)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (reset font size), skipping")
+        self.reset_font_size = QtGui.QAction("&Reset Font Size",
+            self,
+            shortcut="Ctrl+0",
+            triggered=self.reset_font_size_active_frontend
+            )
+        self.font_menu.addAction(self.reset_font_size)
 
-        try:
-            self.reset_action = QtGui.QAction("&Reset",
-                    self,
-                    statusTip="Clear all varible from workspace",
-                    triggered=self.reset_magic_active_frontend)
-            self.magic_menu.addAction(self.reset_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (reset), skipping")
+        self.reset_action = QtGui.QAction("&Reset",
+            self,
+            statusTip="Clear all varible from workspace",
+            triggered=self.reset_magic_active_frontend)
+        self.magic_menu.addAction(self.reset_action)
 
-        try:
-            self.history_action = QtGui.QAction("&History",
-                    self,
-                    statusTip="show command history",
-                    triggered=self.history_magic_active_frontend)
-            self.magic_menu.addAction(self.history_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (history), skipping")
+        self.history_action = QtGui.QAction("&History",
+            self,
+            statusTip="show command history",
+            triggered=self.history_magic_active_frontend)
+        self.magic_menu.addAction(self.history_action)
 
-        try:
-            self.save_action = QtGui.QAction("E&xport History ",
-                    self,
-                    statusTip="Export History as Python File",
-                    triggered=self.save_magic_active_frontend)
-            self.magic_menu.addAction(self.save_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (save), skipping")
+        self.save_action = QtGui.QAction("E&xport History ",
+            self,
+            statusTip="Export History as Python File",
+            triggered=self.save_magic_active_frontend)
+        self.magic_menu.addAction(self.save_action)
 
-        try:
-            self.clear_action = QtGui.QAction("&Clear",
-                    self,
-                    statusTip="Clear the console",
-                    triggered=self.clear_magic_active_frontend)
-            self.magic_menu.addAction(self.clear_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action, skipping")
+        self.clear_action = QtGui.QAction("&Clear",
+            self,
+            statusTip="Clear the console",
+            triggered=self.clear_magic_active_frontend)
+        self.magic_menu.addAction(self.clear_action)
 
-        try:
-            self.who_action = QtGui.QAction("&Who",
-                    self,
-                    statusTip="List interactive variable",
-                    triggered=self.who_magic_active_frontend)
-            self.magic_menu.addAction(self.who_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (who), skipping")
+        self.who_action = QtGui.QAction("&Who",
+            self,
+            statusTip="List interactive variable",
+            triggered=self.who_magic_active_frontend)
+        self.magic_menu.addAction(self.who_action)
 
-        try:
-            self.who_ls_action = QtGui.QAction("Wh&o ls",
-                    self,
-                    statusTip="Return a list of interactive variable",
-                    triggered=self.who_ls_magic_active_frontend)
-            self.magic_menu.addAction(self.who_ls_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (who_ls), skipping")
+        self.who_ls_action = QtGui.QAction("Wh&o ls",
+            self,
+            statusTip="Return a list of interactive variable",
+            triggered=self.who_ls_magic_active_frontend)
+        self.magic_menu.addAction(self.who_ls_action)
 
-        try:
-            self.whos_action = QtGui.QAction("Who&s",
-                    self,
-                    statusTip="List interactive variable with detail",
-                    triggered=self.whos_magic_active_frontend)
-            self.magic_menu.addAction(self.whos_action)
-        except AttributeError:
-            self.log.error("trying to add unexisting action (whos), skipping")
+        self.whos_action = QtGui.QAction("Who&s",
+            self,
+            statusTip="List interactive variable with detail",
+            triggered=self.whos_magic_active_frontend)
+        self.magic_menu.addAction(self.whos_action)
+
+        self.intro_active_frontend_action = QtGui.QAction("intro",
+            self,
+            triggered=self.intro_active_frontend
+            )
+        self.help_menu.addAction(self.intro_active_frontend_action)
+
+        self.guiref_active_frontend_action = QtGui.QAction("guiref",
+            self,
+            triggered=self.guiref_active_frontend
+            )
+        self.help_menu.addAction(self.guiref_active_frontend_action)
 
     def undo_active_frontend(self):
         self.active_frontend.undo()
@@ -517,6 +484,12 @@ class MainWindow(QtGui.QMainWindow):
         self.active_frontend.decrease_font_size.trigger()
     def reset_font_size_active_frontend(self):
         self.active_frontend.reset_font_size.trigger()
+
+    def guiref_active_frontend(self):
+        self.active_frontend.execute("%guiref")
+
+    def intro_active_frontend(self):
+        self.active_frontend.execute("?")
     #---------------------------------------------------------------------------
     # QWidget interface
     #---------------------------------------------------------------------------
