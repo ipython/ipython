@@ -156,7 +156,7 @@ div#notebook {
     overflow-x: auto;
     width: 100%;
     /* This spaces the cell away from the edge of the notebook area */
-    padding: 15px 15px 15px 15px;
+    padding: 5px 5px 15px 5px;
     margin: 0px
     background-color: white;
 }
@@ -172,9 +172,9 @@ div#pager {
 
 div.cell {
     width: 100%;
-    padding: 5px;
+    padding: 5px 5px 5px 0px;
     /* This acts as a spacer between cells, that is outside the border */
-    margin: 5px 0px 5px 0px;
+    margin: 2px 0px 2px 0px;
 }
 
 div.code_cell {
