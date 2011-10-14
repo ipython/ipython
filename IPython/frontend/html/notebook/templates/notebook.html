@@ -12,11 +12,14 @@
 
     <!-- <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" charset="utf-8"></script> -->
     <script type='text/javascript' src='static/mathjax/MathJax.js?config=TeX-AMS_HTML' charset='utf-8'></script>
-    <script language="Javascript">
+    <script type="text/javascript">
     function CheckMathJax(){
+        var div=document.getElementById("MathJaxFetchingWarning")
         if(window.MathJax){
-            div=document.getElementById("MatjaxFetchingWarning")
             document.body.removeChild(div)
+        }
+        else{
+           div.style.display = "block";
         }
     }
     if (typeof MathJax == 'undefined') {
@@ -55,7 +58,7 @@
     <span id="kernel_status">Idle</span>
 </div>
 
-<div id="MatjaxFetchingWarning" style="width:80%;margin:auto;padding-top:20%;text-align:justify">
+<div id="MathJaxFetchingWarning" style="width:80%;margin:auto;padding-top:20%;text-align:justify;display:none">
     <p style="font-size:26px;">There was an issues trying to fetch MathJax.js from the internet.</p>
     <p>You may want to consider running the following in order to be able to use the Notebook.
         <pre style="background-color:lightblue;border:thin silver solid">
