@@ -21,6 +21,8 @@ import json
 import os
 import signal
 import sys
+import webbrowser
+from getpass import getpass
 
 # System library imports
 from IPython.external.qt import QtGui,QtCore
@@ -327,6 +329,7 @@ class MainWindow(QtGui.QMainWindow):
         self.font_menu = self.menuBar().addMenu("F&ont")
         self.window_menu = self.menuBar().addMenu("&Window")
         self.magic_menu = self.menuBar().addMenu("&Magic")
+        self.all_magic_menu = self.magic_menu.addMenu("&All Magic")
 
         # please keep the Help menu in Mac Os even if empty. It will
         # automatically contain a search field to search inside menus and
@@ -437,17 +440,48 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.whos_magic_active_frontend)
         self.magic_menu.addAction(self.whos_action)
 
-        self.intro_active_frontend_action = QtGui.QAction("intro",
+        self.intro_active_frontend_action = QtGui.QAction("Intro",
             self,
             triggered=self.intro_active_frontend
             )
         self.help_menu.addAction(self.intro_active_frontend_action)
 
-        self.guiref_active_frontend_action = QtGui.QAction("guiref",
+        self.guiref_active_frontend_action = QtGui.QAction("Gui references",
             self,
             triggered=self.guiref_active_frontend
             )
         self.help_menu.addAction(self.guiref_active_frontend_action)
+
+        self.quickref_active_frontend_action = QtGui.QAction("Quick references",
+            self,
+            triggered=self.quickref_active_frontend
+            )
+        self.help_menu.addAction(self.quickref_active_frontend_action)
+
+        magiclist=["%alias", "%autocall", "%automagic", "%bookmark", "%cd", "%clear",
+            "%colors", "%debug", "%dhist", "%dirs", "%doctest_mode", "%ed", "%edit", "%env", "%gui",
+            "%guiref", "%hist", "%history", "%install_default_config", "%install_profiles",
+            "%less", "%load_ext", "%loadpy", "%logoff", "%logon", "%logstart", "%logstate",
+            "%logstop", "%lsmagic", "%macro", "%magic", "%man", "%more", "%notebook", "%page",
+            "%pastebin", "%pdb", "%pdef", "%pdoc", "%pfile", "%pinfo", "%pinfo2", "%popd", "%pprint",
+            "%precision", "%profile", "%prun", "%psearch", "%psource", "%pushd", "%pwd", "%pycat",
+            "%pylab", "%quickref", "%recall", "%rehashx", "%reload_ext", "%rep", "%rerun",
+            "%reset", "%reset_selective", "%run", "%save", "%sc", "%sx", "%tb", "%time", "%timeit",
+            "%unalias", "%unload_ext", "%who", "%who_ls", "%whos", "%xdel", "%xmode"]
+
+        def make_dynamic_magic(i):
+                def inner_dynamic_magic():
+                    self.active_frontend.execute(i)
+                inner_dynamic_magic.__name__ = "dynamics_magic_%s" % i
+                return inner_dynamic_magic
+
+        for magic in magiclist:
+            xaction = QtGui.QAction(magic,
+                self,
+                triggered=make_dynamic_magic(magic)
+                )
+            self.all_magic_menu.addAction(xaction)
+
 
     def undo_active_frontend(self):
         self.active_frontend.undo()
@@ -499,6 +533,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def intro_active_frontend(self):
         self.active_frontend.execute("?")
+
+    def quickref_active_frontend(self):
+        self.active_frontend.execute("%quickref")
     #---------------------------------------------------------------------------
     # QWidget interface
     #---------------------------------------------------------------------------
@@ -1029,10 +1066,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             self.window.showNormal()
 
     def _open_online_help(self):
-        QtGui.QDesktopServices.openUrl(
-            QtCore.QUrl("http://ipython.org/documentation.html",
-            QtCore.QUrl.TolerantMode)
-            )
+        filename="http://ipython.org/ipython-doc/stable/index.html"
+        webbrowser.open(filename, new=1, autoraise=True)
 
     def toggleMaximized(self):
         if not self.window.isMaximized():
