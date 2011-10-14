@@ -372,6 +372,18 @@ def get_ipython_module_path(module_str):
     the_path = the_path.replace('.pyo', '.py')
     return py3compat.cast_unicode(the_path, fs_encoding)
 
+def locate_profile(profile='default'):
+    """Find the path to the folder associated with a given profile.
+    
+    I.e. find $IPYTHON_DIR/profile_whatever.
+    """
+    from IPython.core.profiledir import ProfileDir, ProfileDirError
+    try:
+        pd = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), profile)
+    except ProfileDirError:
+        # IOError makes more sense when people are expecting a path
+        raise IOError("Couldn't find profile %r" % profile)
+    return pd.location
 
 def expand_path(s):
     """Expand $VARS and ~names in a string, like a shell

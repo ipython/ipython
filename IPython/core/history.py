@@ -25,6 +25,7 @@ from IPython.config.configurable import Configurable
 
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
+from IPython.utils.path import locate_profile
 from IPython.utils.traitlets import Bool, Dict, Instance, Int, CInt, List, Unicode
 from IPython.utils.warn import warn
 
@@ -43,10 +44,20 @@ class HistoryAccessor(Configurable):
     # The SQLite database
     db = Instance(sqlite3.Connection)
     
-    def __init__(self, hist_file=u'', shell=None, config=None, **traits):
+    def __init__(self, profile='default', hist_file=u'', shell=None, config=None, **traits):
         """Create a new history accessor.
         
-        hist_file must be given, either as an argument or through config.
+        Parameters
+        ----------
+        profile : str
+          The name of the profile from which to open history.
+        hist_file : str
+          Path to an SQLite history database stored by IPython. If specified,
+          hist_file overrides profile.
+        shell :
+          InteractiveShell object, for use by HistoryManager subclass
+        config :
+          Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.
         super(HistoryAccessor, self).__init__(shell=shell, config=config,
@@ -54,7 +65,7 @@ class HistoryAccessor(Configurable):
 
         if self.hist_file == u'':
             # No one has set the hist_file, yet.
-            self.hist_file = self._get_hist_file_name(hist_file)
+            self.hist_file = self._get_hist_file_name(profile)
 
         try:
             self.init_db()
@@ -70,9 +81,18 @@ class HistoryAccessor(Configurable):
                 # The hist_file is probably :memory: or something else.
                 raise
     
-    def _get_hist_file_name(self, hist_file=None):
-        "Override to produce a default history file name."
-        raise NotImplementedError("No default history file")
+    def _get_hist_file_name(self, profile='default'):
+        """Find the history file for the given profile name.
+        
+        This is overridden by the HistoryManager subclass, to use the shell's
+        active profile.
+        
+        Parameters
+        ----------
+        profile : str
+          The name of a profile which has a history file.
+        """
+        return os.path.join(locate_profile(profile), 'history.sqlite')
     
     def init_db(self):
         """Connect to the database, and create tables if necessary."""
@@ -332,7 +352,11 @@ class HistoryManager(HistoryAccessor):
 
         self.new_session()
     
-    def _get_hist_file_name(self, hist_file=None):
+    def _get_hist_file_name(self, profile=None):
+        """Get default history file name based on the Shell's profile.
+        
+        The profile parameter is ignored, but must exist for compatibility with
+        the parent class."""
         profile_dir = self.shell.profile_dir.location
         return os.path.join(profile_dir, 'history.sqlite')
     
