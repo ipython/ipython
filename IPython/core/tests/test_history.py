@@ -112,10 +112,10 @@ def test_extract_hist_ranges():
 def test_magic_rerun():
     """Simple test for %rerun (no args -> rerun last line)"""
     ip = get_ipython()
-    ip.run_cell("a = 10")
-    ip.run_cell("a += 1")
+    ip.run_cell("a = 10", store_history=True)
+    ip.run_cell("a += 1", store_history=True)
     nt.assert_equal(ip.user_ns["a"], 11)
-    ip.run_cell("%rerun")
+    ip.run_cell("%rerun", store_history=True)
     nt.assert_equal(ip.user_ns["a"], 12)
 
 def test_timestamp_type():

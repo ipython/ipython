@@ -73,11 +73,11 @@ class InteractiveShellTestCase(unittest.TestCase):
         "Ending a line with semicolon should not cache the returned object (GH-307)"
         ip = get_ipython()
         oldlen = len(ip.user_ns['Out'])
-        a = ip.run_cell('1;')
+        a = ip.run_cell('1;', store_history=True)
         newlen = len(ip.user_ns['Out'])
         self.assertEquals(oldlen, newlen)
         #also test the default caching behavior
-        ip.run_cell('1')
+        ip.run_cell('1', store_history=True)
         newlen = len(ip.user_ns['Out'])
         self.assertEquals(oldlen+1, newlen)
 
@@ -85,7 +85,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         "Verify that In variable grows with user input (GH-284)"
         ip = get_ipython()
         oldlen = len(ip.user_ns['In'])
-        ip.run_cell('1;')
+        ip.run_cell('1;', store_history=True)
         newlen = len(ip.user_ns['In'])
         self.assertEquals(oldlen+1, newlen)
         self.assertEquals(ip.user_ns['In'][-1],'1;')

@@ -171,7 +171,7 @@ def test_macro_run():
     cmds = ["a=10", "a+=1", py3compat.doctest_refactor_print("print a"),
                                                             "%macro test 2-3"]
     for cmd in cmds:
-        ip.run_cell(cmd)
+        ip.run_cell(cmd, store_history=True)
     nt.assert_equal(ip.user_ns["test"].value,
                             py3compat.doctest_refactor_print("a+=1\nprint a\n"))
     with tt.AssertPrints("12"):

@@ -2252,7 +2252,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
 
-    def run_cell(self, raw_cell, store_history=True):
+    def run_cell(self, raw_cell, store_history=False):
         """Run a complete IPython cell.
 
         Parameters
