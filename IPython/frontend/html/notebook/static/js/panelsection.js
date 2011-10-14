@@ -164,6 +164,9 @@ var IPython = (function (IPython) {
         this.content.find('#to_markdown').click(function () {
             IPython.notebook.to_markdown();
         });
+        this.content.find('#to_rst').click(function () {
+            IPython.notebook.to_rst();
+        });
         this.content.find('#run_selected_cell').click(function () {
             IPython.notebook.execute_selected_cell();
         });

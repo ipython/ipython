@@ -58,6 +58,12 @@ class PyReader(NotebookReader):
                     cells.append(cell)
                 state = u'markdowncell'
                 cell_lines = []
+            elif line.startswith(u'# <rstdowncell>'):
+                cell = self.new_cell(state, cell_lines)
+                if cell is not None:
+                    cells.append(cell)
+                state = u'rst'
+                cell_lines = []
             else:
                 cell_lines.append(line)
         if cell_lines and state == u'codecell':
@@ -82,6 +88,10 @@ class PyReader(NotebookReader):
             text = self._remove_comments(lines)
             if text:
                 return new_text_cell(u'markdown',source=text)
+        elif state == u'rstcell':
+            text = self._remove_comments(lines)
+            if text:
+                return new_text_cell(u'rst',source=text)
 
     def _remove_comments(self, lines):
         new_lines = []
@@ -130,6 +140,12 @@ class PyWriter(NotebookWriter):
                     input = cell.get(u'source')
                     if input is not None:
                         lines.extend([u'# <markdowncell>',u''])
+                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.append(u'')
+                elif cell.cell_type == u'rst':
+                    input = cell.get(u'source')
+                    if input is not None:
+                        lines.extend([u'# <rstcell>',u''])
                         lines.extend([u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
         lines.append('')

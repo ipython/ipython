@@ -223,8 +223,9 @@ var IPython = (function (IPython) {
 
     var RSTCell = function (notebook) {
         this.placeholder = "\u0000Type *ReStructured Text* and LaTeX: $\\alpha^2$";
-        IPython.TextCell.apply(this, arguments);
+        this.rendered = false;
         this.cell_type = 'rst';
+        IPython.TextCell.apply(this, arguments);
     };
 
 
@@ -232,21 +233,22 @@ var IPython = (function (IPython) {
 
 
     RSTCell.prototype.render = function () {
-        if (this.rendered === false) {  
+        if (this.rendered === false) {
             var text = this.get_source();
             if (text === "") {text = this.placeholder;};
             var settings = {
                 processData : false,
+                dataType: 'html',
                 cache : false,
                 type : "POST",
                 data : text,
                 headers : {'Content-Type': 'application/x-rst'},
-                success : $.proxy(this.handle_render,this)
+                success : $.proxy(this.handle_render, this)
             };
             $.ajax("/rstservice/render", settings);
             this.element.find('div.text_cell_input').hide();
-            this.element.find("div.text_cell_render").show();
             this.set_rendered("Rendering...");
+            this.element.find("div.text_cell_render").show();
         };
     };
 
