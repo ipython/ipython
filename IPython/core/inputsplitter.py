@@ -760,7 +760,8 @@ class IPythonInputSplitter(InputSplitter):
             push = super(IPythonInputSplitter, self).push
             for line in lines_list:
                 if self._is_complete or not self._buffer or \
-                   (self._buffer and self._buffer[-1].rstrip().endswith(':')):
+                   (self._buffer and (self._buffer[-1].rstrip().endswith(':') or\
+                     self._buffer[-1].rstrip().endswith(','))):
                     for f in transforms:
                         line = f(line)
 
