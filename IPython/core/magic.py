@@ -3246,7 +3246,7 @@ Defaulting color scheme to 'NoColor'"""
         if not par:
             b = textwrap.dedent(block)
             self.user_ns['pasted_block'] = b
-            exec b in self.user_ns
+            self.run_cell(b)
         else:
             self.user_ns[par] = SList(block.splitlines())
             print "Block assigned to '%s'" % par

@@ -171,7 +171,7 @@ def test_macro_run():
     cmds = ["a=10", "a+=1", py3compat.doctest_refactor_print("print a"),
                                                             "%macro test 2-3"]
     for cmd in cmds:
-        ip.run_cell(cmd)
+        ip.run_cell(cmd, store_history=True)
     nt.assert_equal(ip.user_ns["test"].value,
                             py3compat.doctest_refactor_print("a+=1\nprint a\n"))
     with tt.AssertPrints("12"):
@@ -316,6 +316,7 @@ def check_cpaste(code, should_fail=False):
     _ip.user_ns['code_ran'] = False
 
     src = StringIO()
+    src.encoding = None   # IPython expects stdin to have an encoding attribute
     src.write('\n')
     src.write(code)
     src.write('\n--\n')
@@ -325,15 +326,12 @@ def check_cpaste(code, should_fail=False):
     sys.stdin = src
     
     try:
-        _ip.magic('cpaste')
-    except:
+        context = tt.AssertPrints if should_fail else tt.AssertNotPrints
+        with context("Traceback (most recent call last)"):
+                _ip.magic('cpaste')
+        
         if not should_fail:
-            raise AssertionError("Failure not expected : '%s'" %
-                                 code)
-    else:
-        assert _ip.user_ns['code_ran']
-        if should_fail:
-            raise AssertionError("Failure expected : '%s'" % code)
+            assert _ip.user_ns['code_ran']
     finally:
         sys.stdin = stdin_save
 
