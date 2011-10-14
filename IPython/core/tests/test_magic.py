@@ -326,15 +326,12 @@ def check_cpaste(code, should_fail=False):
     sys.stdin = src
     
     try:
-        _ip.magic('cpaste')
-    except:
+        context = tt.AssertPrints if should_fail else tt.AssertNotPrints
+        with context("Traceback (most recent call last)"):
+                _ip.magic('cpaste')
+        
         if not should_fail:
-            raise AssertionError("Failure not expected : '%s'" %
-                                 code)
-    else:
-        assert _ip.user_ns['code_ran']
-        if should_fail:
-            raise AssertionError("Failure expected : '%s'" % code)
+            assert _ip.user_ns['code_ran']
     finally:
         sys.stdin = stdin_save
 
