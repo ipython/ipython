@@ -487,7 +487,7 @@ class TerminalInteractiveShell(InteractiveShell):
     def magic_cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
 
-        You must terminate the block with '--' (two minus-signs) alone on the
+        You must terminate the block with '--' (two minus-signs) or Ctrl-D alone on the
         line. You can also provide your own sentinel with '%paste -s %%' ('%%'
         is the new sentinel for this operation)
 

@@ -3207,11 +3207,15 @@ Defaulting color scheme to 'NoColor'"""
         from IPython.core import interactiveshell
         print "Pasting code; enter '%s' alone on the line to stop." % sentinel
         while True:
-            l = self.shell.raw_input_original(':')
-            if l == sentinel:
+            try:
+                l = self.shell.raw_input_original(':')
+                if l == sentinel:
+                    return
+                else:
+                    yield l
+            except EOFError:
+                print '<EOF>'
                 return
-            else:
-                yield l
 
     def _strip_pasted_lines_for_code(self, raw_lines):
         """ Strip non-code parts of a sequence of lines to return a block of
