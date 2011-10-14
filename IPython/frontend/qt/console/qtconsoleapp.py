@@ -326,6 +326,7 @@ class MainWindow(QtGui.QMainWindow):
         #create menu in the order they should appear in the menu bar
         self.file_menu = self.menuBar().addMenu("&File")
         self.edit_menu = self.menuBar().addMenu("&Edit")
+        self.kernel_menu = self.menuBar().addMenu("&Kernel")
         self.window_menu = self.menuBar().addMenu("&Window")
         self.magic_menu = self.menuBar().addMenu("&Magic")
         self.all_magic_menu = self.magic_menu.addMenu("&All Magic")
@@ -1050,14 +1051,14 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             self.window,
             shortcut="Ctrl+T",
             triggered=self.create_tab_with_new_frontend)
-        self.window.window_menu.addAction(self.tabAndNewKernelAct)
+        self.window.kernel_menu.addAction(self.tabAndNewKernelAct)
 
         self.tabSameKernalAct =QtGui.QAction("Tab with Sa&me kernel",
             self.window,
             shortcut="Ctrl+Shift+T",
             triggered=self.create_tab_attached_to_current_tab_kernel)
-        self.window.window_menu.addAction(self.tabSameKernalAct)
-        self.window.window_menu.addSeparator()
+        self.window.kernel_menu.addAction(self.tabSameKernalAct)
+        self.window.kernel_menu.addSeparator()
 
         self.onlineHelpAct = QtGui.QAction("Open Online &Help",
             self.window,
@@ -1080,9 +1081,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
 
 
             self.window_menu = self.window.window_menu
+            self.kernel_menu = self.window.kernel_menu
 
-            self.window_menu.addAction(self.next_tab_act)
-            self.window_menu.addAction(self.prev_tab_act)
+            self.kernel_menu.addAction(self.next_tab_act)
+            self.kernel_menu.addAction(self.prev_tab_act)
             self.window_menu.addSeparator()
             self.window_menu.addAction(self.minimizeAct)
             self.window_menu.addAction(self.maximizeAct)
