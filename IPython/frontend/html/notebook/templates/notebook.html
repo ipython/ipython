@@ -15,11 +15,10 @@
     <script language="Javascript">
     function CheckMathJax(){
         if(window.MathJax){
-            document.getElementById("MatjaxFetchingWarning").style.visibility='hidden'
+            div=document.getElementById("MatjaxFetchingWarning")
+            document.body.removeChild(div)
         }
     }
-    </script>
-    <script type="text/javascript">
     if (typeof MathJax == 'undefined') {
         console.log("No local MathJax, loading from CDN");
         document.write(unescape("%3Cscript type='text/javascript' src='http://cdn.mathjax.org/mathjax/latest/MathJax.js%3Fconfig=TeX-AMS_HTML' charset='utf-8'%3E%3C/script%3E"));
@@ -56,10 +55,22 @@
     <span id="kernel_status">Idle</span>
 </div>
 
-<div id="MatjaxFetchingWarning">
-    There was an issues trying to fetch MathJax.js from the internet. You might
-    wan't to consider using "install_mathjax()" to be able to use the Notebook
-    fonctionnality offline
+<div id="MatjaxFetchingWarning" style="width:80%;margin:auto;padding-top:20%;text-align:justify">
+    <p style="font-size:26px;">There was an issues trying to fetch MathJax.js from the internet.</p>
+    <p>You may want to consider running the following in order to be able to use the Notebook.
+        <pre style="background-color:lightblue;border:thin silver solid">
+            from IPython.external import mathjax; mathjax.install_mathjax()
+        </pre>
+        Note that this will require a working internet connection when run, and
+        it will try to install MathJax into the directory where you installed
+        IPython. If you installed IPython to a location that requires
+        administrative privileges to write, you will need to make this call as
+        an administrator. On OSX/Linux/Unix, this can be done at the
+        command-line via:
+        <pre style="background-color:lightblue;border:thin silver solid">
+            sudo python -c "from IPython.external import mathjax; mathjax.install_mathjax()"
+        </pre>
+    </p>
 </div>
 
 <div id="main_app">
