@@ -221,11 +221,14 @@ class KernelApp(BaseIPythonApplication):
         # Helper to make it easier to connect to an existing kernel.
         # set log-level to critical, to make sure it is output
         self.log.critical("To connect another client to this kernel, use:")
-        if os.path.dirname(self.connection_file) == self.profile_dir.security_dir:
+        
+        basename = os.path.basename(self.connection_file)
+        if basename == self.connection_file or \
+            os.path.dirname(self.connection_file) == self.profile_dir.security_dir:
             # use shortname
-            tail = os.path.basename(self.connection_file)
+            tail = basename
             if self.profile != 'default':
-                tail += " --profile %s" % self.profile_name
+                tail += " --profile %s" % self.profile
         else:
             tail = self.connection_file
         self.log.critical("--existing %s", tail)
