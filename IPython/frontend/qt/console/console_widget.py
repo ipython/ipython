@@ -620,8 +620,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
             # Remove any trailing newline, which confuses the GUI and forces the
             # user to backspace.
-            if not text:
-                text = QtGui.QApplication.clipboard().text(mode).rstrip()
+            text = QtGui.QApplication.clipboard().text(mode).rstrip()
             self._insert_plain_text_into_buffer(cursor, dedent(text))
 
     def print_(self, printer = None):
@@ -872,17 +871,17 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """
         menu = QtGui.QMenu(self)
 
-        cut_action = menu.addAction('Cut', self.cut)
-        cut_action.setEnabled(self.can_cut())
-        cut_action.setShortcut(QtGui.QKeySequence.Cut)
+        self.cut_action = menu.addAction('Cut', self.cut)
+        self.cut_action.setEnabled(self.can_cut())
+        self.cut_action.setShortcut(QtGui.QKeySequence.Cut)
 
-        copy_action = menu.addAction('Copy', self.copy)
-        copy_action.setEnabled(self.can_copy())
-        copy_action.setShortcut(QtGui.QKeySequence.Copy)
+        self.copy_action = menu.addAction('Copy', self.copy)
+        self.copy_action.setEnabled(self.can_copy())
+        self.copy_action.setShortcut(QtGui.QKeySequence.Copy)
 
-        paste_action = menu.addAction('Paste', self.paste)
-        paste_action.setEnabled(self.can_paste())
-        paste_action.setShortcut(QtGui.QKeySequence.Paste)
+        self.paste_action = menu.addAction('Paste', self.paste)
+        self.paste_action.setEnabled(self.can_paste())
+        self.paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
         menu.addSeparator()
         menu.addAction(self.select_all_action)
