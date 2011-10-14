@@ -326,7 +326,6 @@ class MainWindow(QtGui.QMainWindow):
         #create menu in the order they should appear in the menu bar
         self.file_menu = self.menuBar().addMenu("&File")
         self.edit_menu = self.menuBar().addMenu("&Edit")
-        self.font_menu = self.menuBar().addMenu("F&ont")
         self.window_menu = self.menuBar().addMenu("&Window")
         self.magic_menu = self.menuBar().addMenu("&Magic")
         self.all_magic_menu = self.magic_menu.addMenu("&All Magic")
@@ -362,6 +361,29 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.file_menu.addAction(self.select_all_action)
 
+        self.paste_action = QtGui.QAction("&Paste",
+            self,
+            shortcut=QtGui.QKeySequence.Paste,
+            triggered=self.paste_active_frontend
+            )
+        self.edit_menu.addAction(self.paste_action)
+
+        self.copy_action = QtGui.QAction("&Copy",
+            self,
+            shortcut=QtGui.QKeySequence.Copy,
+            triggered=self.copy_active_frontend
+            )
+        self.edit_menu.addAction(self.copy_action)
+
+        self.cut_action = QtGui.QAction("&Cut",
+            self,
+            shortcut=QtGui.QKeySequence.Cut,
+            triggered=self.cut_active_frontend
+            )
+        self.edit_menu.addAction(self.cut_action)
+
+        self.edit_menu.addSeparator()
+
         self.undo_action = QtGui.QAction("&Undo",
             self,
             shortcut="Ctrl+Z",
@@ -377,26 +399,30 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.redo_active_frontend)
         self.edit_menu.addAction(self.redo_action)
 
+        self.window_menu.addSeparator()
+
         self.increase_font_size = QtGui.QAction("&Increase Font Size",
             self,
             shortcut="Ctrl++",
             triggered=self.increase_font_size_active_frontend
             )
-        self.font_menu.addAction(self.increase_font_size)
+        self.window_menu.addAction(self.increase_font_size)
 
         self.decrease_font_size = QtGui.QAction("&Decrease Font Size",
             self,
             shortcut="Ctrl+-",
             triggered=self.decrease_font_size_active_frontend
             )
-        self.font_menu.addAction(self.decrease_font_size)
+        self.window_menu.addAction(self.decrease_font_size)
 
         self.reset_font_size = QtGui.QAction("&Reset Font Size",
             self,
             shortcut="Ctrl+0",
             triggered=self.reset_font_size_active_frontend
             )
-        self.font_menu.addAction(self.reset_font_size)
+        self.window_menu.addAction(self.reset_font_size)
+
+        self.window_menu.addSeparator()
 
         self.reset_action = QtGui.QAction("&Reset",
             self,
@@ -416,11 +442,12 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.save_magic_active_frontend)
         self.magic_menu.addAction(self.save_action)
 
-        self.clear_action = QtGui.QAction("&Clear",
+        self.clear_action = QtGui.QAction("&Clear Screen",
             self,
+            shortcut='Ctrl+L',
             statusTip="Clear the console",
             triggered=self.clear_magic_active_frontend)
-        self.magic_menu.addAction(self.clear_action)
+        self.window_menu.addAction(self.clear_action)
 
         self.who_action = QtGui.QAction("&Who",
             self,
@@ -482,6 +509,14 @@ class MainWindow(QtGui.QMainWindow):
                 )
             self.all_magic_menu.addAction(xaction)
 
+    def cut_active_frontend(self):
+        self.active_frontend.cut_action.trigger()
+
+    def copy_active_frontend(self):
+        self.active_frontend.copy_action.trigger()
+
+    def paste_active_frontend(self):
+        self.active_frontend.paste_action.trigger()
 
     def undo_active_frontend(self):
         self.active_frontend.undo()
@@ -493,7 +528,7 @@ class MainWindow(QtGui.QMainWindow):
         self.active_frontend.execute("%reset")
 
     def history_magic_active_frontend(self):
-        self.active_frontend.history_magic()
+        self.active_frontend.execute("%history")
 
     def save_magic_active_frontend(self):
         self.active_frontend.save_magic()
@@ -608,7 +643,7 @@ aliases.update(qt_aliases)
 class IPythonQtConsoleApp(BaseIPythonApplication):
     name = 'ipython-qtconsole'
     default_config_file_name='ipython_config.py'
-    
+
     description = """
         The IPython QtConsole.
         
@@ -1012,11 +1047,14 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             statusTip="Toggle between Fullscreen and Normal Size",
             triggered=self.toggleFullScreen)
 
+
+
         self.tabAndNewKernelAct =QtGui.QAction("Tab with &New kernel",
             self.window,
             shortcut="Ctrl+T",
             triggered=self.create_tab_with_new_frontend)
         self.window.window_menu.addAction(self.tabAndNewKernelAct)
+
         self.tabSameKernalAct =QtGui.QAction("Tab with Sa&me kernel",
             self.window,
             shortcut="Ctrl+Shift+T",
@@ -1058,6 +1096,22 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             # if we don't put it in a menu, we add it to the window so
             # that it can still be triggerd by shortcut
             self.window.addAction(self.fullScreenAct)
+
+            # Don't activate toggleMenubar on mac, doen't work,
+            # as toolbar always here
+            self.toggle_menu_bar_act = QtGui.QAction("&Toggle Menu Bar",
+                self.window,
+                shortcut="Ctrl+Meta+H",
+                statusTip="Toggle menubar betwin visible and not",
+                triggered=self.toggle_menu_bar)
+            self.window_menu.addAction(self.toggle_menu_bar_act)
+
+    def toggle_menu_bar(self):
+        menu_bar = self.window.menuBar();
+        if not menu_bar.isVisible():
+            menu_bar.setVisible(False)
+        else:
+            menu_bar.setVisible(True)
 
     def toggleMinimized(self):
         if not self.window.isMinimized():

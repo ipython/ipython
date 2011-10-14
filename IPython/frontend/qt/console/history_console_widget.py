@@ -204,9 +204,6 @@ class HistoryConsoleWidget(ConsoleWidget):
         """
         return self._history[-n:]
 
-    def history_magic(self):
-        self.execute("%history")
-
     def _request_update_session_history_length(self):
         msg_id = self.kernel_manager.shell_channel.execute('',
             silent=True,
