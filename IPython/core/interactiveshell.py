@@ -1585,9 +1585,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
                         stb = self.InteractiveTB.structured_traceback(etype,
                                                 value, tb, tb_offset=tb_offset)
 
+                        self._showtraceback(etype, value, stb)
                         if self.call_pdb:
                             # drop into debugger
                             self.debugger(force=True)
+                        return
 
                 # Actually show the traceback
                 self._showtraceback(etype, value, stb)
