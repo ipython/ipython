@@ -186,6 +186,7 @@ var IPython = (function (IPython) {
         var shortcuts = [
             {key: 'Shift-Enter', help: 'run cell'},
             {key: 'Ctrl-Enter', help: 'run cell in terminal mode'},
+	    {key: 'Ctrl-Shift-L', help: 'toggle line numbering'},
             {key: 'Ctrl-m d', help: 'delete cell'},
             {key: 'Ctrl-m a', help: 'insert cell above'},
             {key: 'Ctrl-m b', help: 'insert cell below'},
