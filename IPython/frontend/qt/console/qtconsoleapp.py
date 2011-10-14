@@ -454,18 +454,25 @@ class MainWindow(QtGui.QMainWindow):
 
     def redo_active_frontend(self):
         self.active_frontend.redo()
+
     def reset_magic_active_frontend(self):
         self.active_frontend.execute("%reset")
+
     def history_magic_active_frontend(self):
         self.active_frontend.history_magic()
+
     def save_magic_active_frontend(self):
         self.active_frontend.save_magic()
+
     def clear_magic_active_frontend(self):
         self.active_frontend.execute("%clear")
+
     def who_magic_active_frontend(self):
         self.active_frontend.execute("%who")
+
     def who_ls_magic_active_frontend(self):
         self.active_frontend.execute("%who_ls")
+
     def whos_magic_active_frontend(self):
         self.active_frontend.execute("%whos")
 
@@ -480,8 +487,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def increase_font_size_active_frontend(self):
         self.active_frontend.increase_font_size.trigger()
+
     def decrease_font_size_active_frontend(self):
         self.active_frontend.decrease_font_size.trigger()
+
     def reset_font_size_active_frontend(self):
         self.active_frontend.reset_font_size.trigger()
 
