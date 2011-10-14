@@ -1005,6 +1005,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.window.window_menu.addAction(self.tabSameKernalAct)
         self.window.window_menu.addSeparator()
 
+        self.onlineHelpAct = QtGui.QAction("Open Online &Help",
+            self.window,
+            triggered=self._open_online_help)
+        self.window.help_menu.addAction(self.onlineHelpAct)
         # creating shortcut in menubar only for Mac OS as I don't
         # know the shortcut or if the windows manager assign it in
         # other platform.
@@ -1020,9 +1024,6 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                 statusTip="Maximize the window/Restore Normal Size",
                 triggered=self.toggleMaximized)
 
-            self.onlineHelpAct = QtGui.QAction("Open Online &Help",
-                self.window,
-                triggered=self._open_online_help)
 
             self.window_menu = self.window.window_menu
 
@@ -1034,7 +1035,6 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             self.window_menu.addSeparator()
             self.window_menu.addAction(self.fullScreenAct)
 
-            self.window.help_menu.addAction(self.onlineHelpAct)
         else:
             # if we don't put it in a menu, we add it to the window so
             # that it can still be triggerd by shortcut
