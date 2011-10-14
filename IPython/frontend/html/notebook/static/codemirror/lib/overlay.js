@@ -42,7 +42,7 @@ CodeMirror.overlayParser = function(base, overlay, combine) {
       if (state.baseCur != null && combine) return state.baseCur + " " + state.overlayCur;
       else return state.overlayCur;
     },
-    
+
     indent: function(state, textAfter) {
       return base.indent(state.base, textAfter);
     },
