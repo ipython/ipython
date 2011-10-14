@@ -503,7 +503,7 @@ class IPythonWidget(FrontendWidget):
 
     def _handle_payload_exit(self, item):
         self._keep_kernel_on_exit = item['keepkernel']
-        self.exit_requested.emit()
+        self.exit_requested.emit(self)
 
     def _handle_payload_next_input(self, item):
         self.input_buffer = dedent(item['text'].rstrip())

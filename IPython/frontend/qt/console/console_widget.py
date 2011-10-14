@@ -236,14 +236,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.print_)
         self.addAction(action)
-        self._print_action = action
+        self.print_action = action
 
         action = QtGui.QAction('Save as HTML/XML', None)
         action.setShortcut(QtGui.QKeySequence.Save)
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.export_html)
         self.addAction(action)
-        self._export_action = action
+        self.export_action = action
 
         action = QtGui.QAction('Select All', None)
         action.setEnabled(True)
@@ -251,7 +251,30 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.select_all)
         self.addAction(action)
-        self._select_all_action = action
+        self.select_all_action = action
+
+        self.increase_font_size = QtGui.QAction("Bigger Font",
+                self,
+                shortcut="Ctrl++",
+                statusTip="Increase the font size by one point",
+                triggered=self._increase_font_size)
+        self.addAction(self.increase_font_size)
+
+        self.decrease_font_size = QtGui.QAction("Smaller Font",
+                self,
+                shortcut="Ctrl+-",
+                statusTip="Decrease the font size by one point",
+                triggered=self._decrease_font_size)
+        self.addAction(self.decrease_font_size)
+
+        self.reset_font_size = QtGui.QAction("Normal Font",
+                self,
+                shortcut="Ctrl+0",
+                statusTip="Restore the Normal font size",
+                triggered=self.reset_font)
+        self.addAction(self.reset_font_size)
+
+
 
     def eventFilter(self, obj, event):
         """ Reimplemented to ensure a console-like behavior in the underlying
@@ -597,7 +620,8 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
             # Remove any trailing newline, which confuses the GUI and forces the
             # user to backspace.
-            text = QtGui.QApplication.clipboard().text(mode).rstrip()
+            if not text:
+                text = QtGui.QApplication.clipboard().text(mode).rstrip()
             self._insert_plain_text_into_buffer(cursor, dedent(text))
 
     def print_(self, printer = None):
@@ -651,6 +675,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         size = max(font.pointSize() + delta, 1) # minimum 1 point
         font.setPointSize(size)
         self._set_font(font)
+
+    def _increase_font_size(self):
+        self.change_font_size(1)
+
+    def _decrease_font_size(self):
+        self.change_font_size(-1)
 
     def select_all(self):
         """ Selects all the text in the buffer.
@@ -855,11 +885,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
         menu.addSeparator()
-        menu.addAction(self._select_all_action)
+        menu.addAction(self.select_all_action)
 
         menu.addSeparator()
-        menu.addAction(self._export_action)
-        menu.addAction(self._print_action)
+        menu.addAction(self.export_action)
+        menu.addAction(self.print_action)
 
         return menu
 
@@ -1056,18 +1086,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                     cursor = self._get_word_end_cursor(position)
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
                 self._kill_ring.kill_cursor(cursor)
-                intercepted = True
-
-            elif key in (QtCore.Qt.Key_Plus, QtCore.Qt.Key_Equal):
-                self.change_font_size(1)
-                intercepted = True
-
-            elif key == QtCore.Qt.Key_Minus:
-                self.change_font_size(-1)
-                intercepted = True
-
-            elif key == QtCore.Qt.Key_0:
-                self.reset_font()
                 intercepted = True
 
         #------ Alt modifier ---------------------------------------------------
