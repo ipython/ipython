@@ -338,9 +338,6 @@ class MainWindow(QtGui.QMainWindow):
 
         self.help_menu = self.menuBar().addMenu("&Help")
 
-        # sould wrap every line of the following block into a try/except,
-        # as we are not sure of instanciating a _frontend which support all
-        # theses actions, but there might be a better way
         self.print_action = QtGui.QAction("&Print",
             self,
             shortcut="Ctrl+P",
