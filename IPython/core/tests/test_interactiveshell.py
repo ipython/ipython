@@ -146,3 +146,21 @@ class InteractiveShellTestCase(unittest.TestCase):
         finally:
             # Reset compiler flags so we don't mess up other tests.
             ip.compile.reset_compiler_flags()
+
+    def test_bad_custom_tb(self):
+        """Check that InteractiveShell is protected from bad custom exception handlers"""
+        ip = get_ipython()
+        from IPython.utils import io
+        save_stderr = io.stderr
+        try:
+            # capture stderr
+            io.stderr = StringIO()
+            ip.set_custom_exc((IOError,),lambda etype,value,tb: None)
+            self.assertEquals(ip.custom_exceptions, (IOError,))
+            ip.run_cell(u'raise IOError("foo")')
+            self.assertEquals(ip.custom_exceptions, ())
+            self.assertTrue("Custom TB Handler failed" in io.stderr.getvalue())
+        finally:
+            io.stderr = save_stderr
+
+

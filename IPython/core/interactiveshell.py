@@ -1478,16 +1478,30 @@ class InteractiveShell(SingletonConfigurable, Magic):
         assert type(exc_tuple)==type(()) , \
                "The custom exceptions must be given AS A TUPLE."
 
-        def dummy_handler(self,etype,value,tb):
+        def dummy_handler(self,etype,value,tb,tb_offset=None):
             print '*** Simple custom exception handler ***'
             print 'Exception type :',etype
             print 'Exception value:',value
             print 'Traceback      :',tb
             #print 'Source code    :','\n'.join(self.buffer)
 
-        if handler is None: handler = dummy_handler
+        if handler is None:
+            wrapped = dummy_handler
+        else:
+            def wrapped(self,etype,value,tb,tb_offset=None):
+                try:
+                    return handler(self,etype,value,tb,tb_offset=tb_offset)
+                except:
+                    # clear custom handler immediately
+                    self.set_custom_exc((), None)
+                    print >> io.stderr, "Custom TB Handler failed, unregistering"
+                    # show the exception in handler first
+                    stb = self.InteractiveTB.structured_traceback(*sys.exc_info())
+                    print >> io.stdout, self.InteractiveTB.stb2text(stb)
+                    print >> io.stdout, "The original exception:"
+                    self.showtraceback((etype,value,tb), tb_offset=tb_offset)
 
-        self.CustomTB = types.MethodType(handler,self)
+        self.CustomTB = types.MethodType(wrapped,self)
         self.custom_exceptions = exc_tuple
 
     def excepthook(self, etype, value, tb):
