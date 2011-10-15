@@ -250,7 +250,7 @@ class Kernel(Configurable):
                 shell.run_code(code)
             else:
                 # FIXME: the shell calls the exception handler itself.
-                shell.run_cell(code)
+                shell.run_cell(code, store_history=True)
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,
