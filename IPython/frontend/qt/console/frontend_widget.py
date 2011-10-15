@@ -241,6 +241,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 break
         return menu
 
+    def request_interrupt_kernel(self):
+        if self._executing:
+            self.interrupt_kernel()
+
+    def request_restart_kernel(self):
+        message = 'Are you sure you want to restart the kernel?'
+        self.restart_kernel(message, now=False)
+
     def _event_filter_console_keypress(self, event):
         """ Reimplemented for execution interruption and smart backspace.
         """
@@ -248,12 +256,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self._control_key_down(event.modifiers(), include_command=False):
 
             if key == QtCore.Qt.Key_C and self._executing:
-                self.interrupt_kernel()
+                self.request_interrupt_kernel()
                 return True
 
             elif key == QtCore.Qt.Key_Period:
-                message = 'Are you sure you want to restart the kernel?'
-                self.restart_kernel(message, now=False)
+                self.request_restart_kernel()
                 return True
 
         elif not event.modifiers() & QtCore.Qt.AltModifier:
