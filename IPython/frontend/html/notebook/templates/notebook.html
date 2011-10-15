@@ -58,19 +58,24 @@
     <span id="kernel_status">Idle</span>
 </div>
 
-<div id="MathJaxFetchingWarning" style="width:80%;margin:auto;padding-top:20%;text-align:justify;display:none">
-    <p style="font-size:26px;">There was an issues trying to fetch MathJax.js from the internet.</p>
-    <p>You may want to consider running the following in order to be able to use the Notebook.
-        <pre style="background-color:lightblue;border:thin silver solid">
+<div id="MathJaxFetchingWarning"
+      style="width:80%; margin:auto;padding-top:20%;text-align: justify; display:none">
+      <p style="font-size:26px;">There was an issue trying to fetch MathJax.js
+	from the internet.</p>
+
+      <p style="padding:0.2em"> With a working internet connection, you can run
+    the following at a Python or IPython prompt, which will install a local
+    copy of MathJax:</p>
+      
+        <pre style="background-color:lightblue;border:thin silver solid;padding:0.4em">
             from IPython.external import mathjax; mathjax.install_mathjax()
         </pre>
-        Note that this will require a working internet connection when run, and
-        it will try to install MathJax into the directory where you installed
+        This will try to install MathJax into the directory where you installed
         IPython. If you installed IPython to a location that requires
         administrative privileges to write, you will need to make this call as
         an administrator. On OSX/Linux/Unix, this can be done at the
         command-line via:
-        <pre style="background-color:lightblue;border:thin silver solid">
+        <pre style="background-color:lightblue;border:thin silver solid;padding:0.4em">
             sudo python -c "from IPython.external import mathjax; mathjax.install_mathjax()"
         </pre>
     </p>
