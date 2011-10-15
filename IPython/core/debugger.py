@@ -38,7 +38,7 @@ from IPython.core.excolors import exception_colors
 has_pydb = False
 prompt = 'ipdb> '
 #We have to check this directly from sys.argv, config struct not yet available
-if '-pydb' in sys.argv:
+if '--pydb' in sys.argv:
     try:
         import pydb
         if hasattr(pydb.pydb, "runl") and pydb.version>'1.17':

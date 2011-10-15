@@ -50,6 +50,14 @@ addflag('pdb', 'InteractiveShell.pdb',
     "Enable auto calling the pdb debugger after every exception.",
     "Disable auto calling the pdb debugger after every exception."
 )
+# pydb flag doesn't do any config, as core.debugger switches on import,
+# which is before parsing.  This just allows the flag to be passed.
+shell_flags.update(dict(
+    pydb = ({},
+        """"Use the third party 'pydb' package as debugger, instead of pdb.
+        Requires that pydb is installed."""
+    )
+))
 addflag('pprint', 'PlainTextFormatter.pprint',
     "Enable auto pretty printing of results.",
     "Disable auto auto pretty printing of results."
