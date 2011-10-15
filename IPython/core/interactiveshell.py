@@ -1447,29 +1447,37 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         Set a custom exception handler, which will be called if any of the
         exceptions in exc_tuple occur in the mainloop (specifically, in the
-        run_code() method.
+        run_code() method).
 
-        Inputs:
+        Parameters
+        ----------
 
-          - exc_tuple: a *tuple* of valid exceptions to call the defined
-          handler for.  It is very important that you use a tuple, and NOT A
-          LIST here, because of the way Python's except statement works.  If
-          you only want to trap a single exception, use a singleton tuple:
+        exc_tuple : tuple of exception classes
+            A *tuple* of exception classes, for which to call the defined
+            handler.  It is very important that you use a tuple, and NOT A
+            LIST here, because of the way Python's except statement works.  If
+            you only want to trap a single exception, use a singleton tuple::
 
-            exc_tuple == (MyCustomException,)
+                exc_tuple == (MyCustomException,)
 
-          - handler: this must be defined as a function with the following
-          basic interface::
+        handler : callable
+            handler must have the following signature::
 
-            def my_handler(self, etype, value, tb, tb_offset=None)
-                ...
-                # The return value must be
-                return structured_traceback
+                def my_handler(self, etype, value, tb, tb_offset=None):
+                    ...
+                    return structured_traceback
 
-          This will be made into an instance method (via types.MethodType)
-          of IPython itself, and it will be called if any of the exceptions
-          listed in the exc_tuple are caught.  If the handler is None, an
-          internal basic one is used, which just prints basic info.
+            Your handler must return a structured traceback (a list of strings),
+            or None.
+
+            This will be made into an instance method (via types.MethodType)
+            of IPython itself, and it will be called if any of the exceptions
+            listed in the exc_tuple are caught. If the handler is None, an
+            internal basic one is used, which just prints basic info.
+
+            To protect IPython from crashes, if your handler ever raises an
+            exception or returns an invalid result, it will be immediately
+            disabled.
 
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
