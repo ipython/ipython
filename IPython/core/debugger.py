@@ -104,8 +104,8 @@ class Tracer(object):
         """
 
         try:
-            ip = ipapi.get()
-        except:
+            ip = get_ipython()
+        except NameError:
             # Outside of ipython, we set our own exception hook manually
             BdbQuit_excepthook.excepthook_ori = sys.excepthook
             sys.excepthook = BdbQuit_excepthook
