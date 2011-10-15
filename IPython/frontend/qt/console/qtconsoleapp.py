@@ -373,6 +373,13 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.edit_menu.addAction(self.copy_action)
 
+        self.copy_raw_action = QtGui.QAction("Copy (&Raw Text)",
+            self,
+            shortcut="Ctrl+Shift+C",
+            triggered=self.copy_raw_active_frontend
+            )
+        self.edit_menu.addAction(self.copy_raw_action)
+
         self.cut_action = QtGui.QAction("&Cut",
             self,
             shortcut=QtGui.QKeySequence.Cut,
@@ -483,6 +490,20 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.help_menu.addAction(self.quickref_active_frontend_action)
 
+        self.interrupt_kernel_action = QtGui.QAction("Interrupt current Kernel",
+            self,
+            triggered=self.interrupt_kernel_active_frontend
+            )
+        self.kernel_menu.addAction(self.interrupt_kernel_action)
+
+        self.restart_kernel_action = QtGui.QAction("Restart current  Kernel",
+            self,
+            triggered=self.restart_kernel_active_frontend
+            )
+        self.kernel_menu.addAction(self.restart_kernel_action)
+        self.kernel_menu.addSeparator()
+
+        #for now this is just a copy and paste, but we should get this dynamically
         magiclist=["%alias", "%autocall", "%automagic", "%bookmark", "%cd", "%clear",
             "%colors", "%debug", "%dhist", "%dirs", "%doctest_mode", "%ed", "%edit", "%env", "%gui",
             "%guiref", "%hist", "%history", "%install_default_config", "%install_profiles",
@@ -507,11 +528,20 @@ class MainWindow(QtGui.QMainWindow):
                 )
             self.all_magic_menu.addAction(xaction)
 
+    def restart_kernel_active_frontend(self):
+        self.active_frontend.request_restart_kernel()
+
+    def interrupt_kernel_active_frontend(self):
+        self.active_frontend.request_interrupt_kernel()
+
     def cut_active_frontend(self):
         self.active_frontend.cut_action.trigger()
 
     def copy_active_frontend(self):
         self.active_frontend.copy_action.trigger()
+
+    def copy_raw_active_frontend(self):
+        self.active_frontend._copy_raw_action.trigger()
 
     def paste_active_frontend(self):
         self.active_frontend.paste_action.trigger()
