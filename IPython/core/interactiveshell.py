@@ -1484,13 +1484,42 @@ class InteractiveShell(SingletonConfigurable, Magic):
             print 'Exception value:',value
             print 'Traceback      :',tb
             #print 'Source code    :','\n'.join(self.buffer)
+        
+        def validate_stb(stb):
+            """validate structured traceback return type
+            
+            return type of CustomTB *should* be a list of strings, but allow
+            single strings or None, which are harmless.
+            
+            This function will *always* return a list of strings,
+            and will raise a TypeError if stb is inappropriate.
+            """
+            msg = "CustomTB must return list of strings, not %r" % stb
+            if stb is None:
+                return []
+            elif isinstance(stb, basestring):
+                return [stb]
+            elif not isinstance(stb, list):
+                raise TypeError(msg)
+            # it's a list
+            for line in stb:
+                # check every element
+                if not isinstance(line, basestring):
+                    raise TypeError(msg)
+            return stb
 
         if handler is None:
             wrapped = dummy_handler
         else:
             def wrapped(self,etype,value,tb,tb_offset=None):
+                """wrap CustomTB handler, to protect IPython from user code
+                
+                This makes it harder (but not impossible) for custom exception
+                handlers to crash IPython.
+                """
                 try:
-                    return handler(self,etype,value,tb,tb_offset=tb_offset)
+                    stb = handler(self,etype,value,tb,tb_offset=tb_offset)
+                    return validate_stb(stb)
                 except:
                     # clear custom handler immediately
                     self.set_custom_exc((), None)
@@ -1499,7 +1528,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
                     stb = self.InteractiveTB.structured_traceback(*sys.exc_info())
                     print >> io.stdout, self.InteractiveTB.stb2text(stb)
                     print >> io.stdout, "The original exception:"
-                    self.showtraceback((etype,value,tb), tb_offset=tb_offset)
+                    stb = self.InteractiveTB.structured_traceback(
+                                            (etype,value,tb), tb_offset=tb_offset
+                    )
+                return stb
 
         self.CustomTB = types.MethodType(wrapped,self)
         self.custom_exceptions = exc_tuple
@@ -1570,11 +1602,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 sys.last_value = value
                 sys.last_traceback = tb
                 if etype in self.custom_exceptions:
-                    # FIXME: Old custom traceback objects may just return a
-                    # string, in that case we just put it into a list
                     stb = self.CustomTB(etype, value, tb, tb_offset)
-                    if isinstance(ctb, basestring):
-                        stb = [stb]
                 else:
                     if exception_only:
                         stb = ['An exception has occurred, use %tb to see '
