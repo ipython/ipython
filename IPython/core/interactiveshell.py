@@ -1447,29 +1447,37 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         Set a custom exception handler, which will be called if any of the
         exceptions in exc_tuple occur in the mainloop (specifically, in the
-        run_code() method.
+        run_code() method).
 
-        Inputs:
+        Parameters
+        ----------
 
-          - exc_tuple: a *tuple* of valid exceptions to call the defined
-          handler for.  It is very important that you use a tuple, and NOT A
-          LIST here, because of the way Python's except statement works.  If
-          you only want to trap a single exception, use a singleton tuple:
+        exc_tuple : tuple of exception classes
+            A *tuple* of exception classes, for which to call the defined
+            handler.  It is very important that you use a tuple, and NOT A
+            LIST here, because of the way Python's except statement works.  If
+            you only want to trap a single exception, use a singleton tuple::
 
-            exc_tuple == (MyCustomException,)
+                exc_tuple == (MyCustomException,)
 
-          - handler: this must be defined as a function with the following
-          basic interface::
+        handler : callable
+            handler must have the following signature::
 
-            def my_handler(self, etype, value, tb, tb_offset=None)
-                ...
-                # The return value must be
-                return structured_traceback
+                def my_handler(self, etype, value, tb, tb_offset=None):
+                    ...
+                    return structured_traceback
 
-          This will be made into an instance method (via types.MethodType)
-          of IPython itself, and it will be called if any of the exceptions
-          listed in the exc_tuple are caught.  If the handler is None, an
-          internal basic one is used, which just prints basic info.
+            Your handler must return a structured traceback (a list of strings),
+            or None.
+
+            This will be made into an instance method (via types.MethodType)
+            of IPython itself, and it will be called if any of the exceptions
+            listed in the exc_tuple are caught. If the handler is None, an
+            internal basic one is used, which just prints basic info.
+
+            To protect IPython from crashes, if your handler ever raises an
+            exception or returns an invalid result, it will be immediately
+            disabled.
 
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
@@ -1478,16 +1486,62 @@ class InteractiveShell(SingletonConfigurable, Magic):
         assert type(exc_tuple)==type(()) , \
                "The custom exceptions must be given AS A TUPLE."
 
-        def dummy_handler(self,etype,value,tb):
+        def dummy_handler(self,etype,value,tb,tb_offset=None):
             print '*** Simple custom exception handler ***'
             print 'Exception type :',etype
             print 'Exception value:',value
             print 'Traceback      :',tb
             #print 'Source code    :','\n'.join(self.buffer)
+        
+        def validate_stb(stb):
+            """validate structured traceback return type
+            
+            return type of CustomTB *should* be a list of strings, but allow
+            single strings or None, which are harmless.
+            
+            This function will *always* return a list of strings,
+            and will raise a TypeError if stb is inappropriate.
+            """
+            msg = "CustomTB must return list of strings, not %r" % stb
+            if stb is None:
+                return []
+            elif isinstance(stb, basestring):
+                return [stb]
+            elif not isinstance(stb, list):
+                raise TypeError(msg)
+            # it's a list
+            for line in stb:
+                # check every element
+                if not isinstance(line, basestring):
+                    raise TypeError(msg)
+            return stb
 
-        if handler is None: handler = dummy_handler
+        if handler is None:
+            wrapped = dummy_handler
+        else:
+            def wrapped(self,etype,value,tb,tb_offset=None):
+                """wrap CustomTB handler, to protect IPython from user code
+                
+                This makes it harder (but not impossible) for custom exception
+                handlers to crash IPython.
+                """
+                try:
+                    stb = handler(self,etype,value,tb,tb_offset=tb_offset)
+                    return validate_stb(stb)
+                except:
+                    # clear custom handler immediately
+                    self.set_custom_exc((), None)
+                    print >> io.stderr, "Custom TB Handler failed, unregistering"
+                    # show the exception in handler first
+                    stb = self.InteractiveTB.structured_traceback(*sys.exc_info())
+                    print >> io.stdout, self.InteractiveTB.stb2text(stb)
+                    print >> io.stdout, "The original exception:"
+                    stb = self.InteractiveTB.structured_traceback(
+                                            (etype,value,tb), tb_offset=tb_offset
+                    )
+                return stb
 
-        self.CustomTB = types.MethodType(handler,self)
+        self.CustomTB = types.MethodType(wrapped,self)
         self.custom_exceptions = exc_tuple
 
     def excepthook(self, etype, value, tb):
@@ -1556,11 +1610,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 sys.last_value = value
                 sys.last_traceback = tb
                 if etype in self.custom_exceptions:
-                    # FIXME: Old custom traceback objects may just return a
-                    # string, in that case we just put it into a list
                     stb = self.CustomTB(etype, value, tb, tb_offset)
-                    if isinstance(ctb, basestring):
-                        stb = [stb]
                 else:
                     if exception_only:
                         stb = ['An exception has occurred, use %tb to see '
@@ -1571,9 +1621,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
                         stb = self.InteractiveTB.structured_traceback(etype,
                                                 value, tb, tb_offset=tb_offset)
 
+                        self._showtraceback(etype, value, stb)
                         if self.call_pdb:
                             # drop into debugger
                             self.debugger(force=True)
+                        return
 
                 # Actually show the traceback
                 self._showtraceback(etype, value, stb)
