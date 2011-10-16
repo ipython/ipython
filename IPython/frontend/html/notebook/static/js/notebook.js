@@ -135,6 +135,16 @@ var IPython = (function (IPython) {
                 that.show_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 73 && that.control_key_active) {
+                // Interrupt kernel = i
+                IPython.notebook.kernel.interrupt();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 190 && that.control_key_active) {
+                // Restart kernel = .  # matches qt console
+		IPython.notebook.restart_kernel();
+                that.control_key_active = false;
+                return false;
             } else if (that.control_key_active) {
                 that.control_key_active = false;
                 return true;
@@ -198,6 +208,8 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m m', help: 'markdown cell'},
             {key: 'Ctrl-m p', help: 'select previous'},
             {key: 'Ctrl-m n', help: 'select next'},
+	    {key: 'Ctrl-m i', help: 'interrupt kernel'},
+	    {key: 'Ctrl-m .', help: 'restart kernel'},
             {key: 'Ctrl-m h', help: 'display keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
