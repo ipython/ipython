@@ -1,4 +1,3 @@
-
 /**
  * Primary styles
  *
@@ -19,8 +18,14 @@ body {
 }
 
 span#save_widget {
-    position: absolute;
+    position: static;
     left: 0px;
+    padding: 5px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+span#quick_help_area {
+    position: static;
     padding: 5px 0px;
     margin: 0px 0px 0px 0px;
 }
@@ -35,8 +40,9 @@ span#kernel_status {
     position: absolute;
     padding: 8px 5px 5px 5px;
     right: 10px;
-	font-weight: bold;
+    font-weight: bold;
 }
+
 
 .status_idle {
     color: gray;
