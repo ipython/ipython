@@ -115,6 +115,11 @@ var IPython = (function (IPython) {
     };
 
 
+    SaveWidget.prototype.reset_status = function () {
+        this.is_renaming();
+    };
+
+
     SaveWidget.prototype.status_save = function () {
         this.element.find('button#save_notebook').button('option', 'label', '<u>S</u>ave');
         this.element.find('button#save_notebook').button('enable');

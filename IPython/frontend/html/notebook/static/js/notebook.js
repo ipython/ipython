@@ -871,7 +871,8 @@ var IPython = (function (IPython) {
                 type : "PUT",
                 data : JSON.stringify(data),
                 headers : {'Content-Type': 'application/json'},
-                success : $.proxy(this.notebook_saved,this)
+                success : $.proxy(this.notebook_saved,this),
+                error : $.proxy(this.notebook_save_failed,this)
             };
             IPython.save_widget.status_saving();
             $.ajax("/notebooks/" + notebook_id, settings);
@@ -883,6 +884,14 @@ var IPython = (function (IPython) {
         this.dirty = false;
         IPython.save_widget.notebook_saved();
         setTimeout($.proxy(IPython.save_widget.status_save,IPython.save_widget),500);
+    }
+
+
+    Notebook.prototype.notebook_save_failed = function (xhr, status, error_msg) {
+        // Notify the user and reset the save button
+        // TODO: Handle different types of errors (timeout etc.)
+        alert('An unexpected error occured while saving the notebook.');
+        setTimeout($.proxy(IPython.save_widget.reset_status,IPython.save_widget),500);                                                                               
     }
 
 
