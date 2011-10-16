@@ -636,8 +636,26 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.restart_kernel = function () {
+	var that = this;
         var notebook_id = IPython.save_widget.get_notebook_id();
-        this.kernel.restart($.proxy(this.kernel_started, this));
+
+        var dialog = $('<div/>');
+        dialog.html('Do you want to restart the current kernel?  You will lose all variables defined in it.');
+        $(document).append(dialog);
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Restart kernel or continue running?",
+            buttons : {
+                "Restart": function () {
+		    that.kernel.restart($.proxy(that.kernel_started, that));
+                    $(this).dialog('close');
+                },
+                "Continue running": function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
     };
 
 
