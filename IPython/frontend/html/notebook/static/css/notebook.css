@@ -330,8 +330,9 @@ div.text_cell_render {
 
 .shortcut_key {
     display: inline-block;
-    width: 10ex;
+    width: 13ex;
     text-align: right;
+    font-family: monospace;
 }
 
 .shortcut_descr {
