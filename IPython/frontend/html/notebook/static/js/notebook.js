@@ -735,11 +735,11 @@ var IPython = (function (IPython) {
             modal: true,
             title: "Dead kernel",
             buttons : {
-                "Yes": function () {
+                "Restart": function () {
                     that.start_kernel();
                     $(this).dialog('close');
                 },
-                "No": function () {
+                "Continue running": function () {
                     $(this).dialog('close');
                 }
             }
