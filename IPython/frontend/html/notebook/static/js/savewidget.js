@@ -49,6 +49,10 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.save_notebook = function () {
         IPython.notebook.save_notebook();
+    };
+
+
+    SaveWidget.prototype.notebook_saved = function () {
         this.set_document_title();
         this.last_saved_name = this.get_notebook_name();
     };

@@ -881,6 +881,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.notebook_saved = function (data, status, xhr) {
         this.dirty = false;
+        IPython.save_widget.notebook_saved();
         setTimeout($.proxy(IPython.save_widget.status_save,IPython.save_widget),500);
     }
 
