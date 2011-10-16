@@ -17,6 +17,9 @@ http://folk.uio.no/hpl/scripting
 
 (although ultimately no code from this text was used, as IPython's system is a
 separate implementation).
+
+An example notebook is provided in our documentation illustrating interactive
+use of the system.
 """
 
 #*****************************************************************************
@@ -33,7 +36,8 @@ import threading
 from IPython.core.ultratb import AutoFormattedTB
 from IPython.utils.warn import warn, error
 
-class BackgroundJobManager:
+
+class BackgroundJobManager(object):
     """Class to manage a pool of backgrounded threaded jobs.
 
     Below, we assume that 'jobs' is a BackgroundJobManager instance.
@@ -52,7 +56,7 @@ class BackgroundJobManager:
 
       jobs.remove(N) -> remove (finished) job N
 
-      jobs.flush_finished() -> remove all finished jobs
+      jobs.flush() -> remove all finished jobs
       
     As a convenience feature, BackgroundJobManager instances provide the
     utility result and traceback methods which retrieve the corresponding
@@ -63,17 +67,16 @@ class BackgroundJobManager:
 
     While this appears minor, it allows you to use tab completion
     interactively on the job manager instance.
-
-    In interactive mode, IPython provides the magic fuction %bg for quick
-    creation of backgrounded expression-based jobs. Type bg? for details."""
+    """
 
     def __init__(self):
-        # Lists for job management
-        self.jobs_run  = []
-        self.jobs_comp = []
-        self.jobs_dead = []
+        # Lists for job management, accessed via a property to ensure they're
+        # up to date.x
+        self._running  = []
+        self._completed = []
+        self._dead = []
         # A dict of all jobs, so users can easily access any of them
-        self.jobs_all = {}
+        self.all = {}
         # For reporting
         self._comp_report = []
         self._dead_report = []
@@ -83,7 +86,22 @@ class BackgroundJobManager:
         self._s_completed = BackgroundJobBase.stat_completed_c
         self._s_dead      = BackgroundJobBase.stat_dead_c
 
-    def new(self,func_or_exp,*args,**kwargs):
+    @property
+    def running(self):
+        self._update_status()
+        return self._running
+
+    @property
+    def dead(self):
+        self._update_status()
+        return self._dead
+
+    @property
+    def completed(self):
+        self._update_status()
+        return self._completed
+
+    def new(self, func_or_exp, *args, **kwargs):
         """Add a new background job and start it in a separate thread.
 
         There are two types of jobs which can be created:
@@ -106,14 +124,14 @@ class BackgroundJobManager:
         2. Jobs given a function object, optionally passing additional
         positional arguments:
 
-          job_manager.new(myfunc,x,y)
+          job_manager.new(myfunc, x, y)
 
         The function is called with the given arguments.
 
         If you need to pass keyword arguments to your function, you must
         supply them as a dict named kw:
 
-          job_manager.new(myfunc,x,y,kw=dict(z=1))
+          job_manager.new(myfunc, x, y, kw=dict(z=1))
 
         The reason for this assymmetry is that the new() method needs to
         maintain access to its own keywords, and this prevents name collisions
@@ -149,7 +167,7 @@ class BackgroundJobManager:
         if callable(func_or_exp):
             kw  = kwargs.get('kw',{})
             job = BackgroundJobFunc(func_or_exp,*args,**kw)
-        elif isinstance(func_or_exp,basestring):
+        elif isinstance(func_or_exp, basestring):
             if not args:
                 frame = sys._getframe(1)
                 glob, loc = frame.f_globals, frame.f_locals
@@ -158,30 +176,28 @@ class BackgroundJobManager:
             elif len(args)==2:
                 glob,loc = args
             else:
-                raise ValueError,\
-                      'Expression jobs take at most 2 args (globals,locals)'
-            job = BackgroundJobExpr(func_or_exp,glob,loc)
+                raise ValueError(
+                      'Expression jobs take at most 2 args (globals,locals)')
+            job = BackgroundJobExpr(func_or_exp, glob, loc)
         else:
-            raise
-        jkeys = self.jobs_all.keys()
-        if jkeys:
-            job.num = max(jkeys)+1
-        else:
-            job.num = 0
-        self.jobs_run.append(job)
-        self.jobs_all[job.num] = job
+            raise TypeError('invalid args for new job')
+        
+        job.num = len(self.all)+1 if self.all else 0
+        self.running.append(job)
+        self.all[job.num] = job
         print 'Starting job # %s in a separate thread.' % job.num
         job.start()
         return job
 
-    def __getitem__(self,key):
-        return self.jobs_all[key]
+    def __getitem__(self, job_key):
+        num = job_key if isinstance(job_key, int) else job_key.num
+        return self.all[num]
 
     def __call__(self):
         """An alias to self.status(),
 
         This allows you to simply call a job manager instance much like the
-        Unix jobs shell command."""
+        Unix `jobs` shell command."""
 
         return self.status()
 
@@ -189,29 +205,34 @@ class BackgroundJobManager:
         """Update the status of the job lists.
 
         This method moves finished jobs to one of two lists:
-          - self.jobs_comp: jobs which completed successfully
-          - self.jobs_dead: jobs which finished but died.
+          - self.completed: jobs which completed successfully
+          - self.dead: jobs which finished but died.
 
         It also copies those jobs to corresponding _report lists.  These lists
         are used to report jobs completed/dead since the last update, and are
         then cleared by the reporting function after each call."""
-        
-        run,comp,dead = self._s_running,self._s_completed,self._s_dead
-        jobs_run = self.jobs_run
-        for num in range(len(jobs_run)):
-            job  = jobs_run[num]
+
+        # Status codes
+        srun, scomp, sdead = self._s_running, self._s_completed, self._s_dead
+        # State lists, use the actual lists b/c the public names are properties
+        # that call this very function on access
+        running, completed, dead = self._running, self._completed, self._dead
+
+        # Now, update all state lists
+        for num, job in enumerate(running):
             stat = job.stat_code
-            if stat == run:
+            if stat == srun:
                 continue
-            elif stat == comp:
-                self.jobs_comp.append(job)
+            elif stat == scomp:
+                completed.append(job)
                 self._comp_report.append(job)
-                jobs_run[num] = False
-            elif stat == dead:
-                self.jobs_dead.append(job)
+                running[num] = False
+            elif stat == sdead:
+                dead.append(job)
                 self._dead_report.append(job)
-                jobs_run[num] = False
-        self.jobs_run = filter(None,self.jobs_run)
+                running[num] = False
+        # Remove dead/completed jobs from running list
+        running[:] = filter(None, running)
 
     def _group_report(self,group,name):
         """Report summary for a given job group.
@@ -246,7 +267,7 @@ class BackgroundJobManager:
         which have finished since the last time it was called."""
 
         self._update_status()
-        new_comp = self._group_report(self._comp_report,'Completed')
+        new_comp = self._group_report(self._comp_report, 'Completed')
         new_dead = self._group_report(self._dead_report,
                                       'Dead, call jobs.traceback() for details')
         self._comp_report[:] = []
@@ -257,9 +278,9 @@ class BackgroundJobManager:
         """Print a status of all jobs currently being managed."""
 
         self._update_status()
-        self._group_report(self.jobs_run,'Running')
-        self._group_report(self.jobs_comp,'Completed')
-        self._group_report(self.jobs_dead,'Dead')
+        self._group_report(self.running,'Running')
+        self._group_report(self.completed,'Completed')
+        self._group_report(self.dead,'Dead')
         # Also flush the report queues
         self._comp_report[:] = []
         self._dead_report[:] = []
@@ -268,7 +289,7 @@ class BackgroundJobManager:
         """Remove a finished (completed or dead) job."""
 
         try:
-            job = self.jobs_all[num]
+            job = self.all[num]
         except KeyError:
             error('Job #%s not found' % num)
         else:
@@ -277,12 +298,12 @@ class BackgroundJobManager:
                 error('Job #%s is still running, it can not be removed.' % num)
                 return
             elif stat_code == self._s_completed:
-                self.jobs_comp.remove(job)
+                self.completed.remove(job)
             elif stat_code == self._s_dead:
-                self.jobs_dead.remove(job)
+                self.dead.remove(job)
 
-    def flush_finished(self):
-        """Flush all jobs finished (completed and dead) from lists.
+    def flush(self):
+        """Flush all finished jobs (completed and dead) from lists.
 
         Running jobs are never flushed.
 
@@ -290,34 +311,40 @@ class BackgroundJobManager:
         completed since the last _status_new() call, the flush operation
         aborts."""
 
-        if self._status_new():
-            error('New jobs completed since last '\
-                  '_status_new(), aborting flush.')
-            return
-
         # Remove the finished jobs from the master dict
-        jobs_all = self.jobs_all
-        for job in self.jobs_comp+self.jobs_dead:
-            del(jobs_all[job.num])
+        alljobs = self.all
+        for job in self.completed+self.dead:
+            del(alljobs[job.num])
 
         # Now flush these lists completely
-        fl_comp = self._group_flush(self.jobs_comp,'Completed')
-        fl_dead = self._group_flush(self.jobs_dead,'Dead')
+        fl_comp = self._group_flush(self.completed, 'Completed')
+        fl_dead = self._group_flush(self.dead, 'Dead')
         if not (fl_comp or fl_dead):
             print 'No jobs to flush.'
 
     def result(self,num):
         """result(N) -> return the result of job N."""
         try:
-            return self.jobs_all[num].result
+            return self.all[num].result
         except KeyError:
             error('Job #%s not found' % num)
 
-    def traceback(self,num):
+    def _traceback(self, job):
+        num = job if isinstance(job, int) else job.num
         try:
-            self.jobs_all[num].traceback()
+            self.all[num].traceback()
         except KeyError:
             error('Job #%s not found' % num)
+
+    def traceback(self, job=None):
+        if job is None:
+            self._update_status()
+            for deadjob in self.dead:
+                print "Traceback for: %r" % deadjob
+                self._traceback(deadjob)
+                print
+        else:
+            self._traceback(job)
 
 
 class BackgroundJobBase(threading.Thread):
@@ -360,14 +387,19 @@ class BackgroundJobBase(threading.Thread):
         self.stat_code = BackgroundJobBase.stat_created_c
         self.finished  = False
         self.result    = '<BackgroundJob has not completed>'
+        
         # reuse the ipython traceback handler if we can get to it, otherwise
         # make a new one
         try:
-            self._make_tb = __IPYTHON__.InteractiveTB.text
+            make_tb = get_ipython().InteractiveTB.text
         except:
-            self._make_tb = AutoFormattedTB(mode = 'Context',
-                                           color_scheme='NoColor',
-                                           tb_offset = 1).text
+            make_tb = AutoFormattedTB(mode = 'Context',
+                                      color_scheme='NoColor',
+                                      tb_offset = 1).text
+        # Note that the actual API for text() requires the three args to be
+        # passed in, so we wrap it in a simple lambda.
+        self._make_tb = lambda : make_tb(None, None, None)
+
         # Hold a formatted traceback if one is generated.
         self._tb = None
         
@@ -377,7 +409,7 @@ class BackgroundJobBase(threading.Thread):
         return self.strform
 
     def __repr__(self):
-        return '<BackgroundJob: %s>' % self.strform
+        return '<BackgroundJob #%d: %s>' % (self.num, self.strform)
 
     def traceback(self):
         print self._tb
@@ -398,10 +430,11 @@ class BackgroundJobBase(threading.Thread):
             self.stat_code = BackgroundJobBase.stat_completed_c
             self.finished  = True
 
+
 class BackgroundJobExpr(BackgroundJobBase):
     """Evaluate an expression as a background job (uses a separate thread)."""
 
-    def __init__(self,expression,glob=None,loc=None):
+    def __init__(self, expression, glob=None, loc=None):
         """Create a new job from a string which can be fed to eval().
 
         global/locals dicts can be provided, which will be passed to the eval
@@ -410,11 +443,8 @@ class BackgroundJobExpr(BackgroundJobBase):
         # fail immediately if the given expression can't be compiled
         self.code = compile(expression,'<BackgroundJob compilation>','eval')
                 
-        if glob is None:
-            glob = {}
-        if loc is None:
-            loc = {}
-            
+        glob = {} if glob is None else glob
+        loc = {} if loc is None else loc
         self.expression = self.strform = expression
         self.glob = glob
         self.loc = loc
@@ -423,21 +453,19 @@ class BackgroundJobExpr(BackgroundJobBase):
     def call(self):
         return eval(self.code,self.glob,self.loc)
 
+
 class BackgroundJobFunc(BackgroundJobBase):
     """Run a function call as a background job (uses a separate thread)."""
 
-    def __init__(self,func,*args,**kwargs):
+    def __init__(self, func, *args, **kwargs):
         """Create a new job from a callable object.
 
         Any positional arguments and keyword args given to this constructor
         after the initial callable are passed directly to it."""
 
-        assert callable(func),'first argument must be callable'
-        
-        if args is None:
-            args = []
-        if kwargs is None:
-            kwargs = {}
+        if not callable(func):
+            raise TypeError(
+                'first argument to BackgroundJobFunc must be callable')
         
         self.func = func
         self.args = args
@@ -449,42 +477,4 @@ class BackgroundJobFunc(BackgroundJobBase):
         self._init()
 
     def call(self):
-        return self.func(*self.args,**self.kwargs)
-
-
-if __name__=='__main__':
-
-    import time
-
-    def sleepfunc(interval=2,*a,**kw):
-        args = dict(interval=interval,
-                    args=a,
-                    kwargs=kw)
-        time.sleep(interval)
-        return args
-
-    def diefunc(interval=2,*a,**kw):
-        time.sleep(interval)
-        die
-
-    def printfunc(interval=1,reps=5):
-        for n in range(reps):
-            time.sleep(interval)
-            print 'In the background...'
-
-    jobs = BackgroundJobManager()
-    # first job will have # 0
-    jobs.new(sleepfunc,4)
-    jobs.new(sleepfunc,kw={'reps':2})
-    # This makes a job which will die
-    jobs.new(diefunc,1)
-    jobs.new('printfunc(1,3)')
-
-    # after a while, you can get the traceback of a dead job.  Run the line
-    # below again interactively until it prints a traceback (check the status
-    # of the job):
-    print jobs[1].status
-    jobs[1].traceback()
-    
-    # Run this line again until the printed result changes
-    print "The result of job #0 is:",jobs[0].result
+        return self.func(*self.args, **self.kwargs)
