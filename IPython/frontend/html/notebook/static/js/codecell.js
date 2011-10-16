@@ -90,12 +90,7 @@ var IPython = (function (IPython) {
         } else if (event.keyCode === 76 && event.ctrlKey && event.shiftKey
 		   && event.type == 'keydown') {
             // toggle line numbers with Ctrl-Shift-L
-	    if (this.code_mirror.getOption('lineNumbers') == false) {
-		this.code_mirror.setOption('lineNumbers', true);
-	    } else {
-		this.code_mirror.setOption('lineNumbers', false);
-	    }
-	    this.code_mirror.refresh()
+	    this.toggle_line_numbers()
         }
 	else {
             // keypress/keyup also trigger on TAB press, and we don't want to
@@ -188,6 +183,14 @@ var IPython = (function (IPython) {
         select.focus();
     };
 
+    CodeCell.prototype.toggle_line_numbers = function () {
+	if (this.code_mirror.getOption('lineNumbers') == false) {
+	    this.code_mirror.setOption('lineNumbers', true);
+	} else {
+	    this.code_mirror.setOption('lineNumbers', false);
+	}
+	this.code_mirror.refresh()
+    };
 
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);

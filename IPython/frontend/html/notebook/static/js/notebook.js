@@ -140,6 +140,11 @@ var IPython = (function (IPython) {
                 IPython.notebook.kernel.interrupt();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 76 && that.control_key_active) {
+                // Toggle line numbers = l
+                that.cell_toggle_line_numbers();
+                that.control_key_active = false;
+                return false;
             } else if (event.which === 190 && that.control_key_active) {
                 // Restart kernel = .  # matches qt console
 		IPython.notebook.restart_kernel();
@@ -195,12 +200,12 @@ var IPython = (function (IPython) {
         var dialog = $('<div/>');
         var shortcuts = [
             {key: 'Shift-Enter', help: 'run cell'},
-            {key: 'Ctrl-Enter', help: 'run cell in terminal mode'},
-	    {key: 'Ctrl-Shift-L', help: 'toggle line numbering'},
+            {key: 'Ctrl-Enter', help: 'run cell in-place'},
             {key: 'Ctrl-m d', help: 'delete cell'},
             {key: 'Ctrl-m a', help: 'insert cell above'},
             {key: 'Ctrl-m b', help: 'insert cell below'},
             {key: 'Ctrl-m t', help: 'toggle output'},
+            {key: 'Ctrl-m l', help: 'toggle line numbers'},
             {key: 'Ctrl-m s', help: 'save notebook'},
             {key: 'Ctrl-m j', help: 'move cell down'},
             {key: 'Ctrl-m k', help: 'move cell up'},
@@ -210,7 +215,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m n', help: 'select next'},
 	    {key: 'Ctrl-m i', help: 'interrupt kernel'},
 	    {key: 'Ctrl-m .', help: 'restart kernel'},
-            {key: 'Ctrl-m h', help: 'display keyboard shortcuts'}
+            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
             dialog.append($('<div>').
@@ -615,6 +620,11 @@ var IPython = (function (IPython) {
         this.dirty = true;
     };
 
+    // Other cell functions: line numbers, ...
+
+    Notebook.prototype.cell_toggle_line_numbers = function() {
+	this.selected_cell().toggle_line_numbers()
+    };
 
     // Kernel related things
 
