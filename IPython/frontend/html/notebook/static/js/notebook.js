@@ -130,9 +130,24 @@ var IPython = (function (IPython) {
                 that.select_next();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 76 && that.control_key_active) {
+                // Toggle line numbers = l
+                that.cell_toggle_line_numbers();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 73 && that.control_key_active) {
+                // Interrupt kernel = i
+                IPython.notebook.kernel.interrupt();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 190 && that.control_key_active) {
+                // Restart kernel = .  # matches qt console
+                IPython.notebook.restart_kernel();
+                that.control_key_active = false;
+                return false;
             } else if (event.which === 72 && that.control_key_active) {
                 // Show keyboard shortcuts = h
-                that.show_keyboard_shortcuts();
+                that.toggle_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
             } else if (that.control_key_active) {
@@ -181,15 +196,25 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.show_keyboard_shortcuts = function () {
+    Notebook.prototype.toggle_keyboard_shortcuts = function () {
+        // toggles display of keyboard shortcut dialog
+        var that = this;
+        if ( this.shortcut_dialog ){
+            // if dialog is already shown, close it
+            this.shortcut_dialog.dialog("close");
+            this.shortcut_dialog = null;
+            return;
+        }
         var dialog = $('<div/>');
+        this.shortcut_dialog = dialog;
         var shortcuts = [
             {key: 'Shift-Enter', help: 'run cell'},
-            {key: 'Ctrl-Enter', help: 'run cell in terminal mode'},
+            {key: 'Ctrl-Enter', help: 'run cell in-place'},
             {key: 'Ctrl-m d', help: 'delete cell'},
             {key: 'Ctrl-m a', help: 'insert cell above'},
             {key: 'Ctrl-m b', help: 'insert cell below'},
             {key: 'Ctrl-m t', help: 'toggle output'},
+            {key: 'Ctrl-m l', help: 'toggle line numbers'},
             {key: 'Ctrl-m s', help: 'save notebook'},
             {key: 'Ctrl-m j', help: 'move cell down'},
             {key: 'Ctrl-m k', help: 'move cell up'},
@@ -197,7 +222,9 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m m', help: 'markdown cell'},
             {key: 'Ctrl-m p', help: 'select previous'},
             {key: 'Ctrl-m n', help: 'select next'},
-            {key: 'Ctrl-m h', help: 'display keyboard shortcuts'}
+            {key: 'Ctrl-m i', help: 'interrupt kernel'},
+            {key: 'Ctrl-m .', help: 'restart kernel'},
+            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
             dialog.append($('<div>').
@@ -205,6 +232,10 @@ var IPython = (function (IPython) {
                 append($('<span/>').addClass('shortcut_descr').html(' : ' + shortcuts[i].help))
             );
         };
+        dialog.bind('dialogclose', function(event) {
+            // dialog has been closed, allow it to be drawn again.
+            that.shortcut_dialog = null;
+        });
         dialog.dialog({title: 'Keyboard shortcuts'});
     };
 
@@ -602,6 +633,11 @@ var IPython = (function (IPython) {
         this.dirty = true;
     };
 
+    // Other cell functions: line numbers, ...
+
+    Notebook.prototype.cell_toggle_line_numbers = function() {
+        this.selected_cell().toggle_line_numbers()
+    };
 
     // Kernel related things
 
@@ -613,8 +649,26 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.restart_kernel = function () {
+        var that = this;
         var notebook_id = IPython.save_widget.get_notebook_id();
-        this.kernel.restart($.proxy(this.kernel_started, this));
+
+        var dialog = $('<div/>');
+        dialog.html('Do you want to restart the current kernel?  You will lose all variables defined in it.');
+        $(document).append(dialog);
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Restart kernel or continue running?",
+            buttons : {
+                "Restart": function () {
+                    that.kernel.restart($.proxy(that.kernel_started, that));
+                    $(this).dialog('close');
+                },
+                "Continue running": function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
     };
 
 
@@ -694,11 +748,11 @@ var IPython = (function (IPython) {
             modal: true,
             title: "Dead kernel",
             buttons : {
-                "Yes": function () {
+                "Restart": function () {
                     that.start_kernel();
                     $(this).dialog('close');
                 },
-                "No": function () {
+                "Continue running": function () {
                     $(this).dialog('close');
                 }
             }

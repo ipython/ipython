@@ -22,7 +22,7 @@ div#header {
     /* Initially hidden to prevent FLOUC */
     display: none;
     position: relative;
-    height: 45px;
+    height: 40px;
     padding: 5px;
     margin: 0px;
     width: 100%;
@@ -35,7 +35,7 @@ span#ipython_notebook {
 
 span#ipython_notebook h1 {
     font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    font-size: 197%;
+    font-size: 150%;
     display: inline;
     color: black;
 }

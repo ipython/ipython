@@ -1,4 +1,3 @@
-
 /**
  * Primary styles
  *
@@ -19,8 +18,14 @@ body {
 }
 
 span#save_widget {
-    position: absolute;
+    position: static;
     left: 0px;
+    padding: 5px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+span#quick_help_area {
+    position: static;
     padding: 5px 0px;
     margin: 0px 0px 0px 0px;
 }
@@ -35,8 +40,9 @@ span#kernel_status {
     position: absolute;
     padding: 8px 5px 5px 5px;
     right: 10px;
-	font-weight: bold;
+    font-weight: bold;
 }
+
 
 .status_idle {
     color: gray;
@@ -156,7 +162,7 @@ div#notebook {
     overflow-x: auto;
     width: 100%;
     /* This spaces the cell away from the edge of the notebook area */
-    padding: 15px 15px 15px 15px;
+    padding: 5px 5px 15px 5px;
     margin: 0px
     background-color: white;
 }
@@ -172,9 +178,9 @@ div#pager {
 
 div.cell {
     width: 100%;
-    padding: 5px;
+    padding: 5px 5px 5px 0px;
     /* This acts as a spacer between cells, that is outside the border */
-    margin: 5px 0px 5px 0px;
+    margin: 2px 0px 2px 0px;
 }
 
 div.code_cell {
@@ -200,7 +206,7 @@ div.input_area {
     color: black;
     border: 1px solid #ddd;
     border-radius: 3px;
-    background: #fafafa;
+    background: #f7f7f7;
 }
 
 div.input_prompt {
@@ -330,8 +336,9 @@ div.text_cell_render {
 
 .shortcut_key {
     display: inline-block;
-    width: 10ex;
+    width: 13ex;
     text-align: right;
+    font-family: monospace;
 }
 
 .shortcut_descr {
