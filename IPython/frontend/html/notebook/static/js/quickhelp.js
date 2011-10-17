@@ -6,35 +6,33 @@
 //----------------------------------------------------------------------------
 
 //============================================================================
-// HeaderSection
+// QuickHelp button
 //============================================================================
 
 var IPython = (function (IPython) {
 
-    var HeaderSection = function (selector) {
+    var QuickHelp = function (selector) {
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
-            this.content = this.element.find('div.header');
             this.style();
             this.bind_events();
         }
     };
 
-    HeaderSection.prototype.style = function () {
-        this.content.addClass('ui-helper-clearfix');
-        this.content.find('#quick_help').button();
+    QuickHelp.prototype.style = function () {
+        this.element.find('button#quick_help').button();
     };
 
-    HeaderSection.prototype.bind_events = function () {
+    QuickHelp.prototype.bind_events = function () {
         var that = this;
-        this.content.find('#quick_help').click(function () {
+        this.element.find("button#quick_help").click(function () {
             IPython.notebook.show_keyboard_shortcuts();
         });
     };
 
     // Set module variables
-    IPython.HeaderSection = HeaderSection;
+    IPython.QuickHelp = QuickHelp;
 
     return IPython;
 
