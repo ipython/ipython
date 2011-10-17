@@ -179,4 +179,17 @@ class InteractiveShellTestCase(unittest.TestCase):
         finally:
             io.stderr = save_stderr
 
-
+    def test_drop_by_id(self):
+        ip = get_ipython()
+        myvars = {"a":object(), "b":object(), "c": object()}
+        ip.push(myvars, interactive=False)
+        for name in myvars:
+            assert name in ip.user_ns, name
+            assert name in ip.user_ns_hidden, name
+        ip.user_ns['b'] = 12
+        ip.drop_by_id(myvars)
+        for name in ["a", "c"]:
+            assert name not in ip.user_ns, name
+            assert name not in ip.user_ns_hidden, name
+        assert ip.user_ns['b'] == 12
+        ip.reset()

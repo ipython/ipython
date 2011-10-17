@@ -1264,6 +1264,24 @@ class InteractiveShell(SingletonConfigurable, Magic):
         else:
             for name,val in vdict.iteritems():
                 config_ns[name] = val
+    
+    def drop_by_id(self, variables):
+        """Remove a dict of variables from the user namespace, if they are the
+        same as the values in the dictionary.
+        
+        This is intended for use by extensions: variables that they've added can
+        be taken back out if they are unloaded, without removing any that the
+        user has overwritten.
+        
+        Parameters
+        ----------
+        variables : dict
+          A dictionary mapping object names (as strings) to the objects.
+        """
+        for name, obj in variables.iteritems():
+            if name in self.user_ns and self.user_ns[name] is obj:
+                del self.user_ns[name]
+                self.user_ns_hidden.pop(name, None)
 
     #-------------------------------------------------------------------------
     # Things related to object introspection
