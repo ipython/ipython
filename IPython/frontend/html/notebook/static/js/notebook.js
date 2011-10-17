@@ -130,9 +130,9 @@ var IPython = (function (IPython) {
                 that.select_next();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 72 && that.control_key_active) {
-                // Show keyboard shortcuts = h
-                that.show_keyboard_shortcuts();
+            } else if (event.which === 76 && that.control_key_active) {
+                // Toggle line numbers = l
+                that.cell_toggle_line_numbers();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 73 && that.control_key_active) {
@@ -140,14 +140,14 @@ var IPython = (function (IPython) {
                 IPython.notebook.kernel.interrupt();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 76 && that.control_key_active) {
-                // Toggle line numbers = l
-                that.cell_toggle_line_numbers();
-                that.control_key_active = false;
-                return false;
             } else if (event.which === 190 && that.control_key_active) {
                 // Restart kernel = .  # matches qt console
                 IPython.notebook.restart_kernel();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 72 && that.control_key_active) {
+                // Show keyboard shortcuts = h
+                that.show_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
             } else if (that.control_key_active) {
