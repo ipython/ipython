@@ -395,7 +395,7 @@ class IPClusterStart(IPClusterEngines):
 
     controller_launcher_class = DottedObjectName('LocalControllerLauncher',
         config=True,
-        helep="""The class for launching a Controller. Change this value if you want
+        help="""The class for launching a Controller. Change this value if you want
         your controller to also be launched by a batch system, such as PBS,SGE,MPIExec,etc.
 
         Each launcher class has its own set of configuration options, for making sure
