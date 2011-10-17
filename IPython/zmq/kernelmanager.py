@@ -17,6 +17,7 @@ TODO
 
 # Standard library imports.
 import errno
+import json
 from Queue import Queue, Empty
 from subprocess import Popen
 import os
@@ -29,7 +30,6 @@ import time
 import zmq
 from zmq import POLLIN, POLLOUT, POLLERR
 from zmq.eventloop import ioloop
-from zmq.utils import jsonapi as json
 
 # Local imports.
 from IPython.config.loader import Config
