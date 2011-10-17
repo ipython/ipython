@@ -22,6 +22,7 @@ import os
 import signal
 import sys
 import webbrowser
+import uuid
 from getpass import getpass
 
 # System library imports
@@ -273,10 +274,7 @@ class MainWindow(QtGui.QMainWindow):
         # widget that are candidate to be the owner of the kernel does have all the same port of the curent widget
         # And should have a _may_close attribute
         filtred_widget_list = [ widget for widget in widget_list if
-                                widget.kernel_manager.shell_address == km.shell_address and
-                                widget.kernel_manager.sub_address   == km.sub_address and
-                                widget.kernel_manager.stdin_address == km.stdin_address and
-                                widget.kernel_manager.hb_address    == km.hb_address and
+                                widget.kernel_manager.connection_file == km.connection_file and
                                 hasattr(widget,'_may_close') ]
         # the master widget is the one that may close the kernel
         master_widget= [ widget for widget in filtred_widget_list if widget._may_close]
@@ -308,10 +306,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # widget that are candidate not to be the owner of the kernel does have all the same port of the curent widget
         filtered_widget_list = ( widget for widget in widget_list if
-                                widget.kernel_manager.shell_address == km.shell_address and
-                                widget.kernel_manager.sub_address   == km.sub_address and
-                                widget.kernel_manager.stdin_address == km.stdin_address and
-                                widget.kernel_manager.hb_address    == km.hb_address)
+                                widget.kernel_manager.connection_file == km.connection_file)
         # Get a list of all widget owning the same kernel and removed it from
         # the previous cadidate. (better using sets ?)
         master_widget_list = self.find_master_tab(tab,as_list=True)
@@ -877,6 +872,9 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.connection_file = os.path.basename(base)+'-ssh'+ext
         self.log.critical("To connect another client via this tunnel, use:")
         self.log.critical("--existing %s" % self.connection_file)
+    
+    def _new_connection_file(self):
+        return os.path.join(self.profile_dir.security_dir, 'kernel-%s.json' % uuid.uuid4())
 
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
@@ -915,21 +913,19 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     def create_tab_with_new_frontend(self):
         """ Create new tab attached to new kernel, launched on localhost.
         """
+        ip = self.ip if self.ip in LOCAL_IPS else LOCALHOST
         kernel_manager = QtKernelManager(
-                                shell_address=(LOCALHOST,0 ),
-                                sub_address=(LOCALHOST, 0),
-                                stdin_address=(LOCALHOST, 0),
-                                hb_address=(LOCALHOST, 0),
-                                config=self.config
+                                ip=ip,
+                                connection_file=self._new_connection_file(),
+                                config=self.config,
         )
         # start the kernel
-        kwargs = dict(ip=LOCALHOST, ipython=not self.pure)
+        kwargs = dict(ipython=not self.pure)
         kwargs['extra_arguments'] = self.kernel_argv
         kernel_manager.start_kernel(**kwargs)
         kernel_manager.start_channels()
-        local_kernel = (not False) or self.ip in LOCAL_IPS
         widget = self.widget_factory(config=self.config,
-                                   local_kernel=local_kernel)
+                                   local_kernel=True)
         widget.kernel_manager = kernel_manager
         widget._existing=False;
         widget._confirm_exit=True;
@@ -942,16 +938,13 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         current_widget.kernel_manager = current_widget.kernel_manager;
         current_widget_name = self.window.tab_widget.tabText(current_widget_index);
         kernel_manager = QtKernelManager(
-                                shell_address = current_widget.kernel_manager.shell_address,
-                                sub_address = current_widget.kernel_manager.sub_address,
-                                stdin_address = current_widget.kernel_manager.stdin_address,
-                                hb_address = current_widget.kernel_manager.hb_address,
-                                config = self.config
+                                connection_file=current_widget.kernel_manager.connection_file,
+                                config = self.config,
         )
+        kernel_manager.load_connection_file()
         kernel_manager.start_channels()
-        local_kernel = (not self.existing) or self.ip in LOCAL_IPS
         widget = self.widget_factory(config=self.config,
-                                   local_kernel=False)
+                                local_kernel=False)
         widget._confirm_exit=True;
         widget._may_close=False;
         widget.kernel_manager = kernel_manager
