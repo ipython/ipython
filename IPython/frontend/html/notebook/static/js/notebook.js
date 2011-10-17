@@ -147,7 +147,7 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 72 && that.control_key_active) {
                 // Show keyboard shortcuts = h
-                that.show_keyboard_shortcuts();
+                that.toggle_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
             } else if (that.control_key_active) {
@@ -196,8 +196,17 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.show_keyboard_shortcuts = function () {
+    Notebook.prototype.toggle_keyboard_shortcuts = function () {
+        // toggles display of keyboard shortcut dialog
+        var that = this;
+        if ( this.shortcut_dialog ){
+            // if dialog is already shown, close it
+            this.shortcut_dialog.dialog("close");
+            this.shortcut_dialog = null;
+            return;
+        }
         var dialog = $('<div/>');
+        this.shortcut_dialog = dialog;
         var shortcuts = [
             {key: 'Shift-Enter', help: 'run cell'},
             {key: 'Ctrl-Enter', help: 'run cell in-place'},
@@ -223,6 +232,10 @@ var IPython = (function (IPython) {
                 append($('<span/>').addClass('shortcut_descr').html(' : ' + shortcuts[i].help))
             );
         };
+        dialog.bind('dialogclose', function(event) {
+            // dialog has been closed, allow it to be drawn again.
+            that.shortcut_dialog = null;
+        });
         dialog.dialog({title: 'Keyboard shortcuts'});
     };
 

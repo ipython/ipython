@@ -27,7 +27,7 @@ var IPython = (function (IPython) {
     QuickHelp.prototype.bind_events = function () {
         var that = this;
         this.element.find("button#quick_help").click(function () {
-            IPython.notebook.show_keyboard_shortcuts();
+            IPython.notebook.toggle_keyboard_shortcuts();
         });
     };
 
