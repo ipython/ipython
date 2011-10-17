@@ -1126,7 +1126,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                 shortcut="Ctrl+Meta+H",
                 statusTip="Toggle menubar betwin visible and not",
                 triggered=self.toggle_menu_bar)
-            self.window_menu.addAction(self.toggle_menu_bar_act)
+            self.window.window_menu.addAction(self.toggle_menu_bar_act)
 
     def toggle_menu_bar(self):
         menu_bar = self.window.menuBar();
