@@ -38,7 +38,7 @@ from IPython.core.excolors import exception_colors
 has_pydb = False
 prompt = 'ipdb> '
 #We have to check this directly from sys.argv, config struct not yet available
-if '-pydb' in sys.argv:
+if '--pydb' in sys.argv:
     try:
         import pydb
         if hasattr(pydb.pydb, "runl") and pydb.version>'1.17':
@@ -64,7 +64,7 @@ def BdbQuit_excepthook(et,ev,tb):
     else:
         BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
-def BdbQuit_IPython_excepthook(self,et,ev,tb):
+def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
     print 'Exiting Debugger.'
 
 
@@ -104,8 +104,8 @@ class Tracer(object):
         """
 
         try:
-            ip = ipapi.get()
-        except:
+            ip = get_ipython()
+        except NameError:
             # Outside of ipython, we set our own exception hook manually
             BdbQuit_excepthook.excepthook_ori = sys.excepthook
             sys.excepthook = BdbQuit_excepthook

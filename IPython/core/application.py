@@ -27,6 +27,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import atexit
 import glob
 import logging
 import os
@@ -156,6 +157,9 @@ class BaseIPythonApplication(Application):
         """Create a crash handler, typically setting sys.excepthook to it."""
         self.crash_handler = self.crash_handler_class(self)
         sys.excepthook = self.crash_handler
+        def unset_crashhandler():
+            sys.excepthook = sys.__excepthook__
+        atexit.register(unset_crashhandler)
 
     def _ipython_dir_changed(self, name, old, new):
         if old in sys.path:
