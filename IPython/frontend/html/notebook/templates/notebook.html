@@ -56,13 +56,16 @@
         <span id="notebook_id" style="display:none">{{notebook_id}}</span>
         <button id="save_notebook"><u>S</u>ave</button>
     </span>
+    <span id="quick_help_area">
+      <button id="quick_help">Quick<u>H</u>elp</button>
+      </span>
     <span id="kernel_status">Idle</span>
 </div>
 
 <div id="MathJaxFetchingWarning"
       style="width:80%; margin:auto;padding-top:20%;text-align: justify; display:none">
       <p style="font-size:26px;">There was an issue trying to fetch MathJax.js
-	from the internet.</p>
+        from the internet.</p>
 
       <p style="padding:0.2em"> With a working internet connection, you can run
     the following at a Python or IPython prompt, which will install a local
@@ -176,7 +179,7 @@
             <div class="section_content">
                 <div class="section_row">
                     <span id="int_restart" class="section_row_buttons">
-                        <button id="int_kernel">Interrupt</button>
+                        <button id="int_kernel"><u>I</u>nterrupt</button>
                         <button id="restart_kernel">Restart</button>
                     </span>
                     <span class="section_row_header">Actions</span>
@@ -217,7 +220,7 @@
                     <span class="help_string_label">Shift-Enter :</span>
                 </div>
                 <div class="section_row">
-                    <span class="help_string">run in terminal mode</span>
+                    <span class="help_string">run selected cell in-place</span>
                     <span class="help_string_label">Ctrl-Enter  :</span>
                 </div>
                 <div class="section_row">
@@ -263,6 +266,7 @@
 <script src="static/js/kernelstatus.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/layout.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/savewidget.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/quickhelp.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/pager.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/panelsection.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/printwidget.js" type="text/javascript" charset="utf-8"></script>
@@ -274,5 +278,3 @@
 </body>
 
 </html>
-
-

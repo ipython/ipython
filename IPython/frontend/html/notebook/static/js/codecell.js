@@ -48,9 +48,10 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-        // This method gets called in CodeMirror's onKeyDown/onKeyPress handlers and
-        // is used to provide custom key handling. Its return value is used to determine
-        // if CodeMirror should ignore the event: true = ignore, false = don't ignore.
+        // This method gets called in CodeMirror's onKeyDown/onKeyPress
+        // handlers and is used to provide custom key handling. Its return
+        // value is used to determine if CodeMirror should ignore the event:
+        // true = ignore, false = don't ignore.
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
@@ -59,8 +60,8 @@ var IPython = (function (IPython) {
             var cur = editor.getCursor();
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur).trim();
             if (pre_cursor === "") {
-                // Don't autocomplete if the part of the line before the cursor is empty.
-                // In this case, let CodeMirror handle indentation.
+                // Don't autocomplete if the part of the line before the cursor
+                // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
             } else {
                 // Autocomplete the current line.
@@ -86,9 +87,14 @@ var IPython = (function (IPython) {
             } else {
                 return false;
             };
-        } else {
-            // keypress/keyup also trigger on TAB press, and we don't want to use those
-            // to disable tab completion.
+        } else if (event.keyCode === 76 && event.ctrlKey && event.shiftKey
+                   && event.type == 'keydown') {
+            // toggle line numbers with Ctrl-Shift-L
+            this.toggle_line_numbers();
+        }
+        else {
+            // keypress/keyup also trigger on TAB press, and we don't want to
+            // use those to disable tab completion.
             if (this.is_completing && event.keyCode !== 9) {
                 var ed_cur = editor.getCursor();
                 var cc_cur = this.completion_cursor;
@@ -177,6 +183,14 @@ var IPython = (function (IPython) {
         select.focus();
     };
 
+    CodeCell.prototype.toggle_line_numbers = function () {
+        if (this.code_mirror.getOption('lineNumbers') == false) {
+            this.code_mirror.setOption('lineNumbers', true);
+        } else {
+            this.code_mirror.setOption('lineNumbers', false);
+        }
+        this.code_mirror.refresh()
+    };
 
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
@@ -470,4 +484,3 @@ var IPython = (function (IPython) {
 
     return IPython;
 }(IPython));
-
