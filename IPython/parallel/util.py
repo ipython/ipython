@@ -108,6 +108,15 @@ def asbytes(s):
         s = s.encode('ascii')
     return s
 
+def is_url(url):
+    """boolean check for whether a string is a zmq url"""
+    if '://' not in url:
+        return False
+    proto, addr = url.split('://', 1)
+    if proto.lower() not in ['tcp','pgm','epgm','ipc','inproc']:
+        return False
+    return True
+
 def validate_url(url):
     """validate a url for zeromq"""
     if not isinstance(url, basestring):
