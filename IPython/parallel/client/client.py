@@ -306,7 +306,8 @@ class Client(HasTraits):
         assert url_or_file is not None, "I can't find enough information to connect to a hub!"\
             " Please specify at least one of url_or_file or profile."
 
-	if not is_url(url_or_file):
+        if not util.is_url(url_or_file):
+            # it's not a url, try for a file
             if not os.path.exists(url_or_file):
                 if self._cd:
                     url_or_file = os.path.join(self._cd.security_dir, url_or_file)
