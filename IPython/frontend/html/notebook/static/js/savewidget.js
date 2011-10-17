@@ -15,7 +15,7 @@ var IPython = (function (IPython) {
 
     var SaveWidget = function (selector) {
         this.selector = selector;
-        this.notebook_name_re = /[^/\\]+/
+        this.notebook_name_blacklist_re = /[\/\\]/
         this.last_saved_name = '';
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -49,6 +49,10 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.save_notebook = function () {
         IPython.notebook.save_notebook();
+    };
+
+
+    SaveWidget.prototype.notebook_saved = function () {
         this.set_document_title();
         this.last_saved_name = this.get_notebook_name();
     };
@@ -96,18 +100,23 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.test_notebook_name = function () {
         var nbname = this.get_notebook_name();
-        if (this.notebook_name_re.test(nbname)) {
+        if (this.notebook_name_blacklist_re.test(nbname) == false) {
             return true;
         } else {
             var bad_name = $('<div/>');
             bad_name.html(
                 "The notebook name you entered (" +
                 nbname +
-                ") is not valid. Notebook names can contain any characters except / and \\"
+                ") is not valid. Notebook names can contain any characters except / and \\."
             );
             bad_name.dialog({title: 'Invalid name', modal: true});
             return false;
         };
+    };
+
+
+    SaveWidget.prototype.reset_status = function () {
+        this.is_renaming();
     };
 
 
