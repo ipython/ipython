@@ -1,7 +1,7 @@
 
 
 .cm-s-ipython span.cm-keyword {color: #008000; font-weight: bold;}
-.cm-s-ipython span.cm-number {color: #0A32C8;}
+.cm-s-ipython span.cm-number {color: #000080;}
 .cm-s-ipython span.cm-operator {color: #AA22FF; font-weight: bold;}
 .cm-s-ipython span.cm-meta {color: #AA22FF;}
 .cm-s-ipython span.cm-comment {color: #408080; font-style: italic;}
