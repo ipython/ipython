@@ -147,7 +147,7 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 190 && that.control_key_active) {
                 // Restart kernel = .  # matches qt console
-		IPython.notebook.restart_kernel();
+                IPython.notebook.restart_kernel();
                 that.control_key_active = false;
                 return false;
             } else if (that.control_key_active) {
@@ -213,8 +213,8 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m m', help: 'markdown cell'},
             {key: 'Ctrl-m p', help: 'select previous'},
             {key: 'Ctrl-m n', help: 'select next'},
-	    {key: 'Ctrl-m i', help: 'interrupt kernel'},
-	    {key: 'Ctrl-m .', help: 'restart kernel'},
+            {key: 'Ctrl-m i', help: 'interrupt kernel'},
+            {key: 'Ctrl-m .', help: 'restart kernel'},
             {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
@@ -623,7 +623,7 @@ var IPython = (function (IPython) {
     // Other cell functions: line numbers, ...
 
     Notebook.prototype.cell_toggle_line_numbers = function() {
-	this.selected_cell().toggle_line_numbers()
+        this.selected_cell().toggle_line_numbers()
     };
 
     // Kernel related things
@@ -636,7 +636,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.restart_kernel = function () {
-	var that = this;
+        var that = this;
         var notebook_id = IPython.save_widget.get_notebook_id();
 
         var dialog = $('<div/>');
@@ -648,7 +648,7 @@ var IPython = (function (IPython) {
             title: "Restart kernel or continue running?",
             buttons : {
                 "Restart": function () {
-		    that.kernel.restart($.proxy(that.kernel_started, that));
+                    that.kernel.restart($.proxy(that.kernel_started, that));
                     $(this).dialog('close');
                 },
                 "Continue running": function () {

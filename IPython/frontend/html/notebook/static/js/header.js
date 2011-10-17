@@ -16,14 +16,14 @@ var IPython = (function (IPython) {
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.content = this.element.find('div.header');
-	    this.style();
+            this.style();
             this.bind_events();
         }
     };
 
     HeaderSection.prototype.style = function () {
-	this.content.addClass('ui-helper-clearfix');
-	this.content.find('#quick_help').button();
+        this.content.addClass('ui-helper-clearfix');
+        this.content.find('#quick_help').button();
     };
 
     HeaderSection.prototype.bind_events = function () {

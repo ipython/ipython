@@ -88,11 +88,11 @@ var IPython = (function (IPython) {
                 return false;
             };
         } else if (event.keyCode === 76 && event.ctrlKey && event.shiftKey
-		   && event.type == 'keydown') {
+                   && event.type == 'keydown') {
             // toggle line numbers with Ctrl-Shift-L
-	    this.toggle_line_numbers()
+            this.toggle_line_numbers();
         }
-	else {
+        else {
             // keypress/keyup also trigger on TAB press, and we don't want to
             // use those to disable tab completion.
             if (this.is_completing && event.keyCode !== 9) {
@@ -184,12 +184,12 @@ var IPython = (function (IPython) {
     };
 
     CodeCell.prototype.toggle_line_numbers = function () {
-	if (this.code_mirror.getOption('lineNumbers') == false) {
-	    this.code_mirror.setOption('lineNumbers', true);
-	} else {
-	    this.code_mirror.setOption('lineNumbers', false);
-	}
-	this.code_mirror.refresh()
+        if (this.code_mirror.getOption('lineNumbers') == false) {
+            this.code_mirror.setOption('lineNumbers', true);
+        } else {
+            this.code_mirror.setOption('lineNumbers', false);
+        }
+        this.code_mirror.refresh()
     };
 
     CodeCell.prototype.select = function () {
