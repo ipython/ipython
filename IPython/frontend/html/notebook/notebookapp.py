@@ -22,6 +22,7 @@ import os
 import signal
 import socket
 import sys
+import webbrowser
 
 import zmq
 
@@ -51,7 +52,7 @@ from IPython.zmq.ipkernel import (
     aliases as ipkernel_aliases,
     IPKernelApp
 )
-from IPython.utils.traitlets import Dict, Unicode, Int, List, Enum
+from IPython.utils.traitlets import Dict, Unicode, Int, List, Enum, Bool
 
 #-----------------------------------------------------------------------------
 # Module globals
@@ -111,11 +112,15 @@ class NotebookWebApplication(web.Application):
 #-----------------------------------------------------------------------------
 
 flags = dict(ipkernel_flags)
+flags['no-browser']=(
+    {'IPythonNotebookApp' : {'open_browser' : False}},
+    "Don't open the notebook in a browser after startup."
+)
 
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = []
+notebook_flags = ['no-browser']
 
 aliases = dict(ipkernel_aliases)
 
@@ -195,6 +200,9 @@ class IPythonNotebookApp(BaseIPythonApplication):
     password = Unicode(u'', config=True,
                       help="""Password to use for web authentication"""
     )
+    
+    open_browser = Bool(True, config=True,
+                        help="Whether to open in a browser after starting.")
 
     def get_ws_url(self):
         """Return the WebSocket URL for this server."""
@@ -291,6 +299,9 @@ class IPythonNotebookApp(BaseIPythonApplication):
         self.log.info("The IPython Notebook is running at: %s://%s:%i" % (proto,
                                                                           ip,
                                                                           self.port))
+        if self.open_browser:
+            ip = self.ip or '127.0.0.1'
+            webbrowser.open("%s://%s:%i" % (proto, ip, self.port), new=2)
         ioloop.IOLoop.instance().start()
 
 #-----------------------------------------------------------------------------
