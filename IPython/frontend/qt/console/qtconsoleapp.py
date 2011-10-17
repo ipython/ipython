@@ -342,7 +342,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                 swallow_next = False
                 continue
             if a.startswith('-'):
-                split = a.lstrip('-').split('=')[0]
+                split = a.lstrip('-').split('=')
                 alias = split[0]
                 if alias in qt_aliases:
                     self.kernel_argv.remove(a)
