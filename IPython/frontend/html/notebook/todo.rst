@@ -3,7 +3,6 @@ Notebook todo
 
 * Style the login page consistently with the rest of the site.
 * Style the "Log Out" and username links in the header.
-* Implement self.request._cookies fix.
 * Do a review of the header design and decide what to do about save widget moving
   to the Notebook section of the L panel.
 * Show last saved time next to save widget.
@@ -42,7 +41,6 @@ Notebook todo
 CodeMirror related
 ------------------
 
-* Update CodeMirror
 * Focus should only be called when the editor is on the page and visible.
 * Refresh needs to be called when the editor is shown after hiding.
 * Right now focus, then setValue causes the arrow keys to lock up. If that bug is
