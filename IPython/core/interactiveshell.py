@@ -307,6 +307,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         Automatically call the pdb debugger after every exception.
         """
     )
+    multiline_history = CBool(True, config=True,
+        help="Store multiple line spanning cells as a single entry in history."
+    )
 
     prompt_in1 = Unicode('In [\\#]: ', config=True)
     prompt_in2 = Unicode('   .\\D.: ', config=True)
@@ -1791,9 +1794,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
         for _, _, cell in self.history_manager.get_tail(1000,
                                                         include_latest=True):
             if cell.strip(): # Ignore blank lines
-                for line in cell.splitlines():
-                    self.readline.add_history(py3compat.unicode_to_str(line,
-                                                                stdin_encoding))
+                if self.multiline_history:
+                      self.readline.add_history(py3compat.unicode_to_str(cell.rstrip(),
+                                                                         stdin_encoding))
+                else:
+                    for line in cell.splitlines():
+                        self.readline.add_history(py3compat.unicode_to_str(line,
+                                                                           stdin_encoding))
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
