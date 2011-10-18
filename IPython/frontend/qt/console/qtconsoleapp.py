@@ -324,7 +324,7 @@ class MainWindow(QtGui.QMainWindow):
         self.kernel_menu = self.menuBar().addMenu("&Kernel")
         self.window_menu = self.menuBar().addMenu("&Window")
         self.magic_menu = self.menuBar().addMenu("&Magic")
-        self.all_magic_menu = self.magic_menu.addMenu("&All Magic")
+        self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
 
         # please keep the Help menu in Mac Os even if empty. It will
         # automatically contain a search field to search inside menus and
@@ -467,23 +467,23 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.whos_magic_active_frontend)
         self.magic_menu.addAction(self.whos_action)
 
-        self.intro_active_frontend_action = QtGui.QAction("Intro",
+        self.intro_active_frontend_action = QtGui.QAction("Intro to IPython",
             self,
             triggered=self.intro_active_frontend
             )
         self.help_menu.addAction(self.intro_active_frontend_action)
 
-        self.guiref_active_frontend_action = QtGui.QAction("Gui references",
-            self,
-            triggered=self.guiref_active_frontend
-            )
-        self.help_menu.addAction(self.guiref_active_frontend_action)
-
-        self.quickref_active_frontend_action = QtGui.QAction("Quick references",
+        self.quickref_active_frontend_action = QtGui.QAction("IPython Cheat Sheet",
             self,
             triggered=self.quickref_active_frontend
             )
         self.help_menu.addAction(self.quickref_active_frontend_action)
+
+        self.guiref_active_frontend_action = QtGui.QAction("Qt Console",
+            self,
+            triggered=self.guiref_active_frontend
+            )
+        self.help_menu.addAction(self.guiref_active_frontend_action)
 
         self.interrupt_kernel_action = QtGui.QAction("Interrupt current Kernel",
             self,
