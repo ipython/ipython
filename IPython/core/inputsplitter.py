@@ -758,10 +758,11 @@ class IPythonInputSplitter(InputSplitter):
         
         try:
             push = super(IPythonInputSplitter, self).push
+            buf = self._buffer
             for line in lines_list:
-                if self._is_complete or not self._buffer or \
-                   (self._buffer and (self._buffer[-1].rstrip().endswith(':') or\
-                     self._buffer[-1].rstrip().endswith(','))):
+                if self._is_complete or not buf or \
+                       (buf and (buf[-1].rstrip().endswith(':') or
+                                 buf[-1].rstrip().endswith(',')) ):
                     for f in transforms:
                         line = f(line)
 
