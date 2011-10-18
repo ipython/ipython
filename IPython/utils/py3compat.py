@@ -155,7 +155,7 @@ else:
     if sys.platform == 'win32':
         def execfile(fname, glob, loc=None):
             loc = loc if (loc is not None) else glob
-            scripttext = file(fname).read()
+            scripttext = __builtin__.open(fname).read()
             #compile converts unicode filename to str assuming
             #ascii. Let's do the conversion before calling compile
             if isinstance(fname, unicode):
