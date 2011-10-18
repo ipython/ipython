@@ -153,7 +153,7 @@ else:
         return s.format(u='u')
 
     if sys.platform == 'win32':
-        def execfile(fname, glob, loc=None):
+        def execfile(fname, glob=None, loc=None):
             loc = loc if (loc is not None) else glob
             scripttext = __builtin__.open(fname).read()
             #compile converts unicode filename to str assuming
@@ -164,7 +164,7 @@ else:
                 filename = fname
             exec compile(scripttext, filename, 'exec') in glob, loc
     else:
-        def execfile(fname, glob, loc=None):
+        def execfile(fname, glob=None, loc=None):
             if isinstance(fname, unicode):
                 filename = fname.encode(sys.getfilesystemencoding())
             else:
