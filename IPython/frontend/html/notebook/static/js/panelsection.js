@@ -106,9 +106,19 @@ var IPython = (function (IPython) {
         });
         this.content.find('#download_notebook').click(function () {
             var format = that.content.find('#download_format').val();
-            var notebook_id = IPython.save_widget.get_notebook_id();
-            var url = '/notebooks/' + notebook_id + '?format=' + format;
-            window.open(url,'_newtab');
+            // save on download
+            IPython.save_widget.save_notebook();
+            // hook into notebook_saved method to download on success:
+            var old_notebook_saved = IPython.save_widget.notebook_saved;
+            IPython.save_widget.notebook_saved = function() {
+                // restore and call original function:
+                IPython.save_widget.notebook_saved = old_notebook_saved;
+                IPython.save_widget.notebook_saved();
+                // now trigger download
+                var notebook_id = IPython.save_widget.get_notebook_id();
+                var url = '/notebooks/' + notebook_id + '?format=' + format;
+                window.open(url,'_newtab');
+            }
         });
     };
 
