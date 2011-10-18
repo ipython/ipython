@@ -104,7 +104,7 @@ class DisplayPublisher(Configurable):
         if data.has_key('text/plain'):
             print(data['text/plain'], file=io.stdout)
 
-        def clear_output(self):
+        def clear_output(self, stdout=True, stderr=True, other=True):
             """Clear the output of the cell receiving output."""
             pass
 

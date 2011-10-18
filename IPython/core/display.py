@@ -383,7 +383,25 @@ class Image(DisplayObject):
         return unicode(s.split('.')[-1].lower())
 
 
-def clear_output():
-    """Clear the output of the current cell receiving output."""
+def clear_output(stdout=True, stderr=True, other=True):
+    """Clear the output of the current cell receiving output.
+    
+    Optionally, each of stdout/stderr or other non-stream data (e.g. anything
+    produced by display()) can be excluded from the clear event.
+    
+    By default, everything is cleared.
+    
+    Parameters
+    ----------
+    stdout : bool [default: True]
+        Whether to clear stdout.
+    stderr : bool [default: True]
+        Whether to clear stderr.
+    other : bool [default: True]
+        Whether to clear everything else that is not stdout/stderr
+        (e.g. figures,images,HTML, any result of display()).
+    """
     from IPython.core.interactiveshell import InteractiveShell
-    InteractiveShell.instance().display_pub.clear_output()
+    InteractiveShell.instance().display_pub.clear_output(
+        stdout=stdout, stderr=stderr, other=other,
+    )

@@ -80,9 +80,10 @@ class ZMQDisplayPublisher(DisplayPublisher):
             parent=self.parent_header
         )
 
-    def clear_output(self):
+    def clear_output(self, stdout=True, stderr=True, other=True):
+        content = dict(stdout=stdout, stderr=stderr, other=other)
         self.session.send(
-            self.pub_socket, u'clear_output', {},
+            self.pub_socket, u'clear_output', content,
             parent=self.parent_header
         )
 
