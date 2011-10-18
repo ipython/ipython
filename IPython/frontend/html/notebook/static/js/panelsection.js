@@ -30,6 +30,7 @@ var IPython = (function (IPython) {
 
     PanelSection.prototype.style = function () {
         this.header.addClass('ui-widget ui-state-default');
+        this.header.attr('title', "Click to Show/Hide Section");
         this.content.addClass('ui-widget section_content');
     };
 
@@ -88,7 +89,13 @@ var IPython = (function (IPython) {
         this.content.addClass('ui-helper-clearfix');
         this.content.find('div.section_row').addClass('ui-helper-clearfix');
         this.content.find('#new_open').buttonset();
+        this.content.find('#new_notebook').attr('title', "Create a new notebook");
+        this.content.find('#open_notebook').attr('title', "Open an existing notebook");
         this.content.find('#download_notebook').button();
+        this.content.find('#download_notebook').attr('title',
+            "Download the notebook in the specified format," +
+            " either full ipynb notebook or as a Python script.");
+        // upload notebook doesn't exist:
         this.content.find('#upload_notebook').button();
         this.content.find('#download_format').addClass('ui-widget ui-widget-content');
         this.content.find('#download_format option').addClass('ui-widget ui-widget-content');
@@ -127,11 +134,29 @@ var IPython = (function (IPython) {
         this.content.addClass('ui-helper-clearfix');
         this.content.find('div.section_row').addClass('ui-helper-clearfix');
         this.content.find('#delete_cell').button();
+        this.content.find('#delete_cell').attr('title', "Delete the selected cell");
+
         this.content.find('#insert').buttonset();
+        this.content.find('#insert_cell_above').attr('title', "Insert new cell above selected");
+        this.content.find('#insert_cell_below').attr('title', "Insert new cell below selected");
+
         this.content.find('#move').buttonset();
+        this.content.find('#move_cell_up').attr('title', "Move selected cell up one in the Notebook");
+        this.content.find('#move_cell_down').attr('title', "Move selected cell down one in the Notebook");
+
         this.content.find('#cell_type').buttonset();
+        this.content.find('#to_markdown').attr('title', 'Change selected cell to markdown (for text)')
+        this.content.find('#to_code').attr('title', 'Change selected cell to code (for execution)')
+
         this.content.find('#cell_output').buttonset();
+        this.content.find('#toggle_output').attr('title', 'Toggle visibility of the output of code cells')
+        this.content.find('#clear_all_output').attr('title', 'Clear output of all code cells (actually removes the data, unlike toggle)')
+
         this.content.find('#run_cells').buttonset();
+        this.content.find('#run_selected_cell').attr('title', 'Submit the selected cell for execution')
+        this.content.find('#run_all_cells').attr('title', 'Run *all* code cells in the notebook in order')
+        this.content.find('#autoindent').attr('title', 'Autoindent code as-you-type')
+        this.content.find('#autoindent_label').attr('title', 'Autoindent code as-you-type')
     };
 
 
@@ -192,6 +217,16 @@ var IPython = (function (IPython) {
         this.content.addClass('ui-helper-clearfix');
         this.content.find('div.section_row').addClass('ui-helper-clearfix');
         this.content.find('#int_restart').buttonset();
+        this.content.find("#int_kernel").attr('title', "Interrupt the kernel with SIGINT/Ctrl-C");
+        this.content.find("#restart_kernel").attr('title',
+            "Restart the kernel. This will shutdown the current kernel," +
+            " and start a new, clean kernel in its place, connected to this Notebook." +
+            " This may break the connection of other clients connected to this kernel." );
+        var kill_tip = "Kill the kernel on exit.  If unchecked, the kernel will remain" +
+        " active after closing the session, allowing you to reconnect and resume later.";
+        this.content.find('#kill_kernel').attr('title', kill_tip);
+        this.content.find('#kill_kernel_label').attr('title', kill_tip);
+
     };
 
 
@@ -224,6 +259,12 @@ var IPython = (function (IPython) {
         this.content.find('#help_buttons0').buttonset();
         this.content.find('#help_buttons1').buttonset();
         this.content.find('#help_buttons2').buttonset();
+        this.content.find('#python_help').attr('title', "Open the online Python documentation in a new tab")
+        this.content.find('#ipython_help').attr('title', "Open the online IPython documentation in a new tab")
+        this.content.find('#numpy_help').attr('title', "Open the online NumPy documentation in a new tab")
+        this.content.find('#scipy_help').attr('title', "Open the online SciPy documentation in a new tab")
+        this.content.find('#matplotlib_help').attr('title', "Open the online Matplotlib documentation in a new tab")
+        this.content.find('#sympy_help').attr('title', "Open the online SymPy documentation in a new tab")
     };
 
 

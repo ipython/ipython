@@ -30,6 +30,7 @@ var IPython = (function (IPython) {
         this.left_panel_element.addClass('border-box-sizing ui-widget');
         this.left_panel_element.width(this.width);
         this.left_panel_splitter_element.css({left : this.width});
+        this.left_panel_splitter_element.attr('title', 'Click to Show/Hide left panel');
     };
 
 

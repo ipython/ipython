@@ -11,6 +11,10 @@ var IPython = (function (IPython) {
 
     PrintWidget.prototype.style = function () {
         this.element.find('button#print_notebook').button();
+        this.element.find('button#print_notebook').attr('title',
+            "Open a new window with printer-friendly HTML of the Notebook." +
+            " Note that this is incomplete, and may not produce perfect" +
+            " printed output.");
     };
 
     PrintWidget.prototype.bind_events = function () {

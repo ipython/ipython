@@ -24,6 +24,9 @@ var IPython = (function (IPython) {
 
     KernelStatusWidget.prototype.style = function () {
         this.element.addClass('ui-widget');
+        this.element.attr('title', "The kernel execution status." +
+        " If 'Busy', the kernel is currently running code." +
+        " If 'Idle', it is available for execution.")
     };
 
 
