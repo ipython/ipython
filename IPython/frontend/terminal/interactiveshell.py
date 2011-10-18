@@ -235,7 +235,9 @@ class TerminalInteractiveShell(InteractiveShell):
             hlen = self.readline.get_current_history_length()
             for i in range(hlen - hlen_before_cell):
                 self.readline.remove_history_item(hlen - i - 1)
-            self.readline.add_history(source_raw.rstrip())
+            stdin_encoding = sys.stdin.encoding or "utf-8"
+            self.readline.add_history(py3compat.unicode_to_str(source_raw.rstrip(),
+                                        stdin_encoding))
 
     def interact(self, display_banner=None):
         """Closely emulate the interactive Python console."""
