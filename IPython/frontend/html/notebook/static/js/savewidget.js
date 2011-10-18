@@ -29,6 +29,7 @@ var IPython = (function (IPython) {
         this.element.find('input#notebook_name').addClass('ui-widget ui-widget-content');
         this.element.find('input#notebook_name').attr('tabindex','1');
         this.element.find('button#save_notebook').button();
+        this.element.find('button#save_notebook').attr('title', 'Save the Notebook');
         var left_panel_width = $('div#left_panel').outerWidth();
         var left_panel_splitter_width = $('div#left_panel_splitter').outerWidth();
         $('span#save_widget').css({marginLeft:left_panel_width+left_panel_splitter_width});
