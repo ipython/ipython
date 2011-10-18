@@ -1,5 +1,6 @@
 # coding: utf-8
 """Compatibility tricks for Python 3. Mainly to do with unicode."""
+import __builtin__
 import functools
 import sys
 import re
@@ -151,13 +152,21 @@ else:
         Accepts a string or a function, so it can be used as a decorator."""
         return s.format(u='u')
 
-    def execfile(fname, glob, loc=None):
-        loc = loc if (loc is not None) else glob
-        scripttext = file(fname).read()
-        #compile converts unicode filename to str assuming
-        #ascii. Let's do the conversion before calling compile
-        if isinstance(fname, unicode):
-            filename = unicode_to_str(fname)
-        else:
-            filename = fname
-        exec compile(scripttext, filename, 'exec') in glob, loc
+    if sys.platform == 'win32':
+        def execfile(fname, glob, loc=None):
+            loc = loc if (loc is not None) else glob
+            scripttext = file(fname).read()
+            #compile converts unicode filename to str assuming
+            #ascii. Let's do the conversion before calling compile
+            if isinstance(fname, unicode):
+                filename = unicode_to_str(fname)
+            else:
+                filename = fname
+            exec compile(scripttext, filename, 'exec') in glob, loc
+    else:
+        def execfile(fname, glob, loc=None):
+            if isinstance(fname, unicode):
+                filename = fname.encode(sys.getfilesystemencoding())
+            else:
+                filename = fname
+            __builtin__.execfile(filename, glob, loc)
