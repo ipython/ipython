@@ -307,7 +307,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         Automatically call the pdb debugger after every exception.
         """
     )
-    multiline_history = CBool(True, config=True,
+    multiline_history = CBool(sys.platform != 'win32', config=True,
         help="Store multiple line spanning cells as a single entry in history."
     )
 
