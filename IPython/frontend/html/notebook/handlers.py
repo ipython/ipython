@@ -18,6 +18,7 @@ Authors:
 
 import logging
 import Cookie
+import uuid
 
 from tornado import web
 from tornado import websocket
@@ -40,51 +41,74 @@ except ImportError:
 
 class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
+
     def get_current_user(self):
-        user_id = self.get_secure_cookie("user")
+        user_id = self.get_secure_cookie("username")
+        # For now the user_id should not return empty, but it could eventually
         if user_id == '':
             user_id = 'anonymous'
         if user_id is None:
             # prevent extra Invalid cookie sig warnings:
-            self.clear_cookie('user')
+            self.clear_cookie('username')
             if not self.application.password:
                 user_id = 'anonymous'
         return user_id
 
 
-class NBBrowserHandler(AuthenticatedHandler):
+class ProjectDashboardHandler(AuthenticatedHandler):
+
     @web.authenticated
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
-        self.render('nbbrowser.html', project=project)
+        self.render(
+            'projectdashboard.html', project=project,
+            base_project_url=u'/', base_kernel_url=u'/'
+        )
+
 
 class LoginHandler(AuthenticatedHandler):
+
     def get(self):
-        user_id = self.get_secure_cookie("user") or ''
-        self.render('login.html', user_id=user_id)
+        self.render('login.html', next='/')
 
     def post(self):
-        pwd = self.get_argument("password", default=u'')
+        pwd = self.get_argument('password', default=u'')
         if self.application.password and pwd == self.application.password:
-            self.set_secure_cookie("user", self.get_argument("name", default=u''))
-        url = self.get_argument("next", default="/")
+            self.set_secure_cookie('username', str(uuid.uuid4()))
+        url = self.get_argument('next', default='/')
         self.redirect(url)
 
+
 class NewHandler(AuthenticatedHandler):
+
     @web.authenticated
     def get(self):
-        notebook_id = self.application.notebook_manager.new_notebook()
-        self.render('notebook.html', notebook_id=notebook_id)
+        nbm = self.application.notebook_manager
+        project = nbm.notebook_dir
+        notebook_id = nbm.new_notebook()
+        self.render(
+            'notebook.html', project=project,
+            notebook_id=notebook_id,
+            base_project_url=u'/', base_kernel_url=u'/',
+            kill_kernel=False
+        )
 
 
 class NamedNotebookHandler(AuthenticatedHandler):
+
     @web.authenticated
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
+        project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        self.render('notebook.html', notebook_id=notebook_id)
+        self.render(
+            'notebook.html', project=project,
+            notebook_id=notebook_id,
+            base_project_url=u'/', base_kernel_url=u'/',
+            kill_kernel=False
+        )
 
 
 #-----------------------------------------------------------------------------
@@ -166,11 +190,13 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         try:
             msg = self._reserialize_reply(msg_list)
         except:
-            self.application.kernel_manager.log.critical("Malformed message: %r" % msg_list)
+            self.application.log.critical("Malformed message: %r" % msg_list)
         else:
             self.write_message(msg)
 
+
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
+
     def open(self, kernel_id):
         self.kernel_id = kernel_id.decode('ascii')
         try:
@@ -184,7 +210,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         self.on_message = self.on_first_message
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie("user")
+        user_id = self.get_secure_cookie("username")
         if user_id == '' or (user_id is None and not self.application.password):
             user_id = 'anonymous'
         return user_id
@@ -196,7 +222,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
             # Cookie can't constructor doesn't accept unicode strings for some reason
             msg = msg.encode('utf8', 'replace')
         try:
-            self._cookies = Cookie.SimpleCookie(msg)
+            self.request._cookies = Cookie.SimpleCookie(msg)
         except:
             logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
 

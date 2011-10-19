@@ -37,9 +37,8 @@ input#notebook_name {
 }
 
 span#kernel_status {
-    position: absolute;
-    padding: 8px 5px 5px 5px;
-    right: 10px;
+    float: right;
+    padding: 0px 5px;
     font-weight: bold;
 }
 
@@ -65,8 +64,12 @@ div#left_panel {
     position: absolute;
 }
 
-h3.section_header {
+div.section_header {
     padding: 5px;
+}
+
+div.section_header h3 {
+    display: inline;
 }
 
 div.section_content {

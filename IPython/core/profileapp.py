@@ -194,15 +194,15 @@ class ProfileCreate(BaseIPythonApplication):
         else:
             apps.append(IPythonQtConsoleApp)
         try:
-            from IPython.frontend.html.notebook.notebookapp import IPythonNotebookApp
+            from IPython.frontend.html.notebook.notebookapp import NotebookApp
         except ImportError:
             pass
         except Exception:
-            self.log.debug('Unexpected error when importing IPythonNotebookApp',
+            self.log.debug('Unexpected error when importing NotebookApp',
                            exc_info=True
             )
         else:
-            apps.append(IPythonNotebookApp)
+            apps.append(NotebookApp)
         if self.parallel:
             from IPython.parallel.apps.ipcontrollerapp import IPControllerApp
             from IPython.parallel.apps.ipengineapp import IPEngineApp
