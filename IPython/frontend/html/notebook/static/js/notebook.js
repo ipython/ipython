@@ -733,7 +733,9 @@ var IPython = (function (IPython) {
             } else if (content.execution_state === 'dead') {
                 this.handle_status_dead();
             };
-        }
+        } else if (msg_type === 'clear_output') {
+            cell.clear_output();
+        };
     };
 
 
