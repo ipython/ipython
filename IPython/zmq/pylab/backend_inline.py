@@ -17,7 +17,7 @@ from matplotlib._pylab_helpers import Gcf
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core.displaypub import publish_display_data
 from IPython.lib.pylabtools import print_figure, select_figure_format
-from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum
+from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, CBool
 #-----------------------------------------------------------------------------
 # Configurable for inline backend options
 #-----------------------------------------------------------------------------
@@ -47,6 +47,23 @@ class InlineBackendConfig(SingletonConfigurable):
             return
         else:
             select_figure_format(self.shell, new)
+    
+    close_figures = CBool(True, config=True,
+        help="""Close all figures at the end of each cell.
+        
+        When True, ensures that each cell starts with no active figures, but it
+        also means that one must keep track of references in order to edit or
+        redraw figures in subsequent cells. This mode is ideal for the notebook,
+        where residual plots from other cells might be surprising.
+        
+        When False, one must call figure() to create new figures. This means
+        that gcf() and getfigs() can reference figures created in other cells,
+        and the active figure can continue to be edited with pylab/pyplot
+        methods that reference the current active figure. This mode facilitates
+        iterative editing of figures, and behaves most consistently with
+        other matplotlib backends, but figure barriers between cells must
+        be explicit.
+        """)
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
@@ -55,44 +72,74 @@ class InlineBackendConfig(SingletonConfigurable):
 # Functions
 #-----------------------------------------------------------------------------
 
-def show(close=True):
-    """Show all figures as SVG payloads sent to the IPython clients.
+def show(close=None):
+    """Show all figures as SVG/PNG payloads sent to the IPython clients.
 
     Parameters
     ----------
     close : bool, optional
       If true, a ``plt.close('all')`` call is automatically issued after
-      sending all the SVG figures. If this is set, the figures will entirely
+      sending all the figures. If this is set, the figures will entirely
       removed from the internal list of figures.
     """
+    if close is None:
+        close = InlineBackendConfig.instance().close_figures
     for figure_manager in Gcf.get_all_fig_managers():
         send_figure(figure_manager.canvas.figure)
     if close:
         matplotlib.pyplot.close('all')
+    show._to_draw = []
+
 
 
 # This flag will be reset by draw_if_interactive when called
 show._draw_called = False
+# list of figures to draw when flush_figures is called
+show._to_draw = []
 
 
 def draw_if_interactive():
     """
     Is called after every pylab drawing command
     """
-    # We simply flag we were called and otherwise do nothing.  At the end of
-    # the code execution, a separate call to show_close() will act upon this.
+    # signal that the current active figure should be sent at the end of execution.
+    # Also sets the _draw_called flag, signaling that there will be something to send.
+    # At the end of the code execution, a separate call to flush_figures()
+    # will act upon these values
+    
+    fig = Gcf.get_active().canvas.figure
+    
+    # ensure current figure will be drawn, and each subsequent call
+    # of draw_if_interactive() moves the active figure to ensure it is
+    # drawn last
+    try:
+        show._to_draw.remove(fig)
+    except ValueError:
+        # ensure it only appears in the draw list once
+        pass
+    show._to_draw.append(fig)
     show._draw_called = True
 
-
 def flush_figures():
-    """Call show, close all open figures, sending all figure images.
+    """Send all figures that changed
 
     This is meant to be called automatically and will call show() if, during
     prior code execution, there had been any calls to draw_if_interactive.
     """
-    if show._draw_called:
-        show()
-        show._draw_called = False
+    if not show._draw_called:
+        return
+    
+    if InlineBackendConfig.instance().close_figures:
+        # ignore the tracking, just draw and close all figures
+        return show(True)
+    
+    # exclude any figures that were closed:
+    active = set([fm.canvas.figure for fm in Gcf.get_all_fig_managers()])
+    for fig in [ fig for fig in show._to_draw if fig in active ]:
+        send_figure(fig)
+    # clear flags for next round
+    show._to_draw = []
+    show._draw_called = False
 
 
 def send_figure(fig):
