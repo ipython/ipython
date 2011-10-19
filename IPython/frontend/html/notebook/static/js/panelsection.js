@@ -19,7 +19,7 @@ var IPython = (function (IPython) {
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
-            this.header = this.element.find('h3.section_header');
+            this.header = this.element.find('div.section_header');
             this.content = this.element.find('div.section_content');
             this.style();
             this.bind_events();
@@ -29,7 +29,7 @@ var IPython = (function (IPython) {
 
 
     PanelSection.prototype.style = function () {
-        this.header.addClass('ui-widget ui-state-default');
+        this.header.addClass('ui-widget ui-state-default ui-helper-clearfix');
         this.header.attr('title', "Click to Show/Hide Section");
         this.content.addClass('ui-widget section_content');
     };
