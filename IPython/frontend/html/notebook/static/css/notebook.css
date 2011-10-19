@@ -37,14 +37,16 @@ input#notebook_name {
 }
 
 span#kernel_status {
-    float: right;
-    padding: 0px 5px;
+    position: absolute;
+    padding: 8px 5px 5px 5px;
+    right: 10px;
     font-weight: bold;
 }
 
 
 .status_idle {
     color: gray;
+    visibility: hidden;
 }
 
 .status_busy {
