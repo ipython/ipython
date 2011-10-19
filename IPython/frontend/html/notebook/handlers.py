@@ -43,13 +43,13 @@ class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie("user")
+        user_id = self.get_secure_cookie("username")
         # For now the user_id should not return empty, but it could eventually
         if user_id == '':
             user_id = 'anonymous'
         if user_id is None:
             # prevent extra Invalid cookie sig warnings:
-            self.clear_cookie('user')
+            self.clear_cookie('username')
             if not self.application.password:
                 user_id = 'anonymous'
         return user_id
@@ -75,7 +75,7 @@ class LoginHandler(AuthenticatedHandler):
     def post(self):
         pwd = self.get_argument('password', default=u'')
         if self.application.password and pwd == self.application.password:
-            self.set_secure_cookie('user', str(uuid.uuid4()))
+            self.set_secure_cookie('username', str(uuid.uuid4()))
         url = self.get_argument('next', default='/')
         self.redirect(url)
 
@@ -208,7 +208,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         self.on_message = self.on_first_message
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie("user")
+        user_id = self.get_secure_cookie("username")
         if user_id == '' or (user_id is None and not self.application.password):
             user_id = 'anonymous'
         return user_id
