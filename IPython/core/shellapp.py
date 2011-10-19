@@ -28,6 +28,7 @@ import sys
 from IPython.config.application import boolean_flag
 from IPython.config.configurable import Configurable
 from IPython.config.loader import Config
+from IPython.utils import py3compat
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import Unicode, Instance, List, Bool
 
@@ -207,6 +208,9 @@ class InteractiveShellApp(Configurable):
         # were run from a system shell.
         save_argv = sys.argv
         sys.argv = [full_filename] + self.extra_args[1:]
+        # protect sys.argv from potential unicode strings on Python 2:
+        if not py3compat.PY3:
+            sys.argv = [ py3compat.cast_bytes(a) for a in sys.argv ]
         try:
             if os.path.isfile(full_filename):
                 if full_filename.endswith('.ipy'):

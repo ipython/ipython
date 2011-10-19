@@ -1612,6 +1612,9 @@ Currently the magic system has the following functions:\n"""
         args = [ os.path.expanduser(a) for a in arg_lst[1:] ]
 
         sys.argv = [filename] + args  # put in the proper filename
+        # protect sys.argv from potential unicode strings on Python 2:
+        if not py3compat.PY3:
+            sys.argv = [ py3compat.cast_bytes(a) for a in sys.argv ]
 
         if 'i' in opts:
             # Run in user's interactive namespace
