@@ -6,10 +6,6 @@
 
     <title>IPython Notebook</title>
 
-    <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
-<!--     <link rel="stylesheet" href="static/jquery/css/themes/rocket/jquery-wijmo.css" type="text/css" /> -->
-<!--    <link rel="stylesheet" href="static/jquery/css/themes/smoothness/jquery-ui-1.8.14.custom.css" type="text/css" />-->
-
     <!-- <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" charset="utf-8"></script> -->
     <script type='text/javascript' src='static/mathjax/MathJax.js?config=TeX-AMS_HTML' charset='utf-8'></script>
     <script type="text/javascript">
@@ -30,6 +26,7 @@
     }
     </script>
 
+    <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
     <link rel="stylesheet" href="static/codemirror/lib/codemirror.css">
     <link rel="stylesheet" href="static/codemirror/mode/markdown/markdown.css">
     <link rel="stylesheet" href="static/codemirror/mode/rst/rst.css">
@@ -47,19 +44,20 @@
 
 </head>
 
-<body onload='CheckMathJax();'>
+<body onload='CheckMathJax();'
+    data-project={{project}} data-notebook-id={{notebook_id}}
+    data-base-project-url={{base_project_url}} data-base-kernel-url={{base_kernel_url}}
+>
 
 <div id="header">
     <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
     <span id="save_widget">
         <input type="text" id="notebook_name" size="20"></textarea>
-        <span id="notebook_id" style="display:none">{{notebook_id}}</span>
         <button id="save_notebook"><u>S</u>ave</button>
     </span>
     <span id="quick_help_area">
       <button id="quick_help">Quick<u>H</u>elp</button>
       </span>
-    <span id="kernel_status">Idle</span>
 </div>
 
 <div id="MathJaxFetchingWarning"
@@ -90,7 +88,9 @@
     <div id="left_panel">
 
         <div id="notebook_section">
-            <h3 class="section_header">Notebook</h3>
+            <div class="section_header">
+                <h3>Notebook</h3>
+            </div>
             <div class="section_content">
                 <div class="section_row">
                     <span id="new_open" class="section_row_buttons">
@@ -121,7 +121,9 @@
         </div>
 
         <div id="cell_section">
-            <h3 class="section_header">Cell</h3>
+            <div class="section_header">
+                <h3>Cell</h3>
+            </div>
             <div class="section_content">
                 <div class="section_row">
                     <span class="section_row_buttons">
@@ -175,7 +177,10 @@
         </div>
 
         <div id="kernel_section">
-            <h3 class="section_header">Kernel</h3>
+            <div class="section_header">
+                <h3>Kernel</h3>
+                <span id="kernel_status">Idle</span>
+            </div>
             <div class="section_content">
                 <div class="section_row">
                     <span id="int_restart" class="section_row_buttons">
@@ -186,7 +191,11 @@
                 </div>
                 <div class="section_row">
                     <span id="kernel_persist">
-                        <input type="checkbox" id="kill_kernel"></input>
+                        {% if kill_kernel %}
+                            <input type="checkbox" id="kill_kernel" checked="true"></input>
+                        {% else %}
+                            <input type="checkbox" id="kill_kernel"></input>
+                        {% end %}
                     </span>
                     <span class="checkbox_label" id="kill_kernel_label">Kill kernel upon exit:</span>
                 </div>
@@ -194,7 +203,9 @@
         </div>
 
         <div id="help_section">
-            <h3 class="section_header">Help</h3>
+            <div class="section_header">
+                <h3>Cell</h3>
+            </div>
             <div class="section_content">
                 <div class="section_row">
                     <span id="help_buttons0" class="section_row_buttons">
@@ -272,8 +283,7 @@
 <script src="static/js/printwidget.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/leftpanel.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/notebook.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/notebook_main.js" type="text/javascript" charset="utf-8"></script>
-
+<script src="static/js/notebookmain.js" type="text/javascript" charset="utf-8"></script>
 
 </body>
 

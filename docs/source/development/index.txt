@@ -22,3 +22,4 @@ IPython developer's guide
    ipgraph.txt
    ipython_qt.txt
    ipythonzmq.txt
+   notebook_todo.txt

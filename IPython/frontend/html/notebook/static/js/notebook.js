@@ -931,7 +931,8 @@ var IPython = (function (IPython) {
                 error : $.proxy(this.notebook_save_failed,this)
             };
             IPython.save_widget.status_saving();
-            $.ajax("/notebooks/" + notebook_id, settings);
+            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id
+            $.ajax(url, settings);
         };
     };
 
@@ -939,7 +940,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.notebook_saved = function (data, status, xhr) {
         this.dirty = false;
         IPython.save_widget.notebook_saved();
-        setTimeout($.proxy(IPython.save_widget.status_save,IPython.save_widget),500);
+        IPython.save_widget.status_save();
     }
 
 
@@ -947,7 +948,7 @@ var IPython = (function (IPython) {
         // Notify the user and reset the save button
         // TODO: Handle different types of errors (timeout etc.)
         alert('An unexpected error occured while saving the notebook.');
-        setTimeout($.proxy(IPython.save_widget.reset_status,IPython.save_widget),500);                                                                               
+        IPython.save_widget.reset_status();
     }
 
 
@@ -968,7 +969,8 @@ var IPython = (function (IPython) {
             }
         };
         IPython.save_widget.status_loading();
-        $.ajax("/notebooks/" + notebook_id, settings);
+        var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id
+        $.ajax(url, settings);
     }
 
 
@@ -989,7 +991,9 @@ var IPython = (function (IPython) {
         }, 50);
     };
 
+
     IPython.Notebook = Notebook;
+
 
     return IPython;
 

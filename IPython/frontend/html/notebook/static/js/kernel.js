@@ -15,12 +15,10 @@ var IPython = (function (IPython) {
 
     var Kernel = function () {
         this.kernel_id = null;
-        this.base_url = "/kernels";
-        this.kernel_url = null;
         this.shell_channel = null;
         this.iopub_channel = null;
+        this.base_url = $('body').data('baseKernelUrl') + "kernels";
         this.running = false;
-        
         this.username = "username";
         this.session_id = utils.uuid();
         
@@ -52,7 +50,8 @@ var IPython = (function (IPython) {
         var that = this;
         if (!this.running) {
             var qs = $.param({notebook:notebook_id});
-            $.post(this.base_url + '?' + qs,
+            var url = this.base_url + '?' + qs
+            $.post(url,
                 function (kernel_id) {
                     that._handle_start_kernel(kernel_id, callback);
                 }, 
@@ -97,7 +96,6 @@ var IPython = (function (IPython) {
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
         send_cookie = function(){
             this.send(document.cookie);
-            console.log(this);
         }
         this.shell_channel.onopen = send_cookie;
         this.iopub_channel.onopen = send_cookie;

@@ -19,7 +19,7 @@ var IPython = (function (IPython) {
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
-            this.header = this.element.find('h3.section_header');
+            this.header = this.element.find('div.section_header');
             this.content = this.element.find('div.section_content');
             this.style();
             this.bind_events();
@@ -29,7 +29,7 @@ var IPython = (function (IPython) {
 
 
     PanelSection.prototype.style = function () {
-        this.header.addClass('ui-widget ui-state-default');
+        this.header.addClass('ui-widget ui-state-default ui-helper-clearfix');
         this.header.attr('title', "Click to Show/Hide Section");
         this.content.addClass('ui-widget section_content');
     };
@@ -106,15 +106,15 @@ var IPython = (function (IPython) {
         PanelSection.prototype.bind_events.apply(this);
         var that = this;
         this.content.find('#new_notebook').click(function () {
-            window.open('/new');
+            window.open($('body').data('baseProjectUrl')+'new');
         });
         this.content.find('#open_notebook').click(function () {
-            window.open('/');
+            window.open($('body').data('baseProjectUrl'));
         });
         this.content.find('#download_notebook').click(function () {
             var format = that.content.find('#download_format').val();
             var notebook_id = IPython.save_widget.get_notebook_id();
-            var url = '/notebooks/' + notebook_id + '?format=' + format;
+            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id + '?format=' + format;
             window.open(url,'_newtab');
         });
     };

@@ -7,24 +7,13 @@
     <title>IPython Notebook</title>
 
     <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
-<!--     <link rel="stylesheet" href="static/jquery/css/themes/rocket/jquery-wijmo.css" type="text/css" /> -->
-<!--    <link rel="stylesheet" href="static/jquery/css/themes/smoothness/jquery-ui-1.8.14.custom.css" type="text/css" />-->
-
     <link rel="stylesheet" href="static/css/boilerplate.css" type="text/css" />
     <link rel="stylesheet" href="static/css/layout.css" type="text/css" />
     <link rel="stylesheet" href="static/css/base.css" type="text/css" />
-<script type="text/javascript" charset="utf-8">
-function add_next_to_action(){
-    // add 'next' argument to action url, to preserve redirect
-    var query = location.search.substring(1);
-    var form = document.forms[0];
-    var action = form.getAttribute("action");
-    form.setAttribute("action", action + '?' + query);
-}
-</script>
+
 </head>
 
-<body onload="add_next_to_action()">
+<body>
 
 <div id="header">
     <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
@@ -40,10 +29,9 @@ function add_next_to_action(){
     </div>
     
     <div id="content_panel">
-        <form action="/login" method="post">
-            Name: <input type="text" name="name" value="{{user_id}}">
+        <form action="/login?next={{url_escape(next)}}" method="post">
             Password: <input type="password" name="password">
-            <input type="submit" value="Sign in">
+            <input type="submit" value="Sign in" id="signin">
         </form>
     </div>
     <div id="right_panel">
@@ -56,8 +44,7 @@ function add_next_to_action(){
 <script src="static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/jquery/js/jquery-ui-1.8.14.custom.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/namespace.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/notebooklist.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/nbbrowser_main.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/loginmain.js" type="text/javascript" charset="utf-8"></script>
 
 </body>
 

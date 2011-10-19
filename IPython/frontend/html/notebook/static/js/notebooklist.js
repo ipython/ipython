@@ -67,7 +67,8 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(this.list_loaded, this)
         };
-        $.ajax("/notebooks", settings);
+        var url = $('body').data('baseProjectUrl') + 'notebooks'
+        $.ajax(url, settings);
     };
 
 
@@ -105,7 +106,7 @@ var IPython = (function (IPython) {
         var new_item_name = $('<span/>').addClass('item_name');
         new_item_name.append(
             $('<a/>').
-            attr('href','/'+notebook_id).
+            attr('href', $('body').data('baseProjectURL')+notebook_id).
             attr('target','_blank').
             text(nbname)
         );
@@ -170,7 +171,8 @@ var IPython = (function (IPython) {
                                     parent_item.remove();
                                 }
                             };
-                            $.ajax("/notebooks/" + notebook_id, settings);
+                            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id
+                            $.ajax(url, settings);
                             $(this).dialog('close');
                         },
                         "Cancel": function () {
@@ -217,7 +219,8 @@ var IPython = (function (IPython) {
                 };
 
                 var qs = $.param({name:nbname, format:nbformat});
-                $.ajax('/notebooks?' + qs, settings);
+                var url = $('body').data('baseProjectUrl') + 'notebooks?' + qs
+                $.ajax(url, settings);
             });
         var cancel_button = $('<button>Cancel</button>').button().
             click(function (e) {
