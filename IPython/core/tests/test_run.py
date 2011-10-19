@@ -200,11 +200,11 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "%%run '%s' C-third\n") % (tc, tc, tc)
         self.mktmp(src, '.ipy')
         out = """\
-ARGV 1-: [{u}'C-first']
-ARGV 1-: [{u}'C-second']
+ARGV 1-: ['C-first']
+ARGV 1-: ['C-second']
 tclass.py: deleting object: C-first
-ARGV 1-: [{u}'C-third']
+ARGV 1-: ['C-third']
 tclass.py: deleting object: C-second
 tclass.py: deleting object: C-third
 """
-        tt.ipexec_validate(self.fname, py3compat.u_format(out))
+        tt.ipexec_validate(self.fname, out)
