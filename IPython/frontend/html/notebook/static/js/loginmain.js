@@ -20,6 +20,7 @@ $(document).ready(function () {
 
     $('div#left_panel').addClass('box-flex');
     $('div#right_panel').addClass('box-flex');
+    $('input#signin').button();
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.
     $('div#header').css('display','block');
