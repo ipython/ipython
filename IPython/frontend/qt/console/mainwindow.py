@@ -447,7 +447,7 @@ class MainWindow(QtGui.QMainWindow):
             # disable on OSX, where there is always a menu bar
             self.toggle_menu_bar_act = QtGui.QAction("Toggle &Menu Bar",
                 self,
-                shortcut="Ctrl+Meta+M",
+                shortcut="Ctrl+Shift+M",
                 statusTip="Toggle visibility of menubar",
                 triggered=self.toggle_menu_bar)
             self.add_menu_action(self.view_menu, self.toggle_menu_bar_act)
@@ -603,7 +603,7 @@ class MainWindow(QtGui.QMainWindow):
             self.add_menu_action(self.window_menu, self.maximizeAct)
             self.window_menu.addSeparator()
 
-        prev_key = "Ctrl+Shift+Left" if sys.platform == 'darwin' else "Ctrl+PgDown"
+        prev_key = "Ctrl+Shift+Left" if sys.platform == 'darwin' else "Ctrl+PgUp"
         self.prev_tab_act = QtGui.QAction("Pre&vious Tab",
             self,
             shortcut=prev_key,
@@ -611,7 +611,7 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.prev_tab)
         self.add_menu_action(self.window_menu, self.prev_tab_act)
 
-        next_key = "Ctrl+Shift+Right" if sys.platform == 'darwin' else "Ctrl+PgUp"
+        next_key = "Ctrl+Shift+Right" if sys.platform == 'darwin' else "Ctrl+PgDown"
         self.next_tab_act = QtGui.QAction("Ne&xt Tab",
             self,
             shortcut=next_key,
