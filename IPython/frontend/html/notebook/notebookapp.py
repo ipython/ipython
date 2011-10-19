@@ -113,7 +113,7 @@ class NotebookWebApplication(web.Application):
 
 flags = dict(ipkernel_flags)
 flags['no-browser']=(
-    {'IPythonNotebookApp' : {'open_browser' : False}},
+    {'NotebookApp' : {'open_browser' : False}},
     "Don't open the notebook in a browser after startup."
 )
 
