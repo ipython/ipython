@@ -627,7 +627,7 @@ var IPython = (function (IPython) {
         var cells = this.cells();
         for (var i=0; i<ncells; i++) {
             if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].clear_output();
+                cells[i].clear_output(true,true,true);
             }
         };
         this.dirty = true;
@@ -733,7 +733,9 @@ var IPython = (function (IPython) {
             } else if (content.execution_state === 'dead') {
                 this.handle_status_dead();
             };
-        }
+        } else if (msg_type === 'clear_output') {
+            cell.clear_output(content.stdout, content.stderr, content.other);
+        };
     };
 
 
@@ -823,7 +825,7 @@ var IPython = (function (IPython) {
         var cell = that.selected_cell();
         var cell_index = that.find_cell_index(cell);
         if (cell instanceof IPython.CodeCell) {
-            cell.clear_output();
+            cell.clear_output(true, true, true);
             var code = cell.get_code();
             var msg_id = that.kernel.execute(cell.get_code());
             that.msg_cell_map[msg_id] = cell.cell_id;

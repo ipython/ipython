@@ -104,6 +104,10 @@ class DisplayPublisher(Configurable):
         if data.has_key('text/plain'):
             print(data['text/plain'], file=io.stdout)
 
+        def clear_output(self, stdout=True, stderr=True, other=True):
+            """Clear the output of the cell receiving output."""
+            pass
+
 
 def publish_display_data(source, data, metadata=None):
     """Publish data and metadata to all frontends.
