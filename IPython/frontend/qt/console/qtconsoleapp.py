@@ -503,7 +503,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         except AttributeError:
             colors = None
         try:
-            style = self.config.IPythonWidget.colors
+            style = self.config.IPythonWidget.syntax_style
         except AttributeError:
             style = None
 
