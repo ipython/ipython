@@ -2257,8 +2257,12 @@ class InteractiveShell(SingletonConfigurable, Magic):
         exit_ignore : bool (False)
             If True, then silence SystemExit for non-zero status (it is always
             silenced for zero status, as it is so common).
+        raise_exceptions : bool (False)
+            If True raise exceptions everywhere. Meant for testing.
+
         """
         kw.setdefault('exit_ignore', False)
+        kw.setdefault('raise_exceptions', False)
 
         fname = os.path.abspath(os.path.expanduser(fname))
 
@@ -2288,9 +2292,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 # 0
                 # For other exit status, we show the exception unless
                 # explicitly silenced, but only in short form.
+                if kw['raise_exceptions']:
+                    raise
                 if status.code not in (0, None) and not kw['exit_ignore']:
                     self.showtraceback(exception_only=True)
             except:
+                if kw['raise_exceptions']:
+                    raise
                 self.showtraceback()
 
     def safe_execfile_ipy(self, fname):
