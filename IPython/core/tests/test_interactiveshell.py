@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Tests for the key interactiveshell module.
 
 Historically the main classes in interactiveshell have been under-tested.  This
@@ -19,7 +20,11 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import os
+import shutil
+import tempfile
 import unittest
+from os.path import join
 from StringIO import StringIO
 
 from IPython.testing import decorators as dec
@@ -193,3 +198,25 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert name not in ip.user_ns_hidden, name
         assert ip.user_ns['b'] == 12
         ip.reset()
+
+class TestSafeExecfileNonAsciiPath(unittest.TestCase):
+
+    def setUp(self):
+        self.BASETESTDIR = tempfile.mkdtemp()
+        self.TESTDIR = join(self.BASETESTDIR, u"åäö")
+        os.mkdir(self.TESTDIR)
+        with open(join(self.TESTDIR, u"åäötestscript.py"), "w") as sfile:
+            sfile.write("pass\n")
+        self.oldpath = os.getcwdu()
+        os.chdir(self.TESTDIR)
+        self.fname = u"åäötestscript.py"
+
+
+    def tearDown(self):
+        os.chdir(self.oldpath)
+        shutil.rmtree(self.BASETESTDIR)
+
+    def test_1(self):
+        """Test safe_execfile with non-ascii path
+        """
+        _ip.shell.safe_execfile(self.fname, raise_exceptions=True)
