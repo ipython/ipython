@@ -22,6 +22,7 @@ var IPython = (function (IPython) {
 
     QuickHelp.prototype.style = function () {
         this.element.find('button#quick_help').button();
+        this.element.find('button#quick_help').attr('title', "Show/Hide the keyboard shortcuts for the IPython Notebook");
     };
 
     QuickHelp.prototype.bind_events = function () {
