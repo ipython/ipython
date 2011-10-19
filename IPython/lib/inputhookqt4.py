@@ -88,6 +88,7 @@ def create_inputhook_qt4(mgr, app=None):
                     timer.start(50)
                     app.exec_()
                     timer.stop()
+            ignore_CTRL_C()
         except KeyboardInterrupt:
             ignore_CTRL_C()
             got_kbdint[0] = True
