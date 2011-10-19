@@ -156,17 +156,17 @@ else:
         def execfile(fname, glob=None, loc=None):
             loc = loc if (loc is not None) else glob
             scripttext = __builtin__.open(fname).read()
-            #compile converts unicode filename to str assuming
-            #ascii. Let's do the conversion before calling compile
+            # compile converts unicode filename to str assuming
+            # ascii. Let's do the conversion before calling compile
             if isinstance(fname, unicode):
                 filename = unicode_to_str(fname)
             else:
                 filename = fname
             exec compile(scripttext, filename, 'exec') in glob, loc
     else:
-        def execfile(fname, glob=None, loc=None):
+        def execfile(fname, *where):
             if isinstance(fname, unicode):
                 filename = fname.encode(sys.getfilesystemencoding())
             else:
                 filename = fname
-            __builtin__.execfile(filename, glob, loc)
+            __builtin__.execfile(filename, *where)
