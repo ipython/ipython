@@ -392,6 +392,10 @@ class Completer(Configurable):
             words = generics.complete_object(obj, words)
         except TryNext:
             pass
+        except Exception:
+            # Silence errors from completion function
+            #raise # dbg
+            pass
         # Build match list to return
         n = len(attr)
         res = ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]

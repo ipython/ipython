@@ -16,6 +16,7 @@ import nose.tools as nt
 from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.generics import complete_object
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -82,6 +83,18 @@ def test_line_split():
     # Ensure splitting works OK with unicode by re-running the tests with
     # all inputs turned into unicode
     check_line_split(sp, [ map(unicode, p) for p in t] )
+
+def test_custom_completion_error():
+    """Test that errors from custom attribute completers are silenced."""
+    ip = get_ipython()
+    class A(object): pass
+    ip.user_ns['a'] = A()
+    
+    @complete_object.when_type(A)
+    def complete_A(a, existing_completions):
+        raise TypeError("this should be silenced")
+    
+    ip.complete("a.")
 
 
 def test_unicode_completions():
