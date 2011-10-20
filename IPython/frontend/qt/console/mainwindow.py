@@ -361,7 +361,7 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.print_action_active_frontend)
         self.add_menu_action(self.file_menu, self.print_action)
         
-        if sys.platform == 'darwin':
+        if sys.platform != 'darwin':
             # OSX always has Quit in the Application menu, only add it
             # to the File menu elsewhere.
 
