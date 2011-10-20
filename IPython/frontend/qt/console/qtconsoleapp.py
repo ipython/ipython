@@ -390,9 +390,9 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         widget = self.widget_factory(config=self.config,
                                    local_kernel=True)
         widget.kernel_manager = kernel_manager
-        widget._existing=False
-        widget._confirm_exit=True
-        widget._may_close=True
+        widget._existing = False
+        widget._may_close = True
+        widget._confirm_exit = self.confirm_exit
         return widget
 
     def new_frontend_slave(self, current_widget):
@@ -411,8 +411,9 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         kernel_manager.start_channels()
         widget = self.widget_factory(config=self.config,
                                 local_kernel=False)
-        widget._confirm_exit=True;
-        widget._may_close=False;
+        widget._existing = True
+        widget._may_close = False
+        widget._confirm_exit = False
         widget.kernel_manager = kernel_manager
         return widget
 
@@ -428,13 +429,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         local_kernel = (not self.existing) or self.ip in LOCAL_IPS
         self.widget = self.widget_factory(config=self.config,
                                         local_kernel=local_kernel)
-        self.widget._existing = self.existing;
-        self.widget._may_close = not self.existing;
-        self.widget._confirm_exit = not self.existing;
+        self.widget._existing = self.existing
+        self.widget._may_close = not self.existing
+        self.widget._confirm_exit = self.confirm_exit
 
         self.widget.kernel_manager = self.kernel_manager
-        self.window = MainWindow(self.app, self.widget, self.existing,
-                                may_close=local_kernel,
+        self.window = MainWindow(self.app,
                                 confirm_exit=self.confirm_exit,
                                 new_frontend_factory=self.new_frontend_master,
                                 slave_frontend_factory=self.new_frontend_slave,
