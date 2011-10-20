@@ -67,7 +67,10 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget.tabCloseRequested[int].connect(self.close_tab)
 
         self.setCentralWidget(self.tab_widget)
+        # hide tab bar at first, since we have no tabs:
         self.tab_widget.tabBar().setVisible(False)
+        # prevent focus in tab bar
+        self.tab_widget.setFocusPolicy(QtCore.Qt.NoFocus)
 
     def update_tab_bar_visibility(self):
         """ update visibility of the tabBar depending of the number of tab
