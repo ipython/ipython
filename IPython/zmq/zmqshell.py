@@ -31,6 +31,7 @@ from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
 from IPython.core.magic import MacroToEdit
 from IPython.core.payloadpage import install_payload_page
+from IPython.lib import pylabtools
 from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
@@ -389,13 +390,65 @@ class ZMQInteractiveShell(InteractiveShell):
         }
         self.payload_manager.write_payload(payload)
 
-    def magic_gui(self, *args, **kwargs):
-        raise NotImplementedError(
-            'Kernel GUI support is not implemented yet, except for --pylab.')
+    def magic_gui(self, parameter_s=''):
+        """Enable or disable IPython GUI event loop integration.
 
-    def magic_pylab(self, *args, **kwargs):
-        raise NotImplementedError(
-            'pylab support must be enabled in command line options.')
+        %gui [GUINAME]
+
+        This magic replaces IPython's threaded shells that were activated
+        using the (pylab/wthread/etc.) command line flags.  GUI toolkits
+        can now be enabled at runtime and keyboard
+        interrupts should work without any problems.  The following toolkits
+        are supported:  wxPython, PyQt4, PyGTK, Cocoa, and Tk::
+
+            %gui wx      # enable wxPython event loop integration
+            %gui qt4|qt  # enable PyQt4 event loop integration
+            %gui gtk     # enable PyGTK event loop integration
+            %gui OSX     # enable Cocoa event loop integration (requires matplotlib 1.1)
+            %gui tk      # enable Tk event loop integration
+
+        WARNING:  after any of these has been called you can simply create
+        an application object, but DO NOT start the event loop yourself, as
+        we have already handled that.
+        """
+        from IPython.zmq.ipkernel import enable_gui
+        opts, arg = self.parse_options(parameter_s, '')
+        if arg=='': arg = None
+        return enable_gui(arg)
+
+    def enable_pylab(self, gui=None, import_all=True):
+        """Activate pylab support at runtime.
+
+        This turns on support for matplotlib, preloads into the interactive
+        namespace all of numpy and pylab, and configures IPython to correcdtly
+        interact with the GUI event loop.  The GUI backend to be used can be
+        optionally selected with the optional :param:`gui` argument.
+
+        Parameters
+        ----------
+        gui : optional, string [default: inline]
+
+          If given, dictates the choice of matplotlib GUI backend to use
+          (should be one of IPython's supported backends, 'inline', 'qt', 'osx',
+          'tk', or 'gtk'), otherwise we use the default chosen by matplotlib
+          (as dictated by the matplotlib build-time options plus the user's
+          matplotlibrc configuration file).
+        """
+        from IPython.zmq.ipkernel import enable_gui
+        # We want to prevent the loading of pylab to pollute the user's
+        # namespace as shown by the %who* magics, so we execute the activation
+        # code in an empty namespace, and we update *both* user_ns and
+        # user_ns_hidden with this information.
+        ns = {}
+        # override default to inline, from auto-detect
+        gui = pylabtools.pylab_activate(ns, gui or 'inline', import_all, self)
+        self.user_ns.update(ns)
+        self.user_ns_hidden.update(ns)
+        # Now we must activate the gui pylab wants to use, and fix %run to take
+        # plot updates into account
+        enable_gui(gui)
+        self.magic_run = self._pylab_magic_run
+
 
     # A few magics that are adapted to the specifics of using pexpect and a
     # remote terminal

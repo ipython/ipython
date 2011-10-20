@@ -22,6 +22,7 @@ import sys
 import time
 import traceback
 import logging
+
 # System library imports.
 import zmq
 
@@ -38,7 +39,7 @@ from IPython.utils import py3compat
 from IPython.utils.jsonutil import json_clean
 from IPython.lib import pylabtools
 from IPython.utils.traitlets import (
-    List, Instance, Float, Dict, Bool, Int, Unicode, CaselessStrEnum
+    Any, List, Instance, Float, Dict, Bool, Int, Unicode, CaselessStrEnum
 )
 
 from entry_point import base_launch_kernel
@@ -57,6 +58,9 @@ class Kernel(Configurable):
     #---------------------------------------------------------------------------
     # Kernel interface
     #---------------------------------------------------------------------------
+
+    # attribute to override with a GUI
+    eventloop = Any(None)
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     session = Instance(Session)
@@ -164,7 +168,8 @@ class Kernel(Configurable):
         """
         poller = zmq.Poller()
         poller.register(self.shell_socket, zmq.POLLIN)
-        while True:
+        # loop while self.eventloop has not been overridden
+        while self.eventloop is None:
             try:
                 # scale by extra factor of 10, because there is no
                 # reason for this to be anything less than ~ 0.1s
@@ -181,6 +186,13 @@ class Kernel(Configurable):
             except KeyboardInterrupt:
                 # Ctrl-C shouldn't crash the kernel
                 io.raw_print("KeyboardInterrupt caught in kernel")
+        if self.eventloop is not None:
+            try:
+                self.eventloop(self)
+            except KeyboardInterrupt:
+                # Ctrl-C shouldn't crash the kernel
+                io.raw_print("KeyboardInterrupt caught in kernel")
+
 
     def record_ports(self, ports):
         """Record the ports that this kernel is using.
@@ -496,174 +508,186 @@ class Kernel(Configurable):
             time.sleep(0.01)
 
 
-class QtKernel(Kernel):
-    """A Kernel subclass with Qt support."""
-
-    def start(self):
-        """Start a kernel with QtPy4 event loop integration."""
-
-        from IPython.external.qt_for_kernel import QtCore
-        from IPython.lib.guisupport import get_app_qt4, start_event_loop_qt4
-
-        self.app = get_app_qt4([" "])
-        self.app.setQuitOnLastWindowClosed(False)
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.do_one_iteration)
-        # Units for the timer are in milliseconds
-        self.timer.start(1000*self._poll_interval)
-        start_event_loop_qt4(self.app)
+#------------------------------------------------------------------------------
+# Eventloops for integrating the Kernel into different GUIs
+#------------------------------------------------------------------------------
 
 
-class WxKernel(Kernel):
-    """A Kernel subclass with Wx support."""
+def loop_qt4(kernel):
+    """Start a kernel with PyQt4 event loop integration."""
 
-    def start(self):
-        """Start a kernel with wx event loop support."""
+    from IPython.external.qt_for_kernel import QtCore
+    from IPython.lib.guisupport import get_app_qt4, start_event_loop_qt4
 
-        import wx
-        from IPython.lib.guisupport import start_event_loop_wx
-
-        doi = self.do_one_iteration
-         # Wx uses milliseconds
-        poll_interval = int(1000*self._poll_interval)
-
-        # We have to put the wx.Timer in a wx.Frame for it to fire properly.
-        # We make the Frame hidden when we create it in the main app below.
-        class TimerFrame(wx.Frame):
-            def __init__(self, func):
-                wx.Frame.__init__(self, None, -1)
-                self.timer = wx.Timer(self)
-                # Units for the timer are in milliseconds
-                self.timer.Start(poll_interval)
-                self.Bind(wx.EVT_TIMER, self.on_timer)
-                self.func = func
-
-            def on_timer(self, event):
-                self.func()
-
-        # We need a custom wx.App to create our Frame subclass that has the
-        # wx.Timer to drive the ZMQ event loop.
-        class IPWxApp(wx.App):
-            def OnInit(self):
-                self.frame = TimerFrame(doi)
-                self.frame.Show(False)
-                return True
-
-        # The redirect=False here makes sure that wx doesn't replace
-        # sys.stdout/stderr with its own classes.
-        self.app = IPWxApp(redirect=False)
-        start_event_loop_wx(self.app)
+    kernel.app = get_app_qt4([" "])
+    kernel.app.setQuitOnLastWindowClosed(False)
+    kernel.timer = QtCore.QTimer()
+    kernel.timer.timeout.connect(kernel.do_one_iteration)
+    # Units for the timer are in milliseconds
+    kernel.timer.start(1000*kernel._poll_interval)
+    start_event_loop_qt4(kernel.app)
 
 
-class TkKernel(Kernel):
-    """A Kernel subclass with Tk support."""
+def loop_wx(kernel):
+    """Start a kernel with wx event loop support."""
 
-    def start(self):
-        """Start a Tk enabled event loop."""
+    import wx
+    from IPython.lib.guisupport import start_event_loop_wx
 
-        import Tkinter
-        doi = self.do_one_iteration
-        # Tk uses milliseconds
-        poll_interval = int(1000*self._poll_interval)
-        # For Tkinter, we create a Tk object and call its withdraw method.
-        class Timer(object):
-            def __init__(self, func):
-                self.app = Tkinter.Tk()
-                self.app.withdraw()
-                self.func = func
+    doi = kernel.do_one_iteration
+     # Wx uses milliseconds
+    poll_interval = int(1000*kernel._poll_interval)
 
-            def on_timer(self):
-                self.func()
-                self.app.after(poll_interval, self.on_timer)
+    # We have to put the wx.Timer in a wx.Frame for it to fire properly.
+    # We make the Frame hidden when we create it in the main app below.
+    class TimerFrame(wx.Frame):
+        def __init__(self, func):
+            wx.Frame.__init__(self, None, -1)
+            self.timer = wx.Timer(self)
+            # Units for the timer are in milliseconds
+            self.timer.Start(poll_interval)
+            self.Bind(wx.EVT_TIMER, self.on_timer)
+            self.func = func
 
-            def start(self):
-                self.on_timer()  # Call it once to get things going.
-                self.app.mainloop()
+        def on_timer(self, event):
+            self.func()
 
-        self.timer = Timer(doi)
-        self.timer.start()
+    # We need a custom wx.App to create our Frame subclass that has the
+    # wx.Timer to drive the ZMQ event loop.
+    class IPWxApp(wx.App):
+        def OnInit(self):
+            self.frame = TimerFrame(doi)
+            self.frame.Show(False)
+            return True
 
-
-class GTKKernel(Kernel):
-    """A Kernel subclass with GTK support."""
-
-    def start(self):
-        """Start the kernel, coordinating with the GTK event loop"""
-        from .gui.gtkembed import GTKEmbed
-
-        gtk_kernel = GTKEmbed(self)
-        gtk_kernel.start()
+    # The redirect=False here makes sure that wx doesn't replace
+    # sys.stdout/stderr with its own classes.
+    kernel.app = IPWxApp(redirect=False)
+    start_event_loop_wx(kernel.app)
 
 
-class OSXKernel(TkKernel):
-    """A Kernel subclass with Cocoa support via the matplotlib OSX backend."""
+def loop_tk(kernel):
+    """Start a kernel with the Tk event loop."""
+
+    import Tkinter
+    doi = kernel.do_one_iteration
+    # Tk uses milliseconds
+    poll_interval = int(1000*kernel._poll_interval)
+    # For Tkinter, we create a Tk object and call its withdraw method.
+    class Timer(object):
+        def __init__(self, func):
+            self.app = Tkinter.Tk()
+            self.app.withdraw()
+            self.func = func
+
+        def on_timer(self):
+            self.func()
+            self.app.after(poll_interval, self.on_timer)
+
+        def start(self):
+            self.on_timer()  # Call it once to get things going.
+            self.app.mainloop()
+
+    kernel.timer = Timer(doi)
+    kernel.timer.start()
+
+
+def loop_gtk(kernel):
+    """Start the kernel, coordinating with the GTK event loop"""
+    from .gui.gtkembed import GTKEmbed
+
+    gtk_kernel = GTKEmbed(kernel)
+    gtk_kernel.start()
+
+
+def loop_cocoa(kernel):
+    """Start the kernel, coordinating with the Cocoa CFRunLoop event loop
+    via the matplotlib MacOSX backend.
+    """
+    import matplotlib
+    if matplotlib.__version__ < '1.1.0':
+        kernel.log.warn(
+        "MacOSX backend in matplotlib %s doesn't have a Timer, "
+        "falling back on Tk for CFRunLoop integration.  Note that "
+        "even this won't work if Tk is linked against X11 instead of "
+        "Cocoa (e.g. EPD).  To use the MacOSX backend in the kernel, "
+        "you must use matplotlib >= 1.1.0, or a native libtk."
+        )
+        return loop_tk(kernel)
     
-    def start(self):
-        """Start the kernel, coordinating with the Cocoa CFRunLoop event loop
-        via the matplotlib MacOSX backend.
-        """
-        import matplotlib
-        if matplotlib.__version__ < '1.1.0':
-            self.log.warn(
-            "MacOSX backend in matplotlib %s doesn't have a Timer, "
-            "falling back on Tk for CFRunLoop integration.  Note that "
-            "even this won't work if Tk is linked against X11 instead of "
-            "Cocoa (e.g. EPD).  To use the MacOSX backend in the kernel, "
-            "you must use matplotlib >= 1.1.0, or a native libtk."
-            )
-            return TkKernel.start(self)
-        
-        from matplotlib.backends.backend_macosx import TimerMac, show
-        
-        # scale interval for sec->ms
-        poll_interval = int(1000*self._poll_interval)
-        
-        real_excepthook = sys.excepthook
-        def handle_int(etype, value, tb):
-            """don't let KeyboardInterrupts look like crashes"""
-            if etype is KeyboardInterrupt:
-                io.raw_print("KeyboardInterrupt caught in CFRunLoop")
-            else:
-                real_excepthook(etype, value, tb)
-        
-        # add doi() as a Timer to the CFRunLoop
-        def doi():
-            # restore excepthook during IPython code
-            sys.excepthook = real_excepthook
-            self.do_one_iteration()
-            # and back:
-            sys.excepthook = handle_int
-        
-        t = TimerMac(poll_interval)
-        t.add_callback(doi)
-        t.start()
-        
-        # but still need a Poller for when there are no active windows,
-        # during which time mainloop() returns immediately
-        poller = zmq.Poller()
-        poller.register(self.shell_socket, zmq.POLLIN)
-        
-        while True:
+    from matplotlib.backends.backend_macosx import TimerMac, show
+
+    # scale interval for sec->ms
+    poll_interval = int(1000*kernel._poll_interval)
+
+    real_excepthook = sys.excepthook
+    def handle_int(etype, value, tb):
+        """don't let KeyboardInterrupts look like crashes"""
+        if etype is KeyboardInterrupt:
+            io.raw_print("KeyboardInterrupt caught in CFRunLoop")
+        else:
+            real_excepthook(etype, value, tb)
+
+    # add doi() as a Timer to the CFRunLoop
+    def doi():
+        # restore excepthook during IPython code
+        sys.excepthook = real_excepthook
+        kernel.do_one_iteration()
+        # and back:
+        sys.excepthook = handle_int
+
+    t = TimerMac(poll_interval)
+    t.add_callback(doi)
+    t.start()
+
+    # but still need a Poller for when there are no active windows,
+    # during which time mainloop() returns immediately
+    poller = zmq.Poller()
+    poller.register(kernel.shell_socket, zmq.POLLIN)
+
+    while True:
+        try:
+            # double nested try/except, to properly catch KeyboardInterrupt
+            # due to pyzmq Issue #130
             try:
-                # double nested try/except, to properly catch KeyboardInterrupt
-                # due to pyzmq Issue #130
-                try:
-                    # don't let interrupts during mainloop invoke crash_handler:
-                    sys.excepthook = handle_int
-                    show.mainloop()
-                    sys.excepthook = real_excepthook
-                    # use poller if mainloop returned (no windows)
-                    # scale by extra factor of 10, since it's a real poll
-                    poller.poll(10*poll_interval)
-                    self.do_one_iteration()
-                except:
-                    raise
-            except KeyboardInterrupt:
-                # Ctrl-C shouldn't crash the kernel
-                io.raw_print("KeyboardInterrupt caught in kernel")
-            finally:
-                # ensure excepthook is restored
+                # don't let interrupts during mainloop invoke crash_handler:
+                sys.excepthook = handle_int
+                show.mainloop()
                 sys.excepthook = real_excepthook
+                # use poller if mainloop returned (no windows)
+                # scale by extra factor of 10, since it's a real poll
+                poller.poll(10*poll_interval)
+                kernel.do_one_iteration()
+            except:
+                raise
+        except KeyboardInterrupt:
+            # Ctrl-C shouldn't crash the kernel
+            io.raw_print("KeyboardInterrupt caught in kernel")
+        finally:
+            # ensure excepthook is restored
+            sys.excepthook = real_excepthook
+
+# mapping of keys to loop functions
+loop_map = {
+    'qt' : loop_qt4,
+    'qt4': loop_qt4,
+    'inline': None,
+    'osx': loop_cocoa,
+    'wx' : loop_wx,
+    'tk' : loop_tk,
+    'gtk': loop_gtk,
+}
+
+def enable_gui(gui, kernel=None):
+    """Enable integration with a give GUI"""
+    if kernel is None:
+        kernel = IPKernelApp.instance().kernel
+    if gui not in loop_map:
+        raise ValueError("GUI %r not supported" % gui)
+    loop = loop_map[gui]
+    if kernel.eventloop is not None and kernel.eventloop is not loop:
+        raise RuntimeError("Cannot activate multiple GUI eventloops")
+    kernel.eventloop = loop
 
 
 #-----------------------------------------------------------------------------
@@ -715,37 +739,21 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
     def init_kernel(self):
         kernel_factory = Kernel
 
-        kernel_map = {
-            'qt' : QtKernel,
-            'qt4': QtKernel,
-            'inline': Kernel,
-            'osx': OSXKernel,
-            'wx' : WxKernel,
-            'tk' : TkKernel,
-            'gtk': GTKKernel,
-        }
-
         if self.pylab:
             key = None if self.pylab == 'auto' else self.pylab
             gui, backend = pylabtools.find_gui_and_backend(key)
-            kernel_factory = kernel_map.get(gui)
-            if kernel_factory is None:
-                raise ValueError('GUI is not supported: %r' % gui)
-            pylabtools.activate_matplotlib(backend)
 
         kernel = kernel_factory(config=self.config, session=self.session,
                                 shell_socket=self.shell_socket,
                                 iopub_socket=self.iopub_socket,
                                 stdin_socket=self.stdin_socket,
-                                log=self.log
+                                log=self.log,
         )
         self.kernel = kernel
         kernel.record_ports(self.ports)
 
         if self.pylab:
-            import_all = self.pylab_import_all
-            pylabtools.import_pylab(kernel.shell.user_ns, backend, import_all,
-                                    shell=kernel.shell)
+            kernel.shell.enable_pylab(gui, import_all=self.pylab_import_all)
 
     def init_shell(self):
         self.shell = self.kernel.shell
