@@ -222,20 +222,23 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         super(IPythonQtConsoleApp, self).parse_command_line(argv)
         if argv is None:
             argv = sys.argv[1:]
-
         self.kernel_argv = list(argv) # copy
         # kernel should inherit default config file from frontend
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
         # Scrub frontend-specific flags
-        for a in argv:
-            if a.startswith('-') and a.lstrip('-') in qt_flags:
-                self.kernel_argv.remove(a)
         swallow_next = False
+        was_flag = False
+        # copy again, in case some aliases have the same name as a flag
+        # argv = list(self.kernel_argv)
         for a in argv:
             if swallow_next:
-                self.kernel_argv.remove(a)
                 swallow_next = False
-                continue
+                # last arg was an alias, remove the next one
+                # *unless* the last alias has a no-arg flag version, in which
+                # case, don't swallow the next arg if it's also a flag:
+                if not (was_flag and a.startswith('-')):
+                    self.kernel_argv.remove(a)
+                    continue
             if a.startswith('-'):
                 split = a.lstrip('-').split('=')
                 alias = split[0]
@@ -244,6 +247,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                     if len(split) == 1:
                         # alias passed with arg via space
                         swallow_next = True
+                        # could have been a flag that matches an alias, e.g. `existing`
+                        # in which case, we might not swallow the next arg
+                        was_flag = alias in qt_flags
+                elif alias in qt_flags:
+                    # strip flag, but don't swallow next, as flags don't take args
+                    self.kernel_argv.remove(a)
     
     def init_connection_file(self):
         """find the connection file, and load the info if found.
