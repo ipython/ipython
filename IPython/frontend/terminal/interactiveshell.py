@@ -608,6 +608,12 @@ class TerminalInteractiveShell(InteractiveShell):
 
         self._execute_block(block, par)
 
+    if sys.platform == 'win32':
+        def magic_cls(self, s):
+            """Clear screen.
+            """
+            os.system("cls")
+
     def showindentationerror(self):
         super(TerminalInteractiveShell, self).showindentationerror()
         print("If you want to paste code into IPython, try the %paste magic function.")
