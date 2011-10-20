@@ -21,9 +21,16 @@ Authors:
 # stdlib imports
 import sys
 import webbrowser
+from threading import Thread
 
 # System library imports
 from IPython.external.qt import QtGui,QtCore
+
+def background(f):
+    """call a function in a simple thread, to prevent blocking"""
+    t = Thread(target=f)
+    t.start()
+    return t
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -185,14 +192,17 @@ class MainWindow(QtGui.QMainWindow):
                     reply = box.exec_()
                     if reply == 1: # close All
                         for slave in slave_tabs:
+                            background(slave.kernel_manager.stop_channels)
                             self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
                         closing_widget.execute("exit")
                         self.tab_widget.removeTab(current_tab)
+                        background(kernel_manager.stop_channels)
                     elif reply == 0: # close Console
                         if not closing_widget._existing:
                             # Have kernel: don't quit, just close the tab
                             closing_widget.execute("exit True")
                         self.tab_widget.removeTab(current_tab)
+                        background(kernel_manager.stop_channels)
                 else:
                     reply = QtGui.QMessageBox.question(self, title,
                         "Are you sure you want to close this Console?"+
@@ -204,15 +214,15 @@ class MainWindow(QtGui.QMainWindow):
                         self.tab_widget.removeTab(current_tab)
         elif keepkernel: #close console but leave kernel running (no prompt)
             self.tab_widget.removeTab(current_tab)
-            if kernel_manager and kernel_manager.channels_running:
-                kernel_manager.stop_channels()
+            background(kernel_manager.stop_channels)
         else: #close console and kernel (no prompt)
             self.tab_widget.removeTab(current_tab)
             if kernel_manager and kernel_manager.channels_running:
-                kernel_manager.shutdown_kernel()
                 for slave in slave_tabs:
-                    slave.kernel_manager.stop_channels()
+                    background(slave.kernel_manager.stop_channels)
                     self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
+                kernel_manager.shutdown_kernel()
+                background(kernel_manager.stop_channels)
         
         self.update_tab_bar_visibility()
 
