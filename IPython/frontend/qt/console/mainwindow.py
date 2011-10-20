@@ -301,13 +301,20 @@ class MainWindow(QtGui.QMainWindow):
         return slave_list
 
     # Populate the menu bar with common actions and shortcuts
-    def add_menu_action(self, menu, action):
+    def add_menu_action(self, menu, action, defer_shortcut=False):
         """Add action to menu as well as self
         
         So that when the menu bar is invisible, its actions are still available.
+        
+        If defer_shortcut is True, set the shortcut context to widget-only,
+        where it will avoid conflict with shortcuts already bound to the
+        widgets themselves.
         """
         menu.addAction(action)
         self.addAction(action)
+
+        if defer_shortcut:
+            action.setShortcutContext(QtCore.Qt.WidgetShortcut)
     
     def init_menu_bar(self):
         #create menu in the order they should appear in the menu bar
@@ -338,28 +345,30 @@ class MainWindow(QtGui.QMainWindow):
 
         self.close_action=QtGui.QAction("&Close Tab",
             self,
-            shortcut="Ctrl+W",
+            shortcut=QtGui.QKeySequence.Close,
             triggered=self.close_active_frontend
             )
         self.add_menu_action(self.file_menu, self.close_action)
 
         self.export_action=QtGui.QAction("&Save to HTML/XHTML",
             self,
-            shortcut="Ctrl+S",
+            shortcut=QtGui.QKeySequence.Save,
             triggered=self.export_action_active_frontend
             )
-        self.add_menu_action(self.file_menu, self.export_action)
+        self.add_menu_action(self.file_menu, self.export_action, True)
 
         self.file_menu.addSeparator()
         
-        # Ctrl actually maps to Cmd on OSX, which avoids conflict with history
-        # action, which is already bound to true Ctrl+P
-        print_shortcut = "Ctrl+P" if sys.platform == 'darwin' else 'Ctrl+Shift+P'
+        printkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
+        if printkey.matches("Ctrl+P") and sys.platform != 'darwin':
+            # Only override the default if there is a collision.
+            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
+            printkey = "Ctrl+Shift+P"
         self.print_action = QtGui.QAction("&Print",
             self,
-            shortcut=print_shortcut,
+            shortcut=printkey,
             triggered=self.print_action_active_frontend)
-        self.add_menu_action(self.file_menu, self.print_action)
+        self.add_menu_action(self.file_menu, self.print_action, True)
         
         if sys.platform != 'darwin':
             # OSX always has Quit in the Application menu, only add it
@@ -380,7 +389,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.undo_action = QtGui.QAction("&Undo",
             self,
-            shortcut="Ctrl+Z",
+            shortcut=QtGui.QKeySequence.Undo,
             statusTip="Undo last action if possible",
             triggered=self.undo_active_frontend
             )
@@ -388,7 +397,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.redo_action = QtGui.QAction("&Redo",
             self,
-            shortcut="Ctrl+Shift+Z",
+            shortcut=QtGui.QKeySequence.Redo,
             statusTip="Redo last action if possible",
             triggered=self.redo_active_frontend)
         self.add_menu_action(self.edit_menu, self.redo_action)
@@ -400,37 +409,42 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence.Cut,
             triggered=self.cut_active_frontend
             )
-        self.add_menu_action(self.edit_menu, self.cut_action)
+        self.add_menu_action(self.edit_menu, self.cut_action, True)
 
         self.copy_action = QtGui.QAction("&Copy",
             self,
             shortcut=QtGui.QKeySequence.Copy,
             triggered=self.copy_active_frontend
             )
-        self.add_menu_action(self.edit_menu, self.copy_action)
+        self.add_menu_action(self.edit_menu, self.copy_action, True)
 
         self.copy_raw_action = QtGui.QAction("Copy (&Raw Text)",
             self,
             shortcut="Ctrl+Shift+C",
             triggered=self.copy_raw_active_frontend
             )
-        self.add_menu_action(self.edit_menu, self.copy_raw_action)
+        self.add_menu_action(self.edit_menu, self.copy_raw_action, True)
 
         self.paste_action = QtGui.QAction("&Paste",
             self,
             shortcut=QtGui.QKeySequence.Paste,
             triggered=self.paste_active_frontend
             )
-        self.add_menu_action(self.edit_menu, self.paste_action)
+        self.add_menu_action(self.edit_menu, self.paste_action, True)
 
         self.edit_menu.addSeparator()
-
+        
+        selectall = QtGui.QKeySequence(QtGui.QKeySequence.SelectAll)
+        if selectall.matches("Ctrl+A") and sys.platform != 'darwin':
+            # Only override the default if there is a collision.
+            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
+            selectall = "Ctrl+Shift+A"
         self.select_all_action = QtGui.QAction("Select &All",
             self,
-            shortcut="Ctrl+A",
+            shortcut=selectall,
             triggered=self.select_all_active_frontend
             )
-        self.add_menu_action(self.edit_menu, self.select_all_action)
+        self.add_menu_action(self.edit_menu, self.select_all_action, True)
 
     
     def init_view_menu(self):
@@ -457,24 +471,24 @@ class MainWindow(QtGui.QMainWindow):
 
         self.increase_font_size = QtGui.QAction("Zoom &In",
             self,
-            shortcut="Ctrl++",
+            shortcut=QtGui.QKeySequence.ZoomIn,
             triggered=self.increase_font_size_active_frontend
             )
-        self.add_menu_action(self.view_menu, self.increase_font_size)
+        self.add_menu_action(self.view_menu, self.increase_font_size, True)
 
         self.decrease_font_size = QtGui.QAction("Zoom &Out",
             self,
-            shortcut="Ctrl+-",
+            shortcut=QtGui.QKeySequence.ZoomOut,
             triggered=self.decrease_font_size_active_frontend
             )
-        self.add_menu_action(self.view_menu, self.decrease_font_size)
+        self.add_menu_action(self.view_menu, self.decrease_font_size, True)
 
         self.reset_font_size = QtGui.QAction("Zoom &Reset",
             self,
             shortcut="Ctrl+0",
             triggered=self.reset_font_size_active_frontend
             )
-        self.add_menu_action(self.view_menu, self.reset_font_size)
+        self.add_menu_action(self.view_menu, self.reset_font_size, True)
 
         self.view_menu.addSeparator()
 
@@ -696,16 +710,22 @@ class MainWindow(QtGui.QMainWindow):
         self.active_frontend.request_interrupt_kernel()
 
     def cut_active_frontend(self):
-        self.active_frontend.cut_action.trigger()
+        widget = self.active_frontend
+        if widget.can_cut():
+            widget.cut()
 
     def copy_active_frontend(self):
-        self.active_frontend.copy_action.trigger()
+        widget = self.active_frontend
+        if widget.can_copy():
+            widget.copy()
 
     def copy_raw_active_frontend(self):
         self.active_frontend._copy_raw_action.trigger()
 
     def paste_active_frontend(self):
-        self.active_frontend.paste_action.trigger()
+        widget = self.active_frontend
+        if widget.can_paste():
+            widget.paste()
 
     def undo_active_frontend(self):
         self.active_frontend.undo()

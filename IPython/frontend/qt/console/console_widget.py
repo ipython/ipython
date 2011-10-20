@@ -247,7 +247,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
         action = QtGui.QAction('Select All', None)
         action.setEnabled(True)
-        action.setShortcut(QtGui.QKeySequence.SelectAll)
+        selectall = QtGui.QKeySequence(QtGui.QKeySequence.SelectAll)
+        if selectall.matches("Ctrl+A") and sys.platform != 'darwin':
+            # Only override the default if there is a collision.
+            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
+            selectall = "Ctrl+Shift+A"
+        action.setShortcut(selectall)
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.select_all)
         self.addAction(action)
@@ -255,14 +260,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
         self.increase_font_size = QtGui.QAction("Bigger Font",
                 self,
-                shortcut="Ctrl++",
+                shortcut=QtGui.QKeySequence.ZoomIn,
                 statusTip="Increase the font size by one point",
                 triggered=self._increase_font_size)
         self.addAction(self.increase_font_size)
 
         self.decrease_font_size = QtGui.QAction("Smaller Font",
                 self,
-                shortcut="Ctrl+-",
+                shortcut=QtGui.QKeySequence.ZoomOut,
                 statusTip="Decrease the font size by one point",
                 triggered=self._decrease_font_size)
         self.addAction(self.decrease_font_size)
