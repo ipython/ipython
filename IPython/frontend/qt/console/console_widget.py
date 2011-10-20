@@ -1158,7 +1158,10 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
             elif key == QtCore.Qt.Key_Tab:
                 if not self._reading:
-                    intercepted = not self._tab_pressed()
+                    if self._tab_pressed():
+                        # real tab-key, insert four spaces
+                        cursor.insertText(' '*4)
+                    intercepted = True
 
             elif key == QtCore.Qt.Key_Left:
 
