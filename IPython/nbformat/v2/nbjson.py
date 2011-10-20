@@ -28,7 +28,7 @@ import json
 class BytesEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, bytes):
-            return unicode(encodestring(bytes))
+            return encodestring(obj).decode('ascii')
         return json.JSONEncoder.default(self, obj)
 
 
