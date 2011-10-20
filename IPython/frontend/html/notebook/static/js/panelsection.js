@@ -94,7 +94,9 @@ var IPython = (function (IPython) {
         this.content.find('#download_notebook').button();
         this.content.find('#download_notebook').attr('title',
             "Download the notebook in the specified format," +
-            " either full ipynb notebook or as a Python script.");
+            " either full ipynb notebook or as a Python script." +
+            " Make sure to save before downloading, to ensure the file is up to date."
+            );
         // upload notebook doesn't exist:
         this.content.find('#upload_notebook').button();
         this.content.find('#download_format').addClass('ui-widget ui-widget-content');

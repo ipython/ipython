@@ -14,7 +14,9 @@ var IPython = (function (IPython) {
         this.element.find('button#print_notebook').attr('title',
             "Open a new window with printer-friendly HTML of the Notebook." +
             " Note that this is incomplete, and may not produce perfect" +
-            " printed output.");
+            " printed output." +
+            " Make sure to save before printing, to ensure the output is up to date."
+            );
     };
 
     PrintWidget.prototype.bind_events = function () {
