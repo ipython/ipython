@@ -219,4 +219,4 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
     def test_1(self):
         """Test safe_execfile with non-ascii path
         """
-        _ip.shell.safe_execfile(self.fname, raise_exceptions=True)
+        _ip.shell.safe_execfile(self.fname, {}, raise_exceptions=True)

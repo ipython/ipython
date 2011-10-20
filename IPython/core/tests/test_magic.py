@@ -324,7 +324,10 @@ def check_cpaste(code, should_fail=False):
     _ip.user_ns['code_ran'] = False
 
     src = StringIO()
-    src.encoding = None   # IPython expects stdin to have an encoding attribute
+    try:
+        src.encoding = None  # IPython expects stdin to have an encoding attribute
+    except Exception:
+        pass                 # ...but it's a read-only attribute in Python 3
     src.write('\n')
     src.write(code)
     src.write('\n--\n')
