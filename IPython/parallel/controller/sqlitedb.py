@@ -16,7 +16,10 @@ import os
 import cPickle as pickle
 from datetime import datetime
 
-import sqlite3
+try:
+    import sqlite3
+except ImportError:
+    sqlite3 = None
 
 from zmq.eventloop import ioloop
 
@@ -99,7 +102,10 @@ class SQLiteDB(BaseDB):
         in tasks from previous sessions being available via Clients' db_query and
         get_result methods.""")
 
-    _db = Instance('sqlite3.Connection')
+    if sqlite3 is not None:
+        _db = Instance('sqlite3.Connection')
+    else:
+        _db = None
     # the ordered list of column names
     _keys = List(['msg_id' ,
             'header' ,
@@ -145,6 +151,8 @@ class SQLiteDB(BaseDB):
 
     def __init__(self, **kwargs):
         super(SQLiteDB, self).__init__(**kwargs)
+        if sqlite3 is None:
+            raise ImportError("SQLiteDB requires sqlite3")
         if not self.table:
             # use session, and prefix _, since starting with # is illegal
             self.table = '_'+self.session.replace('-','_')

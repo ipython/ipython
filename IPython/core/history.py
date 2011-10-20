@@ -17,12 +17,15 @@ import atexit
 import datetime
 import os
 import re
-import sqlite3
+try:
+    import sqlite3
+except ImportError:
+    sqlite3 = None
 import threading
 
 # Our own packages
 from IPython.config.configurable import Configurable
-
+from IPython.external.decorator import decorator
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 from IPython.utils.path import locate_profile
@@ -33,6 +36,30 @@ from IPython.utils.warn import warn
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+class DummyDB(object):
+    """Dummy DB that will act as a black hole for history.
+    
+    Only used in the absence of sqlite"""
+    def execute(*args, **kwargs):
+        return []
+    
+    def commit(self, *args, **kwargs):
+        pass
+    
+    def __enter__(self, *args, **kwargs):
+        pass
+    
+    def __exit__(self, *args, **kwargs):
+        pass
+    
+@decorator
+def needs_sqlite(f,*a,**kw):
+    """return an empty list in the absence of sqlite"""
+    if sqlite3 is None:
+        return []
+    else:
+        return f(*a,**kw)
+
 class HistoryAccessor(Configurable):
     """Access the history database without adding to it.
     
@@ -42,7 +69,10 @@ class HistoryAccessor(Configurable):
     hist_file = Unicode(config=True)
 
     # The SQLite database
-    db = Instance(sqlite3.Connection)
+    if sqlite3:
+        db = Instance(sqlite3.Connection)
+    else:
+        db = Instance(DummyDB)
     
     def __init__(self, profile='default', hist_file=u'', shell=None, config=None, **traits):
         """Create a new history accessor.
@@ -67,6 +97,11 @@ class HistoryAccessor(Configurable):
             # No one has set the hist_file, yet.
             self.hist_file = self._get_hist_file_name(profile)
 
+        if sqlite3 is None:
+            warn("IPython History requires SQLite, your history will not be saved\n")
+            self.db = DummyDB()
+            return
+        
         try:
             self.init_db()
         except sqlite3.DatabaseError:
@@ -146,6 +181,7 @@ class HistoryAccessor(Configurable):
             return ((ses, lin, (inp, out)) for ses, lin, inp, out in cur)
         return cur
 
+    @needs_sqlite
     def get_session_info(self, session=0):
         """get info about a session
 
@@ -351,7 +387,7 @@ class HistoryManager(HistoryAccessor):
         self.save_thread.start()
 
         self.new_session()
-    
+
     def _get_hist_file_name(self, profile=None):
         """Get default history file name based on the Shell's profile.
         
@@ -360,6 +396,7 @@ class HistoryManager(HistoryAccessor):
         profile_dir = self.shell.profile_dir.location
         return os.path.join(profile_dir, 'history.sqlite')
     
+    @needs_sqlite
     def new_session(self, conn=None):
         """Get a new session number."""
         if conn is None:
@@ -537,6 +574,7 @@ class HistoryManager(HistoryAccessor):
                 conn.execute("INSERT INTO output_history VALUES (?, ?, ?)",
                                 (self.session_number,)+line)
 
+    @needs_sqlite
     def writeout_cache(self, conn=None):
         """Write any entries in the cache to the database."""
         if conn is None:
@@ -581,6 +619,7 @@ class HistorySavingThread(threading.Thread):
         self.history_manager = history_manager
         atexit.register(self.stop)
 
+    @needs_sqlite
     def run(self):
         # We need a separate db connection per thread:
         try:

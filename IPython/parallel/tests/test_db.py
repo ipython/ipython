@@ -24,13 +24,12 @@ import time
 from datetime import datetime, timedelta
 from unittest import TestCase
 
-from nose import SkipTest
-
 from IPython.parallel import error
 from IPython.parallel.controller.dictdb import DictDB
 from IPython.parallel.controller.sqlitedb import SQLiteDB
 from IPython.parallel.controller.hub import init_record, empty_record
 
+from IPython.testing import decorators as dec
 from IPython.zmq.session import Session
 
 
@@ -171,8 +170,11 @@ class TestDictBackend(TestCase):
         self.db.drop_matching_records(query)
         recs = self.db.find_records(query)
         self.assertEquals(len(recs), 0)
-            
+
+
 class TestSQLiteBackend(TestDictBackend):
+
+    @dec.skip_without('sqlite3')
     def create_db(self):
         return SQLiteDB(location=tempfile.gettempdir())
     

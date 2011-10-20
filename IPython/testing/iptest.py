@@ -128,6 +128,7 @@ have['pymongo'] = test_for('pymongo')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['qt'] = test_for('IPython.external.qt')
+have['sqlite3'] = test_for('sqlite3')
 
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
 
@@ -204,7 +205,9 @@ def make_exclude():
                   ipjoin('config', 'default'),
                   ipjoin('config', 'profile'),
                   ]
-
+    if not have['sqlite3']:
+        exclusions.append(ipjoin('core', 'tests', 'test_history'))
+        exclusions.append(ipjoin('core', 'history'))
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
 
