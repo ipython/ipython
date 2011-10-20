@@ -30,17 +30,6 @@ you want inline figures, you must manually select the ``inline`` backend::
 
     $ ipython notebook --pylab=inline
 
-You can start the notebook to communicate via a secure protocol mode using a
-self-signed certificate by typing::
-
-    $ ipython notebook --certfile=mycert.pem
-
-.. note::
-
-    A self-signed certificate can be generated with openssl. For example:
-
-    openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
-
 This server uses the same ZeroMQ-based two process kernel architecture as
 the QT Console as well Tornado for serving HTTP/S requests. Some of the main
 features of the Notebook include:
@@ -226,6 +215,31 @@ key bindings you need to remember are:
   of an additional single letter.  Type :kbd:`Ctrl-m h` (that is, the sole
   letter :kbd:`h` after :kbd:`Ctrl-m`) and IPython will show you the remaining
   available keybindings.
+
+Security
+========
+
+You can protect your notebook server with a *very* simple single-password by
+setting the :attr:`NotebookApp.password` configurable. It is best to do this in
+your :file:`ipython_notebook_config.py`, e.g.::
+
+    # Password to use for web authentication
+    c.NotebookApp.password = u'super secret'
+
+because specifying it on the command-line will make it visible to other
+processes on your machine with access to :command:`ps`. 
+
+When using a password, it is a good idea to also use SSL, so that your password
+is not sent in the clear. You can start the notebook to communicate via a secure
+protocol mode using a self-signed certificate by typing::
+
+    $ ipython notebook --certfile=mycert.pem
+
+.. note::
+
+    A self-signed certificate can be generated with openssl. For example::
+
+        $ openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
 
 
 Notebook document format
