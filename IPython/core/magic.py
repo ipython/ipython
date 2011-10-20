@@ -862,18 +862,23 @@ Currently the magic system has the following functions:\n"""
         seq_types = ['dict', 'list', 'tuple']
 
         # for numpy/Numeric arrays, display summary info
-        try:
-            import numpy
-        except ImportError:
-            ndarray_type = None
-        else:
-            ndarray_type = numpy.ndarray.__name__
-        try:
-            import Numeric
-        except ImportError:
-            array_type = None
-        else:
-            array_type = Numeric.ArrayType.__name__
+        ndarray_type = None
+        if 'numpy' in sys.modules:
+            try:
+                from numpy import ndarray
+            except ImportError:
+                pass
+            else:
+                ndarray_type = ndarray.__name__
+
+        array_type = None
+        if 'Numeric' in sys.modules:
+            try:
+                from Numeric import ArrayType
+            except ImportError:
+                pass
+            else:
+                array_type = ArrayType.__name__
 
         # Find all variable names and types so we can figure out column sizes
         def get_vars(i):
