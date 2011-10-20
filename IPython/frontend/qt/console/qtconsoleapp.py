@@ -9,6 +9,8 @@ Authors:
 * Min RK
 * Erik Tollerud
 * Fernando Perez
+* Bussonnier Matthias
+* Thomas Kluyver
 
 """
 
@@ -21,10 +23,10 @@ import json
 import os
 import signal
 import sys
+import uuid
 
 # System library imports
 from IPython.external.qt import QtGui
-from pygments.styles import get_all_styles
 
 # Local imports
 from IPython.config.application import boolean_flag
@@ -35,6 +37,7 @@ from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
+from IPython.frontend.qt.console.mainwindow import MainWindow
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
@@ -48,7 +51,6 @@ from IPython.zmq.ipkernel import (
 )
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
-
 
 #-----------------------------------------------------------------------------
 # Network Constants
@@ -64,116 +66,6 @@ _examples = """
 ipython qtconsole                 # start the qtconsole
 ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
 """
-
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
-
-class MainWindow(QtGui.QMainWindow):
-
-    #---------------------------------------------------------------------------
-    # 'object' interface
-    #---------------------------------------------------------------------------
-    
-    def __init__(self, app, frontend, existing=False, may_close=True,
-                    confirm_exit=True):
-        """ Create a MainWindow for the specified FrontendWidget.
-        
-        The app is passed as an argument to allow for different
-        closing behavior depending on whether we are the Kernel's parent.
-        
-        If existing is True, then this Console does not own the Kernel.
-        
-        If may_close is True, then this Console is permitted to close the kernel
-        """
-        super(MainWindow, self).__init__()
-        self._app = app
-        self._frontend = frontend
-        self._existing = existing
-        if existing:
-            self._may_close = may_close
-        else:
-            self._may_close = True
-        self._frontend.exit_requested.connect(self.close)
-        self._confirm_exit = confirm_exit
-        self.setCentralWidget(frontend)
-
-    #---------------------------------------------------------------------------
-    # QWidget interface
-    #---------------------------------------------------------------------------
-    
-    def closeEvent(self, event):
-        """ Close the window and the kernel (if necessary).
-        
-        This will prompt the user if they are finished with the kernel, and if
-        so, closes the kernel cleanly. Alternatively, if the exit magic is used,
-        it closes without prompt.
-        """
-        keepkernel = None #Use the prompt by default
-        if hasattr(self._frontend,'_keep_kernel_on_exit'): #set by exit magic
-            keepkernel = self._frontend._keep_kernel_on_exit
-        
-        kernel_manager = self._frontend.kernel_manager
-        
-        if keepkernel is None and not self._confirm_exit:
-            # don't prompt, just terminate the kernel if we own it
-            # or leave it alone if we don't
-            keepkernel = not self._existing
-        
-        if keepkernel is None: #show prompt
-            if kernel_manager and kernel_manager.channels_running:
-                title = self.window().windowTitle()
-                cancel = QtGui.QMessageBox.Cancel
-                okay = QtGui.QMessageBox.Ok
-                if self._may_close:
-                    msg = "You are closing this Console window."
-                    info = "Would you like to quit the Kernel and all attached Consoles as well?"
-                    justthis = QtGui.QPushButton("&No, just this Console", self)
-                    justthis.setShortcut('N')
-                    closeall = QtGui.QPushButton("&Yes, quit everything", self)
-                    closeall.setShortcut('Y')
-                    box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
-                                            title, msg)
-                    box.setInformativeText(info)
-                    box.addButton(cancel)
-                    box.addButton(justthis, QtGui.QMessageBox.NoRole)
-                    box.addButton(closeall, QtGui.QMessageBox.YesRole)
-                    box.setDefaultButton(closeall)
-                    box.setEscapeButton(cancel)
-                    reply = box.exec_()
-                    if reply == 1: # close All
-                        kernel_manager.shutdown_kernel()
-                        #kernel_manager.stop_channels()
-                        event.accept()
-                    elif reply == 0: # close Console
-                        if not self._existing:
-                            # Have kernel: don't quit, just close the window
-                            self._app.setQuitOnLastWindowClosed(False)
-                            self.deleteLater()
-                        event.accept()
-                    else:
-                        event.ignore()
-                else:
-                    reply = QtGui.QMessageBox.question(self, title,
-                        "Are you sure you want to close this Console?"+
-                        "\nThe Kernel and other Consoles will remain active.",
-                        okay|cancel,
-                        defaultButton=okay
-                        )
-                    if reply == okay:
-                        event.accept()
-                    else:
-                        event.ignore()
-        elif keepkernel: #close console but leave kernel running (no prompt)
-            if kernel_manager and kernel_manager.channels_running:
-                if not self._existing:
-                    # I have the kernel: don't quit, just close the window
-                    self._app.setQuitOnLastWindowClosed(False)
-                event.accept()
-        else: #close console and kernel (no prompt)
-            if kernel_manager and kernel_manager.channels_running:
-                kernel_manager.shutdown_kernel()
-                event.accept()
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -225,6 +117,9 @@ qt_aliases = dict(
 )
 aliases.update(qt_aliases)
 
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # IPythonQtConsole
@@ -234,7 +129,7 @@ aliases.update(qt_aliases)
 class IPythonQtConsoleApp(BaseIPythonApplication):
     name = 'ipython-qtconsole'
     default_config_file_name='ipython_config.py'
-    
+
     description = """
         The IPython QtConsole.
         
@@ -449,6 +344,9 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.connection_file = os.path.basename(base)+'-ssh'+ext
         self.log.critical("To connect another client via this tunnel, use:")
         self.log.critical("--existing %s" % self.connection_file)
+    
+    def _new_connection_file(self):
+        return os.path.join(self.profile_dir.security_dir, 'kernel-%s.json' % uuid.uuid4())
 
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
@@ -484,17 +382,75 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             self.kernel_manager.write_connection_file()
         self.kernel_manager.start_channels()
 
+    def new_frontend_master(self):
+        """ Create and return new frontend attached to new kernel, launched on localhost.
+        """
+        ip = self.ip if self.ip in LOCAL_IPS else LOCALHOST
+        kernel_manager = QtKernelManager(
+                                ip=ip,
+                                connection_file=self._new_connection_file(),
+                                config=self.config,
+        )
+        # start the kernel
+        kwargs = dict(ipython=not self.pure)
+        kwargs['extra_arguments'] = self.kernel_argv
+        kernel_manager.start_kernel(**kwargs)
+        kernel_manager.start_channels()
+        widget = self.widget_factory(config=self.config,
+                                   local_kernel=True)
+        widget.kernel_manager = kernel_manager
+        widget._existing = False
+        widget._may_close = True
+        widget._confirm_exit = self.confirm_exit
+        return widget
+
+    def new_frontend_slave(self, current_widget):
+        """Create and return a new frontend attached to an existing kernel.
+        
+        Parameters
+        ----------
+        current_widget : IPythonWidget
+            The IPythonWidget whose kernel this frontend is to share
+        """
+        kernel_manager = QtKernelManager(
+                                connection_file=current_widget.kernel_manager.connection_file,
+                                config = self.config,
+        )
+        kernel_manager.load_connection_file()
+        kernel_manager.start_channels()
+        widget = self.widget_factory(config=self.config,
+                                local_kernel=False)
+        widget._existing = True
+        widget._may_close = False
+        widget._confirm_exit = False
+        widget.kernel_manager = kernel_manager
+        return widget
 
     def init_qt_elements(self):
         # Create the widget.
         self.app = QtGui.QApplication([])
+
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        icon_path = os.path.join(base_path, 'resources', 'icon', 'IPythonConsole.svg')
+        self.app.icon = QtGui.QIcon(icon_path)
+        QtGui.QApplication.setWindowIcon(self.app.icon)
+
         local_kernel = (not self.existing) or self.ip in LOCAL_IPS
         self.widget = self.widget_factory(config=self.config,
                                         local_kernel=local_kernel)
+        self.widget._existing = self.existing
+        self.widget._may_close = not self.existing
+        self.widget._confirm_exit = self.confirm_exit
+
         self.widget.kernel_manager = self.kernel_manager
-        self.window = MainWindow(self.app, self.widget, self.existing,
-                                may_close=local_kernel,
-                                confirm_exit=self.confirm_exit)
+        self.window = MainWindow(self.app,
+                                confirm_exit=self.confirm_exit,
+                                new_frontend_factory=self.new_frontend_master,
+                                slave_frontend_factory=self.new_frontend_slave,
+                                )
+        self.window.log = self.log
+        self.window.add_tab_with_frontend(self.widget)
+        self.window.init_menu_bar()
         self.window.setWindowTitle('Python' if self.pure else 'IPython')
 
     def init_colors(self):
@@ -568,19 +524,6 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.init_kernel_manager()
         self.init_qt_elements()
         self.init_colors()
-        self.init_window_shortcut()
-
-    def init_window_shortcut(self):
-        fullScreenAction = QtGui.QAction('Toggle Full Screen', self.window)
-        fullScreenAction.setShortcut('Ctrl+Meta+Space')
-        fullScreenAction.triggered.connect(self.toggleFullScreen)
-        self.window.addAction(fullScreenAction)
-
-    def toggleFullScreen(self):
-        if not self.window.isFullScreen():
-            self.window.showFullScreen()
-        else:
-            self.window.showNormal()
 
     def start(self):
 

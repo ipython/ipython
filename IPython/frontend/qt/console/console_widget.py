@@ -236,22 +236,50 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.print_)
         self.addAction(action)
-        self._print_action = action
+        self.print_action = action
 
         action = QtGui.QAction('Save as HTML/XML', None)
         action.setShortcut(QtGui.QKeySequence.Save)
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.export_html)
         self.addAction(action)
-        self._export_action = action
+        self.export_action = action
 
         action = QtGui.QAction('Select All', None)
         action.setEnabled(True)
-        action.setShortcut(QtGui.QKeySequence.SelectAll)
+        selectall = QtGui.QKeySequence(QtGui.QKeySequence.SelectAll)
+        if selectall.matches("Ctrl+A") and sys.platform != 'darwin':
+            # Only override the default if there is a collision.
+            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
+            selectall = "Ctrl+Shift+A"
+        action.setShortcut(selectall)
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.select_all)
         self.addAction(action)
-        self._select_all_action = action
+        self.select_all_action = action
+
+        self.increase_font_size = QtGui.QAction("Bigger Font",
+                self,
+                shortcut=QtGui.QKeySequence.ZoomIn,
+                statusTip="Increase the font size by one point",
+                triggered=self._increase_font_size)
+        self.addAction(self.increase_font_size)
+
+        self.decrease_font_size = QtGui.QAction("Smaller Font",
+                self,
+                shortcut=QtGui.QKeySequence.ZoomOut,
+                statusTip="Decrease the font size by one point",
+                triggered=self._decrease_font_size)
+        self.addAction(self.decrease_font_size)
+
+        self.reset_font_size = QtGui.QAction("Normal Font",
+                self,
+                shortcut="Ctrl+0",
+                statusTip="Restore the Normal font size",
+                triggered=self.reset_font)
+        self.addAction(self.reset_font_size)
+
+
 
     def eventFilter(self, obj, event):
         """ Reimplemented to ensure a console-like behavior in the underlying
@@ -652,6 +680,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         font.setPointSize(size)
         self._set_font(font)
 
+    def _increase_font_size(self):
+        self.change_font_size(1)
+
+    def _decrease_font_size(self):
+        self.change_font_size(-1)
+
     def select_all(self):
         """ Selects all the text in the buffer.
         """
@@ -842,24 +876,24 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """
         menu = QtGui.QMenu(self)
 
-        cut_action = menu.addAction('Cut', self.cut)
-        cut_action.setEnabled(self.can_cut())
-        cut_action.setShortcut(QtGui.QKeySequence.Cut)
+        self.cut_action = menu.addAction('Cut', self.cut)
+        self.cut_action.setEnabled(self.can_cut())
+        self.cut_action.setShortcut(QtGui.QKeySequence.Cut)
 
-        copy_action = menu.addAction('Copy', self.copy)
-        copy_action.setEnabled(self.can_copy())
-        copy_action.setShortcut(QtGui.QKeySequence.Copy)
+        self.copy_action = menu.addAction('Copy', self.copy)
+        self.copy_action.setEnabled(self.can_copy())
+        self.copy_action.setShortcut(QtGui.QKeySequence.Copy)
 
-        paste_action = menu.addAction('Paste', self.paste)
-        paste_action.setEnabled(self.can_paste())
-        paste_action.setShortcut(QtGui.QKeySequence.Paste)
-
-        menu.addSeparator()
-        menu.addAction(self._select_all_action)
+        self.paste_action = menu.addAction('Paste', self.paste)
+        self.paste_action.setEnabled(self.can_paste())
+        self.paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
         menu.addSeparator()
-        menu.addAction(self._export_action)
-        menu.addAction(self._print_action)
+        menu.addAction(self.select_all_action)
+
+        menu.addSeparator()
+        menu.addAction(self.export_action)
+        menu.addAction(self.print_action)
 
         return menu
 
@@ -1058,18 +1092,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 self._kill_ring.kill_cursor(cursor)
                 intercepted = True
 
-            elif key in (QtCore.Qt.Key_Plus, QtCore.Qt.Key_Equal):
-                self.change_font_size(1)
-                intercepted = True
-
-            elif key == QtCore.Qt.Key_Minus:
-                self.change_font_size(-1)
-                intercepted = True
-
-            elif key == QtCore.Qt.Key_0:
-                self.reset_font()
-                intercepted = True
-
         #------ Alt modifier ---------------------------------------------------
 
         elif alt_down:
@@ -1136,7 +1158,10 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
             elif key == QtCore.Qt.Key_Tab:
                 if not self._reading:
-                    intercepted = not self._tab_pressed()
+                    if self._tab_pressed():
+                        # real tab-key, insert four spaces
+                        cursor.insertText(' '*4)
+                    intercepted = True
 
             elif key == QtCore.Qt.Key_Left:
 
