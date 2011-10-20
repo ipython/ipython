@@ -63,6 +63,7 @@ class MainWindow(QtGui.QMainWindow):
         """
 
         super(MainWindow, self).__init__()
+        self._kernel_counter = 0
         self._app = app
         self.confirm_exit = confirm_exit
         self.new_frontend_factory = new_frontend_factory
@@ -97,6 +98,13 @@ class MainWindow(QtGui.QMainWindow):
             self.close()
 
     @property
+    def next_kernel_id(self):
+        """constantly increasing counter for kernel IDs"""
+        c = self._kernel_counter
+        self._kernel_counter += 1
+        return c
+
+    @property
     def active_frontend(self):
         return self.tab_widget.currentWidget()
     
@@ -115,7 +123,7 @@ class MainWindow(QtGui.QMainWindow):
             # don't keep stacking slaves
             name = current_widget_name
         else:
-            name = str('('+current_widget_name+') slave')
+            name = '(%s) slave' % current_widget_name
         self.add_tab_with_frontend(widget,name=name)
 
     def close_tab(self,current_tab):
@@ -231,7 +239,7 @@ class MainWindow(QtGui.QMainWindow):
 
         """
         if not name:
-            name=str('kernel '+str(self.tab_widget.count()))
+            name = 'kernel %i' % self.next_kernel_id
         self.tab_widget.addTab(frontend,name)
         self.update_tab_bar_visibility()
         self.make_frontend_visible(frontend)
