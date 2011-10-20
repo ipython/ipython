@@ -3611,5 +3611,11 @@ Defaulting color scheme to 'NoColor'"""
             with open(new_fname, 'w') as f:
                 current.write(nb, f, new_format)
 
+    if sys.platform == 'win32':
+        def magic_cls(self, s):
+            """Clear screen.
+            """
+            os.system("cls")
+
 
 # end Magic
