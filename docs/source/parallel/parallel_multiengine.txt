@@ -179,7 +179,7 @@ dv.block : bool
     whether to wait for the result, or return an :class:`AsyncResult` object
     immediately
 dv.track : bool
-    whether to instruct pyzmq to track when 
+    whether to instruct pyzmq to track when zeromq is done sending the message.
     This is primarily useful for non-copying sends of numpy arrays that you plan to
     edit in-place.  You need to know when it becomes safe to edit the buffer
     without corrupting the message.
