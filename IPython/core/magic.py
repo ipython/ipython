@@ -1382,7 +1382,11 @@ Currently the magic system has the following functions:\n"""
                 return
 
             arg_str = 'execfile(filename,prog_ns)'
-            namespace = locals()
+            namespace = {
+                'execfile': self.shell.safe_execfile,
+                'prog_ns': prog_ns,
+                'filename': filename
+                }
 
         opts.merge(opts_def)
 
