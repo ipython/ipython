@@ -13,6 +13,8 @@ prune IPython/frontend/html/notebook/static/mathjax
 
 include IPython/.git_commit_info.ini
 
+include IPython/frontend/qt/console/resources/icon/IPythonConsole.svg
+
 graft docs
 exclude docs/\#*
 exclude docs/man/*.1
