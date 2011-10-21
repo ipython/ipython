@@ -485,6 +485,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         self._control.clear()
         self._append_plain_text(self.banner)
+        # update output marker for stdout/stderr, so that startup
+        # messages appear after banner:
+        self._append_before_prompt_pos = self._get_cursor().position()
         self._show_interpreter_prompt()
 
     def restart_kernel(self, message, now=False):
