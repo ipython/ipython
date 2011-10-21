@@ -196,7 +196,7 @@ def find_gui_and_backend(gui=None):
 
     import matplotlib
 
-    if gui:
+    if gui and gui != 'auto':
         # select backend based on requested gui
         backend = backends[gui]
     else:

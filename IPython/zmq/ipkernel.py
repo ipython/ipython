@@ -740,8 +740,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         kernel_factory = Kernel
 
         if self.pylab:
-            key = None if self.pylab == 'auto' else self.pylab
-            gui, backend = pylabtools.find_gui_and_backend(key)
+            gui, backend = pylabtools.find_gui_and_backend(self.pylab)
 
         kernel = kernel_factory(config=self.config, session=self.session,
                                 shell_socket=self.shell_socket,

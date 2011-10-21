@@ -414,7 +414,12 @@ class ZMQInteractiveShell(InteractiveShell):
         from IPython.zmq.ipkernel import enable_gui
         opts, arg = self.parse_options(parameter_s, '')
         if arg=='': arg = None
-        return enable_gui(arg)
+        try:
+            enable_gui(arg)
+        except Exception as e:
+            # print simple error message, rather than traceback if we can't
+            # hook up the GUI
+            error(str(e))
 
     def enable_pylab(self, gui=None, import_all=True):
         """Activate pylab support at runtime.
@@ -440,13 +445,21 @@ class ZMQInteractiveShell(InteractiveShell):
         # code in an empty namespace, and we update *both* user_ns and
         # user_ns_hidden with this information.
         ns = {}
-        # override default to inline, from auto-detect
-        gui = pylabtools.pylab_activate(ns, gui or 'inline', import_all, self)
+        try:
+            gui = pylabtools.pylab_activate(ns, gui, import_all, self)
+        except KeyError:
+            error("Backend %r not supported" % gui)
+            return
         self.user_ns.update(ns)
         self.user_ns_hidden.update(ns)
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
-        enable_gui(gui)
+        try:
+            enable_gui(gui)
+        except Exception as e:
+            # print simple error message, rather than traceback if we can't
+            # hook up the GUI
+            error(str(e))
         self.magic_run = self._pylab_magic_run
 
 
