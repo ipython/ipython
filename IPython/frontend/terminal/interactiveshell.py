@@ -458,7 +458,11 @@ class TerminalInteractiveShell(InteractiveShell):
         # code in an empty namespace, and we update *both* user_ns and
         # user_ns_hidden with this information.
         ns = {}
-        gui = pylab_activate(ns, gui, import_all)
+        try:
+            gui = pylab_activate(ns, gui, import_all)
+        except KeyError:
+            error("Backend %r not supported" % gui)
+            return
         self.user_ns.update(ns)
         self.user_ns_hidden.update(ns)
         # Now we must activate the gui pylab wants to use, and fix %run to take

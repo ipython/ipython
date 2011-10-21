@@ -196,7 +196,7 @@ def find_gui_and_backend(gui=None):
 
     import matplotlib
 
-    if gui:
+    if gui and gui != 'auto':
         # select backend based on requested gui
         backend = backends[gui]
     else:
@@ -289,7 +289,7 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             exec s in shell.user_ns_hidden
 
 
-def pylab_activate(user_ns, gui=None, import_all=True):
+def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     """Activate pylab mode in the user's namespace.
 
     Loads and initializes numpy, matplotlib and friends for interactive use.
@@ -312,7 +312,7 @@ def pylab_activate(user_ns, gui=None, import_all=True):
     """
     gui, backend = find_gui_and_backend(gui)
     activate_matplotlib(backend)
-    import_pylab(user_ns, backend, import_all)
+    import_pylab(user_ns, backend, import_all, shell)
 
     print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
