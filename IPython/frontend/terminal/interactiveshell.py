@@ -322,8 +322,8 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.edit_syntax_error()
                 if not more:
                     source_raw = self.input_splitter.source_raw_reset()[1]
-                    self._replace_rlhist_multiline(source_raw)
                     self.run_cell(source_raw, store_history=True)
+                    self._replace_rlhist_multiline(source_raw)
 
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1
