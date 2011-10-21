@@ -111,12 +111,18 @@ class TestMagicRunPass(tt.TempFileMixin):
     def setup(self):
         """Make a valid python temp file."""
         self.mktmp('pass\n')
-
+        
     def run_tmpfile(self):
         _ip = get_ipython()
         # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
         # See below and ticket https://bugs.launchpad.net/bugs/366353
         _ip.magic('run %s' % self.fname)
+        
+    def run_tmpfile_p(self):
+        _ip = get_ipython()
+        # This fails on Windows if self.tmpfile.name has spaces or "~" in it.
+        # See below and ticket https://bugs.launchpad.net/bugs/366353
+        _ip.magic('run -p %s' % self.fname)
 
     def test_builtins_id(self):
         """Check that %run doesn't damage __builtins__ """
@@ -144,6 +150,12 @@ class TestMagicRunPass(tt.TempFileMixin):
         _ip = get_ipython()
         p2 = str(_ip.displayhook.prompt2).strip()
         nt.assert_equals(p2[:3], '...')
+        
+    def test_run_profile( self ):
+        """Test that the option -p, which invokes the profiler, do not
+        crash by invoking execfile"""
+        _ip = get_ipython()
+        self.run_tmpfile_p()
 
 
 class TestMagicRunSimple(tt.TempFileMixin):
