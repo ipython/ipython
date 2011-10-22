@@ -16,9 +16,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from base64 import encodestring
 from .nbbase import from_dict
-from .rwbase import NotebookReader, NotebookWriter, base64_decode
+from .rwbase import NotebookReader, NotebookWriter, restore_bytes
 import json
 
 #-----------------------------------------------------------------------------
@@ -26,9 +25,10 @@ import json
 #-----------------------------------------------------------------------------
 
 class BytesEncoder(json.JSONEncoder):
+    """A JSON encoder that accepts b64 (and other *ascii*) bytestrings."""
     def default(self, obj):
         if isinstance(obj, bytes):
-            return encodestring(obj).decode('ascii')
+            return obj.decode('ascii')
         return json.JSONEncoder.default(self, obj)
 
 
@@ -40,7 +40,7 @@ class JSONReader(NotebookReader):
         return nb
 
     def to_notebook(self, d, **kwargs):
-        return base64_decode(from_dict(d))
+        return restore_bytes(from_dict(d))
 
 
 class JSONWriter(NotebookWriter):
