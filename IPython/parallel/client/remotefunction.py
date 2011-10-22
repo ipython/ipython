@@ -46,7 +46,7 @@ def remote(view, block=None, **flags):
     return remote_function
 
 @skip_doctest
-def parallel(view, dist='b', block=None, **flags):
+def parallel(view, dist='b', block=None, ordered=True, **flags):
     """Turn a function into a parallel remote function.
 
     This method can be used for map:
@@ -57,7 +57,7 @@ def parallel(view, dist='b', block=None, **flags):
     """
 
     def parallel_function(f):
-        return ParallelFunction(view, f, dist=dist, block=block, **flags)
+        return ParallelFunction(view, f, dist=dist, block=block, ordered=ordered, **flags)
     return parallel_function
 
 #--------------------------------------------------------------------------
@@ -122,15 +122,19 @@ class ParallelFunction(RemoteFunction):
         to use the current `block` attribute of `view`
     chunksize : int or None
         The size of chunk to use when breaking up sequences in a load-balanced manner
+    ordered : bool [default: True]
+        Whether 
     **flags : remaining kwargs are passed to View.temp_flags
     """
 
     chunksize=None
+    ordered=None
     mapObject=None
 
-    def __init__(self, view, f, dist='b', block=None, chunksize=None, **flags):
+    def __init__(self, view, f, dist='b', block=None, chunksize=None, ordered=True, **flags):
         super(ParallelFunction, self).__init__(view, f, block=block, **flags)
         self.chunksize = chunksize
+        self.ordered = ordered
 
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
@@ -186,7 +190,10 @@ class ParallelFunction(RemoteFunction):
 
             msg_ids.append(ar.msg_ids[0])
 
-        r = AsyncMapResult(self.view.client, msg_ids, self.mapObject, fname=self.func.__name__)
+        r = AsyncMapResult(self.view.client, msg_ids, self.mapObject, 
+                            fname=self.func.__name__,
+                            ordered=self.ordered
+                        )
 
         if self.block:
             try:

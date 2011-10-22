@@ -261,12 +261,19 @@ class AsyncMapResult(AsyncResult):
     """Class for representing results of non-blocking gathers.
 
     This will properly reconstruct the gather.
+    
+    This class is iterable at any time, and will wait on results as they come.
+    
+    If ordered=False, then the first results to arrive will come first, otherwise
+    results will be yielded in the order they were submitted.
+    
     """
 
-    def __init__(self, client, msg_ids, mapObject, fname=''):
+    def __init__(self, client, msg_ids, mapObject, fname='', ordered=True):
         AsyncResult.__init__(self, client, msg_ids, fname=fname)
         self._mapObject = mapObject
         self._single_result = False
+        self.ordered = ordered
 
     def _reconstruct_result(self, res):
         """Perform the gather on the actual results."""
@@ -274,6 +281,13 @@ class AsyncMapResult(AsyncResult):
 
     # asynchronous iterator:
     def __iter__(self):
+        it = self._ordered_iter if self.ordered else self._unordered_iter
+        for r in it():
+            yield r
+
+    # asynchronous ordered iterator:
+    def _ordered_iter(self):
+        """iterator for results *as they arrive*, preserving submission order."""
         try:
             rlist = self.get(0)
         except error.TimeoutError:
@@ -293,6 +307,42 @@ class AsyncMapResult(AsyncResult):
             # already done
             for r in rlist:
                 yield r
+
+    # asynchronous unordered iterator:
+    def _unordered_iter(self):
+        """iterator for results *as they arrive*, on FCFS basis, ignoring submission order."""
+        try:
+            rlist = self.get(0)
+        except error.TimeoutError:
+            pending = set(self.msg_ids)
+            while pending:
+                try:
+                    self._client.wait(pending, 1e-3)
+                except error.TimeoutError:
+                    # ignore timeout error, because that only means
+                    # *some* jobs are outstanding
+                    pass
+                # update ready set with those no longer outstanding:
+                ready = pending.difference(self._client.outstanding)
+                # update pending to exclude those that are finished
+                pending = pending.difference(ready)
+                while ready:
+                    msg_id = ready.pop()
+                    ar = AsyncResult(self._client, msg_id, self._fname)
+                    rlist = ar.get()
+                    try:
+                        for r in rlist:
+                            yield r
+                    except TypeError:
+                        # flattened, not a list
+                        # this could get broken by flattened data that returns iterables
+                        # but most calls to map do not expose the `flatten` argument
+                        yield rlist
+        else:
+            # already done
+            for r in rlist:
+                yield r
+
 
 
 class AsyncHubResult(AsyncResult):
