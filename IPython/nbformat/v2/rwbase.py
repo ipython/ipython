@@ -19,31 +19,67 @@ Authors:
 from base64 import encodestring, decodestring
 import pprint
 
+from IPython.utils.py3compat import str_to_bytes
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
-def base64_decode(nb):
-    """Base64 encode all bytes objects in the notebook."""
+def restore_bytes(nb):
+    """Restore bytes of image data from unicode-only formats.
+    
+    Base64 encoding is handled elsewhere.  Bytes objects in the notebook are
+    always b64-encoded. We DO NOT encode/decode around file formats.
+    """
     for ws in nb.worksheets:
         for cell in ws.cells:
             if cell.cell_type == 'code':
-                if 'png' in cell:
-                    cell.png = bytes(decodestring(cell.png))
-                if 'jpeg' in cell:
-                    cell.jpeg = bytes(decodestring(cell.jpeg))
+                for output in cell.outputs:
+                    if 'png' in output:
+                        output.png = str_to_bytes(output.png, 'ascii')
+                    if 'jpeg' in output:
+                        output.jpeg = str_to_bytes(output.jpeg, 'ascii')
+    return nb
+
+
+# b64 encode/decode are never actually used, because all bytes objects in
+# the notebook are already b64-encoded, and we don't need/want to double-encode
+
+def base64_decode(nb):
+    """Restore all bytes objects in the notebook from base64-encoded strings.
+    
+    Note: This is never used
+    """
+    for ws in nb.worksheets:
+        for cell in ws.cells:
+            if cell.cell_type == 'code':
+                for output in cell.outputs:
+                    if 'png' in output:
+                        if isinstance(output.png, unicode):
+                            output.png = output.png.encode('ascii')
+                        output.png = decodestring(output.png)
+                    if 'jpeg' in output:
+                        if isinstance(output.jpeg, unicode):
+                            output.jpeg = output.jpeg.encode('ascii')
+                        output.jpeg = decodestring(output.jpeg)
     return nb
 
 
 def base64_encode(nb):
-    """Base64 decode all binary objects in the notebook."""
+    """Base64 encode all bytes objects in the notebook.
+    
+    These will be b64-encoded unicode strings
+    
+    Note: This is never used
+    """
     for ws in nb.worksheets:
         for cell in ws.cells:
             if cell.cell_type == 'code':
-                if 'png' in cell:
-                    cell.png = unicode(encodestring(cell.png))
-                if 'jpeg' in cell:
-                    cell.jpeg = unicode(encodestring(cell.jpeg))
+                for output in cell.outputs:
+                    if 'png' in output:
+                        output.png = encodestring(output.png).decode('ascii')
+                    if 'jpeg' in output:
+                        output.jpeg = encodestring(output.jpeg).decode('ascii')
     return nb
 
 
