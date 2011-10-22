@@ -34,7 +34,7 @@ import os
 import shutil
 import sys
 
-from IPython.config.application import Application
+from IPython.config.application import Application, catch_config
 from IPython.config.configurable import Configurable
 from IPython.config.loader import Config, ConfigFileNotFound
 from IPython.core import release, crashhandler
@@ -304,7 +304,7 @@ class BaseIPythonApplication(Application):
             with open(fname, 'w') as f:
                 f.write(s)
 
-
+    @catch_config
     def initialize(self, argv=None):
         # don't hook up crash handler before parsing command-line
         self.parse_command_line(argv)

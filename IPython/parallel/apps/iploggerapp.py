@@ -30,7 +30,8 @@ from IPython.utils.traitlets import Bool, Dict, Unicode
 
 from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
-    base_aliases
+    base_aliases,
+    catch_config,
 )
 from IPython.parallel.apps.logwatcher import LogWatcher
 
@@ -68,6 +69,7 @@ class IPLoggerApp(BaseParallelApplication):
     classes = [LogWatcher, ProfileDir]
     aliases = Dict(aliases)
 
+    @catch_config
     def initialize(self, argv=None):
         super(IPLoggerApp, self).initialize(argv)
         self.init_watcher()
