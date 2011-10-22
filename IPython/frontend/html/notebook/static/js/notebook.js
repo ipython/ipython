@@ -829,6 +829,7 @@ var IPython = (function (IPython) {
         var cell_index = that.find_cell_index(cell);
         if (cell instanceof IPython.CodeCell) {
             cell.clear_output(true, true, true);
+            cell.set_input_prompt('*');
             var code = cell.get_code();
             var msg_id = that.kernel.execute(cell.get_code());
             that.msg_cell_map[msg_id] = cell.cell_id;
