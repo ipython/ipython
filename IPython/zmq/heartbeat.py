@@ -31,15 +31,14 @@ class Heartbeat(Thread):
     def __init__(self, context, addr=(LOCALHOST, 0)):
         Thread.__init__(self)
         self.context = context
-        self.addr = addr
-        self.ip = addr[0]
-        self.port = addr[1]
+        self.ip, self.port = addr
         if self.port == 0:
             s = socket.socket()
-            s.bind(self.addr)
+            # '*' means all interfaces to 0MQ, which is '' to socket.socket
+            s.bind(('' if self.ip == '*' else self.ip, 0))
             self.port = s.getsockname()[1]
             s.close()
-            self.addr = (self.ip, self.port)
+        self.addr = (self.ip, self.port)
         self.daemon = True
 
     def run(self):
