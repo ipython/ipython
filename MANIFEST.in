@@ -1,4 +1,6 @@
 include ipython.py
+include setup2.py
+include setup3.py
 include setupbase.py
 include setupegg.py
 
@@ -11,10 +13,11 @@ graft IPython
 prune IPython/deathrow
 prune IPython/frontend/html/notebook/static/mathjax
 
+# Include some specific files and data resources we need
 include IPython/.git_commit_info.ini
-
 include IPython/frontend/qt/console/resources/icon/IPythonConsole.svg
 
+# Documentation
 graft docs
 exclude docs/\#*
 exclude docs/man/*.1
@@ -24,11 +27,9 @@ prune docs/attic
 prune docs/build
 prune docs/gh-pages
 
-
+# Patterns to exclude from any directory
 global-exclude *~
 global-exclude *.flc
 global-exclude *.pyc
+global-exclude *.pyo
 global-exclude .dircopy.log
-global-exclude .svn
-global-exclude .bzr
-global-exclude .hgignore
