@@ -691,6 +691,7 @@ var IPython = (function (IPython) {
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
             cell.set_input_prompt(content.execution_count);
+            cell.element.removeClass("running");
             this.dirty = true;
         } else if (msg_type === "complete_reply") {
             cell.finish_completing(content.matched_text, content.matches);
@@ -830,6 +831,7 @@ var IPython = (function (IPython) {
         if (cell instanceof IPython.CodeCell) {
             cell.clear_output(true, true, true);
             cell.set_input_prompt('*');
+            cell.element.addClass("running");
             var code = cell.get_code();
             var msg_id = that.kernel.execute(cell.get_code());
             that.msg_cell_map[msg_id] = cell.cell_id;

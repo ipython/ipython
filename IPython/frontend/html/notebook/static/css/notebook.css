@@ -191,6 +191,9 @@ div.cell {
 div.code_cell {
     background-color: white;
 }
+/* any special styling for code cells that are currently running goes here */
+div.code_cell.running {
+}
 
 div.prompt {
     /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
