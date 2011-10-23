@@ -81,6 +81,8 @@ def create_inputhook_qt4(mgr, app=None):
         try:
             allow_CTRL_C()
             app = QtCore.QCoreApplication.instance()
+            if not app: # shouldn't happen, but safer if it happens anyway...
+                return 0
             app.processEvents(QtCore.QEventLoop.AllEvents, 300)
             if not stdin_ready():
                 timer = QtCore.QTimer()
@@ -99,6 +101,11 @@ def create_inputhook_qt4(mgr, app=None):
                   " permanently"
                   "\n    and '%gui qt4' to re-enable it later")
             mgr.clear_inputhook()
+        except: # NO exceptions are allowed to escape from a ctypes callback
+            mgr.clear_inputhook()
+            from traceback import print_exc
+            print_exc()
+            print("Got exception from inputhook_qt4, unregistering.")
         return 0
 
     def preprompthook_qt4(ishell):
