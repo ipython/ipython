@@ -38,7 +38,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
 from IPython.utils.sysinfo import num_cpus
-from IPython.utils.traitlets import (Int, Unicode, Bool, CFloat, Dict, List,
+from IPython.utils.traitlets import (Int, Unicode, Bool, CFloat, Dict, List, Any,
                                         DottedObjectName)
 
 from IPython.parallel.apps.baseapp import (
@@ -233,6 +233,12 @@ class IPClusterEngines(BaseParallelApplication):
         help="""The number of engines to start. The default is to use one for each
         CPU on your machine""")
 
+    engine_launcher = Any(config=True, help="Deprecated, use engine_launcher_class")
+    def _engine_launcher_changed(self, name, old, new):
+        if isinstance(new, basestring):
+            self.log.warn("WARNING: %s.engine_launcher is deprecated as of 0.12,"
+                    " use engine_launcher_class" % self.__class__.__name__)
+            self.engine_launcher_class = new
     engine_launcher_class = DottedObjectName('LocalEngineSetLauncher',
         config=True,
         help="""The class for launching a set of Engines. Change this value
@@ -393,6 +399,13 @@ class IPClusterStart(IPClusterEngines):
     delay = CFloat(1., config=True,
         help="delay (in s) between starting the controller and the engines")
 
+    controller_launcher = Any(config=True, help="Deprecated, use controller_launcher_class")
+    def _controller_launcher_changed(self, name, old, new):
+        if isinstance(new, basestring):
+            # old 0.11-style config
+            self.log.warn("WARNING: %s.controller_launcher is deprecated as of 0.12,"
+                    " use controller_launcher_class" % self.__class__.__name__)
+            self.controller_launcher_class = new
     controller_launcher_class = DottedObjectName('LocalControllerLauncher',
         config=True,
         help="""The class for launching a Controller. Change this value if you want
