@@ -232,10 +232,8 @@ will need to edit the following attributes in the file
 
     # Set these at the top of the file to tell ipcluster to use the
     # Windows HPC job scheduler.
-    c.IPClusterStart.controller_launcher = \
-        'IPython.parallel.apps.launcher.WindowsHPCControllerLauncher'
-    c.IPClusterEngines.engine_launcher = \
-        'IPython.parallel.apps.launcher.WindowsHPCEngineSetLauncher'
+    c.IPClusterStart.controller_launcher_class = 'WindowsHPCControllerLauncher'
+    c.IPClusterEngines.engine_launcher_class = 'WindowsHPCEngineSetLauncher'
 
     # Set these to the host name of the scheduler (head node) of your cluster.
     c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'

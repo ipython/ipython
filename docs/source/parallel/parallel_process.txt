@@ -141,8 +141,38 @@ Using various batch systems with :command:`ipcluster`
 
 :command:`ipcluster` has a notion of Launchers that can start controllers
 and engines with various remote execution schemes.  Currently supported
-models include :command:`ssh`, :command:`mpiexec`, PBS-style (Torque, SGE),
+models include :command:`ssh`, :command:`mpiexec`, PBS-style (Torque, SGE, LSF),
 and Windows HPC Server.
+
+In general, these are configured by the :attr:`IPClusterEngines.engine_set_launcher_class`,
+and :attr:`IPClusterStart.controller_launcher_class` configurables, which can be the
+fully specified object name (e.g. ``'IPython.parallel.apps.launcher.LocalControllerLauncher'``),
+but if you are using IPython's builtin launchers, you can specify just the class name,
+or even just the prefix e.g:
+
+.. sourcecode:: python
+
+    c.IPClusterEngines.engine_launcher_class = 'SSH'
+    # equivalent to
+    c.IPClusterEngines.engine_launcher_class = 'SSHEngineSetLauncher'
+    # both of which expand to
+    c.IPClusterEngines.engine_launcher_class = 'IPython.parallel.apps.launcher.SSHEngineSetLauncher'
+
+The shortest form being of particular use on the command line, where all you need to do to
+get an IPython cluster running with engines started with MPI is:
+
+.. sourcecode:: bash
+
+    $> ipcluster start --engines=MPIExec
+
+Assuming that the default MPI config is sufficient.
+
+.. note::
+
+    shortcuts for builtin launcher names were added in 0.12, as was the ``_class`` suffix
+    on the configurable names.  If you use the old 0.11 names (e.g. ``engine_set_launcher``),
+    they will still work, but you will get a deprecation warning that the name has changed.
+
 
 .. note::
 
@@ -170,7 +200,7 @@ There, instruct ipcluster to use the MPIExec launchers by adding the lines:
 
 .. sourcecode:: python
 
-    c.IPClusterEngines.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
+    c.IPClusterEngines.engine_launcher_class = 'MPIExecEngineSetLauncher'
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
@@ -185,7 +215,7 @@ If you have a reason to also start the Controller with mpi, you can specify:
 
 .. sourcecode:: python
 
-    c.IPClusterStart.controller_launcher = 'IPython.parallel.apps.launcher.MPIExecControllerLauncher'
+    c.IPClusterStart.controller_launcher_class = 'MPIExecControllerLauncher'
 
 .. note::
 
@@ -226,10 +256,8 @@ and engines:
 
 .. sourcecode:: python
 
-    c.IPClusterStart.controller_launcher = \
-        'IPython.parallel.apps.launcher.PBSControllerLauncher'
-    c.IPClusterEngines.engine_launcher = \
-        'IPython.parallel.apps.launcher.PBSEngineSetLauncher'
+    c.IPClusterStart.controller_launcher_class = 'PBSControllerLauncher'
+    c.IPClusterEngines.engine_launcher_class = 'PBSEngineSetLauncher'
 
 .. note::
 
@@ -355,12 +383,11 @@ To use this mode, select the SSH launchers in :file:`ipcluster_config.py`:
 
 .. sourcecode:: python
 
-    c.IPClusterEngines.engine_launcher = \
-        'IPython.parallel.apps.launcher.SSHEngineSetLauncher'
+    c.IPClusterEngines.engine_launcher_class = 'SSHEngineSetLauncher'
     # and if the Controller is also to be remote:
-    c.IPClusterStart.controller_launcher = \
-        'IPython.parallel.apps.launcher.SSHControllerLauncher'
-    
+    c.IPClusterStart.controller_launcher_class = 'SSHControllerLauncher'
+
+
 
 The controller's remote location and configuration can be specified:
 

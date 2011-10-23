@@ -255,11 +255,22 @@ class IPClusterEngines(BaseParallelApplication):
             MPIExecEngineSetLauncher : use mpiexec to launch in an MPI environment
             PBSEngineSetLauncher : use PBS (qsub) to submit engines to a batch queue
             SGEEngineSetLauncher : use SGE (qsub) to submit engines to a batch queue
+            LSFEngineSetLauncher : use LSF (bsub) to submit engines to a batch queue
             SSHEngineSetLauncher : use SSH to start the controller
                                 Note that SSH does *not* move the connection files
                                 around, so you will likely have to do this manually
                                 unless the machines are on a shared file system.
             WindowsHPCEngineSetLauncher : use Windows HPC
+
+        If you are using one of IPython's builtin launchers, you can specify just the
+        prefix, e.g:
+
+            c.IPClusterEngines.engine_launcher_class = 'SSH'
+
+        or:
+
+            ipcluster start --engines 'MPIExec'
+
         """
         )
     daemonize = Bool(False, config=True,
@@ -420,8 +431,19 @@ class IPClusterStart(IPClusterEngines):
             MPIExecControllerLauncher : use mpiexec to launch engines in an MPI universe
             PBSControllerLauncher : use PBS (qsub) to submit engines to a batch queue
             SGEControllerLauncher : use SGE (qsub) to submit engines to a batch queue
+            LSFControllerLauncher : use LSF (bsub) to submit engines to a batch queue
             SSHControllerLauncher : use SSH to start the controller
             WindowsHPCControllerLauncher : use Windows HPC
+
+        If you are using one of IPython's builtin launchers, you can specify just the
+        prefix, e.g:
+
+            c.IPClusterStart.controller_launcher_class = 'SSH'
+
+        or:
+
+            ipcluster start --controller 'MPIExec'
+
         """
         )
     reset = Bool(False, config=True,
