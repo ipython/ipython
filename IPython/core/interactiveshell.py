@@ -308,7 +308,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """
     )
     multiline_history = CBool(sys.platform != 'win32', config=True,
-        help="Store multiple line spanning cells as a single entry in history."
+        help="Save multi-line entries as one entry in readline history"
     )
 
     prompt_in1 = Unicode('In [\\#]: ', config=True)
