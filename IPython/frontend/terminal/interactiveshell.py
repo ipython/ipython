@@ -231,7 +231,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def _replace_rlhist_multiline(self, source_raw):
         """Store multiple lines as a single entry in history"""
-        if self.multiline_history and self.has_readline:
+        if self.multiline_history and self.has_readline and source_raw.rstrip():
             hlen = self.readline.get_current_history_length()
             for i in range(hlen - self.hlen_before_cell):
                 self.readline.remove_history_item(hlen - i - 1)
