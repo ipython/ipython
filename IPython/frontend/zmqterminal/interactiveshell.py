@@ -101,7 +101,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 for frame in msg["content"]["traceback"]:
                     print(frame, file=io.stderr)
             
-            self.execution_count = msg["content"]["execution_count"] + 1
+            self.execution_count = int(msg["content"]["execution_count"] + 1)
 
 
     def handle_iopub(self):
