@@ -224,14 +224,59 @@ run code.  When you start ipython qtconsole, there will be an output line,
 like::
 
     [IPKernelApp] To connect another client to this kernel, use:
-    [IPKernelApp] --existing --shell=60690 --iopub=44045 --stdin=38323 --hb=41797
+    [IPKernelApp] --existing kernel-12345.json
 
 Other frontends can connect to your kernel, and share in the execution. This is
 great for collaboration.  The ``--existing`` flag means connect to a kernel
-that already exists.  Starting other
-consoles with that flag will not try to start their own, but rather connect to
-yours. Ultimately, you will not have to specify each port individually, but for
-now this copy-paste method is best.
+that already exists.  Starting other consoles
+with that flag will not try to start their own kernel, but rather connect to
+yours.  :file:`kernel-12345.json` is a small JSON file with the ip, port, and
+authentication information necessary to connect to your kernel. By default, this file
+will be in your default profile's security directory.  If it is somewhere else,
+the output line will print the full path of the connection file, rather than
+just its filename.
+
+If you need to find the connection info to send, and don't know where your connection file
+lives, there are a couple of ways to get it. If you are already running an IPython console
+connected to the kernel, you can use the ``%connect_info`` magic to display the information
+necessary to connect another frontend to the kernel.
+
+.. sourcecode:: ipython
+
+    In [2]: %connect_info
+    {
+      "stdin_port":50255,
+      "ip":"127.0.0.1",
+      "hb_port":50256,
+      "key":"70be6f0f-1564-4218-8cda-31be40a4d6aa",
+      "shell_port":50253,
+      "iopub_port":50254
+    }
+
+    Paste the above JSON into a file, and connect with:
+        $> ipython <app> --existing <file>
+    or, if you are local, you can connect with just:
+        $> ipython <app> --existing kernel-12345.json
+    or even just:
+        $> ipython <app> --existing
+    if this is the most recent IPython session you have started.
+
+Otherwise, you can find a connection file by name (and optionally profile) with
+:func:`IPython.lib.kernel.find_connection_file`:
+
+.. sourcecode:: bash
+
+    $> python -c "from IPython.lib.kernel import find_connection_file;\
+    print find_connection_file('kernel-12345.json')"
+    /home/you/.ipython/profile_default/security/kernel-12345.json
+
+And if you are using a particular IPython profile:
+
+.. sourcecode:: bash
+
+    $> python -c "from IPython.lib.kernel import find_connection_file;\
+    print find_connection_file('kernel-12345.json', profile='foo')"
+    /home/you/.ipython/profile_foo/security/kernel-12345.json
 
 You can even launch a standalone kernel, and connect and disconnect Qt Consoles
 from various machines.  This lets you keep the same running IPython session
@@ -240,7 +285,7 @@ cafés, etc.::
 
     $> ipython kernel
     [IPKernelApp] To connect another client to this kernel, use:
-    [IPKernelApp] --existing --shell=60690 --iopub=44045 --stdin=38323 --hb=41797
+    [IPKernelApp] --existing kernel-12345.json
 
 This is actually exactly the same as the subprocess launched by the qtconsole, so
 all the information about connecting to a standalone kernel is identical to that
@@ -253,10 +298,10 @@ Security
 
 .. warning::
 
-    Since the ZMQ code currently has no security, listening on an
+    Since the ZMQ code currently has no encryption, listening on an
     external-facing IP is dangerous.  You are giving any computer that can see
-    you on the network the ability to issue arbitrary shell commands as you on
-    your machine. Read the rest of this section before listening on external ports
+    you on the network the ability to connect to your kernel, and view your traffic.
+    Read the rest of this section before listening on external ports
     or running an IPython kernel on a shared machine.
 
 By default (for security reasons), the kernel only listens on localhost, so you
@@ -266,40 +311,40 @@ argument::
 
     $> ipython qtconsole --ip=192.168.1.123
 
-If you specify the ip as 0.0.0.0, that refers to all interfaces, so any
+If you specify the ip as 0.0.0.0 or '*', that means all interfaces, so any
 computer that can see yours on the network can connect to the kernel.
 
 Messages are not encrypted, so users with access to the ports your kernel is using will be
-able to see any output of the kernel. They will also be able to issue shell commands as
-you, unless you enable HMAC digests, which are **DISABLED** by default.
+able to see any output of the kernel. They will **NOT** be able to issue shell commands as
+you due to message signatures, which are enabled by default as of IPython 0.12.
 
-The one security feature IPython does provide is protection from unauthorized
-execution. IPython's messaging system can sign messages with HMAC digests using
-a shared-key.  The key is never sent over the network, it is only used to generate
-a unique hash for each message, based on its content.  When IPython receives a
-message, it will check that the digest matches. You can use any file that only you
-have access to to generate this key.  One logical choice would be to use your own 
-SSH private key. Or you can generate a new random private key with::
+.. warning::
+
+    If you disable message signatures, then any user with access to the ports your
+    kernel is listening on can issue arbitrary code as you. **DO NOT** disable message
+    signatures unless you have a lot of trust in your environment.
+
+The one security feature IPython does provide is protection from unauthorized execution.
+IPython's messaging system will sign messages with HMAC digests using a shared-key. The key
+is never sent over the network, it is only used to generate a unique hash for each message,
+based on its content. When IPython receives a message, it will check that the digest
+matches, and discard the message. You can use any file that only you have access to to
+generate this key, but the default is just to generate a new UUID. You can generate a random
+private key with::
 
     # generate 1024b of random data, and store in a file only you can read:
     # (assumes IPYTHON_DIR is defined, otherwise use your IPython directory)
     $> python -c "import os; print os.urandom(128).encode('base64')" > $IPYTHON_DIR/sessionkey
     $> chmod 600 $IPYTHON_DIR/sessionkey
 
-To enable HMAC digests, simply specify the ``Session.keyfile`` configurable
+The *contents* of this file will be stored in the JSON connection file, so that file
+contains everything you need to connect to and use a kernel.
+
+To use this generated key, simply specify the ``Session.keyfile`` configurable
 in :file:`ipython_config.py` or at the command-line, as in::
 
-    # instruct IPython to sign messages with that key:
+    # instruct IPython to sign messages with that key, instead of a new UUID
     $> ipython qtconsole --Session.keyfile=$IPYTHON_DIR/sessionkey
-
-You must use the same key you used to start the kernel with all frontends, or
-they will be treated as an unauthorized peer (all messages will be ignored).
-
-.. note::
-
-    IPython will move to using files to store connection information, as is
-    done in :mod:`IPython.parallel`, at which point HMAC signatures will be
-    enabled *by default*.
 
 .. _ssh_tunnels:
 
@@ -314,13 +359,14 @@ machine, to which you have SSH access.
 
 In simple cases, IPython's tools can forward ports over ssh by simply adding the
 ``--ssh=remote`` argument to the usual ``--existing...`` set of flags for connecting
-to a running kernel.
+to a running kernel, after copying the JSON connection file (or its contents) to
+the second computer.
 
 .. warning::
 
     Using SSH tunnels does *not* increase localhost security.  In fact, when
     tunneling from one machine to another *both* machines have open
-    ports on localhost available for connections.
+    ports on localhost available for connections to the kernel.
 
 There are two primary models for using SSH tunnels with IPython.  The first
 is to have the Kernel listen only on localhost, and connect to it from
@@ -331,17 +377,20 @@ on loopback::
 
     user@worker $> ipython kernel
     [IPKernelApp] To connect another client to this kernel, use:
-    [IPKernelApp] --existing --shell=59480 --iopub=62199 --stdin=64898 --hb=56511
+    [IPKernelApp] --existing kernel-12345.json
 
 In this case, the IP that you would connect
 to would still be 127.0.0.1, but you want to specify the additional ``--ssh`` argument
 with the hostname of the kernel (in this example, it's 'worker')::
 
-    user@client $> ipython qtconsole  --ssh=worker --existing --shell=59480 --iopub=62199 --stdin=64898 --hb=56511
+    user@client $> ipython qtconsole  --ssh=worker --existing /path/to/kernel-12345.json
+
+Which will write a new connection file with the forwarded ports, so you can reuse them::
+
+    [IPythonQtConsoleApp] To connect another client via this tunnel, use:
+    [IPythonQtConsoleApp] --existing kernel-12345-ssh.json
 
 Note again that this opens ports on the *client* machine that point to your kernel.
-Be sure to use a Session key, as described above, if localhost on *either* the
-client or kernel machines is untrusted.
 
 .. note::
 
@@ -357,13 +406,18 @@ on external interfaces, so that its ports are visible to `login`::
 
     user@worker $> ipython kernel --ip=0.0.0.0
     [IPKernelApp] To connect another client to this kernel, use:
-    [IPKernelApp] --existing --shell=59480 --iopub=62199 --stdin=64898 --hb=56511
+    [IPKernelApp] --existing kernel-12345.json
 
 Which we can connect to from the client with::
 
-    user@client $> ipython qtconsole --ssh=login --ip=192.168.1.123 --existing --shell=59480 --iopub=62199 --stdin=64898 --hb=56511
+    user@client $> ipython qtconsole --ssh=login --ip=192.168.1.123 --existing /path/to/kernel-12345.json
 
-Note that now the IP is the address of worker as seen from login.
+.. note::
+
+    The IP here is the address of worker as seen from *login*, and need only be specified if
+    the kernel used the ambiguous 0.0.0.0 (all interfaces) address. If it had used
+    192.168.1.123 to start with, it would not be needed.
+
 
 Manual SSH tunnels
 ------------------
