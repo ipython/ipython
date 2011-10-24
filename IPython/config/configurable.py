@@ -138,6 +138,16 @@ class Configurable(HasTraits):
                         # shared by all instances, effectively making it a class attribute.
                         setattr(self, k, deepcopy(config_value))
 
+    def update_config(self, config):
+        """Fire the traits events when the config is updated."""
+        # Save a copy of the current config.
+        newconfig = deepcopy(self.config)
+        # Merge the new config into the current one.
+        newconfig._merge(config)
+        # Save the combined config as self.config, which triggers the traits
+        # events.
+        self.config = newconfig
+
     @classmethod
     def class_get_help(cls):
         """Get the help string for this class in ReST format."""
