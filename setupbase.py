@@ -370,6 +370,10 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
             # We write the installation commit even if it's empty
             cfg_parser = ConfigParser()
             cfg_parser.read(pjoin(pkg_dir, '.git_commit_info.ini'))
+            if not cfg_parser.has_section('commit hash'):
+                # just in case the ini file is empty or doesn't exist, somehow
+                # we don't want the next line to raise
+                cfg_parser.add_section('commit hash')
             cfg_parser.set('commit hash', 'install_hash', repo_commit.decode('ascii'))
             out_pth = pjoin(self.build_lib, pkg_dir, '.git_commit_info.ini')
             out_file = open(out_pth, 'wt')
