@@ -372,7 +372,14 @@ class IPythonWidget(FrontendWidget):
         """
         # Update the old prompt number if necessary.
         content = msg['content']
-        previous_prompt_number = content['execution_count']
+        # abort replies do not have any keys:
+        if content['status'] == 'aborted':
+            if self._previous_prompt_obj:
+                previous_prompt_number = self._previous_prompt_obj.number
+            else:
+                previous_prompt_number = 0
+        else:
+            previous_prompt_number = content['execution_count']
         if self._previous_prompt_obj and \
                 self._previous_prompt_obj.number != previous_prompt_number:
             block = self._previous_prompt_obj.block

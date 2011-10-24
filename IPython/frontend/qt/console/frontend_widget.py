@@ -308,6 +308,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         self.log.debug("execute: %s", msg.get('content', ''))
         info = self._request_info.get('execute')
+        # unset reading flag, because if execute finished, raw_input can't
+        # still be pending.
+        self._reading = False
         if info and info.id == msg['parent_header']['msg_id'] and \
                 info.kind == 'user' and not self._hidden:
             # Make sure that all output from the SUB channel has been processed
@@ -326,7 +329,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 self._process_execute_ok(msg)
             elif status == 'error':
                 self._process_execute_error(msg)
-            elif status == 'abort':
+            elif status == 'aborted':
                 self._process_execute_abort(msg)
 
             self._show_interpreter_prompt_for_reply(msg)
@@ -347,6 +350,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         def callback(line):
             self.kernel_manager.stdin_channel.input(line)
+        if self._reading:
+            self.log.debug("Got second input request, assuming first was interrupted.")
+            self._reading = False
         self._readline(msg['content']['prompt'], callback=callback)
 
     def _handle_kernel_died(self, since_last_heartbeat):
@@ -464,10 +470,15 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
     def interrupt_kernel(self):
         """ Attempts to interrupt the running kernel.
+        
+        Also unsets _reading flag, to avoid runtime errors
+        if raw_input is called again.
         """
         if self.custom_interrupt:
+            self._reading = False
             self.custom_interrupt_requested.emit()
         elif self.kernel_manager.has_kernel:
+            self._reading = False
             self.kernel_manager.interrupt_kernel()
         else:
             self._append_plain_text('Kernel process is either remote or '
