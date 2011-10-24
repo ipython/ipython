@@ -3633,17 +3633,12 @@ Defaulting color scheme to 'NoColor'"""
         To see what classes are availabe for config, pass no arguments:
         In [1]: %config
         Available objects for config:
-             TerminalInteractiveShell
-             HistoryManager
-             PrefilterManager
-             AliasManager
-             IPCompleter
-             DisplayFormatter
-             DisplayPublisher
-             DisplayHook
-             ExtensionManager
-             PluginManager
-             PayloadManager
+            TerminalInteractiveShell
+            HistoryManager
+            PrefilterManager
+            AliasManager
+            IPCompleter
+            DisplayFormatter
         
         # To view what is configurable on a given class, just pass the class name
         In [2]: %config IPCompleter
@@ -3665,7 +3660,8 @@ Defaulting color scheme to 'NoColor'"""
         
         """
         from IPython.config.loader import Config
-        classnames = [ c.__class__.__name__ for c in self.configurables ]
+        # get list of class names for configurables that have someting to configure:
+        classnames = [ c.__class__.__name__ for c in self.configurables if c.__class__.class_traits(config=True) ]
         line = s.strip()
         if not line:
             # print available configurable names
