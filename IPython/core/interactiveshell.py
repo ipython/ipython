@@ -379,6 +379,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # This is where traits with a config_key argument are updated
         # from the values on config.
         super(InteractiveShell, self).__init__(config=config)
+        self.configurables = [self]
 
         # These are relatively independent and stateless
         self.init_ipython_dir(ipython_dir)
@@ -602,9 +603,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     def init_display_formatter(self):
         self.display_formatter = DisplayFormatter(config=self.config)
+        self.configurables.append(self.display_formatter)
 
     def init_display_pub(self):
         self.display_pub = self.display_pub_class(config=self.config)
+        self.configurables.append(self.display_pub)
 
     def init_displayhook(self):
         # Initialize displayhook, set in/out prompts and printing system
@@ -620,6 +623,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             ps_out = self.prompt_out,
             pad_left = self.prompts_pad_left
         )
+        self.configurables.append(self.displayhook)
         # This is a context manager that installs/revmoes the displayhook at
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)
@@ -1435,6 +1439,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def init_history(self):
         """Sets up the command history, and starts regular autosaves."""
         self.history_manager = HistoryManager(shell=self, config=self.config)
+        self.configurables.append(self.history_manager)
 
     #-------------------------------------------------------------------------
     # Things related to exception handling and tracebacks (not debugging)
@@ -1856,6 +1861,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                                      use_readline=self.has_readline,
                                      config=self.config,
                                      )
+        self.configurables.append(self.Completer)
 
         # Add custom completers to the basic ones built into IPCompleter
         sdisp = self.strdispatchers.get('complete_command', StrDispatch())
@@ -2112,6 +2118,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     def init_alias(self):
         self.alias_manager = AliasManager(shell=self, config=self.config)
+        self.configurables.append(self.alias_manager)
         self.ns_table['alias'] = self.alias_manager.alias_table,
 
     #-------------------------------------------------------------------------
@@ -2120,9 +2127,12 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     def init_extension_manager(self):
         self.extension_manager = ExtensionManager(shell=self, config=self.config)
+        self.configurables.append(self.extension_manager)
 
     def init_plugin_manager(self):
         self.plugin_manager = PluginManager(config=self.config)
+        self.configurables.append(self.plugin_manager)
+        
 
     #-------------------------------------------------------------------------
     # Things related to payloads
@@ -2130,6 +2140,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     def init_payload(self):
         self.payload_manager = PayloadManager(config=self.config)
+        self.configurables.append(self.payload_manager)
 
     #-------------------------------------------------------------------------
     # Things related to the prefilter
@@ -2137,6 +2148,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     def init_prefilter(self):
         self.prefilter_manager = PrefilterManager(shell=self, config=self.config)
+        self.configurables.append(self.prefilter_manager)
         # Ultimately this will be refactored in the new interpreter code, but
         # for now, we should expose the main prefilter method (there's legacy
         # code out there that may rely on this).

@@ -123,6 +123,8 @@ class Magic:
     auto_status = ['Automagic is OFF, % prefix IS needed for magic functions.',
                    'Automagic is ON, % prefix NOT needed for magic functions.']
 
+
+    configurables = None
     #......................................................................
     # some utility functions
 
@@ -132,6 +134,8 @@ class Magic:
         if profile is None:
             self.magic_prun = self.profile_missing_notice
         self.shell = shell
+        if self.configurables is None:
+            self.configurables = []
 
         # namespace for holding state we may need
         self._magic_state = Bunch()
@@ -3606,5 +3610,93 @@ Defaulting color scheme to 'NoColor'"""
                     nb = current.reads(s, u'xml')
             with open(new_fname, 'w') as f:
                 current.write(nb, f, new_format)
+
+    def magic_config(self, s):
+        """configure IPython
+        
+        %config Class.trait=value
+        or
+        %config Class
+        
+        This magic exposes most of the IPython config system. Any
+        Configurable class should be able to be configured with the simple
+        line:
+        
+            %config Class.trait=value
+        
+        Where `value` will be resolved in the user's namespace, if it is an
+        expression or variable name.
+        
+        Examples
+        --------
+        
+        To see what classes are availabe for config, pass no arguments:
+        In [1]: %config
+        Available objects for config:
+             TerminalInteractiveShell
+             HistoryManager
+             PrefilterManager
+             AliasManager
+             IPCompleter
+             DisplayFormatter
+             DisplayPublisher
+             DisplayHook
+             ExtensionManager
+             PluginManager
+             PayloadManager
+        
+        # To view what is configurable on a given class, just pass the class name
+        In [2]: %config IPCompleter
+        IPCompleter options
+        -----------------
+        IPCompleter.greedy=<CBool>
+            Current: False
+            Activate greedy completion
+            This will enable completion on elements of lists, results of function calls,
+            etc., but can be unsafe because the code is actually evaluated on TAB.
+        
+        # but the real use is in setting values:
+        In [3]: %config IPCompleter.greedy = True
+        
+        # and these values are read from the user_ns if they are variables:
+        In [4]: feeling_greedy=False
+        
+        In [5]: %config IPCompleter.greedy = feeling_greedy
+        
+        """
+        from IPython.config.loader import Config
+        classnames = [ c.__class__.__name__ for c in self.configurables ]
+        line = s.strip()
+        if not line:
+            # print available configurable names
+            print "Available objects for config:"
+            for name in classnames:
+                print "    ", name
+            return
+        elif line in classnames:
+            # `%config TerminalInteractiveShell` will print trait info for
+            # TerminalInteractiveShell
+            c = self.configurables[classnames.index(line)]
+            cls = c.__class__
+            help = cls.class_get_help(c)
+            # strip leading '--' from cl-args:
+            help = re.sub(r'^\-\-', '', help, flags=re.MULTILINE)
+            print help
+            return
+        elif '=' not in line:
+            raise UsageError("Invalid config statement: %r, should be Class.trait = value" % line)
+            
+        
+        # otherwise, assume we are setting configurables.
+        # leave quotes on args when splitting, because we want
+        # unquoted args to eval in user_ns
+        cfg = Config()
+        exec "cfg."+line in locals(), self.user_ns
+        
+        for configurable in self.configurables:
+            try:
+                configurable.update_config(cfg)
+            except Exception as e:
+                error(e)
 
 # end Magic

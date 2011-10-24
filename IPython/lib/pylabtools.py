@@ -257,6 +257,8 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
 
         cfg = InlineBackendConfig.instance(config=shell.config)
         cfg.shell = shell
+        if cfg not in shell.configurables:
+            shell.configurables.append(cfg)
 
         if backend == backends['inline']:
             from IPython.zmq.pylab.backend_inline import flush_figures
