@@ -393,7 +393,7 @@ class Application(SingletonConfigurable):
             self.print_examples()
             self.exit(0)
 
-        if '--version' in argv:
+        if '--version' in argv or '-V' in argv:
             self.print_version()
             self.exit(0)
         
