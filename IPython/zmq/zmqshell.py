@@ -518,22 +518,42 @@ class ZMQInteractiveShell(InteractiveShell):
         $> ipython <app> --existing
         
         """
+        
+        from IPython.core.application import BaseIPythonApplication as BaseIPApp
+        
+        if BaseIPApp.initialized():
+            app = BaseIPApp.instance()
+            security_dir = app.profile_dir.security_dir
+            profile = app.profile
+        else:
+            profile = 'default'
+            security_dir = ''
+        
         try:
             connection_file = get_connection_file()
             info = get_connection_info(unpack=False)
         except Exception as e:
             error("Could not get connection info: %r" % e)
             return
-            
+        
+        # add profile flag for non-default profile
+        profile_flag = "--profile %s" % profile if profile != 'default' else ""
+        
+        # if it's in the security dir, truncate to basename
+        if security_dir == os.path.dirname(connection_file):
+            connection_file = os.path.basename(connection_file)
+        
+        
         print (info + '\n')
         print ("Paste the above JSON into a file, and connect with:\n"
             "    $> ipython <app> --existing <file>\n"
             "or, if you are local, you can connect with just:\n"
-            "    $> ipython <app> --existing %s\n"
+            "    $> ipython <app> --existing {0} {1}\n"
             "or even just:\n"
-            "    $> ipython <app> --existing\n"
-            "if this is the most recent IPython session you have started."
-            % os.path.basename(connection_file)
+            "    $> ipython <app> --existing {1}\n"
+            "if this is the most recent IPython session you have started.".format(
+            connection_file, profile_flag
+            )
         )
 
     def magic_qtconsole(self, arg_s):
