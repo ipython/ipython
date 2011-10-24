@@ -140,7 +140,6 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp):
                         ipython_dir=self.ipython_dir, kernel_manager=self.kernel_manager)
     
     def handle_sigint(self, *args):
-        # FIXME: this doesn't work, the kernel just dies every time
         self.shell.write('KeyboardInterrupt\n')
         self.kernel_manager.interrupt_kernel()
     

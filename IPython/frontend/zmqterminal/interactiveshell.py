@@ -185,7 +185,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
         while not self.exit_now:
             if not self.km.is_alive:
-                ans = self.raw_input("kernel died, restart (y/n)?")
+                ans = self.raw_input("kernel died, restart ([y]/n)?")
                 if not ans.lower().startswith('n'):
                     self.km.restart_kernel(True)
                 else:
