@@ -120,6 +120,56 @@ calling :func:`display`, you can specify ``--pylab=inline`` when you start the
 console, and each time you make a plot, it will show up in your document, as if
 you had called :func:`display(fig)`.
 
+The inline backend can use either SVG or PNG figures (PNG being the default).
+To switch between them, set the ``InlineBackend.figure_format`` configurable
+in a config file, or via the ``%config`` magic:
+
+.. sourcecode:: ipython
+
+    In [10]: %config InlineBackend.figure_format = 'svg'
+
+.. note::
+
+    Changing the inline figure format also affects calls to :func:`display` above,
+    even if you are not using the inline backend for all figures.
+
+By default, IPython closes all figures at the completion of each execution. This means you
+don't have to manually close figures, which is less convenient when figures aren't attached
+to windows with an obvious close button.  It also means that the first matplotlib call in
+each cell will always create a new figure:
+
+.. sourcecode:: ipython
+
+    In [11]: plot(range(100))
+    <single-line plot>
+    
+    In [12]: plot([1,3,2])
+    <another single-line plot>
+
+
+However, it does prevent the list of active figures surviving from one input cell to the
+next, so if you want to continue working with a figure, you must hold on to a reference to
+it:
+
+.. sourcecode:: ipython
+
+    In [11]: fig = gcf()
+       ....: fig.plot(rand(100))
+    <plot>
+    In [12]: fig.title('Random Title')
+    <redraw plot with title>
+
+This behavior is controlled by the :attr:`InlineBackend.close_figures` configurable, and
+if you set it to False, via %config or config file, then IPython will *not* close figures,
+and tools like :func:`gcf`, :func:`gca`, :func:`getfigs` will behave the same as they
+do with other backends.  You will, however, have to manually close figures:
+
+.. sourcecode:: ipython
+
+    # close all active figures:
+    In [13]: [ fig.close() for fig in getfigs() ]
+
+
 
 .. _saving:
 
@@ -131,6 +181,22 @@ XHTML. If you have been using :func:`display` or inline_ pylab, your figures
 will be PNG in HTML, or inlined as SVG in XHTML. PNG images have the option to
 be either in an external folder, as in many browsers' "Webpage, Complete"
 option, or inlined as well, for a larger, but more portable file.
+
+.. note::
+
+    Export to SVG+XHTML requires that you are using SVG figures, which is *not*
+    the default.  To switch the inline figure format to use SVG during an active
+    session, do:
+    
+    .. sourcecode:: ipython
+    
+        In [10]: %config InlineBackend.figure_format = 'svg'
+    
+    Or, you can add the same line (c.Inline... instead of %config Inline...) to
+    your config files.
+    
+    This will only affect figures plotted after making this call
+
 
 The widget also exposes the ability to print directly, via the default print
 shortcut or context menu.
@@ -145,6 +211,7 @@ shortcut or context menu.
 See these examples of :download:`png/html<figs/jn.html>` and
 :download:`svg/xhtml <figs/jn.xhtml>` output. Note that syntax highlighting
 does not survive export. This is a known issue, and is being investigated.
+
 
 Colors and Highlighting
 =======================
