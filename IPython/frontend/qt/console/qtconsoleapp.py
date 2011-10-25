@@ -11,6 +11,7 @@ Authors:
 * Fernando Perez
 * Bussonnier Matthias
 * Thomas Kluyver
+* Paul Ivanov
 
 """
 
@@ -44,13 +45,12 @@ from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Integer, CaselessStrEnum, CBool, Any
 )
-from IPython.zmq.ipkernel import (
-    flags as ipkernel_flags,
-    aliases as ipkernel_aliases,
-    IPKernelApp
-)
+from IPython.zmq.ipkernel import IPKernelApp
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
+from IPython.frontend.kernelmixinapp import (
+        IPythonMixinConsoleApp, app_aliases, app_flags
+    )
 
 #-----------------------------------------------------------------------------
 # Network Constants
@@ -71,10 +71,10 @@ ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-flags = dict(ipkernel_flags)
+flags = dict(app_flags)
 qt_flags = {
-    'existing' : ({'IPythonQtConsoleApp' : {'existing' : 'kernel*.json'}},
-            "Connect to an existing kernel. If no argument specified, guess most recent"),
+    #'existing' : ({'IPythonQtConsoleApp' : {'existing' : 'kernel*.json'}},
+    #        "Connect to an existing kernel. If no argument specified, guess most recent"),
     'pure' : ({'IPythonQtConsoleApp' : {'pure' : True}},
             "Use a pure Python kernel instead of an IPython kernel."),
     'plain' : ({'ConsoleWidget' : {'kind' : 'plain'}},
@@ -85,25 +85,11 @@ qt_flags.update(boolean_flag(
     "use a GUI widget for tab completion",
     "use plaintext output for completion"
 ))
-qt_flags.update(boolean_flag(
-    'confirm-exit', 'IPythonQtConsoleApp.confirm_exit',
-    """Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
-       to force a direct exit without any confirmation.
-    """,
-    """Don't prompt the user when exiting. This will terminate the kernel
-       if it is owned by the frontend, and leave it alive if it is external.
-    """
-))
 flags.update(qt_flags)
 
-aliases = dict(ipkernel_aliases)
+aliases = dict(app_aliases)
 
 qt_aliases = dict(
-    hb = 'IPythonQtConsoleApp.hb_port',
-    shell = 'IPythonQtConsoleApp.shell_port',
-    iopub = 'IPythonQtConsoleApp.iopub_port',
-    stdin = 'IPythonQtConsoleApp.stdin_port',
-    ip = 'IPythonQtConsoleApp.ip',
     existing = 'IPythonQtConsoleApp.existing',
     f = 'IPythonQtConsoleApp.connection_file',
 
@@ -113,7 +99,6 @@ qt_aliases = dict(
 
     editor = 'IPythonWidget.editor',
     paging = 'ConsoleWidget.paging',
-    ssh = 'IPythonQtConsoleApp.sshserver',
 )
 aliases.update(qt_aliases)
 
@@ -126,7 +111,7 @@ aliases.update(qt_aliases)
 #-----------------------------------------------------------------------------
 
 
-class IPythonQtConsoleApp(BaseIPythonApplication):
+class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
     name = 'ipython-qtconsole'
     default_config_file_name='ipython_config.py'
 
@@ -150,44 +135,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir, Session]
     flags = Dict(flags)
     aliases = Dict(aliases)
-
-    kernel_argv = List(Unicode)
-
-    # create requested profiles by default, if they don't exist:
-    auto_create = CBool(True)
-    # connection info:
-    ip = Unicode(LOCALHOST, config=True,
-        help="""Set the kernel\'s IP address [default localhost].
-        If the IP address is something other than localhost, then
-        Consoles on other machines will be able to connect
-        to the Kernel, so be careful!"""
-    )
-    
-    sshserver = Unicode('', config=True,
-        help="""The SSH server to use to connect to the kernel.""")
-    sshkey = Unicode('', config=True,
-        help="""Path to the ssh key to use for logging in to the ssh server.""")
-    
-    hb_port = Integer(0, config=True,
-        help="set the heartbeat port [default: random]")
-    shell_port = Integer(0, config=True,
-        help="set the shell (XREP) port [default: random]")
-    iopub_port = Integer(0, config=True,
-        help="set the iopub (PUB) port [default: random]")
-    stdin_port = Integer(0, config=True,
-        help="set the stdin (XREQ) port [default: random]")
-    connection_file = Unicode('', config=True,
-        help="""JSON file in which to store connection info [default: kernel-<pid>.json]
-
-        This file will contain the IP, ports, and authentication key needed to connect
-        clients to this kernel. By default, this file will be created in the security-dir
-        of the current profile, but can be specified by absolute path.
-        """)
-    def _connection_file_default(self):
-        return 'kernel-%i.json' % os.getpid()
-
-    existing = Unicode('', config=True,
-        help="""Connect to an already running kernel""")
+    kernel_manager_class = QtKernelManager
 
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
@@ -254,133 +202,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
                     # strip flag, but don't swallow next, as flags don't take args
                     self.kernel_argv.remove(a)
     
-    def init_connection_file(self):
-        """find the connection file, and load the info if found.
-        
-        The current working directory and the current profile's security
-        directory will be searched for the file if it is not given by
-        absolute path.
-        
-        When attempting to connect to an existing kernel and the `--existing`
-        argument does not match an existing file, it will be interpreted as a
-        fileglob, and the matching file in the current profile's security dir
-        with the latest access time will be used.
-        """
-        if self.existing:
-            try:
-                cf = find_connection_file(self.existing)
-            except Exception:
-                self.log.critical("Could not find existing kernel connection file %s", self.existing)
-                self.exit(1)
-            self.log.info("Connecting to existing kernel: %s" % cf)
-            self.connection_file = cf
-        # should load_connection_file only be used for existing?
-        # as it is now, this allows reusing ports if an existing
-        # file is requested
-        try:
-            self.load_connection_file()
-        except Exception:
-            self.log.error("Failed to load connection file: %r", self.connection_file, exc_info=True)
-            self.exit(1)
-    
-    def load_connection_file(self):
-        """load ip/port/hmac config from JSON connection file"""
-        # this is identical to KernelApp.load_connection_file
-        # perhaps it can be centralized somewhere?
-        try:
-            fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
-        except IOError:
-            self.log.debug("Connection File not found: %s", self.connection_file)
-            return
-        self.log.debug(u"Loading connection file %s", fname)
-        with open(fname) as f:
-            s = f.read()
-        cfg = json.loads(s)
-        if self.ip == LOCALHOST and 'ip' in cfg:
-            # not overridden by config or cl_args
-            self.ip = cfg['ip']
-        for channel in ('hb', 'shell', 'iopub', 'stdin'):
-            name = channel + '_port'
-            if getattr(self, name) == 0 and name in cfg:
-                # not overridden by config or cl_args
-                setattr(self, name, cfg[name])
-        if 'key' in cfg:
-            self.config.Session.key = str_to_bytes(cfg['key'])
-    
-    def init_ssh(self):
-        """set up ssh tunnels, if needed."""
-        if not self.sshserver and not self.sshkey:
-            return
-        
-        if self.sshkey and not self.sshserver:
-            # specifying just the key implies that we are connecting directly
-            self.sshserver = self.ip
-            self.ip = LOCALHOST
-        
-        # build connection dict for tunnels:
-        info = dict(ip=self.ip,
-                    shell_port=self.shell_port,
-                    iopub_port=self.iopub_port,
-                    stdin_port=self.stdin_port,
-                    hb_port=self.hb_port
-        )
-        
-        self.log.info("Forwarding connections to %s via %s"%(self.ip, self.sshserver))
-        
-        # tunnels return a new set of ports, which will be on localhost:
-        self.ip = LOCALHOST
-        try:
-            newports = tunnel_to_kernel(info, self.sshserver, self.sshkey)
-        except:
-            # even catch KeyboardInterrupt
-            self.log.error("Could not setup tunnels", exc_info=True)
-            self.exit(1)
-        
-        self.shell_port, self.iopub_port, self.stdin_port, self.hb_port = newports
-        
-        cf = self.connection_file
-        base,ext = os.path.splitext(cf)
-        base = os.path.basename(base)
-        self.connection_file = os.path.basename(base)+'-ssh'+ext
-        self.log.critical("To connect another client via this tunnel, use:")
-        self.log.critical("--existing %s" % self.connection_file)
-    
-    def _new_connection_file(self):
-        return os.path.join(self.profile_dir.security_dir, 'kernel-%s.json' % uuid.uuid4())
 
-    def init_kernel_manager(self):
-        # Don't let Qt or ZMQ swallow KeyboardInterupts.
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        sec = self.profile_dir.security_dir
-        try:
-            cf = filefind(self.connection_file, ['.', sec])
-        except IOError:
-            # file might not exist
-            if self.connection_file == os.path.basename(self.connection_file):
-                # just shortname, put it in security dir
-                cf = os.path.join(sec, self.connection_file)
-            else:
-                cf = self.connection_file
-
-        # Create a KernelManager and start a kernel.
-        self.kernel_manager = QtKernelManager(
-                                ip=self.ip,
-                                shell_port=self.shell_port,
-                                iopub_port=self.iopub_port,
-                                stdin_port=self.stdin_port,
-                                hb_port=self.hb_port,
-                                connection_file=cf,
-                                config=self.config,
-        )
-        # start the kernel
-        if not self.existing:
-            kwargs = dict(ipython=not self.pure)
-            kwargs['extra_arguments'] = self.kernel_argv
-            self.kernel_manager.start_kernel(**kwargs)
-        elif self.sshserver:
-            # ssh, write new connection file
-            self.kernel_manager.write_connection_file()
-        self.kernel_manager.start_channels()
 
     def new_frontend_master(self):
         """ Create and return new frontend attached to new kernel, launched on localhost.
