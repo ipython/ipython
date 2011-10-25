@@ -253,9 +253,9 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
         # function that will pick up the results for display.  This can only be
         # done with access to the real shell object.
         #
-        from IPython.zmq.pylab.backend_inline import InlineBackendConfig
+        from IPython.zmq.pylab.backend_inline import InlineBackend
 
-        cfg = InlineBackendConfig.instance(config=shell.config)
+        cfg = InlineBackend.instance(config=shell.config)
         cfg.shell = shell
         if cfg not in shell.configurables:
             shell.configurables.append(cfg)
