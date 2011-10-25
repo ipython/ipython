@@ -861,19 +861,15 @@ Currently the magic system has the following functions:\n"""
         # for these types, show len() instead of data:
         seq_types = ['dict', 'list', 'tuple']
 
-        # for numpy/Numeric arrays, display summary info
-        try:
-            import numpy
-        except ImportError:
-            ndarray_type = None
-        else:
-            ndarray_type = numpy.ndarray.__name__
-        try:
-            import Numeric
-        except ImportError:
-            array_type = None
-        else:
-            array_type = Numeric.ArrayType.__name__
+        # for numpy arrays, display summary info
+        ndarray_type = None
+        if 'numpy' in sys.modules:
+            try:
+                from numpy import ndarray
+            except ImportError:
+                pass
+            else:
+                ndarray_type = ndarray.__name__
 
         # Find all variable names and types so we can figure out column sizes
         def get_vars(i):
@@ -918,7 +914,7 @@ Currently the magic system has the following functions:\n"""
             print vformat.format(vname, vtype, varwidth=varwidth, typewidth=typewidth),
             if vtype in seq_types:
                 print "n="+str(len(var))
-            elif vtype in [array_type,ndarray_type]:
+            elif vtype == ndarray_type:
                 vshape = str(var.shape).replace(',','').replace(' ','x')[1:-1]
                 if vtype==ndarray_type:
                     # numpy
