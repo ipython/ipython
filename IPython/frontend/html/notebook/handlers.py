@@ -26,6 +26,7 @@ from tornado import websocket
 from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
 
+from IPython.external.decorator import decorator
 from IPython.zmq.session import Session
 
 try:
@@ -34,6 +35,16 @@ except ImportError:
     publish_string = None
 
 
+#-----------------------------------------------------------------------------
+# Decorator for disabling read-only handlers
+#-----------------------------------------------------------------------------
+
+@decorator
+def not_if_readonly(f, self, *args, **kwargs):
+    if self.application.ipython_app.read_only:
+        raise web.HTTPError(403, "Notebook server is read-only")
+    else:
+        return f(self, *args, **kwargs)
 
 #-----------------------------------------------------------------------------
 # Top-level handlers
@@ -82,6 +93,7 @@ class LoginHandler(AuthenticatedHandler):
 
 class NewHandler(AuthenticatedHandler):
 
+    @not_if_readonly
     @web.authenticated
     def get(self):
         nbm = self.application.notebook_manager
@@ -118,11 +130,13 @@ class NamedNotebookHandler(AuthenticatedHandler):
 
 class MainKernelHandler(AuthenticatedHandler):
 
+    @not_if_readonly
     @web.authenticated
     def get(self):
         km = self.application.kernel_manager
         self.finish(jsonapi.dumps(km.kernel_ids))
 
+    @not_if_readonly
     @web.authenticated
     def post(self):
         km = self.application.kernel_manager
@@ -138,6 +152,7 @@ class KernelHandler(AuthenticatedHandler):
 
     SUPPORTED_METHODS = ('DELETE')
 
+    @not_if_readonly
     @web.authenticated
     def delete(self, kernel_id):
         km = self.application.kernel_manager
@@ -148,6 +163,7 @@ class KernelHandler(AuthenticatedHandler):
 
 class KernelActionHandler(AuthenticatedHandler):
 
+    @not_if_readonly
     @web.authenticated
     def post(self, kernel_id, action):
         km = self.application.kernel_manager
@@ -226,6 +242,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         except:
             logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
 
+    @not_if_readonly
     def on_first_message(self, msg):
         self._inject_cookie_message(msg)
         if self.get_current_user() is None:
@@ -369,6 +386,7 @@ class NotebookRootHandler(AuthenticatedHandler):
         files = nbm.list_notebooks()
         self.finish(jsonapi.dumps(files))
 
+    @not_if_readonly
     @web.authenticated
     def post(self):
         nbm = self.application.notebook_manager
@@ -401,6 +419,7 @@ class NotebookHandler(AuthenticatedHandler):
         self.set_header('Last-Modified', last_mod)
         self.finish(data)
 
+    @not_if_readonly
     @web.authenticated
     def put(self, notebook_id):
         nbm = self.application.notebook_manager
@@ -410,6 +429,7 @@ class NotebookHandler(AuthenticatedHandler):
         self.set_status(204)
         self.finish()
 
+    @not_if_readonly
     @web.authenticated
     def delete(self, notebook_id):
         nbm = self.application.notebook_manager

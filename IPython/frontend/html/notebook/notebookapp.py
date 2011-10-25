@@ -116,6 +116,10 @@ flags['no-browser']=(
     {'NotebookApp' : {'open_browser' : False}},
     "Don't open the notebook in a browser after startup."
 )
+flags['read-only'] = (
+    {'NotebookApp' : {'read_only' : True}},
+    "Launch the Notebook server in read-only mode, not allowing execution or editing"
+)
 
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
@@ -203,6 +207,10 @@ class NotebookApp(BaseIPythonApplication):
     
     open_browser = Bool(True, config=True,
                         help="Whether to open in a browser after starting.")
+    
+    read_only = Bool(False, config=True,
+        help="Whether to prevent editing/execution of notebooks."
+    )
 
     def get_ws_url(self):
         """Return the WebSocket URL for this server."""
@@ -282,7 +290,7 @@ class NotebookApp(BaseIPythonApplication):
         # Try random ports centered around the default.
         from random import randint
         n = 50  # Max number of attempts, keep reasonably large.
-        for port in [self.port] + [self.port + randint(-2*n, 2*n) for i in range(n)]:
+        for port in range(self.port, self.port+5) + [self.port + randint(-2*n, 2*n) for i in range(n-5)]:
             try:
                 self.http_server.listen(port, self.ip)
             except socket.error, e:
