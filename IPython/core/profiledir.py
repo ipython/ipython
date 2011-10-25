@@ -25,7 +25,7 @@ import os
 import shutil
 import sys
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 from IPython.config.loader import Config
 from IPython.utils.path import get_ipython_package_dir, expand_path
 from IPython.utils.traitlets import List, Unicode, Bool
@@ -47,7 +47,7 @@ class ProfileDirError(Exception):
 # Class for managing profile directories
 #-----------------------------------------------------------------------------
 
-class ProfileDir(Configurable):
+class ProfileDir(LoggingConfigurable):
     """An object to manage the profile directory and its resources.
 
     The profile directory is used by all IPython applications, to manage
@@ -98,7 +98,10 @@ class ProfileDir(Configurable):
         if not os.path.isdir(self.security_dir):
             os.mkdir(self.security_dir, 0700)
         else:
-            os.chmod(self.security_dir, 0700)
+            try:
+                os.chmod(self.security_dir, 0700)
+            except OSError:
+                self.log.warn("Could not set security dir permissions to private.")
 
     def _pid_dir_changed(self, name, old, new):
         self.check_pid_dir()
@@ -107,7 +110,10 @@ class ProfileDir(Configurable):
         if not os.path.isdir(self.pid_dir):
             os.mkdir(self.pid_dir, 0700)
         else:
-            os.chmod(self.pid_dir, 0700)
+            try:
+                os.chmod(self.pid_dir, 0700)
+            except OSError:
+                self.log.warn("Could not set pid dir permissions to private.")
 
     def check_dirs(self):
         self.check_security_dir()
