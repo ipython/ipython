@@ -80,24 +80,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         hist = self.rl_hist_entries(ip.readline, 3)
         self.assertEquals(hist, ghist + ['sourc€\nsource2'])
 
-    @skipif(not get_ipython().has_readline, 'no readline')
-    def test_replace_multiline_hist_replaces(self):
-        """Test that multiline entries are replaced"""
-        ip = get_ipython()
-        ip.multiline_history = True
-
-        ip.readline.add_history(u'line0')
-        #start cell
-        ip.hlen_before_cell = ip.readline.get_current_history_length()
-        ip.readline.add_history('l€ne1')
-        ip.readline.add_history('line2')
-        #replace cell with single line
-        ip._replace_rlhist_multiline(u'l€ne1\nline2')
-
-        self.assertEquals(ip.readline.get_current_history_length(),
-                          ip.hlen_before_cell)
-        hist = self.rl_hist_entries(ip.readline, 2)
-        self.assertEquals(hist, [u'line0', 'l€ne1\nline2'])
 
     @skipif(not get_ipython().has_readline, 'no readline')
     def test_replace_multiline_hist_replaces_twice(self):
