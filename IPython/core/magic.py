@@ -3455,6 +3455,17 @@ Defaulting color scheme to 'NoColor'"""
         It will import at the top level numpy as np, pyplot as plt, matplotlib,
         pylab and mlab, as well as all names from numpy and pylab.
 
+        If you are using the inline matplotlib backend for embedded figures,
+        you can adjust its behavior via the %config magic::
+
+            # enable SVG figures, necessary for SVG+XHTML export in the qtconsole
+            In [1]: %config InlineBackend.figure_format = 'svg'
+            
+            # change the behavior of closing all figures at the end of each
+            # execution (cell), or allowing reuse of active figures across
+            # cells:
+            In [2]: %config InlineBackend.close_figures = False
+
         Parameters
         ----------
         guiname : optional
@@ -3465,19 +3476,21 @@ Defaulting color scheme to 'NoColor'"""
 
         Examples
         --------
-        In this case, where the MPL default is TkAgg:
-        In [2]: %pylab
+        In this case, where the MPL default is TkAgg::
 
-        Welcome to pylab, a matplotlib-based Python environment.
-        Backend in use: TkAgg
-        For more information, type 'help(pylab)'.
+            In [2]: %pylab
 
-        But you can explicitly request a different backend:
-        In [3]: %pylab qt
+            Welcome to pylab, a matplotlib-based Python environment.
+            Backend in use: TkAgg
+            For more information, type 'help(pylab)'.
 
-        Welcome to pylab, a matplotlib-based Python environment.
-        Backend in use: Qt4Agg
-        For more information, type 'help(pylab)'.
+        But you can explicitly request a different backend::
+
+            In [3]: %pylab qt
+
+            Welcome to pylab, a matplotlib-based Python environment.
+            Backend in use: Qt4Agg
+            For more information, type 'help(pylab)'.
         """
 
         if Application.initialized():
@@ -3614,13 +3627,11 @@ Defaulting color scheme to 'NoColor'"""
     def magic_config(self, s):
         """configure IPython
         
-        %config Class.trait=value
-        or
-        %config Class
+            %config Class[.trait=value]
         
         This magic exposes most of the IPython config system. Any
         Configurable class should be able to be configured with the simple
-        line:
+        line::
         
             %config Class.trait=value
         
@@ -3630,34 +3641,38 @@ Defaulting color scheme to 'NoColor'"""
         Examples
         --------
         
-        To see what classes are availabe for config, pass no arguments:
-        In [1]: %config
-        Available objects for config:
-            TerminalInteractiveShell
-            HistoryManager
-            PrefilterManager
-            AliasManager
-            IPCompleter
-            DisplayFormatter
-        
-        # To view what is configurable on a given class, just pass the class name
-        In [2]: %config IPCompleter
-        IPCompleter options
-        -----------------
-        IPCompleter.greedy=<CBool>
-            Current: False
-            Activate greedy completion
-            This will enable completion on elements of lists, results of function calls,
-            etc., but can be unsafe because the code is actually evaluated on TAB.
-        
-        # but the real use is in setting values:
-        In [3]: %config IPCompleter.greedy = True
-        
-        # and these values are read from the user_ns if they are variables:
-        In [4]: feeling_greedy=False
-        
-        In [5]: %config IPCompleter.greedy = feeling_greedy
-        
+        To see what classes are availabe for config, pass no arguments::
+
+            In [1]: %config
+            Available objects for config:
+                TerminalInteractiveShell
+                HistoryManager
+                PrefilterManager
+                AliasManager
+                IPCompleter
+                DisplayFormatter
+
+        To view what is configurable on a given class, just pass the class name::
+
+            In [2]: %config IPCompleter
+            IPCompleter options
+            -----------------
+            IPCompleter.greedy=<CBool>
+                Current: False
+                Activate greedy completion
+                This will enable completion on elements of lists, results of function calls,
+                etc., but can be unsafe because the code is actually evaluated on TAB.
+
+        but the real use is in setting values::
+
+            In [3]: %config IPCompleter.greedy = True
+
+        and these values are read from the user_ns if they are variables::
+
+            In [4]: feeling_greedy=False
+
+            In [5]: %config IPCompleter.greedy = feeling_greedy
+
         """
         from IPython.config.loader import Config
         # get list of class names for configurables that have someting to configure:
