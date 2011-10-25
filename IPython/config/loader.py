@@ -502,7 +502,10 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                 if '.' not in lhs:
                     # probably a mistyped alias, but not technically illegal
                     warn.warn("Unrecognized alias: '%s', it will probably have no effect."%lhs)
-                self._exec_config_str(lhs, rhs)
+                try:
+                    self._exec_config_str(lhs, rhs)
+                except Exception:
+                    raise ArgumentError("Invalid argument: '%s'" % raw)
 
             elif flag_pattern.match(raw):
                 if item in flags:
