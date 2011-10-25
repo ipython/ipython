@@ -19,6 +19,7 @@ Authors
 #-----------------------------------------------------------------------------
 
 import __builtin__ as builtin_mod
+import os
 import re
 import sys
 
@@ -332,6 +333,14 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
     def _exec_config_str(self, lhs, rhs):
+        """execute self.config.<lhs>=<rhs>
+        
+        * expands ~ with expanduser
+        * tries to assign with raw exec, otherwise assigns with just the string,
+          allowing `--C.a=foobar` and `--C.a="foobar"` to be equivalent.  *Not*
+          equivalent are `--C.a=4` and `--C.a='4'`.
+        """
+        rhs = os.path.expanduser(rhs)
         exec_str = 'self.config.' + lhs + '=' + rhs
         try:
             # Try to see if regular Python syntax will work. This
@@ -343,7 +352,7 @@ class CommandLineConfigLoader(ConfigLoader):
             # the quote marks. Use repr, to get quote marks, and
             # 'u' prefix and see if
             # it succeeds. If it still fails, we let it raise.
-            exec_str = u'self.config.' + lhs + '=' + repr(rhs)
+            exec_str = u'self.config.' + lhs + '= rhs'
             exec exec_str in locals(), globals()
 
     def _load_flag(self, cfg):

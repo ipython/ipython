@@ -131,6 +131,16 @@ class TestKeyValueCL(TestCase):
         self.assertEquals(config.Foo.Bam.value, range(10))
         self.assertEquals(config.D.C.value, 'hi there')
     
+    def test_expanduser(self):
+        cl = self.klass()
+        argv = ['--a=~/1/2/3', '--b=~', '--c=~/', '--d="~/"']
+        with mute_warn():
+            config = cl.load_config(argv)
+        self.assertEquals(config.a, os.path.expanduser('~/1/2/3'))
+        self.assertEquals(config.b, os.path.expanduser('~'))
+        self.assertEquals(config.c, os.path.expanduser('~/'))
+        self.assertEquals(config.d, '~/')
+    
     def test_extra_args(self):
         cl = self.klass()
         with mute_warn():
@@ -172,6 +182,14 @@ class TestKeyValueCL(TestCase):
 class TestArgParseKVCL(TestKeyValueCL):
     klass = KVArgParseConfigLoader
 
+    def test_expanduser2(self):
+        cl = self.klass()
+        argv = ['-a', '~/1/2/3', '--b', "'~/1/2/3'"]
+        with mute_warn():
+            config = cl.load_config(argv, aliases=dict(a='A.a', b='A.b'))
+        self.assertEquals(config.A.a, os.path.expanduser('~/1/2/3'))
+        self.assertEquals(config.A.b, '~/1/2/3')
+    
 class TestConfig(TestCase):
 
     def test_setget(self):
