@@ -261,6 +261,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.increase_font_size = QtGui.QAction("Bigger Font",
                 self,
                 shortcut=QtGui.QKeySequence.ZoomIn,
+                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
                 statusTip="Increase the font size by one point",
                 triggered=self._increase_font_size)
         self.addAction(self.increase_font_size)
@@ -268,6 +269,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.decrease_font_size = QtGui.QAction("Smaller Font",
                 self,
                 shortcut=QtGui.QKeySequence.ZoomOut,
+                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
                 statusTip="Decrease the font size by one point",
                 triggered=self._decrease_font_size)
         self.addAction(self.decrease_font_size)
@@ -275,6 +277,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.reset_font_size = QtGui.QAction("Normal Font",
                 self,
                 shortcut="Ctrl+0",
+                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
                 statusTip="Restore the Normal font size",
                 triggered=self.reset_font)
         self.addAction(self.reset_font_size)
