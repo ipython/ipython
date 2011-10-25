@@ -3657,6 +3657,19 @@ Defaulting color scheme to 'NoColor'"""
             In [2]: %config IPCompleter
             IPCompleter options
             -----------------
+            IPCompleter.omit__names=<Enum>
+                Current: 2
+                Choices: (0, 1, 2)
+                Instruct the completer to omit private method names
+                Specifically, when completing on ``object.<tab>``.
+                When 2 [default]: all names that start with '_' will be excluded.
+                When 1: all 'magic' names (``__foo__``) will be excluded.
+                When 0: nothing will be excluded.
+            IPCompleter.merge_completions=<CBool>
+                Current: True
+                Whether to merge completion results into a single list
+                If False, only the completion results from the first non-empty completer
+                will be returned.
             IPCompleter.greedy=<CBool>
                 Current: False
                 Activate greedy completion

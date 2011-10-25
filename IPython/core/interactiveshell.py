@@ -322,8 +322,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
     # The readline stuff will eventually be moved to the terminal subclass
     # but for now, we can't do that as readline is welded in everywhere.
     readline_use = CBool(True, config=True)
-    readline_merge_completions = CBool(True, config=True)
-    readline_omit__names = Enum((0,1,2), default_value=2, config=True)
     readline_remove_delims = Unicode('-/~', config=True)
     # don't use \M- bindings by default, because they
     # conflict with 8-bit encodings. See gh-58,gh-88
@@ -1856,7 +1854,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
                                      global_namespace=self.user_global_ns,
-                                     omit__names=self.readline_omit__names,
                                      alias_table=self.alias_manager.alias_table,
                                      use_readline=self.has_readline,
                                      config=self.config,
