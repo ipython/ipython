@@ -103,3 +103,34 @@ class InteractiveShellTestCase(unittest.TestCase):
                           ip.hlen_before_cell)
         hist = self.rl_hist_entries(ip.readline, 3)
         self.assertEquals(hist, ['line0', 'l€ne1\nline2', 'l€ne3\nline4'])
+
+
+    @skipif(not get_ipython().has_readline, 'no readline')
+    def test_replace_multiline_hist_replaces_empty_line(self):
+        """Test that multiline history skips empty line cells"""
+        ip = get_ipython()
+        ip.multiline_history = True
+
+        ip.readline.add_history(u'line0')
+        #start cell
+        ip.hlen_before_cell = ip.readline.get_current_history_length()
+        ip.readline.add_history('l€ne1')
+        ip.readline.add_history('line2')
+        ip._replace_rlhist_multiline(u'l€ne1\nline2')
+        ip.readline.add_history('')
+        ip._replace_rlhist_multiline(u'')
+        ip.readline.add_history('l€ne3')
+        ip._replace_rlhist_multiline(u'l€ne3')
+        ip.readline.add_history('  ')
+        ip._replace_rlhist_multiline('  ')
+        ip.readline.add_history('\t')
+        ip.readline.add_history('\t ')
+        ip._replace_rlhist_multiline('\t')
+        ip.readline.add_history('line4')
+        ip._replace_rlhist_multiline(u'line4')
+
+        self.assertEquals(ip.readline.get_current_history_length(),
+                          ip.hlen_before_cell)
+        hist = self.rl_hist_entries(ip.readline, 4)
+        # expect no empty cells in history
+        self.assertEquals(hist, ['line0', 'l€ne1\nline2', 'l€ne3', 'line4'])
