@@ -31,6 +31,7 @@ except ImportError:
 
 # IPython's own
 from IPython.core import page
+from IPython.testing.skipdoctest import skip_doctest_py3
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
@@ -297,6 +298,8 @@ class Inspector:
         else:
             print >>io.stdout, header,self.format(output),
 
+    # In Python 3, all classes are new-style, so they all have __init__.
+    @skip_doctest_py3
     def pdoc(self,obj,oname='',formatter = None):
         """Print the docstring for any object.
 
