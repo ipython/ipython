@@ -835,6 +835,7 @@ class MainWindow(QtGui.QMainWindow):
             reply = okay
         
         if reply == cancel:
+            event.ignore()
             return
         if reply == okay:
             while self.tab_widget.count() >= 1:
@@ -842,6 +843,5 @@ class MainWindow(QtGui.QMainWindow):
                 widget = self.active_frontend
                 widget._confirm_exit = False
                 self.close_tab(widget)
-        
-        event.accept()
+            event.accept()
 
