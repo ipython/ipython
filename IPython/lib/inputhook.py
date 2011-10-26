@@ -38,6 +38,7 @@ GUI_OSX = 'osx'
 GUI_GLUT = 'glut'
 GUI_PYGLET = 'pyglet'
 GUI_GTK3 = 'gtk3'
+GUI_GEVENT = 'gevent'
 GUI_NONE = 'none' # i.e. disable
 
 #-----------------------------------------------------------------------------
@@ -457,6 +458,16 @@ class InputHookManager(object):
         """
         self.clear_inputhook()
 
+    def enable_gevent(self, app=None):
+        import gevent
+        from IPython.lib.inputhookgevent import inputhook_gevent
+        self.set_inputhook(inputhook_gevent)
+        self._current_gui = GUI_GEVENT
+        return app
+
+    def disable_gevent(self):
+        self.clear_inputhook()
+
     def current_gui(self):
         """Return a string indicating the currently active GUI or None."""
         return self._current_gui
@@ -477,6 +488,8 @@ enable_pyglet = inputhook_manager.enable_pyglet
 disable_pyglet = inputhook_manager.disable_pyglet
 enable_gtk3 = inputhook_manager.enable_gtk3
 disable_gtk3 = inputhook_manager.disable_gtk3
+enable_gevent = inputhook_manager.enable_gevent
+disable_gevent = inputhook_manager.disable_gevent
 clear_inputhook = inputhook_manager.clear_inputhook
 set_inputhook = inputhook_manager.set_inputhook
 current_gui = inputhook_manager.current_gui
@@ -519,6 +532,7 @@ def enable_gui(gui=None, app=None):
             GUI_GLUT: enable_glut,
             GUI_PYGLET: enable_pyglet,
             GUI_GTK3: enable_gtk3,
+            GUI_GEVENT: enable_gevent,
             }
     try:
         gui_hook = guis[gui]
