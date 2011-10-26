@@ -102,7 +102,11 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonMixinConsoleApp):
 
     def handle_sigint(self, *args):
         self.shell.write('KeyboardInterrupt\n')
-        self.kernel_manager.interrupt_kernel()
+        if self.kernel_manager.has_kernel:
+            self.kernel_manager.interrupt_kernel()
+        else:
+            print 'Kernel process is either remote or unspecified.',
+            print 'Cannot interrupt.'
 
     def init_code(self):
         # no-op in the frontend, code gets run in the backend
