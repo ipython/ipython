@@ -48,6 +48,7 @@ from IPython.utils.traitlets import (
 from IPython.zmq.ipkernel import IPKernelApp
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
+
 from IPython.frontend.kernelmixinapp import (
         IPythonMixinConsoleApp, app_aliases, app_flags
     )
@@ -71,10 +72,9 @@ ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
+# XXX: the app_flags should really be flags from the mixin
 flags = dict(app_flags)
 qt_flags = {
-    #'existing' : ({'IPythonQtConsoleApp' : {'existing' : 'kernel*.json'}},
-    #        "Connect to an existing kernel. If no argument specified, guess most recent"),
     'pure' : ({'IPythonQtConsoleApp' : {'pure' : True}},
             "Use a pure Python kernel instead of an IPython kernel."),
     'plain' : ({'ConsoleWidget' : {'kind' : 'plain'}},
@@ -90,8 +90,6 @@ flags.update(qt_flags)
 aliases = dict(app_aliases)
 
 qt_aliases = dict(
-    existing = 'IPythonQtConsoleApp.existing',
-    f = 'IPythonQtConsoleApp.connection_file',
 
     style = 'IPythonWidget.syntax_style',
     stylesheet = 'IPythonQtConsoleApp.stylesheet',
@@ -113,7 +111,6 @@ aliases.update(qt_aliases)
 
 class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
     name = 'ipython-qtconsole'
-    default_config_file_name='ipython_config.py'
 
     description = """
         The IPython QtConsole.
@@ -140,8 +137,6 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
 
-    pure = CBool(False, config=True,
-        help="Use a pure Python kernel instead of an IPython kernel.")
     plain = CBool(False, config=True,
         help="Use a plaintext widget instead of rich text (plain can't print/save).")
 
@@ -157,50 +152,14 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
 
     _plain_changed = _pure_changed
 
-    confirm_exit = CBool(True, config=True,
-        help="""
-        Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
-        to force a direct exit without any confirmation.""",
-    )
-    
     # the factory for creating a widget
     widget_factory = Any(RichIPythonWidget)
 
     def parse_command_line(self, argv=None):
         super(IPythonQtConsoleApp, self).parse_command_line(argv)
-        if argv is None:
-            argv = sys.argv[1:]
-        self.kernel_argv = list(argv) # copy
-        # kernel should inherit default config file from frontend
-        self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
-        # Scrub frontend-specific flags
-        swallow_next = False
-        was_flag = False
-        # copy again, in case some aliases have the same name as a flag
-        # argv = list(self.kernel_argv)
-        for a in argv:
-            if swallow_next:
-                swallow_next = False
-                # last arg was an alias, remove the next one
-                # *unless* the last alias has a no-arg flag version, in which
-                # case, don't swallow the next arg if it's also a flag:
-                if not (was_flag and a.startswith('-')):
-                    self.kernel_argv.remove(a)
-                    continue
-            if a.startswith('-'):
-                split = a.lstrip('-').split('=')
-                alias = split[0]
-                if alias in qt_aliases:
-                    self.kernel_argv.remove(a)
-                    if len(split) == 1:
-                        # alias passed with arg via space
-                        swallow_next = True
-                        # could have been a flag that matches an alias, e.g. `existing`
-                        # in which case, we might not swallow the next arg
-                        was_flag = alias in qt_flags
-                elif alias in qt_flags:
-                    # strip flag, but don't swallow next, as flags don't take args
-                    self.kernel_argv.remove(a)
+        IPythonMixinConsoleApp.parse_command_line(self,argv)
+        self.swallow_args(qt_aliases,qt_flags,argv=argv)
+
     
 
 
@@ -342,10 +301,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
     @catch_config_error
     def initialize(self, argv=None):
         super(IPythonQtConsoleApp, self).initialize(argv)
-        self.init_connection_file()
-        default_secure(self.config)
-        self.init_ssh()
-        self.init_kernel_manager()
+        IPythonMixinConsoleApp.initialize(self,argv)
         self.init_qt_elements()
         self.init_colors()
 

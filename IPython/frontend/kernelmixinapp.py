@@ -63,13 +63,13 @@ from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 #-----------------------------------------------------------------------------
 
 flags = dict(ipkernel_flags)
+
+# the flags that are specific to the frontend
+# these must be scrubbed before being passed to the kernel,
+# or it will raise an error on unrecognized flags
 app_flags = {
     'existing' : ({'IPythonMixinConsoleApp' : {'existing' : 'kernel*.json'}},
             "Connect to an existing kernel. If no argument specified, guess most recent"),
-    'pure' : ({'IPythonMixinConsoleApp' : {'pure' : True}},
-            "Use a pure Python kernel instead of an IPython kernel."),
-    'plain' : ({'ConsoleWidget' : {'kind' : 'plain'}},
-            "Disable rich text support."),
 }
 app_flags.update(boolean_flag(
     'confirm-exit', 'IPythonMixinConsoleApp.confirm_exit',
@@ -84,6 +84,7 @@ flags.update(app_flags)
 
 aliases = dict(ipkernel_aliases)
 
+# also scrub aliases from the frontend
 app_aliases = dict(
     hb = 'IPythonMixinConsoleApp.hb_port',
     shell = 'IPythonMixinConsoleApp.shell_port',
@@ -135,6 +136,8 @@ class IPythonMixinConsoleApp(Configurable):
 
     kernel_argv = List(Unicode)
 
+    pure = CBool(False, config=True,
+        help="Use a pure Python kernel instead of an IPython kernel.")
     # create requested profiles by default, if they don't exist:
     auto_create = CBool(True)
     # connection info:
@@ -176,13 +179,16 @@ class IPythonMixinConsoleApp(Configurable):
         Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
         to force a direct exit without any confirmation.""",
     )
-    
+
 
     def parse_command_line(self, argv=None):
-        super(PythonBaseConsoleApp, self).parse_command_line(argv)
+        #super(PythonBaseConsoleApp, self).parse_command_line(argv)
         # make this stuff after this a function, in case the super stuff goes
         # away. Also, Min notes that this functionality should be moved to a
         # generic library of kernel stuff
+        self.swallow_args(app_aliases,app_flags,argv=argv)
+
+    def swallow_args(self, aliases,flags, argv=None):
         if argv is None:
             argv = sys.argv[1:]
         self.kernel_argv = list(argv) # copy
@@ -205,15 +211,15 @@ class IPythonMixinConsoleApp(Configurable):
             if a.startswith('-'):
                 split = a.lstrip('-').split('=')
                 alias = split[0]
-                if alias in qt_aliases:
+                if alias in aliases:
                     self.kernel_argv.remove(a)
                     if len(split) == 1:
                         # alias passed with arg via space
                         swallow_next = True
                         # could have been a flag that matches an alias, e.g. `existing`
                         # in which case, we might not swallow the next arg
-                        was_flag = alias in qt_flags
-                elif alias in qt_flags:
+                        was_flag = alias in flags
+                elif alias in flags:
                     # strip flag, but don't swallow next, as flags don't take args
                     self.kernel_argv.remove(a)
     
@@ -347,20 +353,12 @@ class IPythonMixinConsoleApp(Configurable):
 
 
     def initialize(self, argv=None):
-        super(IPythonMixinConsoleApp, self).initialize(argv)
+        """
+        Classes which mix this class in should call:
+               IPythonMixinConsoleApp.initialize(self,argv)
+        """
         self.init_connection_file()
         default_secure(self.config)
         self.init_ssh()
         self.init_kernel_manager()
-        self.init_colors()
 
-#-----------------------------------------------------------------------------
-# Main entry point
-#-----------------------------------------------------------------------------
-
-def main():
-    raise NotImplementedError
-
-
-if __name__ == '__main__':
-    main()
