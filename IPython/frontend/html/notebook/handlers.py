@@ -46,6 +46,22 @@ def not_if_readonly(f, self, *args, **kwargs):
     else:
         return f(self, *args, **kwargs)
 
+@decorator
+def authenticate_unless_readonly(f, self, *args, **kwargs):
+    """authenticate this page *unless* readonly view is active.
+    
+    In read-only mode, the notebook list and print view should
+    be accessible without authentication.
+    """
+    
+    @web.authenticated
+    def auth_f(self, *args, **kwargs):
+        return f(self, *args, **kwargs)
+    if self.application.ipython_app.read_only:
+        return f(self, *args, **kwargs)
+    else:
+        return auth_f(self, *args, **kwargs)
+
 #-----------------------------------------------------------------------------
 # Top-level handlers
 #-----------------------------------------------------------------------------
@@ -68,7 +84,7 @@ class AuthenticatedHandler(web.RequestHandler):
 
 class ProjectDashboardHandler(AuthenticatedHandler):
 
-    @web.authenticated
+    @authenticate_unless_readonly
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
@@ -81,7 +97,7 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 class LoginHandler(AuthenticatedHandler):
 
     def get(self):
-        self.render('login.html', next='/')
+        self.render('login.html', next=self.get_argument('next', default='/'))
 
     def post(self):
         pwd = self.get_argument('password', default=u'')
@@ -93,7 +109,6 @@ class LoginHandler(AuthenticatedHandler):
 
 class NewHandler(AuthenticatedHandler):
 
-    @not_if_readonly
     @web.authenticated
     def get(self):
         nbm = self.application.notebook_manager
@@ -109,7 +124,7 @@ class NewHandler(AuthenticatedHandler):
 
 class NamedNotebookHandler(AuthenticatedHandler):
 
-    @web.authenticated
+    @authenticate_unless_readonly
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
@@ -130,13 +145,11 @@ class NamedNotebookHandler(AuthenticatedHandler):
 
 class MainKernelHandler(AuthenticatedHandler):
 
-    @not_if_readonly
     @web.authenticated
     def get(self):
         km = self.application.kernel_manager
         self.finish(jsonapi.dumps(km.kernel_ids))
 
-    @not_if_readonly
     @web.authenticated
     def post(self):
         km = self.application.kernel_manager
@@ -152,7 +165,6 @@ class KernelHandler(AuthenticatedHandler):
 
     SUPPORTED_METHODS = ('DELETE')
 
-    @not_if_readonly
     @web.authenticated
     def delete(self, kernel_id):
         km = self.application.kernel_manager
@@ -163,7 +175,6 @@ class KernelHandler(AuthenticatedHandler):
 
 class KernelActionHandler(AuthenticatedHandler):
 
-    @not_if_readonly
     @web.authenticated
     def post(self, kernel_id, action):
         km = self.application.kernel_manager
@@ -242,7 +253,6 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         except:
             logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
 
-    @not_if_readonly
     def on_first_message(self, msg):
         self._inject_cookie_message(msg)
         if self.get_current_user() is None:
@@ -380,13 +390,19 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
 
 class NotebookRootHandler(AuthenticatedHandler):
 
-    @web.authenticated
+    @authenticate_unless_readonly
     def get(self):
+        
+        # communicate read-only via Allow header
+        if self.application.ipython_app.read_only and not self.get_current_user():
+            self.set_header('Allow', 'GET')
+        else:
+            self.set_header('Allow', ', '.join(self.SUPPORTED_METHODS))
+        
         nbm = self.application.notebook_manager
         files = nbm.list_notebooks()
         self.finish(jsonapi.dumps(files))
 
-    @not_if_readonly
     @web.authenticated
     def post(self):
         nbm = self.application.notebook_manager
@@ -405,11 +421,18 @@ class NotebookHandler(AuthenticatedHandler):
 
     SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
 
-    @web.authenticated
+    @authenticate_unless_readonly
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
         format = self.get_argument('format', default='json')
         last_mod, name, data = nbm.get_notebook(notebook_id, format)
+        
+        # communicate read-only via Allow header
+        if self.application.ipython_app.read_only and not self.get_current_user():
+            self.set_header('Allow', 'GET')
+        else:
+            self.set_header('Allow', ', '.join(self.SUPPORTED_METHODS))
+        
         if format == u'json':
             self.set_header('Content-Type', 'application/json')
             self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
@@ -419,7 +442,6 @@ class NotebookHandler(AuthenticatedHandler):
         self.set_header('Last-Modified', last_mod)
         self.finish(data)
 
-    @not_if_readonly
     @web.authenticated
     def put(self, notebook_id):
         nbm = self.application.notebook_manager
@@ -429,7 +451,6 @@ class NotebookHandler(AuthenticatedHandler):
         self.set_status(204)
         self.finish()
 
-    @not_if_readonly
     @web.authenticated
     def delete(self, notebook_id):
         nbm = self.application.notebook_manager

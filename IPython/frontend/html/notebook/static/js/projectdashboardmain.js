@@ -28,6 +28,7 @@ $(document).ready(function () {
     $('div#right_panel').addClass('box-flex');
 
     IPython.notebook_list = new IPython.NotebookList('div#notebook_list');
+    IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.notebook_list.load_list();
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.

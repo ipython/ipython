@@ -118,13 +118,22 @@ flags['no-browser']=(
 )
 flags['read-only'] = (
     {'NotebookApp' : {'read_only' : True}},
-    "Launch the Notebook server in read-only mode, not allowing execution or editing"
+    """Allow read-only access to notebooks.
+    
+    When using a password to protect the notebook server, this flag
+    allows unauthenticated clients to view the notebook list, and
+    individual notebooks, but not edit them, start kernels, or run
+    code.
+    
+    This flag only makes sense in conjunction with setting a password,
+    via the ``NotebookApp.password`` configurable.
+    """
 )
 
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser']
+notebook_flags = ['no-browser', 'read-only']
 
 aliases = dict(ipkernel_aliases)
 

@@ -73,6 +73,15 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.list_loaded = function (data, status, xhr) {
+        var allowed = xhr.getResponseHeader('Allow');
+        if (allowed && allowed.indexOf('PUT') == -1){
+            this.read_only = true;
+            $('#new_notebook').addClass('hidden');
+            // unhide login button if it's relevant
+            $('span#login_widget').removeClass('hidden');
+        }else{
+            this.read_only = false;
+        }
         var len = data.length;
         // Todo: remove old children
         for (var i=0; i<len; i++) {
@@ -80,7 +89,10 @@ var IPython = (function (IPython) {
             var nbname = data[i].name;
             var item = this.new_notebook_item(i);
             this.add_link(notebook_id, nbname, item);
-            this.add_delete_button(item);
+            if (!this.read_only){
+                // hide delete buttons when readonly
+                this.add_delete_button(item);
+            }
         };
     };
 
