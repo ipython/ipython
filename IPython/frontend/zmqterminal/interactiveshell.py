@@ -129,8 +129,9 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     elif sub_msg["content"]["name"] == "stderr" :
                         print(sub_msg["content"]["data"], file=io.stderr, end="")
                         io.stderr.flush()
-                
+
                 elif msg_type == 'pyout':
+                    self.execution_count = int(sub_msg["content"]["execution_count"])
                     format_dict = sub_msg["content"]["data"]
                     # taken from DisplayHook.__call__:
                     hook = self.displayhook
