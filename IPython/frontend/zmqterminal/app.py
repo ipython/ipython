@@ -75,7 +75,8 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonMixinConsoleApp):
 
     def init_shell(self):
         IPythonMixinConsoleApp.initialize(self)
-        #self.init_kernel_manager()
+        # relay sigint to kernel
+        signal.signal(signal.SIGINT, self.handle_sigint)
         self.shell = ZMQTerminalInteractiveShell.instance(config=self.config,
                         display_banner=False, profile_dir=self.profile_dir,
                         ipython_dir=self.ipython_dir, kernel_manager=self.kernel_manager)
