@@ -69,6 +69,9 @@ ipython --profile=foo      # start with profile foo
 ipython qtconsole          # start the qtconsole GUI application
 ipython qtconsole -h       # show the help string for the qtconsole subcmd
 
+ipython console            # start the terminal-based console application
+ipython console -h         # show the help string for the console subcmd
+
 ipython profile create foo # create profile foo w/ default config files
 ipython profile -h         # show the help string for the profile subcmd
 """
@@ -209,7 +212,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             """Launch the IPython Qt Console."""
         ),
         notebook=('IPython.frontend.html.notebook.notebookapp.NotebookApp',
-            """Launch the IPython HTML Notebook Server"""
+            """Launch the IPython HTML Notebook Server."""
         ),
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
@@ -217,8 +220,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         kernel = ("IPython.zmq.ipkernel.IPKernelApp",
             "Start a kernel without an attached frontend."
         ),
-        zmq=('IPython.frontend.zmqterminal.app.ZMQTerminalIPythonApp',
-            """Launch two-process Terminal session with 0MQ."""
+        console=('IPython.frontend.zmqterminal.app.ZMQTerminalIPythonApp',
+            """Launch the IPython terminal-based Console."""
         ),
     ))
 

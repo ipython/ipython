@@ -37,7 +37,7 @@ from IPython.frontend.zmqterminal.interactiveshell import ZMQTerminalInteractive
 
 _examples = """
 ipython console # start the ZMQ-based console
-ipython console --pylab # start with pylab plotting mode
+ipython console --existing # connect to an existing ipython session
 """
 
 #-----------------------------------------------------------------------------
@@ -63,11 +63,30 @@ aliases.update(frontend_aliases)
 
 
 class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonMixinConsoleApp):
+    name = "ipython console"
     """Start a terminal frontend to the IPython zmq kernel."""
-    
+
+    description = """
+        The IPython terminal-based Console.
+
+        This launches a Console application inside a terminal.
+
+        The Console supports various extra features beyond the traditional
+        single-process Terminal IPython shell, such as connecting to an
+        existing ipython session, via:
+
+            ipython console --existing
+
+        where the previous session could have been created by another ipython
+        console, an ipython qtconsole, or by opening an ipython notebook.
+
+    """
+    examples = _examples
+
     classes = List([IPKernelApp, ZMQTerminalInteractiveShell])
     flags = Dict(flags)
     aliases = Dict(aliases)
+    subcommands = Dict()
     def parse_command_line(self, argv=None):
         super(ZMQTerminalIPythonApp, self).parse_command_line(argv)
         IPythonMixinConsoleApp.parse_command_line(self,argv)
