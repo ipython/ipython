@@ -173,9 +173,12 @@ def expand_user(path):
 
     if path.startswith('~'):
         tilde_expand = True
-        rest = path[1:]
+        rest = len(path)-1
         newpath = os.path.expanduser(path)
-        tilde_val = newpath.replace(rest, '')
+        if rest:
+            tilde_val = newpath[:-rest]
+        else:
+            tilde_val = newpath
 
     return newpath, tilde_expand, tilde_val
 
