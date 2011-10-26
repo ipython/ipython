@@ -214,6 +214,14 @@ class EngineFactory(RegistrationFactory):
 
     def abort(self):
         self.log.fatal("Registration timed out after %.1f seconds"%self.timeout)
+        if '127' in self.url:
+            self.log.fatal("""
+            If the controller and engines are not on the same machine,
+            you will have to instruct the controller to listen on an external IP (in ipcontroller_config.py):
+                c.HubFactory.ip='*' # for all interfaces, internal and external
+                c.HubFactory.ip='192.168.1.101' # or any interface that the engines can see
+            or tunnel connections via ssh.
+            """)
         self.session.send(self.registrar, "unregistration_request", content=dict(id=self.id))
         time.sleep(1)
         sys.exit(255)
