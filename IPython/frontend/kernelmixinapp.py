@@ -21,6 +21,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
+import atexit
 import json
 import os
 import signal
@@ -234,6 +235,9 @@ class IPythonMixinConsoleApp(Configurable):
         argument does not match an existing file, it will be interpreted as a
         fileglob, and the matching file in the current profile's security dir
         with the latest access time will be used.
+        
+        After this method is called, self.connection_file contains the *full path*
+        to the connection file, never just its name.
         """
         if self.existing:
             try:
@@ -243,6 +247,20 @@ class IPythonMixinConsoleApp(Configurable):
                 self.exit(1)
             self.log.info("Connecting to existing kernel: %s" % cf)
             self.connection_file = cf
+        else:
+            # not existing, check if we are going to write the file
+            # and ensure that self.connection_file is a full path, not just the shortname
+            try:
+                cf = find_connection_file(self.connection_file)
+            except Exception:
+                # file might not exist
+                if self.connection_file == os.path.basename(self.connection_file):
+                    # just shortname, put it in security dir
+                    cf = os.path.join(self.profile_dir.security_dir, self.connection_file)
+                else:
+                    cf = self.connection_file
+                self.connection_file = cf
+        
         # should load_connection_file only be used for existing?
         # as it is now, this allows reusing ports if an existing
         # file is requested
@@ -315,21 +333,21 @@ class IPythonMixinConsoleApp(Configurable):
         self.log.critical("--existing %s" % self.connection_file)
     
     def _new_connection_file(self):
-        return os.path.join(self.profile_dir.security_dir, 'kernel-%s.json' % uuid.uuid4())
+        cf = ''
+        while not cf:
+            # we don't need a 128b id to distinguish kernels, use more readable
+            # 48b node segment (12 hex chars).  Users running more than 32k simultaneous
+            # kernels can subclass.
+            ident = str(uuid.uuid4()).split('-')[-1]
+            cf = os.path.join(self.profile_dir.security_dir, 'kernel-%s.json' % ident)
+            # only keep if it's actually new.  Protect against unlikely collision
+            # in 48b random search space
+            cf = cf if not os.path.exists(cf) else ''
+        return cf
 
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-        sec = self.profile_dir.security_dir
-        try:
-            cf = filefind(self.connection_file, ['.', sec])
-        except IOError:
-            # file might not exist
-            if self.connection_file == os.path.basename(self.connection_file):
-                # just shortname, put it in security dir
-                cf = os.path.join(sec, self.connection_file)
-            else:
-                cf = self.connection_file
 
         # Create a KernelManager and start a kernel.
         self.kernel_manager = self.kernel_manager_class(
@@ -338,7 +356,7 @@ class IPythonMixinConsoleApp(Configurable):
                                 iopub_port=self.iopub_port,
                                 stdin_port=self.stdin_port,
                                 hb_port=self.hb_port,
-                                connection_file=cf,
+                                connection_file=self.connection_file,
                                 config=self.config,
         )
         # start the kernel
@@ -349,6 +367,7 @@ class IPythonMixinConsoleApp(Configurable):
         elif self.sshserver:
             # ssh, write new connection file
             self.kernel_manager.write_connection_file()
+        atexit.register(self.kernel_manager.cleanup_connection_file)
         self.kernel_manager.start_channels()
 
 

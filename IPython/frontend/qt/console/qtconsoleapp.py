@@ -27,7 +27,7 @@ import sys
 import uuid
 
 # System library imports
-from IPython.external.qt import QtGui
+from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.config.application import boolean_flag, catch_config_error
@@ -298,12 +298,26 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
             else:
                 raise IOError("Stylesheet %r not found."%self.stylesheet)
 
+    def init_signal(self):
+        """allow clean shutdown on sigint"""
+        signal.signal(signal.SIGINT, lambda sig, frame: self.exit(-2))
+        # need a timer, so that QApplication doesn't block until a real
+        # Qt event fires (can require mouse movement)
+        # timer trick from http://stackoverflow.com/q/4938723/938949
+        timer = QtCore.QTimer()
+         # Let the interpreter run each 200 ms:
+        timer.timeout.connect(lambda: None)
+        timer.start(200)
+        # hold onto ref, so the timer doesn't get cleaned up
+        self._sigint_timer = timer
+
     @catch_config_error
     def initialize(self, argv=None):
         super(IPythonQtConsoleApp, self).initialize(argv)
         IPythonMixinConsoleApp.initialize(self,argv)
         self.init_qt_elements()
         self.init_colors()
+        self.init_signal()
 
     def start(self):
 

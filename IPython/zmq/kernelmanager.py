@@ -639,14 +639,8 @@ class KernelManager(HasTraits):
             self.session = Session(config=self.config)
     
     def __del__(self):
-        if self._connection_file_written:
-            # cleanup connection files on full shutdown of kernel we started
-            self._connection_file_written = False
-            try:
-                os.remove(self.connection_file)
-            except IOError:
-                pass
-
+        self.cleanup_connection_file()
+    
 
     #--------------------------------------------------------------------------
     # Channel management methods:
@@ -693,6 +687,19 @@ class KernelManager(HasTraits):
     #--------------------------------------------------------------------------
     # Kernel process management methods:
     #--------------------------------------------------------------------------
+    
+    def cleanup_connection_file(self):
+        """cleanup connection file *if we wrote it*
+        
+        Will not raise if the connection file was already removed somehow.
+        """
+        if self._connection_file_written:
+            # cleanup connection files on full shutdown of kernel we started
+            self._connection_file_written = False
+            try:
+                os.remove(self.connection_file)
+            except OSError:
+                pass
     
     def load_connection_file(self):
         """load connection info from JSON dict in self.connection_file"""
