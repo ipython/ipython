@@ -198,8 +198,6 @@ class IPythonMixinConsoleApp(Configurable):
         # Scrub frontend-specific flags
         swallow_next = False
         was_flag = False
-        # copy again, in case some aliases have the same name as a flag
-        # argv = list(self.kernel_argv)
         for a in argv:
             if swallow_next:
                 swallow_next = False

@@ -17,7 +17,7 @@ import signal
 import sys
 import time
 
-from IPython.frontend.terminal.ipapp import TerminalIPythonApp
+from IPython.frontend.terminal.ipapp import TerminalIPythonApp, frontend_flags as term_flags
 
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
@@ -26,7 +26,7 @@ from IPython.zmq.ipkernel import IPKernelApp
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.frontend.kernelmixinapp import (
-        IPythonMixinConsoleApp, app_aliases, app_flags
+        IPythonMixinConsoleApp, app_aliases, app_flags, aliases, app_aliases, flags
     )
 
 from IPython.frontend.zmqterminal.interactiveshell import ZMQTerminalInteractiveShell
@@ -44,18 +44,31 @@ ipython console --existing # connect to an existing ipython session
 # Flags and Aliases
 #-----------------------------------------------------------------------------
 
-# XXX: the app_flags should really be flags from the mixin
-flags = dict(app_flags)
-frontend_flags = { }
+# copy flags from mixin:
+flags = dict(flags)
+# start with mixin frontend flags:
+frontend_flags = dict(app_flags)
+# add TerminalIPApp flags:
+frontend_flags.update(term_flags)
+# pylab is not frontend-specific in two-process IPython
+frontend_flags.pop('pylab')
+# disable quick startup, as it won't propagate to the kernel anyway
+frontend_flags.pop('quick')
+# update full dict with frontend flags:
 flags.update(frontend_flags)
 
-frontend_flags = frontend_flags.keys()
-
-aliases = dict(app_aliases)
-
-frontend_aliases = dict()
-
+# copy flags from mixin
+aliases = dict(aliases)
+# start with mixin frontend flags
+frontend_aliases = dict(app_aliases)
+# load updated frontend flags into full dict
 aliases.update(frontend_aliases)
+
+# get flags&aliases into sets, and remove a couple that
+# shouldn't be scrubbed from backend flags:
+frontend_aliases = set(frontend_aliases.keys())
+frontend_flags = set(frontend_flags.keys())
+
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -63,7 +76,7 @@ aliases.update(frontend_aliases)
 
 
 class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonMixinConsoleApp):
-    name = "ipython console"
+    name = "ipython-console"
     """Start a terminal frontend to the IPython zmq kernel."""
 
     description = """
@@ -83,13 +96,13 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonMixinConsoleApp):
     """
     examples = _examples
 
-    classes = List([IPKernelApp, ZMQTerminalInteractiveShell])
+    classes = List([IPKernelApp, ZMQTerminalInteractiveShell, Session])
     flags = Dict(flags)
     aliases = Dict(aliases)
     subcommands = Dict()
+
     def parse_command_line(self, argv=None):
         super(ZMQTerminalIPythonApp, self).parse_command_line(argv)
-        IPythonMixinConsoleApp.parse_command_line(self,argv)
         self.swallow_args(frontend_aliases,frontend_flags,argv=argv)
 
     def init_shell(self):

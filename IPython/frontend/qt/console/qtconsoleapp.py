@@ -50,7 +50,7 @@ from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 
 from IPython.frontend.kernelmixinapp import (
-        IPythonMixinConsoleApp, app_aliases, app_flags
+        IPythonMixinConsoleApp, app_aliases, app_flags, flags, aliases
     )
 
 #-----------------------------------------------------------------------------
@@ -72,8 +72,8 @@ ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-# XXX: the app_flags should really be flags from the mixin
-flags = dict(app_flags)
+# start with copy of flags
+flags = dict(flags)
 qt_flags = {
     'pure' : ({'IPythonQtConsoleApp' : {'pure' : True}},
             "Use a pure Python kernel instead of an IPython kernel."),
@@ -85,10 +85,13 @@ qt_flags.update(boolean_flag(
     "use a GUI widget for tab completion",
     "use plaintext output for completion"
 ))
+# and app_flags from the Console Mixin
+qt_flags.update(app_flags)
+# add frontend flags to the full set
 flags.update(qt_flags)
 
-aliases = dict(app_aliases)
-
+# start with copy of front&backend aliases list
+aliases = dict(aliases)
 qt_aliases = dict(
 
     style = 'IPythonWidget.syntax_style',
@@ -98,7 +101,16 @@ qt_aliases = dict(
     editor = 'IPythonWidget.editor',
     paging = 'ConsoleWidget.paging',
 )
+# and app_aliases from the Console Mixin
+qt_aliases.update(app_aliases)
+# add frontend aliases to the full set
 aliases.update(qt_aliases)
+
+# get flags&aliases into sets, and remove a couple that
+# shouldn't be scrubbed from backend flags:
+qt_aliases = set(qt_aliases.keys())
+qt_aliases.remove('colors')
+qt_flags = set(qt_flags.keys())
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -157,10 +169,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
 
     def parse_command_line(self, argv=None):
         super(IPythonQtConsoleApp, self).parse_command_line(argv)
-        IPythonMixinConsoleApp.parse_command_line(self,argv)
         self.swallow_args(qt_aliases,qt_flags,argv=argv)
-
-    
 
 
     def new_frontend_master(self):
