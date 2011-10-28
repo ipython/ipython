@@ -321,7 +321,7 @@ class IPClusterEngines(BaseParallelApplication):
         )
         return launcher
 
-    def engines_started_okay(self):
+    def engines_started_ok(self):
         self.log.info("Engines appear to have started successfully")
         self.early_shutdown = 0
     
@@ -330,7 +330,7 @@ class IPClusterEngines(BaseParallelApplication):
         self.engine_launcher.start(self.n)
         self.engine_launcher.on_stop(self.engines_stopped_early)
         if self.early_shutdown:
-            ioloop.DelayedCallback(self.engines_started_okay, self.early_shutdown*1000, self.loop).start()
+            ioloop.DelayedCallback(self.engines_started_ok, self.early_shutdown*1000, self.loop).start()
 
     def engines_stopped_early(self, r):
         if self.early_shutdown and not self._stopping:

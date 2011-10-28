@@ -214,7 +214,7 @@ class EngineFactory(RegistrationFactory):
 
     def abort(self):
         self.log.fatal("Registration timed out after %.1f seconds"%self.timeout)
-        if '127' in self.url:
+        if self.url.startswith('127.'):
             self.log.fatal("""
             If the controller and engines are not on the same machine,
             you will have to instruct the controller to listen on an external IP (in ipcontroller_config.py):
