@@ -41,9 +41,10 @@ from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
     base_aliases,
     base_flags,
+    catch_config_error,
 )
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict
+from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict, TraitError
 
 from IPython.zmq.session import (
     Session, session_aliases, session_flags, default_secure
@@ -263,7 +264,9 @@ class IPControllerApp(BaseParallelApplication):
             self.factory = HubFactory(config=c, log=self.log)
             # self.start_logging()
             self.factory.init_hub()
-        except:
+        except TraitError:
+            raise
+        except Exception:
             self.log.error("Couldn't construct the Controller", exc_info=True)
             self.exit(1)
         
@@ -385,6 +388,7 @@ class IPControllerApp(BaseParallelApplication):
             self.log.addHandler(handler)
             self._log_handler = handler
     
+    @catch_config_error
     def initialize(self, argv=None):
         super(IPControllerApp, self).initialize(argv)
         self.forward_logging()

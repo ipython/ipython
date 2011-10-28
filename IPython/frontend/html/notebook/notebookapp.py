@@ -47,6 +47,7 @@ from .handlers import (LoginHandler,
 )
 from .notebookmanager import NotebookManager
 
+from IPython.config.application import catch_config_error
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.zmq.session import Session, default_secure
@@ -264,6 +265,7 @@ class NotebookApp(BaseIPythonApplication):
         # and all of its ancenstors until propagate is set to False.
         self.log.propagate = False
 
+    @catch_config_error
     def initialize(self, argv=None):
         super(NotebookApp, self).initialize(argv)
         self.init_configurables()

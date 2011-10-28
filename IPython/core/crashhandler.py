@@ -110,7 +110,12 @@ class CrashHandler(object):
 
     def __call__(self, etype, evalue, etb):
         """Handle an exception, call for compatible with sys.excepthook"""
-
+        
+        # do not allow the crash handler to be called twice without reinstalling it
+        # this prevents unlikely errors in the crash handling from entering an
+        # infinite loop.
+        sys.excepthook = sys.__excepthook__
+        
         # Report tracebacks shouldn't use color in general (safer for users)
         color_scheme = 'NoColor'
 

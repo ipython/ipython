@@ -31,7 +31,7 @@ from subprocess import check_call, CalledProcessError, PIPE
 import zmq
 from zmq.eventloop import ioloop
 
-from IPython.config.application import Application, boolean_flag
+from IPython.config.application import Application, boolean_flag, catch_config_error
 from IPython.config.loader import Config
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
@@ -269,6 +269,7 @@ class IPClusterEngines(BaseParallelApplication):
     flags = Dict(engine_flags)
     _stopping = False
 
+    @catch_config_error
     def initialize(self, argv=None):
         super(IPClusterEngines, self).initialize(argv)
         self.init_signal()
