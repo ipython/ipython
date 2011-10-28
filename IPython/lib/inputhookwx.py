@@ -24,25 +24,12 @@ import time
 from timeit import default_timer as clock
 import wx
 
-if os.name == 'posix':
-    import select
-elif sys.platform == 'win32':
-    import msvcrt
+from IPython.lib.inputhook import stdin_ready
+
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
-
-def stdin_ready():
-    if os.name == 'posix':
-        infds, outfds, erfds = select.select([sys.stdin],[],[],0)
-        if infds:
-            return True
-        else:
-            return False
-    elif sys.platform == 'win32':
-        return msvcrt.kbhit()
-
 
 def inputhook_wx1():
     """Run the wx event loop by processing pending events only.

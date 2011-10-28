@@ -15,6 +15,7 @@ Inputhook management for GUI event loop integration.
 #-----------------------------------------------------------------------------
 
 import ctypes
+import os
 import sys
 import warnings
 
@@ -31,10 +32,57 @@ GUI_TK = 'tk'
 GUI_OSX = 'osx'
 GUI_GLUT = 'glut'
 GUI_PYGLET = 'pyglet'
+GUI_NONE = 'none' # i.e. disable
 
 #-----------------------------------------------------------------------------
-# Utility classes
+# Utilities
 #-----------------------------------------------------------------------------
+
+def _stdin_ready_posix():
+    """Return True if there's something to read on stdin (posix version)."""
+    infds, outfds, erfds = select.select([sys.stdin],[],[],0)
+    return bool(infds)
+
+def _stdin_ready_nt():
+    """Return True if there's something to read on stdin (nt version)."""
+    return msvcrt.kbhit()
+
+def _stdin_ready_other():
+    """Return True, assuming there's something to read on stdin."""
+    return True #
+
+
+def _ignore_CTRL_C_posix():
+    """Ignore CTRL+C (SIGINT)."""
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+def _allow_CTRL_C_posix():
+    """Take CTRL+C into account (SIGINT)."""
+    signal.signal(signal.SIGINT, signal.default_int_handler)
+
+def _ignore_CTRL_C_other():
+    """Ignore CTRL+C (not implemented)."""
+    pass
+
+def _allow_CTRL_C_other():
+    """Take CTRL+C into account (not implemented)."""
+    pass
+
+if os.name == 'posix':
+    import select
+    import signal
+    stdin_ready = _stdin_ready_posix
+    ignore_CTRL_C = _ignore_CTRL_C_posix
+    allow_CTRL_C = _allow_CTRL_C_posix
+elif os.name == 'nt':
+    import msvcrt
+    stdin_ready = _stdin_ready_nt
+    ignore_CTRL_C = _ignore_CTRL_C_other
+    allow_CTRL_C = _allow_CTRL_C_other
+else:
+    stdin_ready = _stdin_ready_other
+    ignore_CTRL_C = _ignore_CTRL_C_other
+    allow_CTRL_C = _allow_CTRL_C_other
 
 
 #-----------------------------------------------------------------------------
@@ -70,6 +118,11 @@ class InputHookManager(object):
 
     def set_inputhook(self, callback):
         """Set PyOS_InputHook to callback and return the previous one."""
+        # On platforms with 'readline' support, it's all too likely to
+        # have a KeyboardInterrupt signal delivered *even before* an
+        # initial ``try:`` clause in the callback can be executed, so
+        # we need to disable CTRL+C in this situation.
+        ignore_CTRL_C()
         self._callback = callback
         self._callback_pyfunctype = self.PYFUNC(callback)
         pyos_inputhook_ptr = self.get_pyos_inputhook()
@@ -93,6 +146,7 @@ class InputHookManager(object):
         pyos_inputhook_ptr = self.get_pyos_inputhook()
         original = self.get_pyos_inputhook_as_func()
         pyos_inputhook_ptr.value = ctypes.c_void_p(None).value
+        allow_CTRL_C()
         self._reset()
         return original
 
@@ -181,33 +235,11 @@ class InputHookManager(object):
             from PyQt4 import QtCore
             app = QtGui.QApplication(sys.argv)
         """
-        from IPython.external.qt_for_kernel import QtCore, QtGui
-
-        if 'pyreadline' in sys.modules:
-            # see IPython GitHub Issue #281 for more info on this issue
-            # Similar intermittent behavior has been reported on OSX,
-            # but not consistently reproducible
-            warnings.warn("""PyReadline's inputhook can conflict with Qt, causing delays
-            in interactive input. If you do see this issue, we recommend using another GUI
-            toolkit if you can, or disable readline with the configuration option
-            'TerminalInteractiveShell.readline_use=False', specified in a config file or
-            at the command-line""",
-            RuntimeWarning)
-        
-        # PyQt4 has had this since 4.3.1.  In version 4.2, PyOS_InputHook
-        # was set when QtCore was imported, but if it ever got removed,
-        # you couldn't reset it.  For earlier versions we can
-        # probably implement a ctypes version.
-        try:
-            QtCore.pyqtRestoreInputHook()
-        except AttributeError:
-            pass
+        from IPython.lib.inputhookqt4 import create_inputhook_qt4
+        app, inputhook_qt4 = create_inputhook_qt4(self, app)
+        self.set_inputhook(inputhook_qt4)
 
         self._current_gui = GUI_QT4
-        if app is None:
-            app = QtCore.QCoreApplication.instance()
-        if app is None:
-            app = QtGui.QApplication([" "])
         app._in_event_loop = True
         self._apps[GUI_QT4] = app
         return app
@@ -416,8 +448,8 @@ def enable_gui(gui=None, app=None):
     Parameters
     ----------
     gui : optional, string or None
-      If None, clears input hook, otherwise it must be one of the recognized
-      GUI names (see ``GUI_*`` constants in module).
+      If None (or 'none'), clears input hook, otherwise it must be one
+      of the recognized GUI names (see ``GUI_*`` constants in module).
 
     app : optional, existing application object.
       For toolkits that have the concept of a global app, you can supply an
@@ -432,6 +464,7 @@ def enable_gui(gui=None, app=None):
     one.
     """
     guis = {None: clear_inputhook,
+            GUI_NONE: clear_inputhook,
             GUI_OSX: lambda app=False: None,
             GUI_TK: enable_tk,
             GUI_GTK: enable_gtk,
