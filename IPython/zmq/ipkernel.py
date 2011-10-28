@@ -28,7 +28,7 @@ import zmq
 
 # Local imports.
 from IPython.config.configurable import Configurable
-from IPython.config.application import boolean_flag, catch_config
+from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import ProfileDir
 from IPython.core.error import StdinNotImplementedError
 from IPython.core.shellapp import (
@@ -731,7 +731,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         """
     )
     
-    @catch_config
+    @catch_config_error
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
         self.init_shell()

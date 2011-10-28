@@ -32,7 +32,7 @@ import sys
 from IPython.config.loader import (
     Config, PyFileConfigLoader, ConfigFileNotFound
 )
-from IPython.config.application import boolean_flag, catch_config
+from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core import release
 from IPython.core import usage
 from IPython.core.completer import Completer
@@ -286,7 +286,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
 
         return super(TerminalIPythonApp, self).parse_command_line(argv)
     
-    @catch_config
+    @catch_config_error
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""
         super(TerminalIPythonApp, self).initialize(argv)

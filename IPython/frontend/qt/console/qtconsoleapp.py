@@ -29,7 +29,7 @@ import uuid
 from IPython.external.qt import QtGui
 
 # Local imports
-from IPython.config.application import boolean_flag, catch_config
+from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.lib.kernel import tunnel_to_kernel, find_connection_file
@@ -516,7 +516,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
             else:
                 raise IOError("Stylesheet %r not found."%self.stylesheet)
 
-    @catch_config
+    @catch_config_error
     def initialize(self, argv=None):
         super(IPythonQtConsoleApp, self).initialize(argv)
         self.init_connection_file()

@@ -72,7 +72,7 @@ subcommand 'cmd', do: `{app} cmd -h`.
 #-----------------------------------------------------------------------------
 
 @decorator
-def catch_config(method, app, *args, **kwargs):
+def catch_config_error(method, app, *args, **kwargs):
     """Method decorator for catching invalid config (Trait/ArgumentErrors) during init.
 
     On a TraitError (generally caused by bad config), this will print the trait's
@@ -195,7 +195,7 @@ class Application(SingletonConfigurable):
         self._log_handler.setFormatter(self._log_formatter)
         self.log.addHandler(self._log_handler)
 
-    @catch_config
+    @catch_config_error
     def initialize(self, argv=None):
         """Do the basic steps to configure me.
 
@@ -340,7 +340,7 @@ class Application(SingletonConfigurable):
         # events.
         self.config = newconfig
 
-    @catch_config
+    @catch_config_error
     def initialize_subcommand(self, subc, argv=None):
         """Initialize a subcommand with argv."""
         subapp,help = self.subcommands.get(subc)
@@ -400,7 +400,7 @@ class Application(SingletonConfigurable):
             flags[key] = (newflag, help)
         return flags, aliases
 
-    @catch_config
+    @catch_config_error
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
@@ -432,7 +432,7 @@ class Application(SingletonConfigurable):
         # store unparsed args in extra_args
         self.extra_args = loader.extra_args
 
-    @catch_config
+    @catch_config_error
     def load_config_file(self, filename, path=None):
         """Load a .py based config file by filename and path."""
         loader = PyFileConfigLoader(filename, path=path)

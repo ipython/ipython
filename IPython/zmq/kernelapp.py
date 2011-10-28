@@ -26,7 +26,7 @@ import zmq
 # IPython imports.
 from IPython.core.ultratb import FormattedTB
 from IPython.core.application import (
-    BaseIPythonApplication, base_flags, base_aliases, catch_config
+    BaseIPythonApplication, base_flags, base_aliases, catch_config_error
 )
 from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST
@@ -275,7 +275,7 @@ class KernelApp(BaseIPythonApplication):
         )
         self.kernel.record_ports(self.ports)
 
-    @catch_config
+    @catch_config_error
     def initialize(self, argv=None):
         super(KernelApp, self).initialize(argv)
         self.init_blackhole()

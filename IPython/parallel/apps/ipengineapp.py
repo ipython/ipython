@@ -34,7 +34,7 @@ from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
     base_aliases,
     base_flags,
-    catch_config,
+    catch_config_error,
 )
 from IPython.zmq.log import EnginePUBHandler
 from IPython.zmq.session import (
@@ -319,7 +319,7 @@ class IPEngineApp(BaseParallelApplication):
         else:
             mpi = None
 
-    @catch_config
+    @catch_config_error
     def initialize(self, argv=None):
         super(IPEngineApp, self).initialize(argv)
         self.init_mpi()

@@ -29,7 +29,7 @@ import sys
 
 from subprocess import Popen, PIPE
 
-from IPython.config.application import catch_config
+from IPython.config.application import catch_config_error
 from IPython.core import release
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.application import (
@@ -145,7 +145,7 @@ class BaseParallelApplication(BaseIPythonApplication):
     aliases = Dict(base_aliases)
     flags = Dict(base_flags)
     
-    @catch_config
+    @catch_config_error
     def initialize(self, argv=None):
         """initialize the app"""
         super(BaseParallelApplication, self).initialize(argv)

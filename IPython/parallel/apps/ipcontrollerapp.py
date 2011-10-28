@@ -41,7 +41,7 @@ from IPython.parallel.apps.baseapp import (
     BaseParallelApplication,
     base_aliases,
     base_flags,
-    catch_config,
+    catch_config_error,
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict, TraitError
@@ -388,7 +388,7 @@ class IPControllerApp(BaseParallelApplication):
             self.log.addHandler(handler)
             self._log_handler = handler
     
-    @catch_config
+    @catch_config_error
     def initialize(self, argv=None):
         super(IPControllerApp, self).initialize(argv)
         self.forward_logging()
