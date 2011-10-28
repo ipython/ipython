@@ -1,4 +1,17 @@
-"""Example of iteration through AsyncMapResult, without waiting for all results
+"""Example of iteration through AsyncMapResults, without waiting for all results
+
+When you call view.map(func, sequence), you will receive a special AsyncMapResult
+object.  These objects are used to reconstruct the results of the split call.
+One feature AsyncResults provide is that they are iterable *immediately*, so
+you can iterate through the actual results as they complete.
+
+This is useful if you submit a large number of tasks that may take some time,
+but want to perform logic on elements in the result, or even abort subsequent
+tasks in cases where you are searching for the first affirmative result.
+
+By default, the results will match the ordering of the submitted sequence, but
+if you call `map(...ordered=False)`, then results will be provided to the iterator
+on a first come first serve basis.
 
 Authors
 -------
