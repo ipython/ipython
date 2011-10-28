@@ -3704,7 +3704,7 @@ Defaulting color scheme to 'NoColor'"""
             cls = c.__class__
             help = cls.class_get_help(c)
             # strip leading '--' from cl-args:
-            help = re.sub(r'^\-\-', '', help, flags=re.MULTILINE)
+            help = re.sub(re.compile(r'^--', re.MULTILINE), '', help)
             print help
             return
         elif '=' not in line:
