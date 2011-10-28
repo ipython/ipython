@@ -26,6 +26,8 @@ import sys
 from copy import deepcopy
 from collections import defaultdict
 
+from IPython.external.decorator import decorator
+
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
     KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound,
@@ -68,6 +70,26 @@ subcommand 'cmd', do: `{app} cmd -h`.
 #-----------------------------------------------------------------------------
 # Application class
 #-----------------------------------------------------------------------------
+
+@decorator
+def catch_config_error(method, app, *args, **kwargs):
+    """Method decorator for catching invalid config (Trait/ArgumentErrors) during init.
+
+    On a TraitError (generally caused by bad config), this will print the trait's
+    message, and exit the app.
+    
+    For use on init methods, to prevent invoking excepthook on invalid input.
+    """
+    try:
+        return method(app, *args, **kwargs)
+    except (TraitError, ArgumentError) as e:
+        app.print_description()
+        app.print_help()
+        app.print_examples()
+        app.log.fatal("Bad config encountered during initialization:")
+        app.log.fatal(str(e))
+        app.log.debug("Config at the time: %s", app.config)
+        app.exit(1)
 
 
 class ApplicationError(Exception):
@@ -173,6 +195,7 @@ class Application(SingletonConfigurable):
         self._log_handler.setFormatter(self._log_formatter)
         self.log.addHandler(self._log_handler)
 
+    @catch_config_error
     def initialize(self, argv=None):
         """Do the basic steps to configure me.
 
@@ -317,6 +340,7 @@ class Application(SingletonConfigurable):
         # events.
         self.config = newconfig
 
+    @catch_config_error
     def initialize_subcommand(self, subc, argv=None):
         """Initialize a subcommand with argv."""
         subapp,help = self.subcommands.get(subc)
@@ -376,6 +400,7 @@ class Application(SingletonConfigurable):
             flags[key] = (newflag, help)
         return flags, aliases
 
+    @catch_config_error
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
@@ -402,18 +427,12 @@ class Application(SingletonConfigurable):
 
         loader = KVArgParseConfigLoader(argv=argv, aliases=aliases,
                                         flags=flags)
-        try:
-            config = loader.load_config()
-            self.update_config(config)
-        except (TraitError, ArgumentError) as e:
-            self.print_description()
-            self.print_help()
-            self.print_examples()
-            self.log.fatal(str(e))
-            self.exit(1)
+        config = loader.load_config()
+        self.update_config(config)
         # store unparsed args in extra_args
         self.extra_args = loader.extra_args
 
+    @catch_config_error
     def load_config_file(self, filename, path=None):
         """Load a .py based config file by filename and path."""
         loader = PyFileConfigLoader(filename, path=path)
