@@ -41,7 +41,7 @@ except ImportError:
 
 @decorator
 def not_if_readonly(f, self, *args, **kwargs):
-    if self.application.ipython_app.read_only:
+    if self.application.read_only:
         raise web.HTTPError(403, "Notebook server is read-only")
     else:
         return f(self, *args, **kwargs)
@@ -57,7 +57,7 @@ def authenticate_unless_readonly(f, self, *args, **kwargs):
     @web.authenticated
     def auth_f(self, *args, **kwargs):
         return f(self, *args, **kwargs)
-    if self.application.ipython_app.read_only:
+    if self.application.read_only:
         return f(self, *args, **kwargs)
     else:
         return auth_f(self, *args, **kwargs)
@@ -77,9 +77,20 @@ class AuthenticatedHandler(web.RequestHandler):
         if user_id is None:
             # prevent extra Invalid cookie sig warnings:
             self.clear_cookie('username')
-            if not self.application.password and not self.application.ipython_app.read_only:
+            if not self.application.password and not self.application.read_only:
                 user_id = 'anonymous'
         return user_id
+    
+    @property
+    def read_only(self):
+        if self.application.read_only:
+            if self.application.password:
+                return self.get_current_user() is None
+            else:
+                return True
+        else:
+            return False
+        
 
 
 class ProjectDashboardHandler(AuthenticatedHandler):
@@ -90,21 +101,24 @@ class ProjectDashboardHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         self.render(
             'projectdashboard.html', project=project,
-            base_project_url=u'/', base_kernel_url=u'/'
+            base_project_url=u'/', base_kernel_url=u'/',
+            read_only=self.read_only,
         )
 
 
 class LoginHandler(AuthenticatedHandler):
 
     def get(self):
-        self.render('login.html', next=self.get_argument('next', default='/'))
+        self.render('login.html',
+                next=self.get_argument('next', default='/'),
+                read_only=self.read_only,
+        )
 
     def post(self):
         pwd = self.get_argument('password', default=u'')
         if self.application.password and pwd == self.application.password:
             self.set_secure_cookie('username', str(uuid.uuid4()))
-        url = self.get_argument('next', default='/')
-        self.redirect(url)
+        self.redirect(self.get_argument('next', default='/'))
 
 
 class NewHandler(AuthenticatedHandler):
@@ -118,7 +132,8 @@ class NewHandler(AuthenticatedHandler):
             'notebook.html', project=project,
             notebook_id=notebook_id,
             base_project_url=u'/', base_kernel_url=u'/',
-            kill_kernel=False
+            kill_kernel=False,
+            read_only=False,
         )
 
 
@@ -130,11 +145,13 @@ class NamedNotebookHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+        
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
             base_project_url=u'/', base_kernel_url=u'/',
-            kill_kernel=False
+            kill_kernel=False,
+            read_only=self.read_only,
         )
 
 
@@ -393,12 +410,6 @@ class NotebookRootHandler(AuthenticatedHandler):
     @authenticate_unless_readonly
     def get(self):
         
-        # communicate read-only via Allow header
-        if self.application.ipython_app.read_only and not self.get_current_user():
-            self.set_header('Allow', 'GET')
-        else:
-            self.set_header('Allow', ', '.join(self.SUPPORTED_METHODS))
-        
         nbm = self.application.notebook_manager
         files = nbm.list_notebooks()
         self.finish(jsonapi.dumps(files))
@@ -426,12 +437,6 @@ class NotebookHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         format = self.get_argument('format', default='json')
         last_mod, name, data = nbm.get_notebook(notebook_id, format)
-        
-        # communicate read-only via Allow header
-        if self.application.ipython_app.read_only and not self.get_current_user():
-            self.set_header('Allow', 'GET')
-        else:
-            self.set_header('Allow', ', '.join(self.SUPPORTED_METHODS))
         
         if format == u'json':
             self.set_header('Content-Type', 'application/json')

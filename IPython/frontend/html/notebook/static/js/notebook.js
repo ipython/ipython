@@ -14,7 +14,7 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
 
     var Notebook = function (selector) {
-        this.read_only = false;
+        this.read_only = IPython.read_only;
         this.element = $(selector);
         this.element.scroll();
         this.element.data("notebook", this);
@@ -979,13 +979,6 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.notebook_loaded = function (data, status, xhr) {
         var allowed = xhr.getResponseHeader('Allow');
-        if (allowed && allowed.indexOf('PUT') == -1){
-            this.read_only = true;
-            // unhide login button if it's relevant
-            $('span#login_widget').removeClass('hidden');
-        }else{
-            this.read_only = false;
-        }
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_code_cell_below();
@@ -993,9 +986,7 @@ var IPython = (function (IPython) {
         IPython.save_widget.status_save();
         IPython.save_widget.set_notebook_name(data.metadata.name);
         this.dirty = false;
-        if (this.read_only) {
-            this.handle_read_only();
-        }else{
+        if (! this.read_only) {
             this.start_kernel();
         }
         // fromJSON always selects the last cell inserted. We need to wait
@@ -1005,16 +996,6 @@ var IPython = (function (IPython) {
             IPython.notebook.scroll_to_top();
         }, 50);
     };
-
-
-    Notebook.prototype.handle_read_only = function(){
-        IPython.left_panel.collapse();
-        IPython.save_widget.element.find('button#save_notebook').addClass('hidden');
-        $('button#new_notebook').addClass('hidden');
-        $('div#cell_section').addClass('hidden');
-        $('div#kernel_section').addClass('hidden');
-    }
-
 
     IPython.Notebook = Notebook;
 

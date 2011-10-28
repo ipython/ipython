@@ -105,6 +105,7 @@ class NotebookWebApplication(web.Application):
         self.log = log
         self.notebook_manager = notebook_manager
         self.ipython_app = ipython_app
+        self.read_only = self.ipython_app.read_only
 
 
 #-----------------------------------------------------------------------------

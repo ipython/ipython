@@ -27,8 +27,16 @@ $(document).ready(function () {
     $('div#left_panel').addClass('box-flex');
     $('div#right_panel').addClass('box-flex');
 
+    IPython.read_only = $('meta[name=read_only]').attr("content") == 'True';
+    
     IPython.notebook_list = new IPython.NotebookList('div#notebook_list');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
+    
+    if (IPython.read_only){
+        $('#new_notebook').addClass('hidden');
+        // unhide login button if it's relevant
+        $('span#login_widget').removeClass('hidden');
+    }
     IPython.notebook_list.load_list();
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.
