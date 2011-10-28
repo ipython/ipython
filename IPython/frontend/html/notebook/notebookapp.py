@@ -16,14 +16,17 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+# stdlib
 import errno
 import logging
 import os
 import signal
 import socket
 import sys
+import threading
 import webbrowser
 
+# Third party
 import zmq
 
 # Install the pyzmq ioloop. This has to be done before anything else from
@@ -35,6 +38,7 @@ tornado.ioloop.IOLoop = ioloop.IOLoop
 from tornado import httpserver
 from tornado import web
 
+# Our own libraries
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
@@ -301,7 +305,10 @@ class NotebookApp(BaseIPythonApplication):
                                                                           self.port))
         if self.open_browser:
             ip = self.ip or '127.0.0.1'
-            webbrowser.open("%s://%s:%i" % (proto, ip, self.port), new=2)
+            b = lambda : webbrowser.open("%s://%s:%i" % (proto, ip, self.port),
+                                         new=2)
+            threading.Thread(target=b).start()
+
         ioloop.IOLoop.instance().start()
 
 #-----------------------------------------------------------------------------
