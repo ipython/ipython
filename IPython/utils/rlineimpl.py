@@ -26,7 +26,7 @@ if sys.platform == 'darwin':
     try:
         dynload_idx = sys.path.index(lib_dynload)
     except ValueError:
-        dynload_idx = -1
+        dynload_idx = None
     else:
         sys.path.pop(dynload_idx)
 try:
@@ -43,7 +43,7 @@ except ImportError:
 
 if sys.platform == 'darwin':
     # dirty trick, part II:
-    if dynload_idx != -1:
+    if dynload_idx is not None:
         # restore path
         sys.path.insert(dynload_idx, lib_dynload)
         if not have_readline:
@@ -83,6 +83,7 @@ if sys.platform == 'win32' and have_readline:
 # Test to see if libedit is being used instead of GNU readline.
 # Thanks to Boyd Waters for the original patch.
 uses_libedit = False
+
 if have_readline:
     # Official Python docs state that 'libedit' is in the docstring for libedit readline:
     uses_libedit = 'libedit' in _rl.__doc__
@@ -91,6 +92,7 @@ if have_readline:
     # known culprits of this include: EPD, Fink
     # There is not much we can do to detect this, until we find a specific failure
     # case, rather than relying on the readline module to self-identify as broken.
+
 if uses_libedit and sys.platform == 'darwin':
     _rl.parse_and_bind("bind ^I rl_complete")
     warnings.warn('\n'.join(['', "*"*78,
