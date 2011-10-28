@@ -65,8 +65,10 @@ var IPython = (function (IPython) {
 
     LeftPanel.prototype.create_children = function () {
         this.notebook_section = new IPython.NotebookSection('div#notebook_section');
-        this.cell_section = new IPython.CellSection('div#cell_section');
-        this.kernel_section = new IPython.KernelSection('div#kernel_section');
+        if (! IPython.read_only){
+            this.cell_section = new IPython.CellSection('div#cell_section');
+            this.kernel_section = new IPython.KernelSection('div#kernel_section');
+        }
         this.help_section = new IPython.HelpSection('div#help_section');
     }
 

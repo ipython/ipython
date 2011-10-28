@@ -15,6 +15,10 @@ var IPython = (function (IPython) {
 
     var Cell = function (notebook) {
         this.notebook = notebook;
+        this.read_only = false;
+        if (notebook){
+            this.read_only = notebook.read_only;
+        }
         this.selected = false;
         this.element = null;
         this.create_element();

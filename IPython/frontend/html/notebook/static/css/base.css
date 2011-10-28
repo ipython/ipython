@@ -51,3 +51,12 @@ div#main_app {
     padding: 0.2em 0.8em;
     font-size: 77%;
 }
+
+span#login_widget {
+    float: right;
+}
+
+/* generic class for hidden objects */
+.hidden {
+    display: none;
+}

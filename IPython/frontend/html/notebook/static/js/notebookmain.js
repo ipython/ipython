@@ -23,6 +23,7 @@ $(document).ready(function () {
         }
     });
     IPython.markdown_converter = new Markdown.Converter();
+    IPython.read_only = $('meta[name=read_only]').attr("content") == 'True';
 
     $('div#header').addClass('border-box-sizing');
     $('div#main_app').addClass('border-box-sizing ui-widget ui-widget-content');
@@ -33,6 +34,7 @@ $(document).ready(function () {
     IPython.left_panel = new IPython.LeftPanel('div#left_panel', 'div#left_panel_splitter');
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
+    IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.print_widget = new IPython.PrintWidget('span#print_widget');
     IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
@@ -42,6 +44,21 @@ $(document).ready(function () {
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.
     $('div#header').css('display','block');
+
+    if(IPython.read_only){
+        // hide various elements from read-only view
+        IPython.save_widget.element.find('button#save_notebook').addClass('hidden');
+        IPython.quick_help.element.addClass('hidden'); // shortcuts are disabled in read_only
+        $('button#new_notebook').addClass('hidden');
+        $('div#cell_section').addClass('hidden');
+        $('div#kernel_section').addClass('hidden');
+        $('span#login_widget').removeClass('hidden');
+        // left panel starts collapsed, but the collapse must happen after
+        // elements start drawing.  Don't draw contents of the panel until
+        // after they are collapsed
+        IPython.left_panel.left_panel_element.css('visibility', 'hidden');
+    }
+
     $('div#main_app').css('display','block');
 
     // Perform these actions after the notebook has been loaded.
@@ -52,6 +69,14 @@ $(document).ready(function () {
             IPython.save_widget.update_url();
             IPython.layout_manager.do_resize();
             IPython.pager.collapse();
+            if(IPython.read_only){
+                // collapse the left panel on read-only
+                IPython.left_panel.collapse();
+                // and finally unhide the panel contents after collapse
+                setTimeout(function(){
+                    IPython.left_panel.left_panel_element.css('visibility', 'visible');
+                }, 200)
+            }
         },100);
     });
 
