@@ -324,7 +324,9 @@ def check_cpaste(code, should_fail=False):
     _ip.user_ns['code_ran'] = False
 
     src = StringIO()
-    src.encoding = None   # IPython expects stdin to have an encoding attribute
+    if not hasattr(src, 'encoding'):
+        # IPython expects stdin to have an encoding attribute
+        src.encoding = None
     src.write('\n')
     src.write(code)
     src.write('\n--\n')

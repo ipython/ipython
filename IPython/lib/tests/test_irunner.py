@@ -13,6 +13,7 @@ import unittest
 
 # IPython imports
 from IPython.lib import irunner
+from IPython.testing.decorators import known_failure_py3
 
 # Testing code begins
 class RunnerTestCase(unittest.TestCase):
@@ -56,6 +57,8 @@ class RunnerTestCase(unittest.TestCase):
         self.assert_(mismatch==0,'Number of mismatched lines: %s' %
                      mismatch)
 
+    # irunner isn't working on Python 3 (due to pexpect)
+    @known_failure_py3
     def testIPython(self):
         """Test the IPython runner."""
         source = """
@@ -129,6 +132,7 @@ In [12]: exit
         runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)
 
+    @known_failure_py3
     def testPython(self):
         """Test the Python runner."""
         runner = irunner.PythonRunner(out=self.out)

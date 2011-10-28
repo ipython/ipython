@@ -1,10 +1,15 @@
+import os
+from base64 import encodestring
+
 from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
     new_metadata, new_author
 )
 
-
+# some random base64-encoded *bytes*
+png = encodestring(os.urandom(5))
+jpeg = encodestring(os.urandom(6))
 
 ws = new_worksheet(name='worksheet1')
 
@@ -42,8 +47,8 @@ ws.cells.append(new_code_cell(
         output_text=u'<array a>',
         output_html=u'The HTML rep',
         output_latex=u'$a$',
-        output_png=b'data',
-        output_jpeg=b'data',
+        output_png=png,
+        output_jpeg=jpeg,
         output_svg=u'<svg>',
         output_json=u'json data',
         output_javascript=u'var i=0;',
@@ -53,8 +58,8 @@ ws.cells.append(new_code_cell(
         output_text=u'<array a>',
         output_html=u'The HTML rep',
         output_latex=u'$a$',
-        output_png=b'data',
-        output_jpeg=b'data',
+        output_png=png,
+        output_jpeg=jpeg,
         output_svg=u'<svg>',
         output_json=u'json data',
         output_javascript=u'var i=0;'
