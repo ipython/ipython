@@ -125,8 +125,7 @@ flags['read-only'] = (
     individual notebooks, but not edit them, start kernels, or run
     code.
     
-    This flag only makes sense in conjunction with setting a password,
-    via the ``NotebookApp.password`` configurable.
+    If no password is set, the server will be entirely read-only.
     """
 )
 

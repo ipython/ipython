@@ -77,7 +77,7 @@ class AuthenticatedHandler(web.RequestHandler):
         if user_id is None:
             # prevent extra Invalid cookie sig warnings:
             self.clear_cookie('username')
-            if not self.application.password:
+            if not self.application.password and not self.application.ipython_app.read_only:
                 user_id = 'anonymous'
         return user_id
 
