@@ -17,6 +17,18 @@ import warnings
 
 from subprocess import Popen, PIPE
 
+if sys.platform == 'darwin':
+    # dirty trick, to skip the system readline, because pip-installed readline
+    # will never be found on OSX, since lib-dynload always comes ahead of site-packages
+    from distutils import sysconfig
+    lib_dynload = sysconfig.get_config_var('DESTSHARED')
+    del sysconfig
+    try:
+        dynload_idx = sys.path.index(lib_dynload)
+    except ValueError:
+        dynload_idx = -1
+    else:
+        sys.path.pop(dynload_idx)
 try:
     from readline import *
     import readline as _rl
@@ -28,6 +40,26 @@ except ImportError:
         have_readline = True
     except ImportError:
         have_readline = False
+
+if sys.platform == 'darwin':
+    # dirty trick, part II:
+    if dynload_idx != -1:
+        # restore path
+        sys.path.insert(dynload_idx, lib_dynload)
+        if not have_readline:
+            # *only* have system readline, try import again
+            try:
+                from readline import *
+                import readline as _rl
+                have_readline = True
+            except ImportError:
+                have_readline = False
+            else:
+                # if we want to warn about EPD / Fink having bad readline
+                # we would do it here
+                pass
+    # cleanup dirty trick vars
+    del dynload_idx, lib_dynload
 
 if have_readline and hasattr(_rl, 'rlmain'):
     # patch add_history to allow for strings in pyreadline <= 1.5:
@@ -51,52 +83,30 @@ if sys.platform == 'win32' and have_readline:
 # Test to see if libedit is being used instead of GNU readline.
 # Thanks to Boyd Waters for the original patch.
 uses_libedit = False
-if sys.platform == 'darwin' and have_readline:
-    # Previously this used commands.getstatusoutput, which uses os.popen.
-    # Switching to subprocess.Popen, and exponential falloff for EINTR
-    # seems to make this better behaved in environments such as PyQt and gdb
-    dt = 1e-3
-    while dt < 1:
-        try:
-            p = Popen(['otool', '-L', _rl.__file__], stdout=PIPE, stderr=PIPE)
-        except OSError:
-            try:
-                # otool not available (no XCode), use lsof instead.
-                # This *could* have a false positive
-                # if another package that uses libedit explicitly
-                # has been imported prior to this test.
-                p = Popen(['lsof', '-p', str(os.getpid())], stdout=PIPE, stderr=PIPE)
-            except OSError:
-                # This is highly unlikely, but let's be sure
-                # we don't crash IPython just because we can't find lsof
-                p = out = err = None
-                warnings.warn("libedit detection failed")
-                break
-
-        out,err = p.communicate()
-
-        if p.returncode == 4:
-            # EINTR
-            time.sleep(dt)
-            dt *= 2
-            continue
-        elif p is None or p.returncode:
-            warnings.warn("libedit detection failed: %s"%err)
-            break
-        else:
-            break
-
-    if p is not None and p.returncode == 0 and re.search(br'/libedit[\.\d+]*\.dylib\s', out):
-        # we are bound to libedit - new in Leopard
-        _rl.parse_and_bind("bind ^I rl_complete")
-        warnings.warn("Leopard libedit detected - readline will not be well behaved "
-            "including some crashes on tab completion, and incorrect history navigation. "
-            "It is highly recommended that you install readline, "
-            "which is easy_installable with: 'easy_install readline'",
-            RuntimeWarning)
-        uses_libedit = True
-    # cleanup names
-    del dt,p,out,err
+if have_readline:
+    # Official Python docs state that 'libedit' is in the docstring for libedit readline:
+    uses_libedit = 'libedit' in _rl.__doc__
+    # Note that many non-System Pythons also do not use proper readline,
+    # but do not report libedit at all, nor are they linked dynamically against libedit.
+    # known culprits of this include: EPD, Fink
+    # There is not much we can do to detect this, until we find a specific failure
+    # case, rather than relying on the readline module to self-identify as broken.
+if uses_libedit and sys.platform == 'darwin':
+    _rl.parse_and_bind("bind ^I rl_complete")
+    warnings.warn('\n'.join(['', "*"*78,
+        "libedit detected - readline will not be well behaved, including but not limited to:",
+        "   * crashes on tab completion",
+        "   * incorrect history navigation",
+        "   * corrupting long-lines",
+        "   * failure to wrap or indent lines properly",
+        "It is highly recommended that you install readline, which is easy_installable:",
+        "     easy_install readline",
+        "Note that `pip install readline` generally DOES NOT WORK, because",
+        "it installs to site-packages, which come *after* lib-dynload in sys.path,",
+        "where readline is located.  It must be `easy_install readline`, or to a custom",
+        "location on your PYTHONPATH (even --user comes after lib-dyload).",
+        "*"*78]),
+        RuntimeWarning)
 
 # the clear_history() function was only introduced in Python 2.4 and is
 # actually optional in the readline API, so we must explicitly check for its
