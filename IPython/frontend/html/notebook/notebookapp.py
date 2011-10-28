@@ -110,6 +110,7 @@ class NotebookWebApplication(web.Application):
         self.log = log
         self.notebook_manager = notebook_manager
         self.ipython_app = ipython_app
+        self.read_only = self.ipython_app.read_only
 
 
 #-----------------------------------------------------------------------------
@@ -121,11 +122,23 @@ flags['no-browser']=(
     {'NotebookApp' : {'open_browser' : False}},
     "Don't open the notebook in a browser after startup."
 )
+flags['read-only'] = (
+    {'NotebookApp' : {'read_only' : True}},
+    """Allow read-only access to notebooks.
+    
+    When using a password to protect the notebook server, this flag
+    allows unauthenticated clients to view the notebook list, and
+    individual notebooks, but not edit them, start kernels, or run
+    code.
+    
+    If no password is set, the server will be entirely read-only.
+    """
+)
 
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser']
+notebook_flags = ['no-browser', 'read-only']
 
 aliases = dict(ipkernel_aliases)
 
@@ -208,6 +221,10 @@ class NotebookApp(BaseIPythonApplication):
     
     open_browser = Bool(True, config=True,
                         help="Whether to open in a browser after starting.")
+    
+    read_only = Bool(False, config=True,
+        help="Whether to prevent editing/execution of notebooks."
+    )
 
     def get_ws_url(self):
         """Return the WebSocket URL for this server."""
@@ -288,7 +305,7 @@ class NotebookApp(BaseIPythonApplication):
         # Try random ports centered around the default.
         from random import randint
         n = 50  # Max number of attempts, keep reasonably large.
-        for port in [self.port] + [self.port + randint(-2*n, 2*n) for i in range(n)]:
+        for port in range(self.port, self.port+5) + [self.port + randint(-2*n, 2*n) for i in range(n-5)]:
             try:
                 self.http_server.listen(port, self.ip)
             except socket.error, e:

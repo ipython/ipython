@@ -80,7 +80,10 @@ var IPython = (function (IPython) {
             var nbname = data[i].name;
             var item = this.new_notebook_item(i);
             this.add_link(notebook_id, nbname, item);
-            this.add_delete_button(item);
+            if (!IPython.read_only){
+                // hide delete buttons when readonly
+                this.add_delete_button(item);
+            }
         };
     };
 

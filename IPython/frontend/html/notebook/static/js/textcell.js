@@ -33,7 +33,8 @@ var IPython = (function (IPython) {
             indentUnit : 4,
             mode: this.code_mirror_mode,
             theme: 'default',
-            value: this.placeholder
+            value: this.placeholder,
+            readOnly: this.read_only,
         });
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render').
@@ -65,6 +66,7 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.edit = function () {
+        if ( this.read_only ) return;
         if (this.rendered === true) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");  

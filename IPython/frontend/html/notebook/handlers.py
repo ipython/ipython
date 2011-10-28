@@ -26,6 +26,7 @@ from tornado import websocket
 from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
 
+from IPython.external.decorator import decorator
 from IPython.zmq.session import Session
 
 try:
@@ -34,6 +35,32 @@ except ImportError:
     publish_string = None
 
 
+#-----------------------------------------------------------------------------
+# Decorator for disabling read-only handlers
+#-----------------------------------------------------------------------------
+
+@decorator
+def not_if_readonly(f, self, *args, **kwargs):
+    if self.application.read_only:
+        raise web.HTTPError(403, "Notebook server is read-only")
+    else:
+        return f(self, *args, **kwargs)
+
+@decorator
+def authenticate_unless_readonly(f, self, *args, **kwargs):
+    """authenticate this page *unless* readonly view is active.
+    
+    In read-only mode, the notebook list and print view should
+    be accessible without authentication.
+    """
+    
+    @web.authenticated
+    def auth_f(self, *args, **kwargs):
+        return f(self, *args, **kwargs)
+    if self.application.read_only:
+        return f(self, *args, **kwargs)
+    else:
+        return auth_f(self, *args, **kwargs)
 
 #-----------------------------------------------------------------------------
 # Top-level handlers
@@ -50,34 +77,48 @@ class AuthenticatedHandler(web.RequestHandler):
         if user_id is None:
             # prevent extra Invalid cookie sig warnings:
             self.clear_cookie('username')
-            if not self.application.password:
+            if not self.application.password and not self.application.read_only:
                 user_id = 'anonymous'
         return user_id
+    
+    @property
+    def read_only(self):
+        if self.application.read_only:
+            if self.application.password:
+                return self.get_current_user() is None
+            else:
+                return True
+        else:
+            return False
+        
 
 
 class ProjectDashboardHandler(AuthenticatedHandler):
 
-    @web.authenticated
+    @authenticate_unless_readonly
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         self.render(
             'projectdashboard.html', project=project,
-            base_project_url=u'/', base_kernel_url=u'/'
+            base_project_url=u'/', base_kernel_url=u'/',
+            read_only=self.read_only,
         )
 
 
 class LoginHandler(AuthenticatedHandler):
 
     def get(self):
-        self.render('login.html', next='/')
+        self.render('login.html',
+                next=self.get_argument('next', default='/'),
+                read_only=self.read_only,
+        )
 
     def post(self):
         pwd = self.get_argument('password', default=u'')
         if self.application.password and pwd == self.application.password:
             self.set_secure_cookie('username', str(uuid.uuid4()))
-        url = self.get_argument('next', default='/')
-        self.redirect(url)
+        self.redirect(self.get_argument('next', default='/'))
 
 
 class NewHandler(AuthenticatedHandler):
@@ -91,23 +132,26 @@ class NewHandler(AuthenticatedHandler):
             'notebook.html', project=project,
             notebook_id=notebook_id,
             base_project_url=u'/', base_kernel_url=u'/',
-            kill_kernel=False
+            kill_kernel=False,
+            read_only=False,
         )
 
 
 class NamedNotebookHandler(AuthenticatedHandler):
 
-    @web.authenticated
+    @authenticate_unless_readonly
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+        
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
             base_project_url=u'/', base_kernel_url=u'/',
-            kill_kernel=False
+            kill_kernel=False,
+            read_only=self.read_only,
         )
 
 
@@ -363,8 +407,9 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
 
 class NotebookRootHandler(AuthenticatedHandler):
 
-    @web.authenticated
+    @authenticate_unless_readonly
     def get(self):
+        
         nbm = self.application.notebook_manager
         files = nbm.list_notebooks()
         self.finish(jsonapi.dumps(files))
@@ -387,11 +432,12 @@ class NotebookHandler(AuthenticatedHandler):
 
     SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
 
-    @web.authenticated
+    @authenticate_unless_readonly
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
         format = self.get_argument('format', default='json')
         last_mod, name, data = nbm.get_notebook(notebook_id, format)
+        
         if format == u'json':
             self.set_header('Content-Type', 'application/json')
             self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)

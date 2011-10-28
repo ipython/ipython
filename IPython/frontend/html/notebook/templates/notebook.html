@@ -40,7 +40,8 @@
     <link rel="stylesheet" href="static/css/base.css" type="text/css" />
     <link rel="stylesheet" href="static/css/notebook.css" type="text/css" />
     <link rel="stylesheet" href="static/css/renderedhtml.css" type="text/css" />
-
+    
+    <meta name="read_only" content="{{read_only}}"/>
 
 </head>
 
@@ -57,7 +58,10 @@
     </span>
     <span id="quick_help_area">
       <button id="quick_help">Quick<u>H</u>elp</button>
-      </span>
+    </span>
+    <span id="login_widget" class="hidden">
+      <button id="login">Login</button>
+    </span>
     <span id="kernel_status">Idle</span>
 </div>
 
@@ -278,6 +282,7 @@
 <script src="static/js/layout.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/savewidget.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/quickhelp.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/loginwidget.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/pager.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/panelsection.js" type="text/javascript" charset="utf-8"></script>
 <script src="static/js/printwidget.js" type="text/javascript" charset="utf-8"></script>

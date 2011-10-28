@@ -14,6 +14,7 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
 
     var Notebook = function (selector) {
+        this.read_only = IPython.read_only;
         this.element = $(selector);
         this.element.scroll();
         this.element.data("notebook", this);
@@ -42,6 +43,7 @@ var IPython = (function (IPython) {
         var that = this;
         var end_space = $('<div class="end_space"></div>').height(150);
         end_space.dblclick(function (e) {
+            if (that.read_only) return;
             var ncells = that.ncells();
             that.insert_code_cell_below(ncells-1);
         });
@@ -54,6 +56,7 @@ var IPython = (function (IPython) {
         var that = this;
         $(document).keydown(function (event) {
             // console.log(event);
+            if (that.read_only) return;
             if (event.which === 38) {
                 var cell = that.selected_cell();
                 if (cell.at_top()) {
@@ -185,11 +188,11 @@ var IPython = (function (IPython) {
         });
 
         $(window).bind('beforeunload', function () {
-            var kill_kernel = $('#kill_kernel').prop('checked');                
+            var kill_kernel = $('#kill_kernel').prop('checked');
             if (kill_kernel) {
                 that.kernel.kill();
             }
-            if (that.dirty) {
+            if (that.dirty && ! that.read_only) {
                 return "You have unsaved changes that will be lost if you leave this page.";
             };
         });
@@ -975,14 +978,17 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.notebook_loaded = function (data, status, xhr) {
+        var allowed = xhr.getResponseHeader('Allow');
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_code_cell_below();
         };
         IPython.save_widget.status_save();
         IPython.save_widget.set_notebook_name(data.metadata.name);
-        this.start_kernel();
         this.dirty = false;
+        if (! this.read_only) {
+            this.start_kernel();
+        }
         // fromJSON always selects the last cell inserted. We need to wait
         // until that is done before scrolling to the top.
         setTimeout(function () {
@@ -990,7 +996,6 @@ var IPython = (function (IPython) {
             IPython.notebook.scroll_to_top();
         }, 50);
     };
-
 
     IPython.Notebook = Notebook;
 
