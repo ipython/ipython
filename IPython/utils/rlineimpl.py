@@ -86,7 +86,7 @@ uses_libedit = False
 
 if have_readline:
     # Official Python docs state that 'libedit' is in the docstring for libedit readline:
-    uses_libedit = 'libedit' in _rl.__doc__
+    uses_libedit = _rl.__doc__ and 'libedit' in _rl.__doc__
     # Note that many non-System Pythons also do not use proper readline,
     # but do not report libedit at all, nor are they linked dynamically against libedit.
     # known culprits of this include: EPD, Fink
