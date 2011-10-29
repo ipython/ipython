@@ -55,7 +55,7 @@ from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
 from IPython.parallel.controller.sqlitedb import SQLiteDB
 
-from IPython.parallel.util import signal_children, split_url, asbytes
+from IPython.parallel.util import signal_children, split_url, asbytes, disambiguate_url
 
 # conditional import of MongoDB backend class
 
@@ -290,13 +290,15 @@ class IPControllerApp(BaseParallelApplication):
         mq = import_item(str(self.mq_class))
         
         hub = self.factory
-        # maybe_inproc = 'inproc://monitor' if self.use_threads else self.monitor_url
+        # disambiguate url, in case of *
+        monitor_url = disambiguate_url(hub.monitor_url)
+        # maybe_inproc = 'inproc://monitor' if self.use_threads else monitor_url
         # IOPub relay (in a Process)
         q = mq(zmq.PUB, zmq.SUB, zmq.PUB, b'N/A',b'iopub')
         q.bind_in(hub.client_info['iopub'])
         q.bind_out(hub.engine_info['iopub'])
         q.setsockopt_out(zmq.SUBSCRIBE, b'')
-        q.connect_mon(hub.monitor_url)
+        q.connect_mon(monitor_url)
         q.daemon=True
         children.append(q)
 
@@ -305,7 +307,7 @@ class IPControllerApp(BaseParallelApplication):
         q.bind_in(hub.client_info['mux'])
         q.setsockopt_in(zmq.IDENTITY, b'mux')
         q.bind_out(hub.engine_info['mux'])
-        q.connect_mon(hub.monitor_url)
+        q.connect_mon(monitor_url)
         q.daemon=True
         children.append(q)
 
@@ -314,7 +316,7 @@ class IPControllerApp(BaseParallelApplication):
         q.bind_in(hub.client_info['control'])
         q.setsockopt_in(zmq.IDENTITY, b'control')
         q.bind_out(hub.engine_info['control'])
-        q.connect_mon(hub.monitor_url)
+        q.connect_mon(monitor_url)
         q.daemon=True
         children.append(q)
         try:
@@ -329,7 +331,7 @@ class IPControllerApp(BaseParallelApplication):
             q.bind_in(hub.client_info['task'][1])
             q.setsockopt_in(zmq.IDENTITY, b'task')
             q.bind_out(hub.engine_info['task'])
-            q.connect_mon(hub.monitor_url)
+            q.connect_mon(monitor_url)
             q.daemon=True
             children.append(q)
         elif scheme == 'none':
@@ -338,7 +340,7 @@ class IPControllerApp(BaseParallelApplication):
         else:
             self.log.info("task::using Python %s Task scheduler"%scheme)
             sargs = (hub.client_info['task'][1], hub.engine_info['task'],
-                                hub.monitor_url, hub.client_info['notification'])
+                                monitor_url, disambiguate_url(hub.client_info['notification']))
             kwargs = dict(logname='scheduler', loglevel=self.log_level,
                             log_url = self.log_url, config=dict(self.config))
             if 'Process' in self.mq_class:

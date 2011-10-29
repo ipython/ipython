@@ -24,8 +24,8 @@ the :command:`ipcluster` command::
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <parallel_overview>` to using IPython for parallel computing.
 
-Creating a ``Client`` instance
-==============================
+Creating a ``DirectView`` instance
+==================================
 
 The first step is to import the IPython :mod:`IPython.parallel`
 module and then create a :class:`.Client` instance:
@@ -117,10 +117,10 @@ two decorators:
 .. sourcecode:: ipython
 
     In [10]: @dview.remote(block=True)
-        ...: def getpid():
-        ...:     import os
-        ...:     return os.getpid()
-        ...: 
+       ....: def getpid():
+       ....:     import os
+       ....:     return os.getpid()
+       ....: 
 
     In [11]: getpid()
     Out[11]: [12345, 12346, 12347, 12348]
@@ -135,8 +135,8 @@ operations and distribute them, reconstructing the result.
     In [13]: A = np.random.random((64,48))
     
     In [14]: @dview.parallel(block=True)
-        ...: def pmul(A,B):
-        ...:     return A*B
+       ....: def pmul(A,B):
+       ....:     return A*B
     
     In [15]: C_local = A*A
     
@@ -183,6 +183,8 @@ dv.track : bool
     This is primarily useful for non-copying sends of numpy arrays that you plan to
     edit in-place.  You need to know when it becomes safe to edit the buffer
     without corrupting the message.
+dv.targets : int, list of ints
+    which targets this view is associated with.
 
 
 Creating a view is simple: index-access on a client creates a :class:`.DirectView`.
@@ -260,10 +262,10 @@ local Python/IPython session:
     
     # define our function
     In [6]: def wait(t):
-       ...:     import time
-       ...:     tic = time.time()
-       ...:     time.sleep(t)
-       ...:     return time.time()-tic
+      ....:     import time
+      ....:     tic = time.time()
+      ....:     time.sleep(t)
+      ....:     return time.time()-tic
     
     # In non-blocking mode
     In [7]: ar = dview.apply_async(wait, 2)
@@ -326,7 +328,7 @@ and blocks until all of the associated results are ready:
 The ``block`` and ``targets`` keyword arguments and attributes
 --------------------------------------------------------------
 
-Most DirectView methods (excluding :meth:`apply` and :meth:`map`) accept ``block`` and
+Most DirectView methods (excluding :meth:`apply`) accept ``block`` and
 ``targets`` as keyword arguments. As we have seen above, these keyword arguments control the
 blocking mode and which engines the command is applied to. The :class:`View` class also has
 :attr:`block` and :attr:`targets` attributes that control the default behavior when the keyword
@@ -362,11 +364,6 @@ The :attr:`block` and :attr:`targets` instance attributes of the
 Parallel magic commands
 -----------------------
 
-.. warning::
-
-    The magics have not been changed to work with the zeromq system. The
-    magics do work, but *do not* print stdin/out like they used to in IPython.kernel.
-
 We provide a few IPython magic commands (``%px``, ``%autopx`` and ``%result``)
 that make it more pleasant to execute Python commands on the engines
 interactively. These are simply shortcuts to :meth:`execute` and
@@ -376,9 +373,6 @@ Python command on the engines specified by the :attr:`targets` attribute of the
 
 .. sourcecode:: ipython
 
-    # load the parallel magic extension:
-    In [21]: %load_ext parallelmagic
-    
     # Create a DirectView for all targets
     In [22]: dv = rc[:]
     
@@ -387,10 +381,10 @@ Python command on the engines specified by the :attr:`targets` attribute of the
 
     In [24]: dv.block=True
 
-    In [25]: import numpy
-
-    In [26]: %px import numpy
-    Parallel execution on engines: [0, 1, 2, 3]
+    # import numpy here and everywhere
+    In [25]: with dv.sync_imports():
+       ....:    import numpy
+    importing numpy on engine(s)
 
     In [27]: %px a = numpy.random.rand(2,2)
     Parallel execution on engines: [0, 1, 2, 3]
@@ -400,10 +394,10 @@ Python command on the engines specified by the :attr:`targets` attribute of the
 
     In [28]: dv['ev']
     Out[28]: [ array([ 1.09522024, -0.09645227]), 
-               array([ 1.21435496, -0.35546712]), 
-               array([ 0.72180653,  0.07133042]), 
-               array([  1.46384341e+00,   1.04353244e-04])
-             ]
+       ....:   array([ 1.21435496, -0.35546712]), 
+       ....:   array([ 0.72180653,  0.07133042]), 
+       ....:   array([  1.46384341,   1.04353244e-04])
+       ....: ]
 
 The ``%result`` magic gets the most recent result, or takes an argument
 specifying the index of the result to be requested. It is simply a shortcut to the
@@ -415,9 +409,9 @@ specifying the index of the result to be requested. It is simply a shortcut to t
     
     In [30]: %result
     Out[30]: [ [ 1.28167017  0.14197338],
-                [-0.14093616  1.27877273],
-                [-0.37023573  1.06779409],
-                [ 0.83664764 -0.25602658] ]
+       ....:    [-0.14093616  1.27877273],
+       ....:    [-0.37023573  1.06779409],
+       ....:    [ 0.83664764 -0.25602658] ]
 
 The ``%autopx`` magic switches to a mode where everything you type is executed
 on the engines given by the :attr:`targets` attribute:
@@ -452,9 +446,9 @@ on the engines given by the :attr:`targets` attribute:
     
     In [37]: dv['ans']
     Out[37]: [ 'Average max eigenvalue is:  10.1387247332',
-               'Average max eigenvalue is:  10.2076902286',
-               'Average max eigenvalue is:  10.1891484655',
-               'Average max eigenvalue is:  10.1158837784',]
+       ....:   'Average max eigenvalue is:  10.2076902286',
+       ....:   'Average max eigenvalue is:  10.1891484655',
+       ....:   'Average max eigenvalue is:  10.1158837784',]
 
 
 Moving Python objects around
@@ -522,7 +516,7 @@ follow that terminology. However, it is important to remember that in
 IPython's :class:`Client` class, :meth:`scatter` is from the
 interactive IPython session to the engines and :meth:`gather` is from the
 engines back to the interactive IPython session. For scatter/gather operations
-between engines, MPI should be used:
+between engines, MPI, pyzmq, or some other direct interconnect should be used.
 
 .. sourcecode:: ipython
 
@@ -568,7 +562,7 @@ created by a DirectView's :meth:`sync_imports` method:
 .. sourcecode:: ipython
 
     In [69]: with dview.sync_imports():
-        ...:     import numpy
+       ....:     import numpy
     importing numpy on engine(s)
 
 Any imports made inside the block will also be performed on the view's engines.
@@ -588,15 +582,15 @@ execution, and will fail with an UnmetDependencyError.
     In [69]: from IPython.parallel import require
 
     In [70]: @require('re'):
-        ...: def findall(pat, x):
-        ...:     # re is guaranteed to be available
-        ...:     return re.findall(pat, x)
+       ....: def findall(pat, x):
+       ....:     # re is guaranteed to be available
+       ....:     return re.findall(pat, x)
           
     # you can also pass modules themselves, that you already have locally:
     In [71]: @require(time):
-        ...: def wait(t):
-        ...:     time.sleep(t)
-        ...:     return t
+       ....: def wait(t):
+       ....:     time.sleep(t)
+       ....:     return t
 
 .. _parallel_exceptions:
 

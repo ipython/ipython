@@ -120,7 +120,7 @@ opening a Windows Command Prompt and typing ``ipython``. This will
 start IPython's interactive shell and you should see something like the
 following screenshot:
 
-.. image:: ipython_shell.*
+.. image:: figs/ipython_shell.*
 
 Starting an IPython cluster
 ===========================
@@ -168,7 +168,7 @@ You should see a number of messages printed to the screen, ending with
 "IPython cluster: started". The result should look something like the following
 screenshot:
 
-.. image:: ipcluster_start.*
+.. image:: figs/ipcluster_start.*
 
 At this point, the controller and two engines are running on your local host.
 This configuration is useful for testing and for situations where you want to
@@ -210,7 +210,7 @@ The output of this command is shown in the screenshot below. Notice how
 :command:`ipcluster` prints out the location of the newly created cluster
 directory.
 
-.. image:: ipcluster_create.*
+.. image:: figs/ipcluster_create.*
 
 Configuring a cluster profile
 -----------------------------
@@ -232,10 +232,8 @@ will need to edit the following attributes in the file
 
     # Set these at the top of the file to tell ipcluster to use the
     # Windows HPC job scheduler.
-    c.IPClusterStart.controller_launcher = \
-        'IPython.parallel.apps.launcher.WindowsHPCControllerLauncher'
-    c.IPClusterEngines.engine_launcher = \
-        'IPython.parallel.apps.launcher.WindowsHPCEngineSetLauncher'
+    c.IPClusterStart.controller_launcher_class = 'WindowsHPCControllerLauncher'
+    c.IPClusterEngines.engine_launcher_class = 'WindowsHPCEngineSetLauncher'
 
     # Set these to the host name of the scheduler (head node) of your cluster.
     c.WindowsHPCControllerLauncher.scheduler = 'HEADNODE'
@@ -279,7 +277,7 @@ must be run again to regenerate the XML job description files. The
 following screenshot shows what the HPC Job Manager interface looks like
 with a running IPython cluster.
 
-.. image:: hpc_job_manager.*
+.. image:: figs/hpc_job_manager.*
 
 Performing a simple interactive parallel computation
 ====================================================
@@ -330,5 +328,5 @@ The :meth:`map` method has the same signature as Python's builtin :func:`map`
 function, but runs the calculation in parallel. More involved examples of using
 :class:`MultiEngineClient` are provided in the examples that follow.
 
-.. image:: mec_simple.*
+.. image:: figs/mec_simple.*
 

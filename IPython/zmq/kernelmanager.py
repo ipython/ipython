@@ -710,6 +710,9 @@ class KernelManager(HasTraits):
     # The addresses for the communication channels.
     connection_file = Unicode('')
     ip = Unicode(LOCALHOST)
+    def _ip_changed(self, name, old, new):
+        if new == '*':
+            self.ip = '0.0.0.0'
     shell_port = Int(0)
     iopub_port = Int(0)
     stdin_port = Int(0)
