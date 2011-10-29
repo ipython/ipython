@@ -10,7 +10,7 @@ for working with Graphs is NetworkX_.  Here, we will walk through a demo mapping
 a nx DAG to task dependencies.
 
 The full script that runs this demo can be found in
-:file:`docs/examples/newparallel/dagdeps.py`.
+:file:`docs/examples/parallel/dagdeps.py`.
 
 Why are DAGs good for task dependencies?
 ----------------------------------------
@@ -30,7 +30,8 @@ A Sample DAG
 
 Here, we have a very simple 5-node DAG:
 
-.. figure:: simpledag.*
+.. figure:: figs/simpledag.*
+    :width: 600px
 
 With NetworkX, an arrow is just a fattened bit on the edge. Here, we can see that task 0
 depends on nothing, and can run immediately. 1 and 2 depend on 0; 3 depends on
@@ -80,7 +81,7 @@ The code to generate the simple DAG:
 For demonstration purposes, we have a function that generates a random DAG with a given
 number of nodes and edges.
 
-.. literalinclude:: ../../examples/newparallel/dagdeps.py
+.. literalinclude:: ../../examples/parallel/dagdeps.py
     :language: python
     :lines: 20-36
 
@@ -117,11 +118,13 @@ on which it depends:
     In [6]: results = {}
     
     In [7]: for node in G.topological_sort():
-       ...:     # get list of AsyncResult objects from nodes
-       ...:     # leading into this one as dependencies
-       ...:     deps = [ results[n] for n in G.predecessors(node) ]
-       ...:     # submit and store AsyncResult object
-       ...:     results[node] = view.apply_with_flags(jobs[node], after=deps, block=False)
+       ...:    # get list of AsyncResult objects from nodes
+       ...:    # leading into this one as dependencies
+       ...:    deps = [ results[n] for n in G.predecessors(node) ]
+       ...:    # submit and store AsyncResult object
+       ...:    with view.temp_flags(after=deps, block=False):
+       ...:         results[node] = view.apply_with_flags(jobs[node])
+
 
 Now that we have submitted all the jobs, we can wait for the results:
 
@@ -137,7 +140,7 @@ These objects store a variety of metadata about each task, including various tim
 We can validate that the dependencies were respected by checking that each task was
 started after all of its predecessors were completed:
 
-.. literalinclude:: ../../examples/newparallel/dagdeps.py
+.. literalinclude:: ../../examples/parallel/dagdeps.py
     :language: python
     :lines: 64-70
 
@@ -155,16 +158,17 @@ will be at the top, and quick, small tasks will be at the bottom.
     In [12]: pos = {}; colors = {}
     
     In [12]: for node in G:
-        ...:    md = results[node].metadata
-        ...:    start = date2num(md.started)
-        ...:    runtime = date2num(md.completed) - start
-        ...:    pos[node] = (start, runtime)
-        ...:    colors[node] = md.engine_id
+       ....:    md = results[node].metadata
+       ....:    start = date2num(md.started)
+       ....:    runtime = date2num(md.completed) - start
+       ....:    pos[node] = (start, runtime)
+       ....:    colors[node] = md.engine_id
     
     In [13]: nx.draw(G, pos, node_list=colors.keys(), node_color=colors.values(),
-        ...:    cmap=gist_rainbow)
+       ....:    cmap=gist_rainbow)
 
-.. figure:: dagdeps.*
+.. figure:: figs/dagdeps.*
+    :width: 600px
 
     Time started on x, runtime on y, and color-coded by engine-id (in this case there
     were four engines). Edges denote dependencies.

@@ -992,7 +992,7 @@ class LoadBalancedView(View):
     @spin_after
     @save_ids
     def map(self, f, *sequences, **kwargs):
-        """view.map(f, *sequences, block=self.block, chunksize=1) => list|AsyncMapResult
+        """view.map(f, *sequences, block=self.block, chunksize=1, ordered=True) => list|AsyncMapResult
 
         Parallel version of builtin `map`, load-balanced by this View.
 
@@ -1009,14 +1009,20 @@ class LoadBalancedView(View):
             function to be mapped
         *sequences: one or more sequences of matching length
             the sequences to be distributed and passed to `f`
-        block : bool
-            whether to wait for the result or not [default self.block]
+        block : bool [default self.block]
+            whether to wait for the result or not
         track : bool
             whether to create a MessageTracker to allow the user to
             safely edit after arrays and buffers during non-copying
             sends.
-        chunksize : int
-            how many elements should be in each task [default 1]
+        chunksize : int [default 1]
+            how many elements should be in each task.
+        ordered : bool [default True]
+            Whether the results should be gathered as they arrive, or enforce
+            the order of submission.
+            
+            Only applies when iterating through AsyncMapResult as results arrive.
+            Has no effect when block=True.
 
         Returns
         -------
@@ -1034,6 +1040,7 @@ class LoadBalancedView(View):
         # default
         block = kwargs.get('block', self.block)
         chunksize = kwargs.get('chunksize', 1)
+        ordered = kwargs.get('ordered', True)
 
         keyset = set(kwargs.keys())
         extra_keys = keyset.difference_update(set(['block', 'chunksize']))
@@ -1042,7 +1049,7 @@ class LoadBalancedView(View):
 
         assert len(sequences) > 0, "must have some sequences to map onto!"
 
-        pf = ParallelFunction(self, f, block=block,  chunksize=chunksize)
+        pf = ParallelFunction(self, f, block=block, chunksize=chunksize, ordered=ordered)
         return pf.map(*sequences)
 
 __all__ = ['LoadBalancedView', 'DirectView']

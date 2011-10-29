@@ -29,8 +29,8 @@ the :command:`ipcluster` command::
 For more detailed information about starting the controller and engines, see
 our :ref:`introduction <parallel_overview>` to using IPython for parallel computing.
 
-Creating a ``Client`` instance
-==============================
+Creating a ``LoadBalancedView`` instance
+========================================
 
 The first step is to import the IPython :mod:`IPython.parallel`
 module and then create a :class:`.Client` instance, and we will also be using
@@ -87,12 +87,12 @@ To load-balance :meth:`map`,simply use a LoadBalancedView:
     
     In [62]: lview.block = True
     
-	In [63]: serial_result = map(lambda x:x**10, range(32))
+    In [63]: serial_result = map(lambda x:x**10, range(32))
 
-	In [64]: parallel_result = lview.map(lambda x:x**10, range(32))
+    In [64]: parallel_result = lview.map(lambda x:x**10, range(32))
 
-	In [65]: serial_result==parallel_result
-	Out[65]: True
+    In [65]: serial_result==parallel_result
+    Out[65]: True
 
 Parallel function decorator
 ---------------------------
@@ -110,6 +110,27 @@ that turns any Python function into a parallel function:
 
     In [11]: f.map(range(32))    # this is done in parallel
     Out[11]: [0.0,10.0,160.0,...]
+
+.. _parallel_taskmap:
+
+Map results are iterable!
+-------------------------
+
+When an AsyncResult object actually maps multiple results (e.g. the :class:`~AsyncMapResult`
+object), you can actually iterate through them, and act on the results as they arrive:
+
+.. literalinclude:: ../../examples/parallel/itermapresult.py
+    :language: python
+    :lines: 9-34
+
+.. seealso::
+
+    When AsyncResult or the AsyncMapResult don't provide what you need (for instance,
+    handling individual results as they arrive, but with metadata), you can always
+    just split the original result's ``msg_ids`` attribute, and handle them as you like.
+    
+    For an example of this, see :file:`docs/examples/parallel/customresult.py`
+    
 
 .. _parallel_dependencies:
 
@@ -157,8 +178,8 @@ you specify are importable:
 .. sourcecode:: ipython
 
     In [10]: @require('numpy', 'zmq')
-        ...: def myfunc():
-        ...:     return dostuff()
+       ....: def myfunc():
+       ....:     return dostuff()
 
 Now, any time you apply :func:`myfunc`, the task will only run on a machine that has
 numpy and pyzmq available, and when :func:`myfunc` is called, numpy and zmq will be imported.
@@ -175,16 +196,16 @@ will be assigned to another engine. If the dependency returns *anything other th
 .. sourcecode:: ipython
 
     In [10]: def platform_specific(plat):
-        ...:    import sys
-        ...:    return sys.platform == plat
+       ....:    import sys
+       ....:    return sys.platform == plat
     
     In [11]: @depend(platform_specific, 'darwin')
-        ...: def mactask():
-        ...:    do_mac_stuff()
+       ....: def mactask():
+       ....:    do_mac_stuff()
 
     In [12]: @depend(platform_specific, 'nt')
-        ...: def wintask():
-        ...:    do_windows_stuff()
+       ....: def wintask():
+       ....:    do_windows_stuff()
     
 In this case, any time you apply ``mytask``, it will only run on an OSX machine.
 ``@depend`` is just like ``apply``, in that it has a ``@depend(f,*args,**kwargs)``
@@ -200,7 +221,7 @@ the :class:`dependent` object that the decorators use:
 .. sourcecode::ipython
 
     In [13]: def mytask(*args):
-        ...:    dostuff()
+       ....:    dostuff()
     
     In [14]: mactask = dependent(mytask, platform_specific, 'darwin')
     # this is the same as decorating the declaration of mytask with @depend
@@ -213,8 +234,8 @@ the :class:`dependent` object that the decorators use:
     
     # is equivalent to:
     In [17]: @depend(g, *dargs, **dkwargs)
-        ...: def t(a,b,c):
-        ...:     # contents of f
+       ....: def t(a,b,c):
+       ....:     # contents of f
 
 Graph Dependencies
 ------------------
@@ -278,10 +299,11 @@ you can skip using Dependency objects, and just pass msg_ids or AsyncResult obje
 
     In [16]: ar2 = lview.apply(f2)
 
-    In [17]: ar3 = lview.apply_with_flags(f3, after=[ar,ar2])
+    In [17]: with lview.temp_flags(after=[ar,ar2]):
+       ....:    ar3 = lview.apply(f3)
 
-    In [17]: ar4 = lview.apply_with_flags(f3, follow=[ar], timeout=2.5)
-
+    In [18]: with lview.temp_flags(follow=[ar], timeout=2.5)
+       ....:    ar4 = lview.apply(f3)
 
 .. seealso::
 
@@ -289,8 +311,6 @@ you can skip using Dependency objects, and just pass msg_ids or AsyncResult obje
     <http://en.wikipedia.org/wiki/Directed_acyclic_graph>`_, or DAG. See :ref:`DAG
     Dependencies <dag_dependencies>` for an example demonstrating how to use map a NetworkX DAG
     onto task dependencies.
-
-
 
 
 Impossible Dependencies
@@ -433,7 +453,7 @@ The following is an overview of how to use these classes together:
 2. Define some functions to be run as tasks
 3. Submit your tasks to using the :meth:`apply` method of your
    :class:`LoadBalancedView` instance.
-4. Use :meth:`Client.get_result` to get the results of the
+4. Use :meth:`.Client.get_result` to get the results of the
    tasks, or use the :meth:`AsyncResult.get` method of the results to wait
    for and then receive the results.
 

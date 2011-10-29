@@ -633,7 +633,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
                 d = el.start(user=user, hostname=host)
                 if i==0:
                     self.log.info("Starting SSHEngineSetLauncher: %r" % el.args)
-                self.launchers[host+str(i)] = el
+                self.launchers[ "%s/%i" % (host,i) ] = el
                 dlist.append(d)
         self.notify_start(dlist)
         return dlist

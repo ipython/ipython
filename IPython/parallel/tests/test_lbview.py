@@ -58,6 +58,44 @@ class TestLoadBalancedView(ClusterTestCase):
         r = self.view.map_sync(f, data)
         self.assertEquals(r, map(f, data))
 
+    def test_map_unordered(self):
+        def f(x):
+            return x**2
+        def slow_f(x):
+            import time
+            time.sleep(0.05*x)
+            return x**2
+        data = range(16,0,-1)
+        reference = map(f, data)
+        
+        amr = self.view.map_async(slow_f, data, ordered=False)
+        self.assertTrue(isinstance(amr, pmod.AsyncMapResult))
+        # check individual elements, retrieved as they come
+        # list comprehension uses __iter__
+        astheycame = [ r for r in amr ]
+        # Ensure that at least one result came out of order:
+        self.assertNotEquals(astheycame, reference, "should not have preserved order")
+        self.assertEquals(sorted(astheycame, reverse=True), reference, "result corrupted")
+
+    def test_map_ordered(self):
+        def f(x):
+            return x**2
+        def slow_f(x):
+            import time
+            time.sleep(0.05*x)
+            return x**2
+        data = range(16,0,-1)
+        reference = map(f, data)
+        
+        amr = self.view.map_async(slow_f, data)
+        self.assertTrue(isinstance(amr, pmod.AsyncMapResult))
+        # check individual elements, retrieved as they come
+        # list(amr) uses __iter__
+        astheycame = list(amr)
+        # Ensure that results came in order
+        self.assertEquals(astheycame, reference)
+        self.assertEquals(amr.result, reference)
+    
     def test_abort(self):
         view = self.view
         ar = self.client[:].apply_async(time.sleep, .5)

@@ -60,6 +60,10 @@ the ``I`` in IPython.  The following are some example usage cases for IPython:
 Architecture overview
 =====================
 
+.. figure:: figs/wideView.png
+    :width: 300px
+
+
 The IPython architecture consists of four components:
 
 * The IPython engine.
@@ -99,7 +103,7 @@ same machine as the Hub, but can be run anywhere from local threads or on remote
 The controller also provides a single point of contact for users who wish to
 utilize the engines connected to the controller. There are different ways of
 working with a controller. In IPython, all of these models are implemented via
-the client's :meth:`.View.apply` method, with various arguments, or
+the :meth:`.View.apply` method, after
 constructing :class:`.View` objects to represent subsets of engines. The two
 primary models for interacting with engines are:
 
@@ -181,6 +185,34 @@ ipcontroller-client.json
     but since the controller may listen on different ports for clients and
     engines, it is stored separately.
 
+ipcontroller-client.json will look something like this, under default localhost
+circumstances:
+
+.. sourcecode:: python
+
+    {
+      "url":"tcp:\/\/127.0.0.1:54424",
+      "exec_key":"a361fe89-92fc-4762-9767-e2f0a05e3130",
+      "ssh":"",
+      "location":"10.19.1.135"
+    }
+
+If, however, you are running the controller on a work node on a cluster, you will likely
+need to use ssh tunnels to connect clients from your laptop to it.  You will also
+probably need to instruct the controller to listen for engines coming from other work nodes
+on the cluster.  An example of ipcontroller-client.json, as created by::
+
+    $> ipcontroller --ip=0.0.0.0 --ssh=login.mycluster.com
+
+
+.. sourcecode:: python
+
+    {
+      "url":"tcp:\/\/*:54424",
+      "exec_key":"a361fe89-92fc-4762-9767-e2f0a05e3130",
+      "ssh":"login.mycluster.com",
+      "location":"10.0.0.2"
+    }
 More details of how these JSON files are used are given below.
 
 A detailed description of the security model and its implementation in IPython
@@ -248,7 +280,7 @@ then you would connect to it with:
 
 .. sourcecode:: ipython
 
-    In [2]: c = Client(sshserver='myhub.example.com')
+    In [2]: c = Client('/path/to/my/ipcontroller-client.json', sshserver='me@myhub.example.com')
 
 Where 'myhub.example.com' is the url or IP address of the machine on
 which the Hub process is running (or another machine that has direct access to the Hub's ports).
