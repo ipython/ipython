@@ -62,6 +62,7 @@ class AsyncResult(object):
         self._tracker = tracker
         self._ready = False
         self._success = None
+        self._metadata = None
         if len(msg_ids) == 1:
             self._single_result = not isinstance(targets, (list, tuple))
         else:
@@ -231,13 +232,13 @@ class AsyncResult(object):
         else:
             raise TypeError("Invalid key type %r, must be 'int','slice', or 'str'"%type(key))
 
-    @check_ready
     def __getattr__(self, key):
         """getattr maps to getitem for convenient attr access to metadata."""
-        if key not in self._metadata[0].keys():
+        try:
+            return self.__getitem__(key)
+        except (error.TimeoutError, KeyError):
             raise AttributeError("%r object has no attribute %r"%(
                     self.__class__.__name__, key))
-        return self.__getitem__(key)
 
     # asynchronous iterator:
     def __iter__(self):

@@ -68,10 +68,11 @@ class TestLoadBalancedView(ClusterTestCase):
         data = range(16,0,-1)
         reference = map(f, data)
         
-        amr = self.view.map_async(f, data, ordered=False)
+        amr = self.view.map_async(slow_f, data, ordered=False)
         self.assertTrue(isinstance(amr, pmod.AsyncMapResult))
-        # check individual elements, retrieved as they come (uses __iter__)
-        astheycame = list(amr)
+        # check individual elements, retrieved as they come
+        # list comprehension uses __iter__
+        astheycame = [ r for r in amr ]
         # Ensure that at least one result came out of order:
         self.assertNotEquals(astheycame, reference, "should not have preserved order")
         self.assertEquals(sorted(astheycame, reverse=True), reference, "result corrupted")
@@ -86,9 +87,10 @@ class TestLoadBalancedView(ClusterTestCase):
         data = range(16,0,-1)
         reference = map(f, data)
         
-        amr = self.view.map_async(f, data)
+        amr = self.view.map_async(slow_f, data)
         self.assertTrue(isinstance(amr, pmod.AsyncMapResult))
-        # check individual elements, retrieved as they come (uses __iter__)
+        # check individual elements, retrieved as they come
+        # list(amr) uses __iter__
         astheycame = list(amr)
         # Ensure that results came in order
         self.assertEquals(astheycame, reference)
