@@ -35,7 +35,7 @@ from IPython.config.loader import (
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core import release
 from IPython.core import usage
-from IPython.core.completer import Completer
+from IPython.core.completer import IPCompleter
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.formatters import PlainTextFormatter
 from IPython.core.application import (
@@ -199,7 +199,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             TerminalInteractiveShell,
             ProfileDir,
             PlainTextFormatter,
-            Completer,
+            IPCompleter,
         ]
 
     subcommands = Dict(dict(

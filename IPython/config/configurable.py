@@ -138,35 +138,58 @@ class Configurable(HasTraits):
                         # shared by all instances, effectively making it a class attribute.
                         setattr(self, k, deepcopy(config_value))
 
+    def update_config(self, config):
+        """Fire the traits events when the config is updated."""
+        # Save a copy of the current config.
+        newconfig = deepcopy(self.config)
+        # Merge the new config into the current one.
+        newconfig._merge(config)
+        # Save the combined config as self.config, which triggers the traits
+        # events.
+        self.config = newconfig
+
     @classmethod
-    def class_get_help(cls):
-        """Get the help string for this class in ReST format."""
+    def class_get_help(cls, inst=None):
+        """Get the help string for this class in ReST format.
+        
+        If `inst` is given, it's current trait values will be used in place of
+        class defaults.
+        """
+        assert inst is None or isinstance(inst, cls)
         cls_traits = cls.class_traits(config=True)
         final_help = []
         final_help.append(u'%s options' % cls.__name__)
         final_help.append(len(final_help[0])*u'-')
         for k,v in cls.class_traits(config=True).iteritems():
-            help = cls.class_get_trait_help(v)
+            help = cls.class_get_trait_help(v, inst)
             final_help.append(help)
         return '\n'.join(final_help)
 
     @classmethod
-    def class_get_trait_help(cls, trait):
-        """Get the help string for a single trait."""
+    def class_get_trait_help(cls, trait, inst=None):
+        """Get the help string for a single trait.
+        
+        If `inst` is given, it's current trait values will be used in place of
+        the class default.
+        """
+        assert inst is None or isinstance(inst, cls)
         lines = []
         header = "--%s.%s=<%s>" % (cls.__name__, trait.name, trait.__class__.__name__)
         lines.append(header)
-        try:
-            dvr = repr(trait.get_default_value())
-        except Exception:
-            dvr = None # ignore defaults we can't construct
-        if dvr is not None:
-            if len(dvr) > 64:
-                dvr = dvr[:61]+'...'
-            lines.append(indent('Default: %s'%dvr, 4))
+        if inst is not None:
+            lines.append(indent('Current: %r' % getattr(inst, trait.name), 4))
+        else:
+            try:
+                dvr = repr(trait.get_default_value())
+            except Exception:
+                dvr = None # ignore defaults we can't construct
+            if dvr is not None:
+                if len(dvr) > 64:
+                    dvr = dvr[:61]+'...'
+                lines.append(indent('Default: %s' % dvr, 4))
         if 'Enum' in trait.__class__.__name__:
             # include Enum choices
-            lines.append(indent('Choices: %r'%(trait.values,)))
+            lines.append(indent('Choices: %r' % (trait.values,)))
 
         help = trait.get_metadata('help')
         if help is not None:
@@ -175,9 +198,9 @@ class Configurable(HasTraits):
         return '\n'.join(lines)
 
     @classmethod
-    def class_print_help(cls):
+    def class_print_help(cls, inst=None):
         """Get the help string for a single trait and print it."""
-        print cls.class_get_help()
+        print cls.class_get_help(inst)
 
     @classmethod
     def class_config_section(cls):

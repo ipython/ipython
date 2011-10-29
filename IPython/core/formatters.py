@@ -44,7 +44,7 @@ class DisplayFormatter(Configurable):
 
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
-    formatters = Dict(config=True)
+    formatters = Dict()
     def _formatters_default(self):
         """Activate the default formatters."""
         formatter_classes = [

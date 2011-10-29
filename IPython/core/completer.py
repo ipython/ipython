@@ -85,7 +85,7 @@ from IPython.utils import generics
 from IPython.utils import io
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
-from IPython.utils.traitlets import CBool
+from IPython.utils.traitlets import CBool, Enum
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -276,8 +276,9 @@ class Completer(Configurable):
         but can be unsafe because the code is actually evaluated on TAB.
         """
     )
+    
 
-    def __init__(self, namespace=None, global_namespace=None, config=None):
+    def __init__(self, namespace=None, global_namespace=None, config=None, **kwargs):
         """Create a new completer for the command line.
 
         Completer(namespace=ns,global_namespace=ns2) -> completer instance.
@@ -311,7 +312,7 @@ class Completer(Configurable):
         else:
             self.global_namespace = global_namespace
 
-        super(Completer, self).__init__(config=config)
+        super(Completer, self).__init__(config=config, **kwargs)
 
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
@@ -417,10 +418,30 @@ class IPCompleter(Completer):
 
         if self.readline:
             self.readline.set_completer_delims(self.splitter.get_delims())
+    
+    merge_completions = CBool(True, config=True,
+        help="""Whether to merge completion results into a single list
+        
+        If False, only the completion results from the first non-empty
+        completer will be returned.
+        """
+    )
+    omit__names = Enum((0,1,2), default_value=2, config=True,
+        help="""Instruct the completer to omit private method names
+        
+        Specifically, when completing on ``object.<tab>``.
+        
+        When 2 [default]: all names that start with '_' will be excluded.
+        
+        When 1: all 'magic' names (``__foo__``) will be excluded.
+        
+        When 0: nothing will be excluded.
+        """
+    )
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
-                 omit__names=True, alias_table=None, use_readline=True,
-                 config=None):
+                 alias_table=None, use_readline=True,
+                 config=None, **kwargs):
         """IPCompleter() -> completer
 
         Return a completer object suitable for use by the readline library
@@ -437,10 +458,6 @@ class IPCompleter(Completer):
         - global_namespace: secondary optional dict for completions, to
         handle cases (such as IPython embedded inside functions) where
         both Python scopes are visible.
-
-        - The optional omit__names parameter sets the completer to omit the
-        'magic' names (__magicname__) for python objects unless the text
-        to be completed explicitly starts with one or more underscores.
 
         - If alias_table is supplied, it should be a dictionary of aliases
         to complete.
@@ -463,12 +480,10 @@ class IPCompleter(Completer):
 
         # _greedy_changed() depends on splitter and readline being defined:
         Completer.__init__(self, namespace=namespace, global_namespace=global_namespace,
-                            config=config)
+                            config=config, **kwargs)
 
         # List where completion matches will be stored
         self.matches = []
-        self.omit__names = omit__names
-        self.merge_completions = shell.readline_merge_completions
         self.shell = shell.shell
         if alias_table is None:
             alias_table = {}

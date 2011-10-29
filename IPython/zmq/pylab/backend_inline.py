@@ -18,12 +18,23 @@ from IPython.config.configurable import SingletonConfigurable
 from IPython.core.displaypub import publish_display_data
 from IPython.lib.pylabtools import print_figure, select_figure_format
 from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, CBool
+from IPython.utils.warn import warn
+
 #-----------------------------------------------------------------------------
 # Configurable for inline backend options
 #-----------------------------------------------------------------------------
-
+# inherit from InlineBackendConfig for deprecation purposes
 class InlineBackendConfig(SingletonConfigurable):
+    pass
+
+class InlineBackend(InlineBackendConfig):
     """An object to store configuration of the inline backend."""
+
+    def _config_changed(self, name, old, new):
+        # warn on change of renamed config section
+        if new.InlineBackendConfig != old.InlineBackendConfig:
+            warn("InlineBackendConfig has been renamed to InlineBackend")
+        super(InlineBackend, self)._config_changed(name, old, new)
 
     # The typical default figure size is too large for inline use,
     # so we shrink the figure size to 6x4, and tweak fonts to
@@ -83,7 +94,7 @@ def show(close=None):
       removed from the internal list of figures.
     """
     if close is None:
-        close = InlineBackendConfig.instance().close_figures
+        close = InlineBackend.instance().close_figures
     for figure_manager in Gcf.get_all_fig_managers():
         send_figure(figure_manager.canvas.figure)
     if close:
@@ -129,7 +140,7 @@ def flush_figures():
     if not show._draw_called:
         return
     
-    if InlineBackendConfig.instance().close_figures:
+    if InlineBackend.instance().close_figures:
         # ignore the tracking, just draw and close all figures
         return show(True)
     
@@ -149,7 +160,7 @@ def send_figure(fig):
     # big blank spaces in the qt console
     if not fig.axes:
         return
-    fmt = InlineBackendConfig.instance().figure_format
+    fmt = InlineBackend.instance().figure_format
     data = print_figure(fig, fmt)
     mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
     mime = mimetypes[fmt]
