@@ -53,6 +53,15 @@ mc_help=u"""MyConfigurable options
     Default: 1.0
     The integer b."""
 
+mc_help_inst=u"""MyConfigurable options
+----------------------
+--MyConfigurable.a=<Int>
+    Current: 5
+    The integer a.
+--MyConfigurable.b=<Float>
+    Current: 4.0
+    The integer b."""
+
 class Foo(Configurable):
     a = Int(0, config=True, help="The integer a.")
     b = Unicode('nope', config=True)
@@ -138,6 +147,10 @@ class TestConfigurable(TestCase):
 
     def test_help(self):
         self.assertEquals(MyConfigurable.class_get_help(), mc_help)
+
+    def test_help_inst(self):
+        inst = MyConfigurable(a=5, b=4)
+        self.assertEquals(MyConfigurable.class_get_help(inst), mc_help_inst)
 
 
 class TestSingletonConfigurable(TestCase):

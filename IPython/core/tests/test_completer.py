@@ -13,6 +13,7 @@ import unittest
 import nose.tools as nt
 
 # our own packages
+from IPython.config.loader import Config
 from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
@@ -205,3 +206,27 @@ def test_greedy_completions():
     _,c = ip.complete('.',line='a[0].')
     nt.assert_true('a[0].real' in c, "Should have completed on a[0]: %s"%c)
 
+def test_omit__names():
+    # also happens to test IPCompleter as a configurable
+    ip = get_ipython()
+    ip._hidden_attr = 1
+    c = ip.Completer
+    ip.ex('ip=get_ipython()')
+    cfg = Config()
+    cfg.IPCompleter.omit__names = 0
+    c.update_config(cfg)
+    s,matches = c.complete('ip.')
+    nt.assert_true('ip.__str__' in matches)
+    nt.assert_true('ip._hidden_attr' in matches)
+    cfg.IPCompleter.omit__names = 1
+    c.update_config(cfg)
+    s,matches = c.complete('ip.')
+    nt.assert_false('ip.__str__' in matches)
+    nt.assert_true('ip._hidden_attr' in matches)
+    cfg.IPCompleter.omit__names = 2
+    c.update_config(cfg)
+    s,matches = c.complete('ip.')
+    nt.assert_false('ip.__str__' in matches)
+    nt.assert_false('ip._hidden_attr' in matches)
+    del ip._hidden_attr
+    
