@@ -8,12 +8,15 @@
 # stdlib
 import os
 import sys
+import tempfile
 import unittest
 from datetime import datetime
+
 # third party
 import nose.tools as nt
 
 # our own packages
+from IPython.config.loader import Config
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
 from IPython.utils import py3compat
@@ -122,3 +125,10 @@ def test_timestamp_type():
     ip = get_ipython()
     info = ip.history_manager.get_session_info()
     nt.assert_true(isinstance(info[1], datetime))
+
+def test_hist_file_config():
+    cfg = Config()
+    cfg.HistoryManager.hist_file = tempfile.mktemp()
+    hm = HistoryManager(shell=get_ipython(), config=cfg)
+    nt.assert_equals(hm.hist_file, cfg.HistoryManager.hist_file)
+

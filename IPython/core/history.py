@@ -65,8 +65,23 @@ class HistoryAccessor(Configurable):
     
     This is intended for use by standalone history tools. IPython shells use
     HistoryManager, below, which is a subclass of this."""
+
     # String holding the path to the history file
-    hist_file = Unicode(config=True)
+    hist_file = Unicode(config=True,
+        help="""Path to file to use for SQLite history database.
+        
+        By default, IPython will put the history database in the IPython profile
+        directory.  If you would rather share one history among profiles,
+        you ca set this value in each, so that they are consistent.
+        
+        Due to an issue with fcntl, SQLite is known to misbehave on some NFS mounts.
+        If you see IPython hanging, try setting this to something on a local disk,
+        e.g::
+        
+            ipython --HistoryManager.hist_file=/tmp/ipython_hist.sqlite
+        
+        """)
+
 
     # The SQLite database
     if sqlite3:
@@ -74,7 +89,7 @@ class HistoryAccessor(Configurable):
     else:
         db = Instance(DummyDB)
     
-    def __init__(self, profile='default', hist_file=u'', shell=None, config=None, **traits):
+    def __init__(self, profile='default', hist_file=u'', config=None, **traits):
         """Create a new history accessor.
         
         Parameters
@@ -84,15 +99,17 @@ class HistoryAccessor(Configurable):
         hist_file : str
           Path to an SQLite history database stored by IPython. If specified,
           hist_file overrides profile.
-        shell :
-          InteractiveShell object, for use by HistoryManager subclass
         config :
           Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.
-        super(HistoryAccessor, self).__init__(shell=shell, config=config,
-                                              hist_file=hist_file, **traits)
-
+        super(HistoryAccessor, self).__init__(config=config, **traits)
+        # defer setting hist_file from kwarg until after init,
+        # otherwise the default kwarg value would clobber any value
+        # set by config
+        if hist_file:
+            self.hist_file = hist_file
+        
         if self.hist_file == u'':
             # No one has set the hist_file, yet.
             self.hist_file = self._get_hist_file_name(profile)
@@ -106,8 +123,9 @@ class HistoryAccessor(Configurable):
             self.init_db()
         except sqlite3.DatabaseError:
             if os.path.isfile(self.hist_file):
-                # Try to move the file out of the way.
-                newpath = os.path.join(self.shell.profile_dir.location, "hist-corrupt.sqlite")
+                # Try to move the file out of the way
+                base,ext = os.path.splitext(self.hist_file)
+                newpath = base + '-corrupt' + ext
                 os.rename(self.hist_file, newpath)
                 print("ERROR! History file wasn't a valid SQLite database.",
                 "It was moved to %s" % newpath, "and a new file created.")
