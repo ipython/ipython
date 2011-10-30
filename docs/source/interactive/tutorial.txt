@@ -142,4 +142,19 @@ Profiles allow you to use IPython for different tasks, keeping separate config
 files and history for each one. More details in :ref:`the profiles section
 <profiles>`.
 
+Startup Files
+-------------
+
+If you want some code to be run at the beginning of every IPython session, the
+easiest way is to add Python (.py) or IPython (.ipy) scripts to your
+:file:`<profile>/startup` directory. Files in this directory will always be executed
+as soon as the IPython shell is constructed, and before any other code or scripts
+you have specified. If you have multiple files in the startup directory, they will
+be run in lexicographical order, so you can control the ordering by adding a '00-'
+prefix.
+
+.. note::
+
+    Automatic startup files are new in IPython 0.12. Use the
+    InteractiveShellApp.exec_files configurable for similar behavior in 0.11.
 
