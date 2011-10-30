@@ -34,7 +34,56 @@ try:
 except ImportError:
     publish_string = None
 
+#-----------------------------------------------------------------------------
+# Monkeypatch for Tornado 2.1.1 - Remove when no longer necessary!
+#-----------------------------------------------------------------------------
 
+# Google Chrome, as of release 16, changed its websocket protocol number.  The
+# parts tornado cares about haven't really changed, so it's OK to continue
+# accepting Chrome connections, but as of Tornado 2.1.1 (the currently released
+# version as of Oct 30/2011) the version check fails, see the issue report:
+
+# https://github.com/facebook/tornado/issues/385
+
+# This issue has been fixed in Tornado post 2.1.1:
+
+# https://github.com/facebook/tornado/commit/84d7b458f956727c3b0d6710
+
+# Here we manually apply the same patch as above so that users of IPython can
+# continue to work with an officially released Tornado.  We make the
+# monkeypatch version check as narrow as possible to limit its effects; once
+# Tornado 2.1.1 is no longer found in the wild we'll delete this code.
+
+import tornado
+
+if tornado.version == '2.1.1':
+
+    def _execute(self, transforms, *args, **kwargs):
+        from tornado.websocket import WebSocketProtocol8, WebSocketProtocol76
+        
+        self.open_args = args
+        self.open_kwargs = kwargs
+
+        # The difference between version 8 and 13 is that in 8 the
+        # client sends a "Sec-Websocket-Origin" header and in 13 it's
+        # simply "Origin".
+        if self.request.headers.get("Sec-WebSocket-Version") in ("7", "8", "13"):
+            self.ws_connection = WebSocketProtocol8(self)
+            self.ws_connection.accept_connection()
+            
+        elif self.request.headers.get("Sec-WebSocket-Version"):
+            self.stream.write(tornado.escape.utf8(
+                "HTTP/1.1 426 Upgrade Required\r\n"
+                "Sec-WebSocket-Version: 8\r\n\r\n"))
+            self.stream.close()
+            
+        else:
+            self.ws_connection = WebSocketProtocol76(self)
+            self.ws_connection.accept_connection()
+
+    websocket.WebSocketHandler._execute = _execute
+    del _execute
+    
 #-----------------------------------------------------------------------------
 # Decorator for disabling read-only handlers
 #-----------------------------------------------------------------------------
