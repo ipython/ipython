@@ -35,7 +35,7 @@ except ImportError:
     publish_string = None
 
 #-----------------------------------------------------------------------------
-# Monkeypatch for Tornado 2.1.1 - Remove when no longer necessary!
+# Monkeypatch for Tornado <= 2.1.1 - Remove when no longer necessary!
 #-----------------------------------------------------------------------------
 
 # Google Chrome, as of release 16, changed its websocket protocol number.  The
@@ -56,7 +56,7 @@ except ImportError:
 
 import tornado
 
-if tornado.version == '2.1.1':
+if tornado.version_info <= (2,1,1):
 
     def _execute(self, transforms, *args, **kwargs):
         from tornado.websocket import WebSocketProtocol8, WebSocketProtocol76
