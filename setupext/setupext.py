@@ -136,13 +136,25 @@ def check_for_pyzmq():
     try:
         import zmq
     except ImportError:
-        print_status('pyzmq', "no (required for qtconsole and parallel computing capabilities)")
+        print_status('pyzmq', "no (required for qtconsole, notebook, and parallel computing capabilities)")
         return False
     else:
+        # pyzmq 2.1.10 adds pyzmq_version_info funtion for returning
+        # version as a tuple
+        if hasattr(zmq, 'pyzmq_version_info'):
+            if zmq.pyzmq_version_info() >= (2,1,4):
+                print_status("pyzmq", zmq.__version__)
+                return True
+            else:
+                # this branch can never occur, at least until we update our
+                # pyzmq dependency beyond 2.1.10
+                return False
+        # this is necessarily earlier than 2.1.10, so string comparison is
+        # okay
         if zmq.__version__ < '2.1.4':
             print_status('pyzmq', "no (have %s, but require >= 2.1.4 for"
             " qtconsole and parallel computing capabilities)"%zmq.__version__)
-
+            return False
         else:
             print_status("pyzmq", zmq.__version__)
             return True
