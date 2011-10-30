@@ -544,10 +544,35 @@ class MainWindow(QtGui.QMainWindow):
 
         self.kernel_menu.addSeparator()
 
+    def update_all_magic_menu(self):
+        # first define a callback which will get the list of all magic and put it in the menu.
+        def populate_all_magic_menu(val=None):
+            alm_magic_menu = self.magic_menu.addMenu("&All Magics...")
+            def make_dynamic_magic(i):
+                    def inner_dynamic_magic():
+                        self.active_frontend.execute(i)
+                    inner_dynamic_magic.__name__ = "dynamics_magic_s"
+                    return inner_dynamic_magic
+
+            for magic in eval(val):
+                pmagic = '%s%s'%('%',magic)
+                xaction = QtGui.QAction(pmagic,
+                    self,
+                    triggered=make_dynamic_magic(pmagic)
+                    )
+                alm_magic_menu.addAction(xaction)
+        self.active_frontend._silent_exec_callback('get_ipython().lsmagic()',populate_all_magic_menu)
+
     def init_magic_menu(self):
         self.magic_menu = self.menuBar().addMenu("&Magic")
         self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
         
+        self.pop = QtGui.QAction("&Populate All Magic Menu",
+            self,
+            statusTip="Clear all varible from workspace",
+            triggered=self.update_all_magic_menu)
+        self.add_menu_action(self.magic_menu, self.pop)
+
         self.reset_action = QtGui.QAction("&Reset",
             self,
             statusTip="Clear all varible from workspace",
