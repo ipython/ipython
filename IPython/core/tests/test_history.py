@@ -128,7 +128,11 @@ def test_timestamp_type():
 
 def test_hist_file_config():
     cfg = Config()
-    cfg.HistoryManager.hist_file = tempfile.mktemp()
-    hm = HistoryManager(shell=get_ipython(), config=cfg)
-    nt.assert_equals(hm.hist_file, cfg.HistoryManager.hist_file)
+    tfile = tempfile.NamedTemporaryFile(delete=False)
+    cfg.HistoryManager.hist_file = tfile.name
+    try:
+        hm = HistoryManager(shell=get_ipython(), config=cfg)
+        nt.assert_equals(hm.hist_file, cfg.HistoryManager.hist_file)
+    finally:
+        os.remove(tfile.name)
 
