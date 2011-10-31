@@ -27,7 +27,7 @@ var IPython = (function (IPython) {
         } else if (typeof(MozWebSocket) !== 'undefined') {
             this.WebSocket = MozWebSocket
         } else {
-            alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox 6. Firefox 4 and 5 are also supported by you have to enable WebSockets in about:config.');
+            alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox ≥ 6. Firefox 4 and 5 are also supported by you have to enable WebSockets in about:config.');
         };
     };
 
@@ -89,6 +89,7 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype.start_channels = function () {
+        var that = this;
         this.stop_channels();
         var ws_url = this.ws_url + this.kernel_url;
         console.log("Starting WS:", ws_url);
@@ -97,17 +98,50 @@ var IPython = (function (IPython) {
         send_cookie = function(){
             this.send(document.cookie);
         }
+        var already_called_onclose = false; // only alert once
+        ws_closed_early = function(evt){
+            if (already_called_onclose){
+                return;
+            }
+            already_called_onclose = true;
+            if ( ! evt.wasClean ){
+                alert("Websocket connection to " + ws_url + " could not be established." +
+                " You will not be able to run code." +
+                " Your browser may not be compatible with the websocket version in the server," +
+                " or if the url does not look right, there could be an error in the" +
+                " server's configuration.");
+            }
+        }
+        ws_closed_late = function(evt){
+            if (already_called_onclose){
+                return;
+            }
+            already_called_onclose = true;
+            if ( ! evt.wasClean ){
+                alert("Websocket connection has closed unexpectedly." +
+                " The kernel will no longer be responsive.");
+            }
+        }
         this.shell_channel.onopen = send_cookie;
+        this.shell_channel.onclose = ws_closed_early;
         this.iopub_channel.onopen = send_cookie;
+        this.iopub_channel.onclose = ws_closed_early;
+        // switch from early-close to late-close message after 1s
+        setTimeout(function(){
+            that.shell_channel.onclose = ws_closed_late;
+            that.iopub_channel.onclose = ws_closed_late;
+        }, 1000);
     };
 
 
     Kernel.prototype.stop_channels = function () {
         if (this.shell_channel !== null) {
+            this.shell_channel.onclose = function (evt) {null};
             this.shell_channel.close();
             this.shell_channel = null;
         };
         if (this.iopub_channel !== null) {
+            this.iopub_channel.onclose = function (evt) {null};
             this.iopub_channel.close();
             this.iopub_channel = null;
         };
