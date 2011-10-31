@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-IPython (0.11) extension for physical quantity input.
+IPython extension for physical quantity input.
 
 https://bitbucket.org/birkenfeld/ipython-physics/
 
