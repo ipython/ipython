@@ -2,6 +2,8 @@
 """
 IPython (0.11) extension for physical quantity input.
 
+https://bitbucket.org/birkenfeld/ipython-physics/
+
 Author: Georg Brandl <georg@python.org>.
 This file has been placed in the public domain.
 
@@ -157,34 +159,44 @@ q_transformer = QTransformer()
 _addUnit('furlong', '201.168*m', 'furlongs')
 _addUnit('fortnight', '1209600*s', '14 days')
 
+
+hpl = Q('6.62606957e-34 J*s')
+newvars = {'Q': Q,
+
+    # setter for custom precision
+    'setprec': lambda p: global_precision.__setitem__(0, p),
+    
+    # Some well-used constants
+    'c0': Q('299792458. m/s'),
+    'mu0': Q('4.e-7 pi*N/A**2').base,
+    'eps0': Q('1 1/mu0/c**2').base,
+    'Grav': Q('6.67259e-11 m**3/kg/s**2'),
+    'hpl': hpl,
+    'hbar': hpl/(2*pi),
+    'e0': Q('1.60217733e-19 C'),
+    'me': Q('9.1093897e-31 kg'),
+    'mp': Q('1.6726231e-27 kg'),
+    'mn': Q('1.6749274e-27 kg'),
+    'NA': Q('6.0221367e23 1/mol'),
+    'kb': Q('1.380658e-23 J/K'),
+}
+
 def load_ipython_extension(ip):
     # set up simplified quantity input
-    ip.user_ns['Q'] = Q
     ip.prefilter_manager.register_transformer(q_transformer)
-    # setter for custom precision
-    ip.user_ns['setprec'] = lambda p: global_precision.__setitem__(0, p)
+    
     # quick evaluator
     ip.define_magic('tbl', tbl_magic)
 
-    # active true float division
+    # activate true float division
     exec ip.compile('from __future__ import division', '<input>', 'single') \
         in ip.user_ns
 
-    # add some well used constants
-    ip.user_ns['c0'] = Q('299792458. m/s')
-    ip.user_ns['mu0'] = Q('4.e-7 pi*N/A**2').base
-    ip.user_ns['eps0'] = Q('1 1/mu0/c**2').base
-    ip.user_ns['Grav'] = Q('6.67259e-11 m**3/kg/s**2')
-    ip.user_ns['hpl'] = Q('6.62606957e-34 J*s')
-    ip.user_ns['hbar'] = ip.user_ns['hpl']/(2*pi)
-    ip.user_ns['e0'] = Q('1.60217733e-19 C')
-    ip.user_ns['me'] = Q('9.1093897e-31 kg')
-    ip.user_ns['mp'] = Q('1.6726231e-27 kg')
-    ip.user_ns['mn'] = Q('1.6749274e-27 kg')
-    ip.user_ns['NA'] = Q('6.0221367e23 1/mol')
-    ip.user_ns['kb'] = Q('1.380658e-23 J/K')
+    # Push our variables into the user namespace
+    ip.push(newvars)
 
     print 'Unit calculation and physics extensions activated.'
 
 def unload_ipython_extension(ip):
     ip.prefilter_manager.unregister_transformer(q_transformer)
+    ip.drop_by_id(newvars)
