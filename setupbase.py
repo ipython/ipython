@@ -132,7 +132,7 @@ def find_package_data():
             static_data.append(os.path.join(parent, f))
 
     package_data = {
-        'IPython.config.profile' : ['README', '*/*.py'],
+        'IPython.config.profile' : ['README*', '*/*.py'],
         'IPython.testing' : ['*.txt'],
         'IPython.frontend.html.notebook' : ['templates/*'] + static_data,
         'IPython.frontend.qt.console' : ['resources/icon/*.svg'],

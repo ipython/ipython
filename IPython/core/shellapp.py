@@ -22,6 +22,7 @@ Authors
 
 from __future__ import absolute_import
 
+import glob
 import os
 import sys
 
@@ -175,6 +176,7 @@ class InteractiveShellApp(Configurable):
 
     def init_code(self):
         """run the pre-flight code, specified via exec_lines"""
+        self._run_startup_files()
         self._run_exec_lines()
         self._run_exec_files()
         self._run_cmd_line_code()
@@ -229,6 +231,22 @@ class InteractiveShellApp(Configurable):
                         del self.shell.user_ns['__file__']
         finally:
             sys.argv = save_argv
+
+    def _run_startup_files(self):
+        """Run files from profile startup directory"""
+        startup_dir = self.profile_dir.startup_dir
+        startup_files = glob.glob(os.path.join(startup_dir, '*.py'))
+        startup_files += glob.glob(os.path.join(startup_dir, '*.ipy'))
+        if not startup_files:
+            return
+        
+        self.log.debug("Running startup files from %s...", startup_dir)
+        try:
+            for fname in sorted(startup_files):
+                self._exec_file(fname)
+        except:
+            self.log.warn("Unknown error in handling startup files:")
+            self.shell.showtraceback()
 
     def _run_exec_files(self):
         """Run files from IPythonApp.exec_files"""

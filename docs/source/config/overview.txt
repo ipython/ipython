@@ -358,6 +358,35 @@ you create profiles with the name of one of our shipped profiles, these config
 files will be copied over instead of starting with the automatically generated
 config files.
 
+Security Files
+--------------
+
+If you are using the notebook, qtconsole, or parallel code, IPython stores
+connection information in small JSON files in the active profile's security
+directory. This directory is made private, so only you can see the files inside. If
+you need to move connection files around to other computers, this is where they will
+be. If you want your code to be able to open security files by name, we have a
+convenience function :func:`IPython.utils.path.get_security_file`, which will return
+the absolute path to a security file from its filename and [optionally] profile
+name.
+
+Startup Files
+-------------
+
+If you want some code to be run at the beginning of every IPython session with a
+particular profile, the easiest way is to add Python (.py) or IPython (.ipy) scripts
+to your :file:`<profile>/startup` directory. Files in this directory will always be
+executed as soon as the IPython shell is constructed, and before any other code or
+scripts you have specified. If you have multiple files in the startup directory,
+they will be run in lexicographical order, so you can control the ordering by adding
+a '00-' prefix.
+
+.. note::
+
+    Automatic startup files are new in IPython 0.12. Use the
+    InteractiveShellApp.exec_files configurable for similar behavior in 0.11.
+
+
 .. _commandline:
 
 Command-line arguments

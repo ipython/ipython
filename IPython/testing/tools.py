@@ -259,7 +259,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
 
     import nose.tools as nt
 
-    out, err = ipexec(fname)
+    out, err = ipexec(fname, options)
     #print 'OUT', out  # dbg
     #print 'ERR', err  # dbg
     # If there are any errors, we must check those befor stdout, as they may be
