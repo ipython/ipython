@@ -83,6 +83,7 @@ subst_re = re.compile(r'\?' + name)
 
 def replace_inline(match):
     return 'Q(\'' + match.group(1).replace('^', '**') + '\')'
+
 def replace_slash(match):
     expr = match.group(1)
     unit = str(match.group(2))  # PhysicalQuantity doesn't like Unicode strings
@@ -91,11 +92,14 @@ def replace_slash(match):
     elif not expr:
         expr = '_'
     return '(' + expr + ').inUnitsOf(%r)' % unit
+
 def replace_conv(match):
     return 'Q(\'' + match.group(1).replace('^', '**') + '\').inUnitsOf(%r)' % \
         str(match.group(4))
+
 def replace_assign(match):
     return '%s = Q(\'%s\')' % (match.group(1), match.group(2).replace('^', '**'))
+
 
 class QTransformer(object):
     # XXX: inheriting from PrefilterTransformer as documented gives TypeErrors,
@@ -112,6 +116,7 @@ class QTransformer(object):
 def Q(v):
     try: return PhysicalQuantity(v)
     except NameError: raise ValueError('invalid unit in %r' % v)
+
 
 def tbl_magic(shell, arg):
     """tbl <expr>: Evaluate <expr> for a range of parameters, given
@@ -141,6 +146,7 @@ def tbl_magic(shell, arg):
         if unit:
             expr = '(' + expr + ').inUnitsOf("' + unit + '")'
         shell.run_cell(expr, False)
+
 
 # monkey-patch a little
 global_precision = [8]
