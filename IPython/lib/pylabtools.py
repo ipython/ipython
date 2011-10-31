@@ -100,9 +100,7 @@ def print_figure(fig, fmt='png'):
     fig.set_edgecolor('white')
     try:
         bytes_io = BytesIO()
-        # use 72 dpi to match QTConsole's dpi
-        fig.canvas.print_figure(bytes_io, format=fmt, dpi=72,
-                                bbox_inches='tight')
+        fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight')
         data = bytes_io.getvalue()
     finally:
         fig.set_facecolor(fc)
