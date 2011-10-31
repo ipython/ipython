@@ -139,7 +139,15 @@ class AuthenticatedHandler(web.RequestHandler):
                 return True
         else:
             return False
+    
+    @property
+    def ws_url(self):
+        """websocket url matching the current request
         
+        turns http[s]://host[:port]/foo/bar into
+                ws[s]://host[:port]/foo/bar
+        """
+        return self.request.headers.get('Origin').replace('http', 'ws', 1)
 
 
 class ProjectDashboardHandler(AuthenticatedHandler):
@@ -221,8 +229,7 @@ class MainKernelHandler(AuthenticatedHandler):
         km = self.application.kernel_manager
         notebook_id = self.get_argument('notebook', default=None)
         kernel_id = km.start_kernel(notebook_id)
-        ws_url = self.application.ipython_app.get_ws_url()
-        data = {'ws_url':ws_url,'kernel_id':kernel_id}
+        data = {'ws_url':self.ws_url,'kernel_id':kernel_id}
         self.set_header('Location', '/'+kernel_id)
         self.finish(jsonapi.dumps(data))
 
@@ -249,8 +256,7 @@ class KernelActionHandler(AuthenticatedHandler):
             self.set_status(204)
         if action == 'restart':
             new_kernel_id = km.restart_kernel(kernel_id)
-            ws_url = self.application.ipython_app.get_ws_url()
-            data = {'ws_url':ws_url,'kernel_id':new_kernel_id}
+            data = {'ws_url':self.ws_url,'kernel_id':new_kernel_id}
             self.set_header('Location', '/'+new_kernel_id)
             self.write(jsonapi.dumps(data))
         self.finish()
