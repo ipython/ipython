@@ -233,6 +233,11 @@ class TerminalInteractiveShell(InteractiveShell):
         """Store multiple lines as a single entry in history"""
         if self.multiline_history and self.has_readline and source_raw.rstrip():
             hlen = self.readline.get_current_history_length()
+
+            # nothing changed do nothing, e.g. when rl removes consecutive dups
+            if self.hlen_before_cell == hlen:
+                return
+
             for i in range(hlen - self.hlen_before_cell):
                 self.readline.remove_history_item(hlen - i - 1)
             stdin_encoding = sys.stdin.encoding or "utf-8"

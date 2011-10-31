@@ -73,12 +73,13 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         #start cell
         ip.hlen_before_cell = ip.readline.get_current_history_length()
+        # nothing added to rl history, should do nothing
         ip._replace_rlhist_multiline(u'sourc€\nsource2')
 
         self.assertEquals(ip.readline.get_current_history_length(),
                           ip.hlen_before_cell)
-        hist = self.rl_hist_entries(ip.readline, 3)
-        self.assertEquals(hist, ghist + ['sourc€\nsource2'])
+        hist = self.rl_hist_entries(ip.readline, 2)
+        self.assertEquals(hist, ghist)
 
 
     @skipif(not get_ipython().has_readline, 'no readline')
