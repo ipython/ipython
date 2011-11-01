@@ -7,6 +7,7 @@ import time
 
 # System library imports
 from pygments.lexers import PythonLexer
+from IPython.external import qt
 from IPython.external.qt import QtCore, QtGui
 
 # Local imports
@@ -118,6 +119,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
     def __init__(self, *args, **kw):
         super(FrontendWidget, self).__init__(*args, **kw)
+        # forcefully disable calltips if PySide is < 1.0.7, because they crash
+        if qt.QT_API == qt.QT_API_PYSIDE:
+            import PySide
+            if PySide.__version_info__ < (1,0,7):
+                self.enable_calltips = False
 
         # FrontendWidget protected variables.
         self._bracket_matcher = BracketMatcher(self._control)
