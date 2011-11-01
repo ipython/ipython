@@ -87,6 +87,34 @@ var IPython = (function (IPython) {
         IPython.kernel_status_widget.status_idle();
     };
 
+    Kernel.prototype._websocket_closed = function(ws_url, early){
+        var msg;
+        var parent_item = $('body');
+        if (early) {
+            msg = "Websocket connection to " + ws_url + " could not be established.<br/>" +
+            " You will NOT be able to run code.<br/>" +
+            " Your browser may not be compatible with the websocket version in the server," +
+            " or if the url does not look right, there could be an error in the" +
+            " server's configuration."
+        } else {
+            msg = "Websocket connection closed unexpectedly.<br/>" +
+            " The kernel will no longer be responsive."
+        }
+        var dialog = $('<div/>');
+        dialog.html(msg);
+        parent_item.append(dialog);
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Websocket closed",
+            buttons : {
+                "Okay": function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
+        
+    }
 
     Kernel.prototype.start_channels = function () {
         var that = this;
@@ -105,11 +133,7 @@ var IPython = (function (IPython) {
             }
             already_called_onclose = true;
             if ( ! evt.wasClean ){
-                alert("Websocket connection to " + ws_url + " could not be established." +
-                " You will not be able to run code." +
-                " Your browser may not be compatible with the websocket version in the server," +
-                " or if the url does not look right, there could be an error in the" +
-                " server's configuration.");
+                that._websocket_closed(ws_url, true);
             }
         }
         ws_closed_late = function(evt){
@@ -118,8 +142,7 @@ var IPython = (function (IPython) {
             }
             already_called_onclose = true;
             if ( ! evt.wasClean ){
-                alert("Websocket connection has closed unexpectedly." +
-                " The kernel will no longer be responsive.");
+                that._websocket_closed(ws_url, false);
             }
         }
         this.shell_channel.onopen = send_cookie;
