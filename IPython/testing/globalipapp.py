@@ -27,6 +27,7 @@ import sys
 # our own
 from . import tools
 
+from IPython.core import page
 from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
@@ -228,5 +229,12 @@ def start_ipython():
     # To avoid extra IPython messages during testing, suppress io.stdout/stderr
     io.stdout = StreamProxy('stdout')
     io.stderr = StreamProxy('stderr')
+    
+    # Override paging, so we don't require user interaction during the tests.
+    def nopage(strng, start=0, screen_lines=0, pager_cmd=None):
+        print(strng)
+    
+    page.orig_page = page.page
+    page.page = nopage
 
     return _ip
