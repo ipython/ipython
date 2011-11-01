@@ -863,10 +863,10 @@ class Any(TraitType):
 
 
 class Int(TraitType):
-    """A integer trait."""
+    """An int trait."""
 
     default_value = 0
-    info_text = 'an integer'
+    info_text = 'an int'
 
     def validate(self, obj, value):
         if isinstance(value, int):
@@ -884,6 +884,7 @@ class CInt(Int):
 
 if py3compat.PY3:
     Long, CLong = Int, CInt
+    Integer = Int
 else:
     class Long(TraitType):
         """A long integer trait."""
@@ -907,6 +908,24 @@ else:
                 return long(value)
             except:
                 self.error(obj, value)
+
+    class Integer(TraitType):
+        """An integer trait.
+
+        Longs that are unnecessary (<= sys.maxint) are cast to ints."""
+
+        default_value = 0
+        info_text = 'an integer'
+
+        def validate(self, obj, value):
+            if isinstance(value, int):
+                return value
+            elif isinstance(value, long):
+                # downcast longs that fit in int:
+                # note that int(n > sys.maxint) returns a long, so
+                # we don't need a condition on this cast
+                return int(value)
+            self.error(obj, value)
 
 
 class Float(TraitType):

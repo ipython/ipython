@@ -38,7 +38,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
 from IPython.utils.sysinfo import num_cpus
-from IPython.utils.traitlets import (Int, Unicode, Bool, CFloat, Dict, List, Any,
+from IPython.utils.traitlets import (Integer, Unicode, Bool, CFloat, Dict, List, Any,
                                         DottedObjectName)
 
 from IPython.parallel.apps.baseapp import (
@@ -151,7 +151,7 @@ class IPClusterStop(BaseParallelApplication):
     examples = _stop_examples
     config_file_name = Unicode(default_config_file_name)
 
-    signal = Int(signal.SIGINT, config=True,
+    signal = Integer(signal.SIGINT, config=True,
         help="signal to use for stopping processes.")
 
     aliases = Dict(stop_aliases)
@@ -229,7 +229,7 @@ class IPClusterEngines(BaseParallelApplication):
         eslaunchers = [ l for l in launchers if 'EngineSet' in l.__name__]
         return [ProfileDir]+eslaunchers
 
-    n = Int(num_cpus(), config=True,
+    n = Integer(num_cpus(), config=True,
         help="""The number of engines to start. The default is to use one for each
         CPU on your machine""")
 
@@ -282,7 +282,7 @@ class IPClusterEngines(BaseParallelApplication):
         if new:
             self.log_to_file = True
 
-    early_shutdown = Int(30, config=True, help="The timeout (in seconds)")
+    early_shutdown = Integer(30, config=True, help="The timeout (in seconds)")
     _stopping = False
     
     aliases = Dict(engine_aliases)

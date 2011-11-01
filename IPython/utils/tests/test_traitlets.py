@@ -26,11 +26,12 @@ from unittest import TestCase
 
 from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes,
-    Int, Long, Float, Complex, Bytes, Unicode, TraitError,
+    Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName
 )
 from IPython.utils import py3compat
+from IPython.testing.decorators import skipif
 
 #-----------------------------------------------------------------------------
 # Helper classes for testing
@@ -631,6 +632,11 @@ class TraitTestBase(TestCase):
         if hasattr(self, '_default_value'):
             self.assertEquals(self._default_value, self.obj.value)
 
+    def tearDown(self):
+        # restore default value after tests, if set
+        if hasattr(self, '_default_value'):
+            self.obj.value = self._default_value
+
 
 class AnyTrait(HasTraits):
 
@@ -658,7 +664,7 @@ class TestInt(TraitTestBase):
                       10.1, -10.1, '10L', '-10L', '10.1', '-10.1', u'10L',
                       u'-10L', u'10.1', u'-10.1',  '10', '-10', u'10', u'-10']
     if not py3compat.PY3:
-        _bad_values.extend([10L, -10L])
+        _bad_values.extend([10L, -10L, 10*sys.maxint, -10*sys.maxint])
 
 
 class LongTrait(HasTraits):
@@ -675,6 +681,35 @@ class TestLong(TraitTestBase):
                       None, 1j, 10.1, -10.1, '10', '-10', '10L', '-10L', '10.1',
                       '-10.1', u'10', u'-10', u'10L', u'-10L', u'10.1',
                       u'-10.1']
+    if not py3compat.PY3:
+        # maxint undefined on py3, because int == long
+        _good_values.extend([10*sys.maxint, -10*sys.maxint])
+
+    @skipif(py3compat.PY3, "not relevant on py3")
+    def test_cast_small(self):
+        """Long casts ints to long"""
+        self.obj.value = 10
+        self.assertEquals(type(self.obj.value), long)
+
+
+class IntegerTrait(HasTraits):
+    value = Integer(1)
+
+class TestInteger(TestLong):
+    obj = IntegerTrait()
+    _default_value = 1
+
+    def coerce(self, n):
+        return int(n)
+
+    @skipif(py3compat.PY3, "not relevant on py3")
+    def test_cast_small(self):
+        """Integer casts small longs to int"""
+        if py3compat.PY3:
+            raise SkipTest("not relevant on py3")
+
+        self.obj.value = 100L
+        self.assertEquals(type(self.obj.value), int)
 
 
 class FloatTrait(HasTraits):

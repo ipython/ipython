@@ -35,7 +35,7 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.utils.jsonutil import rekey
 from IPython.utils.localinterfaces import LOCAL_IPS
 from IPython.utils.path import get_ipython_dir
-from IPython.utils.traitlets import (HasTraits, Int, Instance, Unicode,
+from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set)
 from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
@@ -279,8 +279,8 @@ class Client(HasTraits):
     _task_socket=Instance('zmq.Socket')
     _task_scheme=Unicode()
     _closed = False
-    _ignored_control_replies=Int(0)
-    _ignored_hub_replies=Int(0)
+    _ignored_control_replies=Integer(0)
+    _ignored_hub_replies=Integer(0)
 
     def __new__(self, *args, **kw):
         # don't raise on positional args

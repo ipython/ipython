@@ -34,7 +34,7 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
-from IPython.utils.traitlets import Instance, List, Int, Dict, Set, Unicode, CBytes
+from IPython.utils.traitlets import Instance, List, Integer, Dict, Set, Unicode, CBytes
 from IPython.zmq.completer import KernelCompleter
 
 from IPython.parallel.error import wrap_exception
@@ -74,7 +74,7 @@ class Kernel(SessionFactory):
         help="List of lines to execute")
 
     # identities:
-    int_id = Int(-1)
+    int_id = Integer(-1)
     bident = CBytes()
     ident = Unicode()
     def _ident_changed(self, name, old, new):
