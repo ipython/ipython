@@ -351,3 +351,8 @@ div.text_cell_render {
 
 .shortcut_descr {
 }
+
+/* Word-wrap output correctly.  This is the CSS3 spelling, though Firefox seems
+   to not honor it correctly.  Webkit browsers (Chrome, rekonq, Safari) do.
+ */
+pre, code, kbd, samp { white-space: pre-wrap; }
