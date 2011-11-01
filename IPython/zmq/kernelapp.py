@@ -32,7 +32,7 @@ from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
-from IPython.utils.traitlets import (Any, Instance, Dict, Unicode, Int, Bool,
+from IPython.utils.traitlets import (Any, Instance, Dict, Unicode, Integer, Bool,
                                         DottedObjectName)
 from IPython.utils.importstring import import_item
 # local imports
@@ -107,10 +107,10 @@ class KernelApp(BaseIPythonApplication):
     # connection info:
     ip = Unicode(LOCALHOST, config=True,
         help="Set the IP or interface on which the kernel will listen.")
-    hb_port = Int(0, config=True, help="set the heartbeat port [default: random]")
-    shell_port = Int(0, config=True, help="set the shell (XREP) port [default: random]")
-    iopub_port = Int(0, config=True, help="set the iopub (PUB) port [default: random]")
-    stdin_port = Int(0, config=True, help="set the stdin (XREQ) port [default: random]")
+    hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
+    shell_port = Integer(0, config=True, help="set the shell (XREP) port [default: random]")
+    iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
+    stdin_port = Integer(0, config=True, help="set the stdin (XREQ) port [default: random]")
     connection_file = Unicode('', config=True, 
     help="""JSON file in which to store connection info [default: kernel-<pid>.json]
     
@@ -128,11 +128,11 @@ class KernelApp(BaseIPythonApplication):
         config=True, help="The importstring for the DisplayHook factory")
 
     # polling
-    parent = Int(0, config=True,
+    parent = Integer(0, config=True,
         help="""kill this process if its parent dies.  On Windows, the argument
         specifies the HANDLE of the parent process, otherwise it is simply boolean.
         """)
-    interrupt = Int(0, config=True,
+    interrupt = Integer(0, config=True,
         help="""ONLY USED ON WINDOWS
         Interrupt this process when the parent is signalled.
         """)

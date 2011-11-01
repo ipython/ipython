@@ -39,7 +39,7 @@ from IPython.utils import py3compat
 from IPython.utils.jsonutil import json_clean
 from IPython.lib import pylabtools
 from IPython.utils.traitlets import (
-    Any, List, Instance, Float, Dict, Bool, Int, Unicode, CaselessStrEnum
+    Any, List, Instance, Float, Dict, Bool, Unicode, CaselessStrEnum
 )
 
 from entry_point import base_launch_kernel

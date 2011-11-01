@@ -20,7 +20,7 @@ from IPython.config.configurable import LoggingConfigurable
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
-from IPython.utils.traitlets import Bool, Enum, Int, Unicode
+from IPython.utils.traitlets import Bool, Enum, Integer, Unicode
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
 from kill_ring import QtKillRing
@@ -59,7 +59,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     ansi_codes = Bool(True, config=True,
         help="Whether to process ANSI escape codes."
     )
-    buffer_size = Int(500, config=True,
+    buffer_size = Integer(500, config=True,
         help="""
         The maximum number of lines of text before truncation. Specifying a
         non-positive number disables text truncation (not recommended).
@@ -112,7 +112,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             # Monospace should always exist, no need for a fallback
             return 'Monospace'
 
-    font_size = Int(config=True,
+    font_size = Integer(config=True,
         help="""The font size. If unconfigured, Qt will be entrusted
         with the size of the font.
         """)

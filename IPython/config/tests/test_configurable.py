@@ -27,7 +27,7 @@ from IPython.config.configurable import (
 )
 
 from IPython.utils.traitlets import (
-    Int, Float, Unicode
+    Integer, Float, Unicode
 )
 
 from IPython.config.loader import Config
@@ -39,14 +39,14 @@ from IPython.config.loader import Config
 
 
 class MyConfigurable(Configurable):
-    a = Int(1, config=True, help="The integer a.")
+    a = Integer(1, config=True, help="The integer a.")
     b = Float(1.0, config=True, help="The integer b.")
     c = Unicode('no config')
 
 
 mc_help=u"""MyConfigurable options
 ----------------------
---MyConfigurable.a=<Int>
+--MyConfigurable.a=<Integer>
     Default: 1
     The integer a.
 --MyConfigurable.b=<Float>
@@ -55,7 +55,7 @@ mc_help=u"""MyConfigurable options
 
 mc_help_inst=u"""MyConfigurable options
 ----------------------
---MyConfigurable.a=<Int>
+--MyConfigurable.a=<Integer>
     Current: 5
     The integer a.
 --MyConfigurable.b=<Float>
@@ -63,7 +63,7 @@ mc_help_inst=u"""MyConfigurable options
     The integer b."""
 
 class Foo(Configurable):
-    a = Int(0, config=True, help="The integer a.")
+    a = Integer(0, config=True, help="The integer a.")
     b = Unicode('nope', config=True)
 
 

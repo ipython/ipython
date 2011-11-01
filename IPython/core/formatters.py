@@ -28,7 +28,7 @@ from StringIO import StringIO
 # Our own imports
 from IPython.config.configurable import Configurable
 from IPython.lib import pretty
-from IPython.utils.traitlets import Bool, Dict, Int, Unicode, CUnicode, ObjectName
+from IPython.utils.traitlets import Bool, Dict, Integer, Unicode, CUnicode, ObjectName
 from IPython.utils.py3compat import unicode_to_str
 
 
@@ -357,7 +357,7 @@ class PlainTextFormatter(BaseFormatter):
     verbose = Bool(False, config=True)
 
     # The maximum width.
-    max_width = Int(79, config=True)
+    max_width = Integer(79, config=True)
 
     # The newline character.
     newline = Unicode('\n', config=True)

@@ -29,7 +29,7 @@ from tornado import web
 from IPython.config.configurable import LoggingConfigurable
 from IPython.zmq.ipkernel import launch_kernel
 from IPython.zmq.kernelmanager import KernelManager
-from IPython.utils.traitlets import Instance, Dict, List, Unicode, Float, Int
+from IPython.utils.traitlets import Instance, Dict, List, Unicode, Float, Integer
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -196,7 +196,7 @@ class MappingKernelManager(MultiKernelManager):
     kernel_argv = List(Unicode)
     kernel_manager = Instance(KernelManager)
     time_to_dead = Float(3.0, config=True, help="""Kernel heartbeat interval in seconds.""")
-    max_msg_size = Int(65536, config=True, help="""
+    max_msg_size = Integer(65536, config=True, help="""
         The max raw message size accepted from the browser
         over a WebSocket connection.
     """)

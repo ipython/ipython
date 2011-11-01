@@ -36,7 +36,7 @@ from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn
 from IPython.utils.text import num_ini_spaces
-from IPython.utils.traitlets import Int, CBool, Unicode
+from IPython.utils.traitlets import Integer, CBool, Unicode
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -87,7 +87,7 @@ class TerminalInteractiveShell(InteractiveShell):
     pager = Unicode('less', config=True,
         help="The shell program to be used for paging.")
 
-    screen_length = Int(0, config=True,
+    screen_length = Integer(0, config=True,
         help=
         """Number of lines of your screen, used to control printing of very
         long strings.  Strings longer than this number of lines will be sent

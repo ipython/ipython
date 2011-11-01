@@ -29,7 +29,7 @@ from IPython.external.decorator import decorator
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 from IPython.utils.path import locate_profile
-from IPython.utils.traitlets import Bool, Dict, Instance, Int, CInt, List, Unicode
+from IPython.utils.traitlets import Bool, Dict, Instance, Integer, List, Unicode
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
@@ -361,12 +361,12 @@ class HistoryManager(HistoryAccessor):
     output_hist_reprs = Dict()
 
     # The number of the current session in the history database
-    session_number = CInt()
+    session_number = Integer()
     # Should we log output to the database? (default no)
     db_log_output = Bool(False, config=True)
     # Write to database every x commands (higher values save disk access & power)
     #  Values of 1 or less effectively disable caching. 
-    db_cache_size = Int(0, config=True)
+    db_cache_size = Integer(0, config=True)
     # The input and output caches
     db_input_cache = List()
     db_output_cache = List()

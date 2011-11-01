@@ -40,7 +40,7 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.external.decorator import decorator
 from IPython.config.application import Application
 from IPython.config.loader import Config
-from IPython.utils.traitlets import Instance, Dict, List, Set, Int, Enum, CBytes
+from IPython.utils.traitlets import Instance, Dict, List, Set, Integer, Enum, CBytes
 
 from IPython.parallel import error
 from IPython.parallel.factory import SessionFactory
@@ -131,7 +131,7 @@ class TaskScheduler(SessionFactory):
 
     """
 
-    hwm = Int(0, config=True, shortname='hwm',
+    hwm = Integer(0, config=True, shortname='hwm',
         help="""specify the High Water Mark (HWM) for the downstream
         socket in the Task scheduler. This is the maximum number
         of allowed outstanding tasks on each engine."""

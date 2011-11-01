@@ -35,7 +35,7 @@ from zmq.eventloop import ioloop
 from IPython.config.loader import Config
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import (
-    HasTraits, Any, Instance, Type, Unicode, Int, Bool
+    HasTraits, Any, Instance, Type, Unicode, Integer, Bool
 )
 from IPython.utils.py3compat import str_to_bytes
 from IPython.zmq.entry_point import write_connection_file
@@ -713,10 +713,10 @@ class KernelManager(HasTraits):
     def _ip_changed(self, name, old, new):
         if new == '*':
             self.ip = '0.0.0.0'
-    shell_port = Int(0)
-    iopub_port = Int(0)
-    stdin_port = Int(0)
-    hb_port = Int(0)
+    shell_port = Integer(0)
+    iopub_port = Integer(0)
+    stdin_port = Integer(0)
+    hb_port = Integer(0)
 
     # The classes to use for the various channels.
     shell_channel_class = Type(ShellSocketChannel)
