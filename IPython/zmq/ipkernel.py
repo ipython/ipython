@@ -64,6 +64,7 @@ class Kernel(Configurable):
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     session = Instance(Session)
+    profile_dir = Instance('IPython.core.profiledir.ProfileDir')
     shell_socket = Instance('zmq.Socket')
     iopub_socket = Instance('zmq.Socket')
     stdin_socket = Instance('zmq.Socket')
@@ -106,7 +107,9 @@ class Kernel(Configurable):
         atexit.register(self._at_shutdown)
 
         # Initialize the InteractiveShell subclass
-        self.shell = ZMQInteractiveShell.instance(config=self.config)
+        self.shell = ZMQInteractiveShell.instance(config=self.config,
+            profile_dir = self.profile_dir,
+        )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket
         self.shell.display_pub.session = self.session
@@ -739,16 +742,16 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         self.init_code()
 
     def init_kernel(self):
-        kernel_factory = Kernel
 
         if self.pylab:
             gui, backend = pylabtools.find_gui_and_backend(self.pylab)
 
-        kernel = kernel_factory(config=self.config, session=self.session,
+        kernel = Kernel(config=self.config, session=self.session,
                                 shell_socket=self.shell_socket,
                                 iopub_socket=self.iopub_socket,
                                 stdin_socket=self.stdin_socket,
                                 log=self.log,
+                                profile_dir=self.profile_dir,
         )
         self.kernel = kernel
         kernel.record_ports(self.ports)

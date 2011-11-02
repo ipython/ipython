@@ -80,7 +80,7 @@ def test_startup_py():
     # write simple test file, to check that the startup file was run
     fname = os.path.join(TMP_TEST_DIR, 'test.py')
     with open(fname, 'w') as f:
-        f.write('print zzz\n')
+        f.write(py3compat.doctest_refactor_print('print zzz\n'))
     # validate output
     tt.ipexec_validate(fname, '123', '', 
         options=['--ipython-dir', IP_TEST_DIR, '--profile', 'test'])

@@ -527,7 +527,11 @@ Currently the magic system has the following functions:\n"""
 
     def magic_profile(self, parameter_s=''):
         """Print your currently active IPython profile."""
-        print self.shell.profile
+        from IPython.core.application import BaseIPythonApplication
+        if BaseIPythonApplication.initialized():
+            print BaseIPythonApplication.instance().profile
+        else:
+            error("profile is an application-level value, but you don't appear to be in an IPython application")
 
     def magic_pinfo(self, parameter_s='', namespaces=None):
         """Provide detailed information about an object.
