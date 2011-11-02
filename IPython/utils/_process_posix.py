@@ -147,13 +147,13 @@ class ProcessHandler(object):
             # can set pexpect's search window to be tiny and it won't matter.
             # We only search for the 'patterns' timeout or EOF, which aren't in
             # the text itself.
-            child = pexpect.spawn(self.sh, args=['-c', cmd])
+            child = pexpect.spawn(self.sh, args=['-c', cmd], encoding=enc)
             flush = sys.stdout.flush
             while True:
                 # res is the index of the pattern that caused the match, so we
                 # know whether we've finished (if we matched EOF) or not
                 res_idx = child.expect_list(patterns, self.read_timeout)
-                print(child.before[out_size:].decode(enc, 'replace'), end='')
+                print(child.before[out_size:], end='')
                 flush()
                 if res_idx==EOF_index:
                     break
@@ -169,7 +169,7 @@ class ProcessHandler(object):
             try:
                 out_size = len(child.before)
                 child.expect_list(patterns, self.terminate_timeout)
-                print(child.before[out_size:].decode(enc, 'replace'), end='')
+                print(child.before[out_size:], end='')
                 sys.stdout.flush()
             except KeyboardInterrupt:
                 # Impatient users tend to type it multiple times
