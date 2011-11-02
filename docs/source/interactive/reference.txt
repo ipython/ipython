@@ -1117,20 +1117,8 @@ GUI event loop support
 .. versionadded:: 0.11
     The ``%gui`` magic and :mod:`IPython.lib.inputhook`.
 
-.. warning::
-
-   All GUI support with the ``%gui`` magic, described in this section, applies
-   only to the plain terminal IPython, *not* to the Qt console.  The Qt console
-   currently only supports GUI interaction via the ``--pylab`` flag, as
-   explained :ref:`in the matplotlib section <matplotlib_support>`.
-
-   We intend to correct this limitation as soon as possible, you can track our
-   progress at issue #643_.
-
-.. _643: https://github.com/ipython/ipython/issues/643
-    
 IPython has excellent support for working interactively with Graphical User
-Interface (GUI) toolkits, such as wxPython, PyQt4, PyGTK and Tk. This is
+Interface (GUI) toolkits, such as wxPython, PyQt4/PySide, PyGTK and Tk. This is
 implemented using Python's builtin ``PyOSInputHook`` hook. This implementation
 is extremely robust compared to our previous thread-based version. The
 advantages of this are:
@@ -1147,7 +1135,7 @@ For users, enabling GUI event loop integration is simple.  You simple use the
     %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments are ``wx``, ``qt4``, ``gtk`` and ``tk``.
+arguments are ``wx``, ``qt``, ``gtk`` and ``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::
@@ -1164,9 +1152,9 @@ Interested developers should see the module docstrings for more information,
 but there are a few points that should be mentioned here.
 
 First, the ``PyOSInputHook`` approach only works in command line settings 
-where readline is activated.  As indicated in the warning above, we plan on
-improving the integration of GUI event loops with the standalone kernel used by
-the Qt console and other frontends (issue 643_).
+where readline is activated.  The integration with various eventloops
+is handled somewhat differently (and more simply) when using the standalone
+kernel, as in the qtconsole and notebook.
 
 Second, when using the ``PyOSInputHook`` approach, a GUI application should
 *not* start its event loop. Instead all of this is handled by the
