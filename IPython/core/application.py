@@ -104,11 +104,9 @@ class BaseIPythonApplication(Application):
     def _config_file_paths_default(self):
         return [os.getcwdu()]
 
-    profile = Unicode(u'', config=True,
+    profile = Unicode(u'default', config=True,
         help="""The IPython profile to use."""
     )
-    def _profile_default(self):
-        return "python3" if py3compat.PY3 else "default"
 
     def _profile_changed(self, name, old, new):
         self.builtin_profile_dir = os.path.join(
@@ -230,7 +228,7 @@ class BaseIPythonApplication(Application):
                 p = ProfileDir.find_profile_dir_by_name(self.ipython_dir, self.profile, self.config)
             except ProfileDirError:
                 # not found, maybe create it (always create default profile)
-                if self.auto_create or self.profile==self._profile_default():
+                if self.auto_create or self.profile=='default':
                     try:
                         p = ProfileDir.create_profile_dir_by_name(self.ipython_dir, self.profile, self.config)
                     except ProfileDirError:
