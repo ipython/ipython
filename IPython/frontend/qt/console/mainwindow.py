@@ -818,12 +818,16 @@ class MainWindow(QtGui.QMainWindow):
         okay = QtGui.QMessageBox.Ok
         
         if self.confirm_exit:
-            msg = "Close all tabs, stop all kernels, and Quit?"
+            if self.tab_widget.count() > 1:
+                msg = "Close all tabs, stop all kernels, and Quit?"
+            else:
+                msg = "Close console, stop kernel, and Quit?"
+            info = "Kernels not started here (e.g. notebooks) will be left alone."
             closeall = QtGui.QPushButton("&Yes, quit everything", self)
             closeall.setShortcut('Y')
             box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
                                     title, msg)
-            # box.setInformativeText(info)
+            box.setInformativeText(info)
             box.addButton(cancel)
             box.addButton(closeall, QtGui.QMessageBox.YesRole)
             box.setDefaultButton(closeall)
