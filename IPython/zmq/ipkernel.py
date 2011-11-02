@@ -186,9 +186,9 @@ class Kernel(Configurable):
                 # double nested try/except, to properly catch KeyboardInterrupt
                 # due to pyzmq Issue #130
                 try:
+                    poller.poll(10*1000*self._poll_interval)
                     # restore raising of KeyboardInterrupt
                     signal(SIGINT, default_int_handler)
-                    poller.poll(10*1000*self._poll_interval)
                     self.do_one_iteration()
                 except:
                     raise
