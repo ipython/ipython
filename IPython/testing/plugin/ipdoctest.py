@@ -737,6 +737,17 @@ class ExtensionDoctest(doctests.Doctest):
         else:
             return doctests.Doctest.wantFile(self,filename)
 
+    def wantDirectory(self, directory):
+        """Return whether the given directory should be scanned for tests.
+
+        Modified version that supports exclusions.
+        """
+
+        for pat in self.exclude_patterns:
+            if pat.search(directory):
+                return False
+        return True
+
 
 class IPythonDoctest(ExtensionDoctest):
     """Nose Plugin that supports doctests in extension modules.
