@@ -30,7 +30,7 @@ import rlcompleter
 from IPython.external.argparse import ArgumentParser
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.zmq.blockingkernelmanager import BlockingKernelManager as KernelManager
-from IPython.frontend.zmqterminal.completer import ClientCompleter2p 
+from IPython.frontend.terminal.console.completer import ClientCompleter2p 
 
 #-----------------------------------------------------------------------------
 # Network Constants

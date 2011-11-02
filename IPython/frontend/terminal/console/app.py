@@ -29,7 +29,7 @@ from IPython.frontend.kernelmixinapp import (
         IPythonMixinConsoleApp, app_aliases, app_flags, aliases, app_aliases, flags
     )
 
-from IPython.frontend.zmqterminal.interactiveshell import ZMQTerminalInteractiveShell
+from IPython.frontend.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
 
 #-----------------------------------------------------------------------------
 # Globals

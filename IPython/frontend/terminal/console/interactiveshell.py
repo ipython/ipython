@@ -27,7 +27,7 @@ from IPython.utils.warn import warn, error, fatal
 from IPython.utils import io
 
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
-from IPython.frontend.zmqterminal.completer import ZMQCompleter
+from IPython.frontend.terminal.console.completer import ZMQCompleter
 
 
 class ZMQTerminalInteractiveShell(TerminalInteractiveShell):

@@ -222,7 +222,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         kernel = ("IPython.zmq.ipkernel.IPKernelApp",
             "Start a kernel without an attached frontend."
         ),
-        console=('IPython.frontend.zmqterminal.app.ZMQTerminalIPythonApp',
+        console=('IPython.frontend.terminal.console.app.ZMQTerminalIPythonApp',
             """Launch the IPython terminal-based Console."""
         ),
     ))
