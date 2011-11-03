@@ -19,10 +19,12 @@ from __future__ import print_function
 
 import bdb
 import sys
+import time
 
 from Queue import Empty
 
 from IPython.core.alias import AliasManager, AliasError
+from IPython.core import page
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils import io
 
@@ -31,7 +33,8 @@ from IPython.frontend.terminal.console.completer import ZMQCompleter
 
 
 class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
-    """A subclass of TerminalInteractiveShell that """
+    """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""
+    _executing = False
     
     def __init__(self, *args, **kwargs):
         self.km = kwargs.pop('kernel_manager')
@@ -78,14 +81,22 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         if (not cell) or cell.isspace():
             return
 
+        self._executing = True
+        # flush stale replies, which could have been ignored, due to missed heartbeats
+        while self.km.shell_channel.msg_ready():
+            self.km.shell_channel.get_msg()
         # shell_channel.execute takes 'hidden', which is the inverse of store_hist
         msg_id = self.km.shell_channel.execute(cell, not store_history)
-        while not self.km.shell_channel.msg_ready():
+        while not self.km.shell_channel.msg_ready() and self.km.is_alive:
             try:
                 self.handle_stdin_request(timeout=0.05)
             except Empty:
+                # display intermediate print statements, etc.
+                self.handle_iopub()
                 pass
-        self.handle_execute_reply(msg_id)
+        if self.km.shell_channel.msg_ready():
+            self.handle_execute_reply(msg_id)
+        self._executing = False
 
     #-----------------
     # message handlers
@@ -93,15 +104,28 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
     def handle_execute_reply(self, msg_id):
         msg = self.km.shell_channel.get_msg()
-        if msg["parent_header"]["msg_id"] == msg_id:
-            if msg["content"]["status"] == 'ok' :
-                self.handle_iopub()
+        if msg["parent_header"].get("msg_id", None) == msg_id:
+            
+            self.handle_iopub()
+            
+            content = msg["content"]
+            status = content['status']
+            
+            if status == 'aborted':
+                self.write('Aborted\n')
+                return
+            elif status == 'ok':
+                # print execution payloads as well:
+                for item in content["payload"]:
+                    text = item.get('text', None)
+                    if text:
+                        page.page(text)
                
-            elif msg["content"]["status"] == 'error':
-                for frame in msg["content"]["traceback"]:
+            elif status == 'error':
+                for frame in content["traceback"]:
                     print(frame, file=io.stderr)
             
-            self.execution_count = int(msg["content"]["execution_count"] + 1)
+            self.execution_count = int(content["execution_count"] + 1)
 
 
     def handle_iopub(self):
@@ -162,6 +186,21 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 # handling seems rather unpredictable...
                 self.write("\nKeyboardInterrupt in interact()\n")
     
+    def wait_for_kernel(self, timeout=None):
+        """method to wait for a kernel to be ready"""
+        tic = time.time()
+        self.km.hb_channel.unpause()
+        while True:
+            self.run_cell('1', False)
+            if self.km.hb_channel.is_beating():
+                # heart failure was not the reason this returned
+                break
+            else:
+                # heart failed
+                if timeout is not None and (time.time() - tic) > timeout:
+                    return False
+        return True
+    
     def interact(self, display_banner=None):
         """Closely emulate the interactive Python console."""
 
@@ -179,6 +218,13 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
         more = False
         
+        # run a non-empty no-op, so that we don't get a prompt until
+        # we know the kernel is ready. This keeps the connection
+        # message above the first prompt.
+        if not self.wait_for_kernel(3):
+            error("Kernel did not respond\n")
+            return
+        
         if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
         # exit_now is set by a call to %Exit or %Quit, through the
@@ -186,27 +232,34 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
         while not self.exit_now:
             if not self.km.is_alive:
-                ans = self.raw_input("kernel died, restart ([y]/n)?")
-                if not ans.lower().startswith('n'):
-                    self.km.restart_kernel(True)
+                # kernel died, prompt for action or exit
+                action = "restart" if self.km.has_kernel else "wait for restart"
+                ans = self.ask_yes_no("kernel died, %s ([y]/n)?" % action, default='y')
+                if ans:
+                    if self.km.has_kernel:
+                        self.km.restart_kernel(True)
+                    self.wait_for_kernel(3)
                 else:
-                    self.exit_now=True
+                    self.exit_now = True
                 continue
-            self.hooks.pre_prompt_hook()
-            if more:
-                try:
-                    prompt = self.hooks.generate_prompt(True)
-                except:
-                    self.showtraceback()
-                if self.autoindent:
-                    self.rl_do_indent = True
-                    
-            else:
-                try:
-                    prompt = self.hooks.generate_prompt(False)
-                except:
-                    self.showtraceback()
             try:
+                # protect prompt block from KeyboardInterrupt
+                # when sitting on ctrl-C
+                self.hooks.pre_prompt_hook()
+                if more:
+                    try:
+                        prompt = self.hooks.generate_prompt(True)
+                    except Exception:
+                        self.showtraceback()
+                    if self.autoindent:
+                        self.rl_do_indent = True
+                    
+                else:
+                    try:
+                        prompt = self.hooks.generate_prompt(False)
+                    except Exception:
+                        self.showtraceback()
+                
                 line = self.raw_input(prompt)
                 if self.exit_now:
                     # quick exit on sys.std[in|out] close
