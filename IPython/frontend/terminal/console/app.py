@@ -22,6 +22,8 @@ from IPython.frontend.terminal.ipapp import TerminalIPythonApp, frontend_flags a
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
 )
+from IPython.utils.warn import warn,error
+
 from IPython.zmq.ipkernel import IPKernelApp
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
@@ -114,12 +116,22 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonMixinConsoleApp):
                         ipython_dir=self.ipython_dir, kernel_manager=self.kernel_manager)
 
     def handle_sigint(self, *args):
-        self.shell.write('KeyboardInterrupt\n')
-        if self.kernel_manager.has_kernel:
-            self.kernel_manager.interrupt_kernel()
+        if self.shell._executing:
+            if self.kernel_manager.has_kernel:
+                # interrupt already gets passed to subprocess by signal handler.
+                # Only if we prevent that should we need to explicitly call
+                # interrupt_kernel, until which time, this would result in a 
+                # double-interrupt:
+                # self.kernel_manager.interrupt_kernel()
+                pass
+            else:
+                self.shell.write_err('\n')
+                error("Cannot interrupt kernels we didn't start.\n")
         else:
-            print 'Kernel process is either remote or unspecified.',
-            print 'Cannot interrupt.'
+            # raise the KeyboardInterrupt if we aren't waiting for execution,
+            # so that the interact loop advances, and prompt is redrawn, etc.
+            raise KeyboardInterrupt
+            
 
     def init_code(self):
         # no-op in the frontend, code gets run in the backend
