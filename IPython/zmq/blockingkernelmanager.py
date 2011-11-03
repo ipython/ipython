@@ -134,11 +134,13 @@ class BlockingStdInSocketChannel(StdInSocketChannel):
 
 class BlockingHBSocketChannel(HBSocketChannel):
     
-    # This kernel needs rapid monitoring capabilities
-    time_to_dead = 0.2
+    # This kernel needs quicker monitoring, shorten to 1 sec.
+    # less than 0.5s is unreliable, and will get occasional
+    # false reports of missed beats.
+    time_to_dead = 1.
 
     def call_handlers(self, since_last_heartbeat):
-        #io.rprint('[[Heart]]', since_last_heartbeat) # dbg
+        """pause beating on missed heartbeat"""
         pass
 
 
