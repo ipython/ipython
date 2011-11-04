@@ -5,6 +5,7 @@
 import subprocess
 import sys
 
+from IPython.lib.kernel import connect_qtconsole
 from IPython.zmq.ipkernel import IPKernelApp
 
 #-----------------------------------------------------------------------------
@@ -13,18 +14,11 @@ from IPython.zmq.ipkernel import IPKernelApp
 def pylab_kernel(gui):
     """Launch and return an IPython kernel with pylab support for the desired gui
     """
-    kernel = IPKernelApp()
+    kernel = IPKernelApp.instance()
     kernel.initialize(['python', '--pylab=%s' % gui,
                        #'--log-level=10'
                        ])
     return kernel
-
-
-def qtconsole_cmd(kernel):
-    """Compute the command to connect a qt console to an already running kernel
-    """
-    ports = ['--%s=%d' % (name, port) for name, port in kernel.ports.items()]
-    return ['ipython', 'qtconsole', '--existing'] + ports
 
 
 class InternalIPKernel(object):
@@ -33,7 +27,6 @@ class InternalIPKernel(object):
         # Start IPython kernel with GUI event loop and pylab support
         self.ipkernel = pylab_kernel(backend)
         # To create and track active qt consoles
-        self._qtconsole_cmd = qtconsole_cmd(self.ipkernel)
         self.consoles = []
         
         # This application will also act on the shell user namespace
@@ -55,7 +48,8 @@ class InternalIPKernel(object):
         sys.stdout.flush()
 
     def new_qt_console(self, evt=None):
-        self.consoles.append(subprocess.Popen(self._qtconsole_cmd))
+        """start a new qtconsole connected to our kernel"""
+        return connect_qtconsole(self.ipkernel.connection_file, profile=self.ipkernel.profile)
 
     def count(self, evt=None):
         self.namespace['app_counter'] += 1
