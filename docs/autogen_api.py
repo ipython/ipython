@@ -36,7 +36,7 @@ if __name__ == '__main__':
                                         ]
 
     docwriter.module_skip_patterns += [ r'\.core\.fakemodule',
-                                        
+                                        r'\.testing\.iptest',
                                         # Keeping these disabled is OK
                                         r'\.parallel\.controller\.mongodb',
                                         r'\.lib\.inputhookwx',
