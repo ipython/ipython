@@ -557,7 +557,7 @@ class MainWindow(QtGui.QMainWindow):
 
             # list of protected magic that don't like to be called without argument
             # append '?' to the end to print the docstring when called from the menu
-            protected_magic= ["more","less","load_ext","pycat"]
+            protected_magic= ["more","less","load_ext","pycat","loadpy","save"]
 
             for magic in eval(val):
                 if magic in protected_magic:
