@@ -229,21 +229,28 @@ class TerminalInteractiveShell(InteractiveShell):
                     # handling seems rather unpredictable...
                     self.write("\nKeyboardInterrupt in interact()\n")
 
-    def _replace_rlhist_multiline(self, source_raw):
+    def _replace_rlhist_multiline(self, source_raw, hlen_before_cell):
         """Store multiple lines as a single entry in history"""
-        if self.multiline_history and self.has_readline and source_raw.rstrip():
-            hlen = self.readline.get_current_history_length()
 
-            # nothing changed do nothing, e.g. when rl removes consecutive dups
-            if self.hlen_before_cell == hlen:
-                return
+        # do nothing without readline or disabled multiline
+        if not self.has_readline or not self.multiline_history:
+            return hlen_before_cell
 
-            for i in range(hlen - self.hlen_before_cell):
-                self.readline.remove_history_item(hlen - i - 1)
-            stdin_encoding = sys.stdin.encoding or "utf-8"
-            self.readline.add_history(py3compat.unicode_to_str(source_raw.rstrip(),
-                                        stdin_encoding))
-            self.hlen_before_cell = self.readline.get_current_history_length()
+        # skip empty cells
+        if not source_raw.rstrip():
+            return hlen_before_cell
+
+        # nothing changed do nothing, e.g. when rl removes consecutive dups
+        hlen = self.readline.get_current_history_length()
+        if hlen == hlen_before_cell:
+          return hlen_before_cell
+
+        for i in range(hlen - hlen_before_cell):
+            self.readline.remove_history_item(hlen - i - 1)
+        stdin_encoding = sys.stdin.encoding or "utf-8"
+        self.readline.add_history(py3compat.unicode_to_str(source_raw.rstrip(),
+                                    stdin_encoding))
+        return self.readline.get_current_history_length()
 
     def interact(self, display_banner=None):
         """Closely emulate the interactive Python console."""
@@ -267,7 +274,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
-            self.hlen_before_cell = self.readline.get_current_history_length()
+            hlen_b4_cell = self.readline.get_current_history_length()
         # exit_now is set by a call to %Exit or %Quit, through the
         # ask_exit callback.
 
@@ -299,7 +306,8 @@ class TerminalInteractiveShell(InteractiveShell):
                 try:
                     self.write('\nKeyboardInterrupt\n')
                     source_raw = self.input_splitter.source_raw_reset()[1]
-                    self._replace_rlhist_multiline(source_raw)
+                    hlen_b4_cell = \
+                        self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     more = False
                 except KeyboardInterrupt:
                     pass
@@ -328,7 +336,8 @@ class TerminalInteractiveShell(InteractiveShell):
                 if not more:
                     source_raw = self.input_splitter.source_raw_reset()[1]
                     self.run_cell(source_raw, store_history=True)
-                    self._replace_rlhist_multiline(source_raw)
+                    hlen_b4_cell = \
+                        self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
 
         # We are off again...
         __builtin__.__dict__['__IPYTHON__active'] -= 1

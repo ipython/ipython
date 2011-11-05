@@ -31,7 +31,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip = get_ipython()
         ip.has_readline = False
         ip.readline = None
-        ip._replace_rlhist_multiline(u'source')
+        ip._replace_rlhist_multiline(u'source', 0)
 
     @skipif(not get_ipython().has_readline, 'no readline')
     def test_replace_multiline_hist_disabled(self):
@@ -42,11 +42,12 @@ class InteractiveShellTestCase(unittest.TestCase):
         ghist = [u'line1', u'line2']
         for h in ghist:
            ip.readline.add_history(h)
-        ip.hlen_before_cell = ip.readline.get_current_history_length()
-        ip._replace_rlhist_multiline(u'sourc€\nsource2')
+        hlen_b4_cell = ip.readline.get_current_history_length()
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€\nsource2',
+                                                    hlen_b4_cell)
 
         self.assertEquals(ip.readline.get_current_history_length(),
-                          ip.hlen_before_cell)
+                          hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 2)
         self.assertEquals(hist, ghist)
 
@@ -55,10 +56,10 @@ class InteractiveShellTestCase(unittest.TestCase):
         """Test that multiline replace function adds history"""
         ip = get_ipython()
 
-        ip.hlen_before_cell = ip.readline.get_current_history_length()
-        ip._replace_rlhist_multiline(u'sourc€')
+        hlen_b4_cell = ip.readline.get_current_history_length()
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€', hlen_b4_cell)
 
-        self.assertEquals(ip.hlen_before_cell,
+        self.assertEquals(hlen_b4_cell,
                           ip.readline.get_current_history_length())
 
     @skipif(not get_ipython().has_readline, 'no readline')
@@ -72,12 +73,13 @@ class InteractiveShellTestCase(unittest.TestCase):
            ip.readline.add_history(h)
 
         #start cell
-        ip.hlen_before_cell = ip.readline.get_current_history_length()
-        # nothing added to rl history, should do nothing
-        ip._replace_rlhist_multiline(u'sourc€\nsource2')
+        hlen_b4_cell = ip.readline.get_current_history_length()
+		# nothing added to rl history, should do nothing
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€\nsource2',
+                                                    hlen_b4_cell)
 
         self.assertEquals(ip.readline.get_current_history_length(),
-                          ip.hlen_before_cell)
+                          hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 2)
         self.assertEquals(hist, ghist)
 
@@ -90,18 +92,20 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         ip.readline.add_history(u'line0')
         #start cell
-        ip.hlen_before_cell = ip.readline.get_current_history_length()
+        hlen_b4_cell = ip.readline.get_current_history_length()
         ip.readline.add_history('l€ne1')
         ip.readline.add_history('line2')
         #replace cell with single line
-        ip._replace_rlhist_multiline(u'l€ne1\nline2')
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'l€ne1\nline2',
+                                                    hlen_b4_cell)
         ip.readline.add_history('l€ne3')
         ip.readline.add_history('line4')
         #replace cell with single line
-        ip._replace_rlhist_multiline(u'l€ne3\nline4')
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'l€ne3\nline4',
+                                                    hlen_b4_cell)
 
         self.assertEquals(ip.readline.get_current_history_length(),
-                          ip.hlen_before_cell)
+                          hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 3)
         self.assertEquals(hist, ['line0', 'l€ne1\nline2', 'l€ne3\nline4'])
 
@@ -114,24 +118,25 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         ip.readline.add_history(u'line0')
         #start cell
-        ip.hlen_before_cell = ip.readline.get_current_history_length()
+        hlen_b4_cell = ip.readline.get_current_history_length()
         ip.readline.add_history('l€ne1')
         ip.readline.add_history('line2')
-        ip._replace_rlhist_multiline(u'l€ne1\nline2')
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'l€ne1\nline2',
+                                                    hlen_b4_cell)
         ip.readline.add_history('')
-        ip._replace_rlhist_multiline(u'')
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'', hlen_b4_cell)
         ip.readline.add_history('l€ne3')
-        ip._replace_rlhist_multiline(u'l€ne3')
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'l€ne3', hlen_b4_cell)
         ip.readline.add_history('  ')
-        ip._replace_rlhist_multiline('  ')
+        hlen_b4_cell = ip._replace_rlhist_multiline('  ', hlen_b4_cell)
         ip.readline.add_history('\t')
         ip.readline.add_history('\t ')
-        ip._replace_rlhist_multiline('\t')
+        hlen_b4_cell = ip._replace_rlhist_multiline('\t', hlen_b4_cell)
         ip.readline.add_history('line4')
-        ip._replace_rlhist_multiline(u'line4')
+        hlen_b4_cell = ip._replace_rlhist_multiline(u'line4', hlen_b4_cell)
 
         self.assertEquals(ip.readline.get_current_history_length(),
-                          ip.hlen_before_cell)
+                          hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 4)
         # expect no empty cells in history
         self.assertEquals(hist, ['line0', 'l€ne1\nline2', 'l€ne3', 'line4'])
