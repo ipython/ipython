@@ -243,7 +243,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # nothing changed do nothing, e.g. when rl removes consecutive dups
         hlen = self.readline.get_current_history_length()
         if hlen == hlen_before_cell:
-          return hlen_before_cell
+            return hlen_before_cell
 
         for i in range(hlen - hlen_before_cell):
             self.readline.remove_history_item(hlen - i - 1)
