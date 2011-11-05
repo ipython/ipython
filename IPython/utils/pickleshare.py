@@ -67,7 +67,7 @@ class PickleShareDB(collections.MutableMapping):
             return self.cache[fil][0]
         try:
             # The cached item has expired, need to read
-            obj = pickle.load(fil.open("rb"))
+            obj = pickle.loads(fil.open("rbU").read())
         except:
             raise KeyError(key)
 
