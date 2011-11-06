@@ -48,6 +48,7 @@ class JSONWriter(NotebookWriter):
     def writes(self, nb, **kwargs):
         kwargs['cls'] = BytesEncoder
         kwargs['indent'] = 4
+        kwargs['sort_keys'] = True
         return json.dumps(nb, **kwargs)
 
 
