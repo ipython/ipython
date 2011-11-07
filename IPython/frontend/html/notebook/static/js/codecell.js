@@ -53,9 +53,29 @@ var IPython = (function (IPython) {
         // handlers and is used to provide custom key handling. Its return
         // value is used to determine if CodeMirror should ignore the event:
         // true = ignore, false = don't ignore.
+
+        // whatever key is pressed, first, cancel the tooltip request before
+        // they are sent, and remove tooltip if any
+        if(event.type === 'keydown' && this.tooltip_timeout != null){
+            CodeCell.prototype.remove_and_cancell_tooltip(this.tooltip_timeout);
+            this.tooltip_timeout=null;
+        }
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
+        }else if (event.keyCode === 53 && event.type === 'keydown') {
+            var cursor = editor.getCursor();
+            var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim();
+            if (pre_cursor === "") {
+                // don't do anything if line beggin with '('
+            } else {
+                var that = this;
+                // Will set a timer to request tooltip in 1200ms
+                this.tooltip_timeout = setTimeout(function(){
+                        IPython.notebook.request_tool_tip(that, pre_cursor)
+                    },1200);
+            }
+
         } else if (event.keyCode === 9 && event.type == 'keydown') {
             // Tab completion.
             var cur = editor.getCursor();
@@ -106,6 +126,39 @@ var IPython = (function (IPython) {
             };
             return false;
         };
+    };
+
+    CodeCell.prototype.remove_and_cancell_tooltip = function(timeout)
+    {
+        // note that we don't handle closing directly inside the calltip
+        // as in the completer, because it is not focusable, so won't
+        // get the event.
+        clearTimeout(timeout);
+        $('#tooltip').remove();
+    }
+
+    CodeCell.prototype.finish_tooltip = function (defstring,docstring) {
+        shortened = function(string){
+            if(string.length > 200){
+                return string.trim().substring(0,197)+'...';
+            } else { return string.trim() }
+        }
+
+        var that = this;
+        var tooltip = $('<div/>').attr('id', 'tooltip').addClass('tooltip');
+        if(defstring){
+            defstring_html= $('<pre/>').html(utils.fixConsole(defstring));
+            tooltip.append(defstring_html);
+        }
+        tooltip.append($('<pre/>').html(utils.fixConsole(shortened(docstring))));
+        var pos = this.code_mirror.cursorCoords();
+        tooltip.css('left',pos.x+'px');
+        tooltip.css('top',pos.yBot+'px');
+        $('body').append(tooltip);
+
+        // issues with cross-closing if multiple tooltip in less than 5sec
+        // keep it comented for now
+        // setTimeout(CodeCell.prototype.remove_and_cancell_tooltip, 5000);
     };
 
 

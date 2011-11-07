@@ -321,7 +321,7 @@ div.text_cell_render {
 .ansigrey {color: grey;}
 .ansibold {font-weight: bold;}
 
-.completions {
+.completions , .tooltip{
     position: absolute;
     z-index: 10;
     overflow: auto;
@@ -333,6 +333,36 @@ div.text_cell_render {
     outline: none;
     border: none;
     padding: 0px;
+    margin: 0px;
+    font-family: monospace;
+}
+
+@-moz-keyframes fadeIn {
+    from {opacity:0;}
+    to {opacity:1;}
+}
+
+@-webkit-keyframes fadeIn {
+    from {opacity:0;}
+    to {opacity:1;}
+}
+
+@keyframes fadeIn {
+    from {opacity:0;}
+    to {opacity:1;}
+}
+
+
+.tooltip{
+	border-radius: 0px 10px 10px 10px;
+    box-shadow: 3px 3px 5px #999;
+    -webkit-animation: fadeIn 200ms;
+    -moz-animation: fadeIn 200ms;
+    animation: fadeIn 200ms;
+    vertical-align: middle;
+    background: #FDFDD8;
+    outline: none;
+    padding: 3px;
     margin: 0px;
     font-family: monospace;
 }

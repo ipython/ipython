@@ -700,14 +700,29 @@ var IPython = (function (IPython) {
             this.dirty = true;
         } else if (msg_type === "complete_reply") {
             cell.finish_completing(content.matched_text, content.matches);
-        };
-        var payload = content.payload || [];
-        this.handle_payload(cell, payload);
+        } else if (msg_type === "object_info_reply"){
+            //console.log('back from object_info_request : ')
+            rep = reply.content;
+            if(rep.found)
+            {
+                console.log("object as been found");
+                cell.finish_tooltip(rep.definition,rep.docstring);
+            }
+        } else {
+          //console.log("unknown reply:"+msg_type);
+        }
+        // when having a rely from object_info_reply,
+        // no payload so no nned to handle it
+        if(typeof(content.payload)!='undefined') {
+            var payload = content.payload || [];
+            this.handle_payload(cell, payload);
+        }
     };
 
 
     Notebook.prototype.handle_payload = function (cell, payload) {
         var l = payload.length;
+        console.log(payload);
         for (var i=0; i<l; i++) {
             if (payload[i].source === 'IPython.zmq.page.page') {
                 if (payload[i].text.trim() !== '') {
@@ -867,6 +882,14 @@ var IPython = (function (IPython) {
         this.scroll_to_bottom();
     };
 
+
+    Notebook.prototype.request_tool_tip = function (cell,func) {
+        // select last part of expression
+        var re = /[a-zA-Z._]+$/g;
+        var lastpart=re.exec(func);
+        var msg_id = this.kernel.object_info_request(lastpart);
+        this.msg_cell_map[msg_id] = cell.cell_id;
+    };
 
     Notebook.prototype.complete_cell = function (cell, line, cursor_pos) {
         var msg_id = this.kernel.complete(line, cursor_pos);
