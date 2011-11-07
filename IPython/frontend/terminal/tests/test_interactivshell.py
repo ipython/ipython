@@ -38,10 +38,13 @@ class InteractiveShellTestCase(unittest.TestCase):
         """Test that function does not throw on windows without
            remove_history_item"""
         ip = get_ipython()
-        del ip.readline.remove_history_item
+        if hasattr(ip.readline, 'remove_history_item'):
+            del ip.readline.remove_history_item
         ip._replace_rlhist_multiline(u'source', 0)
 
     @skipif(not get_ipython().has_readline, 'no readline')
+    @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
+            'no remove_history_item')
     def test_replace_multiline_hist_disabled(self):
         """Test that multiline replace does nothing if disabled"""
         ip = get_ipython()
@@ -60,6 +63,8 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEquals(hist, ghist)
 
     @skipif(not get_ipython().has_readline, 'no readline')
+    @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
+            'no remove_history_item')
     def test_replace_multiline_hist_adds(self):
         """Test that multiline replace function adds history"""
         ip = get_ipython()
@@ -71,6 +76,8 @@ class InteractiveShellTestCase(unittest.TestCase):
                           ip.readline.get_current_history_length())
 
     @skipif(not get_ipython().has_readline, 'no readline')
+    @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
+            'no remove_history_item')
     def test_replace_multiline_hist_keeps_history(self):
         """Test that multiline replace does not delete history"""
         ip = get_ipython()
@@ -93,6 +100,8 @@ class InteractiveShellTestCase(unittest.TestCase):
 
 
     @skipif(not get_ipython().has_readline, 'no readline')
+    @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
+            'no remove_history_item')
     def test_replace_multiline_hist_replaces_twice(self):
         """Test that multiline entries are replaced twice"""
         ip = get_ipython()
@@ -119,6 +128,8 @@ class InteractiveShellTestCase(unittest.TestCase):
 
 
     @skipif(not get_ipython().has_readline, 'no readline')
+    @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
+            'no remove_history_item')
     def test_replace_multiline_hist_replaces_empty_line(self):
         """Test that multiline history skips empty line cells"""
         ip = get_ipython()
