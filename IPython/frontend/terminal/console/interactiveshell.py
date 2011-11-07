@@ -227,6 +227,9 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         
         if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
+            hlen_b4_cell = self.readline.get_current_history_length()
+        else:
+            hlen_b4_cell = 0
         # exit_now is set by a call to %Exit or %Quit, through the
         # ask_exit callback.
 
@@ -271,7 +274,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
                     self.write('\nKeyboardInterrupt\n')
-                    self.input_splitter.reset()
+                    source_raw = self.input_splitter.source_raw_reset()[1]
+                    hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     more = False
                 except KeyboardInterrupt:
                     pass
@@ -299,6 +303,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     self.edit_syntax_error()
                 if not more:
                     source_raw = self.input_splitter.source_reset()
+                    hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     self.run_cell(source_raw)
                 
 
