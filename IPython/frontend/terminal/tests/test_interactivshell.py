@@ -34,6 +34,14 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip._replace_rlhist_multiline(u'source', 0)
 
     @skipif(not get_ipython().has_readline, 'no readline')
+    def test_runs_without_remove_history_item(self):
+        """Test that function does not throw on windows without
+           remove_history_item"""
+        ip = get_ipython()
+        del ip.readline.remove_history_item
+        ip._replace_rlhist_multiline(u'source', 0)
+
+    @skipif(not get_ipython().has_readline, 'no readline')
     def test_replace_multiline_hist_disabled(self):
         """Test that multiline replace does nothing if disabled"""
         ip = get_ipython()

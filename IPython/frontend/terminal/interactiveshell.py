@@ -236,6 +236,10 @@ class TerminalInteractiveShell(InteractiveShell):
         if not self.has_readline or not self.multiline_history:
             return hlen_before_cell
 
+        # windows rl has no remove_history_item
+        if not hasattr(self.readline, "remove_history_item"):
+            return hlen_before_cell
+
         # skip empty cells
         if not source_raw.rstrip():
             return hlen_before_cell
