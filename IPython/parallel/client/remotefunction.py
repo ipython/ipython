@@ -140,6 +140,8 @@ class ParallelFunction(RemoteFunction):
         self.mapObject = mapClass()
 
     def __call__(self, *sequences):
+        client = self.view.client
+        
         # check that the length of sequences match
         len_0 = len(sequences[0])
         for s in sequences:
@@ -158,11 +160,12 @@ class ParallelFunction(RemoteFunction):
                 warnings.warn("`chunksize` is ignored unless load balancing", UserWarning)
             # multiplexed:
             targets = self.view.targets
+            # 'all' is lazily evaluated at execution time, which is now:
+            if targets == 'all':
+                targets = client._build_targets(targets)[1]
             nparts = len(targets)
 
         msg_ids = []
-        # my_f = lambda *a: map(self.func, *a)
-        client = self.view.client
         for index, t in enumerate(targets):
             args = []
             for seq in sequences:

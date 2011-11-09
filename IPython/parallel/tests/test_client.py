@@ -79,13 +79,48 @@ class TestClient(ClusterTestCase):
         self.assertEquals(v.targets, None)
     
     def test_dview_targets(self):
-        """test load_balanced_view targets"""
+        """test direct_view targets"""
         v = self.client.direct_view()
         self.assertEquals(v.targets, 'all')
         v = self.client.direct_view('all')
         self.assertEquals(v.targets, 'all')
         v = self.client.direct_view(-1)
         self.assertEquals(v.targets, self.client.ids[-1])
+    
+    def test_lazy_all_targets(self):
+        """test lazy evaluation of rc.direct_view('all')"""
+        v = self.client.direct_view()
+        self.assertEquals(v.targets, 'all')
+        
+        def double(x):
+            return x*2
+        seq = range(100)
+        ref = [ double(x) for x in seq ]
+        
+        # add some engines, which should be used
+        self.add_engines(2)
+        n1 = len(self.client.ids)
+        
+        # simple apply
+        r = v.apply_sync(lambda : 1)
+        self.assertEquals(r, [1] * n1)
+        
+        # map goes through remotefunction
+        r = v.map_sync(double, seq)
+        self.assertEquals(r, ref)
+
+        # add a couple more engines, and try again
+        self.add_engines(2)
+        n2 = len(self.client.ids)
+        self.assertNotEquals(n2, n1)
+        
+        # apply
+        r = v.apply_sync(lambda : 1)
+        self.assertEquals(r, [1] * n2)
+        
+        # map
+        r = v.map_sync(double, seq)
+        self.assertEquals(r, ref)
     
     def test_targets(self):
         """test various valid targets arguments"""

@@ -1032,8 +1032,14 @@ class Client(HasTraits):
     def direct_view(self, targets='all'):
         """construct a DirectView object.
 
-        If no targets are specified, create a DirectView
-        using all engines.
+        If no targets are specified, create a DirectView using all engines.
+        
+        rc.direct_view('all') is distinguished from rc[:] in that 'all' will
+        evaluate the target engines at each execution, whereas rc[:] will connect to
+        all *current* engines, and that list will not change.
+        
+        That is, 'all' will always use all engines, whereas rc[:] will not use
+        engines added after the DirectView is constructed.
 
         Parameters
         ----------
