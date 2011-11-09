@@ -44,6 +44,7 @@ extensions = [
     'inheritance_diagram',
     'ipython_console_highlighting',
     'numpydoc',  # to preprocess docstrings
+    'github',  # for easy GitHub links
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -58,6 +59,9 @@ master_doc = 'index'
 # General substitutions.
 project = 'IPython'
 copyright = '2008, The IPython Development Team'
+
+# ghissue config
+github_project_url = "https://github.com/ipython/ipython"
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
