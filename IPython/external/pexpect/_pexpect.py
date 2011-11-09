@@ -88,7 +88,7 @@ support it. Pexpect is intended for UNIX-like operating systems.""")
 __version__ = '2.6.dev'
 version = __version__
 version_info = (2,6,'dev')
-__all__ = ['ExceptionPexpect', 'EOF', 'TIMEOUT', 'spawn', 'run', 'which',
+__all__ = ['ExceptionPexpect', 'EOF', 'TIMEOUT', 'spawn', 'spawnb', 'run', 'which',
     'split_command_line', '__version__']
 
 # Exception classes used by this module.
