@@ -2075,10 +2075,21 @@ class InteractiveShell(SingletonConfigurable, Magic):
         cmd : str
           Command to execute.
         """
+        cmd = self.var_expand(cmd, depth=2)
+        # protect os.system from UNC paths on Windows, which it can't handle:
+        if sys.platform == 'win32':
+            from IPython.utils._process_win32 import AvoidUNCPath
+            with AvoidUNCPath() as path:
+                if path is not None:
+                    cmd = '"pushd %s &&"%s' % (path, cmd)
+                ec = os.system(cmd)
+        else:
+            ec = os.system(cmd)
+        
         # We explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.
         # Instead, we store the exit_code in user_ns.
-        self.user_ns['_exit_code'] = os.system(self.var_expand(cmd, depth=2))
+        self.user_ns['_exit_code'] = ec
 
     # use piped system by default, because it is better behaved
     system = system_piped
