@@ -273,7 +273,7 @@ class IPControllerApp(BaseParallelApplication):
         if not self.reuse_files:
             # save to new json config files
             f = self.factory
-            cdict = {'exec_key' : f.session.key,
+            cdict = {'exec_key' : f.session.key.decode('ascii'),
                     'ssh' : self.ssh_server,
                     'url' : "%s://%s:%s"%(f.client_transport, f.client_ip, f.regport),
                     'location' : self.location

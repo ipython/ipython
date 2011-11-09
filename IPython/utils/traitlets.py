@@ -961,7 +961,7 @@ class CComplex(Complex):
 class Bytes(TraitType):
     """A trait for byte strings."""
 
-    default_value = ''
+    default_value = b''
     info_text = 'a string'
 
     def validate(self, obj, value):
