@@ -41,6 +41,61 @@ def restore_bytes(nb):
                         output.jpeg = str_to_bytes(output.jpeg, 'ascii')
     return nb
 
+# output keys that are likely to have multiline values
+_multiline_outputs = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
+
+def rejoin_lines(nb):
+    """rejoin multiline text into strings
+    
+    For reversing effects of ``split_lines(nb)``.
+    
+    This only rejoins lines that have been split, so if text objects were not split
+    they will pass through unchanged.
+    
+    Used when reading JSON files that may have been passed through split_lines.
+    """
+    for ws in nb.worksheets:
+        for cell in ws.cells:
+            if cell.cell_type == 'code':
+                if 'input' in cell and isinstance(cell.input, list):
+                    cell.input = u'\n'.join(cell.input)
+                for output in cell.outputs:
+                    for key in _multiline_outputs:
+                        item = output.get(key, None)
+                        if isinstance(item, list):
+                            output[key] = u'\n'.join(item)
+            else: # text cell
+                for key in ['source', 'rendered']:
+                    item = cell.get(key, None)
+                    if isinstance(item, list):
+                        cell[key] = u'\n'.join(item)
+    return nb
+
+
+def split_lines(nb):
+    """split likely multiline text into lists of strings
+    
+    For file output more friendly to line-based VCS. ``rejoin_lines(nb)`` will
+    reverse the effects of ``split_lines(nb)``.
+    
+    Used when writing JSON files.
+    """
+    for ws in nb.worksheets:
+        for cell in ws.cells:
+            if cell.cell_type == 'code':
+                if 'input' in cell and isinstance(cell.input, basestring):
+                    cell.input = cell.input.splitlines()
+                for output in cell.outputs:
+                    for key in _multiline_outputs:
+                        item = output.get(key, None)
+                        if isinstance(item, basestring):
+                            output[key] = item.splitlines()
+            else: # text cell
+                for key in ['source', 'rendered']:
+                    item = cell.get(key, None)
+                    if isinstance(item, basestring):
+                        cell[key] = item.splitlines()
+    return nb
 
 # b64 encode/decode are never actually used, because all bytes objects in
 # the notebook are already b64-encoded, and we don't need/want to double-encode

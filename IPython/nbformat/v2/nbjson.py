@@ -16,9 +16,13 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from .nbbase import from_dict
-from .rwbase import NotebookReader, NotebookWriter, restore_bytes
+import copy
 import json
+
+from .nbbase import from_dict
+from .rwbase import (
+    NotebookReader, NotebookWriter, restore_bytes, rejoin_lines, split_lines
+)
 
 #-----------------------------------------------------------------------------
 # Code
@@ -40,7 +44,7 @@ class JSONReader(NotebookReader):
         return nb
 
     def to_notebook(self, d, **kwargs):
-        return restore_bytes(from_dict(d))
+        return restore_bytes(rejoin_lines(from_dict(d)))
 
 
 class JSONWriter(NotebookWriter):
@@ -49,8 +53,10 @@ class JSONWriter(NotebookWriter):
         kwargs['cls'] = BytesEncoder
         kwargs['indent'] = 4
         kwargs['sort_keys'] = True
+        if kwargs.pop('split_lines', True):
+            nb = split_lines(copy.deepcopy(nb))
         return json.dumps(nb, **kwargs)
-
+    
 
 _reader = JSONReader()
 _writer = JSONWriter()
