@@ -180,6 +180,9 @@ class InteractiveShellApp(Configurable):
         self._run_exec_lines()
         self._run_exec_files()
         self._run_cmd_line_code()
+        
+        # Hide variables defined here from %who etc.
+        self.shell.user_ns_hidden.update(self.shell.user_ns)
 
     def _run_exec_lines(self):
         """Run lines of code in IPythonApp.exec_lines in the user's namespace."""
