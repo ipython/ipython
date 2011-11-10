@@ -743,9 +743,6 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
 
     def init_kernel(self):
 
-        if self.pylab:
-            gui, backend = pylabtools.find_gui_and_backend(self.pylab)
-
         kernel = Kernel(config=self.config, session=self.session,
                                 shell_socket=self.shell_socket,
                                 iopub_socket=self.iopub_socket,
@@ -755,9 +752,31 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         )
         self.kernel = kernel
         kernel.record_ports(self.ports)
-
+        shell = kernel.shell
         if self.pylab:
-            kernel.shell.enable_pylab(gui, import_all=self.pylab_import_all)
+            try:
+                gui, backend = pylabtools.find_gui_and_backend(self.pylab)
+                shell.enable_pylab(gui, import_all=self.pylab_import_all)
+            except Exception:
+                self.log.error("Pylab initialization failed", exc_info=True)
+                # print exception straight to stdout, because normally 
+                # _showtraceback associates the reply with an execution, 
+                # which means frontends will never draw it, as this exception 
+                # is not associated with any execute request.
+                
+                # replace pyerr-sending traceback with stdout
+                _showtraceback = shell._showtraceback
+                def print_tb(etype, evalue, stb):
+                    print ("Error initializing pylab, pylab mode will not be active", file=io.stderr)
+                    print (shell.InteractiveTB.stb2text(stb), file=io.stdout)
+                shell._showtraceback = print_tb
+                
+                # send the traceback over stdout
+                shell.showtraceback(tb_offset=0)
+                
+                # restore proper _showtraceback method
+                shell._showtraceback = _showtraceback
+                
 
     def init_shell(self):
         self.shell = self.kernel.shell
