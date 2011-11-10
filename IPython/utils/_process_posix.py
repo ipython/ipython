@@ -89,9 +89,8 @@ class ProcessHandler(object):
         file descriptors (so the order of the information in this string is the
         correct order as would be seen if running the command in a terminal).
         """
-        pcmd = self._make_cmd(cmd)
         try:
-            return pexpect.run(pcmd).replace('\r\n', '\n')
+            return pexpect.run(self.sh, args=['-c', cmd]).replace('\r\n', '\n')
         except KeyboardInterrupt:
             print('^C', file=sys.stderr, end='')
 
@@ -111,9 +110,8 @@ class ProcessHandler(object):
         file descriptors (so the order of the information in this string is the
         correct order as would be seen if running the command in a terminal).
         """
-        pcmd = self._make_cmd(cmd)
         try:
-            return pexpect.run(pcmd).replace('\r\n', '\n')
+            return pexpect.run(self.sh, args=['-c', cmd]).replace('\r\n', '\n')
         except KeyboardInterrupt:
             print('^C', file=sys.stderr, end='')
 
@@ -132,12 +130,13 @@ class ProcessHandler(object):
         # Get likely encoding for the output.
         enc = text.getdefaultencoding()
         
-        pcmd = self._make_cmd(cmd)
         # Patterns to match on the output, for pexpect.  We read input and
         # allow either a short timeout or EOF
         patterns = [pexpect.TIMEOUT, pexpect.EOF]
         # the index of the EOF pattern in the list.
-        EOF_index = 1  # Fix this index if you change the list!!
+        # even though we know it's 1, this call means we don't have to worry if
+        # we change the above list, and forget to change this value:
+        EOF_index = patterns.index(pexpect.EOF)
         # The size of the output stored so far in the process output buffer.
         # Since pexpect only appends to this buffer, each time we print we
         # record how far we've printed, so that next time we only print *new*
@@ -148,8 +147,7 @@ class ProcessHandler(object):
             # can set pexpect's search window to be tiny and it won't matter.
             # We only search for the 'patterns' timeout or EOF, which aren't in
             # the text itself.
-            #child = pexpect.spawn(pcmd, searchwindowsize=1)
-            child = pexpect.spawn(pcmd)
+            child = pexpect.spawn(self.sh, args=['-c', cmd])
             flush = sys.stdout.flush
             while True:
                 # res is the index of the pattern that caused the match, so we
@@ -179,10 +177,9 @@ class ProcessHandler(object):
             finally:
                 # Ensure the subprocess really is terminated
                 child.terminate(force=True)
+        # add isalive check, to ensure exitstatus is set:
+        child.isalive()
         return child.exitstatus
-
-    def _make_cmd(self, cmd):
-        return '%s -c "%s"' % (self.sh, cmd)
 
 
 # Make system() with a functional interface for outside use.  Note that we use
