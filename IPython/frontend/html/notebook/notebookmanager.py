@@ -118,7 +118,12 @@ class NotebookManager(LoggingConfigurable):
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
         last_modified, nb = self.get_notebook_object(notebook_id)
-        data = current.writes(nb, format)
+        kwargs = {}
+        if format == 'json':
+            # don't split lines for sending over the wire, because it
+            # should match the Python in-memory format.
+            kwargs['split_lines'] = False
+        data = current.writes(nb, format, **kwargs)
         name = nb.get('name','notebook')
         return last_modified, name, data
 
