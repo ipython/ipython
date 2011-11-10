@@ -86,11 +86,24 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         self.mktmp('\n'.join(lines))
 
     def test_system(self):
-        system('python "%s"' % self.fname)
+        status = system('python "%s"' % self.fname)
+        self.assertEquals(status, 0)
+
+    def test_system_quotes(self):
+        status = system('python -c "import sys"')
+        self.assertEquals(status, 0)
 
     def test_getoutput(self):
         out = getoutput('python "%s"' % self.fname)
         self.assertEquals(out, 'on stdout')
+
+    def test_getoutput_quoted(self):
+        out = getoutput('python -c "print 1"')
+        self.assertEquals(out.strip(), '1')
+        out = getoutput("python -c 'print 1'")
+        self.assertEquals(out.strip(), '1')
+        out = getoutput("python -c 'print \"1\"'")
+        self.assertEquals(out.strip(), '1')
 
     def test_getoutput(self):
         out, err = getoutputerror('python "%s"' % self.fname)
