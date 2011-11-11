@@ -147,7 +147,6 @@ aliases.update({
     'port': 'NotebookApp.port',
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
-    'ws-hostname': 'NotebookApp.ws_hostname',
     'notebook-dir': 'NotebookManager.notebook_dir',
 })
 
@@ -155,7 +154,7 @@ aliases.update({
 # multi-kernel evironment:
 aliases.pop('f', None)
 
-notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile', u'ws-hostname',
+notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile',
                     u'notebook-dir']
 
 #-----------------------------------------------------------------------------
@@ -200,13 +199,6 @@ class NotebookApp(BaseIPythonApplication):
         help="The port the notebook server will listen on."
     )
 
-    ws_hostname = Unicode(LOCALHOST, config=True,
-        help="""The FQDN or IP for WebSocket connections. The default will work
-                fine when the server is listening on localhost, but this needs to
-                be set if the ip option is used. It will be used as the hostname part
-                of the WebSocket url: ws://hostname/path."""
-    )
-
     certfile = Unicode(u'', config=True, 
         help="""The full path to an SSL/TLS certificate file."""
     )
@@ -225,14 +217,6 @@ class NotebookApp(BaseIPythonApplication):
     read_only = Bool(False, config=True,
         help="Whether to prevent editing/execution of notebooks."
     )
-
-    def get_ws_url(self):
-        """Return the WebSocket URL for this server."""
-        if self.certfile:
-            prefix = u'wss://'
-        else:
-            prefix = u'ws://'
-        return prefix + self.ws_hostname + u':' + unicode(self.port)
 
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
