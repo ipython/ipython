@@ -812,7 +812,14 @@ class AutoHandler(PrefilterHandler):
             return line
 
         force_auto = isinstance(obj, IPyAutocall)
-        auto_rewrite = getattr(obj, 'rewrite', True)
+
+        # User objects sometimes raise exceptions on attribute access other
+        # than AttributeError (we've seen it in the past), so it's safest to be
+        # ultra-conservative here and catch all.
+        try:
+            auto_rewrite = obj.rewrite
+        except Exception:
+            auto_rewrite = True
 
         if esc == ESC_QUOTE:
             # Auto-quote splitting on whitespace

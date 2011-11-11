@@ -35,6 +35,7 @@ def test_prefilter():
     for raw, correct in pairs:
         yield nt.assert_equals(ip.prefilter(raw), correct)
 
+
 @dec.parametric
 def test_autocall_binops():
     """See https://github.com/ipython/ipython/issues/81"""
@@ -49,10 +50,11 @@ def test_autocall_binops():
         ip.magic('autocall 0')
         del ip.user_ns['f']
 
+
 @dec.parametric
-def test_issue114():
+def test_issue_114():
     """Check that multiline string literals don't expand as magic
-    see http://github.com/ipython/ipython/issues/#issue/114"""
+    see http://github.com/ipython/ipython/issues/114"""
 
     template = '"""\n%s\n"""'
     # Store the current value of multi_line_specials and turn it off before
@@ -66,3 +68,27 @@ def test_issue114():
             yield nt.assert_equals(ip.prefilter(raw), raw)
     finally:
         ip.prefilter_manager.multi_line_specials = msp
+
+
+def test_prefilter_attribute_errors():
+    """Capture exceptions thrown by user objects on attribute access.
+
+    See http://github.com/ipython/ipython/issues/988."""
+
+    class X(object):
+        def __getattr__(self, k):
+            raise ValueError('broken object')
+        def __call__(self, x):
+            return x
+
+    # Create a callable broken object
+    ip.user_ns['x'] = X()
+    ip.magic('autocall 2')
+    try:
+        # Even if x throws an attribute error when looking at its rewrite
+        # attribute, we should not crash.  So the test here is simply making
+        # the prefilter call and not having an exception.
+        ip.prefilter('x 1')
+    finally:
+        del ip.user_ns['x']
+        ip.magic('autocall 0')
