@@ -134,5 +134,11 @@ def test_hist_file_config():
         hm = HistoryManager(shell=get_ipython(), config=cfg)
         nt.assert_equals(hm.hist_file, cfg.HistoryManager.hist_file)
     finally:
-        os.remove(tfile.name)
+        try:
+            os.remove(tfile.name)
+        except OSError:
+            # same catch as in testing.tools.TempFileMixin
+            # On Windows, even though we close the file, we still can't
+            # delete it.  I have no clue why
+            pass
 

@@ -70,7 +70,16 @@ def teardown():
 #-----------------------------------------------------------------------------
 # Test functions
 #-----------------------------------------------------------------------------
+def win32_without_pywin32():
+    if sys.platform == 'win32':
+        try:
+            import pywin32
+        except ImportError:
+            return True
+    return False
+    
 
+@dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
 def test_startup_py():
     # create profile dir
     pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, 'test')
@@ -85,6 +94,7 @@ def test_startup_py():
     tt.ipexec_validate(fname, '123', '', 
         options=['--ipython-dir', IP_TEST_DIR, '--profile', 'test'])
 
+@dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
 def test_startup_ipy():
     # create profile dir
     pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, 'test')
