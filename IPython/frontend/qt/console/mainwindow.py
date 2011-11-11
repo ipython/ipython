@@ -544,32 +544,54 @@ class MainWindow(QtGui.QMainWindow):
 
         self.kernel_menu.addSeparator()
 
+    def _make_dynamic_magic(self,magic):
+        """Return a function `fun` that will execute `magic` on active frontend.
+
+        `magic` : valid python string
+
+        return `fun`, function with no parameters
+
+        `fun` execute `magic` an active frontend at the moment it is triggerd,
+        not the active frontend at the moment it has been created.
+
+        This function is mostly used to create the "All Magics..." Menu at run time.
+        """
+        # need to level nested function  to be sure to past magic
+        # on active frontend **at run time**.
+        def inner_dynamic_magic():
+            self.active_frontend.execute(magic)
+        inner_dynamic_magic.__name__ = "dynamics_magic_s"
+        return inner_dynamic_magic
+
+    def populate_all_magic_menu(self, listofmagic=None):
+        """Clean "All Magics..." menu and repopulate it with `listofmagic`
+
+        `listofmagic` : string, repr() of a list of strings.
+
+        `listofmagic`is a repr() of list because it is fed with the result of
+        a 'user_expression'
+        """
+        alm_magic_menu = self.all_magic_menu
+        alm_magic_menu.clear()
+
+        # list of protected magic that don't like to be called without argument
+        # append '?' to the end to print the docstring when called from the menu
+        protected_magic = set(["more","less","load_ext","pycat","loadpy","save"])
+
+        for magic in eval(listofmagic):
+            if magic in protected_magic:
+                pmagic = '%s%s%s'%('%',magic,'?')
+            else:
+                pmagic = '%s%s'%('%',magic)
+            xaction = QtGui.QAction(pmagic,
+                self,
+                triggered=self._make_dynamic_magic(pmagic)
+                )
+            alm_magic_menu.addAction(xaction)
+
     def update_all_magic_menu(self):
         # first define a callback which will get the list of all magic and put it in the menu.
-        def populate_all_magic_menu(val=None):
-            alm_magic_menu = self.all_magic_menu
-            alm_magic_menu.clear()
-            def make_dynamic_magic(i):
-                    def inner_dynamic_magic():
-                        self.active_frontend.execute(i)
-                    inner_dynamic_magic.__name__ = "dynamics_magic_s"
-                    return inner_dynamic_magic
-
-            # list of protected magic that don't like to be called without argument
-            # append '?' to the end to print the docstring when called from the menu
-            protected_magic= ["more","less","load_ext","pycat","loadpy","save"]
-
-            for magic in eval(val):
-                if magic in protected_magic:
-                    pmagic = '%s%s%s'%('%',magic,'?')
-                else:
-                    pmagic = '%s%s'%('%',magic)
-                xaction = QtGui.QAction(pmagic,
-                    self,
-                    triggered=make_dynamic_magic(pmagic)
-                    )
-                alm_magic_menu.addAction(xaction)
-        self.active_frontend._silent_exec_callback('get_ipython().lsmagic()',populate_all_magic_menu)
+        self.active_frontend._silent_exec_callback('get_ipython().lsmagic()',self.populate_all_magic_menu)
 
     def init_magic_menu(self):
         self.magic_menu = self.menuBar().addMenu("&Magic")
@@ -578,8 +600,7 @@ class MainWindow(QtGui.QMainWindow):
         # this action should not appear as it will be cleard when menu
         # will be updated at first kernel response.
         self.pop = QtGui.QAction("&Update All Magic Menu ",
-            self,
-            triggered=self.update_all_magic_menu)
+            self, triggered=self.update_all_magic_menu)
         self.add_menu_action(self.all_magic_menu, self.pop)
 
         self.reset_action = QtGui.QAction("&Reset",
