@@ -112,11 +112,9 @@ class TerminalInteractiveShell(InteractiveShell):
             config=config, profile_dir=profile_dir, user_ns=user_ns,
             user_global_ns=user_global_ns, custom_exceptions=custom_exceptions
         )
-        # use os.system instead of utils.process.system by default, except on Windows
-        if os.name == 'nt':
-            self.system = self.system_piped
-        else:
-            self.system = self.system_raw
+        # use os.system instead of utils.process.system by default,
+        # because piped system doesn't make sense in the Terminal:
+        self.system = self.system_raw
 
         self.init_term_title()
         self.init_usage(usage)
