@@ -47,44 +47,55 @@ var IPython = (function (IPython) {
         this.collapse()
     };
 
+    //TODO, try to diminish the number of parameters.
+    CodeCell.prototype.request_tooltip_after_time = function (pre_cursor,time,that){
+        if (pre_cursor === "" || pre_cursor === "(" ) {
+            // don't do anything if line beggin with '(' or is empty
+        } else {
+            // Will set a timer to request tooltip in `time`
+            that.tooltip_timeout = setTimeout(function(){
+                    IPython.notebook.request_tool_tip(that, pre_cursor)
+                },time);
+        }
+    };
 
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
         // This method gets called in CodeMirror's onKeyDown/onKeyPress
         // handlers and is used to provide custom key handling. Its return
         // value is used to determine if CodeMirror should ignore the event:
         // true = ignore, false = don't ignore.
+        tooltip_wait_time = 2000;
+        tooltip_on_tab    = true;
+        var that = this;
 
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any
         if(event.type === 'keydown' && this.tooltip_timeout != null){
-            CodeCell.prototype.remove_and_cancell_tooltip(this.tooltip_timeout);
-            this.tooltip_timeout=null;
+            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+            that.tooltip_timeout=null;
         }
+
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        }else if (event.keyCode === 53 && event.type === 'keydown') {
+        }else if (event.keyCode === 53 && event.type === 'keydown' && tooltip_wait_time >= 0) {
+            // Pressing '(' , request tooltip
             var cursor = editor.getCursor();
             var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim();
-            if (pre_cursor === "") {
-                // don't do anything if line beggin with '('
-            } else {
-                var that = this;
-                // Will set a timer to request tooltip in 1200ms
-                this.tooltip_timeout = setTimeout(function(){
-                        IPython.notebook.request_tool_tip(that, pre_cursor)
-                    },1200);
-            }
-
+            CodeCell.prototype.request_tooltip_after_time(pre_cursor,tooltip_wait_time,that);
         } else if (event.keyCode === 9 && event.type == 'keydown') {
             // Tab completion.
             var cur = editor.getCursor();
-            var pre_cursor = editor.getRange({line:cur.line,ch:0},cur).trim();
-            if (pre_cursor === "") {
+            //Do not trim here because of tooltip
+            var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
+            if (pre_cursor.trim() === "") {
                 // Don't autocomplete if the part of the line before the cursor
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
+            } else if (pre_cursor.substr(-1) === "(" && tooltip_on_tab ) {
+                CodeCell.prototype.request_tooltip_after_time(pre_cursor,0,that);
             } else {
+                pre_cursor.trim();
                 // Autocomplete the current line.
                 event.stop();
                 var line = editor.getLine(cur.line);

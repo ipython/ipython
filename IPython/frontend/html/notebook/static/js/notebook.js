@@ -705,7 +705,6 @@ var IPython = (function (IPython) {
             rep = reply.content;
             if(rep.found)
             {
-                console.log("object as been found");
                 cell.finish_tooltip(rep.definition,rep.docstring);
             }
         } else {
@@ -884,10 +883,12 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.request_tool_tip = function (cell,func) {
-        // select last part of expression
+        //remove ending '(' if any
+        //there should be a way to do it in the regexp 
+        if(func.substr(-1) === '('){func=func.substr(0, func.length-1);}
+        // regexp to select last part of expression
         var re = /[a-zA-Z._]+$/g;
-        var lastpart=re.exec(func);
-        var msg_id = this.kernel.object_info_request(lastpart);
+        var msg_id = this.kernel.object_info_request(re.exec(func));
         this.msg_cell_map[msg_id] = cell.cell_id;
     };
 
