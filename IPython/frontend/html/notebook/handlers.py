@@ -144,10 +144,11 @@ class AuthenticatedHandler(web.RequestHandler):
     def ws_url(self):
         """websocket url matching the current request
         
-        turns http[s]://host[:port]/foo/bar into
-                ws[s]://host[:port]/foo/bar
+        turns http[s]://host[:port] into
+                ws[s]://host[:port]
         """
-        return self.request.headers.get('Origin').replace('http', 'ws', 1)
+        proto = self.request.protocol.replace('http', 'ws')
+        return "%s://%s" % (proto, self.request.host)
 
 
 class ProjectDashboardHandler(AuthenticatedHandler):
