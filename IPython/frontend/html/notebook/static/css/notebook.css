@@ -115,6 +115,10 @@ span.section_row_buttons a {
     float: right;
 }
 
+#tooltipontab_span {
+    float: right;
+}
+
 .checkbox_label {
     font-size: 85%;
     float: right;

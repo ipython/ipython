@@ -27,6 +27,7 @@ var IPython = (function (IPython) {
         this.style();
         this.create_elements();
         this.bind_events();
+        this.set_tooltipontab(true);
     };
 
 
@@ -621,6 +622,11 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.set_tooltipontab = function (state) {
+        console.log("change tooltip on tab to : "+state);
+        this.tooltip_on_tab = state;
+    };
+
     Notebook.prototype.set_autoindent = function (state) {
         var cells = this.cells();
         len = cells.length;
@@ -883,10 +889,22 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.request_tool_tip = function (cell,func) {
-        //remove ending '(' if any
-        //there should be a way to do it in the regexp 
-        if(func.substr(-1) === '('){func=func.substr(0, func.length-1);}
-        // regexp to select last part of expression
+        // Feel free to shorten this logic if you are better
+        // than me in regEx
+        // basicaly you shoul be able to get xxx.xxx.xxx from 
+        // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2, 
+        // remove everything between matchin bracket (need to iterate)
+        matchBracket = /\([^\(\)]+\)/g;
+        oldfunc = func;
+        func = func.replace(matchBracket,"");
+        while( oldfunc != func )
+        {
+        oldfunc = func;
+        func = func.replace(matchBracket,"");
+        }
+        // remove everythin after last open bracket
+        endBracket = /\([^\(]*$/g;
+        func = func.replace(endBracket,"");
         var re = /[a-zA-Z._]+$/g;
         var msg_id = this.kernel.object_info_request(re.exec(func));
         this.msg_cell_map[msg_id] = cell.cell_id;

@@ -65,7 +65,8 @@ var IPython = (function (IPython) {
         // value is used to determine if CodeMirror should ignore the event:
         // true = ignore, false = don't ignore.
         tooltip_wait_time = 2000;
-        tooltip_on_tab    = true;
+
+        tooltip_on_tab    = this.notebook.tooltip_on_tab;
         var that = this;
 
         // whatever key is pressed, first, cancel the tooltip request before
@@ -79,9 +80,9 @@ var IPython = (function (IPython) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
         }else if (event.keyCode === 53 && event.type === 'keydown' && tooltip_wait_time >= 0) {
-            // Pressing '(' , request tooltip
+            // Pressing '(' , request tooltip, don't forget to reappend it
             var cursor = editor.getCursor();
-            var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim();
+            var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
             CodeCell.prototype.request_tooltip_after_time(pre_cursor,tooltip_wait_time,that);
         } else if (event.keyCode === 9 && event.type == 'keydown') {
             // Tab completion.
@@ -92,7 +93,7 @@ var IPython = (function (IPython) {
                 // Don't autocomplete if the part of the line before the cursor
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
-            } else if (pre_cursor.substr(-1) === "(" && tooltip_on_tab ) {
+            } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && tooltip_on_tab ) {
                 CodeCell.prototype.request_tooltip_after_time(pre_cursor,0,that);
             } else {
                 pre_cursor.trim();

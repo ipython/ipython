@@ -51,6 +51,7 @@ $(document).ready(function () {
         IPython.quick_help.element.addClass('hidden'); // shortcuts are disabled in read_only
         $('button#new_notebook').addClass('hidden');
         $('div#cell_section').addClass('hidden');
+        $('div#config_section').addClass('hidden');
         $('div#kernel_section').addClass('hidden');
         $('span#login_widget').removeClass('hidden');
         // left panel starts collapsed, but the collapse must happen after

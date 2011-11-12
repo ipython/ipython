@@ -67,6 +67,7 @@ var IPython = (function (IPython) {
         this.notebook_section = new IPython.NotebookSection('div#notebook_section');
         if (! IPython.read_only){
             this.cell_section = new IPython.CellSection('div#cell_section');
+            this.config_section = new IPython.ConfigSection('div#config_section');
             this.kernel_section = new IPython.KernelSection('div#kernel_section');
         }
         this.help_section = new IPython.HelpSection('div#help_section');
