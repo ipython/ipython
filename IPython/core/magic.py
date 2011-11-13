@@ -3696,8 +3696,12 @@ Defaulting color scheme to 'NoColor'"""
 
         """
         from IPython.config.loader import Config
-        # get list of class names for configurables that have someting to configure:
-        classnames = [ c.__class__.__name__ for c in self.configurables if c.__class__.class_traits(config=True) ]
+        # some IPython objects are Configurable, but do not yet have
+        # any configurable traits.  Exclude them from the effects of
+        # this magic, as their presence is just noise:
+        configurables = [ c for c in self.configurables if c.__class__.class_traits(config=True) ]
+        classnames = [ c.__class__.__name__ for c in configurables ]
+        
         line = s.strip()
         if not line:
             # print available configurable names
@@ -3708,7 +3712,7 @@ Defaulting color scheme to 'NoColor'"""
         elif line in classnames:
             # `%config TerminalInteractiveShell` will print trait info for
             # TerminalInteractiveShell
-            c = self.configurables[classnames.index(line)]
+            c = configurables[classnames.index(line)]
             cls = c.__class__
             help = cls.class_get_help(c)
             # strip leading '--' from cl-args:
@@ -3725,7 +3729,7 @@ Defaulting color scheme to 'NoColor'"""
         cfg = Config()
         exec "cfg."+line in locals(), self.user_ns
         
-        for configurable in self.configurables:
+        for configurable in configurables:
             try:
                 configurable.update_config(cfg)
             except Exception as e:
