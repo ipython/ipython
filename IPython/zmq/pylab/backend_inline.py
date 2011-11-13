@@ -97,11 +97,13 @@ def show(close=None):
     """
     if close is None:
         close = InlineBackend.instance().close_figures
-    for figure_manager in Gcf.get_all_fig_managers():
-        send_figure(figure_manager.canvas.figure)
-    if close:
-        matplotlib.pyplot.close('all')
-    show._to_draw = []
+    try:
+        for figure_manager in Gcf.get_all_fig_managers():
+            send_figure(figure_manager.canvas.figure)
+    finally:
+        show._to_draw = []
+        if close:
+            matplotlib.pyplot.close('all')
 
 
 
@@ -146,13 +148,15 @@ def flush_figures():
         # ignore the tracking, just draw and close all figures
         return show(True)
     
-    # exclude any figures that were closed:
-    active = set([fm.canvas.figure for fm in Gcf.get_all_fig_managers()])
-    for fig in [ fig for fig in show._to_draw if fig in active ]:
-        send_figure(fig)
-    # clear flags for next round
-    show._to_draw = []
-    show._draw_called = False
+    try:
+        # exclude any figures that were closed:
+        active = set([fm.canvas.figure for fm in Gcf.get_all_fig_managers()])
+        for fig in [ fig for fig in show._to_draw if fig in active ]:
+            send_figure(fig)
+    finally:
+        # clear flags for next round
+        show._to_draw = []
+        show._draw_called = False
 
 
 def send_figure(fig):

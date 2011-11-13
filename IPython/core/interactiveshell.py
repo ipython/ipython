@@ -2426,7 +2426,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
                             continue
                         try:
                             func()
-                        except:
+                        except KeyboardInterrupt:
+                            print >> io.stderr, "\nKeyboardInterrupt"
+                        except Exception:
+                            print >> io.stderr, "Disabling failed post-execution function: %s" % func
                             self.showtraceback()
                             # Deactivate failing function
                             self._post_execute[func] = False
