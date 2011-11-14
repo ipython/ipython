@@ -28,6 +28,7 @@ var IPython = (function (IPython) {
         this.create_elements();
         this.bind_events();
         this.set_tooltipontab(true);
+        this.set_timebeforetooltip(1200);
     };
 
 
@@ -621,6 +622,11 @@ var IPython = (function (IPython) {
         this.dirty = true;
     };
 
+
+    Notebook.prototype.set_timebeforetooltip = function (time) {
+        console.log("change time before tooltip to : "+time);
+        this.time_before_tooltip = time;
+    };
 
     Notebook.prototype.set_tooltipontab = function (state) {
         console.log("change tooltip on tab to : "+state);

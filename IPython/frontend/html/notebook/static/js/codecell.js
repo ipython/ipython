@@ -64,8 +64,11 @@ var IPython = (function (IPython) {
         // handlers and is used to provide custom key handling. Its return
         // value is used to determine if CodeMirror should ignore the event:
         // true = ignore, false = don't ignore.
-        tooltip_wait_time = 2000;
 
+        // note that we are comparing and setting the time to wait at each key press.
+        // a better wqy might be to generate a new function on each time change and
+        // assign it to CodeCell.prototype.request_tooltip_after_time
+        tooltip_wait_time = this.notebook.time_before_tooltip;
         tooltip_on_tab    = this.notebook.tooltip_on_tab;
         var that = this;
 

@@ -137,6 +137,9 @@ var IPython = (function (IPython) {
         this.content.find('#tooltipontab').attr('title', 'Show tooltip if yuo press <Tab> after "(" or a white space');
         this.content.find('#tooltipontab_label').attr('title', 'Show Tooltip when pressing Tab');
 
+        this.content.find('#timebeforetooltip').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
+        this.content.find('#timebeforetooltip_label').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
+
     };
 
 
@@ -145,6 +148,10 @@ var IPython = (function (IPython) {
         this.content.find('#tooltipontab').change(function () {
             var state = $('#tooltipontab').prop('checked');
             IPython.notebook.set_tooltipontab(state);
+        });
+        this.content.find('#timebeforetooltip').change(function () {
+            var state = $('#timebeforetooltip').prop('value');
+            IPython.notebook.set_timebeforetooltip(state);
         });
     };
 
