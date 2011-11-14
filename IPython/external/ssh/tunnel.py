@@ -301,7 +301,7 @@ def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pa
     return p
 
 def _shutdown_process(p):
-    if p.isalive():
+    if p.is_alive():
         p.terminate()
 
 def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None):
