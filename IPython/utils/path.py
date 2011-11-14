@@ -170,20 +170,13 @@ class HomeDirError(Exception):
 def get_home_dir():
     """Return the closest possible equivalent to a 'home' directory.
 
-    * On POSIX, we try $HOME.
-    * On Windows we try:
-      - %HOMESHARE%
-      - %HOMEDRIVE\%HOMEPATH%
-      - %USERPROFILE%
-      - Registry hack for My Documents
-      - %HOME%: rare, but some people with unix-like setups may have defined it
-    * On Dos C:\
-
-    Currently only Posix and NT are implemented, a HomeDirError exception is
-    raised for all other OSes.
+    * First, check for frozen env in case of py2exe
+    * Otherwise, defer to os.path.expanduser('~'), ensuring unicode
+    
+    See stdlib docs for how this is determined.
+    
+    $HOME is first priority on *ALL* platforms.
     """
-
-    env = os.environ
 
     # first, check py2exe distribution root directory for _ipython.
     # This overrides all. Normally does not exist.
@@ -197,90 +190,12 @@ def get_home_dir():
         if _writable_dir(os.path.join(root, '_ipython')):
             os.environ["IPYKITROOT"] = root
         return py3compat.cast_unicode(root, fs_encoding)
-
-    if os.name == 'posix':
-        # Linux, Unix, AIX, OS X
-        try:
-            homedir = env['HOME']
-        except KeyError:
-            # Last-ditch attempt at finding a suitable $HOME, on systems where
-            # it may not be defined in the environment but the system shell
-            # still knows it - reported once as:
-            # https://github.com/ipython/ipython/issues/154
-            from subprocess import Popen, PIPE
-            homedir = Popen('echo $HOME', shell=True,
-                            stdout=PIPE).communicate()[0].strip()
-            if homedir:
-                return py3compat.cast_unicode(homedir, fs_encoding)
-            else:
-                raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
-        else:
-            return py3compat.cast_unicode(homedir, fs_encoding)
-    elif os.name == 'nt':
-        # Now for win9x, XP, Vista, 7?
-        # For some strange reason all of these return 'nt' for os.name.
-        # First look for a network home directory. This will return the UNC
-        # path (\\server\\Users\%username%) not the mapped path (Z:\). This
-        # is needed when running IPython on cluster where all paths have to
-        # be UNC.
-        try:
-            homedir = env['HOMESHARE']
-        except KeyError:
-            pass
-        else:
-            if _writable_dir(homedir):
-                return py3compat.cast_unicode(homedir, fs_encoding)
-
-        # Now look for a local home directory
-        try:
-            homedir = os.path.join(env['HOMEDRIVE'],env['HOMEPATH'])
-        except KeyError:
-            pass
-        else:
-            if _writable_dir(homedir):
-                return py3compat.cast_unicode(homedir, fs_encoding)
-
-        # Now the users profile directory
-        try:
-            homedir = os.path.join(env['USERPROFILE'])
-        except KeyError:
-            pass
-        else:
-            if _writable_dir(homedir):
-                return py3compat.cast_unicode(homedir, fs_encoding)
-
-        # Use the registry to get the 'My Documents' folder.
-        try:
-            import _winreg as wreg
-            key = wreg.OpenKey(
-                wreg.HKEY_CURRENT_USER,
-                "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
-            )
-            homedir = wreg.QueryValueEx(key,'Personal')[0]
-            key.Close()
-        except:
-            pass
-        else:
-            if _writable_dir(homedir):
-                return py3compat.cast_unicode(homedir, fs_encoding)
-
-        # A user with a lot of unix tools in win32 may have defined $HOME.
-        # Try this as a last ditch option.
-        try:
-            homedir = env['HOME']
-        except KeyError:
-            pass
-        else:
-            if _writable_dir(homedir):
-                return py3compat.cast_unicode(homedir, fs_encoding)
-
-        # If all else fails, raise HomeDirError
-        raise HomeDirError('No valid home directory could be found')
-    elif os.name == 'dos':
-        # Desperate, may do absurd things in classic MacOS. May work under DOS.
-        return u'C:\\'
+    
+    homedir = os.path.expanduser('~')
+    if _writable_dir(homedir):
+        return py3compat.cast_unicode(homedir, fs_encoding)
     else:
-        raise HomeDirError('No valid home directory could be found for your OS')
+        raise HomeDirError('%s not a writable dir, set $HOME env to override' % homedir)
 
 def get_xdg_dir():
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.

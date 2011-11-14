@@ -118,7 +118,6 @@ def teardown_environment():
 # Build decorator that uses the setup_environment/setup_environment
 with_environment = with_setup(setup_environment, teardown_environment)
 
-
 @skip_if_not_win32
 @with_environment
 def test_get_home_dir_1():
@@ -147,96 +146,27 @@ def test_get_home_dir_2():
 
 
 @with_environment
-@skip_win32
 def test_get_home_dir_3():
-    """Testcase $HOME is set, then use its value as home directory."""
+    """get_home_dir() uses $HOME if set"""
     env["HOME"] = HOME_TEST_DIR
     home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, env["HOME"])
 
 
 @with_environment
-@skip_win32
 def test_get_home_dir_4():
-    """Testcase $HOME is not set, os=='posix'.
-    This should fail with HomeDirError"""
+    """get_home_dir() still works if $HOME is not set"""
 
-    os.name = 'posix'
     if 'HOME' in env: del env['HOME']
-    nt.assert_raises(path.HomeDirError, path.get_home_dir)
+    # this should still succeed, but we don't know what the answer should be
+    home = path.get_home_dir()
+    nt.assert_true(path._writable_dir(home))
 
-
-@skip_if_not_win32
 @with_environment
 def test_get_home_dir_5():
-    """Using HOMEDRIVE + HOMEPATH, os=='nt'.
-
-    HOMESHARE is missing.
-    """
-
-    os.name = 'nt'
-    env.pop('HOMESHARE', None)
-    env['HOMEDRIVE'], env['HOMEPATH'] = os.path.splitdrive(HOME_TEST_DIR)
-    home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
-
-
-@skip_if_not_win32
-@with_environment
-def test_get_home_dir_6():
-    """Using USERPROFILE, os=='nt'.
-
-    HOMESHARE, HOMEDRIVE, HOMEPATH are missing.
-    """
-
-    os.name = 'nt'
-    env.pop('HOMESHARE', None)
-    env.pop('HOMEDRIVE', None)
-    env.pop('HOMEPATH', None)
-    env["USERPROFILE"] = abspath(HOME_TEST_DIR)
-    home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
-
-
-@skip_if_not_win32
-@with_environment
-def test_get_home_dir_7():
-    """Using HOMESHARE, os=='nt'."""
-
-    os.name = 'nt'
-    env["HOMESHARE"] = abspath(HOME_TEST_DIR)
-    home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
-
-
-# Should we stub wreg fully so we can run the test on all platforms?
-@skip_if_not_win32
-@with_environment
-def test_get_home_dir_8():
-    """Using registry hack for 'My Documents', os=='nt'
-
-    HOMESHARE, HOMEDRIVE, HOMEPATH, USERPROFILE and others are missing.
-    """
-    os.name = 'nt'
-    # Remove from stub environment all keys that may be set
-    for key in ['HOME', 'HOMESHARE', 'HOMEDRIVE', 'HOMEPATH', 'USERPROFILE']:
-        env.pop(key, None)
-
-    #Stub windows registry functions
-    def OpenKey(x, y):
-        class key:
-            def Close(self):
-                pass
-        return key()
-    def QueryValueEx(x, y):
-        return [abspath(HOME_TEST_DIR)]
-
-    wreg.OpenKey = OpenKey
-    wreg.QueryValueEx = QueryValueEx
-
-    home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
-
+    """raise HomeDirError if $HOME is specified, but not a writable dir"""
+    env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
+    nt.assert_raises(path.HomeDirError, path.get_home_dir)
 
 @with_environment
 def test_get_ipython_dir_1():
