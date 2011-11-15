@@ -197,7 +197,13 @@ class IPythonWidget(FrontendWidget):
         # reset retry flag
         self._retrying_history_request = False
         history_items = content['history']
-        items = [ line.rstrip() for _, _, line in history_items ]
+        items = []
+        last_cell = u""
+        for _, _, cell in history_items:
+            cell = cell.rstrip()
+            if cell != last_cell:
+                items.append(cell)
+                last_cell = cell
         self._set_history(items)
 
     def _handle_pyout(self, msg):
