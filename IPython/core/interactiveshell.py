@@ -1818,9 +1818,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         [D:\ipython]|1> _ip.set_next_input("Hello Word")
         [D:\ipython]|2> Hello Word_  # cursor is here
         """
-        if isinstance(s, unicode):
-            s = s.encode(self.stdin_encoding, 'replace')
-        self.rl_next_input = s
+        self.rl_next_input = py3compat.cast_bytes_py2(s)
 
     # Maybe move this to the terminal subclass?
     def pre_readline(self):
