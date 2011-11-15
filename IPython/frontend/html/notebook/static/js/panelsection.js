@@ -140,6 +140,8 @@ var IPython = (function (IPython) {
         this.content.find('#timebeforetooltip').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
         this.content.find('#timebeforetooltip_label').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
 
+        this.content.find('#smartcompleter').attr('title', 'When inside function call, completer try to propose kwargs first');
+        this.content.find('#smartcompleter_label').attr('title', 'When inside function call, completer try to propose kwargs first');
     };
 
 
@@ -152,6 +154,10 @@ var IPython = (function (IPython) {
         this.content.find('#timebeforetooltip').change(function () {
             var state = $('#timebeforetooltip').prop('value');
             IPython.notebook.set_timebeforetooltip(state);
+        });
+        this.content.find('#smartcompleter').change(function () {
+            var state = $('#smartcompleter').prop('checked');
+            IPython.notebook.set_smartcompleter(state);
         });
     };
 

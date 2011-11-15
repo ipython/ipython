@@ -179,6 +179,19 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
         // console.log("Got matches", matched_text, matches);
+        var newm = new Array();
+        if(this.notebook.smart_completer)
+        {
+            kwargs = new Array();
+            other = new Array();
+            for(var i=0;i<matches.length; ++i){
+                if(matches[i].substr(-1) === '='){
+                    kwargs.push(matches[i]);
+                }else{other.push(matches[i]);}
+            }
+            newm = kwargs.concat(other);
+            matches=newm;
+        }
         if (!this.is_completing || matches.length === 0) {return;}
 
         var that = this;

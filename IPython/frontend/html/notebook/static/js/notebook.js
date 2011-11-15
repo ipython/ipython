@@ -28,6 +28,7 @@ var IPython = (function (IPython) {
         this.create_elements();
         this.bind_events();
         this.set_tooltipontab(true);
+        this.set_smartcompleter(true);
         this.set_timebeforetooltip(1200);
     };
 
@@ -631,6 +632,11 @@ var IPython = (function (IPython) {
     Notebook.prototype.set_tooltipontab = function (state) {
         console.log("change tooltip on tab to : "+state);
         this.tooltip_on_tab = state;
+    };
+
+    Notebook.prototype.set_smartcompleter = function (state) {
+        console.log("Smart completion (kwargs first) changed to  to : "+state);
+        this.smart_completer = state;
     };
 
     Notebook.prototype.set_autoindent = function (state) {

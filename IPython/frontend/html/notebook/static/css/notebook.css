@@ -119,6 +119,10 @@ span.section_row_buttons a {
     float: right;
 }
 
+#smartcompleter_span {
+    float: right;
+}
+
 .checkbox_label {
     font-size: 85%;
     float: right;
