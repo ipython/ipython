@@ -98,11 +98,11 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         self.assertEquals(out, 'on stdout')
 
     def test_getoutput_quoted(self):
-        out = getoutput('python -c "print 1"')
+        out = getoutput('python -c "print (1)"')
         self.assertEquals(out.strip(), '1')
-        out = getoutput("python -c 'print 1'")
+        out = getoutput("python -c 'print (1)'")
         self.assertEquals(out.strip(), '1')
-        out = getoutput("python -c 'print \"1\"'")
+        out = getoutput("python -c 'print (\"1\")'")
         self.assertEquals(out.strip(), '1')
 
     def test_getoutput(self):
