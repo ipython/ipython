@@ -870,6 +870,14 @@ class BatchSystemLauncher(BaseLauncher):
     batch_file = Unicode(u'')
     # the format dict used with batch_template:
     context = Dict()
+    def _context_default(self):
+        """load the default context with the default values for the basic keys
+
+        because the _trait_changed methods only load the context if they
+        are set to something other than the default value.
+        """
+        return dict(n=1, queue=u'', profile_dir=u'', cluster_id=u'')
+    
     # the Formatter instance for rendering the templates:
     formatter = Instance(EvalFormatter, (), {})
 
@@ -1018,7 +1026,7 @@ class SGEControllerLauncher(SGELauncher, BatchClusterAppMixin):
 
     def start(self):
         """Start the controller by profile or profile_dir."""
-        self.log.info("Starting PBSControllerLauncher: %r" % self.args)
+        self.log.info("Starting SGEControllerLauncher: %r" % self.args)
         return super(SGEControllerLauncher, self).start(1)
 
 class SGEEngineSetLauncher(SGELauncher, BatchClusterAppMixin):
