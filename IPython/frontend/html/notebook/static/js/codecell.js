@@ -71,7 +71,6 @@ var IPython = (function (IPython) {
         tooltip_wait_time = this.notebook.time_before_tooltip;
         tooltip_on_tab    = this.notebook.tooltip_on_tab;
         var that = this;
-
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any
         if(event.type === 'keydown' && this.tooltip_timeout != null){
@@ -82,7 +81,9 @@ var IPython = (function (IPython) {
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        }else if (event.keyCode === 53 && event.type === 'keydown' && tooltip_wait_time >= 0) {
+        }else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {
+            // triger aon keypress (!) otherwise inconsistent event.which depending on plateform
+            // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
             var cursor = editor.getCursor();
             var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
