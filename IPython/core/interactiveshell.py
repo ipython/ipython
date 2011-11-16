@@ -2082,7 +2082,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             with AvoidUNCPath() as path:
                 if path is not None:
                     cmd = '"pushd %s &&"%s' % (path, cmd)
-                cmd = cmd.encode(sys.stdin.encoding)
+                cmd = py3compat.unicode_to_str(cmd)
                 ec = os.system(cmd)
         else:
             ec = os.system(cmd)
