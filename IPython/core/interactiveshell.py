@@ -1798,15 +1798,16 @@ class InteractiveShell(SingletonConfigurable, Magic):
         for _, _, cell in self.history_manager.get_tail(1000,
                                                         include_latest=True):
             # Ignore blank lines and consecutive duplicates
-            if cell.strip() and cell.rstrip()!=last_cell:
+            cell = cell.rstrip()
+            if cell and (cell != last_cell):
                 if self.multiline_history:
-                      self.readline.add_history(py3compat.unicode_to_str(cell.rstrip(),
-                                                                         stdin_encoding))
+                      self.readline.add_history(py3compat.unicode_to_str(cell,
+                                                                stdin_encoding))
                 else:
                     for line in cell.splitlines():
                         self.readline.add_history(py3compat.unicode_to_str(line,
-                                                                           stdin_encoding))
-                last_cell = cell.rstrip()
+                                                                stdin_encoding))
+                last_cell = cell
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
