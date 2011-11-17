@@ -220,3 +220,11 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         """Test safe_execfile with non-ascii path
         """
         _ip.shell.safe_execfile(self.fname, {}, raise_exceptions=True)
+
+
+class TestSystemRaw(unittest.TestCase):
+    def test_1(self):
+        """Test system_raw with non-ascii cmd
+        """
+        cmd = ur'''python -c "u'åäö'"   '''
+        _ip.shell.system_raw(cmd)

@@ -2085,6 +2085,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 cmd = py3compat.unicode_to_str(cmd)
                 ec = os.system(cmd)
         else:
+            cmd = py3compat.unicode_to_str(cmd)
             ec = os.system(cmd)
         
         # We explicitly do NOT return the subprocess status code, because
