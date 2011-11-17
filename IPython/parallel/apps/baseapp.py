@@ -58,8 +58,8 @@ class ParallelCrashHandler(CrashHandler):
 
     def __init__(self, app):
         contact_name = release.authors['Min'][0]
-        contact_email = release.authors['Min'][1]
-        bug_tracker = 'http://github.com/ipython/ipython/issues'
+        contact_email = release.author_email
+        bug_tracker = 'https://github.com/ipython/ipython/issues'
         super(ParallelCrashHandler,self).__init__(
             app, contact_name, contact_email, bug_tracker
         )
