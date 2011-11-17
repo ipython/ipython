@@ -226,5 +226,5 @@ class TestSystemRaw(unittest.TestCase):
     def test_1(self):
         """Test system_raw with non-ascii cmd
         """
-        cmd = ur'''python -c "u'åäö'"   '''
+        cmd = ur'''python -c "'åäö'"   '''
         _ip.shell.system_raw(cmd)
