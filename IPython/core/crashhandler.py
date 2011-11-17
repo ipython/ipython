@@ -21,9 +21,11 @@ Authors:
 
 import os
 import sys
+import traceback
 from pprint import pformat
 
 from IPython.core import ultratb
+from IPython.core.release import author_email
 from IPython.utils.sysinfo import sys_info
 
 #-----------------------------------------------------------------------------
@@ -52,6 +54,15 @@ mail -s '{app_name} Crash Report' {contact_email} < {crash_report_fname}
 
 To ensure accurate tracking of this issue, please file a report about it at:
 {bug_tracker}
+"""
+
+_lite_message_template = """
+If you suspect this is an IPython bug, please report it at:
+    https://github.com/ipython/ipython/issues
+or send an email to the mailing list at {email}
+
+You can enable a much more verbose traceback with:
+    {config}Application.verbose_crash=True
 """
 
 
@@ -161,7 +172,7 @@ class CrashHandler(object):
         # Construct report on disk
         report.write(self.make_report(traceback))
         report.close()
-        raw_input("Hit <Enter> to quit this message (your terminal may close):")
+        raw_input("Hit <Enter> to quit (your terminal may close):")
 
     def make_report(self,traceback):
         """Return a string containing a crash report."""
@@ -183,4 +194,18 @@ class CrashHandler(object):
         rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
 
         return ''.join(report)
+
+
+def crash_handler_lite(etype, evalue, tb):
+    """a light excepthook, adding a small message to the usual traceback"""
+    traceback.print_exception(etype, evalue, tb)
+    
+    from IPython.core.interactiveshell import InteractiveShell
+    if InteractiveShell.initialized():
+        # we are in a Shell environment, give %magic example
+        config = "%config "
+    else:
+        # we are not in a shell, show generic config
+        config = "c."
+    print >> sys.stderr, _lite_message_template.format(email=author_email, config=config)
 
