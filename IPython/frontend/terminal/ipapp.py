@@ -320,6 +320,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         self.shell = TerminalInteractiveShell.instance(config=self.config,
                         display_banner=False, profile_dir=self.profile_dir,
                         ipython_dir=self.ipython_dir)
+        self.shell.configurables.append(self)
 
     def init_banner(self):
         """optionally display the banner"""
