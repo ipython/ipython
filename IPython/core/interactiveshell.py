@@ -2082,8 +2082,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
             with AvoidUNCPath() as path:
                 if path is not None:
                     cmd = '"pushd %s &&"%s' % (path, cmd)
+                cmd = py3compat.unicode_to_str(cmd)
                 ec = os.system(cmd)
         else:
+            cmd = py3compat.unicode_to_str(cmd)
             ec = os.system(cmd)
         
         # We explicitly do NOT return the subprocess status code, because
