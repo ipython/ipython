@@ -25,7 +25,6 @@ import sys
 import shutil
 import re
 import time
-import textwrap
 from StringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
@@ -3202,65 +3201,6 @@ Defaulting color scheme to 'NoColor'"""
             return
 
         page.page(self.shell.pycolorize(cont))
-
-    def _rerun_pasted(self):
-        """ Rerun a previously pasted command.
-        """
-        b = self.user_ns.get('pasted_block', None)
-        if b is None:
-            raise UsageError('No previous pasted block available')
-        print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
-        exec b in self.user_ns
-
-    def _get_pasted_lines(self, sentinel):
-        """ Yield pasted lines until the user enters the given sentinel value.
-        """
-        from IPython.core import interactiveshell
-        print "Pasting code; enter '%s' alone on the line to stop." % sentinel
-        while True:
-            try:
-                l = self.shell.raw_input_original(':')
-                if l == sentinel:
-                    return
-                else:
-                    yield l
-            except EOFError:
-                print '<EOF>'
-                return
-
-    def _strip_pasted_lines_for_code(self, raw_lines):
-        """ Strip non-code parts of a sequence of lines to return a block of
-        code.
-        """
-        # Regular expressions that declare text we strip from the input:
-        strip_re =  [r'^\s*In \[\d+\]:', # IPython input prompt
-                     r'^\s*(\s?>)+', # Python input prompt
-                     r'^\s*\.{3,}', # Continuation prompts
-                     r'^\++',
-                     ]
-
-        strip_from_start = map(re.compile,strip_re)
-
-        lines = []
-        for l in raw_lines:
-            for pat in strip_from_start:
-                l = pat.sub('',l)
-            lines.append(l)
-
-        block = "\n".join(lines) + '\n'
-        #print "block:\n",block
-        return block
-
-    def _execute_block(self, block, par):
-        """ Execute a block, or store it in a variable, per the user's request.
-        """
-        if not par:
-            b = textwrap.dedent(block)
-            self.user_ns['pasted_block'] = b
-            self.run_cell(b)
-        else:
-            self.user_ns[par] = SList(block.splitlines())
-            print "Block assigned to '%s'" % par
 
     def magic_quickref(self,arg):
         """ Show a quick reference sheet """

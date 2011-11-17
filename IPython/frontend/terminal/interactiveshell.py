@@ -19,6 +19,7 @@ import bdb
 import os
 import re
 import sys
+import textwrap
 
 try:
     from contextlib import nested
@@ -35,7 +36,7 @@ from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn, error
-from IPython.utils.text import num_ini_spaces
+from IPython.utils.text import num_ini_spaces, SList
 from IPython.utils.traitlets import Integer, CBool, Unicode
 
 #-----------------------------------------------------------------------------
@@ -51,6 +52,48 @@ def get_default_editor():
         else:
             ed = 'notepad' # same in Windows!
     return ed
+
+
+def get_pasted_lines(sentinel, input=raw_input):
+    """ Yield pasted lines until the user enters the given sentinel value.
+    """
+    print "Pasting code; enter '%s' alone on the line to stop or use Ctrl-D." \
+          % sentinel
+    while True:
+        try:
+            l = input(':')
+            if l == sentinel:
+                return
+            else:
+                yield l
+        except EOFError:
+            print '<EOF>'
+            return
+
+
+def store_or_execute(shell, block, name):
+    """ Execute a block, or store it in a variable, per the user's request.
+    """
+    if name:
+        # If storing it for further editing, run the prefilter on it
+        shell.user_ns[name] = SList(shell.prefilter(block).splitlines())
+        print "Block assigned to '%s'" % name
+    else:
+        # For execution we just dedent it, as all other filtering is
+        # automatically applied by run_cell
+        b = textwrap.dedent(block)
+        shell.user_ns['pasted_block'] = b
+        shell.run_cell(b)
+
+
+def rerun_pasted(shell):
+    """ Rerun a previously pasted command.
+    """
+    b = shell.user_ns.get('pasted_block')
+    if b is None:
+        raise UsageError('No previous pasted block available')
+    print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
+    shell.run_cell(b)
 
 #-----------------------------------------------------------------------------
 # Main class
@@ -523,9 +566,9 @@ class TerminalInteractiveShell(InteractiveShell):
     def magic_cpaste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
 
-        You must terminate the block with '--' (two minus-signs) or Ctrl-D alone on the
-        line. You can also provide your own sentinel with '%paste -s %%' ('%%'
-        is the new sentinel for this operation)
+        You must terminate the block with '--' (two minus-signs) or Ctrl-D
+        alone on the line. You can also provide your own sentinel with '%paste
+        -s %%' ('%%' is the new sentinel for this operation)
 
         The block is dedented prior to execution to enable execution of method
         definitions. '>' and '+' characters at the beginning of a line are
@@ -562,18 +605,15 @@ class TerminalInteractiveShell(InteractiveShell):
           Hello world!
         """
 
-        opts,args = self.parse_options(parameter_s,'rs:',mode='string')
-        par = args.strip()
-        if opts.has_key('r'):
-            self._rerun_pasted()
+        opts, args = self.parse_options(parameter_s, 'rs:', mode='string')
+        name = args.strip()
+        if 'r' in opts:
+            rerun_pasted(self.shell)
             return
 
-        sentinel = opts.get('s','--')
-
-        block = self._strip_pasted_lines_for_code(
-            self._get_pasted_lines(sentinel))
-
-        self._execute_block(block, par)
+        sentinel = opts.get('s', '--')
+        block = '\n'.join(get_pasted_lines(sentinel))
+        store_or_execute(self.shell, block, name)
 
     def magic_paste(self, parameter_s=''):
         """Paste & execute a pre-formatted code block from clipboard.
@@ -606,10 +646,10 @@ class TerminalInteractiveShell(InteractiveShell):
         --------
         cpaste: manually paste code into terminal until you mark its end.
         """
-        opts,args = self.parse_options(parameter_s,'rq',mode='string')
-        par = args.strip()
-        if opts.has_key('r'):
-            self._rerun_pasted()
+        opts, args = self.parse_options(parameter_s, 'rq', mode='string')
+        name = args.strip()
+        if 'r' in opts:
+            rerun_pasted(self.shell)
             return
         try:
             text = self.shell.hooks.clipboard_get()
@@ -623,14 +663,14 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
         # By default, echo back to terminal unless quiet mode is requested
-        if not opts.has_key('q'):
+        if 'q' not in opts:
             write = self.shell.write
             write(self.shell.pycolorize(block))
             if not block.endswith('\n'):
                 write('\n')
             write("## -- End pasted text --\n")
 
-        self._execute_block(block, par)
+        store_or_execute(self.shell, block, name)
 
     if sys.platform == 'win32':
         def magic_cls(self, s):

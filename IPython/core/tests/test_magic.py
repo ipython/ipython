@@ -355,14 +355,15 @@ def test_cpaste():
         _ip.user_ns['code_ran'] = True
         return 'run' # return string so '+ run()' doesn't result in success
 
-    tests = {'pass': ["> > > run()",
-                      ">>> > run()",
-                      "+++ run()",
-                      "++ run()",
-                      "  >>> run()"],
+    tests = {'pass': ["run()",
+                      "In [1]: run()",
+                      "In [1]: if 1:\n   ...:     run()",
+                      ">>> run()",
+                      "   >>> run()",
+                      ],
 
-             'fail': ["+ + run()",
-                      " ++ run()"]}
+             'fail': ["1 + run()",
+                      "++ run()"]}
 
     _ip.user_ns['run'] = run
 
