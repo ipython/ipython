@@ -8,6 +8,9 @@ import random
 def passwd(passphrase):
     """Generate hashed password and salt for use in notebook configuration.
 
+    In the notebook configuration, set `c.NotebookApp.password` to
+    the generated string.
+
     Parameters
     ----------
     passphrase : str
