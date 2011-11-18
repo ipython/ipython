@@ -116,7 +116,14 @@ def authenticate_unless_readonly(f, self, *args, **kwargs):
 # Top-level handlers
 #-----------------------------------------------------------------------------
 
-class AuthenticatedHandler(web.RequestHandler):
+class RequestHandler(web.RequestHandler):
+    """RequestHandler with default variable setting."""
+
+    def render(*args, **kwargs):
+        kwargs.setdefault('message', '')
+        return web.RequestHandler.render(*args, **kwargs)
+
+class AuthenticatedHandler(RequestHandler):
     """A RequestHandler with an authenticated user."""
 
     def get_current_user(self):

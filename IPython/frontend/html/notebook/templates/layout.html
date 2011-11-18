@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>{% block title %}IPython Notebook{% end %}</title>
+
+    <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/boilerplate.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/layout.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/base.css" type="text/css"/>
+    {% block stylesheet %}
+    {% end %}
+
+    <meta name="read_only" content="{{read_only}}"/>
+
+</head>
+
+<body>
+
+<div id="header">
+    <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
+    <span id="login_widget" class="hidden">
+      <button id="login">Login</button>
+    </span>
+    {% block header %}
+    {% end %}
+</div>
+
+<div id="header_border"></div>
+
+<div id="main_app">
+
+    <div id="app_hbox">
+
+    <div id="left_panel">
+    {% block left_panel %}
+    {% end %}
+    </div>
+
+    <div id="content_panel">
+        {% if message %}
+        <div id="message">
+            {{message}}
+        </div>
+        {% end %}
+
+        {% block content_panel %}
+        {% end %}
+    </div>
+    <div id="right_panel">
+    {% block right_panel %}
+    {% end %}
+    </div>
+
+    </div>
+
+</div>
+
+<script src="static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/jquery/js/jquery-ui-1.8.14.custom.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/namespace.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/loginmain.js" type="text/javascript" charset="utf-8"></script>
+<script src="static/js/loginwidget.js" type="text/javascript" charset="utf-8"></script>
+{% block script %}
+{% end %}
+
+</body>
+
+</html>
