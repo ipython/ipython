@@ -208,7 +208,16 @@ class NotebookApp(BaseIPythonApplication):
     )
 
     password = Unicode(u'', config=True,
-                      help="""Password to use for web authentication"""
+                      help="""Hashed password to use for web authentication.
+
+                      To generate, do:
+
+                        from IPython.lib import passwd
+
+                        passwd('mypassphrase')
+
+                      The string should be of the form type:salt:hashed-password.
+                      """
     )
     
     open_browser = Bool(True, config=True,

@@ -28,6 +28,7 @@ from zmq.utils import jsonapi
 
 from IPython.external.decorator import decorator
 from IPython.zmq.session import Session
+from IPython.lib.security import passwd_check
 
 try:
     from docutils.core import publish_string
@@ -174,7 +175,8 @@ class LoginHandler(AuthenticatedHandler):
 
     def post(self):
         pwd = self.get_argument('password', default=u'')
-        if self.application.password and pwd == self.application.password:
+        if self.application.password and \
+               passwd_check(self.application.password, pwd):
             self.set_secure_cookie('username', str(uuid.uuid4()))
         self.redirect(self.get_argument('next', default='/'))
 
