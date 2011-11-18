@@ -167,17 +167,25 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 
 class LoginHandler(AuthenticatedHandler):
 
-    def get(self):
+    def _render(self, message=''):
         self.render('login.html',
                 next=self.get_argument('next', default='/'),
                 read_only=self.read_only,
+                message=message
         )
+
+    def get(self):
+        self._render()
 
     def post(self):
         pwd = self.get_argument('password', default=u'')
-        if self.application.password and \
-               passwd_check(self.application.password, pwd):
-            self.set_secure_cookie('username', str(uuid.uuid4()))
+        if self.application.password:
+            if passwd_check(self.application.password, pwd):
+                self.set_secure_cookie('username', str(uuid.uuid4()))
+            else:
+                self._render(message='Invalid password')
+                return
+
         self.redirect(self.get_argument('next', default='/'))
 
 

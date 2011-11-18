@@ -31,6 +31,12 @@
     </div>
     
     <div id="content_panel">
+        {% if message %}
+        <div id="message">
+            {{message}}
+        </div>
+        {% end %}
+
         <form action="/login?next={{url_escape(next)}}" method="post">
             Password: <input type="password" name="password">
             <input type="submit" value="Sign in" id="signin">
