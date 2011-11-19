@@ -174,7 +174,7 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 
 class LoginHandler(AuthenticatedHandler):
 
-    def _render(self, message=''):
+    def _render(self, message=None):
         self.render('login.html',
                 next=self.get_argument('next', default='/'),
                 read_only=self.read_only,
@@ -190,7 +190,7 @@ class LoginHandler(AuthenticatedHandler):
             if passwd_check(self.application.password, pwd):
                 self.set_secure_cookie('username', str(uuid.uuid4()))
             else:
-                self._render(message='Invalid password')
+                self._render(message={'error': 'Invalid password'})
                 return
 
         self.redirect(self.get_argument('next', default='/'))
@@ -200,7 +200,7 @@ class LogoutHandler(AuthenticatedHandler):
 
     def get(self):
         self.clear_cookie('username')
-        self.render('logout.html')
+        self.render('logout.html', message={'info': 'Successfully logged out.'})
 
 
 class NewHandler(AuthenticatedHandler):

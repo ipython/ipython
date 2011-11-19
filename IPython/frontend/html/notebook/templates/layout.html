@@ -42,9 +42,12 @@
 
     <div id="content_panel">
         {% if message %}
-        <div id="message">
-            {{message}}
-        </div>
+
+          {% for key in message %}
+            <div class="message {{key}}">
+               {{message[key]}}
+            </div>
+          {% end %}
         {% end %}
 
         {% block content_panel %}
