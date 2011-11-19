@@ -316,11 +316,25 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _silent_exec_callback(self, expr, callback):
         """Silently execute `expr` in the kernel and call `callback` with reply
 
-        `expr` : valid string to be executed by the kernel.
-        `callback` : function accepting one string as argument.
+        the `expr` is evaluated silently in the kernel (without) output in
+        the frontend. Call `callback` with the
+        `repr <http://docs.python.org/library/functions.html#repr> `_ as first argument
+
+        Parameters
+        ----------
+        expr : string
+            valid string to be executed by the kernel.
+        callback : function
+            function accepting one arguement, as a string. The string will be
+            the `repr` of the result of evaluating `expr`
 
         The `callback` is called with the 'repr()' of the result of `expr` as
-        first argument. To get the object, do 'eval()' on the passed value.
+        first argument. To get the object, do 'eval()' onthe passed value.
+
+        See Also
+        --------
+        _handle_exec_callback : private method, deal with calling callback with reply
+
         """
 
         # generate uuid, which would be used as a indication of wether or not
@@ -334,23 +348,26 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_exec_callback(self, msg):
         """Execute `callback` corresonding to `msg` reply, after ``_silent_exec_callback``
 
-        `msg` : raw message send by the kernel containing an `user_expressions`
+        Parameters
+        ----------
+        msg : raw message send by the kernel containing an `user_expressions`
                 and having a 'silent_exec_callback' kind.
 
+        Notes
+        -----
         This fonction will look for a `callback` associated with the
         corresponding message id. Association has been made by
-        ``_silent_exec_callback``. `callback`is then called with the `repr()`
+        `_silent_exec_callback`. `callback` is then called with the `repr()`
         of the value of corresponding `user_expressions` as argument.
         `callback` is then removed from the known list so that any message
         coming again with the same id won't trigger it.
+
         """
 
-        cnt = msg['content']
-        ue = cnt['user_expressions']
-        for i in ue.keys():
-            if i in self._callback_dict:
-                self._callback_dict[i](ue[i])
-                self._callback_dict.pop(i)
+        user_exp = msg['content']['user_expressions']
+        for expression in user_exp:
+            if expression in self._callback_dict:
+                self._callback_dict.pop(expression)(user_exp[expression])
 
     def _handle_execute_reply(self, msg):
         """ Handles replies for code execution.

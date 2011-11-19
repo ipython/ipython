@@ -20,6 +20,7 @@ Authors:
 
 # stdlib imports
 import sys
+import re
 import webbrowser
 from threading import Thread
 
@@ -547,10 +548,23 @@ class MainWindow(QtGui.QMainWindow):
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on active frontend.
 
-        `magic` : valid python string
+        Parameters
+        ----------
+        magic : string
+            string that will be executed as is when the returned function is called
 
-        return `fun`, function with no parameters
+        Returns
+        -------
+        fun : function
+            function with no parameters, when called will execute `magic` on the
+            current active frontend at call time
 
+        See Also
+        --------
+        populate_all_magic_menu : generate the "All Magics..." menu
+
+        Notes
+        -----
         `fun` execute `magic` an active frontend at the moment it is triggerd,
         not the active frontend at the moment it has been created.
 
@@ -566,8 +580,13 @@ class MainWindow(QtGui.QMainWindow):
     def populate_all_magic_menu(self, listofmagic=None):
         """Clean "All Magics..." menu and repopulate it with `listofmagic`
 
-        `listofmagic` : string, repr() of a list of strings.
+        Parameters
+        ----------
+        listofmagic : string,
+            repr() of a list of strings, send back by the kernel
 
+        Notes
+        -----
         `listofmagic`is a repr() of list because it is fed with the result of
         a 'user_expression'
         """
@@ -577,8 +596,8 @@ class MainWindow(QtGui.QMainWindow):
         # list of protected magic that don't like to be called without argument
         # append '?' to the end to print the docstring when called from the menu
         protected_magic = set(["more","less","load_ext","pycat","loadpy","save"])
-
-        for magic in eval(listofmagic):
+        magics=re.findall('\w+', listofmagic)
+        for magic in magics:
             if magic in protected_magic:
                 pmagic = '%s%s%s'%('%',magic,'?')
             else:
@@ -590,8 +609,14 @@ class MainWindow(QtGui.QMainWindow):
             alm_magic_menu.addAction(xaction)
 
     def update_all_magic_menu(self):
+        """ Update the list on magic in the "All Magics..." Menu
+
+        Request the kernel with the list of availlable magic and populate the
+        menu with the list received back
+
+        """
         # first define a callback which will get the list of all magic and put it in the menu.
-        self.active_frontend._silent_exec_callback('get_ipython().lsmagic()',self.populate_all_magic_menu)
+        self.active_frontend._silent_exec_callback('get_ipython().lsmagic()', self.populate_all_magic_menu)
 
     def init_magic_menu(self):
         self.magic_menu = self.menuBar().addMenu("&Magic")
@@ -638,7 +663,7 @@ class MainWindow(QtGui.QMainWindow):
             statusTip="List interactive variable with detail",
             triggered=self.whos_magic_active_frontend)
         self.add_menu_action(self.magic_menu, self.whos_action)
-        
+
     def init_window_menu(self):
         self.window_menu = self.menuBar().addMenu("&Window")
         if sys.platform == 'darwin':
