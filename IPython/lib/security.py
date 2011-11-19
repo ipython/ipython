@@ -10,7 +10,7 @@ import getpass
 # bits of randomness.
 salt_len = 12
 
-def passwd(passphrase='', algorithm='sha1'):
+def passwd(passphrase=None, algorithm='sha1'):
     """Generate hashed password and salt for use in notebook configuration.
 
     In the notebook configuration, set `c.NotebookApp.password` to
@@ -36,13 +36,17 @@ def passwd(passphrase='', algorithm='sha1'):
     Out[1]: 'sha1:7cf3:b7d6da294ea9592a9480c8f52e63cd42cfb9dd12'
 
     """
-    if not passphrase:
-        p0 = getpass.getpass('Enter password: ')
-        p1 = getpass.getpass('Verify password: ')
-        if (p0 == p1):
-            passphrase = p0
+    if passphrase is None:
+        for i in range(3):
+            p0 = getpass.getpass('Enter password: ')
+            p1 = getpass.getpass('Verify password: ')
+            if p0 == p1:
+                passphrase = p0
+                break
+            else:
+                print('Passwords do not match.')
         else:
-            raise ValueError('Passwords did not match.')
+            raise ValueError('No matching passwords found. Giving up.')
 
     h = hashlib.new(algorithm)
     salt = ('%0' + str(salt_len) + 'x') % random.getrandbits(4 * salt_len)
