@@ -30,7 +30,7 @@ def passwd(passphrase, algorithm='sha1'):
 
     """
     h = hashlib.new(algorithm)
-    salt = hex(int(random.getrandbits(16)))[2:]
+    salt = '%04x' % random.getrandbits(16)
     h.update(passphrase + salt)
 
     return ':'.join((algorithm, salt, h.hexdigest()))
