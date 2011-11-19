@@ -17,7 +17,7 @@ show this help message and exit
 .TP
 .B
 .TP
-.B \-\-no-secure
+.B \-\-no\-secure
 Don't authenticate messages.
 .TP
 .B \-\-usethreads
@@ -26,7 +26,7 @@ Use threads instead of processes for the schedulers
 .B \-\-init
 Initialize profile with default config files
 .TP
-.B \-\-log-to-file
+.B \-\-log\-to\-file
 send log output to a file
 .TP
 .B \-\-reuse
@@ -70,11 +70,11 @@ Default: '127.0.0.1'
 The IP address for registration.  This is generally either '127.0.0.1' for
 loopback only or '*' for all interfaces. [default: '127.0.0.1']
 .TP
-.B \-\-log-url=<Unicode> (BaseParallelApplication.log_url)
+.B \-\-log\-url=<Unicode> (BaseParallelApplication.log_url)
 Default: ''
 The ZMQ URL of the iplogger to aggregate logging.
 .TP
-.B \-\-work-dir=<Unicode> (BaseParallelApplication.work_dir)
+.B \-\-work\-dir=<Unicode> (BaseParallelApplication.work_dir)
 Default: u'/Users/minrk/dev/ip/mine/docs/man'
 Set the working dir for the process.
 .TP
@@ -82,7 +82,7 @@ Set the working dir for the process.
 Default: 0
 The port on which the Hub listens for registration.
 .TP
-.B \-\-profile-dir=<Unicode> (ProfileDir.location)
+.B \-\-profile\-dir=<Unicode> (ProfileDir.location)
 Default: u''
 Set the profile location directly. This overrides the logic used by the
 `profile` option.
@@ -91,11 +91,11 @@ Set the profile location directly. This overrides the logic used by the
 Default: ''
 The UUID identifying this session.
 .TP
-.B \-\-log-to-file=<Bool> (BaseParallelApplication.log_to_file)
+.B \-\-log\-to\-file=<Bool> (BaseParallelApplication.log_to_file)
 Default: False
 whether to log to a file
 .TP
-.B \-\-ipython-dir=<Unicode> (BaseIPythonApplication.ipython_dir)
+.B \-\-ipython\-dir=<Unicode> (BaseIPythonApplication.ipython_dir)
 Default: u'/Users/minrk/.ipython'
 The name of the IPython directory. This directory is used for logging
 configuration (through profiles), history storage, etc. The default is
@@ -115,7 +115,7 @@ Username for the Session. Default is your system username.
 Default: 1000
 The frequency at which the Hub pings the engines for heartbeats  (in ms)
 .TP
-.B \-\-log-level=<Enum> (Application.log_level)
+.B \-\-log\-level=<Enum> (Application.log_level)
 Default: 30
 Choices: (0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL')
 Set the log level by value or name.
@@ -125,7 +125,7 @@ Default: u''
 The external IP or domain name of the Controller, used for disambiguating
 engine and client connections.
 .TP
-.B \-\-clean-logs=<Bool> (BaseParallelApplication.clean_logs)
+.B \-\-clean\-logs=<Bool> (BaseParallelApplication.clean_logs)
 Default: False
 whether to cleanup old logfiles before starting
 .TP
