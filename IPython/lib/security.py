@@ -16,7 +16,8 @@ def passwd(passphrase, algorithm='sha1'):
     passphrase : str
         Password to hash.
     algorithm : str
-        Hashing algorithm to use.
+        Hashing algorithm to use (e.g, 'sha1' or any argument supported
+        by :func:`hashlib.new`).
 
     Returns
     -------
