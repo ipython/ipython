@@ -6,6 +6,8 @@ import hashlib
 import random
 import getpass
 
+from IPython.core.error import UsageError
+
 # Length of the salt in nr of hex chars, which implies salt_len * 4
 # bits of randomness.
 salt_len = 12
@@ -46,7 +48,7 @@ def passwd(passphrase=None, algorithm='sha1'):
             else:
                 print('Passwords do not match.')
         else:
-            raise ValueError('No matching passwords found. Giving up.')
+            raise UsageError('No matching passwords found. Giving up.')
 
     h = hashlib.new(algorithm)
     salt = ('%0' + str(salt_len) + 'x') % random.getrandbits(4 * salt_len)
