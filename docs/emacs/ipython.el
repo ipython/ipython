@@ -229,10 +229,12 @@ the second for a 'normal' command, and the third for a multiline command.")
                      (t ; default (backg-mode isn't always set by XEmacs)
                       "LightBG")))
             py-python-command-args))
-    (unless (equal ipython-backup-of-py-python-command py-python-command)
-      (setq ipython-backup-of-py-python-command py-python-command))
-    (setq py-python-command ipython-command))
-
+    (when (boundp 'py-python-command)
+      (unless (equal ipython-backup-of-py-python-command py-python-command)
+        (setq ipython-backup-of-py-python-command py-python-command)))
+    (setq py-python-command ipython-command)
+    (when (boundp 'py-shell-name)
+      (setq py-shell-name ipython-command)))
 
 ;; MODIFY py-shell so that it loads the editing history
 (defadvice py-shell (around py-shell-with-history)
