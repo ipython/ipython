@@ -1,17 +1,31 @@
 """
 Password generation for the IPython notebook.
 """
-
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+# Stdlib
+import getpass
 import hashlib
 import random
-import getpass
 
+# Our own
 from IPython.core.error import UsageError
+from IPython.testing.skipdoctest import skip_doctest
+
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
 
 # Length of the salt in nr of hex chars, which implies salt_len * 4
 # bits of randomness.
 salt_len = 12
 
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
+
+@skip_doctest
 def passwd(passphrase=None, algorithm='sha1'):
     """Generate hashed password and salt for use in notebook configuration.
 
@@ -56,6 +70,7 @@ def passwd(passphrase=None, algorithm='sha1'):
 
     return ':'.join((algorithm, salt, h.hexdigest()))
 
+
 def passwd_check(hashed_passphrase, passphrase):
     """Verify that a given passphrase matches its hashed version.
 
@@ -75,11 +90,11 @@ def passwd_check(hashed_passphrase, passphrase):
     --------
     In [1]: from IPython.lib.security import passwd_check
 
-    In [2]: passwd_check('sha1:7cf3:b7d6da294ea9592a9480c8f52e63cd42cfb9dd12',
+    In [2]: passwd_check('sha1:0e112c3ddfce:a68df677475c2b47b6e86d0467eec97ac5f4b85a',
        ...:              'mypassword')
     Out[2]: True
 
-    In [3]: passwd_check('sha1:7cf3:b7d6da294ea9592a9480c8f52e63cd42cfb9dd12',
+    In [3]: passwd_check('sha1:0e112c3ddfce:a68df677475c2b47b6e86d0467eec97ac5f4b85a',
        ...:              'anotherpassword')
     Out[3]: False
 

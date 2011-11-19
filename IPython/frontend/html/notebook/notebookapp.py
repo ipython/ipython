@@ -210,11 +210,9 @@ class NotebookApp(BaseIPythonApplication):
     password = Unicode(u'', config=True,
                       help="""Hashed password to use for web authentication.
 
-                      To generate, do:
+                      To generate, type in a python/IPython shell:
 
-                        from IPython.lib import passwd
-
-                        passwd('mypassphrase')
+                        from IPython.lib import passwd; passwd()
 
                       The string should be of the form type:salt:hashed-password.
                       """
