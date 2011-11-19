@@ -163,5 +163,5 @@ they're automatically exposed as a website. It works like this:
 .. [MatplotlibDocGuide] http://matplotlib.sourceforge.net/devel/documenting_mpl.html
 .. [PEP257] PEP 257.  http://www.python.org/peps/pep-0257.html
 .. [NumPyDocGuide] NumPy documentation guide. https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
-.. [NumPyExampleDocstring] NumPy example docstring.  https://raw.github.com/numpy/numpy/master/doc/HOWTO_BUILD_DOCS.rst.txt
+.. [NumPyExampleDocstring] NumPy example docstring.  https://github.com/numpy/numpy/blob/master/doc/HOWTO_BUILD_DOCS.rst.txt
 
