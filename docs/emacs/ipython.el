@@ -423,6 +423,14 @@ in the current *Python* session."
              (message "Making completion list...%s" "done")))))
 )
 
+;;; if python-mode's keybinding for the tab key wins then py-shell-complete is called
+;;; instead of ipython-complete which result in hanging emacs since there is no shell
+;;; process for python-mode to communicate with
+(defadvice py-shell-complete
+  (around avoid-py-shell-complete activate)
+  (ipython-complete))
+
+
 ;;; autoindent support: patch sent in by Jin Liu <m.liu.jin@gmail.com>,
 ;;; originally written by doxgen@newsmth.net
 ;;; Minor modifications by fperez for xemacs compatibility.
