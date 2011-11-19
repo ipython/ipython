@@ -1,12 +1,12 @@
 from IPython.lib import passwd
-from IPython.lib.security import passwd_check
+from IPython.lib.security import passwd_check, salt_len
 import nose.tools as nt
 
 def test_passwd_structure():
     p = passwd('passphrase')
     algorithm, salt, hashed = p.split(':')
     nt.assert_equals(algorithm, 'sha1')
-    nt.assert_equals(len(salt), 4)
+    nt.assert_equals(len(salt), salt_len)
     nt.assert_equals(len(hashed), 40)
 
 def test_roundtrip():

@@ -5,6 +5,10 @@ Password generation for the IPython notebook.
 import hashlib
 import random
 
+# Length of the salt in nr of hex chars, which implies salt_len * 4
+# bits of randomness.
+salt_len = 12
+
 def passwd(passphrase, algorithm='sha1'):
     """Generate hashed password and salt for use in notebook configuration.
 
@@ -31,7 +35,7 @@ def passwd(passphrase, algorithm='sha1'):
 
     """
     h = hashlib.new(algorithm)
-    salt = '%04x' % random.getrandbits(16)
+    salt = ('%0' + str(salt_len) + 'x') % random.getrandbits(4 * salt_len)
     h.update(passphrase + salt)
 
     return ':'.join((algorithm, salt, h.hexdigest()))
@@ -74,7 +78,7 @@ def passwd_check(hashed_passphrase, passphrase):
     except ValueError:
         return False
 
-    if len(pw_digest) == 0 or len(salt) != 4:
+    if len(pw_digest) == 0 or len(salt) != salt_len:
         return False
 
     h.update(passphrase + salt)
