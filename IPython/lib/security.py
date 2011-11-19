@@ -5,7 +5,7 @@ Password generation for the IPython notebook.
 import hashlib
 import random
 
-def passwd(passphrase):
+def passwd(passphrase, algorithm='sha1'):
     """Generate hashed password and salt for use in notebook configuration.
 
     In the notebook configuration, set `c.NotebookApp.password` to
@@ -15,6 +15,8 @@ def passwd(passphrase):
     ----------
     passphrase : str
         Password to hash.
+    algorithm : str
+        Hashing algorithm to use.
 
     Returns
     -------
@@ -27,8 +29,6 @@ def passwd(passphrase):
     Out[1]: 'sha1:7cf3:b7d6da294ea9592a9480c8f52e63cd42cfb9dd12'
 
     """
-    algorithm = 'sha1'
-
     h = hashlib.new(algorithm)
     salt = hex(int(random.getrandbits(16)))[2:]
     h.update(passphrase + salt)
@@ -63,20 +63,19 @@ def passwd_check(hashed_passphrase, passphrase):
     Out[3]: False
 
     """
-    # Algorithm and hash length
-    supported_algorithms = {'sha1': 40}
-
     try:
         algorithm, salt, pw_digest = hashed_passphrase.split(':', 2)
     except (ValueError, TypeError):
         return False
 
-    if not (algorithm in supported_algorithms and \
-            len(pw_digest) == supported_algorithms[algorithm] and \
-            len(salt) == 4):
+    try:
+        h = hashlib.new(algorithm)
+    except ValueError:
         return False
 
-    h = hashlib.new(algorithm)
+    if len(pw_digest) == 0 or len(salt) != 4:
+        return False
+
     h.update(passphrase + salt)
 
     return h.hexdigest() == pw_digest
