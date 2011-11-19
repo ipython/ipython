@@ -109,7 +109,7 @@ def passwd_check(hashed_passphrase, passphrase):
     except ValueError:
         return False
 
-    if len(pw_digest) == 0 or len(salt) != salt_len:
+    if len(pw_digest) == 0:
         return False
 
     h.update(passphrase + salt)
