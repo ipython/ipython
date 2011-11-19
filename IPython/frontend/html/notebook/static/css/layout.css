@@ -101,3 +101,15 @@
 	-moz-box-pack: center;
 	box-pack: center;
 }
+
+#message {
+    border: 1px solid red;
+    background-color: #FFD3D1;
+    text-align: center;
+    padding: 0.5em;
+    margin: 0.5em;
+}
+
+#content_panel {
+    margin: 0.5em;
+}
