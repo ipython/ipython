@@ -23,7 +23,9 @@
 <div id="header">
     <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
     <span id="login_widget">
-      <button id="logout">Logout</button>
+      {% if current_user and current_user != 'anonymous' %}
+        <button id="logout">Logout</button>
+      {% end %}
     </span>
     {% block header %}
     {% end %}

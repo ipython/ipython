@@ -182,7 +182,10 @@ class LoginHandler(AuthenticatedHandler):
         )
 
     def get(self):
-        self._render()
+        if self.current_user:
+            self.redirect(self.get_argument('next', default='/'))
+        else:
+            self._render()
 
     def post(self):
         pwd = self.get_argument('password', default=u'')
