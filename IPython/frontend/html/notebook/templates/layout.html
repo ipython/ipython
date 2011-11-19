@@ -13,16 +13,17 @@
     {% block stylesheet %}
     {% end %}
 
-    <meta name="read_only" content="{{read_only}}"/>
+    {% block meta %}
+    {% end %}
 
 </head>
 
-<body>
+<body {% block params %}{% end %}>
 
 <div id="header">
     <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
-    <span id="login_widget" class="hidden">
-      <button id="login">Login</button>
+    <span id="login_widget">
+      <button id="logout">Logout</button>
     </span>
     {% block header %}
     {% end %}

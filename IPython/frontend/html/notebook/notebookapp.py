@@ -40,7 +40,7 @@ from tornado import web
 
 # Our own libraries
 from .kernelmanager import MappingKernelManager
-from .handlers import (LoginHandler,
+from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
@@ -87,6 +87,7 @@ class NotebookWebApplication(web.Application):
         handlers = [
             (r"/", ProjectDashboardHandler),
             (r"/login", LoginHandler),
+            (r"/logout", LogoutHandler),
             (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
             (r"/kernels", MainKernelHandler),

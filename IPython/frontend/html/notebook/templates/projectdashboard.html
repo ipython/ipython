@@ -5,7 +5,17 @@ IPython Dashboard
 {% end %}
 
 {% block stylesheet %}
-  <link rel="stylesheet" href="static/css/projectdashboard.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/projectdashboard.css" type="text/css" />
+{% end %}
+
+{% block meta %}
+    <meta name="read_only" content="{{read_only}}"/>
+{% end %}
+
+{% block params %}
+data-project={{project}}
+data-base-project-url={{base_project_url}}
+data-base-kernel-url={{base_kernel_url}}
 {% end %}
 
 {% block content_panel %}
@@ -21,6 +31,6 @@ IPython Dashboard
 {% end %}
 
 {% block script %}
-<script src="static/js/notebooklist.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/projectdashboardmain.js" type="text/javascript" charset="utf-8"></script>
+    <script src="static/js/notebooklist.js" type="text/javascript" charset="utf-8"></script>
+    <script src="static/js/projectdashboardmain.js" type="text/javascript" charset="utf-8"></script>
 {% end %}
