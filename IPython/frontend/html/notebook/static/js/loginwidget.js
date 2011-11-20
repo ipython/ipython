@@ -21,12 +21,12 @@ var IPython = (function (IPython) {
     };
 
     LoginWidget.prototype.style = function () {
-        this.element.find('button#login').button();
+        this.element.find('button#logout').button();
     };
     LoginWidget.prototype.bind_events = function () {
         var that = this;
-        this.element.find("button#login").click(function () {
-            window.location = "/login?next="+location.pathname;
+        this.element.find("button#logout").click(function () {
+            window.location = "/logout";
         });
     };
 

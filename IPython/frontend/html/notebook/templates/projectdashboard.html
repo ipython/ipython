@@ -1,69 +1,36 @@
-<!DOCTYPE HTML>
-<html>
+{% extends layout.html %}
 
-<head>
-    <meta charset="utf-8">
+{% block title %}
+IPython Dashboard
+{% end %}
 
-    <title>IPython Dashboard</title>
-
-    <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
-    <link rel="stylesheet" href="static/css/boilerplate.css" type="text/css" />
-    <link rel="stylesheet" href="static/css/layout.css" type="text/css" />
-    <link rel="stylesheet" href="static/css/base.css" type="text/css" />
+{% block stylesheet %}
     <link rel="stylesheet" href="static/css/projectdashboard.css" type="text/css" />
+{% end %}
 
+{% block meta %}
     <meta name="read_only" content="{{read_only}}"/>
+{% end %}
 
-</head>
+{% block params %}
+data-project={{project}}
+data-base-project-url={{base_project_url}}
+data-base-kernel-url={{base_kernel_url}}
+{% end %}
 
-<body data-project={{project}} data-base-project-url={{base_project_url}}
-      data-base-kernel-url={{base_kernel_url}}>
-
-<div id="header">
-    <span id="ipython_notebook"><h1>IPython Notebook</h1></span>
-    <span id="login_widget" class="hidden">
-      <button id="login">Login</button>
-    </span>
-</div>
-
-<div id="header_border"></div>
-
-<div id="main_app">
-
-    <div id="app_hbox">
-
-    <div id="left_panel">
+{% block content_panel %}
+    <div id="content_toolbar">
+        <span id="drag_info">Drag files onto the list to import notebooks.</span>
+        <span id="notebooks_buttons">
+            <button id="new_notebook">New Notebook</button>
+        </span>
     </div>
-
-    <div id="content_panel">
-        <div id="content_toolbar">
-            <span id="drag_info">Drag files onto the list to import notebooks.</span>
-            <span id="notebooks_buttons">
-                <button id="new_notebook">New Notebook</button>
-            </span>
-        </div>
-        <div id="notebook_list">
-            <div id="project_name"><h2>{{project}}</h2></div>
-        </div>
-
+    <div id="notebook_list">
+        <div id="project_name"><h2>{{project}}</h2></div>
     </div>
+{% end %}
 
-    <div id="right_panel">
-    </div>
-    
-    </div>
-
-</div>
-
-<script src="static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/jquery/js/jquery-ui-1.8.14.custom.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/namespace.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/notebooklist.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/loginwidget.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/projectdashboardmain.js" type="text/javascript" charset="utf-8"></script>
-
-</body>
-
-</html>
-
-
+{% block script %}
+    <script src="static/js/notebooklist.js" type="text/javascript" charset="utf-8"></script>
+    <script src="static/js/projectdashboardmain.js" type="text/javascript" charset="utf-8"></script>
+{% end %}
