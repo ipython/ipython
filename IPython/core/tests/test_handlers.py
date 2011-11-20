@@ -61,10 +61,10 @@ def test_handlers():
     ip.alias_manager.alias_table['top'] = (0, 'd:/cygwin/top')
     ip.alias_manager.alias_table['d'] =   (0, 'true')
     run([(i,py3compat.u_format(o)) for i,o in \
-        [("an_alias",    'get_ipython().system({u}"true ")'),     # alias
+        [("an_alias",    "get_ipython().system({u}'true ')"),     # alias
          # Below: recursive aliases should expand whitespace-surrounded
          # chars, *not* initial chars which happen to be aliases:
-         ("top",         'get_ipython().system({u}"d:/cygwin/top ")'),
+         ("top",         "get_ipython().system({u}'d:/cygwin/top ')"),
          ]])
     ip.system = old_system_cmd
 
@@ -76,15 +76,15 @@ def test_handlers():
     # line.
     run([(i,py3compat.u_format(o)) for i,o in \
         [('"no change"', '"no change"'),             # normal
-         ("!true",       'get_ipython().system({u}"true")'),      # shell_escapes
-         ("!! true",     'get_ipython().magic({u}"sx  true")'),   # shell_escapes + magic
-         ("!!true",      'get_ipython().magic({u}"sx true")'),    # shell_escapes + magic
-         ("%lsmagic",    'get_ipython().magic({u}"lsmagic ")'),   # magic
-         ("lsmagic",     'get_ipython().magic({u}"lsmagic ")'),   # magic
+         (u"!true",       "get_ipython().system({u}'true')"),      # shell_escapes
+         (u"!! true",     "get_ipython().magic({u}'sx  true')"),   # shell_escapes + magic
+         (u"!!true",      "get_ipython().magic({u}'sx true')"),    # shell_escapes + magic
+         (u"%lsmagic",    "get_ipython().magic({u}'lsmagic ')"),   # magic
+         (u"lsmagic",     "get_ipython().magic({u}'lsmagic ')"),   # magic
          #("a = b # PYTHON-MODE", '_i'),          # emacs -- avoids _in cache
 
          # post-esc-char whitespace goes inside
-         ("! true",   'get_ipython().system({u}" true")'),
+         (u"! true",   "get_ipython().system({u}' true')"),
 
          # handle_help
 
@@ -99,19 +99,19 @@ def test_handlers():
     ip.prefilter_manager.multi_line_specials = False
     # W/ multi_line_specials off, leading ws kills esc chars/autoexpansion
     run([
-        ('if 1:\n    !true',    'if 1:\n    !true'),
-        ('if 1:\n    lsmagic',  'if 1:\n    lsmagic'),
-        ('if 1:\n    an_alias', 'if 1:\n    an_alias'),
+        (u'if 1:\n    !true',    u'if 1:\n    !true'),
+        (u'if 1:\n    lsmagic',  u'if 1:\n    lsmagic'),
+        (u'if 1:\n    an_alias', u'if 1:\n    an_alias'),
         ])
 
     ip.prefilter_manager.multi_line_specials = True
     # initial indents must be preserved.
     run([(i,py3compat.u_format(o)) for i,o in \
-        [('if 1:\n    !true',    'if 1:\n    get_ipython().system({u}"true")'),
-         ('if 2:\n    lsmagic',  'if 2:\n    get_ipython().magic({u}"lsmagic ")'),
-         ('if 1:\n    an_alias', 'if 1:\n    get_ipython().system({u}"true ")'),
+        [(u'if 1:\n    !true',    "if 1:\n    get_ipython().system({u}'true')"),
+         (u'if 2:\n    lsmagic',  "if 2:\n    get_ipython().magic({u}'lsmagic ')"),
+         (u'if 1:\n    an_alias', "if 1:\n    get_ipython().system({u}'true ')"),
          # Weird one
-         ('if 1:\n    !!true',   'if 1:\n    get_ipython().magic({u}"sx true")'),
+         (u'if 1:\n    !!true',   "if 1:\n    get_ipython().magic({u}'sx true')"),
 
          # Even with m_l_s on, autocall is off even with special chars
          ('if 1:\n    /fun 1 2', 'if 1:\n    /fun 1 2'),
