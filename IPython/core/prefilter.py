@@ -404,8 +404,8 @@ class AssignSystemTransformer(PrefilterTransformer):
         if m is not None:
             cmd = m.group('cmd')
             lhs = m.group('lhs')
-            expr = repr("sc =%s" % cmd)
-            new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+            expr = "sc =%s" % cmd
+            new_line = '%s = get_ipython().magic(%r)' % (lhs, expr)
             return new_line
         return line
 
@@ -423,8 +423,7 @@ class AssignMagicTransformer(PrefilterTransformer):
         if m is not None:
             cmd = m.group('cmd')
             lhs = m.group('lhs')
-            expr = repr(cmd)
-            new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+            new_line = '%s = get_ipython().magic(%r)' % (lhs, cmd)
             return new_line
         return line
 
@@ -732,8 +731,7 @@ class AliasHandler(PrefilterHandler):
         transformed = self.shell.alias_manager.expand_aliases(line_info.ifun,line_info.the_rest)
         # pre is needed, because it carries the leading whitespace.  Otherwise
         # aliases won't work in indented sections.
-        line_out = '%sget_ipython().system(%s)' % (line_info.pre_whitespace,
-                                         repr(transformed))
+        line_out = '%sget_ipython().system(%r)' % (line_info.pre_whitespace, transformed)
 
         return line_out
 
@@ -761,8 +759,7 @@ class ShellEscapeHandler(PrefilterHandler):
             return magic_handler.handle(line_info)
         else:
             cmd = line.lstrip().lstrip(ESC_SHELL)
-            line_out = '%sget_ipython().system(%s)' % (line_info.pre_whitespace,
-                                             repr(cmd))
+            line_out = '%sget_ipython().system(%r)' % (line_info.pre_whitespace, cmd)
         return line_out
 
 
@@ -785,8 +782,8 @@ class MagicHandler(PrefilterHandler):
         """Execute magic functions."""
         ifun    = line_info.ifun
         the_rest = line_info.the_rest
-        cmd = '%sget_ipython().magic(%s)' % (line_info.pre_whitespace,
-                                   repr(ifun + " " + the_rest))
+        cmd = '%sget_ipython().magic(%r)' % (line_info.pre_whitespace,
+                                                    (ifun + " " + the_rest))
         return cmd
 
 
