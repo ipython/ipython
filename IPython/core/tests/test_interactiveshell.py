@@ -199,6 +199,13 @@ class InteractiveShellTestCase(unittest.TestCase):
         assert ip.user_ns['b'] == 12
         ip.reset()
 
+    def test_var_expand(self):
+        ip = get_ipython()
+        ip.user_ns['f'] = u'Ca\xc3\xb1o'
+        # This should not raise any exception:
+        ip.var_expand(u'echo $f')
+
+
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
     def setUp(self):
