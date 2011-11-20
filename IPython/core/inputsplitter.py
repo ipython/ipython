@@ -75,7 +75,6 @@ from StringIO import StringIO
 
 # IPython modules
 from IPython.core.splitinput import split_user_input, LineInfo
-from IPython.utils.text import make_quoted_expr
 from IPython.utils.py3compat import cast_unicode
 
 #-----------------------------------------------------------------------------
@@ -503,8 +502,7 @@ def transform_assign_system(line):
     if m is not None:
         cmd = m.group('cmd')
         lhs = m.group('lhs')
-        expr = make_quoted_expr(cmd)
-        new_line = '%s = get_ipython().getoutput(%s)' % (lhs, expr)
+        new_line = '%s = get_ipython().getoutput(%s)' % (lhs, repr(cmd))
         return new_line
     return line
 
@@ -518,8 +516,7 @@ def transform_assign_magic(line):
     if m is not None:
         cmd = m.group('cmd')
         lhs = m.group('lhs')
-        expr = make_quoted_expr(cmd)
-        new_line = '%s = get_ipython().magic(%s)' % (lhs, expr)
+        new_line = '%s = get_ipython().magic(%s)' % (lhs, repr(cmd))
         return new_line
     return line
 
@@ -560,11 +557,11 @@ def _make_help_call(target, esc, lspace, next_input=None):
     method  = 'pinfo2' if esc == '??' \
                 else 'psearch' if '*' in target \
                 else 'pinfo'
-    arg = make_quoted_expr(" ".join([method, target]))
+    arg = repr(" ".join([method, target]))
     
     if next_input:
         tpl = '%sget_ipython().magic(%s, next_input=%s)'
-        return tpl % (lspace, arg, make_quoted_expr(next_input))
+        return tpl % (lspace, arg, repr(next_input))
     else:
         return '%sget_ipython().magic(%s)' % (lspace, arg)
 
@@ -610,15 +607,13 @@ class EscapedTransformer(object):
     def _tr_system(line_info):
         "Translate lines escaped with: !"
         cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
-        return '%sget_ipython().system(%s)' % (line_info.pre,
-                                               make_quoted_expr(cmd))
+        return '%sget_ipython().system(%s)' % (line_info.pre, repr(cmd))
 
     @staticmethod
     def _tr_system2(line_info):
         "Translate lines escaped with: !!"
         cmd = line_info.line.lstrip()[2:]
-        return '%sget_ipython().getoutput(%s)' % (line_info.pre,
-                                                  make_quoted_expr(cmd))
+        return '%sget_ipython().getoutput(%s)' % (line_info.pre, repr(cmd))
 
     @staticmethod
     def _tr_help(line_info):
@@ -633,8 +628,7 @@ class EscapedTransformer(object):
     def _tr_magic(line_info):
         "Translate lines escaped with: %"
         tpl = '%sget_ipython().magic(%s)'
-        cmd = make_quoted_expr(' '.join([line_info.ifun,
-                                        line_info.the_rest]).strip())
+        cmd = repr(' '.join([line_info.ifun, line_info.the_rest]).strip())
         return tpl % (line_info.pre, cmd)
 
     @staticmethod
