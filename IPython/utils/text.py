@@ -25,6 +25,7 @@ import textwrap
 from string import Formatter
 
 from IPython.external.path import path
+from IPython.testing.skipdoctest import skip_doctest_py3
 from IPython.utils import py3compat
 from IPython.utils.io import nlprint
 from IPython.utils.data import flatten
@@ -563,33 +564,53 @@ def wrap_paragraphs(text, ncols=80):
     return out_ps
 
 
-
 class EvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
-
-    Any time a format key is not found in the kwargs,
-    it will be tried as an expression in the kwargs namespace.
-
+    
+    Note that this version interprets a : as specifying a format string (as per
+    standard string formatting), so if slicing is required, you must explicitly
+    create a slice.
+    
     This is to be used in templating cases, such as the parallel batch
     script templates, where simple arithmetic on arguments is useful.
 
     Examples
     --------
+    
+    In  [1]: f = EvalFormatter()
+    In  [2]: f.format('{n//4}', n=8)
+    Out [2]: '2'
+    
+    In  [3]: f.format("{greeting[slice(2,4)]}", greeting="Hello")
+    Out [3]: 'll'
+    """
+    def get_field(self, name, args, kwargs):
+        v = eval(name, kwargs)
+        return v, name
 
-    In [1]: f = EvalFormatter()
+@skip_doctest_py3
+class FullEvalFormatter(Formatter):
+    """A String Formatter that allows evaluation of simple expressions.
+    
+    Any time a format key is not found in the kwargs,
+    it will be tried as an expression in the kwargs namespace.
+    
+    Note that this version allows slicing using [1:2], so you cannot specify
+    a format string. Use :class:`EvalFormatter` to permit format strings.
+    
+    Examples
+    --------
+    
+    In [1]: f = FullEvalFormatter()
     In [2]: f.format('{n//4}', n=8)
-    Out[2]: '2'
-
-    In [3]: f.format('{list(range(3))}')
-    Out[3]: '[0, 1, 2]'
+    Out[2]: u'2'
+    
+    In [3]: f.format('{list(range(5))[2:4]}')
+    Out[3]: u'[2, 3]'
 
     In [4]: f.format('{3*2}')
-    Out[4]: '6'
+    Out[4]: u'6'
     """
-
-    # should we allow slicing by disabling the format_spec feature?
-    allow_slicing = True
-
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
     def _vformat(self, format_string, args, kwargs, used_args, recursion_depth):
@@ -606,12 +627,11 @@ class EvalFormatter(Formatter):
             # if there's a field, output it
             if field_name is not None:
                 # this is some markup, find the object and do
-                #  the formatting
+                # the formatting
 
-                if self.allow_slicing and format_spec:
+                if format_spec:
                     # override format spec, to allow slicing:
                     field_name = ':'.join([field_name, format_spec])
-                    format_spec = ''
 
                 # eval the contents of the field for the object
                 # to be formatted
@@ -620,14 +640,43 @@ class EvalFormatter(Formatter):
                 # do any conversion on the resulting object
                 obj = self.convert_field(obj, conversion)
 
-                # expand the format spec, if needed
-                format_spec = self._vformat(format_spec, args, kwargs,
-                                            used_args, recursion_depth-1)
-
                 # format the object and append to the result
-                result.append(self.format_field(obj, format_spec))
+                result.append(self.format_field(obj, ''))
 
-        return ''.join(result)
+        return u''.join(py3compat.cast_unicode(s) for s in result)
+
+@skip_doctest_py3
+class DollarFormatter(FullEvalFormatter):
+    """Formatter allowing Itpl style $foo replacement, for names and attribute
+    access only. Standard {foo} replacement also works, and allows full
+    evaluation of its arguments.
+
+    Examples
+    --------
+    In [1]: f = DollarFormatter()
+    In [2]: f.format('{n//4}', n=8)
+    Out[2]: u'2'
+    
+    In [3]: f.format('23 * 76 is $result', result=23*76)
+    Out[3]: u'23 * 76 is 1748'
+    
+    In [4]: f.format('$a or {b}', a=1, b=2)
+    Out[4]: u'1 or 2'
+    """
+    _dollar_pattern = re.compile("(.*)\$([\w\.]+)")
+    def parse(self, fmt_string):
+        for literal_txt, field_name, format_spec, conversion \
+                    in Formatter.parse(self, fmt_string):
+            
+            # Find $foo patterns in the literal text.
+            continue_from = 0
+            for m in self._dollar_pattern.finditer(literal_txt):
+                new_txt, new_field = m.group(1,2)
+                yield (new_txt, new_field, "", None)
+                continue_from = m.end()
+            
+            # Re-yield the {foo} style pattern
+            yield (literal_txt[continue_from:], field_name, format_spec, conversion)
 
 
 def columnize(items, separator='  ', displaywidth=80):
