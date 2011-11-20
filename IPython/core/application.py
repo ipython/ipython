@@ -137,6 +137,11 @@ class BaseIPythonApplication(Application):
         profile, then they will be staged into the new directory.  Otherwise,
         default config files will be automatically generated.
         """)
+    
+    verbose_crash = Bool(False, config=True,
+        help="""Create a massive crash report when IPython enconters what may be an
+        internal error.  The default is to append a short message to the
+        usual traceback""")
 
     # The class to use as the crash handler.
     crash_handler_class = Type(crashhandler.CrashHandler)
@@ -154,11 +159,23 @@ class BaseIPythonApplication(Application):
     def init_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
         self.crash_handler = self.crash_handler_class(self)
-        sys.excepthook = self.crash_handler
+        sys.excepthook = self.excepthook
         def unset_crashhandler():
             sys.excepthook = sys.__excepthook__
         atexit.register(unset_crashhandler)
-
+    
+    def excepthook(self, etype, evalue, tb):
+        """this is sys.excepthook after init_crashhandler
+        
+        set self.verbose_crash=True to use our full crashhandler, instead of
+        a regular traceback with a short message (crash_handler_lite)
+        """
+        
+        if self.verbose_crash:
+            return self.crash_handler(etype, evalue, tb)
+        else:
+            return crashhandler.crash_handler_lite(etype, evalue, tb)
+    
     def _ipython_dir_changed(self, name, old, new):
         if old in sys.path:
             sys.path.remove(old)

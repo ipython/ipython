@@ -81,8 +81,8 @@ class IPAppCrashHandler(CrashHandler):
 
     def __init__(self, app):
         contact_name = release.authors['Fernando'][0]
-        contact_email = release.authors['Fernando'][1]
-        bug_tracker = 'http://github.com/ipython/ipython/issues'
+        contact_email = release.author_email
+        bug_tracker = 'https://github.com/ipython/ipython/issues'
         super(IPAppCrashHandler,self).__init__(
             app, contact_name, contact_email, bug_tracker
         )
@@ -320,6 +320,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         self.shell = TerminalInteractiveShell.instance(config=self.config,
                         display_banner=False, profile_dir=self.profile_dir,
                         ipython_dir=self.ipython_dir)
+        self.shell.configurables.append(self)
 
     def init_banner(self):
         """optionally display the banner"""

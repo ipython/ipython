@@ -780,6 +780,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
 
     def init_shell(self):
         self.shell = self.kernel.shell
+        self.shell.configurables.append(self)
 
 
 #-----------------------------------------------------------------------------
