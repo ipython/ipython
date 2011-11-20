@@ -102,12 +102,27 @@
 	box-pack: center;
 }
 
-#message {
-    border: 1px solid red;
-    background-color: #FFD3D1;
+.message {
+    border-width: 1px;
+    border-style: solid;
     text-align: center;
     padding: 0.5em;
-    margin: 0.5em;
+    margin: 0.5em 0;
+}
+
+.message.error {
+    background-color: #FFD3D1;
+    border-color: red;
+}
+
+.message.warning {
+    background-color: #FFD09E;
+    border-color: orange;
+}
+
+.message.info {
+    background-color: #CBFFBA;
+    border-color: green;
 }
 
 #content_panel {

@@ -116,7 +116,14 @@ def authenticate_unless_readonly(f, self, *args, **kwargs):
 # Top-level handlers
 #-----------------------------------------------------------------------------
 
-class AuthenticatedHandler(web.RequestHandler):
+class RequestHandler(web.RequestHandler):
+    """RequestHandler with default variable setting."""
+
+    def render(*args, **kwargs):
+        kwargs.setdefault('message', '')
+        return web.RequestHandler.render(*args, **kwargs)
+
+class AuthenticatedHandler(RequestHandler):
     """A RequestHandler with an authenticated user."""
 
     def get_current_user(self):
@@ -167,7 +174,7 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 
 class LoginHandler(AuthenticatedHandler):
 
-    def _render(self, message=''):
+    def _render(self, message=None):
         self.render('login.html',
                 next=self.get_argument('next', default='/'),
                 read_only=self.read_only,
@@ -175,7 +182,10 @@ class LoginHandler(AuthenticatedHandler):
         )
 
     def get(self):
-        self._render()
+        if self.current_user:
+            self.redirect(self.get_argument('next', default='/'))
+        else:
+            self._render()
 
     def post(self):
         pwd = self.get_argument('password', default=u'')
@@ -183,10 +193,17 @@ class LoginHandler(AuthenticatedHandler):
             if passwd_check(self.application.password, pwd):
                 self.set_secure_cookie('username', str(uuid.uuid4()))
             else:
-                self._render(message='Invalid password')
+                self._render(message={'error': 'Invalid password'})
                 return
 
         self.redirect(self.get_argument('next', default='/'))
+
+
+class LogoutHandler(AuthenticatedHandler):
+
+    def get(self):
+        self.clear_cookie('username')
+        self.render('logout.html', message={'info': 'Successfully logged out.'})
 
 
 class NewHandler(AuthenticatedHandler):
