@@ -28,7 +28,7 @@ from IPython.config.application import (
 )
 
 from IPython.utils.traitlets import (
-    Bool, Unicode, Int, Float, List, Dict
+    Bool, Unicode, Integer, Float, List, Dict
 )
 
 #-----------------------------------------------------------------------------
@@ -37,14 +37,14 @@ from IPython.utils.traitlets import (
 
 class Foo(Configurable):
 
-    i = Int(0, config=True, help="The integer i.")
-    j = Int(1, config=True, help="The integer j.")
+    i = Integer(0, config=True, help="The integer i.")
+    j = Integer(1, config=True, help="The integer j.")
     name = Unicode(u'Brian', config=True, help="First name.")
 
 
 class Bar(Configurable):
 
-    b = Int(0, config=True, help="The integer b.")
+    b = Integer(0, config=True, help="The integer b.")
     enabled = Bool(True, config=True, help="Enable bar.")
 
 

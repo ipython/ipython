@@ -42,7 +42,7 @@ from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
+    Dict, List, Unicode, Integer, CaselessStrEnum, CBool, Any
 )
 from IPython.zmq.ipkernel import (
     flags as ipkernel_flags,
@@ -168,13 +168,13 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
     sshkey = Unicode('', config=True,
         help="""Path to the ssh key to use for logging in to the ssh server.""")
     
-    hb_port = Int(0, config=True,
+    hb_port = Integer(0, config=True,
         help="set the heartbeat port [default: random]")
-    shell_port = Int(0, config=True,
+    shell_port = Integer(0, config=True,
         help="set the shell (XREP) port [default: random]")
-    iopub_port = Int(0, config=True,
+    iopub_port = Integer(0, config=True,
         help="set the iopub (PUB) port [default: random]")
-    stdin_port = Int(0, config=True,
+    stdin_port = Integer(0, config=True,
         help="set the stdin (XREQ) port [default: random]")
     connection_file = Unicode('', config=True,
         help="""JSON file in which to store connection info [default: kernel-<pid>.json]

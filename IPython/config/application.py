@@ -34,7 +34,7 @@ from IPython.config.loader import (
 )
 
 from IPython.utils.traitlets import (
-    Unicode, List, Int, Enum, Dict, Instance, TraitError
+    Unicode, List, Enum, Dict, Instance, TraitError
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent, wrap_paragraphs, dedent

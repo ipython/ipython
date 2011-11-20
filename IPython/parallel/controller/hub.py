@@ -29,7 +29,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 # internal:
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import (
-        HasTraits, Instance, Int, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
+        HasTraits, Instance, Integer, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
         )
 
 from IPython.parallel import error, util
@@ -109,7 +109,7 @@ class EngineConnector(HasTraits):
     registration (str): identity of registration XREQ socket
     heartbeat (str): identity of heartbeat XREQ socket
     """
-    id=Int(0)
+    id=Integer(0)
     queue=CBytes()
     control=CBytes()
     registration=CBytes()
@@ -120,42 +120,42 @@ class HubFactory(RegistrationFactory):
     """The Configurable for setting up a Hub."""
 
     # port-pairs for monitoredqueues:
-    hb = Tuple(Int,Int,config=True,
+    hb = Tuple(Integer,Integer,config=True,
         help="""XREQ/SUB Port pair for Engine heartbeats""")
     def _hb_default(self):
         return tuple(util.select_random_ports(2))
 
-    mux = Tuple(Int,Int,config=True,
+    mux = Tuple(Integer,Integer,config=True,
         help="""Engine/Client Port pair for MUX queue""")
 
     def _mux_default(self):
         return tuple(util.select_random_ports(2))
 
-    task = Tuple(Int,Int,config=True,
+    task = Tuple(Integer,Integer,config=True,
         help="""Engine/Client Port pair for Task queue""")
     def _task_default(self):
         return tuple(util.select_random_ports(2))
 
-    control = Tuple(Int,Int,config=True,
+    control = Tuple(Integer,Integer,config=True,
         help="""Engine/Client Port pair for Control queue""")
 
     def _control_default(self):
         return tuple(util.select_random_ports(2))
 
-    iopub = Tuple(Int,Int,config=True,
+    iopub = Tuple(Integer,Integer,config=True,
         help="""Engine/Client Port pair for IOPub relay""")
 
     def _iopub_default(self):
         return tuple(util.select_random_ports(2))
 
     # single ports:
-    mon_port = Int(config=True,
+    mon_port = Integer(config=True,
         help="""Monitor (SUB) port for queue traffic""")
 
     def _mon_port_default(self):
         return util.select_random_ports(1)[0]
 
-    notifier_port = Int(config=True,
+    notifier_port = Integer(config=True,
         help="""PUB port for sending engine status notifications""")
 
     def _notifier_port_default(self):
@@ -331,8 +331,8 @@ class Hub(SessionFactory):
     dead_engines=Set() # completed msg_ids keyed by engine_id
     unassigned=Set() # set of task msg_ds not yet assigned a destination
     incoming_registrations=Dict()
-    registration_timeout=Int()
-    _idcounter=Int(0)
+    registration_timeout=Integer()
+    _idcounter=Integer(0)
 
     # objects from constructor:
     query=Instance(ZMQStream)

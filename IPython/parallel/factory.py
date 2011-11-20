@@ -24,7 +24,7 @@ import zmq
 from zmq.eventloop.ioloop import IOLoop
 
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Int, Instance, Unicode
+from IPython.utils.traitlets import Integer, Instance, Unicode
 
 from IPython.parallel.util import select_random_ports
 from IPython.zmq.session import Session, SessionFactory
@@ -48,7 +48,7 @@ class RegistrationFactory(SessionFactory):
         help="""The IP address for registration.  This is generally either
         '127.0.0.1' for loopback only or '*' for all interfaces.
         [default: '127.0.0.1']""")
-    regport = Int(config=True,
+    regport = Integer(config=True,
         help="""The port on which the Hub listens for registration.""")
     def _regport_default(self):
         return select_random_ports(1)[0]

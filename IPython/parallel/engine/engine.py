@@ -25,7 +25,7 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.external.ssh import tunnel
 # internal
 from IPython.utils.traitlets import (
-    Instance, Dict, Int, Type, CFloat, Unicode, CBytes, Bool
+    Instance, Dict, Integer, Type, CFloat, Unicode, CBytes, Bool
 )
 # from IPython.utils.localinterfaces import LOCALHOST
 
@@ -63,7 +63,7 @@ class EngineFactory(RegistrationFactory):
 
     # not configurable:
     user_ns=Dict()
-    id=Int(allow_none=True)
+    id=Integer(allow_none=True)
     registrar=Instance('zmq.eventloop.zmqstream.ZMQStream')
     kernel=Instance(Kernel)
 

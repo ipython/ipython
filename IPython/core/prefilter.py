@@ -35,7 +35,7 @@ from IPython.core.macro import Macro
 from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.core import page
 
-from IPython.utils.traitlets import List, Int, Any, Unicode, CBool, Bool, Instance
+from IPython.utils.traitlets import List, Integer, Any, Unicode, CBool, Bool, Instance
 from IPython.utils.text import make_quoted_expr
 from IPython.utils.autoattr import auto_attr
 
@@ -369,7 +369,7 @@ class PrefilterManager(Configurable):
 class PrefilterTransformer(Configurable):
     """Transform a line of user input."""
 
-    priority = Int(100, config=True)
+    priority = Integer(100, config=True)
     # Transformers don't currently use shell or prefilter_manager, but as we
     # move away from checkers and handlers, they will need them.
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
@@ -398,7 +398,7 @@ _assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
 class AssignSystemTransformer(PrefilterTransformer):
     """Handle the `files = !ls` syntax."""
 
-    priority = Int(100, config=True)
+    priority = Integer(100, config=True)
 
     def transform(self, line, continue_prompt):
         m = _assign_system_re.match(line)
@@ -417,7 +417,7 @@ _assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
 class AssignMagicTransformer(PrefilterTransformer):
     """Handle the `a = %who` syntax."""
 
-    priority = Int(200, config=True)
+    priority = Integer(200, config=True)
 
     def transform(self, line, continue_prompt):
         m = _assign_magic_re.match(line)
@@ -435,7 +435,7 @@ _classic_prompt_re = re.compile(r'(^[ \t]*>>> |^[ \t]*\.\.\. )')
 class PyPromptTransformer(PrefilterTransformer):
     """Handle inputs that start with '>>> ' syntax."""
 
-    priority = Int(50, config=True)
+    priority = Integer(50, config=True)
 
     def transform(self, line, continue_prompt):
 
@@ -456,7 +456,7 @@ _ipy_prompt_re = re.compile(r'(^[ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
 class IPyPromptTransformer(PrefilterTransformer):
     """Handle inputs that start classic IPython prompt syntax."""
 
-    priority = Int(50, config=True)
+    priority = Integer(50, config=True)
 
     def transform(self, line, continue_prompt):
 
@@ -479,7 +479,7 @@ class IPyPromptTransformer(PrefilterTransformer):
 class PrefilterChecker(Configurable):
     """Inspect an input line and return a handler for that line."""
 
-    priority = Int(100, config=True)
+    priority = Integer(100, config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
@@ -501,7 +501,7 @@ class PrefilterChecker(Configurable):
 
 class EmacsChecker(PrefilterChecker):
 
-    priority = Int(100, config=True)
+    priority = Integer(100, config=True)
     enabled = Bool(False, config=True)
 
     def check(self, line_info):
@@ -514,7 +514,7 @@ class EmacsChecker(PrefilterChecker):
 
 class ShellEscapeChecker(PrefilterChecker):
 
-    priority = Int(200, config=True)
+    priority = Integer(200, config=True)
 
     def check(self, line_info):
         if line_info.line.lstrip().startswith(ESC_SHELL):
@@ -523,7 +523,7 @@ class ShellEscapeChecker(PrefilterChecker):
 
 class MacroChecker(PrefilterChecker):
 
-    priority = Int(250, config=True)
+    priority = Integer(250, config=True)
 
     def check(self, line_info):
         obj = self.shell.user_ns.get(line_info.ifun)
@@ -535,7 +535,7 @@ class MacroChecker(PrefilterChecker):
 
 class IPyAutocallChecker(PrefilterChecker):
 
-    priority = Int(300, config=True)
+    priority = Integer(300, config=True)
 
     def check(self, line_info):
         "Instances of IPyAutocall in user_ns get autocalled immediately"
@@ -549,7 +549,7 @@ class IPyAutocallChecker(PrefilterChecker):
 
 class MultiLineMagicChecker(PrefilterChecker):
 
-    priority = Int(400, config=True)
+    priority = Integer(400, config=True)
 
     def check(self, line_info):
         "Allow ! and !! in multi-line statements if multi_line_specials is on"
@@ -566,7 +566,7 @@ class MultiLineMagicChecker(PrefilterChecker):
 
 class EscCharsChecker(PrefilterChecker):
 
-    priority = Int(500, config=True)
+    priority = Integer(500, config=True)
 
     def check(self, line_info):
         """Check for escape character and return either a handler to handle it,
@@ -586,7 +586,7 @@ class EscCharsChecker(PrefilterChecker):
 
 class AssignmentChecker(PrefilterChecker):
 
-    priority = Int(600, config=True)
+    priority = Integer(600, config=True)
 
     def check(self, line_info):
         """Check to see if user is assigning to a var for the first time, in
@@ -604,7 +604,7 @@ class AssignmentChecker(PrefilterChecker):
 
 class AutoMagicChecker(PrefilterChecker):
 
-    priority = Int(700, config=True)
+    priority = Integer(700, config=True)
 
     def check(self, line_info):
         """If the ifun is magic, and automagic is on, run it.  Note: normal,
@@ -628,7 +628,7 @@ class AutoMagicChecker(PrefilterChecker):
 
 class AliasChecker(PrefilterChecker):
 
-    priority = Int(800, config=True)
+    priority = Integer(800, config=True)
 
     def check(self, line_info):
         "Check if the initital identifier on the line is an alias."
@@ -644,7 +644,7 @@ class AliasChecker(PrefilterChecker):
 
 class PythonOpsChecker(PrefilterChecker):
 
-    priority = Int(900, config=True)
+    priority = Integer(900, config=True)
 
     def check(self, line_info):
         """If the 'rest' of the line begins with a function call or pretty much
@@ -659,7 +659,7 @@ class PythonOpsChecker(PrefilterChecker):
 
 class AutocallChecker(PrefilterChecker):
 
-    priority = Int(1000, config=True)
+    priority = Integer(1000, config=True)
 
     def check(self, line_info):
         "Check if the initial word/function is callable and autocall is on."

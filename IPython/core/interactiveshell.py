@@ -74,7 +74,7 @@ from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import num_ini_spaces, format_screen, LSString, SList
-from IPython.utils.traitlets import (Int, CBool, CaselessStrEnum, Enum,
+from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error, fatal
 import IPython.core.hooks
@@ -226,7 +226,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         Enable magic commands to be called without the leading %.
         """
     )
-    cache_size = Int(1000, config=True, help=
+    cache_size = Integer(1000, config=True, help=
         """
         Set the size of the output cache.  The default is 1000, you can
         change it permanently in your config file.  Setting it to 0 completely
@@ -277,7 +277,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def _exiter_default(self):
         return ExitAutocall(self)
     # Monotonically increasing execution counter
-    execution_count = Int(1)
+    execution_count = Integer(1)
     filename = Unicode("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
 
@@ -317,7 +317,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     prompts_pad_left = CBool(True, config=True)
     quiet = CBool(False, config=True)
 
-    history_length = Int(10000, config=True)
+    history_length = Integer(10000, config=True)
 
     # The readline stuff will eventually be moved to the terminal subclass
     # but for now, we can't do that as readline is welded in everywhere.

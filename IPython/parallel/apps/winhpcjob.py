@@ -29,7 +29,7 @@ from xml.etree import ElementTree as ET
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import (
-    Unicode, Int, List, Instance,
+    Unicode, Integer, List, Instance,
     Enum, Bool
 )
 
@@ -81,12 +81,12 @@ class WinHPCJob(Configurable):
 
     job_id = Unicode('')
     job_name = Unicode('MyJob', config=True)
-    min_cores = Int(1, config=True)
-    max_cores = Int(1, config=True)
-    min_sockets = Int(1, config=True)
-    max_sockets = Int(1, config=True)
-    min_nodes = Int(1, config=True)
-    max_nodes = Int(1, config=True)
+    min_cores = Integer(1, config=True)
+    max_cores = Integer(1, config=True)
+    min_sockets = Integer(1, config=True)
+    max_sockets = Integer(1, config=True)
+    min_nodes = Integer(1, config=True)
+    max_nodes = Integer(1, config=True)
     unit_type = Unicode("Core", config=True)
     auto_calculate_min = Bool(True, config=True)
     auto_calculate_max = Bool(True, config=True)
@@ -173,12 +173,12 @@ class WinHPCTask(Configurable):
     task_id = Unicode('')
     task_name = Unicode('')
     version = Unicode("2.000")
-    min_cores = Int(1, config=True)
-    max_cores = Int(1, config=True)
-    min_sockets = Int(1, config=True)
-    max_sockets = Int(1, config=True)
-    min_nodes = Int(1, config=True)
-    max_nodes = Int(1, config=True)
+    min_cores = Integer(1, config=True)
+    max_cores = Integer(1, config=True)
+    min_sockets = Integer(1, config=True)
+    max_sockets = Integer(1, config=True)
+    min_nodes = Integer(1, config=True)
+    max_nodes = Integer(1, config=True)
     unit_type = Unicode("Core", config=True)
     command_line = Unicode('', config=True)
     work_directory = Unicode('', config=True)
@@ -255,12 +255,12 @@ class IPControllerTask(WinHPCTask):
     # I don't want these to be configurable
     std_out_file_path = Unicode('', config=False)
     std_err_file_path = Unicode('', config=False)
-    min_cores = Int(1, config=False)
-    max_cores = Int(1, config=False)
-    min_sockets = Int(1, config=False)
-    max_sockets = Int(1, config=False)
-    min_nodes = Int(1, config=False)
-    max_nodes = Int(1, config=False)
+    min_cores = Integer(1, config=False)
+    max_cores = Integer(1, config=False)
+    min_sockets = Integer(1, config=False)
+    max_sockets = Integer(1, config=False)
+    min_nodes = Integer(1, config=False)
+    max_nodes = Integer(1, config=False)
     unit_type = Unicode("Core", config=False)
     work_directory = Unicode('', config=False)
 
@@ -283,12 +283,12 @@ class IPEngineTask(WinHPCTask):
     # I don't want these to be configurable
     std_out_file_path = Unicode('', config=False)
     std_err_file_path = Unicode('', config=False)
-    min_cores = Int(1, config=False)
-    max_cores = Int(1, config=False)
-    min_sockets = Int(1, config=False)
-    max_sockets = Int(1, config=False)
-    min_nodes = Int(1, config=False)
-    max_nodes = Int(1, config=False)
+    min_cores = Integer(1, config=False)
+    max_cores = Integer(1, config=False)
+    min_sockets = Integer(1, config=False)
+    max_sockets = Integer(1, config=False)
+    min_nodes = Integer(1, config=False)
+    max_nodes = Integer(1, config=False)
     unit_type = Unicode("Core", config=False)
     work_directory = Unicode('', config=False)
 

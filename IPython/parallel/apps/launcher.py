@@ -58,7 +58,7 @@ from IPython.config.application import Application
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.text import EvalFormatter
 from IPython.utils.traitlets import (
-    Any, Int, CFloat, List, Unicode, Dict, Instance, HasTraits,
+    Any, Integer, CFloat, List, Unicode, Dict, Instance, HasTraits,
 )
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
@@ -258,7 +258,7 @@ class LocalProcessLauncher(BaseLauncher):
     # This is used to to construct self.args, which is passed to
     # spawnProcess.
     cmd_and_args = List([])
-    poll_frequency = Int(100) # in ms
+    poll_frequency = Integer(100) # in ms
 
     def __init__(self, work_dir=u'.', config=None, **kwargs):
         super(LocalProcessLauncher, self).__init__(
@@ -458,7 +458,7 @@ class MPIExecLauncher(LocalProcessLauncher):
     program_args = List([],
         help="The command line argument to the program."
     )
-    n = Int(1)
+    n = Integer(1)
 
     def find_args(self):
         """Build self.args using all the fields."""
@@ -854,7 +854,7 @@ class BatchSystemLauncher(BaseLauncher):
     def _queue_changed(self, name, old, new):
         self.context[name] = new
 
-    n = Int(1)
+    n = Integer(1)
     _n_changed = _queue_changed
 
     # not configurable, override in subclasses
@@ -1129,7 +1129,7 @@ class IPClusterLauncher(LocalProcessLauncher):
         ['--clean-logs', '--log-to-file', '--log-level=%i'%logging.INFO], config=True,
         help="Command line arguments to pass to ipcluster.")
     ipcluster_subcommand = Unicode('start')
-    ipcluster_n = Int(2)
+    ipcluster_n = Integer(2)
 
     def find_args(self):
         return self.ipcluster_cmd + [self.ipcluster_subcommand] + \

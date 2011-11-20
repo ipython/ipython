@@ -24,7 +24,9 @@ from types import ModuleType
 import zmq
 
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.traitlets import HasTraits, Any, Bool, List, Dict, Set, Int, Instance, CFloat, CInt
+from IPython.utils.traitlets import (
+    HasTraits, Any, Bool, List, Dict, Set, Instance, CFloat, Integer
+)
 from IPython.external.decorator import decorator
 
 from IPython.parallel import util
@@ -795,7 +797,7 @@ class LoadBalancedView(View):
     follow=Any()
     after=Any()
     timeout=CFloat()
-    retries = CInt(0)
+    retries = Integer(0)
 
     _task_scheme = Any()
     _flag_names = List(['targets', 'block', 'track', 'follow', 'after', 'timeout', 'retries'])
