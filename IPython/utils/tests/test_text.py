@@ -44,8 +44,7 @@ def test_columnize_long():
     out = text.columnize(items, displaywidth=size-1)
     nt.assert_equals(out, '\n'.join(items+['']))
 
-def test_eval_formatter():
-    f = text.EvalFormatter()
+def eval_formatter_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     nt.assert_equals(s, "12 3 hello")
@@ -60,10 +59,7 @@ def test_eval_formatter():
     
     nt.assert_raises(NameError, f.format, '{dne}', **ns)
 
-
-def test_eval_formatter_slicing():
-    f = text.EvalFormatter()
-    f.allow_slicing = True
+def eval_formatter_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
     s = f.format(" {stuff.split()[:]} ", **ns)
     nt.assert_equals(s, " ['hello', 'there'] ")
@@ -75,9 +71,7 @@ def test_eval_formatter_slicing():
     nt.assert_raises(SyntaxError, f.format, "{n:x}", **ns)
     
 
-def test_eval_formatter_no_slicing():
-    f = text.EvalFormatter()
-    f.allow_slicing = False
+def eval_formatter_no_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
     
     s = f.format('{n:x} {pi**2:+f}', **ns)
@@ -85,3 +79,25 @@ def test_eval_formatter_no_slicing():
     
     nt.assert_raises(SyntaxError, f.format, "{a[:]}")
 
+def test_eval_formatter():
+    f = text.EvalFormatter()
+    eval_formatter_check(f)
+    eval_formatter_no_slicing_check(f)
+
+def test_full_eval_formatter():
+    f = text.FullEvalFormatter()
+    eval_formatter_check(f)
+    eval_formatter_slicing_check(f)
+
+def test_dollar_formatter():
+    f = text.DollarFormatter()
+    eval_formatter_check(f)
+    eval_formatter_slicing_check(f)
+    
+    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+    s = f.format("$n", **ns)
+    nt.assert_equals(s, "12")
+    s = f.format("$n.real", **ns)
+    nt.assert_equals(s, "12")
+    s = f.format("$n/{stuff[:5]}", **ns)
+    nt.assert_equals(s, "12/hello")

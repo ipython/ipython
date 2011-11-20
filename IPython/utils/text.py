@@ -677,6 +677,38 @@ class FullEvalFormatter(Formatter):
 
         return ''.join(result)
 
+class DollarFormatter(FullEvalFormatter):
+    """Formatter allowing Itpl style $foo replacement, for names and attribute
+    access only. Standard {foo} replacement also works, and allows full
+    evaluation of its arguments.
+
+    Examples
+    --------
+    In [1]: f = DollarFormatter()
+    In [2]: f.format('{n//4}', n=8)
+    Out[2]: '2'
+    
+    In [3]: f.format('23 * 76 is $result', result=23*76)
+    Out[3]: '23 * 76 is 1748'
+    
+    In [4]: f.format('$a or {b}', a=1, b=2)
+    Out[4]: '1 or 2'
+    """
+    _dollar_pattern = re.compile("(.*)\$([\w\.]+)")
+    def parse(self, fmt_string):
+        for literal_txt, field_name, format_spec, conversion \
+                    in Formatter.parse(self, fmt_string):
+            
+            # Find $foo patterns in the literal text.
+            continue_from = 0
+            for m in self._dollar_pattern.finditer(literal_txt):
+                new_txt, new_field = m.group(1,2)
+                yield (new_txt, new_field, "", "s")
+                continue_from = m.end()
+            
+            # Re-yield the {foo} style pattern
+            yield (literal_txt[continue_from:], field_name, format_spec, conversion)
+
 
 def columnize(items, separator='  ', displaywidth=80):
     """ Transform a list of strings into a single string with columns.
