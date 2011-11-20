@@ -201,7 +201,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
     def test_var_expand(self):
         ip = get_ipython()
-        ip.user_ns['f'] = u'Ca\xc3\xb1o'
+        ip.user_ns['f'] = 'Ca\xc3\xb1o'
         # This should not raise any exception:
         ip.var_expand(u'echo $f')
 
