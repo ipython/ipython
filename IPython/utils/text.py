@@ -25,6 +25,7 @@ import textwrap
 from string import Formatter
 
 from IPython.external.path import path
+from IPython.testing.skipdoctest import skip_doctest_py3
 from IPython.utils import py3compat
 from IPython.utils.io import nlprint
 from IPython.utils.data import flatten
@@ -621,6 +622,7 @@ class EvalFormatter(Formatter):
         v = eval(name, kwargs)
         return v, name
 
+@skip_doctest_py3
 class FullEvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
     
@@ -635,13 +637,13 @@ class FullEvalFormatter(Formatter):
     
     In [1]: f = FullEvalFormatter()
     In [2]: f.format('{n//4}', n=8)
-    Out[2]: '2'
+    Out[2]: u'2'
     
     In [3]: f.format('{list(range(5))[2:4]}')
-    Out[3]: '[2, 3]'
+    Out[3]: u'[2, 3]'
 
     In [4]: f.format('{3*2}')
-    Out[4]: '6'
+    Out[4]: u'6'
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
@@ -675,8 +677,9 @@ class FullEvalFormatter(Formatter):
                 # format the object and append to the result
                 result.append(self.format_field(obj, ''))
 
-        return ''.join(result)
+        return u''.join(py3compat.cast_unicode(s) for s in result)
 
+@skip_doctest_py3
 class DollarFormatter(FullEvalFormatter):
     """Formatter allowing Itpl style $foo replacement, for names and attribute
     access only. Standard {foo} replacement also works, and allows full
@@ -686,13 +689,13 @@ class DollarFormatter(FullEvalFormatter):
     --------
     In [1]: f = DollarFormatter()
     In [2]: f.format('{n//4}', n=8)
-    Out[2]: '2'
+    Out[2]: u'2'
     
     In [3]: f.format('23 * 76 is $result', result=23*76)
-    Out[3]: '23 * 76 is 1748'
+    Out[3]: u'23 * 76 is 1748'
     
     In [4]: f.format('$a or {b}', a=1, b=2)
-    Out[4]: '1 or 2'
+    Out[4]: u'1 or 2'
     """
     _dollar_pattern = re.compile("(.*)\$([\w\.]+)")
     def parse(self, fmt_string):
@@ -703,7 +706,7 @@ class DollarFormatter(FullEvalFormatter):
             continue_from = 0
             for m in self._dollar_pattern.finditer(literal_txt):
                 new_txt, new_field = m.group(1,2)
-                yield (new_txt, new_field, "", "s")
+                yield (new_txt, new_field, "", None)
                 continue_from = m.end()
             
             # Re-yield the {foo} style pattern

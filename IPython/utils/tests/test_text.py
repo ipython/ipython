@@ -45,7 +45,7 @@ def test_columnize_long():
     nt.assert_equals(out, '\n'.join(items+['']))
 
 def eval_formatter_check(f):
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
+    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     nt.assert_equals(s, "12 3 hello")
     s = f.format(' '.join(['{n//%i}'%i for i in range(1,8)]), **ns)
@@ -57,6 +57,12 @@ def eval_formatter_check(f):
     s = f.format("{stuff!r}", **ns)
     nt.assert_equals(s, repr(ns['stuff']))
     
+    # Check with unicode:
+    s = f.format("{u}", **ns)
+    nt.assert_equals(s, ns['u'])
+    # This decodes in a platform dependent manner, but it shouldn't error out
+    s = f.format("{b}", **ns)
+        
     nt.assert_raises(NameError, f.format, '{dne}', **ns)
 
 def eval_formatter_slicing_check(f):
