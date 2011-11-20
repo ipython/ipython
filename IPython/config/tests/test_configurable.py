@@ -31,7 +31,7 @@ from IPython.utils.traitlets import (
 )
 
 from IPython.config.loader import Config
-
+from IPython.utils.py3compat import PY3
 
 #-----------------------------------------------------------------------------
 # Test cases
@@ -61,6 +61,11 @@ mc_help_inst=u"""MyConfigurable options
 --MyConfigurable.b=<Float>
     Current: 4.0
     The integer b."""
+
+# On Python 3, the Integer trait is a synonym for Int
+if PY3:
+    mc_help = mc_help.replace(u"<Integer>", u"<Int>")
+    mc_help_inst = mc_help_inst.replace(u"<Integer>", u"<Int>")
 
 class Foo(Configurable):
     a = Integer(0, config=True, help="The integer a.")

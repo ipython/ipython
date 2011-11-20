@@ -295,40 +295,6 @@ def esc_quotes(strng):
     return strng.replace('"','\\"').replace("'","\\'")
 
 
-def make_quoted_expr(s):
-    """Return string s in appropriate quotes, using raw string if possible.
-
-    XXX - example removed because it caused encoding errors in documentation
-    generation.  We need a new example that doesn't contain invalid chars.
-
-    Note the use of raw string and padding at the end to allow trailing
-    backslash.
-    """
-
-    tail = ''
-    tailpadding = ''
-    raw  = ''
-    ucode = '' if py3compat.PY3 else 'u'
-    if "\\" in s:
-        raw = 'r'
-        if s.endswith('\\'):
-            tail = '[:-1]'
-            tailpadding = '_'
-    if '"' not in s:
-        quote = '"'
-    elif "'" not in s:
-        quote = "'"
-    elif '"""' not in s and not s.endswith('"'):
-        quote = '"""'
-    elif "'''" not in s and not s.endswith("'"):
-        quote = "'''"
-    else:
-        # give up, backslash-escaped string will do
-        return '"%s"' % esc_quotes(s)
-    res = ucode + raw + quote + s + tailpadding + quote + tail
-    return res
-
-
 def qw(words,flat=0,sep=None,maxsplit=-1):
     """Similar to Perl's qw() operator, but with some more options.
 
