@@ -59,9 +59,15 @@
     <span id="quick_help_area">
       <button id="quick_help">Quick<u>H</u>elp</button>
     </span>
+
     <span id="login_widget">
-      <button id="logout">Logout</button>
+      {% comment  This is a temporary workaround to hide the logout button %}
+      {% comment  when appropriate until notebook.html is templated %}
+      {% if current_user and current_user != 'anonymous' %}
+        <button id="logout">Logout</button>
+      {% end %}
     </span>
+
     <span id="kernel_status">Idle</span>
 </div>
 
