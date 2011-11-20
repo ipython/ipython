@@ -314,7 +314,7 @@ gets converted to:
         (replace-match "" t nil)))))
 
 (defvar ipython-completion-command-string
-  "print(';'.join(get_ipython().Completer.all_completions('%s'))) #PYTHON-MODE SILENT\n"
+  "print(';'.join(get_ipython().complete('%s', '%s')[1])) #PYTHON-MODE SILENT\n"
   "The string send to ipython to query for all possible completions")
 
 
@@ -390,6 +390,7 @@ in the current *Python* session."
            (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_./" (point-at-bol))
                                 (point)))
            (end (point))
+	   (line (buffer-substring-no-properties (point-at-bol) end))
            (pattern (buffer-substring-no-properties beg end))
            (completions nil)
            (completion-table nil)
@@ -401,7 +402,7 @@ in the current *Python* session."
                       (setq ugly-return (concat ugly-return string))
                       "")))))
       (process-send-string python-process
-                            (format ipython-completion-command-string pattern))
+                            (format ipython-completion-command-string pattern line))
       (accept-process-output python-process)
       (setq completions
             (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
@@ -411,10 +412,10 @@ in the current *Python* session."
       (setq completion (try-completion pattern completion-table))
       (cond ((eq completion t))
             ((null completion)
-             (message "Can't find completion for \"%s\"" pattern)
+             (message "Can't find completion for \"%s\" based on line %s" pattern line)
              (ding))
             ((not (string= pattern completion))
-             (delete-region beg end)
+             (delete-region (- end (length pattern)) end)
              (insert completion))
             (t
              (message "Making completion list...")
