@@ -61,7 +61,10 @@ If you suspect this is an IPython bug, please report it at:
     https://github.com/ipython/ipython/issues
 or send an email to the mailing list at {email}
 
-You can enable a much more verbose traceback with:
+You can print a more detailed traceback right now with "%tb", or use "%debug"
+to interactively debug it.
+
+Extra-detailed tracebacks for bug-reporting purposes can be enabled via:
     {config}Application.verbose_crash=True
 """
 
