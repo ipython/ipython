@@ -1794,16 +1794,20 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # Load the last 1000 lines from history
         self.readline.clear_history()
         stdin_encoding = sys.stdin.encoding or "utf-8"
+        last_cell = u""
         for _, _, cell in self.history_manager.get_tail(1000,
                                                         include_latest=True):
-            if cell.strip(): # Ignore blank lines
+            # Ignore blank lines and consecutive duplicates
+            cell = cell.rstrip()
+            if cell and (cell != last_cell):
                 if self.multiline_history:
-                      self.readline.add_history(py3compat.unicode_to_str(cell.rstrip(),
-                                                                         stdin_encoding))
+                      self.readline.add_history(py3compat.unicode_to_str(cell,
+                                                                stdin_encoding))
                 else:
                     for line in cell.splitlines():
                         self.readline.add_history(py3compat.unicode_to_str(line,
-                                                                           stdin_encoding))
+                                                                stdin_encoding))
+                last_cell = cell
 
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
@@ -1815,9 +1819,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         [D:\ipython]|1> _ip.set_next_input("Hello Word")
         [D:\ipython]|2> Hello Word_  # cursor is here
         """
-        if isinstance(s, unicode):
-            s = s.encode(self.stdin_encoding, 'replace')
-        self.rl_next_input = s
+        self.rl_next_input = py3compat.cast_bytes_py2(s)
 
     # Maybe move this to the terminal subclass?
     def pre_readline(self):
