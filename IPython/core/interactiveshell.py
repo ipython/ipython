@@ -73,7 +73,8 @@ from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.text import num_ini_spaces, format_screen, LSString, SList
+from IPython.utils.text import (num_ini_spaces, format_screen, LSString, SList,
+                                DollarFormatter)
 from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error, fatal
@@ -2571,7 +2572,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     # Utilities
     #-------------------------------------------------------------------------
 
-    def var_expand(self,cmd,depth=0):
+    def var_expand(self, cmd, depth=0, formatter=DollarFormatter()):
         """Expand python variables in a string.
 
         The depth argument indicates how many frames above the caller should
@@ -2580,11 +2581,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         The global namespace for expansion is always the user's interactive
         namespace.
         """
-        res = ItplNS(cmd, self.user_ns,  # globals
-                          # Skip our own frame in searching for locals:
-                          sys._getframe(depth+1).f_locals # locals
-                          )
-        return py3compat.str_to_unicode(str(res), res.codec)
+        ns = self.user_ns.copy()
+        ns.update(sys._getframe(depth+1).f_locals)
+        ns.pop('self', None)
+        return formatter.format(cmd, **ns)
 
     def mktempfile(self, data=None, prefix='ipython_edit_'):
         """Make a new tempfile and return its filename.
