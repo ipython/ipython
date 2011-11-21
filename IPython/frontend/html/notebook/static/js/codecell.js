@@ -153,7 +153,10 @@ var IPython = (function (IPython) {
         $('#tooltip').remove();
     }
 
-    CodeCell.prototype.finish_tooltip = function (defstring,docstring) {
+    CodeCell.prototype.finish_tooltip = function (reply) {
+        defstring=reply.definition;
+        docstring=reply.docstring;
+        name=reply.name;
         shortened = function(string){
             if(string.length > 200){
                 return string.trim().substring(0,197)+'...';
@@ -166,7 +169,25 @@ var IPython = (function (IPython) {
             defstring_html= $('<pre/>').html(utils.fixConsole(defstring));
             tooltip.append(defstring_html);
         }
-        tooltip.append($('<pre/>').html(utils.fixConsole(shortened(docstring))));
+        var pre=$('<pre/>').html(utils.fixConsole(shortened(docstring)));
+        var more=$('<button/>').text('more...')
+        more.addClass('ui-button  ui-state-default ui-corner-all');
+        more.click(function(){
+            var msg_id = IPython.notebook.kernel.execute(name+"?");
+            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.selected_cell().cell_id;
+            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+        });
+
+        var close=$('<button/>').text('close')
+        close.addClass('ui-button  ui-state-default ui-corner-all');
+        close.click(function(){
+            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+            });
+        pre.append(more);
+        pre.append(close);
+        tooltip.append(pre);
         var pos = this.code_mirror.cursorCoords();
         tooltip.css('left',pos.x+'px');
         tooltip.css('top',pos.yBot+'px');

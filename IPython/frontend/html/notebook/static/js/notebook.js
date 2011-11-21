@@ -723,7 +723,7 @@ var IPython = (function (IPython) {
             rep = reply.content;
             if(rep.found)
             {
-                cell.finish_tooltip(rep.definition,rep.docstring);
+                cell.finish_tooltip(rep);
             }
         } else {
           //console.log("unknown reply:"+msg_type);
