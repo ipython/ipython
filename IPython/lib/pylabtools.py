@@ -19,6 +19,7 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 from io import BytesIO
 
 from IPython.utils.decorators import flag_calls
@@ -317,6 +318,8 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.""" % backend
+    # flush stdout, just to be safe
+    sys.stdout.flush()
     
     return gui
 
