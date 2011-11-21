@@ -2616,7 +2616,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """Write a string to the default error output"""
         io.stderr.write(data)
 
-    def ask_yes_no(self,prompt,default=True):
+    def ask_yes_no(self, prompt, default=None):
         if self.quiet:
             return True
         return ask_yes_no(prompt,default)

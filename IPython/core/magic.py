@@ -1058,7 +1058,8 @@ Currently the magic system has the following functions:\n"""
             ans = True
         else:
             ans = self.shell.ask_yes_no(
-                "Once deleted, variables cannot be recovered. Proceed (y/[n])? ")
+                "Once deleted, variables cannot be recovered. Proceed (y/[n])? ",
+                default='n')
         if not ans:
             print 'Nothing done.'
             return
