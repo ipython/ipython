@@ -12,6 +12,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 import unittest
 from compiler.consts import CO_GENERATOR
 
@@ -45,7 +46,7 @@ class ParametricTestCase(unittest.TestCase):
                 except KeyboardInterrupt:
                     raise
                 except:
-                    result.addError(self, self._exc_info())
+                    result.addError(self, sys.exc_info())
                     return
                 # Test execution
                 ok = False
@@ -56,18 +57,18 @@ class ParametricTestCase(unittest.TestCase):
                     # We stop the loop
                     break
                 except self.failureException:
-                    result.addFailure(self, self._exc_info())
+                    result.addFailure(self, sys.exc_info())
                 except KeyboardInterrupt:
                     raise
                 except:
-                    result.addError(self, self._exc_info())
+                    result.addError(self, sys.exc_info())
                 # TearDown
                 try:
                     self.tearDown()
                 except KeyboardInterrupt:
                     raise
                 except:
-                    result.addError(self, self._exc_info())
+                    result.addError(self, sys.exc_info())
                     ok = False
                 if ok: result.addSuccess(self)
 
