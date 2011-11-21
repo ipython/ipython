@@ -101,11 +101,14 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
     classes = List([IPKernelApp, ZMQTerminalInteractiveShell, Session])
     flags = Dict(flags)
     aliases = Dict(aliases)
+    frontend_aliases = Any(frontend_aliases)
+    frontend_flags = Any(frontend_flags)
+    
     subcommands = Dict()
 
     def parse_command_line(self, argv=None):
         super(ZMQTerminalIPythonApp, self).parse_command_line(argv)
-        self.swallow_args(frontend_aliases,frontend_flags,argv=argv)
+        self.build_kernel_argv(argv)
 
     def init_shell(self):
         IPythonConsoleApp.initialize(self)

@@ -55,6 +55,7 @@ from .notebookmanager import NotebookManager
 from IPython.config.application import catch_config_error
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
+from IPython.lib.kernel import swallow_argv
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.zmq.ipkernel import (
@@ -283,27 +284,10 @@ class NotebookApp(BaseIPythonApplication):
         if argv is None:
             argv = sys.argv[1:]
 
-        self.kernel_argv = list(argv) # copy
+        # Scrub frontend-specific flags
+        self.kernel_argv = swallow_argv(argv, notebook_aliases, notebook_flags)
         # Kernel should inherit default config file from frontend
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
-        # Scrub frontend-specific flags
-        for a in argv:
-            if a.startswith('-') and a.lstrip('-') in notebook_flags:
-                self.kernel_argv.remove(a)
-        swallow_next = False
-        for a in argv:
-            if swallow_next:
-                self.kernel_argv.remove(a)
-                swallow_next = False
-                continue
-            if a.startswith('-'):
-                split = a.lstrip('-').split('=')
-                alias = split[0]
-                if alias in notebook_aliases:
-                    self.kernel_argv.remove(a)
-                    if len(split) == 1:
-                        # alias passed with arg via space
-                        swallow_next = True
 
     def init_configurables(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.

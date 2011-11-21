@@ -144,6 +144,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir, Session]
     flags = Dict(flags)
     aliases = Dict(aliases)
+    frontend_flags = Any(qt_flags)
+    frontend_aliases = Any(qt_aliases)
     kernel_manager_class = QtKernelManager
 
     stylesheet = Unicode('', config=True,
@@ -169,7 +171,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
     def parse_command_line(self, argv=None):
         super(IPythonQtConsoleApp, self).parse_command_line(argv)
-        self.swallow_args(qt_aliases,qt_flags,argv=argv)
+        self.build_kernel_argv(argv)
 
 
     def new_frontend_master(self):

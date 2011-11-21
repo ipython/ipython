@@ -33,7 +33,7 @@ import uuid
 from IPython.config.application import boolean_flag
 from IPython.config.configurable import Configurable
 from IPython.core.profiledir import ProfileDir
-from IPython.lib.kernel import tunnel_to_kernel, find_connection_file
+from IPython.lib.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
 from IPython.zmq.blockingkernelmanager import BlockingKernelManager
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
@@ -136,6 +136,9 @@ class IPythonConsoleApp(Configurable):
     kernel_manager_class = BlockingKernelManager
 
     kernel_argv = List(Unicode)
+    # frontend flags&aliases to be stripped when building kernel_argv
+    frontend_flags = Any(app_flags)
+    frontend_aliases = Any(app_aliases)
 
     pure = CBool(False, config=True,
         help="Use a pure Python kernel instead of an IPython kernel.")
@@ -182,45 +185,13 @@ class IPythonConsoleApp(Configurable):
     )
 
 
-    def parse_command_line(self, argv=None):
-        #super(PythonBaseConsoleApp, self).parse_command_line(argv)
-        # make this stuff after this a function, in case the super stuff goes
-        # away. Also, Min notes that this functionality should be moved to a
-        # generic library of kernel stuff
-        self.swallow_args(app_aliases,app_flags,argv=argv)
-
-    def swallow_args(self, aliases,flags, argv=None):
+    def build_kernel_argv(self, argv=None):
+        """build argv to be passed to kernel subprocess"""
         if argv is None:
             argv = sys.argv[1:]
-        self.kernel_argv = list(argv) # copy
+        self.kernel_argv = swallow_argv(argv, self.frontend_aliases, self.frontend_flags)
         # kernel should inherit default config file from frontend
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
-        # Scrub frontend-specific flags
-        swallow_next = False
-        was_flag = False
-        for a in argv:
-            if swallow_next:
-                swallow_next = False
-                # last arg was an alias, remove the next one
-                # *unless* the last alias has a no-arg flag version, in which
-                # case, don't swallow the next arg if it's also a flag:
-                if not (was_flag and a.startswith('-')):
-                    self.kernel_argv.remove(a)
-                    continue
-            if a.startswith('-'):
-                split = a.lstrip('-').split('=')
-                alias = split[0]
-                if alias in aliases:
-                    self.kernel_argv.remove(a)
-                    if len(split) == 1:
-                        # alias passed with arg via space
-                        swallow_next = True
-                        # could have been a flag that matches an alias, e.g. `existing`
-                        # in which case, we might not swallow the next arg
-                        was_flag = alias in flags
-                elif alias in flags:
-                    # strip flag, but don't swallow next, as flags don't take args
-                    self.kernel_argv.remove(a)
     
     def init_connection_file(self):
         """find the connection file, and load the info if found.
