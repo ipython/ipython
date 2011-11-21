@@ -138,7 +138,7 @@ class CommandChainDispatcher:
                     args = exc.args
                     kw = exc.kwargs
         # if no function will accept it, raise TryNext up to the caller
-        raise TryNext
+        raise TryNext(*args, **kw)
 
     def __str__(self):
         return str(self.chain)
