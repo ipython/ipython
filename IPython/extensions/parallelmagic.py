@@ -253,8 +253,7 @@ class ParalleMagic(Plugin):
             ipself.history_manager.store_output(ipself.execution_count)
             # Each cell is a *single* input, regardless of how many lines it has
             ipself.execution_count += 1
-
-        if re.search(r'get_ipython\(\)\.magic\(u?"%?autopx', cell):
+        if re.search(r'get_ipython\(\)\.magic\(u?["\']%?autopx', cell):
             self._disable_autopx()
             return False
         else:
