@@ -726,6 +726,11 @@ var IPython = (function (IPython) {
         // console.log(reply);
         var msg_type = reply.header.msg_type;
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
+        if (!cell){
+            // message not from this notebook
+            console.log("Received IOPub message not caused by one of my cells");
+            return;
+        }
         var output_types = ['stream','display_data','pyout','pyerr'];
         if (output_types.indexOf(msg_type) >= 0) {
             this.handle_output(cell, msg_type, content);
