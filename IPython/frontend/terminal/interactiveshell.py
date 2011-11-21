@@ -34,7 +34,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from IPython.utils.warn import warn
+from IPython.utils.warn import warn, error
 from IPython.utils.text import num_ini_spaces
 from IPython.utils.traitlets import Int, CBool, Unicode
 
@@ -611,9 +611,16 @@ class TerminalInteractiveShell(InteractiveShell):
         if opts.has_key('r'):
             self._rerun_pasted()
             return
-
-        text = self.shell.hooks.clipboard_get()
-        block = self._strip_pasted_lines_for_code(text.splitlines())
+        try:
+            text = self.shell.hooks.clipboard_get()
+            block = self._strip_pasted_lines_for_code(text.splitlines())
+        except TryNext as clipboard_exc:
+            message = getattr(clipboard_exc, 'args')
+            if message:
+                error(message)
+            else:
+                error('Could not get text from the clipboard.')
+            return
 
         # By default, echo back to terminal unless quiet mode is requested
         if not opts.has_key('q'):
