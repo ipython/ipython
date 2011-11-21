@@ -617,7 +617,7 @@ class TerminalInteractiveShell(InteractiveShell):
         except TryNext as clipboard_exc:
             message = getattr(clipboard_exc, 'args')
             if message:
-                error(message)
+                error(message[0])
             else:
                 error('Could not get text from the clipboard.')
             return
