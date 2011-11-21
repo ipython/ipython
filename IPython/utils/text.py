@@ -663,20 +663,26 @@ class DollarFormatter(FullEvalFormatter):
     In [4]: f.format('$a or {b}', a=1, b=2)
     Out[4]: u'1 or 2'
     """
-    _dollar_pattern = re.compile("(.*)\$([\w\.]+)")
+    _dollar_pattern = re.compile("(.*?)\$(\$?[\w\.]+)")
     def parse(self, fmt_string):
         for literal_txt, field_name, format_spec, conversion \
                     in Formatter.parse(self, fmt_string):
             
             # Find $foo patterns in the literal text.
             continue_from = 0
+            txt = ""
             for m in self._dollar_pattern.finditer(literal_txt):
                 new_txt, new_field = m.group(1,2)
-                yield (new_txt, new_field, "", None)
+                # $$foo --> $foo
+                if new_field.startswith("$"):
+                    txt += new_txt + new_field
+                else:
+                    yield (txt + new_txt, new_field, "", None)
+                    txt = ""
                 continue_from = m.end()
             
             # Re-yield the {foo} style pattern
-            yield (literal_txt[continue_from:], field_name, format_spec, conversion)
+            yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 
 
 def columnize(items, separator='  ', displaywidth=80):
