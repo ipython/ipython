@@ -27,8 +27,8 @@ from IPython.utils.warn import warn,error
 from IPython.zmq.ipkernel import IPKernelApp
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
-from IPython.frontend.kernelmixinapp import (
-        IPythonMixinConsoleApp, app_aliases, app_flags, aliases, app_aliases, flags
+from IPython.frontend.consoleapp import (
+        IPythonConsoleApp, app_aliases, app_flags, aliases, app_aliases, flags
     )
 
 from IPython.frontend.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
@@ -77,7 +77,7 @@ frontend_flags = set(frontend_flags.keys())
 #-----------------------------------------------------------------------------
 
 
-class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonMixinConsoleApp):
+class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
     name = "ipython-console"
     """Start a terminal frontend to the IPython zmq kernel."""
 
@@ -108,7 +108,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonMixinConsoleApp):
         self.swallow_args(frontend_aliases,frontend_flags,argv=argv)
 
     def init_shell(self):
-        IPythonMixinConsoleApp.initialize(self)
+        IPythonConsoleApp.initialize(self)
         # relay sigint to kernel
         signal.signal(signal.SIGINT, self.handle_sigint)
         self.shell = ZMQTerminalInteractiveShell.instance(config=self.config,

@@ -49,8 +49,8 @@ from IPython.zmq.ipkernel import IPKernelApp
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 
-from IPython.frontend.kernelmixinapp import (
-        IPythonMixinConsoleApp, app_aliases, app_flags, flags, aliases
+from IPython.frontend.consoleapp import (
+        IPythonConsoleApp, app_aliases, app_flags, flags, aliases
     )
 
 #-----------------------------------------------------------------------------
@@ -121,7 +121,7 @@ qt_flags = set(qt_flags.keys())
 #-----------------------------------------------------------------------------
 
 
-class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
+class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     name = 'ipython-qtconsole'
 
     description = """
@@ -323,7 +323,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonMixinConsoleApp):
     @catch_config_error
     def initialize(self, argv=None):
         super(IPythonQtConsoleApp, self).initialize(argv)
-        IPythonMixinConsoleApp.initialize(self,argv)
+        IPythonConsoleApp.initialize(self,argv)
         self.init_qt_elements()
         self.init_colors()
         self.init_signal()

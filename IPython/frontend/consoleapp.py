@@ -69,11 +69,11 @@ flags = dict(ipkernel_flags)
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
 app_flags = {
-    'existing' : ({'IPythonMixinConsoleApp' : {'existing' : 'kernel*.json'}},
+    'existing' : ({'IPythonConsoleApp' : {'existing' : 'kernel*.json'}},
             "Connect to an existing kernel. If no argument specified, guess most recent"),
 }
 app_flags.update(boolean_flag(
-    'confirm-exit', 'IPythonMixinConsoleApp.confirm_exit',
+    'confirm-exit', 'IPythonConsoleApp.confirm_exit',
     """Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
        to force a direct exit without any confirmation.
     """,
@@ -87,16 +87,16 @@ aliases = dict(ipkernel_aliases)
 
 # also scrub aliases from the frontend
 app_aliases = dict(
-    hb = 'IPythonMixinConsoleApp.hb_port',
-    shell = 'IPythonMixinConsoleApp.shell_port',
-    iopub = 'IPythonMixinConsoleApp.iopub_port',
-    stdin = 'IPythonMixinConsoleApp.stdin_port',
-    ip = 'IPythonMixinConsoleApp.ip',
-    existing = 'IPythonMixinConsoleApp.existing',
-    f = 'IPythonMixinConsoleApp.connection_file',
+    hb = 'IPythonConsoleApp.hb_port',
+    shell = 'IPythonConsoleApp.shell_port',
+    iopub = 'IPythonConsoleApp.iopub_port',
+    stdin = 'IPythonConsoleApp.stdin_port',
+    ip = 'IPythonConsoleApp.ip',
+    existing = 'IPythonConsoleApp.existing',
+    f = 'IPythonConsoleApp.connection_file',
 
 
-    ssh = 'IPythonMixinConsoleApp.sshserver',
+    ssh = 'IPythonConsoleApp.sshserver',
 )
 aliases.update(app_aliases)
 
@@ -105,11 +105,11 @@ aliases.update(app_aliases)
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# IPythonMixinConsole
+# IPythonConsole
 #-----------------------------------------------------------------------------
 
 
-class IPythonMixinConsoleApp(Configurable):
+class IPythonConsoleApp(Configurable):
     name = 'ipython-console-mixin'
     default_config_file_name='ipython_config.py'
 
@@ -372,7 +372,7 @@ class IPythonMixinConsoleApp(Configurable):
     def initialize(self, argv=None):
         """
         Classes which mix this class in should call:
-               IPythonMixinConsoleApp.initialize(self,argv)
+               IPythonConsoleApp.initialize(self,argv)
         """
         self.init_connection_file()
         default_secure(self.config)
