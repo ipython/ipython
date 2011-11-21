@@ -364,10 +364,36 @@ div.text_cell_render {
     to {opacity:1;}
 }
 
+/*"close" "expand" and "Open in pager button" of
+/* the tooltip*/
+.tooltip button{
+    float:right;
+}
+
+/*properties of tooltip after "expand"*/
+.bigtooltip{
+    height:420px;
+}
+
+/*properties of tooltip before "expand"*/
+.smalltooltip{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height:100px;
+}
 
 .tooltip{
-	border-radius: 0px 10px 10px 10px;
+    /*transition when "expand"ing tooltip */
+    -webkit-transition-property: height;
+    -webkit-transition-duration: 1s;
+    -moz-transition-property: height;
+    -moz-transition-duration: 1s;
+    transition-property: height;
+    transition-duration: 1s;
+    max-width:700px;
+    border-radius: 0px 10px 10px 10px;
     box-shadow: 3px 3px 5px #999;
+    /*fade-in animation when inserted*/
     -webkit-animation: fadeIn 200ms;
     -moz-animation: fadeIn 200ms;
     animation: fadeIn 200ms;

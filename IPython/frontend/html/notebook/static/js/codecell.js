@@ -157,20 +157,22 @@ var IPython = (function (IPython) {
         defstring=reply.definition;
         docstring=reply.docstring;
         name=reply.name;
-        shortened = function(string){
-            if(string.length > 200){
-                return string.trim().substring(0,197)+'...';
-            } else { return string.trim() }
-        }
 
         var that = this;
         var tooltip = $('<div/>').attr('id', 'tooltip').addClass('tooltip');
-        if(defstring){
-            defstring_html= $('<pre/>').html(utils.fixConsole(defstring));
-            tooltip.append(defstring_html);
-        }
-        var pre=$('<pre/>').html(utils.fixConsole(shortened(docstring)));
-        var more=$('<button/>').text('more...')
+        // remove to have the tooltip not Limited in X and Y
+        tooltip.addClass('smalltooltip');
+        var pre=$('<pre/>').html(utils.fixConsole(docstring));
+        var expand=$('<button/>').text('Expand...')
+        expand.attr('id','expanbutton');
+        expand.addClass('ui-button  ui-state-default ui-corner-all');
+        expand.click(function(){
+            tooltip.removeClass('smalltooltip');
+            tooltip.addClass('bigtooltip');
+            $('#expanbutton').remove();
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+        });
+        var more=$('<button/>').text('Open in Pager')
         more.addClass('ui-button  ui-state-default ui-corner-all');
         more.click(function(){
             var msg_id = IPython.notebook.kernel.execute(name+"?");
@@ -179,14 +181,20 @@ var IPython = (function (IPython) {
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
 
-        var close=$('<button/>').text('close')
+        var close=$('<button/>').text('Close')
         close.addClass('ui-button  ui-state-default ui-corner-all');
         close.click(function(){
             CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
             setTimeout(function(){that.code_mirror.focus();}, 50);
             });
-        pre.append(more);
-        pre.append(close);
+        //construct the tooltip
+        tooltip.append(close);
+        tooltip.append(more);
+        tooltip.append(expand);
+        if(defstring){
+            defstring_html= $('<pre/>').html(utils.fixConsole(defstring));
+            tooltip.append(defstring_html);
+        }
         tooltip.append(pre);
         var pos = this.code_mirror.cursorCoords();
         tooltip.css('left',pos.x+'px');
