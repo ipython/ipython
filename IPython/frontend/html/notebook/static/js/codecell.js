@@ -224,6 +224,28 @@ var IPython = (function (IPython) {
         }
         if (!this.is_completing || matches.length === 0) {return;}
 
+        //try to check if the user is typing tab at least twice after a word
+        // and completion is "done"
+        fallback_on_tooltip_after=2
+        if(matches.length==1 && matched_text === matches[0])
+        {
+            if(this.npressed >fallback_on_tooltip_after  && this.prevmatch==matched_text)
+            {
+                console.log('Ok, you really want to complete after pressing tab '+this.npressed+' times !');
+                console.log('You should undersand that there is no (more) completion for that !');
+                console.log("I'll show you the tooltip, will you stop bothering me ?");
+                this.request_tooltip_after_time(matched_text+'(',0,this);
+                return;
+            }
+            this.prevmatch=matched_text
+            this.npressed=this.npressed+1;
+        }
+        else
+        {
+            this.prevmatch="";
+            this.npressed=0;
+        }
+
         var that = this;
         var cur = this.completion_cursor;
 
