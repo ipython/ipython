@@ -10,7 +10,7 @@
 #-----------------------------------------------------------------------------
 
 import warnings
-from pkg_resources import parse_version as V
+from distutils.version import LooseVersion as V
 
 def check_for_zmq(minimum_version, module='IPython.zmq'):
     try:
