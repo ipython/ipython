@@ -32,8 +32,7 @@ import zmq
 # Install the pyzmq ioloop. This has to be done before anything else from
 # tornado is imported.
 from zmq.eventloop import ioloop
-import tornado.ioloop
-tornado.ioloop.IOLoop = ioloop.IOLoop
+ioloop.install()
 
 from tornado import httpserver
 from tornado import web
