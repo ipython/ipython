@@ -174,7 +174,7 @@ class AliasManager(Configurable):
                                     "because it is a keyword or builtin." % name)
         if not (isinstance(cmd, basestring)):
             raise InvalidAliasError("An alias command must be a string, "
-                                    "got: %r" % name)
+                                    "got: %r" % cmd)
         nargs = cmd.count('%s')
         if nargs>0 and cmd.find('%l')>=0:
             raise InvalidAliasError('The %s and %l specifiers are mutually '
