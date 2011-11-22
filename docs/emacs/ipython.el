@@ -221,7 +221,7 @@ the second for a 'normal' command, and the third for a multiline command.")
           py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )
     ;; select a suitable color-scheme
     (unless (delq nil
-                  (mapcar (lambda (x) (eq (string-match "^--colors=*" x) 0))
+                  (mapcar (lambda (x) (eq (string-match "^--colors*" x) 0))
                           py-python-command-args))
       (setq-default py-python-command-args
 		    (cons (format "--colors=%s"
