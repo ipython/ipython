@@ -17,7 +17,8 @@
 ;; can be used to convert bits of a ipython session into something that can be
 ;; used for doctests. To install, put this file somewhere in your emacs
 ;; `load-path' [1] and add the following line to your ~/.emacs file (the first
-;; line only needed if the default (``"ipython"``) is wrong)::
+;; line only needed if the default (``"ipython"``) is wrong or ipython is not 
+;; in your `exec-path')::
 ;;
 ;;   (setq ipython-command "/SOME-PATH/ipython")
 ;;   (require 'ipython)
@@ -36,7 +37,7 @@
 ;; always in ``pylab`` mode with hardcoded light-background colors, you can
 ;; use::
 ;;
-;; (setq py-python-command-args '("--pylab" "--colors=LightBG"))
+;; (setq-default py-python-command-args '("--pylab" "--colors=LightBG"))
 ;;
 ;;
 ;; NOTE: This mode is currently somewhat alpha and although I hope that it
@@ -132,6 +133,12 @@
 (require 'shell)
 (require 'executable)
 (require 'ansi-color)
+;; XXX load python-mode, so that we can screw around with its variables
+;; this has the disadvantage that python-mode is loaded even if no
+;; python-file is ever edited etc. but it means that `py-shell' works
+;; without loading a python-file first. Obviously screwing around with
+;; python-mode's variables like this is a mess, but well.
+(require 'python-mode)
 
 (defcustom ipython-command "ipython"
   "*Shell command used to start ipython."
@@ -164,12 +171,8 @@ the second for a 'normal' command, and the third for a multiline command.")
 (if (not (executable-find ipython-command))
     (message (format "Can't find executable %s - ipython.el *NOT* activated!!!"
                      ipython-command))
-    ;; XXX load python-mode, so that we can screw around with its variables
-    ;; this has the disadvantage that python-mode is loaded even if no
-    ;; python-file is ever edited etc. but it means that `py-shell' works
-    ;; without loading a python-file first. Obviously screwing around with
-    ;; python-mode's variables like this is a mess, but well.
-    (require 'python-mode)
+    ;; change the default value of py-shell-name to ipython
+    (setq-default py-shell-name ipython-command)
     ;; turn on ansi colors for ipython and activate completion
     (defun ipython-shell-hook ()
       ;; the following is to synchronize dir-changes
@@ -220,15 +223,16 @@ the second for a 'normal' command, and the third for a multiline command.")
     (unless (delq nil
                   (mapcar (lambda (x) (eq (string-match "^--colors=*" x) 0))
                           py-python-command-args))
-      (push (format "--colors=%s"
-                    (cond
-                     ((eq frame-background-mode 'dark)
-                      "Linux")
-                     ((eq frame-background-mode 'light)
-                      "LightBG")
-                     (t ; default (backg-mode isn't always set by XEmacs)
-                      "LightBG")))
-            py-python-command-args))
+      (setq-default py-python-command-args
+		    (cons (format "--colors=%s"
+				  (cond
+				   ((eq frame-background-mode 'dark)
+				    "Linux")
+				   ((eq frame-background-mode 'light)
+				    "LightBG")
+				   (t ; default (backg-mode isn't always set by XEmacs)
+				    "LightBG")))
+			  py-python-command-args)))
     (when (boundp 'py-python-command)
       (unless (equal ipython-backup-of-py-python-command py-python-command)
         (setq ipython-backup-of-py-python-command py-python-command)))
