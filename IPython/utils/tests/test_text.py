@@ -109,3 +109,5 @@ def test_dollar_formatter():
     nt.assert_equals(s, "12/hello")
     s = f.format("$n $$HOME", **ns)
     nt.assert_equals(s, "12 $HOME")
+    s = f.format("${foo}", foo="HOME")
+    nt.assert_equals(s, "$HOME")
