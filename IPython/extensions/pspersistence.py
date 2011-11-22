@@ -5,22 +5,18 @@
 Stores variables, aliases etc. in PickleShare database.
 """
 
-from IPython.core import ipapi
 from IPython.core.error import TryNext, UsageError
-ip = ipapi.get()
-
-import pickleshare
+from IPython.utils import pickleshare
 
 import inspect,pickle,os,sys,textwrap
 from IPython.core.fakemodule import FakeModule
 
-def restore_aliases(self):
-    ip = self.getapi()
+def restore_aliases(ip):
     staliases = ip.db.get('stored_aliases', {})
     for k,v in staliases.items():
         #print "restore alias",k,v # dbg
         #self.alias_table[k] = v
-        ip.define_alias(k,v)
+        ip.alias_manager.define_alias(k,v)
 
 
 def refresh_variables(ip):
@@ -39,17 +35,12 @@ def refresh_variables(ip):
 
 
 def restore_dhist(ip):
-    db = ip.db
-    ip.user_ns['_dh'] = db.get('dhist',[])
+    ip.user_ns['_dh'] = ip.db.get('dhist',[])
 
-def restore_data(self):
-    ip = self.getapi()
+def restore_data(ip):
     refresh_variables(ip)
-    restore_aliases(self)
-    restore_dhist(self)
-    raise TryNext
-
-ip.set_hook('late_startup_hook', restore_data)
+    restore_aliases(ip)
+    restore_dhist(ip)
 
 def magic_store(self, parameter_s=''):
     """Lightweight persistence for python variables.
@@ -88,7 +79,7 @@ def magic_store(self, parameter_s=''):
 
     opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
     args = argsl.split(None,1)
-    ip = self.getapi()
+    ip = self.shell
     db = ip.db
     # delete
     if opts.has_key('d'):
@@ -158,11 +149,13 @@ def magic_store(self, parameter_s=''):
         except KeyError:
             # it might be an alias
             # This needs to be refactored to use the new AliasManager stuff.
-            if args[0] in self.alias_table:
+            if args[0] in self.alias_manager:
+                name = args[0]
+                nargs, cmd = self.alias_manager.alias_table[ name ]
                 staliases = db.get('stored_aliases',{})
-                staliases[ args[0] ] = self.alias_table[ args[0] ]
+                staliases[ name ] = cmd
                 db['stored_aliases'] = staliases
-                print "Alias stored:", args[0], self.alias_table[ args[0] ]
+                print "Alias stored: %s (%s)" % (name, cmd)
                 return
             else:
                 raise UsageError("Unknown variable '%s'" % args[0])
@@ -180,4 +173,6 @@ def magic_store(self, parameter_s=''):
             self.db[ 'autorestore/' + args[0] ] = obj
             print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
 
-ip.define_magic('store',magic_store)
+def load_ipython_extension(ip):
+    ip.define_magic('store', magic_store)
+    restore_data(ip)
