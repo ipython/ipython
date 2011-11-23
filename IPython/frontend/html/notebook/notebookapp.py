@@ -32,7 +32,13 @@ import zmq
 # Install the pyzmq ioloop. This has to be done before anything else from
 # tornado is imported.
 from zmq.eventloop import ioloop
-ioloop.install()
+# FIXME: ioloop.install is new in pyzmq-2.1.7, so remove this conditional
+# when pyzmq dependency is updated beyond that.
+if hasattr(ioloop, 'install'):
+    ioloop.install()
+else:
+    import tornado.ioloop
+    tornado.ioloop.IOLoop = ioloop.IOLoop
 
 from tornado import httpserver
 from tornado import web
