@@ -201,10 +201,25 @@ def get_home_dir(require_writable=False):
         return py3compat.cast_unicode(root, fs_encoding)
     
     homedir = os.path.expanduser('~')
+    
+    if not _writable_dir(homedir) and os.name == 'nt':
+        # expanduser failed, use the registry to get the 'My Documents' folder.
+        try:
+            import _winreg as wreg
+            key = wreg.OpenKey(
+                wreg.HKEY_CURRENT_USER,
+                "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+            )
+            homedir = wreg.QueryValueEx(key,'Personal')[0]
+            key.Close()
+        except:
+            pass
+    
     if (not require_writable) or _writable_dir(homedir):
         return py3compat.cast_unicode(homedir, fs_encoding)
     else:
-        raise HomeDirError('%s is not a writable dir, set $HOME env to override' % homedir)
+        raise HomeDirError('%s is not a writable dir, '
+                'set $HOME environment variable to override' % homedir)
 
 def get_xdg_dir():
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.

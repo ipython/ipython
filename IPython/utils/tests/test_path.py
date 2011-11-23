@@ -166,7 +166,39 @@ def test_get_home_dir_4():
 def test_get_home_dir_5():
     """raise HomeDirError if $HOME is specified, but not a writable dir"""
     env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
+    # set os.name = posix, to prevent My Documents fallback on Windows
+    os.name = 'posix'
     nt.assert_raises(path.HomeDirError, path.get_home_dir, True)
+
+
+# Should we stub wreg fully so we can run the test on all platforms?
+@skip_if_not_win32
+@with_environment
+def test_get_home_dir_8():
+    """Using registry hack for 'My Documents', os=='nt'
+
+    HOMESHARE, HOMEDRIVE, HOMEPATH, USERPROFILE and others are missing.
+    """
+    os.name = 'nt'
+    # Remove from stub environment all keys that may be set
+    for key in ['HOME', 'HOMESHARE', 'HOMEDRIVE', 'HOMEPATH', 'USERPROFILE']:
+        env.pop(key, None)
+
+    #Stub windows registry functions
+    def OpenKey(x, y):
+        class key:
+            def Close(self):
+                pass
+        return key()
+    def QueryValueEx(x, y):
+        return [abspath(HOME_TEST_DIR)]
+
+    wreg.OpenKey = OpenKey
+    wreg.QueryValueEx = QueryValueEx
+
+    home_dir = path.get_home_dir()
+    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+
 
 @with_environment
 def test_get_ipython_dir_1():
