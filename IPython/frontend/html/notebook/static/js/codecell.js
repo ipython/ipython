@@ -163,34 +163,55 @@ var IPython = (function (IPython) {
         // remove to have the tooltip not Limited in X and Y
         tooltip.addClass('smalltooltip');
         var pre=$('<pre/>').html(utils.fixConsole(docstring));
-        var expand=$('<button/>').text('Expand...')
-        expand.attr('id','expanbutton');
-        expand.addClass('ui-button  ui-state-default ui-corner-all');
-        expand.click(function(){
+        var expandlink=$('<a/>').attr('href',"#");
+            expandlink.addClass("ui-corner-all"); //rounded corner
+            expandlink.attr('role',"button");
+            //expandlink.addClass('ui-button');
+            //expandlink.addClass('ui-state-default');
+        var expandspan=$('<span/>').text('Expand');
+            expandspan.addClass('ui-icon');
+            expandspan.addClass('ui-icon-plus');
+        expandlink.append(expandspan);
+        expandlink.attr('id','expanbutton');
+        expandlink.click(function(){
             tooltip.removeClass('smalltooltip');
             tooltip.addClass('bigtooltip');
             $('#expanbutton').remove();
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
-        var more=$('<button/>').text('Open in Pager')
-        more.addClass('ui-button  ui-state-default ui-corner-all');
-        more.click(function(){
+        var morelink=$('<a/>').attr('href',"#");
+            morelink.attr('role',"button");
+            morelink.addClass('ui-button');
+            //morelink.addClass("ui-corner-all"); //rounded corner
+            //morelink.addClass('ui-state-default');
+        var morespan=$('<span/>').text('Open in Pager');
+            morespan.addClass('ui-icon');
+            morespan.addClass('ui-icon-arrowstop-l-n');
+        morelink.append(morespan);
+        morelink.click(function(){
             var msg_id = IPython.notebook.kernel.execute(name+"?");
             IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.selected_cell().cell_id;
             CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
 
-        var close=$('<button/>').text('Close')
-        close.addClass('ui-button  ui-state-default ui-corner-all');
-        close.click(function(){
+        var closelink=$('<a/>').attr('href',"#");
+            closelink.attr('role',"button");
+            closelink.addClass('ui-button');
+            //closelink.addClass("ui-corner-all"); //rounded corner
+            //closelink.adClass('ui-state-default'); // grey background and blue cross
+        var closespan=$('<span/>').text('Close');
+            closespan.addClass('ui-icon');
+            closespan.addClass('ui-icon-close');
+        closelink.append(closespan);
+        closelink.click(function(){
             CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
             setTimeout(function(){that.code_mirror.focus();}, 50);
             });
         //construct the tooltip
-        tooltip.append(close);
-        tooltip.append(more);
-        tooltip.append(expand);
+        tooltip.append(closelink);
+        tooltip.append(expandlink);
+        tooltip.append(morelink);
         if(defstring){
             defstring_html= $('<pre/>').html(utils.fixConsole(defstring));
             tooltip.append(defstring_html);

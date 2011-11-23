@@ -366,7 +366,7 @@ div.text_cell_render {
 
 /*"close" "expand" and "Open in pager button" of
 /* the tooltip*/
-.tooltip button{
+.tooltip a{
     float:right;
 }
 
