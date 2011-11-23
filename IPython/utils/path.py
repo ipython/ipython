@@ -167,15 +167,24 @@ class HomeDirError(Exception):
     pass
 
 
-def get_home_dir():
-    """Return the closest possible equivalent to a 'home' directory.
+def get_home_dir(require_writable=False):
+    """Return the 'home' directory, as a unicode string.
 
     * First, check for frozen env in case of py2exe
-    * Otherwise, defer to os.path.expanduser('~'), ensuring unicode
+    * Otherwise, defer to os.path.expanduser('~')
     
     See stdlib docs for how this is determined.
-    
     $HOME is first priority on *ALL* platforms.
+    
+    Parameters
+    ----------
+    
+    require_writable : bool [default: False]
+        if True:
+            guarantees the return value is a writable directory, otherwise
+            raises HomeDirError
+        if False:
+            The path is resolved, but it is not guaranteed to exist or be writable.
     """
 
     # first, check py2exe distribution root directory for _ipython.
@@ -192,10 +201,10 @@ def get_home_dir():
         return py3compat.cast_unicode(root, fs_encoding)
     
     homedir = os.path.expanduser('~')
-    if _writable_dir(homedir):
+    if (not require_writable) or _writable_dir(homedir):
         return py3compat.cast_unicode(homedir, fs_encoding)
     else:
-        raise HomeDirError('%s not a writable dir, set $HOME env to override' % homedir)
+        raise HomeDirError('%s is not a writable dir, set $HOME env to override' % homedir)
 
 def get_xdg_dir():
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
@@ -207,7 +216,7 @@ def get_xdg_dir():
 
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
-        # use ~/.config if not set OR empty
+        # use ~/.config if empty OR not set
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
         if xdg and _writable_dir(xdg):
             return py3compat.cast_unicode(xdg, fs_encoding)
@@ -231,6 +240,7 @@ def get_ipython_dir():
 
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
+    
     # import pdb; pdb.set_trace()  # dbg
     ipdir = env.get('IPYTHON_DIR', env.get('IPYTHONDIR', None))
     if ipdir is None:

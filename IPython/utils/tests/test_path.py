@@ -141,7 +141,7 @@ def test_get_home_dir_2():
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
 
-    home_dir = path.get_home_dir()
+    home_dir = path.get_home_dir(True)
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
 
 
@@ -149,7 +149,7 @@ def test_get_home_dir_2():
 def test_get_home_dir_3():
     """get_home_dir() uses $HOME if set"""
     env["HOME"] = HOME_TEST_DIR
-    home_dir = path.get_home_dir()
+    home_dir = path.get_home_dir(True)
     nt.assert_equal(home_dir, env["HOME"])
 
 
@@ -159,14 +159,14 @@ def test_get_home_dir_4():
 
     if 'HOME' in env: del env['HOME']
     # this should still succeed, but we don't know what the answer should be
-    home = path.get_home_dir()
+    home = path.get_home_dir(True)
     nt.assert_true(path._writable_dir(home))
 
 @with_environment
 def test_get_home_dir_5():
     """raise HomeDirError if $HOME is specified, but not a writable dir"""
     env['HOME'] = abspath(HOME_TEST_DIR+'garbage')
-    nt.assert_raises(path.HomeDirError, path.get_home_dir)
+    nt.assert_raises(path.HomeDirError, path.get_home_dir, True)
 
 @with_environment
 def test_get_ipython_dir_1():
