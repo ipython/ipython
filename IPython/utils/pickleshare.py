@@ -80,7 +80,9 @@ class PickleShareDB(collections.MutableMapping):
         parent = fil.parent
         if parent and not parent.isdir():
             parent.makedirs()
-        pickled = pickle.dump(value,fil.open('wb'))
+        # We specify protocol 2, so that we can mostly go between Python 2
+        # and Python 3. We can upgrade to protocol 3 when Python 2 is obsolete.
+        pickled = pickle.dump(value,fil.open('wb'), protocol=2)
         try:
             self.cache[fil] = (value,fil.mtime)
         except OSError,e:
