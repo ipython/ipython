@@ -57,6 +57,11 @@ var IPython = (function (IPython) {
         $(document).keydown(function (event) {
             // console.log(event);
             if (that.read_only) return;
+            if (event.which === 27) {
+                // Intercept escape at highest level to avoid closing 
+                // websocket connection with firefox
+                event.preventDefault();
+            }
             if (event.which === 38) {
                 var cell = that.selected_cell();
                 if (cell.at_top()) {
