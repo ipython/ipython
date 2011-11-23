@@ -20,7 +20,7 @@ def check_for_zmq(minimum_version, module='IPython.zmq'):
 
     pyzmq_version = zmq.__version__
     
-    if V(pyzmq_version) < V(minimum_version):
+    if 'dev' not in pyzmq_version and V(pyzmq_version) < V(minimum_version):
         raise ImportError("%s requires pyzmq >= %s, but you have %s"%(
                         module, minimum_version, pyzmq_version))
 
