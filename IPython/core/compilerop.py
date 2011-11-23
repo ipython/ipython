@@ -15,7 +15,7 @@ Authors
 # weird problems (often with third-party tools).
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010 The IPython Development Team.
+#  Copyright (C) 2010-2011 The IPython Development Team.
 #
 #  Distributed under the terms of the BSD License.
 #
