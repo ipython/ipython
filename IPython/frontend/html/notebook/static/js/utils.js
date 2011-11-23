@@ -9,7 +9,7 @@
 // Utilities
 //============================================================================
 
-IPython.namespace('IPython.utils')
+IPython.namespace('IPython.utils');
 
 IPython.utils = (function (IPython) {
 
@@ -35,7 +35,7 @@ IPython.utils = (function (IPython) {
             .replace(/>/g,'&'+'gt;')
             .replace(/\'/g,'&'+'apos;')
             .replace(/\"/g,'&'+'quot;')
-            .replace(/`/g,'&'+'#96;')
+            .replace(/`/g,'&'+'#96;');
     }
 
 
@@ -45,32 +45,32 @@ IPython.utils = (function (IPython) {
         "32":"ansigreen", "33":"ansiyellow",
         "34":"ansiblue", "35":"ansipurple","36":"ansicyan", 
         "37":"ansigrey", "01":"ansibold"
-    }
+    };
 
     // Transform ANI color escape codes into HTML <span> tags with css
     // classes listed in the above ansi_colormap object. The actual color used
     // are set in the css file.
     function fixConsole(txt) {
-        txt = xmlencode(txt)
-        var re = /\033\[([\d;]*?)m/
-        var opened = false
-        var cmds = []
-        var opener = ""
-        var closer = ""
+        txt = xmlencode(txt);
+        var re = /\033\[([\d;]*?)m/;
+        var opened = false;
+        var cmds = [];
+        var opener = "";
+        var closer = "";
         
         while (re.test(txt)) {
-            var cmds = txt.match(re)[1].split(";")
-            closer = opened?"</span>":""
-            opened = cmds.length > 1 || cmds[0] != 0
-            var rep = []
+            var cmds = txt.match(re)[1].split(";");
+            closer = opened?"</span>":"";
+            opened = cmds.length > 1 || cmds[0] != 0;
+            var rep = [];
             for (var i in cmds)
                 if (typeof(ansi_colormap[cmds[i]]) != "undefined")
-                    rep.push(ansi_colormap[cmds[i]])
-            opener = rep.length > 0?"<span class=\""+rep.join(" ")+"\">":""
-            txt = txt.replace(re, closer + opener)
+                    rep.push(ansi_colormap[cmds[i]]);
+            opener = rep.length > 0?"<span class=\""+rep.join(" ")+"\">":"";
+            txt = txt.replace(re, closer + opener);
         }
-        if (opened) txt += "</span>"
-        return txt
+        if (opened) txt += "</span>";
+        return txt;
     }
 
 
@@ -95,7 +95,7 @@ IPython.utils = (function (IPython) {
         uuid : uuid,
         fixConsole : fixConsole,
         grow : grow
-    }
+    };
 
 }(IPython));
 

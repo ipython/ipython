@@ -71,7 +71,7 @@ var IPython = (function (IPython) {
             this.kernel_section = new IPython.KernelSection('div#kernel_section');
         }
         this.help_section = new IPython.HelpSection('div#help_section');
-    }
+    };
 
     LeftPanel.prototype.collapse = function () {
         if (this.expanded === true) {

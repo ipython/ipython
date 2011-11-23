@@ -23,9 +23,9 @@ var IPython = (function (IPython) {
         this.session_id = utils.uuid();
         
         if (typeof(WebSocket) !== 'undefined') {
-            this.WebSocket = WebSocket
+            this.WebSocket = WebSocket;
         } else if (typeof(MozWebSocket) !== 'undefined') {
-            this.WebSocket = MozWebSocket
+            this.WebSocket = MozWebSocket;
         } else {
             alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox ≥ 6. Firefox 4 and 5 are also supported by you have to enable WebSockets in about:config.');
         };
@@ -44,13 +44,13 @@ var IPython = (function (IPython) {
             parent_header : {}
         };
         return msg;
-    }
+    };
 
     Kernel.prototype.start = function (notebook_id, callback) {
         var that = this;
         if (!this.running) {
             var qs = $.param({notebook:notebook_id});
-            var url = this.base_url + '?' + qs
+            var url = this.base_url + '?' + qs;
             $.post(url,
                 function (kernel_id) {
                     that._handle_start_kernel(kernel_id, callback);
@@ -95,10 +95,10 @@ var IPython = (function (IPython) {
             " You will NOT be able to run code.<br/>" +
             " Your browser may not be compatible with the websocket version in the server," +
             " or if the url does not look right, there could be an error in the" +
-            " server's configuration."
+            " server's configuration.";
         } else {
             msg = "Websocket connection closed unexpectedly.<br/>" +
-            " The kernel will no longer be responsive."
+            " The kernel will no longer be responsive.";
         }
         var dialog = $('<div/>');
         dialog.html(msg);
@@ -114,7 +114,7 @@ var IPython = (function (IPython) {
             }
         });
         
-    }
+    };
 
     Kernel.prototype.start_channels = function () {
         var that = this;
@@ -125,7 +125,7 @@ var IPython = (function (IPython) {
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
         send_cookie = function(){
             this.send(document.cookie);
-        }
+        };
         var already_called_onclose = false; // only alert once
         ws_closed_early = function(evt){
             if (already_called_onclose){
@@ -135,7 +135,7 @@ var IPython = (function (IPython) {
             if ( ! evt.wasClean ){
                 that._websocket_closed(ws_url, true);
             }
-        }
+        };
         ws_closed_late = function(evt){
             if (already_called_onclose){
                 return;
@@ -144,7 +144,7 @@ var IPython = (function (IPython) {
             if ( ! evt.wasClean ){
                 that._websocket_closed(ws_url, false);
             }
-        }
+        };
         this.shell_channel.onopen = send_cookie;
         this.shell_channel.onclose = ws_closed_early;
         this.iopub_channel.onopen = send_cookie;
@@ -159,12 +159,12 @@ var IPython = (function (IPython) {
 
     Kernel.prototype.stop_channels = function () {
         if (this.shell_channel !== null) {
-            this.shell_channel.onclose = function (evt) {null};
+            this.shell_channel.onclose = function (evt) {};
             this.shell_channel.close();
             this.shell_channel = null;
         };
         if (this.iopub_channel !== null) {
-            this.iopub_channel.onclose = function (evt) {null};
+            this.iopub_channel.onclose = function (evt) {};
             this.iopub_channel.close();
             this.iopub_channel = null;
         };
@@ -189,12 +189,12 @@ var IPython = (function (IPython) {
             silent : false,
             user_variables : [],
             user_expressions : {},
-            allow_stdin : false,
+            allow_stdin : false
         };
         var msg = this.get_msg("execute_request", content);
         this.shell_channel.send(JSON.stringify(msg));
         return msg.header.msg_id;
-    }
+    };
 
 
     Kernel.prototype.complete = function (line, cursor_pos) {
@@ -206,7 +206,7 @@ var IPython = (function (IPython) {
         var msg = this.get_msg("complete_request", content);
         this.shell_channel.send(JSON.stringify(msg));
         return msg.header.msg_id;
-    }
+    };
 
 
     Kernel.prototype.interrupt = function () {
@@ -221,7 +221,7 @@ var IPython = (function (IPython) {
             this.running = false;
             var settings = {
                 cache : false,
-                type : "DELETE",
+                type : "DELETE"
             };
             $.ajax(this.kernel_url, settings);
         };

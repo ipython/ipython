@@ -44,7 +44,7 @@ var IPython = (function (IPython) {
         var output = $('<div></div>').addClass('output vbox');
         cell.append(input).append(output);
         this.element = cell;
-        this.collapse()
+        this.collapse();
     };
 
     //TODO, try to diminish the number of parameters.
@@ -123,7 +123,7 @@ var IPython = (function (IPython) {
                 return true;
             } else {
                 return false;
-            };
+            }
         } else if (event.keyCode === 76 && event.ctrlKey && event.shiftKey
                    && event.type == 'keydown') {
             // toggle line numbers with Ctrl-Shift-L
@@ -138,10 +138,11 @@ var IPython = (function (IPython) {
                 if (ed_cur.line !== cc_cur.line || ed_cur.ch !== cc_cur.ch) {
                     this.is_completing = false;
                     this.completion_cursor = null;
-                };
-            };
+                }
+            }
             return false;
         };
+        return false;
     };
 
     CodeCell.prototype.remove_and_cancell_tooltip = function(timeout)
@@ -345,7 +346,7 @@ var IPython = (function (IPython) {
         } else {
             this.code_mirror.setOption('lineNumbers', false);
         }
-        this.code_mirror.refresh()
+        this.code_mirror.refresh();
     };
 
     CodeCell.prototype.select = function () {
@@ -447,7 +448,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_display_data = function (json) {
         var toinsert = this.create_output_area();
-        this.append_mime_type(json, toinsert)
+        this.append_mime_type(json, toinsert);
         this.element.find('div.output').append(toinsert);
         // If we just output latex, typeset it.
         if ( (json.latex !== undefined) || (json.html !== undefined) ) {
@@ -477,7 +478,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_html rendered_html");
         toinsert.append(html);
         element.append(toinsert);
-    }
+    };
 
 
     CodeCell.prototype.append_text = function (data, element, extra_class) {
@@ -517,7 +518,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_latex");
         toinsert.append(latex);
         element.append(toinsert);
-    }
+    };
 
 
     CodeCell.prototype.clear_output = function (stdout, stderr, other) {
@@ -589,7 +590,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.set_input_prompt = function (number) {
         var n = number || '&nbsp;';
-        this.input_prompt_number = n
+        this.input_prompt_number = n;
         this.element.find('div.input_prompt').html('In&nbsp;[' + n + ']:');
     };
 
@@ -653,7 +654,7 @@ var IPython = (function (IPython) {
         data.input = this.get_code();
         data.cell_type = 'code';
         if (this.input_prompt_number !== ' ') {
-            data.prompt_number = this.input_prompt_number
+            data.prompt_number = this.input_prompt_number;
         };
         var outputs = [];
         var len = this.outputs.length;
