@@ -3,6 +3,15 @@
 %store magic for lightweight persistence.
 
 Stores variables, aliases etc. in PickleShare database.
+
+To enable this functionality, run::
+
+  %load_ext storemagic
+
+in your IPython session.  If you always want it enabled, you can list it in
+your default profile `ipython_config.py` file::
+
+  c.InteractiveShellApp.extensions = ['storemagic']
 """
 
 from IPython.core.error import TryNext, UsageError
