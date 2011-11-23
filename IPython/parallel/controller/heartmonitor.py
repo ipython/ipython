@@ -61,7 +61,7 @@ class HeartMonitor(LoggingConfigurable):
 
     period=CFloat(1000, config=True,
         help='The frequency at which the Hub pings the engines for heartbeats '
-        ' (in ms) [default: 100]',
+        '(in ms)',
     )
 
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
