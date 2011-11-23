@@ -15,7 +15,7 @@ itself from the command line. There are two ways of running this script:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2009  The IPython Development Team
+#  Copyright (C) 2009-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.

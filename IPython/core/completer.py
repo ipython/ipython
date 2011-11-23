@@ -53,7 +53,7 @@ used, and this module (and the readline module) are silently inactive.
 # proper procedure is to maintain its copyright as belonging to the Python
 # Software Foundation (in addition to my own, for all new code).
 #
-#       Copyright (C) 2008-2010 IPython Development Team
+#       Copyright (C) 2008-2011 IPython Development Team
 #       Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
 #       Copyright (C) 2001 Python Software Foundation, www.python.org
 #

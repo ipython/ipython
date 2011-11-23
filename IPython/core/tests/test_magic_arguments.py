@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# Copyright (c) 2010, IPython Development Team.
+# Copyright (C) 2010-2011, IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
