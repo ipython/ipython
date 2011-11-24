@@ -65,13 +65,13 @@ var IPython = (function (IPython) {
                 // websocket connection with firefox
                 event.preventDefault();
             }
-            if (event.which === 38) {
+            if (event.which === 38 && !event.shiftKey) {
                 var cell = that.selected_cell();
                 if (cell.at_top()) {
                     event.preventDefault();
                     that.select_prev();
                 };
-            } else if (event.which === 40) {
+            } else if (event.which === 40 && !event.shiftKey) {
                 var cell = that.selected_cell();
                 if (cell.at_bottom()) {
                     event.preventDefault();
