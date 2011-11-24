@@ -27,6 +27,9 @@ var IPython = (function (IPython) {
         this.style();
         this.create_elements();
         this.bind_events();
+        this.set_tooltipontab(true);
+        this.set_smartcompleter(true);
+        this.set_timebeforetooltip(1200);
     };
 
 
@@ -621,6 +624,21 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.set_timebeforetooltip = function (time) {
+        console.log("change time before tooltip to : "+time);
+        this.time_before_tooltip = time;
+    };
+
+    Notebook.prototype.set_tooltipontab = function (state) {
+        console.log("change tooltip on tab to : "+state);
+        this.tooltip_on_tab = state;
+    };
+
+    Notebook.prototype.set_smartcompleter = function (state) {
+        console.log("Smart completion (kwargs first) changed to  to : "+state);
+        this.smart_completer = state;
+    };
+
     Notebook.prototype.set_autoindent = function (state) {
         var cells = this.cells();
         len = cells.length;
@@ -700,9 +718,22 @@ var IPython = (function (IPython) {
             this.dirty = true;
         } else if (msg_type === "complete_reply") {
             cell.finish_completing(content.matched_text, content.matches);
-        };
-        var payload = content.payload || [];
-        this.handle_payload(cell, payload);
+        } else if (msg_type === "object_info_reply"){
+            //console.log('back from object_info_request : ')
+            rep = reply.content;
+            if(rep.found)
+            {
+                cell.finish_tooltip(rep);
+            }
+        } else {
+          //console.log("unknown reply:"+msg_type);
+        }
+        // when having a rely from object_info_reply,
+        // no payload so no nned to handle it
+        if(typeof(content.payload)!='undefined') {
+            var payload = content.payload || [];
+            this.handle_payload(cell, payload);
+        }
     };
 
 
@@ -867,6 +898,30 @@ var IPython = (function (IPython) {
         this.scroll_to_bottom();
     };
 
+
+    Notebook.prototype.request_tool_tip = function (cell,func) {
+        // Feel free to shorten this logic if you are better
+        // than me in regEx
+        // basicaly you shoul be able to get xxx.xxx.xxx from 
+        // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2, 
+        // remove everything between matchin bracket (need to iterate)
+        matchBracket = /\([^\(\)]+\)/g;
+        oldfunc = func;
+        func = func.replace(matchBracket,"");
+        while( oldfunc != func )
+        {
+        oldfunc = func;
+        func = func.replace(matchBracket,"");
+        }
+        // remove everythin after last open bracket
+        endBracket = /\([^\(]*$/g;
+        func = func.replace(endBracket,"");
+        var re = /[a-zA-Z._]+$/g;
+        var msg_id = this.kernel.object_info_request(re.exec(func));
+        if(typeof(msg_id)!='undefined'){
+            this.msg_cell_map[msg_id] = cell.cell_id;
+            }
+    };
 
     Notebook.prototype.complete_cell = function (cell, line, cursor_pos) {
         var msg_id = this.kernel.complete(line, cursor_pos);

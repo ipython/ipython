@@ -121,12 +121,51 @@ var IPython = (function (IPython) {
         });
     };
 
+    // ConfigSection
+
+    var ConfigSection = function () {
+        PanelSection.apply(this, arguments);
+    };
+
+    ConfigSection.prototype = new PanelSection();
+
+    ConfigSection.prototype.style = function () {
+        PanelSection.prototype.style.apply(this);
+        this.content.addClass('ui-helper-clearfix');
+        this.content.find('div.section_row').addClass('ui-helper-clearfix');
+
+        this.content.find('#tooltipontab').attr('title', 'Show tooltip if you press <Tab> after "(" or a white space');
+        this.content.find('#tooltipontab_label').attr('title', 'Show Tooltip when pressing Tab');
+
+        this.content.find('#timebeforetooltip').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
+        this.content.find('#timebeforetooltip_label').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
+
+        this.content.find('#smartcompleter').attr('title', 'When inside function call, completer try to propose kwargs first');
+        this.content.find('#smartcompleter_label').attr('title', 'When inside function call, completer try to propose kwargs first');
+    };
+
+
+    ConfigSection.prototype.bind_events = function () {
+        PanelSection.prototype.bind_events.apply(this);
+        this.content.find('#tooltipontab').change(function () {
+            var state = $('#tooltipontab').prop('checked');
+            IPython.notebook.set_tooltipontab(state);
+        });
+        this.content.find('#timebeforetooltip').change(function () {
+            var state = $('#timebeforetooltip').prop('value');
+            IPython.notebook.set_timebeforetooltip(state);
+        });
+        this.content.find('#smartcompleter').change(function () {
+            var state = $('#smartcompleter').prop('checked');
+            IPython.notebook.set_smartcompleter(state);
+        });
+    };
+
     // CellSection
 
     var CellSection = function () {
         PanelSection.apply(this, arguments);
     };
-
 
     CellSection.prototype = new PanelSection();
 
@@ -200,6 +239,10 @@ var IPython = (function (IPython) {
         this.content.find('#autoindent').change(function () {
             var state = $('#autoindent').prop('checked');
             IPython.notebook.set_autoindent(state);
+        });
+        this.content.find('#tooltipontab').change(function () {
+            var state = $('#tooltipontab').prop('checked');
+            IPython.notebook.set_tooltipontab(state);
         });
     };
 
@@ -280,6 +323,7 @@ var IPython = (function (IPython) {
     IPython.PanelSection = PanelSection;
     IPython.NotebookSection = NotebookSection;
     IPython.CellSection = CellSection;
+    IPython.ConfigSection = ConfigSection;
     IPython.KernelSection = KernelSection;
     IPython.HelpSection = HelpSection;
 

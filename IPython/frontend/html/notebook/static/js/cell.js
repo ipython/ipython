@@ -85,7 +85,6 @@ var IPython = (function (IPython) {
         }
     };
 
-
     // Subclasses must implement create_element.
     Cell.prototype.create_element = function () {};
 

@@ -170,6 +170,19 @@ var IPython = (function (IPython) {
         };
     };
 
+    Kernel.prototype.object_info_request = function (objname) {
+        if(typeof(objname)!=null)
+        {
+            var content = {
+                oname : objname.toString(),
+            };
+            var msg = this.get_msg("object_info_request", content);
+            this.shell_channel.send(JSON.stringify(msg));
+            return msg.header.msg_id;
+        }
+        return;
+    }
+
     Kernel.prototype.execute = function (code) {
         var content = {
             code : code,
