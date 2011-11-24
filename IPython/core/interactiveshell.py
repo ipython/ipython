@@ -552,10 +552,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     def init_pushd_popd_magic(self):
         # for pushd/popd management
-        try:
-            self.home_dir = get_home_dir()
-        except HomeDirError, msg:
-            fatal(msg)
+        self.home_dir = get_home_dir()
 
         self.dir_stack = []
 
@@ -1751,12 +1748,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # Or if libedit is used, load editrc.
             inputrc_name = os.environ.get('INPUTRC')
             if inputrc_name is None:
-                home_dir = get_home_dir()
-                if home_dir is not None:
-                    inputrc_name = '.inputrc'
-                    if readline.uses_libedit:
-                        inputrc_name = '.editrc'
-                    inputrc_name = os.path.join(home_dir, inputrc_name)
+                inputrc_name = '.inputrc'
+                if readline.uses_libedit:
+                    inputrc_name = '.editrc'
+                inputrc_name = os.path.join(self.home_dir, inputrc_name)
             if os.path.isfile(inputrc_name):
                 try:
                     readline.read_init_file(inputrc_name)
