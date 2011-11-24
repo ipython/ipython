@@ -287,6 +287,10 @@ class KernelApp(BaseIPythonApplication):
         self.write_connection_file()
         self.init_io()
         self.init_kernel()
+        # flush stdout/stderr, so that anything written to these streams during
+        # initialization do not get associated with the first execution request
+        sys.stdout.flush()
+        sys.stderr.flush()
 
     def start(self):
         self.heartbeat.start()
