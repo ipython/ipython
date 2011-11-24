@@ -47,24 +47,60 @@ var IPython = (function (IPython) {
         this.collapse()
     };
 
+    //TODO, try to diminish the number of parameters.
+    CodeCell.prototype.request_tooltip_after_time = function (pre_cursor,time,that){
+        if (pre_cursor === "" || pre_cursor === "(" ) {
+            // don't do anything if line beggin with '(' or is empty
+        } else {
+            // Will set a timer to request tooltip in `time`
+            that.tooltip_timeout = setTimeout(function(){
+                    IPython.notebook.request_tool_tip(that, pre_cursor)
+                },time);
+        }
+    };
 
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
         // This method gets called in CodeMirror's onKeyDown/onKeyPress
         // handlers and is used to provide custom key handling. Its return
         // value is used to determine if CodeMirror should ignore the event:
         // true = ignore, false = don't ignore.
+
+        // note that we are comparing and setting the time to wait at each key press.
+        // a better wqy might be to generate a new function on each time change and
+        // assign it to CodeCell.prototype.request_tooltip_after_time
+        tooltip_wait_time = this.notebook.time_before_tooltip;
+        tooltip_on_tab    = this.notebook.tooltip_on_tab;
+        var that = this;
+        // whatever key is pressed, first, cancel the tooltip request before
+        // they are sent, and remove tooltip if any
+        if(event.type === 'keydown' && this.tooltip_timeout != null){
+            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+            that.tooltip_timeout=null;
+        }
+
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
+        }else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {
+            // triger aon keypress (!) otherwise inconsistent event.which depending on plateform
+            // browser and keyboard layout !
+            // Pressing '(' , request tooltip, don't forget to reappend it
+            var cursor = editor.getCursor();
+            var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
+            CodeCell.prototype.request_tooltip_after_time(pre_cursor,tooltip_wait_time,that);
         } else if (event.keyCode === 9 && event.type == 'keydown') {
             // Tab completion.
             var cur = editor.getCursor();
-            var pre_cursor = editor.getRange({line:cur.line,ch:0},cur).trim();
-            if (pre_cursor === "") {
+            //Do not trim here because of tooltip
+            var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
+            if (pre_cursor.trim() === "") {
                 // Don't autocomplete if the part of the line before the cursor
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
+            } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && tooltip_on_tab ) {
+                CodeCell.prototype.request_tooltip_after_time(pre_cursor,0,that);
             } else {
+                pre_cursor.trim();
                 // Autocomplete the current line.
                 event.stop();
                 var line = editor.getLine(cur.line);
@@ -108,10 +144,129 @@ var IPython = (function (IPython) {
         };
     };
 
+    CodeCell.prototype.remove_and_cancell_tooltip = function(timeout)
+    {
+        // note that we don't handle closing directly inside the calltip
+        // as in the completer, because it is not focusable, so won't
+        // get the event.
+        clearTimeout(timeout);
+        $('#tooltip').remove();
+    }
+
+    CodeCell.prototype.finish_tooltip = function (reply) {
+        defstring=reply.definition;
+        docstring=reply.docstring;
+        if(docstring == null){docstring="<empty docstring>"};
+        name=reply.name;
+
+        var that = this;
+        var tooltip = $('<div/>').attr('id', 'tooltip').addClass('tooltip');
+        // remove to have the tooltip not Limited in X and Y
+        tooltip.addClass('smalltooltip');
+        var pre=$('<pre/>').html(utils.fixConsole(docstring));
+        var expandlink=$('<a/>').attr('href',"#");
+            expandlink.addClass("ui-corner-all"); //rounded corner
+            expandlink.attr('role',"button");
+            //expandlink.addClass('ui-button');
+            //expandlink.addClass('ui-state-default');
+        var expandspan=$('<span/>').text('Expand');
+            expandspan.addClass('ui-icon');
+            expandspan.addClass('ui-icon-plus');
+        expandlink.append(expandspan);
+        expandlink.attr('id','expanbutton');
+        expandlink.click(function(){
+            tooltip.removeClass('smalltooltip');
+            tooltip.addClass('bigtooltip');
+            $('#expanbutton').remove();
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+        });
+        var morelink=$('<a/>').attr('href',"#");
+            morelink.attr('role',"button");
+            morelink.addClass('ui-button');
+            //morelink.addClass("ui-corner-all"); //rounded corner
+            //morelink.addClass('ui-state-default');
+        var morespan=$('<span/>').text('Open in Pager');
+            morespan.addClass('ui-icon');
+            morespan.addClass('ui-icon-arrowstop-l-n');
+        morelink.append(morespan);
+        morelink.click(function(){
+            var msg_id = IPython.notebook.kernel.execute(name+"?");
+            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.selected_cell().cell_id;
+            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+        });
+
+        var closelink=$('<a/>').attr('href',"#");
+            closelink.attr('role',"button");
+            closelink.addClass('ui-button');
+            //closelink.addClass("ui-corner-all"); //rounded corner
+            //closelink.adClass('ui-state-default'); // grey background and blue cross
+        var closespan=$('<span/>').text('Close');
+            closespan.addClass('ui-icon');
+            closespan.addClass('ui-icon-close');
+        closelink.append(closespan);
+        closelink.click(function(){
+            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+            });
+        //construct the tooltip
+        tooltip.append(closelink);
+        tooltip.append(expandlink);
+        tooltip.append(morelink);
+        if(defstring){
+            defstring_html= $('<pre/>').html(utils.fixConsole(defstring));
+            tooltip.append(defstring_html);
+        }
+        tooltip.append(pre);
+        var pos = this.code_mirror.cursorCoords();
+        tooltip.css('left',pos.x+'px');
+        tooltip.css('top',pos.yBot+'px');
+        $('body').append(tooltip);
+
+        // issues with cross-closing if multiple tooltip in less than 5sec
+        // keep it comented for now
+        // setTimeout(CodeCell.prototype.remove_and_cancell_tooltip, 5000);
+    };
+
 
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
         // console.log("Got matches", matched_text, matches);
+        var newm = new Array();
+        if(this.notebook.smart_completer)
+        {
+            kwargs = new Array();
+            other = new Array();
+            for(var i=0;i<matches.length; ++i){
+                if(matches[i].substr(-1) === '='){
+                    kwargs.push(matches[i]);
+                }else{other.push(matches[i]);}
+            }
+            newm = kwargs.concat(other);
+            matches=newm;
+        }
         if (!this.is_completing || matches.length === 0) {return;}
+
+        //try to check if the user is typing tab at least twice after a word
+        // and completion is "done"
+        fallback_on_tooltip_after=2
+        if(matches.length==1 && matched_text === matches[0])
+        {
+            if(this.npressed >fallback_on_tooltip_after  && this.prevmatch==matched_text)
+            {
+                console.log('Ok, you really want to complete after pressing tab '+this.npressed+' times !');
+                console.log('You should understand that there is no (more) completion for that !');
+                console.log("I'll show you the tooltip, will you stop bothering me ?");
+                this.request_tooltip_after_time(matched_text+'(',0,this);
+                return;
+            }
+            this.prevmatch=matched_text
+            this.npressed=this.npressed+1;
+        }
+        else
+        {
+            this.prevmatch="";
+            this.npressed=0;
+        }
 
         var that = this;
         var cur = this.completion_cursor;
