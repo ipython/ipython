@@ -9,21 +9,18 @@
 # Verify zmq version dependency >= 2.1.4
 #-----------------------------------------------------------------------------
 
-import re
 import warnings
+from distutils.version import LooseVersion as V
 
 def check_for_zmq(minimum_version, module='IPython.zmq'):
-    min_vlist = [int(n) for n in minimum_version.split('.')]
-
     try:
         import zmq
     except ImportError:
         raise ImportError("%s requires pyzmq >= %s"%(module, minimum_version))
 
     pyzmq_version = zmq.__version__
-    vlist = [int(n) for n in re.findall(r'\d+', pyzmq_version)]
-
-    if 'dev' not in pyzmq_version and vlist < min_vlist:
+    
+    if 'dev' not in pyzmq_version and V(pyzmq_version) < V(minimum_version):
         raise ImportError("%s requires pyzmq >= %s, but you have %s"%(
                         module, minimum_version, pyzmq_version))
 
@@ -33,7 +30,7 @@ def check_for_zmq(minimum_version, module='IPython.zmq'):
     if not hasattr(zmq, 'ROUTER'):
         zmq.ROUTER = zmq.XREP
 
-    if zmq.zmq_version() >= '4.0.0':
+    if V(zmq.zmq_version()) >= V('4.0.0'):
         warnings.warn("""libzmq 4 detected.
         It is unlikely that IPython's zmq code will work properly.
         Please install libzmq stable, which is 2.1.x or 2.2.x""",
