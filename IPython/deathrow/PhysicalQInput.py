@@ -18,7 +18,7 @@ Authors
 - Fernando Perez <Fernando.Perez@berkeley.edu>
 """
 #*****************************************************************************
-#       Copyright (C) 2008-2009 The IPython Development Team
+#       Copyright (C) 2008-2011 The IPython Development Team
 #       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in

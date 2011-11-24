@@ -7,7 +7,7 @@ LOCALHOST : The loopback interface, or the first interface that points to this
 LOCAL_IPS : A list of IP addresses, loopback first, that point to this machine.
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010  The IPython Development Team
+#  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
