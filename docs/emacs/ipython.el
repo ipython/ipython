@@ -391,7 +391,7 @@ in the current *Python* session."
            ;; expression part; a more powerful approach in the future might be
            ;; to let ipython have the complete line, so that context can be used
            ;; to do things like filename completion etc.
-           (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_./" (point-at-bol))
+           (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_./\-" (point-at-bol))
                                 (point)))
            (end (point))
 	   (line (buffer-substring-no-properties (point-at-bol) end))
