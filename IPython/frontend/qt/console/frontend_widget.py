@@ -4,6 +4,7 @@ from __future__ import print_function
 from collections import namedtuple
 import sys
 import time
+import uuid
 
 # System library imports
 from pygments.lexers import PythonLexer
@@ -137,6 +138,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._input_splitter = self._input_splitter_class(input_mode='cell')
         self._kernel_manager = None
         self._request_info = {}
+        self._callback_dict = {}
 
         # Configure the ConsoleWidget.
         self.tab_width = 4
@@ -311,6 +313,62 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
             self._complete_with_items(cursor, rep['content']['matches'])
 
+    def _silent_exec_callback(self, expr, callback):
+        """Silently execute `expr` in the kernel and call `callback` with reply
+
+        the `expr` is evaluated silently in the kernel (without) output in
+        the frontend. Call `callback` with the
+        `repr <http://docs.python.org/library/functions.html#repr> `_ as first argument
+
+        Parameters
+        ----------
+        expr : string
+            valid string to be executed by the kernel.
+        callback : function
+            function accepting one arguement, as a string. The string will be
+            the `repr` of the result of evaluating `expr`
+
+        The `callback` is called with the 'repr()' of the result of `expr` as
+        first argument. To get the object, do 'eval()' onthe passed value.
+
+        See Also
+        --------
+        _handle_exec_callback : private method, deal with calling callback with reply
+
+        """
+
+        # generate uuid, which would be used as a indication of wether or not
+        # the unique request originate from here (can use msg id ?)
+        local_uuid = str(uuid.uuid1())
+        msg_id = self.kernel_manager.shell_channel.execute('',
+            silent=True, user_expressions={ local_uuid:expr })
+        self._callback_dict[local_uuid] = callback
+        self._request_info['execute'] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
+
+    def _handle_exec_callback(self, msg):
+        """Execute `callback` corresonding to `msg` reply, after ``_silent_exec_callback``
+
+        Parameters
+        ----------
+        msg : raw message send by the kernel containing an `user_expressions`
+                and having a 'silent_exec_callback' kind.
+
+        Notes
+        -----
+        This fonction will look for a `callback` associated with the
+        corresponding message id. Association has been made by
+        `_silent_exec_callback`. `callback` is then called with the `repr()`
+        of the value of corresponding `user_expressions` as argument.
+        `callback` is then removed from the known list so that any message
+        coming again with the same id won't trigger it.
+
+        """
+
+        user_exp = msg['content']['user_expressions']
+        for expression in user_exp:
+            if expression in self._callback_dict:
+                self._callback_dict.pop(expression)(user_exp[expression])
+
     def _handle_execute_reply(self, msg):
         """ Handles replies for code execution.
         """
@@ -342,6 +400,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
             self._show_interpreter_prompt_for_reply(msg)
             self.executed.emit(msg)
+        elif info and info.id == msg['parent_header']['msg_id'] and \
+                info.kind == 'silent_exec_callback' and not self._hidden:
+            self._handle_exec_callback(msg)
         else:
             super(FrontendWidget, self)._handle_execute_reply(msg)
 
