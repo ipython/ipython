@@ -254,7 +254,7 @@ var IPython = (function (IPython) {
             if(this.npressed >fallback_on_tooltip_after  && this.prevmatch==matched_text)
             {
                 console.log('Ok, you really want to complete after pressing tab '+this.npressed+' times !');
-                console.log('You should undersand that there is no (more) completion for that !');
+                console.log('You should understand that there is no (more) completion for that !');
                 console.log("I'll show you the tooltip, will you stop bothering me ?");
                 this.request_tooltip_after_time(matched_text+'(',0,this);
                 return;

@@ -134,7 +134,7 @@ var IPython = (function (IPython) {
         this.content.addClass('ui-helper-clearfix');
         this.content.find('div.section_row').addClass('ui-helper-clearfix');
 
-        this.content.find('#tooltipontab').attr('title', 'Show tooltip if yuo press <Tab> after "(" or a white space');
+        this.content.find('#tooltipontab').attr('title', 'Show tooltip if you press <Tab> after "(" or a white space');
         this.content.find('#tooltipontab_label').attr('title', 'Show Tooltip when pressing Tab');
 
         this.content.find('#timebeforetooltip').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
