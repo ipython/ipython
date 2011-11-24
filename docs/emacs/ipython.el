@@ -35,7 +35,7 @@
 ;; You can customize the arguments passed to the IPython instance at startup by
 ;; setting the ``py-python-command-args`` variable.  For example, to start
 ;; always in ``pylab`` mode with hardcoded light-background colors, you can
-;; use::
+;; use the following, *after* the ``(require 'ipython)`` line::
 ;;
 ;; (setq-default py-python-command-args '("--pylab" "--colors=LightBG"))
 ;;
