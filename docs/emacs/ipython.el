@@ -17,7 +17,8 @@
 ;; can be used to convert bits of a ipython session into something that can be
 ;; used for doctests. To install, put this file somewhere in your emacs
 ;; `load-path' [1] and add the following line to your ~/.emacs file (the first
-;; line only needed if the default (``"ipython"``) is wrong)::
+;; line only needed if the default (``"ipython"``) is wrong or ipython is not 
+;; in your `exec-path')::
 ;;
 ;;   (setq ipython-command "/SOME-PATH/ipython")
 ;;   (require 'ipython)
@@ -36,7 +37,7 @@
 ;; always in ``pylab`` mode with hardcoded light-background colors, you can
 ;; use::
 ;;
-;; (setq py-python-command-args '("--pylab" "--colors=LightBG"))
+;; (setq-default py-python-command-args '("--pylab" "--colors=LightBG"))
 ;;
 ;;
 ;; NOTE: This mode is currently somewhat alpha and although I hope that it
@@ -55,13 +56,19 @@
 ;;
 ;; - IMO the best feature by far of the ipython/emacs combo is how much easier
 ;;   it makes it to find and fix bugs thanks to the ``%pdb on or %debug``/
-;;   pdbtrack combo. Try it: first in the ipython to shell do ``%pdb on`` then
-;;   do something that will raise an exception (FIXME nice example), or type
-;;   ``%debug`` after the exception has been raised.  YOu'll be amazed at how
-;;   easy it is to inspect the live objects in each stack frames and to jump to
-;;   the corresponding sourcecode locations as you walk up and down the stack
-;;   trace (even without ``%pdb on`` you can always use ``C-c -``
-;;   (`py-up-exception') to jump to the corresponding source code locations).
+;;   pdbtrack combo. **NOTE** for this feature to work, you must turn coloring
+;;   off, at least during your debug session.  Type ``%colors nocolor`` before
+;;   debugging and file tracking will work, you can re-enable it with ``%colors
+;;   linux`` or ``%colors lightbg`` (depending on your preference) when
+;;   finished debugging so you can have coloring for the rest of the session.
+;;
+;;   Try it: first in the ipython to shell do ``%pdb on`` then do something
+;;   that will raise an exception (FIXME nice example), or type ``%debug``
+;;   after the exception has been raised.  You'll be amazed at how easy it is
+;;   to inspect the live objects in each stack frames and to jump to the
+;;   corresponding sourcecode locations as you walk up and down the stack trace
+;;   (even without ``%pdb on`` you can always use ``C-c -`` (`py-up-exception')
+;;   to jump to the corresponding source code locations).
 ;;
 ;; - emacs gives you much more powerful commandline editing and output searching
 ;;   capabilities than ipython-standalone -- isearch is your friend if you
@@ -132,6 +139,12 @@
 (require 'shell)
 (require 'executable)
 (require 'ansi-color)
+;; XXX load python-mode, so that we can screw around with its variables
+;; this has the disadvantage that python-mode is loaded even if no
+;; python-file is ever edited etc. but it means that `py-shell' works
+;; without loading a python-file first. Obviously screwing around with
+;; python-mode's variables like this is a mess, but well.
+(require 'python-mode)
 
 (defcustom ipython-command "ipython"
   "*Shell command used to start ipython."
@@ -164,12 +177,8 @@ the second for a 'normal' command, and the third for a multiline command.")
 (if (not (executable-find ipython-command))
     (message (format "Can't find executable %s - ipython.el *NOT* activated!!!"
                      ipython-command))
-    ;; XXX load python-mode, so that we can screw around with its variables
-    ;; this has the disadvantage that python-mode is loaded even if no
-    ;; python-file is ever edited etc. but it means that `py-shell' works
-    ;; without loading a python-file first. Obviously screwing around with
-    ;; python-mode's variables like this is a mess, but well.
-    (require 'python-mode)
+    ;; change the default value of py-shell-name to ipython
+    (setq-default py-shell-name ipython-command)
     ;; turn on ansi colors for ipython and activate completion
     (defun ipython-shell-hook ()
       ;; the following is to synchronize dir-changes
@@ -218,21 +227,24 @@ the second for a 'normal' command, and the third for a multiline command.")
           py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )
     ;; select a suitable color-scheme
     (unless (delq nil
-                  (mapcar (lambda (x) (eq (string-match "^--colors=*" x) 0))
+                  (mapcar (lambda (x) (eq (string-match "^--colors*" x) 0))
                           py-python-command-args))
-      (push (format "--colors=%s"
-                    (cond
-                     ((eq frame-background-mode 'dark)
-                      "Linux")
-                     ((eq frame-background-mode 'light)
-                      "LightBG")
-                     (t ; default (backg-mode isn't always set by XEmacs)
-                      "LightBG")))
-            py-python-command-args))
-    (unless (equal ipython-backup-of-py-python-command py-python-command)
-      (setq ipython-backup-of-py-python-command py-python-command))
-    (setq py-python-command ipython-command))
-
+      (setq-default py-python-command-args
+		    (cons (format "--colors=%s"
+				  (cond
+				   ((eq frame-background-mode 'dark)
+				    "Linux")
+				   ((eq frame-background-mode 'light)
+				    "LightBG")
+				   (t ; default (backg-mode isn't always set by XEmacs)
+				    "LightBG")))
+			  py-python-command-args)))
+    (when (boundp 'py-python-command)
+      (unless (equal ipython-backup-of-py-python-command py-python-command)
+        (setq ipython-backup-of-py-python-command py-python-command)))
+    (setq py-python-command ipython-command)
+    (when (boundp 'py-shell-name)
+      (setq py-shell-name ipython-command)))
 
 ;; MODIFY py-shell so that it loads the editing history
 (defadvice py-shell (around py-shell-with-history)
@@ -312,7 +324,7 @@ gets converted to:
         (replace-match "" t nil)))))
 
 (defvar ipython-completion-command-string
-  "print(';'.join(get_ipython().Completer.all_completions('%s'))) #PYTHON-MODE SILENT\n"
+  "print(';'.join(get_ipython().complete('%s', '%s')[1])) #PYTHON-MODE SILENT\n"
   "The string send to ipython to query for all possible completions")
 
 
@@ -385,9 +397,10 @@ in the current *Python* session."
            ;; expression part; a more powerful approach in the future might be
            ;; to let ipython have the complete line, so that context can be used
            ;; to do things like filename completion etc.
-           (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_./" (point-at-bol))
+           (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_./\-" (point-at-bol))
                                 (point)))
            (end (point))
+	   (line (buffer-substring-no-properties (point-at-bol) end))
            (pattern (buffer-substring-no-properties beg end))
            (completions nil)
            (completion-table nil)
@@ -399,7 +412,7 @@ in the current *Python* session."
                       (setq ugly-return (concat ugly-return string))
                       "")))))
       (process-send-string python-process
-                            (format ipython-completion-command-string pattern))
+                            (format ipython-completion-command-string pattern line))
       (accept-process-output python-process)
       (setq completions
             (split-string (substring ugly-return 0 (position ?\n ugly-return)) sep))
@@ -409,10 +422,10 @@ in the current *Python* session."
       (setq completion (try-completion pattern completion-table))
       (cond ((eq completion t))
             ((null completion)
-             (message "Can't find completion for \"%s\"" pattern)
+             (message "Can't find completion for \"%s\" based on line %s" pattern line)
              (ding))
             ((not (string= pattern completion))
-             (delete-region beg end)
+             (delete-region (- end (length pattern)) end)
              (insert completion))
             (t
              (message "Making completion list...")
@@ -420,6 +433,14 @@ in the current *Python* session."
                (display-completion-list (all-completions pattern completion-table)))
              (message "Making completion list...%s" "done")))))
 )
+
+;;; if python-mode's keybinding for the tab key wins then py-shell-complete is called
+;;; instead of ipython-complete which result in hanging emacs since there is no shell
+;;; process for python-mode to communicate with
+(defadvice py-shell-complete
+  (around avoid-py-shell-complete activate)
+  (ipython-complete))
+
 
 ;;; autoindent support: patch sent in by Jin Liu <m.liu.jin@gmail.com>,
 ;;; originally written by doxgen@newsmth.net
