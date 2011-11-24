@@ -106,4 +106,9 @@ class BaseFrontendMixin(object):
             from this frontend.
         """
         session = self._kernel_manager.session.session
-        return msg['parent_header']['session'] == session
+        parent = msg['parent_header']
+        if not parent:
+            # if the message has no parent, assume it is meant for all frontends
+            return True
+        else:
+            return parent.get('session') == session
