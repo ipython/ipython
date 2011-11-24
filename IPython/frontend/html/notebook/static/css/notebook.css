@@ -372,14 +372,14 @@ div.text_cell_render {
 
 /*properties of tooltip after "expand"*/
 .bigtooltip{
-    height:420px;
+    height:60%;
 }
 
 /*properties of tooltip before "expand"*/
 .smalltooltip{
     text-overflow: ellipsis;
     overflow: hidden;
-    height:100px;
+    height:15%;
 }
 
 .tooltip{
@@ -403,6 +403,7 @@ div.text_cell_render {
     padding: 3px;
     margin: 0px;
     font-family: monospace;
+    min-height:50px;
 }
 
 @media print {
