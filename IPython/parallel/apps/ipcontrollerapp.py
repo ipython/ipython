@@ -33,7 +33,8 @@ from multiprocessing import Process
 import zmq
 from zmq.devices import ProcessMonitoredQueue
 from zmq.log.handlers import PUBHandler
-from zmq.utils import jsonapi as json
+#from zmq.utils import jsonapi as json
+from IPython.zmq import jsonapi as json
 
 from IPython.core.profiledir import ProfileDir
 

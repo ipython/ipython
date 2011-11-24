@@ -11,7 +11,8 @@ import sys
 import tempfile
 
 # System library imports
-from zmq.utils import jsonapi as json
+#from zmq.utils import jsonapi as json
+from IPython.zmq import jsonapi as json
 
 # IPython imports
 from IPython.utils.localinterfaces import LOCALHOST
