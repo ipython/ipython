@@ -739,7 +739,6 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.handle_payload = function (cell, payload) {
         var l = payload.length;
-        console.log(payload);
         for (var i=0; i<l; i++) {
             if (payload[i].source === 'IPython.zmq.page.page') {
                 if (payload[i].text.trim() !== '') {
@@ -919,7 +918,9 @@ var IPython = (function (IPython) {
         func = func.replace(endBracket,"");
         var re = /[a-zA-Z._]+$/g;
         var msg_id = this.kernel.object_info_request(re.exec(func));
-        this.msg_cell_map[msg_id] = cell.cell_id;
+        if(typeof(msg_id)!='undefined'){
+            this.msg_cell_map[msg_id] = cell.cell_id;
+            }
     };
 
     Notebook.prototype.complete_cell = function (cell, line, cursor_pos) {
