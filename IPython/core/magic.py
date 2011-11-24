@@ -2688,7 +2688,7 @@ Defaulting color scheme to 'NoColor'"""
         from IPython.core.alias import InvalidAliasError
 
         # for the benefit of module completer in ipy_completers.py
-        del self.db['rootmodules']
+        del self.shell.db['rootmodules']
 
         path = [os.path.abspath(os.path.expanduser(p)) for p in
             os.environ.get('PATH','').split(os.pathsep)]
@@ -2745,8 +2745,7 @@ Defaulting color scheme to 'NoColor'"""
                                 except InvalidAliasError:
                                     pass
                                 syscmdlist.append(ff)
-            db = self.db
-            db['syscmdlist'] = syscmdlist
+            self.shell.db['syscmdlist'] = syscmdlist
         finally:
             os.chdir(savedir)
 
