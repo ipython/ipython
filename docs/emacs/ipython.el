@@ -56,13 +56,19 @@
 ;;
 ;; - IMO the best feature by far of the ipython/emacs combo is how much easier
 ;;   it makes it to find and fix bugs thanks to the ``%pdb on or %debug``/
-;;   pdbtrack combo. Try it: first in the ipython to shell do ``%pdb on`` then
-;;   do something that will raise an exception (FIXME nice example), or type
-;;   ``%debug`` after the exception has been raised.  YOu'll be amazed at how
-;;   easy it is to inspect the live objects in each stack frames and to jump to
-;;   the corresponding sourcecode locations as you walk up and down the stack
-;;   trace (even without ``%pdb on`` you can always use ``C-c -``
-;;   (`py-up-exception') to jump to the corresponding source code locations).
+;;   pdbtrack combo. **NOTE** for this feature to work, you must turn coloring
+;;   off, at least during your debug session.  Type ``%colors nocolor`` before
+;;   debugging and file tracking will work, you can re-enable it with ``%colors
+;;   linux`` or ``%colors lightbg`` (depending on your preference) when
+;;   finished debugging so you can have coloring for the rest of the session.
+;;
+;;   Try it: first in the ipython to shell do ``%pdb on`` then do something
+;;   that will raise an exception (FIXME nice example), or type ``%debug``
+;;   after the exception has been raised.  You'll be amazed at how easy it is
+;;   to inspect the live objects in each stack frames and to jump to the
+;;   corresponding sourcecode locations as you walk up and down the stack trace
+;;   (even without ``%pdb on`` you can always use ``C-c -`` (`py-up-exception')
+;;   to jump to the corresponding source code locations).
 ;;
 ;; - emacs gives you much more powerful commandline editing and output searching
 ;;   capabilities than ipython-standalone -- isearch is your friend if you
