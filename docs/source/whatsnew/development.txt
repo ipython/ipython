@@ -61,6 +61,10 @@ New features
 * **Multiline History**: Multiline readline history has been restored to the
   Terminal frontend by default (:ghpull:`838`).
 
+* **%store**: The ``%store`` magic from earlier versions has been updated and
+  placed in an extension, 'storemagic'. Add 'storemagic' to ``c.InteractiveShellApp.extensions``
+  in ipython_config.py to enable it (:ghpull:`1029`).
+
 
 
 Major Bugs fixed
@@ -89,6 +93,9 @@ Major Bugs fixed
 
 * A bug in PySide < 1.0.7 caused crashes on OSX when tooltips were shown
   (:ghissue:`711`). these tooltips are now disabled on old PySide (:ghpull:`963`).
+
+* IPython no longer crashes when started on recent versions of Python 3 in
+  Windows (:ghissue:`737`).
 
 .. * use bullet list
 
