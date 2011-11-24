@@ -156,6 +156,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype.finish_tooltip = function (reply) {
         defstring=reply.definition;
         docstring=reply.docstring;
+        if(docstring == null){docstring="<empty docstring>"};
         name=reply.name;
 
         var that = this;
