@@ -11,6 +11,9 @@ import sys
 import tempfile
 
 # System library imports
+
+# Note: use our own import to work around jsonlib api mismatch.  When these
+# changes propagate to zmq, revert back to the following line instead:
 #from zmq.utils import jsonapi as json
 from IPython.zmq import jsonapi as json
 
