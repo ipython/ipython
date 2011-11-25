@@ -8,7 +8,7 @@ load_subconfig('ipython_config.py', profile='default')
 lines = """
 import matplotlib
 %gui qt
-matplotlib.use('qtagg')
+matplotlib.use('qt4agg')
 matplotlib.interactive(True)
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import *
