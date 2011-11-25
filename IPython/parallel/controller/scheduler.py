@@ -359,7 +359,9 @@ class TaskScheduler(SessionFactory):
         # turn timeouts into datetime objects:
         timeout = header.get('timeout', None)
         if timeout:
-            timeout = datetime.now() + timedelta(0,timeout,0)
+            # cast to float, because jsonlib returns floats as decimal.Decimal,
+            # which timedelta does not accept
+            timeout = datetime.now() + timedelta(0,float(timeout),0)
 
         args = [raw_msg, targets, after, follow, timeout]
 
