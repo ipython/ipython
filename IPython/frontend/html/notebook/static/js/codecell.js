@@ -15,7 +15,7 @@ var IPython = (function (IPython) {
 
     var CodeCell = function (notebook) {
         this.code_mirror = null;
-        this.input_prompt_number = ' ';
+        this.input_prompt_number = '&nbsp;';
         this.is_completing = false;
         this.completion_cursor = null;
         this.outputs = [];
@@ -588,7 +588,7 @@ var IPython = (function (IPython) {
     };
 
     CodeCell.prototype.set_input_prompt = function (number) {
-        var n = number || ' ';
+        var n = number || '&nbsp;';
         this.input_prompt_number = n
         this.element.find('div.input_prompt').html('In&nbsp;[' + n + ']:');
     };
