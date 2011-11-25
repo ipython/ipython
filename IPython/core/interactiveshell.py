@@ -2000,14 +2000,16 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     def define_magic(self, magicname, func):
         """Expose own function as magic function for ipython
+        
+        Example::
 
-        def foo_impl(self,parameter_s=''):
-            'My very own magic!. (Use docstrings, IPython reads them).'
-            print 'Magic function. Passed parameter is between < >:'
-            print '<%s>' % parameter_s
-            print 'The self object is:',self
+          def foo_impl(self,parameter_s=''):
+              'My very own magic!. (Use docstrings, IPython reads them).'
+              print 'Magic function. Passed parameter is between < >:'
+              print '<%s>' % parameter_s
+              print 'The self object is:', self
 
-        self.define_magic('foo',foo_impl)
+          ip.define_magic('foo',foo_impl)
         """
         im = types.MethodType(func,self)
         old = getattr(self, "magic_" + magicname, None)

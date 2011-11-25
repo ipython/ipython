@@ -2,16 +2,18 @@
 """
 %store magic for lightweight persistence.
 
-Stores variables, aliases etc. in PickleShare database.
+Stores variables, aliases and macros in IPython's database. Stored values will
+be automatically restored whenever the extension is loaded.
 
-To enable this functionality, run::
+To enable this functionality, list it in your default profile
+`ipython_config.py` file::
+
+  c.InteractiveShellApp.extensions = ['storemagic']
+
+Or to use it temporarily, run this in your IPython session::
 
   %load_ext storemagic
 
-in your IPython session.  If you always want it enabled, you can list it in
-your default profile `ipython_config.py` file::
-
-  c.InteractiveShellApp.extensions = ['storemagic']
 """
 
 from IPython.core.error import TryNext, UsageError
@@ -54,34 +56,33 @@ def restore_data(ip):
 def magic_store(self, parameter_s=''):
     """Lightweight persistence for python variables.
 
-    Example:
+    Example::
 
-    ville@badger[~]|1> A = ['hello',10,'world']\\
-    ville@badger[~]|2> %store A\\
-    ville@badger[~]|3> Exit
+      In [1]: l = ['hello',10,'world']
+      In [2]: %store l
+      In [3]: exit
 
-    (IPython session is closed and started again...)
+      (IPython session is closed and started again...)
 
-    ville@badger:~$ ipython -p pysh\\
-    ville@badger[~]|1> print A
-
-    ['hello', 10, 'world']
+      ville@badger:~$ ipython
+      In [1]: l
+      Out[1]: ['hello', 10, 'world']
 
     Usage:
 
-    %store          - Show list of all variables and their current values\\
-    %store <var>    - Store the *current* value of the variable to disk\\
-    %store -d <var> - Remove the variable and its value from storage\\
-    %store -z       - Remove all variables from storage\\
-    %store -r       - Refresh all variables from store (delete current vals)\\
-    %store foo >a.txt  - Store value of foo to new file a.txt\\
-    %store foo >>a.txt - Append value of foo to file a.txt\\
+    * ``%store``          - Show list of all variables and their current values
+    * ``%store spam``     - Store the *current* value of the variable spam to disk
+    * ``%store -d spam``  - Remove the variable and its value from storage
+    * ``%store -z``       - Remove all variables from storage
+    * ``%store -r``       - Refresh all variables from store (delete current vals)
+    * ``%store foo >a.txt``  - Store value of foo to new file a.txt
+    * ``%store foo >>a.txt`` - Append value of foo to file a.txt
 
     It should be noted that if you change the value of a variable, you
     need to %store it again if you want to persist the new value.
 
     Note also that the variables will need to be pickleable; most basic
-    python types can be safely %stored.
+    python types can be safely %store'd.
 
     Also aliases can be %store'd across sessions.
     """

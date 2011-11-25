@@ -29,6 +29,10 @@ The :func:`load_ipython_extension` will be called again is you load or reload
 the extension again. It is up to the extension author to add code to manage
 that.
 
+Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiveshell.InteractiveShell.define_magic`, 
+:meth:`~IPython.core.interactiveshell.InteractiveShell.push` (to add variables to the user namespace) and 
+:meth:`~IPython.core.interactiveshell.InteractiveShell.drop_by_id` (to remove variables on unloading).
+
 You can put your extension modules anywhere you want, as long as they can be
 imported by Python's standard import mechanism. However, to make it easy to
 write extensions, you can also put your extensions in
@@ -68,4 +72,5 @@ Extensions bundled with IPython
 
    autoreload
    parallelmagic
+   storemagic
    sympyprinting
