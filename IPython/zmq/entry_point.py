@@ -4,6 +4,7 @@ launchers.
 
 # Standard library imports.
 import atexit
+import json
 import os
 import socket
 from subprocess import Popen, PIPE
@@ -11,11 +12,6 @@ import sys
 import tempfile
 
 # System library imports
-
-# Note: use our own import to work around jsonlib api mismatch.  When these
-# changes propagate to zmq, revert back to the following line instead:
-#from zmq.utils import jsonapi as json
-from IPython.zmq import jsonapi as json
 
 # IPython imports
 from IPython.utils.localinterfaces import LOCALHOST
@@ -86,7 +82,7 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
     cfg['ip'] = ip
     cfg['key'] = bytes_to_str(key)
     
-    with open(fname, 'wb') as f:
+    with open(fname, 'w') as f:
         f.write(json.dumps(cfg, indent=2))
     
     return fname, cfg

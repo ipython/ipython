@@ -23,6 +23,7 @@ Authors:
 
 from __future__ import with_statement
 
+import json
 import os
 import socket
 import stat
@@ -33,11 +34,6 @@ from multiprocessing import Process
 import zmq
 from zmq.devices import ProcessMonitoredQueue
 from zmq.log.handlers import PUBHandler
-
-# Note: use our own import to work around jsonlib api mismatch.  When these
-# changes propagate to zmq, revert back to the following line instead:
-#from zmq.utils import jsonapi as json
-from IPython.zmq import jsonapi as json
 
 from IPython.core.profiledir import ProfileDir
 
@@ -214,7 +210,7 @@ class IPControllerApp(BaseParallelApplication):
                     location = '127.0.0.1'
             cdict['location'] = location
         fname = os.path.join(self.profile_dir.security_dir, fname)
-        with open(fname, 'wb') as f:
+        with open(fname, 'w') as f:
             f.write(json.dumps(cdict, indent=2))
         os.chmod(fname, stat.S_IRUSR|stat.S_IWUSR)
     
