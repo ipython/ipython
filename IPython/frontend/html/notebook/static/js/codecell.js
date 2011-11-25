@@ -357,6 +357,10 @@ var IPython = (function (IPython) {
         typed_characters = "";
         select.keydown(function (event) {
             var code = event.which;
+            if (code === 16) {
+                // nothing on Shift
+                return;
+            }
             if (code === 13 || code === 32) {
                 // Pressing SPACE or ENTER will cause a pick
                 event.stopPropagation();
@@ -366,7 +370,7 @@ var IPython = (function (IPython) {
                 // We don't want the document keydown handler to handle UP/DOWN,
                 // but we want the default action.
                 event.stopPropagation();
-            } else if (code>64 && code <90 || code==8){
+            } else if (code>64 && code <=122 || code==8){
                 // issues with _-.. on chrome at least
                 if(code != 8)
                 {
