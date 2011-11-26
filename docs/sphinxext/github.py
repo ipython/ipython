@@ -25,7 +25,7 @@ def make_link_node(rawtext, app, type, slug, options):
 
     :param rawtext: Text being replaced with link node.
     :param app: Sphinx application context
-    :param type: Link type (issue, changeset, etc.)
+    :param type: Link type (issues, changeset, etc.)
     :param slug: ID of the thing to link to
     :param options: Options dictionary passed to role func.
     """
@@ -79,7 +79,7 @@ def ghissue_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     if 'pull' in name.lower():
         category = 'pull'
     elif 'issue' in name.lower():
-        category = 'issue'
+        category = 'issues'
     else:
         msg = inliner.reporter.error(
             'GitHub roles include "ghpull" and "ghissue", '
