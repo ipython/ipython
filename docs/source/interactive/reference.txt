@@ -140,7 +140,8 @@ All options with a [no] prepended can be specified in negated form
 	feature is off by default [which means that you have both
 	normal reload() and dreload()].
 
-    ``--editor=<name>``
+.. this isn't currently working
+..    ``--editor=<name>``
 	Which editor to use with the %edit command. By default,
 	IPython will honor your EDITOR environment variable (if not
 	set, vi is the Unix default and notepad the Windows one).

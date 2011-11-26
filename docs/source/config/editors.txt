@@ -6,7 +6,7 @@ Editor configuration
 
 IPython can integrate with text editors in a number of different ways:
 
-* Editors (such as (X)Emacs [Emacs]_, vim [vim]_ and TextMate [TextMate]_) can
+* Editors (such as `(X)Emacs`_, vim_ and TextMate_) can
   send code to IPython for execution.
 
 * IPython's ``%edit`` magic command can open an editor of choice to edit
@@ -20,9 +20,8 @@ start (that is, something other than a new instance of Emacs). This way you
 can edit multi-line code quickly and with the power of a real editor right
 inside IPython.
 
-You can also control the editor via the commmand-line option '-editor' or in
-your configuration file, by setting the :attr:`InteractiveShell.editor`
-configuration attribute.
+You can also control the editor by setting :attr:`TerminalInteractiveShell.editor`
+in :file:`ipython_config.py`.
 
 TextMate
 ========
@@ -30,20 +29,16 @@ TextMate
 Currently, TextMate support in IPython is broken.  It used to work well,
 but the code has been moved to :mod:`IPython.quarantine` until it is updated.
 
-vim configuration
-=================
+Vim
+===
 
-Currently, vim support in IPython is broken.  Like the TextMate code,
-the vim support code has been moved to :mod:`IPython.quarantine` until it
-is updated.
+Paul Ivanov's `vim-ipython <https://github.com/ivanov/vim-ipython>`_ provides
+powerful IPython integration for vim.
 
 .. _emacs:
 
 (X)Emacs
 ========
-
-Editor
-======
 
 If you are a dedicated Emacs user, and want to use Emacs when IPython's
 ``%edit`` magic command is called you should set up the Emacs server so that
@@ -94,6 +89,8 @@ the previous section, you may need to set also in your :file:`.emacs` file::
 
 Notes on emacs support:
 
+.. This looks hopelessly out of date - can someone update it?
+
 * There is one caveat you should be aware of: you must start the IPython shell
   before attempting to execute any code regions via ``C-c |``. Simply type
   ``C-c !`` to start IPython before passing any code regions to the
@@ -112,6 +109,6 @@ Notes on emacs support:
   will override what :file:`ipython.el` does (because loading the customization
   variables comes later).
 
-.. [Emacs] Emacs. http://www.gnu.org/software/emacs/
-.. [TextMate] TextMate: the missing editor.  http://macromates.com/
-.. [vim] vim. http://www.vim.org/
+.. _`(X)Emacs`: http://www.gnu.org/software/emacs/
+.. _TextMate: http://macromates.com/
+.. _vim: http://www.vim.org/
