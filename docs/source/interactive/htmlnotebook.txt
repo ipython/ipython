@@ -64,18 +64,18 @@ in which the application was started, and allows you to create new notebooks.
 A notebook is a combination of two things:
 
 1. An interactive session connected to an IPython kernel, controlled by a web
-application that can send input to the console and display many types of output
-(text, graphics, mathematics and more).  This is the same kernel used by the
-:ref:`Qt console <qtconsole>`, but in this case the web console sends input in
-persistent cells that you can edit in-place instead of the vertically scrolling
-terminal style used by the Qt console.
+   application that can send input to the console and display many types of output
+   (text, graphics, mathematics and more).  This is the same kernel used by the
+   :ref:`Qt console <qtconsole>`, but in this case the web console sends input in
+   persistent cells that you can edit in-place instead of the vertically scrolling
+   terminal style used by the Qt console.
 
 2. A document that can save the inputs and outputs of the session as well as
-additional text that accompanies the code but is not meant for execution.  In
-this way, notebook files serve as a complete computational record of a session
-including explanatory text and mathematics, code and resulting figures.  These
-documents are internally JSON files and are saved with the ``.ipynb``
-extension.
+   additional text that accompanies the code but is not meant for execution.  In
+   this way, notebook files serve as a complete computational record of a session
+   including explanatory text and mathematics, code and resulting figures.  These
+   documents are internally JSON files and are saved with the ``.ipynb``
+   extension.
 
 If you have ever used the Mathematica or Sage notebooks (the latter is also
 web-based__) you should feel right at home.  If you have not, you should be
@@ -127,7 +127,7 @@ computer (i.e. if you are accessing it via your localhost address at
 will open up connected to that same kernel.
 
 In general, the notebook server prints the full details of how to connect to
-each kernel at the terminal, with lines like:
+each kernel at the terminal, with lines like::
 
     [IPKernelApp] To connect another client to this kernel, use:
     [IPKernelApp] --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
@@ -246,3 +246,4 @@ Notebook document format
 ========================
 
 
+.. _Markdown: http://daringfireball.net/projects/markdown/basics
