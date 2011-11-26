@@ -10,10 +10,11 @@ overview <config_overview>` for a more general description of the
 configuration system and configuration file format.
 
 The default configuration file for the :command:`ipython` command line application
-is :file:`ipython_config.py`.  By setting the attributes in this file, you
-can configure the application.   A sample is provided in
-:mod:`IPython.config.default.ipython_config`.  Simply copy this file to your
-:ref:`IPython directory <ipython_dir>` to start using it.
+is :file:`profile_default/ipython_config.py` in your :ref:`IPython directory
+<ipython_dir>`. By setting the attributes in this file, you can configure the
+application. To create the default config file, run this command::
+
+    $ ipython profile create
 
 Most configuration attributes that this file accepts are associated with classes
 that are subclasses of :class:`~IPython.config.configurable.Configurable`.  
@@ -63,19 +64,8 @@ them via :attr:`c.TerminalIPythonApp` and :attr:`c.IPKernelApp` respectively.
 
 
 :attr:`c.InteractiveShellApp.extensions`
-    A list of strings, each of which is an importable IPython extension. An
-    IPython extension is a regular Python module or package that has a
-    :func:`load_ipython_extension(ip)` method. This method gets called when
-    the extension is loaded with the currently running
-    :class:`~IPython.core.interactiveshell.InteractiveShell` as its only
-    argument. You can put your extensions anywhere they can be imported but we
-    add the :file:`extensions` subdirectory of the ipython directory to
-    ``sys.path`` during extension loading, so you can put them there as well.
-    Extensions are not executed in the user's interactive namespace and they
-    must be pure Python code. Extensions are the recommended way of customizing
-    :command:`ipython`. Extensions can provide an
-    :func:`unload_ipython_extension` that will be called when the extension is
-    unloaded.
+    A list of strings, each of which is an importable IPython extension. See
+    :ref:`extensions_overview` for more details about extensions.
 
 :attr:`c.InteractiveShellApp.exec_lines`
     A list of strings, each of which is Python code that is run in the user's
@@ -116,7 +106,7 @@ attributes::
     # sample ipython_config.py
     c = get_config()
 
-    c.IPythonTerminalApp.display_banner = True
+    c.TerminalIPythonApp.display_banner = True
     c.InteractiveShellApp.log_level = 20
     c.InteractiveShellApp.extensions = [
         'myextension'

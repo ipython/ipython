@@ -16,7 +16,10 @@ met our requirements.
 
     If you are upgrading to version 0.11 of IPython, you will need to migrate
     your old :file:`ipythonrc` or :file:`ipy_user_conf.py` configuration files
-    to the new system.  Read on for information on how to do this.
+    to the new system. You may want to read the section on 
+    :ref:`configuring IPython <configuring_ipython>`. There are also some ideas
+    `on the IPython wiki <http://wiki.ipython.org/Cookbook/Moving_config_to_IPython_0.11>`_
+    about this.
 
 The discussion that follows is focused on teaching users how to configure
 IPython to their liking.  Developers who want to know more about how they
