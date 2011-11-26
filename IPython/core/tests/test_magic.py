@@ -9,14 +9,9 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 
 import os
-import sys
-import tempfile
-import types
-from StringIO import StringIO
 
 import nose.tools as nt
 
-from IPython.utils.path import get_long_path_name
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
@@ -24,6 +19,7 @@ from IPython.utils import py3compat
 #-----------------------------------------------------------------------------
 # Test functions begin
 #-----------------------------------------------------------------------------
+
 def test_rehashx():
     # clear up everything
     _ip = get_ipython()
@@ -202,67 +198,6 @@ def test_numpy_clear_array_undec():
     yield (nt.assert_false, 'a' in _ip.user_ns)
     
 
-# Multiple tests for clipboard pasting
-@dec.parametric
-def test_paste():
-    _ip = get_ipython()
-    def paste(txt, flags='-q'):
-        """Paste input text, by default in quiet mode"""
-        hooks.clipboard_get = lambda : txt
-        _ip.magic('paste '+flags)
-
-    # Inject fake clipboard hook but save original so we can restore it later
-    hooks = _ip.hooks
-    user_ns = _ip.user_ns
-    original_clip = hooks.clipboard_get
-
-    try:
-        # Run tests with fake clipboard function
-        user_ns.pop('x', None)
-        paste('x=1')
-        yield nt.assert_equal(user_ns['x'], 1)
-
-        user_ns.pop('x', None)
-        paste('>>> x=2')
-        yield nt.assert_equal(user_ns['x'], 2)
-
-        paste("""
-        >>> x = [1,2,3]
-        >>> y = []
-        >>> for i in x:
-        ...     y.append(i**2)
-        ...
-        """)
-        yield nt.assert_equal(user_ns['x'], [1,2,3])
-        yield nt.assert_equal(user_ns['y'], [1,4,9])
-
-        # Now, test that paste -r works
-        user_ns.pop('x', None)
-        yield nt.assert_false('x' in user_ns)
-        _ip.magic('paste -r')
-        yield nt.assert_equal(user_ns['x'], [1,2,3])
-
-        # Also test paste echoing, by temporarily faking the writer
-        w = StringIO()
-        writer = _ip.write
-        _ip.write = w.write
-        code = """
-        a = 100
-        b = 200"""
-        try:
-            paste(code,'')
-            out = w.getvalue()
-        finally:
-            _ip.write = writer
-        yield nt.assert_equal(user_ns['a'], 100)
-        yield nt.assert_equal(user_ns['b'], 200)
-        yield nt.assert_equal(out, code+"\n## -- End pasted text --\n")
-        
-    finally:
-        # Restore original hook
-        hooks.clipboard_get = original_clip
-
-
 def test_time():
     _ip.magic('time None')
 
@@ -316,62 +251,6 @@ def test_dirops():
     finally:
         os.chdir(startdir)
 
-
-def check_cpaste(code, should_fail=False):
-    """Execute code via 'cpaste' and ensure it was executed, unless
-    should_fail is set.
-    """
-    _ip.user_ns['code_ran'] = False
-
-    src = StringIO()
-    if not hasattr(src, 'encoding'):
-        # IPython expects stdin to have an encoding attribute
-        src.encoding = None
-    src.write('\n')
-    src.write(code)
-    src.write('\n--\n')
-    src.seek(0)
-
-    stdin_save = sys.stdin
-    sys.stdin = src
-    
-    try:
-        context = tt.AssertPrints if should_fail else tt.AssertNotPrints
-        with context("Traceback (most recent call last)"):
-                _ip.magic('cpaste')
-        
-        if not should_fail:
-            assert _ip.user_ns['code_ran']
-    finally:
-        sys.stdin = stdin_save
-
-
-def test_cpaste():
-    """Test cpaste magic"""
-
-    def run():
-        """Marker function: sets a flag when executed.
-        """
-        _ip.user_ns['code_ran'] = True
-        return 'run' # return string so '+ run()' doesn't result in success
-
-    tests = {'pass': ["run()",
-                      "In [1]: run()",
-                      "In [1]: if 1:\n   ...:     run()",
-                      ">>> run()",
-                      "   >>> run()",
-                      ],
-
-             'fail': ["1 + run()",
-                      "++ run()"]}
-
-    _ip.user_ns['run'] = run
-
-    for code in tests['pass']:
-        check_cpaste(code)
-
-    for code in tests['fail']:
-        check_cpaste(code, should_fail=True)
 
 def test_xmode():
     # Calling xmode three times should be a no-op
