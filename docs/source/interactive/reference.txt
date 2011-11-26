@@ -11,6 +11,10 @@ You start IPython with the command::
 
     $ ipython [options] files
 
+.. note::
+
+  For IPython on Python 3, use ``ipython3`` in place of ``ipython``.
+
 If invoked with no options, it executes all the files listed in sequence
 and drops you into the interpreter while still acknowledging any options
 you may have set in your ipython_config.py. This behavior is different from
@@ -45,8 +49,7 @@ Regular Options
 
 After the above threading options have been given, regular options can
 follow in any order. All options can be abbreviated to their shortest
-non-ambiguous form and are case-sensitive. One or two dashes can be
-used. Some options have an alternate short form, indicated after a ``|``.
+non-ambiguous form and are case-sensitive.
 
 Most options can also be set from your configuration file. See the provided
 example for more details on what the options do. Options given at the command
@@ -372,31 +375,24 @@ An example (with automagic on) should clarify all this:
 
 .. sourcecode:: ipython
 
-    In [1]: cd ipython # %cd is called by automagic
-
+    In [1]: cd ipython     # %cd is called by automagic
     /home/fperez/ipython
 
-    In [2]: cd=1 # now cd is just a variable
+    In [2]: cd=1 	   # now cd is just a variable
 
-    In [3]: cd .. # and doesn't work as a function anymore
-
-    ------------------------------
-
-        File "<console>", line 1
-
-          cd ..
-
-              ^
-
+    In [3]: cd .. 	   # and doesn't work as a function anymore
+    File "<ipython-input-3-9fedb3aff56c>", line 1
+      cd ..
+          ^
     SyntaxError: invalid syntax
 
-    In [4]: %cd .. # but %cd always works
 
+    In [4]: %cd .. 	   # but %cd always works
     /home/fperez
 
-    In [5]: del cd # if you remove the cd variable
+    In [5]: del cd     # if you remove the cd variable, automagic works again
 
-    In [6]: cd ipython # automagic can work again
+    In [6]: cd ipython
 
     /home/fperez/ipython
 
@@ -408,20 +404,14 @@ following example defines a new magic command, %impall:
     ip = get_ipython()
 
     def doimp(self, arg):
-
         ip = self.api
+        ip.ex("import %s; reload(%s); from %s import *" % (arg,arg,arg) )
 
-        ip.ex("import %s; reload(%s); from %s import *" % (
+    ip.define_magic('impall', doimp)
 
-        arg,arg,arg)
-
-        )
-
-    ip.expose_magic('impall', doimp)
-
-Type `%magic` for more information, including a list of all available magic
+Type ``%magic`` for more information, including a list of all available magic
 functions at any time and their docstrings. You can also type
-%magic_function_name? (see :ref:`below <dynamic_object_info` for information on
+``%magic_function_name?`` (see :ref:`below <dynamic_object_info>` for information on
 the '?' system) to get information about any particular magic function you are
 interested in.
 
@@ -432,12 +422,10 @@ docstrings of all currently available magic commands.
 Access to the standard Python help
 ----------------------------------
 
-As of Python 2.1, a help system is available with access to object docstrings
-and the Python manuals. Simply type 'help' (no quotes) to access it. You can
-also type help(object) to obtain information about a given object, and
-help('keyword') for information on a keyword. As noted :ref:`here
-<accessing_help>`, you need to properly configure your environment variable
-PYTHONDOCS for this feature to work correctly.
+Simply type ``help()`` to access Python's standard help system. You can
+also type ``help(object)`` for information about a given object, or
+``help('keyword')`` for information on a keyword. You may need to configure your
+PYTHONDOCS environment variable for this feature to work correctly.
 
 .. _dynamic_object_info:
 
@@ -445,20 +433,20 @@ Dynamic object information
 --------------------------
 
 Typing ``?word`` or ``word?`` prints detailed information about an object. If
-certain strings in the object are too long (docstrings, code, etc.) they get
+certain strings in the object are too long (e.g. function signatures) they get
 snipped in the center for brevity. This system gives access variable types and
-values, full source code for any object (if available), function prototypes and
-other useful information.
+values, docstrings, function prototypes and other useful information.
 
-Typing ``??word`` or ``word??`` gives access to the full information without
-snipping long strings. Long strings are sent to the screen through the
-less pager if longer than the screen and printed otherwise. On systems
-lacking the less command, IPython uses a very basic internal pager.
+If the information will not fit in the terminal, it is displayed in a pager
+(``less`` if available, otherwise a basic internal pager).
+
+Typing ``??word`` or ``word??`` gives access to the full information, including
+the source code where possible. Long strings are not snipped.
 
 The following magic functions are particularly useful for gathering
 information about your working environment. You can get more details by
-typing ``%magic`` or querying them individually (use %function_name? with or
-without the %), this is just a summary:
+typing ``%magic`` or querying them individually (``%function_name?``);
+this is just a summary:
 
     * **%pdoc <object>**: Print (or run through a pager if too long) the
       docstring for an object. If the given object is a class, it will
@@ -477,9 +465,9 @@ without the %), this is just a summary:
       each identifier.
 
 Note that the dynamic object information functions (?/??, ``%pdoc``,
-``%pfile``, ``%pdef``, ``%psource``) give you access to documentation even on
-things which are not really defined as separate identifiers. Try for example
-typing {}.get? or after doing import os, type ``os.path.abspath??``.
+``%pfile``, ``%pdef``, ``%psource``) work on object attributes, as well as
+directly on variables. For example, after doing ``import os``, you can use
+``os.path.abspath??``.
 
 .. _readline:
 
@@ -557,8 +545,8 @@ Note that there are 4 spaces between the quote marks after "M-i" above.
     can also disable it permanently on in your :file:`ipython_config.py` file
     (set TerminalInteractiveShell.autoindent=False).
     
-    If you want to paste multiple lines, it is recommended that you use
-    ``%paste``.
+    If you want to paste multiple lines in the terminal, it is recommended that
+    you use ``%paste``.
 
 
 Customizing readline behavior
@@ -574,9 +562,8 @@ options via a simple interface. In brief, you can customize readline by
 setting the following options in your configuration file (note
 that these options can not be specified at the command line):
 
-    * **readline_parse_and_bind**: this option can appear as many times as
-      you want, each time defining a string to be executed via a
-      readline.parse_and_bind() command. The syntax for valid commands
+    * **readline_parse_and_bind**: this holds a list of strings to be executed
+      via a readline.parse_and_bind() command. The syntax for valid commands
       of this kind can be found by reading the documentation for the GNU
       readline library, as these commands are of the kind which readline
       accepts in its configuration file.
@@ -584,17 +571,6 @@ that these options can not be specified at the command line):
       from the default word-delimiters list used by readline, so that
       completions may be performed on strings which contain them. Do not
       change the default value unless you know what you're doing.
-    * **readline_omit__names**: when tab-completion is enabled, hitting
-      <tab> after a '.' in a name will complete all attributes of an
-      object, including all the special methods whose names include
-      double underscores (like __getitem__ or __class__). If you'd
-      rather not see these names by default, you can set this option to
-      1. Note that even when this option is set, you can still see those
-      names by explicitly typing a _ after the period and hitting <tab>:
-      'name._<tab>' will always complete attribute names starting with '_'.
-      
-      This option is off by default so that new users see all
-      attributes of any objects they are dealing with.
 
 You will find the default values in your configuration file.
 
@@ -688,20 +664,19 @@ system shell commands. These aliases can have parameters.
 
 ``%alias alias_name cmd`` defines 'alias_name' as an alias for 'cmd'
 
-Then, typing ``%alias_name params`` will execute the system command 'cmd
+Then, typing ``alias_name params`` will execute the system command 'cmd
 params' (from your underlying operating system).
 
 You can also define aliases with parameters using %s specifiers (one per
-parameter). The following example defines the %parts function as an
+parameter). The following example defines the parts function as an
 alias to the command 'echo first %s second %s' where each %s will be
 replaced by a positional parameter to the call to %parts::
 
-    In [1]: alias parts echo first %s second %s 
-    In [2]: %parts A B 
-    first A second B  
-    In [3]: %parts A  
-    Incorrect number of arguments: 2 expected.  
-    parts is an alias to: 'echo first %s second %s'
+    In [1]: %alias parts echo first %s second %s
+    In [2]: parts A B
+    first A second B
+    In [3]: parts A  
+    ERROR: Alias <parts> requires 2 arguments, 1 given.
 
 If called with no parameters, %alias prints the table of currently
 defined aliases.
@@ -715,9 +690,11 @@ ipython aliases. See its docstring for further details.
 Recursive reload
 ----------------
 
-The dreload function does a recursive reload of a module: changes made
-to the module since you imported will actually be available without
-having to exit.
+The :mod:`IPython.lib.deepreload` module allows you to recursively reload a
+module: changes made to any of its dependencies will be reloaded without
+having to exit. To start using it, do::
+
+    from IPython.lib.deepreload import reload as dreload
 
 
 Verbose and colored exception traceback printouts
@@ -767,11 +744,9 @@ are strings), modify or exec them (typing ``exec _i9`` will re-execute the
 contents of input prompt 9.
 
 You can also re-execute multiple lines of input easily by using the
-magic %macro function (which automates the process and allows
-re-execution without having to type 'exec' every time). The macro system
-also allows you to re-execute previous lines which include magic
-function calls (which require special processing). Type %macro? for more details
-on the macro system.
+magic %rerun or %macro functions. The macro system also allows you to re-execute
+previous lines which include magic function calls (which require special
+processing). Type %macro? for more details on the macro system.
 
 A history function %hist allows you to see any part of your input
 history by printing a range of the _i variables.
@@ -804,7 +779,7 @@ being the prompt counter), such that the result of output <n> is always
 available as _<n> (don't use the angle brackets, just the number, e.g.
 _21).
 
-These global variables are all stored in a global dictionary (not a
+These variables are also stored in a global dictionary (not a
 list, since it only has entries for lines which returned a result)
 available under the names _oh and Out (similar to _ih and In). So the
 output from line 12 can be obtained as _12, Out[12] or _oh[12]. If you
@@ -836,78 +811,75 @@ meant to allow less typing for common situations.
 
 
 Automatic parentheses
----------------------
++++++++++++++++++++++
 
 Callable objects (i.e. functions, methods, etc) can be invoked like this
 (notice the commas between the arguments)::
 
-    >>> callable_ob arg1, arg2, arg3
-
-and the input will be translated to this::
-
-    -> callable_ob(arg1, arg2, arg3)
+    In [1]: callable_ob arg1, arg2, arg3
+    ------> callable_ob(arg1, arg2, arg3)
 
 You can force automatic parentheses by using '/' as the first character
 of a line. For example::
 
-    >>> /globals # becomes 'globals()'
+    In [2]: /globals # becomes 'globals()'
 
 Note that the '/' MUST be the first character on the line! This won't work::
 
-    >>> print /globals # syntax error
+    In [3]: print /globals # syntax error
 
 In most cases the automatic algorithm should work, so you should rarely
 need to explicitly invoke /. One notable exception is if you are trying
 to call a function with a list of tuples as arguments (the parenthesis
 will confuse IPython)::
 
-    In [1]: zip (1,2,3),(4,5,6) # won't work
+    In [4]: zip (1,2,3),(4,5,6) # won't work
 
 but this will work::
 
-    In [2]: /zip (1,2,3),(4,5,6) 
-    ---> zip ((1,2,3),(4,5,6))  
-    Out[2]= [(1, 4), (2, 5), (3, 6)]
+    In [5]: /zip (1,2,3),(4,5,6) 
+    ------> zip ((1,2,3),(4,5,6))  
+    Out[5]: [(1, 4), (2, 5), (3, 6)]
 
 IPython tells you that it has altered your command line by displaying
 the new command line preceded by ->. e.g.::
 
-    In [18]: callable list 
-    ----> callable (list)
+    In [6]: callable list 
+    ------> callable(list)
 
 
 Automatic quoting
------------------
++++++++++++++++++
 
 You can force automatic quoting of a function's arguments by using ','
 or ';' as the first character of a line. For example::
 
-    >>> ,my_function /home/me # becomes my_function("/home/me")
+    In [1]: ,my_function /home/me  # becomes my_function("/home/me")
 
-If you use ';' instead, the whole argument is quoted as a single string
-(while ',' splits on whitespace)::
+If you use ';' the whole argument is quoted as a single string, while ',' splits
+on whitespace::
 
-    >>> ,my_function a b c # becomes my_function("a","b","c")
+    In [2]: ,my_function a b c    # becomes my_function("a","b","c")
 
-    >>> ;my_function a b c # becomes my_function("a b c")
+    In [3]: ;my_function a b c    # becomes my_function("a b c")
 
 Note that the ',' or ';' MUST be the first character on the line! This
 won't work::
 
-    >>> x = ,my_function /home/me # syntax error
+    In [4]: x = ,my_function /home/me # syntax error
 
 IPython as your default Python environment
 ==========================================
 
 Python honors the environment variable PYTHONSTARTUP and will execute at
-startup the file referenced by this variable. If you put at the end of
-this file the following two lines of code::
+startup the file referenced by this variable. If you put the following code at
+the end of that file, then IPython will be your working environment anytime you
+start Python::
 
     from IPython.frontend.terminal.ipapp import launch_new_instance
     launch_new_instance()
     raise SystemExit
 
-then IPython will be your working environment anytime you start Python.
 The ``raise SystemExit`` is needed to exit Python when
 it finishes, otherwise you'll be back at the normal Python '>>>'
 prompt.
@@ -928,6 +900,11 @@ code, operate with your variables, analyze them, etc. Note however that
 any changes you make to values while in the shell do not propagate back
 to the running code, so it is safe to modify your values because you
 won't break your code in bizarre ways by doing so.
+
+.. note::
+
+  At present, trying to embed IPython from inside IPython causes problems. Run
+  the code samples below outside IPython.
 
 This feature allows you to easily have a fully functional python
 environment for doing object introspection anywhere in your code with a
@@ -1008,8 +985,8 @@ This will load the pdb.doc document in a file viewer for you automatically.
 Automatic invocation of pdb on exceptions
 -----------------------------------------
 
-IPython, if started with the -pdb option (or if the option is set in
-your rc file) can call the Python pdb debugger every time your code
+IPython, if started with the ``--pdb`` option (or if the option is set in
+your config file) can call the Python pdb debugger every time your code
 triggers an uncaught exception. This feature
 can also be toggled at any time with the %pdb magic command. This can be
 extremely useful in order to find the origin of subtle bugs, because pdb
@@ -1021,7 +998,7 @@ the origin of the problem.
 Furthermore, you can use these debugging facilities both with the
 embedded IPython mode and without IPython at all. For an embedded shell
 (see sec. Embedding_), simply call the constructor with
-'--pdb' in the argument string and automatically pdb will be called if an
+``--pdb`` in the argument string and pdb will automatically be called if an
 uncaught exception is triggered by your code.
 
 For stand-alone use of the feature in your programs which do not use
@@ -1036,7 +1013,7 @@ routine::
 The mode keyword can be either 'Verbose' or 'Plain', giving either very
 detailed or normal tracebacks respectively. The color_scheme keyword can
 be one of 'NoColor', 'Linux' (default) or 'LightBG'. These are the same
-options which can be set in IPython with -colors and -xmode.
+options which can be set in IPython with ``--colors`` and ``--xmode``.
 
 This will give any of your programs detailed, colored tracebacks with
 automatic invocation of pdb.
@@ -1274,7 +1251,7 @@ docstring, which you can access via::
     demo?
 
 Limitations: It is important to note that these demos are limited to
-fairly simple uses. In particular, you can not put division marks in
+fairly simple uses. In particular, you cannot break up sections within
 indented code (loops, if statements, function definitions, etc.)
 Supporting something like this would basically require tracking the
 internal execution state of the Python interpreter, so only top-level
