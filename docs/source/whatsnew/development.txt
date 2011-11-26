@@ -18,17 +18,17 @@ New features
   can start it with the command ``ipython notebook``. See :ref:`the Notebook
   docs <htmlnotebook>` for technical details.
 
-* **Python 3 compatibility**: IPython can now be installed from a single
-  codebase on Python 2 and Python 3. The installation process for Python 3
-  automatically runs 2to3.  Python 3 no longer loads a separate 'python3'
-  profile by default. It uses the same 'default' profile as in Python 2.
-
-* **PyPy support**: The terminal interface to IPython now runs under
-  `PyPy <http://pypy.org/>`_.
-
 * **Tabbed QtConsole**: The QtConsole now supports starting multiple kernels in
   tabs, and has a menubar, so it looks and behaves more like a real application.
   Keyboard enthusiasts can disable the menubar with ctrl-shift-M (:ghpull:`887`).
+
+* **Python 3 compatibility**: IPython can now be installed from a single
+  codebase on Python 2 and Python 3. The installation process for Python 3
+  automatically runs 2to3. The same 'default' profile is now used for
+  Python 2 and 3 (the previous version had a separate 'python3' profile).
+
+* **PyPy support**: The terminal interface to IPython now runs under
+  `PyPy <http://pypy.org/>`_.
 
 * **SSH Tunnels**: In 0.11, the :mod:`IPython.parallel` Client could tunnel its
   connections to the Controller via ssh. Now, the QtConsole :ref:`supports
