@@ -259,18 +259,13 @@ class IPythonWidget(FrontendWidget):
         self.kernel_manager.shell_channel.history(hist_access_type='tail',
                                                   n=1000)
     #---------------------------------------------------------------------------
-    # 'ConsoleWidget' public interface
+    # 'ConsoleWidget' abstract interface
     #---------------------------------------------------------------------------
 
-    def copy(self):
-        """ Copy the currently selected text to the clipboard, removing prompts
-            if possible.
+    def _transform_prompt(self, line):
+        """ Strip prompt from line.
         """
-        text = self._control.textCursor().selection().toPlainText()
-        if text:
-            lines = map(transform_ipy_prompt, text.splitlines())
-            text = '\n'.join(lines)
-            QtGui.QApplication.clipboard().setText(text)
+        return transform_ipy_prompt(line)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' public interface

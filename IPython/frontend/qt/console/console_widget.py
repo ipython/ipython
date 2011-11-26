@@ -742,6 +742,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """
         pass
 
+    def _transform_prompt(self, line):
+        """ Strip prompt from line.
+        """
+        pass
+
     def _up_pressed(self, shift_modifier):
         """ Called when the up key is pressed. Returns whether to continue
             processing the event.
@@ -970,6 +975,15 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         return control
 
+    def _cursor_on_input_line(self, cursor):
+        """ Return whether cursor is on an input line.
+        """
+        cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
+        cursor.movePosition(QtGui.QTextCursor.EndOfBlock,
+                            QtGui.QTextCursor.KeepAnchor)
+        line = cursor.selection().toPlainText()
+        return self._transform_prompt(line) != line
+
     def _event_filter_console_keypress(self, event):
         """ Filter key events for the underlying text widget to create a
             console-like interface.
@@ -1037,6 +1051,19 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                         self._control.moveCursor(QtGui.QTextCursor.End)
                         self._control.setTextCursor(cursor)
 
+            else:
+                # If current block is part of an input field, copy input field
+                # to input buffer.
+                start, end = self._get_input_field_range(cursor)
+                if start != None and end != None:
+                    cursor.setPosition(start)
+                    cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
+                    lines = cursor.selection().toPlainText()
+                    pastelines = []
+                    for line in lines.splitlines():
+                        pastelines.append(self._transform_prompt(line))
+                    self._set_input_buffer('\n'.join(pastelines))
+                    
         #------ Control/Cmd modifier -------------------------------------------
 
         elif ctrl_down:
@@ -1391,6 +1418,29 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 return self._continuation_prompt
         else:
             return None
+
+    def _get_input_field_range(self, cursor):
+        """ Search up and down from cursor position for start and end
+            positions of an input field, made up of a contiguous set
+            of input and continuation lines. Return None values if
+            cursor is outside an input field.
+        """
+        orig = cursor.position()
+        start, end = None, None
+        while True: # search up
+            if not self._cursor_on_input_line(cursor):
+                break
+            cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
+            start = cursor.position()
+            cursor.movePosition(QtGui.QTextCursor.PreviousBlock)
+        cursor.setPosition(orig) # back to original position
+        while True: # search down
+            if not self._cursor_on_input_line(cursor):
+                break
+            cursor.movePosition(QtGui.QTextCursor.EndOfBlock)
+            end = cursor.position()
+            cursor.movePosition(QtGui.QTextCursor.NextBlock)
+        return start, end
 
     def _get_prompt_cursor(self):
         """ Convenience method that returns a cursor for the prompt position.
