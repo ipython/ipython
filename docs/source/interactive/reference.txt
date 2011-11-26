@@ -637,6 +637,7 @@ the ``%sx`` magic command.
 The captured list has some convenience features. ``myfiles.n`` or ``myfiles.s``
 returns a string delimited by newlines or spaces, respectively. ``myfiles.p``
 produces `path objects <http://pypi.python.org/pypi/path.py>`_ from the list items.
+See :ref:`string_lists` for details.
 
 IPython also allows you to expand the value of python variables when
 making system calls. Wrap variables or expressions in {braces}::

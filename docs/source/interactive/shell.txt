@@ -43,12 +43,9 @@ The 'sh' profile is different from the default profile in that:
  * Calling "up" does "cd .."
 
 The 'sh' profile is different from the now-obsolete (and unavailable)
-'pysh' profile in that:
-
- * '$$var = command' and '$var = command' syntax is not supported
- * anymore. Use 'var = !command' instead (incidentally, this is
- * available in all IPython profiles). Note that !!command *will*
- * work.
+'pysh' profile in that the ``$$var = command`` and ``$var = command`` syntax is
+not supported anymore. Use ``var = !command`` instead (which is available in all
+IPython profiles).
 
 Aliases
 =======
@@ -162,7 +159,9 @@ The sh profile uses the following prompt configurations::
     o.prompt_in2= r'\C_Green|\C_LightGreen\D\C_Green>'
 
 You can change the prompt configuration to your liking by editing
-ipy_user_conf.py.  
+ipython_config.py.
+
+.. _string_lists:
 
 String lists
 ============
@@ -254,7 +253,7 @@ available::
 
 
 Real world example: remove all files outside version control
-============================================================
+------------------------------------------------------------
 
 First, capture output of "hg status"::
 
@@ -283,12 +282,12 @@ First, capture output of "hg status"::
 Now we can just remove these files by doing 'rm $junk.s'. 
 
 The .s, .n, .p properties
-=========================
+-------------------------
 
-The '.s' property returns one string where lines are separated by
-single space (for convenient passing to system commands). The '.n'
-property return one string where the lines are separated by '\n'
+The ``.s`` property returns one string where lines are separated by
+single space (for convenient passing to system commands). The ``.n``
+property return one string where the lines are separated by a newline
 (i.e. the original output of the function). If the items in string
-list are file names, '.p' can be used to get a list of "path" objects
+list are file names, ``.p`` can be used to get a list of "path" objects
 for convenient file manipulation.
 
