@@ -652,47 +652,33 @@ typing ``!ls`` will run 'ls' in the current directory.
 Manual capture of command output
 --------------------------------
 
-If the input line begins with two exclamation marks, !!, the command is
-executed but its output is captured and returned as a python list, split
-on newlines. Any output sent by the subprocess to standard error is
-printed separately, so that the resulting list only captures standard
-output. The !! syntax is a shorthand for the %sx magic command.
+You can assign the result of a system command to a Python variable with the
+syntax ``myfiles = !ls``. This gets machine readable output from stdout 
+(e.g. without colours), and splits on newlines. To explicitly get this sort of
+output without assigning to a variable, use two exclamation marks (``!!ls``) or
+the ``%sx`` magic command.
 
-Finally, the %sc magic (short for 'shell capture') is similar to %sx,
-but allowing more fine-grained control of the capture details, and
-storing the result directly into a named variable. The direct use of 
-%sc is now deprecated, and you should ise the ``var = !cmd`` syntax
-instead.
+The captured list has some convenience features. ``myfiles.n`` or ``myfiles.s``
+returns a string delimited by newlines or spaces, respectively. ``myfiles.p``
+produces `path objects <http://pypi.python.org/pypi/path.py>`_ from the list items.
 
 IPython also allows you to expand the value of python variables when
-making system calls. Any python variable or expression which you prepend
-with $ will get expanded before the system call is made::
+making system calls. Wrap variables or expressions in {braces}::
 
-    In [1]: pyvar='Hello world' 
-    In [2]: !echo "A python variable: $pyvar"  
+    In [1]: pyvar = 'Hello world' 
+    In [2]: !echo "A python variable: {pyvar}"  
     A python variable: Hello world
+    In [3]: import math
+    In [4]: x = 8
+    In [5]: !echo {math.factorial(x)}
+    40320
 
-If you want the shell to actually see a literal $, you need to type it
-twice::
+For simple cases, you can alternatively prepend $ to a variable name::
 
-    In [3]: !echo "A system variable: $$HOME"  
-    A system variable: /home/fperez
-
-You can pass arbitrary expressions, though you'll need to delimit them
-with {} if there is ambiguity as to the extent of the expression::
-
-    In [5]: x=10 
-    In [6]: y=20 
-    In [13]: !echo $x+y  
-    10+y  
-    In [7]: !echo ${x+y}  
-    30
-
-Even object attributes can be expanded::
-
-    In [12]: !echo $sys.argv  
+    In [6]: !echo $sys.argv  
     [/home/fperez/usr/bin/ipython]
-
+    In [7]: !echo "A system variable: $$HOME"  # Use $$ for literal $
+    A system variable: /home/fperez
 
 System command aliases
 ----------------------

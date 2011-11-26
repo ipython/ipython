@@ -74,9 +74,9 @@ After an exception occurs, you can call ``%debug`` to jump into the Python
 debugger (pdb) and examine the problem. Alternatively, if you call ``%pdb``,
 IPython will automatically start the debugger on any uncaught exception. You can
 print variables, see code, execute statements and even walk up and down the
-call stack to track down the true source of the problem. Running programs with
-%run and pdb active can be an efficient way to develop and debug code, in many
-cases eliminating the need for print statements or external debugging tools.
+call stack to track down the true source of the problem. This can be an efficient
+way to develop and debug code, in many cases eliminating the need for print
+statements or external debugging tools.
 
 You can also step through a program from the beginning by calling
 ``%run -d theprogram.py``.
@@ -88,10 +88,9 @@ IPython stores both the commands you enter, and the results it produces. You
 can easily go through previous commands with the up- and down-arrow keys, or
 access your history in more sophisticated ways.
 
-Input and output history are kept in variables called ``In`` and ``Out``, which
-can both be indexed by the prompt number on which they occurred, e.g. ``In[4]``.
-The last three objects in output history are also kept in variables named ``_``,
-``__`` and ``___``.
+Input and output history are kept in variables called ``In`` and ``Out``, keyed
+by the prompt numbers, e.g. ``In[4]``. The last three objects in output history
+are also kept in variables named ``_``, ``__`` and ``___``.
 
 You can use the ``%history`` magic function to examine past input and output.
 Input history from previous sessions is saved in a database, and IPython can be
