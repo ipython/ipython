@@ -219,15 +219,28 @@ key bindings you need to remember are:
 Security
 ========
 
-You can protect your notebook server with a *very* simple single-password by
-setting the :attr:`NotebookApp.password` configurable. It is best to do this in
-your :file:`ipython_notebook_config.py`, e.g.::
+You can protect your notebook server with a simple single-password by
+setting the :attr:`NotebookApp.password` configurable. You can prepare a
+hashed password using the function :func:`IPython.lib.security.passwd`:
+
+.. sourcecode:: ipython
+
+    In [1]: from IPython.lib import passwd
+    In [2]: passwd()
+    Enter password: 
+    Verify password: 
+    Out[2]: 'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
+    
+.. note::
+
+  :func:`~IPython.lib.security.passwd` can also take the password as a string
+  argument. **Do not** pass it as an argument inside an IPython session, as it
+  will be saved in your input history.
+
+You can then add this to your :file:`ipython_notebook_config.py`, e.g.::
 
     # Password to use for web authentication
-    c.NotebookApp.password = u'super secret'
-
-because specifying it on the command-line will make it visible to other
-processes on your machine with access to :command:`ps`. 
+    c.NotebookApp.password = u'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
 
 When using a password, it is a good idea to also use SSL, so that your password
 is not sent in the clear. You can start the notebook to communicate via a secure
