@@ -13,11 +13,9 @@ dependencies. Officially, IPython requires Python 2.6, 2.7, 3.1, or 3.2.
 
 .. warning::
 
-    Officially, IPython supports Python versions 2.6 and 2.7.
-
-    IPython 0.11 has a hard syntax dependency on 2.6, and will no longer work
-    on Python <= 2.5. You can find older versions of IPython which supported
-    Python <= 2.5 `here <http://archive.ipython.org/release/>`_
+    Since version 0.11, IPython has a hard syntax dependency on 2.6, and will no
+    longer work on Python <= 2.5. You can find older versions of IPython which
+    supported Python <= 2.5 `here <http://archive.ipython.org/release/>`_
 
 Some of the installation approaches use the :mod:`setuptools` package and its
 :command:`easy_install` command line program.  In many scenarios, this provides
@@ -29,9 +27,10 @@ website.
 
     On Windows, IPython *does* depend on :mod:`setuptools`, and it is recommended
     that you install the :mod:`distribute` package, which improves
-    :mod:`setuptools` and fixes various bugs.
+    :mod:`setuptools` and fixes various bugs. Installing on Python 3 requires
+    :mod:`distribute` on all platforms.
     
-    We hope to remove this dependency in 0.12.
+    We hope to remove this dependency in the future.
 
 More general information about installing Python packages can be found in
 Python's documentation at http://www.python.org/doc/.
@@ -106,7 +105,7 @@ Windows
 
     On Windows, IPython requires :mod:`setuptools` or :mod:`distribute`.
     
-    We hope to remove this dependency in 0.12.
+    We hope to remove this dependency in the future.
 
 There are a few caveats for Windows users.  The main issue is that a basic
 ``python setup.py install`` approach won't create ``.bat`` file or Start Menu
@@ -380,13 +379,13 @@ Browser Compatibility
 The notebook uses WebSockets and the flexible box model. These features are
 available in the following browsers:
 
-* Chrome.
-* Safari.
-* Firefox 4 and 5. These browsers have WebSocket support, but it is disabled by
-  default. You can enable it by entering ``about:config`` in the URL bar and then
-  setting ``network.websocket.enabled`` and ``network.websocket.override-security-block``
-  to ``true``.
-* Firefox 6. Starting with version 6, Firefox has WebSocket support enabled by default.
+* Chrome
+* Safari
+* Firefox 6 and above
+* Firefox 4 and 5: These browsers have WebSocket support, but it is disabled by
+  default. If you're unable to upgrade, you can enable it by entering ``about:config``
+  in the URL bar and then setting ``network.websocket.enabled`` and
+  ``network.websocket.override-security-block`` to ``true``.
 
 Internet Explorer 9 does not support WebSockets or the flexible box model, but
 these features should appear in Internet Explorer 10.
