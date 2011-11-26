@@ -71,29 +71,54 @@ def get_pasted_lines(sentinel, input=raw_input):
             return
 
 
+def strip_email_quotes(raw_lines):
+    """ Strip email quotation marks at the beginning of each line.
+
+    We don't do any more input transofrmations here because the main shell's
+    prefiltering handles other cases.
+    """
+    lines = [re.sub(r'^\s*(\s?>)+', '', l) for l in raw_lines]
+    return '\n'.join(lines) + '\n'
+
+
+# These two functions are needed by the %paste/%cpaste magics.  In practice
+# they are basically methods (they take the shell as their first argument), but
+# we leave them as standalone functions because eventually the magics
+# themselves will become separate objects altogether.  At that point, the
+# magics will have access to the shell object, and these functions can be made
+# methods of the magic object, but not of the shell.
+
 def store_or_execute(shell, block, name):
     """ Execute a block, or store it in a variable, per the user's request.
     """
+    # Dedent and prefilter so what we store matches what is executed by
+    # run_cell.
+    b = shell.prefilter(textwrap.dedent(block))
+
     if name:
         # If storing it for further editing, run the prefilter on it
-        shell.user_ns[name] = SList(shell.prefilter(block).splitlines())
+        shell.user_ns[name] = SList(b.splitlines())
         print "Block assigned to '%s'" % name
     else:
-        # For execution we just dedent it, as all other filtering is
-        # automatically applied by run_cell
-        b = textwrap.dedent(block)
         shell.user_ns['pasted_block'] = b
         shell.run_cell(b)
 
 
-def rerun_pasted(shell):
+def rerun_pasted(shell, name='pasted_block'):
     """ Rerun a previously pasted command.
     """
-    b = shell.user_ns.get('pasted_block')
+    b = shell.user_ns.get(name)
+
+    # Sanity checks
     if b is None:
         raise UsageError('No previous pasted block available')
+    if not isinstance(b, basestring):
+        raise UsageError(
+            "Variable 'pasted_block' is not a string, can't execute")
+
     print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
     shell.run_cell(b)
+
 
 #-----------------------------------------------------------------------------
 # Main class
@@ -605,14 +630,13 @@ class TerminalInteractiveShell(InteractiveShell):
           Hello world!
         """
 
-        opts, args = self.parse_options(parameter_s, 'rs:', mode='string')
-        name = args.strip()
+        opts, name = self.parse_options(parameter_s, 'rs:', mode='string')
         if 'r' in opts:
             rerun_pasted(self.shell)
             return
 
         sentinel = opts.get('s', '--')
-        block = '\n'.join(get_pasted_lines(sentinel))
+        block = strip_email_quotes(get_pasted_lines(sentinel))
         store_or_execute(self.shell, block, name)
 
     def magic_paste(self, parameter_s=''):
@@ -646,14 +670,13 @@ class TerminalInteractiveShell(InteractiveShell):
         --------
         cpaste: manually paste code into terminal until you mark its end.
         """
-        opts, args = self.parse_options(parameter_s, 'rq', mode='string')
-        name = args.strip()
+        opts, name = self.parse_options(parameter_s, 'rq', mode='string')
         if 'r' in opts:
             rerun_pasted(self.shell)
             return
         try:
             text = self.shell.hooks.clipboard_get()
-            block = self._strip_pasted_lines_for_code(text.splitlines())
+            block = strip_email_quotes(text.splitlines())
         except TryNext as clipboard_exc:
             message = getattr(clipboard_exc, 'args')
             if message:
@@ -672,6 +695,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         store_or_execute(self.shell, block, name)
 
+    # Class-level: add a '%cls' magic only on Windows
     if sys.platform == 'win32':
         def magic_cls(self, s):
             """Clear screen.
@@ -680,7 +704,8 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def showindentationerror(self):
         super(TerminalInteractiveShell, self).showindentationerror()
-        print("If you want to paste code into IPython, try the %paste magic function.")
+        print("If you want to paste code into IPython, try the "
+              "%paste and %cpaste magic functions.")
 
 
 InteractiveShellABC.register(TerminalInteractiveShell)
