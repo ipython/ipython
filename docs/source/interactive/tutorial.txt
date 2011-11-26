@@ -146,14 +146,12 @@ Startup Files
 
 If you want some code to be run at the beginning of every IPython session, the
 easiest way is to add Python (.py) or IPython (.ipy) scripts to your
-:file:`<profile>/startup` directory. Files in this directory will always be executed
-as soon as the IPython shell is constructed, and before any other code or scripts
-you have specified. If you have multiple files in the startup directory, they will
-be run in lexicographical order, so you can control the ordering by adding a '00-'
-prefix.
+:file:`profile_default/startup/` directory. Files here will be executed as soon
+as the IPython shell is constructed, before any other code or scripts you have
+specified. The files will be run in order of their names, so you can control the
+ordering with prefixes, like ``10-myimports.py``.
 
 .. note::
 
-    Automatic startup files are new in IPython 0.12. Use the
-    InteractiveShellApp.exec_files configurable for similar behavior in 0.11.
-
+    Automatic startup files are new in IPython 0.12. Use InteractiveShellApp.exec_files
+    in :file:`ipython_config.py` for similar behavior in 0.11.
