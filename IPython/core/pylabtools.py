@@ -259,7 +259,6 @@ def configure_inline_support(shell, backend, user_ns=None):
     Parameters
     ----------
     shell : InteractiveShell instance
-      If None, this function returns immediately.
 
     backend : matplotlib backend
 
