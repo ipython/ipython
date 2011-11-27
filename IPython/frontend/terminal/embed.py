@@ -72,13 +72,13 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     display_banner = CBool(True)
 
     def __init__(self, config=None, ipython_dir=None, user_ns=None,
-                 user_global_ns=None, custom_exceptions=((),None),
+                 user_module=None, custom_exceptions=((),None),
                  usage=None, banner1=None, banner2=None,
                  display_banner=None, exit_msg=u''):
 
         super(InteractiveShellEmbed,self).__init__(
             config=config, ipython_dir=ipython_dir, user_ns=user_ns,
-            user_global_ns=user_global_ns, custom_exceptions=custom_exceptions,
+            user_module=user_module, custom_exceptions=custom_exceptions,
             usage=usage, banner1=banner1, banner2=banner2,
             display_banner=display_banner
         )
@@ -95,7 +95,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     def init_sys_modules(self):
         pass
 
-    def __call__(self, header='', local_ns=None, global_ns=None, dummy=None,
+    def __call__(self, header='', local_ns=None, module=None, dummy=None,
                  stack_depth=1):
         """Activate the interactive interpreter.
 
@@ -140,14 +140,14 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.mainloop(local_ns, global_ns, stack_depth=stack_depth)
+        self.mainloop(local_ns, module, stack_depth=stack_depth)
 
         self.banner2 = self.old_banner2
 
         if self.exit_msg is not None:
             print self.exit_msg
 
-    def mainloop(self, local_ns=None, global_ns=None, stack_depth=0,
+    def mainloop(self, local_ns=None, module=None, stack_depth=0,
                  display_banner=None):
         """Embeds IPython into a running python program.
 
@@ -172,32 +172,37 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         there is no fundamental reason why it can't work perfectly."""
 
         # Get locals and globals from caller
-        if local_ns is None or global_ns is None:
+        if local_ns is None or module is None:
             call_frame = sys._getframe(stack_depth).f_back
 
             if local_ns is None:
                 local_ns = call_frame.f_locals
-            if global_ns is None:
+            if module is None:
                 global_ns = call_frame.f_globals
-
+                module = sys.modules[global_ns['__name__']]
+        
+        # Save original namespace and module so we can restore them after 
+        # embedding; otherwise the shell doesn't shut down correctly.
+        orig_user_module = self.user_module
+        orig_user_ns = self.user_ns
+        
         # Update namespaces and fire up interpreter
-
+        
         # The global one is easy, we can just throw it in
-        self.user_global_ns = global_ns
+        self.user_module = module
 
-        # but the user/local one is tricky: ipython needs it to store internal
-        # data, but we also need the locals.  We'll copy locals in the user
-        # one, but will track what got copied so we can delete them at exit.
-        # This is so that a later embedded call doesn't see locals from a
-        # previous call (which most likely existed in a separate scope).
-        local_varnames = local_ns.keys()
-        self.user_ns.update(local_ns)
-        #self.user_ns['local_ns'] = local_ns  # dbg
+        # But the user/local one is tricky: ipython needs it to store internal
+        # data, but we also need the locals. We'll throw our hidden variables
+        # like _ih and get_ipython() into the local namespace, but delete them
+        # later.
+        self.user_ns = local_ns
+        self.init_user_ns()
 
         # Patch for global embedding to make sure that things don't overwrite
         # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
         # FIXME. Test this a bit more carefully (the if.. is new)
-        if local_ns is None and global_ns is None:
+        # N.B. This can't now ever be called. Not sure what it was for.
+        if local_ns is None and module is None:
             self.user_global_ns.update(__main__.__dict__)
 
         # make sure the tab-completer has the correct frame information, so it
@@ -206,13 +211,14 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         with nested(self.builtin_trap, self.display_trap):
             self.interact(display_banner=display_banner)
-
-            # now, purge out the user namespace from anything we might have added
-            # from the caller's local namespace
-            delvar = self.user_ns.pop
-            for var in local_varnames:
-                delvar(var,None)
-
+        
+        # now, purge out the local namespace of IPython's hidden variables.
+        for name in self.user_ns_hidden:
+            local_ns.pop(name, None)
+        
+        # Restore original namespace so shell can shut down when we exit.
+        self.user_module = orig_user_module
+        self.user_ns = orig_user_ns
 
 _embedded_shell = None
 

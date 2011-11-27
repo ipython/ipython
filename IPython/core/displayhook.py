@@ -265,16 +265,16 @@ class DisplayHook(Configurable):
                 self.___ = self.__
                 self.__ = self._
                 self._ = result
-                self.shell.user_ns.update({'_':self._,
-                                           '__':self.__,
-                                           '___':self.___})
+                self.shell.push({'_':self._,
+                                 '__':self.__,
+                                '___':self.___}, interactive=False)
 
             # hackish access to top-level  namespace to create _1,_2... dynamically
             to_main = {}
             if self.do_full_cache:
                 new_result = '_'+`self.prompt_count`
                 to_main[new_result] = result
-                self.shell.user_ns.update(to_main)
+                self.shell.push(to_main, interactive=False)
                 self.shell.user_ns['_oh'][self.prompt_count] = result
 
     def log_output(self, format_dict):

@@ -559,7 +559,8 @@ class HistoryManager(HistoryAccessor):
                    '_ii': self._ii,
                    '_iii': self._iii,
                    new_i : self._i00 }
-        self.shell.user_ns.update(to_main)
+
+        self.shell.push(to_main, interactive=False)
 
     def store_output(self, line_num):
         """If database output logging is enabled, this saves all the
