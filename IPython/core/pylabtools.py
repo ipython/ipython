@@ -232,7 +232,8 @@ def activate_matplotlib(backend):
     # For this, we wrap it into a decorator which adds a 'called' flag.
     pylab.draw_if_interactive = flag_calls(pylab.draw_if_interactive)
 
-def import_pylab(user_ns, backend, import_all=True, shell=None):
+
+def import_pylab(user_ns, import_all=True):
     """Import the standard pylab symbols into user_ns."""
 
     # Import numpy as np/pyplot as plt are conventions we're trying to
@@ -246,48 +247,62 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
           )
     exec s in user_ns
 
-    if shell is not None:
-        exec s in shell.user_ns_hidden
-        # If using our svg payload backend, register the post-execution
-        # function that will pick up the results for display.  This can only be
-        # done with access to the real shell object.
-        #
-        from IPython.zmq.pylab.backend_inline import InlineBackend
-
-        cfg = InlineBackend.instance(config=shell.config)
-        cfg.shell = shell
-        if cfg not in shell.configurables:
-            shell.configurables.append(cfg)
-
-        if backend == backends['inline']:
-            from IPython.zmq.pylab.backend_inline import flush_figures
-            from matplotlib import pyplot
-            shell.register_post_execute(flush_figures)
-            # load inline_rc
-            pyplot.rcParams.update(cfg.rc)
-            
-            # Add 'figsize' to pyplot and to the user's namespace
-            user_ns['figsize'] = pyplot.figsize = figsize
-            shell.user_ns_hidden['figsize'] = figsize
-        
-        # Setup the default figure format
-        fmt = cfg.figure_format
-        select_figure_format(shell, fmt)
-
-        # The old pastefig function has been replaced by display
-        from IPython.core.display import display
-        # Add display and display_png to the user's namespace
-        user_ns['display'] = display
-        shell.user_ns_hidden['display'] = display
-        user_ns['getfigs'] = getfigs
-        shell.user_ns_hidden['getfigs'] = getfigs
-
     if import_all:
         s = ("from matplotlib.pylab import *\n"
              "from numpy import *\n")
         exec s in user_ns
-        if shell is not None:
-            exec s in shell.user_ns_hidden
+
+
+def configure_inline_support(shell, backend, user_ns=None):
+    """Configure an IPython shell object for matplotlib use.
+
+    Parameters
+    ----------
+    shell : InteractiveShell instance
+
+    backend : matplotlib backend
+
+    user_ns : dict
+      A namespace where all configured variables will be placed.  If not given,
+      the `user_ns` attribute of the shell object is used.
+    """
+    # If using our svg payload backend, register the post-execution
+    # function that will pick up the results for display.  This can only be
+    # done with access to the real shell object.
+
+    # Note: if we can't load the inline backend, then there's no point
+    # continuing (such as in terminal-only shells in environments without
+    # zeromq available).
+    try:
+        from IPython.zmq.pylab.backend_inline import InlineBackend
+    except ImportError:
+        return
+
+    user_ns = shell.user_ns if user_ns is None else user_ns
+    
+    cfg = InlineBackend.instance(config=shell.config)
+    cfg.shell = shell
+    if cfg not in shell.configurables:
+        shell.configurables.append(cfg)
+
+    if backend == backends['inline']:
+        from IPython.zmq.pylab.backend_inline import flush_figures
+        from matplotlib import pyplot
+        shell.register_post_execute(flush_figures)
+        # load inline_rc
+        pyplot.rcParams.update(cfg.rc)
+        # Add 'figsize' to pyplot and to the user's namespace
+        user_ns['figsize'] = pyplot.figsize = figsize
+
+    # Setup the default figure format
+    fmt = cfg.figure_format
+    select_figure_format(shell, fmt)
+
+    # The old pastefig function has been replaced by display
+    from IPython.core.display import display
+    # Add display and getfigs to the user's namespace
+    user_ns['display'] = display
+    user_ns['getfigs'] = getfigs
 
 
 def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
@@ -313,8 +328,10 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     """
     gui, backend = find_gui_and_backend(gui)
     activate_matplotlib(backend)
-    import_pylab(user_ns, backend, import_all, shell)
-
+    import_pylab(user_ns, import_all)
+    if shell is not None:
+        configure_inline_support(shell, backend, user_ns)
+        
     print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.""" % backend

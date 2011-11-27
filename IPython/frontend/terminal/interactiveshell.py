@@ -29,8 +29,7 @@ except:
 from IPython.core.error import TryNext
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.lib.inputhook import enable_gui
-from IPython.lib.pylabtools import pylab_activate
+from IPython.core.pylabtools import pylab_activate
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
@@ -171,10 +170,13 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Enable auto setting the terminal title."
     )
 
-    def __init__(self, config=None, ipython_dir=None, profile_dir=None, user_ns=None,
-                 user_module=None, custom_exceptions=((),None),
-                 usage=None, banner1=None, banner2=None,
-                 display_banner=None):
+    # In the terminal, GUI control is done via PyOS_InputHook
+    from IPython.lib.inputhook import enable_gui
+    enable_gui = staticmethod(enable_gui)
+    
+    def __init__(self, config=None, ipython_dir=None, profile_dir=None,
+                 user_ns=None, user_module=None, custom_exceptions=((),None),
+                 usage=None, banner1=None, banner2=None, display_banner=None):
 
         super(TerminalInteractiveShell, self).__init__(
             config=config, profile_dir=profile_dir, user_ns=user_ns,
@@ -515,45 +517,6 @@ class TerminalInteractiveShell(InteractiveShell):
             warn('Could not open editor')
             return False
         return True
-
-    #-------------------------------------------------------------------------
-    # Things related to GUI support and pylab
-    #-------------------------------------------------------------------------
-
-    def enable_pylab(self, gui=None, import_all=True):
-        """Activate pylab support at runtime.
-
-        This turns on support for matplotlib, preloads into the interactive
-        namespace all of numpy and pylab, and configures IPython to correcdtly
-        interact with the GUI event loop.  The GUI backend to be used can be
-        optionally selected with the optional :param:`gui` argument.
-
-        Parameters
-        ----------
-        gui : optional, string
-
-          If given, dictates the choice of matplotlib GUI backend to use
-          (should be one of IPython's supported backends, 'tk', 'qt', 'wx' or
-          'gtk'), otherwise we use the default chosen by matplotlib (as
-          dictated by the matplotlib build-time options plus the user's
-          matplotlibrc configuration file).
-        """
-        # We want to prevent the loading of pylab to pollute the user's
-        # namespace as shown by the %who* magics, so we execute the activation
-        # code in an empty namespace, and we update *both* user_ns and
-        # user_ns_hidden with this information.
-        ns = {}
-        try:
-            gui = pylab_activate(ns, gui, import_all)
-        except KeyError:
-            error("Backend %r not supported" % gui)
-            return
-        self.user_ns.update(ns)
-        self.user_ns_hidden.update(ns)
-        # Now we must activate the gui pylab wants to use, and fix %run to take
-        # plot updates into account
-        enable_gui(gui)
-        self.magic_run = self._pylab_magic_run
 
     #-------------------------------------------------------------------------
     # Things related to exiting

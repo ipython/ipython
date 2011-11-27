@@ -16,7 +16,7 @@ from matplotlib._pylab_helpers import Gcf
 # Local imports.
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core.displaypub import publish_display_data
-from IPython.lib.pylabtools import print_figure, select_figure_format
+from IPython.core.pylabtools import print_figure, select_figure_format
 from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, CBool
 from IPython.utils.warn import warn
 
