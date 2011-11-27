@@ -177,22 +177,6 @@ class IPEngineApp(BaseParallelApplication):
     aliases = Dict(aliases)
     flags = Dict(flags)
 
-    # def find_key_file(self):
-    #     """Set the key file.
-    # 
-    #     Here we don't try to actually see if it exists for is valid as that
-    #     is hadled by the connection logic.
-    #     """
-    #     config = self.master_config
-    #     # Find the actual controller key file
-    #     if not config.Global.key_file:
-    #         try_this = os.path.join(
-    #             config.Global.profile_dir, 
-    #             config.Global.security_dir,
-    #             config.Global.key_file_name
-    #         )
-    #         config.Global.key_file = try_this
-        
     def find_url_file(self):
         """Set the url file.
 
@@ -212,7 +196,7 @@ class IPEngineApp(BaseParallelApplication):
         at a *lower* priority than command-line/config files.
         """
         
-        self.log.info("Loading url_file %r"%self.url_file)
+        self.log.info("Loading url_file %r", self.url_file)
         config = self.config
         
         with open(self.url_file) as f:
@@ -256,17 +240,17 @@ class IPEngineApp(BaseParallelApplication):
             url_specified = False
 
         if self.wait_for_url_file and not os.path.exists(self.url_file):
-            self.log.warn("url_file %r not found"%self.url_file)
-            self.log.warn("Waiting up to %.1f seconds for it to arrive."%self.wait_for_url_file)
+            self.log.warn("url_file %r not found", self.url_file)
+            self.log.warn("Waiting up to %.1f seconds for it to arrive.", self.wait_for_url_file)
             tic = time.time()
             while not os.path.exists(self.url_file) and (time.time()-tic < self.wait_for_url_file):
-                # wait for url_file to exist, for up to 10 seconds
+                # wait for url_file to exist, or until time limit
                 time.sleep(0.1)
             
         if os.path.exists(self.url_file):
             self.load_connector_file()
         elif not url_specified:
-            self.log.critical("Fatal: url file never arrived: %s"%self.url_file)
+            self.log.fatal("Fatal: url file never arrived: %s", self.url_file)
             self.exit(1)
         
         
@@ -278,7 +262,7 @@ class IPEngineApp(BaseParallelApplication):
         
         if self.startup_script:
             enc = sys.getfilesystemencoding() or 'utf8'
-            cmd="execfile(%r)"%self.startup_script.encode(enc)
+            cmd="execfile(%r)" % self.startup_script.encode(enc)
             exec_lines.append(cmd)
         if self.startup_command:
             exec_lines.append(self.startup_command)
@@ -294,7 +278,7 @@ class IPEngineApp(BaseParallelApplication):
     
     def forward_logging(self):
         if self.log_url:
-            self.log.info("Forwarding logging to %s"%self.log_url)
+            self.log.info("Forwarding logging to %s", self.log_url)
             context = self.engine.context
             lsock = context.socket(zmq.PUB)
             lsock.connect(self.log_url)

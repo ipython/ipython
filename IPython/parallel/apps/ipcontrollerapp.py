@@ -210,6 +210,7 @@ class IPControllerApp(BaseParallelApplication):
                     location = '127.0.0.1'
             cdict['location'] = location
         fname = os.path.join(self.profile_dir.security_dir, fname)
+        self.log.info("writing connection info to %s", fname)
         with open(fname, 'w') as f:
             f.write(json.dumps(cdict, indent=2))
         os.chmod(fname, stat.S_IRUSR|stat.S_IWUSR)
@@ -219,7 +220,9 @@ class IPControllerApp(BaseParallelApplication):
         c = self.config
         self.log.debug("loading config from JSON")
         # load from engine config
-        with open(os.path.join(self.profile_dir.security_dir, self.engine_json_file)) as f:
+        fname = os.path.join(self.profile_dir.security_dir, self.engine_json_file)
+        self.log.info("loading connection info from %s", fname)
+        with open(fname) as f:
             cfg = json.loads(f.read())
         key = c.Session.key = asbytes(cfg['exec_key'])
         xport,addr = cfg['url'].split('://')
@@ -231,7 +234,9 @@ class IPControllerApp(BaseParallelApplication):
         if not self.engine_ssh_server:
             self.engine_ssh_server = cfg['ssh']
         # load client config
-        with open(os.path.join(self.profile_dir.security_dir, self.client_json_file)) as f:
+        fname = os.path.join(self.profile_dir.security_dir, self.client_json_file)
+        self.log.info("loading connection info from %s", fname)
+        with open(fname) as f:
             cfg = json.loads(f.read())
         assert key == cfg['exec_key'], "exec_key mismatch between engine and client keys"
         xport,addr = cfg['url'].split('://')
