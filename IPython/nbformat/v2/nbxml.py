@@ -172,6 +172,10 @@ class XMLReader(NotebookReader):
                     source = _get_text(cell_e,u'source')
                     rendered = _get_text(cell_e,u'rendered')
                     cells.append(new_text_cell(u'markdown', source=source, rendered=rendered))
+                if cell_e.tag == u'rstcell':
+                    source = _get_text(cell_e,u'source')
+                    rendered = _get_text(cell_e,u'rendered')
+                    cells.append(new_text_cell(u'rst', source=source, rendered=rendered))
             ws = new_worksheet(name=wsname,cells=cells)
             worksheets.append(ws)
 
