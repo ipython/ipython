@@ -14,6 +14,7 @@ import unittest
 # IPython imports
 from IPython.lib import irunner
 from IPython.testing.decorators import known_failure_py3
+from IPython.utils.py3compat import doctest_refactor_print
 
 # Testing code begins
 class RunnerTestCase(unittest.TestCase):
@@ -57,11 +58,11 @@ class RunnerTestCase(unittest.TestCase):
         self.assert_(mismatch==0,'Number of mismatched lines: %s' %
                      mismatch)
 
-    # irunner isn't working on Python 3 (due to pexpect)
+    # The SyntaxError appears differently in Python 3, for some reason.
     @known_failure_py3
     def testIPython(self):
         """Test the IPython runner."""
-        source = """
+        source = doctest_refactor_print("""
 print 'hello, this is python'
 # some more code
 x=1;y=2
@@ -76,13 +77,13 @@ cos pi
 cos(pi)
 
 for i in range(5):
-    print i,
+    print i
 
 print "that's all folks!"
 
 exit
-"""
-        output = """\
+""")
+        output = doctest_refactor_print("""\
 In [1]: print 'hello, this is python'
 hello, this is python
 
@@ -119,24 +120,27 @@ Out[9]: -1.0
 
 
 In [10]: for i in range(5):
-   ....:     print i,
+   ....:     print i
    ....:
-0 1 2 3 4
+0
+1
+2
+3
+4
 
 In [11]: print "that's all folks!"
 that's all folks!
 
 
 In [12]: exit
-"""
+""")
         runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)
 
-    @known_failure_py3
     def testPython(self):
         """Test the Python runner."""
         runner = irunner.PythonRunner(out=self.out)
-        source = """
+        source = doctest_refactor_print("""
 print 'hello, this is python'
 
 # some more code
@@ -147,11 +151,11 @@ from math import *
 cos(pi)
 
 for i in range(5):
-    print i,
+    print i
 
 print "that's all folks!"
-        """
-        output = """\
+        """)
+        output = doctest_refactor_print("""\
 >>> print 'hello, this is python'
 hello, this is python
 
@@ -165,10 +169,14 @@ hello, this is python
 -1.0
 
 >>> for i in range(5):
-...     print i,
+...     print i
 ...
-0 1 2 3 4
+0
+1
+2
+3
+4
 >>> print "that's all folks!"
 that's all folks!
-"""
+""")
         self._test_runner(runner,source,output)

@@ -38,6 +38,7 @@ import sys
 # Third-party modules: we carry a copy of pexpect to reduce the need for
 # external dependencies, but our import checks for a system version first.
 from IPython.external import pexpect
+from IPython.utils import py3compat
 
 # Global usage strings, to avoid indentation issues when typing it below.
 USAGE = """
@@ -287,6 +288,7 @@ class InteractiveRunner(object):
 
         self.run_file(args[0],opts.interact)
 
+_ipython_cmd = "ipython3" if py3compat.PY3 else "ipython"
 
 # Specific runners for particular programs
 class IPythonRunner(InteractiveRunner):
@@ -302,7 +304,7 @@ class IPythonRunner(InteractiveRunner):
     prompts would break this.
     """
 
-    def __init__(self,program = 'ipython',args=None,out=sys.stdout,echo=True):
+    def __init__(self,program = _ipython_cmd, args=None, out=sys.stdout, echo=True):
         """New runner, optionally passing the ipython command to use."""
         args0 = ['--colors=NoColor',
                  '--no-term-title',
@@ -318,7 +320,7 @@ class IPythonRunner(InteractiveRunner):
 class PythonRunner(InteractiveRunner):
     """Interactive Python runner."""
 
-    def __init__(self,program='python',args=None,out=sys.stdout,echo=True):
+    def __init__(self,program=sys.executable, args=None, out=sys.stdout, echo=True):
         """New runner, optionally passing the python command to use."""
 
         prompts = [r'>>> ',r'\.\.\. ']
