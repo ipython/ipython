@@ -786,8 +786,8 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher, ClusterAppMixin):
             # files that the scheduler redirects to.
             t.work_directory = self.profile_dir
             # Add the profile_dir and from self.start().
-            t.controller_args.extend(self.cluster_args)
-            t.controller_args.extend(self.engine_args)
+            t.engine_args.extend(self.cluster_args)
+            t.engine_args.extend(self.engine_args)
             job.add_task(t)
 
         self.log.info("Writing job description file: %s" % self.job_file)
