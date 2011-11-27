@@ -228,3 +228,15 @@ tclass.py: deleting object: C-third
         else:
             err = None
         tt.ipexec_validate(self.fname, out, err)
+
+    def test_run_i_after_reset(self):
+        """Check that %run -i still works after %reset (gh-693)"""
+        src = "yy = zz\n"
+        self.mktmp(src)
+        _ip.run_cell("zz = 23")
+        _ip.magic('run -i %s' % self.fname)
+        tt.assert_equals(_ip.user_ns['yy'], 23)
+        _ip.magic('reset -f')
+        _ip.run_cell("zz = 23")
+        _ip.magic('run -i %s' % self.fname)
+        tt.assert_equals(_ip.user_ns['yy'], 23)

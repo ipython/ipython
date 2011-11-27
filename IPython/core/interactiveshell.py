@@ -29,6 +29,7 @@ import re
 import sys
 import tempfile
 import types
+
 try:
     from contextlib import nested
 except:
@@ -372,7 +373,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     _post_execute = Instance(dict)
 
     def __init__(self, config=None, ipython_dir=None, profile_dir=None,
-                 user_ns=None, user_global_ns=None,
+                 user_module=None, user_ns=None,
                  custom_exceptions=((), None)):
 
         # This is where traits with a config_key argument are updated
@@ -387,7 +388,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.init_environment()
 
         # Create namespaces (user_ns, user_global_ns, etc.)
-        self.init_create_namespaces(user_ns, user_global_ns)
+        self.init_create_namespaces(user_module, user_ns)
         # This has to be done after init_create_namespaces because it uses
         # something in self.user_ns, but before init_sys_modules, which
         # is the first thing to modify sys.
@@ -639,17 +640,14 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def save_sys_module_state(self):
         """Save the state of hooks in the sys module.
 
-        This has to be called after self.user_ns is created.
+        This has to be called after self.user_module is created.
         """
         self._orig_sys_module_state = {}
         self._orig_sys_module_state['stdin'] = sys.stdin
         self._orig_sys_module_state['stdout'] = sys.stdout
         self._orig_sys_module_state['stderr'] = sys.stderr
         self._orig_sys_module_state['excepthook'] = sys.excepthook
-        try:
-            self._orig_sys_modules_main_name = self.user_ns['__name__']
-        except KeyError:
-            pass
+        self._orig_sys_modules_main_name = self.user_module.__name__
 
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
@@ -659,10 +657,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         except AttributeError:
             pass
         # Reset what what done in self.init_sys_modules
-        try:
-            sys.modules[self.user_ns['__name__']] = self._orig_sys_modules_main_name
-        except (AttributeError, KeyError):
-            pass
+        sys.modules[self.user_module.__name__] = self._orig_sys_modules_main_name
 
     #-------------------------------------------------------------------------
     # Things related to hooks
@@ -860,7 +855,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     # Things related to IPython's various namespaces
     #-------------------------------------------------------------------------
 
-    def init_create_namespaces(self, user_ns=None, user_global_ns=None):
+    def init_create_namespaces(self, user_module=None, user_ns=None):
         # Create the namespace where the user will operate.  user_ns is
         # normally the only one used, and it is passed to the exec calls as
         # the locals argument.  But we do carry a user_global_ns namespace
@@ -894,26 +889,14 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # should start with "import __builtin__" (note, no 's') which will
         # definitely give you a module. Yeah, it's somewhat confusing:-(.
 
-        # These routines return properly built dicts as needed by the rest of
-        # the code, and can also be used by extension writers to generate
-        # properly initialized namespaces.
-        user_ns, user_global_ns = self.make_user_namespaces(user_ns,
-                                                            user_global_ns)
+        # These routines return a properly built module and dict as needed by
+        # the rest of the code, and can also be used by extension writers to
+        # generate properly initialized namespaces.
+        self.user_module, self.user_ns = self.prepare_user_module(user_module, user_ns)
 
-        # Assign namespaces
-        # This is the namespace where all normal user variables live
-        self.user_ns = user_ns
-        self.user_global_ns = user_global_ns
-
-        # An auxiliary namespace that checks what parts of the user_ns were
-        # loaded at startup, so we can list later only variables defined in
-        # actual interactive use.  Since it is always a subset of user_ns, it
-        # doesn't need to be separately tracked in the ns_table.
-        self.user_ns_hidden = {}
-
-        # A namespace to keep track of internal data structures to prevent
-        # them from cluttering user-visible stuff.  Will be updated later
-        self.internal_ns = {}
+        # A record of hidden variables we have added to the user namespace, so
+        # we can list later only variables defined in actual interactive use.
+        self.user_ns_hidden = set()
 
         # Now that FakeModule produces a real module, we've run into a nasty
         # problem: after script execution (via %run), the module where the user
@@ -946,78 +929,61 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # A table holding all the namespaces IPython deals with, so that
         # introspection facilities can search easily.
-        self.ns_table = {'user':user_ns,
-                         'user_global':user_global_ns,
-                         'internal':self.internal_ns,
+        self.ns_table = {'user_global':self.user_module.__dict__,
+                         'user_local':user_ns,
                          'builtin':builtin_mod.__dict__
                          }
+    
+    @property
+    def user_global_ns(self):
+        return self.user_module.__dict__
 
-        # Similarly, track all namespaces where references can be held and that
-        # we can safely clear (so it can NOT include builtin).  This one can be
-        # a simple list.  Note that the main execution namespaces, user_ns and
-        # user_global_ns, can NOT be listed here, as clearing them blindly
-        # causes errors in object __del__ methods.  Instead, the reset() method
-        # clears them manually and carefully.
-        self.ns_refs_table = [ self.user_ns_hidden,
-                               self.internal_ns, self._main_ns_cache ]
-
-    def make_user_namespaces(self, user_ns=None, user_global_ns=None):
-        """Return a valid local and global user interactive namespaces.
-
-        This builds a dict with the minimal information needed to operate as a
-        valid IPython user namespace, which you can pass to the various
-        embedding classes in ipython. The default implementation returns the
-        same dict for both the locals and the globals to allow functions to
-        refer to variables in the namespace. Customized implementations can
-        return different dicts. The locals dictionary can actually be anything
-        following the basic mapping protocol of a dict, but the globals dict
-        must be a true dict, not even a subclass. It is recommended that any
-        custom object for the locals namespace synchronize with the globals
-        dict somehow.
-
-        Raises TypeError if the provided globals namespace is not a true dict.
+    def prepare_user_module(self, user_module=None, user_ns=None):
+        """Prepare the module and namespace in which user code will be run.
+        
+        When IPython is started normally, both parameters are None: a new module
+        is created automatically, and its __dict__ used as the namespace.
+        
+        If only user_module is provided, its __dict__ is used as the namespace.
+        If only user_ns is provided, a dummy module is created, and user_ns
+        becomes the global namespace. If both are provided (as they may be
+        when embedding), user_ns is the local namespace, and user_module
+        provides the global namespace.
 
         Parameters
         ----------
-        user_ns : dict-like, optional
-            The current user namespace. The items in this namespace should
-            be included in the output. If None, an appropriate blank
-            namespace should be created.
-        user_global_ns : dict, optional
-            The current user global namespace. The items in this namespace
-            should be included in the output. If None, an appropriate
-            blank namespace should be created.
+        user_module : module, optional
+            The current user module in which IPython is being run. If None,
+            a clean module will be created.
+        user_ns : dict, optional
+            A namespace in which to run interactive commands.
 
         Returns
         -------
-            A pair of dictionary-like object to be used as the local namespace
-            of the interpreter and a dict to be used as the global namespace.
+        A tuple of user_module and user_ns, each properly initialised.
         """
-
-
+        if user_module is None and user_ns is not None:
+            user_ns.setdefault("__name__", "__main__")
+            class DummyMod(object):
+                "A dummy module used for IPython's interactive namespace."
+                pass
+            user_module = DummyMod()
+            user_module.__dict__ = user_ns
+            
+        if user_module is None:
+            user_module = types.ModuleType("__main__",
+                doc="Automatically created module for IPython interactive environment")
+        
         # We must ensure that __builtin__ (without the final 's') is always
         # available and pointing to the __builtin__ *module*.  For more details:
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-
+        user_module.__dict__.setdefault('__builtin__', builtin_mod)
+        user_module.__dict__.setdefault('__builtins__', builtin_mod)
+        
         if user_ns is None:
-            # Set __name__ to __main__ to better match the behavior of the
-            # normal interpreter.
-            user_ns = {'__name__'     :'__main__',
-                       py3compat.builtin_mod_name: builtin_mod,
-                       '__builtins__' : builtin_mod,
-                      }
-        else:
-            user_ns.setdefault('__name__','__main__')
-            user_ns.setdefault(py3compat.builtin_mod_name,builtin_mod)
-            user_ns.setdefault('__builtins__',builtin_mod)
+            user_ns = user_module.__dict__
 
-        if user_global_ns is None:
-            user_global_ns = user_ns
-        if type(user_global_ns) is not dict:
-            raise TypeError("user_global_ns must be a true dict; got %r"
-                % type(user_global_ns))
-
-        return user_ns, user_global_ns
+        return user_module, user_ns
 
     def init_sys_modules(self):
         # We need to insert into sys.modules something that looks like a
@@ -1036,13 +1002,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # embedded in).
 
         # This is overridden in the InteractiveShellEmbed subclass to a no-op.
-
-        try:
-            main_name = self.user_ns['__name__']
-        except KeyError:
-            raise KeyError('user_ns dictionary MUST have a "__name__" key')
-        else:
-            sys.modules[main_name] = FakeModule(self.user_ns)
+        main_name = self.user_module.__name__
+        sys.modules[main_name] = self.user_module
 
     def init_user_ns(self):
         """Initialize all user-visible namespaces to their minimum defaults.
@@ -1073,8 +1034,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # For more details:
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-        ns = dict(__builtin__ = builtin_mod)
-
+        ns = dict()
+        
         # Put 'help' in the user namespace
         try:
             from site import _Helper
@@ -1096,7 +1057,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # Store myself as the public api!!!
         ns['get_ipython'] = self.get_ipython
-
+        
         ns['exit'] = self.exiter
         ns['quit'] = self.exiter
 
@@ -1110,6 +1071,16 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         # Finally, update the real user's namespace
         self.user_ns.update(ns)
+    
+    @property
+    def all_ns_refs(self):
+        """Get a list of references to all the namespace dictionaries in which
+        IPython might store a user-created object.
+        
+        Note that this does not include the displayhook, which also caches
+        objects from the output."""
+        return [self.user_ns, self.user_global_ns,
+                self._user_main_module.__dict__] + self._main_ns_cache.values()
 
     def reset(self, new_session=True):
         """Clear all internal namespaces, and attempt to release references to
@@ -1127,20 +1098,21 @@ class InteractiveShell(SingletonConfigurable, Magic):
         if self.displayhook.do_full_cache:
             self.displayhook.flush()
 
-        # Restore the user namespaces to minimal usability
-        for ns in self.ns_refs_table:
-            ns.clear()
-
         # The main execution namespaces must be cleared very carefully,
         # skipping the deletion of the builtin-related keys, because doing so
         # would cause errors in many object's __del__ methods.
-        for ns in [self.user_ns, self.user_global_ns]:
-            drop_keys = set(ns.keys())
-            drop_keys.discard('__builtin__')
-            drop_keys.discard('__builtins__')
-            for k in drop_keys:
-                del ns[k]
-
+        if self.user_ns is not self.user_global_ns:
+            self.user_ns.clear()
+        ns = self.user_global_ns
+        drop_keys = set(ns.keys())
+        drop_keys.discard('__builtin__')
+        drop_keys.discard('__builtins__')
+        drop_keys.discard('__name__')
+        for k in drop_keys:
+            del ns[k]
+        
+        self.user_ns_hidden.clear()
+        
         # Restore the user namespaces to minimal usability
         self.init_user_ns()
 
@@ -1170,10 +1142,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """
         if varname in ('__builtin__', '__builtins__'):
             raise ValueError("Refusing to delete %s" % varname)
-        ns_refs = self.ns_refs_table + [self.user_ns,
-                self.user_global_ns, self._user_main_module.__dict__] +\
-                self._main_ns_cache.values()
 
+        ns_refs = self.all_ns_refs
+        
         if by_name:                    # Delete by name
             for ns in ns_refs:
                 try:
@@ -1214,7 +1185,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 raise TypeError('regex must be a string or compiled pattern')
             # Search for keys in each namespace that match the given regex
             # If a match is found, delete the key/value pair.
-            for ns in self.ns_refs_table:
+            for ns in self.all_ns_refs:
                 for var in ns:
                     if m.search(var):
                         del ns[var]
@@ -1260,13 +1231,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.user_ns.update(vdict)
 
         # And configure interactive visibility
-        config_ns = self.user_ns_hidden
+        user_ns_hidden = self.user_ns_hidden
         if interactive:
-            for name, val in vdict.iteritems():
-                config_ns.pop(name, None)
+            user_ns_hidden.difference_update(vdict)
         else:
-            for name,val in vdict.iteritems():
-                config_ns[name] = val
+            user_ns_hidden.update(vdict)
     
     def drop_by_id(self, variables):
         """Remove a dict of variables from the user namespace, if they are the
@@ -1284,7 +1253,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         for name, obj in variables.iteritems():
             if name in self.user_ns and self.user_ns[name] is obj:
                 del self.user_ns[name]
-                self.user_ns_hidden.pop(name, None)
+                self.user_ns_hidden.discard(name)
 
     #-------------------------------------------------------------------------
     # Things related to object introspection
@@ -1308,7 +1277,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             # Put them in a list. The order is important so that we
             # find things in the same order that Python finds them.
             namespaces = [ ('Interactive', self.user_ns),
-                           ('IPython internal', self.internal_ns),
+                           ('Interactive (global)', self.user_global_ns),
                            ('Python builtin', builtin_mod.__dict__),
                            ('Alias', self.alias_manager.alias_table),
                            ]
