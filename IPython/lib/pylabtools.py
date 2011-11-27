@@ -247,7 +247,11 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
     exec s in user_ns
 
     if shell is not None:
-        exec s in shell.user_ns_hidden
+        # All local executions are done in a fresh namespace and we then update
+        # the set of 'hidden' keys so these variables don't show up in %who
+        # (which is meant to show only what the user has manually defined).
+        ns = {}
+        exec s in ns
         # If using our svg payload backend, register the post-execution
         # function that will pick up the results for display.  This can only be
         # done with access to the real shell object.
@@ -268,7 +272,7 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
             
             # Add 'figsize' to pyplot and to the user's namespace
             user_ns['figsize'] = pyplot.figsize = figsize
-            shell.user_ns_hidden['figsize'] = figsize
+            ns['figsize'] = figsize
         
         # Setup the default figure format
         fmt = cfg.figure_format
@@ -277,17 +281,18 @@ def import_pylab(user_ns, backend, import_all=True, shell=None):
         # The old pastefig function has been replaced by display
         from IPython.core.display import display
         # Add display and display_png to the user's namespace
-        user_ns['display'] = display
-        shell.user_ns_hidden['display'] = display
-        user_ns['getfigs'] = getfigs
-        shell.user_ns_hidden['getfigs'] = getfigs
+        ns['display'] = user_ns['display'] = display
+        ns['getfigs'] = user_ns['getfigs'] = getfigs
 
     if import_all:
         s = ("from matplotlib.pylab import *\n"
              "from numpy import *\n")
         exec s in user_ns
         if shell is not None:
-            exec s in shell.user_ns_hidden
+            exec s in ns
+
+    # Update the set of hidden variables with anything we've done here.
+    shell.user_ns_hidden.update(ns)
 
 
 def pylab_activate(user_ns, gui=None, import_all=True, shell=None):

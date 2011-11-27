@@ -20,6 +20,7 @@ import matplotlib; matplotlib.use('Agg')
 import nose.tools as nt
 
 from matplotlib import pyplot as plt
+import numpy as np
 
 # Our own imports
 from IPython.testing import decorators as dec
@@ -52,3 +53,10 @@ def test_figure_to_svg():
     plt.draw()
     svg = pt.print_figure(fig, 'svg')[:100].lower()
     yield nt.assert_true('doctype svg' in svg)
+
+
+def test_import_pylab():
+    ip = get_ipython()
+    pt.import_pylab(ip.user_ns, 'inline', import_all=False, shell=ip)
+    nt.assert_true('plt' in ip.user_ns)
+    nt.assert_equal(ip.user_ns['np'], np)
