@@ -253,7 +253,7 @@ def import_pylab(user_ns, import_all=True):
         exec s in user_ns
 
 
-def configure_shell(shell, backend, user_ns=None):
+def configure_inline_backend(shell, user_ns=None):
     """Configure an IPython shell object for matplotlib use.
 
     Parameters
@@ -280,14 +280,13 @@ def configure_shell(shell, backend, user_ns=None):
     if cfg not in shell.configurables:
         shell.configurables.append(cfg)
 
-    if backend == backends['inline']:
-        from IPython.zmq.pylab.backend_inline import flush_figures
-        from matplotlib import pyplot
-        shell.register_post_execute(flush_figures)
-        # load inline_rc
-        pyplot.rcParams.update(cfg.rc)
-        # Add 'figsize' to pyplot and to the user's namespace
-        user_ns['figsize'] = pyplot.figsize = figsize
+    from IPython.zmq.pylab.backend_inline import flush_figures
+    from matplotlib import pyplot
+    shell.register_post_execute(flush_figures)
+    # load inline_rc
+    pyplot.rcParams.update(cfg.rc)
+    # Add 'figsize' to pyplot and to the user's namespace
+    user_ns['figsize'] = pyplot.figsize = figsize
 
     # Setup the default figure format
     fmt = cfg.figure_format
@@ -324,7 +323,11 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     gui, backend = find_gui_and_backend(gui)
     activate_matplotlib(backend)
     import_pylab(user_ns, import_all)
-    configure_shell(shell, backend, user_ns)
+
+    # The inline backend is only used by GUI shells
+    if backend == backends['inline']:
+        configure_inline_backend(shell, backend, user_ns)
+        
     print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.""" % backend
