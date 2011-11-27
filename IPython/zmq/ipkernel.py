@@ -39,12 +39,11 @@ from IPython.utils import py3compat
 from IPython.utils.jsonutil import json_clean
 from IPython.lib import pylabtools
 from IPython.utils.traitlets import (
-    Any, List, Instance, Float, Dict, Bool, Unicode, CaselessStrEnum
+    Any, Instance, Float, Dict, CaselessStrEnum
 )
 
 from entry_point import base_launch_kernel
 from kernelapp import KernelApp, kernel_flags, kernel_aliases
-from iostream import OutStream
 from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
@@ -212,16 +211,16 @@ class Kernel(Configurable):
     def _publish_pyin(self, code, parent):
         """Publish the code request on the pyin stream."""
 
-        pyin_msg = self.session.send(self.iopub_socket, u'pyin',{u'code':code}, parent=parent)
+        self.session.send(self.iopub_socket, u'pyin', {u'code':code},
+                          parent=parent)
 
     def execute_request(self, ident, parent):
 
-        status_msg = self.session.send(self.iopub_socket,
-            u'status',
-            {u'execution_state':u'busy'},
-            parent=parent
-        )
-
+        self.session.send(self.iopub_socket,
+                          u'status',
+                          {u'execution_state':u'busy'},
+                          parent=parent )
+        
         try:
             content = parent[u'content']
             code = content[u'code']
@@ -331,11 +330,10 @@ class Kernel(Configurable):
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
 
-        status_msg = self.session.send(self.iopub_socket,
-            u'status',
-            {u'execution_state':u'idle'},
-            parent=parent
-        )
+        self.session.send(self.iopub_socket,
+                          u'status',
+                          {u'execution_state':u'idle'},
+                          parent=parent )
 
     def complete_request(self, ident, parent):
         txt, matches = self._complete(parent)
@@ -375,7 +373,8 @@ class Kernel(Configurable):
 
         elif hist_access_type == 'search':
             pattern = parent['content']['pattern']
-            hist = self.shell.history_manager.search(pattern, raw=raw, output=output)
+            hist = self.shell.history_manager.search(pattern, raw=raw,
+                                                     output=output) 
 
         else:
             hist = []
@@ -396,7 +395,8 @@ class Kernel(Configurable):
 
     def shutdown_request(self, ident, parent):
         self.shell.exit_now = True
-        self._shutdown_message = self.session.msg(u'shutdown_reply', parent['content'], parent)
+        self._shutdown_message = self.session.msg(u'shutdown_reply',
+                                                  parent['content'], parent)
         sys.exit(0)
 
     #---------------------------------------------------------------------------
@@ -427,8 +427,10 @@ class Kernel(Configurable):
             time.sleep(0.1)
 
     def _no_raw_input(self):
-        """Raise StdinNotImplentedError if active frontend doesn't support stdin."""
-        raise StdinNotImplementedError("raw_input was called, but this frontend does not support stdin.")
+        """Raise StdinNotImplentedError if active frontend doesn't support
+        stdin."""
+        raise StdinNotImplementedError("raw_input was called, but this "
+                                       "frontend does not support stdin.") 
         
     def _raw_input(self, prompt, ident, parent):
         # Flush output before making the request.
@@ -437,7 +439,8 @@ class Kernel(Configurable):
 
         # Send the input request.
         content = json_clean(dict(prompt=prompt))
-        msg = self.session.send(self.stdin_socket, u'input_request', content, parent, ident=ident)
+        self.session.send(self.stdin_socket, u'input_request', content, parent,
+                          ident=ident)
 
         # Await a response.
         while True:
@@ -584,7 +587,8 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
                 # replace pyerr-sending traceback with stdout
                 _showtraceback = shell._showtraceback
                 def print_tb(etype, evalue, stb):
-                    print ("Error initializing pylab, pylab mode will not be active", file=io.stderr)
+                    print ("Error initializing pylab, pylab mode will not "
+                           "be active", file=io.stderr)
                     print (shell.InteractiveTB.stb2text(stb), file=io.stdout)
                 shell._showtraceback = print_tb
                 
@@ -607,8 +611,8 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
 def launch_kernel(*args, **kwargs):
     """Launches a localhost IPython kernel, binding to the specified ports.
 
-    This function simply calls entry_point.base_launch_kernel with the right first
-    command to start an ipkernel.  See base_launch_kernel for arguments.
+    This function simply calls entry_point.base_launch_kernel with the right
+    first command to start an ipkernel.  See base_launch_kernel for arguments.
 
     Returns
     -------
