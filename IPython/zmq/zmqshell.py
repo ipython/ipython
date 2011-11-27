@@ -109,6 +109,11 @@ class ZMQInteractiveShell(InteractiveShell):
 
     keepkernel_on_exit = None
 
+    # Over ZeroMQ, GUI control isn't done with PyOS_InputHook as there is no
+    # interactive input being read; we provide event loop support in ipkernel
+    from .eventloops import enable_gui
+    enable_gui = staticmethod(enable_gui)
+
     def init_environment(self):
         """Configure the user's environment.
 
@@ -389,10 +394,6 @@ class ZMQInteractiveShell(InteractiveShell):
             'line_number' : lineno
         }
         self.payload_manager.write_payload(payload)
-
-    def enable_gui(self, gui=None):
-        from IPython.zmq.ipkernel import enable_gui
-        enable_gui(gui)
 
     # A few magics that are adapted to the specifics of using pexpect and a
     # remote terminal

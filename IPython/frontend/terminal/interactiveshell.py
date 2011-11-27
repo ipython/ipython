@@ -170,10 +170,13 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Enable auto setting the terminal title."
     )
 
-    def __init__(self, config=None, ipython_dir=None, profile_dir=None, user_ns=None,
-                 user_module=None, custom_exceptions=((),None),
-                 usage=None, banner1=None, banner2=None,
-                 display_banner=None):
+    # In the terminal, GUI control is done via PyOS_InputHook
+    from IPython.lib.inputhook import enable_gui
+    enable_gui = staticmethod(enable_gui)
+    
+    def __init__(self, config=None, ipython_dir=None, profile_dir=None,
+                 user_ns=None, user_module=None, custom_exceptions=((),None),
+                 usage=None, banner1=None, banner2=None, display_banner=None):
 
         super(TerminalInteractiveShell, self).__init__(
             config=config, profile_dir=profile_dir, user_ns=user_ns,
@@ -514,14 +517,6 @@ class TerminalInteractiveShell(InteractiveShell):
             warn('Could not open editor')
             return False
         return True
-
-    #-------------------------------------------------------------------------
-    # Things related to GUI support and pylab
-    #-------------------------------------------------------------------------
-
-    def enable_gui(self, gui=None):
-        from IPython.lib.inputhook import enable_gui
-        enable_gui(gui)
 
     #-------------------------------------------------------------------------
     # Things related to exiting
