@@ -622,8 +622,10 @@ class MainWindow(QtGui.QMainWindow):
         self.magic_menu = self.menuBar().addMenu("&Magic")
         self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
 
-        # this action should not appear as it will be cleard when menu
-        # will be updated at first kernel response.
+        # This action should usually not appear as it will be cleared when menu
+        # is updated at first kernel response. Though, it is necessary when
+        # connecting through X-forwarding, as in this case, the menu is not
+        # auto updated, SO DO NOT DELETE.
         self.pop = QtGui.QAction("&Update All Magic Menu ",
             self, triggered=self.update_all_magic_menu)
         self.add_menu_action(self.all_magic_menu, self.pop)
