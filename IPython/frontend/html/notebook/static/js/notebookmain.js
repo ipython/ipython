@@ -15,7 +15,7 @@ $(document).ready(function () {
     MathJax.Hub.Config({
         tex2jax: {
             inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
         },
         displayAlign: 'left', // Change this to 'center' to center equations.
         "HTML-CSS": {
@@ -76,7 +76,7 @@ $(document).ready(function () {
                 // and finally unhide the panel contents after collapse
                 setTimeout(function(){
                     IPython.left_panel.left_panel_element.css('visibility', 'visible');
-                }, 200)
+                }, 200);
             }
         },100);
     });

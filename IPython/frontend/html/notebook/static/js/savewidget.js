@@ -15,7 +15,7 @@ var IPython = (function (IPython) {
 
     var SaveWidget = function (selector) {
         this.selector = selector;
-        this.notebook_name_blacklist_re = /[\/\\]/
+        this.notebook_name_blacklist_re = /[\/\\]/;
         this.last_saved_name = '';
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -70,14 +70,14 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.get_notebook_name = function () {
         return this.element.find('input#notebook_name').attr('value');
-    }
+    };
 
 
     SaveWidget.prototype.set_notebook_name = function (nbname) {
         this.element.find('input#notebook_name').attr('value',nbname);
         this.set_document_title();
         this.last_saved_name = nbname;
-    }
+    };
 
 
     SaveWidget.prototype.set_document_title = function () {

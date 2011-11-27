@@ -45,16 +45,16 @@ var IPython = (function (IPython) {
 
     Cell.prototype.bind_events = function () {
         var that = this;
-        var nb = that.notebook
+        var nb = that.notebook;
         that.element.click(function (event) {
             if (that.selected === false) {
                 nb.select(nb.find_cell_index(that));
-            };
+            }
         });
         that.element.focusin(function (event) {
             if (that.selected === false) {
                 nb.select(nb.find_cell_index(that));
-            };
+            }
         });
     };
 

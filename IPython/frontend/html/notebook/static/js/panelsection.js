@@ -186,18 +186,18 @@ var IPython = (function (IPython) {
         this.content.find('#move_cell_down').attr('title', "Move selected cell down one in the Notebook");
 
         this.content.find('#cell_type').buttonset();
-        this.content.find('#to_markdown').attr('title', 'Change selected cell to markdown (for text)')
-        this.content.find('#to_code').attr('title', 'Change selected cell to code (for execution)')
+        this.content.find('#to_markdown').attr('title', 'Change selected cell to markdown (for text)');
+        this.content.find('#to_code').attr('title', 'Change selected cell to code (for execution)');
 
         this.content.find('#cell_output').buttonset();
-        this.content.find('#toggle_output').attr('title', 'Toggle visibility of the output of code cells')
-        this.content.find('#clear_all_output').attr('title', 'Clear output of all code cells (actually removes the data, unlike toggle)')
+        this.content.find('#toggle_output').attr('title', 'Toggle visibility of the output of code cells');
+        this.content.find('#clear_all_output').attr('title', 'Clear output of all code cells (actually removes the data, unlike toggle)');
 
         this.content.find('#run_cells').buttonset();
-        this.content.find('#run_selected_cell').attr('title', 'Submit the selected cell for execution')
-        this.content.find('#run_all_cells').attr('title', 'Run *all* code cells in the notebook in order')
-        this.content.find('#autoindent').attr('title', 'Autoindent code as-you-type')
-        this.content.find('#autoindent_label').attr('title', 'Autoindent code as-you-type')
+        this.content.find('#run_selected_cell').attr('title', 'Submit the selected cell for execution');
+        this.content.find('#run_all_cells').attr('title', 'Run *all* code cells in the notebook in order');
+        this.content.find('#autoindent').attr('title', 'Autoindent code as-you-type');
+        this.content.find('#autoindent_label').attr('title', 'Autoindent code as-you-type');
     };
 
 
@@ -304,12 +304,12 @@ var IPython = (function (IPython) {
         this.content.find('#help_buttons0').buttonset();
         this.content.find('#help_buttons1').buttonset();
         this.content.find('#help_buttons2').buttonset();
-        this.content.find('#python_help').attr('title', "Open the online Python documentation in a new tab")
-        this.content.find('#ipython_help').attr('title', "Open the online IPython documentation in a new tab")
-        this.content.find('#numpy_help').attr('title', "Open the online NumPy documentation in a new tab")
-        this.content.find('#scipy_help').attr('title', "Open the online SciPy documentation in a new tab")
-        this.content.find('#matplotlib_help').attr('title', "Open the online Matplotlib documentation in a new tab")
-        this.content.find('#sympy_help').attr('title', "Open the online SymPy documentation in a new tab")
+        this.content.find('#python_help').attr('title', "Open the online Python documentation in a new tab");
+        this.content.find('#ipython_help').attr('title', "Open the online IPython documentation in a new tab");
+        this.content.find('#numpy_help').attr('title', "Open the online NumPy documentation in a new tab");
+        this.content.find('#scipy_help').attr('title', "Open the online SciPy documentation in a new tab");
+        this.content.find('#matplotlib_help').attr('title', "Open the online Matplotlib documentation in a new tab");
+        this.content.find('#sympy_help').attr('title', "Open the online SymPy documentation in a new tab");
     };
 
 
