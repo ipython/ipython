@@ -62,6 +62,7 @@ from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
 from IPython.core.profiledir import ProfileDir
+from IPython.core.pylabtools import pylab_activate
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io
@@ -2531,8 +2532,46 @@ class InteractiveShell(SingletonConfigurable, Magic):
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------
 
+    def enable_gui(self, gui=None):
+        raise NotImplementedError('Implement enable_gui in a subclass')
+
     def enable_pylab(self, gui=None, import_all=True):
-        raise NotImplementedError('Implement enable_pylab in a subclass')
+        """Activate pylab support at runtime.
+
+        This turns on support for matplotlib, preloads into the interactive
+        namespace all of numpy and pylab, and configures IPython to correctly
+        interact with the GUI event loop.  The GUI backend to be used can be
+        optionally selected with the optional :param:`gui` argument.
+
+        Parameters
+        ----------
+        gui : optional, string
+
+          If given, dictates the choice of matplotlib GUI backend to use
+          (should be one of IPython's supported backends, 'qt', 'osx', 'tk',
+          'gtk', 'wx' or 'inline'), otherwise we use the default chosen by
+          matplotlib (as dictated by the matplotlib build-time options plus the
+          user's matplotlibrc configuration file).  Note that not all backends
+          make sense in all contexts, for example a terminal ipython can't
+          display figures inline.
+        """
+
+        # We want to prevent the loading of pylab to pollute the user's
+        # namespace as shown by the %who* magics, so we execute the activation
+        # code in an empty namespace, and we update *both* user_ns and
+        # user_ns_hidden with this information.
+        ns = {}
+        try:
+            gui = pylab_activate(ns, gui, import_all, self)
+        except KeyError:
+            error("Backend %r not supported" % gui)
+            return
+        self.user_ns.update(ns)
+        self.user_ns_hidden.update(ns)
+        # Now we must activate the gui pylab wants to use, and fix %run to take
+        # plot updates into account
+        self.enable_gui(gui)
+        self.magic_run = self._pylab_magic_run
 
     #-------------------------------------------------------------------------
     # Utilities
