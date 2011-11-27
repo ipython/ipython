@@ -180,7 +180,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         "Code in functions must be able to access variables outside them."
         ip = get_ipython()
         ip.run_cell("a = 10")
-        ip.run_cell(("def f(x):"
+        ip.run_cell(("def f(x):\n"
                      "    return x + a"))
         ip.run_cell("b = f(12)")
         self.assertEqual(ip.user_ns["b"], 22)
