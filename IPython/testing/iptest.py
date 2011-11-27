@@ -238,8 +238,8 @@ def make_exclude():
         exclusions.append(ipjoin('parallel', 'tests', 'test_mongodb'))
 
     if not have['matplotlib']:
-        exclusions.extend([ipjoin('lib', 'pylabtools'),
-                           ipjoin('lib', 'tests', 'test_pylabtools')])
+        exclusions.extend([ipjoin('core', 'pylabtools'),
+                           ipjoin('core', 'tests', 'test_pylabtools')])
 
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))

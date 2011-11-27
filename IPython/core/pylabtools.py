@@ -253,13 +253,15 @@ def import_pylab(user_ns, import_all=True):
         exec s in user_ns
 
 
-def configure_inline_backend(shell, user_ns=None):
+def configure_inline_support(shell, backend, user_ns=None):
     """Configure an IPython shell object for matplotlib use.
 
     Parameters
     ----------
     shell : InteractiveShell instance
       If None, this function returns immediately.
+
+    backend : matplotlib backend
 
     user_ns : dict
       A namespace where all configured variables will be placed.  If not given,
@@ -268,25 +270,33 @@ def configure_inline_backend(shell, user_ns=None):
     if shell is None:
         return
 
-    user_ns = shell.user_ns if user_ns is None else user_ns
-    
     # If using our svg payload backend, register the post-execution
     # function that will pick up the results for display.  This can only be
     # done with access to the real shell object.
-    from IPython.zmq.pylab.backend_inline import InlineBackend
 
+    # Note: if we can't load the inline backend, then there's no point
+    # continuing (such as in terminal-only shells in environments without
+    # zeromq available).
+    try:
+        from IPython.zmq.pylab.backend_inline import InlineBackend
+    except ImportError:
+        return
+
+    user_ns = shell.user_ns if user_ns is None else user_ns
+    
     cfg = InlineBackend.instance(config=shell.config)
     cfg.shell = shell
     if cfg not in shell.configurables:
         shell.configurables.append(cfg)
 
-    from IPython.zmq.pylab.backend_inline import flush_figures
-    from matplotlib import pyplot
-    shell.register_post_execute(flush_figures)
-    # load inline_rc
-    pyplot.rcParams.update(cfg.rc)
-    # Add 'figsize' to pyplot and to the user's namespace
-    user_ns['figsize'] = pyplot.figsize = figsize
+    if backend == backends['inline']:
+        from IPython.zmq.pylab.backend_inline import flush_figures
+        from matplotlib import pyplot
+        shell.register_post_execute(flush_figures)
+        # load inline_rc
+        pyplot.rcParams.update(cfg.rc)
+        # Add 'figsize' to pyplot and to the user's namespace
+        user_ns['figsize'] = pyplot.figsize = figsize
 
     # Setup the default figure format
     fmt = cfg.figure_format
@@ -323,10 +333,7 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     gui, backend = find_gui_and_backend(gui)
     activate_matplotlib(backend)
     import_pylab(user_ns, import_all)
-
-    # The inline backend is only used by GUI shells
-    if backend == backends['inline']:
-        configure_inline_backend(shell, backend, user_ns)
+    configure_inline_support(shell, backend, user_ns)
         
     print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
