@@ -54,14 +54,14 @@ def get_default_editor():
     return ed
 
 
-def get_pasted_lines(sentinel, input=raw_input):
+def get_pasted_lines(sentinel, l_input=py3compat.input):
     """ Yield pasted lines until the user enters the given sentinel value.
     """
     print "Pasting code; enter '%s' alone on the line to stop or use Ctrl-D." \
           % sentinel
     while True:
         try:
-            l = input(':')
+            l = l_input(':')
             if l == sentinel:
                 return
             else:
