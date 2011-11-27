@@ -97,6 +97,10 @@ Major Bugs fixed
 * IPython no longer crashes when started on recent versions of Python 3 in
   Windows (:ghissue:`737`).
 
+* Instances of classes defined interactively can now be pickled (:ghissue:`29`;
+  :ghpull:`648`). Note that pickling saves a reference to the class definition,
+  so unpickling the instances will only work where the class has been defined.
+
 .. * use bullet list
 
 Backwards incompatible changes
@@ -131,5 +135,11 @@ Backwards incompatible changes
 
   The full path will still work, and is necessary for using custom launchers not in
   IPython's launcher module.
+
+* For embedding a shell, note that the parameter ``user_global_ns`` has been
+  replaced by ``user_module``, and expects a module-like object, rather than
+  a namespace dict. The ``user_ns`` parameter works the same way as before, and
+  calling :func:`~IPython.frontend.terminal.embed.embed` with no arguments still
+  works the same way.
 
 .. * use bullet list
