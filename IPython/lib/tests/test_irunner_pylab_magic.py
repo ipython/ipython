@@ -22,7 +22,6 @@ class RunnerTestCase(unittest.TestCase):
         self.out = StringIO.StringIO()
         #self.out = sys.stdout
 
-    @decorators.known_failure_py3
     def _test_runner(self,runner,source,output):
         """Test that a given runner's input/output match."""
 
@@ -83,7 +82,6 @@ Out\[6\]: True
         runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)
 
-    @decorators.known_failure_py3
     @decorators.skipif_not_matplotlib
     def test_pylab_import_all_disabled(self):
         "Verify that plot is not available when pylab_import_all = False"

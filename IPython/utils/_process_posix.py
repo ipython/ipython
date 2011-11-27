@@ -147,7 +147,11 @@ class ProcessHandler(object):
             # can set pexpect's search window to be tiny and it won't matter.
             # We only search for the 'patterns' timeout or EOF, which aren't in
             # the text itself.
-            child = pexpect.spawn(self.sh, args=['-c', cmd])
+            #child = pexpect.spawn(pcmd, searchwindowsize=1)
+            if hasattr(pexpect, 'spawnb'):
+                child = pexpect.spawnb(self.sh, args=['-c', cmd]) # Pexpect-U
+            else:
+                child = pexpect.spawn(self.sh, args=['-c', cmd])  # Vanilla Pexpect
             flush = sys.stdout.flush
             while True:
                 # res is the index of the pattern that caused the match, so we
