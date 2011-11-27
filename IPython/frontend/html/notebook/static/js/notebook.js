@@ -59,7 +59,7 @@ var IPython = (function (IPython) {
         var that = this;
         $(document).keydown(function (event) {
             // console.log(event);
-            if (that.read_only) return;
+            if (that.read_only) return false;
             if (event.which === 27) {
                 // Intercept escape at highest level to avoid closing 
                 // websocket connection with firefox
@@ -165,6 +165,7 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return true;
             };
+            return true;
         });
 
         this.element.bind('collapse_pager', function () {
@@ -203,6 +204,7 @@ var IPython = (function (IPython) {
             if (that.dirty && ! that.read_only) {
                 return "You have unsaved changes that will be lost if you leave this page.";
             };
+            return true;
         });
     };
 
@@ -266,12 +268,12 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.cell_elements = function () {
         return this.element.children("div.cell");
-    }
+    };
 
 
     Notebook.prototype.ncells = function (cell) {
         return this.cell_elements().length;
-    }
+    };
 
 
     // TODO: we are often calling cells as cells()[i], which we should optimize
@@ -280,7 +282,7 @@ var IPython = (function (IPython) {
         return this.cell_elements().toArray().map(function (e) {
             return $(e).data("cell");
         });
-    }
+    };
 
 
     Notebook.prototype.find_cell_index = function (cell) {
@@ -296,7 +298,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.index_or_selected = function (index) {
         return index || this.selected_index() || 0;
-    }
+    };
 
 
     Notebook.prototype.select = function (index) {
@@ -354,7 +356,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.selected_cell = function () {
         return this.cell_elements().eq(this.selected_index()).data("cell");
-    }
+    };
 
 
     // Cell insertion, deletion and moving.
@@ -392,7 +394,7 @@ var IPython = (function (IPython) {
             this.cell_elements().eq(index).after(cell.element);
         };
         this.dirty = true;
-        return this
+        return this;
     };
 
 
@@ -423,14 +425,14 @@ var IPython = (function (IPython) {
         };
         this.dirty = true;
         return this;
-    }
+    };
 
 
     Notebook.prototype.move_cell_down = function (index) {
         var i = index || this.selected_index();
         if (i !== null && i < (this.ncells()-1) && i >= 0) {
-            var pivot = this.cell_elements().eq(i+1)
-            var tomove = this.cell_elements().eq(i)
+            var pivot = this.cell_elements().eq(i+1);
+            var tomove = this.cell_elements().eq(i);
             if (pivot !== null && tomove !== null) {
                 tomove.detach();
                 pivot.after(tomove);
@@ -439,7 +441,7 @@ var IPython = (function (IPython) {
         };
         this.dirty = true;
         return this;
-    }
+    };
 
 
     Notebook.prototype.sort_cells = function () {
@@ -447,7 +449,7 @@ var IPython = (function (IPython) {
         var sindex = this.selected_index();
         var swapped;
         do {
-            swapped = false
+            swapped = false;
             for (var i=1; i<ncells; i++) {
                 current = this.cell_elements().eq(i).data("cell");
                 previous = this.cell_elements().eq(i-1).data("cell");
@@ -470,7 +472,7 @@ var IPython = (function (IPython) {
         this.insert_cell_above(cell, i);
         this.select(this.find_cell_index(cell));
         return cell;
-    }
+    };
 
 
     Notebook.prototype.insert_code_cell_below = function (index) {
@@ -481,7 +483,7 @@ var IPython = (function (IPython) {
         this.insert_cell_below(cell, i);
         this.select(this.find_cell_index(cell));
         return cell;
-    }
+    };
 
 
     Notebook.prototype.insert_html_cell_above = function (index) {
@@ -492,7 +494,7 @@ var IPython = (function (IPython) {
         this.insert_cell_above(cell, i);
         this.select(this.find_cell_index(cell));
         return cell;
-    }
+    };
 
 
     Notebook.prototype.insert_html_cell_below = function (index) {
@@ -503,7 +505,7 @@ var IPython = (function (IPython) {
         this.insert_cell_below(cell, i);
         this.select(this.find_cell_index(cell));
         return cell;
-    }
+    };
 
 
     Notebook.prototype.insert_markdown_cell_above = function (index) {
@@ -514,7 +516,7 @@ var IPython = (function (IPython) {
         this.insert_cell_above(cell, i);
         this.select(this.find_cell_index(cell));
         return cell;
-    }
+    };
 
 
     Notebook.prototype.insert_markdown_cell_below = function (index) {
@@ -525,7 +527,7 @@ var IPython = (function (IPython) {
         this.insert_cell_below(cell, i);
         this.select(this.find_cell_index(cell));
         return cell;
-    }
+    };
 
 
     Notebook.prototype.to_code = function (index) {
@@ -553,11 +555,11 @@ var IPython = (function (IPython) {
         var target_cell = null;
         if (source_cell instanceof IPython.CodeCell) {
             this.insert_markdown_cell_below(i);
-            var target_cell = this.cells()[i+1];
+            target_cell = this.cells()[i+1];
             var text = source_cell.get_code();
         } else if (source_cell instanceof IPython.HTMLCell) {
             this.insert_markdown_cell_below(i);
-            var target_cell = this.cells()[i+1];
+            target_cell = this.cells()[i+1];
             var text = source_cell.get_source();
             if (text === source_cell.placeholder) {
                 text = target_cell.placeholder;
@@ -581,11 +583,11 @@ var IPython = (function (IPython) {
         var target_cell = null;
         if (source_cell instanceof IPython.CodeCell) {
             this.insert_html_cell_below(i);
-            var target_cell = this.cells()[i+1];
+            target_cell = this.cells()[i+1];
             var text = source_cell.get_code();
         } else if (source_cell instanceof IPython.MarkdownCell) {
             this.insert_html_cell_below(i);
-            var target_cell = this.cells()[i+1];
+            target_cell = this.cells()[i+1];
             var text = source_cell.get_source();
             if (text === source_cell.placeholder) {
                 text = target_cell.placeholder;
@@ -643,7 +645,7 @@ var IPython = (function (IPython) {
         var cells = this.cells();
         len = cells.length;
         for (var i=0; i<len; i++) {
-            cells[i].set_autoindent(state)
+            cells[i].set_autoindent(state);
         };
     };
 
@@ -662,7 +664,7 @@ var IPython = (function (IPython) {
     // Other cell functions: line numbers, ...
 
     Notebook.prototype.cell_toggle_line_numbers = function() {
-        this.selected_cell().toggle_line_numbers()
+        this.selected_cell().toggle_line_numbers();
     };
 
     // Kernel related things
@@ -864,8 +866,8 @@ var IPython = (function (IPython) {
     Notebook.prototype.execute_selected_cell = function (options) {
         // add_new: should a new cell be added if we are at the end of the nb
         // terminal: execute in terminal mode, which stays in the current cell
-        default_options = {terminal: false, add_new: true}
-        $.extend(default_options, options)
+        default_options = {terminal: false, add_new: true};
+        $.extend(default_options, options);
         var that = this;
         var cell = that.selected_cell();
         var cell_index = that.find_cell_index(cell);
@@ -938,7 +940,8 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.fromJSON = function (data) {
         var ncells = this.ncells();
-        for (var i=0; i<ncells; i++) {
+        var i;
+        for (i=0; i<ncells; i++) {
             // Always delete cell 0 as they get renumbered as they are deleted.
             this.delete_cell(0);
         };
@@ -951,7 +954,7 @@ var IPython = (function (IPython) {
             ncells = new_cells.length;
             var cell_data = null;
             var new_cell = null;
-            for (var i=0; i<ncells; i++) {
+            for (i=0; i<ncells; i++) {
                 cell_data = new_cells[i];
                 if (cell_data.cell_type == 'code') {
                     new_cell = this.insert_code_cell_below();
@@ -979,8 +982,8 @@ var IPython = (function (IPython) {
             // Only handle 1 worksheet for now.
             worksheets : [{cells:cell_array}],
             metadata : this.metadata
-        }
-        return data
+        };
+        return data;
     };
 
     Notebook.prototype.save_notebook = function () {
@@ -1002,7 +1005,7 @@ var IPython = (function (IPython) {
                 error : $.proxy(this.notebook_save_failed,this)
             };
             IPython.save_widget.status_saving();
-            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id
+            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
             $.ajax(url, settings);
         };
     };
@@ -1012,7 +1015,7 @@ var IPython = (function (IPython) {
         this.dirty = false;
         IPython.save_widget.notebook_saved();
         IPython.save_widget.status_save();
-    }
+    };
 
 
     Notebook.prototype.notebook_save_failed = function (xhr, status, error_msg) {
@@ -1020,7 +1023,7 @@ var IPython = (function (IPython) {
         // TODO: Handle different types of errors (timeout etc.)
         alert('An unexpected error occured while saving the notebook.');
         IPython.save_widget.reset_status();
-    }
+    };
 
 
     Notebook.prototype.load_notebook = function (callback) {
@@ -1040,9 +1043,9 @@ var IPython = (function (IPython) {
             }
         };
         IPython.save_widget.status_loading();
-        var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id
+        var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
         $.ajax(url, settings);
-    }
+    };
 
 
     Notebook.prototype.notebook_loaded = function (data, status, xhr) {

@@ -34,7 +34,7 @@ var IPython = (function (IPython) {
             mode: this.code_mirror_mode,
             theme: 'default',
             value: this.placeholder,
-            readOnly: this.read_only,
+            readOnly: this.read_only
         });
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render').
@@ -52,8 +52,8 @@ var IPython = (function (IPython) {
                 if (that.rendered) {
                     that.edit();
                     event.preventDefault();
-                };
-            };
+                }
+            }
         });
     };
 
@@ -77,8 +77,8 @@ var IPython = (function (IPython) {
             this.rendered = false;
             if (this.get_source() === this.placeholder) {
                 this.set_source('');
-            };
-        };
+            }
+        }
     };
 
 
@@ -145,13 +145,13 @@ var IPython = (function (IPython) {
                 this.set_rendered(data.rendered || '');
                 this.rendered = false;
                 this.render();
-            };
-        };
+            }
+        }
     };
 
 
     TextCell.prototype.toJSON = function () {
-        var data = {}
+        var data = {};
         data.cell_type = this.cell_type;
         data.source = this.get_source();
         return data;
@@ -173,13 +173,13 @@ var IPython = (function (IPython) {
     HTMLCell.prototype.render = function () {
         if (this.rendered === false) {
             var text = this.get_source();
-            if (text === "") {text = this.placeholder;};
+            if (text === "") { text = this.placeholder; }
             this.set_rendered(text);
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
             this.rendered = true;
-        };
+        }
     };
 
 
@@ -198,7 +198,7 @@ var IPython = (function (IPython) {
     MarkdownCell.prototype.render = function () {
         if (this.rendered === false) {
             var text = this.get_source();
-            if (text === "") {text = this.placeholder;};
+            if (text === "") { text = this.placeholder; }
             var html = IPython.markdown_converter.makeHtml(text);
             this.set_rendered(html);
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
@@ -217,7 +217,7 @@ var IPython = (function (IPython) {
                 return '<code class="prettyprint">' + code + '</code>';
             });
             this.rendered = true;
-        };
+        }
     };
 
 
@@ -234,9 +234,9 @@ var IPython = (function (IPython) {
 
 
     RSTCell.prototype.render = function () {
-        if (this.rendered === false) {  
+        if (this.rendered === false) {
             var text = this.get_source();
-            if (text === "") {text = this.placeholder;};
+            if (text === "") { text = this.placeholder; }
             var settings = {
                 processData : false,
                 cache : false,
@@ -249,7 +249,7 @@ var IPython = (function (IPython) {
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
             this.set_rendered("Rendering...");
-        };
+        }
     };
 
 

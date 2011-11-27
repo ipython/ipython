@@ -54,7 +54,7 @@ var IPython = (function (IPython) {
         }
     };
 
-    IPython.LayoutManager = LayoutManager
+    IPython.LayoutManager = LayoutManager;
 
     return IPython;
 

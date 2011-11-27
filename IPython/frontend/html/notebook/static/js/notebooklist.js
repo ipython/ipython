@@ -67,7 +67,7 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(this.list_loaded, this)
         };
-        var url = $('body').data('baseProjectUrl') + 'notebooks'
+        var url = $('body').data('baseProjectUrl') + 'notebooks';
         $.ajax(url, settings);
     };
 
@@ -174,7 +174,7 @@ var IPython = (function (IPython) {
                                     parent_item.remove();
                                 }
                             };
-                            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id
+                            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
                             $.ajax(url, settings);
                             $(this).dialog('close');
                         },
@@ -222,7 +222,7 @@ var IPython = (function (IPython) {
                 };
 
                 var qs = $.param({name:nbname, format:nbformat});
-                var url = $('body').data('baseProjectUrl') + 'notebooks?' + qs
+                var url = $('body').data('baseProjectUrl') + 'notebooks?' + qs;
                 $.ajax(url, settings);
             });
         var cancel_button = $('<button>Cancel</button>').button().

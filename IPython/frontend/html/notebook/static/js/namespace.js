@@ -20,7 +20,7 @@ IPython.namespace = function (ns_string) {
     for (i=0; i<parts.length; i+=1) {
         // Create property if it doesn't exist
         if (typeof parent[parts[i]] === "undefined") {
-            parent[parts[i]] == {};
+            parent[parts[i]] = {};
         }
     }
     return parent;
