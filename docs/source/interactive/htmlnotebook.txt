@@ -254,6 +254,17 @@ protocol mode using a self-signed certificate by typing::
 
         $ openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
 
+Known Issues
+============
+
+When behind a proxy, especially if your system or browser is set to autodetect
+the proxy, the html notebook might fail to connect to the server's websockets,
+and present you with a warning at startup. In this case, you need to configure
+your system not to use the proxy for the server's address.
+
+In Firefox, for example, go to the Preferences panel, Advanced section,
+Network tab, click 'Settings...', and add the address of the notebook server
+to the 'No proxy for' field.
 
 Notebook document format
 ========================
