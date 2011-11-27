@@ -50,7 +50,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.core.macro import Macro
 from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
-from IPython.lib.pylabtools import mpl_runner
+from IPython.core.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.io import file_read, nlprint
@@ -3305,24 +3305,30 @@ Defaulting color scheme to 'NoColor'"""
 
         This magic replaces IPython's threaded shells that were activated
         using the (pylab/wthread/etc.) command line flags.  GUI toolkits
-        can now be enabled, disabled and changed at runtime and keyboard
+        can now be enabled at runtime and keyboard
         interrupts should work without any problems.  The following toolkits
-        are supported:  wxPython, PyQt4, PyGTK, and Tk::
+        are supported:  wxPython, PyQt4, PyGTK, Tk and Cocoa (OSX)::
 
             %gui wx      # enable wxPython event loop integration
             %gui qt4|qt  # enable PyQt4 event loop integration
             %gui gtk     # enable PyGTK event loop integration
             %gui tk      # enable Tk event loop integration
+            %gui OSX     # enable Cocoa event loop integration
+                         # (requires %matplotlib 1.1) 
             %gui         # disable all event loop integration
 
         WARNING:  after any of these has been called you can simply create
         an application object, but DO NOT start the event loop yourself, as
         we have already handled that.
         """
-        from IPython.lib.inputhook import enable_gui
         opts, arg = self.parse_options(parameter_s, '')
         if arg=='': arg = None
-        return enable_gui(arg)
+        try:
+            return self.enable_gui(arg)
+        except Exception as e:
+            # print simple error message, rather than traceback if we can't
+            # hook up the GUI
+            error(str(e))
 
     def magic_load_ext(self, module_str):
         """Load an IPython extension by its module name."""
@@ -3416,9 +3422,9 @@ Defaulting color scheme to 'NoColor'"""
         Parameters
         ----------
         guiname : optional
-          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk', 'osx' or
-          'tk').  If given, the corresponding Matplotlib backend is used,
-          otherwise matplotlib's default (which you can override in your
+          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk',
+          'osx' or 'tk').  If given, the corresponding Matplotlib backend is
+          used, otherwise matplotlib's default (which you can override in your
           matplotlib config file) is used.
 
         Examples
@@ -3449,7 +3455,7 @@ Defaulting color scheme to 'NoColor'"""
         else:
             import_all_status = True
 
-        self.shell.enable_pylab(s,import_all=import_all_status)
+        self.shell.enable_pylab(s, import_all=import_all_status)
 
     def magic_tb(self, s):
         """Print the last traceback with the currently active exception mode.

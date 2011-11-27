@@ -57,6 +57,7 @@ def test_figure_to_svg():
 
 def test_import_pylab():
     ip = get_ipython()
-    pt.import_pylab(ip.user_ns, 'inline', import_all=False, shell=ip)
-    nt.assert_true('plt' in ip.user_ns)
-    nt.assert_equal(ip.user_ns['np'], np)
+    ns = {}
+    pt.import_pylab(ns, import_all=False)
+    nt.assert_true('plt' in ns)
+    nt.assert_equal(ns['np'], np)

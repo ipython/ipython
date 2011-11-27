@@ -679,10 +679,11 @@ loop_map = {
     'wx' : loop_wx,
     'tk' : loop_tk,
     'gtk': loop_gtk,
+    None : None,
 }
 
 def enable_gui(gui, kernel=None):
-    """Enable integration with a give GUI"""
+    """Enable integration with a given GUI"""
     if kernel is None:
         kernel = IPKernelApp.instance().kernel
     if gui not in loop_map:
