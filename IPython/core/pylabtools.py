@@ -267,9 +267,6 @@ def configure_inline_support(shell, backend, user_ns=None):
       A namespace where all configured variables will be placed.  If not given,
       the `user_ns` attribute of the shell object is used.
     """
-    if shell is None:
-        return
-
     # If using our svg payload backend, register the post-execution
     # function that will pick up the results for display.  This can only be
     # done with access to the real shell object.
@@ -333,7 +330,8 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     gui, backend = find_gui_and_backend(gui)
     activate_matplotlib(backend)
     import_pylab(user_ns, import_all)
-    configure_inline_support(shell, backend, user_ns)
+    if shell is not None:
+        configure_inline_support(shell, backend, user_ns)
         
     print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
