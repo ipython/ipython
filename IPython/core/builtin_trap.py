@@ -88,17 +88,12 @@ class BuiltinTrap(Configurable):
             self._orig_builtins[key] = orig
             bdict[key] = value
 
-    def remove_builtin(self, key):
+    def remove_builtin(self, key, orig):
         """Remove an added builtin and re-set the original."""
-        try:
-            orig = self._orig_builtins.pop(key)
-        except KeyError:
-            pass
+        if orig is BuiltinUndefined:
+            del __builtin__.__dict__[key]
         else:
-            if orig is BuiltinUndefined:
-                del __builtin__.__dict__[key]
-            else:
-                __builtin__.__dict__[key] = orig
+            __builtin__.__dict__[key] = orig
 
     def activate(self):
         """Store ipython references in the __builtin__ namespace."""
@@ -115,11 +110,9 @@ class BuiltinTrap(Configurable):
     def deactivate(self):
         """Remove any builtins which might have been added by add_builtins, or
         restore overwritten ones to their previous values."""
-        # Note: must iterate over a static keys() list because we'll be
-        # mutating the dict itself
         remove_builtin = self.remove_builtin
-        for key in self._orig_builtins.keys():
-            remove_builtin(key)
+        for key, val in self._orig_builtins.iteritems():
+            remove_builtin(key, val)
         self._orig_builtins.clear()
         self._builtins_added = False
         try:
