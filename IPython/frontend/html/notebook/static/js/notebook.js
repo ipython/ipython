@@ -44,7 +44,7 @@ var IPython = (function (IPython) {
         // ii) to prevent the div from scrolling up when the last cell is being
         // edited, but is too low on the page, which browsers will do automatically.
         var that = this;
-        var end_space = $('<div class="end_space"></div>').height(150);
+        var end_space = $('<div class="end_space"></div>').height("30%");
         end_space.dblclick(function (e) {
             if (that.read_only) return;
             var ncells = that.ncells();
