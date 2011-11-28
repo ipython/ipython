@@ -14,7 +14,7 @@ import sys
 import time
 from IPython.parallel import Client
 import numpy as np
-from mcpricer import price_options
+from mckernel import price_options
 from matplotlib import pyplot as plt
 
 # <codecell>
@@ -24,7 +24,7 @@ price = 100.0  # Initial price
 rate = 0.05  # Interest rate
 days = 260  # Days to expiration
 paths = 10000  # Number of MC paths
-n_strikes = 5  # Number of strike values
+n_strikes = 6  # Number of strike values
 min_strike = 90.0  # Min strike price
 max_strike = 110.0  # Max strike price
 n_sigmas = 5  # Number of volatility values
@@ -117,7 +117,6 @@ for i, price in enumerate(results):
     prices[i] = tuple(price)
 
 prices.shape = (n_strikes, n_sigmas)
-strike_mesh, sigma_mesh = np.meshgrid(strike_vals, sigma_vals)
 
 # <markdowncell>
 
@@ -125,7 +124,8 @@ strike_mesh, sigma_mesh = np.meshgrid(strike_vals, sigma_vals)
 
 # <codecell>
 
-plt.contourf(sigma_mesh, strike_mesh, prices['ecall'])
+plt.figure()
+plt.contourf(sigma_vals, strike_vals, prices['ecall'])
 plt.axis('tight')
 plt.colorbar()
 plt.title('European Call')
@@ -138,7 +138,8 @@ plt.ylabel("Strike Price")
 
 # <codecell>
 
-plt.contourf(sigma_mesh, strike_mesh, prices['acall'])
+plt.figure()
+plt.contourf(sigma_vals, strike_vals, prices['acall'])
 plt.axis('tight')
 plt.colorbar()
 plt.title("Asian Call")
@@ -151,7 +152,8 @@ plt.ylabel("Strike Price")
 
 # <codecell>
 
-plt.contourf(sigma_mesh, strike_mesh, prices['eput'])
+plt.figure()
+plt.contourf(sigma_vals, strike_vals, prices['eput'])
 plt.axis('tight')
 plt.colorbar()
 plt.title("European Put")
@@ -164,10 +166,15 @@ plt.ylabel("Strike Price")
 
 # <codecell>
 
-plt.contourf(sigma_mesh, strike_mesh, prices['aput'])
+plt.figure()
+plt.contourf(sigma_vals, strike_vals, prices['aput'])
 plt.axis('tight')
 plt.colorbar()
 plt.title("Asian Put")
 plt.xlabel("Volatility")
 plt.ylabel("Strike Price")
+
+# <codecell>
+
+plt.show()
 
