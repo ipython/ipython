@@ -27,6 +27,7 @@ import logging
 import zmq
 
 # Local imports.
+from IPython.core import pylabtools
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import ProfileDir
@@ -37,7 +38,6 @@ from IPython.core.shellapp import (
 from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.utils.jsonutil import json_clean
-from IPython.lib import pylabtools
 from IPython.utils.traitlets import (
     Any, Instance, Float, Dict, CaselessStrEnum
 )
