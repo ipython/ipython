@@ -211,18 +211,20 @@ class HistoryConsoleWidget(ConsoleWidget):
                 'hlen':'len(get_ipython().history_manager.input_hist_raw)',
                 }
             )
-        self._request_info['execute'] = self._ExecutionRequest(msg_id, 'save_magic')
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'save_magic')
 
     def _handle_execute_reply(self, msg):
         """ Handles replies for code execution, here only session history length
         """
-        info = self._request_info.get('execute')
-        if info and info.id == msg['parent_header']['msg_id'] and \
-                info.kind == 'save_magic' and not self._hidden:
-            content = msg['content']
-            status = content['status']
-            if status == 'ok':
-                self._max_session_history=(int(content['user_expressions']['hlen']))
+        info_list = self._request_info.get('execute')
+        msg_id = msg['parent_header']['msg_id']
+        if msg_id in info_list:
+            info = info_list.pop(msg_id)
+            if info.kind == 'save_magic' and not self._hidden:
+                content = msg['content']
+                status = content['status']
+                if status == 'ok':
+                    self._max_session_history=(int(content['user_expressions']['hlen']))
 
     def save_magic(self):
         # update the session history length

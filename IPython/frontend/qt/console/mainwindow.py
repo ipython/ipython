@@ -629,6 +629,9 @@ class MainWindow(QtGui.QMainWindow):
         self.pop = QtGui.QAction("&Update All Magic Menu ",
             self, triggered=self.update_all_magic_menu)
         self.add_menu_action(self.all_magic_menu, self.pop)
+        # we need to populate the 'Magic Menu' once the kernel has answer at
+        # least once let's do it immedialy, but it's assured to works
+        self.pop.trigger()
 
         self.reset_action = QtGui.QAction("&Reset",
             self,

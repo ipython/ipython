@@ -165,11 +165,14 @@ class IPythonWidget(FrontendWidget):
     def _handle_execute_reply(self, msg):
         """ Reimplemented to support prompt requests.
         """
-        info = self._request_info.get('execute')
-        if info and info.id == msg['parent_header']['msg_id']:
+        info_list = self._request_info.get('execute')
+        msg_id = msg['parent_header']['msg_id']
+        if msg_id in info_list:
+            info = info_list[msg_id]
             if info.kind == 'prompt':
                 number = msg['content']['execution_count'] + 1
                 self._show_interpreter_prompt(number)
+                info_list.pop(msg_id)
             else:
                 super(IPythonWidget, self)._handle_execute_reply(msg)
 
@@ -358,7 +361,7 @@ class IPythonWidget(FrontendWidget):
         if number is None:
             msg_id = self.kernel_manager.shell_channel.execute('', silent=True)
             info = self._ExecutionRequest(msg_id, 'prompt')
-            self._request_info['execute'] = info
+            self._request_info['execute'][msg_id] = info
             return
 
         # Show a new prompt and save information about it so that it can be

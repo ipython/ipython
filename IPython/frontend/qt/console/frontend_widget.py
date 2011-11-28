@@ -138,6 +138,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._input_splitter = self._input_splitter_class(input_mode='cell')
         self._kernel_manager = None
         self._request_info = {}
+        self._request_info['execute'] = {};
         self._callback_dict = {}
 
         # Configure the ConsoleWidget.
@@ -199,7 +200,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         See parent class :meth:`execute` docstring for full details.
         """
         msg_id = self.kernel_manager.shell_channel.execute(source, hidden)
-        self._request_info['execute'] = self._ExecutionRequest(msg_id, 'user')
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
         if not hidden:
             self.executing.emit(source)
@@ -343,7 +344,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         msg_id = self.kernel_manager.shell_channel.execute('',
             silent=True, user_expressions={ local_uuid:expr })
         self._callback_dict[local_uuid] = callback
-        self._request_info['execute'] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
 
     def _handle_exec_callback(self, msg):
         """Execute `callback` corresonding to `msg` reply, after ``_silent_exec_callback``
@@ -373,12 +374,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handles replies for code execution.
         """
         self.log.debug("execute: %s", msg.get('content', ''))
-        info = self._request_info.get('execute')
+        info_list = self._request_info.get('execute')
+        msg_id = msg['parent_header']['msg_id']
+        if msg_id in info_list:
+            info = info_list[msg_id]
         # unset reading flag, because if execute finished, raw_input can't
         # still be pending.
         self._reading = False
-        if info and info.id == msg['parent_header']['msg_id'] and \
-                info.kind == 'user' and not self._hidden:
+        if info and info.kind == 'user' and not self._hidden:
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
             self.kernel_manager.sub_channel.flush()
@@ -400,8 +403,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
             self._show_interpreter_prompt_for_reply(msg)
             self.executed.emit(msg)
-        elif info and info.id == msg['parent_header']['msg_id'] and \
-                info.kind == 'silent_exec_callback' and not self._hidden:
+            info_list.pop(msg_id)
+        elif info and info.kind == 'silent_exec_callback' and not self._hidden:
             self._handle_exec_callback(msg)
         else:
             super(FrontendWidget, self)._handle_execute_reply(msg)
@@ -559,7 +562,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         if self._executing:
             self._executing = False
-            self._request_info['execute'] = None
+            self._request_info['execute'] = {}
         self._reading = False
         self._highlighter.highlighting_on = False
 
