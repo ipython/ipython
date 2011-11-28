@@ -24,7 +24,7 @@ from timeit import default_timer as clock
 
 # Files with digits of pi (10m digits each)
 filestring = 'pi200m.ascii.%(i)02dof20'
-files = [filestring % {'i':i} for i in range(1,16)]
+files = [filestring % {'i':i} for i in range(1,21)]
 
 # Connect to the IPython cluster
 c = Client()
