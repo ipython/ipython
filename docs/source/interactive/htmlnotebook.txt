@@ -28,7 +28,7 @@ which will behave similar to the terminal and Qt console versions, using your
 default matplotlib backend and providing floating interactive plot windows.  If
 you want inline figures, you must manually select the ``inline`` backend::
 
-    $ ipython notebook --pylab=inline
+    $ ipython notebook --pylab inline
 
 This server uses the same ZeroMQ-based two process kernel architecture as
 the QT Console as well Tornado for serving HTTP/S requests. Some of the main
@@ -64,18 +64,18 @@ in which the application was started, and allows you to create new notebooks.
 A notebook is a combination of two things:
 
 1. An interactive session connected to an IPython kernel, controlled by a web
-   application that can send input to the console and display many types of output
-   (text, graphics, mathematics and more).  This is the same kernel used by the
-   :ref:`Qt console <qtconsole>`, but in this case the web console sends input in
-   persistent cells that you can edit in-place instead of the vertically scrolling
-   terminal style used by the Qt console.
+   application that can send input to the console and display many types of
+   output (text, graphics, mathematics and more).  This is the same kernel used
+   by the :ref:`Qt console <qtconsole>`, but in this case the web console sends
+   input in persistent cells that you can edit in-place instead of the
+   vertically scrolling terminal style used by the Qt console.
 
 2. A document that can save the inputs and outputs of the session as well as
-   additional text that accompanies the code but is not meant for execution.  In
-   this way, notebook files serve as a complete computational record of a session
-   including explanatory text and mathematics, code and resulting figures.  These
-   documents are internally JSON files and are saved with the ``.ipynb``
-   extension.
+   additional text that accompanies the code but is not meant for execution.
+   In this way, notebook files serve as a complete computational record of a
+   session including explanatory text and mathematics, code and resulting
+   figures.  These documents are internally JSON files and are saved with the
+   ``.ipynb`` extension.
 
 If you have ever used the Mathematica or Sage notebooks (the latter is also
 web-based__) you should feel right at home.  If you have not, you should be
@@ -99,6 +99,7 @@ located in the directory where the notebook server was started.  This notebook
 will consist of a single cell with all the code in the file, which you can
 later manually partition into individual cells for gradual execution, add text
 and graphics, etc.
+
 
 Workflow and limitations
 ------------------------
@@ -158,8 +159,9 @@ keybinding (see below).  You can then type any text in Markdown_ syntax, as
 well as mathematical expressions if you use ``$...$`` for inline math or
 ``$$...$$`` for displayed math.
 
-Exporting a notebook
---------------------
+
+Exporting a notebook and importing existing scripts
+---------------------------------------------------
 
 If you want to provide others with a static HTML or PDF view of your notebook,
 use the ``Print`` button.  This opens a static view of the document, which you
@@ -176,18 +178,28 @@ saved by default with the ``.ipynb`` extension and the files contain JSON data
 that is not meant for human editing or consumption.  But you can always export
 the input part of a notebook to a plain python script by choosing Python format
 in the `Download` drop list.  This removes all output and saves the text cells
-in comment areas.
+in comment areas.  See ref:`below <notebook_format>` for more details on the
+notebook format.
+
+The notebook can also *import* ``.py`` files as notebooks, by dragging and
+dropping the file into the notebook dashboard file list area.  By default, the
+entire contents of the file will be loaded into a single code cell.  But if
+prior to import, you manually add the ``# <nbformat>2</nbformat>`` marker at
+the start and then add separators for text/code cells, you can get a cleaner
+import with the file broken into individual cells.
 
 .. warning::
 
    While in simple cases you can roundtrip a notebook to Python, edit the
-   python file and import it back without loss, this is in general *not
-   guaranteed to work at all*.  As the notebook format evolves in complexity,
-   there will be attributes of the notebook that will not survive a roundtrip
-   through the Python form.  You should think of the Python format as a way to
-   output a script version of a notebook and the import capabilities as a way
-   to load existing code to get a notebook started.  But the Python version is
-   *not* an alternate notebook format.
+   python file and import it back without loss of main content, this is in
+   general *not guaranteed to work at all*.  First, there is extra metadata
+   saved in the notebook that may not be saved to the ``.py`` format.  And as
+   the notebook format evolves in complexity, there will be attributes of the
+   notebook that will not survive a roundtrip through the Python form.  You
+   should think of the Python format as a way to output a script version of a
+   notebook and the import capabilities as a way to load existing code to get a
+   notebook started.  But the Python version is *not* an alternate notebook
+   format.
 
     
 Keyboard use
@@ -216,6 +228,9 @@ key bindings you need to remember are:
   letter :kbd:`h` after :kbd:`Ctrl-m`) and IPython will show you the remaining
   available keybindings.
 
+
+.. _notebook_security:
+
 Security
 ========
 
@@ -243,16 +258,106 @@ You can then add this to your :file:`ipython_notebook_config.py`, e.g.::
     c.NotebookApp.password = u'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
 
 When using a password, it is a good idea to also use SSL, so that your password
-is not sent in the clear. You can start the notebook to communicate via a secure
-protocol mode using a self-signed certificate by typing::
+is not sent unencripted by your browser. You can start the notebook to
+communicate via a secure protocol mode using a self-signed certificate by
+typing::
 
     $ ipython notebook --certfile=mycert.pem
 
 .. note::
 
-    A self-signed certificate can be generated with openssl. For example::
+    A self-signed certificate can be generated with openssl.  For example, the
+    following command will create a certificate valid for 365 days with both
+    the key and certificate data written to the same file::
 
         $ openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
+
+Your browser will warn you of a dangerous certificate because it is
+self-signed.  If you want to have a fully compliant certificate that will not
+raise warnings, it is possible (but rather involved) to obtain one for free,
+`as explained in detailed in this tutorial`__.
+
+.. __: http://arstechnica.com/security/news/2009/12/how-to-get-set-with-a-secure-sertificate-for-free.ars
+	
+Keep in mind that when you enable SSL support, you'll need to access the
+notebook server over ``https://``, not over plain ``http://``.  The startup
+message from the server prints this, but it's easy to overlook and think the
+server is for some reason non-responsive.
+
+
+Quick Howto: running a public notebook server
+=============================================
+
+If you want to access your notebook server remotely with just a web browser,
+here is a quick set of instructions.  Start by creating a certificate file and
+a hashed password as explained above.  Then, create a custom profile for the
+notebook.  At the command line, type::
+
+  ipython profile create nbserver
+
+In the profile directory, edit the file ``ipython_notebook_config.py``.  By
+default the file has all fields commented, the minimum set you need to
+uncomment and edit is here::
+
+     c = get_config()
+
+     # Kernel config
+     c.IPKernelApp.pylab = 'inline'  # if you want plotting support always
+
+     # Notebook config
+     c.NotebookApp.certfile = u'/absolute/path/to/your/certificate/mycert.pem'
+     c.NotebookApp.ip = '*'
+     c.NotebookApp.open_browser = False
+     c.NotebookApp.password = u'sha1:bcd259ccf...your hashed password here'
+     # It's a good idea to put it on a known, fixed port
+     c.NotebookApp.port = 9999
+
+You can then start the notebook and access it later by pointing your browser to
+``https://your.host.com:9999``.
+
+.. _notebook_format:
+
+The notebook format
+===================
+
+The notebooks themselves are JSON files with an ``ipynb`` extension, formatted
+as legibly as possible with minimal extra indentation and cell content broken
+across lines to make them reasonably friendly to use in version-control
+workflows.  You should be very careful if you ever edit manually this JSON
+data, as it is extremely easy to corrupt its internal structure and make the
+file impossible to load.  In general, you should consider the notebook as a
+file meant only to be edited by IPython itself, not for hand-editing.
+
+.. note::
+
+     Binary data such as figures are directly saved in the JSON file.  This
+     provides convenient single-file portability but means the files can be
+     large and diffs of binary data aren't very meaningful.  Since the binary
+     blobs are encoded in a single line they only affect one line of the diff
+     output, but they are typically very long lines.  You can use the
+     'ClearAll' button to remove all output from a notebook prior to
+     committing it to version control, if this is a concern.
+
+The notebook server can also generate a pure-python version of your notebook,
+by clicking on the 'Download' button and selecting ``py`` as the format.  This
+file will contain all the code cells from your notebook verbatim, and all text
+cells prepended with a comment marker.  The separation between code and text
+cells is indicated with special comments and there is a header indicating the
+format version.  All output is stripped out when exporting to python.
+
+Here is an example of a simple notebook with one text cell and one code input
+cell, when exported to python format::
+
+    # <nbformat>2</nbformat>
+
+    # <markdowncell>
+
+    # A text cell
+
+    # <codecell>
+
+    print "hello IPython"
+
 
 Known Issues
 ============
@@ -266,8 +371,5 @@ In Firefox, for example, go to the Preferences panel, Advanced section,
 Network tab, click 'Settings...', and add the address of the notebook server
 to the 'No proxy for' field.
 
-Notebook document format
-========================
-
-
+    
 .. _Markdown: http://daringfireball.net/projects/markdown/basics
