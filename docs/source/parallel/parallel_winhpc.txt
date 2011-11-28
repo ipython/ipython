@@ -2,10 +2,6 @@
 Getting started with Windows HPC Server 2008
 ============================================
 
-.. note::
-
-    Not adapted to zmq yet
-
 Introduction
 ============
 
@@ -118,9 +114,23 @@ the online IPython documentation (http://ipython.org/documentation.html)
 Once you are finished with the installation, you can try IPython out by
 opening a Windows Command Prompt and typing ``ipython``. This will
 start IPython's interactive shell and you should see something like the
-following screenshot:
+following::
 
-.. image:: figs/ipython_shell.*
+    Microsoft Windows [Version 6.0.6001]
+    Copyright (c) 2006 Microsoft Corporation.  All rights reserved.
+
+    Z:\>ipython
+    Python 2.7.2 (default, Jun 12 2011, 15:08:59) [MSC v.1500 32 bit (Intel)]
+    Type "copyright", "credits" or "license" for more information.
+
+    IPython 0.12.dev -- An enhanced Interactive Python.
+    ?         -> Introduction and overview of IPython's features.
+    %quickref -> Quick reference.
+    help      -> Python's own help system.
+    object?   -> Details about 'object', use 'object??' for extra details.
+
+    In [1]:
+
 
 Starting an IPython cluster
 ===========================
@@ -162,13 +172,24 @@ cluster using the Windows HPC Server 2008 job scheduler. To make sure that
 to start an IPython cluster on your local host. To do this, open a Windows
 Command Prompt and type the following command::
 
-    ipcluster start n=2
+    ipcluster start -n 2
 
-You should see a number of messages printed to the screen, ending with 
-"IPython cluster: started". The result should look something like the following
-screenshot:
+You should see a number of messages printed to the screen.
+The result should look something like this::
 
-.. image:: figs/ipcluster_start.*
+    Microsoft Windows [Version 6.1.7600]
+    Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+
+    Z:\>ipcluster start --profile=mycluster
+    [IPClusterStart] Using existing profile dir: u'\\\\blue\\domainusers$\\bgranger\\.ipython\\profile_mycluster'
+    [IPClusterStart] Starting ipcluster with [daemon=False]
+    [IPClusterStart] Creating pid file: \\blue\domainusers$\bgranger\.ipython\profile_mycluster\pid\ipcluster.pid
+    [IPClusterStart] Writing job description file: \\blue\domainusers$\bgranger\.ipython\profile_mycluster\ipcontroller_job.xml
+    [IPClusterStart] Starting Win HPC Job: job submit /jobfile:\\blue\domainusers$\bgranger\.ipython\profile_mycluster\ipcontroller_job.xml /scheduler:HEADNODE
+    [IPClusterStart] Starting 15 engines
+    [IPClusterStart] Writing job description file: \\blue\domainusers$\bgranger\.ipython\profile_mycluster\ipcontroller_job.xml
+    [IPClusterStart] Starting Win HPC Job: job submit /jobfile:\\blue\domainusers$\bgranger\.ipython\profile_mycluster\ipengineset_job.xml /scheduler:HEADNODE
+    
 
 At this point, the controller and two engines are running on your local host.
 This configuration is useful for testing and for situations where you want to
@@ -179,11 +200,11 @@ describe how to configure and run an IPython cluster on an actual compute
 cluster running Windows HPC Server 2008. Here is an outline of the needed
 steps:
 
-1. Create a cluster profile using: ``ipython profile create --parallel profile=mycluster``
+1. Create a cluster profile using: ``ipython profile create mycluster --parallel``
 
 2. Edit configuration files in the directory :file:`.ipython\\cluster_mycluster`
 
-3. Start the cluster using: ``ipcluser start profile=mycluster n=32``
+3. Start the cluster using: ``ipcluster start --profile=mycluster -n 32``
 
 Creating a cluster profile
 --------------------------
@@ -207,10 +228,17 @@ directory, type the following command at the Windows Command Prompt::
     ipython profile create --parallel --profile=mycluster
 
 The output of this command is shown in the screenshot below. Notice how
-:command:`ipcluster` prints out the location of the newly created cluster
-directory.
+:command:`ipcluster` prints out the location of the newly created profile
+directory::
 
-.. image:: figs/ipcluster_create.*
+    Z:\>ipython profile create mycluster --parallel
+    [ProfileCreate] Generating default config file: u'\\\\blue\\domainusers$\\bgranger\\.ipython\\profile_mycluster\\ipython_config.py'
+    [ProfileCreate] Generating default config file: u'\\\\blue\\domainusers$\\bgranger\\.ipython\\profile_mycluster\\ipcontroller_config.py'
+    [ProfileCreate] Generating default config file: u'\\\\blue\\domainusers$\\bgranger\\.ipython\\profile_mycluster\\ipengine_config.py'
+    [ProfileCreate] Generating default config file: u'\\\\blue\\domainusers$\\bgranger\\.ipython\\profile_mycluster\\ipcluster_config.py'
+    [ProfileCreate] Generating default config file: u'\\\\blue\\domainusers$\\bgranger\\.ipython\\profile_mycluster\\iplogger_config.py'
+
+    Z:\>
 
 Configuring a cluster profile
 -----------------------------
@@ -245,7 +273,7 @@ in most cases these will be sufficient to get you started.
 .. warning::
     If any of your configuration attributes involve specifying the location
     of shared directories or files, you must make sure that you use UNC paths
-    like :file:`\\\\host\\share`. It is also important that you specify
+    like :file:`\\\\host\\share`. It is helpful to specify
     these paths using raw Python strings: ``r'\\host\share'`` to make sure
     that the backslashes are properly escaped.
 
@@ -262,7 +290,7 @@ this case 32). Stopping the cluster is as simple as typing Control-C.
 
 Using the HPC Job Manager
 -------------------------
-
+føø
 When ``ipcluster start`` is run the first time, :command:`ipcluster` creates
 two XML job description files in the cluster directory:
 
@@ -288,26 +316,28 @@ shell by typing::
 
     ipython
 
-Then you can create a :class:`MultiEngineClient` instance for your profile and
+Then you can create a :class:`DirectView` instance for your profile and
 use the resulting instance to do a simple interactive parallel computation. In
 the code and screenshot that follows, we take a simple Python function and
 apply it to each element of an array of integers in parallel using the
-:meth:`MultiEngineClient.map` method:
+:meth:`DirectView.map` method:
 
 .. sourcecode:: ipython
 
     In [1]: from IPython.parallel import *
 
-    In [2]: c = MultiEngineClient(profile='mycluster')
+    In [2]: c = Client(profile='mycluster')
 
-    In [3]: mec.get_ids()
-    Out[3]: [0, 1, 2, 3, 4, 5, 67, 8, 9, 10, 11, 12, 13, 14]
+    In [3]: view = c[:]
 
-    In [4]: def f(x):
+    In [4]: c.ids
+    Out[4]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+
+    In [5]: def f(x):
        ...:     return x**10
 
-    In [5]: mec.map(f, range(15))  # f is applied in parallel
-    Out[5]:
+    In [6]: view.map(f, range(15))  # f is applied in parallel
+    Out[6]:
     [0,
      1,
      1024,
@@ -326,7 +356,5 @@ apply it to each element of an array of integers in parallel using the
 
 The :meth:`map` method has the same signature as Python's builtin :func:`map`
 function, but runs the calculation in parallel. More involved examples of using
-:class:`MultiEngineClient` are provided in the examples that follow.
-
-.. image:: figs/mec_simple.*
+:class:`DirectView` are provided in the examples that follow.
 

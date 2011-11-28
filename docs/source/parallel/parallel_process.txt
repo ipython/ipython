@@ -181,7 +181,7 @@ Assuming that the default MPI config is sufficient.
     have not yet supported (such as Condor)
 
 Using :command:`ipcluster` in mpiexec/mpirun mode
---------------------------------------------------
+-------------------------------------------------
 
 
 The mpiexec/mpirun mode is useful if you:
@@ -243,7 +243,7 @@ More details on using MPI with IPython can be found :ref:`here <parallelmpi>`.
 
 
 Using :command:`ipcluster` in PBS mode
----------------------------------------
+--------------------------------------
 
 The PBS mode uses the Portable Batch System (PBS) to start the engines. 
 
@@ -364,7 +364,7 @@ Additional configuration options can be found in the PBS section of :file:`ipclu
 
 
 Using :command:`ipcluster` in SSH mode
----------------------------------------
+--------------------------------------
 
 
 The SSH mode uses :command:`ssh` to execute :command:`ipengine` on remote
@@ -401,7 +401,7 @@ The controller's remote location and configuration can be specified:
     # note that remotely launched ipcontroller will not get the contents of 
     # the local ipcontroller_config.py unless it resides on the *remote host*
     # in the location specified by the `profile-dir` argument.
-    # c.SSHControllerLauncher.program_args = ['--reuse', '--ip=*', '--profile-dir=/path/to/cd']
+    # c.SSHControllerLauncher.controller_args = ['--reuse', '--ip=*', '--profile-dir=/path/to/cd']
 
 .. note::
 
@@ -438,10 +438,11 @@ Current limitations of the SSH mode of :command:`ipcluster` are:
   Also, we are using shell scripts to setup and execute commands on remote
   hosts.
 * No file movement - This is a regression from 0.10, which moved connection files
-  around with scp. This will be improved, but not before 0.11 release.
+  around with scp. This will be improved, Pull Requests are welcome.
+
 
 Using the :command:`ipcontroller` and :command:`ipengine` commands
-====================================================================
+==================================================================
 
 It is also possible to use the :command:`ipcontroller` and :command:`ipengine`
 commands to start your controller and engines. This approach gives you full
@@ -487,7 +488,15 @@ slightly more complicated, but the underlying ideas are the same:
 
 1. Start the controller on a host using :command:`ipcontroller`. The controller must be
    instructed to listen on an interface visible to the engine machines, via the ``ip``
-   command-line argument or ``HubFactory.ip`` in :file:`ipcontroller_config.py`.
+   command-line argument or ``HubFactory.ip`` in :file:`ipcontroller_config.py`::
+   
+        $ ipcontroller --ip=192.168.1.16
+   
+   .. sourcecode:: python
+   
+        # in ipcontroller_config.py
+        HubFactory.ip = '192.168.1.16'
+
 2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/profile_<name>/security` on
    the controller's host to the host where the engines will run.
 3. Use :command:`ipengine` on the engine's hosts to start the engines.
@@ -553,6 +562,62 @@ loopback, and ssh tunnels will be used to connect engines to the controller::
 Or if you want to start many engines on each node, the command `ipcluster engines --n=4`
 without any configuration is equivalent to running ipengine 4 times.
 
+An example using ipcontroller/engine with ssh
+---------------------------------------------
+
+No configuration files are necessary to use ipcontroller/engine in an SSH environment
+without a shared filesystem. You simply need to make sure that the controller is listening
+on an interface visible to the engines, and move the connection file from the controller to
+the engines.
+
+1. start the controller, listening on an ip-address visible to the engine machines::
+
+    [controller.host] $ ipcontroller --ip=192.168.1.16
+    
+    [IPControllerApp] Using existing profile dir: u'/Users/me/.ipython/profile_default'
+    [IPControllerApp] Hub listening on tcp://192.168.1.16:63320 for registration.
+    [IPControllerApp] Hub using DB backend: 'IPython.parallel.controller.dictdb.DictDB'
+    [IPControllerApp] hub::created hub
+    [IPControllerApp] writing connection info to /Users/me/.ipython/profile_default/security/ipcontroller-client.json
+    [IPControllerApp] writing connection info to /Users/me/.ipython/profile_default/security/ipcontroller-engine.json
+    [IPControllerApp] task::using Python leastload Task scheduler
+    [IPControllerApp] Heartmonitor started
+    [IPControllerApp] Creating pid file: /Users/me/.ipython/profile_default/pid/ipcontroller.pid
+    Scheduler started [leastload]
+
+2. on each engine, fetch the connection file with scp::
+
+    [engine.host.n] $ scp controller.host:.ipython/profile_default/security/ipcontroller-engine.json ./
+
+   .. note::
+
+        The log output of ipcontroller above shows you where the json files were written.
+        They will be in :file:`~/.ipython` (or :file:`~/.config/ipython`) under
+        :file:`profile_default/security/ipcontroller-engine.json`
+
+3. start the engines, using the connection file::
+
+    [engine.host.n] $ ipengine --file=./ipcontroller-engine.json
+
+A couple of notes:
+
+* You can avoid having to fetch the connection file every time by adding ``--reuse`` flag
+  to ipcontroller, which instructs the controller to read the previous connection file for
+  connection info, rather than generate a new one with randomized ports.
+
+* In step 2, if you fetch the connection file directly into the security dir of a profile,
+  then you need not specify its path directly, only the profile (assumes the path exists,
+  otherwise you must create it first)::
+
+    [engine.host.n] $ scp controller.host:.ipython/profile_default/security/ipcontroller-engine.json ~/.ipython/profile_ssh/security/
+    [engine.host.n] $ ipengine --profile=ssh
+
+  Of course, if you fetch the file into the default profile, no arguments must be passed to
+  ipengine at all.
+
+* Note that ipengine *did not* specify the ip argument. In general, it is unlikely for any
+  connection information to be specified at the command-line to ipengine, as all of this
+  information should be contained in the connection file written by ipcontroller.
 
 Make JSON files persistent
 --------------------------
