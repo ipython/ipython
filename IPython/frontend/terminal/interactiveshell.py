@@ -341,9 +341,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
         more = False
 
-        # Mark activity in the builtins
-        __builtin__.__dict__['__IPYTHON__active'] += 1
-
         if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
             hlen_b4_cell = self.readline.get_current_history_length()
@@ -412,9 +409,6 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.run_cell(source_raw, store_history=True)
                     hlen_b4_cell = \
                         self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
-
-        # We are off again...
-        __builtin__.__dict__['__IPYTHON__active'] -= 1
 
         # Turn off the exit flag, so the mainloop can be restarted if desired
         self.exit_now = False

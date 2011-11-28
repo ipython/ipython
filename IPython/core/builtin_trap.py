@@ -102,11 +102,6 @@ class BuiltinTrap(Configurable):
         for name, func in self.auto_builtins.iteritems():
             add_builtin(name, func)
 
-        # Keep in the builtins a flag for when IPython is active.  We set it
-        # with setdefault so that multiple nested IPythons don't clobber one
-        # another.
-        __builtin__.__dict__.setdefault('__IPYTHON__active', 0)
-
     def deactivate(self):
         """Remove any builtins which might have been added by add_builtins, or
         restore overwritten ones to their previous values."""
@@ -115,7 +110,3 @@ class BuiltinTrap(Configurable):
             remove_builtin(key, val)
         self._orig_builtins.clear()
         self._builtins_added = False
-        try:
-            del __builtin__.__dict__['__IPYTHON__active']
-        except KeyError:
-            pass

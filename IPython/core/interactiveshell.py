@@ -573,6 +573,20 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self.magic_logstart()
 
     def init_builtins(self):
+        # A single, static flag that we set to True.  Its presence indicates
+        # that an IPython shell has been created, and we make no attempts at
+        # removing on exit or representing the existence of more than one
+        # IPython at a time.
+        builtin_mod.__dict__['__IPYTHON__'] = True
+
+        # In 0.11 we introduced '__IPYTHON__active' as an integer we'd try to
+        # manage on enter/exit, but with all our shells it's virtually
+        # impossible to get all the cases right.  We're leaving the name in for
+        # those who adapted their codes to check for this flag, but will
+        # eventually remove it after a few more releases.
+        builtin_mod.__dict__['__IPYTHON__active'] = \
+                                          'Deprecated, check for __IPYTHON__'
+
         self.builtin_trap = BuiltinTrap(shell=self)
 
     def init_inspector(self):
