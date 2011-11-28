@@ -626,17 +626,9 @@ class MainWindow(QtGui.QMainWindow):
         # is updated at first kernel response. Though, it is necessary when
         # connecting through X-forwarding, as in this case, the menu is not
         # auto updated, SO DO NOT DELETE.
-
-        ########################################################################
-        ## TEMPORARILY DISABLED - see #1057 for details.  Uncomment this
-        ## section when a proper fix is found
-        
-        ## self.pop = QtGui.QAction("&Update All Magic Menu ",
-        ##     self, triggered=self.update_all_magic_menu)
-        ## self.add_menu_action(self.all_magic_menu, self.pop)
-
-        ## END TEMPORARY FIX
-        ########################################################################
+        self.pop = QtGui.QAction("&Update All Magic Menu ",
+            self, triggered=self.update_all_magic_menu)
+        self.add_menu_action(self.all_magic_menu, self.pop)
 
         self.reset_action = QtGui.QAction("&Reset",
             self,
@@ -673,49 +665,6 @@ class MainWindow(QtGui.QMainWindow):
             statusTip="List interactive variable with detail",
             triggered=self.whos_magic_active_frontend)
         self.add_menu_action(self.magic_menu, self.whos_action)
-
-
-        ########################################################################
-        ## TEMPORARILY ADDED BACK - see #1057 for details.  The magic menu is
-        ## supposed to be dynamic, but the mechanism merged in #1057 has a race
-        ## condition that locks up the console very often.  We're putting back
-        ## the static list temporarily/ Remove this code when a proper fix is
-        ## found.
-        
-        # allmagics submenu.
-        
-        # for now this is just a copy and paste, but we should get this
-        # dynamically
-        magiclist = ["%alias", "%autocall", "%automagic", "%bookmark", "%cd",
-        "%clear", "%colors", "%debug", "%dhist", "%dirs", "%doctest_mode",
-        "%ed", "%edit", "%env", "%gui", "%guiref", "%hist", "%history",
-        "%install_default_config", "%install_profiles", "%less", "%load_ext",
-        "%loadpy", "%logoff", "%logon", "%logstart", "%logstate", "%logstop",
-        "%lsmagic", "%macro", "%magic", "%man", "%more", "%notebook", "%page",
-        "%pastebin", "%pdb", "%pdef", "%pdoc", "%pfile", "%pinfo", "%pinfo2",
-        "%popd", "%pprint", "%precision", "%profile", "%prun", "%psearch",
-        "%psource", "%pushd", "%pwd", "%pycat", "%pylab", "%quickref",
-        "%recall", "%rehashx", "%reload_ext", "%rep", "%rerun", "%reset",
-        "%reset_selective", "%run", "%save", "%sc", "%sx", "%tb", "%time",
-        "%timeit", "%unalias", "%unload_ext", "%who", "%who_ls", "%whos",
-        "%xdel", "%xmode"]
-
-        def make_dynamic_magic(i):
-                def inner_dynamic_magic():
-                    self.active_frontend.execute(i)
-                inner_dynamic_magic.__name__ = "dynamics_magic_%s" % i
-                return inner_dynamic_magic
-
-        for magic in magiclist:
-            xaction = QtGui.QAction(magic,
-                self,
-                triggered=make_dynamic_magic(magic)
-                )
-            self.all_magic_menu.addAction(xaction)
-
-        ## END TEMPORARY FIX
-        ########################################################################
-
 
     def init_window_menu(self):
         self.window_menu = self.menuBar().addMenu("&Window")
