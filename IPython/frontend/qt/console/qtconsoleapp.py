@@ -452,8 +452,15 @@ class IPythonQtConsoleApp(BaseIPythonApplication):
         self.window.add_tab_with_frontend(self.widget)
         self.window.init_menu_bar()
 
-        # we need to populate the 'Magic Menu' once the kernel has answer at least once
-        self.kernel_manager.shell_channel.first_reply.connect(self.window.pop.trigger)
+        # we need to populate the 'Magic Menu' once the kernel has answer at
+        # least once 
+
+        ########################################################################
+        ## TEMPORARILY DISABLED - see #1057 for details, uncomment the next
+        ## line when a proper fix is found:
+        ## self.kernel_manager.shell_channel.first_reply.connect(self.window.pop.trigger)
+        ## END TEMPORARY FIX
+        ########################################################################
 
         self.window.setWindowTitle('Python' if self.pure else 'IPython')
 
