@@ -100,6 +100,10 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
     def test_getoutput_quoted(self):
         out = getoutput('python -c "print (1)"')
         self.assertEquals(out.strip(), '1')
+
+    #Invalid quoting on windows
+    @dec.skip_win32
+    def test_getoutput_quoted2(self):
         out = getoutput("python -c 'print (1)'")
         self.assertEquals(out.strip(), '1')
         out = getoutput("python -c 'print (\"1\")'")
