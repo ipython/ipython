@@ -74,14 +74,14 @@ def test_arg_split():
     for argstr, argv in tests:
         nt.assert_equal(arg_split(argstr), argv)
     
-@dec.skip_win32
+@dec.skip_if_not_win32
 def test_arg_split_win32():
     """Ensure that argument lines are correctly split like in a shell."""
     tests = [['hi', ['hi']],
              [u'hi', [u'hi']],
              ['hello there', ['hello', 'there']],
            #  [u'h\N{LATIN SMALL LETTER A WITH CARON}llo', [u'h\N{LATIN SMALL LETTER A WITH CARON}llo']],
-             ['something "with quotes"', ['something', '"with quotes"']],
+             ['something "with quotes"', ['something', 'with quotes']],
              ]
     for argstr, argv in tests:
         nt.assert_equal(arg_split(argstr), argv)
