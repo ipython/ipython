@@ -204,7 +204,9 @@ var IPython = (function (IPython) {
             if (that.dirty && ! that.read_only) {
                 return "You have unsaved changes that will be lost if you leave this page.";
             };
-            return true;
+            // Null is the *only* return value that will make the browser not
+            // pop up the "don't leave" dialog.
+            return null;
         });
     };
 
