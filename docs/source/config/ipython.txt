@@ -124,11 +124,12 @@ attributes::
     c.InteractiveShell.confirm_exit = False
     c.InteractiveShell.deep_reload = True
     c.InteractiveShell.editor = 'nano'
-    c.InteractiveShell.prompt_in1 = 'In [\#]: '
-    c.InteractiveShell.prompt_in2 = '   .\D.: '
-    c.InteractiveShell.prompt_out = 'Out[\#]: '
-    c.InteractiveShell.prompts_pad_left = True
     c.InteractiveShell.xmode = 'Context'
+    
+    c.PromptManager.in_template  = 'In [\#]: '
+    c.PromptManager.in2_template = '   .\D.: '
+    c.PromptManager.out_template = 'Out[\#]: '
+    c.PromptManager.justify = True
 
     c.PrefilterManager.multi_line_specials = True
 
