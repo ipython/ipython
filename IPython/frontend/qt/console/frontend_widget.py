@@ -404,6 +404,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             self._request_info['execute'].pop(msg_id)
         elif info and info.kind == 'silent_exec_callback' and not self._hidden:
             self._handle_exec_callback(msg)
+            self._request_info['execute'].pop(msg_id)
         else:
             super(FrontendWidget, self)._handle_execute_reply(msg)
 
