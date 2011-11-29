@@ -233,6 +233,14 @@ var IPython = (function (IPython) {
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
 
         // smart completion, sort kwarg ending with '='
+        var key = { tab:9,
+                    esc:8,
+                    space:13,
+                    shift:16,
+                    enter:32,
+                    // _ is 189
+                    isCompSymbol : function (code) {return ((code>64 && code <=122)|| code == 189)}
+                    }
         var newm = new Array();
         if(this.notebook.smart_completer)
         {
@@ -320,22 +328,20 @@ var IPython = (function (IPython) {
             insert(select.val()[0]);
         };
 
-        // if only one match, complete to it, don't ask user
-        if (matches.length === 1) {
-            insert(matches[0]);
-            return;
-        };
-
 
         // Define function to clear the completer, refill it with the new
         // matches, update the pseuso typing field. Note that this is case
         // insensitive for now
-        var complete_with = function(matches,typed_text)
+        var complete_with = function(matches,typed_text,autopick)
         {
-            //clear the previous completion if any
+            // If autopick an only one match, past.
+            // Used to 'pick' when pressing tab
             if (matches.length < 1) {
                 insert(typed_text);
+            } else if (autopick && matches.length==1) {
+                insert(matches[0]);
             }
+            //clear the previous completion if any
             complete.children().children().remove();
             $('#asyoutype').text(typed_text);
             select=$('#asyoutypeselect');
@@ -364,25 +370,25 @@ var IPython = (function (IPython) {
         $('body').append(complete);
 
         //do a first actual completion
-        complete_with(matches,matched_text);
-
+        fastForward = sharedStart(matches)
+        typed_characters= fastForward.substr(matched_text.length);
+        complete_with(matches,matched_text+typed_characters,true);
+        filterd=matches;
         // Give focus to select, and make it filter the match as the user type
         // by filtering the previous matches
-        typed_characters = "";
         var downandpress = function (event,press_or_down) {
-            if (press_or_down === 0){
-                press=true;
-                down=false;
-            } else if (press_or_down == 1){
-                press=false;
-                down=true;
-            }
             var code = event.which;
-            if (code === 16) {
+            var autopick = false; // auto 'pick' if only one match
+            if (press_or_down === 0){
+                press=true; down=false; //Are we called from keypress or keydown
+            } else if (press_or_down == 1){
+                press=false; down=true;
+            }
+            if (code === key.shift) {
                 // nothing on Shift
                 return;
             }
-            if (code === 13 || code === 32) {
+            if (code === key.space || code === key.enter) {
                 // Pressing SPACE or ENTER will cause a pick
                 event.stopPropagation();
                 event.preventDefault();
@@ -391,20 +397,21 @@ var IPython = (function (IPython) {
                 // We don't want the document keydown handler to handle UP/DOWN,
                 // but we want the default action.
                 event.stopPropagation();
-            } else if ((code>64 && code <=122)|| (code==8 && down)||(code==9 && down)){
+            //} else if ( key.isCompSymbol(code)|| (code==key.backspace)||(code==key.tab && down)){
+            } else if ( (code==key.backspace)||(code==key.tab) || press || key.isCompSymbol(code)){
                 // issues with _-.. on chrome at least
-                if(code != 8 && press)
+                if((code != key.backspace) && (code != key.tab) && press) 
                 {
                     var newchar = String.fromCharCode(code);
                     typed_characters=typed_characters+newchar;
-                } else if (code == 9) {
+                } else if (code == key.tab) {
                     fastForward = sharedStart(filterd)
                     ffsub = fastForward.substr(matched_text.length+typed_characters.length);
                     typed_characters=typed_characters+ffsub;
-                    console.log("Fast forded by :"+ffsub);
+                    autopick=true;
                     event.stopPropagation();
                     event.preventDefault();
-                } else if (code == 8) {
+                } else if (code == key.backspace) {
                     // 8 is backspace remove 1 char cancel if
                     // user have erase everything, otherwise
                     // decrease what we filter with
@@ -416,10 +423,10 @@ var IPython = (function (IPython) {
                 }
                 re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
                 filterd= matches.filter(function(x){return re.test(x)});
-                complete_with(filterd,matched_text+typed_characters);
+                complete_with(filterd,matched_text+typed_characters,autopick);
             } else if(down){ // abort only on press
                 // abort with what the user have pressed until now
-                console.log('aborting with keycode : '+code);
+                console.log('aborting with keycode : '+code+press);
                 insert(matched_text+typed_characters);
             }
         }
