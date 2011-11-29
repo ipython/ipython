@@ -596,6 +596,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
     def init_prompts(self):
         self.prompt_manager = PromptManager(shell=self, config=self.config)
+        self.configurables.append(self.prompt_manager)
 
     def init_display_formatter(self):
         self.display_formatter = DisplayFormatter(config=self.config)
