@@ -18,11 +18,15 @@ from __future__ import print_function
 # stdlib
 import os
 import sys
+import ctypes
 
+from ctypes import c_int, POINTER
+from ctypes.wintypes import LPCWSTR, HLOCAL
 from subprocess import STDOUT
 
 # our own imports
 from ._process_common import read_no_interrupt, process_handler
+from . import py3compat
 from . import text
 
 #-----------------------------------------------------------------------------
@@ -146,3 +150,27 @@ def getoutput(cmd):
     if out is None:
         out = ''
     return out
+
+
+CommandLineToArgvW = ctypes.windll.shell32.CommandLineToArgvW
+CommandLineToArgvW.arg_types = [LPCWSTR, POINTER(c_int)]
+CommandLineToArgvW.res_types = [POINTER(LPCWSTR)]
+LocalFree = ctypes.windll.kernel32.LocalFree
+LocalFree.res_type = HLOCAL
+LocalFree.arg_types = [HLOCAL]
+
+def arg_split(commandline, posix=False):
+    """Split a command line's arguments in a shell-like manner.
+
+    This is a special version for windows that use a ctypes call to CommandLineToArgvW
+    to do the argv splitting. The posix paramter is ignored.
+    """
+    #CommandLineToArgvW returns path to executable if called with empty string.
+    if commandline.strip() == "":
+        return []
+    argvn = c_int()
+    result_pointer = CommandLineToArgvW(py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn))
+    result_array_type = LPCWSTR * argvn.value
+    result = [arg for arg in result_array_type.from_address(result_pointer)]
+    retval = LocalFree(result_pointer)
+    return result

@@ -68,7 +68,10 @@ def test_arg_split():
     tests = [['hi', ['hi']],
              [u'hi', [u'hi']],
              ['hello there', ['hello', 'there']],
-#             [u'h\N{LATIN SMALL LETTER A WITH CARON}llo', [u'h\N{LATIN SMALL LETTER A WITH CARON}llo']],
+             # \u01ce == \N{LATIN SMALL LETTER A WITH CARON}
+             # Do not use \N because the tests crash with syntax error in
+             # some cases, for example windows python2.6.
+             [u'h\u01cello', [u'h\u01cello']],
              ['something "with quotes"', ['something', '"with quotes"']],
              ]
     for argstr, argv in tests:
@@ -80,7 +83,7 @@ def test_arg_split_win32():
     tests = [['hi', ['hi']],
              [u'hi', [u'hi']],
              ['hello there', ['hello', 'there']],
-           #  [u'h\N{LATIN SMALL LETTER A WITH CARON}llo', [u'h\N{LATIN SMALL LETTER A WITH CARON}llo']],
+             [u'h\u01cello', [u'h\u01cello']],
              ['something "with quotes"', ['something', 'with quotes']],
              ]
     for argstr, argv in tests:

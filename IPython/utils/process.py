@@ -22,18 +22,10 @@ import shlex
 
 # Our own
 if sys.platform == 'win32':
-    import ctypes
-    from ctypes.wintypes import LPCWSTR, HLOCAL
-    from ctypes import c_int, POINTER
-    from ._process_win32 import _find_cmd, system, getoutput, AvoidUNCPath
-    CommandLineToArgvW = ctypes.windll.shell32.CommandLineToArgvW
-    CommandLineToArgvW.arg_types = [LPCWSTR, POINTER(c_int)]
-    CommandLineToArgvW.res_types = [POINTER(LPCWSTR)]
-    LocalFree = ctypes.windll.kernel32.LocalFree
-    LocalFree.res_type = HLOCAL
-    LocalFree.arg_types = [HLOCAL]
+    from ._process_win32 import _find_cmd, system, getoutput, AvoidUNCPath, arg_split
 else:
-    from ._process_posix import _find_cmd, system, getoutput
+    from ._process_posix import _find_cmd, system, getoutput, arg_split
+
 
 from ._process_common import getoutputerror
 from IPython.utils import py3compat
@@ -111,44 +103,6 @@ def pycmd2argv(cmd):
             return [sys.executable, '-u', cmd]
         else:
             return [sys.executable, cmd]
-
-if sys.platform == 'win32':
-    def arg_split(commandline, posix=False):
-        """Split a command line's arguments in a shell-like manner.
-
-        This is a special version for windows that use a ctypes call to CommandLineToArgvW
-        to do the argv splitting. The posix paramter is ignored.
-        """
-        argvn = c_int()
-        result_pointer = CommandLineToArgvW(py3compat.str_to_unicode(commandline.lstrip()), ctypes.byref(argvn))
-        result_array_type = LPCWSTR * argvn.value
-        result = [arg for arg in result_array_type.from_address(result_pointer)]
-        retval = LocalFree(result_pointer)
-        return result
-else:
-    def arg_split(s, posix=False):
-        """Split a command line's arguments in a shell-like manner.
-
-        This is a modified version of the standard library's shlex.split()
-        function, but with a default of posix=False for splitting, so that quotes
-        in inputs are respected."""
-
-        # Unfortunately, python's shlex module is buggy with unicode input:
-        # http://bugs.python.org/issue1170
-        # At least encoding the input when it's unicode seems to help, but there
-        # may be more problems lurking.  Apparently this is fixed in python3.
-        is_unicode = False
-        if (not py3compat.PY3) and isinstance(s, unicode):
-            is_unicode = True
-            s = s.encode('utf-8')
-        lex = shlex.shlex(s, posix=posix)
-        lex.whitespace_split = True
-        tokens = list(lex)
-        if is_unicode:
-            # Convert the tokens back to unicode.
-            tokens = [x.decode('utf-8') for x in tokens]
-        return tokens
-
 
 def abbrev_cwd():
     """ Return abbreviated version of cwd, e.g. d:mydir """
