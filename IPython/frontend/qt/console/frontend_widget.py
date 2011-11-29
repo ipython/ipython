@@ -374,10 +374,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handles replies for code execution.
         """
         self.log.debug("execute: %s", msg.get('content', ''))
-        info_list = self._request_info.get('execute')
         msg_id = msg['parent_header']['msg_id']
-        if msg_id in info_list:
-            info = info_list[msg_id]
+        info = self._request_info['execute'].get(msg_id)
         # unset reading flag, because if execute finished, raw_input can't
         # still be pending.
         self._reading = False
@@ -403,7 +401,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
             self._show_interpreter_prompt_for_reply(msg)
             self.executed.emit(msg)
-            info_list.pop(msg_id)
+            self._request_info['execute'].pop(msg_id)
         elif info and info.kind == 'silent_exec_callback' and not self._hidden:
             self._handle_exec_callback(msg)
         else:

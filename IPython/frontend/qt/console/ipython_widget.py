@@ -165,16 +165,14 @@ class IPythonWidget(FrontendWidget):
     def _handle_execute_reply(self, msg):
         """ Reimplemented to support prompt requests.
         """
-        info_list = self._request_info.get('execute')
-        msg_id = msg['parent_header']['msg_id']
-        if msg_id in info_list:
-            info = info_list[msg_id]
-            if info.kind == 'prompt':
-                number = msg['content']['execution_count'] + 1
-                self._show_interpreter_prompt(number)
-                info_list.pop(msg_id)
-            else:
-                super(IPythonWidget, self)._handle_execute_reply(msg)
+        msg_id = msg['parent_header'].get('msg_id')
+        info = self._request_info['execute'].get(msg_id)
+        if info and info.kind == 'prompt':
+           number = msg['content']['execution_count'] + 1
+           self._show_interpreter_prompt(number)
+           self._request_info['execute'].pop(msg_id)
+        else:
+           super(IPythonWidget, self)._handle_execute_reply(msg)
 
     def _handle_history_reply(self, msg):
         """ Implemented to handle history tail replies, which are only supported
