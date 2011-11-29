@@ -231,16 +231,22 @@ var IPython = (function (IPython) {
 
     // As you type completer
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
+        //return if not completing or nothing to complete
+        if (!this.is_completing || matches.length === 0) {return;}
 
-        // smart completion, sort kwarg ending with '='
+        // for later readability
         var key = { tab:9,
-                    esc:8,
+                    esc:27,
+                    backspace:8,
                     space:13,
                     shift:16,
                     enter:32,
                     // _ is 189
-                    isCompSymbol : function (code) {return ((code>64 && code <=122)|| code == 189)}
+                    isCompSymbol : function (code)
+                        {return ((code>64 && code <=122)|| code == 189)}
                     }
+
+        // smart completion, sort kwarg ending with '='
         var newm = new Array();
         if(this.notebook.smart_completer)
         {
@@ -256,21 +262,21 @@ var IPython = (function (IPython) {
         }
         // end sort kwargs
 
+        // give common prefix of a array of string
         function sharedStart(A){
             if(A.length > 1 ){
-            var tem1, tem2, s, A= A.slice(0).sort();
-            tem1= A[0];
-            s= tem1.length;
-            tem2= A.pop();
-            while(s && tem2.indexOf(tem1)== -1){
-                tem1= tem1.substring(0, --s);
-            }
-            return tem1;
+                var tem1, tem2, s, A= A.slice(0).sort();
+                tem1= A[0];
+                s= tem1.length;
+                tem2= A.pop();
+                while(s && tem2.indexOf(tem1)== -1){
+                    tem1= tem1.substring(0, --s);
+                }
+                return tem1;
             }
             return "";
         }
 
-        if (!this.is_completing || matches.length === 0) {return;}
 
         //try to check if the user is typing tab at least twice after a word
         // and completion is "done"
@@ -294,7 +300,7 @@ var IPython = (function (IPython) {
             this.npressed=0;
         }
         // end fallback on tooltip
-
+        //==================================
         // Real completion logic start here
         var that = this;
         var cur = this.completion_cursor;
@@ -330,8 +336,9 @@ var IPython = (function (IPython) {
 
 
         // Define function to clear the completer, refill it with the new
-        // matches, update the pseuso typing field. Note that this is case
-        // insensitive for now
+        // matches, update the pseuso typing field. autopick insert match if
+        // only one left, in no matches (anymore) dismiss itself by pasting
+        // what the user have typed until then
         var complete_with = function(matches,typed_text,autopick)
         {
             // If autopick an only one match, past.
@@ -369,13 +376,14 @@ var IPython = (function (IPython) {
 
         $('body').append(complete);
 
-        //do a first actual completion
+        // So a first actual completion.  see if all the completion start wit
+        // the same letter and complete if necessary
         fastForward = sharedStart(matches)
         typed_characters= fastForward.substr(matched_text.length);
         complete_with(matches,matched_text+typed_characters,true);
         filterd=matches;
         // Give focus to select, and make it filter the match as the user type
-        // by filtering the previous matches
+        // by filtering the previous matches. Called by .keypress and .keydown
         var downandpress = function (event,press_or_down) {
             var code = event.which;
             var autopick = false; // auto 'pick' if only one match
@@ -399,8 +407,7 @@ var IPython = (function (IPython) {
                 event.stopPropagation();
             //} else if ( key.isCompSymbol(code)|| (code==key.backspace)||(code==key.tab && down)){
             } else if ( (code==key.backspace)||(code==key.tab) || press || key.isCompSymbol(code)){
-                // issues with _-.. on chrome at least
-                if((code != key.backspace) && (code != key.tab) && press) 
+                if((code != key.backspace) && (code != key.tab) && press)
                 {
                     var newchar = String.fromCharCode(code);
                     typed_characters=typed_characters+newchar;
@@ -412,9 +419,8 @@ var IPython = (function (IPython) {
                     event.stopPropagation();
                     event.preventDefault();
                 } else if (code == key.backspace) {
-                    // 8 is backspace remove 1 char cancel if
-                    // user have erase everything, otherwise
-                    // decrease what we filter with
+                    // cancel if user have erase everything, otherwise decrease
+                    // what we filter with
                     if (typed_characters.length <= 0)
                     {
                         insert(matched_text)
@@ -422,11 +428,11 @@ var IPython = (function (IPython) {
                     typed_characters=typed_characters.substr(0,typed_characters.length-1);
                 }
                 re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
-                filterd= matches.filter(function(x){return re.test(x)});
+                filterd = matches.filter(function(x){return re.test(x)});
                 complete_with(filterd,matched_text+typed_characters,autopick);
-            } else if(down){ // abort only on press
+            } else if(down){ // abort only on .keydown
                 // abort with what the user have pressed until now
-                console.log('aborting with keycode : '+code+press);
+                console.log('aborting with keycode : '+code+' is down :'+down);
                 insert(matched_text+typed_characters);
             }
         }
