@@ -258,7 +258,7 @@ You can then add this to your :file:`ipython_notebook_config.py`, e.g.::
     c.NotebookApp.password = u'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
 
 When using a password, it is a good idea to also use SSL, so that your password
-is not sent unencripted by your browser. You can start the notebook to
+is not sent unencrypted by your browser. You can start the notebook to
 communicate via a secure protocol mode using a self-signed certificate by
 typing::
 
