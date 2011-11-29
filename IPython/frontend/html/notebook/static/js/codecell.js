@@ -248,6 +248,20 @@ var IPython = (function (IPython) {
         }
         // end sort kwargs
 
+        function sharedStart(A){
+            if(A.length > 1 ){
+            var tem1, tem2, s, A= A.slice(0).sort();
+            tem1= A[0];
+            s= tem1.length;
+            tem2= A.pop();
+            while(s && tem2.indexOf(tem1)== -1){
+                tem1= tem1.substring(0, --s);
+            }
+            return tem1;
+            }
+            return "";
+        }
+
         if (!this.is_completing || matches.length === 0) {return;}
 
         //try to check if the user is typing tab at least twice after a word
@@ -377,12 +391,19 @@ var IPython = (function (IPython) {
                 // We don't want the document keydown handler to handle UP/DOWN,
                 // but we want the default action.
                 event.stopPropagation();
-            } else if ((code>64 && code <=122)|| (code==8 && down)){
+            } else if ((code>64 && code <=122)|| (code==8 && down)||(code==9 && down)){
                 // issues with _-.. on chrome at least
                 if(code != 8 && press)
                 {
                     var newchar = String.fromCharCode(code);
                     typed_characters=typed_characters+newchar;
+                } else if (code == 9) {
+                    fastForward = sharedStart(filterd)
+                    ffsub = fastForward.substr(matched_text.length+typed_characters.length);
+                    typed_characters=typed_characters+ffsub;
+                    console.log("Fast forded by :"+ffsub);
+                    event.stopPropagation();
+                    event.preventDefault();
                 } else if (code == 8) {
                     // 8 is backspace remove 1 char cancel if
                     // user have erase everything, otherwise
