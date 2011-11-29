@@ -355,7 +355,14 @@ var IPython = (function (IPython) {
         // Give focus to select, and make it filter the match as the user type
         // by filtering the previous matches
         typed_characters = "";
-        select.keydown(function (event) {
+        var downandpress = function (event,press_or_down) {
+            if (press_or_down === 0){
+                press=true;
+                down=false;
+            } else if (press_or_down == 1){
+                press=false;
+                down=true;
+            }
             var code = event.which;
             if (code === 16) {
                 // nothing on Shift
@@ -370,13 +377,13 @@ var IPython = (function (IPython) {
                 // We don't want the document keydown handler to handle UP/DOWN,
                 // but we want the default action.
                 event.stopPropagation();
-            } else if (code>64 && code <=122 || code==8){
+            } else if ((code>64 && code <=122)|| (code==8 && down)){
                 // issues with _-.. on chrome at least
-                if(code != 8)
+                if(code != 8 && press)
                 {
-                    var newchar = String.fromCharCode(code).toLowerCase();
+                    var newchar = String.fromCharCode(code);
                     typed_characters=typed_characters+newchar;
-                } else {
+                } else if (code == 8) {
                     // 8 is backspace remove 1 char cancel if
                     // user have erase everything, otherwise
                     // decrease what we filter with
@@ -386,14 +393,20 @@ var IPython = (function (IPython) {
                     }
                     typed_characters=typed_characters.substr(0,typed_characters.length-1);
                 }
-                re = new RegExp("^"+"\%?"+matched_text+typed_characters,"i");
+                re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
                 filterd= matches.filter(function(x){return re.test(x)});
                 complete_with(filterd,matched_text+typed_characters);
-            } else {
+            } else if(down){ // abort only on press
                 // abort with what the user have pressed until now
                 console.log('aborting with keycode : '+code);
                 insert(matched_text+typed_characters);
             }
+        }
+        select.keydown(function (event) {
+            downandpress(event,1)
+        });
+        select.keypress(function (event) {
+            downandpress(event,0)
         });
         // Double click also causes a pick.
         // and bind the last actions.
