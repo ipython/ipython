@@ -171,7 +171,7 @@ var IPython = (function (IPython) {
     };
 
     Kernel.prototype.object_info_request = function (objname) {
-        if(typeof(objname)!=null)
+        if(typeof(objname)!=null && objname!=null)
         {
             var content = {
                 oname : objname.toString(),

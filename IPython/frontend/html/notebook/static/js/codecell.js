@@ -73,8 +73,8 @@ var IPython = (function (IPython) {
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any
-        if(event.type === 'keydown' && this.tooltip_timeout != null){
-            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+        if(event.type === 'keydown' ){
+            CodeCell.prototype.remove_and_cancel_tooltip(that.tooltip_timeout);
             that.tooltip_timeout=null;
         }
 
@@ -145,12 +145,13 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    CodeCell.prototype.remove_and_cancell_tooltip = function(timeout)
+    CodeCell.prototype.remove_and_cancel_tooltip = function(timeout)
     {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
-        clearTimeout(timeout);
+        if(timeout != null)
+        { clearTimeout(timeout);}
         $('#tooltip').remove();
     }
 
@@ -229,9 +230,24 @@ var IPython = (function (IPython) {
         // setTimeout(CodeCell.prototype.remove_and_cancell_tooltip, 5000);
     };
 
-
+    // As you type completer
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
-        // console.log("Got matches", matched_text, matches);
+        //return if not completing or nothing to complete
+        if (!this.is_completing || matches.length === 0) {return;}
+
+        // for later readability
+        var key = { tab:9,
+                    esc:27,
+                    backspace:8,
+                    space:13,
+                    shift:16,
+                    enter:32,
+                    // _ is 189
+                    isCompSymbol : function (code)
+                        {return ((code>64 && code <=122)|| code == 189)}
+                    }
+
+        // smart completion, sort kwarg ending with '='
         var newm = new Array();
         if(this.notebook.smart_completer)
         {
@@ -245,7 +261,23 @@ var IPython = (function (IPython) {
             newm = kwargs.concat(other);
             matches=newm;
         }
-        if (!this.is_completing || matches.length === 0) {return;}
+        // end sort kwargs
+
+        // give common prefix of a array of string
+        function sharedStart(A){
+            if(A.length > 1 ){
+                var tem1, tem2, s, A= A.slice(0).sort();
+                tem1= A[0];
+                s= tem1.length;
+                tem2= A.pop();
+                while(s && tem2.indexOf(tem1)== -1){
+                    tem1= tem1.substring(0, --s);
+                }
+                return tem1;
+            }
+            return "";
+        }
+
 
         //try to check if the user is typing tab at least twice after a word
         // and completion is "done"
@@ -268,57 +300,104 @@ var IPython = (function (IPython) {
             this.prevmatch="";
             this.npressed=0;
         }
-
+        // end fallback on tooltip
+        //==================================
+        // Real completion logic start here
         var that = this;
         var cur = this.completion_cursor;
+        var done = false;
 
+        // call to dismmiss the completer
+        var close = function () {
+            if (done) return;
+            done = true;
+            if (complete!=undefined)
+            {complete.remove();}
+            that.is_completing = false;
+            that.completion_cursor = null;
+        };
+
+        // insert the given text and exit the completer
         var insert = function (selected_text) {
             that.code_mirror.replaceRange(
                 selected_text,
                 {line: cur.line, ch: (cur.ch-matched_text.length)},
                 {line: cur.line, ch: cur.ch}
             );
-        };
-
-        if (matches.length === 1) {
-            insert(matches[0]);
+            event.stopPropagation();
+            event.preventDefault();
+            close();
             setTimeout(function(){that.code_mirror.focus();}, 50);
-            return;
         };
 
-        var complete = $('<div/>').addClass('completions');
-        var select = $('<select/>').attr('multiple','true');
-        for (var i=0; i<matches.length; ++i) {
-            select.append($('<option/>').text(matches[i]));
+        // insert the curent highlited selection and exit
+        var pick = function () {
+            insert(select.val()[0]);
+        };
+
+
+        // Define function to clear the completer, refill it with the new
+        // matches, update the pseuso typing field. autopick insert match if
+        // only one left, in no matches (anymore) dismiss itself by pasting
+        // what the user have typed until then
+        var complete_with = function(matches,typed_text,autopick)
+        {
+            // If autopick an only one match, past.
+            // Used to 'pick' when pressing tab
+            if (matches.length < 1) {
+                insert(typed_text);
+            } else if (autopick && matches.length==1) {
+                insert(matches[0]);
+            }
+            //clear the previous completion if any
+            complete.children().children().remove();
+            $('#asyoutype').text(typed_text);
+            select=$('#asyoutypeselect');
+            for (var i=0; i<matches.length; ++i) {
+                    select.append($('<option/>').html(matches[i]));
+            }
+            select.children().first().attr('selected','true');
         }
-        select.children().first().attr('selected','true');
-        select.attr('size',Math.min(10,matches.length));
+
+        // create html for completer
+        var complete = $('<div/>').addClass('completions');
+            complete.attr('id','complete');
+        complete.append($('<p/>').attr('id', 'asyoutype').html(matched_text));//pseudo input field
+
+        var select = $('<select/>').attr('multiple','true');
+            select.attr('id', 'asyoutypeselect')
+            select.attr('size',Math.min(10,matches.length));
         var pos = this.code_mirror.cursorCoords();
+
+        // TODO: I propose to remove enough horizontal pixel
+        // to align the text later
         complete.css('left',pos.x+'px');
         complete.css('top',pos.yBot+'px');
         complete.append(select);
 
         $('body').append(complete);
-        var done = false;
 
-        var close = function () {
-            if (done) return;
-            done = true;
-            complete.remove();
-            that.is_completing = false;
-            that.completion_cursor = null;
-        };
-
-        var pick = function () {
-            insert(select.val()[0]);
-            close();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
-        };
-
-        select.blur(close);
-        select.keydown(function (event) {
+        // So a first actual completion.  see if all the completion start wit
+        // the same letter and complete if necessary
+        fastForward = sharedStart(matches)
+        typed_characters= fastForward.substr(matched_text.length);
+        complete_with(matches,matched_text+typed_characters,true);
+        filterd=matches;
+        // Give focus to select, and make it filter the match as the user type
+        // by filtering the previous matches. Called by .keypress and .keydown
+        var downandpress = function (event,press_or_down) {
             var code = event.which;
-            if (code === 13 || code === 32) {
+            var autopick = false; // auto 'pick' if only one match
+            if (press_or_down === 0){
+                press=true; down=false; //Are we called from keypress or keydown
+            } else if (press_or_down == 1){
+                press=false; down=true;
+            }
+            if (code === key.shift) {
+                // nothing on Shift
+                return;
+            }
+            if (code === key.space || code === key.enter) {
                 // Pressing SPACE or ENTER will cause a pick
                 event.stopPropagation();
                 event.preventDefault();
@@ -327,16 +406,47 @@ var IPython = (function (IPython) {
                 // We don't want the document keydown handler to handle UP/DOWN,
                 // but we want the default action.
                 event.stopPropagation();
-            } else {
-                // All other key presses exit completion.
-                event.stopPropagation();
-                event.preventDefault();
-                close();
-                that.code_mirror.focus();
+            //} else if ( key.isCompSymbol(code)|| (code==key.backspace)||(code==key.tab && down)){
+            } else if ( (code==key.backspace)||(code==key.tab) || press || key.isCompSymbol(code)){
+                if((code != key.backspace) && (code != key.tab) && press)
+                {
+                    var newchar = String.fromCharCode(code);
+                    typed_characters=typed_characters+newchar;
+                } else if (code == key.tab) {
+                    fastForward = sharedStart(filterd)
+                    ffsub = fastForward.substr(matched_text.length+typed_characters.length);
+                    typed_characters=typed_characters+ffsub;
+                    autopick=true;
+                    event.stopPropagation();
+                    event.preventDefault();
+                } else if (code == key.backspace) {
+                    // cancel if user have erase everything, otherwise decrease
+                    // what we filter with
+                    if (typed_characters.length <= 0)
+                    {
+                        insert(matched_text)
+                    }
+                    typed_characters=typed_characters.substr(0,typed_characters.length-1);
+                }
+                re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
+                filterd = matches.filter(function(x){return re.test(x)});
+                complete_with(filterd,matched_text+typed_characters,autopick);
+            } else if(down){ // abort only on .keydown
+                // abort with what the user have pressed until now
+                console.log('aborting with keycode : '+code+' is down :'+down);
+                insert(matched_text+typed_characters);
             }
+        }
+        select.keydown(function (event) {
+            downandpress(event,1)
+        });
+        select.keypress(function (event) {
+            downandpress(event,0)
         });
         // Double click also causes a pick.
+        // and bind the last actions.
         select.dblclick(pick);
+        select.blur(close);
         select.focus();
     };
 
