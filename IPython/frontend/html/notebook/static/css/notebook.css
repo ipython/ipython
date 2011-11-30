@@ -406,6 +406,15 @@ div.text_cell_render {
     min-height:50px;
 }
 
+.completions p{
+    background: #DDF;
+    /*outline: none;
+    padding: 0px;*/
+    border-bottom: black solid 1px;
+    padding: 1px;
+    font-family: monospace;
+}
+
 @media print {
     body { overflow: visible !important; }
     .ui-widget-content { border: 0px; }
