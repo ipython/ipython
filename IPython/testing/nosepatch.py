@@ -3,7 +3,12 @@
 By default, nose's ismethod() fails for static methods.
 Once this is fixed in upstream nose we can disable it.
 
-Note: merely importing this module causes the monkeypatch to be applied."""
+Notes: 
+
+- As of Nose 1.0.0, the problem persists so this monkeypatch is still
+needed.
+
+- Merely importing this module causes the monkeypatch to be applied."""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2009-2011  The IPython Development Team
