@@ -211,14 +211,14 @@ class HistoryConsoleWidget(ConsoleWidget):
                 'hlen':'len(get_ipython().history_manager.input_hist_raw)',
                 }
             )
-        self._request_info['execute'] = self._ExecutionRequest(msg_id, 'save_magic')
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'save_magic')
 
     def _handle_execute_reply(self, msg):
         """ Handles replies for code execution, here only session history length
         """
-        info = self._request_info.get('execute')
-        if info and info.id == msg['parent_header']['msg_id'] and \
-                info.kind == 'save_magic' and not self._hidden:
+        msg_id = msg['parent_header']['msg_id']
+        info = self._request_info.get['execute'].pop(msg_id,None)
+        if info and info.kind == 'save_magic' and not self._hidden:
             content = msg['content']
             status = content['status']
             if status == 'ok':
