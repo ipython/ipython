@@ -19,9 +19,7 @@ For full details, see the installation section of the manual.  The basic parts
 of IPython only need the Python standard library, but much of its more advanced
 functionality requires extra packages.
 
-Officially, IPython requires Python version 2.6 or 2.7.  A separate repository
-contains our Python 3 version, as explained `in our wiki
-<http://wiki.ipython.org/Python_3>`_.
+Officially, IPython requires Python version 2.6, 2.7, or 3.1 and above.
 
     
 Instant running
