@@ -13,6 +13,7 @@ To automatically restore stored variables at startup, add this to your
 
 from IPython.core.error import TryNext, UsageError
 from IPython.core.plugin import Plugin
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import pickleshare
 from IPython.utils.traitlets import Bool, Instance
 
@@ -50,6 +51,7 @@ def restore_data(ip):
     restore_aliases(ip)
     restore_dhist(ip)
 
+@skip_doctest
 def magic_store(self, parameter_s=''):
     """Lightweight persistence for python variables.
 
