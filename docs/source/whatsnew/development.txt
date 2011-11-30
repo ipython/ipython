@@ -117,6 +117,15 @@ Backwards incompatible changes
   traits, rather than several ip/port pair ``_addr`` traits. This better matches the
   rest of the code, where the ip cannot not be set separately for each channel.
 
+* Custom prompts are now configured using a new class,
+  :class:`~IPython.core.prompts.PromptManager`, which has traits for :attr:`in_template`,
+  :attr:`in2_template` (the ``...:`` continuation prompt), :attr:`out_template`
+  and :attr:`rewrite_template`. This uses Python's string formatting system, so
+  you can use ``{time}`` and ``{cwd}``, although we have preserved the abbreviations
+  from previous versions, e.g. ``\#`` (prompt number) and ``\w`` (working 
+  directory). For the list of available fields, refer to the source of
+  :file:`IPython/core/prompts.py`.
+
 * The class inheritance of the Launchers in :mod:`IPython.parallel.apps.launcher`
   used by ipcluster has changed, so that trait names are more consistent across
   batch systems. This may require a few renames in your config files, if you

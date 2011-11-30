@@ -133,7 +133,7 @@ class ZMQInteractiveShell(InteractiveShell):
         FIXME: this payload is currently not correctly processed by the
         frontend.
         """
-        new = self.displayhook.prompt1.auto_rewrite() + cmd
+        new = self.prompt_manager.render('rewrite') + cmd
         payload = dict(
             source='IPython.zmq.zmqshell.ZMQInteractiveShell.auto_rewrite_input',
             transformed_input=new,

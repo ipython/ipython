@@ -15,12 +15,7 @@ import os
 
 from IPython.utils.ipstruct import Struct
 
-def make_color_table(in_class):
-    """Build a set of color attributes in a class.
-
-    Helper function for building the *TermColors classes."""
-
-    color_templates = (
+color_templates = (
         # Dark colors
         ("Black"       , "0;30"),
         ("Red"         , "0;31"),
@@ -49,6 +44,11 @@ def make_color_table(in_class):
         ("BlinkCyan"   , "5;36"),
         ("BlinkLightGray", "5;37"),
         )
+
+def make_color_table(in_class):
+    """Build a set of color attributes in a class.
+
+    Helper function for building the *TermColors classes."""
 
     for name,value in color_templates:
         setattr(in_class,name,in_class._base % value)
@@ -97,6 +97,14 @@ class InputTermColors:
 
 # Build the actual color table as a set of class attributes:
 make_color_table(InputTermColors)
+
+class NoColors:
+    """This defines all the same names as the colour classes, but maps them to
+    empty strings, so it can easily be substituted to turn off colours."""
+    NoColor = ''
+
+for name, value in color_templates:
+    setattr(NoColors, name, '')
 
 class ColorScheme:
     """Generic color scheme class. Just a name and a Struct."""
