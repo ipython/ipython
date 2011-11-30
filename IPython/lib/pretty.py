@@ -668,7 +668,7 @@ _type_pprinters = {
 
 try:
     _type_pprinters[types.DictProxyType] = _dict_pprinter_factory('<dictproxy {', '}>')
-    _type_pprinters[types.ClassType] = _type_pprint,
+    _type_pprinters[types.ClassType] = _type_pprint
 except AttributeError: # Python 3
     pass
     
