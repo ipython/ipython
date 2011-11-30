@@ -168,7 +168,9 @@ class InteractiveShellApp(Configurable):
                     self.log.info("Loading IPython extension: %s" % ext)
                     self.shell.extension_manager.load_extension(ext)
                 except:
-                    self.log.warn("Error in loading extension: %s" % ext)
+                    self.log.warn("Error in loading extension: %s" % ext +
+                        "\nCheck your config files in %s" % self.profile_dir.location
+                    )
                     self.shell.showtraceback()
         except:
             self.log.warn("Unknown error in loading extensions:")
