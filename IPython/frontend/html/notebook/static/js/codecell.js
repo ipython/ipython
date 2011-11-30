@@ -318,21 +318,23 @@ var IPython = (function (IPython) {
         };
 
         // insert the given text and exit the completer
-        var insert = function (selected_text) {
+        var insert = function (selected_text, event) {
             that.code_mirror.replaceRange(
                 selected_text,
                 {line: cur.line, ch: (cur.ch-matched_text.length)},
                 {line: cur.line, ch: cur.ch}
             );
-            event.stopPropagation();
-            event.preventDefault();
+            if(event != null){
+                event.stopPropagation();
+                event.preventDefault();
+            }
             close();
             setTimeout(function(){that.code_mirror.focus();}, 50);
         };
 
         // insert the curent highlited selection and exit
         var pick = function () {
-            insert(select.val()[0]);
+            insert(select.val()[0],null);
         };
 
 
@@ -340,14 +342,22 @@ var IPython = (function (IPython) {
         // matches, update the pseuso typing field. autopick insert match if
         // only one left, in no matches (anymore) dismiss itself by pasting
         // what the user have typed until then
-        var complete_with = function(matches,typed_text,autopick)
+        var complete_with = function(matches,typed_text,autopick,event)
         {
             // If autopick an only one match, past.
             // Used to 'pick' when pressing tab
             if (matches.length < 1) {
-                insert(typed_text);
+                insert(typed_text,event);
+                if(event !=null){
+                event.stopPropagation();
+                event.preventDefault();
+                }
             } else if (autopick && matches.length==1) {
-                insert(matches[0]);
+                insert(matches[0],event);
+                if(event !=null){
+                event.stopPropagation();
+                event.preventDefault();
+                }
             }
             //clear the previous completion if any
             complete.children().children().remove();
@@ -381,7 +391,7 @@ var IPython = (function (IPython) {
         // the same letter and complete if necessary
         fastForward = sharedStart(matches)
         typed_characters= fastForward.substr(matched_text.length);
-        complete_with(matches,matched_text+typed_characters,true);
+        complete_with(matches,matched_text+typed_characters,true,null);
         filterd=matches;
         // Give focus to select, and make it filter the match as the user type
         // by filtering the previous matches. Called by .keypress and .keydown
@@ -407,8 +417,8 @@ var IPython = (function (IPython) {
                 // but we want the default action.
                 event.stopPropagation();
             //} else if ( key.isCompSymbol(code)|| (code==key.backspace)||(code==key.tab && down)){
-            } else if ( (code==key.backspace)||(code==key.tab) || press || key.isCompSymbol(code)){
-                if((code != key.backspace) && (code != key.tab) && press)
+            } else if ( (code==key.backspace)||(code==key.tab && down) || press || key.isCompSymbol(code)){
+                if( key.isCompSymbol(code) && press)
                 {
                     var newchar = String.fromCharCode(code);
                     typed_characters=typed_characters+newchar;
@@ -419,22 +429,22 @@ var IPython = (function (IPython) {
                     autopick=true;
                     event.stopPropagation();
                     event.preventDefault();
-                } else if (code == key.backspace) {
+                } else if (code == key.backspace && down) {
                     // cancel if user have erase everything, otherwise decrease
                     // what we filter with
                     if (typed_characters.length <= 0)
                     {
-                        insert(matched_text)
+                        insert(matched_text,event)
                     }
                     typed_characters=typed_characters.substr(0,typed_characters.length-1);
-                }
+                }else{return}
                 re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
                 filterd = matches.filter(function(x){return re.test(x)});
-                complete_with(filterd,matched_text+typed_characters,autopick);
+                complete_with(filterd,matched_text+typed_characters,autopick,event);
             } else if(down){ // abort only on .keydown
                 // abort with what the user have pressed until now
                 console.log('aborting with keycode : '+code+' is down :'+down);
-                insert(matched_text+typed_characters);
+                insert(matched_text+typed_characters,event);
             }
         }
         select.keydown(function (event) {
