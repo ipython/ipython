@@ -63,6 +63,7 @@ from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
 from IPython.core.profiledir import ProfileDir
 from IPython.core.pylabtools import pylab_activate
+from IPython.core.prompts import PromptManager
 from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io
@@ -594,10 +595,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
             io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
-        # TODO: This is a pass for now because the prompts are managed inside
-        # the DisplayHook. Once there is a separate prompt manager, this
-        # will initialize that object and all prompt related information.
-        pass
+        self.prompt_manager = PromptManager(shell=self, config=self.config)
+        self.configurables.append(self.prompt_manager)
 
     def init_display_formatter(self):
         self.display_formatter = DisplayFormatter(config=self.config)
@@ -613,13 +612,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
             config=self.config,
             shell=self,
             cache_size=self.cache_size,
-            input_sep = self.separate_in,
-            output_sep = self.separate_out,
-            output_sep2 = self.separate_out2,
-            ps1 = self.prompt_in1,
-            ps2 = self.prompt_in2,
-            ps_out = self.prompt_out,
-            pad_left = self.prompts_pad_left
         )
         self.configurables.append(self.displayhook)
         # This is a context manager that installs/revmoes the displayhook at
@@ -2149,7 +2141,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         after the user's input prompt.  This helps the user understand that the
         input line was transformed automatically by IPython.
         """
-        rw = self.displayhook.prompt1.auto_rewrite() + cmd
+        rw = self.prompt_manager.render('rewrite') + cmd
 
         try:
             # plain ascii works better w/ pyreadline, on some machines, so

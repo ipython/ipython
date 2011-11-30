@@ -2554,12 +2554,12 @@ Defaulting color scheme to 'NoColor'"""
 
         # Set prompt colors
         try:
-            shell.displayhook.set_colors(new_scheme)
+            shell.prompt_manager.color_scheme = new_scheme
         except:
             color_switch_err('prompt')
         else:
             shell.colors = \
-                       shell.displayhook.color_table.active_scheme_name
+                   shell.prompt_manager.color_scheme_table.active_scheme_name
         # Set exception colors
         try:
             shell.InteractiveTB.set_colors(scheme = new_scheme)
@@ -3237,7 +3237,7 @@ Defaulting color scheme to 'NoColor'"""
 
         # Shorthands
         shell = self.shell
-        oc = shell.displayhook
+        pm = shell.prompt_manager
         meta = shell.meta
         disp_formatter = self.shell.display_formatter
         ptformatter = disp_formatter.formatters['text/plain']
@@ -3252,23 +3252,23 @@ Defaulting color scheme to 'NoColor'"""
         save_dstore('xmode',shell.InteractiveTB.mode)
         save_dstore('rc_separate_out',shell.separate_out)
         save_dstore('rc_separate_out2',shell.separate_out2)
-        save_dstore('rc_prompts_pad_left',shell.prompts_pad_left)
+        save_dstore('rc_prompts_pad_left',pm.justify)
         save_dstore('rc_separate_in',shell.separate_in)
         save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
+        save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
 
         if mode == False:
             # turn on
-            oc.prompt1.p_template = '>>> '
-            oc.prompt2.p_template = '... '
-            oc.prompt_out.p_template = ''
+            pm.in_template = '>>> '
+            pm.in2_template = '... '
+            pm.out_template = ''
 
             # Prompt separators like plain python
-            oc.input_sep = oc.prompt1.sep = ''
-            oc.output_sep = ''
-            oc.output_sep2 = ''
+            shell.separate_in = ''
+            shell.separate_out = ''
+            shell.separate_out2 = ''
 
-            oc.prompt1.pad_left = oc.prompt2.pad_left = \
-                                  oc.prompt_out.pad_left = False
+            pm.justify = False
 
             ptformatter.pprint = False
             disp_formatter.plain_text_only = True
@@ -3276,17 +3276,14 @@ Defaulting color scheme to 'NoColor'"""
             shell.magic_xmode('Plain')
         else:
             # turn off
-            oc.prompt1.p_template = shell.prompt_in1
-            oc.prompt2.p_template = shell.prompt_in2
-            oc.prompt_out.p_template = shell.prompt_out
+            pm.in_template, pm.in2_template, pm.out_template = dstore.prompt_templates
 
-            oc.input_sep = oc.prompt1.sep = dstore.rc_separate_in
+            shell.separate_in = dstore.rc_separate_in
 
-            oc.output_sep = dstore.rc_separate_out
-            oc.output_sep2 = dstore.rc_separate_out2
+            shell.separate_out = dstore.rc_separate_out
+            shell.separate_out2 = dstore.rc_separate_out2
 
-            oc.prompt1.pad_left = oc.prompt2.pad_left = \
-                         oc.prompt_out.pad_left = dstore.rc_prompts_pad_left
+            pm.justify = dstore.rc_prompts_pad_left
 
             ptformatter.pprint = dstore.rc_pprint
             disp_formatter.plain_text_only = dstore.rc_plain_text_only
@@ -3603,6 +3600,7 @@ Defaulting color scheme to 'NoColor'"""
                 PrefilterManager
                 AliasManager
                 IPCompleter
+                PromptManager
                 DisplayFormatter
 
         To view what is configurable on a given class, just pass the class name::

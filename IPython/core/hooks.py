@@ -51,7 +51,7 @@ from IPython.core.error import TryNext
 
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor',
            'input_prefilter', 'shutdown_hook', 'late_startup_hook',
-           'generate_prompt', 'show_in_pager','pre_prompt_hook',
+           'show_in_pager','pre_prompt_hook',
            'pre_run_code_hook', 'clipboard_get']
 
 def editor(self,filename, linenum=None):
@@ -185,13 +185,6 @@ def late_startup_hook(self):
 
     """
     #print "default startup hook ok" # dbg
-
-
-def generate_prompt(self, is_continuation):
-    """ calculate and return a string with the prompt to display """
-    if is_continuation:
-        return str(self.displayhook.prompt2)
-    return str(self.displayhook.prompt1)
 
 
 def show_in_pager(self,s):

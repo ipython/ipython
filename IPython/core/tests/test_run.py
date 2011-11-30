@@ -148,7 +148,7 @@ class TestMagicRunPass(tt.TempFileMixin):
         """Test that prompts correctly generate after %run"""
         self.run_tmpfile()
         _ip = get_ipython()
-        p2 = str(_ip.displayhook.prompt2).strip()
+        p2 = _ip.prompt_manager.render('in2').strip()
         nt.assert_equals(p2[:3], '...')
         
     def test_run_profile( self ):
