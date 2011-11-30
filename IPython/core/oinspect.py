@@ -105,7 +105,7 @@ def getdoc(obj):
     else:
         # if we get extra info, we add it to the normal docstring.
         if isinstance(ds, basestring):
-            return ds
+            return inspect.cleandoc(ds)
     
     try:
         return inspect.getdoc(obj)
