@@ -15,6 +15,7 @@ of subprocess utilities, and it contains tools that are common to all of them.
 # Imports
 #-----------------------------------------------------------------------------
 import subprocess
+import shlex
 import sys
 
 from IPython.utils import py3compat
@@ -143,3 +144,27 @@ def getoutputerror(cmd):
         return '', ''
     out, err = out_err
     return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
+
+
+def arg_split(s, posix=False):
+    """Split a command line's arguments in a shell-like manner.
+
+    This is a modified version of the standard library's shlex.split()
+    function, but with a default of posix=False for splitting, so that quotes
+    in inputs are respected."""
+
+    # Unfortunately, python's shlex module is buggy with unicode input:
+    # http://bugs.python.org/issue1170
+    # At least encoding the input when it's unicode seems to help, but there
+    # may be more problems lurking.  Apparently this is fixed in python3.
+    is_unicode = False
+    if (not py3compat.PY3) and isinstance(s, unicode):
+        is_unicode = True
+        s = s.encode('utf-8')
+    lex = shlex.shlex(s, posix=posix)
+    lex.whitespace_split = True
+    tokens = list(lex)
+    if is_unicode:
+        # Convert the tokens back to unicode.
+        tokens = [x.decode('utf-8') for x in tokens]
+    return tokens

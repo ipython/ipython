@@ -23,7 +23,7 @@ from IPython.external import pexpect
 
 # Our own
 from .autoattr import auto_attr
-from ._process_common import getoutput
+from ._process_common import getoutput, arg_split
 from IPython.utils import text
 from IPython.utils import py3compat
 
@@ -192,3 +192,6 @@ class ProcessHandler(object):
 # programs think they are talking to a tty and produce highly formatted output
 # (ls is a good example) that makes them hard.
 system = ProcessHandler().system
+
+
+
