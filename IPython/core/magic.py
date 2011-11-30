@@ -3600,6 +3600,7 @@ Defaulting color scheme to 'NoColor'"""
                 PrefilterManager
                 AliasManager
                 IPCompleter
+                PromptManager
                 DisplayFormatter
 
         To view what is configurable on a given class, just pass the class name::
