@@ -254,10 +254,12 @@ class PromptManager(Configurable):
         """)
     def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
     
-    in_template = Unicode('In [\\#]: ', config=True)
-    in2_template = Unicode('   .\\D.: ', config=True)
-    out_template = Unicode('Out[\\#]: ', config=True)
-    rewrite_template = Unicode("------> ", config=True)
+    in_template = Unicode('In [\\#]: ', config=True,
+        help="Input prompt.  '\\#' will be transformed to the prompt number")
+    in2_template = Unicode('   .\\D.: ', config=True,
+        help="Continuation prompt.")
+    out_template = Unicode('Out[\\#]: ', config=True,
+        help="Output prompt. '\\#' will be transformed to the prompt number")
     
     justify = Bool(True, config=True, help="""
         If True (default), each prompt will be right-aligned with the
@@ -270,11 +272,12 @@ class PromptManager(Configurable):
     # The number of characters in the last prompt rendered, not including
     # colour characters.
     width = Int()
+    txtwidth = Int()   # Not including right-justification
     
     # The number of characters in each prompt which don't contribute to width
     invisible_chars = Dict()
     def _invisible_chars_default(self):
-        return {'in': 0, 'in2': 0, 'out': 0, 'rewrite': 0}
+        return {'in': 0, 'in2': 0, 'out': 0, 'rewrite':0}
     
     def __init__(self, shell, config=None):
         super(PromptManager, self).__init__(shell=shell, config=config)
@@ -283,13 +286,13 @@ class PromptManager(Configurable):
         self.color_scheme_table = coloransi.ColorSchemeTable([PColNoColors,
                                     PColLinux, PColLightBG], self.color_scheme)
         
-        # Prepare templates
+        # Prepare templates & numbers of invisible characters
         self.update_prompt('in', self.in_template)
         self.update_prompt('in2', self.in2_template)
         self.update_prompt('out', self.out_template)
-        self.update_prompt('rewrite', self.rewrite_template)
+        self.update_prompt('rewrite')
         self.on_trait_change(self._update_prompt_trait, ['in_template',
-                            'in2_template', 'out_template', 'rewrite_template'])
+                            'in2_template', 'out_template'])
     
     def update_prompt(self, name, new_template=None):
         """This is called when a prompt template is updated. It processes
@@ -302,13 +305,62 @@ class PromptManager(Configurable):
         """
         if new_template is not None:
             self.templates[name] = multiple_replace(prompt_abbreviations, new_template)
-        invis_chars = len(self.render(name, color=True, just=False)) - \
-                            len(self.render(name, color=False, just=False))
+        invis_chars = len(self._render(name, color=True)) - \
+                            len(self._render(name, color=False))
         self.invisible_chars[name] = invis_chars
     
     def _update_prompt_trait(self, traitname, new_template):
         name = traitname[:-9]   # Cut off '_template'
         self.update_prompt(name, new_template)
+    
+    def _render(self, name, color=True, **kwargs):
+        """Render but don't justify, or update the width or txtwidth attributes.
+        """
+        if name == 'rewrite':
+            return self._render_rewrite(color=color)
+        
+        if color:
+            scheme = self.color_scheme_table.active_colors
+            if name=='out':
+                colors = color_lists['normal']
+                colors.number, colors.prompt, colors.normal = \
+                        scheme.out_number, scheme.out_prompt, scheme.normal
+            else:
+                colors = color_lists['inp']
+                colors.number, colors.prompt, colors.normal = \
+                        scheme.in_number, scheme.in_prompt, scheme.in_normal
+                if name=='in2':
+                    colors.prompt = scheme.in_prompt2
+        else:
+            # No color
+            colors = color_lists['nocolor']
+            colors.number, colors.prompt, colors.normal = '', '', ''
+        
+        count = self.shell.execution_count    # Shorthand
+        # Build the dictionary to be passed to string formatting
+        fmtargs = dict(color=colors, count=count,
+                        dots="."*len(str(count)),
+                        width=self.width, txtwidth=self.txtwidth )
+        fmtargs.update(self.lazy_evaluate_fields)
+        fmtargs.update(kwargs)
+        
+        # Prepare the prompt
+        prompt = colors.prompt + self.templates[name] + colors.normal
+        
+        # Fill in required fields
+        return prompt.format(**fmtargs)
+    
+    def _render_rewrite(self, color=True):
+        """Render the ---> rewrite prompt."""
+        if color:
+            scheme = self.color_scheme_table.active_colors
+            # We need a non-input version of these escapes
+            color_prompt = scheme.in_prompt.replace("\001","").replace("\002","")
+            color_normal = scheme.normal
+        else:
+            color_prompt, color_normal = '', ''
+
+        return color_prompt + "-> ".rjust(self.txtwidth, "-") + color_normal
     
     def render(self, name, color=True, just=None, **kwargs):
         """
@@ -332,47 +384,13 @@ class PromptManager(Configurable):
         -------
         A string containing the rendered prompt.
         """
-        if color:
-            scheme = self.color_scheme_table.active_colors
-            if name=='out':
-                colors = color_lists['normal']
-                colors.number, colors.prompt, colors.normal = \
-                        scheme.out_number, scheme.out_prompt, scheme.normal
-            elif name=='rewrite':
-                colors = color_lists['normal']
-                # We need a non-input version of these escapes
-                colors.number = scheme.in_number.replace("\001","").replace("\002","")
-                colors.prompt = scheme.in_prompt.replace("\001","").replace("\002","")
-                colors.normal = scheme.normal
-            else:
-                colors = color_lists['inp']
-                colors.number, colors.prompt, colors.normal = \
-                        scheme.in_number, scheme.in_prompt, scheme.in_normal
-                if name=='in2':
-                    colors.prompt = scheme.in_prompt2
-        else:
-            # No color
-            colors = color_lists['nocolor']
-            colors.number, colors.prompt, colors.normal = '', '', ''
-        
-        count = self.shell.execution_count    # Shorthand
-        # Build the dictionary to be passed to string formatting
-        fmtargs = dict(color=colors, count=count,
-                        dots="."*len(str(count)) )
-        fmtargs.update(self.lazy_evaluate_fields)
-        fmtargs.update(kwargs)
-        
-        # Prepare the prompt
-        prompt = colors.prompt + self.templates[name] + colors.normal
-        
-        # Fill in required fields
-        res = prompt.format(**fmtargs)
+        res = self._render(name, color=color, **kwargs)
         
         # Handle justification of prompt
         invis_chars = self.invisible_chars[name] if color else 0
+        self.txtwidth = len(res) - invis_chars
         just = self.justify if (just is None) else just
         if just:
             res = res.rjust(self.width + invis_chars)
         self.width = len(res) - invis_chars
         return res
-

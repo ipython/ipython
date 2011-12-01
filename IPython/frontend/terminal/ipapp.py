@@ -38,6 +38,7 @@ from IPython.core import usage
 from IPython.core.completer import IPCompleter
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.formatters import PlainTextFormatter
+from IPython.core.prompts import PromptManager
 from IPython.core.application import (
     ProfileDir, BaseIPythonApplication, base_flags, base_aliases
 )
@@ -133,9 +134,9 @@ addflag('term-title', 'TerminalInteractiveShell.term_title',
 classic_config = Config()
 classic_config.InteractiveShell.cache_size = 0
 classic_config.PlainTextFormatter.pprint = False
-classic_config.InteractiveShell.prompt_in1 = '>>> '
-classic_config.InteractiveShell.prompt_in2 = '... '
-classic_config.InteractiveShell.prompt_out = ''
+classic_config.PromptManager.in_template = '>>> '
+classic_config.PromptManager.in2_template = '... '
+classic_config.PromptManager.out_template = ''
 classic_config.InteractiveShell.separate_in = ''
 classic_config.InteractiveShell.separate_out = ''
 classic_config.InteractiveShell.separate_out2 = ''
@@ -197,6 +198,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             InteractiveShellApp, # ShellApp comes before TerminalApp, because
             self.__class__,      # it will also affect subclasses (e.g. QtConsole)
             TerminalInteractiveShell,
+            PromptManager,
             ProfileDir,
             PlainTextFormatter,
             IPCompleter,

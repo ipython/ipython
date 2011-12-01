@@ -315,10 +315,41 @@ class InteractiveShell(SingletonConfigurable, Magic):
         help="Save multi-line entries as one entry in readline history"
     )
 
-    prompt_in1 = Unicode('In [\\#]: ', config=True)
-    prompt_in2 = Unicode('   .\\D.: ', config=True)
-    prompt_out = Unicode('Out[\\#]: ', config=True)
-    prompts_pad_left = CBool(True, config=True)
+    # deprecated prompt traits:
+    
+    prompt_in1 = Unicode('In [\\#]: ', config=True,
+        help="Deprecated, use PromptManager.in_template")
+    prompt_in2 = Unicode('   .\\D.: ', config=True,
+        help="Deprecated, use PromptManager.in2_template")
+    prompt_out = Unicode('Out[\\#]: ', config=True,
+        help="Deprecated, use PromptManager.out_template")
+    prompts_pad_left = CBool(True, config=True,
+        help="Deprecated, use PromptManager.justify")
+    
+    def _prompt_trait_changed(self, name, old, new):
+        table = {
+            'prompt_in1' : 'in_template',
+            'prompt_in2' : 'in2_template',
+            'prompt_out' : 'out_template',
+            'prompts_pad_left' : 'justify',
+        }
+        warn("InteractiveShell.{name} is deprecated, use PromptManager.{newname}\n".format(
+                name=name, newname=table[name])
+        )
+        # protect against weird cases where self.config may not exist:
+        if self.config is not None:
+            # propagate to corresponding PromptManager trait
+            setattr(self.config.PromptManager, table[name], new)
+    
+    _prompt_in1_changed = _prompt_trait_changed
+    _prompt_in2_changed = _prompt_trait_changed
+    _prompt_out_changed = _prompt_trait_changed
+    _prompt_pad_left_changed = _prompt_trait_changed
+    
+    show_rewritten_input = CBool(True, config=True,
+        help="Show rewritten input, e.g. for autocall."
+    )
+    
     quiet = CBool(False, config=True)
 
     history_length = Integer(10000, config=True)
@@ -2141,6 +2172,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         after the user's input prompt.  This helps the user understand that the
         input line was transformed automatically by IPython.
         """
+        if not self.show_rewritten_input:
+            return
+        
         rw = self.prompt_manager.render('rewrite') + cmd
 
         try:
