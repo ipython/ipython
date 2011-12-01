@@ -254,10 +254,14 @@ class PromptManager(Configurable):
         """)
     def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
     
-    in_template = Unicode('In [\\#]: ', config=True)
-    in2_template = Unicode('   .\\D.: ', config=True)
-    out_template = Unicode('Out[\\#]: ', config=True)
-    rewrite_template = Unicode("------> ", config=True)
+    in_template = Unicode('In [\\#]: ', config=True,
+        help="Input prompt.  '\\#' will be transformed to the prompt number")
+    in2_template = Unicode('   .\\D.: ', config=True,
+        help="Continuation prompt.")
+    out_template = Unicode('Out[\\#]: ', config=True,
+        help="Output prompt. '\\#' will be transformed to the prompt number")
+    rewrite_template = Unicode("------> ", config=True,
+        help="Rewrite prompt. When inputs are transformed, the rewritten input will follow this.")
     
     justify = Bool(True, config=True, help="""
         If True (default), each prompt will be right-aligned with the

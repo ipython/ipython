@@ -202,9 +202,9 @@ def ipexec(fname, options=None):
 
     # For these subprocess calls, eliminate all prompt printing so we only see
     # output from script execution
-    prompt_opts = [ '--InteractiveShell.prompt_in1=""',
-                    '--InteractiveShell.prompt_in2=""',
-                    '--InteractiveShell.prompt_out=""'
+    prompt_opts = [ '--PromptManager.in_template=""',
+                    '--PromptManager.in2_template=""',
+                    '--PromptManager.out_template=""'
     ]
     cmdargs = ' '.join(default_argv() + prompt_opts + options)
 

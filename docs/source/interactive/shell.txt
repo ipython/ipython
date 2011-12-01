@@ -155,8 +155,8 @@ Prompt customization
 
 The sh profile uses the following prompt configurations::
 
-    o.prompt_in1= r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#>'
-    o.prompt_in2= r'\C_Green|\C_LightGreen\D\C_Green>'
+    o.PromptManager.in_template= r'\C_LightBlue[\C_LightCyan\Y2\C_LightBlue]\C_Green|\#>'
+    o.PromptManager.in2_template= r'\C_Green|\C_LightGreen\D\C_Green>'
 
 You can change the prompt configuration to your liking by editing
 ipython_config.py.
