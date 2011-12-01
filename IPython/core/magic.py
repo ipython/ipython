@@ -693,7 +693,7 @@ Currently the magic system has the following functions:\n"""
             return
 
         # default namespaces to be searched
-        def_search = ['user','builtin']
+        def_search = ['user_local', 'user_global', 'builtin']
 
         # Process options/args
         opts,args = self.parse_options(parameter_s,'cias:e:',list_all=True)

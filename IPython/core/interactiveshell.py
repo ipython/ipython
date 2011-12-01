@@ -923,7 +923,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # A table holding all the namespaces IPython deals with, so that
         # introspection facilities can search easily.
         self.ns_table = {'user_global':self.user_module.__dict__,
-                         'user_local':user_ns,
+                         'user_local':self.user_ns,
                          'builtin':builtin_mod.__dict__
                          }
     
