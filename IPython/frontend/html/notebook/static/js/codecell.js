@@ -520,7 +520,7 @@ var IPython = (function (IPython) {
         this.element.find('div.output').append(toinsert);
         // If we just output latex, typeset it.
         if ((json.latex !== undefined) || (json.html !== undefined)) {
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+            this.typeset();
         };
     };
 
@@ -572,7 +572,7 @@ var IPython = (function (IPython) {
         this.element.find('div.output').append(toinsert);
         // If we just output latex, typeset it.
         if ( (json.latex !== undefined) || (json.html !== undefined) ) {
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+            this.typeset();
         };
     };
 

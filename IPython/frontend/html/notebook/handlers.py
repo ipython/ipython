@@ -219,6 +219,7 @@ class NewHandler(AuthenticatedHandler):
             base_project_url=u'/', base_kernel_url=u'/',
             kill_kernel=False,
             read_only=False,
+            enable_mathjax=self.application.ipython_app.enable_mathjax,
         )
 
 
@@ -237,6 +238,7 @@ class NamedNotebookHandler(AuthenticatedHandler):
             base_project_url=u'/', base_kernel_url=u'/',
             kill_kernel=False,
             read_only=self.read_only,
+            enable_mathjax=self.application.ipython_app.enable_mathjax,
         )
 
 

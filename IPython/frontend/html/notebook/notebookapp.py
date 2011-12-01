@@ -128,6 +128,17 @@ flags['no-browser']=(
     {'NotebookApp' : {'open_browser' : False}},
     "Don't open the notebook in a browser after startup."
 )
+flags['no-mathjax']=(
+    {'NotebookApp' : {'enable_mathjax' : False}},
+    """Disable MathJax
+    
+    MathJax is the javascript library IPython uses to render math/LaTeX. It is
+    very large, so you may want to disable it if you have a slow internet
+    connection, or for offline use of the notebook.
+    
+    When disabled, equations etc. will appear as their untransformed TeX source.
+    """
+)
 flags['read-only'] = (
     {'NotebookApp' : {'read_only' : True}},
     """Allow read-only access to notebooks.
@@ -144,7 +155,7 @@ flags['read-only'] = (
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'read-only']
+notebook_flags = ['no-browser', 'no-mathjax', 'read-only']
 
 aliases = dict(ipkernel_aliases)
 
@@ -229,6 +240,17 @@ class NotebookApp(BaseIPythonApplication):
     
     read_only = Bool(False, config=True,
         help="Whether to prevent editing/execution of notebooks."
+    )
+    
+    enable_mathjax = Bool(True, config=True,
+        help="""Whether to enable MathJax for typesetting math/TeX
+
+        MathJax is the javascript library IPython uses to render math/LaTeX. It is
+        very large, so you may want to disable it if you have a slow internet
+        connection, or for offline use of the notebook.
+
+        When disabled, equations etc. will appear as their untransformed TeX source.
+        """
     )
 
     def parse_command_line(self, argv=None):

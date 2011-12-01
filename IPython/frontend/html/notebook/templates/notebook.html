@@ -6,25 +6,24 @@
 
     <title>IPython Notebook</title>
 
+    {% if enable_mathjax %}
     <!-- <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" charset="utf-8"></script> -->
     <script type='text/javascript' src='static/mathjax/MathJax.js?config=TeX-AMS_HTML' charset='utf-8'></script>
     <script type="text/javascript">
-    function CheckMathJax(){
-        var div=document.getElementById("MathJaxFetchingWarning")
-        if(window.MathJax){
-            document.body.removeChild(div)
-        }
-        else{
-           div.style.display = "block";
-        }
-    }
-    if (typeof MathJax == 'undefined') {
+    if (typeof(MathJax) == 'undefined') {
         console.log("No local MathJax, loading from CDN");
         document.write(unescape("%3Cscript type='text/javascript' src='http://cdn.mathjax.org/mathjax/latest/MathJax.js%3Fconfig=TeX-AMS_HTML' charset='utf-8'%3E%3C/script%3E"));
     }else{
         console.log("Using local MathJax");
     }
     </script>
+    {% else %}
+    <script type="text/javascript">
+    // MathJax disabled, set as null to distingish from *missing* MathJax,
+    // where it will be undefined, and should prompt a dialog later.
+    window.MathJax = null;
+    </script>
+    {% end %}
 
     <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
     <link rel="stylesheet" href="static/codemirror/lib/codemirror.css">
@@ -45,7 +44,7 @@
 
 </head>
 
-<body onload='CheckMathJax();'
+<body
     data-project={{project}} data-notebook-id={{notebook_id}}
     data-base-project-url={{base_project_url}} data-base-kernel-url={{base_kernel_url}}
 >
@@ -69,29 +68,6 @@
     </span>
 
     <span id="kernel_status">Idle</span>
-</div>
-
-<div id="MathJaxFetchingWarning"
-      style="width:80%; margin:auto;padding-top:20%;text-align: justify; display:none">
-      <p style="font-size:26px;">There was an issue trying to fetch MathJax.js
-        from the internet.</p>
-
-      <p style="padding:0.2em"> With a working internet connection, you can run
-    the following at a Python or IPython prompt, which will install a local
-    copy of MathJax:</p>
-      
-        <pre style="background-color:lightblue;border:thin silver solid;padding:0.4em">
-            from IPython.external import mathjax; mathjax.install_mathjax()
-        </pre>
-        This will try to install MathJax into the directory where you installed
-        IPython. If you installed IPython to a location that requires
-        administrative privileges to write, you will need to make this call as
-        an administrator. On OSX/Linux/Unix, this can be done at the
-        command-line via:
-        <pre style="background-color:lightblue;border:thin silver solid;padding:0.4em">
-            sudo python -c "from IPython.external import mathjax; mathjax.install_mathjax()"
-        </pre>
-    </p>
 </div>
 
 <div id="main_app">
