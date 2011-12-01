@@ -252,6 +252,31 @@ class NotebookApp(BaseIPythonApplication):
         When disabled, equations etc. will appear as their untransformed TeX source.
         """
     )
+    def _enable_mathjax_changed(self, name, old, new):
+        """set mathjax url to empty if mathjax is disabled"""
+        if not new:
+            self.mathjax_url = u''
+    
+    mathjax_url = Unicode("", config=True,
+        help="""The url for MathJax.js."""
+    )
+    def _mathjax_url_default(self):
+        if not self.enable_mathjax:
+            return u''
+        static_path = os.path.join(os.path.dirname(__file__), "static")
+        if os.path.exists(os.path.join(static_path, 'mathjax', "MathJax.js")):
+            self.log.info("Using local MathJax")
+            return u"static/mathjax/MathJax.js"
+        else:
+            self.log.info("Using MathJax from CDN")
+            return u"http://cdn.mathjax.org/mathjax/latest/MathJax.js"
+    
+    def _mathjax_url_changed(self, name, old, new):
+        if new and not self.enable_mathjax:
+            # enable_mathjax=False overrides mathjax_url
+            self.mathjax_url = u''
+        else:
+            self.log.info("Using MathJax: %s", new)
 
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)

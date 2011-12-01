@@ -11,48 +11,8 @@
 
 
 $(document).ready(function () {
-
-    if (window.MathJax == undefined){
-        // MathJax undefined, but expected.  Draw warning.
-        window.MathJax = null;
-        var dialog = $('<div></div>').html(
-            "<p class='dialog'>"+
-            "We were unable to retrieve MathJax. Math/LaTeX rendering will be disabled."+
-            "</p>"+
-            "<p class='dialog'>"+
-            "With a working internet connection, you can run the following at a Python"+
-            " or IPython prompt, which will install a local copy of MathJax:"+
-            "</p>"+
-            "<pre class='dialog'>"+
-            ">>> from IPython.external import mathjax; mathjax.install_mathjax()"+
-            "</pre>"+
-            "<p class='dialog'>"+
-            "This will try to install MathJax into the directory where you installed"+
-            " IPython. If you installed IPython to a location that requires"+
-            " administrative privileges to write, you will need to make this call as"+
-            " an administrator."+
-            "</p>"+
-            "<p class='dialog'>"+
-            "On OSX/Linux/Unix, this can be done at the command-line via:"+
-            "</p>"+
-            "<pre class='dialog'>"+
-            "$ sudo python -c 'from IPython.external import mathjax; mathjax.install_mathjax()'"+
-            "</pre>"+
-            "<p class='dialog'>"+
-            "Or you can instruct the notebook server to start without MathJax support, with:"+
-            "<pre class='dialog'>"+
-            "</p>"+
-            "$ ipython notebook --no-mathjax"+
-            "</pre>"+
-            "<p class='dialog'>"+
-            "in which case, equations will not be rendered."+
-            "</p>"
-            ).dialog({
-                title: 'MathJax disabled',
-                width: "70%",
-                modal: true,
-            })
-    }else if (window.MathJax){
+    if (window.MathJax){ 
+        // MathJax loaded
         MathJax.Hub.Config({
             tex2jax: {
                 inlineMath: [ ['$','$'], ["\\(","\\)"] ],
@@ -63,9 +23,49 @@ $(document).ready(function () {
                 styles: {'.MathJax_Display': {"margin": 0}}
             }
         });
+    }else if (window.mathjax_url != ""){
+        // Don't have MathJax, but should. Show dialog.
+        var dialog = $('<div></div>')
+            .append(
+                $("<p></p>").addClass('dialog').html(
+                    "Math/LaTeX equation rendering will be disabled."
+                )
+            ).append(
+                $("<p></p>").addClass('dialog').html(
+                    "With a working internet connection, you can install a local copy" +
+                    " of MathJax for offline use with the following command at a Python" +
+                    " or IPython prompt:"
+                )
+            ).append(
+                $("<pre></pre>").addClass('dialog').html(
+                    ">>> from IPython.external import mathjax; mathjax.install_mathjax()"
+                )
+            ).append(
+                $("<p></p>").addClass('dialog').html(
+                    "This will try to install MathJax into the directory where you installed"+
+                    " IPython. If you installed IPython to a location that requires"+
+                    " administrative privileges to write, you will need to make this call as"+
+                    " an administrator, via 'sudo'."
+                )
+            ).append(
+                $("<p></p>").addClass('dialog').html(
+                    "Or you can instruct the notebook server to disable MathJax support altogether:"
+                )
+            ).append(
+                $("<pre></pre>").addClass('dialog').html(
+                    "$ ipython notebook --no-mathjax"
+                )
+            ).append(
+                $("<p></p>").addClass('dialog').html(
+                    "which will prevent this dialog from appearing."
+                )
+            ).dialog({
+                title: "Failed to retrieve MathJax from '" + window.mathjax_url + "'",
+                width: "70%",
+                modal: true,
+            })
     }else{
-        // window.MathJax == null
-        // --no-mathjax mode
+        // No MathJax, but none expected. No dialog.
     }
     
     IPython.markdown_converter = new Markdown.Converter();

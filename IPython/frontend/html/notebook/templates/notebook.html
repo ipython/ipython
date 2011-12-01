@@ -6,24 +6,14 @@
 
     <title>IPython Notebook</title>
 
-    {% if enable_mathjax %}
-    <!-- <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" charset="utf-8"></script> -->
-    <script type='text/javascript' src='static/mathjax/MathJax.js?config=TeX-AMS_HTML' charset='utf-8'></script>
-    <script type="text/javascript">
-    if (typeof(MathJax) == 'undefined') {
-        console.log("No local MathJax, loading from CDN");
-        document.write(unescape("%3Cscript type='text/javascript' src='http://cdn.mathjax.org/mathjax/latest/MathJax.js%3Fconfig=TeX-AMS_HTML' charset='utf-8'%3E%3C/script%3E"));
-    }else{
-        console.log("Using local MathJax");
-    }
-    </script>
-    {% else %}
+    {% if mathjax_url %}
+    <script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML" charset="utf-8"></script>
+    {% end %}
     <script type="text/javascript">
     // MathJax disabled, set as null to distingish from *missing* MathJax,
     // where it will be undefined, and should prompt a dialog later.
-    window.MathJax = null;
+    window.mathjax_url = "{{mathjax_url}}";
     </script>
-    {% end %}
 
     <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
     <link rel="stylesheet" href="static/codemirror/lib/codemirror.css">
