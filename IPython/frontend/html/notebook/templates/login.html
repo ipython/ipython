@@ -2,7 +2,16 @@
 
 {% block content_panel %}
     <form action="/login?next={{url_escape(next)}}" method="post">
-        Password: <input type="password" name="password">
+        Password: <input type="password" name="password" id="focus">
         <input type="submit" value="Sign in" id="signin">
     </form>
+{% end %}
+
+{% block script %}
+<script type="text/javascript">
+  $(document).ready(function() {
+    IPython.login_widget = new IPython.LoginWidget('span#login_widget');
+    $('#focus').focus();
+  });
+</script>
 {% end %}
