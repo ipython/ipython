@@ -762,13 +762,15 @@ class Inspector:
                                  (name,ns_table.keys()))
 
         #print 'type_pattern:',type_pattern # dbg
-        search_result = []
+        search_result, namespaces_seen = set(), set()
         for ns_name in ns_search:
             ns = ns_table[ns_name]
-            tmp_res = list(list_namespace(ns,type_pattern,filter,
-                                          ignore_case=ignore_case,
-                                          show_all=show_all))
-            search_result.extend(tmp_res)
-        search_result.sort()
+            # Normally, locals and globals are the same, so we just check one.
+            if id(ns) in namespaces_seen:
+                continue
+            namespaces_seen.add(id(ns))
+            tmp_res = list_namespace(ns, type_pattern, filter,
+                                    ignore_case=ignore_case, show_all=show_all)
+            search_result.update(tmp_res)
 
-        page.page('\n'.join(search_result))
+        page.page('\n'.join(sorted(search_result)))

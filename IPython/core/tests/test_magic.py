@@ -340,3 +340,7 @@ def doctest_precision():
     Out[5]: {u}'3.141593e+00'
     """
 
+def test_psearch():
+    with tt.AssertPrints("dict.fromkeys"):
+        _ip.run_cell("dict.fr*?")
+
