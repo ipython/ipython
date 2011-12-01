@@ -1,5 +1,9 @@
 {% extends layout.html %}
 
 {% block content_panel %}
-Proceed to the <a href="/login">login page</a>.
+  {% if current_user and current_user != 'anonymous' %}
+    Proceed to the <a href="/">front page</a>.
+  {% else %}
+    Proceed to the <a href="/login">login page</a>.
+  {% end %}
 {% end %}
