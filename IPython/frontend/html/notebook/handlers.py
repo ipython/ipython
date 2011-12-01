@@ -137,17 +137,25 @@ class AuthenticatedHandler(RequestHandler):
             if not self.application.password and not self.application.read_only:
                 user_id = 'anonymous'
         return user_id
-    
+
     @property
     def read_only(self):
-        if self.application.read_only:
+        """Is the notebook read-only?
+
+        None -- notebook is read-only, but the user can log-in to edit
+        True -- notebook is read-only, no log-in available
+        False -- no read-only mode available, user must log in
+
+        """
+        user = self.get_current_user()
+        if user and user != 'anonymous':
+            return False
+        elif self.application.read_only:
             if self.application.password:
-                return self.get_current_user() is None
+                return None
             else:
                 return True
-        else:
-            return False
-    
+
     @property
     def ws_url(self):
         """websocket url matching the current request
