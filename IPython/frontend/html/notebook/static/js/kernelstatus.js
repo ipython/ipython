@@ -34,6 +34,7 @@ var IPython = (function (IPython) {
         this.element.removeClass("status_idle");
         this.element.removeClass("status_restarting");
         this.element.addClass("status_busy");
+        window.document.title='(Busy) '+window.document.title;
         this.element.text("Busy");
     };
 
@@ -42,6 +43,7 @@ var IPython = (function (IPython) {
         this.element.removeClass("status_busy");
         this.element.removeClass("status_restarting");
         this.element.addClass("status_idle");
+        IPython.save_widget.set_document_title();
         this.element.text("Idle");
     };
 
