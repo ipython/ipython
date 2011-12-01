@@ -346,6 +346,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
     _prompt_out_changed = _prompt_trait_changed
     _prompt_pad_left_changed = _prompt_trait_changed
     
+    show_rewritten_input = CBool(True, config=True,
+        help="Show rewritten input, e.g. for autocall."
+    )
+    
     quiet = CBool(False, config=True)
 
     history_length = Integer(10000, config=True)
@@ -2168,6 +2172,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         after the user's input prompt.  This helps the user understand that the
         input line was transformed automatically by IPython.
         """
+        if not self.show_rewritten_input:
+            return
+        
         rw = self.prompt_manager.render('rewrite') + cmd
 
         try:
