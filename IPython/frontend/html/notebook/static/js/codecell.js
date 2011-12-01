@@ -244,9 +244,20 @@ var IPython = (function (IPython) {
                     space:13,
                     shift:16,
                     enter:32,
-                    // _ is 189
+                    // _ is 95
                     isCompSymbol : function (code)
-                        {return ((code>64 && code <=122)|| code == 189)}
+                        {
+                        return (code > 64 && code <= 90) 
+                            || (code >= 97 && code <= 122)
+                            || (code == 95)
+                        },
+                    dismissAndAppend : function (code)
+                        {
+                        chararr=['(',')','[',']','+','-','/','\\','.'];
+                        codearr=chararr.map(function(x){return x.charCodeAt(0)});
+                        return jQuery.inArray(code, codearr)!=-1;
+                        }
+
                     }
 
         // smart completion, sort kwarg ending with '='
@@ -409,6 +420,12 @@ var IPython = (function (IPython) {
                 // nothing on Shift
                 return;
             }
+            if (key.dismissAndAppend(code) && press) {
+                var newchar = String.fromCharCode(code);
+                typed_characters=typed_characters+newchar;
+                insert(matched_text+typed_characters,event);
+                return
+            }
             if (code === key.space || code === key.enter) {
                 // Pressing SPACE or ENTER will cause a pick
                 event.stopPropagation();
@@ -418,8 +435,7 @@ var IPython = (function (IPython) {
                 // We don't want the document keydown handler to handle UP/DOWN,
                 // but we want the default action.
                 event.stopPropagation();
-            //} else if ( key.isCompSymbol(code)|| (code==key.backspace)||(code==key.tab && down)){
-            } else if ( (code==key.backspace)||(code==key.tab && down) || press || key.isCompSymbol(code)){
+            } else if ( (code==key.backspace)||(code==key.tab && down) || press  || key.isCompSymbol(code)){
                 if( key.isCompSymbol(code) && press)
                 {
                     var newchar = String.fromCharCode(code);
@@ -437,13 +453,19 @@ var IPython = (function (IPython) {
                     if (typed_characters.length <= 0)
                     {
                         insert(matched_text,event)
+                        return
                     }
                     typed_characters=typed_characters.substr(0,typed_characters.length-1);
-                }else{return}
+                } else if (press && code != key.backspace && code != key.tab && code != 0){
+                    insert(matched_text+typed_characters,event);
+                    return
+                } else {
+                return
+                }
                 re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
                 filterd = matches.filter(function(x){return re.test(x)});
                 complete_with(filterd,matched_text+typed_characters,autopick,event);
-            } else if(down){ // abort only on .keydown
+            } else if( press || code==key.esc){ // abort only on .keypress or esc
                 // abort with what the user have pressed until now
                 console.log('aborting with keycode : '+code+' is down :'+down);
                 insert(matched_text+typed_characters,event);
