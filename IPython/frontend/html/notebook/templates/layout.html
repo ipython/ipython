@@ -25,6 +25,8 @@
     <span id="login_widget">
       {% if current_user and current_user != 'anonymous' %}
         <button id="logout">Logout</button>
+      {% else %}
+        <button id="login">Login</button>
       {% end %}
     </span>
     {% block header %}
