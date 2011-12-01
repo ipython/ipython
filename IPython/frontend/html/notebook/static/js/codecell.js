@@ -218,7 +218,7 @@ var IPython = (function (IPython) {
         tooltip.append(expandlink);
         tooltip.append(morelink);
         if(defstring){
-            defstring_html= $('<pre/>').html(utils.fixConsole(defstring));
+            defstring_html = $('<pre/>').html(utils.fixConsole(defstring));
             tooltip.append(defstring_html);
         }
         tooltip.append(pre);
@@ -253,9 +253,9 @@ var IPython = (function (IPython) {
                         },
                     dismissAndAppend : function (code)
                         {
-                        chararr=['(',')','[',']','+','-','/','\\','.'];
-                        codearr=chararr.map(function(x){return x.charCodeAt(0)});
-                        return jQuery.inArray(code, codearr)!=-1;
+                        chararr = ['(',')','[',']','+','-','/','\\','.'];
+                        codearr = chararr.map(function(x){return x.charCodeAt(0)});
+                        return jQuery.inArray(code, codearr) != -1;
                         }
 
                     }
@@ -266,25 +266,25 @@ var IPython = (function (IPython) {
         {
             kwargs = new Array();
             other = new Array();
-            for(var i=0;i<matches.length; ++i){
+            for(var i = 0 ; i<matches.length ; ++i){
                 if(matches[i].substr(-1) === '='){
                     kwargs.push(matches[i]);
                 }else{other.push(matches[i]);}
             }
             newm = kwargs.concat(other);
-            matches=newm;
+            matches = newm;
         }
         // end sort kwargs
 
         // give common prefix of a array of string
         function sharedStart(A){
             if(A.length > 1 ){
-                var tem1, tem2, s, A= A.slice(0).sort();
-                tem1= A[0];
-                s= tem1.length;
-                tem2= A.pop();
-                while(s && tem2.indexOf(tem1)== -1){
-                    tem1= tem1.substring(0, --s);
+                var tem1, tem2, s, A = A.slice(0).sort();
+                tem1 = A[0];
+                s = tem1.length;
+                tem2 = A.pop();
+                while(s && tem2.indexOf(tem1) == -1){
+                    tem1 = tem1.substring(0, --s);
                 }
                 return tem1;
             }
@@ -294,8 +294,8 @@ var IPython = (function (IPython) {
 
         //try to check if the user is typing tab at least twice after a word
         // and completion is "done"
-        fallback_on_tooltip_after=2
-        if(matches.length==1 && matched_text === matches[0])
+        fallback_on_tooltip_after = 2
+        if(matches.length == 1 && matched_text === matches[0])
         {
             if(this.npressed >fallback_on_tooltip_after  && this.prevmatch==matched_text)
             {
@@ -305,13 +305,13 @@ var IPython = (function (IPython) {
                 this.request_tooltip_after_time(matched_text+'(',0);
                 return;
             }
-            this.prevmatch=matched_text
-            this.npressed=this.npressed+1;
+            this.prevmatch = matched_text
+            this.npressed = this.npressed+1;
         }
         else
         {
-            this.prevmatch="";
-            this.npressed=0;
+            this.prevmatch = "";
+            this.npressed = 0;
         }
         // end fallback on tooltip
         //==================================
@@ -324,7 +324,7 @@ var IPython = (function (IPython) {
         var close = function () {
             if (done) return;
             done = true;
-            if (complete!=undefined)
+            if (complete != undefined)
             {complete.remove();}
             that.is_completing = false;
             that.completion_cursor = null;
@@ -361,13 +361,13 @@ var IPython = (function (IPython) {
             // Used to 'pick' when pressing tab
             if (matches.length < 1) {
                 insert(typed_text,event);
-                if(event !=null){
+                if(event != null){
                 event.stopPropagation();
                 event.preventDefault();
                 }
-            } else if (autopick && matches.length==1) {
+            } else if (autopick && matches.length == 1) {
                 insert(matches[0],event);
-                if(event !=null){
+                if(event != null){
                 event.stopPropagation();
                 event.preventDefault();
                 }
@@ -375,8 +375,8 @@ var IPython = (function (IPython) {
             //clear the previous completion if any
             complete.children().children().remove();
             $('#asyoutype').text(typed_text);
-            select=$('#asyoutypeselect');
-            for (var i=0; i<matches.length; ++i) {
+            select = $('#asyoutypeselect');
+            for (var i = 0; i<matches.length; ++i) {
                     select.append($('<option/>').html(matches[i]));
             }
             select.children().first().attr('selected','true');
@@ -403,18 +403,18 @@ var IPython = (function (IPython) {
         // So a first actual completion.  see if all the completion start wit
         // the same letter and complete if necessary
         fastForward = sharedStart(matches)
-        typed_characters= fastForward.substr(matched_text.length);
+        typed_characters = fastForward.substr(matched_text.length);
         complete_with(matches,matched_text+typed_characters,true,null);
-        filterd=matches;
+        filterd = matches;
         // Give focus to select, and make it filter the match as the user type
         // by filtering the previous matches. Called by .keypress and .keydown
         var downandpress = function (event,press_or_down) {
             var code = event.which;
             var autopick = false; // auto 'pick' if only one match
             if (press_or_down === 0){
-                press=true; down=false; //Are we called from keypress or keydown
+                press = true; down = false; //Are we called from keypress or keydown
             } else if (press_or_down == 1){
-                press=false; down=true;
+                press = false; down = true;
             }
             if (code === key.shift) {
                 // nothing on Shift
@@ -422,7 +422,7 @@ var IPython = (function (IPython) {
             }
             if (key.dismissAndAppend(code) && press) {
                 var newchar = String.fromCharCode(code);
-                typed_characters=typed_characters+newchar;
+                typed_characters = typed_characters+newchar;
                 insert(matched_text+typed_characters,event);
                 return
             }
@@ -435,16 +435,16 @@ var IPython = (function (IPython) {
                 // We don't want the document keydown handler to handle UP/DOWN,
                 // but we want the default action.
                 event.stopPropagation();
-            } else if ( (code==key.backspace)||(code==key.tab && down) || press  || key.isCompSymbol(code)){
+            } else if ( (code == key.backspace)||(code == key.tab && down) || press  || key.isCompSymbol(code)){
                 if( key.isCompSymbol(code) && press)
                 {
                     var newchar = String.fromCharCode(code);
-                    typed_characters=typed_characters+newchar;
+                    typed_characters = typed_characters+newchar;
                 } else if (code == key.tab) {
                     fastForward = sharedStart(filterd)
                     ffsub = fastForward.substr(matched_text.length+typed_characters.length);
-                    typed_characters=typed_characters+ffsub;
-                    autopick=true;
+                    typed_characters = typed_characters+ffsub;
+                    autopick = true;
                     event.stopPropagation();
                     event.preventDefault();
                 } else if (code == key.backspace && down) {
@@ -455,17 +455,17 @@ var IPython = (function (IPython) {
                         insert(matched_text,event)
                         return
                     }
-                    typed_characters=typed_characters.substr(0,typed_characters.length-1);
+                    typed_characters = typed_characters.substr(0,typed_characters.length-1);
                 } else if (press && code != key.backspace && code != key.tab && code != 0){
                     insert(matched_text+typed_characters,event);
                     return
                 } else {
-                return
+                    return
                 }
                 re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
                 filterd = matches.filter(function(x){return re.test(x)});
                 complete_with(filterd,matched_text+typed_characters,autopick,event);
-            } else if( press || code==key.esc){ // abort only on .keypress or esc
+            } else if( press || code == key.esc){ // abort only on .keypress or esc
                 // abort with what the user have pressed until now
                 console.log('aborting with keycode : '+code+' is down :'+down);
                 insert(matched_text+typed_characters,event);
