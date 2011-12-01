@@ -23,10 +23,10 @@ try:
 except NameError:
     nested = 0
     cfg = Config()
-    shell_config = cfg.InteractiveShellEmbed
-    shell_config.prompt_in1 = 'In <\\#>: '
-    shell_config.prompt_in2 = '   .\\D.: '
-    shell_config.prompt_out = 'Out<\\#>: '
+    prompt_config = cfg.PromptManager
+    prompt_config.in_template = 'In <\\#>: '
+    prompt_config.in2_template = '   .\\D.: '
+    prompt_config.out_template = 'Out<\\#>: '
 else:
     print "Running nested copies of IPython."
     print "The prompts for the nested copy have been modified"
@@ -46,12 +46,12 @@ ipshell = InteractiveShellEmbed(config=cfg,
 
 # Make a second instance, you can have as many as you want.
 cfg2 = cfg.copy()
-shell_config = cfg2.InteractiveShellEmbed
-shell_config.prompt_in1 = 'In2<\\#>: '
+prompt_config = cfg2.PromptManager
+prompt_config.in_template = 'In2<\\#>: '
 if not nested:
-    shell_config.prompt_in1 = 'In2<\\#>: '
-    shell_config.prompt_in2 = '   .\\D.: '
-    shell_config.prompt_out = 'Out<\\#>: '
+    prompt_config.in_template = 'In2<\\#>: '
+    prompt_config.in2_template = '   .\\D.: '
+    prompt_config.out_template = 'Out<\\#>: '
 ipshell2 = InteractiveShellEmbed(config=cfg,
                         banner1 = 'Second IPython instance.')
 

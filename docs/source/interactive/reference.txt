@@ -227,7 +227,7 @@ All options with a [no] prepended can be specified in negated form
 	circular file inclusions, IPython will stop if it reaches 15
 	recursive inclusions.
 
-    ``InteractiveShell.prompt_in1=<string>``
+    ``PromptManager.in_template=<string>``
 
 	Specify the string used for input prompts. Note that if you are using
 	numbered prompts, the number is represented with a '\#' in the
@@ -236,7 +236,7 @@ All options with a [no] prepended can be specified in negated form
 	discusses in detail all the available escapes to customize your
 	prompts.
 
-    ``InteractiveShell.prompt_in2=<string>``
+    ``PromptManager.in2_template=<string>``
 	Similar to the previous option, but used for the continuation
 	prompts. The special sequence '\D' is similar to '\#', but
 	with all digits replaced dots (so you can have your
@@ -244,9 +244,9 @@ All options with a [no] prepended can be specified in negated form
 	' .\D.:' (note three spaces at the start for alignment with
 	'In [\#]').
 
-    ``InteractiveShell.prompt_out=<string>``
+    ``PromptManager.out_template=<string>``
 	String used for output prompts, also uses numbers like
-	prompt_in1. Default: 'Out[\#]:'
+	in_template. Default: 'Out[\#]:'
 
     ``--quick``
         start in bare bones mode (no config file loaded).
