@@ -232,6 +232,9 @@ lazily_evaluate = {'time': LazyEvaluate(time.strftime, "%H:%M:%S"),
                             [LazyEvaluate(cwd_filt, x) for x in range(1,6)],
                    'cwd_y': [LazyEvaluate(cwd_filt2, x) for x in range(6)]
                    }
+
+misc_fields = {'rarrow': "-> "
+              }
         
 
 class PromptManager(Configurable):
@@ -260,7 +263,7 @@ class PromptManager(Configurable):
         help="Continuation prompt.")
     out_template = Unicode('Out[\\#]: ', config=True,
         help="Output prompt. '\\#' will be transformed to the prompt number")
-    rewrite_template = Unicode("------> ", config=True,
+    rewrite_template = Unicode("{rarrow:->{txtwidth}}", config=True,
         help="Rewrite prompt. When inputs are transformed, the rewritten input will follow this.")
     
     justify = Bool(True, config=True, help="""
@@ -274,6 +277,7 @@ class PromptManager(Configurable):
     # The number of characters in the last prompt rendered, not including
     # colour characters.
     width = Int()
+    txtwidth = Int()   # Not including right-justification
     
     # The number of characters in each prompt which don't contribute to width
     invisible_chars = Dict()
@@ -306,35 +310,16 @@ class PromptManager(Configurable):
         """
         if new_template is not None:
             self.templates[name] = multiple_replace(prompt_abbreviations, new_template)
-        invis_chars = len(self.render(name, color=True, just=False)) - \
-                            len(self.render(name, color=False, just=False))
+        invis_chars = len(self._render(name, color=True)) - \
+                            len(self._render(name, color=False))
         self.invisible_chars[name] = invis_chars
     
     def _update_prompt_trait(self, traitname, new_template):
         name = traitname[:-9]   # Cut off '_template'
         self.update_prompt(name, new_template)
     
-    def render(self, name, color=True, just=None, **kwargs):
-        """
-        Render the selected prompt.
-        
-        Parameters
-        ----------
-        name : str
-          Which prompt to render. One of 'in', 'in2', 'out', 'rewrite'
-        color : bool
-          If True (default), include ANSI escape sequences for a coloured prompt.
-        just : bool
-          If True, justify the prompt to the width of the last prompt. The
-          default is stored in self.justify.
-        **kwargs :
-          Additional arguments will be passed to the string formatting operation,
-          so they can override the values that would otherwise fill in the
-          template.
-        
-        Returns
-        -------
-        A string containing the rendered prompt.
+    def _render(self, name, color=True, **kwargs):
+        """Render but don't justify, or update the width or txtwidth attributes.
         """
         if color:
             scheme = self.color_scheme_table.active_colors
@@ -362,18 +347,45 @@ class PromptManager(Configurable):
         count = self.shell.execution_count    # Shorthand
         # Build the dictionary to be passed to string formatting
         fmtargs = dict(color=colors, count=count,
-                        dots="."*len(str(count)) )
+                        dots="."*len(str(count)),
+                        width=self.width, txtwidth=self.txtwidth )
         fmtargs.update(self.lazy_evaluate_fields)
+        fmtargs.update(misc_fields)
         fmtargs.update(kwargs)
         
         # Prepare the prompt
         prompt = colors.prompt + self.templates[name] + colors.normal
         
         # Fill in required fields
-        res = prompt.format(**fmtargs)
+        return prompt.format(**fmtargs)
+    
+    def render(self, name, color=True, just=None, **kwargs):
+        """
+        Render the selected prompt.
+        
+        Parameters
+        ----------
+        name : str
+          Which prompt to render. One of 'in', 'in2', 'out', 'rewrite'
+        color : bool
+          If True (default), include ANSI escape sequences for a coloured prompt.
+        just : bool
+          If True, justify the prompt to the width of the last prompt. The
+          default is stored in self.justify.
+        **kwargs :
+          Additional arguments will be passed to the string formatting operation,
+          so they can override the values that would otherwise fill in the
+          template.
+        
+        Returns
+        -------
+        A string containing the rendered prompt.
+        """
+        res = self._render(name, color=color, **kwargs)
         
         # Handle justification of prompt
         invis_chars = self.invisible_chars[name] if color else 0
+        self.txtwidth = len(res) - invis_chars
         just = self.justify if (just is None) else just
         if just:
             res = res.rjust(self.width + invis_chars)
