@@ -29,13 +29,16 @@ ScrollAction = namedtuple('ScrollAction', ['action', 'dir', 'unit', 'count'])
 # An action for the carriage return character
 CarriageReturnAction = namedtuple('CarriageReturnAction', ['action'])
 
+# An action for the beep character
+BeepAction = namedtuple('BeepAction', ['action'])
+
 # Regular expressions.
 CSI_COMMANDS = 'ABCDEFGHJKSTfmnsu'
 CSI_SUBPATTERN = '\[(.*?)([%s])' % CSI_COMMANDS
 OSC_SUBPATTERN = '\](.*?)[\x07\x1b]'
 ANSI_PATTERN = ('\x01?\x1b(%s|%s)\x02?' % \
                 (CSI_SUBPATTERN, OSC_SUBPATTERN))
-ANSI_OR_CR_PATTERN = re.compile('(\r)|(?:%s)' % ANSI_PATTERN)
+ANSI_OR_SPECIAL_PATTERN = re.compile('(\b|\r)|(?:%s)' % ANSI_PATTERN)
 SPECIAL_PATTERN = re.compile('([\f])')
 
 #-----------------------------------------------------------------------------
@@ -80,7 +83,7 @@ class AnsiCodeProcessor(object):
         self.actions = []
         start = 0
 
-        for match in ANSI_OR_CR_PATTERN.finditer(string):
+        for match in ANSI_OR_SPECIAL_PATTERN.finditer(string):
             raw = string[start:match.start()]
             substring = SPECIAL_PATTERN.sub(self._replace_special, raw)
             if substring or self.actions:
@@ -91,6 +94,9 @@ class AnsiCodeProcessor(object):
             groups = filter(lambda x: x is not None, match.groups())
             if groups[0] == '\r':
                 self.actions.append(CarriageReturnAction('carriage-return'))
+                yield ''
+            elif groups[0] == '\b':
+                self.actions.append(BeepAction('beep'))
                 yield ''
             else:
                 params = [ param for param in groups[1].split(';') if param ]
