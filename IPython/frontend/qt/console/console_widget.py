@@ -1513,6 +1513,10 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                         cursor.joinPreviousEditBlock()
                         cursor.deletePreviousChar()
 
+                    elif act.action == 'carriage-return':
+                        cursor.movePosition(
+                            cursor.StartOfLine, cursor.KeepAnchor)
+
                 format = self._ansi_processor.get_format()
                 cursor.insertText(substring, format)
         else:
