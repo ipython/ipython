@@ -27,6 +27,7 @@ Authors:
 from __future__ import division
 
 import types
+from itertools import islice
 
 from IPython.utils.data import flatten as utils_flatten
 
@@ -77,9 +78,14 @@ class Map:
             else:
                 lo.append(n*basesize + remainder)
                 hi.append(lo[-1] + basesize)
-
         
-        result = seq[lo[p]:hi[p]]
+        try:
+            result = seq[lo[p]:hi[p]]
+        except TypeError:
+            # some objects (iterators) can't be sliced,
+            # use islice:
+            result = list(islice(seq, lo[p], hi[p]))
+            
         return result
            
     def joinPartitions(self, listOfPartitions):

@@ -240,6 +240,16 @@ class TestView(ClusterTestCase):
         r = view.map_sync(f, data)
         self.assertEquals(r, map(f, data))
     
+    def test_map_iterable(self):
+        """test map on iterables (direct)"""
+        view = self.client[:]
+        # 101 is prime, so it won't be evenly distributed
+        arr = range(101)
+        # ensure it will be an iterator, even in Python 3
+        it = iter(arr)
+        r = view.map_sync(lambda x:x, arr)
+        self.assertEquals(r, list(arr))
+    
     def test_scatterGatherNonblocking(self):
         data = range(16)
         view = self.client[:]
@@ -446,6 +456,5 @@ class TestView(ClusterTestCase):
                     self.fail(e.evalue)
                 else:
                     raise e
-        
-
+    
 

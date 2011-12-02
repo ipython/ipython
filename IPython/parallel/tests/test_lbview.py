@@ -95,6 +95,17 @@ class TestLoadBalancedView(ClusterTestCase):
         # Ensure that results came in order
         self.assertEquals(astheycame, reference)
         self.assertEquals(amr.result, reference)
+
+    def test_map_iterable(self):
+        """test map on iterables (balanced)"""
+        view = self.view
+        # 101 is prime, so it won't be evenly distributed
+        arr = range(101)
+        # so that it will be an iterator, even in Python 3
+        it = iter(arr)
+        r = view.map_sync(lambda x:x, arr)
+        self.assertEquals(r, list(arr))
+
     
     def test_abort(self):
         view = self.view
