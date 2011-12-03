@@ -241,19 +241,19 @@ var IPython = (function (IPython) {
         var key = { tab:9,
                     esc:27,
                     backspace:8,
-                    space:13,
+                    space:32,
                     shift:16,
-                    enter:32,
+                    enter:13,
                     // _ is 95
                     isCompSymbol : function (code)
                         {
-                        return (code > 64 && code <= 90) 
+                        return (code > 64 && code <= 90)
                             || (code >= 97 && code <= 122)
                             || (code == 95)
                         },
                     dismissAndAppend : function (code)
                         {
-                        chararr = ['(',')','[',']','+','-','/','\\','.'];
+                        chararr = ['(',')','[',']','+','-','/','\\','.',' '];
                         codearr = chararr.map(function(x){return x.charCodeAt(0)});
                         return jQuery.inArray(code, codearr) != -1;
                         }
@@ -330,17 +330,23 @@ var IPython = (function (IPython) {
             that.completion_cursor = null;
         };
 
-        // insert the given text and exit the completer
-        var insert = function (selected_text, event) {
+        // update codemirror with the typed text
+        prev = matched_text
+        var update = function (inserted_text, event) {
             that.code_mirror.replaceRange(
-                selected_text,
+                inserted_text,
                 {line: cur.line, ch: (cur.ch-matched_text.length)},
-                {line: cur.line, ch: cur.ch}
+                {line: cur.line, ch: (cur.ch+prev.length-matched_text.length)}
             );
+            prev = inserted_text
             if(event != null){
                 event.stopPropagation();
                 event.preventDefault();
             }
+        };
+        // insert the given text and exit the completer
+        var insert = function (selected_text, event) {
+            update(selected_text)
             close();
             setTimeout(function(){that.code_mirror.focus();}, 50);
         };
@@ -373,8 +379,9 @@ var IPython = (function (IPython) {
                 }
             }
             //clear the previous completion if any
+            update(typed_text,event);
             complete.children().children().remove();
-            $('#asyoutype').text(typed_text);
+            $('#asyoutype').html("<b>"+matched_text+"</b>"+typed_text.substr(matched_text.length));
             select = $('#asyoutypeselect');
             for (var i = 0; i<matches.length; ++i) {
                     select.append($('<option/>').html(matches[i]));
@@ -385,7 +392,7 @@ var IPython = (function (IPython) {
         // create html for completer
         var complete = $('<div/>').addClass('completions');
             complete.attr('id','complete');
-        complete.append($('<p/>').attr('id', 'asyoutype').html(matched_text));//pseudo input field
+        complete.append($('<p/>').attr('id', 'asyoutype').html('<b>fixed part</b>user part'));//pseudo input field
 
         var select = $('<select/>').attr('multiple','true');
             select.attr('id', 'asyoutypeselect')
@@ -426,8 +433,8 @@ var IPython = (function (IPython) {
                 insert(matched_text+typed_characters,event);
                 return
             }
-            if (code === key.space || code === key.enter) {
-                // Pressing SPACE or ENTER will cause a pick
+            if (code === key.enter) {
+                // Pressing ENTER will cause a pick
                 event.stopPropagation();
                 event.preventDefault();
                 pick();
@@ -445,11 +452,10 @@ var IPython = (function (IPython) {
                     ffsub = fastForward.substr(matched_text.length+typed_characters.length);
                     typed_characters = typed_characters+ffsub;
                     autopick = true;
-                    event.stopPropagation();
-                    event.preventDefault();
                 } else if (code == key.backspace && down) {
                     // cancel if user have erase everything, otherwise decrease
                     // what we filter with
+                    event.preventDefault();
                     if (typed_characters.length <= 0)
                     {
                         insert(matched_text,event)
@@ -465,10 +471,12 @@ var IPython = (function (IPython) {
                 re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
                 filterd = matches.filter(function(x){return re.test(x)});
                 complete_with(filterd,matched_text+typed_characters,autopick,event);
-            } else if( press || code == key.esc){ // abort only on .keypress or esc
+            } else if( code == key.esc) {
+                // dismiss the completer and go back to before invoking it
+                insert(matched_text,event);
+            } else if( press ){ // abort only on .keypress or esc
                 // abort with what the user have pressed until now
                 console.log('aborting with keycode : '+code+' is down :'+down);
-                insert(matched_text+typed_characters,event);
             }
         }
         select.keydown(function (event) {
