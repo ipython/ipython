@@ -795,8 +795,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def copy_active_frontend(self):
         widget = self.active_frontend
-        if widget.can_copy():
-            widget.copy()
+        widget.copy()
 
     def copy_raw_active_frontend(self):
         self.active_frontend._copy_raw_action.trigger()

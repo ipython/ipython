@@ -174,11 +174,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def copy(self):
         """ Copy the currently selected text to the clipboard, removing prompts.
         """
-        text = self._control.textCursor().selection().toPlainText()
-        if text:
-            lines = map(transform_classic_prompt, text.splitlines())
-            text = '\n'.join(lines)
-            QtGui.QApplication.clipboard().setText(text)
+        if self.layout().currentWidget() == self._page_control :
+            self._page_control.copy()
+        elif self.layout().currentWidget() == self._control :
+            text = self._control.textCursor().selection().toPlainText()
+            if text:
+                lines = map(transform_classic_prompt, text.splitlines())
+                text = '\n'.join(lines)
+                QtGui.QApplication.clipboard().setText(text)
+        else:
+            self.log.debug("frontend widget : unknown copy target")
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
