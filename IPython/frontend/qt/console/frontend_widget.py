@@ -370,7 +370,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         """
 
-        user_exp = msg['content']['user_expressions']
+        user_exp = msg['content'].get('user_expressions')
+        if not user_exp:
+            return
         for expression in user_exp:
             if expression in self._callback_dict:
                 self._callback_dict.pop(expression)(user_exp[expression])
