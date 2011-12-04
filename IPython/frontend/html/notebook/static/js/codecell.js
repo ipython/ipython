@@ -20,6 +20,7 @@ var IPython = (function (IPython) {
         this.completion_cursor = null;
         this.outputs = [];
         this.collapsed = false;
+        this.tooltip_timeout = null;
         IPython.Cell.apply(this, arguments);
     };
 
@@ -48,7 +49,8 @@ var IPython = (function (IPython) {
     };
 
     //TODO, try to diminish the number of parameters.
-    CodeCell.prototype.request_tooltip_after_time = function (pre_cursor,time,that){
+    CodeCell.prototype.request_tooltip_after_time = function (pre_cursor,time){
+        var that = this;
         if (pre_cursor === "" || pre_cursor === "(" ) {
             // don't do anything if line beggin with '(' or is empty
         } else {
@@ -74,8 +76,7 @@ var IPython = (function (IPython) {
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any
         if(event.type === 'keydown' ){
-            CodeCell.prototype.remove_and_cancel_tooltip(that.tooltip_timeout);
-            that.tooltip_timeout=null;
+            that.remove_and_cancel_tooltip();
         }
 
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
@@ -87,7 +88,7 @@ var IPython = (function (IPython) {
             // Pressing '(' , request tooltip, don't forget to reappend it
             var cursor = editor.getCursor();
             var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
-            CodeCell.prototype.request_tooltip_after_time(pre_cursor,tooltip_wait_time,that);
+            that.request_tooltip_after_time(pre_cursor,tooltip_wait_time);
         } else if (event.keyCode === 9 && event.type == 'keydown') {
             // Tab completion.
             var cur = editor.getCursor();
@@ -98,7 +99,7 @@ var IPython = (function (IPython) {
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
             } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && tooltip_on_tab ) {
-                CodeCell.prototype.request_tooltip_after_time(pre_cursor,0,that);
+                that.request_tooltip_after_time(pre_cursor,0);
             } else {
                 pre_cursor.trim();
                 // Autocomplete the current line.
@@ -145,14 +146,15 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    CodeCell.prototype.remove_and_cancel_tooltip = function(timeout)
-    {
+    CodeCell.prototype.remove_and_cancel_tooltip = function() {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
-        if(timeout != null)
-        { clearTimeout(timeout);}
-        $('#tooltip').remove();
+        if (this.tooltip_timeout != null){
+            clearTimeout(this.tooltip_timeout);
+            $('#tooltip').remove();
+            this.tooltip_timeout = null;
+        }
     }
 
     CodeCell.prototype.finish_tooltip = function (reply) {
@@ -194,7 +196,7 @@ var IPython = (function (IPython) {
         morelink.click(function(){
             var msg_id = IPython.notebook.kernel.execute(name+"?");
             IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.selected_cell().cell_id;
-            CodeCell.prototype.remove_and_cancel_tooltip(that.tooltip_timeout);
+            that.remove_and_cancel_tooltip();
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
 
@@ -208,7 +210,7 @@ var IPython = (function (IPython) {
             closespan.addClass('ui-icon-close');
         closelink.append(closespan);
         closelink.click(function(){
-            CodeCell.prototype.remove_and_cancel_tooltip(that.tooltip_timeout);
+            that.remove_and_cancel_tooltip();
             setTimeout(function(){that.code_mirror.focus();}, 50);
             });
         //construct the tooltip
@@ -227,7 +229,7 @@ var IPython = (function (IPython) {
 
         // issues with cross-closing if multiple tooltip in less than 5sec
         // keep it comented for now
-        // setTimeout(CodeCell.prototype.remove_and_cancel_tooltip, 5000);
+        // setTimeout(that.remove_and_cancel_tooltip, 5000);
     };
 
     // As you type completer
@@ -289,7 +291,7 @@ var IPython = (function (IPython) {
                 console.log('Ok, you really want to complete after pressing tab '+this.npressed+' times !');
                 console.log('You should understand that there is no (more) completion for that !');
                 console.log("I'll show you the tooltip, will you stop bothering me ?");
-                this.request_tooltip_after_time(matched_text+'(',0,this);
+                this.request_tooltip_after_time(matched_text+'(',0);
                 return;
             }
             this.prevmatch=matched_text
