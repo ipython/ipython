@@ -18,6 +18,7 @@ For more details, see the ipython-zmq design
 from __future__ import print_function
 
 import bdb
+import signal
 import sys
 import time
 
@@ -169,9 +170,34 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         """ Method to capture raw_input
         """
         msg_rep = self.km.stdin_channel.get_msg(timeout=timeout)
-        if self.session_id == msg_rep["parent_header"]["session"] :
-            raw_data = raw_input(msg_rep["content"]["prompt"])
-            self.km.stdin_channel.input(raw_data)
+        # in case any iopub came while we were waiting:
+        self.handle_iopub()
+        if self.session_id == msg_rep["parent_header"]["session"]:
+            # wrap SIGINT handler
+            real_handler = signal.getsignal(signal.SIGINT)
+            def double_int(sig,frame):
+                # call real handler (forwards sigint to kernel),
+                # then raise local interrupt, stopping local raw_input
+                real_handler(sig,frame)
+                raise KeyboardInterrupt
+            signal.signal(signal.SIGINT, double_int)
+            
+            try:
+                raw_data = raw_input(msg_rep["content"]["prompt"])
+            except EOFError:
+                # turn EOFError into EOF character
+                raw_data = '\x04'
+            except KeyboardInterrupt:
+                sys.stdout.write('\n')
+                return
+            finally:
+                # restore SIGINT handler
+                signal.signal(signal.SIGINT, real_handler)
+            
+            # only send stdin reply if there *was not* another request
+            # or execution finished while we were reading.
+            if not (self.km.stdin_channel.msg_ready() or self.km.shell_channel.msg_ready()):
+                self.km.stdin_channel.input(raw_data)
 
     def mainloop(self, display_banner=False):
         while True:

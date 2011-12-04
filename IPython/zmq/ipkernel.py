@@ -469,6 +469,9 @@ class Kernel(Configurable):
             self.log.error("Got bad raw_input reply: ")
             self.log.error(str(Message(parent)))
             value = ''
+        if value == '\x04':
+            # EOF
+            raise EOFError
         return value
 
     def _complete(self, msg):
