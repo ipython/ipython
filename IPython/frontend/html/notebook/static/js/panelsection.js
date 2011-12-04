@@ -137,6 +137,7 @@ var IPython = (function (IPython) {
         this.content.find('#tooltipontab').attr('title', 'Show tooltip if you press <Tab> after "(" or a white space');
         this.content.find('#tooltipontab_label').attr('title', 'Show Tooltip when pressing Tab');
 
+        this.content.find('#timebeforetooltip').addClass("ui-widget ui-widget-content");
         this.content.find('#timebeforetooltip').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
         this.content.find('#timebeforetooltip_label').attr('title', 'Time before a tooltip auto-appear when "(" is pressed (negative value supress tooltip)');
 

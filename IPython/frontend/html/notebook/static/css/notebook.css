@@ -115,6 +115,11 @@ span.section_row_buttons a {
     float: right;
 }
 
+#timebeforetooltip{
+    margin-top:-3px;
+    text-align:right;
+}
+
 #timebeforetooltip_span {
     float: right;
 }
