@@ -198,7 +198,7 @@ class RichIPythonWidget(IPythonWidget):
 
         elif format == "svg":
             try:
-                svg = str(self._name_to_svg_map[match.group("name")])
+                svg = self._name_to_svg_map[match.group("name")]
             except KeyError:
                 return "<b>Couldn't find image %s</b>" % match.group("name")
 

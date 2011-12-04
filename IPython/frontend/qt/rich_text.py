@@ -7,6 +7,7 @@
 # Standard library imports.
 import os
 import re
+import codecs
 
 # System library imports.
 from IPython.external.qt import QtGui
@@ -182,8 +183,9 @@ def export_xhtml(html, filename, image_tag=None):
                 html[offset+6:])
 
         html = fix_html(html)
-        f.write(IMG_RE.sub(lambda x: image_tag(x, path = None, format = "svg"),
-                           html))
+        sub=IMG_RE.sub(lambda x: image_tag(x, path = None, format = "svg"), html)
+        f.write( codecs.BOM_UTF8 )
+        f.write( sub.encode("utf-8") )
 
 
 def default_image_tag(match, path = None, format = "png"):
