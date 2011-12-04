@@ -194,7 +194,7 @@ var IPython = (function (IPython) {
         morelink.click(function(){
             var msg_id = IPython.notebook.kernel.execute(name+"?");
             IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.selected_cell().cell_id;
-            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+            CodeCell.prototype.remove_and_cancel_tooltip(that.tooltip_timeout);
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
 
@@ -208,7 +208,7 @@ var IPython = (function (IPython) {
             closespan.addClass('ui-icon-close');
         closelink.append(closespan);
         closelink.click(function(){
-            CodeCell.prototype.remove_and_cancell_tooltip(that.tooltip_timeout);
+            CodeCell.prototype.remove_and_cancel_tooltip(that.tooltip_timeout);
             setTimeout(function(){that.code_mirror.focus();}, 50);
             });
         //construct the tooltip
@@ -227,7 +227,7 @@ var IPython = (function (IPython) {
 
         // issues with cross-closing if multiple tooltip in less than 5sec
         // keep it comented for now
-        // setTimeout(CodeCell.prototype.remove_and_cancell_tooltip, 5000);
+        // setTimeout(CodeCell.prototype.remove_and_cancel_tooltip, 5000);
     };
 
     // As you type completer
