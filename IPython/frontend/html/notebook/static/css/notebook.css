@@ -122,6 +122,14 @@ span.section_row_buttons a {
 
 #timebeforetooltip_span {
     float: right;
+    padding: 0px 5px;
+    font-size: 85%;
+}
+
+#timebeforetooltip_label {
+    float: right;
+    text-align:right;
+    font-size: 85%;
 }
 
 #tooltipontab_span {
