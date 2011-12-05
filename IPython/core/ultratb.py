@@ -879,7 +879,7 @@ class VerboseTB(TBTools):
                 # enclosing scope.
                 for token in generate_tokens(linereader):
                     tokeneater(*token)
-            except IndexError:
+            except (IndexError, UnicodeDecodeError):
                 # signals exit of tokenizer
                 pass
             except tokenize.TokenError,msg:
