@@ -28,13 +28,14 @@ $(document).ready(function () {
         var dialog = $('<div></div>')
             .append(
                 $("<p></p>").addClass('dialog').html(
-                    "Math/LaTeX equation rendering will be disabled."
+                    "Math/LaTeX rendering will be disabled."
                 )
             ).append(
                 $("<p></p>").addClass('dialog').html(
-                    "With a working internet connection, you can install a local copy" +
-                    " of MathJax for offline use with the following command at a Python" +
-                    " or IPython prompt:"
+                    "If you have administrative access to the notebook server and" +
+                    " a working internet connection, you can install a local copy" +
+                    " of MathJax for offline use with the following command on the server" +
+                    " at a Python or IPython prompt:"
                 )
             ).append(
                 $("<pre></pre>").addClass('dialog').html(
@@ -42,14 +43,17 @@ $(document).ready(function () {
                 )
             ).append(
                 $("<p></p>").addClass('dialog').html(
-                    "This will try to install MathJax into the directory where you installed"+
-                    " IPython. If you installed IPython to a location that requires"+
-                    " administrative privileges to write, you will need to make this call as"+
+                    "This will try to install MathJax into the IPython source directory."
+                )
+            ).append(
+                $("<p></p>").addClass('dialog').html(
+                    "If IPython is installed to a location that requires" +
+                    " administrative privileges to write, you will need to make this call as" +
                     " an administrator, via 'sudo'."
                 )
             ).append(
                 $("<p></p>").addClass('dialog').html(
-                    "Or you can instruct the notebook server to disable MathJax support altogether:"
+                    "When you start the notebook server, you can instruct it to disable MathJax support altogether:"
                 )
             ).append(
                 $("<pre></pre>").addClass('dialog').html(
