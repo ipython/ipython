@@ -2405,12 +2405,14 @@ class InteractiveShell(SingletonConfigurable, Magic):
                         code_ast = self.compile.ast_parse(cell, filename=cell_name)
                     except IndentationError:
                         self.showindentationerror()
-                        self.execution_count += 1
+                        if store_history:
+                            self.execution_count += 1
                         return None
                     except (OverflowError, SyntaxError, ValueError, TypeError,
                             MemoryError):
                         self.showsyntaxerror()
-                        self.execution_count += 1
+                        if store_history:
+                            self.execution_count += 1
                         return None
 
                     self.run_ast_nodes(code_ast.body, cell_name,
