@@ -232,7 +232,14 @@ lazily_evaluate = {'time': LazyEvaluate(time.strftime, "%H:%M:%S"),
                             [LazyEvaluate(cwd_filt, x) for x in range(1,6)],
                    'cwd_y': [LazyEvaluate(cwd_filt2, x) for x in range(6)]
                    }
-        
+
+def _lenlastline(s):
+    """Get the length of the last line. More intelligent than
+    len(s.splitlines()[-1]).
+    """
+    if not s or s.endswith(('\n', '\r')):
+        return 0
+    return len(s.splitlines()[-1])
 
 class PromptManager(Configurable):
     """This is the primary interface for producing IPython's prompts."""
@@ -305,8 +312,10 @@ class PromptManager(Configurable):
         """
         if new_template is not None:
             self.templates[name] = multiple_replace(prompt_abbreviations, new_template)
-        invis_chars = len(self._render(name, color=True)) - \
-                            len(self._render(name, color=False))
+        # We count invisible characters (colour escapes) on the last line of the
+        # prompt, to calculate the width for lining up subsequent prompts.
+        invis_chars = _lenlastline(self._render(name, color=True)) - \
+                        _lenlastline(self._render(name, color=False))
         self.invisible_chars[name] = invis_chars
     
     def _update_prompt_trait(self, traitname, new_template):
@@ -388,9 +397,10 @@ class PromptManager(Configurable):
         
         # Handle justification of prompt
         invis_chars = self.invisible_chars[name] if color else 0
-        self.txtwidth = len(res) - invis_chars
+        self.txtwidth = _lenlastline(res) - invis_chars
         just = self.justify if (just is None) else just
-        if just:
+        # If the prompt spans more than one line, don't try to justify it:
+        if just and ('\n' not in res) and ('\r' not in res):
             res = res.rjust(self.width + invis_chars)
-        self.width = len(res) - invis_chars
+        self.width = _lenlastline(res) - invis_chars
         return res
