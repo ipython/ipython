@@ -271,3 +271,8 @@ class TestSystemRaw(unittest.TestCase):
         """
         cmd = ur'''python -c "'åäö'"   '''
         _ip.shell.system_raw(cmd)
+
+
+def test__IPYTHON__():
+    # This shouldn't raise a NameError, that's all
+    __IPYTHON__
