@@ -142,7 +142,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         while self.km.sub_channel.msg_ready():
             sub_msg = self.km.sub_channel.get_msg()
             msg_type = sub_msg['header']['msg_type']
-            if self.session_id == sub_msg['parent_header']['session']:
+            parent = sub_msg["parent_header"]
+            if (not parent) or self.session_id == parent['session']:
                 if msg_type == 'status' :
                     if sub_msg["content"]["execution_state"] == "busy" :
                         pass
@@ -172,7 +173,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         msg_rep = self.km.stdin_channel.get_msg(timeout=timeout)
         # in case any iopub came while we were waiting:
         self.handle_iopub()
-        if self.session_id == msg_rep["parent_header"]["session"]:
+        if self.session_id == msg_rep["parent_header"].get("session"):
             # wrap SIGINT handler
             real_handler = signal.getsignal(signal.SIGINT)
             def double_int(sig,frame):
