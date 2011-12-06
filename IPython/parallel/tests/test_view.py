@@ -24,6 +24,8 @@ from StringIO import StringIO
 import zmq
 from nose import SkipTest
 
+from IPython.testing import decorators as dec
+
 from IPython import parallel  as pmod
 from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult, AsyncMapResult
@@ -298,6 +300,7 @@ class TestView(ClusterTestCase):
             self.assertFalse(view.block)
         self.assertTrue(view.block)
     
+    @dec.known_failure_py3
     def test_importer(self):
         view = self.client[-1]
         view.clear(block=True)
@@ -330,7 +333,7 @@ class TestView(ClusterTestCase):
         sys.stdout = sio
         # just 'print a' worst ~99% of the time, but this ensures that
         # the stdout message has arrived when the result is finished:
-        ip.magic_px('import sys,time;print a; sys.stdout.flush();time.sleep(0.2)')
+        ip.magic_px('import sys,time;print (a); sys.stdout.flush();time.sleep(0.2)')
         sys.stdout = savestdout
         buf = sio.getvalue()
         self.assertTrue('[stdout:' in buf, buf)

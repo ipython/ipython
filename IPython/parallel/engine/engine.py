@@ -27,7 +27,7 @@ from IPython.external.ssh import tunnel
 from IPython.utils.traitlets import (
     Instance, Dict, Integer, Type, CFloat, Unicode, CBytes, Bool
 )
-# from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils import py3compat
 
 from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
@@ -192,12 +192,12 @@ class EngineFactory(RegistrationFactory):
             # # Redirect input streams and set a display hook.
             if self.out_stream_factory:
                 sys.stdout = self.out_stream_factory(self.session, iopub_stream, u'stdout')
-                sys.stdout.topic = 'engine.%i.stdout'%self.id
+                sys.stdout.topic = py3compat.cast_bytes('engine.%i.stdout' % self.id)
                 sys.stderr = self.out_stream_factory(self.session, iopub_stream, u'stderr')
-                sys.stderr.topic = 'engine.%i.stderr'%self.id
+                sys.stderr.topic = py3compat.cast_bytes('engine.%i.stderr' % self.id)
             if self.display_hook_factory:
                 sys.displayhook = self.display_hook_factory(self.session, iopub_stream)
-                sys.displayhook.topic = 'engine.%i.pyout'%self.id
+                sys.displayhook.topic = py3compat.cast_bytes('engine.%i.pyout' % self.id)
 
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
                     control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream,

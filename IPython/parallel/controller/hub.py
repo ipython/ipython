@@ -653,7 +653,7 @@ class Hub(SessionFactory):
             return
         record = init_record(msg)
 
-        record['client_uuid'] = client_id
+        record['client_uuid'] = client_id.decode('ascii')
         record['queue'] = 'task'
         header = msg['header']
         msg_id = header['msg_id']
