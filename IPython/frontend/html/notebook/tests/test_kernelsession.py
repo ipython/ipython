@@ -22,5 +22,6 @@ class TestKernelManager(TestCase):
         self.assert_('shell_port' in port_dict)
         self.assert_('hb_port' in port_dict)
         km.get_kernel(kid)
+        km.kill_kernel(kid)
 
 

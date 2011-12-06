@@ -22,7 +22,9 @@ import sys
 import time
 import traceback
 import logging
-
+from signal import (
+        signal, default_int_handler, SIGINT, SIG_IGN
+)
 # System library imports.
 import zmq
 
@@ -168,6 +170,9 @@ class Kernel(Configurable):
     def start(self):
         """ Start the kernel main loop.
         """
+        # a KeyboardInterrupt (SIGINT) can occur on any python statement, so
+        # let's ignore (SIG_IGN) them until we're in a place to handle them properly
+        signal(SIGINT,SIG_IGN)
         poller = zmq.Poller()
         poller.register(self.shell_socket, zmq.POLLIN)
         # loop while self.eventloop has not been overridden
@@ -182,12 +187,20 @@ class Kernel(Configurable):
                 # due to pyzmq Issue #130
                 try:
                     poller.poll(10*1000*self._poll_interval)
+                    # restore raising of KeyboardInterrupt
+                    signal(SIGINT, default_int_handler)
                     self.do_one_iteration()
                 except:
                     raise
+                finally:
+                    # prevent raising of KeyboardInterrupt
+                    signal(SIGINT,SIG_IGN)
             except KeyboardInterrupt:
                 # Ctrl-C shouldn't crash the kernel
                 io.raw_print("KeyboardInterrupt caught in kernel")
+        # stop ignoring sigint, now that we are out of our own loop,
+        # we don't want to prevent future code from handling it
+        signal(SIGINT, default_int_handler)
         if self.eventloop is not None:
             try:
                 self.eventloop(self)
@@ -456,6 +469,9 @@ class Kernel(Configurable):
             self.log.error("Got bad raw_input reply: ")
             self.log.error(str(Message(parent)))
             value = ''
+        if value == '\x04':
+            # EOF
+            raise EOFError
         return value
 
     def _complete(self, msg):
