@@ -82,6 +82,10 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         if (not cell) or cell.isspace():
             return
 
+        if cell.strip() == 'exit':
+            # explicitly handle 'exit' command
+            return self.ask_exit()
+
         self._executing = True
         # flush stale replies, which could have been ignored, due to missed heartbeats
         while self.km.shell_channel.msg_ready():
