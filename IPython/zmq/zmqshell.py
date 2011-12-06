@@ -44,12 +44,6 @@ from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_binary
 from IPython.zmq.session import extract_header
 from session import Session
 
-#-----------------------------------------------------------------------------
-# Globals and side-effects
-#-----------------------------------------------------------------------------
-
-# Install the payload version of page.
-install_payload_page()
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -126,6 +120,9 @@ class ZMQInteractiveShell(InteractiveShell):
         # subprocesses as much as possible.
         env['PAGER'] = 'cat'
         env['GIT_PAGER'] = 'cat'
+        
+        # And install the payload version of page.
+        install_payload_page()
 
     def auto_rewrite_input(self, cmd):
         """Called to show the auto-rewritten input for autocall and friends.

@@ -69,6 +69,9 @@ ipython --profile=foo      # start with profile foo
 ipython qtconsole          # start the qtconsole GUI application
 ipython qtconsole -h       # show the help string for the qtconsole subcmd
 
+ipython console            # start the terminal-based console application
+ipython console -h         # show the help string for the console subcmd
+
 ipython profile create foo # create profile foo w/ default config files
 ipython profile -h         # show the help string for the profile subcmd
 """
@@ -112,7 +115,8 @@ class IPAppCrashHandler(CrashHandler):
 #-----------------------------------------------------------------------------
 flags = dict(base_flags)
 flags.update(shell_flags)
-addflag = lambda *args: flags.update(boolean_flag(*args))
+frontend_flags = {}
+addflag = lambda *args: frontend_flags.update(boolean_flag(*args))
 addflag('autoedit-syntax', 'TerminalInteractiveShell.autoedit_syntax',
         'Turn on auto editing of files with syntax errors.',
         'Turn off auto editing of files with syntax errors.'
@@ -143,7 +147,7 @@ classic_config.InteractiveShell.separate_out2 = ''
 classic_config.InteractiveShell.colors = 'NoColor'
 classic_config.InteractiveShell.xmode = 'Plain'
 
-flags['classic']=(
+frontend_flags['classic']=(
     classic_config,
     "Gives IPython a similar feel to the classic Python prompt."
 )
@@ -153,21 +157,22 @@ flags['classic']=(
 #     help="Start logging to the default log file (./ipython_log.py).")
 #
 # # quick is harder to implement
-flags['quick']=(
+frontend_flags['quick']=(
     {'TerminalIPythonApp' : {'quick' : True}},
     "Enable quick startup with no config files."
 )
 
-flags['i'] = (
+frontend_flags['i'] = (
     {'TerminalIPythonApp' : {'force_interact' : True}},
     """If running code from the command line, become interactive afterwards.
     Note: can also be given simply as '-i.'"""
 )
-flags['pylab'] = (
+frontend_flags['pylab'] = (
     {'TerminalIPythonApp' : {'pylab' : 'auto'}},
     """Pre-load matplotlib and numpy for interactive use with
     the default matplotlib backend."""
 )
+flags.update(frontend_flags)
 
 aliases = dict(base_aliases)
 aliases.update(shell_aliases)
@@ -209,13 +214,16 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             """Launch the IPython Qt Console."""
         ),
         notebook=('IPython.frontend.html.notebook.notebookapp.NotebookApp',
-            """Launch the IPython HTML Notebook Server"""
+            """Launch the IPython HTML Notebook Server."""
         ),
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
         ),
         kernel = ("IPython.zmq.ipkernel.IPKernelApp",
             "Start a kernel without an attached frontend."
+        ),
+        console=('IPython.frontend.terminal.console.app.ZMQTerminalIPythonApp',
+            """Launch the IPython terminal-based Console."""
         ),
     ))
 
