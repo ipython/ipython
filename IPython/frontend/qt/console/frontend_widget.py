@@ -599,7 +599,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                     self.kernel_manager.restart_kernel(now=now)
                 except RuntimeError:
                     self._append_plain_text('Kernel started externally. '
-                                            'Cannot restart.\n')
+                                            'Cannot restart.\n',
+                                            before_prompt=True
+                                            )
                 else:
                     self.reset()
             else:
@@ -607,7 +609,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         else:
             self._append_plain_text('Kernel process is either remote or '
-                                    'unspecified. Cannot restart.\n')
+                                    'unspecified. Cannot restart.\n',
+                                    before_prompt=True
+                                    )
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
