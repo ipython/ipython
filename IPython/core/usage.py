@@ -195,6 +195,11 @@ MAIN FEATURES
             In [1]: callable_ob arg1, arg2, arg3
         and the input will be translated to this:
             ------> callable_ob(arg1, arg2, arg3)
+        This feature is off by default (in rare cases it can produce
+        undesirable side-effects), but you can activate it at the command-line
+        by starting IPython with `--autocall 1`, set it permanently in your
+        configuration file, or turn on at runtime with `%autocall 1`.
+
         You can force auto-parentheses by using '/' as the first character
         of a line.  For example:
             In [1]: /globals             # becomes 'globals()'
@@ -285,7 +290,7 @@ _oh              : Output history
 
 Autocall:
 
-f 1,2            : f(1,2)
+f 1,2            : f(1,2)  # Off by default, enable with %autocall magic.
 /f 1,2           : f(1,2) (forced autoparen)
 ,f 1 2           : f("1","2")
 ;f 1 2           : f("1 2")
