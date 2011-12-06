@@ -145,8 +145,15 @@ def test_getdoc():
         def getdoc(self):
             return "custom docstring"
     
+    class C(object):
+        """standard docstring"""
+        def getdoc(self):
+            return None
+    
     a = A()
     b = B()
+    c = C()
     
     nt.assert_equal(oinspect.getdoc(a), "standard docstring")
     nt.assert_equal(oinspect.getdoc(b), "custom docstring")
+    nt.assert_equal(oinspect.getdoc(c), "standard docstring")
