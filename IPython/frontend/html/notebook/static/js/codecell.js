@@ -278,6 +278,7 @@ var IPython = (function (IPython) {
 
         // give common prefix of a array of string
         function sharedStart(A){
+            if(A.length == 1){return A[0]}
             if(A.length > 1 ){
                 var tem1, tem2, s, A = A.slice(0).sort();
                 tem1 = A[0];
