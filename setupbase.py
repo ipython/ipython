@@ -120,7 +120,13 @@ def find_package_data():
     """
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
-
+    
+    # exclude static things that we don't ship (e.g. mathjax)
+    excludes = ['mathjax']
+    
+    # add 'static/' prefix to exclusions, and tuplify for use in startswith
+    excludes = tuple([os.path.join('static', ex) for ex in excludes])
+    
     # walk notebook resources:
     cwd = os.getcwd()
     os.chdir(os.path.join('IPython', 'frontend', 'html', 'notebook'))
@@ -128,6 +134,8 @@ def find_package_data():
     os.chdir(cwd)
     static_data = []
     for parent, dirs, files in static_walk:
+        if parent.startswith(excludes):
+            continue
         for f in files:
             static_data.append(os.path.join(parent, f))
 
