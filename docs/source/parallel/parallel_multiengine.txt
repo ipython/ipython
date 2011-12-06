@@ -145,10 +145,38 @@ operations and distribute them, reconstructing the result.
     In [17]: (C_local == C_remote).all()
     Out[17]: True
 
+Calling a ``@parallel`` function *does not* correspond to map. It is used for splitting
+element-wise operations that operate on a sequence or array.  For ``map`` behavior,
+parallel functions do have a map method.
+
+====================    ============================    =============================
+call                    pfunc(seq)                      pfunc.map(seq)
+====================    ============================    =============================
+# of tasks              # of engines (1 per engine)     # of engines (1 per engine)
+# of remote calls       # of engines (1 per engine)     ``len(seq)``
+argument to remote      ``seq[i:j]`` (sub-sequence)     ``seq[i]`` (single element)
+====================    ============================    =============================
+
+A quick example to illustrate the difference in arguments for the two modes:
+
+.. sourcecode:: ipython
+
+    In [16]: @dview.parallel(block=True)
+       ....: def echo(x):
+       ....:     return str(x)
+       ....: 
+
+    In [17]: echo(range(5))
+    Out[17]: ['[0, 1]', '[2]', '[3]', '[4]']
+
+    In [18]: echo.map(range(5))
+    Out[18]: ['0', '1', '2', '3', '4']
+
+
 .. seealso::
 
-    See the docstrings for the :func:`parallel` and :func:`remote` decorators for
-    options.
+    See the :func:`~.remotefunction.parallel` and :func:`~.remotefunction.remote`
+    decorators for options.
 
 Calling Python functions
 ========================
