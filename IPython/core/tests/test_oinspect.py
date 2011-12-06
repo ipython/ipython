@@ -134,3 +134,26 @@ def test_info():
         i = inspector.info(OldStyle())
         nt.assert_equal(i['type_name'], 'instance')
         nt.assert_equal(i['docstring'], OldStyle.__doc__)
+
+def test_getdoc():
+    class A(object):
+        """standard docstring"""
+        pass
+    
+    class B(object):
+        """standard docstring"""
+        def getdoc(self):
+            return "custom docstring"
+    
+    class C(object):
+        """standard docstring"""
+        def getdoc(self):
+            return None
+    
+    a = A()
+    b = B()
+    c = C()
+    
+    nt.assert_equal(oinspect.getdoc(a), "standard docstring")
+    nt.assert_equal(oinspect.getdoc(b), "custom docstring")
+    nt.assert_equal(oinspect.getdoc(c), "standard docstring")
