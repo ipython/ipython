@@ -175,7 +175,7 @@ var IPython = (function (IPython) {
             var text = this.get_source();
             if (text === "") { text = this.placeholder; }
             this.set_rendered(text);
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+            this.typeset();
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
             this.rendered = true;
@@ -201,7 +201,7 @@ var IPython = (function (IPython) {
             if (text === "") { text = this.placeholder; }
             var html = IPython.markdown_converter.makeHtml(text);
             this.set_rendered(html);
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+            this.typeset()
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
             var code_snippets = this.element.find("pre > code");
@@ -255,7 +255,7 @@ var IPython = (function (IPython) {
 
     RSTCell.prototype.handle_render = function (data, status, xhr) {
         this.set_rendered(data);
-        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+        this.typeset();
         this.rendered = true;
     };
 

@@ -428,6 +428,18 @@ div.text_cell_render {
     font-family: monospace;
 }
 
+pre.dialog {
+    background-color: #f7f7f7;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 0.4em;
+    padding-left: 2em;
+}
+
+p.dialog{
+    padding : 0.2em;
+}
+
 @media print {
     body { overflow: visible !important; }
     .ui-widget-content { border: 0px; }
