@@ -772,7 +772,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """
         # Determine where to insert the content.
         cursor = self._control.textCursor()
-        if before_prompt and not self._executing:
+        if before_prompt and (self._reading or not self._executing):
             cursor.setPosition(self._append_before_prompt_pos)
         else:
             cursor.movePosition(QtGui.QTextCursor.End)
