@@ -419,6 +419,11 @@ div.text_cell_render {
     min-height:50px;
 }
 
+/*fixed part of the completion*/
+.completions p b{
+    font-weight:bold;
+}
+
 .completions p{
     background: #DDF;
     /*outline: none;
