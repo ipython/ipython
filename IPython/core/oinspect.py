@@ -97,26 +97,22 @@ def getdoc(obj):
     It also attempts to call a getdoc() method on the given object.  This
     allows objects which provide their docstrings via non-standard mechanisms
     (like Pyro proxies) to still be inspected by ipython's ? system."""
-
-    ds = None  # default return value
-    try:
-        ds = inspect.getdoc(obj)
-    except:
-        # Harden against an inspect failure, which can occur with
-        # SWIG-wrapped extensions.
-        pass
     # Allow objects to offer customized documentation via a getdoc method:
     try:
-        ds2 = obj.getdoc()
-    except:
+        ds = obj.getdoc()
+    except Exception:
         pass
     else:
         # if we get extra info, we add it to the normal docstring.
-        if ds is None:
-            ds = ds2
-        else:
-            ds = '%s\n%s' % (ds,ds2)
-    return ds
+        if isinstance(ds, basestring):
+            return inspect.cleandoc(ds)
+    
+    try:
+        return inspect.getdoc(obj)
+    except Exception:
+        # Harden against an inspect failure, which can occur with
+        # SWIG-wrapped extensions.
+        return None
 
 
 def getsource(obj,is_binary=False):
