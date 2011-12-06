@@ -277,7 +277,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 self.hooks.pre_prompt_hook()
                 if more:
                     try:
-                        prompt = self.hooks.generate_prompt(True)
+                        prompt = self.prompt_manager.render('in2')
                     except Exception:
                         self.showtraceback()
                     if self.autoindent:
@@ -285,7 +285,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     
                 else:
                     try:
-                        prompt = self.hooks.generate_prompt(False)
+                        prompt = self.separate_in + self.prompt_manager.render('in')
                     except Exception:
                         self.showtraceback()
                 
