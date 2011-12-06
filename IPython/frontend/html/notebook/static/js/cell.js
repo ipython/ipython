@@ -88,6 +88,13 @@ var IPython = (function (IPython) {
     // Subclasses must implement create_element.
     Cell.prototype.create_element = function () {};
 
+    // typeset with MathJax if MathJax is available
+    Cell.prototype.typeset = function () {
+        if (window.MathJax){
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+        }
+    };
+
     IPython.Cell = Cell;
 
     return IPython;

@@ -59,7 +59,7 @@ var IPython = (function (IPython) {
         var that = this;
         $(document).keydown(function (event) {
             // console.log(event);
-            if (that.read_only) return false;
+            if (that.read_only) return true;
             if (event.which === 27) {
                 // Intercept escape at highest level to avoid closing 
                 // websocket connection with firefox
