@@ -132,6 +132,8 @@ def test_handlers():
     run([
         ('len "abc"',       'len "abc"'),
         ('autocallable',    'autocallable()'),
+        # Don't add extra brackets (gh-1117)
+        ('autocallable()',    'autocallable ()'),
         (",list 1 2 3",     'list("1", "2", "3")'),
         (";list 1 2 3",     'list("1 2 3")'),
         ("/len range(1,4)", 'len(range(1,4))'),
