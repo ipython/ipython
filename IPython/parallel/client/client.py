@@ -886,11 +886,14 @@ class Client(HasTraits):
 
         jobs : msg_id, list of msg_ids, or AsyncResult
             The jobs to be aborted
-
+            
+            If unspecified/None: abort all outstanding jobs.
 
         """
         block = self.block if block is None else block
+        jobs = jobs if jobs is not None else list(self.outstanding)
         targets = self._build_targets(targets)[0]
+        
         msg_ids = []
         if isinstance(jobs, (basestring,AsyncResult)):
             jobs = [jobs]

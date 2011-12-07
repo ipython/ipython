@@ -271,6 +271,8 @@ class View(HasTraits):
         """
         block = block if block is not None else self.block
         targets = targets if targets is not None else self.targets
+        jobs = jobs if jobs is not None else list(self.outstanding)
+        
         return self.client.abort(jobs=jobs, targets=targets, block=block)
 
     def queue_status(self, targets=None, verbose=False):

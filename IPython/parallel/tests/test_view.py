@@ -292,7 +292,16 @@ class TestView(ClusterTestCase):
         view.abort(ar3.msg_ids)
         self.assertRaises(error.TaskAborted, ar2.get)
         self.assertRaises(error.TaskAborted, ar3.get)
-        
+    
+    def test_abort_all(self):
+        """view.abort() aborts all outstanding tasks"""
+        view = self.client[-1]
+        ars = [ view.apply_async(time.sleep, 1) for i in range(10) ]
+        view.abort()
+        view.wait(timeout=5)
+        for ar in ars[5:]:
+            self.assertRaises(error.TaskAborted, ar.get)
+    
     def test_temp_flags(self):
         view = self.client[-1]
         view.block=True
