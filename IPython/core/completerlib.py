@@ -77,13 +77,18 @@ def shlex_split(x):
             comps = shlex.split(x)
             if len(endofline) >= 1:
                 comps.append(''.join(endofline))
+            if not py3compat.PY3:
+                comps = [py3compat.cast_unicode(x) for x in comps]
             return comps
 
         except ValueError:
             endofline = [x[-1:]]+endofline
             x = x[:-1]
 
-    return [''.join(endofline)]
+    x = ''.join(endofline)
+    if not py3compat.PY3:
+        x = py3compat.cast_unicode(x)
+    return [x]
 
 def module_list(path):
     """
