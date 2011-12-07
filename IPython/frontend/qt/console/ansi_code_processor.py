@@ -26,12 +26,19 @@ MoveAction = namedtuple('MoveAction', ['action', 'dir', 'unit', 'count'])
 # An action for scroll requests (SU and ST) and form feeds.
 ScrollAction = namedtuple('ScrollAction', ['action', 'dir', 'unit', 'count'])
 
+# An action for the carriage return character
+CarriageReturnAction = namedtuple('CarriageReturnAction', ['action'])
+
+# An action for the beep character
+BeepAction = namedtuple('BeepAction', ['action'])
+
 # Regular expressions.
 CSI_COMMANDS = 'ABCDEFGHJKSTfmnsu'
 CSI_SUBPATTERN = '\[(.*?)([%s])' % CSI_COMMANDS
 OSC_SUBPATTERN = '\](.*?)[\x07\x1b]'
-ANSI_PATTERN = re.compile('\x01?\x1b(%s|%s)\x02?' % \
-                              (CSI_SUBPATTERN, OSC_SUBPATTERN))
+ANSI_PATTERN = ('\x01?\x1b(%s|%s)\x02?' % \
+                (CSI_SUBPATTERN, OSC_SUBPATTERN))
+ANSI_OR_SPECIAL_PATTERN = re.compile('(\b|\r)|(?:%s)' % ANSI_PATTERN)
 SPECIAL_PATTERN = re.compile('([\f])')
 
 #-----------------------------------------------------------------------------
@@ -76,7 +83,7 @@ class AnsiCodeProcessor(object):
         self.actions = []
         start = 0
 
-        for match in ANSI_PATTERN.finditer(string):
+        for match in ANSI_OR_SPECIAL_PATTERN.finditer(string):
             raw = string[start:match.start()]
             substring = SPECIAL_PATTERN.sub(self._replace_special, raw)
             if substring or self.actions:
@@ -85,20 +92,27 @@ class AnsiCodeProcessor(object):
 
             self.actions = []
             groups = filter(lambda x: x is not None, match.groups())
-            params = [ param for param in groups[1].split(';') if param ]
-            if groups[0].startswith('['):
-                # Case 1: CSI code.
-                try:
-                    params = map(int, params)
-                except ValueError:
-                    # Silently discard badly formed codes.
-                    pass
-                else:
-                    self.set_csi_code(groups[2], params)
+            if groups[0] == '\r':
+                self.actions.append(CarriageReturnAction('carriage-return'))
+                yield ''
+            elif groups[0] == '\b':
+                self.actions.append(BeepAction('beep'))
+                yield ''
+            else:
+                params = [ param for param in groups[1].split(';') if param ]
+                if groups[0].startswith('['):
+                    # Case 1: CSI code.
+                    try:
+                        params = map(int, params)
+                    except ValueError:
+                        # Silently discard badly formed codes.
+                        pass
+                    else:
+                        self.set_csi_code(groups[2], params)
 
-            elif groups[0].startswith(']'):
-                # Case 2: OSC code.
-                self.set_osc_code(params)
+                elif groups[0].startswith(']'):
+                    # Case 2: OSC code.
+                    self.set_osc_code(params)
 
         raw = string[start:]
         substring = SPECIAL_PATTERN.sub(self._replace_special, raw)
