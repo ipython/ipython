@@ -333,7 +333,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     self.autoedit_syntax):
                     self.edit_syntax_error()
                 if not more:
-                    source_raw = self.input_splitter.source_reset()
+                    source_raw = self.input_splitter.source_raw_reset()[1]
                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     self.run_cell(source_raw)
                 
