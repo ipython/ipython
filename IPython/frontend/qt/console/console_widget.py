@@ -441,7 +441,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     def copy(self):
         """ Copy the currently selected text to the clipboard.
         """
-        self._control.copy()
+        self.layout().currentWidget().copy()
 
     def cut(self):
         """ Copy the currently selected text to the clipboard and delete it

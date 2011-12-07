@@ -267,11 +267,17 @@ class IPythonWidget(FrontendWidget):
         """ Copy the currently selected text to the clipboard, removing prompts
             if possible.
         """
-        text = self._control.textCursor().selection().toPlainText()
-        if text:
-            lines = map(transform_ipy_prompt, text.splitlines())
-            text = '\n'.join(lines)
-            QtGui.QApplication.clipboard().setText(text)
+        if self._page_control.hasFocus() :
+            self._page_control.copy()
+        elif self._control.hasFocus() :
+            text = self._control.textCursor().selection().toPlainText()
+            if text:
+                lines = map(transform_ipy_prompt, text.splitlines())
+                text = '\n'.join(lines)
+                QtGui.QApplication.clipboard().setText(text)
+        else :
+            self.log.debug("ipython_widget : unknown copy taget")
+
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' public interface
