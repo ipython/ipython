@@ -1513,6 +1513,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                         cursor.joinPreviousEditBlock()
                         cursor.deletePreviousChar()
 
+                    elif act.action == 'carriage-return':
+                        cursor.movePosition(
+                            cursor.StartOfLine, cursor.KeepAnchor)
+
+                    elif act.action == 'beep':
+                        QtGui.qApp.beep()
+
                 format = self._ansi_processor.get_format()
                 cursor.insertText(substring, format)
         else:

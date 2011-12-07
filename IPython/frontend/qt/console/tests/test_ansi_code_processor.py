@@ -90,8 +90,8 @@ class TestAnsiCodeProcessor(unittest.TestCase):
                 self.fail('Too many substrings.')
         self.assertEquals(i, 1, 'Too few substrings.')
 
-    def test_specials(self):
-        """ Are special characters processed correctly?
+    def test_formfeed(self):
+        """ Are formfeed characters processed correctly?
         """
         string = '\f' # form feed
         self.assertEquals(list(self.processor.split_string(string)), [''])
@@ -100,6 +100,26 @@ class TestAnsiCodeProcessor(unittest.TestCase):
         self.assertEquals(action.action, 'scroll')
         self.assertEquals(action.dir, 'down')
         self.assertEquals(action.unit, 'page')
+        self.assertEquals(action.count, 1)
+
+    def test_carriage_return(self):
+        """ Are carriage return characters processed correctly?
+        """
+        string = 'foo\rbar' # form feed
+        self.assertEquals(list(self.processor.split_string(string)), ['foo', '', 'bar'])
+        self.assertEquals(len(self.processor.actions), 1)
+        action = self.processor.actions[0]
+        self.assertEquals(action.action, 'carriage-return')
+        self.assertEquals(action.count, 1)
+
+    def test_beep(self):
+        """ Are beep characters processed correctly?
+        """
+        string = 'foo\bbar' # form feed
+        self.assertEquals(list(self.processor.split_string(string)), ['foo', '', 'bar'])
+        self.assertEquals(len(self.processor.actions), 1)
+        action = self.processor.actions[0]
+        self.assertEquals(action.action, 'beep')
         self.assertEquals(action.count, 1)
 
 
