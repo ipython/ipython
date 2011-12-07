@@ -8,8 +8,8 @@ are done by an object of class MPIRectPartitioner2D
 An example of running the program is (8 processors, 4x2 partition,
 400x100 grid cells)::
 
-   $ ipclusterz start --profile mpi -n 8 # start 8 engines (assuming mpi profile has been configured)
-   $ ./parallelwave-mpi.py --grid 400 100 --partition 4 2 --profile mpi
+   $ ipcluster start --engines=MPIExec -n 8 # start 8 engines with mpiexec
+   $ python parallelwave-mpi.py --grid 400 100 --partition 4 2
 
 See also parallelwave-mpi, which runs the same program, but uses MPI
 (via mpi4py) for the inter-engine communication.
@@ -179,7 +179,7 @@ if __name__ == '__main__':
 
     # run again with numpy vectorized inner-implementation
     t0 = time.time()
-    ar = view.apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test)#, user_action=wave_saver)
+    ar = view.apply_async(_solve, tstop, dt=0, verbose=True, final_test=final_test, user_action=user_action)
     if final_test:
         # this sum is performed element-wise as results finish
         s = sum(ar)
