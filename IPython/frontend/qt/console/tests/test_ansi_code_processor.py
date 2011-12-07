@@ -110,7 +110,6 @@ class TestAnsiCodeProcessor(unittest.TestCase):
         self.assertEquals(len(self.processor.actions), 1)
         action = self.processor.actions[0]
         self.assertEquals(action.action, 'carriage-return')
-        self.assertEquals(action.count, 1)
 
     def test_beep(self):
         """ Are beep characters processed correctly?
@@ -120,7 +119,6 @@ class TestAnsiCodeProcessor(unittest.TestCase):
         self.assertEquals(len(self.processor.actions), 1)
         action = self.processor.actions[0]
         self.assertEquals(action.action, 'beep')
-        self.assertEquals(action.count, 1)
 
 
 if __name__ == '__main__':
