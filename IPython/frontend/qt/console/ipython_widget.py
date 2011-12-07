@@ -98,6 +98,7 @@ class IPythonWidget(FrontendWidget):
 
     # FrontendWidget protected class variables.
     _input_splitter_class = IPythonInputSplitter
+    _transform_prompt = staticmethod(transform_ipy_prompt)
 
     # IPythonWidget protected class variables.
     _PromptBlock = namedtuple('_PromptBlock', ['block', 'length', 'number'])
@@ -262,16 +263,6 @@ class IPythonWidget(FrontendWidget):
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
-
-    def copy(self):
-        """ Copy the currently selected text to the clipboard, removing prompts
-            if possible.
-        """
-        text = self._control.textCursor().selection().toPlainText()
-        if text:
-            lines = map(transform_ipy_prompt, text.splitlines())
-            text = '\n'.join(lines)
-            QtGui.QApplication.clipboard().setText(text)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' public interface

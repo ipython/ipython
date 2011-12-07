@@ -107,6 +107,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     exit_requested = QtCore.Signal(object)
 
     # Protected class variables.
+    _transform_prompt = staticmethod(transform_classic_prompt)
     _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
     _CompletionRequest = namedtuple('_CompletionRequest', ['id', 'pos'])
     _ExecutionRequest = namedtuple('_ExecutionRequest', ['id', 'kind'])
@@ -174,11 +175,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def copy(self):
         """ Copy the currently selected text to the clipboard, removing prompts.
         """
-        text = self._control.textCursor().selection().toPlainText()
-        if text:
-            lines = map(transform_classic_prompt, text.splitlines())
-            text = '\n'.join(lines)
-            QtGui.QApplication.clipboard().setText(text)
+        if self._page_control.hasFocus():
+            self._page_control.copy()
+        elif self._control.hasFocus():
+            text = self._control.textCursor().selection().toPlainText()
+            if text:
+                lines = map(self._transform_prompt, text.splitlines())
+                text = '\n'.join(lines)
+                QtGui.QApplication.clipboard().setText(text)
+        else:
+            self.log.debug("frontend widget : unknown copy target")
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
@@ -365,7 +371,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         """
 
-        user_exp = msg['content']['user_expressions']
+        user_exp = msg['content'].get('user_expressions')
+        if not user_exp:
+            return
         for expression in user_exp:
             if expression in self._callback_dict:
                 self._callback_dict.pop(expression)(user_exp[expression])
