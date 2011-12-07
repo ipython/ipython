@@ -105,8 +105,17 @@ class TestAnsiCodeProcessor(unittest.TestCase):
     def test_carriage_return(self):
         """ Are carriage return characters processed correctly?
         """
-        string = 'foo\rbar' # form feed
+        string = 'foo\rbar' # carriage return
         self.assertEquals(list(self.processor.split_string(string)), ['foo', '', 'bar'])
+        self.assertEquals(len(self.processor.actions), 1)
+        action = self.processor.actions[0]
+        self.assertEquals(action.action, 'carriage-return')
+
+    def test_carriage_return_newline(self):
+        """transform CRLF to LF"""
+        string = 'foo\rbar\r\ncat\r\n' # carriage return and newline
+        # only one CR action should occur, and '\r\n' should transform to '\n'
+        self.assertEquals(list(self.processor.split_string(string)), ['foo', '', 'bar\r\ncat\r\n'])
         self.assertEquals(len(self.processor.actions), 1)
         action = self.processor.actions[0]
         self.assertEquals(action.action, 'carriage-return')
