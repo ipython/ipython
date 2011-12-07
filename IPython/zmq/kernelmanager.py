@@ -27,6 +27,9 @@ import time
 
 # System library imports.
 import zmq
+# import ZMQError in top-level namespace, to avoid ugly attribute-error messages
+# during garbage collection of threads at exit:
+from zmq import ZMQError
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
@@ -116,7 +119,7 @@ class ZMQSocketChannel(Thread):
         while True:
             try:
                 self.ioloop.start()
-            except zmq.ZMQError as e:
+            except ZMQError as e:
                 if e.errno == errno.EINTR:
                     continue
                 else:
@@ -505,7 +508,7 @@ class HBSocketChannel(ZMQSocketChannel):
         while True:
             try:
                 events = self.poller.poll(1000 * until_dead)
-            except zmq.ZMQError as e:
+            except ZMQError as e:
                 if e.errno == errno.EINTR:
                     # ignore interrupts during heartbeat
                     # this may never actually happen
