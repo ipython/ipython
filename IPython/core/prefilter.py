@@ -830,7 +830,8 @@ class AutoHandler(PrefilterHandler):
             # We only apply it to argument-less calls if the autocall
             # parameter is set to 2.  We only need to check that autocall is <
             # 2, since this function isn't called unless it's at least 1.
-            if not the_rest and (self.shell.autocall < 2) and not force_auto:
+            if (not the_rest and (self.shell.autocall < 2) and not force_auto) \
+                or the_rest.lstrip().startswith("("):
                 newcmd = '%s %s' % (ifun,the_rest)
                 auto_rewrite = False
             else:
