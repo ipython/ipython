@@ -253,7 +253,7 @@ var IPython = (function (IPython) {
                         },
                     dismissAndAppend : function (code)
                         {
-                        chararr = ['(',')','[',']','+','-','/','\\','.',' '];
+                        chararr = '()[]+-/\\. ,=*'.split("");
                         codearr = chararr.map(function(x){return x.charCodeAt(0)});
                         return jQuery.inArray(code, codearr) != -1;
                         }
