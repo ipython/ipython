@@ -99,6 +99,8 @@ $(document).ready(function () {
         // hide various elements from read-only view
         IPython.save_widget.element.find('button#save_notebook').addClass('hidden');
         IPython.quick_help.element.addClass('hidden'); // shortcuts are disabled in read_only
+        $('div#pager').remove();
+        $('div#pager_splitter').remove();
         $('button#new_notebook').addClass('hidden');
         $('div#cell_section').addClass('hidden');
         $('div#config_section').addClass('hidden');
