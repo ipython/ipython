@@ -95,8 +95,8 @@ def install():
     # mkshortcut(python, 'IPython (command prompt mode)', link, cmd, workdir)
     
     link = pjoin(ip_start_menu, 'pylab.lnk')
-    cmd = '"%s" profile=pylab --init' % ipybase
-    mkshortcut(python, 'IPython (pylab profile)', link, cmd, workdir)
+    cmd = '"%s" --pylab' % ipybase
+    mkshortcut(python, 'IPython (pylab mode)', link, cmd, workdir)
         
     link = pjoin(ip_start_menu, 'ipcontroller.lnk')
     cmdbase = suffix(pjoin(scripts, 'ipcontroller'))
