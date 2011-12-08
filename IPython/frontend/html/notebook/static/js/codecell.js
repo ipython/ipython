@@ -66,6 +66,10 @@ var IPython = (function (IPython) {
         // handlers and is used to provide custom key handling. Its return
         // value is used to determine if CodeMirror should ignore the event:
         // true = ignore, false = don't ignore.
+        
+        if (this.read_only){
+            return false;
+        }
 
         // note that we are comparing and setting the time to wait at each key press.
         // a better wqy might be to generate a new function on each time change and
