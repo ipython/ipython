@@ -344,3 +344,12 @@ def test_psearch():
     with tt.AssertPrints("dict.fromkeys"):
         _ip.run_cell("dict.fr*?")
 
+def test_timeit_shlex():
+    """test shlex issues with timeit (#1109)"""
+    _ip.ex("def f(*a,**kw): pass")
+    _ip.magic('timeit -n1 "this is a bug".count(" ")')
+    _ip.magic('timeit -r1 -n1 f(" ", 1)')
+    _ip.magic('timeit -r1 -n1 f(" ", 1, " ", 2, " ")')
+    _ip.magic('timeit -r1 -n1 ("a " + "b")')
+    _ip.magic('timeit -r1 -n1 f("a " + "b")')
+    _ip.magic('timeit -r1 -n1 f("a " + "b ")')
