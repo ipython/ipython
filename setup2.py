@@ -20,17 +20,20 @@ requires utilities which are not available under Windows."""
 #-----------------------------------------------------------------------------
 # Minimal Python version sanity check
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import sys
 
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version[0:3] < '2.6':
-    error = """\
-ERROR: 'IPython requires Python Version 2.6 or above.'
-Exiting."""
-    print >> sys.stderr, error
-    sys.exit(1)
+#~ if sys.version[0:3] < '2.6':
+    #~ error = """\
+#~ ERROR: 'IPython requires Python Version 2.6 or above.'
+#~ Exiting."""
+    #~ print >> sys.stderr, error
+    #~ sys.exit(1)
+
+PY3 = (sys.version_info[0] >= 3)
 
 # At least we're on the python version we need, move on.
 
@@ -50,8 +53,12 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
 
+# On Python 3, we need distribute (new setuptools) to do the 2to3 conversion
+if PY3:
+    import setuptools
+
 # Our own imports
-from IPython.utils.path import target_update
+from setupbase import target_update
 
 from setupbase import (
     setup_args,
@@ -91,14 +98,14 @@ if os.name == 'posix':
 elif os.name in ['nt','dos']:
     os_name = 'windows'
 else:
-    print 'Unsupported operating system:',os.name
+    print('Unsupported operating system:',os.name)
     sys.exit(1)
 
 # Under Windows, 'sdist' has not been supported.  Now that the docs build with
 # Sphinx it might work, but let's not turn it on until someone confirms that it
 # actually works.
 if os_name == 'windows' and 'sdist' in sys.argv:
-    print 'The sdist command is not available under Windows.  Exiting.'
+    print('The sdist command is not available under Windows.  Exiting.')
     sys.exit(1)
 
 #-------------------------------------------------------------------------------
@@ -187,6 +194,11 @@ packages = find_packages()
 package_data = find_package_data()
 data_files = find_data_files()
 
+setup_args['cmdclass'] = {'build_py': record_commit_info('IPython')}
+setup_args['packages'] = packages
+setup_args['package_data'] = package_data
+setup_args['data_files'] = data_files
+
 #---------------------------------------------------------------------------
 # Handle scripts, dependencies, and setuptools specific things
 #---------------------------------------------------------------------------
@@ -247,6 +259,12 @@ if 'setuptools' in sys.modules:
         setup_args['options'] = {"bdist_wininst":
                                  {"install_script":
                                   "ipython_win_post_install.py"}}
+    
+    if PY3:
+        setuptools_extra_args['use_2to3'] = True
+        from setuptools.command.build_py import build_py
+        setup_args['cmdclass'] = {'build_py': record_commit_info('IPython', build_cmd=build_py)}
+        setuptools_extra_args['entry_points'] = find_scripts(True, suffix='3')
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
@@ -258,10 +276,6 @@ else:
 # Do the actual setup now
 #---------------------------------------------------------------------------
 
-setup_args['cmdclass'] = {'build_py': record_commit_info('IPython')}
-setup_args['packages'] = packages
-setup_args['package_data'] = package_data
-setup_args['data_files'] = data_files
 setup_args.update(setuptools_extra_args)
 
 def main():
