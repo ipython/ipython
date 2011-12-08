@@ -826,30 +826,33 @@ class AutoHandler(PrefilterHandler):
         elif esc == ESC_PAREN:
             newcmd = '%s(%s)' % (ifun,",".join(the_rest.split()))
         else:
-            # Auto-paren.
-            # We only apply it to argument-less calls if the autocall
-            # parameter is set to 2.  We only need to check that autocall is <
-            # 2, since this function isn't called unless it's at least 1.
-            if (not the_rest and (self.shell.autocall < 2) and not force_auto) \
-                or the_rest.startswith("("):
-                newcmd = '%s %s' % (ifun,the_rest)
-                auto_rewrite = False
+            # Auto-paren.       
+            if force_auto:
+                # Don't rewrite if it is already a call.
+                do_rewrite = not the_rest.startswith('(')
             else:
-                if not force_auto and the_rest.startswith('['):
-                    if hasattr(obj,'__getitem__'):
-                        # Don't autocall in this case: item access for an object
-                        # which is BOTH callable and implements __getitem__.
-                        newcmd = '%s %s' % (ifun,the_rest)
-                        auto_rewrite = False
-                    else:
-                        # if the object doesn't support [] access, go ahead and
-                        # autocall
-                        newcmd = '%s(%s)' % (ifun.rstrip(),the_rest)
-                elif the_rest.endswith(';'):
+                if not the_rest:
+                    # We only apply it to argument-less calls if the autocall
+                    # parameter is set to 2.
+                    do_rewrite = (self.shell.autocall >= 2)
+                elif the_rest.startswith('[') and hasattr(obj, '__getitem__'):
+                    # Don't autocall in this case: item access for an object
+                    # which is BOTH callable and implements __getitem__.
+                    do_rewrite = False
+                else:
+                    do_rewrite = True
+
+            # Figure out the rewritten command
+            if do_rewrite:
+                if the_rest.endswith(';'):
                     newcmd = '%s(%s);' % (ifun.rstrip(),the_rest[:-1])
                 else:
-                    newcmd = '%s(%s)' % (ifun.rstrip(), the_rest)
-
+                    newcmd = '%s(%s)' % (ifun.rstrip(), the_rest)                
+            else:
+                normal_handler = self.prefilter_manager.get_handler_by_name('normal')
+                return normal_handler.handle(line_info)
+        
+        # Display the rewritten call
         if auto_rewrite:
             self.shell.auto_rewrite_input(newcmd)
 

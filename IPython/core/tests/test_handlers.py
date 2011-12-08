@@ -133,7 +133,7 @@ def test_handlers():
         ('len "abc"',       'len "abc"'),
         ('autocallable',    'autocallable()'),
         # Don't add extra brackets (gh-1117)
-        ('autocallable()',    'autocallable ()'),
+        ('autocallable()',    'autocallable()'),
         (",list 1 2 3",     'list("1", "2", "3")'),
         (";list 1 2 3",     'list("1 2 3")'),
         ("/len range(1,4)", 'len(range(1,4))'),
@@ -150,7 +150,7 @@ def test_handlers():
         ('len [1,2]', 'len([1,2])'),      # len doesn't support __getitem__...
         ('call_idx [1]', 'call_idx [1]'), # call_idx *does*..
         ('call_idx 1', 'call_idx(1)'),
-        ('len', 'len '), # only at 2 does it auto-call on single args
+        ('len', 'len'), # only at 2 does it auto-call on single args
         ])
     ip.magic('autocall 2')
     run([
