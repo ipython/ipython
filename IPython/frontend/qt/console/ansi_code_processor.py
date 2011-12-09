@@ -38,7 +38,7 @@ CSI_SUBPATTERN = '\[(.*?)([%s])' % CSI_COMMANDS
 OSC_SUBPATTERN = '\](.*?)[\x07\x1b]'
 ANSI_PATTERN = ('\x01?\x1b(%s|%s)\x02?' % \
                 (CSI_SUBPATTERN, OSC_SUBPATTERN))
-ANSI_OR_SPECIAL_PATTERN = re.compile('(\b|\r)|(?:%s)' % ANSI_PATTERN)
+ANSI_OR_SPECIAL_PATTERN = re.compile('(\b|\r(?!\n))|(?:%s)' % ANSI_PATTERN)
 SPECIAL_PATTERN = re.compile('([\f])')
 
 #-----------------------------------------------------------------------------
