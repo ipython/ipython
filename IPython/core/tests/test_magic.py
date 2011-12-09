@@ -238,7 +238,7 @@ def test_dirops():
     # curpath = lambda :os.path.splitdrive(os.getcwdu())[1].replace('\\','/')
     curpath = os.getcwdu
     startdir = os.getcwdu()
-    ipdir = _ip.ipython_dir
+    ipdir = os.path.realpath(_ip.ipython_dir)
     try:
         _ip.magic('cd "%s"' % ipdir)
         nt.assert_equal(curpath(), ipdir)
