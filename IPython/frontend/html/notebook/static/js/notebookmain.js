@@ -106,6 +106,10 @@ $(document).ready(function () {
         $('div#config_section').addClass('hidden');
         $('div#kernel_section').addClass('hidden');
         $('span#login_widget').removeClass('hidden');
+
+        // set the notebook name field as not modifiable
+        $('#notebook_name').attr('disabled','disabled')
+
         // left panel starts collapsed, but the collapse must happen after
         // elements start drawing.  Don't draw contents of the panel until
         // after they are collapsed
