@@ -172,12 +172,12 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         there is no fundamental reason why it can't work perfectly."""
 
         # Get locals and globals from caller
-        if local_ns is None or module is None:
+        if (local_ns is None or module is None) and self.default_user_namespaces:
             call_frame = sys._getframe(stack_depth).f_back
 
-            if local_ns is None and self.default_user_ns:
+            if local_ns is None:
                 local_ns = call_frame.f_locals
-            if module is None and self.default_user_module:
+            if module is None:
                 global_ns = call_frame.f_globals
                 module = sys.modules[global_ns['__name__']]
         
