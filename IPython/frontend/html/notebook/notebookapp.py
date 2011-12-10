@@ -89,6 +89,10 @@ ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 
 class NotebookWebApplication(web.Application):
 
+    settings = Dict(config=True,
+            help="Supply overrides for the tornado.web.Application, that the "
+                 "IPython notebook uses.")
+
     def __init__(self, ipython_app, kernel_manager, notebook_manager, log):
         handlers = [
             (r"/", ProjectDashboardHandler),
@@ -111,7 +115,11 @@ class NotebookWebApplication(web.Application):
             cookie_secret=os.urandom(1024),
             login_url="/login",
         )
-        web.Application.__init__(self, handlers, **settings)
+
+        # allow custom overrides for the tornado web app.
+        settings.update(self.settings)
+
+        super(NotebookWebApplication, self).__init__(self, handlers, **settings)
 
         self.kernel_manager = kernel_manager
         self.log = log
