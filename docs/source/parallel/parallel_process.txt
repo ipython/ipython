@@ -163,7 +163,7 @@ get an IPython cluster running with engines started with MPI is:
 
 .. sourcecode:: bash
 
-    $> ipcluster start --engines=MPIExec
+    $> ipcluster start --engines=MPI
 
 Assuming that the default MPI config is sufficient.
 
@@ -196,11 +196,11 @@ If these are satisfied, you can create a new profile::
 
 and edit the file :file:`IPYTHONDIR/profile_mpi/ipcluster_config.py`.
 
-There, instruct ipcluster to use the MPIExec launchers by adding the lines:
+There, instruct ipcluster to use the MPI launchers by adding the lines:
 
 .. sourcecode:: python
 
-    c.IPClusterEngines.engine_launcher_class = 'MPIExecEngineSetLauncher'
+    c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'
 
 If the default MPI configuration is correct, then you can now start your cluster, with::
 
@@ -215,7 +215,7 @@ If you have a reason to also start the Controller with mpi, you can specify:
 
 .. sourcecode:: python
 
-    c.IPClusterStart.controller_launcher_class = 'MPIExecControllerLauncher'
+    c.IPClusterStart.controller_launcher_class = 'MPIControllerLauncher'
 
 .. note::
 
