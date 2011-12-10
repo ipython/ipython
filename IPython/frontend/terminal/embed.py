@@ -175,9 +175,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         if local_ns is None or module is None:
             call_frame = sys._getframe(stack_depth).f_back
 
-            if local_ns is None and not self.default_user_ns:
+            if local_ns is None and self.default_user_ns:
                 local_ns = call_frame.f_locals
-            if module is None and not self.default_user_module:
+            if module is None and self.default_user_module:
                 global_ns = call_frame.f_globals
                 module = sys.modules[global_ns['__name__']]
         
