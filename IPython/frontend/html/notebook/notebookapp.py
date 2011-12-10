@@ -272,7 +272,7 @@ class NotebookApp(BaseIPythonApplication):
     def _mathjax_url_default(self):
         if not self.enable_mathjax:
             return u''
-        static_path = os.path.join(os.path.dirname(__file__), "static")
+        static_path = self.webapp_settings.get("static_path", os.path.join(os.path.dirname(__file__), "static"))
         if os.path.exists(os.path.join(static_path, 'mathjax', "MathJax.js")):
             self.log.info("Using local MathJax")
             return u"static/mathjax/MathJax.js"
