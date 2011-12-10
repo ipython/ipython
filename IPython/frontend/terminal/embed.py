@@ -175,9 +175,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         if local_ns is None or module is None:
             call_frame = sys._getframe(stack_depth).f_back
 
-            if local_ns is None:
+            if local_ns is None and not self.default_user_ns:
                 local_ns = call_frame.f_locals
-            if module is None:
+            if module is None and not self.default_user_module:
                 global_ns = call_frame.f_globals
                 module = sys.modules[global_ns['__name__']]
         
@@ -189,21 +189,26 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # Update namespaces and fire up interpreter
         
         # The global one is easy, we can just throw it in
-        self.user_module = module
+        if module is not None:
+            self.user_module = module
 
         # But the user/local one is tricky: ipython needs it to store internal
         # data, but we also need the locals. We'll throw our hidden variables
         # like _ih and get_ipython() into the local namespace, but delete them
         # later.
-        self.user_ns = local_ns
-        self.init_user_ns()
+        if local_ns is not None:
+            self.user_ns = local_ns
+            self.init_user_ns()
 
         # Patch for global embedding to make sure that things don't overwrite
         # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
         # FIXME. Test this a bit more carefully (the if.. is new)
         # N.B. This can't now ever be called. Not sure what it was for.
-        if local_ns is None and module is None:
-            self.user_global_ns.update(__main__.__dict__)
+        # And now, since it wasn't called in the previous version, I'm
+        # commenting out these lines so they can't be called with my new changes
+        # --TK, 2011-12-10
+        #if local_ns is None and module is None:
+        #    self.user_global_ns.update(__main__.__dict__)
 
         # make sure the tab-completer has the correct frame information, so it
         # actually completes using the frame's locals/globals
@@ -213,8 +218,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             self.interact(display_banner=display_banner)
         
         # now, purge out the local namespace of IPython's hidden variables.
-        for name in self.user_ns_hidden:
-            local_ns.pop(name, None)
+        if local_ns is not None:
+            for name in self.user_ns_hidden:
+                local_ns.pop(name, None)
         
         # Restore original namespace so shell can shut down when we exit.
         self.user_module = orig_user_module

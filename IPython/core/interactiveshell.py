@@ -881,6 +881,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
     #-------------------------------------------------------------------------
     # Things related to IPython's various namespaces
     #-------------------------------------------------------------------------
+    default_user_ns = True
+    default_user_module = True
 
     def init_create_namespaces(self, user_module=None, user_ns=None):
         # Create the namespace where the user will operate.  user_ns is
@@ -919,6 +921,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # These routines return a properly built module and dict as needed by
         # the rest of the code, and can also be used by extension writers to
         # generate properly initialized namespaces.
+        if user_ns is not None:
+            self.default_user_ns = False
+        if user_module is not None:
+            self.default_user_module = False
         self.user_module, self.user_ns = self.prepare_user_module(user_module, user_ns)
 
         # A record of hidden variables we have added to the user namespace, so
