@@ -534,6 +534,7 @@ var IPython = (function (IPython) {
         if (json.output_type === 'pyout') {
             this.append_pyout(json);
         } else if (json.output_type === 'pyerr') {
+            $(IPython.hook).async_trigger('cell_received_pyerr');
             this.append_pyerr(json);
         } else if (json.output_type === 'display_data') {
             this.append_display_data(json);

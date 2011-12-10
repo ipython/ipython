@@ -86,10 +86,9 @@ $(document).ready(function () {
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.notebook = new IPython.Notebook('div#notebook');
-    IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
     IPython.menubar = new IPython.MenuBar('#menubar')
-    IPython.kernel_status_widget.status_idle();
     IPython.fulledit_widget = new IPython.FullEditWidget('#fulledit_widget');
+    $(IPython.hook).async_trigger("kernel_idle");
 
     IPython.layout_manager.do_resize();
 
