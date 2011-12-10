@@ -89,11 +89,7 @@ ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 
 class NotebookWebApplication(web.Application):
 
-    settings = Dict(config=True,
-            help="Supply overrides for the tornado.web.Application, that the "
-                 "IPython notebook uses.")
-
-    def __init__(self, ipython_app, kernel_manager, notebook_manager, log):
+    def __init__(self, ipython_app, kernel_manager, notebook_manager, log, settings_overrides):
         handlers = [
             (r"/", ProjectDashboardHandler),
             (r"/login", LoginHandler),
@@ -117,9 +113,9 @@ class NotebookWebApplication(web.Application):
         )
 
         # allow custom overrides for the tornado web app.
-        settings.update(self.settings)
+        settings.update(settings_overrides)
 
-        super(NotebookWebApplication, self).__init__(self, handlers, **settings)
+        super(NotebookWebApplication, self).__init__(handlers, **settings)
 
         self.kernel_manager = kernel_manager
         self.log = log
@@ -251,6 +247,10 @@ class NotebookApp(BaseIPythonApplication):
         help="Whether to prevent editing/execution of notebooks."
     )
     
+    webapp_settings = Dict(config=True,
+            help="Supply overrides for the tornado.web.Application that the "
+                 "IPython notebook uses.")
+    
     enable_mathjax = Bool(True, config=True,
         help="""Whether to enable MathJax for typesetting math/TeX
 
@@ -323,7 +323,8 @@ class NotebookApp(BaseIPythonApplication):
         super(NotebookApp, self).initialize(argv)
         self.init_configurables()
         self.web_app = NotebookWebApplication(
-            self, self.kernel_manager, self.notebook_manager, self.log
+            self, self.kernel_manager, self.notebook_manager, self.log,
+            self.webapp_settings
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)
