@@ -30,6 +30,7 @@ try:
     from contextlib import nested
 except:
     from IPython.utils.nested_context import nested
+import warnings
 
 from IPython.core import ultratb
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
@@ -96,7 +97,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         pass
 
     def __call__(self, header='', local_ns=None, module=None, dummy=None,
-                 stack_depth=1):
+                 stack_depth=1, global_ns=None):
         """Activate the interactive interpreter.
 
         __call__(self,header='',local_ns=None,global_ns,dummy=None) -> Start
@@ -140,7 +141,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.mainloop(local_ns, module, stack_depth=stack_depth)
+        self.mainloop(local_ns, module, stack_depth=stack_depth, global_ns=global_ns)
 
         self.banner2 = self.old_banner2
 
@@ -148,7 +149,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             print self.exit_msg
 
     def mainloop(self, local_ns=None, module=None, stack_depth=0,
-                 display_banner=None):
+                 display_banner=None, global_ns=None):
         """Embeds IPython into a running python program.
 
         Input:
@@ -170,6 +171,14 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         IPython itself (via %run), but some funny things will happen (a few
         globals get overwritten). In the future this will be cleaned up, as
         there is no fundamental reason why it can't work perfectly."""
+        
+        if (global_ns is not None) and (module is None):
+            class DummyMod(object):
+                """A dummy module object for embedded IPython."""
+                pass
+            warnings.warn("global_ns is deprecated, use module instead.", DeprecationWarning)
+            module = DummyMod()
+            module.__dict__ = global_ns
 
         # Get locals and globals from caller
         if (local_ns is None or module is None) and self.default_user_namespaces:
