@@ -33,9 +33,10 @@ $(document).ready(function () {
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     
     if (IPython.read_only){
-        $('#new_notebook').addClass('hidden');
         // unhide login button if it's relevant
         $('span#login_widget').removeClass('hidden');
+    } else {
+        $('#new_notebook').removeClass('hidden');
     }
     IPython.notebook_list.load_list();
 

@@ -85,6 +85,7 @@ var IPython = (function (IPython) {
             if (!IPython.read_only){
                 // hide delete buttons when readonly
                 this.add_delete_button(item);
+                $('#drag_info').removeClass('hidden');
             } else {
                 $('#drag_info').remove();
             }
