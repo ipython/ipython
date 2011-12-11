@@ -177,9 +177,11 @@ class BaseParallelApplication(BaseIPythonApplication):
         if open_log_file is not None:
             self.log.removeHandler(self._log_handler)
             self._log_handler = logging.StreamHandler(open_log_file)
-            self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
-            self._log_handler.setFormatter(self._log_formatter)
             self.log.addHandler(self._log_handler)
+        # Add timestamps to log format:
+        self._log_formatter = logging.Formatter("%(asctime)s.%(msecs).03d [%(name)s] %(message)s",
+                                                datefmt="%Y-%m-%d %H:%M:%S")
+        self._log_handler.setFormatter(self._log_formatter)
         # do not propagate log messages to root logger
         # ipcluster app will sometimes print duplicate messages during shutdown
         # if this is 1 (default):
