@@ -75,7 +75,11 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     def __init__(self, config=None, ipython_dir=None, user_ns=None,
                  user_module=None, custom_exceptions=((),None),
                  usage=None, banner1=None, banner2=None,
-                 display_banner=None, exit_msg=u''):
+                 display_banner=None, exit_msg=u'', user_global_ns=None):
+    
+        if user_global_ns is not None:
+            warnings.warn("user_global_ns has been replaced by user_module. The\
+                           parameter will be ignored.", DeprecationWarning)
 
         super(InteractiveShellEmbed,self).__init__(
             config=config, ipython_dir=ipython_dir, user_ns=user_ns,
