@@ -86,6 +86,7 @@ class HeartMonitor(LoggingConfigurable):
         self.pongstream.on_recv(self.handle_pong)
 
     def start(self):
+        self.tic = time.time()
         self.caller = ioloop.PeriodicCallback(self.beat, self.period, self.loop)
         self.caller.start()
 
