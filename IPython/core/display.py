@@ -17,6 +17,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from xml.dom import minidom
+
 from .displaypub import (
     publish_pretty, publish_html,
     publish_latex, publish_svg,
@@ -300,7 +302,32 @@ class Math(DisplayObject):
 
 
 class SVG(DisplayObject):
-
+    
+    # wrap data in a property, which extracts the <svg> tag, discarding
+    # document headers
+    _data = None
+    
+    @property
+    def data(self):
+        return self._data
+    
+    @data.setter
+    def data(self, svg):
+        if svg is None:
+            self._data = None
+            return
+        # parse into dom object
+        x = minidom.parseString(svg)
+        # get svg tag (should be 1)
+        found_svg = x.getElementsByTagName('svg')
+        if found_svg:
+            svg = found_svg[0].toxml()
+        else:
+            # fallback on the input, trust the user
+            # but this is probably an error.
+            pass
+        self._data = svg
+    
     def _repr_svg_(self):
         return self.data
 
