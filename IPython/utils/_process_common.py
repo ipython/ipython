@@ -146,12 +146,18 @@ def getoutputerror(cmd):
     return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
 
 
-def arg_split(s, posix=False):
+def arg_split(s, posix=False, strict=True):
     """Split a command line's arguments in a shell-like manner.
 
     This is a modified version of the standard library's shlex.split()
     function, but with a default of posix=False for splitting, so that quotes
-    in inputs are respected."""
+    in inputs are respected.
+
+    if strict=False, then any errors shlex.split would raise will result in the
+    unparsed remainder being the last element of the list, rather than raising.
+    This is because we sometimes use arg_split to parse things other than
+    command-line args.
+    """
 
     # Unfortunately, python's shlex module is buggy with unicode input:
     # http://bugs.python.org/issue1170
@@ -163,7 +169,25 @@ def arg_split(s, posix=False):
         s = s.encode('utf-8')
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
-    tokens = list(lex)
+    # Extract tokens, ensuring that things like leaving open quotes
+    # does not cause this to raise.  This is important, because we
+    # sometimes pass Python source through this (e.g. %timeit f(" ")),
+    # and it shouldn't raise an exception.
+    # It may be a bad idea to parse things that are not command-line args
+    # through this function, but we do, so let's be safe about it.
+    tokens = []
+    while True:
+        try:
+            tokens.append(lex.next())
+        except StopIteration:
+            break
+        except ValueError:
+            if strict:
+                raise
+            # couldn't parse, get remaining blob as last token
+            tokens.append(lex.token)
+            break
+    
     if is_unicode:
         # Convert the tokens back to unicode.
         tokens = [x.decode('utf-8') for x in tokens]
