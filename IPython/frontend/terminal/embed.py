@@ -30,6 +30,7 @@ try:
     from contextlib import nested
 except:
     from IPython.utils.nested_context import nested
+import warnings
 
 from IPython.core import ultratb
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
@@ -74,7 +75,11 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     def __init__(self, config=None, ipython_dir=None, user_ns=None,
                  user_module=None, custom_exceptions=((),None),
                  usage=None, banner1=None, banner2=None,
-                 display_banner=None, exit_msg=u''):
+                 display_banner=None, exit_msg=u'', user_global_ns=None):
+    
+        if user_global_ns is not None:
+            warnings.warn("user_global_ns has been replaced by user_module. The\
+                           parameter will be ignored.", DeprecationWarning)
 
         super(InteractiveShellEmbed,self).__init__(
             config=config, ipython_dir=ipython_dir, user_ns=user_ns,
@@ -96,24 +101,21 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         pass
 
     def __call__(self, header='', local_ns=None, module=None, dummy=None,
-                 stack_depth=1):
+                 stack_depth=1, global_ns=None):
         """Activate the interactive interpreter.
 
-        __call__(self,header='',local_ns=None,global_ns,dummy=None) -> Start
+        __call__(self,header='',local_ns=None,module=None,dummy=None) -> Start
         the interpreter shell with the given local and global namespaces, and
         optionally print a header string at startup.
 
         The shell can be globally activated/deactivated using the
-        set/get_dummy_mode methods. This allows you to turn off a shell used
+        dummy_mode attribute. This allows you to turn off a shell used
         for debugging globally.
 
         However, *each* time you call the shell you can override the current
         state of dummy_mode with the optional keyword parameter 'dummy'. For
-        example, if you set dummy mode on with IPShell.set_dummy_mode(1), you
-        can still have a specific call work by making it as IPShell(dummy=0).
-
-        The optional keyword parameter dummy controls whether the call
-        actually does anything.
+        example, if you set dummy mode on with IPShell.dummy_mode = True, you
+        can still have a specific call work by making it as IPShell(dummy=False).
         """
 
         # If the user has turned it off, go away
@@ -140,7 +142,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.mainloop(local_ns, module, stack_depth=stack_depth)
+        self.mainloop(local_ns, module, stack_depth=stack_depth, global_ns=global_ns)
 
         self.banner2 = self.old_banner2
 
@@ -148,20 +150,20 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             print self.exit_msg
 
     def mainloop(self, local_ns=None, module=None, stack_depth=0,
-                 display_banner=None):
+                 display_banner=None, global_ns=None):
         """Embeds IPython into a running python program.
 
         Input:
 
           - header: An optional header message can be specified.
 
-          - local_ns, global_ns: working namespaces. If given as None, the
-          IPython-initialized one is updated with __main__.__dict__, so that
-          program variables become visible but user-specific configuration
-          remains possible.
+          - local_ns, module: working local namespace (a dict) and module (a
+          module or similar object). If given as None, they are automatically
+          taken from the scope where the shell was called, so that
+          program variables become visible.
 
           - stack_depth: specifies how many levels in the stack to go to
-          looking for namespaces (when local_ns and global_ns are None).  This
+          looking for namespaces (when local_ns or module is None).  This
           allows an intermediate caller to make sure that this function gets
           the namespace from the intended level in the stack.  By default (0)
           it will get its locals and globals from the immediate caller.
@@ -170,9 +172,17 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         IPython itself (via %run), but some funny things will happen (a few
         globals get overwritten). In the future this will be cleaned up, as
         there is no fundamental reason why it can't work perfectly."""
+        
+        if (global_ns is not None) and (module is None):
+            class DummyMod(object):
+                """A dummy module object for embedded IPython."""
+                pass
+            warnings.warn("global_ns is deprecated, use module instead.", DeprecationWarning)
+            module = DummyMod()
+            module.__dict__ = global_ns
 
         # Get locals and globals from caller
-        if local_ns is None or module is None:
+        if (local_ns is None or module is None) and self.default_user_namespaces:
             call_frame = sys._getframe(stack_depth).f_back
 
             if local_ns is None:
@@ -189,21 +199,26 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # Update namespaces and fire up interpreter
         
         # The global one is easy, we can just throw it in
-        self.user_module = module
+        if module is not None:
+            self.user_module = module
 
         # But the user/local one is tricky: ipython needs it to store internal
         # data, but we also need the locals. We'll throw our hidden variables
         # like _ih and get_ipython() into the local namespace, but delete them
         # later.
-        self.user_ns = local_ns
-        self.init_user_ns()
+        if local_ns is not None:
+            self.user_ns = local_ns
+            self.init_user_ns()
 
         # Patch for global embedding to make sure that things don't overwrite
         # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
         # FIXME. Test this a bit more carefully (the if.. is new)
         # N.B. This can't now ever be called. Not sure what it was for.
-        if local_ns is None and module is None:
-            self.user_global_ns.update(__main__.__dict__)
+        # And now, since it wasn't called in the previous version, I'm
+        # commenting out these lines so they can't be called with my new changes
+        # --TK, 2011-12-10
+        #if local_ns is None and module is None:
+        #    self.user_global_ns.update(__main__.__dict__)
 
         # make sure the tab-completer has the correct frame information, so it
         # actually completes using the frame's locals/globals
@@ -213,8 +228,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             self.interact(display_banner=display_banner)
         
         # now, purge out the local namespace of IPython's hidden variables.
-        for name in self.user_ns_hidden:
-            local_ns.pop(name, None)
+        if local_ns is not None:
+            for name in self.user_ns_hidden:
+                local_ns.pop(name, None)
         
         # Restore original namespace so shell can shut down when we exit.
         self.user_module = orig_user_module
