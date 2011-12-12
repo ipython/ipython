@@ -104,21 +104,18 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                  stack_depth=1, global_ns=None):
         """Activate the interactive interpreter.
 
-        __call__(self,header='',local_ns=None,global_ns,dummy=None) -> Start
+        __call__(self,header='',local_ns=None,module=None,dummy=None) -> Start
         the interpreter shell with the given local and global namespaces, and
         optionally print a header string at startup.
 
         The shell can be globally activated/deactivated using the
-        set/get_dummy_mode methods. This allows you to turn off a shell used
+        dummy_mode attribute. This allows you to turn off a shell used
         for debugging globally.
 
         However, *each* time you call the shell you can override the current
         state of dummy_mode with the optional keyword parameter 'dummy'. For
-        example, if you set dummy mode on with IPShell.set_dummy_mode(1), you
-        can still have a specific call work by making it as IPShell(dummy=0).
-
-        The optional keyword parameter dummy controls whether the call
-        actually does anything.
+        example, if you set dummy mode on with IPShell.dummy_mode = True, you
+        can still have a specific call work by making it as IPShell(dummy=False).
         """
 
         # If the user has turned it off, go away
@@ -160,13 +157,13 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
           - header: An optional header message can be specified.
 
-          - local_ns, global_ns: working namespaces. If given as None, the
-          IPython-initialized one is updated with __main__.__dict__, so that
-          program variables become visible but user-specific configuration
-          remains possible.
+          - local_ns, module: working local namespace (a dict) and module (a
+          module or similar object). If given as None, they are automatically
+          taken from the scope where the shell was called, so that
+          program variables become visible.
 
           - stack_depth: specifies how many levels in the stack to go to
-          looking for namespaces (when local_ns and global_ns are None).  This
+          looking for namespaces (when local_ns or module is None).  This
           allows an intermediate caller to make sure that this function gets
           the namespace from the intended level in the stack.  By default (0)
           it will get its locals and globals from the immediate caller.
