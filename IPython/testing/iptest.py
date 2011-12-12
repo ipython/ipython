@@ -224,11 +224,16 @@ def make_exclude():
     if not have['pexpect']:
         exclusions.extend([ipjoin('scripts', 'irunner'),
                            ipjoin('lib', 'irunner'),
-                           ipjoin('lib', 'tests', 'test_irunner')])
+                           ipjoin('lib', 'tests', 'test_irunner'),
+                           ipjoin('frontend', 'terminal', 'console'),
+                           ])
 
     if not have['zmq']:
         exclusions.append(ipjoin('zmq'))
         exclusions.append(ipjoin('frontend', 'qt'))
+        exclusions.append(ipjoin('frontend', 'html'))
+        exclusions.append(ipjoin('frontend', 'consoleapp.py'))
+        exclusions.append(ipjoin('frontend', 'terminal', 'console'))
         exclusions.append(ipjoin('parallel'))
     elif not have['qt']:
         exclusions.append(ipjoin('frontend', 'qt'))
