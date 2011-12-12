@@ -27,6 +27,9 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.bind_events = function () {
+        if (IPython.read_only){
+            return;
+        }
         var that = this;
         this.element.bind('dragover', function () {
             return false;
