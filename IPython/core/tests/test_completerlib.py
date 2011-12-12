@@ -59,3 +59,11 @@ class Test_magic_run_completer(unittest.TestCase):
         mockself = None
         match = magic_run_completer(mockself, event) 
         self.assertEqual(match, [u"aaå.py",])
+
+    def test_3(self):
+        """Test '%run "a<tab>' completion"""
+        event = MockEvent(u'%run "a')
+        mockself = None
+        match = magic_run_completer(mockself, event)
+        self.assertEqual(match, [u"a.py", u"aaå.py"])
+
