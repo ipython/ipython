@@ -277,13 +277,21 @@ class IPythonWidget(FrontendWidget):
 
         # Perhaps we should not be using %run directly, but while we
         # are, it is necessary to quote or escape filenames containing spaces 
-        # or quotes. Note that in this context, because run uses posix
-        # parsing, we can escape double quotes in a double quoted filename,
-        # but can't escape singe quotes in a single quoted filename.
-        if "'" in path:
+        # or quotes. 
+        
+        # In earlier code here, to minimize escaping, we sometimes quoted the 
+        # filename with single quotes. But to do this, this code must be
+        # platform-aware, because run uses shlex rather than python string
+        # parsing, so that:
+        # * In Win: single quotes can be used in the filename without quoting,
+        #   and we cannot use single quotes to quote the filename.
+        # * In *nix: we can escape double quotes in a double quoted filename,
+        #   but can't escape single quotes in a single quoted filename.
+        
+        # So to keep this code non-platform-specific and simple, we now only
+        # use double quotes to quote filenames, and escape when needed:
+        if ' ' in path or "'" in path or '"' in path:
             path = '"%s"' % path.replace('"', '\\"')
-        elif ' ' in path or '"' in path:
-            path = "'%s'" % path
         self.execute('%%run %s' % path, hidden=hidden)
 
     #---------------------------------------------------------------------------
