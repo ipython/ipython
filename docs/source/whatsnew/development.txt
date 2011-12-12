@@ -62,8 +62,9 @@ New features
   Terminal frontend by default (:ghpull:`838`).
 
 * **%store**: The ``%store`` magic from earlier versions has been updated and
-  placed in an extension, :ref:`extensions_storemagic`. Add 'storemagic' to ``c.InteractiveShellApp.extensions``
-  in ipython_config.py to enable it (:ghpull:`1029`).
+  re-enabled (:ref:`extensions_storemagic`; :ghpull:`1029`). To autorestore
+  stored variables on startup, specify ``c.StoreMagic.autorestore = True`` in
+  :file:`ipython_config.py`.
 
 
 
