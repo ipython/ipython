@@ -89,7 +89,7 @@ ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, ipython_app, kernel_manager, notebook_manager, log):
+    def __init__(self, ipython_app, kernel_manager, notebook_manager, log, settings_overrides):
         handlers = [
             (r"/", ProjectDashboardHandler),
             (r"/login", LoginHandler),
@@ -111,7 +111,11 @@ class NotebookWebApplication(web.Application):
             cookie_secret=os.urandom(1024),
             login_url="/login",
         )
-        web.Application.__init__(self, handlers, **settings)
+
+        # allow custom overrides for the tornado web app.
+        settings.update(settings_overrides)
+
+        super(NotebookWebApplication, self).__init__(handlers, **settings)
 
         self.kernel_manager = kernel_manager
         self.log = log
@@ -243,6 +247,10 @@ class NotebookApp(BaseIPythonApplication):
         help="Whether to prevent editing/execution of notebooks."
     )
     
+    webapp_settings = Dict(config=True,
+            help="Supply overrides for the tornado.web.Application that the "
+                 "IPython notebook uses.")
+    
     enable_mathjax = Bool(True, config=True,
         help="""Whether to enable MathJax for typesetting math/TeX
 
@@ -264,7 +272,7 @@ class NotebookApp(BaseIPythonApplication):
     def _mathjax_url_default(self):
         if not self.enable_mathjax:
             return u''
-        static_path = os.path.join(os.path.dirname(__file__), "static")
+        static_path = self.webapp_settings.get("static_path", os.path.join(os.path.dirname(__file__), "static"))
         if os.path.exists(os.path.join(static_path, 'mathjax', "MathJax.js")):
             self.log.info("Using local MathJax")
             return u"static/mathjax/MathJax.js"
@@ -315,7 +323,8 @@ class NotebookApp(BaseIPythonApplication):
         super(NotebookApp, self).initialize(argv)
         self.init_configurables()
         self.web_app = NotebookWebApplication(
-            self, self.kernel_manager, self.notebook_manager, self.log
+            self, self.kernel_manager, self.notebook_manager, self.log,
+            self.webapp_settings
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)
