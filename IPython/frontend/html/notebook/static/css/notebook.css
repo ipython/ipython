@@ -18,10 +18,8 @@ body {
 }
 
 span#save_widget {
-    position: static;
-    left: 0px;
-    padding: 5px 0px;
-    margin: 0px 0px 0px 0px;
+    margin-top:2px;
+    display:inline-block;
 }
 
 span#quick_help_area {
