@@ -27,8 +27,9 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.bind_events = function () {
-        if (IPython.read_only)
-        {return}
+        if (IPython.read_only){
+            return;
+        }
         var that = this;
         this.element.bind('dragover', function () {
             return false;
@@ -85,9 +86,6 @@ var IPython = (function (IPython) {
             if (!IPython.read_only){
                 // hide delete buttons when readonly
                 this.add_delete_button(item);
-                $('#drag_info').removeClass('hidden');
-            } else {
-                $('#drag_info').remove();
             }
         };
     };
