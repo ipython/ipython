@@ -34,7 +34,7 @@ class MockEvent(object):
 class Test_magic_run_completer(unittest.TestCase):
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
-        for fil in [u"aaå.py", u"a.py", u"b.py"]:
+        for fil in [u"aaø.py", u"a.py", u"b.py"]:
             with open(join(self.BASETESTDIR, fil), "w") as sfile:
                 sfile.write("pass\n")
         self.oldpath = os.getcwdu()
@@ -50,7 +50,7 @@ class Test_magic_run_completer(unittest.TestCase):
         event = MockEvent(u"%run a")
         mockself = None
         match = magic_run_completer(mockself, event) 
-        self.assertEqual(match, [u"a.py", u"aaå.py",])
+        self.assertEqual(match, [u"a.py", u"aaø.py"])
 
     def test_2(self):
         """Test magic_run_completer, should match one alterntive
@@ -58,12 +58,12 @@ class Test_magic_run_completer(unittest.TestCase):
         event = MockEvent(u"%run aa")
         mockself = None
         match = magic_run_completer(mockself, event) 
-        self.assertEqual(match, [u"aaå.py",])
+        self.assertEqual(match, [u"aaø.py"])
 
     def test_3(self):
         """Test '%run "a<tab>' completion"""
         event = MockEvent(u'%run "a')
         mockself = None
         match = magic_run_completer(mockself, event)
-        self.assertEqual(match, [u"a.py", u"aaå.py"])
+        self.assertEqual(match, [u"a.py", u"aaø.py"])
 
