@@ -266,6 +266,7 @@ python-profiler package from non-free.""")
         # Get options
         list_all = kw.get('list_all',0)
         posix = kw.get('posix', os.name == 'posix')
+        strict = kw.get('strict', True)
 
         # Check if we have more than one argument to warrant extra processing:
         odict = {}  # Dictionary with options
@@ -273,7 +274,7 @@ python-profiler package from non-free.""")
         if len(args) >= 1:
             # If the list of inputs only has 0 or 1 thing in it, there's no
             # need to look for options
-            argv = arg_split(arg_str,posix)
+            argv = arg_split(arg_str, posix, strict)
             # Do regular option processing
             try:
                 opts,args = getopt(argv,opt_str,*long_opts)
@@ -1865,7 +1866,7 @@ Currently the magic system has the following functions:\n"""
         scaling = [1, 1e3, 1e6, 1e9]
 
         opts, stmt = self.parse_options(parameter_s,'n:r:tcp:',
-                                        posix=False)
+                                        posix=False, strict=False)
         if stmt == "":
             return
         timefunc = timeit.default_timer

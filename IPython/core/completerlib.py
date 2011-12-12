@@ -20,7 +20,6 @@ import glob
 import inspect
 import os
 import re
-import shlex
 import sys
 
 # Third-party imports
@@ -31,6 +30,7 @@ from zipimport import zipimporter
 from IPython.core.completer import expand_user, compress_user
 from IPython.core.error import TryNext
 from IPython.utils import py3compat
+from IPython.utils._process_common import arg_split
 
 # FIXME: this should be pulled in with the right call via the component system
 from IPython.core.ipapi import get as get_ipython
@@ -55,35 +55,6 @@ magic_run_re = re.compile(r'.*(\.ipy|\.py[w]?)$')
 #-----------------------------------------------------------------------------
 # Local utilities
 #-----------------------------------------------------------------------------
-
-def shlex_split(x):
-    """Helper function to split lines into segments.
-    """
-    # shlex.split raises an exception if there is a syntax error in sh syntax
-    # for example if no closing " is found. This function keeps dropping the
-    # last character of the line until shlex.split does not raise
-    # an exception. It adds end of the line to the result of shlex.split
-    #
-    # Example:
-    # %run "c:/python -> ['%run','"c:/python']
-
-    # shlex.split has unicode bugs in Python 2, so encode first to str
-    if not py3compat.PY3:
-        x = py3compat.cast_bytes(x)
-
-    endofline = []
-    while x != '':
-        try:
-            comps = shlex.split(x)
-            if len(endofline) >= 1:
-                comps.append(''.join(endofline))
-            return comps
-
-        except ValueError:
-            endofline = [x[-1:]]+endofline
-            x = x[:-1]
-
-    return [''.join(endofline)]
 
 def module_list(path):
     """
@@ -265,7 +236,7 @@ def module_completer(self,event):
 def magic_run_completer(self, event):
     """Complete files that end in .py or .ipy for the %run command.
     """
-    comps = shlex_split(event.line)
+    comps = arg_split(event.line, strict=False)
     relpath = (len(comps) > 1 and comps[-1] or '').strip("'\"")
 
     #print("\nev=", event)  # dbg
