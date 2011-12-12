@@ -242,25 +242,25 @@ class IPClusterEngines(BaseParallelApplication):
     engine_launcher_class = DottedObjectName('LocalEngineSetLauncher',
         config=True,
         help="""The class for launching a set of Engines. Change this value
-        to use various batch systems to launch your engines, such as PBS,SGE,MPIExec,etc.
+        to use various batch systems to launch your engines, such as PBS,SGE,MPI,etc.
         Each launcher class has its own set of configuration options, for making sure
         it will work in your environment.
 
         You can also write your own launcher, and specify it's absolute import path,
         as in 'mymodule.launcher.FTLEnginesLauncher`.
 
-        Examples include:
+        IPython's bundled examples include:
 
-            LocalEngineSetLauncher : start engines locally as subprocesses [default]
-            MPIExecEngineSetLauncher : use mpiexec to launch in an MPI environment
-            PBSEngineSetLauncher : use PBS (qsub) to submit engines to a batch queue
-            SGEEngineSetLauncher : use SGE (qsub) to submit engines to a batch queue
-            LSFEngineSetLauncher : use LSF (bsub) to submit engines to a batch queue
-            SSHEngineSetLauncher : use SSH to start the controller
-                                Note that SSH does *not* move the connection files
-                                around, so you will likely have to do this manually
-                                unless the machines are on a shared file system.
-            WindowsHPCEngineSetLauncher : use Windows HPC
+            Local : start engines locally as subprocesses [default]
+            MPI : use mpiexec to launch engines in an MPI environment
+            PBS : use PBS (qsub) to submit engines to a batch queue
+            SGE : use SGE (qsub) to submit engines to a batch queue
+            LSF : use LSF (bsub) to submit engines to a batch queue
+            SSH : use SSH to start the controller
+                        Note that SSH does *not* move the connection files
+                        around, so you will likely have to do this manually
+                        unless the machines are on a shared file system.
+            WindowsHPC : use Windows HPC
 
         If you are using one of IPython's builtin launchers, you can specify just the
         prefix, e.g:
@@ -269,7 +269,7 @@ class IPClusterEngines(BaseParallelApplication):
 
         or:
 
-            ipcluster start --engines 'MPIExec'
+            ipcluster start --engines=MPI
 
         """
         )
@@ -307,7 +307,7 @@ class IPClusterEngines(BaseParallelApplication):
             # not a module, presume it's the raw name in apps.launcher
             if kind and kind not in clsname:
                 # doesn't match necessary full class name, assume it's
-                # just 'PBS' or 'MPIExec' prefix:
+                # just 'PBS' or 'MPI' prefix:
                 clsname = clsname + kind + 'Launcher'
             clsname = 'IPython.parallel.apps.launcher.'+clsname
         try:
@@ -451,20 +451,23 @@ class IPClusterStart(IPClusterEngines):
     controller_launcher_class = DottedObjectName('LocalControllerLauncher',
         config=True,
         help="""The class for launching a Controller. Change this value if you want
-        your controller to also be launched by a batch system, such as PBS,SGE,MPIExec,etc.
+        your controller to also be launched by a batch system, such as PBS,SGE,MPI,etc.
 
         Each launcher class has its own set of configuration options, for making sure
         it will work in your environment.
+        
+        Note that using a batch launcher for the controller *does not* put it
+        in the same batch job as the engines, so they will still start separately.
 
-        Examples include:
+        IPython's bundled examples include:
 
-            LocalControllerLauncher : start engines locally as subprocesses
-            MPIExecControllerLauncher : use mpiexec to launch engines in an MPI universe
-            PBSControllerLauncher : use PBS (qsub) to submit engines to a batch queue
-            SGEControllerLauncher : use SGE (qsub) to submit engines to a batch queue
-            LSFControllerLauncher : use LSF (bsub) to submit engines to a batch queue
-            SSHControllerLauncher : use SSH to start the controller
-            WindowsHPCControllerLauncher : use Windows HPC
+            Local : start engines locally as subprocesses
+            MPI : use mpiexec to launch the controller in an MPI universe
+            PBS : use PBS (qsub) to submit the controller to a batch queue
+            SGE : use SGE (qsub) to submit the controller to a batch queue
+            LSF : use LSF (bsub) to submit the controller to a batch queue
+            SSH : use SSH to start the controller
+            WindowsHPC : use Windows HPC
 
         If you are using one of IPython's builtin launchers, you can specify just the
         prefix, e.g:
@@ -473,7 +476,7 @@ class IPClusterStart(IPClusterEngines):
 
         or:
 
-            ipcluster start --controller 'MPIExec'
+            ipcluster start --controller=MPI
 
         """
         )

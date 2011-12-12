@@ -440,11 +440,11 @@ class LocalEngineSetLauncher(LocalEngineLauncher):
 
 
 #-----------------------------------------------------------------------------
-# MPIExec launchers
+# MPI launchers
 #-----------------------------------------------------------------------------
 
 
-class MPIExecLauncher(LocalProcessLauncher):
+class MPILauncher(LocalProcessLauncher):
     """Launch an external process using mpiexec."""
 
     mpi_cmd = List(['mpiexec'], config=True,
@@ -459,6 +459,18 @@ class MPIExecLauncher(LocalProcessLauncher):
         help="The command line argument to the program."
     )
     n = Integer(1)
+    
+    def __init__(self, *args, **kwargs):
+        # deprecation for old MPIExec names:
+        config = kwargs.get('config', {})
+        for oldname in ('MPIExecLauncher', 'MPIExecControllerLauncher', 'MPIExecEngineSetLauncher'):
+            deprecated = config.get(oldname)
+            if deprecated:
+                newname = oldname.replace('MPIExec', 'MPI')
+                config[newname].update(deprecated)
+                self.log.warn("WARNING: %s name has been deprecated, use %s", oldname, newname)
+
+        super(MPILauncher, self).__init__(*args, **kwargs)
 
     def find_args(self):
         """Build self.args using all the fields."""
@@ -468,10 +480,10 @@ class MPIExecLauncher(LocalProcessLauncher):
     def start(self, n):
         """Start n instances of the program using mpiexec."""
         self.n = n
-        return super(MPIExecLauncher, self).start()
+        return super(MPILauncher, self).start()
 
 
-class MPIExecControllerLauncher(MPIExecLauncher, ControllerMixin):
+class MPIControllerLauncher(MPILauncher, ControllerMixin):
     """Launch a controller using mpiexec."""
 
     # alias back to *non-configurable* program[_args] for use in find_args()
@@ -487,11 +499,11 @@ class MPIExecControllerLauncher(MPIExecLauncher, ControllerMixin):
 
     def start(self):
         """Start the controller by profile_dir."""
-        self.log.info("Starting MPIExecControllerLauncher: %r" % self.args)
-        return super(MPIExecControllerLauncher, self).start(1)
+        self.log.info("Starting MPIControllerLauncher: %r", self.args)
+        return super(MPIControllerLauncher, self).start(1)
 
 
-class MPIExecEngineSetLauncher(MPIExecLauncher, EngineMixin):
+class MPIEngineSetLauncher(MPILauncher, EngineMixin):
     """Launch engines using mpiexec"""
 
     # alias back to *non-configurable* program[_args] for use in find_args()
@@ -508,8 +520,34 @@ class MPIExecEngineSetLauncher(MPIExecLauncher, EngineMixin):
     def start(self, n):
         """Start n engines by profile or profile_dir."""
         self.n = n
-        self.log.info('Starting MPIExecEngineSetLauncher: %r' % self.args)
-        return super(MPIExecEngineSetLauncher, self).start(n)
+        self.log.info('Starting MPIEngineSetLauncher: %r', self.args)
+        return super(MPIEngineSetLauncher, self).start(n)
+
+# deprecated MPIExec names
+class DeprecatedMPILauncher(object):
+    def warn(self):
+        oldname = self.__class__.__name__
+        newname = oldname.replace('MPIExec', 'MPI')
+        self.log.warn("WARNING: %s name is deprecated, use %s", oldname, newname)
+    
+class MPIExecLauncher(MPILauncher, DeprecatedMPILauncher):
+    """Deprecated, use MPILauncher"""
+    def __init__(self, *args, **kwargs):
+        super(MPIExecLauncher, self).__init__(*args, **kwargs)
+        self.warn()
+
+class MPIExecControllerLauncher(MPIControllerLauncher, DeprecatedMPILauncher):
+    """Deprecated, use MPIControllerLauncher"""
+    def __init__(self, *args, **kwargs):
+        super(MPIExecControllerLauncher, self).__init__(*args, **kwargs)
+        self.warn()
+
+class MPIExecEngineSetLauncher(MPIEngineSetLauncher, DeprecatedMPILauncher):
+    """Deprecated, use MPIEngineSetLauncher"""
+    def __init__(self, *args, **kwargs):
+        super(MPIExecEngineSetLauncher, self).__init__(*args, **kwargs)
+        self.warn()
+
 
 #-----------------------------------------------------------------------------
 # SSH launchers
@@ -1149,9 +1187,9 @@ local_launchers = [
     LocalEngineSetLauncher,
 ]
 mpi_launchers = [
-    MPIExecLauncher,
-    MPIExecControllerLauncher,
-    MPIExecEngineSetLauncher,
+    MPILauncher,
+    MPIControllerLauncher,
+    MPIEngineSetLauncher,
 ]
 ssh_launchers = [
     SSHLauncher,

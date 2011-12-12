@@ -140,11 +140,15 @@ Backwards incompatible changes
 
   would now be specified as::
 
-    IPClusterEngines.engine_launcher_class = 'MPIExec'
+    IPClusterEngines.engine_launcher_class = 'MPI'
     IPClusterStart.controller_launcher_class = 'SSH'
 
   The full path will still work, and is necessary for using custom launchers not in
   IPython's launcher module.
+  
+  Further, MPIExec launcher names are now prefixed with just MPI, to better match
+  other batch launchers, and be generally more intuitive.  The MPIExec names are
+  deprecated, but continue to work.
 
 * For embedding a shell, note that the parameter ``user_global_ns`` has been
   replaced by ``user_module``, and expects a module-like object, rather than
