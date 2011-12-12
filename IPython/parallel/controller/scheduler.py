@@ -225,7 +225,7 @@ class TaskScheduler(SessionFactory):
             try:
                 handler(asbytes(msg['content']['queue']))
             except Exception:
-                self.log.error("task::Invalid notification msg: %r",msg)
+                self.log.error("task::Invalid notification msg: %r", msg, exc_info=True)
 
     def _register_engine(self, uid):
         """New engine with ident `uid` became available."""
