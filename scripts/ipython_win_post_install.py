@@ -1,6 +1,8 @@
 #!python
 """Windows-specific part of the installation"""
 
+from __future__ import print_function
+
 import os, sys, shutil
 pjoin = os.path.join
 
@@ -17,11 +19,14 @@ def mkshortcut(target,description,link_file,*args,**kw):
     create_shortcut(target, description, link_file,*args,**kw)
     file_created(link_file)
 
+def suffix(s):
+    """add '3' suffix to programs for Python 3"""
+    if sys.version_info[0] == 3:
+        s = s+'3'
+    return s
 
 def install():
     """Routine to be run by the win32 installer with the -install switch."""
-    
-    from IPython.core.release import version
     
     # Get some system constants
     prefix = sys.prefix
@@ -55,6 +60,7 @@ def install():
         'ipcluster',
         'irunner'
     ]
+    programs = [ suffix(p) for p in programs ]
     scripts = pjoin(prefix,'scripts')
     if not have_setuptools:
         # only create .bat files if we don't have setuptools
@@ -70,7 +76,7 @@ def install():
             bat_file.close()
 
     # Now move onto setting the Start Menu up
-    ipybase = pjoin(scripts, 'ipython')
+    ipybase = suffix(pjoin(scripts, 'ipython'))
     if have_setuptools:
         # let setuptools take care of the scripts:
         ipybase = ipybase + '-script.py'
@@ -93,21 +99,21 @@ def install():
     mkshortcut(python, 'IPython (pylab profile)', link, cmd, workdir)
         
     link = pjoin(ip_start_menu, 'ipcontroller.lnk')
-    cmdbase = pjoin(scripts, 'ipcontroller')
+    cmdbase = suffix(pjoin(scripts, 'ipcontroller'))
     if have_setuptools:
         cmdbase += '-script.py'
     cmd = '"%s"' % cmdbase
     mkshortcut(python, 'IPython controller', link, cmd, workdir)
     
     link = pjoin(ip_start_menu, 'ipengine.lnk')
-    cmdbase = pjoin(scripts, 'ipengine')
+    cmdbase = suffix(pjoin(scripts, 'ipengine'))
     if have_setuptools:
         cmdbase += '-script.py'
     cmd = '"%s"' % cmdbase
     mkshortcut(python, 'IPython engine', link, cmd, workdir)
 
     link = pjoin(ip_start_menu, 'ipythonqt.lnk')
-    cmdbase = pjoin(scripts, 'ipython-qtconsole')
+    cmdbase = suffix(pjoin(scripts, 'ipython')) + '-qtconsole'
     if have_setuptools:
         cmdbase += '-script.pyw'
     cmd = '"%s"' % cmdbase
@@ -126,8 +132,11 @@ def remove():
 # main()
 if len(sys.argv) > 1:
     if sys.argv[1] == '-install':
-        install()
+        try:
+            install()
+        except OSError:
+            print("Failed to create Start Menu items, try running installer as administrator.", file=sys.stderr)
     elif sys.argv[1] == '-remove':
         remove()
     else:
-        print "Script was called with option %s" % sys.argv[1]
+        print("Script was called with option %s" % sys.argv[1], file=sys.stderr)

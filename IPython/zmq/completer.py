@@ -5,7 +5,10 @@
 from __future__ import print_function
 
 import itertools
-import readline
+try:
+    import readline
+except ImportError:
+    readline = None
 import rlcompleter
 import time
 
@@ -37,8 +40,9 @@ class ClientCompleter(object):
     and then return them for each value of state."""
     
     def __init__(self, client, session, socket):
-         # ugly, but we get called asynchronously and need access to some
-         # client state, like backgrounded code
+        # ugly, but we get called asynchronously and need access to some
+        # client state, like backgrounded code
+        assert readline is not None, "ClientCompleter depends on readline"
         self.client = client
         self.session = session
         self.socket = socket
