@@ -130,6 +130,9 @@ class InteractiveShellApp(Configurable):
         if new:
             # add to self.extensions
             self.extensions.append(new)
+    
+    # Extensions that are always loaded (not configurable)
+    default_extensions = List(Unicode, [u'storemagic'], config=False)
 
     exec_files = List(Unicode, config=True,
         help="""List of files to run at IPython startup."""
@@ -158,11 +161,9 @@ class InteractiveShellApp(Configurable):
         This uses the :meth:`ExtensionManager.load_extensions` to load all
         the extensions listed in ``self.extensions``.
         """
-        if not self.extensions:
-            return
         try:
             self.log.debug("Loading IPython extensions...")
-            extensions = self.extensions
+            extensions = self.default_extensions + self.extensions
             for ext in extensions:
                 try:
                     self.log.info("Loading IPython extension: %s" % ext)

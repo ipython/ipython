@@ -2,26 +2,24 @@
 """
 %store magic for lightweight persistence.
 
-Stores variables, aliases and macros in IPython's database. Stored values will
-be automatically restored whenever the extension is loaded.
+Stores variables, aliases and macros in IPython's database.
 
-To enable this functionality, list it in your default profile
-`ipython_config.py` file::
+To automatically restore stored variables at startup, add this to your
+:file:`ipython_config.py` file::
 
-  c.InteractiveShellApp.extensions = ['storemagic']
-
-Or to use it temporarily, run this in your IPython session::
-
-  %load_ext storemagic
+  c.StoreMagic.autorestore = True
 
 """
 
 from IPython.core.error import TryNext, UsageError
+from IPython.core.plugin import Plugin
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import pickleshare
+from IPython.utils.traitlets import Bool, Instance
 
 import inspect,pickle,os,sys,textwrap
 from IPython.core.fakemodule import FakeModule
-
+    
 def restore_aliases(ip):
     staliases = ip.db.get('stored_aliases', {})
     for k,v in staliases.items():
@@ -53,6 +51,7 @@ def restore_data(ip):
     restore_aliases(ip)
     restore_dhist(ip)
 
+@skip_doctest
 def magic_store(self, parameter_s=''):
     """Lightweight persistence for python variables.
 
@@ -183,6 +182,24 @@ def magic_store(self, parameter_s=''):
             self.db[ 'autorestore/' + args[0] ] = obj
             print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
 
+
+class StoreMagic(Plugin):
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    autorestore = Bool(False, config=True)
+    
+    def __init__(self, shell, config):
+        super(StoreMagic, self).__init__(shell=shell, config=config)
+        shell.define_magic('store', magic_store)
+        
+        if self.autorestore:
+            restore_data(shell)
+
+_loaded = False
+
 def load_ipython_extension(ip):
-    ip.define_magic('store', magic_store)
-    restore_data(ip)
+    """Load the extension in IPython."""
+    global _loaded
+    if not _loaded:
+        plugin = StoreMagic(shell=ip, config=ip.config)
+        ip.plugin_manager.register_plugin('storemagic', plugin)
+        _loaded = True
