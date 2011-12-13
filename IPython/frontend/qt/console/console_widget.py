@@ -172,6 +172,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         LoggingConfigurable.__init__(self, **kw)
 
+        # While scrolling the pager on Mac OS X, it tears badly.  The
+        # NativeGesture is platform and perhaps build-specific hence
+        # we take adequate precautions here.
+        self._pager_scroll_events = [QtCore.QEvent.Wheel]
+        if hasattr(QtCore.QEvent, 'NativeGesture'):
+            self._pager_scroll_events.append(QtCore.QEvent.NativeGesture)
+
         # Create the layout and underlying text widget.
         layout = QtGui.QStackedLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -364,17 +371,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             QtGui.qApp.sendEvent(obj, QtGui.QDragLeaveEvent())
             return True
 
-        # Handle scrolling of the vsplit pager. This hack attempts to solve the
-        # problem of tearing of the pager window's help text on Mac OS X.  This
-        # happens with PySide and PyQt. This fix isn't perfect but makes the
-        # pager more usable.
-
-        # FIXME: this line, on qt 4.8.5, crashes b/c NativeGesture is not
-        # available.   Disabling for now, until we sort out a cleaner solution.
-        # See https://github.com/ipython/ipython/pull/1150 for details.
-        #elif etype in [QtCore.QEvent.Wheel, QtCore.QEvent.NativeGesture] and \
-
-        elif etype == QtCore.QEvent.Wheel and \
+        # Handle scrolling of the vsplit pager. This hack attempts to solve
+        # problems with tearing of the help text inside the pager window.  This
+        # happens only on Mac OS X with both PySide and PyQt. This fix isn't
+        # perfect but makes the pager more usable.
+        elif etype in self._pager_scroll_events and \
                 obj == self._page_control:
             self._page_control.repaint()
             return True
