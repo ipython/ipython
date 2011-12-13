@@ -25,7 +25,7 @@ from ctypes.wintypes import LPCWSTR, HLOCAL
 from subprocess import STDOUT
 
 # our own imports
-from ._process_common import read_no_interrupt, process_handler
+from ._process_common import read_no_interrupt, process_handler, arg_split as py_arg_split
 from . import py3compat
 from . import text
 
@@ -159,15 +159,20 @@ try:
     LocalFree.res_type = HLOCAL
     LocalFree.arg_types = [HLOCAL]
     
-    def arg_split(commandline, posix=False):
+    def arg_split(commandline, posix=False, strict=True):
         """Split a command line's arguments in a shell-like manner.
 
         This is a special version for windows that use a ctypes call to CommandLineToArgvW
         to do the argv splitting. The posix paramter is ignored.
+        
+        If strict=False, process_common.arg_split(...strict=False) is used instead.
         """
         #CommandLineToArgvW returns path to executable if called with empty string.
         if commandline.strip() == "":
             return []
+        if not strict:
+            # not really a cl-arg, fallback on _process_common
+            return py_arg_split(commandline, posix=posix, strict=strict)
         argvn = c_int()
         result_pointer = CommandLineToArgvW(py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn))
         result_array_type = LPCWSTR * argvn.value
@@ -175,4 +180,4 @@ try:
         retval = LocalFree(result_pointer)
         return result
 except AttributeError:
-    from ._process_common import arg_split
+    arg_split = py_arg_split
