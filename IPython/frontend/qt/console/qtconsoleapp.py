@@ -334,6 +334,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
         # draw the window
         self.window.show()
+        self.window.raise_()
 
         # Start the application main loop.
         self.app.exec_()
