@@ -206,16 +206,16 @@ class NotebookManager(LoggingConfigurable):
         try:
             with open(path,'w') as f:
                 current.write(nb, f, u'json')
-        except:
-            raise web.HTTPError(400, u'Unexpected error while saving notebook')
+        except Exception as e:
+            raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
         # save .py script as well
         if self.save_script:
             pypath = os.path.splitext(path)[0] + '.py'
             try:
                 with open(pypath,'w') as f:
                     current.write(nb, f, u'py')
-            except:
-                raise web.HTTPError(400, u'Unexpected error while saving notebook as script')
+            except Exception as e:
+                raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
         
         if old_name != new_name:
             old_path = self.get_path_by_name(old_name)
