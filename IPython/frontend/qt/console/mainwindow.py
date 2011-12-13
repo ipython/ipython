@@ -880,8 +880,8 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 msg = "Close console, stop kernel, and Quit?"
             info = "Kernels not started here (e.g. notebooks) will be left alone."
-            closeall = QtGui.QPushButton("&Yes, quit everything", self)
-            closeall.setShortcut('Y')
+            closeall = QtGui.QPushButton("&Quit", self)
+            closeall.setShortcut('Q')
             box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
                                     title, msg)
             box.setInformativeText(info)
