@@ -441,6 +441,19 @@ Current limitations of the SSH mode of :command:`ipcluster` are:
   around with scp. This will be improved, Pull Requests are welcome.
 
 
+IPython on EC2 with StarCluster
+===============================
+
+The excellent StarCluster_ toolkit for managing `Amazon EC2`_ clusters has a plugin
+which makes deploying IPython on EC2 quite simple.  The starcluster plugin uses
+:command:`ipcluster` with the SGE launchers to distribute engines across the
+EC2 cluster.  See their `ipcluster plugin documentation`_ for more information.
+
+.. _StarCluster: http://web.mit.edu/starcluster
+.. _Amazon EC2: http://aws.amazon.com/ec2/
+.. _ipcluster plugin documentation: http://web.mit.edu/starcluster/docs/latest/plugins/ipython.html
+
+
 Using the :command:`ipcontroller` and :command:`ipengine` commands
 ==================================================================
 
@@ -776,7 +789,6 @@ you can specify any arguments you may need to the PyMongo `Connection
     # keyword args to pymongo.Connection
     c.MongoDB.connection_kwargs = {}
 
-.. _MongoDB: http://www.mongodb.org
 .. _PyMongo: http://api.mongodb.org/python/1.9/
 
 Configuring `ipengine`
