@@ -364,6 +364,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             QtGui.qApp.sendEvent(obj, QtGui.QDragLeaveEvent())
             return True
 
+        # Handle scrolling of the vsplit pager. This hack attempts to solve the
+        # problem of tearing of the pager window's help text on Mac OS X.  This
+        # happens with PySide and PyQt. This fix isn't perfect but makes the
+        # pager more usable.
+        elif etype in [QtCore.QEvent.Wheel, QtCore.QEvent.NativeGesture] and \
+                obj == self._page_control:
+            self._page_control.repaint()
+            return True
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
     #---------------------------------------------------------------------------
@@ -965,6 +973,8 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()
         control.installEventFilter(self)
+        viewport = control.viewport()
+        viewport.installEventFilter(self)
         control.setReadOnly(True)
         control.setUndoRedoEnabled(False)
         control.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
