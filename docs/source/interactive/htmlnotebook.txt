@@ -188,6 +188,14 @@ prior to import, you manually add the ``# <nbformat>2</nbformat>`` marker at
 the start and then add separators for text/code cells, you can get a cleaner
 import with the file broken into individual cells.
 
+If you want use notebooks as scripts a lot, then you can set::
+
+    c.NotebookManager.save_script=True
+
+which will instruct the notebook server to save the ``.py`` export of each
+notebook adjacent to the ``.ipynb`` at every save.  Then these can be ``%run``
+or imported from regular IPython sessions or other notebooks.
+
 .. warning::
 
    While in simple cases you can roundtrip a notebook to Python, edit the

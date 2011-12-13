@@ -25,7 +25,7 @@ from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
-from IPython.utils.traitlets import Unicode, List, Dict
+from IPython.utils.traitlets import Unicode, List, Dict, Bool
 
 
 #-----------------------------------------------------------------------------
@@ -38,6 +38,15 @@ class NotebookManager(LoggingConfigurable):
     notebook_dir = Unicode(os.getcwd(), config=True, help="""
         The directory to use for notebooks.
     """)
+    
+    save_script = Bool(False, config=True,
+        help="""Also save notebooks as a Python script.
+        
+        For easier use of import/%loadpy across notebooks, a <notebook-name>.py
+        script will be created next to any <notebook-name>.ipynb on each save.
+        """
+    )
+    
     filename_ext = Unicode(u'.ipynb')
     allowed_formats = List([u'json',u'py'])
 
@@ -197,12 +206,25 @@ class NotebookManager(LoggingConfigurable):
         try:
             with open(path,'w') as f:
                 current.write(nb, f, u'json')
-        except:
-            raise web.HTTPError(400, u'Unexpected error while saving notebook')
+        except Exception as e:
+            raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
+        # save .py script as well
+        if self.save_script:
+            pypath = os.path.splitext(path)[0] + '.py'
+            try:
+                with open(pypath,'w') as f:
+                    current.write(nb, f, u'py')
+            except Exception as e:
+                raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
+        
         if old_name != new_name:
             old_path = self.get_path_by_name(old_name)
             if os.path.isfile(old_path):
                 os.unlink(old_path)
+            if self.save_script:
+                old_pypath = os.path.splitext(old_path)[0] + '.py'
+                if os.path.isfile(old_pypath):
+                    os.unlink(old_pypath)
             self.mapping[notebook_id] = new_name
             self.rev_mapping[new_name] = notebook_id
 
