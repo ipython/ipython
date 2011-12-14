@@ -92,7 +92,7 @@ def print_figure(fig, fmt='png'):
     """Convert a figure to svg or png for inline display."""
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
-    if not fig.axes:
+    if not fig.axes and not fig.lines:
         return
 
     fc = fig.get_facecolor()
