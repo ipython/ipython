@@ -15,7 +15,9 @@ cd = os.chdir
 # Constants
 
 # SSH root address of the archive site
-archive = 'ipython@archive.ipython.org:archive.ipython.org'
+archive_user = 'ipython@archive.ipython.org'
+archive_dir = 'archive.ipython.org'
+archive = '%s:%s' % (archive_user, archive_dir)
 
 # Utility functions
 def sh(cmd):

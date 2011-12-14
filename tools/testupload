@@ -17,5 +17,6 @@ testing_site = '%s/testing/%s' % (archive, version)
 
 cd(distdir)
 
-# FIXME: this assumes the path *with the version number* exists on the server
+# Create remote path if it doesn't exist.
+sh('ssh %s "mkdir -p %s/testing/%s" ' % (archive_user, archive_dir, version))
 sh('scp * %s' % testing_site)
