@@ -92,7 +92,7 @@ def print_figure(fig, fmt='png'):
     """Convert a figure to svg or png for inline display."""
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
-    if not fig.axes:
+    if not fig.axes and not fig.lines:
         return
 
     fc = fig.get_facecolor()
@@ -107,6 +107,11 @@ def print_figure(fig, fmt='png'):
         fig.set_facecolor(fc)
         fig.set_edgecolor(ec)
     return data
+
+
+def print_axes(ax, fmt='png'):
+    """Print an Axes object via its associated figure"""
+    return print_figure(ax.figure, fmt)
 
 
 # We need a little factory function here to create the closure where
@@ -156,7 +161,9 @@ def select_figure_format(shell, fmt):
 
     Using this method ensures only one figure format is active at a time.
     """
+    from matplotlib.axes import Axes
     from matplotlib.figure import Figure
+    from matplotlib.image import AxesImage
     from IPython.zmq.pylab import backend_inline
 
     svg_formatter = shell.display_formatter.formatters['image/svg+xml']
@@ -165,9 +172,17 @@ def select_figure_format(shell, fmt):
     if fmt=='png':
         svg_formatter.type_printers.pop(Figure, None)
         png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
+        svg_formatter.type_printers.pop(Axes, None)
+        png_formatter.for_type(Axes, lambda ax: print_axes(ax, 'png'))
+        svg_formatter.type_printers.pop(AxesImage, None)
+        png_formatter.for_type(AxesImage, lambda ax: print_axes(ax, 'png'))
     elif fmt=='svg':
         png_formatter.type_printers.pop(Figure, None)
         svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
+        png_formatter.type_printers.pop(Axes, None)
+        svg_formatter.for_type(Axes, lambda ax: print_axes(ax, 'svg'))
+        png_formatter.type_printers.pop(AxesImage, None)
+        svg_formatter.for_type(AxesImage, lambda ax: print_axes(ax, 'svg'))
     else:
         raise ValueError("supported formats are: 'png', 'svg', not %r"%fmt)
 
