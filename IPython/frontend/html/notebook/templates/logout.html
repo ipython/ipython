@@ -1,11 +1,19 @@
 {% extends layout.html %}
 
 {% block content_panel %}
-  {% if current_user and current_user != 'anonymous' %}
-    Proceed to the <a href="/">front page</a>.
-  {% else %}
-    Proceed to the <a href="/login">login page</a>.
-  {% end %}
+  <ul>
+    {% if read_only or not login_available %}
+
+    Proceed to the <a href="/">list of notebooks</a>.</li>
+
+    {% else %}
+
+    Proceed to the <a href="/login">login page</a>.</li>
+
+    {% end %}
+
+  </ul>
+
 {% end %}
 
 {% block script %}

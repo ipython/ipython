@@ -23,9 +23,9 @@
 <div id="header">
     <span id="ipython_notebook"><h1><img src='static/ipynblogo.png' alt='IPython Notebook'/></h1></span>
     <span id="login_widget">
-      {% if current_user and current_user != 'anonymous' %}
+      {% if logged_in %}
         <button id="logout">Logout</button>
-      {% elif read_only is None %}
+      {% elif login_available and not logged_in %}
         <button id="login">Login</button>
       {% end %}
     </span>

@@ -139,22 +139,29 @@ class AuthenticatedHandler(RequestHandler):
         return user_id
 
     @property
-    def read_only(self):
-        """Is the notebook read-only?
-
-        None -- notebook is read-only, but the user can log-in to edit
-        True -- notebook is read-only, no log-in available
-        False -- no read-only mode available, user must log in
+    def logged_in(self):
+        """Is a user currently logged in?
 
         """
         user = self.get_current_user()
-        if user and user != 'anonymous':
-            return False
-        elif self.application.read_only:
-            if self.application.password:
-                return None
-            else:
-                return True
+        return (user and not user == 'anonymous')
+
+    @property
+    def login_available(self):
+        """May a user proceed to log in?
+
+        This returns True if login capability is available, irrespective of
+        whether the user is already logged in or not.
+
+        """
+        return bool(self.application.password)
+
+    @property
+    def read_only(self):
+        """Is the notebook read-only?
+
+        """
+        return self.application.read_only
 
     @property
     def ws_url(self):
@@ -177,6 +184,8 @@ class ProjectDashboardHandler(AuthenticatedHandler):
             'projectdashboard.html', project=project,
             base_project_url=u'/', base_kernel_url=u'/',
             read_only=self.read_only,
+            logged_in=self.logged_in,
+            login_available=self.login_available
         )
 
 
@@ -186,6 +195,8 @@ class LoginHandler(AuthenticatedHandler):
         self.render('login.html',
                 next=self.get_argument('next', default='/'),
                 read_only=self.read_only,
+                logged_in=self.logged_in,
+                login_available=self.login_available,
                 message=message
         )
 
@@ -211,7 +222,17 @@ class LogoutHandler(AuthenticatedHandler):
 
     def get(self):
         self.clear_cookie('username')
-        self.render('logout.html', message={'info': 'Successfully logged out.'})
+        if self.login_available:
+            message = {'info': 'Successfully logged out.'}
+        else:
+            message = {'warning': 'Cannot log out.  Notebook authentication '
+                       'is disabled.'}
+
+        self.render('logout.html',
+                    read_only=self.read_only,
+                    logged_in=self.logged_in,
+                    login_available=self.login_available,
+                    message=message)
 
 
 class NewHandler(AuthenticatedHandler):
@@ -227,6 +248,8 @@ class NewHandler(AuthenticatedHandler):
             base_project_url=u'/', base_kernel_url=u'/',
             kill_kernel=False,
             read_only=False,
+            logged_in=self.logged_in,
+            login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
         )
 
@@ -246,6 +269,8 @@ class NamedNotebookHandler(AuthenticatedHandler):
             base_project_url=u'/', base_kernel_url=u'/',
             kill_kernel=False,
             read_only=self.read_only,
+            logged_in=self.logged_in,
+            login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
         )
 

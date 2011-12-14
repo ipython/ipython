@@ -1,10 +1,16 @@
 {% extends layout.html %}
 
 {% block content_panel %}
+
+    {% if login_available %}
+
     <form action="/login?next={{url_escape(next)}}" method="post">
         Password: <input type="password" name="password" id="focus">
         <input type="submit" value="Sign in" id="signin">
     </form>
+
+    {% end %}
+
 {% end %}
 
 {% block script %}

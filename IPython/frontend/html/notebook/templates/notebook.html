@@ -52,9 +52,9 @@
     <span id="login_widget">
       {% comment  This is a temporary workaround to hide the logout button %}
       {% comment  when appropriate until notebook.html is templated %}
-      {% if current_user and current_user != 'anonymous' %}
+      {% if logged_in %}
         <button id="logout">Logout</button>
-      {% elif read_only is None %}
+      {% elif not logged_in and login_available %}
         <button id="login">Login</button>
       {% end %}
     </span>
