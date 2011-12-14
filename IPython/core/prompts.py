@@ -26,6 +26,8 @@ import socket
 import sys
 import time
 
+from string import Formatter
+
 from IPython.config.configurable import Configurable
 from IPython.core import release
 from IPython.utils import coloransi
@@ -241,6 +243,26 @@ def _lenlastline(s):
         return 0
     return len(s.splitlines()[-1])
 
+
+class UserNSFormatter(Formatter):
+    """A Formatter that falls back on a shell's user_ns and __builtins__ for name resolution"""
+    def __init__(self, shell):
+        self.shell = shell
+
+    def get_value(self, key, args, kwargs):
+        # try regular formatting first:
+        try:
+            return Formatter.get_value(self, key, args, kwargs)
+        except Exception:
+            pass
+        # next, look in user_ns and builtins:
+        for container in (self.shell.user_ns, __builtins__):
+            if key in container:
+                return container[key]
+        # nothing found, put error message in its place
+        return "<ERROR: '%s' not found>" % key
+
+
 class PromptManager(Configurable):
     """This is the primary interface for producing IPython's prompts."""
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
@@ -293,6 +315,7 @@ class PromptManager(Configurable):
         self.color_scheme_table = coloransi.ColorSchemeTable([PColNoColors,
                                     PColLinux, PColLightBG], self.color_scheme)
         
+        self._formatter = UserNSFormatter(shell)
         # Prepare templates & numbers of invisible characters
         self.update_prompt('in', self.in_template)
         self.update_prompt('in2', self.in2_template)
@@ -357,7 +380,7 @@ class PromptManager(Configurable):
         prompt = colors.prompt + self.templates[name] + colors.normal
         
         # Fill in required fields
-        return prompt.format(**fmtargs)
+        return self._formatter.format(prompt, **fmtargs)
     
     def _render_rewrite(self, color=True):
         """Render the ---> rewrite prompt."""

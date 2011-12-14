@@ -38,6 +38,25 @@ class PromptTests(unittest.TestCase):
     
         tt.check_pairs(do_translate, pairs)
     
+    def test_user_ns(self):
+        self.pm.color_scheme = 'NoColor'
+        ip.ex("foo='bar'")
+        self.pm.in_template = "In [{foo}]"
+        prompt = self.pm.render('in')
+        self.assertEquals(prompt, u'In [bar]')
+
+    def test_builtins(self):
+        self.pm.color_scheme = 'NoColor'
+        self.pm.in_template = "In [{int}]"
+        prompt = self.pm.render('in')
+        self.assertEquals(prompt, u"In [<type 'int'>]")
+
+    def test_undefined(self):
+        self.pm.color_scheme = 'NoColor'
+        self.pm.in_template = "In [{foo_dne}]"
+        prompt = self.pm.render('in')
+        self.assertEquals(prompt, u"In [<ERROR: 'foo_dne' not found>]")
+
     def test_render(self):
         self.pm.in_template = r'\#>'
         self.assertEqual(self.pm.render('in',color=False), '%d>' % ip.execution_count)
