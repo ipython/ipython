@@ -1062,6 +1062,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
             elif key == QtCore.Qt.Key_K:
                 if self._in_buffer(position):
+                    cursor.clearSelection()
                     cursor.movePosition(QtGui.QTextCursor.EndOfLine,
                                         QtGui.QTextCursor.KeepAnchor)
                     if not cursor.hasSelection():
@@ -1072,6 +1073,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                                             QtGui.QTextCursor.KeepAnchor,
                                             len(self._continuation_prompt))
                     self._kill_ring.kill_cursor(cursor)
+                    self._set_cursor(cursor)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_L:
@@ -1085,6 +1087,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
             elif key == QtCore.Qt.Key_U:
                 if self._in_buffer(position):
+                    cursor.clearSelection()
                     start_line = cursor.blockNumber()
                     if start_line == self._get_prompt_cursor().blockNumber():
                         offset = len(self._prompt)
@@ -1095,6 +1098,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                     cursor.movePosition(QtGui.QTextCursor.Right,
                                         QtGui.QTextCursor.KeepAnchor, offset)
                     self._kill_ring.kill_cursor(cursor)
+                    self._set_cursor(cursor)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Y:
