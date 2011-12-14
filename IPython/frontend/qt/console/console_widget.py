@@ -368,7 +368,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         # problem of tearing of the pager window's help text on Mac OS X.  This
         # happens with PySide and PyQt. This fix isn't perfect but makes the
         # pager more usable.
-        elif etype in [QtCore.QEvent.Wheel, QtCore.QEvent.NativeGesture] and \
+
+        # FIXME: this line, on qt 4.8.5, crashes b/c NativeGesture is not
+        # available.   Disabling for now, until we sort out a cleaner solution.
+        # See https://github.com/ipython/ipython/pull/1150 for details.
+        #elif etype in [QtCore.QEvent.Wheel, QtCore.QEvent.NativeGesture] and \
+
+        elif etype == QtCore.QEvent.Wheel and \
                 obj == self._page_control:
             self._page_control.repaint()
             return True
