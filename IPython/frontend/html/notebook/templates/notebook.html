@@ -29,8 +29,10 @@
     <link rel="stylesheet" href="static/css/base.css" type="text/css" />
     <link rel="stylesheet" href="static/css/notebook.css" type="text/css" />
     <link rel="stylesheet" href="static/css/renderedhtml.css" type="text/css" />
-    
-    <meta name="read_only" content="{{read_only}}"/>
+
+    {% comment  In the notebook, the read-only flag is used to determine %}
+    {% comment  whether to hide the side panels and switch off input %}
+    <meta name="read_only" content="{{read_only and not logged_in}}"/>
 
 </head>
 
@@ -52,8 +54,10 @@
     <span id="login_widget">
       {% comment  This is a temporary workaround to hide the logout button %}
       {% comment  when appropriate until notebook.html is templated %}
-      {% if current_user and current_user != 'anonymous' %}
+      {% if logged_in %}
         <button id="logout">Logout</button>
+      {% elif not logged_in and login_available %}
+        <button id="login">Login</button>
       {% end %}
     </span>
 

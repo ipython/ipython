@@ -19,12 +19,19 @@ data-base-kernel-url={{base_kernel_url}}
 {% end %}
 
 {% block content_panel %}
+    {% if logged_in or not read_only %}
+
     <div id="content_toolbar">
-        <span id="drag_info" class="hidden">Drag files onto the list to import notebooks.</span>
+        <span id="drag_info">Drag files onto the list to import
+        notebooks.</span>
+
         <span id="notebooks_buttons">
-            <button id="new_notebook" class="hidden">New Notebook</button>
+          <button id="new_notebook">New Notebook</button>
         </span>
     </div>
+
+    {% end %}
+
     <div id="notebook_list">
         <div id="project_name"><h2>{{project}}</h2></div>
     </div>
