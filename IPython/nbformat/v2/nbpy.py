@@ -111,7 +111,7 @@ class PyWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
         lines = []
-        lines.extend([u'# <nbformat>2</nbformat>',''])
+        lines.extend([u'# coding: utf-8', u'# <nbformat>2</nbformat>',''])
         for ws in nb.worksheets:
             for cell in ws.cells:
                 if cell.cell_type == u'code':
