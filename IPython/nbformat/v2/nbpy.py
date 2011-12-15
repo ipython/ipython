@@ -16,12 +16,15 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import re
 from .rwbase import NotebookReader, NotebookWriter
 from .nbbase import new_code_cell, new_text_cell, new_worksheet, new_notebook
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
+
+_encoding_declaration_re = re.compile(r"^#\s*coding[:=]\s*([-\w.]+)")
 
 class PyReaderError(Exception):
     pass
@@ -38,7 +41,7 @@ class PyReader(NotebookReader):
         cell_lines = []
         state = u'codecell'
         for line in lines:
-            if line.startswith(u'# <nbformat>'):
+            if line.startswith(u'# <nbformat>') or _encoding_declaration_re.match(line):
                 pass
             elif line.startswith(u'# <codecell>'):
                 cell = self.new_cell(state, cell_lines)
