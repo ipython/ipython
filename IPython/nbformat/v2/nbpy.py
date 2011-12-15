@@ -40,6 +40,8 @@ class PyReader(NotebookReader):
         for line in lines:
             if line.startswith(u'# <nbformat>'):
                 pass
+            elif line.startswith(u'# -*-'):
+                pass
             elif line.startswith(u'# <codecell>'):
                 cell = self.new_cell(state, cell_lines)
                 if cell is not None:
@@ -111,7 +113,9 @@ class PyWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
         lines = []
-        lines.extend([u'# <nbformat>2</nbformat>',''])
+        lines.extend([u'# -*- coding: utf-8 -*-',
+                      u'# <nbformat>2</nbformat>',
+                      u''])
         for ws in nb.worksheets:
             for cell in ws.cells:
                 if cell.cell_type == u'code':
