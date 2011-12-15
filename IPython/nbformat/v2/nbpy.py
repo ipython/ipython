@@ -24,7 +24,7 @@ from .nbbase import new_code_cell, new_text_cell, new_worksheet, new_notebook
 # Code
 #-----------------------------------------------------------------------------
 
-_encoding_declaration_re = re.compile(r"^#\s*coding[:=]\s*([-\w.]+)")
+_encoding_declaration_re = re.compile(r"^#.*coding[:=]\s*([-\w.]+)")
 
 class PyReaderError(Exception):
     pass
@@ -113,7 +113,7 @@ class PyReader(NotebookReader):
 class PyWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
-        lines = [u'# coding: utf-8']
+        lines = [u'# -*- coding: utf-8 -*-']
         lines.extend([u'# <nbformat>2</nbformat>',''])
         for ws in nb.worksheets:
             for cell in ws.cells:

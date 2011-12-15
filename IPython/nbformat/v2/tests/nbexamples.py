@@ -81,7 +81,7 @@ nb0 = new_notebook(
     metadata=md
 )
 
-nb0_py = """# coding: utf-8
+nb0_py = """# -*- coding: utf-8 -*-
 # <nbformat>2</nbformat>
 
 # <htmlcell>
