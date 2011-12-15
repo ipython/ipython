@@ -140,19 +140,43 @@ def flush_figures():
 
     This is meant to be called automatically and will call show() if, during
     prior code execution, there had been any calls to draw_if_interactive.
+    
+    This function is meant to be used as a post_execute callback in IPython,
+    so user-caused errors are handled with showtraceback() instead of being
+    allowed to raise.  If this function is not called from within IPython,
+    then these exceptions will raise.
     """
     if not show._draw_called:
         return
     
     if InlineBackend.instance().close_figures:
         # ignore the tracking, just draw and close all figures
-        return show(True)
-    
+        try:
+            return show(True)
+        except Exception as e:
+            # safely show traceback if in IPython, else raise
+            try:
+                get_ipython
+            except NameError:
+                raise e
+            else:
+                get_ipython().showtraceback()
+                return
     try:
         # exclude any figures that were closed:
         active = set([fm.canvas.figure for fm in Gcf.get_all_fig_managers()])
         for fig in [ fig for fig in show._to_draw if fig in active ]:
-            send_figure(fig)
+            try:
+                send_figure(fig)
+            except Exception as e:
+                # safely show traceback if in IPython, else raise
+                try:
+                    get_ipython
+                except NameError:
+                    raise e
+                else:
+                    get_ipython().showtraceback()
+                    break
     finally:
         # clear flags for next round
         show._to_draw = []
@@ -162,12 +186,11 @@ def flush_figures():
 def send_figure(fig):
     """Draw the current figure and send it as a PNG payload.
     """
-    # For an empty figure, don't even bother calling figure_to_svg, to avoid
-    # big blank spaces in the qt console
-    if not fig.axes:
-        return
     fmt = InlineBackend.instance().figure_format
     data = print_figure(fig, fmt)
+    # print_figure will return None if there's nothing to draw:
+    if data is None:
+        return
     mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
     mime = mimetypes[fmt]
     # flush text streams before sending figures, helps a little with output
