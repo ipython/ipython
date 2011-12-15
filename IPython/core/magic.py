@@ -2151,13 +2151,14 @@ Currently the magic system has the following functions:\n"""
         %loadpy http://www.example.com/myscript.py
         """
         arg_s = unquote_filename(arg_s)
-        if not arg_s.startswith(('http://', 'https://')) \
-          and not arg_s.endswith('.py'):
+        remote_url = arg_s.startswith(('http://', 'https://'))
+        local_url = not remote_url
+        if local_url and not arg_s.endswith('.py'):
             # Local files must be .py; for remote URLs it's possible that the
             # fetch URL doesn't have a .py in it (many servers have an opaque
             # URL, such as scipy-central.org).
             raise ValueError('%%load only works with .py files: %s' % arg_s)
-        if arg_s.startswith('http'):
+        if remote_url:
             import urllib2
             response = urllib2.urlopen(arg_s)
             content = response.read()
