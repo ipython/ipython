@@ -94,11 +94,7 @@ def create_inputhook_qt4(mgr, app=None):
         except KeyboardInterrupt:
             ignore_CTRL_C()
             got_kbdint[0] = True
-            print("\nKeyboardInterrupt - qt4 event loop interrupted!"
-                  "\n  * hit CTRL+C again to clear the prompt"
-                  "\n  * use '%gui none' to disable the event loop"
-                  " permanently"
-                  "\n    and '%gui qt4' to re-enable it later")
+            print("\nKeyboardInterrupt - Ctrl-C again for new prompt")
             mgr.clear_inputhook()
         except: # NO exceptions are allowed to escape from a ctypes callback
             ignore_CTRL_C()
