@@ -91,7 +91,6 @@ def create_inputhook_qt4(mgr, app=None):
                     timer.start(50)
                     app.exec_()
                     timer.stop()
-            ignore_CTRL_C()
         except KeyboardInterrupt:
             ignore_CTRL_C()
             got_kbdint[0] = True
@@ -102,10 +101,13 @@ def create_inputhook_qt4(mgr, app=None):
                   "\n    and '%gui qt4' to re-enable it later")
             mgr.clear_inputhook()
         except: # NO exceptions are allowed to escape from a ctypes callback
+            ignore_CTRL_C()
             mgr.clear_inputhook()
             from traceback import print_exc
             print_exc()
             print("Got exception from inputhook_qt4, unregistering.")
+        finally:
+            allow_CTRL_C()
         return 0
 
     def preprompthook_qt4(ishell):
