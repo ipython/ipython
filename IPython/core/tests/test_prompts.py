@@ -49,7 +49,7 @@ class PromptTests(unittest.TestCase):
         self.pm.color_scheme = 'NoColor'
         self.pm.in_template = "In [{int}]"
         prompt = self.pm.render('in')
-        self.assertEquals(prompt, u"In [<type 'int'>]")
+        self.assertEquals(prompt, u"In [%r]" % int)
 
     def test_undefined(self):
         self.pm.color_scheme = 'NoColor'
