@@ -96,6 +96,8 @@ def needs_local_scope(func):
 # Used for exception handling in magic_edit
 class MacroToEdit(ValueError): pass
 
+_encoding_declaration_re = re.compile(r"^#.*coding[:=]\s*([-\w.]+)")
+
 #***************************************************************************
 # Main class implementing Magic functionality
 
@@ -2160,12 +2162,15 @@ Currently the magic system has the following functions:\n"""
             raise ValueError('%%load only works with .py files: %s' % arg_s)
         if remote_url:
             import urllib2
-            response = urllib2.urlopen(arg_s)
-            content = response.read()
+            fileobj = urllib2.urlopen(arg_s)
         else:
-            with open(arg_s) as f:
-                content = f.read()
-        self.set_next_input(content)
+            fileobj = open(arg_s)
+        
+        # Strip out encoding declarations
+        lines = [l for l in fileobj if not _encoding_declaration_re.match(l)]
+        fileobj.close()
+        
+        self.set_next_input(os.linesep.join(lines))
 
     def _find_edit_target(self, args, opts, last_call):
         """Utility method used by magic_edit to find what to edit."""
