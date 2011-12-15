@@ -261,6 +261,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         deep_reload will still be available as dreload().
         """
     )
+    disable_failing_post_execute = CBool(False, config=True,
+        help="Don't call post-execute functions that have failed in the past."""
+    )
     display_formatter = Instance(DisplayFormatter)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
@@ -749,7 +752,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         if not callable(func):
             raise ValueError('argument %s must be callable' % func)
         self._post_execute[func] = True
-
+    
     #-------------------------------------------------------------------------
     # Things related to the "main" module
     #-------------------------------------------------------------------------
@@ -2426,17 +2429,22 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
                     # Execute any registered post-execution functions.
                     for func, status in self._post_execute.iteritems():
-                        if not status:
+                        if self.disable_failing_post_execute and not status:
                             continue
                         try:
                             func()
                         except KeyboardInterrupt:
                             print >> io.stderr, "\nKeyboardInterrupt"
                         except Exception:
-                            print >> io.stderr, "Disabling failed post-execution function: %s" % func
-                            self.showtraceback()
-                            # Deactivate failing function
+                            # register as failing:
                             self._post_execute[func] = False
+                            self.showtraceback()
+                            print >> io.stderr, '\n'.join([
+                                "post-execution function %r produced an error." % func,
+                                "If this problem persists, you can disable failing post-exec functions with:",
+                                "",
+                                "    get_ipython().disable_failing_post_execute = True"
+                            ])
 
         if store_history:
             # Write output to the database. Does nothing unless
