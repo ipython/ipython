@@ -2163,11 +2163,12 @@ Currently the magic system has the following functions:\n"""
         if remote_url:
             import urllib2
             fileobj = urllib2.urlopen(arg_s)
+            linesource = fileobj.read().decode('utf-8', 'replace').splitlines()
         else:
-            fileobj = open(arg_s)
+            fileobj = linesource = open(arg_s)
         
         # Strip out encoding declarations
-        lines = [l for l in fileobj if not _encoding_declaration_re.match(l)]
+        lines = [l for l in linesource if not _encoding_declaration_re.match(l)]
         fileobj.close()
         
         self.set_next_input(os.linesep.join(lines))
