@@ -156,10 +156,12 @@ def flush_figures():
         except Exception as e:
             # safely show traceback if in IPython, else raise
             try:
-                get_ipython().showtraceback()
-                return
+                get_ipython
             except NameError:
                 raise e
+            else:
+                get_ipython().showtraceback()
+                return
     try:
         # exclude any figures that were closed:
         active = set([fm.canvas.figure for fm in Gcf.get_all_fig_managers()])
@@ -169,10 +171,12 @@ def flush_figures():
             except Exception as e:
                 # safely show traceback if in IPython, else raise
                 try:
-                    get_ipython().showtraceback()
-                    break
+                    get_ipython
                 except NameError:
                     raise e
+                else:
+                    get_ipython().showtraceback()
+                    break
     finally:
         # clear flags for next round
         show._to_draw = []
