@@ -186,7 +186,7 @@ class BaseLauncher(LoggingConfigurable):
         a pass-through so it can be used as a callback.
         """
 
-        self.log.info('Process %r started: %r' % (self.args[0], data))
+        self.log.debug('Process %r started: %r', self.args[0], data)
         self.start_data = data
         self.state = 'running'
         return data
@@ -197,7 +197,7 @@ class BaseLauncher(LoggingConfigurable):
         This logs the process stopping and sets the state to 'after'. Call
         this to trigger callbacks registered via :meth:`on_stop`."""
 
-        self.log.info('Process %r stopped: %r' % (self.args[0], data))
+        self.log.debug('Process %r stopped: %r', self.args[0], data)
         self.stop_data = data
         self.state = 'after'
         for i in range(len(self.stop_callbacks)):
@@ -271,6 +271,7 @@ class LocalProcessLauncher(BaseLauncher):
         return self.cmd_and_args
 
     def start(self):
+        self.log.debug("Starting %s: %r", self.__class__.__name__, self.args)
         if self.state == 'before':
             self.process = Popen(self.args,
                 stdout=PIPE,stderr=PIPE,stdin=PIPE,
@@ -322,7 +323,7 @@ class LocalProcessLauncher(BaseLauncher):
             line = self.process.stdout.readline()
         # a stopped process will be readable but return empty strings
         if line:
-            self.log.info(line[:-1])
+            self.log.debug(line[:-1])
         else:
             self.poll()
 
@@ -333,7 +334,7 @@ class LocalProcessLauncher(BaseLauncher):
             line = self.process.stderr.readline()
         # a stopped process will be readable but return empty strings
         if line:
-            self.log.error(line[:-1])
+            self.log.debug(line[:-1])
         else:
             self.poll()
 
@@ -354,7 +355,6 @@ class LocalControllerLauncher(LocalProcessLauncher, ControllerMixin):
 
     def start(self):
         """Start the controller by profile_dir."""
-        self.log.info("Starting LocalControllerLauncher: %r" % self.args)
         return super(LocalControllerLauncher, self).start()
 
 
@@ -401,8 +401,6 @@ class LocalEngineSetLauncher(LocalEngineLauncher):
             el.engine_args = copy.deepcopy(self.engine_args)
             el.on_stop(self._notice_engine_stopped)
             d = el.start()
-            if i==0:
-                self.log.info("Starting LocalEngineSetLauncher: %r" % el.args)
             self.launchers[i] = el
             dlist.append(d)
         self.notify_start(dlist)
@@ -499,7 +497,6 @@ class MPIControllerLauncher(MPILauncher, ControllerMixin):
 
     def start(self):
         """Start the controller by profile_dir."""
-        self.log.info("Starting MPIControllerLauncher: %r", self.args)
         return super(MPIControllerLauncher, self).start(1)
 
 
@@ -520,7 +517,6 @@ class MPIEngineSetLauncher(MPILauncher, EngineMixin):
     def start(self, n):
         """Start n engines by profile or profile_dir."""
         self.n = n
-        self.log.info('Starting MPIEngineSetLauncher: %r', self.args)
         return super(MPIEngineSetLauncher, self).start(n)
 
 # deprecated MPIExec names
@@ -640,7 +636,17 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
     engines = Dict(config=True,
         help="""dict of engines to launch.  This is a dict by hostname of ints,
         corresponding to the number of engines to start on that host.""")
-
+    
+    @property
+    def engine_count(self):
+        """determine engine count from `engines` dict"""
+        count = 0
+        for n in self.engines.itervalues():
+            if isinstance(n, (tuple,list)):
+                n,args = n
+            count += n
+        return count
+    
     def start(self, n):
         """Start engines by profile or profile_dir.
         `n` is ignored, and the `engines` config property is used instead.
@@ -669,8 +675,6 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
                 el.engine_args = args
                 el.on_stop(self._notice_engine_stopped)
                 d = el.start(user=user, hostname=host)
-                if i==0:
-                    self.log.info("Starting SSHEngineSetLauncher: %r" % el.args)
                 self.launchers[ "%s/%i" % (host,i) ] = el
                 dlist.append(d)
         self.notify_start(dlist)
@@ -745,7 +749,7 @@ class WindowsHPCLauncher(BaseLauncher):
             '/jobfile:%s' % self.job_file,
             '/scheduler:%s' % self.scheduler
         ]
-        self.log.info("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
+        self.log.debug("Starting Win HPC Job: %s" % (self.job_cmd + ' ' + ' '.join(args),))
 
         output = check_output([self.job_cmd]+args,
             env=os.environ,
@@ -969,7 +973,7 @@ class BatchSystemLauncher(BaseLauncher):
                 self.batch_template = u'\n'.join([firstline, self.queue_template, rest])
 
         script_as_string = self.formatter.format(self.batch_template, **self.context)
-        self.log.info('Writing instantiated batch script: %s' % self.batch_file)
+        self.log.info('Writing batch script: %s', self.batch_file)
 
         with open(self.batch_file, 'w') as f:
             f.write(script_as_string)
@@ -977,6 +981,7 @@ class BatchSystemLauncher(BaseLauncher):
 
     def start(self, n):
         """Start n copies of the process using a batch system."""
+        self.log.debug("Starting %s: %r", self.__class__.__name__, self.args)
         # Here we save profile_dir in the context so they
         # can be used in the batch script template as {profile_dir}
         self.write_batch_script(n)
@@ -1023,7 +1028,6 @@ class PBSControllerLauncher(PBSLauncher, BatchClusterAppMixin):
 
     def start(self):
         """Start the controller by profile or profile_dir."""
-        self.log.info("Starting PBSControllerLauncher: %r" % self.args)
         return super(PBSControllerLauncher, self).start(1)
 
 
@@ -1039,7 +1043,6 @@ class PBSEngineSetLauncher(PBSLauncher, BatchClusterAppMixin):
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
-        self.log.info('Starting %i engines with PBSEngineSetLauncher: %r' % (n, self.args))
         return super(PBSEngineSetLauncher, self).start(n)
 
 #SGE is very similar to PBS
@@ -1064,7 +1067,6 @@ class SGEControllerLauncher(SGELauncher, BatchClusterAppMixin):
 
     def start(self):
         """Start the controller by profile or profile_dir."""
-        self.log.info("Starting SGEControllerLauncher: %r" % self.args)
         return super(SGEControllerLauncher, self).start(1)
 
 class SGEEngineSetLauncher(SGELauncher, BatchClusterAppMixin):
@@ -1079,7 +1081,6 @@ class SGEEngineSetLauncher(SGELauncher, BatchClusterAppMixin):
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
-        self.log.info('Starting %i engines with SGEEngineSetLauncher: %r' % (n, self.args))
         return super(SGEEngineSetLauncher, self).start(n)
 
 
@@ -1112,6 +1113,7 @@ class LSFLauncher(BatchSystemLauncher):
         self.write_batch_script(n)
         #output = check_output(self.args, env=os.environ)
         piped_cmd = self.args[0]+'<\"'+self.args[1]+'\"'
+        self.log.debug("Starting %s: %s", self.__class__.__name__, piped_cmd)
         p = Popen(piped_cmd, shell=True,env=os.environ,stdout=PIPE)
         output,err = p.communicate()
         job_id = self.parse_job_id(output)
@@ -1133,7 +1135,6 @@ class LSFControllerLauncher(LSFLauncher, BatchClusterAppMixin):
 
     def start(self):
         """Start the controller by profile or profile_dir."""
-        self.log.info("Starting LSFControllerLauncher: %r" % self.args)
         return super(LSFControllerLauncher, self).start(1)
 
 
@@ -1149,7 +1150,6 @@ class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
-        self.log.info('Starting %i engines with LSFEngineSetLauncher: %r' % (n, self.args))
         return super(LSFEngineSetLauncher, self).start(n)
 
 
@@ -1174,7 +1174,6 @@ class IPClusterLauncher(LocalProcessLauncher):
             ['--n=%i'%self.ipcluster_n] + self.ipcluster_args
 
     def start(self):
-        self.log.info("Starting ipcluster: %r" % self.args)
         return super(IPClusterLauncher, self).start()
 
 #-----------------------------------------------------------------------------
