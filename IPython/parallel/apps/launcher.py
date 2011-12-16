@@ -738,7 +738,7 @@ class WindowsHPCLauncher(BaseLauncher):
         else:
             raise LauncherError("Job id couldn't be determined: %s" % output)
         self.job_id = job_id
-        self.log.info('Job started with job id: %r' % job_id)
+        self.log.info('Job started with id: %r', job_id)
         return job_id
 
     def start(self, n):
@@ -799,7 +799,7 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher, ClusterAppMixin):
         t.controller_args.extend(self.controller_args)
         job.add_task(t)
 
-        self.log.info("Writing job description file: %s" % self.job_file)
+        self.log.debug("Writing job description file: %s", self.job_file)
         job.write(self.job_file)
 
     @property
@@ -832,7 +832,7 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher, ClusterAppMixin):
             t.engine_args.extend(self.engine_args)
             job.add_task(t)
 
-        self.log.info("Writing job description file: %s" % self.job_file)
+        self.log.debug("Writing job description file: %s", self.job_file)
         job.write(self.job_file)
 
     @property
@@ -941,7 +941,7 @@ class BatchSystemLauncher(BaseLauncher):
         else:
             raise LauncherError("Job id couldn't be determined: %s" % output)
         self.job_id = job_id
-        self.log.info('Job submitted with job id: %r' % job_id)
+        self.log.info('Job submitted with job id: %r', job_id)
         return job_id
 
     def write_batch_script(self, n):
@@ -961,19 +961,19 @@ class BatchSystemLauncher(BaseLauncher):
             regex = re.compile(self.job_array_regexp)
             # print regex.search(self.batch_template)
             if not regex.search(self.batch_template):
-                self.log.info("adding job array settings to batch script")
+                self.log.debug("adding job array settings to batch script")
                 firstline, rest = self.batch_template.split('\n',1)
                 self.batch_template = u'\n'.join([firstline, self.job_array_template, rest])
 
             regex = re.compile(self.queue_regexp)
             # print regex.search(self.batch_template)
             if self.queue and not regex.search(self.batch_template):
-                self.log.info("adding PBS queue settings to batch script")
+                self.log.debug("adding PBS queue settings to batch script")
                 firstline, rest = self.batch_template.split('\n',1)
                 self.batch_template = u'\n'.join([firstline, self.queue_template, rest])
 
         script_as_string = self.formatter.format(self.batch_template, **self.context)
-        self.log.info('Writing batch script: %s', self.batch_file)
+        self.log.debug('Writing batch script: %s', self.batch_file)
 
         with open(self.batch_file, 'w') as f:
             f.write(script_as_string)
