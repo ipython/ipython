@@ -96,6 +96,7 @@ def needs_local_scope(func):
 # Used for exception handling in magic_edit
 class MacroToEdit(ValueError): pass
 
+# Taken from PEP 263, this is the official encoding regexp.
 _encoding_declaration_re = re.compile(r"^#.*coding[:=]\s*([-\w.]+)")
 
 #***************************************************************************
@@ -2163,6 +2164,14 @@ Currently the magic system has the following functions:\n"""
         if remote_url:
             import urllib2
             fileobj = urllib2.urlopen(arg_s)
+            # While responses have a .info().getencoding() way of asking for
+            # their encoding, in *many* cases the return value is bogus.  In
+            # the wild, servers serving utf-8 but declaring latin-1 are
+            # extremely common, as the old HTTP standards specify latin-1 as
+            # the default but many modern filesystems use utf-8.  So we can NOT
+            # rely on the headers.  Short of building complex encoding-guessing
+            # logic, going with utf-8 is a simple solution likely to be right
+            # in most real-world cases.
             linesource = fileobj.read().decode('utf-8', 'replace').splitlines()
         else:
             fileobj = linesource = open(arg_s)
