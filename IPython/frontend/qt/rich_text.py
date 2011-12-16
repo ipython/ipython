@@ -11,6 +11,9 @@ import re
 # System library imports.
 from IPython.external.qt import QtGui
 
+# IPython imports
+from IPython.utils import py3compat
+
 #-----------------------------------------------------------------------------
 # Constants
 #-----------------------------------------------------------------------------
@@ -92,7 +95,6 @@ class HtmlExporter(object):
                     box.setInformativeText(info)
                     box.addButton(ib, QtGui.QMessageBox.NoRole)
                     box.addButton(eb, QtGui.QMessageBox.YesRole)
-                    box.setDefaultButton(ib)
                     layout.setSpacing(0)
                     layout.addWidget(box)
                     layout.addWidget(checkbox)
@@ -141,6 +143,8 @@ def export_html(html, filename, image_tag = None, inline = True):
     """
     if image_tag is None:
         image_tag = default_image_tag
+    else:
+        image_tag = ensure_utf8(image_tag)
 
     if inline:
         path = None
@@ -172,6 +176,8 @@ def export_xhtml(html, filename, image_tag=None):
     """
     if image_tag is None:
         image_tag = default_image_tag
+    else:
+        image_tag = ensure_utf8(image_tag)
 
     with open(filename, 'w') as f:
         # Hack to make xhtml header -- note that we are not doing any check for
@@ -208,6 +214,20 @@ def default_image_tag(match, path = None, format = "png"):
         Format for returned or referenced images.
     """
     return ''
+
+
+def ensure_utf8(image_tag):
+    """wrapper for ensuring image_tag returns utf8-encoded str on Python 2"""
+    if py3compat.PY3:
+        # nothing to do on Python 3
+        return image_tag
+    
+    def utf8_image_tag(*args, **kwargs):
+        s = image_tag(*args, **kwargs)
+        if isinstance(s, unicode):
+            s = s.encode('utf8')
+        return s
+    return utf8_image_tag
 
 
 def fix_html(html):
