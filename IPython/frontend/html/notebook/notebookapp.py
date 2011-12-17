@@ -50,7 +50,7 @@ from .handlers import (LoginHandler, LogoutHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
 )
-from .notebookmanager import NotebookManager
+from .notebookmanager import NotebookManager, manager_flags
 
 from IPython.config.application import catch_config_error
 from IPython.core.application import BaseIPythonApplication
@@ -157,10 +157,12 @@ flags['read-only'] = (
     """
 )
 
+flags.update(manager_flags)
+
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'read-only']
+notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script']
 
 aliases = dict(ipkernel_aliases)
 

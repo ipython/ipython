@@ -23,15 +23,22 @@ import glob
 
 from tornado import web
 
+from IPython.config.application import boolean_flag
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, List, Dict, Bool
 
+#-----------------------------------------------------------------------------
+# Aliases and Flags
+#-----------------------------------------------------------------------------
+
+manager_flags =boolean_flag('script', 'NotebookManager.save_script',
+               'Auto-save a .py script everytime the .ipynb notebook is saved',
+               'Do not auto-save .py scripts for every notebook')
 
 #-----------------------------------------------------------------------------
-# Code
+# Classes
 #-----------------------------------------------------------------------------
-
 
 class NotebookManager(LoggingConfigurable):
 
@@ -40,10 +47,12 @@ class NotebookManager(LoggingConfigurable):
     """)
     
     save_script = Bool(False, config=True,
-        help="""Also save notebooks as a Python script.
+        help="""Automaticall create a Python script when saving the notebook.
         
-        For easier use of import/%loadpy across notebooks, a <notebook-name>.py
-        script will be created next to any <notebook-name>.ipynb on each save.
+        For easier use of import, %run and %loadpy across notebooks, a
+        <notebook-name>.py script will be created next to any
+        <notebook-name>.ipynb on each save.  This can also be set with the
+        short `--script` flag.
         """
     )
     
