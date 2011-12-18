@@ -118,6 +118,10 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
                         display_banner=False, profile_dir=self.profile_dir,
                         ipython_dir=self.ipython_dir, kernel_manager=self.kernel_manager)
 
+    def init_gui_pylab(self):
+        # no-op, because we don't want to import matplotlib in the frontend.
+        pass
+
     def handle_sigint(self, *args):
         if self.shell._executing:
             if self.kernel_manager.has_kernel:
