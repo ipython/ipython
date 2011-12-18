@@ -137,31 +137,38 @@ class ProfileList(Application):
                 profiles.append(profile)
         return profiles
     
+    def _print_profiles(self, profiles):
+        """print list of profiles, indented."""
+        for profile in profiles:
+            print '    %s' % profile
+    
     def list_profile_dirs(self):
         profiles = self._list_bundled_profiles()
         if profiles:
             print
             print "Available profiles in IPython:"
-            for profile in profiles:
-                print '    ipython --profile=%s' % profile
+            self._print_profiles(profiles)
             print
             print "    The first request for a bundled profile will copy it"
             print "    into your IPython directory (%s)," % self.ipython_dir
-            print "    where you can customize it to your needs."
+            print "    where you can customize it."
         
         profiles = self._list_profiles_in(self.ipython_dir)
         if profiles:
             print
             print "Available profiles in %s:" % self.ipython_dir
-            for profile in profiles:
-                print '    ipython --profile=%s' % profile
+            self._print_profiles(profiles)
         
         profiles = self._list_profiles_in(os.getcwdu())
         if profiles:
             print
             print "Available profiles in current directory (%s):" % os.getcwdu()
-            for profile in profiles:
-                print '    ipython --profile=%s' % profile
+            self._print_profiles(profiles)
+        
+        print
+        print "To use any of the above profiles, start IPython with:"
+        print "    ipython --profile=<name>"
+        print
 
     def start(self):
         self.list_profile_dirs()
