@@ -187,15 +187,7 @@ entire contents of the file will be loaded into a single code cell.  But if
 prior to import, you manually add the ``# <nbformat>2</nbformat>`` marker at
 the start and then add separators for text/code cells, you can get a cleaner
 import with the file broken into individual cells.
-
-If you want use notebooks as scripts a lot, then you can set::
-
-    c.NotebookManager.save_script=True
-
-which will instruct the notebook server to save the ``.py`` export of each
-notebook adjacent to the ``.ipynb`` at every save.  Then these can be ``%run``
-or imported from regular IPython sessions or other notebooks.
-
+    
 .. warning::
 
    While in simple cases you can roundtrip a notebook to Python, edit the
@@ -208,6 +200,48 @@ or imported from regular IPython sessions or other notebooks.
    notebook and the import capabilities as a way to load existing code to get a
    notebook started.  But the Python version is *not* an alternate notebook
    format.
+
+   
+Importing or executing a notebook as a normal Python file
+---------------------------------------------------------
+
+The native format of the notebook, a file with a ``.ipynb`` extension, is a
+JSON container of all the input and output of the notebook, and therefore not
+valid Python by itself.  This means that by default, you can not import a
+notebook or execute it as a normal python script.  But if you want use
+notebooks as regular Python files, you can start the notebook server with::
+
+  ipython notebook --script
+
+or you can set this option permanently in your configuration file with::
+
+    c.NotebookManager.save_script=True
+
+This will instruct the notebook server to save the ``.py`` export of each
+notebook adjacent to the ``.ipynb`` at every save.  These files can be
+``%run``, imported from regular IPython sessions or other notebooks, or
+executed at the command-line as normal Python files.  Since we export the raw
+code you have typed, for these files to be importable from other code you will
+have to avoid using syntax such as ``%magics`` and other IPython-specific
+extensions to the language.
+
+In regular practice, the standard way to differentiate importable code from the
+'executable' part of a script is to put at the bottom::
+
+  if __name__ == '__main__':
+    # rest of the code...
+
+Since all cells in the notebook are run as top-level code, you'll need to
+similarly protect *all* cells that you do not want executed when other scripts
+try to import your notebook.  A convenient shortand for this is to define early
+on::
+
+  script = __name__ == '__main__':
+
+and then on any cell that you need to protect, use::
+
+  if script:
+    # rest of the cell...
 
     
 Keyboard use
