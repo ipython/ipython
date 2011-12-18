@@ -457,7 +457,7 @@ class Inspector:
         # Source or docstring, depending on detail level and whether
         # source found.
         if detail_level > 0 and info['source'] is not None:
-            displayfields.append(("Source", self.format(py3compat.unicode_to_str(info['source']))))
+            displayfields.append(("Source", self.format(py3compat.cast_bytes_py2(info['source']))))
         elif info['docstring'] is not None:
             displayfields.append(("Docstring", info["docstring"]))
 
