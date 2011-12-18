@@ -98,10 +98,10 @@ def create_inputhook_qt4(mgr, app=None):
             mgr.clear_inputhook()
         except: # NO exceptions are allowed to escape from a ctypes callback
             ignore_CTRL_C()
-            mgr.clear_inputhook()
             from traceback import print_exc
             print_exc()
             print("Got exception from inputhook_qt4, unregistering.")
+            mgr.clear_inputhook()
         finally:
             allow_CTRL_C()
         return 0
