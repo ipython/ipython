@@ -130,19 +130,6 @@ def protect_filename(s):
     return "".join([(ch in PROTECTABLES and '\\' + ch or ch)
                     for ch in s])
 
-
-def mark_dirs(matches):
-    """Mark directories in input list by appending '/' to their names."""
-    out = []
-    isdir = os.path.isdir
-    for x in matches:
-        if isdir(x):
-            out.append(x+'/')
-        else:
-            out.append(x)
-    return out
-
-
 def expand_user(path):
     """Expand '~'-style usernames in strings.
 
@@ -190,28 +177,6 @@ def compress_user(path, tilde_expand, tilde_val):
         return path.replace(tilde_val, '~')
     else:
         return path
-
-
-def single_dir_expand(matches):
-    "Recursively expand match lists containing a single dir."
-
-    if len(matches) == 1 and os.path.isdir(matches[0]):
-        # Takes care of links to directories also.  Use '/'
-        # explicitly, even under Windows, so that name completions
-        # don't end up escaped.
-        d = matches[0]
-        if d[-1] in ['/','\\']:
-            d = d[:-1]
-
-        subdirs = os.listdir(d)
-        if subdirs:
-            matches = [ (d + '/' + p) for p in subdirs]
-            return single_dir_expand(matches)
-        else:
-            return matches
-    else:
-        return matches
-
 
 class Bunch(object): pass
 
@@ -604,7 +569,10 @@ class IPCompleter(Completer):
                            protect_filename(f) for f in m0]
 
         #io.rprint('mm', matches)  # dbg
-        return mark_dirs(matches)
+
+        # Mark directories in input list by appending '/' to their names.
+        matches = [x+'/' if os.path.isdir(x) else x for x in matches]
+        return matches
 
     def magic_matches(self, text):
         """Match magics"""
