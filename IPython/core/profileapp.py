@@ -29,7 +29,7 @@ from IPython.core.application import (
     BaseIPythonApplication, base_flags, base_aliases
 )
 from IPython.core.profiledir import ProfileDir
-from IPython.utils.path import get_ipython_dir
+from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
 from IPython.utils.traitlets import Unicode, Bool, Dict
 
 #-----------------------------------------------------------------------------
@@ -115,20 +115,60 @@ class ProfileList(Application):
         the environment variable IPYTHON_DIR.
         """
     )
-
+    
+    def _list_profiles_in(self, path):
+        """list profiles in a given root directory"""
+        files = os.listdir(path)
+        profiles = []
+        for f in files:
+            full_path = os.path.join(path, f)
+            if os.path.isdir(full_path) and f.startswith('profile_'):
+                profiles.append(f.split('_',1)[-1])
+        return profiles
+    
+    def _list_bundled_profiles(self):
+        """list profiles in a given root directory"""
+        path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
+        files = os.listdir(path)
+        profiles = []
+        for profile in files:
+            full_path = os.path.join(path, profile)
+            if os.path.isdir(full_path):
+                profiles.append(profile)
+        return profiles
+    
+    def _print_profiles(self, profiles):
+        """print list of profiles, indented."""
+        for profile in profiles:
+            print '    %s' % profile
+    
     def list_profile_dirs(self):
-        # Find the search paths
-        paths = [os.getcwdu(), self.ipython_dir]
-
-        self.log.warn('Searching for IPython profiles in paths: %r' % paths)
-        for path in paths:
-            files = os.listdir(path)
-            for f in files:
-                full_path = os.path.join(path, f)
-                if os.path.isdir(full_path) and f.startswith('profile_'):
-                    profile = f.split('_',1)[-1]
-                    start_cmd = 'ipython --profile=%s' % profile
-                    print start_cmd + " ==> " + full_path
+        profiles = self._list_bundled_profiles()
+        if profiles:
+            print
+            print "Available profiles in IPython:"
+            self._print_profiles(profiles)
+            print
+            print "    The first request for a bundled profile will copy it"
+            print "    into your IPython directory (%s)," % self.ipython_dir
+            print "    where you can customize it."
+        
+        profiles = self._list_profiles_in(self.ipython_dir)
+        if profiles:
+            print
+            print "Available profiles in %s:" % self.ipython_dir
+            self._print_profiles(profiles)
+        
+        profiles = self._list_profiles_in(os.getcwdu())
+        if profiles:
+            print
+            print "Available profiles in current directory (%s):" % os.getcwdu()
+            self._print_profiles(profiles)
+        
+        print
+        print "To use any of the above profiles, start IPython with:"
+        print "    ipython --profile=<name>"
+        print
 
     def start(self):
         self.list_profile_dirs()
