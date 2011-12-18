@@ -162,9 +162,16 @@ var IPython = (function (IPython) {
     }
 
     CodeCell.prototype.finish_tooltip = function (reply) {
-        defstring=reply.definition;
-        docstring=reply.docstring;
-        if(docstring == null){docstring="<empty docstring>"};
+        // Extract call tip data; the priority is call, init, main.
+        defstring = reply.call_def;
+        if (defstring == null) { defstring = reply.init_definition; }
+        if (defstring == null) { defstring = reply.definition; }
+
+        docstring = reply.call_docstring;
+        if (docstring == null) { docstring = reply.init_docstring; }
+        if (docstring == null) { docstring = reply.docstring; }
+        if (docstring == null) { docstring = "<empty docstring>"; }
+
         name=reply.name;
 
         var that = this;
