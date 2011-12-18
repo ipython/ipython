@@ -38,7 +38,7 @@ from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
-from IPython.frontend.qt.console.mainwindow import MainWindow
+from IPython.frontend.qt.console.windowManager import WindowManager
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
@@ -235,16 +235,14 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.widget._confirm_exit = self.confirm_exit
 
         self.widget.kernel_manager = self.kernel_manager
-        self.window = MainWindow(self.app,
+        self.window_manager = WindowManager(self.app,
                                 confirm_exit=self.confirm_exit,
                                 new_frontend_factory=self.new_frontend_master,
                                 slave_frontend_factory=self.new_frontend_slave,
+                                init_widget=self.widget,
                                 )
-        self.window.log = self.log
-        self.window.add_tab_with_frontend(self.widget)
-        self.window.init_menu_bar()
-
-        self.window.setWindowTitle('Python' if self.pure else 'IPython')
+        self.window_manager.log = self.log
+        #self.window_manager.setWindowTitle('Python' if self.pure else 'IPython')
 
     def init_colors(self):
         """Configure the coloring of the widget"""
@@ -331,11 +329,6 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.init_signal()
 
     def start(self):
-
-        # draw the window
-        self.window.show()
-        self.window.raise_()
-
         # Start the application main loop.
         self.app.exec_()
 
