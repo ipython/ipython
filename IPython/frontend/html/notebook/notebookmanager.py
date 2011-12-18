@@ -23,18 +23,9 @@ import glob
 
 from tornado import web
 
-from IPython.config.application import boolean_flag
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, List, Dict, Bool
-
-#-----------------------------------------------------------------------------
-# Aliases and Flags
-#-----------------------------------------------------------------------------
-
-manager_flags =boolean_flag('script', 'NotebookManager.save_script',
-               'Auto-save a .py script everytime the .ipynb notebook is saved',
-               'Do not auto-save .py scripts for every notebook')
 
 #-----------------------------------------------------------------------------
 # Classes

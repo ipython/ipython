@@ -50,9 +50,9 @@ from .handlers import (LoginHandler, LogoutHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
 )
-from .notebookmanager import NotebookManager, manager_flags
+from .notebookmanager import NotebookManager
 
-from IPython.config.application import catch_config_error
+from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.lib.kernel import swallow_argv
@@ -157,12 +157,15 @@ flags['read-only'] = (
     """
 )
 
-flags.update(manager_flags)
+# Add notebook manager flags
+flags.update(boolean_flag('script', 'NotebookManager.save_script',
+               'Auto-save a .py script everytime the .ipynb notebook is saved',
+               'Do not auto-save .py scripts for every notebook'))
 
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script']
+notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script']
 
 aliases = dict(ipkernel_aliases)
 
