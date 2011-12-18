@@ -3360,50 +3360,6 @@ Defaulting color scheme to 'NoColor'"""
         """Reload an IPython extension by its module name."""
         self.extension_manager.reload_extension(module_str)
 
-    @skip_doctest
-    def magic_install_profiles(self, s):
-        """Install the default IPython profiles into the .ipython dir.
-
-        If the default profiles have already been installed, they will not
-        be overwritten. You can force overwriting them by using the ``-o``
-        option::
-
-            In [1]: %install_profiles -o
-        """
-        if '-o' in s:
-            overwrite = True
-        else:
-            overwrite = False
-        from IPython.config import profile
-        profile_dir = os.path.dirname(profile.__file__)
-        ipython_dir = self.ipython_dir
-        print "Installing profiles to: %s [overwrite=%s]"%(ipython_dir,overwrite)
-        for src in os.listdir(profile_dir):
-            if src.startswith('profile_'):
-                name = src.replace('profile_', '')
-                print "    %s"%name
-                pd = ProfileDir.create_profile_dir_by_name(ipython_dir, name)
-                pd.copy_config_file('ipython_config.py', path=src,
-                                overwrite=overwrite)
-
-    @skip_doctest
-    def magic_install_default_config(self, s):
-        """Install IPython's default config file into the .ipython dir.
-
-        If the default config file (:file:`ipython_config.py`) is already
-        installed, it will not be overwritten. You can force overwriting
-        by using the ``-o`` option::
-
-            In [1]: %install_default_config
-        """
-        if '-o' in s:
-            overwrite = True
-        else:
-            overwrite = False
-        pd = self.shell.profile_dir
-        print "Installing default config file in: %s" % pd.location
-        pd.copy_config_file('ipython_config.py', overwrite=overwrite)
-
     # Pylab support: simple wrappers that activate pylab, load gui input
     # handling and modify slightly %run
 
