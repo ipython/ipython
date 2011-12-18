@@ -127,7 +127,7 @@ class ProfileList(Application):
                 full_path = os.path.join(path, f)
                 if os.path.isdir(full_path) and f.startswith('profile_'):
                     profile = f.split('_',1)[-1]
-                    start_cmd = 'ipython profile=%s' % profile
+                    start_cmd = 'ipython --profile=%s' % profile
                     print start_cmd + " ==> " + full_path
 
     def start(self):
