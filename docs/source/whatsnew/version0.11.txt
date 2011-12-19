@@ -671,7 +671,7 @@ Removed Features
 ----------------
 
 As part of the updating of IPython, we have removed a few features for the
-purpsoes of cleaning up the codebase and interfaces.  These removals are
+purposes of cleaning up the codebase and interfaces.  These removals are
 permanent, but for any item listed below, equivalent functionality is
 available.
 
