@@ -104,14 +104,16 @@ if __name__ == '__main__':
     # sh('make html')
     if tag != 'dev':
         # only build pdf for non-dev targets
-        sh2('make pdf')
+        #sh2('make pdf')
+        pass
 
     # This is pretty unforgiving: we unconditionally nuke the destination
     # directory, and then copy the html tree in there
     shutil.rmtree(dest, ignore_errors=True)
     shutil.copytree(html_dir, dest)
     if tag != 'dev':
-        shutil.copy(pjoin(pdf_dir, 'ipython.pdf'), pjoin(dest, 'ipython.pdf'))
+        #shutil.copy(pjoin(pdf_dir, 'ipython.pdf'), pjoin(dest, 'ipython.pdf'))
+        pass
 
     try:
         cd(pages_dir)
