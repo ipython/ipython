@@ -52,12 +52,13 @@ sh('./setup.py register')
 sh('./setup.py sdist --formats=gztar,zip upload')
 cd(distdir)
 print( 'Uploading distribution files...')
-# FIXME: this assumes the path *with the version number* exists on the server
+
+# Make target dir if it doesn't exist
+sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
 sh('scp * %s' % release_site)
 
 print( 'Uploading backup files...')
 cd(ipbackupdir)
-# FIXME: this assumes the path *with the version number* exists on the server
 sh('scp `ls -1tr *tgz | tail -1` %s' % backup_site)
 
 print('Done!')
