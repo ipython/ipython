@@ -127,7 +127,7 @@ keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed']
 
 classifiers = [
     'Intended Audience :: Developers',
-    'Intended Audience :: Science/Research'
+    'Intended Audience :: Science/Research',
     'License :: OSI Approved :: BSD License',
     'Programming Language :: Python',
     'Programming Language :: Python :: 2',
