@@ -361,9 +361,11 @@ class NotebookApp(BaseIPythonApplication):
     def start(self):
         ip = self.ip if self.ip else '[all ip addresses on your system]'
         proto = 'https' if self.certfile else 'http'
-        self.log.info("The IPython Notebook is running at: %s://%s:%i" % (proto,
-                                                                          ip,
-                                                                          self.port))
+        info = self.log.info
+        info("The IPython Notebook is running at: %s://%s:%i" % 
+             (proto, ip, self.port) )
+        info("Use Control-C to stop this server and shut down all kernels.")
+
         if self.open_browser:
             ip = self.ip or '127.0.0.1'
             b = lambda : webbrowser.open("%s://%s:%i" % (proto, ip, self.port),
