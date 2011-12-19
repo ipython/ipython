@@ -3360,6 +3360,25 @@ Defaulting color scheme to 'NoColor'"""
         """Reload an IPython extension by its module name."""
         self.extension_manager.reload_extension(module_str)
 
+    def magic_install_profiles(self, s):
+        """%install_profiles has been deprecated."""
+        print '\n'.join([
+            "%install_profiles has been deprecated.",
+            "Use `ipython profile list` to view available profiles.",
+            "Requesting a profile with `ipython profile create <name>`",
+            "or `ipython --profile=<name>` will start with the bundled",
+            "profile of that name if it exists." 
+        ])
+
+    def magic_install_default_config(self, s):
+        """%install_default_config has been deprecated."""
+        print '\n'.join([
+            "%install_default_config has been deprecated.",
+            "Use `ipython profile create <name>` to initialize a profile",
+            "with the default config files.",
+            "Add `--reset` to overwrite already existing config files with defaults."
+        ])
+
     # Pylab support: simple wrappers that activate pylab, load gui input
     # handling and modify slightly %run
 
