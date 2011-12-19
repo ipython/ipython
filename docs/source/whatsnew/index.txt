@@ -20,7 +20,8 @@ development work they do here in a user friendly format.
 .. toctree::
    :maxdepth: 1
 
-   development
+   version0.12
+   github-stats-0.12
    version0.11
    github-stats-0.11
    version0.10

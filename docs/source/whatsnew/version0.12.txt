@@ -1,0 +1,360 @@
+=============
+ 0.12 Series
+=============
+
+Release 0.12
+============
+
+IPython 0.12 contains several major new features, as well as a large amount of
+bug and regression fixes.  The 0.11 release brought with it a lot of new
+functionality and major refactorings of the codebase; by and large this has
+proven to be a success as the number of contributions to the project has
+increased dramatically, proving that the code is now much more approachable.
+But in the refactoring inevitably some bugs were introduced, and we have also
+squashed many of those as well as recovered some functionality that had been
+temporarily disabled due to the API changes.
+
+The following major new features appear in this version.
+
+
+An interactive browser-based Notebook with rich media support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A powerful new interface puts IPython in your browser. You can start it with
+the command ``ipython notebook``:
+
+.. figure:: ../_static/notebook_specgram.png
+    :width: 400px
+    :alt: The IPython notebook with embedded text, code, math and figures.
+    :align: center
+    :target: ../_static/notebook_specgram.png
+
+    The new IPython notebook showing text, mathematical expressions in LaTeX,
+    code, results and embedded figures created with Matplotlib.
+
+This new interface maintains all the features of IPython you are used to, as it
+is a new client that communicates with the same IPython kernels used by the
+terminal and Qt console.  But the web notebook provides for a different
+workflow where you can integrate, along with code execution, also text,
+mathematical expressions, graphics, video, and virtually any content that a
+modern browser is capable of displaying.
+
+You can save your work sessions as documents that retain all these elements and
+which can be version controlled, emailed to colleagues or saved as HTML or PDF
+files for printing or publishing statically on the web.  The internal storage
+format is a JSON file that can be easily manipulated for manual exporting to
+other formats.
+
+This Notebook is a major milestone for IPython, as for years we have tried to
+build this kind of system.  We were inspired originally by the excellent
+implementation in Mathematica, we made a number of attempts using older
+technologies in earlier Summer of Code projects in 2005 (both students and
+Robert Kern developed early prototypes), and in recent years we have seen the
+excellent implementation offered by the `Sage <http://sagemath.org>` system.
+But we continued to work on something that would be consistent with the rest of
+IPython's design, and it is clear now that the effort was worth it: based on
+the ZeroMQ communications architecture introduced in version 0.11, the notebook
+can now retain 100% of the features of the real IPython.  But it can also
+provide the rich media support and high quality Javascript libraries that were
+not available in browsers even one or two years ago (such as high-quality
+mathematical rendering or built-in video).
+
+The notebook has too many useful and important features to describe in these
+release notes; our documentation now contains a directory called
+``examples/notebooks`` with several notebooks that illustrate various aspects
+of the system.  You should start by reading those named
+``00_notebook_tour.ipynb`` and ``01_notebook_introduction.ipynb`` first, and
+then can proceed to read the others in any order you want.
+
+To start the notebook server, go to a directory containing the notebooks you
+want to open (or where you want to create new ones) and type::
+
+  ipython notebook
+
+You can see all the relevant options with::
+
+  ipython notebook --help
+  ipython notebook --help-all  # even more
+
+and just like the Qt console, you can start the notebook server with pylab
+support by using::
+  
+  ipython notebook --pylab
+
+for floating matplotlib windows or::
+  
+  ipython notebook --pylab inline
+
+for plotting support with automatically inlined figures.  Note that it is now
+possible also to activate pylab support at runtime via ``%pylab``, so you do
+not need to make this decision when starting the server.
+  
+See :ref:`the Notebook docs <htmlnotebook>` for technical details.
+
+
+Two-process terminal console
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Based on the same architecture as the notebook and the Qt console, we also have
+now a terminal-based console that can connect to an external IPython kernel
+(the same kernels used by the Qt console or the notebook, in fact).  While this
+client behaves almost identically to the usual IPython terminal application,
+this capability can be very useful to attach an interactive console to an
+existing kernel that was started externally.  It lets you use the interactive
+``%debug`` facilities in a notebook, for example (the web browser can't
+interact directly with the debugger) or debug a third-party code where you may
+have embedded an IPython kernel.
+
+This is also something that we have wanted for a long time, and which is a
+culmination (as a team effort) of the work started last year during the 2010
+Google Summer of Code project.
+  
+Tabbed QtConsole
+~~~~~~~~~~~~~~~~
+
+The QtConsole now supports starting multiple kernels in tabs, and has a
+menubar, so it looks and behaves more like a real application.  Keyboard
+enthusiasts can disable the menubar with ctrl-shift-M (:ghpull:`887`).
+
+.. figure:: ../_static/qtconsole_tabbed.png
+    :width: 400px
+    :alt: Tabbed IPython Qt console with embedded plots and menus.
+    :align: center
+    :target: ../_static/qtconsole_tabbed.png
+
+    The improved Qt console for IPython, now with tabs to control multiple
+    kernels and full menu support.
+
+
+Full Python 3 compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IPython can now be installed from a single codebase on Python 2 and
+Python 3. The installation process for Python 3 automatically runs 2to3. The
+same 'default' profile is now used for Python 2 and 3 (the previous version had
+a separate 'python3' profile).
+
+Standalone Kernel
+~~~~~~~~~~~~~~~~~
+
+The ``ipython kernel`` subcommand has been added, to allow starting a
+standalone kernel, that can be used with various frontends.  You can then later
+connect a Qt console or a terminal console to this kernel by typing e.g.::
+
+  ipython qtconsole --existing
+
+if it's the only one running, or by passing explicitly the connection
+parameters (printed by the kernel at startup).
+
+
+PyPy support
+~~~~~~~~~~~~
+
+The terminal interface to IPython now runs under `PyPy <http://pypy.org/>`_.
+We will continue to monitor PyPy's progress, and hopefully before long at least
+we'll be able to also run the notebook.  The Qt console may take longer, as Qt
+is a very complex set of bindings to a huge C++ library, and that is currently
+the area where PyPy still lags most behind.  But for everyday interactive use
+at the terminal, with this release and PyPy 1.7, things seem to work quite well
+from our admittedly limited testing.
+
+  
+Other important new features
+----------------------------
+
+* **SSH Tunnels**: In 0.11, the :mod:`IPython.parallel` Client could tunnel its
+  connections to the Controller via ssh. Now, the QtConsole :ref:`supports
+  <ssh_tunnels>` ssh tunneling, as do parallel engines.
+
+* **relaxed command-line parsing**: 0.11 was released with overly-strict
+  command-line parsing, preventing the ability to specify arguments with spaces,
+  e.g. ``ipython --pylab qt`` or ``ipython -c "print 'hi'"``. This has
+  been fixed, by using argparse. The new parsing is a strict superset of 0.11, so
+  any commands in 0.11 should still work in 0.12.
+
+* **HistoryAccessor**: The :class:`~IPython.core.history.HistoryManager` class
+  for interacting with your IPython SQLite history database has been split,
+  adding a parent :class:`~IPython.core.history.HistoryAccessor` class, so that
+  users can write code to access and search their IPython history without being
+  in an IPython session (:ghpull:`824`).
+
+* **kernel %gui and %pylab**: The ``%gui`` and ``%pylab`` magics have been
+  restored to the IPython kernel (e.g. in the qtconsole or notebook). This
+  allows activation of pylab-mode, or eventloop integration after starting the
+  kernel, which was unavailable in 0.11.  Unlike in the terminal, this can be
+  set only once, and cannot be changed.
+
+* **%config**: A new ``%config`` magic has been added, giving easy access to the
+  IPython configuration system at runtime (:ghpull:`923`).
+
+* **Multiline History**: Multiline readline history has been restored to the
+  Terminal frontend by default (:ghpull:`838`).
+
+* **%store**: The ``%store`` magic from earlier versions has been updated and
+  re-enabled (:ref:`extensions_storemagic`; :ghpull:`1029`). To autorestore
+  stored variables on startup, specify ``c.StoreMagic.autorestore = True`` in
+  :file:`ipython_config.py`.
+
+
+Major Bugs fixed
+----------------
+
+In this cycle, we have :ref:`closed over 500 issues <issues_list_012>`, but a
+few major ones merit special mention:
+
+* Simple configuration errors should no longer crash IPython. In 0.11, errors
+  in config files, as well as invalid trait values, could crash IPython. Now,
+  such errors are reported, and help is displayed.
+
+* Certain SyntaxErrors no longer crash IPython (e.g. just typing keywords, such
+  as ``return``, ``break``, etc.). See :ghissue:`704`.
+
+* IPython path utils, such as :func:`~IPython.utils.path.get_ipython_dir` now
+  check for write permissions, so IPython should function on systems where the
+  default path resolution might point to a read-only location, such as
+  ``HOMESHARE`` on Windows (:ghissue:`669`).
+
+* :func:`raw_input` now works in the kernel when multiple frontends are in
+  use. The request will be sent to the frontend that made the request, and an
+  exception is raised if that frontend does not support stdin requests
+  (e.g. the notebook) (:ghissue:`673`).
+
+* :mod:`zmq` version detection no longer uses simple lexicographical comparison
+  to check minimum version, which prevents 0.11 from working with pyzmq-2.1.10
+  (:ghpull:`758`).
+
+* A bug in PySide < 1.0.7 caused crashes on OSX when tooltips were shown
+  (:ghissue:`711`). these tooltips are now disabled on old PySide
+  (:ghpull:`963`).
+
+* IPython no longer crashes when started on recent versions of Python 3 in
+  Windows (:ghissue:`737`).
+
+* Instances of classes defined interactively can now be pickled (:ghissue:`29`;
+:ghpull:`648`). Note that pickling saves a reference to the class definition,
+so unpickling the instances will only work where the class has been defined.
+
+
+Backwards incompatible changes
+------------------------------
+
+* IPython connection information is no longer specified via ip/port directly,
+  rather via json connection files.  These files are stored in the security
+  directory, and enable us to turn on HMAC message authentication by default,
+  significantly improving the security of kernels.  Various utility functions
+  have been added to :mod:`IPython.lib.kernel`, for easier connecting to existing
+  kernels.
+
+* :class:`~IPython.zmq.kernelmanager.KernelManager` now has one ip, and several
+  port traits, rather than several ip/port pair ``_addr`` traits. This better
+  matches the rest of the code, where the ip cannot not be set separately for
+  each channel.
+
+* Custom prompts are now configured using a new class,
+:class:`~IPython.core.prompts.PromptManager`, which has traits for
+:attr:`in_template`, :attr:`in2_template` (the ``...:`` continuation prompt),
+:attr:`out_template` and :attr:`rewrite_template`. This uses Python's string
+formatting system, so you can use ``{time}`` and ``{cwd}``, although we have
+preserved the abbreviations from previous versions, e.g. ``\#`` (prompt number)
+and ``\w`` (working directory). For the list of available fields, refer to the
+source of :file:`IPython/core/prompts.py`.
+
+* The class inheritance of the Launchers in
+  :mod:`IPython.parallel.apps.launcher` used by ipcluster has changed, so that
+  trait names are more consistent across batch systems. This may require a few
+  renames in your config files, if you customized the command-line args for
+  launching controllers and engines. The configurable names have also been
+  changed to be clearer that they point to class names, and can now be
+  specified by name only, rather than requiring the full import path of each
+  class, e.g.::
+
+    IPClusterEngines.engine_launcher = 'IPython.parallel.apps.launcher.MPIExecEngineSetLauncher'
+    IPClusterStart.controller_launcher = 'IPython.parallel.apps.launcher.SSHControllerLauncher'
+
+  would now be specified as::
+
+    IPClusterEngines.engine_launcher_class = 'MPI'
+    IPClusterStart.controller_launcher_class = 'SSH'
+
+  The full path will still work, and is necessary for using custom launchers
+  not in IPython's launcher module.
+  
+  Further, MPIExec launcher names are now prefixed with just MPI, to better match
+  other batch launchers, and be generally more intuitive.  The MPIExec names are
+  deprecated, but continue to work.
+
+* For embedding a shell, note that the parameters ``user_global_ns`` and
+  ``global_ns`` have been deprectated in favour of ``user_module`` and
+  ``module`` respsectively.  The new parameters expect a module-like object,
+  rather than a namespace dict.  The old parameters remain for backwards
+  compatibility, although ``user_global_ns`` is now ignored. The ``user_ns``
+  parameter works the same way as before, and calling
+  :func:`~IPython.frontend.terminal.embed.embed` with no arguments still works
+  as before.
+
+
+Development summary and credits
+-------------------------------
+
+The previous version (IPython 0.11) was released on July 31 2011, so this
+release cycle was roughly 4 1/2 months long, we closed a total of 515 issues,
+257 pull requests and 258 regular issues (a :ref:`detailed list
+<issues_list_012>`_ is available).
+
+Many users and developers contributed code, features, bug reports and ideas to
+this release.  Please do not hesitate in contacting us if we've failed to
+acknowledge your contribution here.  In particular, for this release we have
+had commits from the following 45 contributors, a mix of new and regular names
+(in alphabetical order by first name):
+
+* Alcides <alcides-at-do-not-span-me.com>
+* Ben Edwards <bedwards-at-cs.unm.edu>
+* Benjamin Ragan-Kelley <benjaminrk-at-gmail.com>
+* Benjamin Thyreau <benjamin.thyreau-at-gmail.com>
+* Bernardo B. Marques <bernardo.fire-at-gmail.com>
+* Bernard Paulus <bprecyclebin-at-gmail.com>
+* Bradley M. Froehle <brad.froehle-at-gmail.com>
+* Brian E. Granger <ellisonbg-at-gmail.com>
+* Christian Boos <cboos-at-bct-technology.com>
+* Daniel Velkov <danielv-at-mylife.com>
+* Erik Tollerud <erik.tollerud-at-gmail.com>
+* Evan Patterson <epatters-at-enthought.com>
+* Felix Werner <Felix.Werner-at-kit.edu>
+* Fernando Perez <Fernando.Perez-at-berkeley.edu>
+* Gabriel <g2p.code-at-gmail.com>
+* Grahame Bowland <grahame-at-angrygoats.net>
+* Hannes Schulz <schulz-at-ais.uni-bonn.de>
+* Jens Hedegaard Nielsen <jenshnielsen-at-gmail.com>
+* Jonathan March <jmarch-at-enthought.com>
+* Jörgen Stenarson <jorgen.stenarson-at-bostream.nu>
+* Julian Taylor <jtaylor.debian-at-googlemail.com>
+* Kefu Chai <tchaikov-at-gmail.com>
+* macgyver <neil.rabinowitz-at-merton.ox.ac.uk>
+* Matt Cottingham <matt.cottingham-at-gmail.com>
+* Matthew Brett <matthew.brett-at-gmail.com>
+* Matthias BUSSONNIER <bussonniermatthias-at-gmail.com>
+* Michael Droettboom <mdboom-at-gmail.com>
+* Nicolas Rougier <Nicolas.Rougier-at-inria.fr>
+* Olivier Verdier <olivier.verdier-at-gmail.com>
+* Omar Andres Zapata Mesa <andresete.chaos-at-gmail.com>
+* Pablo Winant <pablo.winant-at-gmail.com>
+* Paul Ivanov <pivanov314-at-gmail.com>
+* Pauli Virtanen <pav-at-iki.fi>
+* Pete Aykroyd <aykroyd-at-gmail.com>
+* Prabhu Ramachandran <prabhu-at-enthought.com>
+* Puneeth Chaganti <punchagan-at-gmail.com>
+* Robert Kern <robert.kern-at-gmail.com>
+* Satrajit Ghosh <satra-at-mit.edu>
+* Stefan van der Walt <stefan-at-sun.ac.za>
+* Szabolcs Horvát <szhorvat-at-gmail.com>
+* Thomas Kluyver <takowl-at-gmail.com>
+* Thomas Spura <thomas.spura-at-gmail.com>
+* Timo Paulssen <timonator-at-perpetuum-immobile.de>
+* Valentin Haenel <valentin.haenel-at-gmx.de>
+* Yaroslav Halchenko <debian-at-onerussian.com>
+   
+.. note::
+
+    This list was generated with the output of
+    ``git log rel-0.11..HEAD --format='* %aN <%aE>' | sed 's/@/\-at\-/' | sed 's/<>//' | sort -u``
+    after some cleanup.  If you should be on this list, please add yourself.

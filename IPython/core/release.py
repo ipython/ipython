@@ -22,8 +22,8 @@ name = 'ipython'
 _version_major = 0
 _version_minor = 12
 _version_micro = ''  # use '' for first of series, number for 1 and above
-_version_extra = 'rc1'
-#_version_extra = ''  # Uncomment this for full releases
+#_version_extra = 'rc1'
+_version_extra = ''  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
