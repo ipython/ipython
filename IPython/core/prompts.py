@@ -423,7 +423,7 @@ class PromptManager(Configurable):
         self.txtwidth = _lenlastline(res) - invis_chars
         just = self.justify if (just is None) else just
         # If the prompt spans more than one line, don't try to justify it:
-        if just and ('\n' not in res) and ('\r' not in res):
+        if just and name != 'in' and ('\n' not in res) and ('\r' not in res):
             res = res.rjust(self.width + invis_chars)
         self.width = _lenlastline(res) - invis_chars
         return res
