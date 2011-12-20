@@ -303,9 +303,6 @@ class NotebookApp(BaseIPythonApplication):
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
 
     def init_configurables(self):
-        # Don't let Qt or ZMQ swallow KeyboardInterupts.
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-
         # force Session default to be secure
         default_secure(self.config)
         # Create a KernelManager and start a kernel.
@@ -322,11 +319,9 @@ class NotebookApp(BaseIPythonApplication):
         # self.log is a child of. The logging module dipatches log messages to a log
         # and all of its ancenstors until propagate is set to False.
         self.log.propagate = False
-
-    @catch_config_error
-    def initialize(self, argv=None):
-        super(NotebookApp, self).initialize(argv)
-        self.init_configurables()
+    
+    def init_webapp(self):
+        """initialize tornado webapp and httpserver"""
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.notebook_manager, self.log,
             self.webapp_settings
@@ -339,7 +334,7 @@ class NotebookApp(BaseIPythonApplication):
             ssl_options = None
         self.web_app.password = self.password
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options)
-        if ssl_options is None and not self.ip:
+        if ssl_options is None and not self.ip and not (self.read_only and not self.password):
             self.log.critical('WARNING: the notebook server is listening on all IP addresses '
                               'but not using any encryption or authentication. This is highly '
                               'insecure and not recommended.')
@@ -357,6 +352,23 @@ class NotebookApp(BaseIPythonApplication):
             else:
                 self.port = port
                 break
+    
+    @catch_config_error
+    def initialize(self, argv=None):
+        super(NotebookApp, self).initialize(argv)
+        self.init_configurables()
+        self.init_webapp()
+
+    def cleanup_kernels(self):
+        """shutdown all kernels
+        
+        The kernels will shutdown themselves when this process no longer exists,
+        but explicit shutdown allows the KernelManagers to cleanup the connection files.
+        """
+        self.log.info('Shutting down kernels')
+        km = self.kernel_manager
+        while km.kernel_ids:
+            km.kill_kernel(km.kernel_ids[0])
 
     def start(self):
         ip = self.ip if self.ip else '[all ip addresses on your system]'
@@ -371,15 +383,20 @@ class NotebookApp(BaseIPythonApplication):
             b = lambda : webbrowser.open("%s://%s:%i" % (proto, ip, self.port),
                                          new=2)
             threading.Thread(target=b).start()
-
-        ioloop.IOLoop.instance().start()
+        try:
+            ioloop.IOLoop.instance().start()
+        except KeyboardInterrupt:
+            info("Interrupted...")
+        finally:
+            self.cleanup_kernels()
+    
 
 #-----------------------------------------------------------------------------
 # Main entry point
 #-----------------------------------------------------------------------------
 
 def launch_new_instance():
-    app = NotebookApp()
+    app = NotebookApp.instance()
     app.initialize()
     app.start()
 
