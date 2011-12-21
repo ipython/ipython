@@ -144,9 +144,9 @@ Message type: ``execute_request``::
         # Source code to be executed by the kernel, one or more lines.
     'code' : str,
 
-    # A boolean flag which, if True, signals the kernel to execute this
-    # code as quietly as possible.  This means that the kernel will compile
-    # the code witIPython/core/tests/h 'exec' instead of 'single' (so
+    # A boolean flag which, if True, signals the kernel to execute
+    # this code as quietly as possible.  This means that the kernel
+    # will compile the code with 'exec' instead of 'single' (so
     # sys.displayhook will not fire), and will *not*:
     #   - broadcast exceptions on the PUB socket
     #   - do any logging
