@@ -386,6 +386,7 @@ available in the following browsers:
   default. If you're unable to upgrade, you can enable it by entering ``about:config``
   in the URL bar and then setting ``network.websocket.enabled`` and
   ``network.websocket.override-security-block`` to ``true``.
+* Opera 11 after enabling WebSocets (opera:config#Enable%20WebSockets)
 
 Internet Explorer 9 does not support WebSockets or the flexible box model, but
 these features should appear in Internet Explorer 10.
