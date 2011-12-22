@@ -19,8 +19,6 @@ import nose.tools as nt
 from nose import SkipTest
 
 from IPython.core.completerlib import magic_run_completer
-from IPython.testing import decorators as dec
-from IPython.testing import tools as tt
 from IPython.utils import py3compat
 
 
