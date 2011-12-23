@@ -195,7 +195,10 @@ class MappingKernelManager(MultiKernelManager):
 
     kernel_argv = List(Unicode)
     kernel_manager = Instance(KernelManager)
+    
     time_to_dead = Float(3.0, config=True, help="""Kernel heartbeat interval in seconds.""")
+    first_beat = Float(5.0, config=True, help="Delay (in seconds) before sending first heartbeat.")
+    
     max_msg_size = Integer(65536, config=True, help="""
         The max raw message size accepted from the browser
         over a WebSocket connection.
