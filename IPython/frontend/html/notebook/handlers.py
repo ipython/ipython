@@ -18,6 +18,7 @@ Authors:
 
 import logging
 import Cookie
+import time
 import uuid
 
 from tornado import web
@@ -412,6 +413,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             return
         km = self.application.kernel_manager
         self.time_to_dead = km.time_to_dead
+        self.first_beat = km.first_beat
         kernel_id = self.kernel_id
         try:
             self.iopub_stream = km.create_iopub_stream(kernel_id)
@@ -446,6 +448,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             self._kernel_alive = True
 
             def ping_or_dead():
+                self.hb_stream.flush()
                 if self._kernel_alive:
                     self._kernel_alive = False
                     self.hb_stream.send(b'ping')
@@ -461,8 +464,9 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
                 self._kernel_alive = True
 
             self.hb_stream.on_recv(beat_received)
-            self._hb_periodic_callback = ioloop.PeriodicCallback(ping_or_dead, self.time_to_dead*1000)
-            self._hb_periodic_callback.start()
+            loop = ioloop.IOLoop.instance()
+            self._hb_periodic_callback = ioloop.PeriodicCallback(ping_or_dead, self.time_to_dead*1000, loop)
+            loop.add_timeout(time.time()+self.first_beat, self._hb_periodic_callback.start)
             self._beating= True
 
     def stop_hb(self):
