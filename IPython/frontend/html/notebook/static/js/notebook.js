@@ -816,7 +816,7 @@ var IPython = (function (IPython) {
         var json = {};
         json.output_type = msg_type;
         if (msg_type === "stream") {
-            json.text = utils.fixConsole(content.data);
+            json.text = content.data;
             json.stream = content.name;
         } else if (msg_type === "display_data") {
             json = this.convert_mime_types(json, content.data);
@@ -826,11 +826,7 @@ var IPython = (function (IPython) {
         } else if (msg_type === "pyerr") {
             json.ename = content.ename;
             json.evalue = content.evalue;
-            var traceback = [];
-            for (var i=0; i<content.traceback.length; i++) {
-                traceback.push(utils.fixConsole(content.traceback[i]));
-            }
-            json.traceback = traceback;
+            json.traceback = content.traceback;
         };
         cell.append_output(json);
         this.dirty = true;
@@ -839,7 +835,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.convert_mime_types = function (json, data) {
         if (data['text/plain'] !== undefined) {
-            json.text = utils.fixConsole(data['text/plain']);
+            json.text = data['text/plain'];
         };
         if (data['text/html'] !== undefined) {
             json.html = data['text/html'];
