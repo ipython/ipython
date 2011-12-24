@@ -2163,7 +2163,6 @@ Currently the magic system has the following functions:\n"""
             raise ValueError('%%load only works with .py files: %s' % arg_s)
         if remote_url:
             import urllib2
-            fileobj = urllib2.urlopen(arg_s)
             # While responses have a .info().getencoding() way of asking for
             # their encoding, in *many* cases the return value is bogus.  In
             # the wild, servers serving utf-8 but declaring latin-1 are
@@ -2172,13 +2171,14 @@ Currently the magic system has the following functions:\n"""
             # rely on the headers.  Short of building complex encoding-guessing
             # logic, going with utf-8 is a simple solution likely to be right
             # in most real-world cases.
-            linesource = fileobj.read().decode('utf-8', 'replace').splitlines()
+            with urllib2.urlopen(arg_s) as fileobj:
+                linesource = fileobj.read().decode('utf-8', 'replace').splitlines()
         else:
-            fileobj = linesource = open(arg_s)
+            with open(arg_s) as fileobj:
+                linesource = fileobj.read().splitlines()
         
         # Strip out encoding declarations
         lines = [l for l in linesource if not _encoding_declaration_re.match(l)]
-        fileobj.close()
         
         self.set_next_input(os.linesep.join(lines))
 
