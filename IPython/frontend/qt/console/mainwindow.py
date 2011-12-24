@@ -740,9 +740,10 @@ class MainWindow(QtGui.QMainWindow):
                 triggered=self._make_dynamic_magic(pmagic)
                 )
             alm_magic_menu.addAction(xaction)
+        alm_magic_menu.addAction(self.pop)
 
     def update_all_magic_menu(self):
-        """ Update the list on magic in the "All Magics..." Menu
+        """ Update the list of magics in the "All Magics..." Menu
 
         Request the kernel with the list of availlable magic and populate the
         menu with the list received back
@@ -755,11 +756,7 @@ class MainWindow(QtGui.QMainWindow):
         self.magic_menu = self.menuBar().addMenu("&Magic")
         self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
 
-        # This action should usually not appear as it will be cleared when menu
-        # is updated at first kernel response. Though, it is necessary when
-        # connecting through X-forwarding, as in this case, the menu is not
-        # auto updated, SO DO NOT DELETE.
-        self.pop = QtGui.QAction("&Update All Magic Menu ",
+        self.pop = QtGui.QAction("&Update this menu ",
             self, triggered=self.update_all_magic_menu)
         self.add_menu_action(self.all_magic_menu, self.pop)
         # we need to populate the 'Magic Menu' once the kernel has answer at
