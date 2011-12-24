@@ -38,7 +38,7 @@ from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
-from IPython.frontend.qt.console.windowManager import WindowManager
+from IPython.frontend.qt.console.window_manager import WindowManager
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes

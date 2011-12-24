@@ -33,7 +33,7 @@ class WindowManager:
                     slave_frontend_factory=None,
                     init_widget = None,
                 ):
-        """ Create a MainWindow Manager for managing IPython FrontendWidgets
+        """Create a MainWindow Manager for managing IPython FrontendWidgets
         
         Parameters
         ----------
@@ -53,17 +53,17 @@ class WindowManager:
         """
         #TODO : list availlable kernel from secure/kernel
         #TODO : Support init_widget=None ?
-        
+
         self._kernel_counter = 0
         self._app = app
         self.confirm_exit = confirm_exit
         self.new_frontend_factory = new_frontend_factory
         self.slave_frontend_factory = slave_frontend_factory
-       
+
         #reference to last detached frontend to be able to reattach it
         self.last_d_frontend = None
 
-        self.windows = [] 
+        self.windows = []
         win = self._spawn_new_window()
         if not init_widget:
             raise NotImplementedError,"For now you have to build the first widget yourself"
@@ -86,12 +86,12 @@ class WindowManager:
         """
         #TODO return none if no window ?
         return self.active_window.active_frontend
-    
+
     #TODO : support none if no windows ?
     @property
     def active_window(self):
         """return the current active window
-        
+
         Return the current active window if any, otherwise return the first
         window created
         """
@@ -101,17 +101,15 @@ class WindowManager:
             return self.windows[0]
         else :
             return windows[0]
-    
+
 
     def _spawn_new_window(self):
-        """create a new window and return it
-
-        """
+        """create a new window and return it"""
         win = MainWindow(self._app,
                 confirm_exit=self.confirm_exit,
                 new_frontend_factory=self.new_frontend_factory,
                 slave_frontend_factory=self.slave_frontend_factory,
-                parent=self
+                windows_manager=self
                 )
         win.init_menu_bar()
         #TODO register closing with removing from self.windows
@@ -126,12 +124,12 @@ class WindowManager:
         return None
 
 
-    def _move_frontend(self,frontend=None,toWindow=None):
+    def _move_frontend(self,frontend,toWindow):
         """move taget frontend to given window """
-        if not frontend or not toWindow :
-            raise NotImplementedError
         detach_win = self._owning_window(frontend)
         if detach_win == toWindow or not detach_win :
+            #return if already on current window, or if
+            #doesn't know how to detach
             return
         current_tab = detach_win.tab_widget.indexOf(frontend)
         tab_name = detach_win.tab_widget.tabText(current_tab)
@@ -141,11 +139,11 @@ class WindowManager:
 
         toWindow.add_tab_with_frontend(frontend,name=tab_name)
 
-    
+
     def detach_frontend(self):
-        """ detach the current frontend in a new window 
-        
-        Try to detach the current active frontend. 
+        """detach the current frontend in a new window
+
+        Try to detach the current active frontend.
         Abort if only one frontend in current window
 
         last frontend to tried to be detached will be the one reattachable
@@ -161,29 +159,26 @@ class WindowManager:
         win.show()
 
     def reattach_frontend(self):
+        """pull the last widget in current window
+
+        Try to pull the last widget on which detach has been called into the
+        current window, don't do anything if last widget has been closed
+        """
         if not self.last_d_frontend:
             return
         self._move_frontend(self.last_d_frontend,self.active_window)
 
 
     def create_window_with_new_frontend(self):
-        """create a new frontend and attach it to a new tab of new window
-        
-        convenient method, that just call
-        `create_tab_with_new_frontend(newWindow=True)`
-        """
+        """create a new frontend and attach it to a new tab of new window """
         widget = self.new_frontend_factory()
         win = self._spawn_new_window()
         win.add_tab_with_frontend(widget)
         win.show()
-    
+
     def create_window_with_current_kernel(self):
-        """create a slave frontend and attach it to a new tab of new window
-        
-        convenient method, that just calls
-        `create_tab_with_current_kernel` with  `newWindow=True`
-        """
-        current_widget = self.active_window.tab_widget.currentWidget()
+        """create a slave frontend and attach it to a new tab of new window """
+        current_widget = self.active_frontend
         current_widget_index = self.active_window.tab_widget.indexOf(current_widget)
         current_widget_name = self.active_window.tab_widget.tabText(current_widget_index)
         widget = self.slave_frontend_factory(current_widget)
@@ -196,7 +191,7 @@ class WindowManager:
         win = self._spawn_new_window()
         win.add_tab_with_frontend(widget,name=name)
         win.show()
-    
+
     def remove_tab_of_widget(self,frontend):
         """Ask every winows to try to remove a tab with `frontend`"""
         for w in self.windows:
