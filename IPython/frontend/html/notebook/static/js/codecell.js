@@ -15,7 +15,7 @@ var IPython = (function (IPython) {
 
     var CodeCell = function (notebook) {
         this.code_mirror = null;
-        this.input_prompt_number = '&nbsp;';
+        this.input_prompt_number = null;
         this.is_completing = false;
         this.completion_cursor = null;
         this.outputs = [];
@@ -757,9 +757,9 @@ var IPython = (function (IPython) {
     };
 
     CodeCell.prototype.set_input_prompt = function (number) {
-        var n = number || '&nbsp;';
-        this.input_prompt_number = n;
-        this.element.find('div.input_prompt').html('In&nbsp;[' + n + ']:');
+        this.input_prompt_number = number;
+        var ns = number || "&nbsp;";
+        this.element.find('div.input_prompt').html('In&nbsp;[' + ns + ']:');
     };
 
 
@@ -821,7 +821,7 @@ var IPython = (function (IPython) {
         var data = {};
         data.input = this.get_code();
         data.cell_type = 'code';
-        if (this.input_prompt_number !== ' ') {
+        if (this.input_prompt_number) {
             data.prompt_number = this.input_prompt_number;
         };
         var outputs = [];
