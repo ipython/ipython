@@ -304,10 +304,12 @@ class MainWindow(QtGui.QMainWindow):
         frontend.exit_requested.connect(self.close_tab)
 
     def next_tab(self):
-        self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()+1))
+        mod = self.tab_widget.count()
+        self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()+1)%mod)
 
     def prev_tab(self):
-        self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()-1))
+        mod = self.tab_widget.count()
+        self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()-1)%mod)
 
     def update_win_title(self) :
         frontend = self.active_frontend
