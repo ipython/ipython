@@ -598,7 +598,9 @@ var IPython = (function (IPython) {
             if (last.output_type == 'stream' && json.stream == last.stream){
                 // latest output was in the same stream,
                 // so append directly into its pre tag
-                this.element.find('div.'+subclass).last().find('pre').append(json.text);
+                // escape ANSI & HTML specials:
+                var text = utils.fixConsole(json.text);
+                this.element.find('div.'+subclass).last().find('pre').append(text);
                 return;
             }
         }
@@ -647,6 +649,8 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_text = function (data, element, extra_class) {
         var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_text");
+        // escape ANSI & HTML specials in plaintext:
+        data = utils.fixConsole(data);
         if (extra_class){
             toinsert.addClass(extra_class);
         }
