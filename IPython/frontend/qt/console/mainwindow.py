@@ -121,8 +121,12 @@ class MainWindow(QtGui.QMainWindow):
         #TODO : unactivate prev/next tab
         if self.tab_widget.count() <= 1:
             self.tab_widget.tabBar().setVisible(False)
+            self.prev_tab_act.setEnabled(False)
+            self.next_tab_act.setEnabled(False)
         else:
             self.tab_widget.tabBar().setVisible(True)
+            self.prev_tab_act.setEnabled(True)
+            self.next_tab_act.setEnabled(True)
         if self.tab_widget.count()==0 :
             self.close()
 
