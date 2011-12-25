@@ -56,6 +56,7 @@ class WindowManager:
 
         self._kernel_counter = 0
         self._app = app
+        self._title = 'IPython'
         self.confirm_exit = confirm_exit
         self.new_frontend_factory = new_frontend_factory
         self.slave_frontend_factory = slave_frontend_factory
@@ -102,6 +103,13 @@ class WindowManager:
         else :
             return windows[0]
 
+    def setTitle(self,title):
+        self._title = title
+        for w in self.windows:
+            w.setTitle(self._title)
+
+    def closing_windows(self,win):
+	self.windows.remove(win)
 
     def _spawn_new_window(self):
         """create a new window and return it"""
@@ -111,6 +119,7 @@ class WindowManager:
                 slave_frontend_factory=self.slave_frontend_factory,
                 windows_manager=self
                 )
+        win.setTitle(self._title)
         win.init_menu_bar()
         #TODO register closing with removing from self.windows
         self.windows.append(win)

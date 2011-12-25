@@ -89,6 +89,7 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self._kernel_counter = 0
         self._app = app
+        self._title='IPython'
         self.confirm_exit = confirm_exit
         self._windows_manager = windows_manager
 
@@ -118,7 +119,6 @@ class MainWindow(QtGui.QMainWindow):
 
         need to be called explicitely, or be connected to tabInserted/tabRemoved
         """
-        #TODO : unactivate prev/next tab
         if self.tab_widget.count() <= 1:
             self.tab_widget.tabBar().setVisible(False)
             self.prev_tab_act.setEnabled(False)
@@ -147,6 +147,10 @@ class MainWindow(QtGui.QMainWindow):
     @property
     def active_frontend(self):
         return self.tab_widget.currentWidget()
+
+    def setTitle(self,title):
+        self._title = title
+        self.update_win_title()
 
     def create_tab_with_new_frontend(self):
         """create a new frontend and attach it to a new tab"""
@@ -319,7 +323,7 @@ class MainWindow(QtGui.QMainWindow):
             pth = QtCore.QFileInfo(cfile).filePath()
             #semm not to work on mac for thr proxy icon
             self.setWindowFilePath(pth)
-            self.setWindowTitle('IPython - %s'%shownName)
+            self.setWindowTitle('%s - %s'%(self._title,shownName))
             self.update_all_magic_menu()
         self.setWindowIcon(self._app.icon)
 
@@ -759,11 +763,6 @@ class MainWindow(QtGui.QMainWindow):
         self.pop = QtGui.QAction("&Update this menu ",
             self, triggered=self.update_all_magic_menu)
         self.add_menu_action(self.all_magic_menu, self.pop)
-        # we need to populate the 'Magic Menu' once the kernel has answer at
-        # least once let's do it immedialy, but it's assured to works
-        # Not true anymore, ton't trigger it yet, widget might not exist ?
-        # TODO: check previous statement
-        #self.pop.trigger()
 
         self.reset_action = QtGui.QAction("&Reset",
             self,
@@ -1014,12 +1013,16 @@ class MainWindow(QtGui.QMainWindow):
         """
         if self.tab_widget.count() == 0:
             # no tabs, just close
+            if self._windows_manager:
+               self._windows_manager.closing_windows(self)
             event.accept()
             return
         # Do Not loop on the widget count as it change while closing
         title = self.window().windowTitle()
         cancel = QtGui.QMessageBox.Cancel
         okay = QtGui.QMessageBox.Ok
+        closeall = QtGui.QPushButton("&Quit", self)
+        closeall.setShortcut('Q')
 
         if self.confirm_exit:
             if self.tab_widget.count() > 1:
@@ -1027,8 +1030,6 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 msg = "Close console, stop kernel, and Quit?"
             info = "Kernels not started here (e.g. notebooks) will be left alone."
-            closeall = QtGui.QPushButton("&Quit", self)
-            closeall.setShortcut('Q')
             box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
                                     title, msg)
             box.setInformativeText(info)
@@ -1039,17 +1040,24 @@ class MainWindow(QtGui.QMainWindow):
             pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
             box.setIconPixmap(pixmap)
             reply = box.exec_()
+            #if non standard button, should convert
+            if reply not in {okay, cancel}:
+                reply = box.clickedButton();
         else:
             reply = okay
 
         if reply == cancel:
             event.ignore()
             return
-        if reply == okay:
+        if reply == okay or reply == closeall:
             while self.tab_widget.count() >= 1:
                 # prevent further confirmations:
                 widget = self.active_frontend
                 widget._confirm_exit = False
                 self.close_tab(widget)
+            if self._windows_manager:
+                self._windows_manager.closing_windows(self)
             event.accept()
-
+        else:
+            # we should never comme here as user should have clicked on a button
+            assert(False)

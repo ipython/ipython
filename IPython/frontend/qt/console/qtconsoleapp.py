@@ -242,7 +242,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
                                 init_widget=self.widget,
                                 )
         self.window_manager.log = self.log
-        #self.window_manager.setWindowTitle('Python' if self.pure else 'IPython')
+        self.window_manager.setTitle('Python' if self.pure else 'IPython')
 
     def init_colors(self):
         """Configure the coloring of the widget"""
