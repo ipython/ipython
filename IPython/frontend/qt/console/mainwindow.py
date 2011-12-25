@@ -13,7 +13,12 @@ Authors:
 * Thomas Kluyver
 
 """
-
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011, IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
@@ -23,24 +28,6 @@ import sys
 import re
 import webbrowser
 from threading import Thread
-
-
-import warnings
-
-def deprecated(func):
-    """This is a decorator which can be used to mark functions
-    as deprecated. It will result in a warning being emitted
-    when the function is used."""
-    def new_func(*args, **kwargs):
-        warnings.warn("Call to deprecated function %s." % func.__name__,
-                      category=DeprecationWarning)
-        return func(*args, **kwargs)
-    new_func.__name__ = func.__name__
-    new_func.__doc__ = func.__doc__
-    new_func.__dict__.update(func.__dict__)
-    return new_func
-
-
 
 # System library imports
 from IPython.external.qt import QtGui,QtCore
@@ -146,9 +133,11 @@ class MainWindow(QtGui.QMainWindow):
 
     @property
     def active_frontend(self):
+        """@property, return the current widet"""
         return self.tab_widget.currentWidget()
 
     def setTitle(self,title):
+        """ set prefix to use in window title"""
         self._title = title
         self.update_win_title()
 
@@ -316,6 +305,15 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()-1)%mod)
 
     def update_win_title(self) :
+        """update some window gui element
+        
+        -Title to contain current connexion file name
+        -Title to have 'Python' or 'IPython' prefix
+        -Window icon
+        -The all magic menu to be in sync with current frontend
+
+        Because of the last, it does trigger a kernel request in a callback
+        """
         frontend = self.active_frontend
         if frontend:
             cfile = frontend.kernel_manager.connection_file
@@ -375,8 +373,10 @@ class MainWindow(QtGui.QMainWindow):
                 for win in self._windows_manager.windows ]
             widget_list = [num for sublist in widget_listnested for num in sublist]
 
-        # widget that are candidate to be the owner of the kernel does have all the same port of the curent widget
-        # And should have a _may_close attribute
+        # widget that are candidate to be the owner of the kernel does have the
+        # same connexion file of the curent widget And should have a _may_close
+        # attribute
+
         filtered_widget_list = [ widget for widget in widget_list if
                                 widget.kernel_manager.connection_file == km.connection_file and
                                 hasattr(widget,'_may_close') ]
@@ -459,6 +459,11 @@ class MainWindow(QtGui.QMainWindow):
     #-----------------------------------------------------------------------------
 
     def init_menu_bar(self):
+        """Initialize the menuBar of current window
+
+        magic menu need to be finished of initializing/updated separately and
+        later, see `init_magic_menu` docstring
+        """
         #create menu in the order they should appear in the menu bar
         self.init_file_menu()
         self.init_edit_menu()
@@ -752,11 +757,22 @@ class MainWindow(QtGui.QMainWindow):
         Request the kernel with the list of availlable magic and populate the
         menu with the list received back
 
+        see `populate_all_magic_menu` for lower level control
         """
         # first define a callback which will get the list of all magic and put it in the menu.
         self.active_frontend._silent_exec_callback('get_ipython().lsmagic()', self.populate_all_magic_menu)
 
     def init_magic_menu(self):
+        """Initialize the magic menu in the menu bar
+
+        The all magic menu containig the list of magic availlable in curent
+        frontend have to be populated later by trigering it's `pop` action when
+        a frontend widget is availlable, and trigerring menu update is also
+        user responsability
+        
+        see `update_all_magic_menu`
+        """
+
         self.magic_menu = self.menuBar().addMenu("&Magic")
         self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
 

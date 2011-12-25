@@ -7,6 +7,12 @@ monotonic kernel number etc
 
 """
 #-----------------------------------------------------------------------------
+# Copyright (c) 2011, IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
 
@@ -45,7 +51,7 @@ class WindowManager:
             A callable that returns a new IPythonWidget instance, attached to
             its own running kernel.
         slave_frontend_factory : callable
-            A callable that takes an existing IPythonWidget, and  returns a new 
+            A callable that takes an existing IPythonWidget, and  returns a new
             IPythonWidget instance, attached to the same kernel.
         init_widget :  IPython.frontend.qt.console.MainWindow
             Widget used to init the first window
@@ -85,10 +91,10 @@ class WindowManager:
         
         Return the active frontened of the active window if any
         """
-        #TODO return none if no window ?
+        #TODO return none if no window ? is it even possible to have no active windows ?
         return self.active_window.active_frontend
 
-    #TODO : support none if no windows ?
+    #TODO return none if no window ? is it even possible to have no active windows ?
     @property
     def active_window(self):
         """return the current active window
@@ -104,12 +110,14 @@ class WindowManager:
             return windows[0]
 
     def setTitle(self,title):
+        """Set title prefix to use in every windows"""
         self._title = title
         for w in self.windows:
             w.setTitle(self._title)
 
     def closing_windows(self,win):
-	self.windows.remove(win)
+        """unregister windows because it's about to close"""
+        self.windows.remove(win)
 
     def _spawn_new_window(self):
         """create a new window and return it"""
@@ -121,7 +129,6 @@ class WindowManager:
                 )
         win.setTitle(self._title)
         win.init_menu_bar()
-        #TODO register closing with removing from self.windows
         self.windows.append(win)
         return win
 
