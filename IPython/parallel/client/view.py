@@ -405,7 +405,11 @@ class DirectView(View):
         """Context Manager for performing simultaneous local and remote imports.
 
         'import x as y' will *not* work.  The 'as y' part will simply be ignored.
-
+        
+        If `local=True`, then the package will also be imported locally.
+        
+        Note that remote-only (`local=False`) imports have not been implemented.
+        
         >>> with view.sync_imports():
         ...    from numpy import recarray
         importing recarray from numpy on engine(s)
@@ -468,7 +472,9 @@ class DirectView(View):
             # enter the block
             yield
         except ImportError:
-            if not local:
+            if local:
+                raise
+            else:
                 # ignore import errors if not doing local imports
                 pass
         finally:
