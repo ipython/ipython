@@ -1953,7 +1953,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # even need a centralize colors management object.
         self.magic_colors(self.colors)
         # History was moved to a separate module
-        from . import history
+        from IPython.core import history
         history.init_ipython(self)
 
     def magic(self, arg_s, next_input=None):
