@@ -706,9 +706,9 @@ Currently the magic system has the following functions:\n"""
         psearch = shell.inspector.psearch
 
         # select case options
-        if opts.has_key('i'):
+        if 'i' in opts.keys():
             ignore_case = True
-        elif opts.has_key('c'):
+        elif 'c' in opts.keys():
             ignore_case = False
         else:
             ignore_case = not shell.wildcards_case_sensitive
@@ -1056,7 +1056,7 @@ Currently the magic system has the following functions:\n"""
 
         opts, regex = self.parse_options(parameter_s,'f')
 
-        if opts.has_key('f'):
+        if 'f' in opts.keys():
             ans = True
         else:
             ans = self.shell.ask_yes_no(
@@ -1440,7 +1440,7 @@ Currently the magic system has the following functions:\n"""
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
-        if not opts.has_key('q'):
+        if not 'q' in opts:
             page.page(output)
         print sys_exit,
 
@@ -1459,7 +1459,7 @@ Currently the magic system has the following functions:\n"""
             print '\n*** Profile printout saved to text file',\
                   `text_file`+'.',sys_exit
 
-        if opts.has_key('r'):
+        if 'r' in opts:
             return stats
         else:
             return None
@@ -2214,7 +2214,7 @@ Currently the magic system has the following functions:\n"""
 
         if opts_prev:
             args = '_%s' % last_call[0]
-            if not self.shell.user_ns.has_key(args):
+            if not args in self.shell.user_ns.keys():
                 args = last_call[1]
 
         # use last_call to remember the state of the previous call, but don't
@@ -2878,15 +2878,15 @@ Defaulting color scheme to 'NoColor'"""
                 raise UsageError('%cd -: No previous directory to change to.')
         # jump to bookmark if needed
         else:
-            if not os.path.isdir(ps) or opts.has_key('b'):
+            if not os.path.isdir(ps) or 'b' in opts.keys():
                 bkms = self.db.get('bookmarks', {})
 
-                if bkms.has_key(ps):
+                if ps in bkms.keys():
                     target = bkms[ps]
                     print '(bookmark:%s) -> %s' % (ps,target)
                     ps = target
                 else:
-                    if opts.has_key('b'):
+                    if 'b' in opts.keys():
                         raise UsageError("Bookmark '%s' not found.  "
                               "Use '%%bookmark -l' to see your bookmarks." % ps)
 
@@ -3101,7 +3101,7 @@ Defaulting color scheme to 'NoColor'"""
         # If all looks ok, proceed
         split = 'l' in opts
         out = self.shell.getoutput(cmd, split=split)
-        if opts.has_key('v'):
+        if 'v' in opts.keys():
             print '%s ==\n%s' % (var,pformat(out))
         if var:
             self.shell.user_ns.update({var:out})
@@ -3170,7 +3170,7 @@ Defaulting color scheme to 'NoColor'"""
 
         bkms = self.db.get('bookmarks',{})
 
-        if opts.has_key('d'):
+        if 'd' in opts.keys():
             try:
                 todel = args[0]
             except IndexError:
@@ -3183,9 +3183,9 @@ Defaulting color scheme to 'NoColor'"""
                     raise UsageError(
                         "%%bookmark -d: Can't delete bookmark '%s'" % todel)
 
-        elif opts.has_key('r'):
+        elif 'r' in opts.keys():
             bkms = {}
-        elif opts.has_key('l'):
+        elif 'l' in opts.keys():
             bks = bkms.keys()
             bks.sort()
             if bks:
