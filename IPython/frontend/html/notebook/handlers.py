@@ -107,6 +107,7 @@ def authenticate_unless_readonly(f, self, *args, **kwargs):
     @web.authenticated
     def auth_f(self, *args, **kwargs):
         return f(self, *args, **kwargs)
+
     if self.application.read_only:
         return f(self, *args, **kwargs)
     else:
@@ -172,6 +173,14 @@ class AuthenticatedHandler(RequestHandler):
         """
         proto = self.request.protocol.replace('http', 'ws')
         return "%s://%s" % (proto, self.request.host)
+
+
+class AuthenticatedFileHandler(AuthenticatedHandler, web.StaticFileHandler):
+    """static files should only be accessible when logged in"""
+
+    @authenticate_unless_readonly
+    def get(self, path):
+        return web.StaticFileHandler.get(self, path)
 
 
 class ProjectDashboardHandler(AuthenticatedHandler):
