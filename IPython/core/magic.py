@@ -1440,7 +1440,7 @@ Currently the magic system has the following functions:\n"""
         output = stdout_trap.getvalue()
         output = output.rstrip()
 
-        if not 'q' in opts:
+        if not 'q' in opts.keys():
             page.page(output)
         print sys_exit,
 
@@ -1459,7 +1459,7 @@ Currently the magic system has the following functions:\n"""
             print '\n*** Profile printout saved to text file',\
                   `text_file`+'.',sys_exit
 
-        if 'r' in opts:
+        if 'r' in opts.keys():
             return stats
         else:
             return None
