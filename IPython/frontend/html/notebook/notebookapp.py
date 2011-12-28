@@ -103,7 +103,8 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
-            (r"/rstservice/render", RSTHandler)
+            (r"/rstservice/render", RSTHandler),
+            (r"/local/(.*)", web.StaticFileHandler, {'path' : notebook_manager.notebook_dir}),
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
