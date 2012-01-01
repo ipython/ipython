@@ -859,13 +859,13 @@ class MainWindow(QtGui.QMainWindow):
 
                 self.reattach_act = QtGui.QAction("Me&rge Frontend",
                     self,
-                    shortcut="Ctrl+R",
+                    shortcut="Alt+R",
                     triggered=self._windows_manager.reattach_frontend)
                 self.add_menu_action(self.window_menu, self.reattach_act)
 
                 self.detach_act = QtGui.QAction("Separate Fronten&d",
                     self,
-                    shortcut="Ctrl+D",
+                    shortcut="Alt+D",
                     triggered=self._windows_manager.detach_frontend)
                 self.add_menu_action(self.window_menu, self.detach_act)
 
