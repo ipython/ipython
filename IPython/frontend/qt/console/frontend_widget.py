@@ -406,10 +406,15 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 self._process_execute_error(msg)
             elif status == 'aborted':
                 self._process_execute_abort(msg)
-
-            self._show_interpreter_prompt_for_reply(msg)
-            self.executed.emit(msg)
-            self._request_info['execute'].pop(msg_id)
+            try:
+                self._show_interpreter_prompt_for_reply(msg)
+                self.executed.emit(msg)
+                self._request_info['execute'].pop(msg_id)
+            except RuntimeError as e:
+                # there are chance of having a race condition between the exit payload
+                # closing the gui before this block is executed
+                self.log.debug("""Catched RuntimeError after message reply. Certainly due to frontend shutdown after receiving 'exit'""")
+                pass
         elif info and info.kind == 'silent_exec_callback' and not self._hidden:
             self._handle_exec_callback(msg)
             self._request_info['execute'].pop(msg_id)
