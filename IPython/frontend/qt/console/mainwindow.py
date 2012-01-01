@@ -27,6 +27,7 @@ Authors:
 import sys
 import re
 import webbrowser
+import weakref
 from threading import Thread
 
 # System library imports
@@ -714,8 +715,9 @@ class MainWindow(QtGui.QMainWindow):
         """
         # need to level nested function  to be sure to past magic
         # on active frontend **at run time**.
+        wr = weakref.ref(self)
         def inner_dynamic_magic():
-            self.active_frontend.execute(magic)
+            wr().active_frontend.execute(magic)
         inner_dynamic_magic.__name__ = "dynamics_magic_s"
         return inner_dynamic_magic
 
@@ -745,7 +747,7 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 pmagic = '%s%s'%('%',magic)
             xaction = QtGui.QAction(pmagic,
-                self,
+                alm_magic_menu,
                 triggered=self._make_dynamic_magic(pmagic)
                 )
             alm_magic_menu.addAction(xaction)
@@ -777,8 +779,8 @@ class MainWindow(QtGui.QMainWindow):
         self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
 
         self.pop = QtGui.QAction("&Update this menu ",
-            self, triggered=self.update_all_magic_menu)
-        self.add_menu_action(self.all_magic_menu, self.pop)
+            self._app, triggered=self.update_all_magic_menu)
+        self.all_magic_menu.addAction(self.pop)
 
         self.reset_action = QtGui.QAction("&Reset",
             self,
