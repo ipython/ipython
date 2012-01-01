@@ -13,7 +13,6 @@ from StringIO import StringIO
 
 import nose.tools as nt
 
-from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
 #-----------------------------------------------------------------------------

@@ -26,7 +26,7 @@ __docformat__ = "restructuredtext en"
 
 import sys
 import objc
-from IPython.external import guid
+import uuid
 
 from Foundation import NSObject, NSMutableArray, NSMutableDictionary,\
                         NSLog, NSNotificationCenter, NSMakeRange,\
@@ -361,7 +361,7 @@ class IPythonCocoaController(NSObject, AsyncFrontEndBase):
 
     def next_block_ID(self):
 
-        return guid.generate()
+        return uuid.uuid4()
 
     def new_cell_block(self):
         """A new CellBlock at the end of self.textView.textStorage()"""
