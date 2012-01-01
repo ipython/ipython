@@ -433,12 +433,12 @@ tabs and windows attached to different kernels.
 - ``C-n`` : create a new window with a fresh kernel
 - ``C-S-t`` : create a new tab attached to the same kernel, but not owning it.
 - ``C-S-n`` : create a new window attached to the same kernel, but not owning it.
-- ``C-d`` : detach a tab into a new window
-- ``C-r`` : reattach the last tab you (try to) detatach to the curent window
+- ``M-d`` : separate a tab from it's current window* into a new window
+- ``M-r`` : merge the last tab you (try to) detatach to the curent window
 
-Note that if a window contain only one frontend, detaching it make no sens,
-unless you try to reattach to another window, in which case the lonely frontend
-will be merged with the new window
+Note that if a window contain only one frontend, separating it make no sens,
+but will remember the frontend as beeing the one to be pull the next time you
+try a merge
 
 
 The IPython pager
