@@ -21,7 +21,25 @@ $(document).ready(function () {
     $('div#content_toolbar').addClass('ui-widget ui-helper-clearfix');    
 
     $('#new_notebook').button().click(function (e) {
-        window.open($('body').data('baseProjectUrl')+'new');
+      $('#dialog-form').dialog({
+          resizable: false,
+          modal: true,
+          title: "Delete notebook",
+          buttons : {
+              "New": function () {
+                var kernel = $('#kernel').val();
+                if (kernel) {
+                  window.open($('body').data('baseProjectUrl')+'kernels/'+ kernel);
+                } else {
+                  window.open($('body').data('baseProjectUrl')+'new');
+                }
+                $(this).dialog('close');
+              },
+              "Cancel": function () {
+                  $(this).dialog('close');
+              }
+          }
+      });
     });
 
     $('div#left_panel').addClass('box-flex');
