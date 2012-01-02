@@ -69,7 +69,7 @@ from IPython.utils.traitlets import Dict, Unicode, Integer, List, Enum, Bool
 # Module globals
 #-----------------------------------------------------------------------------
 
-_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
+_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+|\w+-\d+.json)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
 _notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
 
