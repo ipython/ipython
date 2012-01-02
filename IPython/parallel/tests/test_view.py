@@ -469,4 +469,25 @@ class TestView(ClusterTestCase):
                 else:
                     raise e
     
+    def test_map_reference(self):
+        """view.map(<Reference>, *seqs) should work"""
+        v = self.client[:]
+        v.scatter('n', self.client.ids, flatten=True)
+        v.execute("f = lambda x,y: x*y")
+        rf = pmod.Reference('f')
+        nlist = list(range(10))
+        mlist = nlist[::-1]
+        expected = [ m*n for m,n in zip(mlist, nlist) ]
+        result = v.map_sync(rf, mlist, nlist)
+        self.assertEquals(result, expected)
+
+    def test_apply_reference(self):
+        """view.apply(<Reference>, *args) should work"""
+        v = self.client[:]
+        v.scatter('n', self.client.ids, flatten=True)
+        v.execute("f = lambda x: n*x")
+        rf = pmod.Reference('f')
+        result = v.apply_sync(rf, 5)
+        expected = [ 5*id for id in self.client.ids ]
+        self.assertEquals(result, expected)
 
