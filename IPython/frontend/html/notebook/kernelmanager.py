@@ -273,7 +273,7 @@ class MappingKernelManager(MultiKernelManager):
         if notebook_id is not None:
             del self._notebook_mapping[notebook_id]
 
-    def start_kernel(self, notebook_id=None):
+    def start_kernel(self, notebook_id=None, connection_file=None):
         """Start a kernel for a notebok an return its kernel_id.
 
         Parameters
@@ -287,6 +287,7 @@ class MappingKernelManager(MultiKernelManager):
         if kernel_id is None:
             kwargs = dict()
             kwargs['extra_arguments'] = self.kernel_argv
+            kwargs['connection_file'] = connection_file
             kernel_id = super(MappingKernelManager, self).start_kernel(**kwargs)
             self.set_kernel_for_notebook(notebook_id, kernel_id)
             self.log.info("Kernel started: %s" % kernel_id)
