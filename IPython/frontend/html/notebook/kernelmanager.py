@@ -16,6 +16,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import json
 import os
 import signal
 import sys
@@ -29,6 +30,8 @@ from tornado import web
 from IPython.config.configurable import LoggingConfigurable
 from IPython.zmq.ipkernel import launch_kernel
 from IPython.zmq.kernelmanager import KernelManager
+from IPython.utils.path import filefind
+from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import Instance, Dict, List, Unicode, Float, Integer
 
 #-----------------------------------------------------------------------------
@@ -65,14 +68,54 @@ class MultiKernelManager(LoggingConfigurable):
         else:
             return False
 
+    def load_connection_file(self, connection_file):
+        """load ip/port/hmac config from JSON connection file"""
+        # this is identical to KernelApp.load_connection_file
+        # perhaps it can be centralized somewhere?
+        try:
+            fname = filefind(connection_file, [self.connection_dir])
+        except IOError:
+            self.log.debug("Connection File not found: %s", connection_file)
+            return
+        self.log.debug(u"Loading connection file %s", fname)
+        with open(fname) as f:
+            s = f.read()
+        cfg = json.loads(s)
+        if 'ip' in cfg:
+            # not overridden by config or cl_args
+            self.ip = cfg['ip']
+        for channel in ('hb', 'shell', 'iopub', 'stdin'):
+            name = channel + '_port'
+            if getattr(self, name, 0) == 0 and name in cfg:
+                # not overridden by config or cl_args
+                setattr(self, name, cfg[name])
+        if 'key' in cfg:
+            self.config.Session.key = str_to_bytes(cfg['key'])
+
     def start_kernel(self, **kwargs):
         """Start a new kernel."""
-        kernel_id = unicode(uuid.uuid4())
-        # use base KernelManager for each Kernel
-        km = KernelManager(connection_file=os.path.join(
-                    self.connection_dir, "kernel-%s.json" % kernel_id),
-                    config=self.config,
-        )
+        if 'connection_file' in kwargs:
+            connection_file = kwargs.pop('connection_file')
+            self.load_connection_file(connection_file)
+
+            kernel_id = self.config.Session.key
+            # use base KernelManager for each Kernel
+            km = KernelManager(ip=self.ip,
+                        shell_port=self.shell_port,
+                        iopub_port=self.iopub_port,
+                        stdin_port=self.stdin_port,
+                        hb_port=self.hb_port,
+                        connection_file=os.path.join(
+                        self.connection_dir, connection_file),
+                        config=self.config,
+            )
+        else:
+            kernel_id = unicode(uuid.uuid4())
+            # use base KernelManager for each Kernel
+            km = KernelManager(connection_file=os.path.join(
+                        self.connection_dir, "kernel-%s.json" % kernel_id),
+                        config=self.config,
+            )
         km.start_kernel(**kwargs)
         self._kernels[kernel_id] = km
         return kernel_id
