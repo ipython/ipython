@@ -89,7 +89,7 @@ var IPython = (function (IPython) {
     TextCell.prototype.config_mathjax = function () {
         var text_cell = this.element;
         var that = this;
-        text_cell.click(function () {
+        text_cell.dblclick(function () {
             that.edit();
         }).focusout(function () {
             that.render();
