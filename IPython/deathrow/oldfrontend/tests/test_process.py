@@ -17,7 +17,7 @@ from time import sleep
 import sys
 
 from IPython.frontend.process import PipedProcess
-from IPython.testing import decorators as testdec
+from IPython.testing import decorators as dec
 
 
 def test_capture_out():
@@ -47,7 +47,7 @@ def test_io():
     assert result == test_string
 
 
-@testdec.skip_win32
+@dec.skip_win32
 def test_kill():
     """ Check that we can kill a process, and its subprocess.
     """

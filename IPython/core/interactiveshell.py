@@ -64,7 +64,6 @@ from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
 from IPython.core.profiledir import ProfileDir
 from IPython.core.pylabtools import pylab_activate
 from IPython.core.prompts import PromptManager
-from IPython.external.Itpl import ItplNS
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
