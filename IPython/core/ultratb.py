@@ -548,44 +548,40 @@ class ListTB(TBTools):
         have_filedata = False
         Colors = self.Colors
         list = []
-        try:
-            stype = Colors.excName + etype.__name__ + Colors.Normal
-        except AttributeError:
-            stype = etype  # String exceptions don't get special coloring
+        stype = Colors.excName + etype.__name__ + Colors.Normal
         if value is None:
+            # Not sure if this can still happen in Python 2.6 and above
             list.append( str(stype) + '\n')
         else:
             if etype is SyntaxError:
-                try:
-                    msg, (filename, lineno, offset, line) = value
-                except:
-                    have_filedata = False
-                else:
-                    have_filedata = True
-                    #print 'filename is',filename  # dbg
-                    if not filename: filename = "<string>"
-                    list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
-                            (Colors.normalEm,
-                             Colors.filenameEm, filename, Colors.normalEm,
-                             Colors.linenoEm, lineno, Colors.Normal  ))
-                    if line is not None:
-                        i = 0
-                        while i < len(line) and line[i].isspace():
-                            i = i+1
-                        list.append('%s    %s%s\n' % (Colors.line,
-                                                      line.strip(),
-                                                      Colors.Normal))
-                        if offset is not None:
-                            s = '    '
-                            for c in line[i:offset-1]:
-                                if c.isspace():
-                                    s = s + c
-                                else:
-                                    s = s + ' '
-                            list.append('%s%s^%s\n' % (Colors.caret, s,
-                                                       Colors.Normal) )
-                        value = msg
-            s = self._some_str(value)
+                have_filedata = True
+                #print 'filename is',filename  # dbg
+                if not value.filename: value.filename = "<string>"
+                list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
+                        (Colors.normalEm,
+                         Colors.filenameEm, value.filename, Colors.normalEm,
+                         Colors.linenoEm, value.lineno, Colors.Normal  ))
+                if value.text is not None:
+                    i = 0
+                    while i < len(value.text) and value.text[i].isspace():
+                        i = i+1
+                    list.append('%s    %s%s\n' % (Colors.line,
+                                                  value.text.strip(),
+                                                  Colors.Normal))
+                    if value.offset is not None:
+                        s = '    '
+                        for c in value.text[i:value.offset-1]:
+                            if c.isspace():
+                                s = s + c
+                            else:
+                                s = s + ' '
+                        list.append('%s%s^%s\n' % (Colors.caret, s,
+                                                   Colors.Normal) )
+
+            try:
+                s = value.msg
+            except Exception:
+                s = self._some_str(value)
             if s:
                 list.append('%s%s:%s %s\n' % (str(stype), Colors.excName,
                                               Colors.Normal, s))
@@ -596,7 +592,7 @@ class ListTB(TBTools):
         if have_filedata:
             ipinst = ipapi.get()
             if ipinst is not None:
-                ipinst.hooks.synchronize_with_editor(filename, lineno, 0)
+                ipinst.hooks.synchronize_with_editor(value.filename, value.lineno, 0)
 
         return list
 
