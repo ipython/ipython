@@ -251,6 +251,44 @@ def make_man_update_target(manpage):
                locals() )
     return (manpath_gz, [manpath], gz_cmd)
 
+# The two functions below are copied from IPython.utils.path, so we don't need
+# to import IPython during setup, which fails on Python 3.
+
+def target_outdated(target,deps):
+    """Determine whether a target is out of date.
+
+    target_outdated(target,deps) -> 1/0
+
+    deps: list of filenames which MUST exist.
+    target: single filename which may or may not exist.
+
+    If target doesn't exist or is older than any file listed in deps, return
+    true, otherwise return false.
+    """
+    try:
+        target_time = os.path.getmtime(target)
+    except os.error:
+        return 1
+    for dep in deps:
+        dep_time = os.path.getmtime(dep)
+        if dep_time > target_time:
+            #print "For target",target,"Dep failed:",dep # dbg
+            #print "times (dep,tar):",dep_time,target_time # dbg
+            return 1
+    return 0
+
+
+def target_update(target,deps,cmd):
+    """Update a target with a given command given a list of dependencies.
+
+    target_update(target,deps,cmd) -> runs cmd if target is outdated.
+
+    This is just a wrapper around target_outdated() which calls the given
+    command if target is outdated."""
+
+    if target_outdated(target,deps):
+        system(cmd)
+
 #---------------------------------------------------------------------------
 # Find scripts
 #---------------------------------------------------------------------------
