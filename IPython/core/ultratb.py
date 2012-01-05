@@ -514,7 +514,7 @@ class ListTB(TBTools):
                      Colors.lineno, lineno, Colors.Normal,
                      Colors.name, name, Colors.Normal)
             if line:
-                item = item + '    %s\n' % line.strip()
+                item += '    %s\n' % line.strip()
             list.append(item)
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
@@ -525,7 +525,7 @@ class ListTB(TBTools):
                  Colors.nameEm, name, Colors.normalEm,
                  Colors.Normal)
         if line:
-            item = item + '%s    %s%s\n' % (Colors.line, line.strip(),
+            item += '%s    %s%s\n' % (Colors.line, line.strip(),
                                             Colors.Normal)
         list.append(item)
         #from pprint import pformat; print 'LISTTB', pformat(list) # dbg
@@ -564,7 +564,7 @@ class ListTB(TBTools):
                 if value.text is not None:
                     i = 0
                     while i < len(value.text) and value.text[i].isspace():
-                        i = i+1
+                        i += 1
                     list.append('%s    %s%s\n' % (Colors.line,
                                                   value.text.strip(),
                                                   Colors.Normal))
@@ -572,9 +572,9 @@ class ListTB(TBTools):
                         s = '    '
                         for c in value.text[i:value.offset-1]:
                             if c.isspace():
-                                s = s + c
+                                s += c
                             else:
-                                s = s + ' '
+                                s += ' '
                         list.append('%s%s^%s\n' % (Colors.caret, s,
                                                    Colors.Normal) )
 
