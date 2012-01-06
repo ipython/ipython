@@ -48,7 +48,8 @@ from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
-    ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
+    ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler,
+    AuthenticatedFileHandler,
 )
 from .notebookmanager import NotebookManager
 
@@ -103,7 +104,8 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
-            (r"/rstservice/render", RSTHandler)
+            (r"/rstservice/render", RSTHandler),
+            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
@@ -280,7 +282,7 @@ class NotebookApp(BaseIPythonApplication):
         static_path = self.webapp_settings.get("static_path", os.path.join(os.path.dirname(__file__), "static"))
         if os.path.exists(os.path.join(static_path, 'mathjax', "MathJax.js")):
             self.log.info("Using local MathJax")
-            return u"static/mathjax/MathJax.js"
+            return u"/static/mathjax/MathJax.js"
         else:
             self.log.info("Using MathJax from CDN")
             return u"http://cdn.mathjax.org/mathjax/latest/MathJax.js"

@@ -6,10 +6,10 @@
 
     <title>{% block title %}IPython Notebook{% end %}</title>
 
-    <link rel="stylesheet" href="static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
-    <link rel="stylesheet" href="static/css/boilerplate.css" type="text/css" />
-    <link rel="stylesheet" href="static/css/layout.css" type="text/css" />
-    <link rel="stylesheet" href="static/css/base.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
+    <link rel="stylesheet" href="/static/css/boilerplate.css" type="text/css" />
+    <link rel="stylesheet" href="/static/css/layout.css" type="text/css" />
+    <link rel="stylesheet" href="/static/css/base.css" type="text/css"/>
     {% block stylesheet %}
     {% end %}
 
@@ -21,7 +21,7 @@
 <body {% block params %}{% end %}>
 
 <div id="header">
-    <span id="ipython_notebook"><h1><img src='static/ipynblogo.png' alt='IPython Notebook'/></h1></span>
+    <span id="ipython_notebook"><h1><img src='/static/ipynblogo.png' alt='IPython Notebook'/></h1></span>
 
     {% block login_widget %}
 
@@ -72,11 +72,11 @@
 
 </div>
 
-<script src="static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/jquery/js/jquery-ui-1.8.14.custom.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/namespace.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/loginmain.js" type="text/javascript" charset="utf-8"></script>
-<script src="static/js/loginwidget.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/jquery/js/jquery-ui-1.8.14.custom.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/js/namespace.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/js/loginmain.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/js/loginwidget.js" type="text/javascript" charset="utf-8"></script>
 {% block script %}
 {% end %}
 
