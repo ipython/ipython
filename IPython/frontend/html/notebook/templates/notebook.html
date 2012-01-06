@@ -15,6 +15,7 @@
     window.mathjax_url = "{{mathjax_url}}";
     </script>
 
+    <link rel="stylesheet" href="/static/jquery/css/jquery.wijmo-open.2.0.0b1.css" type="text/css" />
     <link rel="stylesheet" href="/static/jquery/css/themes/aristo/jquery-wijmo.css" type="text/css" />
     <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
     <link rel="stylesheet" href="/static/codemirror/mode/markdown/markdown.css">
@@ -62,6 +63,77 @@
     </span>
 
     <span id="kernel_status">Idle</span>
+</div>
+
+<div id="menu_bar">
+    <ul id="menus">
+        <li><a href="#">File</a>
+            <ul>
+                <li><a href="#">New</a></li>
+                <li><a href="#">Open...</a></li>
+                <li></li>
+                <li><a href="#">Save</a></li>
+                <li></li>
+                <li><a href="#">Download as</a>
+                    <ul>
+                        <li><a href="#">IPython (.ipynb)</a></li>
+                        <li><a href="#">Python (.py)</a></li>
+                    </ul>
+                </li>
+                <li></li>
+                <li><a href="#">Print</a></li>
+                
+            </ul>
+        </li>
+        <li><a href="#">Edit</a>
+            <ul>
+                <li><a href="#">Delete</a></li>
+                <li></li>
+                <li><a href="#">Move Up</a></li>
+                <li><a href="#">Move Down</a></li>
+            </ul>
+        </li>
+        <li><a href="#">Insert</a>
+            <ul>
+                <li><a href="#">Insert Above</a>
+                <li><a href="#">Insert Below</a>
+                </li>
+            </ul>
+        </li>
+        <li><a href="#">Cell</a>
+            <ul>
+                <li><a href="#">Run</a></li>
+                <li><a href="#">Run in Place</a></li>
+                <li><a href="#">Run All</a></li>
+                <li></li>
+                <li><a href="#">Code Cell</a></li>
+                <li><a href="#">Markdown Cell</a></li>
+                <li></li>
+                <li><a href="#">Toggle Output</a></li>
+                <li><a href="#">Clear All Output</a></li>
+            </ul>
+        </li>
+        <li><a href="#">Kernel</a>
+            <ul>
+                <li><a href="#">Interrupt</a></li>
+                <li><a href="#">Restart</a></li>
+            </ul>
+        </li>
+        <li><a href="#">Help</a>
+            <ul>
+                <li><a href="#">IPython Help</a></li>
+                <li><a href="#">Notebook Help</a></li>
+                <li><a href="#">Notebook QuickRef</a></li>
+                <li><h2>External Docs</h2></li>
+                <li><a href="#">Python</a></li>
+                <li><a href="#">NumPy</a></li>
+                <li><a href="#">SciPy</a></li>
+                <li><a href="#">SymPy</a></li>
+                <li><a href="#">Matplotlib</a></li>
+            </ul>
+        </li>
+    </ul>
+
 </div>
 
 <div id="main_app">
@@ -259,8 +331,10 @@
 </div>
 
 <script src="/static/jquery/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/jquery/js/jquery-ui-1.8.14.custom.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/jquery/js/jquery.autogrow.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/jquery/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/jquery/js/jquery.wijmo-open.all.2.0.0b1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/jquery/js/jquery.bgiframe-2.1.3-pre.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/jquery/js/jquery.mousewheel.min.js" type="text/javascript" charset="utf-8"></script>
 
 <script src="/static/codemirror/lib/codemirror.js" charset="utf-8"></script>
 <script src="/static/codemirror/mode/python/python.js" charset="utf-8"></script>

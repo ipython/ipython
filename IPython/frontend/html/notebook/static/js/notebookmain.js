@@ -79,6 +79,8 @@ $(document).ready(function () {
     $('div#main_app').addClass('border-box-sizing ui-widget ui-widget-content');
     $('div#notebook_panel').addClass('border-box-sizing ui-widget');
 
+    $('ul#menus').wijmenu();
+
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.left_panel = new IPython.LeftPanel('div#left_panel', 'div#left_panel_splitter');
