@@ -18,6 +18,7 @@ Authors:
 
 import logging
 import Cookie
+import time
 import uuid
 
 from tornado import web
@@ -412,6 +413,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             return
         km = self.application.kernel_manager
         self.time_to_dead = km.time_to_dead
+        self.first_beat = km.first_beat
         kernel_id = self.kernel_id
         try:
             self.iopub_stream = km.create_iopub_stream(kernel_id)
@@ -446,6 +448,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             self._kernel_alive = True
 
             def ping_or_dead():
+                self.hb_stream.flush()
                 if self._kernel_alive:
                     self._kernel_alive = False
                     self.hb_stream.send(b'ping')
@@ -455,25 +458,36 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
                     except:
                         pass
                     finally:
-                        self._hb_periodic_callback.stop()
+                        self.stop_hb()
 
             def beat_received(msg):
                 self._kernel_alive = True
 
             self.hb_stream.on_recv(beat_received)
-            self._hb_periodic_callback = ioloop.PeriodicCallback(ping_or_dead, self.time_to_dead*1000)
-            self._hb_periodic_callback.start()
+            loop = ioloop.IOLoop.instance()
+            self._hb_periodic_callback = ioloop.PeriodicCallback(ping_or_dead, self.time_to_dead*1000, loop)
+            loop.add_timeout(time.time()+self.first_beat, self._really_start_hb)
             self._beating= True
+    
+    def _really_start_hb(self):
+        """callback for delayed heartbeat start
+        
+        Only start the hb loop if we haven't been closed during the wait.
+        """
+        if self._beating and not self.hb_stream.closed():
+            self._hb_periodic_callback.start()
 
     def stop_hb(self):
         """Stop the heartbeating and cancel all related callbacks."""
         if self._beating:
+            self._beating = False
             self._hb_periodic_callback.stop()
             if not self.hb_stream.closed():
                 self.hb_stream.on_recv(None)
 
     def kernel_died(self):
         self.application.kernel_manager.delete_mapping_for_kernel(self.kernel_id)
+        self.application.log.error("Kernel %s failed to respond to heartbeat", self.kernel_id)
         self.write_message(
             {'header': {'msg_type': 'status'},
              'parent_header': {},
