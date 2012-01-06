@@ -1,0 +1,116 @@
+﻿.wijmo-wijcalendar
+{
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    display:block;
+}
+
+.wijmo-wijcalendar-header
+{
+    position: relative;
+}
+
+.wijmo-wijcalendar-header-inner
+{
+    margin: 0 1.8em;
+    line-height: 1.8em;
+}
+
+.wijmo-wijcalendar .ui-datepicker-header
+{
+    padding: 1px;
+}
+
+.wijmo-wijcalendar .ui-datepicker-header .ui-state-default
+{
+    border-color: transparent;
+    background: none;
+    color: inherit;
+}
+
+.wijmo-wijcalendar .wijmo-wijcalendar-table
+{
+    table-layout: fixed;
+}
+
+.wijmo-wijcalendar-prevpreview-button, .wijmo-wijcalendar-nextpreview-button
+{
+    width: 16px;
+    margin-top: 35%;
+    float: left;
+}
+
+.wijmo-wijcalendar-nextpreview-button
+{
+    float: right;
+}
+
+.wijmo-wijcalendar-preview-wrapper .wijmo-wijcalendar
+{
+    float: left;
+    width: 18em;
+}
+
+.wijmo-wijcalendar-preview-wrapper .wijmo-wijcalendar .ui-datepicker-calendar
+{
+    width: 80%;
+    float: left;
+}
+
+.wijmo-wijcalendar-title, .wijmo-wijcalendar-selectable
+{
+    cursor: pointer;
+}
+
+.ui-datepicker-other-month
+{
+    text-align: right;
+}
+
+.wijmo-wijcalendar-mygrid td span, .wijmo-wijcalendar-mygrid td a
+{
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    padding: 0;
+}
+
+.wijmo-wijcalendar-mygrid .ui-state-default a, .wijmo-wijcalendar-mygrid .ui-state-default a:hover, .wijmo-wijcalendar-mygrid .ui-state-hover a, .wijmo-wijcalendar-mygrid .ui-state-hover a:hover
+{
+    color: inherit;
+}
+
+.ui-header-custom img, .ui-footer-custom img
+{
+    width: 100%;
+}
+
+.wijmo-wijcalendar table.wijmo-wijcalendar-mygrid
+{
+    margin-top: 2px;
+    border-collapse: separate;
+    table-layout: fixed;
+}
+
+.wijmo-wijcalendar table.wijmo-wijcalendar-mygrid .ui-datepicker-week-day
+{
+    cursor: pointer;
+}
+
+.wijmo-wijcalendar-aniwrapper
+{
+    position: relative;
+    left: 0;
+    top: 0;
+}
+
+.wijmo-wijcalendar-multi-aniwrapper
+{
+    position: absolute;
+    overflow: hidden;
+}
+
+.ui-datepicker-rtl .ui-datepicker-prev .ui-icon, .ui-datepicker-rtl .ui-datepicker-next .ui-icon
+{
+    direction: rtl;
+}

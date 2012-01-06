@@ -1,0 +1,266 @@
+.wijmo-wijmenu {
+width:150px;
+padding:0.3em;
+position:relative;
+}
+
+.wijmo-wijmenu .wijmo-wijsuperpanel {
+border:none;
+background: inherit;
+padding:0;
+}
+
+.wijmo-wijmenu-list {
+position:static;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-parent .wijmo-wijmenu-child {
+display:none;
+width:150px;
+padding:0.3em;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-parent {
+position:relative;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-child {
+position:relative;
+left:150px;
+top:0;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-item {
+width:100%;
+float:left;
+clear:both;
+margin:1px 0;
+padding:0;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-list .wijmo-wijmenu-item {
+background:none;
+border:none;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-link {
+display:block;
+width:92%;
+outline:none;
+text-decoration:none;
+font-weight:400;
+border:solid 1px transparent;
+float:left;
+line-height:16px;
+padding:0.3em;
+}
+
+.wijmo-wijmenu-horizontal {
+width:auto;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-item {
+width:auto;
+clear:none;
+margin-right:3px;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-child .wijmo-wijmenu-item {
+width:100%;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-child {
+top:25px;
+left:0;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-link {
+width:auto;
+padding:0.4em 0.3em;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-child .wijmo-wijmenu-link {
+width:92%;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-list .ui-widget-header {
+clear:both;
+float:left;
+width:98%;
+margin:1px 0;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-list .ui-widget-header
+{
+    width: auto;
+    clear: none;
+    margin: -1px 2px -2px 1px;
+}
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-child .ui-widget-header
+{
+    width: 98%;
+    margin: 1px 0;
+}
+
+
+.wijmo-wijmenu-horizontal .ui-widget-header {
+clear:none;
+width:auto;
+margin:0 3px 0 0;
+}
+
+.wijmo-wijmenu .ui-widget-header h1,.wijmo-wijmenu .ui-widget-header h2,.wijmo-wijmenu .ui-widget-header h3,.wijmo-wijmenu .ui-widget-header h4,.wijmo-wijmenu .ui-widget-header h5,.wijmo-wijmenu .ui-widget-header h6 {
+float:left;
+display:block;
+font-size:1em;
+margin:0 auto;
+padding:0.3em 3%;
+}
+
+.wijmo-wijmenu-horizontal .ui-widget-header h1,.wijmo-wijmenu-horizontal .ui-widget-header h2,.wijmo-wijmenu-horizontal .ui-widget-header h3,.wijmo-wijmenu-horizontal .ui-widget-header h4,.wijmo-wijmenu-horizontal .ui-widget-header h5,.wijmo-wijmenu-horizontal .ui-widget-header h6 {
+padding:0.4em 0.3em;
+}
+
+.wijmo-wijmenu a.ui-state-default:link,.wijmo-wijmenu a.ui-state-default:visited,.wijmo-wijmenu a.ui-state-default:hover,.wijmo-wijmenu a.ui-state-default:active,.wijmo-wijmenu a.ui-state-hover:link,.wijmo-wijmenu a.ui-state-hover:visited,.wijmo-wijmenu a.ui-state-hover:hover,.wijmo-wijmenu a.ui-state-hover:active,.wijmo-wijmenu a.ui-state-active:link,.wijmo-wijmenu a.ui-state-active:visited,.wijmo-wijmenu a.ui-state-active:hover,.wijmo-wijmenu a.ui-state-active:active {
+font-weight:400;
+border-style:solid;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-child .ui-state-hover {
+font-weight:400;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-separator {
+clear:both;
+float:left;
+height:1px;
+text-indent:-9999px;
+width:98%;
+margin:1px 0;
+font-size:0;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-separator {
+height:auto;
+clear:none;
+width:1px;
+text-indent:-9999px;
+margin:0 3px 0 0;
+padding:0.4em 0;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-child .wijmo-wijmenu-separator {
+clear:both;
+float:left;
+height:1px;
+text-indent:-9999px;
+width:98%;
+margin:1px 0;
+padding:0;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-group {
+clear:both;
+float:left;
+width:98%;
+margin:3px 0;
+padding:0 0.4em;
+}
+
+.wijmo-wijmenu-ipod {
+width:180px;
+}
+
+.wijmo-wijmenu-container {
+overflow:hidden;
+}
+
+.wijmo-wijmenu-ipod .wijmo-wijmenu-list {
+background:inherit;
+position:absolute;
+border-width:0;
+-moz-box-shadow: none;
+-webkit-box-shadow:none;
+}
+
+.wijmo-wijmenu-breadcrumb {
+margin:0;
+padding:0;
+}
+
+.wijmo-wijmenu-footer {
+margin-top:3px;
+line-height: 22px;
+}
+
+.wijmo-wijmenu-footer .ui-icon {
+margin:3px 0;
+}
+
+.wijmo-wijmenu-header {
+margin-bottom:3px;
+}
+
+.wijmo-wijmenu-breadcrumb li {
+float:left;
+list-style:none;
+font-size:.9em;
+margin:0;
+padding:0 .2em;
+}
+
+.wijmo-wijmenu-breadcrumb li.wijmo-wijmenu-prev-list,.wijmo-wijmenu-breadcrumb li.wijmo-wijmenu-current-crumb {
+clear:left;
+float:none;
+opacity:1;
+}
+
+.wijmo-wijmenu-breadcrumb li.wijmo-wijmenu-current-crumb {
+padding-top:.2em;
+}
+
+.wijmo-wijmenu-footer a:link,.wijmo-wijmenu-footer a:visited {
+float:left;
+width:100%;
+text-decoration:none;
+}
+
+.wijmo-wijmenu-footer a span {
+float:left;
+cursor:pointer;
+}
+
+.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-prev-list a:link,.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-prev-list a:visited,.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-prev-list a:hover,.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-prev-list a:active {
+background-image:none;
+text-decoration:none;
+}
+
+.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-prev-list a {
+float:left;
+padding-right:.4em;
+}
+
+.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-current-crumb a:link,.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-current-crumb a:visited,.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-current-crumb a:hover,.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-current-crumb a:active {
+display:block;
+background-image:none;
+font-size:1.3em;
+text-decoration:none;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-parent .ui-icon,.wijmo-wijmenu-horizontal .wijmo-wijmenu-child .ui-icon,.wijmo-wijmenu-ipod .ui-icon-triangle-1-e {
+float:right;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-item .wijmo-wijmenu-text,.wijmo-wijmenu-horizontal .wijmo-wijmenu-parent .ui-icon,.wijmo-wijmenu-breadcrumb a,.wijmo-wijmenu-breadcrumb span,.wijmo-wijmenu-breadcrumb .wijmo-wijmenu-prev-list a .ui-icon {
+float:left;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-link .wijmo-wijmenu-icon-left {
+display:inline-block;
+float:left;
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-link .wijmo-wijmenu-icon-right {
+display:inline-block;
+float:right;
+}

@@ -1,0 +1,146 @@
+﻿
+.ui-tabs .ui-tabs-nav li
+{
+    top: 1px;
+}
+
+/* BOTTOM */
+
+.ui-tabs-bottom .ui-tabs-nav li
+{
+    top: -3px;
+    padding: 0;
+    margin: 1px .2em 0 0;
+}
+
+.ui-tabs-bottom .ui-tabs-nav li.ui-tabs-selected
+{
+    margin-top: -1px;
+    padding-bottom: 2px;
+}
+
+.ui-tabs .ui-tabs-nav li
+{
+    border: none;
+}
+
+/* LEFT */
+.ui-tabs-left .ui-tabs-nav
+{
+    float: left;
+    overflow: hidden;
+}
+
+.ui-tabs-left .ui-tabs-nav li
+{
+    white-space: normal;
+    float: right;
+    display: block;
+    width: 98%;
+}
+
+.ui-tabs-left .ui-tabs-nav li a, .ui-tabs-right .ui-tabs-nav li a
+{
+    float: none;
+    display: block;
+}
+
+.ui-tabs-left .ui-tabs-nav li
+{
+    top: -1px;
+    left: 3px;
+    margin-bottom: 2px;
+}
+
+.ui-tabs-left .ui-tabs-panel
+{
+    padding: 1.6em;
+}
+
+.ui-tabs-left .ui-tabs-nav li.ui-tabs-selected
+{
+    border-right: medium none;
+    margin-bottom: 2px;
+}
+.ui-tabs-left .ui-tabs-nav
+{
+    padding: 0.2em 0 0 0;
+}
+
+.ui-tabs-left .wijmo-wijtabs-content
+{
+    float: right;
+    width: 75%;
+    overflow: hidden;
+}
+
+.ui-tabs-left .ui-tabs-nav
+{
+    min-height: 300px;
+    width: 23%;
+    height: 100%;
+}
+
+/* RIGHT */
+
+.ui-tabs-right .ui-tabs-nav
+{
+    float: right;
+    overflow: hidden;
+}
+
+.ui-tabs-right .ui-tabs-nav li
+{
+    white-space: normal;
+    float: left;
+    display: block;
+    width: 98%;
+}
+
+.ui-tabs-right .ui-tabs-nav li
+{
+    top: -1px;
+    left: 0;
+    margin-bottom: 2px;
+}
+
+.ui-tabs-right .ui-tabs-panel
+{
+    padding: 1.6em;
+}
+
+.ui-tabs-right .ui-tabs-nav li.ui-tabs-selected
+{
+    border-left: medium none;
+    margin-bottom: 2px;
+}
+.ui-tabs-right .ui-tabs-nav
+{
+    padding: 0.2em 0 0 0;
+}
+
+.ui-tabs-right .wijmo-wijtabs-content
+{
+    float: left;
+    width: 75%;
+    overflow: hidden;
+}
+
+.ui-tabs-right .ui-tabs-nav
+{
+    min-height: 300px;
+    width: 23%;
+}
+
+
+.ui-tabs-left .ui-tabs-nav li.ui-tabs-selected
+{
+    margin-right: 2px;
+    padding-right: 1px;
+}
+
+.ui-tabs-right .ui-tabs-nav li.ui-tabs-selected
+{
+    margin-left: -1px;
+    padding-left: 1px;
+}

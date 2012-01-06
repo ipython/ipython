@@ -1,0 +1,115 @@
+﻿
+.wijmo-wijprogressbar
+{
+    moz-user-select: none;
+    text-align: left;
+    float: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.wijmo-wijprogressbar .ui-progressbar-value
+{
+    position: absolute;
+    border-width: 0;
+    margin: 0;
+}
+
+div.wijmo-wijprogressbar-east
+{
+    width: 200px;
+    height: 1.1em;
+}
+div.wijmo-wijprogressbar-west
+{
+    width: 200px;
+    height: 1.1em;
+}
+div.wijmo-wijprogressbar-south
+{
+    height: 200px;
+    width: 1.1em;
+    line-height: 100%;
+}
+
+div.wijmo-wijprogressbar-north
+{
+    height: 200px;
+    width: 1.1em;
+    line-height: 100%;
+}
+
+.wijmo-wijprogressbar-east .ui-progressbar-value
+{
+    left: 0;
+    height: 100%;
+}
+.wijmo-wijprogressbar-west .ui-progressbar-value
+{
+    right: 0;
+    height: 100%;
+}
+.wijmo-wijprogressbar-south .ui-progressbar-value
+{
+    top: 0;
+    width: 100%;
+}
+
+.wijmo-wijprogressbar-north .ui-progressbar-value
+{
+    bottom: 0;
+    width: 100%;
+}
+
+.wijmo-wijprogressbar .ui-progressbar-label
+{
+    display: block;
+    position:absolute;
+    text-align: center;
+    width: 100%;
+    height:100%;
+}
+
+.wijmo-wijprogressbar .wijmo-wijprogressbar-lb-west
+{
+    left:0;
+    width:auto;
+}
+
+.wijmo-wijprogressbar .wijmo-wijprogressbar-lb-east
+{
+    right:0;
+    width:auto;
+}
+
+.wijmo-wijprogressbar .wijmo-wijprogressbar-lb-south
+{
+    bottom: 0;
+    height:auto;
+}
+
+.wijmo-wijprogressbar .wijmo-wijprogressbar-lb-north
+{
+    top: 0;
+    height:auto;
+}
+
+.wijmo-wijprogressbar-east .wijmo-wijprogressbar-lb-running,
+.wijmo-wijprogressbar-west .wijmo-wijprogressbar-lb-running
+{
+    display:inline;
+    width:auto;
+}
+
+.wijmo-wijprogressbar-north .wijmo-wijprogressbar-lb-running,
+.wijmo-wijprogressbar-south .wijmo-wijprogressbar-lb-running
+{
+    height:auto;
+}
+
+.wijmo-wijprogressbar-north .ui-progressbar-label,
+.wijmo-wijprogressbar-south .ui-progressbar-label
+{
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+}

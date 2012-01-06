@@ -1,0 +1,185 @@
+﻿.wijmo-wijexpander
+{
+    margin: 1px;
+    padding: 0;
+    display: block;
+}
+
+.wijmo-wijexpander a
+{
+    outline: none;
+}
+
+.wijmo-wijexpander .ui-expander-header
+{
+    cursor: pointer;
+    margin-top: 1px;
+    position: relative;
+}
+/*.wijmo-wijexpander.ui-helper-horizontal > .ui-expander-header
+{
+    cursor: pointer;
+    width: 20px;
+    height: 200px;
+}
+.wijmo-wijexpander.ui-state-disabled > .ui-expander-header
+{
+    cursor: default;
+}
+.wijmo-wijexpander > .ui-widget-content
+{
+    height: 100px;
+    overflow: auto;
+}
+.wijmo-wijexpander.ui-state-disabled > .ui-widget-content
+{
+}*/
+
+
+.ui-expander .ui-expander-content
+{
+    border-top: 0 none;
+    display: none;
+    margin-bottom: 2px;
+    margin-top: -2px;
+    overflow: auto;
+    padding: 1em 2.2em;
+    position: relative;
+    top: 1px;
+}
+
+
+.wijmo-wijexpander .ui-expander-header a
+{
+    display: block;
+    font-size: 1em;
+    padding: 0.5em 0.5em 0.5em 0.7em;
+}
+
+.wijmo-wijexpander .ui-expander-header .ui-icon
+{
+    left: 0.5em;
+    margin-top: -8px;
+    position: absolute;
+    top: 50%;
+}
+
+.wijmo-wijexpander .ui-expander-content-active
+{
+    display: block;
+    border-top: 0 none;
+    padding: 1em 2.2em;
+}
+
+
+.wijmo-wijexpander .ui-expander-header > a
+{
+    padding-left: 2.2em;
+}
+
+.ui-helper-horizontal.wijmo-wijexpander .ui-expander-header .ui-icon
+{
+    left: inherit;
+    margin-top: inherit;
+    margin-left: -8px;
+    position: absolute;
+    top: 0.5em;
+    left: 50%;
+}
+
+.ui-helper-horizontal.wijmo-wijexpander .ui-expander-header > a
+{
+    padding-left: inherit;
+    padding-top: 2.2em;
+    display: inline-block;
+}
+
+
+/* RIGHT */
+
+.ui-expander-right .ui-expander-header
+{
+    margin: 0 1px;
+    width: 2em;
+    height: 12em;
+    overflow: hidden;
+}
+
+.ui-expander-right .ui-expander-content
+{
+    margin: 0;
+    height: 200px;
+    width: 12em;
+    height: 12em;
+    padding: 0 2.2em;
+}
+.ui-expander-right .ui-expander-content
+{
+    top: 0;
+    margin-left: -2px;
+    padding: 1px;
+    border: none;
+    margin-right: 1px;
+}
+
+
+.ui-expander-right .ui-state-active
+{
+    border-right: none;
+}
+
+.ui-expander-right .ui-expander-header a
+{
+    padding: 2.2em 0 0 0;
+}
+
+
+.ui-expander-right .ui-expander-header .ui-icon
+{
+    top: 10%;
+}
+
+
+/* LEFT */
+
+.ui-expander-left .ui-expander-header
+{
+    margin: 0 1px;
+    width: 2em;
+    height: 12em;
+    overflow: hidden;
+}
+
+.ui-expander-left .ui-expander-content
+{
+    margin: 0;
+    height: 200px;
+    width: 12em;
+    height: 12em;
+    padding: 0 2.2em;
+}
+.ui-expander-left .ui-expander-content
+{
+    border: none;
+    padding: 1px;
+    top: 0;
+    margin-right: -2px;
+    margin-left: 1px;
+}
+
+
+.ui-expander-left .ui-state-active
+{
+    border-left: none;
+}
+
+.ui-expander-left .ui-expander-header a
+{
+    padding: 2.2em 0 0 0;
+}
+
+
+.ui-expander-left .ui-expander-header .ui-icon
+{
+    top: 10%;
+}
