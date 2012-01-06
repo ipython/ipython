@@ -197,7 +197,7 @@ the second for a 'normal' command, and the third for a multiline command.")
       (define-key py-shell-map "\t" 'ipython-complete)
       ;;XXX this is really just a cheap hack, it only completes symbols in the
       ;;interactive session -- useful nonetheless.
-      (define-key py-mode-map [(meta tab)] 'ipython-complete)
+      (define-key python-mode-map [(meta tab)] 'ipython-complete)
 
       )
     (add-hook 'py-shell-hook 'ipython-shell-hook)
