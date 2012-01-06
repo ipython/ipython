@@ -367,8 +367,9 @@ class NotebookApp(BaseIPythonApplication):
         """
         self.log.info('Shutting down kernels')
         km = self.kernel_manager
-        while km.kernel_ids:
-            km.kill_kernel(km.kernel_ids[0])
+        # copy list, since kill_kernel deletes keys
+        for kid in list(km.kernel_ids):
+            km.kill_kernel(kid)
 
     def start(self):
         ip = self.ip if self.ip else '[all ip addresses on your system]'
