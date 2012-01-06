@@ -154,10 +154,7 @@ a
 .ui-widget-header
 {
     border: 1px solid #a8a8a8;
-    background: #c4c4c4 url(images/ui-bg_highlight-soft_100_c4c4c4_1x100.png) 50% 50% repeat-x;
-    background: #c4c4c4 linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
-    background: #c4c4c4 -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0)));
-    background: #c4c4c4 -moz-linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0)); /*    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF);     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF)"; */
+    background: #c0c0c0 url(images/ui-bg_highlight-soft_100_c0c0c0_1x100.png) top repeat-x;
     color: #333;
     font-weight: bold;
     text-shadow: 0px 1px 0px rgba(255,255,255,0.7);
@@ -182,9 +179,9 @@ a
 }
 .ui-state-default
 {
-    -moz-box-shadow: inset 0px 1px 0px #fff;
-    -webkit-box-shadow: inset 0px 1px 0px #fff;
-    box-shadow: inset 0px 1px 0px #fff;
+    -moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,0.25);
+    -webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,0.25);
+    box-shadow: inset 0px 1px 0px rgba(255,255,255,0.25);
 }
 .ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited
 {
@@ -194,22 +191,22 @@ a
 }
 .ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus
 {
-    border: 1px solid #7096ab;
-    background: #85b2cb url(images/ui-bg_highlight-hard_80_85b2cb_1x100.png) 50% 50% repeat-x;
-    background: #85b2cb linear-gradient(top, rgba(255,255,255,0.6), rgba(255,255,255,0));
+    background: #83b0ca url(images/ui-bg_highlight-soft_100_83b0ca_1x100.png) repeat-x top;
+    border: solid 1px #8ab0c6;
+  /* background: #85b2cb linear-gradient(top, rgba(255,255,255,0.6), rgba(255,255,255,0));
     background: #85b2cb -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.6)), to(rgba(255,255,255,0)));
-    background: #85b2cb -moz-linear-gradient(top, rgba(255,255,255,0.6), rgba(255,255,255,0)); /*    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#CCFFFFFF, endColorstr=#00FFFFFF);     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#CCFFFFFF, endColorstr=#00FFFFFF)"; */
+    background: #85b2cb -moz-linear-gradient(top, rgba(255,255,255,0.6), rgba(255,255,255,0));     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#CCFFFFFF, endColorstr=#00FFFFFF);     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#CCFFFFFF, endColorstr=#00FFFFFF)"; */
     font-weight: bold;
     color: #313131;
-    -moz-box-shadow: 0 0 5px #85b2cb;
-    -webkit-box-shadow: 0px 0px 8px #85b2cb;
-    box-shadow: 0px 0px 8px #85b2cb;
+    -moz-box-shadow: 0 0 3px #85b2cb;
+    -webkit-box-shadow: 0px 0px 3px #85b2cb;
+    box-shadow: 0px 0px 3px #85b2cb;
 }
 .ui-state-hover
 {
-    -moz-box-shadow: 0px 0px 8px #85b2cb, inset 0px 1px 0px #fff;
-    -webkit-box-shadow: 0px 0px 8px #85b2cb, inset 0px 1px 0px #fff;
-    box-shadow: 0px 0px 8px #85b2cb, inset 0px 1px 0px #fff;
+    -moz-box-shadow: 0px 0px 3px #85b2cb, inset 0px 1px 0px rgba(255,255,255,0.25);
+    -webkit-box-shadow: 0px 0px 3px #85b2cb, inset 0px 1px 0px rgba(255,255,255,0.25);
+    box-shadow: 0px 0px 3px #85b2cb, inset 0px 1px 0px rgba(255,255,255,0.25);
 }
 .ui-state-hover a, .ui-state-hover a:hover
 {
@@ -238,9 +235,9 @@ a
 }
 .ui-state-active
 {
-    -moz-box-shadow: inset 0px -1px 0px #fff;
-    -webkit-box-shadow: inset 0px 1px 0px #fff;
-    box-shadow: inset 0px 1px 0px #fff;
+    -moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,0.25);
+    -webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,0.25);
+    box-shadow: inset 0px 1px 0px rgba(255,255,255,0.25);
 }
 /* Interaction Cues
 ----------------------------------*/
@@ -1295,7 +1292,6 @@ a
 
 .ui-accordion .ui-accordion-header
 {
-    margin: 0;
     -moz-border-radius: 0;
     -webkit-border-radius: 0;
     border-radius: 0;
@@ -1486,7 +1482,7 @@ input.ui-button
     left: 50%;
     margin-left: -8px;
 }
-/*.ui-button-text-icon-primary .ui-button-icon-primary, .ui-button-text-icons .ui-button-icon-primary, .ui-button-icons-only .ui-button-icon-primary { left: .5em; }*/
+.ui-button-text-icon-primary .ui-button-icon-primary, .ui-button-text-icons .ui-button-icon-primary, .ui-button-icons-only .ui-button-icon-primary { left: .5em; }
 .ui-button-text-icon-secondary .ui-button-icon-secondary, .ui-button-text-icons .ui-button-icon-secondary, .ui-button-icons-only .ui-button-icon-secondary
 {
     right: .5em;
@@ -1750,10 +1746,14 @@ button.ui-button::-moz-focus-inner
 }
 .ui-slider .ui-slider-handle
 {
-    background: #85b2cb;
+    
+    background: #83b0ca url(images/ui-bg_highlight-soft_100_83b0ca_1x100.png) repeat-x top;
+    border-color: #8ab0c6;
+    /*
     background: #85b2cb linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
     background: #85b2cb -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0)));
     background: #85b2cb -moz-linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0)); /*   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF);     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF)"; */
+*/
 }
 
 
@@ -1832,10 +1832,10 @@ button.ui-button::-moz-focus-inner
 
 .ui-tabs .ui-tabs-nav
 {
-    background: #e3e3e3;
-    background: #e3e3e3 linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
-    background: #e3e3e3 -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0)));
-    background: #e3e3e3 -moz-linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0)); /*    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF);     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF)"; */
+    background: #A8A8A8;
+    background: #A8A8A8 linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
+    background: #A8A8A8 -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0)));
+    background: #A8A8A8 -moz-linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0)); /*    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF);     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF)"; */
     -moz-border-radius: 0;
     -webkit-border-radius: 0;
     border-radius: 0;
@@ -1982,12 +1982,67 @@ button.ui-button::-moz-focus-inner
 {
     table-layout: fixed;
 }
-
-.ui-datepicker .ui-datepicker-calendar .ui-state-default
+.ui-datepicker td
 {
-    background: none;
-    border: none;
-    color: #5F83B9;
+    padding: 0;
+}
+.ui-datepicker table
+{
+    margin: -19px 0 0;
+    position: relative;
+    z-index: 99;
+}
+
+.wijmo-wijcalendar-preview-wrapper div.wijmo-wijcalendar .ui-datepicker-header
+{
+     width: 84.5%;
+}
+
+.wijmo-wijcalendar-preview-wrapper .wijmo-wijcalendar table.ui-datepicker-calendar
+{
+    width: 85.8%;   
+}
+
+.wijmo-wijcalendar .wijmo-wijcalendar-nextpreview-button 
+{
+
+}
+.wijmo-wijcalendar .wijmo-wijcalendar-prevpreview-button, .wijmo-wijcalendar .wijmo-wijcalendar-nextpreview-button
+{
+    margin-top: 18%;
+}
+
+.wijmo-wijcalendar .wijmo-wijcalendar-table .wijmo-wijcalendar-monthselector .ui-icon
+{
+    height: 12px;
+    margin-top: -8px;
+    position: relative;
+    top: 2px;
+    width: 12px;
+}
+
+
+.ui-datepicker table tbody
+{
+        border-left: solid 1px #A8A8A8;
+}
+.ui-datepicker table thead
+{
+        border-left: solid 1px #A8A8A8;
+          border-right: solid 1px #A8A8A8;
+}
+
+
+.ui-datepicker-calendar thead
+{
+    /*background: #c0c0c0 url(images/ui-bg_highlight-soft_100_c0c0c0_1x100.png) repeat-x top;*/
+    color: #545454;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.50);
+    border-bottom: solid 1px #aaaeb6;
+    position: relative;
+    z-index: 5;
+    font-size: 10px;
+    line-height: 4px;
 }
 
 .ui-datepicker .ui-datepicker-calendar .ui-state-hover
@@ -2016,11 +2071,7 @@ button.ui-button::-moz-focus-inner
 
 .ui-datepicker .ui-datepicker-header
 {
-    background: #e3e3e3;
-    background: #e3e3e3 linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
-    background: #e3e3e3 -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0)));
-    background: #e3e3e3 -moz-linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0)); /*   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF);     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF)"; */
-    border-right: none;
+     border-right: none;
     border-left: none;
     border-top: none;
     -moz-border-radius: 0;
@@ -2048,7 +2099,6 @@ button.ui-button::-moz-focus-inner
 .ui-datepicker-multi .ui-datepicker-group table
 {
     width: 95%;
-    margin: 0 auto .4em;
 }
 .ui-datepicker-multi-2 .ui-datepicker-group
 {
@@ -2172,12 +2222,13 @@ button.ui-button::-moz-focus-inner
 }
 .ui-progressbar .ui-widget-header
 {
-    background: #85b2cb;
-    background: #85b2cb linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
+    background: #83b0ca url(images/ui-bg_highlight-soft_100_83b0ca_1x100.png) repeat-x top;
+    border-color: #8ab0c6;
+    /*background: #85b2cb linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
     background: #85b2cb -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0)));
     background: #85b2cb -moz-linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF);
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF)";
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#00FFFFFF)";*/
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
     border-radius: 10px;
@@ -2186,110 +2237,532 @@ button.ui-button::-moz-focus-inner
  * jQuery UI AutoComplete @VERSION
  *
 */
-.wijmo-wijinput, .wijmo-wijtextbox
-{
-    background: #fff !important;
-    -moz-box-shadow: inset 0 2px 2px #8f8f8f;
-    -webkit-box-shadow: inset 0 2px 2px #8f8f8f;
-    box-shadow: inset 0 2px 2px #8f8f8f;
-}
-.wijmo-wijinput.ui-state-focus, .wijmo-wijtextbox.ui-state-focus
-{
-    background: #fff !important;
-    -moz-box-shadow: 0px 0px 5px #85b2cb, inset 0 2px 2px #8f8f8f;
-    -webkit-box-shadow: 0px 0px 5px #85b2cb, inset 0 2px 2px #8f8f8f;
-    box-shadow: 0px 0px 5px #85b2cb, inset 0 2px 2px #8f8f8f;
-}
 .ui-autocomplete
 {
     -moz-box-shadow: 0px 5px 10px rgba(0,0,0,0.8);
     -webkit-box-shadow: 0px 5px 10px rgba(0,0,0,0.8);
     box-shadow: 0px 5px 10px rgba(0,0,0,0.8);
 }
-.wijmo-wijcalendar .ui-datepicker-header .ui-state-default
-{
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
-}
-.wijmo-wijmenu
-{
-    background: #c4c4c4 url(images/ui-bg_highlight-hard_80_c4c4c4_1x100.png) top repeat-x;
-    background: #c4c4c4 linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
-    background: #c4c4c4 -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0)));
-    background: #c4c4c4 -moz-linear-gradient(top, rgba(255,255,255,0.8), rgba(255,255,255,0));
-}
-.wijmo-wijmenu .ui-state-default
-{
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
+
+/* WIJMO */
+.wijmo-wijcalendar div.ui-datepicker-header {
+border:solid 1px #A8A8A8;
+padding-bottom: 12px;
+-moz-box-shadow: inset 0 1px 0 #fff;
+-webkit-box-shadow: inset 0 1px 0 #fff;
+box-shadow: inset 0 1px 0 #fff;
 }
 
-.wijmo-wijmenu .wijmo-wijmenu-child
-{
-    -moz-box-shadow: 0px 5px 10px rgba(0,0,0,0.8);
-    -webkit-box-shadow: 0px 5px 10px rgba(0,0,0,0.8);
-    box-shadow: 0px 5px 10px rgba(0,0,0,0.8);
-}
-.wij-menu-ipod .wijmo-wijmenu-list
-{
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
+.wijmo-wijcalendar div.ui-datepicker-header .ui-datepicker-title {
+color:#545454;
+font-weight:700;
+text-shadow:1px 1px 0 rgba(255,255,255,0.75);
 }
 
-*html .wijmo-wijmenu .wijmo-wijsuperpanel, *html .wijmo-wijmenu .wijmo-wijmenu-list
-{
-    background: none;
+.wijmo-wijcalendar {
+border:none;
 }
 
-*html .wijmo-wijmenu-horizontal .wijmo-wijmenu-child
-{
-    background: #ffffff;
+.ui-datepicker .ui-datepicker-calendar .ui-state-default {
+background:#dfdee2;
+border:none;
+border-bottom:solid 1px #a7aab3;
+border-right:solid 1px #a7aab3;
+color:#374452;
+-moz-box-shadow:inset 0 1px #fff;
+}
+
+.ui-datepicker .ui-datepicker-calendar .ui-state-hover {
+background:#5f83b9;
+color:#fff;
+text-shadow:1px 1px 1px rgba(0,0,0,0.75);
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+}
+
+.ui-datepicker .ui-datepicker-calendar .ui-state-active {
+background:#7389a5;
+color:#fff;
+text-shadow:1px 1px 1px rgba(0,0,0,0.75);
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+}
+
+.wijmo-wijcalendar td.wijmo-wijcalendar-gap {
+border-right:solid 1px #a7aab3;
+border-bottom:solid 1px #a7aab3;
+}
+
+.wijmo-wijinput,.wijmo-wijtextbox {
+background:#fff !important;
+-moz-box-shadow:inset 0 2px 2px rgba(143,143,143,0.50);
+-webkit-box-shadow:inset 0 2px 2px rgba(143,143,143,0.50);
+box-shadow:inset 0 2px 2px rgba(143,143,143,0.50);
+}
+
+.wijmo-wijinput.ui-state-focus,.wijmo-wijtextbox.ui-state-focus {
+background:#fff !important;
+-moz-box-shadow:0 0 5px #85b2cb, inset 0 2px 2px #8f8f8f;
+-webkit-box-shadow:0 0 5px #85b2cb, inset 0 2px 2px #8f8f8f;
+box-shadow:0 0 5px #85b2cb, inset 0 2px 2px #8f8f8f;
+}
+
+.wijmo-wijmenu-ipod {
+background:#d9dee5;
+border:solid 1px transparent;
+}
+
+.wijmo-wijmenu-ipod .wijmo-wijmenu-item .wijmo-wijmenu-link.ui-state-hover {
+border:solid 1px #3f70b9;
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+background:transparent url(images/vertical-menu-item.png) repeat-x top;
+color:#fff;
+text-shadow:1px 1px 1px #333;
+-moz-borer-radius:0;
+-webkit-border-radius:0;
+border-radius:0;
+}
+
+.wijmo-wijmenu-ipod .ui-widget-header h3 {
+text-transform:uppercase;
+color:#627080;
+text-shadow:1px 1px 0 rgba(255,255,255,0.95);
+font-weight:700;
+}
+
+.wijmo-wijmenu-ipod .ui-widget-header {
+background:none;
+border:none;
+}
+
+*html .wijmo-wijmenu .wijmo-wijsuperpanel,*html .wijmo-wijmenu .wijmo-wijmenu-list {
+background:none;
+}
+
+*html .wijmo-wijmenu-horizontal .wijmo-wijmenu-child {
+background:#fff;
+}
+
+*html .wijmo-wijmenu .wijmo-wijmenu-link {
+filter:chroma(color=#c4c4c4);
+border-color:#c4c4c4;
+}
+
+.wijmo-wijtooltip {
+background: #000;
+background:rgba(0,0,0,0.8);
+border:none;
+color:#fff;
+-moz-box-shadow:0 0 8px #85b2cb, inset 0 1px 0 #999;
+-webkit-box-shadow:0 0 8px #85b2cb, inset 0 1px 0 #999;
+box-shadow:0 0 8px #85b2cb, inset 0 1px 0 #999;
+}
+
+.wijmo-wijtooltip-arrow-lb .wijmo-wijtooltip-pointer-inner,.wijmo-wijtooltip-arrow-lc .wijmo-wijtooltip-pointer-inner,.wijmo-wijtooltip-arrow-lt .wijmo-wijtooltip-pointer-inner {
+border-right-color:#000 !important;
+}
+
+.wijmo-wijtooltip-arrow-rb .wijmo-wijtooltip-pointer-inner,.wijmo-wijtooltip-arrow-rc .wijmo-wijtooltip-pointer-inner,.wijmo-wijtooltip-arrow-rt .wijmo-wijtooltip-pointer-inner {
+border-left-color:#000 !important;
+}
+
+.wijmo-wijtooltip-arrow-br .wijmo-wijtooltip-pointer-inner,.wijmo-wijtooltip-arrow-bc .wijmo-wijtooltip-pointer-inner,.wijmo-wijtooltip-arrow-bl .wijmo-wijtooltip-pointer-inner {
+border-top-color:#000 !important;
+}
+
+.wijmo-wijtooltip-arrow-tb .wijmo-wijtooltip-pointer-inner,.wijmo-wijtooltip-arrow-tc .wijmo-wijtooltip-pointer-inner,.wijmo-wijtooltip-arrow-tt .wijmo-wijtooltip-pointer-inner {
+border-bottom-color:#000 !important;
+}
+
+.wijmo-wijtooltip .wijmo-wijtooltip-pointer {
+opacity:0.8px;
+}
+
+.wijmo-dropdown-item.ui-state-hover {
+background:#5f83b9;
+color:#fff;
+text-shadow:1px 1px 0 rgba(0,0,0,0.50);
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+-moz-border-radius:0;
+-webkit-border-radius:0;
+border-radius:0;
+padding-left: 14px !important;
+margin:1px -4px !important;
+}
+
+.wijmo-wijlist-item.ui-state-hover,.wijmo-wijlist-item.ui-state-active {
+background:#5f83b9;
+color:#fff;
+text-shadow:1px 1px 0 rgba(0,0,0,0.50);
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+-moz-border-radius:0;
+-webkit-border-radius:0;
+border-radius:0;
+padding-left:9px !important;
+margin:1px -4px !important;
+}
+
+.wijmo-wijmenu-child .wijmo-wijmenu-link.ui-state-hover,.wijmo-wijmenu-child .wijmo-wijmenu-link.ui-state-active {
+background:#5f83b9;
+color:#fff;
+text-shadow:1px 1px 0 rgba(0,0,0,0.50);
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+-moz-border-radius:0;
+-webkit-border-radius:0;
+border-radius:0;
+border-color:#5f83b9;
+}
+
+.wijmo-wijmenu-child .wijmo-wijmenu-link.ui-state-hover .ui-icon,.wijmo-wijmenu-child .wijmo-wijmenu-link.ui-state-active .ui-icon {
+width:16px;
+height:16px;
+background-image:url(images/ui-icons_ffffff_256x240.png);
+}
+
+.wijmo-wijcombobox-input {
+background:#fff !important;
+-moz-box-shadow:inset 0 2px 2px #8f8f8f;
+-webkit-box-shadow:inset 0 2px 2px #8f8f8f;
+box-shadow:inset 0 2px 2px #8f8f8f;
 }
 
 
-*html .wijmo-wijmenu .wijmo-wijmenu-link
+.wijmo-wijlist-ul .wijmo-wijcombobox-selecteditem, ul.wijmo-wijlist-ul li.wijmo-wijlist-item-selected
 {
-    border-color: #c4c4c4;
-    filter: chroma(color=#c4c4c4);
+    background: #7389a5;
 }
 
+.wijmo-checkbox .wijmo-checkbox-box,.wijmo-wijradio-box {
+-moz-box-shadow:0 1px 1px rgba(0,0,0,0.25);
+-webkit-box-shadow:0 1px 1px rgba(0,0,0,0.25);
+box-shadow:0 1px 1px rgba(0,0,0,0.25);
+}
 
-.wijmo-wijtooltip
+.wijmo-wijsuperpanel-vbarcontainer .wijmo-wijsuperpanel-handle {
+background:url(images/scrollbar-vertical.png) repeat-y left;
+-moz-border-radius:12px;
+-webkit-border-radius:12px;
+border-radius:12px;
+-moz-box-shadow:inset 1px 0 0 rgba(255,255,255,0.25);
+z-index:9;
+border-color:#a5a9ae;
+margin:-5px 0;
+}
+
+.wijmo-wijsuperpanel-hbarcontainer .wijmo-wijsuperpanel-handle {
+background:url(images/scrollbar-horizontal.png) repeat-x top;
+-moz-border-radius:12px;
+-webkit-border-radius:12px;
+border-radius:12px;
+-moz-box-shadow:inset 0 1px 0 rgba(255,255,255,0.25);
+z-index:9;
+border-color:#a5a9ae;
+margin:0 -5px;
+}
+
+.wijmo-wijsuperpanel-vbarcontainer {
+background:#f8f8f8;
+-moz-box-shadow:inset 3px 0 10px rgba(0,0,0,0.25);
+-webkit-box-shadow:inset 3px 0 10px rgba(0,0,0,0.25);
+box-shadow:inset 3px 0 10px rgba(0,0,0,0.25);
+}
+
+.wijmo-wijsuperpanel-hbarcontainer {
+background:#f8f8f8;
+-moz-box-shadow:inset 0 3px 10px rgba(0,0,0,0.25);
+-webkit-box-shadow:inset 0 3px 10px rgba(0,0,0,0.25);
+box-shadow:inset 0 3px 10px rgba(0,0,0,0.25);
+}
+
+.wijmo-wijsuperpanel-vbarcontainer .wijmo-wijsuperpanel-handle .ui-icon,.wijmo-wijsuperpanel-hbarcontainer .wijmo-wijsuperpanel-handle .ui-icon {
+display:none;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-vbarcontainer .wijmo-wijsuperpanel-vbar-buttontop {
+background:url(images/scroller-up-arrow.png) no-repeat top;
+border:none;
+height:25px;
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+width:18px;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-vbarcontainer .wijmo-wijsuperpanel-vbar-buttontop.ui-state-hover {
+background:url(images/scroller-up-arrow_hover.png) no-repeat top;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-vbarcontainer .wijmo-wijsuperpanel-vbar-buttonbottom {
+background:url(images/scroller-down-arrow.png) no-repeat bottom;
+height:25px;
+border:none;
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+width:18px;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-vbarcontainer .wijmo-wijsuperpanel-vbar-buttonbottom.ui-state-hover {
+background:url(images/scroller-down-arrow_hover.png) no-repeat top;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-hbarcontainer .wijmo-wijsuperpanel-hbar-buttonleft {
+background:url(images/scroller-left-arrow.png) no-repeat left;
+width:25px;
+border:none;
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+height:18px;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-hbarcontainer .wijmo-wijsuperpanel-hbar-buttonleft.ui-state-hover {
+background:url(images/scroller-left-arrow_hover.png) no-repeat top;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-hbarcontainer .wijmo-wijsuperpanel-hbar-buttonright {
+background:url(images/scroller-right-arrow.png) no-repeat right;
+width:25px;
+border:none;
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+height:18px;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-hbarcontainer .wijmo-wijsuperpanel-hbar-buttonright.ui-state-hover {
+background:url(images/scroller-right-arrow_hover.png) no-repeat top;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-vbarcontainer .wijmo-wijsuperpanel-vbar-buttonbottom .ui-icon {
+margin-top:10px;
+}
+
+.wijmo-wijsuperpanel .wijmo-wijsuperpanel-hbarcontainer .wijmo-wijsuperpanel-hbar-buttonright .ui-icon {
+margin-left:10px;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-link.ui-state-hover,.wijmo-wijmenu-horizontal .wijmo-wijmenu-link.ui-state-active,.wijmo-wijmenu-horizontal .wijmo-wijmenu-link.ui-state-default,.wijmo-wijmenu .wijmo-wijmenu-link.ui-state-hover,.wijmo-wijmenu .wijmo-wijmenu-link.ui-state-active,.wijmo-wijmenu .wijmo-wijmenu-link.ui-state-focus {
+border:solid 1px #587e93;
+}
+
+.wijmo-wijmenu-child .wijmo-wijmenu-link.ui-state-focus 
 {
-    background: #000;
-    background: rgba(0,0,0,0.8);
-    border: none;
+    background: #7389a5;
     color: #fff;
-    -moz-box-shadow: 0px 0px 8px #85b2cb, inset 0px 1px 0px #999;
-    -webkit-box-shadow: 0px 0px 8px #85b2cb, inset 0px 1px 0px #999;
-    box-shadow: 0px 0px 8px #85b2cb, inset 0px 1px 0px #999;
-}
-
-.wijmo-wijtooltip-arrow-lb .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-lc .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-lt .wijmo-wijtooltip-pointer-inner
-{
-    border-right-color: #000 !important;
-}
-
-.wijmo-wijtooltip-arrow-rb .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-rc .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-rt .wijmo-wijtooltip-pointer-inner
-{
-    border-left-color: #000 !important;
-}
-
-.wijmo-wijtooltip-arrow-br .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-bc .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-bl .wijmo-wijtooltip-pointer-inner
-{
-    border-top-color: #000 !important;
-}
-
-.wijmo-wijtooltip-arrow-tb .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-tc .wijmo-wijtooltip-pointer-inner, .wijmo-wijtooltip-arrow-tt .wijmo-wijtooltip-pointer-inner
-{
-    border-bottom-color: #000 !important;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.50);
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    -webkit-border-radius: 0;
 }
 
 
-.wijmo-wijtooltip .wijmo-wijtooltip-pointer
+.ui-tabs .ui-tabs-nav li.ui-state-default {
+border:solid 1px #8b8b8b;
+}
+
+.ui-tabs-bottom .ui-tabs-nav li.ui-state-default {
+border:solid 1px #8b8b8b !important;
+margin-top: -1px;
+}
+div.ui-tabs-bottom .ui-tabs-nav li.ui-tabs-selected
 {
-    opacity: 0.8;
+    padding: 0;
+}
+.ui-tabs-left .ui-tabs-nav li.ui-state-default {
+border-bottom:solid 1px #8b8b8b !important;
+margin-right: 3px;
+border-right: none;
+}
+
+.ui-tabs-right .ui-tabs-nav li.ui-state-default {
+border-bottom:solid 1px #8b8b8b !important;
+margin-left: 0;
+border-left: none;
+}
+
+.wijmo-wijmenu-horizontal .wijmo-wijmenu-child .wijmo-wijmenu-link {
+margin-left:-4px;
+padding-left:14px;
+width:92%;
+}
+
+.ui-datepicker-calendar td.ui-datepicker-today a.ui-state-default {
+background:#7389a5;
+-moz-box-shadow:inset 0 0 5px #364f72;
+-webkit-box-shadow:inset 0 0 5px #364f72;
+box-shadow:inset 0 0 5px #364f72;
+color:#fff;
+}
+
+.ui-datepicker-calendar td a.ui-state-hover {
+background:#5f83b9;
+}
+
+.wijmo-wijgrid tr.wijmo-wijgrid-row {
+border-color:#dfdfdf;
+}
+
+.wijmo-wijgrid div.wijmo-wijgrid-footer {
+border-top:solid 1px #A8A8A8 !important;
+border-right:none;
+}
+
+.wijmo-wijgrid tr.wijmo-wijgrid-row:first {
+border-top:none;
+}
+
+.wijmo-wijgrid tr.wijmo-wijgrid-row.ui-state-hover,.wijmo-wijgrid .wijmo-wijgrid-current-cell,.wijmo-wijgrid td.wijmo-wijgrid-rowheader.ui-state-active {
+background:#5f83b9;
+color:#fff;
+text-shadow:1px 1px 1px #333;
+border-color:transparent;
+}
+
+.wijmo-wijgrid tr.wijmo-wijgrid-row td.ui-state-highlight {
+background:#7389a5;
+border-color:transparent;
+}
+.wijmo-wijgrid tr.wijmo-wijgrid-row td.wijmo-wijgrid-current-cell {
+    background: #5d7798;
+    color: #FFFFFF !important;
+    text-shadow: 0 1px 1px #234386;
+    -moz-box-shadow: inset 0 0 5px rgba(0,0,0,0.50);
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.50);
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.50);
+}
+.wijmo-wijgrid-alternatingrow {
+background:#f2f5f9;
+}
+
+.wijmo-wijgrid th.wijmo-wijgrid-rowheader {
+border-left:none;
+border-top:none;
+}
+
+.wijmo-wijmenu-footer {
+height:23px;
+line-height:22px;
+margin-top:3px;
+}
+
+.wijmo-wijtooltip-pointer {
+border-color:transparent;
+}
+
+.ui-datepicker-multi .ui-datepicker-group table {
+width:100%;
+}
+
+.ui-datepicker-multi .ui-datepicker-group table thead {
+border-left:none;
+border-right:solid 1px #A8A8A8;
+}
+
+.ui-datepicker-group-first {
+border-left:solid 1px #A8A8A8;
+margin-left:-1px;
+}
+
+.ui-datepicker-multi .ui-datepicker-group-last table thead {
+border-right:none;
+}
+
+.ui-datepicker-group-last {
+border-right:solid 1px #A8A8A8;
+margin-right:-1px;
+}
+
+.ui-datepicker .wijmo-wijcalendar-header {
+-moz-border-radius:0;
+}
+
+.ui-datepicker div.wijmo-wijcalendar-header-inner {
+border:none;
+background:none;
+}
+
+.wijmo-wijaccordion .ui-accordion-content-active {
+margin-bottom:2px;
+}
+
+.wijmo-wijcalendar-preview-wrapper .wijmo-wijcalendar .ui-datepicker-header {
+width:78.5%;
+margin-left:16px;
+}
+
+.wijmo-wijcalendar .ui-datepicker-header .ui-state-default,.wijmo-wijmenu .ui-state-default,.wij-menu-ipod .wijmo-wijmenu-list,.wijmo-wijtooltip-close {
+-moz-box-shadow:none;
+-webkit-box-shadow:none;
+box-shadow:none;
+}
+
+.wijmo-wijmenu-ipod .wijmo-wijmenu-item .wijmo-wijmenu-link.ui-state-hover .ui-icon,.wijmo-wijtooltip-close .ui-icon {
+background-image:url(images/ui-icons_ffffff_256x240.png);
+}
+
+.wijmo-wijmenu .wijmo-wijmenu-child,.wijmo-dropdown,.wijmo-wijgrid-filterlist {
+-moz-box-shadow:0 5px 20px rgba(0,0,0,0.50);
+-webkit-box-shadow:0 5px 20px rgba(0,0,0,0.50);
+box-shadow:0 5px 20px rgba(0,0,0,0.50);
+}
+
+.ui-datepicker,.ui-accordion-content {
+-moz-border-radius:0;
+-webkit-border-radius:0;
+border-radius:0;
+}
+
+.wijmo-wijcalendar .ui-datepicker-group .ui-datepicker-header,.ui-datepicker-multi .ui-datepicker-group table tbody {
+border-right:none;
+border-left:none;
+}
+
+.ui-datepicker tbody .ui-datepicker-week-col,td.wijmo-wijcalendar-outofrangeday {
+border:solid 1px #a8a8a8;
+}
+
+.ui-expander-top .ui-expander-content,.ui-accordion-top .ui-accordion-content {
+border-top:solid 1px #A8A8A8 !important;
+margin-bottom:-1px !important;
+}
+
+.ui-expander-right .ui-expander-content,.ui-accordion-right .ui-accordion-content {
+border-top:solid 1px #A8A8A8 !important;
+border-right:solid 1px #A8A8A8 !important;
+border-bottom:solid 1px #A8A8A8 !important;
+padding:0 1em !important;
+}
+
+.ui-expander-left .ui-expander-content,.ui-accordion-left .ui-accordion-content {
+border-top:solid 1px #A8A8A8 !important;
+border-left:solid 1px #A8A8A8 !important;
+border-bottom:solid 1px #A8A8A8 !important;
+padding:0 1em !important;
+}
+div.wijmo-wijcalendar table.wijmo-wijcalendar-mygrid
+{
+    margin: 0;
+    border-left: solid 1px #a8a8a8;
+}
+.wijmo-wijcalendar .ui-datepicker-group .ui-datepicker-header
+{
+    border-right: solid 1px #a8a8a8;
+}
+div.wijmo-wijribbon .ui-icon, .wijmo-wijribbon-abbrevicon, div.wijmo-wijribbon-simple span.ui-icon, .wijmo-wijribbon .wijmo-wijribbon-group .ui-button:hover .ui-icon, div.wijmo-wijribbon-modes span.ui-icon, .wijmo-wijribbon-group .wijmo-wijribbon-abbrevgroup:hover .ui-icon, .wijmo-wijribbon-group .wijmo-wijribbon-abbrevgroup:hover .wijmo-wijribbon-abbrevicon
+{
+    background-image: url("images/wijmo-ui-icons_000000_240x112.png");
 }
