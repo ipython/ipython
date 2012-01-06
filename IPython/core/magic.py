@@ -2176,12 +2176,13 @@ Currently the magic system has the following functions:\n"""
             # logic, going with utf-8 is a simple solution likely to be right
             # in most real-world cases.
             linesource = fileobj.read().decode('utf-8', 'replace').splitlines()
+            fileobj.close()
         else:
-            fileobj = linesource = open(arg_s)
+            with open(arg_s) as fileobj:
+                linesource = fileobj.read().splitlines()
         
         # Strip out encoding declarations
         lines = [l for l in linesource if not _encoding_declaration_re.match(l)]
-        fileobj.close()
         
         self.set_next_input(os.linesep.join(lines))
 
