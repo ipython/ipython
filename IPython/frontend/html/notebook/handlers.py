@@ -458,7 +458,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
                     except:
                         pass
                     finally:
-                        self._hb_periodic_callback.stop()
+                        self.stop_hb()
 
             def beat_received(msg):
                 self._kernel_alive = True
@@ -466,12 +466,21 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             self.hb_stream.on_recv(beat_received)
             loop = ioloop.IOLoop.instance()
             self._hb_periodic_callback = ioloop.PeriodicCallback(ping_or_dead, self.time_to_dead*1000, loop)
-            loop.add_timeout(time.time()+self.first_beat, self._hb_periodic_callback.start)
+            loop.add_timeout(time.time()+self.first_beat, self._really_start_hb)
             self._beating= True
+    
+    def _really_start_hb(self):
+        """callback for delayed heartbeat start
+        
+        Only start the hb loop if we haven't been closed during the wait.
+        """
+        if self._beating and not self.hb_stream.closed():
+            self._hb_periodic_callback.start()
 
     def stop_hb(self):
         """Stop the heartbeating and cancel all related callbacks."""
         if self._beating:
+            self._beating = False
             self._hb_periodic_callback.stop()
             if not self.hb_stream.closed():
                 self.hb_stream.on_recv(None)
