@@ -65,6 +65,13 @@ var IPython = (function (IPython) {
     };
 
 
+    TextCell.prototype.unselect = function() {
+        // render on selection of another cell
+        this.render();
+        IPython.Cell.prototype.unselect.apply(this);
+    };
+
+
     TextCell.prototype.edit = function () {
         if ( this.read_only ) return;
         if (this.rendered === true) {
@@ -89,13 +96,10 @@ var IPython = (function (IPython) {
     TextCell.prototype.config_mathjax = function () {
         var text_cell = this.element;
         var that = this;
-        text_cell.click(function () {
+        text_cell.dblclick(function () {
             that.edit();
-        }).focusout(function () {
-            that.render();
         });
-        
-        text_cell.trigger("focusout");
+        that.render();
     };
 
 
