@@ -184,6 +184,10 @@ class InteractiveShellApp(Configurable):
         self._run_exec_files()
         self._run_cmd_line_code()
         
+        # flush output, so itwon't be attached to the first cell
+        sys.stdout.flush()
+        sys.stderr.flush()
+        
         # Hide variables defined here from %who etc.
         self.shell.user_ns_hidden.update(self.shell.user_ns)
 
