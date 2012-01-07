@@ -203,7 +203,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                 retval = 1
             else:
                 tmpname = tempfile.mktemp('.txt')
-                tmpfile = file(tmpname,'wt')
+                tmpfile = open(tmpname,'wt')
                 tmpfile.write(strng)
                 tmpfile.close()
                 cmd = "%s < %s" % (pager_cmd,tmpname)

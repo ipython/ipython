@@ -613,7 +613,7 @@ Currently the magic system has the following functions:\n"""
             except IOError,msg:
                 print msg
                 return
-            page.page(self.shell.inspector.format(file(filename).read()))
+            page.page(self.shell.inspector.format(open(filename).read()))
 
     def magic_psearch(self, parameter_s=''):
         """Search for object in namespaces by wildcard.
@@ -1541,7 +1541,7 @@ Currently the magic system has the following functions:\n"""
                   `dump_file`+'.',sys_exit
         if text_file:
             text_file = unquote_filename(text_file)
-            pfile = file(text_file,'w')
+            pfile = open(text_file,'w')
             pfile.write(output)
             pfile.close()
             print '\n*** Profile printout saved to text file',\

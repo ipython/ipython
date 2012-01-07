@@ -472,7 +472,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.showtraceback()
             else:
                 try:
-                    f = file(err.filename)
+                    f = open(err.filename)
                     try:
                         # This should be inside a display_trap block and I
                         # think it is.

@@ -251,7 +251,7 @@ class KernelApp(BaseIPythonApplication):
     def init_blackhole(self):
         """redirects stdout/stderr to devnull if necessary"""
         if self.no_stdout or self.no_stderr:
-            blackhole = file(os.devnull, 'w')
+            blackhole = open(os.devnull, 'w')
             if self.no_stdout:
                 sys.stdout = sys.__stdout__ = blackhole
             if self.no_stderr:
