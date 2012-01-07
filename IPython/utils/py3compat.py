@@ -11,14 +11,22 @@ orig_open = open
 def no_code(x, encoding=None):
     return x
 
+# to deal with the possibility of sys.std* not being a stream at all
+def get_stream_enc(stream, default=None):
+    if not hasattr(stream, 'encoding') or not stream.encoding:
+        return default
+    else:
+        return stream.encoding
+
 def decode(s, encoding=None):
-    encoding = encoding or sys.stdin.encoding or sys.getdefaultencoding()
+    encoding = get_stream_enc(sys.stdin, encoding) or sys.getdefaultencoding()
     return s.decode(encoding, "replace")
 
 def encode(u, encoding=None):
-    encoding = encoding or sys.stdin.encoding or sys.getdefaultencoding()
+    encoding = get_stream_enc(sys.stdin, encoding) or sys.getdefaultencoding()
     return u.encode(encoding, "replace")
-    
+
+
 def cast_unicode(s, encoding=None):
     if isinstance(s, bytes):
         return decode(s, encoding)

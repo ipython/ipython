@@ -87,9 +87,9 @@ class IOTerm:
         self.stderr = IOStream(stderr, sys.stderr)
 
 # setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
-stdin = IOStream(sys.stdin)
-stdout = IOStream(sys.stdout)
-stderr = IOStream(sys.stderr)
+stdin = sys.stdin if not sys.stdin else IOStream(sys.stdin)
+stdout = sys.stdout if not sys.stdout else IOStream(sys.stdout)
+stderr = sys.stderr if not sys.stderr else IOStream(sys.stderr)
 
 
 class Tee(object):

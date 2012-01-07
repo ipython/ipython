@@ -319,7 +319,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         for i in range(hlen - hlen_before_cell):
             self.readline.remove_history_item(hlen - i - 1)
-        stdin_encoding = sys.stdin.encoding or "utf-8"
+        stdin_encoding = py3compat.get_stream_enc(sys.stdin, 'utf-8')
         self.readline.add_history(py3compat.unicode_to_str(source_raw.rstrip(),
                                     stdin_encoding))
         return self.readline.get_current_history_length()
