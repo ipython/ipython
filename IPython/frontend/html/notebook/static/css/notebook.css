@@ -19,7 +19,7 @@ body {
 
 span#save_widget {
     padding: 2px 0px;
-    margin: 0px;
+    margin: 0px 0px 0px 300px;
     display:inline-block;
 }
 
@@ -56,41 +56,8 @@ span#kernel_status {
     color: black;
 }
 
-div#left_panel {
-    overflow-y: auto;
-    top: 0px;
-    left: 0px;
-    margin: 0px;
+.wijmo-wijmenu {
     padding: 0px;
-    position: absolute;
-}
-
-div.section_header {
-    padding: 5px;
-}
-
-div.section_header h3 {
-    display: inline;
-}
-
-div.section_content {
-    padding: 5px;
-}
-
-span.section_row_buttons button {
-    width: 70px;
-}
-
-span.section_row_buttons a {
-    width: 70px;
-}
-
-.section_row {
-    margin: 5px 0px;
-}
-
-.section_row_buttons {
-    float: right;
 }
 
 #kernel_persist {
@@ -110,78 +77,7 @@ span.section_row_buttons a {
     font-size: 85%;
 }
 
-#autoindent_span {
-    float: right;
-}
-
-#timebeforetooltip{
-    margin-top:-3px;
-    text-align:right;
-}
-
-#timebeforetooltip_span {
-    float: right;
-    padding: 0px 5px;
-    font-size: 85%;
-}
-
-#timebeforetooltip_label {
-    float: right;
-    text-align:right;
-    font-size: 85%;
-}
-
-#tooltipontab_span {
-    float: right;
-}
-
-#smartcompleter_span {
-    float: right;
-}
-
-.checkbox_label {
-    font-size: 85%;
-    float: right;
-    padding: 0.3em;
-}
-
-.section_row_header {
-    float: left;
-    font-size: 85%;
-    padding: 0.4em 0em;
-    font-weight: bold;
-}
-
-span.button_label {
-    padding: 0.2em 1em;
-    font-size: 77%;
-    float: right;
-}
-
-/* This is needed because FF was adding a 2px margin top and bottom. */
-.section_row .ui-button {
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-
-#download_format {
-    float: right;
-    font-size: 85%;
-    width: 62px;
-    margin: 1px 5px;
-}
-
-div#left_panel_splitter {
-    width: 8px;
-    top: 0px;
-    left: 202px;
-    margin: 0px;
-    padding: 0px;
-    position: absolute;
-}
-
 div#notebook_panel {
-/*    The L margin will be set in the Javascript code*/
     margin: 0px 0px 0px 0px;
     padding: 0px;
 }
@@ -378,23 +274,23 @@ div.text_cell_render {
 
 /*"close" "expand" and "Open in pager button" of
 /* the tooltip*/
-.tooltip a{
+.tooltip a {
     float:right;
 }
 
 /*properties of tooltip after "expand"*/
-.bigtooltip{
+.bigtooltip {
     height:30%;
 }
 
 /*properties of tooltip before "expand"*/
-.smalltooltip{
+.smalltooltip {
     text-overflow: ellipsis;
     overflow: hidden;
     height:15%;
 }
 
-.tooltip{
+.tooltip {
     /*transition when "expand"ing tooltip */
     -webkit-transition-property: height;
     -webkit-transition-duration: 1s;
@@ -419,11 +315,11 @@ div.text_cell_render {
 }
 
 /*fixed part of the completion*/
-.completions p b{
+.completions p b {
     font-weight:bold;
 }
 
-.completions p{
+.completions p {
     background: #DDF;
     /*outline: none;
     padding: 0px;*/
@@ -440,7 +336,7 @@ pre.dialog {
     padding-left: 2em;
 }
 
-p.dialog{
+p.dialog {
     padding : 0.2em;
 }
 
