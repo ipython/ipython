@@ -26,23 +26,10 @@ var IPython = (function (IPython) {
         var w = win.width();
         var h = win.height();
         var header_height = $('div#header').outerHeight(true);
-        var app_height = h - header_height - 2;  // content height
+        var menubar_height = $('div#menubar').outerHeight(true);
+        var app_height = h-header_height-menubar_height-2;  // content height
 
         $('div#main_app').height(app_height + 2);  // content+padding+border height
-
-        $('div#left_panel').height(app_height);
-
-        $('div#left_panel_splitter').height(app_height);
-
-        $('div#notebook_panel').height(app_height);
-        var left_panel_width = $('div#left_panel').outerWidth();
-        var left_panel_splitter_width = $('div#left_panel_splitter').outerWidth();
-        if (IPython.left_panel.expanded) {
-            $('div#notebook_panel').css({marginLeft : left_panel_width+left_panel_splitter_width});
-        } else {
-        $('div#notebook_panel').css({marginLeft : left_panel_splitter_width});
-        }
-
 
         var pager_height = IPython.pager.percentage_height*app_height;
         var pager_splitter_height = $('div#pager_splitter').outerHeight(true);
