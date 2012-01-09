@@ -79,17 +79,15 @@ $(document).ready(function () {
     $('div#main_app').addClass('border-box-sizing ui-widget ui-widget-content');
     $('div#notebook_panel').addClass('border-box-sizing ui-widget');
 
-    $('ul#menus').wijmenu();
-
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
-    IPython.left_panel = new IPython.LeftPanel('div#left_panel', 'div#left_panel_splitter');
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
-    IPython.print_widget = new IPython.PrintWidget('span#print_widget');
+    IPython.print_widget = new IPython.PrintWidget();
     IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
+    IPython.menubar = new IPython.MenuBar('#menubar')
     IPython.kernel_status_widget.status_idle();
 
     IPython.layout_manager.do_resize();

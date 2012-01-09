@@ -30,10 +30,6 @@ var IPython = (function (IPython) {
         this.element.find('input#notebook_name').attr('tabindex','1');
         this.element.find('button#save_notebook').button();
         this.element.find('button#save_notebook').attr('title', 'Save the Notebook');
-        var left_panel_width = $('div#left_panel').outerWidth();
-        var left_panel_splitter_width = $('div#left_panel_splitter').outerWidth();
-        $('span#save_widget').css({marginLeft:left_panel_width+left_panel_splitter_width});
-
     };
 
 
@@ -124,28 +120,24 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.status_save = function () {
         this.element.find('button#save_notebook').button('option', 'label', '<u>S</u>ave');
         this.element.find('button#save_notebook').button('enable');
-        IPython.print_widget.enable();
     };
 
 
     SaveWidget.prototype.status_saving = function () {
         this.element.find('button#save_notebook').button('option', 'label', 'Saving');
         this.element.find('button#save_notebook').button('disable');
-        IPython.print_widget.disable();
     };
 
 
     SaveWidget.prototype.status_loading = function () {
         this.element.find('button#save_notebook').button('option', 'label', 'Loading');
         this.element.find('button#save_notebook').button('disable');
-        IPython.print_widget.disable();
     };    
 
 
     SaveWidget.prototype.status_rename = function () {
         this.element.find('button#save_notebook').button('option', 'label', 'Rename');
         this.element.find('button#save_notebook').button('enable');
-        IPython.print_widget.enable();
     };
 
 

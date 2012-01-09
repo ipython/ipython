@@ -30,6 +30,7 @@ var IPython = (function (IPython) {
         this.set_tooltipontab(true);
         this.set_smartcompleter(true);
         this.set_timebeforetooltip(1200);
+        this.set_autoindent(true);
     };
 
 
@@ -197,7 +198,8 @@ var IPython = (function (IPython) {
         });
 
         $(window).bind('beforeunload', function () {
-            var kill_kernel = $('#kill_kernel').prop('checked');
+            // TODO: Make killing the kernel configurable.
+            var kill_kernel = false;
             if (kill_kernel) {
                 that.kernel.kill();
             }
