@@ -218,7 +218,7 @@ class Parser:
         self.pos = newpos + len(toktext)
 
         # handle newlines
-        if toktype in [token.NEWLINE, tokenize.NL]:
+        if toktext and toktype in [token.NEWLINE, tokenize.NL]:
             owrite(linesep)
             return
 
