@@ -88,7 +88,6 @@ var IPython = (function (IPython) {
         });
     }
 
-
     SaveWidget.prototype.notebook_saved = function () {
         this.set_document_title();
         this.last_saved_name = this.get_notebook_name();
