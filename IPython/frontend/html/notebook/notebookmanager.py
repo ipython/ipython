@@ -236,16 +236,21 @@ class NotebookManager(LoggingConfigurable):
         os.unlink(path)
         self.delete_notebook_id(notebook_id)
 
-    def new_notebook(self):
-        """Create a new notebook and returns its notebook_id."""
+    def increment_filename(self, basename):
+        """Return a non-used filename of the form basename0."""
         i = 0
         while True:
-            name = u'Untitled%i' % i
+            name = u'%s%i' % (basename,i)
             path = self.get_path_by_name(name)
             if not os.path.isfile(path):
                 break
             else:
                 i = i+1
+        return path, name
+
+    def new_notebook(self):
+        """Create a new notebook and return its notebook_id."""
+        path, name = self.increment_filename('Untitled')
         notebook_id = self.new_notebook_id(name)
         metadata = current.new_metadata(name=name)
         nb = current.new_notebook(metadata=metadata)
@@ -254,9 +259,10 @@ class NotebookManager(LoggingConfigurable):
         return notebook_id
 
     def copy_notebook(self, notebook_id):
-        """Create a new notebook and returns its notebook_id."""
+        """Copy an existing notebook and return its notebook_id."""
         last_mod, nb = self.get_notebook_object(notebook_id)
         name = nb.metadata.name + '-Copy'
+        path, name = self.increment_filename(name)
         nb.metadata.name = name
         notebook_id = self.new_notebook_id(name)
         self.save_notebook_object(notebook_id, nb)
