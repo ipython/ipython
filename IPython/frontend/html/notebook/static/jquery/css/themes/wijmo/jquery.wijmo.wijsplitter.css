@@ -1,0 +1,198 @@
+﻿/* WijSplitter
+----------------------------------*/
+
+.wijmo-wijsplitter-vertical
+{
+    overflow: hidden; /* fixed bug for IE6.7 */
+    position: relative;
+}
+.wijmo-wijsplitter-v-panel1
+{
+    float: left;
+    position: relative;
+}
+.wijmo-wijsplitter-v-panel1-content
+{
+    position: relative;
+}
+.wijmo-wijsplitter-v-bar
+{
+    float: left;
+    position: relative;
+    font-size: 1px;
+    width: 2px;
+    z-index: 99;
+}
+
+.wijmo-wijsplitter-vertical .ui-resizable-e
+{
+    right: -7px;
+    width: 10px;
+    z-index: 999;
+    display: block;
+    background-color: white;
+    filter: alpha(opacity=0);
+    -moz-opacity: 0;
+    opacity: 0;
+}
+
+*html .wijmo-wijsplitter-vertical .ui-resizable-e
+{
+    right: -4px;
+}
+
+* + html .wijmo-wijsplitter-vertical .ui-resizable-e
+{
+    right: -4px;
+}
+
+.wijmo-wijsplitter-v-expander
+{
+    position: absolute;
+    z-index: 999;
+}
+
+.wijmo-wijsplitter-vertical .wijmo-wijsplitter-v-expanded
+{
+    border-right: medium none;
+    overflow: hidden;
+    padding: 12px 0;
+    left: -8px;
+    width: 6px;
+    z-index: 999;
+}
+
+.wijmo-wijsplitter-vertical .wijmo-wijsplitter-v-expanded .ui-icon
+{
+    margin-left: -6px;
+}
+
+.wijmo-wijsplitter-vertical .wijmo-wijsplitter-v-collapsed
+{
+    border-left: medium none;
+    overflow: hidden;
+    padding: 12px 0;
+    right: -8px;
+    width: 6px;
+    z-index: 999;
+}
+
+.wijmo-wijsplitter-vertical .wijmo-wijsplitter-v-collapsed .ui-icon
+{
+    margin-left: -6px;
+}
+
+.wijmo-wijsplitter-v-panel2
+{
+    float: left;
+}
+.wijmo-wijsplitter-v-panel2-content
+{
+    position: relative;
+}
+.wijmo-wijsplitter-v-resize-helper
+{
+    border-right: dotted 1px black;
+    overflow: hidden;
+    border-bottom: dotted 0 black;
+}
+
+.wijmo-wijsplitter-horizontal
+{
+    overflow: hidden; /* fixed bug for IE6.7 */
+    position: relative;
+}
+.wijmo-wijsplitter-h-panel1
+{
+    position: relative;
+}
+.wijmo-wijsplitter-h-panel1-content
+{
+    overflow: auto;
+    position: relative;
+}
+.wijmo-wijsplitter-h-bar
+{
+    position: relative;
+    font-size: 1px;
+    height: 2px;
+    z-index: 999;
+}
+
+.wijmo-wijsplitter-horizontal .ui-resizable-s
+{
+    bottom: -7px;
+    height: 10px;
+    z-index: 999;
+    display: block;
+    background-color: white;
+    filter: alpha(opacity=0);
+    -moz-opacity: 0;
+    opacity: 0;
+}
+
+*html .wijmo-wijsplitter-horizontal .ui-resizable-s
+{
+    bottom: -4px;
+}
+
+* + html .wijmo-wijsplitter-horizontal .ui-resizable-s
+{
+    bottom: -4px;
+}
+
+.wijmo-wijsplitter-h-expander
+{
+    position: absolute;
+    z-index: 999;
+}
+
+
+.wijmo-wijsplitter-horizontal .wijmo-wijsplitter-h-expanded
+{
+    border-bottom: none;
+    height: 8px;
+    overflow: hidden;
+    padding: 0 10px;
+    top: -10px;
+    z-index: 999;
+}
+
+.wijmo-wijsplitter-horizontal .wijmo-wijsplitter-h-expanded .ui-icon
+{
+    margin-top: -4px;
+}
+
+.wijmo-wijsplitter-horizontal .wijmo-wijsplitter-h-collapsed
+{
+    border-top: none;
+    height: 8px;
+    overflow: hidden;
+    padding: 0 10px;
+    bottom: -10px;
+    z-index: 999;
+}
+
+.wijmo-wijsplitter-horizontal .wijmo-wijsplitter-h-collapsed .ui-icon
+{
+    margin-top: -4px;
+}
+
+.wijmo-wijsplitter-h-panel2
+{
+}
+
+.wijmo-wijsplitter-h-panel2-content
+{
+    overflow: auto;
+    position: relative;
+}
+
+.wijmo-wijsplitter-h-resize-helper
+{
+    border-bottom: dotted 1px black;
+    overflow: hidden;
+    border-right: dotted 0 black;
+}
+
+

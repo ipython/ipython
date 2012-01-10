@@ -604,6 +604,25 @@ class NotebookHandler(AuthenticatedHandler):
         self.set_status(204)
         self.finish()
 
+
+class NotebookCopyHandler(AuthenticatedHandler):
+
+    @web.authenticated
+    def get(self, notebook_id):
+        nbm = self.application.notebook_manager
+        project = nbm.notebook_dir
+        notebook_id = nbm.copy_notebook(notebook_id)
+        self.render(
+            'notebook.html', project=project,
+            notebook_id=notebook_id,
+            base_project_url=u'/', base_kernel_url=u'/',
+            kill_kernel=False,
+            read_only=False,
+            logged_in=self.logged_in,
+            login_available=self.login_available,
+            mathjax_url=self.application.ipython_app.mathjax_url,
+        )
+
 #-----------------------------------------------------------------------------
 # RST web service handlers
 #-----------------------------------------------------------------------------

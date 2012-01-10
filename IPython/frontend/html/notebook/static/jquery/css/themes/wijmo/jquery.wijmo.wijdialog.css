@@ -1,0 +1,39 @@
+.wijmo-wijdialog-captionbutton
+{
+    height: 18px;
+    padding: 1px;
+    width: 19px;
+    display: inline-block; /*margin-right:.2em;*/
+    outline: none;
+    text-align: left;
+}
+.wijmo-wijdialog-captionbutton:hover, .wijmo-wijdialog-captionbutton .ui-state-focus
+{
+    padding: 0;
+}
+.wijmo-wijdialog-captionbutton .ui-icon
+{
+    margin: 1px;
+}
+.wijmo-wijdialog .wijmo-wijdialog-hasframe
+{
+    padding: 0;
+}
+.wijmo-wijdialog-defaultdockingzone
+{
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+}
+
+.ui-dialog-titlebar
+{
+    /* extend jquery.ui.dialog.css*/
+    text-align: right;
+}
+
+/* for ie 6 minimize*/
+* html .wijmo-wijdialog-defaultdockingzone .ui-dialog-titlebar
+{
+    float: left;
+}
