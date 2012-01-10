@@ -45,8 +45,7 @@
 <div id="header">
     <span id="ipython_notebook"><h1><a href='..' alt='dashboard'><img src='/static/ipynblogo.png' alt='IPython Notebook'/></a></h1></span>
     <span id="save_widget">
-        <input type="text" id="notebook_name" size="20"></textarea>
-        <button id="save_notebook"><u>S</u>ave</button>
+        <span id="notebook_name"></span>
     </span>
 
     <span id="login_widget">
@@ -67,8 +66,9 @@
         <li><a href="#">File</a>
             <ul>
                 <li id="new_notebook"><span class="wijmo-wijmenu-text">New</span></li>
-                <li id="open_notebook"><span class="wijmo-wijmenu-text">Open</span></li>
+                <li id="open_notebook"><span class="wijmo-wijmenu-text">Open...</span></li>
                 <li></li>
+                <li id="rename_notebook"><span class="wijmo-wijmenu-text">Rename...</span></li>
                 <li id="save_notebook">
                     <div>
                         <span class="wijmo-wijmenu-text">Save</span>

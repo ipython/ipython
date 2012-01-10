@@ -52,6 +52,9 @@ var IPython = (function (IPython) {
         this.element.find('#open_notebook').click(function () {
             window.open($('body').data('baseProjectUrl'));
         });
+        this.element.find('#rename_notebook').click(function () {
+            IPython.save_widget.rename_notebook();
+        });
         this.element.find('#save_notebook').click(function () {
             IPython.save_widget.save_notebook();
         });
