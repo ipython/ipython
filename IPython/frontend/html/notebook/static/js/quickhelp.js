@@ -12,24 +12,49 @@
 var IPython = (function (IPython) {
 
     var QuickHelp = function (selector) {
-        this.selector = selector;
-        if (this.selector !== undefined) {
-            this.element = $(selector);
-            this.style();
-            this.bind_events();
-        }
     };
 
-    QuickHelp.prototype.style = function () {
-        this.element.find('button#quick_help').button();
-        this.element.find('button#quick_help').attr('title', "Show/Hide the keyboard shortcuts for the IPython Notebook");
-    };
-
-    QuickHelp.prototype.bind_events = function () {
+    QuickHelp.prototype.show_keyboard_shortcuts = function () {
+        // toggles display of keyboard shortcut dialog
         var that = this;
-        this.element.find("button#quick_help").click(function () {
-            IPython.notebook.toggle_keyboard_shortcuts();
+        if ( this.shortcut_dialog ){
+            // if dialog is already shown, close it
+            this.shortcut_dialog.dialog("close");
+            this.shortcut_dialog = null;
+            return;
+        }
+        var dialog = $('<div/>');
+        this.shortcut_dialog = dialog;
+        var shortcuts = [
+            {key: 'Shift-Enter', help: 'run cell'},
+            {key: 'Ctrl-Enter', help: 'run cell in-place'},
+            {key: 'Ctrl-m d', help: 'delete cell'},
+            {key: 'Ctrl-m a', help: 'insert cell above'},
+            {key: 'Ctrl-m b', help: 'insert cell below'},
+            {key: 'Ctrl-m t', help: 'toggle output'},
+            {key: 'Ctrl-m l', help: 'toggle line numbers'},
+            {key: 'Ctrl-m s', help: 'save notebook'},
+            {key: 'Ctrl-m j', help: 'move cell down'},
+            {key: 'Ctrl-m k', help: 'move cell up'},
+            {key: 'Ctrl-m c', help: 'code cell'},
+            {key: 'Ctrl-m m', help: 'markdown cell'},
+            {key: 'Ctrl-m p', help: 'select previous'},
+            {key: 'Ctrl-m n', help: 'select next'},
+            {key: 'Ctrl-m i', help: 'interrupt kernel'},
+            {key: 'Ctrl-m .', help: 'restart kernel'},
+            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
+        ];
+        for (var i=0; i<shortcuts.length; i++) {
+            dialog.append($('<div>').
+                append($('<span/>').addClass('shortcut_key').html(shortcuts[i].key)).
+                append($('<span/>').addClass('shortcut_descr').html(' : ' + shortcuts[i].help))
+            );
+        };
+        dialog.bind('dialogclose', function(event) {
+            // dialog has been closed, allow it to be drawn again.
+            that.shortcut_dialog = null;
         });
+        dialog.dialog({title: 'Keyboard shortcuts', closeText: ''});
     };
 
     // Set module variables

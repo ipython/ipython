@@ -60,6 +60,10 @@ span#kernel_status {
     padding: 0px;
 }
 
+.wijmo-wijmenu .wijmo-wijmenu-parent .wijmo-wijmenu-child {
+    width: 225px;
+}
+
 #kernel_persist {
     float: right;
 }
@@ -347,7 +351,7 @@ p.dialog {
 
 .shortcut_key {
     display: inline-block;
-    width: 13ex;
+    width: 15ex;
     text-align: right;
     font-family: monospace;
 }

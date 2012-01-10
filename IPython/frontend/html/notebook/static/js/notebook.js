@@ -213,50 +213,6 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.toggle_keyboard_shortcuts = function () {
-        // toggles display of keyboard shortcut dialog
-        var that = this;
-        if ( this.shortcut_dialog ){
-            // if dialog is already shown, close it
-            this.shortcut_dialog.dialog("close");
-            this.shortcut_dialog = null;
-            return;
-        }
-        var dialog = $('<div/>');
-        this.shortcut_dialog = dialog;
-        var shortcuts = [
-            {key: 'Shift-Enter', help: 'run cell'},
-            {key: 'Ctrl-Enter', help: 'run cell in-place'},
-            {key: 'Ctrl-m d', help: 'delete cell'},
-            {key: 'Ctrl-m a', help: 'insert cell above'},
-            {key: 'Ctrl-m b', help: 'insert cell below'},
-            {key: 'Ctrl-m t', help: 'toggle output'},
-            {key: 'Ctrl-m l', help: 'toggle line numbers'},
-            {key: 'Ctrl-m s', help: 'save notebook'},
-            {key: 'Ctrl-m j', help: 'move cell down'},
-            {key: 'Ctrl-m k', help: 'move cell up'},
-            {key: 'Ctrl-m c', help: 'code cell'},
-            {key: 'Ctrl-m m', help: 'markdown cell'},
-            {key: 'Ctrl-m p', help: 'select previous'},
-            {key: 'Ctrl-m n', help: 'select next'},
-            {key: 'Ctrl-m i', help: 'interrupt kernel'},
-            {key: 'Ctrl-m .', help: 'restart kernel'},
-            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
-        ];
-        for (var i=0; i<shortcuts.length; i++) {
-            dialog.append($('<div>').
-                append($('<span/>').addClass('shortcut_key').html(shortcuts[i].key)).
-                append($('<span/>').addClass('shortcut_descr').html(' : ' + shortcuts[i].help))
-            );
-        };
-        dialog.bind('dialogclose', function(event) {
-            // dialog has been closed, allow it to be drawn again.
-            that.shortcut_dialog = null;
-        });
-        dialog.dialog({title: 'Keyboard shortcuts'});
-    };
-
-
     Notebook.prototype.scroll_to_bottom = function () {
         this.element.animate({scrollTop:this.element.get(0).scrollHeight}, 0);
     };
@@ -691,6 +647,7 @@ var IPython = (function (IPython) {
             resizable: false,
             modal: true,
             title: "Restart kernel or continue running?",
+            closeText: '',
             buttons : {
                 "Restart": function () {
                     that.kernel.restart($.proxy(that.kernel_started, that));

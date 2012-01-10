@@ -48,9 +48,6 @@
         <input type="text" id="notebook_name" size="20"></textarea>
         <button id="save_notebook"><u>S</u>ave</button>
     </span>
-    <span id="quick_help_area">
-      <button id="quick_help">Quick<u>H</u>elp</button>
-    </span>
 
     <span id="login_widget">
       {% comment  This is a temporary workaround to hide the logout button %}
@@ -69,10 +66,15 @@
     <ul id="menus">
         <li><a href="#">File</a>
             <ul>
-                <li id="new_notebook"><a href="#">New</a></li>
-                <li id="open_notebook"><a href="#">Open...</a></li>
+                <li id="new_notebook"><span class="wijmo-wijmenu-text">New</span></li>
+                <li id="open_notebook"><span class="wijmo-wijmenu-text">Open</span></li>
                 <li></li>
-                <li id="save_notebook"><a href="#">Save</a></li>
+                <li id="save_notebook">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Save</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m s</span>
+                    </div>
+                </li>
                 <li></li>
                 <li><a href="#">Download as</a>
                     <ul>
@@ -82,48 +84,124 @@
                 </li>
                 <li></li>
                 <li id="print_notebook"><a href="#">Print</a></li>
-                
             </ul>
         </li>
         <li><a href="#">Edit</a>
             <ul>
-                <li id="delete_cell"><a href="#">Delete</a></li>
+                <li id="delete_cell">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Delete</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m d</span>
+                    </div>
+                </li>
                 <li></li>
-                <li id="move_cell_up"><a href="#">Move Cell Up</a></li>
-                <li id="move_cell_down"><a href="#">Move Cell Down</a></li>
+                <li id="move_cell_up">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Move Cell Up</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m k</span>
+                    </div>
+                </li>
+                <li id="move_cell_down">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Move Cell Down</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m j</span>
+                    </div>
+                </li>
+                <li></li>
+                <li id="select_previous">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Select Previous</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m p</span>
+                    </div>
+                </li>
+                <li id="select_next">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Select Next</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m n</span>
+                    </div>
+                </li>
             </ul>
         </li>
         <li><a href="#">Insert</a>
             <ul>
-                <li id="insert_cell_above"><a href="#">Insert Cell Above</a>
-                <li id="insert_cell_below"><a href="#">Insert Cell Below</a>
+                <li id="insert_cell_above">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Insert Cell Above</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m a</span>
+                    </div>
+                </li>
+                <li id="insert_cell_below">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Insert Cell Below</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m b</span>
+                    </div>
                 </li>
             </ul>
         </li>
         <li><a href="#">Cell</a>
             <ul>
-                <li id="run_cell"><a href="#">Run</a></li>
-                <li id="run_cell_in_place"><a href="#">Run in Place</a></li>
+                <li id="run_cell">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Run</span>
+                        <span class="wijmo-wijmenu-icon-right">Shift+Enter</span>
+                    </div>
+                </li>
+                <li id="run_cell_in_place">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Run in Place</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+Enter</span>
+                    </div>
+                </li>
                 <li id="run_all_cells"><a href="#">Run All</a></li>
                 <li></li>
-                <li id="to_code"><a href="#">Code Cell</a></li>
-                <li id="to_markdown"><a href="#">Markdown Cell</a></li>
+                <li id="to_code">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Code Cell</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m c</span>
+                    </div>
+                </li>
+                <li id="to_markdown">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Markdown Cell</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m s</span>
+                    </div>
+                </li>
                 <li></li>
-                <li id="toggle_output"><a href="#">Toggle Output</a></li>
+                <li id="toggle_output">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Toggle Output</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m t</span>
+                    </div>
+                </li>
                 <li id="clear_all_output"><a href="#">Clear All Output</a></li>
             </ul>
         </li>
         <li><a href="#">Kernel</a>
             <ul>
-                <li id="int_kernel"><a href="#">Interrupt</a></li>
-                <li id="restart_kernel"><a href="#">Restart</a></li>
+                <li id="int_kernel">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Interrupt</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m i</span>
+                    </div>
+                </li>
+                <li id="restart_kernel">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Restart</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m s</span>
+                    </div>
+                </li>
             </ul>
         </li>
         <li><a href="#">Help</a>
             <ul>
                 <li><a href="http://ipython.org/documentation.html" target="_blank">IPython Help</a></li>
                 <li><a href="http://ipython.org/ipython-doc/stable/interactive/htmlnotebook.html" target="_blank">Notebook Help</a></li>
-                <li><a href="#">Notebook QuickRef</a></li>
+                <li id="keyboard_shortcuts">
+                    <div>
+                        <span class="wijmo-wijmenu-text">Keyboard Shortcuts</span>
+                        <span class="wijmo-wijmenu-icon-right">Ctrl+m h</span>
+                    </div>
+                </li>
                 <li><h2>External Docs</h2></li>
                 <li><a href="http://docs.python.org" target="_blank">Python</a></li>
                 <li><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a></li>
