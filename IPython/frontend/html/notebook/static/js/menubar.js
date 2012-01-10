@@ -26,6 +26,21 @@ var IPython = (function (IPython) {
         $('ul#menus').wijmenu("option", "showDelay", 200);
         $('ul#menus').wijmenu("option", "hideDelay", 200);
         $(".selector").wijmenu("option", "animation", {animated:"fade", duration: 200, easing: null})
+        // Close all menus when a menu item is clicked. This is needed when
+        // menu shortcuts are used as they have a slightly different structure
+        // in the DOM.
+        $(".wijmo-wijmenu-text").parent().bind("click", function () {
+            $('ul#menus').wijmenu("hideAllMenus");
+            console.log('I am closing you!');
+        });
+        // Make sure we hover over menu items correctly. This is needed when
+        // menu shortcuts are used as they have a slightly different structure
+        // in the DOM.
+        $(".wijmo-wijmenu-link").hover(function () {
+            $(this).addClass("ui-state-hover");
+        }, function () {
+            $(this).removeClass("ui-state-hover");
+        });
     };
 
 
@@ -65,6 +80,12 @@ var IPython = (function (IPython) {
         this.element.find('#move_cell_down').click(function () {
             IPython.notebook.move_cell_down();
         });
+        this.element.find('#select_previous').click(function () {
+            IPython.notebook.select_prev();
+        });
+        this.element.find('#select_next').click(function () {
+            IPython.notebook.select_next();
+        });
         // Insert
         this.element.find('#insert_cell_above').click(function () {
             IPython.notebook.insert_code_cell_above();
@@ -100,6 +121,10 @@ var IPython = (function (IPython) {
         });
         this.element.find('#restart_kernel').click(function () {
             IPython.notebook.restart_kernel();
+        });
+        // Help
+        this.element.find('#keyboard_shortcuts').click(function () {
+            IPython.quick_help.show_keyboard_shortcuts();
         });
     };
 
