@@ -587,17 +587,14 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.set_timebeforetooltip = function (time) {
-        console.log("change time before tooltip to : "+time);
         this.time_before_tooltip = time;
     };
 
     Notebook.prototype.set_tooltipontab = function (state) {
-        console.log("change tooltip on tab to : "+state);
         this.tooltip_on_tab = state;
     };
 
     Notebook.prototype.set_smartcompleter = function (state) {
-        console.log("Smart completion (kwargs first) changed to  to : "+state);
         this.smart_completer = state;
     };
 

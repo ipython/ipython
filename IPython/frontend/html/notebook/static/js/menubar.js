@@ -31,7 +31,6 @@ var IPython = (function (IPython) {
         // in the DOM.
         $(".wijmo-wijmenu-text").parent().bind("click", function () {
             $('ul#menus').wijmenu("hideAllMenus");
-            console.log('I am closing you!');
         });
         // Make sure we hover over menu items correctly. This is needed when
         // menu shortcuts are used as they have a slightly different structure
