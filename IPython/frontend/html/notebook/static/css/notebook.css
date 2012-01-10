@@ -18,21 +18,23 @@ body {
 }
 
 span#save_widget {
-    padding: 2px 0px;
+    padding: 5px;
     margin: 0px 0px 0px 300px;
     display:inline-block;
+}
+
+span#notebook_name {
+    height: 1em;
+    line-height: 1em;
+    padding: 3px;
+    border: none;
+    font-size: 146.5%;
 }
 
 span#quick_help_area {
     position: static;
     padding: 5px 0px;
     margin: 0px 0px 0px 0px;
-}
-
-input#notebook_name {
-    height: 1em;
-    line-height: 1em;
-    padding: 5px;
 }
 
 span#kernel_status {
@@ -245,7 +247,7 @@ div.text_cell_render {
 .ansigrey {color: grey;}
 .ansibold {font-weight: bold;}
 
-.completions , .tooltip{
+.completions , .tooltip {
     position: absolute;
     z-index: 10;
     overflow: auto;
