@@ -55,6 +55,11 @@ var IPython = (function (IPython) {
         this.element.find('#rename_notebook').click(function () {
             IPython.save_widget.rename_notebook();
         });
+        this.element.find('#copy_notebook').click(function () {
+            var notebook_id = IPython.save_widget.get_notebook_id();
+            var url = $('body').data('baseProjectUrl') + notebook_id + '/copy';
+            window.open(url,'_newtab');
+        });
         this.element.find('#save_notebook').click(function () {
             IPython.save_widget.save_notebook();
         });
