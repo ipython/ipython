@@ -159,7 +159,7 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 72 && that.control_key_active) {
                 // Show keyboard shortcuts = h
-                that.toggle_keyboard_shortcuts();
+                IPython.quick_help.show_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
             } else if (that.control_key_active) {
