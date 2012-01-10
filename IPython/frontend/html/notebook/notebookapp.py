@@ -48,8 +48,8 @@ from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
-    ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler,
-    AuthenticatedFileHandler,
+    ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
+    RSTHandler, AuthenticatedFileHandler
 )
 from .notebookmanager import NotebookManager
 
@@ -97,6 +97,7 @@ class NotebookWebApplication(web.Application):
             (r"/logout", LogoutHandler),
             (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
+            (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
             (r"/kernels", MainKernelHandler),
             (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
             (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),

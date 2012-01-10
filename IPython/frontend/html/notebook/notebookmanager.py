@@ -253,3 +253,11 @@ class NotebookManager(LoggingConfigurable):
             current.write(nb, f, u'json')
         return notebook_id
 
+    def copy_notebook(self, notebook_id):
+        """Create a new notebook and returns its notebook_id."""
+        last_mod, nb = self.get_notebook_object(notebook_id)
+        name = nb.metadata.name + '-Copy'
+        nb.metadata.name = name
+        notebook_id = self.new_notebook_id(name)
+        self.save_notebook_object(notebook_id, nb)
+        return notebook_id
