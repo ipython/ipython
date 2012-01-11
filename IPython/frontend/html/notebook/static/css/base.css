@@ -48,10 +48,16 @@ div#main_app {
     position: relative;
 }
 
+/* We set the fonts by hand here to override the values in the theme */
 .ui-widget {
     font-family: "Lucinda Grande", "Lucinda Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
 }
 
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
+    font-family: "Lucinda Grande", "Lucinda Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+}
+
+/* Smaller buttons */
 .ui-button .ui-button-text {
     padding: 0.2em 0.8em;
     font-size: 77%;
