@@ -48,6 +48,10 @@ div#main_app {
     position: relative;
 }
 
+.ui-widget {
+    font-family: "Lucinda Grande", "Lucinda Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+}
+
 .ui-button .ui-button-text {
     padding: 0.2em 0.8em;
     font-size: 77%;
