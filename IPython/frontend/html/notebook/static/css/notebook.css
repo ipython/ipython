@@ -359,6 +359,15 @@ p.dialog {
 
 @media print {
     body { overflow: visible !important; }
+    #menubar, #pager_splitter, #pager { display: none;}
+    #header {display: none !important; }
+    #main_app { overflow: visible !important; height: !important auto; }
+    #notebook_panel { overflow: visible !important; height: !important auto; }
+    #notebook {
+        height: !important auto;
+        overflow-y: !important visible;
+        overflow-x: !important hidden;
+    }
     .ui-widget-content { border: 0px; }
 }
 
