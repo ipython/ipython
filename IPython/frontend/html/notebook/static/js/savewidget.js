@@ -67,6 +67,7 @@ var IPython = (function (IPython) {
             modal: true,
             title: "Rename Notebook",
             closeText: "",
+            close: function(event, ui) {$(this).dialog('destroy').remove();},
             buttons : {
                 "OK": function () {
                     var new_name = $(this).find('input').attr('value');
@@ -80,12 +81,10 @@ var IPython = (function (IPython) {
                         that.set_notebook_name(new_name);
                         that.save_notebook();
                         $(this).dialog('close');
-                        $(this).dialog('destroy').remove();
                     }
                 },
                 "Cancel": function () {
                     $(this).dialog('close');
-                    $(this).dialog('destroy').remove();
                 }
             }
         });
