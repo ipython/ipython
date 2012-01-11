@@ -22,24 +22,7 @@ var IPython = (function (IPython) {
 
 
     MenuBar.prototype.style = function () {
-        $('ul#menus').wijmenu();
-        $('ul#menus').wijmenu("option", "showDelay", 200);
-        $('ul#menus').wijmenu("option", "hideDelay", 200);
-        $(".selector").wijmenu("option", "animation", {animated:"fade", duration: 200, easing: null})
-        // Close all menus when a menu item is clicked. This is needed when
-        // menu shortcuts are used as they have a slightly different structure
-        // in the DOM.
-        $(".wijmo-wijmenu-text").parent().bind("click", function () {
-            $('ul#menus').wijmenu("hideAllMenus");
-        });
-        // Make sure we hover over menu items correctly. This is needed when
-        // menu shortcuts are used as they have a slightly different structure
-        // in the DOM.
-        $(".wijmo-wijmenu-link").hover(function () {
-            $(this).addClass("ui-state-hover");
-        }, function () {
-            $(this).removeClass("ui-state-hover");
-        });
+        $('ul#menus').menubar();
     };
 
 

@@ -57,8 +57,9 @@ var IPython = (function (IPython) {
             .css({'margin-bottom': '10px'})
         );
         dialog.append(
-            $('<input/>').attr('type','text')
-            .attr('value',this.get_notebook_name()).wijtextbox()
+            $('<input/>').attr('type','text').attr('size','35')
+            .addClass('ui-widget ui-widget-content')
+            .attr('value',that.get_notebook_name())
         );
         $(document).append(dialog);
         dialog.dialog({
