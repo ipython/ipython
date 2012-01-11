@@ -61,7 +61,7 @@ var IPython = (function (IPython) {
             .addClass('ui-widget ui-widget-content')
             .attr('value',that.get_notebook_name())
         );
-        $(document).append(dialog);
+        // $(document).append(dialog);
         dialog.dialog({
             resizable: false,
             modal: true,
@@ -80,10 +80,12 @@ var IPython = (function (IPython) {
                         that.set_notebook_name(new_name);
                         that.save_notebook();
                         $(this).dialog('close');
+                        $(this).dialog('destroy').remove();
                     }
                 },
                 "Cancel": function () {
                     $(this).dialog('close');
+                    $(this).dialog('destroy').remove();
                 }
             }
         });
