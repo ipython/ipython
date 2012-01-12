@@ -28,6 +28,8 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.style = function () {
         this.element.find('span#save_widget').addClass('ui-widget');
         this.element.find('span#notebook_name').addClass('ui-widget ui-widget-content');
+        this.element.find('span#save_status').addClass('ui-widget ui-widget-content')
+            .css({border: 'none', 'margin-left': '20px'});
     };
 
 
@@ -137,24 +139,34 @@ var IPython = (function (IPython) {
     };
 
 
+    SaveWidget.prototype.set_last_saved = function () {
+        var d = new Date();
+        $('#save_status').html('Last saved: '+d.format('mmm dd h:MM TT'));
+        
+    };
+
     SaveWidget.prototype.reset_status = function () {
-        this.is_renaming();
+        this.element.find('span#save_status').html('');
     };
 
 
-    SaveWidget.prototype.status_save = function () {
+    SaveWidget.prototype.status_last_saved = function () {
+        this.set_last_saved();
     };
 
 
     SaveWidget.prototype.status_saving = function () {
+        this.element.find('span#save_status').html('Saving...');
+    };
+
+
+    SaveWidget.prototype.status_save_failed = function () {
+        this.element.find('span#save_status').html('Save failed');
     };
 
 
     SaveWidget.prototype.status_loading = function () {
-    };
-
-
-    SaveWidget.prototype.status_rename = function () {
+        this.element.find('span#save_status').html('Loading...');
     };
 
 
