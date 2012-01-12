@@ -88,6 +88,21 @@ var IPython = (function (IPython) {
             } else if (event.which === 77 && event.ctrlKey) {
                 that.control_key_active = true;
                 return false;
+            } else if (event.which === 88 && that.control_key_active) {
+                // Cut selected cell = x
+                that.cut_cell();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 67 && that.control_key_active) {
+                // Copy selected cell = c
+                that.copy_cell();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 86 && that.control_key_active) {
+                // Paste selected cell = v
+                that.paste_cell();
+                that.control_key_active = false;
+                return false;
             } else if (event.which === 68 && that.control_key_active) {
                 // Delete selected cell = d
                 that.delete_cell();
@@ -103,8 +118,8 @@ var IPython = (function (IPython) {
                 that.insert_code_cell_below();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 67 && that.control_key_active) {
-                // To code = c
+            } else if (event.which === 89 && that.control_key_active) {
+                // To code = y
                 that.to_code();
                 that.control_key_active = false;
                 return false;
