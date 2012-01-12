@@ -79,43 +79,16 @@ $(document).ready(function () {
     $('div#main_app').addClass('border-box-sizing ui-widget ui-widget-content');
     $('div#notebook_panel').addClass('border-box-sizing ui-widget');
 
-    IPython.layout_manager = new IPython.LayoutManager();
-    IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
-    IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.notebook = new IPython.Notebook('div#notebook');
-    IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
-    IPython.menubar = new IPython.MenuBar('#menubar')
-    IPython.kernel_status_widget.status_idle();
-
-    IPython.layout_manager.do_resize();
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.
     $('div#header').css('display','block');
-
-    if(IPython.read_only){
-        // hide various elements from read-only view
-        $('div#pager').remove();
-        $('div#pager_splitter').remove();
-        $('span#login_widget').removeClass('hidden');
-
-        // set the notebook name field as not modifiable
-        $('#notebook_name').attr('disabled','disabled')
-    }
-
     $('div#main_app').css('display','block');
 
     // Perform these actions after the notebook has been loaded.
-    // We wait 100 milliseconds because the notebook scrolls to the top after a load
-    // is completed and we need to wait for that to mostly finish.
-    IPython.notebook.load_notebook(function () {
-        setTimeout(function () {
-            IPython.save_widget.update_url();
-            IPython.layout_manager.do_resize();
-            IPython.pager.collapse();
-        },100);
-    });
+    IPython.notebook.load_notebook(function () {});
 
 });
 

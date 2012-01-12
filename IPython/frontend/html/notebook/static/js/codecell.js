@@ -311,9 +311,6 @@ var IPython = (function (IPython) {
         {
             if(this.npressed >fallback_on_tooltip_after  && this.prevmatch==matched_text)
             {
-                console.log('Ok, you really want to complete after pressing tab '+this.npressed+' times !');
-                console.log('You should understand that there is no (more) completion for that !');
-                console.log("I'll show you the tooltip, will you stop bothering me ?");
                 this.request_tooltip_after_time(matched_text+'(',0);
                 return;
             }
@@ -483,12 +480,10 @@ var IPython = (function (IPython) {
                 re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
                 filterd = matches.filter(function(x){return re.test(x)});
                 complete_with(filterd,matched_text+typed_characters,autopick,event);
-            } else if( code == key.esc) {
+            } else if (code == key.esc) {
                 // dismiss the completer and go back to before invoking it
                 insert(matched_text,event);
-            } else if( press ){ // abort only on .keypress or esc
-                // abort with what the user have pressed until now
-                console.log('aborting with keycode : '+code+' is down :'+down);
+            } else if (press) { // abort only on .keypress or esc
             }
         }
         select.keydown(function (event) {
@@ -790,7 +785,6 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.fromJSON = function (data) {
-        console.log('Import from JSON:', data);
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
                 this.set_code(data.input);
@@ -828,7 +822,6 @@ var IPython = (function (IPython) {
         data.outputs = outputs;
         data.language = 'python';
         data.collapsed = this.collapsed;
-        // console.log('Export to JSON:',data);
         return data;
     };
 

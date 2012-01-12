@@ -20,6 +20,7 @@ var IPython = (function (IPython) {
         this.element.data("notebook", this);
         this.next_prompt_number = 1;
         this.kernel = null;
+        this.clipboard = null;
         this.dirty = false;
         this.msg_cell_map = {};
         this.metadata = {};
@@ -30,6 +31,7 @@ var IPython = (function (IPython) {
         this.set_tooltipontab(true);
         this.set_smartcompleter(true);
         this.set_timebeforetooltip(1200);
+        this.set_autoindent(true);
     };
 
 
@@ -86,6 +88,21 @@ var IPython = (function (IPython) {
             } else if (event.which === 77 && event.ctrlKey) {
                 that.control_key_active = true;
                 return false;
+            } else if (event.which === 88 && that.control_key_active) {
+                // Cut selected cell = x
+                that.cut_cell();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 67 && that.control_key_active) {
+                // Copy selected cell = c
+                that.copy_cell();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 86 && that.control_key_active) {
+                // Paste selected cell = v
+                that.paste_cell();
+                that.control_key_active = false;
+                return false;
             } else if (event.which === 68 && that.control_key_active) {
                 // Delete selected cell = d
                 that.delete_cell();
@@ -101,8 +118,8 @@ var IPython = (function (IPython) {
                 that.insert_code_cell_below();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 67 && that.control_key_active) {
-                // To code = c
+            } else if (event.which === 89 && that.control_key_active) {
+                // To code = y
                 that.to_code();
                 that.control_key_active = false;
                 return false;
@@ -158,7 +175,7 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 72 && that.control_key_active) {
                 // Show keyboard shortcuts = h
-                that.toggle_keyboard_shortcuts();
+                IPython.quick_help.show_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
             } else if (that.control_key_active) {
@@ -197,7 +214,8 @@ var IPython = (function (IPython) {
         });
 
         $(window).bind('beforeunload', function () {
-            var kill_kernel = $('#kill_kernel').prop('checked');
+            // TODO: Make killing the kernel configurable.
+            var kill_kernel = false;
             if (kill_kernel) {
                 that.kernel.kill();
             }
@@ -208,50 +226,6 @@ var IPython = (function (IPython) {
             // pop up the "don't leave" dialog.
             return null;
         });
-    };
-
-
-    Notebook.prototype.toggle_keyboard_shortcuts = function () {
-        // toggles display of keyboard shortcut dialog
-        var that = this;
-        if ( this.shortcut_dialog ){
-            // if dialog is already shown, close it
-            this.shortcut_dialog.dialog("close");
-            this.shortcut_dialog = null;
-            return;
-        }
-        var dialog = $('<div/>');
-        this.shortcut_dialog = dialog;
-        var shortcuts = [
-            {key: 'Shift-Enter', help: 'run cell'},
-            {key: 'Ctrl-Enter', help: 'run cell in-place'},
-            {key: 'Ctrl-m d', help: 'delete cell'},
-            {key: 'Ctrl-m a', help: 'insert cell above'},
-            {key: 'Ctrl-m b', help: 'insert cell below'},
-            {key: 'Ctrl-m t', help: 'toggle output'},
-            {key: 'Ctrl-m l', help: 'toggle line numbers'},
-            {key: 'Ctrl-m s', help: 'save notebook'},
-            {key: 'Ctrl-m j', help: 'move cell down'},
-            {key: 'Ctrl-m k', help: 'move cell up'},
-            {key: 'Ctrl-m c', help: 'code cell'},
-            {key: 'Ctrl-m m', help: 'markdown cell'},
-            {key: 'Ctrl-m p', help: 'select previous'},
-            {key: 'Ctrl-m n', help: 'select next'},
-            {key: 'Ctrl-m i', help: 'interrupt kernel'},
-            {key: 'Ctrl-m .', help: 'restart kernel'},
-            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
-        ];
-        for (var i=0; i<shortcuts.length; i++) {
-            dialog.append($('<div>').
-                append($('<span/>').addClass('shortcut_key').html(shortcuts[i].key)).
-                append($('<span/>').addClass('shortcut_descr').html(' : ' + shortcuts[i].help))
-            );
-        };
-        dialog.bind('dialogclose', function(event) {
-            // dialog has been closed, allow it to be drawn again.
-            that.shortcut_dialog = null;
-        });
-        dialog.dialog({title: 'Keyboard shortcuts'});
     };
 
 
@@ -362,7 +336,6 @@ var IPython = (function (IPython) {
 
 
     // Cell insertion, deletion and moving.
-
 
     Notebook.prototype.delete_cell = function (index) {
         var i = index || this.selected_index();
@@ -605,6 +578,91 @@ var IPython = (function (IPython) {
     };
 
 
+    // Copy/Paste
+
+    Notebook.prototype.enable_paste = function () {
+        var that = this;
+        $('#paste_cell').removeClass('ui-state-disabled')
+            .on('click', function () {that.paste_cell();});
+        $('#paste_cell_above').removeClass('ui-state-disabled')
+            .on('click', function () {that.paste_cell_above();});
+        $('#paste_cell_below').removeClass('ui-state-disabled')
+            .on('click', function () {that.paste_cell_below();});
+    };
+
+
+    Notebook.prototype.disable_paste = function () {
+        $('#paste_cell').addClass('ui-state-disabled').off('click');
+        $('#paste_cell_above').addClass('ui-state-disabled').off('click');
+        $('#paste_cell_below').addClass('ui-state-disabled').off('click');
+    };
+
+
+    Notebook.prototype.cut_cell = function () {
+        this.copy_cell();
+        this.delete_cell();
+    }
+
+    Notebook.prototype.copy_cell = function () {
+        var cell = this.selected_cell();
+        this.clipboard = cell.toJSON();
+        this.enable_paste();
+    };
+
+
+    Notebook.prototype.paste_cell = function () {
+        if (this.clipboard !== null) {
+            var cell_data = this.clipboard;
+            if (cell_data.cell_type == 'code') {
+                new_cell = this.insert_code_cell_above();
+                new_cell.fromJSON(cell_data);
+            } else if (cell_data.cell_type === 'html') {
+                new_cell = this.insert_html_cell_above();
+                new_cell.fromJSON(cell_data);
+            } else if (cell_data.cell_type === 'markdown') {
+                new_cell = this.insert_markdown_cell_above();
+                new_cell.fromJSON(cell_data);
+            };
+        };
+        this.select_next();
+        this.delete_cell();
+    };
+
+
+    Notebook.prototype.paste_cell_above = function () {
+        if (this.clipboard !== null) {
+            var cell_data = this.clipboard;
+            if (cell_data.cell_type == 'code') {
+                new_cell = this.insert_code_cell_above();
+                new_cell.fromJSON(cell_data);
+            } else if (cell_data.cell_type === 'html') {
+                new_cell = this.insert_html_cell_above();
+                new_cell.fromJSON(cell_data);
+            } else if (cell_data.cell_type === 'markdown') {
+                new_cell = this.insert_markdown_cell_above();
+                new_cell.fromJSON(cell_data);
+            };
+        };
+    };
+
+
+    Notebook.prototype.paste_cell_below = function () {
+        if (this.clipboard !== null) {
+            var cell_data = this.clipboard;
+            if (cell_data.cell_type == 'code') {
+                new_cell = this.insert_code_cell_above();
+                new_cell.fromJSON(cell_data);
+            } else if (cell_data.cell_type === 'html') {
+                new_cell = this.insert_html_cell_above();
+                new_cell.fromJSON(cell_data);
+            } else if (cell_data.cell_type === 'markdown') {
+                new_cell = this.insert_markdown_cell_above();
+                new_cell.fromJSON(cell_data);
+            };
+        };
+    };
+
+
     // Cell collapsing and output clearing
 
     Notebook.prototype.collapse = function (index) {
@@ -629,17 +687,14 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.set_timebeforetooltip = function (time) {
-        console.log("change time before tooltip to : "+time);
         this.time_before_tooltip = time;
     };
 
     Notebook.prototype.set_tooltipontab = function (state) {
-        console.log("change tooltip on tab to : "+state);
         this.tooltip_on_tab = state;
     };
 
     Notebook.prototype.set_smartcompleter = function (state) {
-        console.log("Smart completion (kwargs first) changed to  to : "+state);
         this.smart_completer = state;
     };
 
@@ -689,6 +744,7 @@ var IPython = (function (IPython) {
             resizable: false,
             modal: true,
             title: "Restart kernel or continue running?",
+            closeText: '',
             buttons : {
                 "Restart": function () {
                     that.kernel.restart($.proxy(that.kernel_started, that));
@@ -969,7 +1025,7 @@ var IPython = (function (IPython) {
                     new_cell = this.insert_markdown_cell_below();
                     new_cell.fromJSON(cell_data);
                 };
-            };          
+            };
         };
     };
 
@@ -1017,15 +1073,12 @@ var IPython = (function (IPython) {
     Notebook.prototype.notebook_saved = function (data, status, xhr) {
         this.dirty = false;
         IPython.save_widget.notebook_saved();
-        IPython.save_widget.status_save();
+        IPython.save_widget.status_last_saved();
     };
 
 
     Notebook.prototype.notebook_save_failed = function (xhr, status, error_msg) {
-        // Notify the user and reset the save button
-        // TODO: Handle different types of errors (timeout etc.)
-        alert('An unexpected error occured while saving the notebook.');
-        IPython.save_widget.reset_status();
+        IPython.save_widget.status_save_failed();
     };
 
 
@@ -1057,7 +1110,7 @@ var IPython = (function (IPython) {
         if (this.ncells() === 0) {
             this.insert_code_cell_below();
         };
-        IPython.save_widget.status_save();
+        IPython.save_widget.status_last_saved();
         IPython.save_widget.set_notebook_name(data.metadata.name);
         this.dirty = false;
         if (! this.read_only) {

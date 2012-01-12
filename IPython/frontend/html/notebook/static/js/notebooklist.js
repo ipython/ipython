@@ -112,7 +112,7 @@ var IPython = (function (IPython) {
         var new_item_name = $('<span/>').addClass('item_name');
         new_item_name.append(
             $('<a/>').
-            attr('href', $('body').data('baseProjectURL')+notebook_id).
+            attr('href', $('body').data('baseProjectUrl')+notebook_id).
             attr('target','_blank').
             text(nbname)
         );

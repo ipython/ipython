@@ -26,24 +26,22 @@ var IPython = (function (IPython) {
 
 
     SaveWidget.prototype.style = function () {
-        this.element.find('input#notebook_name').addClass('ui-widget ui-widget-content');
-        this.element.find('input#notebook_name').attr('tabindex','1');
-        this.element.find('button#save_notebook').button();
-        this.element.find('button#save_notebook').attr('title', 'Save the Notebook');
-        var left_panel_width = $('div#left_panel').outerWidth();
-        var left_panel_splitter_width = $('div#left_panel_splitter').outerWidth();
-        $('span#save_widget').css({marginLeft:left_panel_width+left_panel_splitter_width});
-
+        this.element.find('span#save_widget').addClass('ui-widget');
+        this.element.find('span#notebook_name').addClass('ui-widget ui-widget-content');
+        this.element.find('span#save_status').addClass('ui-widget ui-widget-content')
+            .css({border: 'none', 'margin-left': '20px'});
     };
 
 
     SaveWidget.prototype.bind_events = function () {
         var that = this;
-        this.element.find('button#save_notebook').click(function () {
-            that.save_notebook();
+        this.element.find('span#notebook_name').click(function () {
+            that.rename_notebook();
         });
-        this.element.find('input#notebook_name').keyup(function () {
-            that.is_renaming();
+        this.element.find('span#notebook_name').hover(function () {
+            $(this).addClass("ui-state-hover");
+        }, function () {
+            $(this).removeClass("ui-state-hover");
         });
     };
 
@@ -53,28 +51,60 @@ var IPython = (function (IPython) {
     };
 
 
+    SaveWidget.prototype.rename_notebook = function () {
+        var that = this;
+        var dialog = $('<div/>');
+        dialog.append(
+            $('<h3/>').html('Enter a new notebook name:')
+            .css({'margin-bottom': '10px'})
+        );
+        dialog.append(
+            $('<input/>').attr('type','text').attr('size','25')
+            .addClass('ui-widget ui-widget-content')
+            .attr('value',that.get_notebook_name())
+        );
+        // $(document).append(dialog);
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Rename Notebook",
+            closeText: "",
+            close: function(event, ui) {$(this).dialog('destroy').remove();},
+            buttons : {
+                "OK": function () {
+                    var new_name = $(this).find('input').attr('value');
+                    if (!that.test_notebook_name(new_name)) {
+                        $(this).find('h3').html(
+                            "Invalid notebook name. " +
+                            "Notebook names can contain any characters " +
+                            "except / and \\. Please enter a new notebook name:"
+                        );
+                    } else {
+                        that.set_notebook_name(new_name);
+                        that.save_notebook();
+                        $(this).dialog('close');
+                    }
+                },
+                "Cancel": function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
+    }
+
     SaveWidget.prototype.notebook_saved = function () {
         this.set_document_title();
         this.last_saved_name = this.get_notebook_name();
     };
 
 
-    SaveWidget.prototype.is_renaming = function () {
-        if (this.get_notebook_name() !== this.last_saved_name) {
-            this.status_rename();
-        } else {
-            this.status_save();
-        };
-    };
-
-
     SaveWidget.prototype.get_notebook_name = function () {
-        return this.element.find('input#notebook_name').attr('value');
+        return this.element.find('span#notebook_name').html();
     };
 
 
     SaveWidget.prototype.set_notebook_name = function (nbname) {
-        this.element.find('input#notebook_name').attr('value',nbname);
+        this.element.find('span#notebook_name').html(nbname);
         this.set_document_title();
         this.last_saved_name = nbname;
     };
@@ -94,58 +124,49 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.update_url = function () {
         var notebook_id = this.get_notebook_id();
         if (notebook_id !== '') {
-            window.history.replaceState({}, '', notebook_id);
+            var new_url = '/'+notebook_id;
+            window.history.replaceState({}, '', new_url);
         };
     };
 
 
-    SaveWidget.prototype.test_notebook_name = function () {
-        var nbname = this.get_notebook_name();
+    SaveWidget.prototype.test_notebook_name = function (nbname) {
         if (this.notebook_name_blacklist_re.test(nbname) == false) {
             return true;
         } else {
-            var bad_name = $('<div/>');
-            bad_name.html(
-                "The notebook name you entered (" +
-                nbname +
-                ") is not valid. Notebook names can contain any characters except / and \\."
-            );
-            bad_name.dialog({title: 'Invalid name', modal: true});
             return false;
         };
     };
 
 
+    SaveWidget.prototype.set_last_saved = function () {
+        var d = new Date();
+        $('#save_status').html('Last saved: '+d.format('mmm dd h:MM TT'));
+        
+    };
+
     SaveWidget.prototype.reset_status = function () {
-        this.is_renaming();
+        this.element.find('span#save_status').html('');
     };
 
 
-    SaveWidget.prototype.status_save = function () {
-        this.element.find('button#save_notebook').button('option', 'label', '<u>S</u>ave');
-        this.element.find('button#save_notebook').button('enable');
-        IPython.print_widget.enable();
+    SaveWidget.prototype.status_last_saved = function () {
+        this.set_last_saved();
     };
 
 
     SaveWidget.prototype.status_saving = function () {
-        this.element.find('button#save_notebook').button('option', 'label', 'Saving');
-        this.element.find('button#save_notebook').button('disable');
-        IPython.print_widget.disable();
+        this.element.find('span#save_status').html('Saving...');
+    };
+
+
+    SaveWidget.prototype.status_save_failed = function () {
+        this.element.find('span#save_status').html('Save failed');
     };
 
 
     SaveWidget.prototype.status_loading = function () {
-        this.element.find('button#save_notebook').button('option', 'label', 'Loading');
-        this.element.find('button#save_notebook').button('disable');
-        IPython.print_widget.disable();
-    };    
-
-
-    SaveWidget.prototype.status_rename = function () {
-        this.element.find('button#save_notebook').button('option', 'label', 'Rename');
-        this.element.find('button#save_notebook').button('enable');
-        IPython.print_widget.enable();
+        this.element.find('span#save_status').html('Loading...');
     };
 
 
