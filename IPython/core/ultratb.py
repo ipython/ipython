@@ -100,6 +100,7 @@ from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
+from IPython.utils import pyfile
 from IPython.utils.data import uniq_stable
 from IPython.utils.warn import info, error
 
@@ -873,6 +874,8 @@ class VerboseTB(TBTools):
             tokeneater.name_cont = False
 
             def linereader(file=file, lnum=[lnum], getline=linecache.getline):
+                if file.endswith(('.pyc','.pyo')):
+                    file = pyfile.source_from_cache(file)
                 line = getline(file, lnum[0])
                 lnum[0] += 1
                 return line
