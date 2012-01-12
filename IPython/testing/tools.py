@@ -51,8 +51,8 @@ from IPython.utils.text import list_strings, getdefaultencoding
 from IPython.utils.io import temp_pyfile, Tee
 from IPython.utils import py3compat
 
-from . import decorators as dec
-from . import skipdoctest
+from IPython.testing import decorators as dec
+from IPython.testing import skipdoctest
 
 #-----------------------------------------------------------------------------
 # Globals

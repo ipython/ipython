@@ -76,7 +76,7 @@ class IPython2PythonConverter(object):
 
     def __call__(self, ds):
         """Convert IPython prompts to python ones in a string."""
-        from . import globalipapp
+        from IPython.testing import globalipapp
 
         pyps1 = '>>> '
         pyps2 = '... '

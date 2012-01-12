@@ -23,7 +23,7 @@ import warnings
 
 from IPython.testing.skipdoctest import skip_doctest
 
-from . import map as Map
+from IPython.parallel.client import map as Map
 from .asyncresult import AsyncMapResult
 
 #-----------------------------------------------------------------------------
