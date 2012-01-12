@@ -285,6 +285,26 @@ class NamedNotebookHandler(AuthenticatedHandler):
         )
 
 
+class PrintNotebookHandler(AuthenticatedHandler):
+
+    @authenticate_unless_readonly
+    def get(self, notebook_id):
+        nbm = self.application.notebook_manager
+        project = nbm.notebook_dir
+        if not nbm.notebook_exists(notebook_id):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+        
+        self.render(
+            'printnotebook.html', project=project,
+            notebook_id=notebook_id,
+            base_project_url=u'/', base_kernel_url=u'/',
+            kill_kernel=False,
+            read_only=self.read_only,
+            logged_in=self.logged_in,
+            login_available=self.login_available,
+            mathjax_url=self.application.ipython_app.mathjax_url,
+        )
+
 #-----------------------------------------------------------------------------
 # Kernel handlers
 #-----------------------------------------------------------------------------
