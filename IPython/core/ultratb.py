@@ -832,47 +832,6 @@ class VerboseTB(TBTools):
                     # disabled.
                     call = tpl_call_fail % func
 
-            # Initialize a list of names on the current line, which the
-            # tokenizer below will populate.
-            names = []
-
-            def tokeneater(token_type, token, start, end, line):
-                """Stateful tokeneater which builds dotted names.
-
-                The list of names it appends to (from the enclosing scope) can
-                contain repeated composite names.  This is unavoidable, since
-                there is no way to disambguate partial dotted structures until
-                the full list is known.  The caller is responsible for pruning
-                the final list of duplicates before using it."""
-
-                # build composite names
-                if token == '.':
-                    try:
-                        names[-1] += '.'
-                        # store state so the next token is added for x.y.z names
-                        tokeneater.name_cont = True
-                        return
-                    except IndexError:
-                        pass
-                if token_type == tokenize.NAME and token not in keyword.kwlist:
-                    if tokeneater.name_cont:
-                        # Dotted names
-                        names[-1] += token
-                        tokeneater.name_cont = False
-                    else:
-                        # Regular new names.  We append everything, the caller
-                        # will be responsible for pruning the list later.  It's
-                        # very tricky to try to prune as we go, b/c composite
-                        # names can fool us.  The pruning at the end is easy
-                        # to do (or the caller can print a list with repeated
-                        # names if so desired.
-                        names.append(token)
-                elif token_type == tokenize.NEWLINE:
-                    raise IndexError
-            # we need to store a bit of state in the tokenizer to build
-            # dotted names
-            tokeneater.name_cont = False
-
             def linereader(file=file, lnum=[lnum], getline=linecache.getline):
                 if file.endswith(('.pyc','.pyo')):
                     file = pyfile.source_from_cache(file)
@@ -883,10 +842,32 @@ class VerboseTB(TBTools):
             # Build the list of names on this line of code where the exception
             # occurred.
             try:
-                # This builds the names list in-place by capturing it from the
-                # enclosing scope.
-                for token in generate_tokens(linereader):
-                    tokeneater(*token)
+                names = []
+                name_cont = False
+                
+                for token_type, token, start, end, line in generate_tokens(linereader):
+                    # build composite names
+                    if token_type == tokenize.NAME and token not in keyword.kwlist:
+                        if name_cont:
+                            # Continuation of a dotted name
+                            try:
+                                names[-1].append(token)
+                            except IndexError:
+                                names.append([token])
+                            name_cont = False
+                        else:
+                            # Regular new names.  We append everything, the caller
+                            # will be responsible for pruning the list later.  It's
+                            # very tricky to try to prune as we go, b/c composite
+                            # names can fool us.  The pruning at the end is easy
+                            # to do (or the caller can print a list with repeated
+                            # names if so desired.
+                            names.append([token])
+                    elif token == '.':
+                        name_cont = True
+                    elif token_type == tokenize.NEWLINE:
+                        break
+                        
             except (IndexError, UnicodeDecodeError):
                 # signals exit of tokenizer
                 pass
@@ -896,6 +877,8 @@ class VerboseTB(TBTools):
                       "The error message is: %s\n" % msg)
                 error(_m)
 
+            # Join composite names (e.g. "dict.fromkeys")
+            names = ['.'.join(n) for n in names]
             # prune names list of duplicates, but keep the right order
             unique_names = uniq_stable(names)
 
