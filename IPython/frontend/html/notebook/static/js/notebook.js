@@ -973,15 +973,12 @@ var IPython = (function (IPython) {
     Notebook.prototype.notebook_saved = function (data, status, xhr) {
         this.dirty = false;
         IPython.save_widget.notebook_saved();
-        IPython.save_widget.status_save();
+        IPython.save_widget.status_last_saved();
     };
 
 
     Notebook.prototype.notebook_save_failed = function (xhr, status, error_msg) {
-        // Notify the user and reset the save button
-        // TODO: Handle different types of errors (timeout etc.)
-        alert('An unexpected error occured while saving the notebook.');
-        IPython.save_widget.reset_status();
+        IPython.save_widget.status_save_failed();
     };
 
 
@@ -1013,7 +1010,7 @@ var IPython = (function (IPython) {
         if (this.ncells() === 0) {
             this.insert_code_cell_below();
         };
-        IPython.save_widget.status_save();
+        IPython.save_widget.status_last_saved();
         IPython.save_widget.set_notebook_name(data.metadata.name);
         this.dirty = false;
         if (! this.read_only) {
