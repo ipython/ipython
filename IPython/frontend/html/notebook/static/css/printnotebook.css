@@ -1,12 +1,12 @@
-body { overflow: auto; }
-div#notebook { overflow: visible; }
+body { overflow: visible !important; }
+div#notebook { overflow: visible !important; }
 .ui-widget-content { border: 0px; }
 #save_widget {margin: 0px !important;}
-#ipython_notebook {display: none;}
-span#notebook_name {
+#header {display: none !important;}
+/*span#notebook_name {
     height: 1em;
     line-height: 1em;
     padding: 3px;
     border: none;
     font-size: 182%;
-}
+}*/
