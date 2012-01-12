@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="/static/css/layout.css" type="text/css" />
     <link rel="stylesheet" href="/static/css/base.css" type="text/css" />
     <link rel="stylesheet" href="/static/css/notebook.css" type="text/css" />
+    <link rel="stylesheet" href="/static/css/printnotebook.css" type="text/css" />
     <link rel="stylesheet" href="/static/css/renderedhtml.css" type="text/css" />
 
     {% comment  In the notebook, the read-only flag is used to determine %}
@@ -58,89 +59,13 @@
       {% end %}
     </span>
 
-    <span id="kernel_status">Idle</span>
 </div>
 
-<div id="menubar">
-    <ul id="menus">
-        <li><a href="#">File</a>
-            <ul>
-                <li id="new_notebook"><a href="#">New</a></li>
-                <li id="open_notebook"><a href="#">Open...</a></li>
-                <hr/>
-                <li id="copy_notebook"><a href="#">Make a Copy...</a></li>
-                <li id="rename_notebook"><a href="#">Rename...</a></li>
-                <li id="save_notebook"><a href="#">Save</a></li>
-                <hr/>
-                <li><a href="#">Download as</a>
-                    <ul>
-                        <li id="download_ipynb"><a href="#">IPython (.ipynb)</a></li>
-                        <li id="download_py"><a href="#">Python (.py)</a></li>
-                    </ul>
-                </li>
-                <hr/>
-                <li id="print_notebook"><a href="/{{notebook_id}}/print" target="_blank">Print View</a></li>
-            </ul>
-        </li>
-        <li><a href="#">Edit</a>
-            <ul>
-                <li id="delete_cell"><a href="#">Delete</a></li>
-                <hr/>
-                <li id="move_cell_up"><a href="#">Move Cell Up</a></li>
-                <li id="move_cell_down"><a href="#">Move Cell Down</a></li>
-                <hr/>
-                <li id="select_previous"><a href="#">Select Previous</a></li>
-                <li id="select_next"><a href="#">Select Next</a></li>
-            </ul>
-        </li>
-        <li><a href="#">Insert</a>
-            <ul>
-                <li id="insert_cell_above"><a href="#">Insert Cell Above</a></li>
-                <li id="insert_cell_below"><a href="#">Insert Cell Below</a></li>
-            </ul>
-        </li>
-        <li><a href="#">Cell</a>
-            <ul>
-                <li id="run_cell"><a href="#">Run</a></li>
-                <li id="run_cell_in_place"><a href="#">Run in Place</a></li>
-                <li id="run_all_cells"><a href="#">Run All</a></li>
-                <hr/>
-                <li id="to_code"><a href="#">Code Cell</a></li>
-                <li id="to_markdown"><a href="#">Markdown Cell</a></li>
-                <hr/>
-                <li id="toggle_output"><a href="#">Toggle Output</a></li>
-                <li id="clear_all_output"><a href="#">Clear All Output</a></li>
-            </ul>
-        </li>
-        <li><a href="#">Kernel</a>
-            <ul>
-                <li id="int_kernel"><a href="#">Interrupt</a></li>
-                <li id="restart_kernel"><a href="#">Restart</a></li>
-            </ul>
-        </li>
-        <li><a href="#">Help</a>
-            <ul>
-                <li><a href="http://ipython.org/documentation.html" target="_blank">IPython Help</a></li>
-                <li><a href="http://ipython.org/ipython-doc/stable/interactive/htmlnotebook.html" target="_blank">Notebook Help</a></li>
-                <li id="keyboard_shortcuts"><a href="#">Keyboard Shortcuts</a></li>
-                <hr/>
-                <li><a href="http://docs.python.org" target="_blank">Python</a></li>
-                <li><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a></li>
-                <li><a href="http://docs.scipy.org/doc/scipy/reference/" target="_blank">SciPy</a></li>
-                <li><a href="http://docs.sympy.org/dev/index.html" target="_blank">SymPy</a></li>
-                <li><a href="http://matplotlib.sourceforge.net/" target="_blank">Matplotlib</a></li>
-            </ul>
-        </li>
-    </ul>
-
-</div>
 
 <div id="main_app">
 
     <div id="notebook_panel">
         <div id="notebook"></div>
-        <div id="pager_splitter"></div>
-        <div id="pager"></div>
     </div>
 
 </div>
@@ -169,14 +94,10 @@
 <script src="/static/js/textcell.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/kernel.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/kernelstatus.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/layout.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/savewidget.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/quickhelp.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/loginwidget.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/pager.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/menubar.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/notebook.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/notebookmain.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/js/printnotebookmain.js" type="text/javascript" charset="utf-8"></script>
 
 </body>
 
