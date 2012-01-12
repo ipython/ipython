@@ -178,7 +178,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         """ Create and return new frontend attached to new kernel, launched on localhost.
         """
         ip = self.ip if self.ip in LOCAL_IPS else LOCALHOST
-        kernel_manager = QtKernelManager(
+        kernel_manager = self.kernel_manager_class(
                                 ip=ip,
                                 connection_file=self._new_connection_file(),
                                 config=self.config,
@@ -204,7 +204,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         current_widget : IPythonWidget
             The IPythonWidget whose kernel this frontend is to share
         """
-        kernel_manager = QtKernelManager(
+        kernel_manager = self.kernel_manager_class(
                                 connection_file=current_widget.kernel_manager.connection_file,
                                 config = self.config,
         )
