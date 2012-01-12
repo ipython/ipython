@@ -61,6 +61,12 @@ var IPython = (function (IPython) {
             IPython.print_widget.print_notebook();
         });
         // Edit
+        this.element.find('#cut_cell').click(function () {
+            IPython.notebook.cut_cell();
+        });
+        this.element.find('#copy_cell').click(function () {
+            IPython.notebook.copy_cell();
+        });
         this.element.find('#delete_cell').click(function () {
             IPython.notebook.delete_cell();
         });
