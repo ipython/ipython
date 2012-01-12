@@ -19,7 +19,7 @@ from __future__ import print_function
 import nose.tools as nt
 
 # Our own imports
-from .. import oinspect
+from IPython.core import oinspect
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
