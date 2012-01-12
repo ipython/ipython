@@ -794,15 +794,7 @@ class VerboseTB(TBTools):
                 # keep the original file string.
                 pass
             link = tpl_link % file
-            try:
-                args, varargs, varkw, locals = inspect.getargvalues(frame)
-            except:
-                # This can happen due to a bug in python2.3.  We should be
-                # able to remove this try/except when 2.4 becomes a
-                # requirement.  Bug details at http://python.org/sf/1005466
-                inspect_error()
-                traceback.print_exc(file=self.ostream)
-                info("\nIPython's exception reporting continues...\n")
+            args, varargs, varkw, locals = inspect.getargvalues(frame)
 
             if func == '?':
                 call = ''
