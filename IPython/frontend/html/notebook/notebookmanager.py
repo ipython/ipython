@@ -237,7 +237,12 @@ class NotebookManager(LoggingConfigurable):
         self.delete_notebook_id(notebook_id)
 
     def increment_filename(self, basename):
-        """Return a non-used filename of the form basename0."""
+        """Return a non-used filename of the form basename<int>.
+        
+        This searches through the filenames (basename0, basename1, ...)
+        until is find one that is not already being used. It is used to
+        create Untitled and Copy names that are unique.
+        """
         i = 0
         while True:
             name = u'%s%i' % (basename,i)
