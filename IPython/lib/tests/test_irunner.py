@@ -13,7 +13,6 @@ import unittest
 
 # IPython imports
 from IPython.lib import irunner
-from IPython.testing.decorators import known_failure_py3
 from IPython.utils.py3compat import doctest_refactor_print
 
 # Testing code begins
@@ -58,8 +57,6 @@ class RunnerTestCase(unittest.TestCase):
         self.assert_(mismatch==0,'Number of mismatched lines: %s' %
                      mismatch)
 
-    # The SyntaxError appears differently in Python 3, for some reason.
-    @known_failure_py3
     def testIPython(self):
         """Test the IPython runner."""
         source = doctest_refactor_print("""
