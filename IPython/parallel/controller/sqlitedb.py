@@ -293,7 +293,7 @@ class SQLiteDB(BaseDB):
                         op, join = op
 
                     if value is None and op in null_operators:
-                            expr = "%s %s"%null_operators[op]
+                        expr = "%s %s" % (name, null_operators[op])
                     else:
                         expr = "%s %s ?"%(name, op)
                         if isinstance(value, (tuple,list)):
@@ -308,7 +308,7 @@ class SQLiteDB(BaseDB):
             else:
                 # it's an equality check
                 if sub_check is None:
-                    expressions.append("%s IS NULL")
+                    expressions.append("%s IS NULL" % name)
                 else:
                     expressions.append("%s = ?"%name)
                     args.append(sub_check)
