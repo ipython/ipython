@@ -578,7 +578,7 @@ var IPython = (function (IPython) {
     };
 
 
-    // Copy/Paste
+    // Copy/Paste/Merge/Split
 
     Notebook.prototype.enable_paste = function () {
         var that = this;
@@ -662,6 +662,23 @@ var IPython = (function (IPython) {
         };
     };
 
+
+    Notebook.prototype.split_cell = function () {
+        var cell = this.selected_cell();
+        if (cell instanceof IPython.CodeCell) {
+            var cursor = cell.code_mirror.getCursor();
+            var last_line_num = cell.code_mirror.lineCount()-1;
+            var last_line_len = cell.code_mirror.getLine(last_line_num).length;
+            var end = {line:last_line_num, ch:last_line_len}
+            var texta = cell.code_mirror.getRange({line:0,ch:0}, cursor);
+            var textb = cell.code_mirror.getRange(cursor, end);
+            texta = texta.replace(/^\n+/, '').replace(/\n+$/, '');
+            textb = textb.replace(/^\n+/, '').replace(/\n+$/, '');
+            cell.set_code(texta);
+            var new_cell = this.insert_code_cell_below();
+            new_cell.set_code(textb);
+        };
+    };
 
     // Cell collapsing and output clearing
 
