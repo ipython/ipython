@@ -70,6 +70,15 @@ var IPython = (function (IPython) {
         this.element.find('#delete_cell').click(function () {
             IPython.notebook.delete_cell();
         });
+        this.element.find('#split_cell').click(function () {
+            IPython.notebook.split_cell();
+        });
+        this.element.find('#merge_cell_above').click(function () {
+            IPython.notebook.merge_cell_above();
+        });
+        this.element.find('#merge_cell_below').click(function () {
+            IPython.notebook.merge_cell_below();
+        });
         this.element.find('#move_cell_up').click(function () {
             IPython.notebook.move_cell_up();
         });
