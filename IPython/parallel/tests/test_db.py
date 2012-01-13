@@ -170,6 +170,18 @@ class TestDictBackend(TestCase):
         self.db.drop_matching_records(query)
         recs = self.db.find_records(query)
         self.assertEquals(len(recs), 0)
+    
+    def test_null(self):
+        """test None comparison queries"""
+        msg_ids = self.load_records(10)
+
+        query = {'msg_id' : None}
+        recs = self.db.find_records(query)
+        self.assertEquals(len(recs), 0)
+
+        query = {'msg_id' : {'$ne' : None}}
+        recs = self.db.find_records(query)
+        self.assertTrue(len(recs) >= 10)
 
 
 class TestSQLiteBackend(TestDictBackend):
