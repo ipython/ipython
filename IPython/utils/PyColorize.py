@@ -217,10 +217,10 @@ class Parser:
         newpos = self.lines[srow] + scol
         self.pos = newpos + len(toktext)
 
-        # handle newlines
-        if toktext and toktype in [token.NEWLINE, tokenize.NL]:
-            owrite(linesep)
-            return
+        # handle newlines 
+        #if toktype in [token.NEWLINE, tokenize.NL]:
+        #    owrite(linesep)
+        #    return
 
         # send the original whitespace, if needed
         if newpos > oldpos:
