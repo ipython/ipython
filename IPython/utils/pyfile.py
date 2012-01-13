@@ -11,7 +11,7 @@ except ImportError:
     # Python <= 3.1: .pyc files go next to .py
     def source_from_cache(path):
         basename, ext = os.path.splitext(path)
-        if ext not in {'.pyc', '.pyo'}:
+        if ext not in ('.pyc', '.pyo'):
             raise ValueError('Not a cached Python file extension', ext)
         # Should we look for .pyw files?
         return basename + '.py'
