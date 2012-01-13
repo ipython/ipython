@@ -22,7 +22,14 @@ var IPython = (function (IPython) {
 
 
     MenuBar.prototype.style = function () {
-        $('ul#menus').menubar();
+        $('ul#menus').menubar({
+            select : function (event, ui) {
+                // The selected cell looses focus when the menu is entered, so we
+                // re-select it upon selection.
+                var i = IPython.notebook.selected_index();
+                IPython.notebook.select(i);
+            }
+        });
     };
 
 
