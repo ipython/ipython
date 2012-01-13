@@ -55,6 +55,11 @@ var IPython = (function (IPython) {
             var code = cell.get_code();
             this.ace_editor.getSession().setValue(code);
             this.ace_editor.focus();
+            // On Safari (and Chrome/FF on Linux) the editor doesn't get
+            // focus unless there is a window resize. For now, we trigger it
+            // by hand until the bug is fixed upstream.
+            window.resizeBy(0,1);
+            window.resizeBy(0,-1);
             this.opened = true;
         };
     };
