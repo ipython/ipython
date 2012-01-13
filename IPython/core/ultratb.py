@@ -100,6 +100,7 @@ from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
+from IPython.utils import pyfile
 from IPython.utils.data import uniq_stable
 from IPython.utils.warn import info, error
 
@@ -126,6 +127,14 @@ def inspect_error():
           'Below is the traceback from this internal error.\n')
 
 
+# N.B. This function is a monkeypatch we are currently not applying.
+# It was written some time ago, to fix an apparent Python bug with
+# codeobj.co_firstlineno . Unfortunately, we don't know under what conditions
+# the bug occurred, so we can't tell if it has been fixed. If it reappears, we
+# will apply the monkeypatch again. Also, note that findsource() is not called
+# by our code at this time - we don't know if it was when the monkeypatch was
+# written, or if the monkeypatch is needed for some other code (like a debugger).
+# For the discussion about not applying it, see gh-1229. TK, Jan 2011.
 def findsource(object):
     """Return the entire source file and starting line number for an object.
 
@@ -201,9 +210,10 @@ def findsource(object):
         return lines, lnum
     raise IOError('could not find code object')
 
+# Not applying the monkeypatch - see above the function for details. TK, Jan 2012
 # Monkeypatch inspect to apply our bugfix.  This code only works with py25
-if sys.version_info[:2] >= (2,5):
-    inspect.findsource = findsource
+#if sys.version_info[:2] >= (2,5):
+#    inspect.findsource = findsource
 
 def fix_frame_records_filenames(records):
     """Try to fix the filenames in each record from inspect.getinnerframes().
@@ -514,7 +524,7 @@ class ListTB(TBTools):
                      Colors.lineno, lineno, Colors.Normal,
                      Colors.name, name, Colors.Normal)
             if line:
-                item = item + '    %s\n' % line.strip()
+                item += '    %s\n' % line.strip()
             list.append(item)
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
@@ -525,7 +535,7 @@ class ListTB(TBTools):
                  Colors.nameEm, name, Colors.normalEm,
                  Colors.Normal)
         if line:
-            item = item + '%s    %s%s\n' % (Colors.line, line.strip(),
+            item += '%s    %s%s\n' % (Colors.line, line.strip(),
                                             Colors.Normal)
         list.append(item)
         #from pprint import pformat; print 'LISTTB', pformat(list) # dbg
@@ -548,44 +558,40 @@ class ListTB(TBTools):
         have_filedata = False
         Colors = self.Colors
         list = []
-        try:
-            stype = Colors.excName + etype.__name__ + Colors.Normal
-        except AttributeError:
-            stype = etype  # String exceptions don't get special coloring
+        stype = Colors.excName + etype.__name__ + Colors.Normal
         if value is None:
+            # Not sure if this can still happen in Python 2.6 and above
             list.append( str(stype) + '\n')
         else:
             if etype is SyntaxError:
-                try:
-                    msg, (filename, lineno, offset, line) = value
-                except:
-                    have_filedata = False
-                else:
-                    have_filedata = True
-                    #print 'filename is',filename  # dbg
-                    if not filename: filename = "<string>"
-                    list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
-                            (Colors.normalEm,
-                             Colors.filenameEm, filename, Colors.normalEm,
-                             Colors.linenoEm, lineno, Colors.Normal  ))
-                    if line is not None:
-                        i = 0
-                        while i < len(line) and line[i].isspace():
-                            i = i+1
-                        list.append('%s    %s%s\n' % (Colors.line,
-                                                      line.strip(),
-                                                      Colors.Normal))
-                        if offset is not None:
-                            s = '    '
-                            for c in line[i:offset-1]:
-                                if c.isspace():
-                                    s = s + c
-                                else:
-                                    s = s + ' '
-                            list.append('%s%s^%s\n' % (Colors.caret, s,
-                                                       Colors.Normal) )
-                        value = msg
-            s = self._some_str(value)
+                have_filedata = True
+                #print 'filename is',filename  # dbg
+                if not value.filename: value.filename = "<string>"
+                list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
+                        (Colors.normalEm,
+                         Colors.filenameEm, value.filename, Colors.normalEm,
+                         Colors.linenoEm, value.lineno, Colors.Normal  ))
+                if value.text is not None:
+                    i = 0
+                    while i < len(value.text) and value.text[i].isspace():
+                        i += 1
+                    list.append('%s    %s%s\n' % (Colors.line,
+                                                  value.text.strip(),
+                                                  Colors.Normal))
+                    if value.offset is not None:
+                        s = '    '
+                        for c in value.text[i:value.offset-1]:
+                            if c.isspace():
+                                s += c
+                            else:
+                                s += ' '
+                        list.append('%s%s^%s\n' % (Colors.caret, s,
+                                                   Colors.Normal) )
+
+            try:
+                s = value.msg
+            except Exception:
+                s = self._some_str(value)
             if s:
                 list.append('%s%s:%s %s\n' % (str(stype), Colors.excName,
                                               Colors.Normal, s))
@@ -596,7 +602,7 @@ class ListTB(TBTools):
         if have_filedata:
             ipinst = ipapi.get()
             if ipinst is not None:
-                ipinst.hooks.synchronize_with_editor(filename, lineno, 0)
+                ipinst.hooks.synchronize_with_editor(value.filename, value.lineno, 0)
 
         return list
 
@@ -788,15 +794,7 @@ class VerboseTB(TBTools):
                 # keep the original file string.
                 pass
             link = tpl_link % file
-            try:
-                args, varargs, varkw, locals = inspect.getargvalues(frame)
-            except:
-                # This can happen due to a bug in python2.3.  We should be
-                # able to remove this try/except when 2.4 becomes a
-                # requirement.  Bug details at http://python.org/sf/1005466
-                inspect_error()
-                traceback.print_exc(file=self.ostream)
-                info("\nIPython's exception reporting continues...\n")
+            args, varargs, varkw, locals = inspect.getargvalues(frame)
 
             if func == '?':
                 call = ''
@@ -826,48 +824,9 @@ class VerboseTB(TBTools):
                     # disabled.
                     call = tpl_call_fail % func
 
-            # Initialize a list of names on the current line, which the
-            # tokenizer below will populate.
-            names = []
-
-            def tokeneater(token_type, token, start, end, line):
-                """Stateful tokeneater which builds dotted names.
-
-                The list of names it appends to (from the enclosing scope) can
-                contain repeated composite names.  This is unavoidable, since
-                there is no way to disambguate partial dotted structures until
-                the full list is known.  The caller is responsible for pruning
-                the final list of duplicates before using it."""
-
-                # build composite names
-                if token == '.':
-                    try:
-                        names[-1] += '.'
-                        # store state so the next token is added for x.y.z names
-                        tokeneater.name_cont = True
-                        return
-                    except IndexError:
-                        pass
-                if token_type == tokenize.NAME and token not in keyword.kwlist:
-                    if tokeneater.name_cont:
-                        # Dotted names
-                        names[-1] += token
-                        tokeneater.name_cont = False
-                    else:
-                        # Regular new names.  We append everything, the caller
-                        # will be responsible for pruning the list later.  It's
-                        # very tricky to try to prune as we go, b/c composite
-                        # names can fool us.  The pruning at the end is easy
-                        # to do (or the caller can print a list with repeated
-                        # names if so desired.
-                        names.append(token)
-                elif token_type == tokenize.NEWLINE:
-                    raise IndexError
-            # we need to store a bit of state in the tokenizer to build
-            # dotted names
-            tokeneater.name_cont = False
-
             def linereader(file=file, lnum=[lnum], getline=linecache.getline):
+                if file.endswith(('.pyc','.pyo')):
+                    file = pyfile.source_from_cache(file)
                 line = getline(file, lnum[0])
                 lnum[0] += 1
                 return line
@@ -875,10 +834,32 @@ class VerboseTB(TBTools):
             # Build the list of names on this line of code where the exception
             # occurred.
             try:
-                # This builds the names list in-place by capturing it from the
-                # enclosing scope.
-                for token in generate_tokens(linereader):
-                    tokeneater(*token)
+                names = []
+                name_cont = False
+                
+                for token_type, token, start, end, line in generate_tokens(linereader):
+                    # build composite names
+                    if token_type == tokenize.NAME and token not in keyword.kwlist:
+                        if name_cont:
+                            # Continuation of a dotted name
+                            try:
+                                names[-1].append(token)
+                            except IndexError:
+                                names.append([token])
+                            name_cont = False
+                        else:
+                            # Regular new names.  We append everything, the caller
+                            # will be responsible for pruning the list later.  It's
+                            # very tricky to try to prune as we go, b/c composite
+                            # names can fool us.  The pruning at the end is easy
+                            # to do (or the caller can print a list with repeated
+                            # names if so desired.
+                            names.append([token])
+                    elif token == '.':
+                        name_cont = True
+                    elif token_type == tokenize.NEWLINE:
+                        break
+                        
             except (IndexError, UnicodeDecodeError):
                 # signals exit of tokenizer
                 pass
@@ -888,6 +869,8 @@ class VerboseTB(TBTools):
                       "The error message is: %s\n" % msg)
                 error(_m)
 
+            # Join composite names (e.g. "dict.fromkeys")
+            names = ['.'.join(n) for n in names]
             # prune names list of duplicates, but keep the right order
             unique_names = uniq_stable(names)
 

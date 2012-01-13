@@ -1681,20 +1681,12 @@ class InteractiveShell(SingletonConfigurable, Magic):
         sys.last_traceback = last_traceback
 
         if filename and etype is SyntaxError:
-            # Work hard to stuff the correct filename in the exception
             try:
-                msg, (dummy_filename, lineno, offset, line) = value
+                value.filename = filename
             except:
                 # Not the format we expect; leave it alone
                 pass
-            else:
-                # Stuff in the right filename
-                try:
-                    # Assume SyntaxError is a class exception
-                    value = SyntaxError(msg, (filename, lineno, offset, line))
-                except:
-                    # If that failed, assume SyntaxError is a string
-                    value = msg, (filename, lineno, offset, line)
+        
         stb = self.SyntaxTB.structured_traceback(etype, value, [])
         self._showtraceback(etype, value, stb)
 
