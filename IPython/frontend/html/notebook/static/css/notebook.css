@@ -31,6 +31,11 @@ span#notebook_name {
     font-size: 146.5%;
 }
 
+#menubar {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
+}
+
 .ui-menubar-item .ui-button .ui-button-text {
     padding: 0.4em 1.0em;
     font-size: 100%;
@@ -48,6 +53,22 @@ span#notebook_name {
 
 .ui-menu hr {
     margin: 0.3em 0;
+}
+
+#fulledit_widget {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
+    width: 920px;
+    margin: 0px auto;
+}
+
+#fulledit_editor {
+    height: 577px;
+    width: 920px;
+}
+
+#fulledit_header {
+    width: 920px;
 }
 
 span#quick_help_area {
