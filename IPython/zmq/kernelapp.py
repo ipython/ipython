@@ -216,8 +216,11 @@ class KernelApp(BaseIPythonApplication):
         self.stdin_socket = context.socket(zmq.ROUTER)
         self.stdin_port = self._bind_socket(self.stdin_socket, self.stdin_port)
         self.log.debug("stdin ROUTER Channel on port: %i"%self.stdin_port)
-
-        self.heartbeat = Heartbeat(context, (self.ip, self.hb_port))
+        
+        # heartbeat doesn't share context, because it mustn't be blocked
+        # by the GIL, which is accessed by libzmq when freeing zero-copy messages
+        hb_ctx = zmq.Context()
+        self.heartbeat = Heartbeat(hb_ctx, (self.ip, self.hb_port))
         self.hb_port = self.heartbeat.port
         self.log.debug("Heartbeat REP Channel on port: %i"%self.hb_port)
 
