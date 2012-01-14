@@ -70,6 +70,11 @@ class IOStream:
     def close(self):
         pass
 
+# setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
+devnull = open(os.devnull, 'a')
+stdin = IOStream(sys.stdin, fallback=devnull)
+stdout = IOStream(sys.stdout, fallback=devnull)
+stderr = IOStream(sys.stderr, fallback=devnull)
 
 class IOTerm:
     """ Term holds the file or file-like objects for handling I/O operations.
@@ -82,14 +87,10 @@ class IOTerm:
     # this class will make it easier to embed it into other environments which
     # are not a normal terminal (such as a GUI-based shell)
     def __init__(self, stdin=None, stdout=None, stderr=None):
-        self.stdin  = IOStream(stdin, sys.stdin)
-        self.stdout = IOStream(stdout, sys.stdout)
-        self.stderr = IOStream(stderr, sys.stderr)
-
-# setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
-stdin = sys.stdin if not sys.stdin else IOStream(sys.stdin)
-stdout = sys.stdout if not sys.stdout else IOStream(sys.stdout)
-stderr = sys.stderr if not sys.stderr else IOStream(sys.stderr)
+        mymodule = sys.modules[__name__]
+        self.stdin  = IOStream(stdin, mymodule.stdin)
+        self.stdout = IOStream(stdout, mymodule.stdout)
+        self.stderr = IOStream(stderr, mymodule.stderr)
 
 
 class Tee(object):
