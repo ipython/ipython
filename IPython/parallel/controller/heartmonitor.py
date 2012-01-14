@@ -40,6 +40,10 @@ class Heart(object):
     id=None
     def __init__(self, in_addr, out_addr, in_type=zmq.SUB, out_type=zmq.DEALER, heart_id=None):
         self.device = ThreadDevice(zmq.FORWARDER, in_type, out_type)
+        # do not allow the device to share global Context.instance,
+        # which is the default behavior in pyzmq > 2.1.10
+        self.device.context_factory = zmq.Context
+        
         self.device.daemon=True
         self.device.connect_in(in_addr)
         self.device.connect_out(out_addr)
