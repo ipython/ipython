@@ -183,3 +183,34 @@ class DictDB(BaseDB):
         """get all msg_ids, ordered by time submitted."""
         msg_ids = self._records.keys()
         return sorted(msg_ids, key=lambda m: self._records[m]['submitted'])
+
+class NoDB(DictDB):
+    """A blackhole db backend that actually stores no information.
+    
+    Provides the full DB interface, but raises KeyErrors on any
+    method that tries to access the records.  This can be used to
+    minimize the memory footprint of the Hub when its record-keeping
+    functionality is not required.
+    """
+    
+    def add_record(self, msg_id, record):
+        pass
+    
+    def get_record(self, msg_id):
+        raise KeyError("NoDB does not support record access")
+    
+    def update_record(self, msg_id, record):
+        pass
+    
+    def drop_matching_records(self, check):
+        pass
+    
+    def drop_record(self, msg_id):
+        pass
+    
+    def find_records(self, check, keys=None):
+        raise KeyError("NoDB does not store information")
+    
+    def get_history(self):
+        raise KeyError("NoDB does not store information")
+
