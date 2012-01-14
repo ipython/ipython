@@ -762,6 +762,10 @@ To use one of these backends, you must set the :attr:`HubFactory.db_class` trait
     
     # and SQLite:
     c.HubFactory.db_class = 'IPython.parallel.controller.sqlitedb.SQLiteDB'
+    
+    # You can use NoDB to disable the database altogether, in case you don't need
+    # to reuse tasks or results, and want to keep memory consumption under control.
+    c.HubFactory.db_class = 'IPython.parallel.controller.dictdb.NoDB'
 
 When using the proper databases, you can actually allow for tasks to persist from
 one session to the next by specifying the MongoDB database or SQLite table in
@@ -788,6 +792,22 @@ you can specify any arguments you may need to the PyMongo `Connection
     
     # keyword args to pymongo.Connection
     c.MongoDB.connection_kwargs = {}
+
+But sometimes you are moving lots of data around quickly, and you don't need
+that information to be stored for later access, even by other Clients to this
+same session. For this case, we have a dummy database, which doesn't actually
+store anything. This lets the Hub stay small in memory, at the obvious expense
+of being able to access the information that would have been stored in the
+database (used for task resubmission, requesting results of tasks you didn't
+submit, etc.). To use this backend, simply pass ``--nodb`` to
+:command:`ipcontroller` on the command-line, or specify the :class:`NoDB` class
+in your :file:`ipcontroller_config.py` as described above.
+
+
+.. seealso::
+
+    For more information on the database backends, see the :ref:`db backend reference <parallel_db>`.
+
 
 .. _PyMongo: http://api.mongodb.org/python/1.9/
 
