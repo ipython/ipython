@@ -27,6 +27,12 @@ data-base-kernel-url={{base_kernel_url}}
 
         <span id="notebooks_buttons">
           <button id="new_notebook">New Notebook</button>
+            <div id="dialog-form" title="Create new notebook" style="display: none;">
+              <form>
+                <label for="name">Kernel</label>
+                <input type="text" name="kernel" id="kernel" />
+              </form>
+            </div>
         </span>
     </div>
 

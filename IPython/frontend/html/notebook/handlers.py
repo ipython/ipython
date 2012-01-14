@@ -329,7 +329,23 @@ class MainKernelHandler(AuthenticatedHandler):
 
 class KernelHandler(AuthenticatedHandler):
 
-    SUPPORTED_METHODS = ('DELETE')
+    @web.authenticated
+    def get(self, kernel_id):
+        nbm = self.application.notebook_manager
+        project = nbm.notebook_dir
+        notebook_id = self.get_argument('notebook', nbm.new_notebook())
+
+        km = self.application.kernel_manager
+        kernel_id = km.start_kernel(notebook_id=notebook_id,
+                                    connection_file=kernel_id)
+        self.render(
+            'notebook.html', project=project,
+            notebook_id=notebook_id,
+            base_project_url=u'/', base_kernel_url=u'/',
+            kill_kernel=False,
+            read_only=False,
+            mathjax_url=self.application.ipython_app.mathjax_url,
+        )
 
     @web.authenticated
     def delete(self, kernel_id):
