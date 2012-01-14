@@ -217,6 +217,9 @@ class NotebookApp(BaseIPythonApplication):
                     config=True,
                     help="Set the log level by value or name.")
 
+    # create requested profiles by default, if they don't exist:
+    auto_create = Bool(True)
+
     # Network related information.
 
     ip = Unicode(LOCALHOST, config=True,
