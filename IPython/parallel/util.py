@@ -466,6 +466,10 @@ def local_logger(logname, loglevel=logging.DEBUG):
         return
     handler = logging.StreamHandler()
     handler.setLevel(loglevel)
+    formatter = logging.Formatter("%(asctime)s.%(msecs).03d [%(name)s] %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S")
+    handler.setFormatter(formatter)
+
     logger.addHandler(handler)
     logger.setLevel(loglevel)
     return logger
