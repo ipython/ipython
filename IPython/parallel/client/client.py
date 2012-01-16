@@ -40,6 +40,7 @@ from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
 from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
+from IPython.parallel import Reference
 from IPython.parallel import error
 from IPython.parallel import util
 
@@ -982,7 +983,7 @@ class Client(HasTraits):
         subheader = subheader if subheader is not None else {}
 
         # validate arguments
-        if not callable(f):
+        if not callable(f) and not isinstance(f, Reference):
             raise TypeError("f must be callable, not %s"%type(f))
         if not isinstance(args, (tuple, list)):
             raise TypeError("args must be tuple or list, not %s"%type(args))

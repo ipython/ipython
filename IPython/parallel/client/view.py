@@ -34,7 +34,7 @@ from IPython.parallel.controller.dependency import Dependency, dependent
 
 from . import map as Map
 from .asyncresult import AsyncResult, AsyncMapResult
-from .remotefunction import ParallelFunction, parallel, remote
+from .remotefunction import ParallelFunction, parallel, remote, getname
 
 #-----------------------------------------------------------------------------
 # Decorators
@@ -535,7 +535,7 @@ class DirectView(View):
                 trackers.append(msg['tracker'])
             msg_ids.append(msg['header']['msg_id'])
         tracker = None if track is False else zmq.MessageTracker(*trackers)
-        ar = AsyncResult(self.client, msg_ids, fname=f.__name__, targets=targets, tracker=tracker)
+        ar = AsyncResult(self.client, msg_ids, fname=getname(f), targets=targets, tracker=tracker)
         if block:
             try:
                 return ar.get()
@@ -990,7 +990,7 @@ class LoadBalancedView(View):
                                 subheader=subheader)
         tracker = None if track is False else msg['tracker']
 
-        ar = AsyncResult(self.client, msg['header']['msg_id'], fname=f.__name__, targets=None, tracker=tracker)
+        ar = AsyncResult(self.client, msg['header']['msg_id'], fname=getname(f), targets=None, tracker=tracker)
 
         if block:
             try:
