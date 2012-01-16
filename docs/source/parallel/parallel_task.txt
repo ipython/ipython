@@ -404,6 +404,31 @@ weighted: Weighted Two-Bin Random
     Pick two engines at random using the number of outstanding tasks as inverse weights,
     and use the one with the lower load.
 
+Greedy Assignment
+-----------------
+
+Tasks are assigned greedily as they are submitted. If their dependencies are
+met, they will be assigned to an engine right away, and multiple tasks can be
+assigned to an engine at a given time. This limit is set with the
+``TaskScheduler.hwm`` (high water mark) configurable:
+
+.. sourcecode:: python
+
+    # the most common choices are:
+    c.TaskSheduler.hwm = 0 # (minimal latency, default)
+    # or
+    c.TaskScheduler.hwm = 1 # (most-informed balancing)
+
+The default is 0, or no-limit. That is, there is no limit to the number of
+tasks that can be outstanding on a given engine. This greatly benefits the
+latency of execution, because network traffic can be hidden behind computation.
+However, this means that workload is assigned without knowledge of how long
+each task might take, and can result in poor load-balancing, particularly for
+submitting a collection of heterogeneous tasks all at once. You can limit this
+effect by setting hwm to a positive integer, 1 being maximum load-balancing (a
+task will never be waiting if there is an idle engine), and any larger number
+being a compromise between load-balance and latency-hiding.
+
 
 Pure ZMQ Scheduler
 ------------------
