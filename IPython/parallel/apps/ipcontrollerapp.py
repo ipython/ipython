@@ -106,6 +106,13 @@ flags.update({
                     'use the MongoDB backend'),
     'dictdb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.dictdb.DictDB'}},
                     'use the in-memory DictDB backend'),
+    'nodb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.dictdb.NoDB'}},
+                    """use dummy DB backend, which doesn't store any information.
+                    
+                    This can be used to prevent growth of the memory footprint of the Hub
+                    in cases where its record-keeping is not required.  Requesting results
+                    of tasks submitted by other clients, db_queries, and task resubmission
+                    will not be available."""),
     'reuse' : ({'IPControllerApp' : {'reuse_files' : True}},
                     'reuse existing json connection files')
 })
