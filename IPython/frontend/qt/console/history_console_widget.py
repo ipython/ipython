@@ -217,7 +217,7 @@ class HistoryConsoleWidget(ConsoleWidget):
         """ Handles replies for code execution, here only session history length
         """
         msg_id = msg['parent_header']['msg_id']
-        info = self._request_info.get['execute'].pop(msg_id,None)
+        info = self._request_info['execute'].pop(msg_id,None)
         if info and info.kind == 'save_magic' and not self._hidden:
             content = msg['content']
             status = content['status']
