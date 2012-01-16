@@ -27,7 +27,7 @@ from . import map as Map
 from .asyncresult import AsyncMapResult
 
 #-----------------------------------------------------------------------------
-# Decorators
+# Functions and Decorators
 #-----------------------------------------------------------------------------
 
 @skip_doctest
@@ -59,6 +59,25 @@ def parallel(view, dist='b', block=None, ordered=True, **flags):
     def parallel_function(f):
         return ParallelFunction(view, f, dist=dist, block=block, ordered=ordered, **flags)
     return parallel_function
+
+def getname(f):
+    """Get the name of an object.
+    
+    For use in case of callables that are not functions, and
+    thus may not have __name__ defined.
+    
+    Order: f.__name__ >  f.name > str(f)
+    """
+    try:
+        return f.__name__
+    except:
+        pass
+    try:
+        return f.name
+    except:
+        pass
+    
+    return str(f)
 
 #--------------------------------------------------------------------------
 # Classes
@@ -194,7 +213,7 @@ class ParallelFunction(RemoteFunction):
             msg_ids.append(ar.msg_ids[0])
 
         r = AsyncMapResult(self.view.client, msg_ids, self.mapObject, 
-                            fname=self.func.__name__,
+                            fname=getname(self.func),
                             ordered=self.ordered
                         )
 
