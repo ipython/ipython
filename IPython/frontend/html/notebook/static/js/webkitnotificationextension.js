@@ -77,16 +77,24 @@ var IPython = (function (IPython) {
     //================================================
     // Create a checkbox in the config section
     //================================================
-    config = $('div#config_section');
-    ccl= config.children().last();
-    ccl2=$('<div>').addClass('section_row ui-helper-clearfix');
-    ccl.append(ccl2);
-    ccl2.append($('<span/>').addClass('section_row_buttons').html('<input type="checkbox" id="enable_notification" checked="true" title="Enable Notification">'));
-    ccl2.append(
-        $('<span/>').addClass('section_row_buttons').html(
-            '<span class="checkbox_label" id="" title="">Enable webkit notification:</span>'
-            )
-    );
+    // note : this does not work if place insite an ul/li of menu
+    // bar due to restriction of what can made/when can be made a
+    // notification request
+
+    menubar = $('div#menubar');
+    div = $('<div/>') .attr('style','float:right; border : none; margin-top:7px; margin-right:2px;')
+    div.addClass('ui-menubar ui-widget-header ui-helper-clearfix');
+    chk = $('<input/>')
+                .attr('type',"checkbox")
+                .attr('checked',"true")
+                .attr('title',"Enable Notification")
+                .attr('id','enable_notification')
+    label = $('<label/>')
+                .text('Enable notification')
+                .attr('for','enable_notification')
+    div.append(label);
+    div.append(chk);
+    menubar.prepend(div);
 
     
     that=this;

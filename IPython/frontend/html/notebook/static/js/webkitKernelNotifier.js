@@ -32,8 +32,8 @@ var IPython = (function (IPython) {
         var that=this;
         // method of object need to be connected to the hook hub by wrapping
         // them in closure
-        IPython.hook.connect("kernel_busy",function(){that.status_busy()});
-        IPython.hook.connect("kernel_idle",function(){that.status_idle()});
+        $(IPython.hook).bind("kernel_busy",function(){that.status_busy()});
+        $(IPython.hook).bind("kernel_idle",function(){that.status_idle()});
     }
 
 
