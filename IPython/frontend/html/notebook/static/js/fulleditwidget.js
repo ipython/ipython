@@ -27,7 +27,6 @@ var IPython = (function (IPython) {
         this.element.find('#close_fulledit').button().on('click', function (){
             that.close();
         })
-        // this.element.find('#fulledit_widget').addClass('ui-widget ui-widget-content');
         this.element.find('#fulledit_header').addClass('ui-widget ui-widget-header');
         this.element.find('#fulledit_editor').addClass('ui-widget ui-widget-content');
         this.ace_editor = ace.edit("fulledit_editor");
@@ -37,6 +36,10 @@ var IPython = (function (IPython) {
         this.ace_editor.getSession().setTabSize(4);
         this.ace_editor.getSession().setUseSoftTabs(true);
         this.ace_editor.setHighlightActiveLine(false);
+        // Ace sets its css dynamically, so we need to do this here. These
+        // values are chosen to match those of our CodeMirror editors.
+        $('.ace_editor').css({fontFamily: 'monospace', fontSize: '110%',
+        lineHeight: '1.231'});
     };
 
 
