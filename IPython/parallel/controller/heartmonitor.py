@@ -23,7 +23,7 @@ from zmq.devices import ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.utils.traitlets import Set, Instance, CFloat
+from IPython.utils.traitlets import Set, Instance, CFloat, Integer
 
 from IPython.parallel.util import asbytes
 
@@ -64,7 +64,7 @@ class HeartMonitor(LoggingConfigurable):
     pongstream: an XREP stream
     period: the period of the heartbeat in milliseconds"""
 
-    period=CFloat(1000, config=True,
+    period = Integer(1000, config=True,
         help='The frequency at which the Hub pings the engines for heartbeats '
         '(in ms)',
     )
