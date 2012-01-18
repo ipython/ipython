@@ -16,11 +16,7 @@ monotonic kernel number etc
 # Imports
 #-----------------------------------------------------------------------------
 
-# stdlib imports
-import sys
-
 # System library imports
-from IPython.external.qt import QtGui
 from IPython.frontend.qt.console.mainwindow import MainWindow
 
 #-----------------------------------------------------------------------------
@@ -28,6 +24,12 @@ from IPython.frontend.qt.console.mainwindow import MainWindow
 #-----------------------------------------------------------------------------
 
 class WindowManager:
+    """A class to deal with multiple windows
+    
+    This class allows us to create multiple windows and move frontend between
+    them, or detach current tab into it's own new window
+    """
+
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -73,8 +75,8 @@ class WindowManager:
         self.windows = []
         win = self._spawn_new_window()
         if not init_widget:
-            raise NotImplementedError,"For now you have to build the first widget yourself"
-        win.add_tab_with_frontend(init_widget);
+            raise NotImplementedError,"init_widget can't be None"
+        win.add_tab_with_frontend(init_widget)
         win.show()
         win.raise_()
 
@@ -91,10 +93,12 @@ class WindowManager:
         
         Return the active frontened of the active window if any
         """
-        #TODO return none if no window ? is it even possible to have no active windows ?
+        # TODO return none if no window ?
+        # is it even possible to have no active windows ?
         return self.active_window.active_frontend
 
-    #TODO return none if no window ? is it even possible to have no active windows ?
+    # TODO return none if no window ?
+    # is it even possible to have no active windows ?
     @property
     def active_window(self):
         """return the current active window
@@ -104,18 +108,17 @@ class WindowManager:
         """
         windows = [w for w in self.windows if w.isActiveWindow()]
         if len(windows) is not 1 :
-            print "probleme de longueur (",len(windows),")";
             return self.windows[0]
         else :
             return windows[0]
 
-    def setTitle(self,title):
+    def setTitle(self, title):
         """Set title prefix to use in every windows"""
         self._title = title
-        for w in self.windows:
-            w.setTitle(self._title)
+        for win in self.windows:
+            win.setTitle(self._title)
 
-    def closing_windows(self,win):
+    def closing_windows(self, win):
         """unregister windows because it's about to close"""
         self.windows.remove(win)
 
@@ -132,18 +135,18 @@ class WindowManager:
         self.windows.append(win)
         return win
 
-    def _owning_window(self,frontend):
+    def _owning_window(self, frontend):
         """return the window that own the given frontend"""
-        for w in self.windows :
-            if w.tab_widget.indexOf(frontend) is not -1:
-                return w
+        for widget in self.windows :
+            if widget.tab_widget.indexOf(frontend) is not -1:
+                return widget
         return None
 
 
-    def _move_frontend(self,frontend,toWindow):
+    def _move_frontend(self, frontend, to_window):
         """move taget frontend to given window """
         detach_win = self._owning_window(frontend)
-        if detach_win == toWindow or not detach_win :
+        if detach_win == to_window or not detach_win :
             #return if already on current window, or if
             #doesn't know how to detach
             return
@@ -153,7 +156,7 @@ class WindowManager:
         detach_win.tab_widget.removeTab(current_tab)
         detach_win.update_tab_bar_visibility()
 
-        toWindow.add_tab_with_frontend(frontend,name=tab_name)
+        to_window.add_tab_with_frontend(frontend, name=tab_name)
 
 
     def detach_frontend(self):
@@ -171,7 +174,7 @@ class WindowManager:
         frontend = self.active_frontend
 
         win = self._spawn_new_window()
-        self._move_frontend(frontend,win)
+        self._move_frontend(frontend, win)
         win.show()
 
     def reattach_frontend(self):
@@ -182,7 +185,7 @@ class WindowManager:
         """
         if not self.last_d_frontend:
             return
-        self._move_frontend(self.last_d_frontend,self.active_window)
+        self._move_frontend(self.last_d_frontend, self.active_window)
 
 
     def create_window_with_new_frontend(self):
@@ -195,8 +198,9 @@ class WindowManager:
     def create_window_with_current_kernel(self):
         """create a slave frontend and attach it to a new tab of new window """
         current_widget = self.active_frontend
-        current_widget_index = self.active_window.tab_widget.indexOf(current_widget)
-        current_widget_name = self.active_window.tab_widget.tabText(current_widget_index)
+        tab_w = self.active_window.tab_widget
+        current_widget_index = tab_w.indexOf(current_widget)
+        current_widget_name = tab_w.tabText(current_widget_index)
         widget = self.slave_frontend_factory(current_widget)
         if 'slave' in current_widget_name:
             # don't keep stacking slaves
@@ -205,10 +209,10 @@ class WindowManager:
             name = '(%s) slave' % current_widget_name
 
         win = self._spawn_new_window()
-        win.add_tab_with_frontend(widget,name=name)
+        win.add_tab_with_frontend(widget, name=name)
         win.show()
 
-    def remove_tab_of_widget(self,frontend):
+    def remove_tab_of_widget(self, frontend):
         """Ask every winows to try to remove a tab with `frontend`"""
-        for w in self.windows:
-            w.remove_tab_of_widget(frontend)
+        for win in self.windows:
+            win.remove_tab_of_widget(frontend)
