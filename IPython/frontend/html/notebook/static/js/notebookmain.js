@@ -71,7 +71,8 @@ $(document).ready(function () {
     }else{
         // No MathJax, but none expected. No dialog.
     }
-    
+
+
     IPython.markdown_converter = new Markdown.Converter();
     IPython.read_only = $('meta[name=read_only]').attr("content") == 'True';
 
@@ -88,6 +89,7 @@ $(document).ready(function () {
     IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
     IPython.menubar = new IPython.MenuBar('#menubar')
     IPython.kernel_status_widget.status_idle();
+    IPython.fulledit_widget = new IPython.FullEditWidget('#fulledit_widget');
 
     IPython.layout_manager.do_resize();
 
@@ -104,6 +106,7 @@ $(document).ready(function () {
         $('#notebook_name').attr('disabled','disabled')
     }
 
+    $('div#menubar').css('display','block');
     $('div#main_app').css('display','block');
 
     // Perform these actions after the notebook has been loaded.
