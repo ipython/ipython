@@ -77,7 +77,7 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self._kernel_counter = 0
         self._app = app
-        self._title='IPython'
+        self._title = 'IPython'
         self.confirm_exit = confirm_exit
         self._windows_manager = windows_manager
 
@@ -126,18 +126,18 @@ class MainWindow(QtGui.QMainWindow):
         use it's own
         """
         if self._windows_manager:
-                return self._windows_manager.next_kernel_id
+            return self._windows_manager.next_kernel_id
         else :
-                c = self._kernel_counter
-                self._kernel_counter += 1
-                return c
+            c = self._kernel_counter
+            self._kernel_counter += 1
+            return c
 
     @property
     def active_frontend(self):
         """@property, return the current widet"""
         return self.tab_widget.currentWidget()
 
-    def setTitle(self,title):
+    def setTitle(self, title):
         """ set prefix to use in window title"""
         self._title = title
         self.update_win_title()
@@ -148,7 +148,7 @@ class MainWindow(QtGui.QMainWindow):
         self.add_tab_with_frontend(widget)
 
     def create_tab_with_current_kernel(self):
-        """create a new frontend attached to the same kernel as the current tab"""
+        """create a new frontend attached to the same kernel """
         current_widget = self.tab_widget.currentWidget()
         current_widget_index = self.tab_widget.indexOf(current_widget)
         current_widget_name = self.tab_widget.tabText(current_widget_index)
@@ -158,17 +158,17 @@ class MainWindow(QtGui.QMainWindow):
             name = current_widget_name
         else:
             name = '(%s) slave' % current_widget_name
-        self.add_tab_with_frontend(widget,name=name)
+        self.add_tab_with_frontend(widget, name=name)
 
-    def close_tab(self,current_tab):
+    def close_tab(self, current_tab):
         """ Called when you need to try to close a tab.
 
         It takes the number of the tab to be closed as argument, or a referece
         to the wiget inside this tab
         """
 
-        # let's be sure "tab" and "closing widget are respectivey the index of the tab to close
-        # and a reference to the trontend to close
+        # let's be sure "tab" and "closing widget are respectivey the index of
+        # the tab to close and a reference to the frontend to close
         if type(current_tab) is not int :
             current_tab = self.tab_widget.indexOf(current_tab)
         closing_widget=self.tab_widget.widget(current_tab)
@@ -185,7 +185,7 @@ class MainWindow(QtGui.QMainWindow):
         slave_tabs = self.find_slave_widgets(closing_widget)
 
         keepkernel = None #Use the prompt by default
-        if hasattr(closing_widget,'_keep_kernel_on_exit'): #set by exit magic
+        if hasattr(closing_widget, '_keep_kernel_on_exit'): #set by exit magic
             keepkernel = closing_widget._keep_kernel_on_exit
             # If signal sent by exit magic (_keep_kernel_on_exit, exist and not None)
             # we set local slave tabs._hidden to True to avoid prompting for kernel
@@ -318,7 +318,7 @@ class MainWindow(QtGui.QMainWindow):
         frontend = self.active_frontend
         if frontend:
             cfile = frontend.kernel_manager.connection_file
-            shownName = QtCore.QFileInfo(cfile).fileName();
+            shownName = QtCore.QFileInfo(cfile).fileName()
             pth = QtCore.QFileInfo(cfile).filePath()
             #semm not to work on mac for thr proxy icon
             self.setWindowFilePath(pth)
@@ -478,21 +478,21 @@ class MainWindow(QtGui.QMainWindow):
         self.file_menu = self.menuBar().addMenu("&File")
 
         if self._windows_manager :
-                # if got a windows_manager which handle multi windows, propose
-                # thoses actions
-                self.new_kernel_win_act = QtGui.QAction(
-                    "New &Window with New kernel",
-                    self,
-                    shortcut="Ctrl+N",
-                    triggered=self._windows_manager.create_window_with_new_frontend)
-                self.add_menu_action(self.file_menu, self.new_kernel_win_act)
+            # if got a windows_manager which handle multi windows, propose
+            # thoses actions
+            self.new_kernel_win_act = QtGui.QAction(
+                "New &Window with New kernel",
+                self,
+                shortcut="Ctrl+N",
+                triggered=self._windows_manager.create_window_with_new_frontend)
+            self.add_menu_action(self.file_menu, self.new_kernel_win_act)
 
-                self.slave_kernel_win_act = QtGui.QAction(
-                     "New Window with S&ame kernel",
-                    self,
-                    shortcut="Ctrl+Shift+N",
-                    triggered=self._windows_manager.create_window_with_current_kernel)
-                self.add_menu_action(self.file_menu, self.slave_kernel_win_act)
+            self.slave_kernel_win_act = QtGui.QAction(
+                    "New Window with S&ame kernel",
+                self,
+                shortcut="Ctrl+Shift+N",
+                triggered=self._windows_manager.create_window_with_current_kernel)
+            self.add_menu_action(self.file_menu, self.slave_kernel_win_act)
 
         self.new_kernel_tab_act = QtGui.QAction("New Tab with &New kernel",
             self,
@@ -855,19 +855,19 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.window_menu, self.next_tab_act)
 
         if self._windows_manager:
-                self.window_menu.addSeparator()
+            self.window_menu.addSeparator()
 
-                self.reattach_act = QtGui.QAction("Me&rge Frontend",
-                    self,
-                    shortcut="Alt+R",
-                    triggered=self._windows_manager.reattach_frontend)
-                self.add_menu_action(self.window_menu, self.reattach_act)
+            self.reattach_act = QtGui.QAction("Me&rge Frontend",
+                self,
+                shortcut="Alt+R",
+                triggered=self._windows_manager.reattach_frontend)
+            self.add_menu_action(self.window_menu, self.reattach_act)
 
-                self.detach_act = QtGui.QAction("Separate Fronten&d",
-                    self,
-                    shortcut="Alt+D",
-                    triggered=self._windows_manager.detach_frontend)
-                self.add_menu_action(self.window_menu, self.detach_act)
+            self.detach_act = QtGui.QAction("Separate Fronten&d",
+                self,
+                shortcut="Alt+D",
+                triggered=self._windows_manager.detach_frontend)
+            self.add_menu_action(self.window_menu, self.detach_act)
 
 
     def init_help_menu(self):
@@ -1032,7 +1032,7 @@ class MainWindow(QtGui.QMainWindow):
         if self.tab_widget.count() == 0:
             # no tabs, just close
             if self._windows_manager:
-               self._windows_manager.closing_windows(self)
+                self._windows_manager.closing_windows(self)
             event.accept()
             return
         # Do Not loop on the widget count as it change while closing
