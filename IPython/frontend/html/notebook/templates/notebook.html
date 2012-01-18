@@ -110,6 +110,8 @@
         </li>
         <li><a href="#">Cell</a>
             <ul>
+                <li id="full_edit_cell"><a href="#">Edit in Ace</a></li>
+                <hr/>
                 <li id="run_cell"><a href="#">Run</a></li>
                 <li id="run_cell_in_place"><a href="#">Run in Place</a></li>
                 <li id="run_all_cells"><a href="#">Run All</a></li>
@@ -133,6 +135,8 @@
                 <li><a href="http://ipython.org/ipython-doc/stable/interactive/htmlnotebook.html" target="_blank">Notebook Help</a></li>
                 <li id="keyboard_shortcuts"><a href="#">Keyboard Shortcuts</a></li>
                 <hr/>
+                <li><a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" target="_blank">Ace Keyboard Shortcuts</a></li>
+                <hr/>
                 <li><a href="http://docs.python.org" target="_blank">Python</a></li>
                 <li><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a></li>
                 <li><a href="http://docs.scipy.org/doc/scipy/reference/" target="_blank">SciPy</a></li>
@@ -154,6 +158,13 @@
 
 </div>
 
+<div id="fulledit_widget" >
+    <div id="fulledit_header">
+        <button id="close_fulledit">Close</button>
+    </div>
+    <div id="fulledit_editor">some text</div>
+</div>
+
 <script src="/static/jquery/js/jquery-1.7.1.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/jquery/js/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
 
@@ -165,6 +176,10 @@
 <script src="/static/codemirror/mode/css/css.js" charset="utf-8"></script>
 <script src="/static/codemirror/mode/rst/rst.js" charset="utf-8"></script>
 <script src="/static/codemirror/mode/markdown/markdown.js" charset="utf-8"></script>
+
+<script src="/static/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/ace/mode-python.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/ace/theme-textmate.js" type="text/javascript" charset="utf-8"></script>
 
 <script src="/static/pagedown/Markdown.Converter.js" charset="utf-8"></script>
 
@@ -186,6 +201,7 @@
 <script src="/static/js/menubar.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/notebook.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/notebookmain.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/js/fulleditwidget.js" type="text/javascript" charset="utf-8"></script>
 
 </body>
 
