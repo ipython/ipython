@@ -353,3 +353,8 @@ def test_timeit_shlex():
     _ip.magic('timeit -r1 -n1 ("a " + "b")')
     _ip.magic('timeit -r1 -n1 f("a " + "b")')
     _ip.magic('timeit -r1 -n1 f("a " + "b ")')
+
+
+def test_timeit_arguments():
+    "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
+    _ip.magic("timeit ('#')")
