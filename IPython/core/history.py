@@ -24,6 +24,7 @@ except ImportError:
 import threading
 
 # Our own packages
+from IPython.core.error import StdinNotImplementedError
 from IPython.config.configurable import Configurable
 from IPython.external.decorator import decorator
 from IPython.testing.skipdoctest import skip_doctest
@@ -797,7 +798,12 @@ def magic_history(self, parameter_s = ''):
         close_at_end = False
     else:
         if os.path.exists(outfname):
-            if not io.ask_yes_no("File %r exists. Overwrite?" % outfname):
+            try:
+                ans = io.ask_yes_no("File %r exists. Overwrite?" % outfname)
+            except StdinNotImplementedError:
+                print("Overwriting file.")
+                ans = True
+            if not ans:
                 print('Aborting.')
                 return
 

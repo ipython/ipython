@@ -45,6 +45,7 @@ import IPython
 from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
 from IPython.core.error import UsageError
+from IPython.core.error import StdinNotImplementedError
 from IPython.core.fakemodule import FakeModule
 from IPython.core.profiledir import ProfileDir
 from IPython.core.macro import Macro
@@ -988,8 +989,11 @@ Currently the magic system has the following functions:\n"""
         if 'f' in opts:
             ans = True
         else:
-            ans = self.shell.ask_yes_no(
+            try:
+                ans = self.shell.ask_yes_no(
                 "Once deleted, variables cannot be recovered. Proceed (y/[n])? ", default='n')
+            except StdinNotImplementedError:
+                ans = True
         if not ans:
             print 'Nothing done.'
             return
@@ -1059,9 +1063,12 @@ Currently the magic system has the following functions:\n"""
         if opts.has_key('f'):
             ans = True
         else:
-            ans = self.shell.ask_yes_no(
+            try:
+                ans = self.shell.ask_yes_no(
                 "Once deleted, variables cannot be recovered. Proceed (y/[n])? ",
                 default='n')
+            except StdinNotImplementedError:
+                ans = True
         if not ans:
             print 'Nothing done.'
             return
