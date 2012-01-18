@@ -516,7 +516,11 @@ var IPython = (function (IPython) {
             source_cell instanceof IPython.MarkdownCell) {
             this.insert_code_cell_below(i);
             var target_cell = this.cells()[i+1];
-            target_cell.set_code(source_cell.get_source());
+            var text = source_cell.get_source();
+            if (text === source_cell.placeholder) {
+                text = '';
+            }
+            target_cell.set_code(text);
             source_element.remove();
             target_cell.select();
         };
@@ -544,9 +548,11 @@ var IPython = (function (IPython) {
         }
         if (target_cell !== null) {
             if (text === "") {text = target_cell.placeholder;};
+            // The edit must come before the set_source.
+            target_cell.edit();
             target_cell.set_source(text);
             source_element.remove();
-            target_cell.edit();
+            target_cell.select();
         }
         this.dirty = true;
     };

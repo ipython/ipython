@@ -34,7 +34,8 @@ var IPython = (function (IPython) {
             mode: this.code_mirror_mode,
             theme: 'default',
             value: this.placeholder,
-            readOnly: this.read_only
+            readOnly: this.read_only,
+            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render').
@@ -51,10 +52,24 @@ var IPython = (function (IPython) {
             if (event.which === 13) {
                 if (that.rendered) {
                     that.edit();
-                    event.preventDefault();
+                    return false;
                 }
             }
         });
+    };
+
+
+    TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
+        // This method gets called in CodeMirror's onKeyDown/onKeyPress
+        // handlers and is used to provide custom key handling. Its return
+        // value is used to determine if CodeMirror should ignore the event:
+        // true = ignore, false = don't ignore.
+
+        if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
+            // Always ignore shift-enter in CodeMirror as we handle it.
+            return true;
+        }
+        return false;
     };
 
 
@@ -73,14 +88,16 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.edit = function () {
+        var that = this;
         if ( this.read_only ) return;
         if (this.rendered === true) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");  
             output.hide();
             text_cell.find('div.text_cell_input').show();
+            that.code_mirror.refresh();
             this.code_mirror.focus();
-            this.code_mirror.refresh();
+            that.code_mirror.refresh();
             this.rendered = false;
             if (this.get_source() === this.placeholder) {
                 this.set_source('');

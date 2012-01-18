@@ -86,7 +86,7 @@ var IPython = (function (IPython) {
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        }else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {
+        } else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {
             // triger aon keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
@@ -499,6 +499,7 @@ var IPython = (function (IPython) {
         select.focus();
     };
 
+
     CodeCell.prototype.toggle_line_numbers = function () {
         if (this.code_mirror.getOption('lineNumbers') == false) {
             this.code_mirror.setOption('lineNumbers', true);
@@ -508,15 +509,14 @@ var IPython = (function (IPython) {
         this.code_mirror.refresh();
     };
 
+
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
-        // Todo: this dance is needed because as of CodeMirror 2.12, focus is
-        // not causing the cursor to blink if the editor is empty initially.
-        // While this seems to fix the issue, this should be fixed
-        // in CodeMirror proper.
-        var s = this.code_mirror.getValue();
+        // In some cases (inserting a new cell) we need a refresh before and
+        // after the focus. Not sure why this is the case.
+        this.code_mirror.refresh();
         this.code_mirror.focus();
-        if (s === '') this.code_mirror.setValue('');
+        this.code_mirror.refresh();
     };
 
 
