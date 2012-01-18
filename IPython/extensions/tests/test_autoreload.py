@@ -294,12 +294,8 @@ x = -99
         self.shell.run_code("pass") # trigger reload
         nt.assert_equal(mod.x, -99)
 
-    # The autoreload extension needs to be updated for Python 3.2, as .pyc files
-    # are stored in a different location. See gh-846.
-    @knownfailureif(sys.version_info >= (3,2))
     def test_smoketest_aimport(self):
         self._check_smoketest(use_aimport=True)
 
-    @knownfailureif(sys.version_info >= (3,2))
     def test_smoketest_autoreload(self):
         self._check_smoketest(use_aimport=False)
