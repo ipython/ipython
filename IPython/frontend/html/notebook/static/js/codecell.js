@@ -754,12 +754,12 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.get_code = function () {
+    CodeCell.prototype.get_text = function () {
         return this.code_mirror.getValue();
     };
 
 
-    CodeCell.prototype.set_code = function (code) {
+    CodeCell.prototype.set_text = function (code) {
         return this.code_mirror.setValue(code);
     };
 
@@ -787,7 +787,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype.fromJSON = function (data) {
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
-                this.set_code(data.input);
+                this.set_text(data.input);
             }
             if (data.prompt_number !== undefined) {
                 this.set_input_prompt(data.prompt_number);
@@ -809,7 +809,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.toJSON = function () {
         var data = {};
-        data.input = this.get_code();
+        data.input = this.get_text();
         data.cell_type = 'code';
         if (this.input_prompt_number !== ' ') {
             data.prompt_number = this.input_prompt_number;

@@ -99,8 +99,8 @@ var IPython = (function (IPython) {
             this.code_mirror.focus();
             that.code_mirror.refresh();
             this.rendered = false;
-            if (this.get_source() === this.placeholder) {
-                this.set_source('');
+            if (this.get_text() === this.placeholder) {
+                this.set_text('');
             }
         }
     };
@@ -120,12 +120,12 @@ var IPython = (function (IPython) {
     };
 
 
-    TextCell.prototype.get_source = function() {
+    TextCell.prototype.get_text = function() {
         return this.code_mirror.getValue();
     };
 
 
-    TextCell.prototype.set_source = function(text) {
+    TextCell.prototype.set_text = function(text) {
         this.code_mirror.setValue(text);
         this.code_mirror.refresh();
     };
@@ -162,7 +162,7 @@ var IPython = (function (IPython) {
     TextCell.prototype.fromJSON = function (data) {
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
-                this.set_source(data.source);
+                this.set_text(data.source);
                 this.set_rendered(data.rendered || '');
                 this.rendered = false;
                 this.render();
@@ -174,7 +174,7 @@ var IPython = (function (IPython) {
     TextCell.prototype.toJSON = function () {
         var data = {};
         data.cell_type = this.cell_type;
-        data.source = this.get_source();
+        data.source = this.get_text();
         return data;
     };
 
@@ -193,7 +193,7 @@ var IPython = (function (IPython) {
 
     HTMLCell.prototype.render = function () {
         if (this.rendered === false) {
-            var text = this.get_source();
+            var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             this.set_rendered(text);
             this.typeset();
@@ -218,7 +218,7 @@ var IPython = (function (IPython) {
 
     MarkdownCell.prototype.render = function () {
         if (this.rendered === false) {
-            var text = this.get_source();
+            var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             var html = IPython.markdown_converter.makeHtml(text);
             this.set_rendered(html);
@@ -256,7 +256,7 @@ var IPython = (function (IPython) {
 
     RSTCell.prototype.render = function () {
         if (this.rendered === false) {
-            var text = this.get_source();
+            var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             var settings = {
                 processData : false,

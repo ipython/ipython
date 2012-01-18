@@ -55,7 +55,7 @@ var IPython = (function (IPython) {
             $('#main_app').hide();
             $('#menubar').hide();
             $('body').css({overflow : 'auto'});
-            var code = cell.get_code();
+            var code = cell.get_text();
             this.ace_editor.getSession().setValue(code);
             this.ace_editor.focus();
             // On Safari (and Chrome/FF on Linux) the editor doesn't get
@@ -76,7 +76,7 @@ var IPython = (function (IPython) {
             $('body').css({overflow : 'hidden'});
             var code = this.ace_editor.getSession().getValue();
             var cell = IPython.notebook.selected_cell();
-            cell.set_code(code);
+            cell.set_text(code);
             cell.select();
             this.opened = false;
         };

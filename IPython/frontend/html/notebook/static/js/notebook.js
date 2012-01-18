@@ -516,11 +516,11 @@ var IPython = (function (IPython) {
             source_cell instanceof IPython.MarkdownCell) {
             this.insert_code_cell_below(i);
             var target_cell = this.cells()[i+1];
-            var text = source_cell.get_source();
+            var text = source_cell.get_text();
             if (text === source_cell.placeholder) {
                 text = '';
             }
-            target_cell.set_code(text);
+            target_cell.set_text(text);
             source_element.remove();
             target_cell.select();
         };
@@ -537,20 +537,20 @@ var IPython = (function (IPython) {
         if (source_cell instanceof IPython.CodeCell) {
             this.insert_markdown_cell_below(i);
             target_cell = this.cells()[i+1];
-            var text = source_cell.get_code();
+            var text = source_cell.get_text();
         } else if (source_cell instanceof IPython.HTMLCell) {
             this.insert_markdown_cell_below(i);
             target_cell = this.cells()[i+1];
-            var text = source_cell.get_source();
+            var text = source_cell.get_text();
             if (text === source_cell.placeholder) {
                 text = target_cell.placeholder;
             }
         }
         if (target_cell !== null) {
             if (text === "") {text = target_cell.placeholder;};
-            // The edit must come before the set_source.
+            // The edit must come before the set_text.
             target_cell.edit();
-            target_cell.set_source(text);
+            target_cell.set_text(text);
             source_element.remove();
             target_cell.select();
         }
@@ -567,18 +567,18 @@ var IPython = (function (IPython) {
         if (source_cell instanceof IPython.CodeCell) {
             this.insert_html_cell_below(i);
             target_cell = this.cells()[i+1];
-            var text = source_cell.get_code();
+            var text = source_cell.get_text();
         } else if (source_cell instanceof IPython.MarkdownCell) {
             this.insert_html_cell_below(i);
             target_cell = this.cells()[i+1];
-            var text = source_cell.get_source();
+            var text = source_cell.get_text();
             if (text === source_cell.placeholder) {
                 text = target_cell.placeholder;
             }
         }
         if (target_cell !== null) {
             if (text === "") {text = target_cell.placeholder;};
-            target_cell.set_source(text);
+            target_cell.set_text(text);
             source_element.remove();
             target_cell.edit();
         }
@@ -689,9 +689,9 @@ var IPython = (function (IPython) {
             var textb = cell.code_mirror.getRange(cursor, end);
             texta = texta.replace(/^\n+/, '').replace(/\n+$/, '');
             textb = textb.replace(/^\n+/, '').replace(/\n+$/, '');
-            cell.set_code(texta);
+            cell.set_text(texta);
             var new_cell = this.insert_code_cell_below();
-            new_cell.set_code(textb);
+            new_cell.set_text(textb);
         };
     };
 
@@ -704,9 +704,9 @@ var IPython = (function (IPython) {
             upper_cell = this.cells()[index-1];
             lower_cell = this.cells()[index];
             if (upper_cell instanceof IPython.CodeCell && lower_cell instanceof IPython.CodeCell) {
-                upper_text = upper_cell.get_code();
-                lower_text = lower_cell.get_code();
-                lower_cell.set_code(upper_text+'\n'+lower_text);
+                upper_text = upper_cell.get_text();
+                lower_text = lower_cell.get_text();
+                lower_cell.set_text(upper_text+'\n'+lower_text);
                 this.delete_cell(index-1);
             };
         };
@@ -721,9 +721,9 @@ var IPython = (function (IPython) {
             upper_cell = this.cells()[index];
             lower_cell = this.cells()[index+1];
             if (upper_cell instanceof IPython.CodeCell && lower_cell instanceof IPython.CodeCell) {
-                upper_text = upper_cell.get_code();
-                lower_text = lower_cell.get_code();
-                upper_cell.set_code(upper_text+'\n'+lower_text);
+                upper_text = upper_cell.get_text();
+                lower_text = lower_cell.get_text();
+                upper_cell.set_text(upper_text+'\n'+lower_text);
                 this.delete_cell(index+1);
             };
         };
@@ -875,7 +875,7 @@ var IPython = (function (IPython) {
             } else if (payload[i].source === 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input') {
                 var index = this.find_cell_index(cell);
                 var new_cell = this.insert_code_cell_below(index);
-                new_cell.set_code(payload[i].text);
+                new_cell.set_text(payload[i].text);
                 this.dirty = true;
             }
         };
@@ -1000,8 +1000,8 @@ var IPython = (function (IPython) {
             cell.clear_output(true, true, true);
             cell.set_input_prompt('*');
             cell.element.addClass("running");
-            var code = cell.get_code();
-            var msg_id = that.kernel.execute(cell.get_code());
+            var code = cell.get_text();
+            var msg_id = that.kernel.execute(cell.get_text());
             that.msg_cell_map[msg_id] = cell.cell_id;
         } else if (cell instanceof IPython.HTMLCell) {
             cell.render();

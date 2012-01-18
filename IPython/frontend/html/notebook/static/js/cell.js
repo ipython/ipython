@@ -30,18 +30,8 @@ var IPython = (function (IPython) {
         this.cell_id = utils.uuid();
     };
 
-
-    Cell.prototype.select = function () {
-        this.element.addClass('ui-widget-content ui-corner-all');
-        this.selected = true;
-    };
-
-
-    Cell.prototype.unselect = function () {
-        this.element.removeClass('ui-widget-content ui-corner-all');
-        this.selected = false;
-    };
-
+    // Subclasses must implement create_element.
+    Cell.prototype.create_element = function () {};
 
     Cell.prototype.bind_events = function () {
         var that = this;
@@ -57,6 +47,55 @@ var IPython = (function (IPython) {
             }
         });
     };
+
+    // typeset with MathJax if MathJax is available
+    Cell.prototype.typeset = function () {
+        if (window.MathJax){
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+        }
+    };
+
+
+    Cell.prototype.select = function () {
+        this.element.addClass('ui-widget-content ui-corner-all');
+        this.selected = true;
+    };
+
+
+    Cell.prototype.unselect = function () {
+        this.element.removeClass('ui-widget-content ui-corner-all');
+        this.selected = false;
+    };
+
+
+    Cell.prototype.get_text = function () {
+    };
+
+
+    Cell.prototype.set_text = function (text) {
+    };
+
+
+    Cell.prototype.refresh = function () {
+        this.code_mirror.refresh();
+    };
+
+
+    Cell.prototype.edit = function () {
+    };
+
+
+    Cell.prototype.render = function () {
+    };
+
+
+    Cell.prototype.toJSON = function () {
+    };
+
+
+    Cell.prototype.fromJSON = function (data) {
+    };
+
 
     Cell.prototype.grow = function(element) {
         // Grow the cell by hand. This is used upon reloading from JSON, when the
@@ -82,16 +121,6 @@ var IPython = (function (IPython) {
         } else {
             this.code_mirror.setOption('tabMode', 'shift');
             this.code_mirror.setOption('enterMode', 'flat');
-        }
-    };
-
-    // Subclasses must implement create_element.
-    Cell.prototype.create_element = function () {};
-
-    // typeset with MathJax if MathJax is available
-    Cell.prototype.typeset = function () {
-        if (window.MathJax){
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
         }
     };
 
