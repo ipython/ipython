@@ -175,6 +175,7 @@ def arg_split(s, posix=False, strict=True):
     # and it shouldn't raise an exception.
     # It may be a bad idea to parse things that are not command-line args
     # through this function, but we do, so let's be safe about it.
+    lex.commenters='' #fix for GH-1269
     tokens = []
     while True:
         try:
