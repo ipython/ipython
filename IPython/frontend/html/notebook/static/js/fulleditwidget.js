@@ -49,7 +49,7 @@ var IPython = (function (IPython) {
 
 
     FullEditWidget.prototype.open = function () {
-        var cell = IPython.notebook.selected_cell();
+        var cell = IPython.notebook.get_selected_cell();
         if (!this.opened && cell instanceof IPython.CodeCell) {
             $('#fulledit_widget').show();
             $('#main_app').hide();
@@ -75,7 +75,7 @@ var IPython = (function (IPython) {
             $('#menubar').show();
             $('body').css({overflow : 'hidden'});
             var code = this.ace_editor.getSession().getValue();
-            var cell = IPython.notebook.selected_cell();
+            var cell = IPython.notebook.get_selected_cell();
             cell.set_text(code);
             cell.select();
             this.opened = false;

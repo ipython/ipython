@@ -26,7 +26,7 @@ var IPython = (function (IPython) {
             select : function (event, ui) {
                 // The selected cell loses focus when the menu is entered, so we
                 // re-select it upon selection.
-                var i = IPython.notebook.selected_index();
+                var i = IPython.notebook.get_selected_index();
                 IPython.notebook.select(i);
             }
         });
@@ -100,10 +100,10 @@ var IPython = (function (IPython) {
         });
         // Insert
         this.element.find('#insert_cell_above').click(function () {
-            IPython.notebook.insert_code_cell_above();
+            IPython.notebook.insert_cell_above('code');
         });
         this.element.find('#insert_cell_below').click(function () {
-            IPython.notebook.insert_code_cell_below();
+            IPython.notebook.insert_cell_below('code');
         });
         // Cell
         this.element.find('#full_edit_cell').click(function () {
