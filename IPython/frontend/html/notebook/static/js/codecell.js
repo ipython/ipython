@@ -93,6 +93,24 @@ var IPython = (function (IPython) {
             var cursor = editor.getCursor();
             var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
             that.request_tooltip_after_time(pre_cursor,tooltip_wait_time);
+        } else if (event.which === 38) {
+            // If we are not at the top, let CM handle the up arrow and
+            // prevent the global keydown handler from handling it.
+            if (!that.at_top()) {
+                event.stop();
+                return false;
+            } else {
+                return true; 
+            };
+        } else if (event.which === 40) {
+            // If we are not at the bottom, let CM handle the down arrow and
+            // prevent the global keydown handler from handling it.
+            if (!that.at_bottom()) {
+                event.stop();
+                return false;
+            } else {
+                return true; 
+            };
         } else if (event.keyCode === 9 && event.type == 'keydown') {
             // Tab completion.
             var cur = editor.getCursor();

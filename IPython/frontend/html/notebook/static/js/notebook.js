@@ -512,8 +512,7 @@ var IPython = (function (IPython) {
         var i = this.index_or_selected(index);
         var source_element = this.cell_elements().eq(i);
         var source_cell = source_element.data("cell");
-        if (source_cell instanceof IPython.HTMLCell || 
-            source_cell instanceof IPython.MarkdownCell) {
+        if (!(source_cell instanceof IPython.CodeCell)) {
             this.insert_code_cell_below(i);
             var target_cell = this.cells()[i+1];
             var text = source_cell.get_text();
@@ -534,27 +533,23 @@ var IPython = (function (IPython) {
         var source_element = this.cell_elements().eq(i);
         var source_cell = source_element.data("cell");
         var target_cell = null;
-        if (source_cell instanceof IPython.CodeCell) {
-            this.insert_markdown_cell_below(i);
-            target_cell = this.cells()[i+1];
-            var text = source_cell.get_text();
-        } else if (source_cell instanceof IPython.HTMLCell) {
+        if (!(source_cell instanceof IPython.MarkdownCell)) {
             this.insert_markdown_cell_below(i);
             target_cell = this.cells()[i+1];
             var text = source_cell.get_text();
             if (text === source_cell.placeholder) {
                 text = target_cell.placeholder;
+            };
+            if (target_cell !== null) {
+                if (text === "") {text = target_cell.placeholder;};
+                // The edit must come before the set_text.
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
+                target_cell.select();
             }
-        }
-        if (target_cell !== null) {
-            if (text === "") {text = target_cell.placeholder;};
-            // The edit must come before the set_text.
-            target_cell.edit();
-            target_cell.set_text(text);
-            source_element.remove();
-            target_cell.select();
-        }
-        this.dirty = true;
+            this.dirty = true;
+        };
     };
 
 
@@ -564,25 +559,23 @@ var IPython = (function (IPython) {
         var source_element = this.cell_elements().eq(i);
         var source_cell = source_element.data("cell");
         var target_cell = null;
-        if (source_cell instanceof IPython.CodeCell) {
-            this.insert_html_cell_below(i);
-            target_cell = this.cells()[i+1];
-            var text = source_cell.get_text();
-        } else if (source_cell instanceof IPython.MarkdownCell) {
+        if (!(source_cell instanceof IPython.HTMLCell)) {
             this.insert_html_cell_below(i);
             target_cell = this.cells()[i+1];
             var text = source_cell.get_text();
             if (text === source_cell.placeholder) {
                 text = target_cell.placeholder;
+            };
+            if (target_cell !== null) {
+                if (text === "") {text = target_cell.placeholder;};
+                // The edit must come before the set_text.
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
+                target_cell.select();
             }
-        }
-        if (target_cell !== null) {
-            if (text === "") {text = target_cell.placeholder;};
-            target_cell.set_text(text);
-            source_element.remove();
-            target_cell.edit();
-        }
-        this.dirty = true;
+            this.dirty = true;
+        };
     };
 
 
@@ -629,14 +622,12 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             if (cell_data.cell_type == 'code') {
                 new_cell = this.insert_code_cell_above();
-                new_cell.fromJSON(cell_data);
             } else if (cell_data.cell_type === 'html') {
                 new_cell = this.insert_html_cell_above();
-                new_cell.fromJSON(cell_data);
             } else if (cell_data.cell_type === 'markdown') {
                 new_cell = this.insert_markdown_cell_above();
-                new_cell.fromJSON(cell_data);
             };
+            new_cell.fromJSON(cell_data);
             this.select_next();
             this.delete_cell();
         };
@@ -648,14 +639,12 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             if (cell_data.cell_type == 'code') {
                 new_cell = this.insert_code_cell_above();
-                new_cell.fromJSON(cell_data);
             } else if (cell_data.cell_type === 'html') {
                 new_cell = this.insert_html_cell_above();
-                new_cell.fromJSON(cell_data);
             } else if (cell_data.cell_type === 'markdown') {
                 new_cell = this.insert_markdown_cell_above();
-                new_cell.fromJSON(cell_data);
             };
+            new_cell.fromJSON(cell_data);
         };
     };
 
@@ -665,14 +654,12 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             if (cell_data.cell_type == 'code') {
                 new_cell = this.insert_code_cell_below();
-                new_cell.fromJSON(cell_data);
             } else if (cell_data.cell_type === 'html') {
                 new_cell = this.insert_html_cell_below();
-                new_cell.fromJSON(cell_data);
             } else if (cell_data.cell_type === 'markdown') {
                 new_cell = this.insert_markdown_cell_below();
-                new_cell.fromJSON(cell_data);
             };
+            new_cell.fromJSON(cell_data);
         };
     };
 

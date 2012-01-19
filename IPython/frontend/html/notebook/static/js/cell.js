@@ -14,6 +14,7 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
 
     var Cell = function (notebook) {
+        this.placeholder = this.placeholder || '';
         this.notebook = notebook;
         this.read_only = false;
         if (notebook){
