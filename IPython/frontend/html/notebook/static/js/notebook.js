@@ -607,7 +607,6 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.cut_cell = function () {
-        console.log('cut_cell');
         this.copy_cell();
         this.delete_cell();
     }
@@ -620,7 +619,6 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.paste_cell = function () {
-        console.log('paste_cell');
         if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
             if (cell_data.cell_type == 'code') {
