@@ -762,8 +762,10 @@ def magic_history(self, parameter_s = ''):
       the default is the last 10 lines.
 
       -f FILENAME: instead of printing the output to the screen, redirect it to
-       the given file.  The file is always overwritten, though IPython asks for
-       confirmation first if it already exists.
+       the given file.  The file is always overwritten, though *when it can*,
+       IPython asks for confirmation first. In particular, running the command
+       "history -f FILENAME" from the IPython Notebook interface will replace
+       FILENAME even if it already exists *without* confirmation.
 
     Examples
     --------
@@ -801,12 +803,11 @@ def magic_history(self, parameter_s = ''):
             try:
                 ans = io.ask_yes_no("File %r exists. Overwrite?" % outfname)
             except StdinNotImplementedError:
-                print("Overwriting file.")
                 ans = True
             if not ans:
                 print('Aborting.')
                 return
-
+            print("Overwriting file.")
         outfile = open(outfname,'w')
         close_at_end = True
 

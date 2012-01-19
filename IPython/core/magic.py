@@ -984,6 +984,12 @@ Currently the magic system has the following functions:\n"""
 
         In [1]: 'a' in _ip.user_ns
         Out[1]: False
+
+        Notes
+        -----
+        Calling this magic from clients that do not implement standard input,
+        such as the ipython notebook interface, will reset the namespace
+        without confirmation.
         """
         opts, args = self.parse_options(parameter_s,'sf')
         if 'f' in opts:
@@ -1056,6 +1062,12 @@ Currently the magic system has the following functions:\n"""
 
         In [11]: who_ls
         Out[11]: ['a']
+
+        Notes
+        -----
+        Calling this magic from clients that do not implement standard input,
+        such as the ipython notebook interface, will reset the namespace
+        without confirmation.
         """
 
         opts, regex = self.parse_options(parameter_s,'f')
