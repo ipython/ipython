@@ -65,8 +65,8 @@ class RunnerTestCase(unittest.TestCase):
         self.assert_(mismatch==0,'Number of mismatched lines: %s' %
                      mismatch)
 
-    @decorators.skipif(pylab_not_importable, "Likely a run without X.")
     @decorators.skipif_not_matplotlib
+    @decorators.skipif(pylab_not_importable, "Likely a run without X.")
     def test_pylab_import_all_enabled(self):
         "Verify that plot is available when pylab_import_all = True"
         source = """
@@ -91,8 +91,8 @@ Out\[6\]: True
         runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)
 
-    @decorators.skipif(pylab_not_importable, "Likely a run without X.")
     @decorators.skipif_not_matplotlib
+    @decorators.skipif(pylab_not_importable, "Likely a run without X.")
     def test_pylab_import_all_disabled(self):
         "Verify that plot is not available when pylab_import_all = False"
         source = """
