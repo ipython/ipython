@@ -21,6 +21,7 @@ var IPython = (function (IPython) {
         this.next_prompt_number = 1;
         this.kernel = null;
         this.clipboard = null;
+        this.paste_enabled = false;
         this.dirty = false;
         this.msg_cell_map = {};
         this.metadata = {};
@@ -583,23 +584,30 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.enable_paste = function () {
         var that = this;
-        $('#paste_cell').removeClass('ui-state-disabled')
-            .on('click', function () {that.paste_cell();});
-        $('#paste_cell_above').removeClass('ui-state-disabled')
-            .on('click', function () {that.paste_cell_above();});
-        $('#paste_cell_below').removeClass('ui-state-disabled')
-            .on('click', function () {that.paste_cell_below();});
+        if (!this.paste_enabled) {
+            $('#paste_cell').removeClass('ui-state-disabled')
+                .on('click', function () {that.paste_cell();});
+            $('#paste_cell_above').removeClass('ui-state-disabled')
+                .on('click', function () {that.paste_cell_above();});
+            $('#paste_cell_below').removeClass('ui-state-disabled')
+                .on('click', function () {that.paste_cell_below();});
+            this.paste_enabled = true;
+        };
     };
 
 
     Notebook.prototype.disable_paste = function () {
-        $('#paste_cell').addClass('ui-state-disabled').off('click');
-        $('#paste_cell_above').addClass('ui-state-disabled').off('click');
-        $('#paste_cell_below').addClass('ui-state-disabled').off('click');
+        if (this.paste_enabled) {
+            $('#paste_cell').addClass('ui-state-disabled').off('click');
+            $('#paste_cell_above').addClass('ui-state-disabled').off('click');
+            $('#paste_cell_below').addClass('ui-state-disabled').off('click');
+            this.paste_enabled = false;
+        };
     };
 
 
     Notebook.prototype.cut_cell = function () {
+        console.log('cut_cell');
         this.copy_cell();
         this.delete_cell();
     }
@@ -612,7 +620,8 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.paste_cell = function () {
-        if (this.clipboard !== null) {
+        console.log('paste_cell');
+        if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
             if (cell_data.cell_type == 'code') {
                 new_cell = this.insert_code_cell_above();
@@ -624,14 +633,14 @@ var IPython = (function (IPython) {
                 new_cell = this.insert_markdown_cell_above();
                 new_cell.fromJSON(cell_data);
             };
+            this.select_next();
+            this.delete_cell();
         };
-        this.select_next();
-        this.delete_cell();
     };
 
 
     Notebook.prototype.paste_cell_above = function () {
-        if (this.clipboard !== null) {
+        if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
             if (cell_data.cell_type == 'code') {
                 new_cell = this.insert_code_cell_above();
@@ -648,16 +657,16 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.paste_cell_below = function () {
-        if (this.clipboard !== null) {
+        if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
             if (cell_data.cell_type == 'code') {
-                new_cell = this.insert_code_cell_above();
+                new_cell = this.insert_code_cell_below();
                 new_cell.fromJSON(cell_data);
             } else if (cell_data.cell_type === 'html') {
-                new_cell = this.insert_html_cell_above();
+                new_cell = this.insert_html_cell_below();
                 new_cell.fromJSON(cell_data);
             } else if (cell_data.cell_type === 'markdown') {
-                new_cell = this.insert_markdown_cell_above();
+                new_cell = this.insert_markdown_cell_below();
                 new_cell.fromJSON(cell_data);
             };
         };
