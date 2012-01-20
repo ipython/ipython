@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Script for setting up and using [all]reduce with a binary-tree engine interconnect.
 
