@@ -108,6 +108,9 @@ try:
 except NameError:
     from imp import reload
 
+from IPython.utils import pyfile
+from IPython.utils.py3compat import PY3
+
 def _get_compiled_ext():
     """Official way to get the extension of compiled files (.pyc or .pyo)"""
     for ext, mode, typ in imp.get_suffixes():
@@ -198,14 +201,14 @@ class ModuleReloader(object):
 
             if ext.lower() == '.py':
                 ext = PY_COMPILED_EXT
-                pyc_filename = path + PY_COMPILED_EXT
+                pyc_filename = pyfile.cache_from_source(filename)
                 py_filename = filename
             else:
                 pyc_filename = filename
-                py_filename = filename[:-1]
-
-            if ext != PY_COMPILED_EXT:
-                continue
+                try:
+                    py_filename = pyfile.source_from_cache(filename)
+                except ValueError:
+                    continue
 
             try:
                 pymtime = os.stat(py_filename).st_mtime
@@ -229,10 +232,16 @@ class ModuleReloader(object):
 # superreload
 #------------------------------------------------------------------------------
 
+if PY3:
+    func_attrs = ['__code__', '__defaults__', '__doc__',
+                  '__closure__', '__globals__', '__dict__']
+else:
+    func_attrs = ['func_code', 'func_defaults', 'func_doc',
+                  'func_closure', 'func_globals', 'func_dict']
+
 def update_function(old, new):
     """Upgrade the code object of a function"""
-    for name in ['func_code', 'func_defaults', 'func_doc',
-                 'func_closure', 'func_globals', 'func_dict']:
+    for name in func_attrs:
         try:
             setattr(old, name, getattr(new, name))
         except (AttributeError, TypeError):
@@ -271,17 +280,25 @@ def isinstance2(a, b, typ):
     return isinstance(a, typ) and isinstance(b, typ)
 
 UPDATE_RULES = [
-    (lambda a, b: isinstance2(a, b, types.ClassType),
-     update_class),
-    (lambda a, b: isinstance2(a, b, types.TypeType),
+    (lambda a, b: isinstance2(a, b, type),
      update_class),
     (lambda a, b: isinstance2(a, b, types.FunctionType),
      update_function),
     (lambda a, b: isinstance2(a, b, property),
      update_property),
-    (lambda a, b: isinstance2(a, b, types.MethodType),
-     lambda a, b: update_function(a.im_func, b.im_func)),
 ]
+
+if PY3:
+    UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.MethodType),
+                          lambda a, b: update_function(a.__func__, b.__func__)),
+                        ])
+else:
+    UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.ClassType),
+                          update_class),
+                         (lambda a, b: isinstance2(a, b, types.MethodType),
+                          lambda a, b: update_function(a.im_func, b.im_func)),
+                        ])
+        
 
 def update_generic(a, b):
     for type_check, update in UPDATE_RULES:
@@ -317,7 +334,7 @@ def superreload(module, reload=reload, old_objects={}):
         except TypeError:
             # weakref doesn't work for all types;
             # create strong references for 'important' cases
-            if isinstance(obj, types.ClassType):
+            if not PY3 and isinstance(obj, types.ClassType):
                 old_objects.setdefault(key, []).append(StrongRef(obj))
 
     # reload module
