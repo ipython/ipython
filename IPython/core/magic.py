@@ -45,6 +45,7 @@ import IPython
 from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
 from IPython.core.error import UsageError
+from IPython.core.error import StdinNotImplementedError
 from IPython.core.fakemodule import FakeModule
 from IPython.core.profiledir import ProfileDir
 from IPython.core.macro import Macro
@@ -983,13 +984,22 @@ Currently the magic system has the following functions:\n"""
 
         In [1]: 'a' in _ip.user_ns
         Out[1]: False
+
+        Notes
+        -----
+        Calling this magic from clients that do not implement standard input,
+        such as the ipython notebook interface, will reset the namespace
+        without confirmation.
         """
         opts, args = self.parse_options(parameter_s,'sf')
         if 'f' in opts:
             ans = True
         else:
-            ans = self.shell.ask_yes_no(
+            try:
+                ans = self.shell.ask_yes_no(
                 "Once deleted, variables cannot be recovered. Proceed (y/[n])? ", default='n')
+            except StdinNotImplementedError:
+                ans = True
         if not ans:
             print 'Nothing done.'
             return
@@ -1052,6 +1062,12 @@ Currently the magic system has the following functions:\n"""
 
         In [11]: who_ls
         Out[11]: ['a']
+
+        Notes
+        -----
+        Calling this magic from clients that do not implement standard input,
+        such as the ipython notebook interface, will reset the namespace
+        without confirmation.
         """
 
         opts, regex = self.parse_options(parameter_s,'f')
@@ -1059,9 +1075,12 @@ Currently the magic system has the following functions:\n"""
         if opts.has_key('f'):
             ans = True
         else:
-            ans = self.shell.ask_yes_no(
+            try:
+                ans = self.shell.ask_yes_no(
                 "Once deleted, variables cannot be recovered. Proceed (y/[n])? ",
                 default='n')
+            except StdinNotImplementedError:
+                ans = True
         if not ans:
             print 'Nothing done.'
             return
