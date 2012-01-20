@@ -21,12 +21,44 @@ var IPython = (function (IPython) {
         this.outputs = [];
         this.collapsed = false;
         this.tooltip_timeout = null;
+        this.collapsed = false;
         IPython.Cell.apply(this, arguments);
+
     };
 
 
     CodeCell.prototype = new IPython.Cell();
 
+
+    CodeCell.prototype.toggleInput = function()
+    {
+        if(this.collapsed == true)
+            this.expandInput();
+        else
+            this.collapseInput();
+    }
+
+    CodeCell.prototype.expandInput = function()
+    {
+        var that=this;
+        // collapse text, then show replacing header
+        $(this.hiddencell).slideUp(
+            function(){
+                $(that.input_area).slideDown();
+            });
+        this.collapsed = false;
+    }
+
+    CodeCell.prototype.collapseInput = function()
+    {
+        var that=this;
+        // collapse text, then show replacing header
+        $(this.input_area).slideUp(
+            function(){
+                $(that.hiddencell).slideDown();
+            });
+        this.collapsed = true;
+    }
 
     CodeCell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
@@ -34,23 +66,22 @@ var IPython = (function (IPython) {
 
         var input = $('<div></div>').addClass('input hbox');
         var input_prompt = $('<div/>').addClass('prompt input_prompt');
+        this.input_prompt = input_prompt;
         input.append(input_prompt);
         var input_area = $('<div/>').addClass('input_area box-flex1');
-        var hiddencell = $('<div/>').addClass('input_area box-flex1').text('hidden code cell, click to expand')
+        var hiddencell = $('<div/>')
+            .addClass('input_area box-flex1')
             .attr('style','padding:4px; color:grey;')
+            .text('hidden code cell, click to expand....');
+        this.input_area = input_area;
+        this.hiddencell = hiddencell;
+            var that=this;
+            $(this.input_prompt).click( function(){
+                that.toggleInput();
+            });
             $(hiddencell).hide() ;
             $(hiddencell).click( function(){
-                $(hiddencell).slideUp(
-                    function(){
-                        $(input_area).slideDown();
-                    });
-                }
-                )
-            $(input_prompt).click( function(){
-                $(input_area).slideUp(
-                    function(){
-                        $(hiddencell).slideDown();
-                    });
+                that.expandInput();
                 }
                 )
             input.append(hiddencell);
