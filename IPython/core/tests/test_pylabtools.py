@@ -24,7 +24,7 @@ import numpy as np
 
 # Our own imports
 from IPython.testing import decorators as dec
-from .. import pylabtools as pt
+from IPython.core import pylabtools as pt
 
 #-----------------------------------------------------------------------------
 # Globals and constants

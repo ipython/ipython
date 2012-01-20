@@ -25,7 +25,7 @@ import os
 import sys
 
 # our own
-from . import tools
+from IPython.testing import tools
 
 from IPython.core import page
 from IPython.utils import io

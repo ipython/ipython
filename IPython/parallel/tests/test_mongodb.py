@@ -21,7 +21,7 @@ from nose import SkipTest
 from pymongo import Connection
 from IPython.parallel.controller.mongodb import MongoDB
 
-from . import test_db
+from IPython.parallel.tests import test_db
 
 try:
     c = Connection()

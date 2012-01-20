@@ -26,8 +26,8 @@ from subprocess import STDOUT
 
 # our own imports
 from ._process_common import read_no_interrupt, process_handler, arg_split as py_arg_split
-from . import py3compat
-from . import text
+from IPython.utils import py3compat
+from IPython.utils import text
 
 #-----------------------------------------------------------------------------
 # Function definitions

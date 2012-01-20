@@ -32,7 +32,7 @@ from IPython.external.decorator import decorator
 from IPython.parallel import util
 from IPython.parallel.controller.dependency import Dependency, dependent
 
-from . import map as Map
+from IPython.parallel.client import map as Map
 from .asyncresult import AsyncResult, AsyncMapResult
 from .remotefunction import ParallelFunction, parallel, remote, getname
 
