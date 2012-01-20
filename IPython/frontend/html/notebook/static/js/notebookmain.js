@@ -109,15 +109,8 @@ $(document).ready(function () {
     $('div#menubar').css('display','block');
     $('div#main_app').css('display','block');
 
-    // Perform these actions after the notebook has been loaded.
-    // We wait 100 milliseconds because the notebook scrolls to the top after a load
-    // is completed and we need to wait for that to mostly finish.
-    IPython.notebook.load_notebook(function () {
-        setTimeout(function () {
-            IPython.save_widget.update_url();
-            IPython.layout_manager.do_resize();
-        },100);
-    });
+    IPython.layout_manager.do_resize();
+    IPython.notebook.load_notebook();
 
 });
 

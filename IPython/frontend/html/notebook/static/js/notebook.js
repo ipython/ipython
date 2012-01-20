@@ -1136,7 +1136,7 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.load_notebook = function (callback) {
+    Notebook.prototype.load_notebook = function () {
         var that = this;
         var notebook_id = IPython.save_widget.get_notebook_id();
         // We do the call with settings so we can set cache to false.
@@ -1147,9 +1147,6 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : function (data, status, xhr) {
                 that.notebook_loaded(data, status, xhr);
-                if (callback !== undefined) {
-                    callback();
-                };
             }
         };
         IPython.save_widget.status_loading();
@@ -1169,12 +1166,10 @@ var IPython = (function (IPython) {
         if (! this.read_only) {
             this.start_kernel();
         }
-        // fromJSON always selects the last cell inserted. We need to wait
-        // until that is done before scrolling to the top.
-        setTimeout(function () {
-            IPython.notebook.select(0);
-            IPython.notebook.scroll_to_top();
-        }, 50);
+        this.select(0);
+        this.notebook.scroll_to_top();
+        IPython.save_widget.update_url();
+        IPython.layout_manager.do_resize();
     };
 
     IPython.Notebook = Notebook;
