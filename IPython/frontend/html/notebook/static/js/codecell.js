@@ -31,9 +31,29 @@ var IPython = (function (IPython) {
     CodeCell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
         cell.attr('tabindex','2');
+
         var input = $('<div></div>').addClass('input hbox');
-        input.append($('<div/>').addClass('prompt input_prompt'));
+        var input_prompt = $('<div/>').addClass('prompt input_prompt');
+        input.append(input_prompt);
         var input_area = $('<div/>').addClass('input_area box-flex1');
+        var hiddencell = $('<div/>').addClass('input_area box-flex1').text('hidden code cell, click to expand')
+            .attr('style','padding:4px; color:grey;')
+            $(hiddencell).hide() ;
+            $(hiddencell).click( function(){
+                $(hiddencell).slideUp(
+                    function(){
+                        $(input_area).slideDown();
+                    });
+                }
+                )
+            $(input_prompt).click( function(){
+                $(input_area).slideUp(
+                    function(){
+                        $(hiddencell).slideDown();
+                    });
+                }
+                )
+            input.append(hiddencell);
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             mode: 'python',
