@@ -27,7 +27,7 @@ var IPython = (function (IPython) {
     TextCell.prototype.create_element = function () {
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
         cell.attr('tabindex','2');
-        var input_area = $('<div/>').addClass('text_cell_input');
+        var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             mode: this.code_mirror_mode,
@@ -37,7 +37,7 @@ var IPython = (function (IPython) {
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         // The tabindex=-1 makes this div focusable.
-        var render_area = $('<div/>').addClass('text_cell_render').
+        var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
             addClass('rendered_html').attr('tabindex','-1');
         cell.append(input_area).append(render_area);
         this.element = cell;
@@ -52,8 +52,11 @@ var IPython = (function (IPython) {
                 if (that.rendered) {
                     that.edit();
                     return false;
-                }
-            }
+                };
+            };
+        });
+        this.element.dblclick(function () {
+            that.edit();
         });
     };
 
@@ -87,19 +90,19 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.edit = function () {
-        var that = this;
         if ( this.read_only ) return;
         if (this.rendered === true) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");  
             output.hide();
             text_cell.find('div.text_cell_input').show();
-            that.code_mirror.refresh();
+            this.code_mirror.refresh();
             this.code_mirror.focus();
-            that.code_mirror.refresh();
+            this.code_mirror.refresh();
             this.rendered = false;
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
+                this.refresh();
             }
         }
     };
@@ -107,16 +110,6 @@ var IPython = (function (IPython) {
 
     // Subclasses must define render.
     TextCell.prototype.render = function () {};
-
-
-    TextCell.prototype.config_mathjax = function () {
-        var text_cell = this.element;
-        var that = this;
-        text_cell.dblclick(function () {
-            that.edit();
-        });
-        that.render();
-    };
 
 
     TextCell.prototype.get_text = function() {

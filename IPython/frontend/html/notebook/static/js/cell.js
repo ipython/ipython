@@ -98,6 +98,29 @@ var IPython = (function (IPython) {
     };
 
 
+    Cell.prototype.is_splittable = function () {
+        return true;
+    };
+
+
+    Cell.prototype.get_pre_cursor = function () {
+        var cursor = this.code_mirror.getCursor();
+        var text = this.code_mirror.getRange({line:0,ch:0}, cursor);
+        text = text.replace(/^\n+/, '').replace(/\n+$/, '');
+        return text;
+    }
+
+
+    Cell.prototype.get_post_cursor = function () {
+        var cursor = this.code_mirror.getCursor();
+        var last_line_num = this.code_mirror.lineCount()-1;
+        var last_line_len = this.code_mirror.getLine(last_line_num).length;
+        var end = {line:last_line_num, ch:last_line_len}
+        var text = this.code_mirror.getRange(cursor, end);
+        text = text.replace(/^\n+/, '').replace(/\n+$/, '');
+        return text;
+    };
+
     Cell.prototype.grow = function(element) {
         // Grow the cell by hand. This is used upon reloading from JSON, when the
         // autogrow handler is not called.

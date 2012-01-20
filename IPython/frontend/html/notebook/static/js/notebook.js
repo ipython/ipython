@@ -360,7 +360,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.select = function (index) {
         if (index !== undefined && index >= 0 && index < this.ncells()) {
             sindex = this.get_selected_index()
-            if (sindex !== null) {
+            if (sindex !== null && index !== sindex) {
                 this.get_cell(sindex).unselect();
             };
             this.get_cell(index).select();
@@ -471,21 +471,18 @@ var IPython = (function (IPython) {
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
                 var cell = new IPython.MarkdownCell(this);
-                cell.config_mathjax();
             } else if (type === 'html') {
                 var cell = new IPython.HTMLCell(this);
-                cell.config_mathjax();
             };
             if (cell !== null) {
                 if (this.ncells() === 0) {
                     this.element.find('div.end_space').before(cell.element);
-                    this.select(this.find_cell_index(cell));
-                    this.dirty = true;
                 } else if (this.is_valid_cell_index(index)) {
                     this.get_cell_element(index).after(cell.element);
-                    this.select(this.find_cell_index(cell));
-                    this.dirty = true;
                 };
+                cell.render();
+                this.select(this.find_cell_index(cell));
+                this.dirty = true;
                 return cell;
             };
         };
@@ -503,21 +500,18 @@ var IPython = (function (IPython) {
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
                 var cell = new IPython.MarkdownCell(this);
-                cell.config_mathjax();
             } else if (type === 'html') {
                 var cell = new IPython.HTMLCell(this);
-                cell.config_mathjax();
             };
             if (cell !== null) {
                 if (this.ncells() === 0) {
                     this.element.find('div.end_space').before(cell.element);
-                    this.select(this.find_cell_index(cell));
-                    this.dirty = true;
                 } else if (this.is_valid_cell_index(index)) {
                     this.get_cell_element(index).before(cell.element);
-                    this.select(this.find_cell_index(cell));
-                    this.dirty = true;
                 };
+                cell.render();
+                this.select(this.find_cell_index(cell));
+                this.dirty = true;
                 return cell;
             };
         };
@@ -537,7 +531,6 @@ var IPython = (function (IPython) {
                 }
                 target_cell.set_text(text);
                 source_element.remove();
-                target_cell.select();
             };
             this.dirty = true;
         };
@@ -554,15 +547,14 @@ var IPython = (function (IPython) {
                 target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
-                    text = target_cell.placeholder;
+                    text = '';
                 };
                 if (target_cell !== null) {
-                    if (text === "") {text = target_cell.placeholder;};
+                    //if (text === "") {text = target_cell.placeholder;};
                     // The edit must come before the set_text.
                     target_cell.edit();
                     target_cell.set_text(text);
                     source_element.remove();
-                    target_cell.select();
                 }
                 this.dirty = true;
             };
@@ -580,7 +572,7 @@ var IPython = (function (IPython) {
                 target_cell = this.insert_cell_below('html',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
-                    text = target_cell.placeholder;
+                    text = '';
                 };
                 if (target_cell !== null) {
                     if (text === "") {text = target_cell.placeholder;};
@@ -588,7 +580,6 @@ var IPython = (function (IPython) {
                     target_cell.edit();
                     target_cell.set_text(text);
                     source_element.remove();
-                    target_cell.select();
                 }
                 this.dirty = true;
             };
@@ -669,52 +660,68 @@ var IPython = (function (IPython) {
     Notebook.prototype.split_cell = function () {
         // Todo: implement spliting for other cell types.
         var cell = this.get_selected_cell();
-        if (cell instanceof IPython.CodeCell) {
-            var cursor = cell.code_mirror.getCursor();
-            var last_line_num = cell.code_mirror.lineCount()-1;
-            var last_line_len = cell.code_mirror.getLine(last_line_num).length;
-            var end = {line:last_line_num, ch:last_line_len}
-            var texta = cell.code_mirror.getRange({line:0,ch:0}, cursor);
-            var textb = cell.code_mirror.getRange(cursor, end);
-            texta = texta.replace(/^\n+/, '').replace(/\n+$/, '');
-            textb = textb.replace(/^\n+/, '').replace(/\n+$/, '');
-            cell.set_text(texta);
-            var new_cell = this.insert_cell_below('code');
-            new_cell.set_text(textb);
+        if (cell.is_splittable()) {
+            texta = cell.get_pre_cursor();
+            textb = cell.get_post_cursor();
+            if (cell instanceof IPython.CodeCell) {
+                cell.set_text(texta);
+                var new_cell = this.insert_cell_below('code');
+                new_cell.set_text(textb);
+            } else if (cell instanceof IPython.MarkdownCell) {
+                cell.set_text(texta);
+                cell.render();
+                var new_cell = this.insert_cell_below('markdown');
+                new_cell.edit(); // editor must be visible to call set_text
+                new_cell.set_text(textb);
+                new_cell.render();
+            } else if (cell instanceof IPython.HTMLCell) {
+                cell.set_text(texta);
+                cell.render();
+                var new_cell = this.insert_cell_below('html');
+                new_cell.edit(); // editor must be visible to call set_text
+                new_cell.set_text(textb);
+                new_cell.render();
+            };
         };
     };
 
 
     Notebook.prototype.merge_cell_above = function () {
-        // Todo: implement merging for other cell types.
-        var cell = this.get_selected_cell();
         var index = this.get_selected_index();
+        var cell = this.get_cell(index);
         if (index > 0) {
             upper_cell = this.get_cell(index-1);
-            lower_cell = this.get_cell(index);
-            if (upper_cell instanceof IPython.CodeCell && lower_cell instanceof IPython.CodeCell) {
-                upper_text = upper_cell.get_text();
-                lower_text = lower_cell.get_text();
-                lower_cell.set_text(upper_text+'\n'+lower_text);
-                this.delete_cell(index-1);
+            upper_text = upper_cell.get_text();
+            text = cell.get_text();
+            if (cell instanceof IPython.CodeCell) {
+                cell.set_text(upper_text+'\n'+text);
+            } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
+                cell.edit();
+                cell.set_text(upper_text+'\n'+text);
+                cell.render();
             };
+            this.delete_cell(index-1);
+            this.select(this.find_cell_index(cell));
         };
     };
 
 
     Notebook.prototype.merge_cell_below = function () {
-        // Todo: implement merging for other cell types.
-        var cell = this.get_selected_cell();
         var index = this.get_selected_index();
+        var cell = this.get_cell(index);
         if (index < this.ncells()-1) {
-            upper_cell = this.get_cell(index);
             lower_cell = this.get_cell(index+1);
-            if (upper_cell instanceof IPython.CodeCell && lower_cell instanceof IPython.CodeCell) {
-                upper_text = upper_cell.get_text();
-                lower_text = lower_cell.get_text();
-                upper_cell.set_text(upper_text+'\n'+lower_text);
-                this.delete_cell(index+1);
+            lower_text = lower_cell.get_text();
+            text = cell.get_text();
+            if (cell instanceof IPython.CodeCell) {
+                cell.set_text(text+'\n'+lower_text);
+            } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
+                cell.edit();
+                cell.set_text(text+'\n'+lower_text);
+                cell.render();
             };
+            this.delete_cell(index+1);
+            this.select(this.find_cell_index(cell));
         };
     };
 
