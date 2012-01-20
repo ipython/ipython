@@ -74,7 +74,7 @@ git push {upstream} {onto}
 *************************************************************
 """.format(**shvars)
 
-ans = raw_input("Revert to master and delete temporary branch? [y/N]: ")
-if ans.lower() in ('y', 'yes'):
+ans = raw_input("Revert to master and delete temporary branch? [Y/n]: ")
+if ans.strip().lower() in ('', 'y', 'yes'):
     sh('git checkout {onto}')
     sh('git branch -D {branch_spec}')
