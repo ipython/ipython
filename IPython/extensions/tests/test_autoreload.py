@@ -11,7 +11,6 @@ import IPython.testing.tools as tt
 
 from IPython.extensions.autoreload import AutoreloadInterface
 from IPython.core.hooks import TryNext
-from IPython.testing.decorators import knownfailureif
 
 #-----------------------------------------------------------------------------
 # Test fixture

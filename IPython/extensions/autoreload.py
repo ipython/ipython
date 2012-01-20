@@ -210,9 +210,6 @@ class ModuleReloader(object):
                 except ValueError:
                     continue
 
-            if ext != PY_COMPILED_EXT:
-                continue
-
             try:
                 pymtime = os.stat(py_filename).st_mtime
                 if pymtime <= os.stat(pyc_filename).st_mtime:
