@@ -131,13 +131,23 @@ class TaskScheduler(SessionFactory):
 
     """
 
-    hwm = Integer(0, config=True, shortname='hwm',
+    hwm = Integer(1, config=True,
         help="""specify the High Water Mark (HWM) for the downstream
         socket in the Task scheduler. This is the maximum number
-        of allowed outstanding tasks on each engine."""
+        of allowed outstanding tasks on each engine.
+        
+        The default (1) means that only one task can be outstanding on each
+        engine.  Setting TaskScheduler.hwm=0 means there is no limit, and the
+        engines continue to be assigned tasks while they are working,
+        effectively hiding network latency behind computation, but can result
+        in an imbalance of work when submitting many heterogenous tasks all at
+        once.  Any positive value greater than one is a compromise between the
+        two.
+
+        """
     )
     scheme_name = Enum(('leastload', 'pure', 'lru', 'plainrandom', 'weighted', 'twobin'),
-        'leastload', config=True, shortname='scheme', allow_none=False,
+        'leastload', config=True, allow_none=False,
         help="""select the task scheduler scheme  [default: Python LRU]
         Options are: 'pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'"""
     )
