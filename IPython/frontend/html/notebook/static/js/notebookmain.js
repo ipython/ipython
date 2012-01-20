@@ -116,7 +116,6 @@ $(document).ready(function () {
         setTimeout(function () {
             IPython.save_widget.update_url();
             IPython.layout_manager.do_resize();
-            IPython.pager.collapse();
         },100);
     });
 

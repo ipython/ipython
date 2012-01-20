@@ -1159,7 +1159,6 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.notebook_loaded = function (data, status, xhr) {
-        var allowed = xhr.getResponseHeader('Allow');
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');

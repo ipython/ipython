@@ -137,6 +137,7 @@ div#pager_splitter {
 div#pager {
     padding: 15px;
     overflow: auto;
+    display: none;
 }
 
 div.cell {
