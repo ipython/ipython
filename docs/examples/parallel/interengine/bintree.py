@@ -22,7 +22,24 @@ from IPython.parallel.util import disambiguate_url
 #----------------------------------------------------------------------------
 
 def bintree(ids, parent=None):
-    """construct {child:parent} dict representation of a binary tree"""
+    """construct {child:parent} dict representation of a binary tree
+    
+    keys are the nodes in the tree, and values are the parent of each node.
+    
+    The root node has parent `parent`, default: None.
+    
+    >>> tree = bintree(range(7))
+    >>> tree
+    {0: None, 1: 0, 2: 1, 3: 1, 4: 0, 5: 4, 6: 4}
+    >>> print_bintree(tree)
+    0
+      1
+        2
+        3
+      4
+        5
+        6
+    """
     parents = {}
     n = len(ids)
     if n == 0:
@@ -41,7 +58,17 @@ def bintree(ids, parent=None):
     return parents
 
 def reverse_bintree(parents):
-    """construct {parent:[children]} dict from {child:parent}"""
+    """construct {parent:[children]} dict from {child:parent}
+    
+    keys are the nodes in the tree, and values are the lists of children
+    of that node in the tree.
+    
+    reverse_tree[None] is the root node
+    
+    >>> tree = bintree(range(7))
+    >>> reverse_bintree(tree)
+    {None: 0, 0: [1, 4], 4: [5, 6], 1: [2, 3]}
+    """
     children = {}
     for child,parent in parents.iteritems():
         if parent is None:
