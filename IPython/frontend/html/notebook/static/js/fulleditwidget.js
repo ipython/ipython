@@ -50,13 +50,23 @@ var IPython = (function (IPython) {
 
     FullEditWidget.prototype.open = function () {
         var cell = IPython.notebook.get_selected_cell();
-        if (!this.opened && cell instanceof IPython.CodeCell) {
+        if (!this.opened) {
             $('#fulledit_widget').show();
             $('#main_app').hide();
             $('#menubar').hide();
             $('body').css({overflow : 'auto'});
             var code = cell.get_text();
             this.ace_editor.getSession().setValue(code);
+            if (cell instanceof IPython.CodeCell) {
+                var PythonMode = require("ace/mode/python").Mode;
+                this.ace_editor.getSession().setMode(new PythonMode());
+            } else if (cell instanceof IPython.MarkdownCell) {
+                var MarkdownMode = require("ace/mode/markdown").Mode;
+                this.ace_editor.getSession().setMode(new MarkdownMode());
+            } else if (cell instanceof IPython.HTMLCell) {
+                var HTMLMode = require("ace/mode/html").Mode;
+                this.ace_editor.getSession().setMode(new HTMLMode());
+            };
             this.ace_editor.focus();
             // On Safari (and Chrome/FF on Linux) the editor doesn't get
             // focus unless there is a window resize. For now, we trigger it
@@ -76,8 +86,13 @@ var IPython = (function (IPython) {
             $('body').css({overflow : 'hidden'});
             var code = this.ace_editor.getSession().getValue();
             var cell = IPython.notebook.get_selected_cell();
-            cell.set_text(code);
-            cell.select();
+            if (cell instanceof IPython.CodeCell) {
+                cell.set_text(code);                
+            } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
+                cell.edit();
+                cell.code_mirror.focus();
+                cell.set_text(code);
+            };
             this.opened = false;
         };
     };

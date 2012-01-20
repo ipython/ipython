@@ -96,6 +96,8 @@ var IPython = (function (IPython) {
             var output = text_cell.find("div.text_cell_render");  
             output.hide();
             text_cell.find('div.text_cell_input').show();
+            // I don't know why I need to do this, but if I don't do
+            // refresh/focus/refresh, the to_markdown method won't work.
             this.code_mirror.refresh();
             this.code_mirror.focus();
             this.code_mirror.refresh();
