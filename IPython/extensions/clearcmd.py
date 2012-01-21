@@ -30,7 +30,7 @@ def clear_f(self,arg):
     Clearing directory history
     """
 
-    api = self.getapi()
+    api = self.get_ipython()
     user_ns = self.user_ns  # local lookup, heavily used
 
 
@@ -38,11 +38,11 @@ def clear_f(self,arg):
 
         if target == 'out':
             print "Flushing output cache (%d entries)" % len(user_ns['_oh'])
-            self.outputcache.flush()
+            self.displayhook.flush()
 
         elif target == 'in':
             print "Flushing input history"
-            pc = self.outputcache.prompt_count + 1
+            pc = self.displayhook.prompt_count + 1
             for n in range(1, pc):
                 key = '_i'+`n`
                 user_ns.pop(key,None)
@@ -82,6 +82,5 @@ def clear_f(self,arg):
 
 # Activate the extension
 ip.define_magic("clear",clear_f)
-import ipy_completers
-ipy_completers.quick_completer(
-    '%clear','in out shadow_nuke shadow_compress dhist')
+from IPython.core.completerlib import quick_completer
+quick_completer( '%clear','in out shadow_nuke shadow_compress dhist')
