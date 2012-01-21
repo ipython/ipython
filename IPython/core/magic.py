@@ -1391,12 +1391,10 @@ Currently the magic system has the following functions:\n"""
         """
 
         opts_def = Struct(D=[''],l=[],s=['time'],T=[''])
-        # protect user quote marks
-        parameter_s = parameter_s.replace('"',r'\"').replace("'",r"\'")
 
         if user_mode:  # regular user call
             opts,arg_str = self.parse_options(parameter_s,'D:l:rs:T:q',
-                                              list_all=1)
+                                              list_all=1, posix=False)
             namespace = self.shell.user_ns
         else:  # called to run a program by %run -p
             try:
