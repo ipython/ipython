@@ -238,10 +238,11 @@ if 'setuptools' in sys.modules:
     if not setupext.check_for_readline():
         if sys.platform == 'darwin':
             requires.append('readline')
-        elif sys.platform.startswith('win') and sys.maxsize < 2**32:
-            # only require pyreadline on 32b Windows, due to 64b bug in pyreadline:
-            # https://bugs.launchpad.net/pyreadline/+bug/787574
-            requires.append('pyreadline')
+        elif sys.platform.startswith('win'):
+            # Pyreadline 64 bit windows issue solved in versions >=1.7.1
+            # Also solves issues with some older versions of pyreadline that
+            # satisfy the unconstrained depdendency.
+            requires.append('pyreadline>=1.7.1')
         else:
             pass
             # do we want to install readline here?
