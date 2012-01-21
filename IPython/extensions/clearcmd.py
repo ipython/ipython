@@ -44,14 +44,11 @@ def clear_f(self,arg):
             print "Flushing input history"
             pc = self.displayhook.prompt_count + 1
             for n in range(1, pc):
-                key = '_i'+`n`
+                key = '_i'+repr(n)
                 user_ns.pop(key,None)
-                try:
-                    del user_ns[key]
-                except: pass
-            # must be done in-place
-            self.history_manager.input_hist_parsed[:] = ['\n'] * pc
-            self.history_manager.input_hist_raw[:] = ['\n'] * pc
+            user_ns.update(dict(_i=u'',_ii=u'',_iii=u''))
+            del self.history_manager.input_hist_parsed[:]
+            del self.history_manager.input_hist_raw[:]
 
         elif target == 'array':
             # Support cleaning up numpy arrays
@@ -62,7 +59,7 @@ def clear_f(self,arg):
                 for x,val in user_ns.items():
                     if isinstance(val,ndarray):
                         del user_ns[x]
-            except AttributeError:
+            except ImportError:
                 print "Clear array only works if Numpy is available."
 
         elif target == 'shadow_compress':
@@ -83,4 +80,4 @@ def clear_f(self,arg):
 # Activate the extension
 ip.define_magic("clear",clear_f)
 from IPython.core.completerlib import quick_completer
-quick_completer( '%clear','in out shadow_nuke shadow_compress dhist')
+quick_completer('%clear','in out array shadow_nuke shadow_compress dhist')

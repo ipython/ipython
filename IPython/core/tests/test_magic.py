@@ -205,14 +205,14 @@ def test_clear():
     nt.assert_true('dead' in [_ip.user_ns[x] for x in '_','__','___'])
     _ip.magic('clear out')
     nt.assert_false('dead' in [_ip.user_ns[x] for x in '_','__','___'])
-    nt.assert_true(len(_ip.user_ns['Out']) ==0)
+    nt.assert_true(len(_ip.user_ns['Out']) == 0)
 
     # test '%clear in'
     _ip.run_cell("parrot", store_history=True)
     nt.assert_true('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
     _ip.magic('%clear in')
     nt.assert_false('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
-    nt.assert_true(len(_ip.user_ns['In'] ==0))
+    nt.assert_true(len(_ip.user_ns['In']) == 0)
 
     # test '%clear dhist'
     _ip.run_cell("tmp = [d for d in _dh]") # copy before clearing
