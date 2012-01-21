@@ -2,6 +2,9 @@
 """
 Script for setting up and using [all]reduce with a binary-tree engine interconnect.
 
+Binary trees allow large data communications to be highly scalable, because even
+in a global communication, never more than two messages are occupant on a single node.
+
 usage: `python bintree_script.py`
 
 """
