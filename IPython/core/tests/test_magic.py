@@ -358,3 +358,9 @@ def test_timeit_shlex():
 def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
     _ip.magic("timeit ('#')")
+
+@dec.skipif(_ip.magic_prun == _ip.profile_missing_notice)
+def test_prun_quotes():
+    "Test that prun does not clobber string escapes (GH #1302)"
+    _ip.magic("prun -q x = '\t'")
+    nt.assert_equal(_ip.user_ns['x'], '\t')
