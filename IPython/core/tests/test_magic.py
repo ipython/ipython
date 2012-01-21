@@ -183,12 +183,10 @@ def test_macro_run():
     with tt.AssertPrints("13"):
         ip.run_cell("test")
 
-    
-# XXX failing for now, until we get clearcmd out of quarantine.  But we should
-# fix this and revert the skip to happen only if numpy is not around.
-#@dec.skipif_not_numpy
-@dec.skip_known_failure
+
+@dec.skipif_not_numpy
 def test_numpy_clear_array_undec():
+    "Test '%clear array' functionality"
     from IPython.extensions import clearcmd
 
     _ip.ex('import numpy as np')
@@ -196,7 +194,34 @@ def test_numpy_clear_array_undec():
     yield (nt.assert_true, 'a' in _ip.user_ns)
     _ip.magic('clear array')
     yield (nt.assert_false, 'a' in _ip.user_ns)
-    
+
+def test_clear():
+    "Test '%clear' magic provided by IPython.extensions.clearcmd"
+    from IPython.extensions import clearcmd
+    _ip = get_ipython()
+    _ip.run_cell("parrot = 'dead'", store_history=True)
+    # test '%clear out', make an Out prompt
+    _ip.run_cell("parrot", store_history=True)
+    nt.assert_true('dead' in [_ip.user_ns[x] for x in '_','__','___'])
+    _ip.magic('clear out')
+    nt.assert_false('dead' in [_ip.user_ns[x] for x in '_','__','___'])
+    nt.assert_true(len(_ip.user_ns['Out']) ==0)
+
+    # test '%clear in'
+    _ip.run_cell("parrot", store_history=True)
+    nt.assert_true('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
+    _ip.magic('%clear in')
+    nt.assert_false('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
+    nt.assert_true(len(_ip.user_ns['In'] ==0))
+
+    # test '%clear dhist'
+    _ip.run_cell("tmp = [d for d in _dh]") # copy before clearing
+    _ip.magic('cd')
+    _ip.magic('cd -')
+    nt.assert_true(len(_ip.user_ns['_dh']) > 0)
+    _ip.magic('clear dhist')
+    nt.assert_true(len(_ip.user_ns['_dh']) == 0)
+    _ip.run_cell("_dh = [d for d in tmp]") #restore
 
 def test_time():
     _ip.magic('time None')
