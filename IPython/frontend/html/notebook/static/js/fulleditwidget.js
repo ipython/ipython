@@ -82,14 +82,19 @@ var IPython = (function (IPython) {
         if (this.opened) {
             $('#fulledit_widget').hide();
             $('#main_app').show();
+            //  We may need to add a refresh to all CM based cells after
+            // showing them.
             $('#menubar').show();
             $('body').css({overflow : 'hidden'});
             var code = this.ace_editor.getSession().getValue();
             var cell = IPython.notebook.get_selected_cell();
             if (cell instanceof IPython.CodeCell) {
+                cell.code_mirror.refresh();
                 cell.set_text(code);                
             } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
                 cell.edit();
+                // If the cell was already in edit mode, we need to refresh/focus.
+                cell.code_mirror.refresh();
                 cell.code_mirror.focus();
                 cell.set_text(code);
             };

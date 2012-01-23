@@ -550,7 +550,6 @@ var IPython = (function (IPython) {
                     text = '';
                 };
                 if (target_cell !== null) {
-                    //if (text === "") {text = target_cell.placeholder;};
                     // The edit must come before the set_text.
                     target_cell.edit();
                     target_cell.set_text(text);
@@ -575,7 +574,6 @@ var IPython = (function (IPython) {
                     text = '';
                 };
                 if (target_cell !== null) {
-                    if (text === "") {text = target_cell.placeholder;};
                     // The edit must come before the set_text.
                     target_cell.edit();
                     target_cell.set_text(text);
@@ -1167,7 +1165,7 @@ var IPython = (function (IPython) {
             this.start_kernel();
         }
         this.select(0);
-        this.notebook.scroll_to_top();
+        this.scroll_to_top();
         IPython.save_widget.update_url();
         IPython.layout_manager.do_resize();
     };

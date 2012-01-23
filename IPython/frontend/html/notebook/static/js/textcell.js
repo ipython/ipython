@@ -100,7 +100,8 @@ var IPython = (function (IPython) {
             // refresh/focus/refresh, the to_markdown method won't work.
             this.code_mirror.refresh();
             this.code_mirror.focus();
-            this.code_mirror.refresh();
+            // In some wierd cases we seem to need this extra refresh.
+            //this.code_mirror.refresh();
             this.rendered = false;
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
