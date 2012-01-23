@@ -24,7 +24,6 @@ var IPython = (function (IPython) {
         this.element = null;
         this.create_element();
         if (this.element !== null) {
-            this.set_autoindent(true);
             this.element.data("cell", this);
             this.bind_events();
         }
@@ -137,16 +136,6 @@ var IPython = (function (IPython) {
         }
     };
 
-
-    Cell.prototype.set_autoindent = function (state) {
-        if (state) {
-            this.code_mirror.setOption('tabMode', 'indent');
-            this.code_mirror.setOption('enterMode', 'indent');
-        } else {
-            this.code_mirror.setOption('tabMode', 'shift');
-            this.code_mirror.setOption('enterMode', 'flat');
-        }
-    };
 
     IPython.Cell = Cell;
 
