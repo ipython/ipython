@@ -100,8 +100,10 @@ var IPython = (function (IPython) {
             // refresh/focus/refresh, the to_markdown method won't work.
             this.code_mirror.refresh();
             this.code_mirror.focus();
-            // In some wierd cases we seem to need this extra refresh.
-            //this.code_mirror.refresh();
+            // This final refresh is needed on Firefox to trigger the editor
+            // to be auto-sized. This glitch only happens on cell that are
+            // loaded initially and haven't had their editor focused before.
+            this.code_mirror.refresh();
             this.rendered = false;
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
