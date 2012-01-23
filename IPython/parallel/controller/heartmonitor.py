@@ -64,7 +64,7 @@ class HeartMonitor(LoggingConfigurable):
     pongstream: an XREP stream
     period: the period of the heartbeat in milliseconds"""
 
-    period = Integer(1000, config=True,
+    period = Integer(3000, config=True,
         help='The frequency at which the Hub pings the engines for heartbeats '
         '(in ms)',
     )
