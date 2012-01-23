@@ -22,7 +22,7 @@ var IPython = (function (IPython) {
         this.kernel = null;
         this.clipboard = null;
         this.paste_enabled = false;
-        this.dirty = false;
+        this._dirty = false;
         this.msg_cell_map = {};
         this.metadata = {};
         this.control_key_active = false;
@@ -212,7 +212,7 @@ var IPython = (function (IPython) {
             if (kill_kernel) {
                 that.kernel.kill();
             }
-            if (that.dirty && ! that.read_only) {
+            if (that._dirty && ! that.read_only) {
                 return "You have unsaved changes that will be lost if you leave this page.";
             };
             // Null is the *only* return value that will make the browser not
@@ -349,14 +349,14 @@ var IPython = (function (IPython) {
                 this.select(i);
             };
         };
-        this.dirty = true;
+        this.set_dirty(true);
         return this;
     };
 
 
     Notebook.prototype.append_cell = function (cell) {
         this.element.find('div.end_space').before(cell.element);
-        this.dirty = true;
+        this.set_dirty(true);
         return this;
     };
 
@@ -370,7 +370,7 @@ var IPython = (function (IPython) {
         if (index >= 0 && index < ncells) {
             this.cell_elements().eq(index).after(cell.element);
         };
-        this.dirty = true;
+        this.set_dirty(true);
         return this;
     };
 
@@ -384,7 +384,7 @@ var IPython = (function (IPython) {
         if (index >= 0 && index < ncells) {
             this.cell_elements().eq(index).before(cell.element);
         };
-        this.dirty = true;
+        this.set_dirty(true);
         return this;
     };
 
@@ -400,7 +400,7 @@ var IPython = (function (IPython) {
                 this.select(i-1);
             };
         };
-        this.dirty = true;
+        this.set_dirty(true);
         return this;
     };
 
@@ -416,7 +416,7 @@ var IPython = (function (IPython) {
                 this.select(i+1);
             };
         };
-        this.dirty = true;
+        this.set_dirty(true);
         return this;
     };
 
@@ -520,7 +520,7 @@ var IPython = (function (IPython) {
             source_element.remove();
             target_cell.select();
         };
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
@@ -548,7 +548,7 @@ var IPython = (function (IPython) {
             source_element.remove();
             target_cell.edit();
         }
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
@@ -576,7 +576,7 @@ var IPython = (function (IPython) {
             source_element.remove();
             target_cell.edit();
         }
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
@@ -728,21 +728,21 @@ var IPython = (function (IPython) {
     Notebook.prototype.collapse = function (index) {
         var i = this.index_or_selected(index);
         this.cells()[i].collapse();
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
     Notebook.prototype.expand = function (index) {
         var i = this.index_or_selected(index);
         this.cells()[i].expand();
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
     Notebook.prototype.toggle_output = function (index) {
         var i = this.index_or_selected(index);
         this.cells()[i].toggle_output();
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
@@ -775,7 +775,7 @@ var IPython = (function (IPython) {
                 cells[i].clear_output(true,true,true);
             }
         };
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
     // Other cell functions: line numbers, ...
@@ -834,8 +834,9 @@ var IPython = (function (IPython) {
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
             cell.set_input_prompt(content.execution_count);
+            $(IPython.hook).async_trigger("notebook_executed_code_cell");
             cell.element.removeClass("running");
-            this.dirty = true;
+            this.set_dirty(true);
         } else if (msg_type === "complete_reply") {
             cell.finish_completing(content.matched_text, content.matches);
         } else if (msg_type === "object_info_reply"){
@@ -870,7 +871,7 @@ var IPython = (function (IPython) {
                 var index = this.find_cell_index(cell);
                 var new_cell = this.insert_code_cell_below(index);
                 new_cell.set_code(payload[i].text);
-                this.dirty = true;
+                this.set_dirty(true);
             }
         };
     };
@@ -893,9 +894,9 @@ var IPython = (function (IPython) {
             this.handle_output(cell, msg_type, content);
         } else if (msg_type === 'status') {
             if (content.execution_state === 'busy') {
-                IPython.kernel_status_widget.status_busy();
+                $(IPython.hook).async_trigger('kernel_busy');
             } else if (content.execution_state === 'idle') {
-                IPython.kernel_status_widget.status_idle();
+                $(IPython.hook).async_trigger('kernel_idle');
             } else if (content.execution_state === 'dead') {
                 this.handle_status_dead();
             };
@@ -949,7 +950,7 @@ var IPython = (function (IPython) {
             json.traceback = traceback;
         };
         cell.append_output(json);
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
@@ -997,6 +998,7 @@ var IPython = (function (IPython) {
             var code = cell.get_code();
             var msg_id = that.kernel.execute(cell.get_code());
             that.msg_cell_map[msg_id] = cell.cell_id;
+            $(IPython.hook).async_trigger("notebook_executing_code_cell");
         } else if (cell instanceof IPython.HTMLCell) {
             cell.render();
         }
@@ -1011,7 +1013,7 @@ var IPython = (function (IPython) {
                 that.select(cell_index+1);
             };
         };
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
@@ -1124,6 +1126,7 @@ var IPython = (function (IPython) {
                 error : $.proxy(this.notebook_save_failed,this)
             };
             IPython.save_widget.status_saving();
+            $(IPython.hook).async_trigger('notebook_saving');
             var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
             $.ajax(url, settings);
         };
@@ -1131,7 +1134,8 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.notebook_saved = function (data, status, xhr) {
-        this.dirty = false;
+        this.set_dirty(false);
+        $(IPython.hook).async_trigger('notebook_saved');
         IPython.save_widget.notebook_saved();
         IPython.save_widget.status_last_saved();
     };
@@ -1172,7 +1176,7 @@ var IPython = (function (IPython) {
         };
         IPython.save_widget.status_last_saved();
         IPython.save_widget.set_notebook_name(data.metadata.name);
-        this.dirty = false;
+        this.set_dirty(false);
         if (! this.read_only) {
             this.start_kernel();
         }
@@ -1183,6 +1187,18 @@ var IPython = (function (IPython) {
             IPython.notebook.scroll_to_top();
         }, 50);
     };
+
+    Notebook.prototype.set_dirty = function(drt) {
+        if( drt==null){drt=true;}
+        if(this._dirty != drt )
+        {
+            $(IPython.hook).async_trigger('notebook_dirty_state',{'dirty':drt})
+        }
+        this._dirty=drt;
+    }
+    Notebook.prototype.set_clean = function() {
+        this.set_dirty(false);
+    }
 
     IPython.Notebook = Notebook;
 

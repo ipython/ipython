@@ -62,7 +62,7 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype.restart = function (callback) {
-        IPython.kernel_status_widget.status_restarting();
+        $(IPython.hook).async_trigger('kernel_restarting');
         var url = this.kernel_url + "/restart";
         var that = this;
         if (this.running) {
@@ -84,7 +84,7 @@ var IPython = (function (IPython) {
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this.start_channels();
         callback();
-        IPython.kernel_status_widget.status_idle();
+        $(IPython.hook).async_trigger('kernel_idle');
     };
 
     Kernel.prototype._websocket_closed = function(ws_url, early){
@@ -100,6 +100,7 @@ var IPython = (function (IPython) {
             msg = "Websocket connection closed unexpectedly.<br/>" +
             " The kernel will no longer be responsive.";
         }
+        $(IPython.hook).async_trigger('websocket_connexion_closed',{'early':early})
         var dialog = $('<div/>');
         dialog.html(msg);
         parent_item.append(dialog);
