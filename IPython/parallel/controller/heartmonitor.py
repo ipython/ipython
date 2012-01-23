@@ -64,7 +64,7 @@ class HeartMonitor(LoggingConfigurable):
     pongstream: an XREP stream
     period: the period of the heartbeat in milliseconds"""
 
-    period = Integer(1000, config=True,
+    period = Integer(3000, config=True,
         help='The frequency at which the Hub pings the engines for heartbeats '
         '(in ms)',
     )
@@ -124,6 +124,8 @@ class HeartMonitor(LoggingConfigurable):
         # print self.on_probation, self.hearts
         # self.log.debug("heartbeat::beat %.3f, %i beating hearts", self.lifetime, len(self.hearts))
         self.pingstream.send(asbytes(str(self.lifetime)))
+        # flush stream to force immediate socket send
+        self.pingstream.flush()
 
     def handle_new_heart(self, heart):
         if self._new_handlers:
