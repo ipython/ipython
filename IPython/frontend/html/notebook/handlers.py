@@ -452,6 +452,8 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
                 if self._kernel_alive:
                     self._kernel_alive = False
                     self.hb_stream.send(b'ping')
+                    # flush stream to force immediate socket send
+                    self.hb_stream.flush()
                 else:
                     try:
                         callback()
