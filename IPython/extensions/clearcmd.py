@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """ IPython extension: add %clear magic """
 
-from IPython.core import ipapi
 import gc
-ip = ipapi.get()
 
 def clear_f(self,arg):
     """ Clear various data (e.g. stored history data)
@@ -30,7 +28,7 @@ def clear_f(self,arg):
     Clearing directory history
     """
 
-    api = self.get_ipython()
+    ip = self.shell
     user_ns = self.user_ns  # local lookup, heavily used
 
 
@@ -64,7 +62,7 @@ def clear_f(self,arg):
 
         elif target == 'shadow_compress':
             print "Compressing shadow history"
-            api.db.hcompress('shadowhist')
+            ip.db.hcompress('shadowhist')
 
         elif target == 'shadow_nuke':
             print "Erased all keys from shadow history "
@@ -77,7 +75,13 @@ def clear_f(self,arg):
 
     gc.collect()
 
+_loaded = False
+
 # Activate the extension
-ip.define_magic("clear",clear_f)
-from IPython.core.completerlib import quick_completer
-quick_completer('%clear','in out array shadow_nuke shadow_compress dhist')
+def load_ipython_extension(ip):
+    """Load the extension in IPython."""
+    global _loaded
+    if not _loaded:
+        ip.define_magic("clear",clear_f)
+        from IPython.core.completerlib import quick_completer
+        quick_completer('%clear','in out array shadow_nuke shadow_compress dhist')

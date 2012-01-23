@@ -187,8 +187,7 @@ def test_macro_run():
 @dec.skipif_not_numpy
 def test_numpy_clear_array_undec():
     "Test '%clear array' functionality"
-    from IPython.extensions import clearcmd
-
+    _ip.magic("load_ext clearcmd")
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
     yield (nt.assert_true, 'a' in _ip.user_ns)
@@ -197,8 +196,8 @@ def test_numpy_clear_array_undec():
 
 def test_clear():
     "Test '%clear' magic provided by IPython.extensions.clearcmd"
-    from IPython.extensions import clearcmd
     _ip = get_ipython()
+    _ip.magic("load_ext clearcmd")
     _ip.run_cell("parrot = 'dead'", store_history=True)
     # test '%clear out', make an Out prompt
     _ip.run_cell("parrot", store_history=True)
