@@ -124,6 +124,8 @@ class HeartMonitor(LoggingConfigurable):
         # print self.on_probation, self.hearts
         # self.log.debug("heartbeat::beat %.3f, %i beating hearts", self.lifetime, len(self.hearts))
         self.pingstream.send(asbytes(str(self.lifetime)))
+        # flush stream to force immediate socket send
+        self.pingstream.flush()
 
     def handle_new_heart(self, heart):
         if self._new_handlers:
