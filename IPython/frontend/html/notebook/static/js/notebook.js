@@ -40,18 +40,32 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.create_insert_area = function () {
+        var ia = $('<div/>').addClass('insert_area border-box-sizing');
+        ia.hover(function () {
+            $(this).addClass("ui-state-hover");
+        }, function () {
+            $(this).removeClass("ui-state-hover");
+        });
+        ia.css({height: '5px'}).attr('title',"Click to insert cell");
+        return ia;
+    };
+
+
     Notebook.prototype.create_elements = function () {
         // We add this end_space div to the end of the notebook div to:
         // i) provide a margin between the last cell and the end of the notebook
         // ii) to prevent the div from scrolling up when the last cell is being
         // edited, but is too low on the page, which browsers will do automatically.
         var that = this;
-        var end_space = $('<div/>').addClass('end_space').height("30%");
-        end_space.dblclick(function (e) {
-            if (that.read_only) return;
+        var end_space = $('<div/>').addClass('end_space border-box-sizing').height("30%");
+        var ia = this.create_insert_area();
+        ia.click(function () {
+            $(this).removeClass('ui-state-hover');
             var ncells = that.ncells();
             that.insert_cell_below('code',ncells-1);
         });
+        end_space.append(ia);
         this.element.append(end_space);
         $('div#notebook').addClass('border-box-sizing');
     };
@@ -234,7 +248,7 @@ var IPython = (function (IPython) {
     // Cell indexing, retrieval, etc.
 
     Notebook.prototype.get_cell_elements = function () {
-        return this.element.children("div.cell");
+        return this.element.find("div.cell_container div.cell");
     };
 
 
@@ -243,13 +257,28 @@ var IPython = (function (IPython) {
         var e = this.get_cell_elements().eq(index);
         if (e.length !== 0) {
             result = e;
-        }
+        };
         return result;
     };
 
 
+    Notebook.prototype.get_cell_containers = function () {
+        return this.element.children("div.cell_container");
+    };
+
+
+    Notebook.prototype.get_cell_container = function (index) {
+        var result = null;
+        var e = this.get_cell_containers().eq(index);
+        if (e.length !== 0) {
+            result = e;
+        };
+        return result;
+    }
+
+
     Notebook.prototype.ncells = function (cell) {
-        return this.get_cell_elements().length;
+        return this.get_cell_containers().length;
     };
 
 
@@ -391,8 +420,8 @@ var IPython = (function (IPython) {
     Notebook.prototype.move_cell_up = function (index) {
         var i = this.index_or_selected();
         if (i !== null && i < this.ncells() && i > 0) {
-            var pivot = this.get_cell_element(i-1);
-            var tomove = this.get_cell_element(i);
+            var pivot = this.get_cell_container(i-1);
+            var tomove = this.get_cell_container(i);
             if (pivot !== null && tomove !== null) {
                 tomove.detach();
                 pivot.before(tomove);
@@ -407,8 +436,8 @@ var IPython = (function (IPython) {
     Notebook.prototype.move_cell_down = function (index) {
         var i = this.index_or_selected();
         if (i !== null && i < (this.ncells()-1) && i >= 0) {
-            var pivot = this.get_cell_element(i+1);
-            var tomove = this.get_cell_element(i);
+            var pivot = this.get_cell_container(i+1);
+            var tomove = this.get_cell_container(i);
             if (pivot !== null && tomove !== null) {
                 tomove.detach();
                 pivot.after(tomove);
@@ -446,7 +475,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.delete_cell = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var ce = this.get_cell_element(i);
+            var ce = this.get_cell_container(i);
             ce.remove();
             if (i === (this.ncells())) {
                 this.select(i-1);
@@ -458,6 +487,19 @@ var IPython = (function (IPython) {
         return this;
     };
 
+
+    Notebook.prototype.create_cell_container = function (cell) {
+        var that = this;
+        var cc = $('<div/>').addClass('cell_container border-box-sizing');
+        var ia = this.create_insert_area();
+        ia.click(function () {
+            $(this).removeClass('ui-state-hover');
+            var index = that.find_cell_index($(this).next().data("cell"));
+            that.insert_cell_above('code',index);
+        });
+        cc.append(ia).append(cell.element);
+        return cc;
+    };
 
     Notebook.prototype.insert_cell_below = function (type, index) {
         // type = ('code','html','markdown')
@@ -474,10 +516,11 @@ var IPython = (function (IPython) {
                 var cell = new IPython.HTMLCell(this);
             };
             if (cell !== null) {
+                var cc = this.create_cell_container(cell);
                 if (this.ncells() === 0) {
-                    this.element.find('div.end_space').before(cell.element);
+                    this.element.find('div.end_space').before(cc);
                 } else if (this.is_valid_cell_index(index)) {
-                    this.get_cell_element(index).after(cell.element);
+                    this.get_cell_container(index).after(cc);
                 };
                 cell.render();
                 this.select(this.find_cell_index(cell));
@@ -503,10 +546,11 @@ var IPython = (function (IPython) {
                 var cell = new IPython.HTMLCell(this);
             };
             if (cell !== null) {
+                var cc = this.create_cell_container(cell);
                 if (this.ncells() === 0) {
-                    this.element.find('div.end_space').before(cell.element);
+                    this.element.find('div.end_space').before(cc);
                 } else if (this.is_valid_cell_index(index)) {
-                    this.get_cell_element(index).before(cell.element);
+                    this.get_cell_container(index).before(cc);
                 };
                 cell.render();
                 this.select(this.find_cell_index(cell));
@@ -520,8 +564,8 @@ var IPython = (function (IPython) {
     Notebook.prototype.to_code = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var source_element = this.get_cell_element(i);
-            var source_cell = source_element.data("cell");
+            var source_cell = this.get_cell(i);
+            var source_element = this.get_cell_container(i);
             if (!(source_cell instanceof IPython.CodeCell)) {
                 target_cell = this.insert_cell_below('code',i);
                 var text = source_cell.get_text();
@@ -530,8 +574,8 @@ var IPython = (function (IPython) {
                 }
                 target_cell.set_text(text);
                 source_element.remove();
+                this.dirty = true;
             };
-            this.dirty = true;
         };
     };
 
@@ -539,8 +583,8 @@ var IPython = (function (IPython) {
     Notebook.prototype.to_markdown = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var source_element = this.get_cell_element(i);
-            var source_cell = source_element.data("cell");
+            var source_cell = this.get_cell(i);
+            var source_element = this.get_cell_container(i);
             var target_cell = null;
             if (!(source_cell instanceof IPython.MarkdownCell)) {
                 target_cell = this.insert_cell_below('markdown',i);
@@ -563,8 +607,8 @@ var IPython = (function (IPython) {
     Notebook.prototype.to_html = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var source_element = this.get_cell_element(i);
-            var source_cell = source_element.data("cell");
+            var source_cell = this.get_cell(i);
+            var source_element = this.get_cell_container(i);
             var target_cell = null;
             if (!(source_cell instanceof IPython.HTMLCell)) {
                 target_cell = this.insert_cell_below('html',i);
