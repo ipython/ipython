@@ -44,7 +44,9 @@ var IPython = (function (IPython) {
         // collapse text, then show replacing header
         $(this.hiddencell).slideUp(
             function(){
-                $(that.input_area).slideDown();
+                $(that.input_area).slideDown(
+                    function(){setTimeout(that.code_mirror.focus(),50)}
+                    );
             });
         this.collapsed = false;
     }
@@ -55,6 +57,9 @@ var IPython = (function (IPython) {
         // collapse text, then show replacing header
         $(this.input_area).slideUp(
             function(){
+                var count = that.code_mirror.lineCount();
+                var first_line = that.code_mirror.getLine(0);
+                $(that.hiddencell).text(first_line+"    [ "+count+" hidden line(s) ]");
                 $(that.hiddencell).slideDown();
             });
         this.collapsed = true;
