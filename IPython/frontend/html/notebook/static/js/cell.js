@@ -13,6 +13,7 @@ var IPython = (function (IPython) {
 
     var utils = IPython.utils;
 
+
     var Cell = function (notebook) {
         this.placeholder = this.placeholder || '';
         this.notebook = notebook;
@@ -24,15 +25,16 @@ var IPython = (function (IPython) {
         this.element = null;
         this.create_element();
         if (this.element !== null) {
-            this.set_autoindent(true);
             this.element.data("cell", this);
             this.bind_events();
         }
         this.cell_id = utils.uuid();
     };
 
+
     // Subclasses must implement create_element.
     Cell.prototype.create_element = function () {};
+
 
     Cell.prototype.bind_events = function () {
         var that = this;
@@ -48,6 +50,7 @@ var IPython = (function (IPython) {
             }
         });
     };
+
 
     // typeset with MathJax if MathJax is available
     Cell.prototype.typeset = function () {
@@ -121,6 +124,7 @@ var IPython = (function (IPython) {
         return text;
     };
 
+
     Cell.prototype.grow = function(element) {
         // Grow the cell by hand. This is used upon reloading from JSON, when the
         // autogrow handler is not called.
@@ -137,16 +141,6 @@ var IPython = (function (IPython) {
         }
     };
 
-
-    Cell.prototype.set_autoindent = function (state) {
-        if (state) {
-            this.code_mirror.setOption('tabMode', 'indent');
-            this.code_mirror.setOption('enterMode', 'indent');
-        } else {
-            this.code_mirror.setOption('tabMode', 'shift');
-            this.code_mirror.setOption('enterMode', 'flat');
-        }
-    };
 
     IPython.Cell = Cell;
 

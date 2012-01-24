@@ -32,7 +32,6 @@ var IPython = (function (IPython) {
         this.set_tooltipontab(true);
         this.set_smartcompleter(true);
         this.set_timebeforetooltip(1200);
-        this.set_autoindent(true);
     };
 
 
@@ -723,6 +722,7 @@ var IPython = (function (IPython) {
         };
     };
 
+
     // Cell collapsing and output clearing
 
     Notebook.prototype.collapse = function (index) {
@@ -750,20 +750,14 @@ var IPython = (function (IPython) {
         this.time_before_tooltip = time;
     };
 
+
     Notebook.prototype.set_tooltipontab = function (state) {
         this.tooltip_on_tab = state;
     };
 
+
     Notebook.prototype.set_smartcompleter = function (state) {
         this.smart_completer = state;
-    };
-
-    Notebook.prototype.set_autoindent = function (state) {
-        var cells = this.get_cells();
-        len = cells.length;
-        for (var i=0; i<len; i++) {
-            cells[i].set_autoindent(state);
-        };
     };
 
 
@@ -777,6 +771,7 @@ var IPython = (function (IPython) {
         };
         this.dirty = true;
     };
+
 
     // Other cell functions: line numbers, ...
 
