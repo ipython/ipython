@@ -16,7 +16,7 @@ var IPython = (function (IPython) {
     var Pager = function (pager_selector, pager_splitter_selector) {
         this.pager_element = $(pager_selector);
         this.pager_splitter_element = $(pager_splitter_selector);
-        this.expanded = true;
+        this.expanded = false;
         this.percentage_height = 0.40;
         this.style();
         this.bind_events();

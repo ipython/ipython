@@ -75,8 +75,8 @@ var IPython = (function (IPython) {
                     var new_name = $(this).find('input').attr('value');
                     if (!that.test_notebook_name(new_name)) {
                         $(this).find('h3').html(
-                            "Invalid notebook name. " +
-                            "Notebook names can contain any characters " +
+                            "Invalid notebook name. Notebook names must "+
+                            "have 1 or more characters and can contain any characters " +
                             "except / and \\. Please enter a new notebook name:"
                         );
                     } else {
@@ -131,7 +131,8 @@ var IPython = (function (IPython) {
 
 
     SaveWidget.prototype.test_notebook_name = function (nbname) {
-        if (this.notebook_name_blacklist_re.test(nbname) == false) {
+        nbname = nbname || '';
+        if (this.notebook_name_blacklist_re.test(nbname) == false && nbname.length>0) {
             return true;
         } else {
             return false;
