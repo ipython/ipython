@@ -49,14 +49,24 @@ var IPython = (function (IPython) {
 
 
     FullEditWidget.prototype.open = function () {
-        var cell = IPython.notebook.selected_cell();
-        if (!this.opened && cell instanceof IPython.CodeCell) {
+        var cell = IPython.notebook.get_selected_cell();
+        if (!this.opened) {
             $('#fulledit_widget').show();
             $('#main_app').hide();
             $('#menubar').hide();
             $('body').css({overflow : 'auto'});
-            var code = cell.get_code();
+            var code = cell.get_text();
             this.ace_editor.getSession().setValue(code);
+            if (cell instanceof IPython.CodeCell) {
+                var PythonMode = require("ace/mode/python").Mode;
+                this.ace_editor.getSession().setMode(new PythonMode());
+            } else if (cell instanceof IPython.MarkdownCell) {
+                var MarkdownMode = require("ace/mode/markdown").Mode;
+                this.ace_editor.getSession().setMode(new MarkdownMode());
+            } else if (cell instanceof IPython.HTMLCell) {
+                var HTMLMode = require("ace/mode/html").Mode;
+                this.ace_editor.getSession().setMode(new HTMLMode());
+            };
             this.ace_editor.focus();
             // On Safari (and Chrome/FF on Linux) the editor doesn't get
             // focus unless there is a window resize. For now, we trigger it
@@ -72,12 +82,22 @@ var IPython = (function (IPython) {
         if (this.opened) {
             $('#fulledit_widget').hide();
             $('#main_app').show();
+            //  We may need to add a refresh to all CM based cells after
+            // showing them.
             $('#menubar').show();
             $('body').css({overflow : 'hidden'});
             var code = this.ace_editor.getSession().getValue();
-            var cell = IPython.notebook.selected_cell();
-            cell.set_code(code);
-            cell.select();
+            var cell = IPython.notebook.get_selected_cell();
+            if (cell instanceof IPython.CodeCell) {
+                cell.code_mirror.refresh();
+                cell.set_text(code);                
+            } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
+                cell.edit();
+                // If the cell was already in edit mode, we need to refresh/focus.
+                cell.code_mirror.refresh();
+                cell.code_mirror.focus();
+                cell.set_text(code);
+            };
             this.opened = false;
         };
     };

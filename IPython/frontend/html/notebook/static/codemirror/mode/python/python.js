@@ -1,15 +1,11 @@
 CodeMirror.defineMode("python", function(conf, parserConf) {
     var ERRORCLASS = 'error';
-
+    
     function wordRegexp(words) {
         return new RegExp("^((" + words.join(")|(") + "))\\b");
     }
-
-    // IPython-specific changes: add '?' as recognized character.
-    //var singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!]");
-    var singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!\\?]");
-    // End IPython changes.
     
+    var singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!\\?]");
     var singleDelimiters = new RegExp('^[\\(\\)\\[\\]\\{\\}@,:`=;\\.]');
     var doubleOperators = new RegExp("^((==)|(!=)|(<=)|(>=)|(<>)|(<<)|(>>)|(//)|(\\*\\*))");
     var doubleDelimiters = new RegExp("^((\\+=)|(\\-=)|(\\*=)|(%=)|(/=)|(&=)|(\\|=)|(\\^=))");
@@ -69,15 +65,15 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
         if (stream.eatSpace()) {
             return null;
         }
-
+        
         var ch = stream.peek();
-
+        
         // Handle Comments
         if (ch === '#') {
             stream.skipToEnd();
             return 'comment';
         }
-
+        
         // Handle Number Literals
         if (stream.match(/^[0-9\.]/, false)) {
             var floatLiteral = false;
@@ -113,13 +109,13 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
                 return 'number';
             }
         }
-
+        
         // Handle Strings
         if (stream.match(stringPrefixes)) {
             state.tokenize = tokenStringFactory(stream.current());
             return state.tokenize(stream, state);
         }
-
+        
         // Handle operators and Delimiters
         if (stream.match(tripleDelimiters) || stream.match(doubleDelimiters)) {
             return null;
@@ -132,31 +128,31 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
         if (stream.match(singleDelimiters)) {
             return null;
         }
-
+        
         if (stream.match(types)) {
             return 'builtin';
         }
-
+        
         if (stream.match(keywords)) {
             return 'keyword';
         }
-
+        
         if (stream.match(identifiers)) {
             return 'variable';
         }
-
+        
         // Handle non-detected items
         stream.next();
         return ERRORCLASS;
     }
-
+    
     function tokenStringFactory(delimiter) {
         while ('rub'.indexOf(delimiter.charAt(0).toLowerCase()) >= 0) {
             delimiter = delimiter.substr(1);
         }
         var singleline = delimiter.length == 1;
         var OUTCLASS = 'string';
-
+        
         return function tokenString(stream, state) {
             while (!stream.eol()) {
                 stream.eatWhile(/[^'"\\]/);
@@ -182,11 +178,15 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             return OUTCLASS;
         };
     }
-
+    
     function indent(stream, state, type) {
         type = type || 'py';
         var indentUnit = 0;
         if (type === 'py') {
+            if (state.scopes[0].type !== 'py') {
+                state.scopes[0].offset = stream.indentation();
+                return;
+            }
             for (var i = 0; i < state.scopes.length; ++i) {
                 if (state.scopes[i].type === 'py') {
                     indentUnit = state.scopes[i].offset + conf.indentUnit;
@@ -201,8 +201,9 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             type: type
         });
     }
-
-    function dedent(stream, state) {
+    
+    function dedent(stream, state, type) {
+        type = type || 'py';
         if (state.scopes.length == 1) return;
         if (state.scopes[0].type === 'py') {
             var _indent = stream.indentation();
@@ -221,8 +222,16 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             }
             return false
         } else {
-            state.scopes.shift();
-            return false;
+            if (type === 'py') {
+                state.scopes[0].offset = stream.indentation();
+                return false;
+            } else {
+                if (state.scopes[0].type != type) {
+                    return true;
+                }
+                state.scopes.shift();
+                return false;
+            }
         }
     }
 
@@ -241,7 +250,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
                 return ERRORCLASS;
             }
         }
-
+        
         // Handle decorators
         if (current === '@') {
             style = state.tokenize(stream, state);
@@ -254,7 +263,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
                 return ERRORCLASS;
             }
         }
-
+        
         // Handle scope changes.
         if (current === 'pass' || current === 'return') {
             state.dedent += 1;
@@ -274,7 +283,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
         }
         delimiter_index = '])}'.indexOf(current);
         if (delimiter_index !== -1) {
-            if (dedent(stream, state)) {
+            if (dedent(stream, state, current)) {
                 return ERRORCLASS;
             }
         }
@@ -282,7 +291,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             if (state.scopes.length > 1) state.scopes.shift();
             state.dedent -= 1;
         }
-
+        
         return style;
     }
 
@@ -296,27 +305,27 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
               dedent: 0
           };
         },
-
+        
         token: function(stream, state) {
             var style = tokenLexer(stream, state);
-
+            
             state.lastToken = {style:style, content: stream.current()};
-
+            
             if (stream.eol() && stream.lambda) {
                 state.lambda = false;
             }
-
+            
             return style;
         },
-
+        
         indent: function(state, textAfter) {
             if (state.tokenize != tokenBase) {
                 return 0;
             }
-
+            
             return state.scopes[0].offset;
         }
-
+        
     };
     return external;
 });

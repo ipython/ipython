@@ -137,6 +137,7 @@ div#pager_splitter {
 div#pager {
     padding: 15px;
     overflow: auto;
+    display: none;
 }
 
 div.cell {
@@ -238,10 +239,14 @@ div.output_jpeg {
 
 div.text_cell {
     background-color: white;
+    padding: 5px 5px 5px 5px;
 }
 
 div.text_cell_input {
     color: black;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #f7f7f7;
 }
 
 div.text_cell_render {
