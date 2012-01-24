@@ -1098,27 +1098,25 @@ var IPython = (function (IPython) {
     };
 
     Notebook.prototype.save_notebook = function () {
-        if (IPython.save_widget.test_notebook_name()) {
-            var notebook_id = IPython.save_widget.get_notebook_id();
-            var nbname = IPython.save_widget.get_notebook_name();
-            // We may want to move the name/id/nbformat logic inside toJSON?
-            var data = this.toJSON();
-            data.metadata.name = nbname;
-            data.nbformat = 2;
-            // We do the call with settings so we can set cache to false.
-            var settings = {
-                processData : false,
-                cache : false,
-                type : "PUT",
-                data : JSON.stringify(data),
-                headers : {'Content-Type': 'application/json'},
-                success : $.proxy(this.notebook_saved,this),
-                error : $.proxy(this.notebook_save_failed,this)
-            };
-            IPython.save_widget.status_saving();
-            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
-            $.ajax(url, settings);
+        var notebook_id = IPython.save_widget.get_notebook_id();
+        var nbname = IPython.save_widget.get_notebook_name();
+        // We may want to move the name/id/nbformat logic inside toJSON?
+        var data = this.toJSON();
+        data.metadata.name = nbname;
+        data.nbformat = 2;
+        // We do the call with settings so we can set cache to false.
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "PUT",
+            data : JSON.stringify(data),
+            headers : {'Content-Type': 'application/json'},
+            success : $.proxy(this.notebook_saved,this),
+            error : $.proxy(this.notebook_save_failed,this)
         };
+        IPython.save_widget.status_saving();
+        var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
+        $.ajax(url, settings);
     };
 
 
