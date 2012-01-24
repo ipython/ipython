@@ -26,14 +26,18 @@ itself from the command line. There are two ways of running this script:
 #-----------------------------------------------------------------------------
 
 # Stdlib
+import codecs
 import os
 import os.path as path
+import pickle
 import signal
 import sys
 import subprocess
 import tempfile
 import time
 import warnings
+
+from collections import Counter
 
 # Note: monkeypatch!
 # We need to monkeypatch a small problem in nose itself first, before importing
@@ -42,10 +46,12 @@ import warnings
 from IPython.testing import nosepatch
 # Now, proceed to import nose itself
 import nose.plugins.builtin
+from nose.plugins.xunit import Xunit
 from nose.core import TestProgram
 
 # Our own imports
 from IPython.utils.importstring import import_item
+from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv
 from IPython.utils.sysinfo import sys_info
@@ -268,7 +274,7 @@ class IPTester(object):
     #: list, process ids of subprocesses we start (for cleanup)
     pids = None
 
-    def __init__(self, runner='iptest', params=None):
+    def __init__(self, runner='iptest', params=None, xunit=False):
         """Create new test runner."""
         p = os.path
         if runner == 'iptest':
@@ -284,6 +290,12 @@ class IPTester(object):
 
         # Assemble call
         self.call_args = self.runner+self.params
+        
+        # Ask the tester for its xunit plugin as a pickle
+        if xunit:
+            part = [p for p in self.params if p.startswith("IPython")][0]
+            xunit_file = part+".xunit.pkl"
+            self.call_args.append('--xunit-pickle-file="%s"' % xunit_file)
 
         # Store pids of anything we start to clean up on deletion, if possible
         # (on posix only, since win32 has no os.kill)
@@ -337,7 +349,7 @@ class IPTester(object):
                 pass
 
 
-def make_runners():
+def make_runners(collect_xunit=False):
     """Define the top-level packages that need to be tested.
     """
 
@@ -355,7 +367,8 @@ def make_runners():
     nose_packages = ['IPython.%s' % m for m in nose_pkg_names ]
 
     # Make runners
-    runners = [ (v, IPTester('iptest', params=v)) for v in nose_packages ]
+    runners = [ (v, IPTester('iptest', params=v, xunit=collect_xunit)) \
+                                                    for v in nose_packages ]
 
     return runners
 
@@ -398,6 +411,13 @@ def run_iptest():
         # by default.  Since it's otherwise harmless, leave it in by default
         # for nose >= 0.11, though unfortunately nose 0.10 doesn't support it.
         argv.append('--traverse-namespace')
+    
+    xunit_pickle_file = None
+    for i,arg in enumerate(argv):
+        if arg.startswith("--xunit-pickle-file="):
+            del argv[i]
+            xunit_pickle_file = arg.partition("=")[2].strip('"\'')
+            argv.append("--with-xunit")
 
     # use our plugin for doctesting.  It will remove the standard doctest plugin
     # if it finds it enabled
@@ -405,7 +425,12 @@ def run_iptest():
     # We need a global ipython running in this process
     globalipapp.start_ipython()
     # Now nose can run
-    TestProgram(argv=argv, addplugins=plugins)
+    t = TestProgram(argv=argv, addplugins=plugins, exit=False)
+    if xunit_pickle_file:
+        xunit = [p for p in t.config.plugins.plugins if isinstance(p, Xunit)][0]
+        with open(xunit_pickle_file, "wb") as f:
+            pickle.dump((xunit.errorlist, xunit.stats), f)
+    sys.exit(not t.success)
 
 
 def run_iptestall():
@@ -416,8 +441,15 @@ def run_iptestall():
     and packages of IPython to be tested each in their own subprocess using
     nose or twisted.trial appropriately.
     """
+    collect_xunit = False
+    if "--with-xunit" in sys.argv:
+        sys.argv.remove("--with-xunit")
+        collect_xunit = True
+        xunit = Xunit()
+        xunit.errorlist = []
+        xunit_stats = Counter()
 
-    runners = make_runners()
+    runners = make_runners(collect_xunit)
 
     # Run the test runners in a temporary dir so we can nuke it when finished
     # to clean up any junk files left over by accident.  This also makes it
@@ -437,12 +469,26 @@ def run_iptestall():
             res = runner.run()
             if res:
                 failed.append( (name, runner) )
+            if collect_xunit:
+                with open(name+".xunit.pkl", "rb") as f:
+                    errorlist, stats = pickle.load(f)
+                xunit.errorlist.extend(errorlist)
+                stats.pop('encoding', None)
+                xunit_stats.update(stats)
     finally:
         os.chdir(curdir)
     t_end = time.time()
     t_tests = t_end - t_start
     nrunners = len(runners)
     nfail = len(failed)
+    
+    # Write out xunit results
+    if collect_xunit:
+        xunit.stats = dict(xunit_stats)
+        xunit.error_report_file = codecs.open('nosetests.xml', 'w', 'utf-8', 'replace')
+        xunit.config = Struct(verbosity = 0)
+        xunit.report(None)
+    
     # summarize results
     print
     print '*'*70
