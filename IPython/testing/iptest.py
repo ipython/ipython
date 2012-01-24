@@ -284,6 +284,11 @@ class IPTester(object):
 
         # Assemble call
         self.call_args = self.runner+self.params
+        
+        print self.call_args
+        if '--with-xunit' in self.call_args:
+            sect = [p for p in self.params if p.startswith('IPython')][0]
+            self.call_args.append('--xunit-file=%s' % path.abspath(sect+'.xunit.xml'))
 
         # Store pids of anything we start to clean up on deletion, if possible
         # (on posix only, since win32 has no os.kill)
