@@ -9,12 +9,12 @@ class TestJSON(TestCase):
 
     def test_roundtrip(self):
         s = writes(nb0)
-#        print
-#        print pprint.pformat(nb0,indent=2)
-#        print
-#        print pprint.pformat(reads(s),indent=2)
-#        print
-#        print s
+        # print
+        # print pprint.pformat(nb0,indent=2)
+        # print
+        # print pprint.pformat(reads(s),indent=2)
+        # print
+        # print s
         self.assertEquals(reads(s),nb0)
     
     def test_roundtrip_nosplit(self):

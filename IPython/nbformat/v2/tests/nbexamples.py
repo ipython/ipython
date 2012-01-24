@@ -4,7 +4,7 @@ from base64 import encodestring
 from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
-    new_metadata, new_author
+    new_metadata, new_author, new_heading_cell
 )
 
 # some random base64-encoded *bytes*
@@ -30,6 +30,16 @@ ws.cells.append(new_text_cell(
     u'markdown',
     source='A random array',
     rendered='A random array'
+))
+
+ws.cells.append(new_text_cell(
+    u'rst',
+    source='A random array',
+))
+
+ws.cells.append(new_heading_cell(
+    u'My Heading',
+    level=2
 ))
 
 ws.cells.append(new_code_cell(
@@ -95,6 +105,14 @@ import numpy
 # <markdowncell>
 
 # A random array
+
+# <rstcell>
+
+# A random array
+
+# <headingcell level=2>
+
+# My Heading
 
 # <codecell>
 

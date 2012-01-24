@@ -119,6 +119,16 @@ def new_text_cell(cell_type, source=None, rendered=None):
     return cell
 
 
+def new_heading_cell(source=None, level=1):
+    """Create a new section cell with a given integer level."""
+    cell = NotebookNode()
+    cell.cell_type = u'heading'
+    if source is not None:
+        cell.source = unicode(source)
+    cell.level = int(level)
+    return cell
+
+
 def new_worksheet(name=None, cells=None):
     """Create a worksheet by name with with a list of cells."""
     ws = NotebookNode()

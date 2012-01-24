@@ -18,7 +18,10 @@ Authors:
 
 import re
 from .rwbase import NotebookReader, NotebookWriter
-from .nbbase import new_code_cell, new_text_cell, new_worksheet, new_notebook
+from .nbbase import (
+    new_code_cell, new_text_cell, new_worksheet,
+    new_notebook, new_heading_cell
+)
 
 #-----------------------------------------------------------------------------
 # Code
@@ -39,28 +42,53 @@ class PyReader(NotebookReader):
         lines = s.splitlines()
         cells = []
         cell_lines = []
+        kwargs = {}
         state = u'codecell'
         for line in lines:
             if line.startswith(u'# <nbformat>') or _encoding_declaration_re.match(line):
                 pass
             elif line.startswith(u'# <codecell>'):
-                cell = self.new_cell(state, cell_lines)
+                cell = self.new_cell(state, cell_lines, **kwargs)
                 if cell is not None:
                     cells.append(cell)
                 state = u'codecell'
                 cell_lines = []
+                kwargs = {}
             elif line.startswith(u'# <htmlcell>'):
-                cell = self.new_cell(state, cell_lines)
+                cell = self.new_cell(state, cell_lines, **kwargs)
                 if cell is not None:
                     cells.append(cell)
                 state = u'htmlcell'
                 cell_lines = []
+                kwargs = {}
             elif line.startswith(u'# <markdowncell>'):
-                cell = self.new_cell(state, cell_lines)
+                cell = self.new_cell(state, cell_lines, **kwargs)
                 if cell is not None:
                     cells.append(cell)
                 state = u'markdowncell'
                 cell_lines = []
+                kwargs = {}
+            elif line.startswith(u'# <rstcell>'):
+                cell = self.new_cell(state, cell_lines, **kwargs)
+                if cell is not None:
+                    cells.append(cell)
+                state = u'rstcell'
+                cell_lines = []
+                kwargs = {}
+            elif line.startswith(u'# <headingcell'):
+                cell = self.new_cell(state, cell_lines, **kwargs)
+                if cell is not None:
+                    cells.append(cell)
+                    cell_lines = []
+                m = re.match(r'# <headingcell level=(?P<level>\d)>',line)
+                if m is not None:
+                    state = u'headingcell'
+                    kwargs = {}
+                    kwargs['level'] = int(m.group('level'))
+                else:
+                    state = u'codecell'
+                    kwargs = {}
+                    cell_lines = []
             else:
                 cell_lines.append(line)
         if cell_lines and state == u'codecell':
@@ -71,7 +99,7 @@ class PyReader(NotebookReader):
         nb = new_notebook(worksheets=[ws])
         return nb
 
-    def new_cell(self, state, lines):
+    def new_cell(self, state, lines, **kwargs):
         if state == u'codecell':
             input = u'\n'.join(lines)
             input = input.strip(u'\n')
@@ -85,6 +113,15 @@ class PyReader(NotebookReader):
             text = self._remove_comments(lines)
             if text:
                 return new_text_cell(u'markdown',source=text)
+        elif state == u'rstcell':
+            text = self._remove_comments(lines)
+            if text:
+                return new_text_cell(u'rst',source=text)
+        elif state == u'headingcell':
+            text = self._remove_comments(lines)
+            level = kwargs.get('level',1)
+            if text:
+                return new_heading_cell(source=text,level=level)
 
     def _remove_comments(self, lines):
         new_lines = []
@@ -133,6 +170,19 @@ class PyWriter(NotebookWriter):
                     input = cell.get(u'source')
                     if input is not None:
                         lines.extend([u'# <markdowncell>',u''])
+                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.append(u'')
+                elif cell.cell_type == u'rst':
+                    input = cell.get(u'source')
+                    if input is not None:
+                        lines.extend([u'# <rstcell>',u''])
+                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.append(u'')
+                elif cell.cell_type == u'heading':
+                    input = cell.get(u'source')
+                    level = cell.get(u'level',1)
+                    if input is not None:
+                        lines.extend([u'# <headingcell level=%s>' % level,u''])
                         lines.extend([u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
         lines.append('')

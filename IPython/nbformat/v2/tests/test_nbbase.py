@@ -3,7 +3,7 @@ from unittest import TestCase
 from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
-    new_author, new_metadata
+    new_author, new_metadata, new_heading_cell
 )
 
 class TestCell(TestCase):
@@ -58,6 +58,27 @@ class TestCell(TestCase):
         tc = new_text_cell(u'markdown', 'hi', 'hi')
         self.assertEquals(tc.source, u'hi')
         self.assertEquals(tc.rendered, u'hi')
+
+    def test_empty_rst_cell(self):
+        tc = new_text_cell(u'rst')
+        self.assertEquals(tc.cell_type, u'rst')
+        self.assertEquals(u'source' not in tc, True)
+        self.assertEquals(u'rendered' not in tc, True)
+
+    def test_rst_cell(self):
+        tc = new_text_cell(u'rst', 'hi', 'hi')
+        self.assertEquals(tc.source, u'hi')
+        self.assertEquals(tc.rendered, u'hi')
+
+    def test_empty_heading_cell(self):
+        tc = new_heading_cell()
+        self.assertEquals(tc.cell_type, u'heading')
+        self.assertEquals(u'source' not in tc, True)
+
+    def test_heading_cell(self):
+        tc = new_heading_cell(u'My Heading', level=2)
+        self.assertEquals(tc.source, u'My Heading')
+        self.assertEquals(tc.level, 2)
 
 
 class TestWorksheet(TestCase):
