@@ -241,6 +241,7 @@ var IPython = (function (IPython) {
 
     var RSTCell = function (notebook) {
         this.placeholder = "Type *ReStructured Text* and LaTeX: $\\alpha^2$";
+        this.code_mirror_mode = 'rst';
         IPython.TextCell.apply(this, arguments);
         this.cell_type = 'rst';
     };
@@ -250,29 +251,38 @@ var IPython = (function (IPython) {
 
 
     RSTCell.prototype.render = function () {
-        if (this.rendered === false) {
-            var text = this.get_text();
-            if (text === "") { text = this.placeholder; }
-            var settings = {
-                processData : false,
-                cache : false,
-                type : "POST",
-                data : text,
-                headers : {'Content-Type': 'application/x-rst'},
-                success : $.proxy(this.handle_render,this)
-            };
-            $.ajax("/rstservice/render", settings);
-            this.element.find('div.text_cell_input').hide();
-            this.element.find("div.text_cell_render").show();
-            this.set_rendered("Rendering...");
+        this.rendered = true;
+        this.edit();
+    };
+
+
+    RSTCell.prototype.select = function () {
+        IPython.Cell.prototype.select.apply(this);
+        // In some cases (inserting a new cell) we need a refresh before and
+        // after the focus. Not sure why this is the case.
+        this.code_mirror.refresh();
+        this.code_mirror.focus();
+        this.code_mirror.refresh();
+    };
+
+
+    RSTCell.prototype.at_top = function () {
+        var cursor = this.code_mirror.getCursor();
+        if (cursor.line === 0) {
+            return true;
+        } else {
+            return false;
         }
     };
 
 
-    RSTCell.prototype.handle_render = function (data, status, xhr) {
-        this.set_rendered(data);
-        this.typeset();
-        this.rendered = true;
+    RSTCell.prototype.at_bottom = function () {
+        var cursor = this.code_mirror.getCursor();
+        if (cursor.line === (this.code_mirror.lineCount()-1)) {
+            return true;
+        } else {
+            return false;
+        }
     };
 
 

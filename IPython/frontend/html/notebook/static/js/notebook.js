@@ -135,6 +135,11 @@ var IPython = (function (IPython) {
                 that.to_markdown();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 82 && that.control_key_active) {
+                // To RST = r
+                that.to_rst();
+                that.control_key_active = false;
+                return false;
             } else if (event.which === 84 && that.control_key_active) {
                 // Toggle output = t
                 that.toggle_output();
@@ -467,15 +472,17 @@ var IPython = (function (IPython) {
         // type = ('code','html','markdown')
         // index = cell index or undefined to insert below selected
         index = this.index_or_selected(index);
+        var cell = null;
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
-            var cell = null;
             if (type === 'code') {
-                var cell = new IPython.CodeCell(this);
+                cell = new IPython.CodeCell(this);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                var cell = new IPython.MarkdownCell(this);
+                cell = new IPython.MarkdownCell(this);
             } else if (type === 'html') {
-                var cell = new IPython.HTMLCell(this);
+                cell = new IPython.HTMLCell(this);
+            } else if (type === 'rst') {
+                cell = new IPython.RSTCell(this);
             };
             if (cell !== null) {
                 if (this.ncells() === 0) {
@@ -489,6 +496,7 @@ var IPython = (function (IPython) {
                 return cell;
             };
         };
+        return cell;
     };
 
 
@@ -496,15 +504,17 @@ var IPython = (function (IPython) {
         // type = ('code','html','markdown')
         // index = cell index or undefined to insert above selected
         index = this.index_or_selected(index);
+        var cell = null;
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
-            var cell = null;
             if (type === 'code') {
-                var cell = new IPython.CodeCell(this);
+                cell = new IPython.CodeCell(this);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                var cell = new IPython.MarkdownCell(this);
+                cell = new IPython.MarkdownCell(this);
             } else if (type === 'html') {
-                var cell = new IPython.HTMLCell(this);
+                cell = new IPython.HTMLCell(this);
+            } else if (type === 'rst') {
+                cell = new IPython.RSTCell(this);
             };
             if (cell !== null) {
                 if (this.ncells() === 0) {
@@ -518,6 +528,7 @@ var IPython = (function (IPython) {
                 return cell;
             };
         };
+        return cell;
     };
 
 
@@ -534,8 +545,8 @@ var IPython = (function (IPython) {
                 }
                 target_cell.set_text(text);
                 source_element.remove();
+                this.dirty = true;
             };
-            this.dirty = true;
         };
     };
 
@@ -545,19 +556,16 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
-            var target_cell = null;
             if (!(source_cell instanceof IPython.MarkdownCell)) {
                 target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                if (target_cell !== null) {
-                    // The edit must come before the set_text.
-                    target_cell.edit();
-                    target_cell.set_text(text);
-                    source_element.remove();
-                }
+                // The edit must come before the set_text.
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
                 this.dirty = true;
             };
         };
@@ -576,17 +584,36 @@ var IPython = (function (IPython) {
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                if (target_cell !== null) {
-                    // The edit must come before the set_text.
-                    target_cell.edit();
-                    target_cell.set_text(text);
-                    source_element.remove();
-                }
+                // The edit must come before the set_text.
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
                 this.dirty = true;
             };
         };
     };
 
+
+    Notebook.prototype.to_rst = function (index) {
+        var i = this.index_or_selected(index);
+        if (this.is_valid_cell_index(i)) {
+            var source_element = this.get_cell_element(i);
+            var source_cell = source_element.data("cell");
+            var target_cell = null;
+            if (!(source_cell instanceof IPython.RSTCell)) {
+                target_cell = this.insert_cell_below('rst',i);
+                var text = source_cell.get_text();
+                if (text === source_cell.placeholder) {
+                    text = '';
+                };
+                // The edit must come before the set_text.
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
+                this.dirty = true;
+            };
+        };
+    };
 
     // Cut/Copy/Paste
 

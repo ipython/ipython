@@ -129,6 +129,9 @@ var IPython = (function (IPython) {
         this.element.find('#to_markdown').click(function () {
             IPython.notebook.to_markdown();
         });
+        this.element.find('#to_rst').click(function () {
+            IPython.notebook.to_rst();
+        });
         this.element.find('#toggle_output').click(function () {
             IPython.notebook.toggle_output();
         });
