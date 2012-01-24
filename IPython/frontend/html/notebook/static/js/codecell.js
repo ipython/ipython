@@ -86,13 +86,31 @@ var IPython = (function (IPython) {
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        }else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {
+        } else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {
             // triger aon keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
             var cursor = editor.getCursor();
             var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
             that.request_tooltip_after_time(pre_cursor,tooltip_wait_time);
+        } else if (event.which === 38) {
+            // If we are not at the top, let CM handle the up arrow and
+            // prevent the global keydown handler from handling it.
+            if (!that.at_top()) {
+                event.stop();
+                return false;
+            } else {
+                return true; 
+            };
+        } else if (event.which === 40) {
+            // If we are not at the bottom, let CM handle the down arrow and
+            // prevent the global keydown handler from handling it.
+            if (!that.at_bottom()) {
+                event.stop();
+                return false;
+            } else {
+                return true; 
+            };
         } else if (event.keyCode === 9 && event.type == 'keydown') {
             // Tab completion.
             var cur = editor.getCursor();
@@ -499,6 +517,7 @@ var IPython = (function (IPython) {
         select.focus();
     };
 
+
     CodeCell.prototype.toggle_line_numbers = function () {
         if (this.code_mirror.getOption('lineNumbers') == false) {
             this.code_mirror.setOption('lineNumbers', true);
@@ -508,15 +527,14 @@ var IPython = (function (IPython) {
         this.code_mirror.refresh();
     };
 
+
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
-        // Todo: this dance is needed because as of CodeMirror 2.12, focus is
-        // not causing the cursor to blink if the editor is empty initially.
-        // While this seems to fix the issue, this should be fixed
-        // in CodeMirror proper.
-        var s = this.code_mirror.getValue();
+        // In some cases (inserting a new cell) we need a refresh before and
+        // after the focus. Not sure why this is the case.
+        this.code_mirror.refresh();
         this.code_mirror.focus();
-        if (s === '') this.code_mirror.setValue('');
+        this.code_mirror.refresh();
     };
 
 
@@ -754,12 +772,12 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.get_code = function () {
+    CodeCell.prototype.get_text = function () {
         return this.code_mirror.getValue();
     };
 
 
-    CodeCell.prototype.set_code = function (code) {
+    CodeCell.prototype.set_text = function (code) {
         return this.code_mirror.setValue(code);
     };
 
@@ -787,7 +805,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype.fromJSON = function (data) {
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
-                this.set_code(data.input);
+                this.set_text(data.input);
             }
             if (data.prompt_number !== undefined) {
                 this.set_input_prompt(data.prompt_number);
@@ -809,7 +827,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.toJSON = function () {
         var data = {};
-        data.input = this.get_code();
+        data.input = this.get_text();
         data.cell_type = 'code';
         if (this.input_prompt_number !== ' ') {
             data.prompt_number = this.input_prompt_number;

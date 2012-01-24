@@ -15,7 +15,6 @@ var IPython = (function (IPython) {
 
     var TextCell = function (notebook) {
         this.code_mirror_mode = this.code_mirror_mode || 'htmlmixed';
-        this.placeholder = this.placeholder || '\u0000';
         IPython.Cell.apply(this, arguments);
         this.rendered = false;
         this.cell_type = this.cell_type || 'text';
@@ -28,16 +27,17 @@ var IPython = (function (IPython) {
     TextCell.prototype.create_element = function () {
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
         cell.attr('tabindex','2');
-        var input_area = $('<div/>').addClass('text_cell_input');
+        var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             mode: this.code_mirror_mode,
             theme: 'default',
             value: this.placeholder,
-            readOnly: this.read_only
+            readOnly: this.read_only,
+            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         // The tabindex=-1 makes this div focusable.
-        var render_area = $('<div/>').addClass('text_cell_render').
+        var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
             addClass('rendered_html').attr('tabindex','-1');
         cell.append(input_area).append(render_area);
         this.element = cell;
@@ -51,10 +51,27 @@ var IPython = (function (IPython) {
             if (event.which === 13) {
                 if (that.rendered) {
                     that.edit();
-                    event.preventDefault();
-                }
-            }
+                    return false;
+                };
+            };
         });
+        this.element.dblclick(function () {
+            that.edit();
+        });
+    };
+
+
+    TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
+        // This method gets called in CodeMirror's onKeyDown/onKeyPress
+        // handlers and is used to provide custom key handling. Its return
+        // value is used to determine if CodeMirror should ignore the event:
+        // true = ignore, false = don't ignore.
+
+        if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
+            // Always ignore shift-enter in CodeMirror as we handle it.
+            return true;
+        }
+        return false;
     };
 
 
@@ -79,11 +96,18 @@ var IPython = (function (IPython) {
             var output = text_cell.find("div.text_cell_render");  
             output.hide();
             text_cell.find('div.text_cell_input').show();
+            // I don't know why I need to do this, but if I don't do
+            // refresh/focus/refresh, the to_markdown method won't work.
+            this.code_mirror.refresh();
             this.code_mirror.focus();
+            // This final refresh is needed on Firefox to trigger the editor
+            // to be auto-sized. This glitch only happens on cell that are
+            // loaded initially and haven't had their editor focused before.
             this.code_mirror.refresh();
             this.rendered = false;
-            if (this.get_source() === this.placeholder) {
-                this.set_source('');
+            if (this.get_text() === this.placeholder) {
+                this.set_text('');
+                this.refresh();
             }
         }
     };
@@ -93,22 +117,12 @@ var IPython = (function (IPython) {
     TextCell.prototype.render = function () {};
 
 
-    TextCell.prototype.config_mathjax = function () {
-        var text_cell = this.element;
-        var that = this;
-        text_cell.dblclick(function () {
-            that.edit();
-        });
-        that.render();
-    };
-
-
-    TextCell.prototype.get_source = function() {
+    TextCell.prototype.get_text = function() {
         return this.code_mirror.getValue();
     };
 
 
-    TextCell.prototype.set_source = function(text) {
+    TextCell.prototype.set_text = function(text) {
         this.code_mirror.setValue(text);
         this.code_mirror.refresh();
     };
@@ -145,7 +159,7 @@ var IPython = (function (IPython) {
     TextCell.prototype.fromJSON = function (data) {
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
-                this.set_source(data.source);
+                this.set_text(data.source);
                 this.set_rendered(data.rendered || '');
                 this.rendered = false;
                 this.render();
@@ -157,7 +171,7 @@ var IPython = (function (IPython) {
     TextCell.prototype.toJSON = function () {
         var data = {};
         data.cell_type = this.cell_type;
-        data.source = this.get_source();
+        data.source = this.get_text();
         return data;
     };
 
@@ -165,7 +179,7 @@ var IPython = (function (IPython) {
     // HTMLCell
 
     var HTMLCell = function (notebook) {
-        this.placeholder = "\u0000Type <strong>HTML</strong> and LaTeX: $\\alpha^2$";
+        this.placeholder = "Type <strong>HTML</strong> and LaTeX: $\\alpha^2$";
         IPython.TextCell.apply(this, arguments);
         this.cell_type = 'html';
     };
@@ -176,7 +190,7 @@ var IPython = (function (IPython) {
 
     HTMLCell.prototype.render = function () {
         if (this.rendered === false) {
-            var text = this.get_source();
+            var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             this.set_rendered(text);
             this.typeset();
@@ -190,7 +204,7 @@ var IPython = (function (IPython) {
     // MarkdownCell
 
     var MarkdownCell = function (notebook) {
-        this.placeholder = "\u0000Type *Markdown* and LaTeX: $\\alpha^2$";
+        this.placeholder = "Type *Markdown* and LaTeX: $\\alpha^2$";
         IPython.TextCell.apply(this, arguments);
         this.cell_type = 'markdown';
     };
@@ -201,7 +215,7 @@ var IPython = (function (IPython) {
 
     MarkdownCell.prototype.render = function () {
         if (this.rendered === false) {
-            var text = this.get_source();
+            var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             var html = IPython.markdown_converter.makeHtml(text);
             this.set_rendered(html);
@@ -228,7 +242,7 @@ var IPython = (function (IPython) {
     // RSTCell
 
     var RSTCell = function (notebook) {
-        this.placeholder = "\u0000Type *ReStructured Text* and LaTeX: $\\alpha^2$";
+        this.placeholder = "Type *ReStructured Text* and LaTeX: $\\alpha^2$";
         IPython.TextCell.apply(this, arguments);
         this.cell_type = 'rst';
     };
@@ -239,7 +253,7 @@ var IPython = (function (IPython) {
 
     RSTCell.prototype.render = function () {
         if (this.rendered === false) {
-            var text = this.get_source();
+            var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             var settings = {
                 processData : false,
