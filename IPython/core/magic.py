@@ -25,6 +25,7 @@ import sys
 import shutil
 import re
 import time
+import gc
 from StringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
@@ -3696,5 +3697,61 @@ Defaulting color scheme to 'NoColor'"""
                 configurable.update_config(cfg)
             except Exception as e:
                 error(e)
+
+    def magic_clear(self, s):
+        """Clear various data (e.g. stored history data)
+
+        %clear in  - clear input history
+        %clear out - clear output history
+        %clear dhist - clear dir history
+        %clear array - clear only variables that are NumPy arrays
+
+        Examples
+        --------
+        ::
+
+            In [1]: clear in
+            Flushing input history
+
+            In [2]: clear dhist
+            Clearing directory history
+        """
+        ip = self.shell
+        user_ns = self.user_ns  # local lookup, heavily used
+
+        for target in s.split():
+            if target == 'out':
+                print "Flushing output cache (%d entries)" % len(user_ns['_oh'])
+                self.displayhook.flush()
+
+            elif target == 'in':
+                print "Flushing input history"
+                pc = self.displayhook.prompt_count + 1
+                for n in range(1, pc):
+                    key = '_i'+repr(n)
+                    user_ns.pop(key,None)
+                user_ns.update(dict(_i=u'',_ii=u'',_iii=u''))
+                # don't delete these, as %save and %macro depending on the length
+                # of these lists to be preserved
+                self.history_manager.input_hist_parsed[:] = [''] * pc
+                self.history_manager.input_hist_raw[:] = [''] * pc
+
+            elif target == 'array':
+                # Support cleaning up numpy arrays
+                try:
+                    from numpy import ndarray
+                    # This must be done with items and not iteritems because we're
+                    # going to modify the dict in-place.
+                    for x,val in user_ns.items():
+                        if isinstance(val,ndarray):
+                            del user_ns[x]
+                except ImportError:
+                    print "Clear array only works if Numpy is available."
+
+            elif target == 'dhist':
+                print "Clearing directory history"
+                del user_ns['_dh'][:]
+
+            gc.collect()
 
 # end Magic
