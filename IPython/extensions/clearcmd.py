@@ -45,8 +45,10 @@ def clear_f(self,arg):
                 key = '_i'+repr(n)
                 user_ns.pop(key,None)
             user_ns.update(dict(_i=u'',_ii=u'',_iii=u''))
-            del self.history_manager.input_hist_parsed[:]
-            del self.history_manager.input_hist_raw[:]
+            # don't delete these, as %save and %macro depending on the length
+            # of these lists to be preserved
+            self.history_manager.input_hist_parsed[:] = [''] * pc
+            self.history_manager.input_hist_raw[:] = [''] * pc
 
         elif target == 'array':
             # Support cleaning up numpy arrays

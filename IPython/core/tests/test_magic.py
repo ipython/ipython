@@ -211,7 +211,7 @@ def test_clear():
     nt.assert_true('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
     _ip.magic('%clear in')
     nt.assert_false('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
-    nt.assert_true(len(_ip.user_ns['In']) == 0)
+    nt.assert_true(len(set(_ip.user_ns['In'])) == 1)
 
     # test '%clear dhist'
     _ip.run_cell("tmp = [d for d in _dh]") # copy before clearing
@@ -221,6 +221,11 @@ def test_clear():
     _ip.magic('clear dhist')
     nt.assert_true(len(_ip.user_ns['_dh']) == 0)
     _ip.run_cell("_dh = [d for d in tmp]") #restore
+
+    # test that In length is preserved for %macro
+    _ip.run_cell("print 'foo'")
+    _ip.run_cell("clear in")
+    nt.assert_true(len(_ip.user_ns['In']) == _ip.displayhook.prompt_count+1)
 
 def test_time():
     _ip.magic('time None')
