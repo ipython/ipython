@@ -316,6 +316,6 @@ def cd_completer(self, event):
 
     return [compress_user(p, tilde_expand, tilde_val) for p in found]
 
-def clear_completer(self, event):
-    "A completer for %clear magic"
-    return 'in out array dhist'.split()
+def reset_completer(self, event):
+    "A completer for %reset magic"
+    return '-f -s in out array dhist'.split()

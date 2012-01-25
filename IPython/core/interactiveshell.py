@@ -1840,7 +1840,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """
         from IPython.core.completer import IPCompleter
         from IPython.core.completerlib import (module_completer,
-                magic_run_completer, cd_completer, clear_completer)
+                magic_run_completer, cd_completer, reset_completer)
 
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
@@ -1860,7 +1860,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.set_hook('complete_command', module_completer, str_key = 'from')
         self.set_hook('complete_command', magic_run_completer, str_key = '%run')
         self.set_hook('complete_command', cd_completer, str_key = '%cd')
-        self.set_hook('complete_command', clear_completer, str_key = '%clear')
+        self.set_hook('complete_command', reset_completer, str_key = '%reset')
 
         # Only configure readline if we truly are using readline.  IPython can
         # do tab-completion over the network, in GUIs, etc, where readline

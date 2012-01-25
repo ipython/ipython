@@ -185,44 +185,44 @@ def test_macro_run():
 
 
 @dec.skipif_not_numpy
-def test_numpy_clear_array_undec():
-    "Test '%clear array' functionality"
+def test_numpy_reset_array_undec():
+    "Test '%reset array' functionality"
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
     yield (nt.assert_true, 'a' in _ip.user_ns)
-    _ip.magic('clear array')
+    _ip.magic('reset -f array')
     yield (nt.assert_false, 'a' in _ip.user_ns)
 
-def test_clear():
-    "Test '%clear' magic provided by IPython.extensions.clearcmd"
+def test_reset_args():
+    "Test '%reset' magic with args which used to be extensions.clearcmd"
     _ip = get_ipython()
     _ip.run_cell("parrot = 'dead'", store_history=True)
-    # test '%clear out', make an Out prompt
+    # test '%reset -f out', make an Out prompt
     _ip.run_cell("parrot", store_history=True)
     nt.assert_true('dead' in [_ip.user_ns[x] for x in '_','__','___'])
-    _ip.magic('clear out')
+    _ip.magic('reset -f out')
     nt.assert_false('dead' in [_ip.user_ns[x] for x in '_','__','___'])
     nt.assert_true(len(_ip.user_ns['Out']) == 0)
 
-    # test '%clear in'
+    # test '%reset -f in'
     _ip.run_cell("parrot", store_history=True)
     nt.assert_true('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
-    _ip.magic('%clear in')
+    _ip.magic('%reset -f in')
     nt.assert_false('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
     nt.assert_true(len(set(_ip.user_ns['In'])) == 1)
 
-    # test '%clear dhist'
+    # test '%reset -f dhist'
     _ip.run_cell("tmp = [d for d in _dh]") # copy before clearing
     _ip.magic('cd')
     _ip.magic('cd -')
     nt.assert_true(len(_ip.user_ns['_dh']) > 0)
-    _ip.magic('clear dhist')
+    _ip.magic('reset -f dhist')
     nt.assert_true(len(_ip.user_ns['_dh']) == 0)
     _ip.run_cell("_dh = [d for d in tmp]") #restore
 
     # test that In length is preserved for %macro
     _ip.run_cell("print 'foo'")
-    _ip.run_cell("clear in")
+    _ip.run_cell("reset -f in")
     nt.assert_true(len(_ip.user_ns['In']) == _ip.displayhook.prompt_count+1)
 
 def test_time():
