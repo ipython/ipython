@@ -294,7 +294,7 @@ class IPTester(object):
         if '--with-coverage' in self.call_args:
             self.coverage_xml = path.abspath(sect+".coverage.xml")
             self.call_args.remove('--with-coverage')
-            self.call_args = ["python-coverage", "run", "--source="+sect] + self.call_args[1:]
+            self.call_args = ["coverage", "run", "--source="+sect] + self.call_args[1:]
 
         # Store pids of anything we start to clean up on deletion, if possible
         # (on posix only, since win32 has no os.kill)
@@ -333,7 +333,7 @@ class IPTester(object):
             return 1  # signal failure
         
         if self.coverage_xml:
-            subprocess.check_call(["python-coverage", "xml", "-o", self.coverage_xml])
+            subprocess.check_call(["coverage", "xml", "-o", self.coverage_xml])
         return retcode
 
     def __del__(self):
