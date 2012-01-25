@@ -1014,7 +1014,7 @@ var IPython = (function (IPython) {
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             this.select(i);
-            this.execute_get_selected_cell({add_new:false});
+            this.execute_selected_cell({add_new:false});
         };
         this.scroll_to_bottom();
     };
