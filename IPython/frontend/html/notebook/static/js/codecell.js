@@ -224,7 +224,7 @@ var IPython = (function (IPython) {
         morelink.append(morespan);
         morelink.click(function(){
             var msg_id = IPython.notebook.kernel.execute(name+"?");
-            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.selected_cell().cell_id;
+            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
             that.remove_and_cancel_tooltip();
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
