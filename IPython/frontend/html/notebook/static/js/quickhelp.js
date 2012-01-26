@@ -32,7 +32,6 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m c', help: 'copy cell'},
             {key: 'Ctrl-m v', help: 'paste cell'},
             {key: 'Ctrl-m d', help: 'delete cell'},
-            {key: 'Ctrl-m e', help: 'toggle edit cell in Ace'},
             {key: 'Ctrl-m a', help: 'insert cell above'},
             {key: 'Ctrl-m b', help: 'insert cell below'},
             {key: 'Ctrl-m t', help: 'toggle output'},

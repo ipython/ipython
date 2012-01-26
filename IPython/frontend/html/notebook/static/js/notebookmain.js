@@ -89,7 +89,6 @@ $(document).ready(function () {
     IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
     IPython.menubar = new IPython.MenuBar('#menubar')
     IPython.kernel_status_widget.status_idle();
-    IPython.fulledit_widget = new IPython.FullEditWidget('#fulledit_widget');
 
     IPython.layout_manager.do_resize();
 

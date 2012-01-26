@@ -178,11 +178,6 @@ var IPython = (function (IPython) {
                 IPython.quick_help.show_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 69 && that.control_key_active) {
-                // Edit in Ace = e
-                IPython.fulledit_widget.toggle();
-                that.control_key_active = false;
-                return false;
             } else if (that.control_key_active) {
                 that.control_key_active = false;
                 return true;
