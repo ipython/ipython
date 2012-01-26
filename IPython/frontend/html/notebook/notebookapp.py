@@ -285,9 +285,11 @@ class NotebookApp(BaseIPythonApplication):
         if not self.enable_mathjax:
             return u''
         static_path = self.webapp_settings.get("static_path", os.path.join(os.path.dirname(__file__), "static"))
+        static_url_prefix = self.webapp_settings.get("static_url_prefix",
+                                                     "/static/")
         if os.path.exists(os.path.join(static_path, 'mathjax', "MathJax.js")):
             self.log.info("Using local MathJax")
-            return u"/static/mathjax/MathJax.js"
+            return static_url_prefix+u"mathjax/MathJax.js"
         else:
             self.log.info("Using MathJax from CDN")
             return u"http://cdn.mathjax.org/mathjax/latest/MathJax.js"
