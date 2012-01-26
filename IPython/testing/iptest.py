@@ -333,7 +333,7 @@ class IPTester(object):
             return 1  # signal failure
         
         if self.coverage_xml:
-            subprocess.check_call(["coverage", "xml", "-o", self.coverage_xml])
+            subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
         return retcode
 
     def __del__(self):
