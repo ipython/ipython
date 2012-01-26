@@ -55,22 +55,6 @@ span#notebook_name {
     margin: 0.3em 0;
 }
 
-#fulledit_widget {
-    /* Initially hidden to prevent FLOUC */
-    display: none;
-    width: 920px;
-    margin: 0px auto;
-}
-
-#fulledit_editor {
-    height: 577px;
-    width: 920px;
-}
-
-#fulledit_header {
-    width: 920px;
-}
-
 span#quick_help_area {
     position: static;
     padding: 5px 0px;

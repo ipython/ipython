@@ -106,9 +106,6 @@ var IPython = (function (IPython) {
             IPython.notebook.insert_cell_below('code');
         });
         // Cell
-        this.element.find('#full_edit_cell').click(function () {
-            IPython.fulledit_widget.open();
-        });
         this.element.find('#run_cell').click(function () {
             IPython.notebook.execute_selected_cell();
         });
