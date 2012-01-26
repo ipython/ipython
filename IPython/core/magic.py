@@ -1039,6 +1039,7 @@ Currently the magic system has the following functions:\n"""
         user_ns = self.user_ns  # local lookup, heavily used
 
         for target in args:
+            target = target.lower() # make matches case insensitive
             if target == 'out':
                 print "Flushing output cache (%d entries)" % len(user_ns['_oh'])
                 self.displayhook.flush()
