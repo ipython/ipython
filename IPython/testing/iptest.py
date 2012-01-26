@@ -291,9 +291,9 @@ class IPTester(object):
         if '--with-xunit' in self.call_args:
             self.call_args.append('--xunit-file=%s' % path.abspath(sect+'.xunit.xml'))
         
-        if '--with-coverage' in self.call_args:
+        if '--with-xml-coverage' in self.call_args:
             self.coverage_xml = path.abspath(sect+".coverage.xml")
-            self.call_args.remove('--with-coverage')
+            self.call_args.remove('--with-xml-coverage')
             self.call_args = ["coverage", "run", "--source="+sect] + self.call_args[1:]
 
         # Store pids of anything we start to clean up on deletion, if possible
