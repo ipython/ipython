@@ -96,14 +96,11 @@ var IPython = (function (IPython) {
             var output = text_cell.find("div.text_cell_render");  
             output.hide();
             text_cell.find('div.text_cell_input').show();
-            // I don't know why I need to do this, but if I don't do
-            // refresh/focus/refresh, the to_markdown method won't work.
             this.code_mirror.refresh();
             this.code_mirror.focus();
-            // This final refresh is needed on Firefox to trigger the editor
-            // to be auto-sized. This glitch only happens on cell that are
-            // loaded initially and haven't had their editor focused before.
-            this.code_mirror.refresh();
+            // We used to need an additional refresh() after the focus, but
+            // it appears that this has been fixed in CM. This bug would show
+            // up on FF when a newly loaded markdown cell was edited.
             this.rendered = false;
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
