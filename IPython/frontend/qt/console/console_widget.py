@@ -1114,9 +1114,16 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
                 self._kill_ring.kill_cursor(cursor)
                 intercepted = True
+
             elif key == QtCore.Qt.Key_D:
                 if len(self.input_buffer) == 0:
                     self.exit_requested.emit(self)
+                else:
+                    new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                                                QtCore.Qt.Key_Delete,
+                                                QtCore.Qt.NoModifier)
+                    QtGui.qApp.sendEvent(self._control, new_event)
+                    intercepted = True
 
         #------ Alt modifier ---------------------------------------------------
 
