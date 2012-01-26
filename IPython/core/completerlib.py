@@ -181,7 +181,6 @@ def quick_completer(cmd, completions):
 
     get_ipython().set_hook('complete_command',do_complete, str_key = cmd)
 
-
 def module_completion(line):
     """
     Returns a list containing the completion possibilities for an import line.
@@ -316,3 +315,7 @@ def cd_completer(self, event):
         raise TryNext
 
     return [compress_user(p, tilde_expand, tilde_val) for p in found]
+
+def reset_completer(self, event):
+    "A completer for %reset magic"
+    return '-f -s in out array dhist'.split()

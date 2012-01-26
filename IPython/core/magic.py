@@ -25,6 +25,7 @@ import sys
 import shutil
 import re
 import time
+import gc
 from StringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
@@ -959,16 +960,31 @@ Currently the magic system has the following functions:\n"""
                     print vstr[:25] + "<...>" + vstr[-25:]
 
     def magic_reset(self, parameter_s=''):
-        """Resets the namespace by removing all names defined by the user.
+        """Resets the namespace by removing all names defined by the user, if
+        called without arguments, or by removing some types of objects, such
+        as everything currently in IPython's In[] and Out[] containers (see
+        the parameters for details).
 
         Parameters
         ----------
-          -f : force reset without asking for confirmation.
+        -f : force reset without asking for confirmation.
 
-          -s : 'Soft' reset: Only clears your namespace, leaving history intact.
-          References to objects may be kept. By default (without this option),
-          we do a 'hard' reset, giving you a new session and removing all
-          references to objects from the current session.
+        -s : 'Soft' reset: Only clears your namespace, leaving history intact.
+            References to objects may be kept. By default (without this option),
+            we do a 'hard' reset, giving you a new session and removing all
+            references to objects from the current session.
+
+        in : reset input history
+       
+        out : reset output history
+       
+        dhist : reset directory history
+        
+        array : reset only variables that are NumPy arrays
+
+        See Also
+        --------
+        %reset_selective
 
         Examples
         --------
@@ -985,13 +1001,20 @@ Currently the magic system has the following functions:\n"""
         In [1]: 'a' in _ip.user_ns
         Out[1]: False
 
+        In [2]: %reset -f in
+        Flushing input history
+
+        In [3]: %reset -f dhist in 
+        Flushing directory history
+        Flushing input history
+
         Notes
         -----
         Calling this magic from clients that do not implement standard input,
         such as the ipython notebook interface, will reset the namespace
         without confirmation.
         """
-        opts, args = self.parse_options(parameter_s,'sf')
+        opts, args = self.parse_options(parameter_s,'sf', mode='list')
         if 'f' in opts:
             ans = True
         else:
@@ -1008,11 +1031,55 @@ Currently the magic system has the following functions:\n"""
             user_ns = self.shell.user_ns
             for i in self.magic_who_ls():
                 del(user_ns[i])
-
-        else:                     # Hard reset
+        elif len(args) == 0:                # Hard reset
             self.shell.reset(new_session = False)
+        
+        # reset in/out/dhist/array: previously extensinions/clearcmd.py
+        ip = self.shell
+        user_ns = self.user_ns  # local lookup, heavily used
 
+        for target in args:
+            target = target.lower() # make matches case insensitive
+            if target == 'out':
+                print "Flushing output cache (%d entries)" % len(user_ns['_oh'])
+                self.displayhook.flush()
 
+            elif target == 'in':
+                print "Flushing input history"
+                pc = self.displayhook.prompt_count + 1
+                for n in range(1, pc):
+                    key = '_i'+repr(n)
+                    user_ns.pop(key,None)
+                user_ns.update(dict(_i=u'',_ii=u'',_iii=u''))
+                hm = ip.history_manager
+                # don't delete these, as %save and %macro depending on the length
+                # of these lists to be preserved
+                hm.input_hist_parsed[:] = [''] * pc
+                hm.input_hist_raw[:] = [''] * pc
+                # hm has internal machinery for _i,_ii,_iii, clear it out
+                hm._i = hm._ii = hm._iii = hm._i00 =  u''
+
+            elif target == 'array':
+                # Support cleaning up numpy arrays
+                try:
+                    from numpy import ndarray
+                    # This must be done with items and not iteritems because we're
+                    # going to modify the dict in-place.
+                    for x,val in user_ns.items():
+                        if isinstance(val,ndarray):
+                            del user_ns[x]
+                except ImportError:
+                    print "reset array only works if Numpy is available."
+
+            elif target == 'dhist':
+                print "Flushing directory history"
+                del user_ns['_dh'][:]
+
+            else:
+                print "Don't know how to reset ",
+                print target + ", please run `%reset?` for details"
+
+        gc.collect()
 
     def magic_reset_selective(self, parameter_s=''):
         """Resets the namespace by removing names defined by the user.
@@ -1025,6 +1092,10 @@ Currently the magic system has the following functions:\n"""
 
         Options
           -f : force reset without asking for confirmation.
+
+        See Also
+        --------
+        %reset
 
         Examples
         --------

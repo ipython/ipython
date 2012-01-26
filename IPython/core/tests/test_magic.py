@@ -183,20 +183,50 @@ def test_macro_run():
     with tt.AssertPrints("13"):
         ip.run_cell("test")
 
-    
-# XXX failing for now, until we get clearcmd out of quarantine.  But we should
-# fix this and revert the skip to happen only if numpy is not around.
-#@dec.skipif_not_numpy
-@dec.skip_known_failure
-def test_numpy_clear_array_undec():
-    from IPython.extensions import clearcmd
 
+@dec.skipif_not_numpy
+def test_numpy_reset_array_undec():
+    "Test '%reset array' functionality"
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
     yield (nt.assert_true, 'a' in _ip.user_ns)
-    _ip.magic('clear array')
+    _ip.magic('reset -f array')
     yield (nt.assert_false, 'a' in _ip.user_ns)
-    
+
+def test_reset_out():
+    "Test '%reset out' magic"
+    _ip.run_cell("parrot = 'dead'", store_history=True)
+    # test '%reset -f out', make an Out prompt
+    _ip.run_cell("parrot", store_history=True)
+    nt.assert_true('dead' in [_ip.user_ns[x] for x in '_','__','___'])
+    _ip.magic('reset -f out')
+    nt.assert_false('dead' in [_ip.user_ns[x] for x in '_','__','___'])
+    nt.assert_true(len(_ip.user_ns['Out']) == 0)
+
+def test_reset_in():
+    "Test '%reset in' magic"
+    # test '%reset -f in'
+    _ip.run_cell("parrot", store_history=True)
+    nt.assert_true('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
+    _ip.magic('%reset -f in')
+    nt.assert_false('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
+    nt.assert_true(len(set(_ip.user_ns['In'])) == 1)
+
+def test_reset_dhist():
+    "Test '%reset dhist' magic"
+    _ip.run_cell("tmp = [d for d in _dh]") # copy before clearing
+    _ip.magic('cd ' + os.path.dirname(nt.__file__))
+    _ip.magic('cd -')
+    nt.assert_true(len(_ip.user_ns['_dh']) > 0)
+    _ip.magic('reset -f dhist')
+    nt.assert_true(len(_ip.user_ns['_dh']) == 0)
+    _ip.run_cell("_dh = [d for d in tmp]") #restore
+
+def test_reset_in_length():
+    "Test that '%reset in' preserves In[] length"
+    _ip.run_cell("print 'foo'")
+    _ip.run_cell("reset -f in")
+    nt.assert_true(len(_ip.user_ns['In']) == _ip.displayhook.prompt_count+1)
 
 def test_time():
     _ip.magic('time None')
