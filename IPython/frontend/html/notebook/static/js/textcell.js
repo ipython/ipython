@@ -34,6 +34,7 @@ var IPython = (function (IPython) {
             theme: 'default',
             value: this.placeholder,
             readOnly: this.read_only,
+            lineWrapping : true,
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         // The tabindex=-1 makes this div focusable.
