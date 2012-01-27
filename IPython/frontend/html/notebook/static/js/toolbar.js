@@ -72,6 +72,36 @@ var IPython = (function (IPython) {
 
 
     ToolBar.prototype.bind_events = function () {
+        this.element.find('#save_b').click(function () {
+            IPython.save_widget.save_notebook();
+        });
+        this.element.find('#cut_b').click(function () {
+            IPython.notebook.cut_cell();
+        });
+        this.element.find('#copy_b').click(function () {
+            IPython.notebook.copy_cell();
+        });
+        this.element.find('#paste_b').click(function () {
+            IPython.notebook.paste_cell();
+        });
+        this.element.find('#move_up_b').click(function () {
+            IPython.notebook.move_cell_up();
+        });
+        this.element.find('#move_down_b').click(function () {
+            IPython.notebook.move_cell_down();
+        });
+        this.element.find('#insert_above_b').click(function () {
+            IPython.notebook.insert_cell_above('code');
+        });
+        this.element.find('#insert_below_b').click(function () {
+            IPython.notebook.insert_cell_below('code');
+        });
+        this.element.find('#run_b').click(function () {
+            IPython.notebook.execute_selected_cell();
+        });
+        this.element.find('#interrupt_b').click(function () {
+            IPython.notebook.kernel.interrupt();
+        });
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
