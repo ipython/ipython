@@ -15,7 +15,7 @@ var IPython = (function (IPython) {
 
     var CodeCell = function (notebook) {
         this.code_mirror = null;
-        this.input_prompt_number = '&nbsp;';
+        this.input_prompt_number = null;
         this.is_completing = false;
         this.completion_cursor = null;
         this.outputs = [];
@@ -611,7 +611,9 @@ var IPython = (function (IPython) {
             if (last.output_type == 'stream' && json.stream == last.stream){
                 // latest output was in the same stream,
                 // so append directly into its pre tag
-                this.element.find('div.'+subclass).last().find('pre').append(json.text);
+                // escape ANSI & HTML specials:
+                var text = utils.fixConsole(json.text);
+                this.element.find('div.'+subclass).last().find('pre').append(text);
                 return;
             }
         }
@@ -660,6 +662,8 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.append_text = function (data, element, extra_class) {
         var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_text");
+        // escape ANSI & HTML specials in plaintext:
+        data = utils.fixConsole(data);
         if (extra_class){
             toinsert.addClass(extra_class);
         }
@@ -766,9 +770,9 @@ var IPython = (function (IPython) {
     };
 
     CodeCell.prototype.set_input_prompt = function (number) {
-        var n = number || '&nbsp;';
-        this.input_prompt_number = n;
-        this.element.find('div.input_prompt').html('In&nbsp;[' + n + ']:');
+        this.input_prompt_number = number;
+        var ns = number || "&nbsp;";
+        this.element.find('div.input_prompt').html('In&nbsp;[' + ns + ']:');
     };
 
 
@@ -829,7 +833,7 @@ var IPython = (function (IPython) {
         var data = {};
         data.input = this.get_text();
         data.cell_type = 'code';
-        if (this.input_prompt_number !== ' ') {
+        if (this.input_prompt_number) {
             data.prompt_number = this.input_prompt_number;
         };
         var outputs = [];
