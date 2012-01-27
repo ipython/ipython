@@ -64,9 +64,7 @@ def rejoin_lines(nb):
                         item = output.get(key, None)
                         if isinstance(item, list):
                             output[key] = u'\n'.join(item)
-            elif cell.cell_type == 'heading':
-                pass
-            else: # text cell
+            else: # text, heading cell
                 for key in ['source', 'rendered']:
                     item = cell.get(key, None)
                     if isinstance(item, list):
@@ -92,9 +90,7 @@ def split_lines(nb):
                         item = output.get(key, None)
                         if isinstance(item, basestring):
                             output[key] = item.splitlines()
-            elif cell.cell_type == 'heading':
-                pass
-            else: # text cell
+            else: # text, heading cell
                 for key in ['source', 'rendered']:
                     item = cell.get(key, None)
                     if isinstance(item, basestring):

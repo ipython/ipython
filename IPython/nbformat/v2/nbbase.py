@@ -119,12 +119,14 @@ def new_text_cell(cell_type, source=None, rendered=None):
     return cell
 
 
-def new_heading_cell(source=None, level=1):
+def new_heading_cell(source=None, rendered=None, level=1):
     """Create a new section cell with a given integer level."""
     cell = NotebookNode()
     cell.cell_type = u'heading'
     if source is not None:
         cell.source = unicode(source)
+    if rendered is not None:
+        cell.rendered = unicode(rendered)
     cell.level = int(level)
     return cell
 

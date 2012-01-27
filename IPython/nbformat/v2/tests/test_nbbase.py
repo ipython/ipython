@@ -74,10 +74,12 @@ class TestCell(TestCase):
         tc = new_heading_cell()
         self.assertEquals(tc.cell_type, u'heading')
         self.assertEquals(u'source' not in tc, True)
+        self.assertEquals(u'rendered' not in tc, True)
 
     def test_heading_cell(self):
-        tc = new_heading_cell(u'My Heading', level=2)
-        self.assertEquals(tc.source, u'My Heading')
+        tc = new_heading_cell(u'hi', u'hi', level=2)
+        self.assertEquals(tc.source, u'hi')
+        self.assertEquals(tc.rendered, u'hi')
         self.assertEquals(tc.level, 2)
 
 
