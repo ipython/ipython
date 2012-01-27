@@ -61,6 +61,10 @@ span#notebook_name {
     padding: 3px 15px;
 }
 
+#cell_type {
+    font-size: 85%;
+}
+
 span#quick_help_area {
     position: static;
     padding: 5px 0px;

@@ -25,9 +25,19 @@ var IPython = (function (IPython) {
         var win = $(window);
         var w = win.width();
         var h = win.height();
-        var header_height = $('div#header').outerHeight(true);
+        var header_height;
+        if ($('div#header').css('display') === 'none') {
+            header_height = 0;
+        } else {
+            header_height = $('div#header').outerHeight(true);
+        }
         var menubar_height = $('div#menubar').outerHeight(true);
-        var toolbar_height = $('div#toolbar').outerHeight(true);
+        var toolbar_height;
+        if ($('div#toolbar').css('display') === 'none') {
+            toolbar_height = 0;
+        } else {
+            toolbar_height = $('div#toolbar').outerHeight(true);
+        }
         var app_height = h-header_height-menubar_height-toolbar_height-2;  // content height
 
         $('div#main_app').height(app_height + 2);  // content+padding+border height

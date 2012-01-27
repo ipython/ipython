@@ -23,6 +23,7 @@ var IPython = (function (IPython) {
 
     ToolBar.prototype.style = function () {
         this.element.addClass('border-box-sizing');
+        this.element.find('#cell_type').addClass('ui-widget ui-widget-content');
         this.element.find('#save_b').button({
             icons : {primary: 'ui-icon-disk'},
             text : false
@@ -71,7 +72,26 @@ var IPython = (function (IPython) {
 
 
     ToolBar.prototype.bind_events = function () {
+        this.element.find('#cell_type').change(function () {
+            var cell_type = $(this).val();
+            if (cell_type === 'code') {
+                IPython.notebook.to_code();
+            } else if (cell_type === 'markdown')  {
+                IPython.notebook.to_markdown();
+            };
+        });
 
+    };
+
+
+    ToolBar.prototype.set_cell_type = function (cell_type) {
+        this.element.find('#cell_type').val(cell_type);
+    };
+
+
+    ToolBar.prototype.toggle = function () {
+        this.element.toggle();
+        IPython.layout_manager.do_resize();
     };
 
 

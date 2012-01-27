@@ -98,6 +98,14 @@ var IPython = (function (IPython) {
         this.element.find('#select_next').click(function () {
             IPython.notebook.select_next();
         });
+        // View
+        this.element.find('#toggle_header').click(function () {
+            $('div#header').toggle();
+            IPython.layout_manager.do_resize();
+        });
+        this.element.find('#toggle_toolbar').click(function () {
+            IPython.toolbar.toggle();
+        });
         // Insert
         this.element.find('#insert_cell_above').click(function () {
             IPython.notebook.insert_cell_above('code');
