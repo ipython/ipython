@@ -286,6 +286,44 @@ var IPython = (function (IPython) {
     };
 
 
+    // HTMLCell
+
+    var HeadingCell = function (notebook) {
+        this.placeholder = "Type Heading Here";
+        IPython.TextCell.apply(this, arguments);
+        this.cell_type = 'heading';
+        this.level = 1;
+    };
+
+
+    HeadingCell.prototype = new TextCell();
+
+
+    HeadingCell.prototype.set_rendered = function (text) {
+        var r = this.element.find("div.text_cell_render");
+        r.empty();
+        r.append($('<h1/>').html(text));
+    }
+
+
+    HeadingCell.prototype.get_rendered = function () {
+        var r = this.element.find("div.text_cell_render");
+        return r.children().first().html();
+    }
+
+
+    HeadingCell.prototype.render = function () {
+        if (this.rendered === false) {
+            var text = this.get_text();
+            if (text === "") { text = this.placeholder; }
+            this.set_rendered(text);
+            this.typeset();
+            this.element.find('div.text_cell_input').hide();
+            this.element.find("div.text_cell_render").show();
+            this.rendered = true;
+        }
+    };
+
     IPython.TextCell = TextCell;
     IPython.HTMLCell = HTMLCell;
     IPython.MarkdownCell = MarkdownCell;
