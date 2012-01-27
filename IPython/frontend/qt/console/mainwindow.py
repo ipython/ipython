@@ -188,6 +188,8 @@ class MainWindow(QtGui.QMainWindow):
                     justthis.setShortcut('N')
                     closeall = QtGui.QPushButton("&Yes, close all", self)
                     closeall.setShortcut('Y')
+                    # allow ctrl-d ctrl-d exit, like in terminal
+                    closeall.setShortcut('Ctrl+D')
                     box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
                                             title, msg)
                     box.setInformativeText(info)

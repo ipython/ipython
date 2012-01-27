@@ -144,8 +144,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                          QtCore.Qt.Key_A : QtCore.Qt.Key_Home,
                          QtCore.Qt.Key_P : QtCore.Qt.Key_Up,
                          QtCore.Qt.Key_N : QtCore.Qt.Key_Down,
-                         QtCore.Qt.Key_H : QtCore.Qt.Key_Backspace,
-                         QtCore.Qt.Key_D : QtCore.Qt.Key_Delete, }
+                         QtCore.Qt.Key_H : QtCore.Qt.Key_Backspace, }
     if not sys.platform == 'darwin':
         # On OS X, Ctrl-E already does the right thing, whereas End moves the
         # cursor to the bottom of the buffer.
@@ -1115,6 +1114,16 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
                 self._kill_ring.kill_cursor(cursor)
                 intercepted = True
+
+            elif key == QtCore.Qt.Key_D:
+                if len(self.input_buffer) == 0:
+                    self.exit_requested.emit(self)
+                else:
+                    new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                                                QtCore.Qt.Key_Delete,
+                                                QtCore.Qt.NoModifier)
+                    QtGui.qApp.sendEvent(self._control, new_event)
+                    intercepted = True
 
         #------ Alt modifier ---------------------------------------------------
 
