@@ -55,6 +55,12 @@ span#notebook_name {
     margin: 0.3em 0;
 }
 
+#toolbar {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
+    padding: 3px 15px;
+}
+
 span#quick_help_area {
     position: static;
     padding: 5px 0px;

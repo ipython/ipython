@@ -27,7 +27,8 @@ var IPython = (function (IPython) {
         var h = win.height();
         var header_height = $('div#header').outerHeight(true);
         var menubar_height = $('div#menubar').outerHeight(true);
-        var app_height = h-header_height-menubar_height-2;  // content height
+        var toolbar_height = $('div#toolbar').outerHeight(true);
+        var app_height = h-header_height-menubar_height-toolbar_height-2;  // content height
 
         $('div#main_app').height(app_height + 2);  // content+padding+border height
 
