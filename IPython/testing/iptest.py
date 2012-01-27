@@ -267,6 +267,8 @@ class IPTester(object):
     call_args = None
     #: list, process ids of subprocesses we start (for cleanup)
     pids = None
+    #: str, coverage xml output file
+    coverage_xml = None
 
     def __init__(self, runner='iptest', params=None):
         """Create new test runner."""
@@ -285,9 +287,19 @@ class IPTester(object):
         # Assemble call
         self.call_args = self.runner+self.params
         
+        # Find the section we're testing (IPython.foo)
+        for sect in self.params:
+            if sect.startswith('IPython'): break
+        else:
+            raise ValueError("Section not found", self.params)
+        
         if '--with-xunit' in self.call_args:
-            sect = [p for p in self.params if p.startswith('IPython')][0]
             self.call_args.append('--xunit-file=%s' % path.abspath(sect+'.xunit.xml'))
+        
+        if '--with-xml-coverage' in self.call_args:
+            self.coverage_xml = path.abspath(sect+".coverage.xml")
+            self.call_args.remove('--with-xml-coverage')
+            self.call_args = ["coverage", "run", "--source="+sect] + self.call_args[1:]
 
         # Store pids of anything we start to clean up on deletion, if possible
         # (on posix only, since win32 has no os.kill)
@@ -319,11 +331,15 @@ class IPTester(object):
     def run(self):
         """Run the stored commands"""
         try:
-            return self._run_cmd()
+            retcode = self._run_cmd()
         except:
             import traceback
             traceback.print_exc()
             return 1  # signal failure
+        
+        if self.coverage_xml:
+            subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
+        return retcode
 
     def __del__(self):
         """Cleanup on exit by killing any leftover processes."""
