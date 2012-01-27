@@ -67,7 +67,7 @@ var IPython = (function (IPython) {
         // handlers and is used to provide custom key handling. Its return
         // value is used to determine if CodeMirror should ignore the event:
         // true = ignore, false = don't ignore.
-
+        
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;

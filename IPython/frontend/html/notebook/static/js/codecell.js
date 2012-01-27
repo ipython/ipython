@@ -70,7 +70,7 @@ var IPython = (function (IPython) {
         if (this.read_only){
             return false;
         }
-
+        
         // note that we are comparing and setting the time to wait at each key press.
         // a better wqy might be to generate a new function on each time change and
         // assign it to CodeCell.prototype.request_tooltip_after_time
@@ -82,7 +82,8 @@ var IPython = (function (IPython) {
         if(event.type === 'keydown' ){
             that.remove_and_cancel_tooltip();
         }
-
+        
+         
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
