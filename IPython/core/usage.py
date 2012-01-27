@@ -407,13 +407,14 @@ The keybindings themselves are:
 - ``C-l``: clear terminal.
 - ``C-a``: go to beginning of line.
 - ``C-e``: go to end of line.
+- ``C-u``: kill from cursor to the begining of the line.
 - ``C-k``: kill from cursor to the end of the line.
 - ``C-y``: yank (paste)
 - ``C-p``: previous line (like up arrow)
 - ``C-n``: next line (like down arrow)
 - ``C-f``: forward (like right arrow)
 - ``C-b``: back (like left arrow)
-- ``C-d``: delete next character.
+- ``C-d``: delete next character, or exits if input is empty
 - ``M-<``: move to the beginning of the input region.
 - ``M->``: move to the end of the input region.
 - ``M-d``: delete next word.
