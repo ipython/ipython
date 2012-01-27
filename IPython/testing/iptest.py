@@ -287,7 +287,12 @@ class IPTester(object):
         # Assemble call
         self.call_args = self.runner+self.params
         
-        sect = [p for p in self.params if p.startswith('IPython')][0]
+        # Find the section we're testing (IPython.foo)
+        for sect in self.params:
+            if sect.startswith('IPython'): break
+        else:
+            raise ValueError("Section not found", self.params)
+        
         if '--with-xunit' in self.call_args:
             self.call_args.append('--xunit-file=%s' % path.abspath(sect+'.xunit.xml'))
         
