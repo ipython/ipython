@@ -299,17 +299,31 @@ var IPython = (function (IPython) {
     HeadingCell.prototype = new TextCell();
 
 
+    HeadingCell.prototype.set_level = function (level) {
+        this.level = level;
+        if (this.rendered) {
+            this.rendered = false;
+            this.render();
+        };
+    };
+
+
+    HeadingCell.prototype.get_level = function () {
+        return this.level;
+    };
+
+
     HeadingCell.prototype.set_rendered = function (text) {
         var r = this.element.find("div.text_cell_render");
         r.empty();
-        r.append($('<h1/>').html(text));
-    }
+        r.append($('<h'+this.level+'/>').html(text));
+    };
 
 
     HeadingCell.prototype.get_rendered = function () {
         var r = this.element.find("div.text_cell_render");
         return r.children().first().html();
-    }
+    };
 
 
     HeadingCell.prototype.render = function () {
@@ -321,13 +335,14 @@ var IPython = (function (IPython) {
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
             this.rendered = true;
-        }
+        };
     };
 
     IPython.TextCell = TextCell;
     IPython.HTMLCell = HTMLCell;
     IPython.MarkdownCell = MarkdownCell;
     IPython.RSTCell = RSTCell;
+    IPython.HeadingCell = HeadingCell;
 
 
     return IPython;
