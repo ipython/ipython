@@ -11,4 +11,3 @@ build
 *.egg-info
 *~
 *.bak
-*.ipynb
