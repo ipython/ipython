@@ -81,22 +81,28 @@
         </li>
         <li><a href="#">Edit</a>
             <ul>
-                <li id="cut_cell"><a href="#">Cut</a></li>
-                <li id="copy_cell"><a href="#">Copy</a></li>
-                <li id="paste_cell" class="ui-state-disabled"><a href="#">Paste</a></li>
-                <li id="paste_cell_above" class="ui-state-disabled"><a href="#">Paste Above</a></li>
-                <li id="paste_cell_below" class="ui-state-disabled"><a href="#">Paste Below</a></li>
+                <li id="cut_cell"><a href="#">Cut Cell</a></li>
+                <li id="copy_cell"><a href="#">Copy Cell</a></li>
+                <li id="paste_cell" class="ui-state-disabled"><a href="#">Paste Cell</a></li>
+                <li id="paste_cell_above" class="ui-state-disabled"><a href="#">Paste Cell Above</a></li>
+                <li id="paste_cell_below" class="ui-state-disabled"><a href="#">Paste Cell Below</a></li>
                 <li id="delete_cell"><a href="#">Delete</a></li>
                 <hr/>
-                <li id="split_cell"><a href="#">Split</a></li>
-                <li id="merge_cell_above"><a href="#">Merge Above</a></li>
-                <li id="merge_cell_below"><a href="#">Merge Below</a></li>
+                <li id="split_cell"><a href="#">Split Cell</a></li>
+                <li id="merge_cell_above"><a href="#">Merge Cell Above</a></li>
+                <li id="merge_cell_below"><a href="#">Merge Cell Below</a></li>
                 <hr/>
-                <li id="move_cell_up"><a href="#">Move Up</a></li>
-                <li id="move_cell_down"><a href="#">Move Down</a></li>
+                <li id="move_cell_up"><a href="#">Move Cell Up</a></li>
+                <li id="move_cell_down"><a href="#">Move Cell Down</a></li>
                 <hr/>
-                <li id="select_previous"><a href="#">Select Previous</a></li>
-                <li id="select_next"><a href="#">Select Next</a></li>
+                <li id="select_previous"><a href="#">Select Previous Cell</a></li>
+                <li id="select_next"><a href="#">Select Next Cell</a></li>
+            </ul>
+        </li>
+        <li><a href="#">View</a>
+            <ul>
+                <li id="toggle_header"><a href="#">Toggle Header</a></li>
+                <li id="toggle_toolbar"><a href="#">Toggle Toolbar</a></li>
             </ul>
         </li>
         <li><a href="#">Insert</a>
@@ -141,6 +147,37 @@
 
 </div>
 
+<div id="toolbar">
+
+    <span>
+        <button id="save_b">Save</button>
+    </span>
+    <span id="cut_copy_paste">
+        <button id="cut_b" title="Cut Cell">Cut Cell</button>
+        <button id="copy_b" title="Copy Cell">Copy Cell</button>
+        <button id="paste_b" title="Paste Cell">Paste Cell</button>
+    </span>
+    <span id="move_up_down">
+        <button id="move_up_b" title="Move Cell Up">Move Cell Up</button>
+        <button id="move_down_b" title="Move Cell Down">Move Down</button>
+    </span>
+    <span id="insert_above_below">
+        <button id="insert_above_b" title="Insert Cell Above">Insert Cell Above</button>
+        <button id="insert_below_b" title="Insert Cell Below">Insert Cell Below</button>
+    </span>
+    <span id="run_int">
+        <button id="run_b" title="Run Cell">Run Cell</button>
+        <button id="interrupt_b" title="Interrupt">Interrupt</button>
+    </span>
+    <span>
+        <select id="cell_type">
+             <option value="code">Code</option>
+             <option value="markdown">Markdown</option>
+        </select>
+    </span>
+
+</div>
+
 <div id="main_app">
 
     <div id="notebook_panel">
@@ -181,6 +218,7 @@
 <script src="/static/js/loginwidget.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/pager.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/menubar.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/js/toolbar.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/notebook.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/js/notebookmain.js" type="text/javascript" charset="utf-8"></script>
 

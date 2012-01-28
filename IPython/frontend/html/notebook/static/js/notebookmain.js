@@ -88,6 +88,7 @@ $(document).ready(function () {
     IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
     IPython.menubar = new IPython.MenuBar('#menubar')
+    IPython.toolbar = new IPython.ToolBar('#toolbar')
     IPython.kernel_status_widget.status_idle();
 
     IPython.layout_manager.do_resize();
@@ -106,6 +107,7 @@ $(document).ready(function () {
     }
 
     $('div#menubar').css('display','block');
+    $('div#toolbar').css('display','block');
     $('div#main_app').css('display','block');
 
     IPython.layout_manager.do_resize();
