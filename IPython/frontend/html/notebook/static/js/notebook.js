@@ -357,7 +357,9 @@ var IPython = (function (IPython) {
             if (sindex !== null && index !== sindex) {
                 this.get_cell(sindex).unselect();
             };
-            this.get_cell(index).select();
+            var cell = this.get_cell(index)
+            cell.select();
+            IPython.toolbar.set_cell_type(cell.cell_type);
         };
         return this;
     };
