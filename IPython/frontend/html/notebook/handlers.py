@@ -168,12 +168,15 @@ class AuthenticatedHandler(RequestHandler):
     @property
     def ws_url(self):
         """websocket url matching the current request
-        
+
         turns http[s]://host[:port] into
                 ws[s]://host[:port]
         """
         proto = self.request.protocol.replace('http', 'ws')
-        return "%s://%s" % (proto, self.request.host)
+        host = self.application.ipython_app.websocket_host # default to config value
+        if host == '':
+            host = self.request.host # get from request
+        return "%s://%s" % (proto, host)
 
 
 class AuthenticatedFileHandler(AuthenticatedHandler, web.StaticFileHandler):

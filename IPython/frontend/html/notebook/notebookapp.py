@@ -295,11 +295,14 @@ class NotebookApp(BaseIPythonApplication):
         """set mathjax url to empty if mathjax is disabled"""
         if not new:
             self.mathjax_url = u''
-    
+
     base_project_url = Unicode('/', config=True,
                                help='''The base URL for the notebook server''')
     base_kernel_url = Unicode('/', config=True,
                                help='''The base URL for the kernel server''')
+    websocket_host = Unicode("", config=True,
+        help="""The hostname for the websocket server."""
+    )
 
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
