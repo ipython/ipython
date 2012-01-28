@@ -62,7 +62,14 @@ var IPython = (function (IPython) {
         $(document).keydown(function (event) {
             // console.log(event);
             if (that.read_only) return true;
-            if (event.which === 27) {
+            
+            // Save (CTRL+S) or (AppleKey+S) 
+            //metaKey = applekey on mac
+            if ((event.ctrlKey || event.metaKey) && event.keyCode==83) { 
+                IPython.save_widget.save_notebook();
+                event.preventDefault();
+                return false;
+            } else if (event.which === 27) {
                 // Intercept escape at highest level to avoid closing 
                 // websocket connection with firefox
                 event.preventDefault();
