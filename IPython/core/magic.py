@@ -984,7 +984,7 @@ Currently the magic system has the following functions:\n"""
 
         See Also
         --------
-        %reset_selective
+        magic_reset_selective
 
         Examples
         --------
@@ -1095,7 +1095,7 @@ Currently the magic system has the following functions:\n"""
 
         See Also
         --------
-        %reset
+        magic_reset
 
         Examples
         --------
