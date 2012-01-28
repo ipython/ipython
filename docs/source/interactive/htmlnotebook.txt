@@ -355,7 +355,7 @@ uncomment and edit is here::
      c.NotebookApp.port = 9999
 
 You can then start the notebook and access it later by pointing your browser to
-``https://your.host.com:9999``.
+``https://your.host.com:9999`` with ``ipython notebook --profile=nbserver``.
 
 Running with a different URL prefix
 ===================================
