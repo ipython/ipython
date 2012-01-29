@@ -85,12 +85,23 @@ ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 """
 
 #-----------------------------------------------------------------------------
+# Helper functions
+#-----------------------------------------------------------------------------
+
+def url_path_join(a,b):
+    if a.endswith('/') and b.startswith('/'):
+        return a[:-1]+b
+    else:
+        return a+b
+
+#-----------------------------------------------------------------------------
 # The Tornado web application
 #-----------------------------------------------------------------------------
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, ipython_app, kernel_manager, notebook_manager, log, settings_overrides):
+    def __init__(self, ipython_app, kernel_manager, notebook_manager, log,
+                 base_project_url, settings_overrides):
         handlers = [
             (r"/", ProjectDashboardHandler),
             (r"/login", LoginHandler),
@@ -119,7 +130,14 @@ class NotebookWebApplication(web.Application):
         # allow custom overrides for the tornado web app.
         settings.update(settings_overrides)
 
-        super(NotebookWebApplication, self).__init__(handlers, **settings)
+        # prepend base_project_url onto the patterns that we match
+        new_handlers = []
+        for handler in handlers:
+            pattern = url_path_join(base_project_url, handler[0])
+            new_handler = tuple([pattern]+list(handler[1:]))
+            new_handlers.append( new_handler )
+
+        super(NotebookWebApplication, self).__init__(new_handlers, **settings)
 
         self.kernel_manager = kernel_manager
         self.log = log
@@ -277,7 +295,15 @@ class NotebookApp(BaseIPythonApplication):
         """set mathjax url to empty if mathjax is disabled"""
         if not new:
             self.mathjax_url = u''
-    
+
+    base_project_url = Unicode('/', config=True,
+                               help='''The base URL for the notebook server''')
+    base_kernel_url = Unicode('/', config=True,
+                               help='''The base URL for the kernel server''')
+    websocket_host = Unicode("", config=True,
+        help="""The hostname for the websocket server."""
+    )
+
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
     )
@@ -285,9 +311,11 @@ class NotebookApp(BaseIPythonApplication):
         if not self.enable_mathjax:
             return u''
         static_path = self.webapp_settings.get("static_path", os.path.join(os.path.dirname(__file__), "static"))
+        static_url_prefix = self.webapp_settings.get("static_url_prefix",
+                                                     "/static/")
         if os.path.exists(os.path.join(static_path, 'mathjax', "MathJax.js")):
             self.log.info("Using local MathJax")
-            return u"/static/mathjax/MathJax.js"
+            return static_url_prefix+u"mathjax/MathJax.js"
         else:
             self.log.info("Using MathJax from CDN")
             return u"http://cdn.mathjax.org/mathjax/latest/MathJax.js"
@@ -331,7 +359,7 @@ class NotebookApp(BaseIPythonApplication):
         """initialize tornado webapp and httpserver"""
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.notebook_manager, self.log,
-            self.webapp_settings
+            self.base_project_url, self.webapp_settings
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)

@@ -124,7 +124,7 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.update_url = function () {
         var notebook_id = this.get_notebook_id();
         if (notebook_id !== '') {
-            var new_url = '/'+notebook_id;
+            var new_url = $('body').data('baseProjectUrl') + notebook_id;
             window.history.replaceState({}, '', new_url);
         };
     };
