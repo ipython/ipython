@@ -137,7 +137,7 @@ class Parser:
         out should be a file-type object. Optionally, out can be given as the
         string 'str' and the parser will automatically return the output in a
         string."""
-        
+
         string_output = 0
         if out == 'str' or self.out == 'str' or \
            isinstance(self.out,StringIO.StringIO):
@@ -159,14 +159,14 @@ class Parser:
                 return raw,error
             else:
                 return None,error
-        
+
         # local shorthands
         colors = self.color_table[scheme].colors
         self.colors = colors # put in object so __call__ sees it
 
         # Remove trailing whitespace and normalize tabs
         self.raw = raw.expandtabs().rstrip()
-        
+
         # store line offsets in self.lines
         self.lines = [0, 0]
         pos = 0
@@ -217,11 +217,6 @@ class Parser:
         newpos = self.lines[srow] + scol
         self.pos = newpos + len(toktext)
 
-        # handle newlines 
-        #if toktype in [token.NEWLINE, tokenize.NL]:
-        #    owrite(linesep)
-        #    return
-
         # send the original whitespace, if needed
         if newpos > oldpos:
             owrite(self.raw[oldpos:newpos])
@@ -248,7 +243,7 @@ class Parser:
 
         # send text
         owrite('%s%s%s' % (color,toktext,colors.normal))
-            
+
 def main(argv=None):
     """Run as a command-line script: colorize a python file or stdin using ANSI
     color escapes and print to stdout.
