@@ -15,21 +15,21 @@
     window.mathjax_url = "{{mathjax_url}}";
     </script>
 
-    <link rel="stylesheet" href="/static/jquery/css/themes/base/jquery-ui.min.css" type="text/css" />
-    <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
-    <link rel="stylesheet" href="/static/codemirror/mode/markdown/markdown.css">
-    <link rel="stylesheet" href="/static/codemirror/mode/rst/rst.css">
-    <link rel="stylesheet" href="/static/codemirror/theme/ipython.css">
-    <link rel="stylesheet" href="/static/codemirror/theme/default.css">
+    <link rel="stylesheet" href="{{ static_url("jquery/css/themes/base/jquery-ui.min.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{ static_url("codemirror/lib/codemirror.css") }}">
+    <link rel="stylesheet" href="{{ static_url("codemirror/mode/markdown/markdown.css") }}">
+    <link rel="stylesheet" href="{{ static_url("codemirror/mode/rst/rst.css") }}">
+    <link rel="stylesheet" href="{{ static_url("codemirror/theme/ipython.css") }}">
+    <link rel="stylesheet" href="{{ static_url("codemirror/theme/default.css") }}">
 
-    <link rel="stylesheet" href="/static/prettify/prettify.css"/>
+    <link rel="stylesheet" href="{{ static_url("prettify/prettify.css") }}"/>
 
-    <link rel="stylesheet" href="/static/css/boilerplate.css" type="text/css" />
-    <link rel="stylesheet" href="/static/css/layout.css" type="text/css" />
-    <link rel="stylesheet" href="/static/css/base.css" type="text/css" />
-    <link rel="stylesheet" href="/static/css/notebook.css" type="text/css" />
-    <link rel="stylesheet" href="/static/css/printnotebook.css" type="text/css" />
-    <link rel="stylesheet" href="/static/css/renderedhtml.css" type="text/css" />
+    <link rel="stylesheet" href="{{ static_url("css/boilerplate.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{ static_url("css/layout.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{ static_url("css/base.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{ static_url("css/notebook.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{ static_url("css/printnotebook.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{ static_url("css/renderedhtml.css") }}" type="text/css" />
 
     {% comment  In the notebook, the read-only flag is used to determine %}
     {% comment  whether to hide the side panels and switch off input %}
@@ -43,7 +43,7 @@
 >
 
 <div id="header">
-    <span id="ipython_notebook"><h1><a href='..' alt='dashboard'><img src='/static/ipynblogo.png' alt='IPython Notebook'/></a></h1></span>
+    <span id="ipython_notebook"><h1><a href='..' alt='dashboard'><img src='{{static_url("ipynblogo.png") }}' alt='IPython Notebook'/></a></h1></span>
     <span id="save_widget">
         <span id="notebook_name"></span>
         <span id="save_status"></span>
@@ -70,34 +70,34 @@
 
 </div>
 
-<script src="/static/jquery/js/jquery-1.7.1.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/jquery/js/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("jquery/js/jquery-1.7.1.min.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("jquery/js/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
 
-<script src="/static/codemirror/lib/codemirror.js" charset="utf-8"></script>
-<script src="/static/codemirror/mode/python/python.js" charset="utf-8"></script>
-<script src="/static/codemirror/mode/htmlmixed/htmlmixed.js" charset="utf-8"></script>
-<script src="/static/codemirror/mode/xml/xml.js" charset="utf-8"></script>
-<script src="/static/codemirror/mode/javascript/javascript.js" charset="utf-8"></script>
-<script src="/static/codemirror/mode/css/css.js" charset="utf-8"></script>
-<script src="/static/codemirror/mode/rst/rst.js" charset="utf-8"></script>
-<script src="/static/codemirror/mode/markdown/markdown.js" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/mode/python/python.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/mode/javascript/javascript.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/mode/css/css.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/mode/rst/rst.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/mode/markdown/markdown.js") }}" charset="utf-8"></script>
 
-<script src="/static/pagedown/Markdown.Converter.js" charset="utf-8"></script>
+<script src="{{ static_url("pagedown/Markdown.Converter.js") }}" charset="utf-8"></script>
 
-<script src="/static/prettify/prettify.js" charset="utf-8"></script>
-<script src="/static/dateformat/date.format.js" charset="utf-8"></script>
+<script src="{{ static_url("prettify/prettify.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("dateformat/date.format.js") }}" charset="utf-8"></script>
 
-<script src="/static/js/namespace.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/utils.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/cell.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/codecell.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/textcell.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/kernel.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/kernelstatus.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/savewidget.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/loginwidget.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/notebook.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/js/printnotebookmain.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/textcell.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/kernelstatus.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/savewidget.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/notebook.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/printnotebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
 </body>
 

@@ -168,12 +168,15 @@ class AuthenticatedHandler(RequestHandler):
     @property
     def ws_url(self):
         """websocket url matching the current request
-        
+
         turns http[s]://host[:port] into
                 ws[s]://host[:port]
         """
         proto = self.request.protocol.replace('http', 'ws')
-        return "%s://%s" % (proto, self.request.host)
+        host = self.application.ipython_app.websocket_host # default to config value
+        if host == '':
+            host = self.request.host # get from request
+        return "%s://%s" % (proto, host)
 
 
 class AuthenticatedFileHandler(AuthenticatedHandler, web.StaticFileHandler):
@@ -192,7 +195,8 @@ class ProjectDashboardHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         self.render(
             'projectdashboard.html', project=project,
-            base_project_url=u'/', base_kernel_url=u'/',
+            base_project_url=self.application.ipython_app.base_project_url,
+            base_kernel_url=self.application.ipython_app.base_kernel_url,
             read_only=self.read_only,
             logged_in=self.logged_in,
             login_available=self.login_available
@@ -255,7 +259,8 @@ class NewHandler(AuthenticatedHandler):
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
-            base_project_url=u'/', base_kernel_url=u'/',
+            base_project_url=self.application.ipython_app.base_project_url,
+            base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
             read_only=False,
             logged_in=self.logged_in,
@@ -276,7 +281,8 @@ class NamedNotebookHandler(AuthenticatedHandler):
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
-            base_project_url=u'/', base_kernel_url=u'/',
+            base_project_url=self.application.ipython_app.base_project_url,
+            base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
             read_only=self.read_only,
             logged_in=self.logged_in,
@@ -297,7 +303,8 @@ class PrintNotebookHandler(AuthenticatedHandler):
         self.render(
             'printnotebook.html', project=project,
             notebook_id=notebook_id,
-            base_project_url=u'/', base_kernel_url=u'/',
+            base_project_url=self.application.ipython_app.base_project_url,
+            base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
             read_only=self.read_only,
             logged_in=self.logged_in,
@@ -637,7 +644,8 @@ class NotebookCopyHandler(AuthenticatedHandler):
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
-            base_project_url=u'/', base_kernel_url=u'/',
+            base_project_url=self.application.ipython_app.base_project_url,
+            base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
             read_only=False,
             logged_in=self.logged_in,

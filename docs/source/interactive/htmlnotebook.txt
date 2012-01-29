@@ -355,7 +355,22 @@ uncomment and edit is here::
      c.NotebookApp.port = 9999
 
 You can then start the notebook and access it later by pointing your browser to
-``https://your.host.com:9999``.
+``https://your.host.com:9999`` with ``ipython notebook --profile=nbserver``.
+
+Running with a different URL prefix
+===================================
+
+The notebook dashboard (i.e. the default landing page with an overview
+of all your notebooks) typically lives at a URL path of
+"http://localhost:8888/". If you want to have it, and the rest of the
+notebook, live under a sub-directory,
+e.g. "http://localhost:8888/ipython/", you can do so with command-line
+options like these:
+
+  $ ipython notebook --NotebookApp.webapp_settings="\
+         {'base_project_url':'/ipython/', \
+          'base_kernel_url':'/ipython/', \
+          'static_url_prefix':'/ipython/static/'}"
 
 .. _notebook_format:
 
