@@ -21,19 +21,75 @@ var IPython = (function (IPython) {
         this.outputs = [];
         this.collapsed = false;
         this.tooltip_timeout = null;
+        this.collapsed = false;
         IPython.Cell.apply(this, arguments);
+
     };
 
 
     CodeCell.prototype = new IPython.Cell();
 
 
+    CodeCell.prototype.toggleInput = function()
+    {
+        if(this.collapsed == true)
+            this.expandInput();
+        else
+            this.collapseInput();
+    }
+
+    CodeCell.prototype.expandInput = function()
+    {
+        var that=this;
+        // collapse text, then show replacing header
+        $(this.hiddencell).slideUp(
+            function(){
+                $(that.input_area).slideDown(
+                    function(){setTimeout(that.code_mirror.focus(),50)}
+                    );
+            });
+        this.collapsed = false;
+    }
+
+    CodeCell.prototype.collapseInput = function()
+    {
+        var that=this;
+        // collapse text, then show replacing header
+        $(this.input_area).slideUp(
+            function(){
+                var count = that.code_mirror.lineCount();
+                var first_line = that.code_mirror.getLine(0);
+                $(that.hiddencell).text(first_line+"    [ "+count+" hidden line(s) ]");
+                $(that.hiddencell).slideDown();
+            });
+        this.collapsed = true;
+    }
+
     CodeCell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
         cell.attr('tabindex','2');
+
         var input = $('<div></div>').addClass('input hbox');
-        input.append($('<div/>').addClass('prompt input_prompt'));
+        var input_prompt = $('<div/>').addClass('prompt input_prompt');
+        this.input_prompt = input_prompt;
+        input.append(input_prompt);
         var input_area = $('<div/>').addClass('input_area box-flex1');
+        var hiddencell = $('<div/>')
+            .addClass('input_area box-flex1')
+            .attr('style','padding:4px; color:grey;')
+            .text('hidden code cell, click to expand....');
+        this.input_area = input_area;
+        this.hiddencell = hiddencell;
+            var that=this;
+            $(this.input_prompt).click( function(){
+                that.toggleInput();
+            });
+            $(hiddencell).hide() ;
+            $(hiddencell).click( function(){
+                that.expandInput();
+                }
+                )
+            input.append(hiddencell);
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             mode: 'python',
