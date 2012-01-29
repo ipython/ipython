@@ -825,14 +825,12 @@ class VerboseTB(TBTools):
                     call = tpl_call_fail % func
             
             # Don't attempt to tokenize binary files.
-            if not file.endswith(('.py', '.pyw')):
-                if file.endswith(('.pyc','.pyo')):
-                    # Look up the corresponding source file.
-                    file = pyfile.source_from_cache(file)
-                else:
-                    # .so, .pyd, etc.
-                    frames.append('%s %s\n' % (link,call))
-                    continue
+            if file.endswith(('.so', '.pyd', '.dll')):
+                frames.append('%s %s\n' % (link,call))
+                continue
+            elif file.endswith(('.pyc','.pyo')):
+                # Look up the corresponding source file.
+                file = pyfile.source_from_cache(file)
 
             def linereader(file=file, lnum=[lnum], getline=linecache.getline):
                 line = getline(file, lnum[0])
