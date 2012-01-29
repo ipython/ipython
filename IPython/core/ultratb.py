@@ -823,10 +823,16 @@ class VerboseTB(TBTools):
                     # will illustrate the error, if this exception catch is
                     # disabled.
                     call = tpl_call_fail % func
+            
+            # Don't attempt to tokenize binary files.
+            if file.endswith(('.so', '.pyd', '.dll')):
+                frames.append('%s %s\n' % (link,call))
+                continue
+            elif file.endswith(('.pyc','.pyo')):
+                # Look up the corresponding source file.
+                file = pyfile.source_from_cache(file)
 
             def linereader(file=file, lnum=[lnum], getline=linecache.getline):
-                if file.endswith(('.pyc','.pyo')):
-                    file = pyfile.source_from_cache(file)
                 line = getline(file, lnum[0])
                 lnum[0] += 1
                 return line
