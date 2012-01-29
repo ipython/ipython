@@ -37,6 +37,9 @@ $(document).ready(function () {
     $('div#header').css('display','block');
     $('div#main_app').css('display','block');
 
+    $('#shutdown').button().click(function (e) {
+        window.location.href = $('body').data('baseProjectUrl')+'shutdown';
+    });
 
 });
 
