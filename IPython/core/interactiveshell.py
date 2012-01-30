@@ -26,6 +26,7 @@ import codeop
 import inspect
 import os
 import re
+import runpy
 import sys
 import tempfile
 import types
@@ -2355,6 +2356,28 @@ class InteractiveShell(SingletonConfigurable, Magic):
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
+
+    def safe_run_module(self, mod_name, where):
+        """A safe version of runpy.run_module().
+
+        This version will never throw an exception, but instead print
+        helpful error messages to the screen.
+
+        Parameters
+        ----------
+        mod_name : string
+            The name of the module to be executed.
+        where : dict
+            The globals namespace.
+        """
+        try:
+            where.update(
+                runpy.run_module(str(mod_name), run_name="__main__",
+                                 alter_sys=True)
+                )
+        except:
+            self.showtraceback()
+            warn('Unknown failure executing module: <%s>' % mod_name)
 
     def run_cell(self, raw_cell, store_history=False):
         """Run a complete IPython cell.

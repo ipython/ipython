@@ -103,6 +103,7 @@ shell_aliases = dict(
     logfile='InteractiveShell.logfile',
     logappend='InteractiveShell.logappend',
     c='InteractiveShellApp.code_to_run',
+    m='InteractiveShellApp.module_to_run',
     ext='InteractiveShellApp.extra_extension',
 )
 shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
@@ -146,6 +147,9 @@ class InteractiveShellApp(Configurable):
     code_to_run = Unicode('', config=True,
         help="Execute the given command string."
     )
+    module_to_run = Unicode('', config=True,
+        help="Run the module as a script."
+    )
     pylab_import_all = Bool(True, config=True,
         help="""If true, an 'import *' is done from numpy and pylab,
         when using pylab"""
@@ -183,6 +187,7 @@ class InteractiveShellApp(Configurable):
         self._run_exec_lines()
         self._run_exec_files()
         self._run_cmd_line_code()
+        self._run_module()
         
         # flush output, so itwon't be attached to the first cell
         sys.stdout.flush()
@@ -294,3 +299,7 @@ class InteractiveShellApp(Configurable):
                               fname)
                 self.shell.showtraceback()
 
+    def _run_module(self):
+        """Run module specified at the command-line."""
+        if self.module_to_run:
+            self.shell.safe_run_module(self.module_to_run, self.shell.user_ns)
