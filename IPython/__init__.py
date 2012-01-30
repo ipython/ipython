@@ -44,6 +44,10 @@ from .config.loader import Config
 from .core import release
 from .core.application import Application
 from .frontend.terminal.embed import embed
+try:
+    from .zmq.ipkernel import embed_kernel
+except ImportError:
+    pass
 from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell
 from .testing import test
