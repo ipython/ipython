@@ -59,14 +59,14 @@ class TestCell(TestCase):
         self.assertEquals(tc.source, u'hi')
         self.assertEquals(tc.rendered, u'hi')
 
-    def test_empty_rst_cell(self):
-        tc = new_text_cell(u'rst')
-        self.assertEquals(tc.cell_type, u'rst')
+    def test_empty_plaintext_cell(self):
+        tc = new_text_cell(u'plaintext')
+        self.assertEquals(tc.cell_type, u'plaintext')
         self.assertEquals(u'source' not in tc, True)
         self.assertEquals(u'rendered' not in tc, True)
 
-    def test_rst_cell(self):
-        tc = new_text_cell(u'rst', 'hi', 'hi')
+    def test_plaintext_cell(self):
+        tc = new_text_cell(u'plaintext', 'hi', 'hi')
         self.assertEquals(tc.source, u'hi')
         self.assertEquals(tc.rendered, u'hi')
 
