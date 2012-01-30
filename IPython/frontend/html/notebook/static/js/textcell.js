@@ -258,11 +258,8 @@ var IPython = (function (IPython) {
 
     PlaintextCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
-        // In some cases (inserting a new cell) we need a refresh before and
-        // after the focus. Not sure why this is the case.
         this.code_mirror.refresh();
         this.code_mirror.focus();
-        this.code_mirror.refresh();
     };
 
 
