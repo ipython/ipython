@@ -136,7 +136,7 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 84 && that.control_key_active) {
-                // To Plaintext = r
+                // To Plaintext = t
                 that.to_plaintext();
                 that.control_key_active = false;
                 return false;
@@ -401,7 +401,11 @@ var IPython = (function (IPython) {
             };
             var cell = this.get_cell(index)
             cell.select();
-            IPython.toolbar.set_cell_type(cell.cell_type);
+            if (cell.cell_type === 'heading') {
+                IPython.toolbar.set_cell_type(cell.cell_type+cell.level);
+            } else {
+                IPython.toolbar.set_cell_type(cell.cell_type)
+            }
         };
         return this;
     };
@@ -672,6 +676,7 @@ var IPython = (function (IPython) {
                 source_element.remove();
                 this.dirty = true;
             };
+            IPython.toolbar.set_cell_type("heading"+level);
         };
     };
 
