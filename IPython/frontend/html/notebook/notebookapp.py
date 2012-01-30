@@ -410,13 +410,14 @@ class NotebookApp(BaseIPythonApplication):
         ip = self.ip if self.ip else '[all ip addresses on your system]'
         proto = 'https' if self.certfile else 'http'
         info = self.log.info
-        info("The IPython Notebook is running at: %s://%s:%i" % 
-             (proto, ip, self.port) )
+        info("The IPython Notebook is running at: %s://%s:%i%s" %
+             (proto, ip, self.port,self.base_project_url) )
         info("Use Control-C to stop this server and shut down all kernels.")
 
         if self.open_browser:
             ip = self.ip or '127.0.0.1'
-            b = lambda : webbrowser.open("%s://%s:%i" % (proto, ip, self.port),
+            b = lambda : webbrowser.open("%s://%s:%i%s" % (proto, ip, self.port,
+                                                           self.base_project_url),
                                          new=2)
             threading.Thread(target=b).start()
         try:
