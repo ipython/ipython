@@ -10,7 +10,7 @@
 //============================================================================
 
 
-confirm_shutdown = function (e) {
+confirm_shutdown = function () {
     var dialog = $('<div/>');
     dialog.html('Do you want to shut down the notebook server? ' +
                 'You will lose any unsaved work and all running kernels.');
@@ -61,7 +61,9 @@ $(document).ready(function () {
     $('div#header').css('display','block');
     $('div#main_app').css('display','block');
 
-    $('#shutdown').button().click(confirm_shutdown);
+    $('#shutdown').button().click(function(e) {
+        confirm_shutdown();
+    });
 
 });
 
