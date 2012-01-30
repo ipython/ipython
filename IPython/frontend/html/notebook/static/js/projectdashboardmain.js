@@ -38,7 +38,26 @@ $(document).ready(function () {
     $('div#main_app').css('display','block');
 
     $('#shutdown').button().click(function (e) {
-        window.location.href = $('body').data('baseProjectUrl')+'shutdown';
+        var dialog = $('<div/>');
+        dialog.html('Do you want to shut down the notebook server? ' +
+                    'You will lose any unsaved work and all running kernels.');
+        $(document).append(dialog);
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Shutdown IPython Notebook?",
+            closeText: '',
+            buttons : {
+                "Shutdown": function () {
+                    window.location.href = $('body').data('baseProjectUrl')+'shutdown';
+                    $(this).dialog('close');
+                },
+                "Continue running": function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
+        
     });
 
 });
