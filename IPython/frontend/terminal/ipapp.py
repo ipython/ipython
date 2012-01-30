@@ -306,7 +306,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if not self.ignore_old_config:
             check_for_old_config(self.ipython_dir)
         # print self.extra_args
-        if self.extra_args:
+        if self.extra_args and not self.module_to_run:
             self.file_to_run = self.extra_args[0]
         # create the shell
         self.init_shell()
