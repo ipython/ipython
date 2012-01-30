@@ -314,6 +314,7 @@ class PrintNotebookHandler(AuthenticatedHandler):
 
 class ShutdownHandler(AuthenticatedHandler):
     def get(self):
+        self.render('shutdown.html', logged_in=False, login_available=False)
         self.application.ipython_app.ioloop.stop()
 
 #-----------------------------------------------------------------------------

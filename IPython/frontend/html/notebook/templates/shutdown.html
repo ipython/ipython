@@ -1,0 +1,39 @@
+{% extends layout.html %}
+
+{% block stylesheet %}
+<style type="text/css">
+#app_hbox {
+    width: 100%
+}
+
+#content_panel {
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 1em;
+}
+
+h1 {
+    font-size: 2em;
+    padding-bottom: 1em;
+}
+
+p {
+    padding-bottom: 1em;
+}
+    
+</style>
+{% end %}
+
+{% block title %}
+(Shutdown) IPython Notebook
+{% end %}
+
+{% block content_panel %}
+<h1>Notebook Shutdown</h1>
+
+<p>The IPython Notebook server has been stopped. You can close this tab.</p>
+
+<p><a href="http://ipython.org/">IPython homepage</a></p>
+
+{% end %}
