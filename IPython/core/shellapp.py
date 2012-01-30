@@ -302,4 +302,12 @@ class InteractiveShellApp(Configurable):
     def _run_module(self):
         """Run module specified at the command-line."""
         if self.module_to_run:
-            self.shell.safe_run_module(self.module_to_run, self.shell.user_ns)
+            # Make sure that the module gets a proper sys.argv as if it were
+            # run using `python -m`.
+            save_argv = sys.argv
+            sys.argv = [sys.executable] + self.extra_args
+            try:
+                self.shell.safe_run_module(self.module_to_run,
+                                           self.shell.user_ns)
+            finally:
+                sys.argv = save_argv
