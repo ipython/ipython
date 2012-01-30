@@ -135,9 +135,9 @@ var IPython = (function (IPython) {
                 that.to_markdown();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 82 && that.control_key_active) {
-                // To RST = r
-                that.to_rst();
+            } else if (event.which === 84 && that.control_key_active) {
+                // To Plaintext = r
+                that.to_plaintext();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 49 && that.control_key_active) {
@@ -170,8 +170,8 @@ var IPython = (function (IPython) {
                 that.to_heading(undefined, 6);
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 84 && that.control_key_active) {
-                // Toggle output = t
+            } else if (event.which === 79 && that.control_key_active) {
+                // Toggle output = o
                 that.toggle_output();
                 that.control_key_active = false;
                 return false;
@@ -511,8 +511,8 @@ var IPython = (function (IPython) {
                 cell = new IPython.MarkdownCell(this);
             } else if (type === 'html') {
                 cell = new IPython.HTMLCell(this);
-            } else if (type === 'rst') {
-                cell = new IPython.RSTCell(this);
+            } else if (type === 'plaintext') {
+                cell = new IPython.PlaintextCell(this);
             } else if (type === 'heading') {
                 cell = new IPython.HeadingCell(this);
             };
@@ -545,8 +545,8 @@ var IPython = (function (IPython) {
                 cell = new IPython.MarkdownCell(this);
             } else if (type === 'html') {
                 cell = new IPython.HTMLCell(this);
-            } else if (type === 'rst') {
-                cell = new IPython.RSTCell(this);
+            } else if (type === 'plaintext') {
+                cell = new IPython.PlaintextCell(this);
             } else if (type === 'heading') {
                 cell = new IPython.HeadingCell(this);
             };
@@ -628,14 +628,14 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.to_rst = function (index) {
+    Notebook.prototype.to_plaintext = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (!(source_cell instanceof IPython.RSTCell)) {
-                target_cell = this.insert_cell_below('rst',i);
+            if (!(source_cell instanceof IPython.PlaintextCell)) {
+                target_cell = this.insert_cell_below('plaintext',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';

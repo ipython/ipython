@@ -237,26 +237,26 @@ var IPython = (function (IPython) {
     };
 
 
-    // RSTCell
+    // PlaintextCell
 
-    var RSTCell = function (notebook) {
-        this.placeholder = "Type *ReStructured Text* and LaTeX: $\\alpha^2$";
+    var PlaintextCell = function (notebook) {
+        this.placeholder = "Type plain text and LaTeX: $\\alpha^2$";
         this.code_mirror_mode = 'rst';
         IPython.TextCell.apply(this, arguments);
-        this.cell_type = 'rst';
+        this.cell_type = 'plaintext';
     };
 
 
-    RSTCell.prototype = new TextCell();
+    PlaintextCell.prototype = new TextCell();
 
 
-    RSTCell.prototype.render = function () {
+    PlaintextCell.prototype.render = function () {
         this.rendered = true;
         this.edit();
     };
 
 
-    RSTCell.prototype.select = function () {
+    PlaintextCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
         // In some cases (inserting a new cell) we need a refresh before and
         // after the focus. Not sure why this is the case.
@@ -266,7 +266,7 @@ var IPython = (function (IPython) {
     };
 
 
-    RSTCell.prototype.at_top = function () {
+    PlaintextCell.prototype.at_top = function () {
         var cursor = this.code_mirror.getCursor();
         if (cursor.line === 0) {
             return true;
@@ -276,7 +276,7 @@ var IPython = (function (IPython) {
     };
 
 
-    RSTCell.prototype.at_bottom = function () {
+    PlaintextCell.prototype.at_bottom = function () {
         var cursor = this.code_mirror.getCursor();
         if (cursor.line === (this.code_mirror.lineCount()-1)) {
             return true;
@@ -341,7 +341,7 @@ var IPython = (function (IPython) {
     IPython.TextCell = TextCell;
     IPython.HTMLCell = HTMLCell;
     IPython.MarkdownCell = MarkdownCell;
-    IPython.RSTCell = RSTCell;
+    IPython.PlaintextCell = PlaintextCell;
     IPython.HeadingCell = HeadingCell;
 
 
