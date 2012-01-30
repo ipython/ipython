@@ -128,7 +128,7 @@ class ProcessHandler(object):
         int : child's exitstatus
         """
         # Get likely encoding for the output.
-        enc = text.getdefaultencoding()
+        enc = py3compat.getdefaultencoding()
         
         # Patterns to match on the output, for pexpect.  We read input and
         # allow either a short timeout or EOF

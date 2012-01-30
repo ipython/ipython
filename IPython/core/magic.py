@@ -949,7 +949,7 @@ Currently the magic system has the following functions:\n"""
                 try:
                     vstr = str(var)
                 except UnicodeEncodeError:
-                    vstr = unicode(var).encode(sys.getdefaultencoding(),
+                    vstr = unicode(var).encode(py3compat.getdefaultencoding(),
                                                'backslashreplace')
                 vstr = vstr.replace('\n','\\n')
                 if len(vstr) < 50:

@@ -35,7 +35,7 @@ class Macro(object):
                 lines.append(line)
         code = "\n".join(lines)
         if isinstance(code, bytes):
-            code = code.decode(enc or sys.getdefaultencoding())
+            code = code.decode(enc or py3compat.getdefaultencoding())
         self.value = code + '\n'
     
     def __str__(self):
