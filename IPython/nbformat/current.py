@@ -28,14 +28,14 @@ from IPython.nbformat import v1
 from IPython.nbformat.v3 import (
     NotebookNode,
     new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet,
-    parse_filename, new_metadata, new_author
+    parse_filename, new_metadata, new_author, new_heading_cell
 )
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
-current_nbformat = 2
+current_nbformat = 3
 
 
 class NBFormatError(Exception):

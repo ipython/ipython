@@ -146,7 +146,7 @@ def new_worksheet(name=None, cells=None):
 def new_notebook(metadata=None, worksheets=None):
     """Create a notebook by name, id and a list of worksheets."""
     nb = NotebookNode()
-    nb.nbformat = 2
+    nb.nbformat = 3
     if worksheets is None:
         nb.worksheets = []
     else:
