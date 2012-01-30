@@ -264,6 +264,13 @@ var IPython = (function (IPython) {
 
     // As you type completer
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
+        if(matched_text[0]=='%'){
+            completing_from_magic = true;
+            completing_to_magic = false;
+        } else {
+            completing_from_magic = false;
+            completing_to_magic = false;
+        }
         //return if not completing or nothing to complete
         if (!this.is_completing || matches.length === 0) {return;}
 
@@ -308,7 +315,8 @@ var IPython = (function (IPython) {
 
         // give common prefix of a array of string
         function sharedStart(A){
-            if(A.length == 1){return A[0]}
+            shared='';
+            if(A.length == 1){shared=A[0]}
             if(A.length > 1 ){
                 var tem1, tem2, s, A = A.slice(0).sort();
                 tem1 = A[0];
@@ -317,9 +325,15 @@ var IPython = (function (IPython) {
                 while(s && tem2.indexOf(tem1) == -1){
                     tem1 = tem1.substring(0, --s);
                 }
-                return tem1;
+                shared = tem1;
             }
-            return "";
+            if (shared[0] == '%' && !completing_from_magic)
+            {
+                shared = shared.substr(1);
+                return [shared, true];
+            } else {
+                return [shared, false];
+            }
         }
 
 
@@ -393,8 +407,13 @@ var IPython = (function (IPython) {
         {
             // If autopick an only one match, past.
             // Used to 'pick' when pressing tab
+            var prefix = '';
+            if(completing_to_magic && !completing_from_magic)
+            {
+                prefix='%';
+            }
             if (matches.length < 1) {
-                insert(typed_text,event);
+                insert(prefix+typed_text,event);
                 if(event != null){
                 event.stopPropagation();
                 event.preventDefault();
@@ -405,11 +424,12 @@ var IPython = (function (IPython) {
                 event.stopPropagation();
                 event.preventDefault();
                 }
+                return;
             }
             //clear the previous completion if any
-            update(typed_text,event);
+            update(prefix+typed_text,event);
             complete.children().children().remove();
-            $('#asyoutype').html("<b>"+matched_text+"</b>"+typed_text.substr(matched_text.length));
+            $('#asyoutype').html("<b>"+prefix+matched_text+"</b>"+typed_text.substr(matched_text.length));
             select = $('#asyoutypeselect');
             for (var i = 0; i<matches.length; ++i) {
                     select.append($('<option/>').html(matches[i]));
@@ -437,7 +457,9 @@ var IPython = (function (IPython) {
 
         // So a first actual completion.  see if all the completion start wit
         // the same letter and complete if necessary
-        fastForward = sharedStart(matches)
+        ff = sharedStart(matches)
+        fastForward = ff[0];
+        completing_to_magic = ff[1];
         typed_characters = fastForward.substr(matched_text.length);
         complete_with(matches,matched_text+typed_characters,true,null);
         filterd = matches;
@@ -476,7 +498,9 @@ var IPython = (function (IPython) {
                     var newchar = String.fromCharCode(code);
                     typed_characters = typed_characters+newchar;
                 } else if (code == key.tab) {
-                    fastForward = sharedStart(filterd)
+                    ff = sharedStart(matches)
+                    fastForward = ff[0];
+                    completing_to_magic = ff[1];
                     ffsub = fastForward.substr(matched_text.length+typed_characters.length);
                     typed_characters = typed_characters+ffsub;
                     autopick = true;
@@ -498,6 +522,8 @@ var IPython = (function (IPython) {
                 }
                 re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
                 filterd = matches.filter(function(x){return re.test(x)});
+                ff = sharedStart(filterd);
+                completing_to_magic = ff[1];
                 complete_with(filterd,matched_text+typed_characters,autopick,event);
             } else if (code == key.esc) {
                 // dismiss the completer and go back to before invoking it
