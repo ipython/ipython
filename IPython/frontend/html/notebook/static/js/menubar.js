@@ -129,6 +129,27 @@ var IPython = (function (IPython) {
         this.element.find('#to_markdown').click(function () {
             IPython.notebook.to_markdown();
         });
+        this.element.find('#to_plaintext').click(function () {
+            IPython.notebook.to_plaintext();
+        });
+        this.element.find('#to_heading1').click(function () {
+            IPython.notebook.to_heading(undefined, 1);
+        });
+        this.element.find('#to_heading2').click(function () {
+            IPython.notebook.to_heading(undefined, 2);
+        });
+        this.element.find('#to_heading3').click(function () {
+            IPython.notebook.to_heading(undefined, 3);
+        });
+        this.element.find('#to_heading4').click(function () {
+            IPython.notebook.to_heading(undefined, 4);
+        });
+        this.element.find('#to_heading5').click(function () {
+            IPython.notebook.to_heading(undefined, 5);
+        });
+        this.element.find('#to_heading6').click(function () {
+            IPython.notebook.to_heading(undefined, 6);
+        });
         this.element.find('#toggle_output').click(function () {
             IPython.notebook.toggle_output();
         });

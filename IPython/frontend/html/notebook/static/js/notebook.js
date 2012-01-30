@@ -136,7 +136,42 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 84 && that.control_key_active) {
-                // Toggle output = t
+                // To Plaintext = t
+                that.to_plaintext();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 49 && that.control_key_active) {
+                // To Heading 1 = 1
+                that.to_heading(undefined, 1);
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 50 && that.control_key_active) {
+                // To Heading 2 = 2
+                that.to_heading(undefined, 2);
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 51 && that.control_key_active) {
+                // To Heading 3 = 3
+                that.to_heading(undefined, 3);
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 52 && that.control_key_active) {
+                // To Heading 4 = 4
+                that.to_heading(undefined, 4);
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 53 && that.control_key_active) {
+                // To Heading 5 = 5
+                that.to_heading(undefined, 5);
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 54 && that.control_key_active) {
+                // To Heading 6 = 6
+                that.to_heading(undefined, 6);
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 79 && that.control_key_active) {
+                // Toggle output = o
                 that.toggle_output();
                 that.control_key_active = false;
                 return false;
@@ -366,7 +401,11 @@ var IPython = (function (IPython) {
             };
             var cell = this.get_cell(index)
             cell.select();
-            IPython.toolbar.set_cell_type(cell.cell_type);
+            if (cell.cell_type === 'heading') {
+                IPython.toolbar.set_cell_type(cell.cell_type+cell.level);
+            } else {
+                IPython.toolbar.set_cell_type(cell.cell_type)
+            }
         };
         return this;
     };
@@ -467,15 +506,19 @@ var IPython = (function (IPython) {
         // type = ('code','html','markdown')
         // index = cell index or undefined to insert below selected
         index = this.index_or_selected(index);
+        var cell = null;
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
-            var cell = null;
             if (type === 'code') {
-                var cell = new IPython.CodeCell(this);
+                cell = new IPython.CodeCell(this);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                var cell = new IPython.MarkdownCell(this);
+                cell = new IPython.MarkdownCell(this);
             } else if (type === 'html') {
-                var cell = new IPython.HTMLCell(this);
+                cell = new IPython.HTMLCell(this);
+            } else if (type === 'plaintext') {
+                cell = new IPython.PlaintextCell(this);
+            } else if (type === 'heading') {
+                cell = new IPython.HeadingCell(this);
             };
             if (cell !== null) {
                 if (this.ncells() === 0) {
@@ -489,6 +532,7 @@ var IPython = (function (IPython) {
                 return cell;
             };
         };
+        return cell;
     };
 
 
@@ -496,15 +540,19 @@ var IPython = (function (IPython) {
         // type = ('code','html','markdown')
         // index = cell index or undefined to insert above selected
         index = this.index_or_selected(index);
+        var cell = null;
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
-            var cell = null;
             if (type === 'code') {
-                var cell = new IPython.CodeCell(this);
+                cell = new IPython.CodeCell(this);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                var cell = new IPython.MarkdownCell(this);
+                cell = new IPython.MarkdownCell(this);
             } else if (type === 'html') {
-                var cell = new IPython.HTMLCell(this);
+                cell = new IPython.HTMLCell(this);
+            } else if (type === 'plaintext') {
+                cell = new IPython.PlaintextCell(this);
+            } else if (type === 'heading') {
+                cell = new IPython.HeadingCell(this);
             };
             if (cell !== null) {
                 if (this.ncells() === 0) {
@@ -518,6 +566,7 @@ var IPython = (function (IPython) {
                 return cell;
             };
         };
+        return cell;
     };
 
 
@@ -534,8 +583,8 @@ var IPython = (function (IPython) {
                 }
                 target_cell.set_text(text);
                 source_element.remove();
+                this.dirty = true;
             };
-            this.dirty = true;
         };
     };
 
@@ -545,19 +594,16 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
-            var target_cell = null;
             if (!(source_cell instanceof IPython.MarkdownCell)) {
                 target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                if (target_cell !== null) {
-                    // The edit must come before the set_text.
-                    target_cell.edit();
-                    target_cell.set_text(text);
-                    source_element.remove();
-                }
+                // The edit must come before the set_text.
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
                 this.dirty = true;
             };
         };
@@ -576,14 +622,61 @@ var IPython = (function (IPython) {
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                if (target_cell !== null) {
-                    // The edit must come before the set_text.
-                    target_cell.edit();
-                    target_cell.set_text(text);
-                    source_element.remove();
-                }
+                // The edit must come before the set_text.
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
                 this.dirty = true;
             };
+        };
+    };
+
+
+    Notebook.prototype.to_plaintext = function (index) {
+        var i = this.index_or_selected(index);
+        if (this.is_valid_cell_index(i)) {
+            var source_element = this.get_cell_element(i);
+            var source_cell = source_element.data("cell");
+            var target_cell = null;
+            if (!(source_cell instanceof IPython.PlaintextCell)) {
+                target_cell = this.insert_cell_below('plaintext',i);
+                var text = source_cell.get_text();
+                if (text === source_cell.placeholder) {
+                    text = '';
+                };
+                // The edit must come before the set_text.
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
+                this.dirty = true;
+            };
+        };
+    };
+
+
+    Notebook.prototype.to_heading = function (index, level) {
+        level = level || 1;
+        var i = this.index_or_selected(index);
+        if (this.is_valid_cell_index(i)) {
+            var source_element = this.get_cell_element(i);
+            var source_cell = source_element.data("cell");
+            var target_cell = null;
+            if (source_cell instanceof IPython.HeadingCell) {
+                source_cell.set_level(level);
+            } else {
+                target_cell = this.insert_cell_below('heading',i);
+                var text = source_cell.get_text();
+                if (text === source_cell.placeholder) {
+                    text = '';
+                };
+                // The edit must come before the set_text.
+                target_cell.set_level(level);
+                target_cell.edit();
+                target_cell.set_text(text);
+                source_element.remove();
+                this.dirty = true;
+            };
+            IPython.toolbar.set_cell_type("heading"+level);
         };
     };
 
@@ -1098,7 +1191,7 @@ var IPython = (function (IPython) {
         // We may want to move the name/id/nbformat logic inside toJSON?
         var data = this.toJSON();
         data.metadata.name = nbname;
-        data.nbformat = 2;
+        data.nbformat = 3;
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
