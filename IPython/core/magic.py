@@ -186,15 +186,15 @@ python-profiler package from non-free.""")
     def extract_input_lines(self, range_str, raw=False):
         """Return as a string a set of input history slices.
 
-        Inputs:
+        Parameters
+        ----------
+        range_str : string
+            The set of slices is given as a string, like "~5/6-~4/2 4:8 9",
+            since this function is for use by magic functions which get their
+            arguments as strings. The number before the / is the session
+            number: ~n goes n back from the current session.
 
-          - range_str: the set of slices is given as a string, like
-          "~5/6-~4/2 4:8 9", since this function is for use by magic functions
-          which get their arguments as strings. The number before the / is the
-          session number: ~n goes n back from the current session.
-
-        Optional inputs:
-
+        Optional Parameters:
           - raw(False): by default, the processed input is used.  If this is
           true, the raw input history is used instead.
 
@@ -456,27 +456,33 @@ Currently the magic system has the following functions:\n"""
 
         In this mode, you get:
 
-        In [1]: callable
-        Out[1]: <built-in function callable>
+        .. sourcecode:: ipython
 
-        In [2]: callable 'hello'
-        ------> callable('hello')
-        Out[2]: False
+          In [1]: callable
+          Out[1]: <built-in function callable>
+
+          In [2]: callable 'hello'
+          ------> callable('hello')
+          Out[2]: False
 
         2 -> Active always.  Even if no arguments are present, the callable
         object is called:
 
-        In [2]: float
-        ------> float()
-        Out[2]: 0.0
+        .. sourcecode:: ipython
+
+          In [2]: float
+          ------> float()
+          Out[2]: 0.0
 
         Note that even with autocall off, you can still use '/' at the start of
         a line to treat the first argument on the command line as a function
         and add parentheses to it:
 
-        In [8]: /str 43
-        ------> str(43)
-        Out[8]: '43'
+        .. sourcecode:: ipython
+
+          In [8]: /str 43
+          ------> str(43)
+          Out[8]: '43'
 
         # all-random (note for auto-testing)
         """
@@ -575,7 +581,7 @@ Currently the magic system has the following functions:\n"""
 
         Examples
         --------
-        ::
+        .. sourcecode:: ipython
 
           In [3]: %pdef urllib.urlopen
           urllib.urlopen(url, data=None, proxies=None)
@@ -737,7 +743,9 @@ Currently the magic system has the following functions:\n"""
         Examples
         --------
 
-        Define two variables and list them with who_ls::
+        Define two variables and list them with who_ls:
+
+        .. sourcecode:: ipython
 
           In [1]: alpha = 123
 
@@ -772,7 +780,7 @@ Currently the magic system has the following functions:\n"""
         """Print all interactive variables, with some minimal formatting.
 
         If any arguments are given, only variables whose type matches one of
-        these are printed.  For example:
+        these are printed.  For example::
 
           %who function str
 
@@ -780,12 +788,14 @@ Currently the magic system has the following functions:\n"""
         variables.  To find the proper type names, simply use type(var) at a
         command line to see how python prints type names.  For example:
 
+        .. sourcecode:: ipython
+
           In [1]: type('hello')\\
           Out[1]: <type 'str'>
 
         indicates that the type name for strings is 'str'.
 
-        %who always excludes executed names loaded through your configuration
+        ``%who`` always excludes executed names loaded through your configuration
         file and things which are internal to IPython.
 
         This is deliberate, as typically you may load many modules and the
@@ -794,7 +804,9 @@ Currently the magic system has the following functions:\n"""
         Examples
         --------
 
-        Define two variables and list them with who::
+        Define two variables and list them with who:
+
+        .. sourcecode:: ipython
 
           In [1]: alpha = 123
 
@@ -847,7 +859,9 @@ Currently the magic system has the following functions:\n"""
         Examples
         --------
 
-        Define two variables and list them with whos::
+        Define two variables and list them with whos:
+
+        .. sourcecode:: ipython
 
           In [1]: alpha = 123
 
@@ -984,29 +998,32 @@ Currently the magic system has the following functions:\n"""
 
         See Also
         --------
-        magic_reset_selective
+        magic_reset_selective : invoked as ``%reset_selective``
 
         Examples
         --------
-        In [6]: a = 1
 
-        In [7]: a
-        Out[7]: 1
+        .. sourcecode:: ipython
 
-        In [8]: 'a' in _ip.user_ns
-        Out[8]: True
+          In [6]: a = 1
 
-        In [9]: %reset -f
+          In [7]: a
+          Out[7]: 1
 
-        In [1]: 'a' in _ip.user_ns
-        Out[1]: False
+          In [8]: 'a' in _ip.user_ns
+          Out[8]: True
 
-        In [2]: %reset -f in
-        Flushing input history
+          In [9]: %reset -f
 
-        In [3]: %reset -f dhist in 
-        Flushing directory history
-        Flushing input history
+          In [1]: 'a' in _ip.user_ns
+          Out[1]: False
+
+          In [2]: %reset -f in
+          Flushing input history
+
+          In [3]: %reset -f dhist in
+          Flushing directory history
+          Flushing input history
 
         Notes
         -----
@@ -1095,44 +1112,48 @@ Currently the magic system has the following functions:\n"""
 
         See Also
         --------
-        magic_reset
+        magic_reset : invoked as ``%reset``
 
         Examples
         --------
 
         We first fully reset the namespace so your output looks identical to
         this example for pedagogical reasons; in practice you do not need a
-        full reset.
+        full reset:
 
-        In [1]: %reset -f
+        .. sourcecode:: ipython
+
+          In [1]: %reset -f
 
         Now, with a clean namespace we can make a few variables and use
-        %reset_selective to only delete names that match our regexp:
+        ``%reset_selective`` to only delete names that match our regexp:
 
-        In [2]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
+        .. sourcecode:: ipython
 
-        In [3]: who_ls
-        Out[3]: ['a', 'b', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
+          In [2]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
 
-        In [4]: %reset_selective -f b[2-3]m
+          In [3]: who_ls
+          Out[3]: ['a', 'b', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
 
-        In [5]: who_ls
-        Out[5]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
+          In [4]: %reset_selective -f b[2-3]m
 
-        In [6]: %reset_selective -f d
+          In [5]: who_ls
+          Out[5]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
 
-        In [7]: who_ls
-        Out[7]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
+          In [6]: %reset_selective -f d
 
-        In [8]: %reset_selective -f c
+          In [7]: who_ls
+          Out[7]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
 
-        In [9]: who_ls
-        Out[9]: ['a', 'b', 'b1m', 'b2s', 'b4m']
+          In [8]: %reset_selective -f c
 
-        In [10]: %reset_selective -f b
+          In [9]: who_ls
+          Out[9]: ['a', 'b', 'b1m', 'b2s', 'b4m']
 
-        In [11]: who_ls
-        Out[11]: ['a']
+          In [10]: %reset_selective -f b
+
+          In [11]: who_ls
+          Out[11]: ['a']
 
         Notes
         -----
@@ -1456,7 +1477,9 @@ Currently the magic system has the following functions:\n"""
         '%run -p [prof_opts] filename.py [args to program]' where prof_opts
         contains profiler specific options as described here.
 
-        You can read the complete documentation for the profile module with::
+        You can read the complete documentation for the profile module with:
+
+        .. sourcecode:: ipython
 
           In [1]: import profile; profile.help()
         """
@@ -1607,6 +1630,8 @@ Currently the magic system has the following functions:\n"""
         run.  The final timing report will include total and per run results.
 
         For example (testing the script uniq_stable.py):
+
+        .. sourcecode:: ipython
 
             In [1]: run -t uniq_stable
 
@@ -1907,6 +1932,8 @@ Currently the magic system has the following functions:\n"""
 
         Examples:
 
+        .. sourcecode:: ipython
+
           In [1]: %timeit pass
           10000000 loops, best of 3: 53.3 ns per loop
 
@@ -2027,7 +2054,9 @@ Currently the magic system has the following functions:\n"""
         2.3, the timeit module offers more control and sophistication, so this
         could be rewritten to use it (patches welcome).
 
-        Some examples:
+        Examples
+        --------
+        .. sourcecode:: ipython
 
           In [1]: time 2**128
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
@@ -2135,7 +2164,7 @@ Currently the magic system has the following functions:\n"""
         Note: as a 'hidden' feature, you can also use traditional python slice
         notation, where N:M means numbers N through M-1.
 
-        For example, if your history contains (%hist prints it):
+        For example, if your history contains (%hist prints it)::
 
           44: x=1
           45: y=3
@@ -2146,6 +2175,8 @@ Currently the magic system has the following functions:\n"""
 
         you can create a macro with lines 44 through 47 (included) and line 49
         called my_macro with:
+
+        .. sourcecode:: ipython
 
           In [55]: %macro my_macro 44-47 49
 
@@ -2160,9 +2191,9 @@ Currently the magic system has the following functions:\n"""
         but IPython's display system checks for macros and executes them as
         code instead of printing them when you type their name.
 
-        You can view a macro's contents by explicitly printing it with:
+        You can view a macro's contents by explicitly printing it with::
 
-          'print macro_name'.
+          print macro_name
 
         """
         opts,args = self.parse_options(parameter_s,'r',mode='list')
@@ -2502,47 +2533,61 @@ Currently the magic system has the following functions:\n"""
         This is an example of creating a simple function inside the editor and
         then modifying it. First, start up the editor:
 
-        In [1]: ed
-        Editing... done. Executing edited code...
-        Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
+        .. sourcecode :: ipython
+
+          In [1]: ed
+          Editing... done. Executing edited code...
+          Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
 
         We can then call the function foo():
 
-        In [2]: foo()
-        foo() was defined in an editing session
+        .. sourcecode :: ipython
+
+          In [2]: foo()
+          foo() was defined in an editing session
 
         Now we edit foo.  IPython automatically loads the editor with the
         (temporary) file where foo() was previously defined:
 
-        In [3]: ed foo
-        Editing... done. Executing edited code...
+        .. sourcecode :: ipython
+
+          In [3]: ed foo
+          Editing... done. Executing edited code...
 
         And if we call foo() again we get the modified version:
 
-        In [4]: foo()
-        foo() has now been changed!
+        .. sourcecode :: ipython
+
+          In [4]: foo()
+          foo() has now been changed!
 
         Here is an example of how to edit a code snippet successive
         times. First we call the editor:
 
-        In [5]: ed
-        Editing... done. Executing edited code...
-        hello
-        Out[5]: "print 'hello'n"
+        .. sourcecode :: ipython
+
+          In [5]: ed
+          Editing... done. Executing edited code...
+          hello
+          Out[5]: "print 'hello'n"
 
         Now we call it again with the previous output (stored in _):
 
-        In [6]: ed _
-        Editing... done. Executing edited code...
-        hello world
-        Out[6]: "print 'hello world'n"
+        .. sourcecode :: ipython
+
+          In [6]: ed _
+          Editing... done. Executing edited code...
+          hello world
+          Out[6]: "print 'hello world'n"
 
         Now we call it with the output #8 (stored in _8, also as Out[8]):
 
-        In [7]: ed _8
-        Editing... done. Executing edited code...
-        hello again
-        Out[7]: "print 'hello again'n"
+        .. sourcecode :: ipython
+
+          In [7]: ed _8
+          Editing... done. Executing edited code...
+          hello again
+          Out[7]: "print 'hello again'n"
 
 
         Changing the default editor hook:
@@ -2715,12 +2760,16 @@ Defaulting color scheme to 'NoColor'"""
         You can use the %l specifier in an alias definition to represent the
         whole line when the alias is called.  For example:
 
+        .. sourcecode:: ipython
+
           In [2]: alias bracket echo "Input in brackets: <%l>"
           In [3]: bracket hello world
           Input in brackets: <hello world>
 
         You can also define aliases with parameters using %s specifiers (one
         per parameter):
+
+        .. sourcecode:: ipython
 
           In [1]: alias parts echo first %s second %s
           In [2]: %parts A B
@@ -2737,14 +2786,17 @@ Defaulting color scheme to 'NoColor'"""
         the semantic rules, see PEP-215:
         http://www.python.org/peps/pep-0215.html.  This is the library used by
         IPython for variable expansion.  If you want to access a true shell
-        variable, an extra $ is necessary to prevent its expansion by IPython:
+        variable, an extra $ is necessary to prevent its expansion by
+        IPython:
 
-        In [6]: alias show echo
-        In [7]: PATH='A Python string'
-        In [8]: show $PATH
-        A Python string
-        In [9]: show $$PATH
-        /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
+        .. sourcecode:: ipython
+
+          In [6]: alias show echo
+          In [7]: PATH='A Python string'
+          In [8]: show $PATH
+          A Python string
+          In [9]: show $$PATH
+          /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
         You can use the alias facility to acess all of $PATH.  See the %rehash
         and %rehashx functions, which automatically create aliases for the
@@ -2866,7 +2918,7 @@ Defaulting color scheme to 'NoColor'"""
 
         Examples
         --------
-        ::
+        .. sourcecode:: ipython
 
           In [9]: pwd
           Out[9]: '/home/tsuser/sprint/ipython'
@@ -2908,7 +2960,7 @@ Defaulting color scheme to 'NoColor'"""
 
         Examples
         --------
-        ::
+        .. sourcecode:: ipython
 
           In [10]: cd parent/child
           /home/tsuser/parent/child
@@ -3124,7 +3176,7 @@ Defaulting color scheme to 'NoColor'"""
 
         For example:
 
-        # all-random
+        .. sourcecode:: ipython
 
             # Capture into variable a
             In [1]: sc a=ls *py
@@ -3158,6 +3210,8 @@ Defaulting color scheme to 'NoColor'"""
         the sense that you can equally invoke the .s attribute on them to
         automatically get a whitespace-separated string from their contents:
 
+        .. sourcecode:: ipython
+
             In [7]: sc -l b=ls *py
 
             In [8]: b
@@ -3167,7 +3221,7 @@ Defaulting color scheme to 'NoColor'"""
             Out[9]: 'setup.py win32_manual_post_install.py'
 
         In summary, both the lists and strings used for output capture have
-        the following special attributes:
+        the following special attributes::
 
             .l (or .list) : value as list.
             .n (or .nlstr): value as newline-separated string.
@@ -3494,7 +3548,9 @@ Defaulting color scheme to 'NoColor'"""
         pylab and mlab, as well as all names from numpy and pylab.
 
         If you are using the inline matplotlib backend for embedded figures,
-        you can adjust its behavior via the %config magic::
+        you can adjust its behavior via the %config magic:
+
+        .. sourcecode:: ipython
 
             # enable SVG figures, necessary for SVG+XHTML export in the qtconsole
             In [1]: %config InlineBackend.figure_format = 'svg'
@@ -3514,7 +3570,9 @@ Defaulting color scheme to 'NoColor'"""
 
         Examples
         --------
-        In this case, where the MPL default is TkAgg::
+        In this case, where the MPL default is TkAgg:
+
+        .. sourcecode:: ipython
 
             In [2]: %pylab
 
@@ -3522,7 +3580,9 @@ Defaulting color scheme to 'NoColor'"""
             Backend in use: TkAgg
             For more information, type 'help(pylab)'.
 
-        But you can explicitly request a different backend::
+        But you can explicitly request a different backend:
+
+        .. sourcecode:: ipython
 
             In [3]: %pylab qt
 
@@ -3561,7 +3621,7 @@ Defaulting color scheme to 'NoColor'"""
 
         Examples
         --------
-        ::
+        .. sourcecode:: ipython
 
             In [1]: from math import pi
 
@@ -3679,7 +3739,9 @@ Defaulting color scheme to 'NoColor'"""
         Examples
         --------
         
-        To see what classes are available for config, pass no arguments::
+        To see what classes are available for config, pass no arguments:
+
+        .. sourcecode:: ipython
 
             In [1]: %config
             Available objects for config:
@@ -3691,7 +3753,9 @@ Defaulting color scheme to 'NoColor'"""
                 PromptManager
                 DisplayFormatter
 
-        To view what is configurable on a given class, just pass the class name::
+        To view what is configurable on a given class, just pass the class name:
+
+        .. sourcecode:: ipython
 
             In [2]: %config IPCompleter
             IPCompleter options
@@ -3715,11 +3779,15 @@ Defaulting color scheme to 'NoColor'"""
                 This will enable completion on elements of lists, results of function calls,
                 etc., but can be unsafe because the code is actually evaluated on TAB.
 
-        but the real use is in setting values::
+        but the real use is in setting values:
+
+        .. sourcecode:: ipython
 
             In [3]: %config IPCompleter.greedy = True
 
-        and these values are read from the user_ns if they are variables::
+        and these values are read from the user_ns if they are variables:
+
+        .. sourcecode:: ipython
 
             In [4]: feeling_greedy=False
 
