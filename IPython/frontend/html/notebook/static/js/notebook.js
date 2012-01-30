@@ -1191,7 +1191,7 @@ var IPython = (function (IPython) {
         // We may want to move the name/id/nbformat logic inside toJSON?
         var data = this.toJSON();
         data.metadata.name = nbname;
-        data.nbformat = 2;
+        data.nbformat = 3;
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,

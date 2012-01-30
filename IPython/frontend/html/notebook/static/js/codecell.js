@@ -824,6 +824,8 @@ var IPython = (function (IPython) {
             if (data.collapsed !== undefined) {
                 if (data.collapsed) {
                     this.collapse();
+                } else {
+                    this.expand();
                 };
             };
         };

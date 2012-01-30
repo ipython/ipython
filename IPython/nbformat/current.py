@@ -56,7 +56,7 @@ def parse_py(s, **kwargs):
     if m is not None:
         nbformat = int(m.group('nbformat'))
     else:
-        nbformat = 2
+        nbformat = 3
     return nbformat, s
 
 
@@ -65,16 +65,19 @@ def reads_json(s, **kwargs):
     nbformat, d = parse_json(s, **kwargs)
     if nbformat == 1:
         nb = v1.to_notebook_json(d, **kwargs)
-        nb = v2.convert_to_this_nbformat(nb, orig_version=1)
+        nb = v3.convert_to_this_nbformat(nb, orig_version=1)
     elif nbformat == 2:
         nb = v2.to_notebook_json(d, **kwargs)
+        nb = v3.convert_to_this_nbformat(nb, orig_version=2)
+    elif nbformat == 3:
+        nb = v3.to_notebook_json(d, **kwargs)
     else:
         raise NBFormatError('Unsupported JSON nbformat version: %i' % nbformat)
     return nb
 
 
 def writes_json(nb, **kwargs):
-    return v2.writes_json(nb, **kwargs)
+    return v3.writes_json(nb, **kwargs)
 
 
 def reads_py(s, **kwargs):
@@ -82,13 +85,15 @@ def reads_py(s, **kwargs):
     nbformat, s = parse_py(s, **kwargs)
     if nbformat == 2:
         nb = v2.to_notebook_py(s, **kwargs)
+    elif nbformat == 3:
+        nb = v3.to_notebook_py(s, **kwargs)
     else:
         raise NBFormatError('Unsupported PY nbformat version: %i' % nbformat)
     return nb
 
 
 def writes_py(nb, **kwargs):
-    return v2.writes_py(nb, **kwargs)
+    return v3.writes_py(nb, **kwargs)
 
 
 # High level API
