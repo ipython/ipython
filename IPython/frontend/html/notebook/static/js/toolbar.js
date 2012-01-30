@@ -108,6 +108,20 @@ var IPython = (function (IPython) {
                 IPython.notebook.to_code();
             } else if (cell_type === 'markdown')  {
                 IPython.notebook.to_markdown();
+            } else if (cell_type === 'plaintext')  {
+                IPython.notebook.to_plaintext();
+            } else if (cell_type === 'heading1')  {
+                IPython.notebook.to_heading(undefined, 1);
+            } else if (cell_type === 'heading2')  {
+                IPython.notebook.to_heading(undefined, 2);
+            } else if (cell_type === 'heading3')  {
+                IPython.notebook.to_heading(undefined, 3);
+            } else if (cell_type === 'heading4')  {
+                IPython.notebook.to_heading(undefined, 4);
+            } else if (cell_type === 'heading5')  {
+                IPython.notebook.to_heading(undefined, 5);
+            } else if (cell_type === 'heading6')  {
+                IPython.notebook.to_heading(undefined, 6);
             };
         });
 

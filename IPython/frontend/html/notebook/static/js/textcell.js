@@ -237,49 +237,109 @@ var IPython = (function (IPython) {
     };
 
 
-    // RSTCell
+    // PlaintextCell
 
-    var RSTCell = function (notebook) {
-        this.placeholder = "Type *ReStructured Text* and LaTeX: $\\alpha^2$";
+    var PlaintextCell = function (notebook) {
+        this.placeholder = "Type plain text and LaTeX: $\\alpha^2$";
+        this.code_mirror_mode = 'rst';
         IPython.TextCell.apply(this, arguments);
-        this.cell_type = 'rst';
+        this.cell_type = 'plaintext';
     };
 
 
-    RSTCell.prototype = new TextCell();
+    PlaintextCell.prototype = new TextCell();
 
 
-    RSTCell.prototype.render = function () {
-        if (this.rendered === false) {
-            var text = this.get_text();
-            if (text === "") { text = this.placeholder; }
-            var settings = {
-                processData : false,
-                cache : false,
-                type : "POST",
-                data : text,
-                headers : {'Content-Type': 'application/x-rst'},
-                success : $.proxy(this.handle_render,this)
-            };
-            $.ajax("/rstservice/render", settings);
-            this.element.find('div.text_cell_input').hide();
-            this.element.find("div.text_cell_render").show();
-            this.set_rendered("Rendering...");
+    PlaintextCell.prototype.render = function () {
+        this.rendered = true;
+        this.edit();
+    };
+
+
+    PlaintextCell.prototype.select = function () {
+        IPython.Cell.prototype.select.apply(this);
+        this.code_mirror.refresh();
+        this.code_mirror.focus();
+    };
+
+
+    PlaintextCell.prototype.at_top = function () {
+        var cursor = this.code_mirror.getCursor();
+        if (cursor.line === 0) {
+            return true;
+        } else {
+            return false;
         }
     };
 
 
-    RSTCell.prototype.handle_render = function (data, status, xhr) {
-        this.set_rendered(data);
-        this.typeset();
-        this.rendered = true;
+    PlaintextCell.prototype.at_bottom = function () {
+        var cursor = this.code_mirror.getCursor();
+        if (cursor.line === (this.code_mirror.lineCount()-1)) {
+            return true;
+        } else {
+            return false;
+        }
     };
 
+
+    // HTMLCell
+
+    var HeadingCell = function (notebook) {
+        this.placeholder = "Type Heading Here";
+        IPython.TextCell.apply(this, arguments);
+        this.cell_type = 'heading';
+        this.level = 1;
+    };
+
+
+    HeadingCell.prototype = new TextCell();
+
+
+    HeadingCell.prototype.set_level = function (level) {
+        this.level = level;
+        if (this.rendered) {
+            this.rendered = false;
+            this.render();
+        };
+    };
+
+
+    HeadingCell.prototype.get_level = function () {
+        return this.level;
+    };
+
+
+    HeadingCell.prototype.set_rendered = function (text) {
+        var r = this.element.find("div.text_cell_render");
+        r.empty();
+        r.append($('<h'+this.level+'/>').html(text));
+    };
+
+
+    HeadingCell.prototype.get_rendered = function () {
+        var r = this.element.find("div.text_cell_render");
+        return r.children().first().html();
+    };
+
+
+    HeadingCell.prototype.render = function () {
+        if (this.rendered === false) {
+            var text = this.get_text();
+            if (text === "") { text = this.placeholder; }
+            this.set_rendered(text);
+            this.typeset();
+            this.element.find('div.text_cell_input').hide();
+            this.element.find("div.text_cell_render").show();
+            this.rendered = true;
+        };
+    };
 
     IPython.TextCell = TextCell;
     IPython.HTMLCell = HTMLCell;
     IPython.MarkdownCell = MarkdownCell;
-    IPython.RSTCell = RSTCell;
+    IPython.PlaintextCell = PlaintextCell;
+    IPython.HeadingCell = HeadingCell;
 
 
     return IPython;
