@@ -663,7 +663,9 @@ def embed_kernel(module=None, local_ns=None):
 
 def main():
     """Run an IPKernel as an application"""
-    embed_kernel()
+    app = IPKernelApp.instance()
+    app.initialize()
+    app.start()
 
 
 if __name__ == '__main__':
