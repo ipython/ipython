@@ -47,7 +47,9 @@ from .frontend.terminal.embed import embed
 try:
     from .zmq.ipkernel import embed_kernel
 except ImportError:
-    pass
+    def embed_kernel(*args, **kwargs):
+        raise ImportError("IPython.embed_kernel requires pyzmq >= 2.14")
+
 from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell
 from .testing import test
