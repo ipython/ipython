@@ -660,7 +660,7 @@ def embed_kernel(module=None, local_ns=None):
     if local_ns is None:
         local_ns = caller_locals
     app = IPKernelApp.instance(user_module=module, user_ns=local_ns)
-    app.initialize()
+    app.initialize([])
     app.start()
 
 def main():
