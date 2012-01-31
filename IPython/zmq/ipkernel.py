@@ -70,6 +70,8 @@ class Kernel(Configurable):
     iopub_socket = Instance('zmq.Socket')
     stdin_socket = Instance('zmq.Socket')
     log = Instance(logging.Logger)
+    user_module = Instance('types.ModuleType')
+    user_ns     = Dict(default_value=None)
 
     # Private interface
 
@@ -100,7 +102,7 @@ class Kernel(Configurable):
 
 
 
-    def __init__(self, user_module=None, user_ns=None, **kwargs):
+    def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
 
         # Before we even start up the shell, register *first* our exit handlers
@@ -110,8 +112,8 @@ class Kernel(Configurable):
         # Initialize the InteractiveShell subclass
         self.shell = ZMQInteractiveShell.instance(config=self.config,
             profile_dir = self.profile_dir,
-            user_module=user_module,
-            user_ns=user_ns,
+            user_module = self.user_module,
+            user_ns     = self.user_ns,
         )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket
