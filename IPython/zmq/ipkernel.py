@@ -100,7 +100,7 @@ class Kernel(Configurable):
 
 
 
-    def __init__(self, **kwargs):
+    def __init__(self, user_module=None, user_ns=None, **kwargs):
         super(Kernel, self).__init__(**kwargs)
 
         # Before we even start up the shell, register *first* our exit handlers
@@ -110,6 +110,8 @@ class Kernel(Configurable):
         # Initialize the InteractiveShell subclass
         self.shell = ZMQInteractiveShell.instance(config=self.config,
             profile_dir = self.profile_dir,
+            user_module=user_module,
+            user_ns=user_ns,
         )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket
@@ -585,6 +587,8 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
                                 stdin_socket=self.stdin_socket,
                                 log=self.log,
                                 profile_dir=self.profile_dir,
+                                user_module=self.user_module,
+                                user_ns=self.user_ns,
         )
         self.kernel = kernel
         kernel.record_ports(self.ports)
@@ -639,12 +643,27 @@ def launch_kernel(*args, **kwargs):
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
                               *args, **kwargs)
 
+def caller_module_and_locals():
+    """Returns (module, locals) of the caller"""
+    caller = sys._getframe(1).f_back
+    global_ns = caller.f_globals
+    module = sys.modules[global_ns['__name__']]
+    return (module, caller.f_locals)
+
+def embed_kernel(module=None, local_ns=None):
+    """Call this to embed an IPython kernel at the current point in your program. """
+    (caller_module, caller_locals) = caller_module_and_locals()
+    if module is None:
+        module = caller_module
+    if local_ns is None:
+        local_ns = caller_locals
+    app = IPKernelApp.instance(user_module=module, user_ns=local_ns)
+    app.initialize()
+    app.start()
 
 def main():
     """Run an IPKernel as an application"""
-    app = IPKernelApp.instance()
-    app.initialize()
-    app.start()
+    embed_kernel()
 
 
 if __name__ == '__main__':
