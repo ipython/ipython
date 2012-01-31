@@ -43,11 +43,11 @@ def getdefaultencoding():
     return enc or sys.getdefaultencoding()
 
 def decode(s, encoding=None):
-    encoding = get_stream_enc(sys.stdin, encoding) or getdefaultencoding()
+    encoding = encoding or getdefaultencoding()
     return s.decode(encoding, "replace")
 
 def encode(u, encoding=None):
-    encoding = get_stream_enc(sys.stdin, encoding) or getdefaultencoding()
+    encoding = encoding or getdefaultencoding()
     return u.encode(encoding, "replace")
 
 
