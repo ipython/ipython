@@ -273,6 +273,13 @@ div.text_cell_render {
     font-family: monospace;
 }
 
+option.context {
+  background-color: #DEF7FF;
+}
+option.introspection {
+  background-color: #EBF4EB;
+}
+
 @-moz-keyframes fadeIn {
     from {opacity:0;}
     to {opacity:1;}
