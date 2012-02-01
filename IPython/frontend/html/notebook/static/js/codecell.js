@@ -79,11 +79,11 @@ var IPython = (function (IPython) {
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any
-        if(event.type === 'keydown' ){
+        if(event.type === 'keydown' ) {
             that.remove_and_cancel_tooltip();
-        }
-        
-         
+        };
+
+
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
@@ -136,7 +136,7 @@ var IPython = (function (IPython) {
                 this.completion_cursor = cur;
                 IPython.notebook.complete_cell(this, line, cur.ch);
                 return true;
-            }
+            };
         } else if (event.keyCode === 8 && event.type == 'keydown') {
             // If backspace and the line ends with 4 spaces, remove them.
             var cur = editor.getCursor();
@@ -151,13 +151,8 @@ var IPython = (function (IPython) {
                 return true;
             } else {
                 return false;
-            }
-        } else if (event.keyCode === 76 && event.ctrlKey && event.shiftKey
-                   && event.type == 'keydown') {
-            // toggle line numbers with Ctrl-Shift-L
-            this.toggle_line_numbers();
-        }
-        else {
+            };
+        } else {
             // keypress/keyup also trigger on TAB press, and we don't want to
             // use those to disable tab completion.
             if (this.is_completing && event.keyCode !== 9) {
@@ -166,8 +161,8 @@ var IPython = (function (IPython) {
                 if (ed_cur.line !== cc_cur.line || ed_cur.ch !== cc_cur.ch) {
                     this.is_completing = false;
                     this.completion_cursor = null;
-                }
-            }
+                };
+            };
             return false;
         };
         return false;
@@ -546,16 +541,6 @@ var IPython = (function (IPython) {
         select.dblclick(pick);
         select.blur(close);
         select.focus();
-    };
-
-
-    CodeCell.prototype.toggle_line_numbers = function () {
-        if (this.code_mirror.getOption('lineNumbers') == false) {
-            this.code_mirror.setOption('lineNumbers', true);
-        } else {
-            this.code_mirror.setOption('lineNumbers', false);
-        }
-        this.code_mirror.refresh();
     };
 
 
