@@ -64,8 +64,8 @@ def hex_to_rgb(color):
         return False
     try:
         r = int(color[:2],16)
-        g = int(color[:2],16)
-        b = int(color[:2],16)
+        g = int(color[2:4],16)
+        b = int(color[4:],16)
     except ValueError:
         return False
     else:
