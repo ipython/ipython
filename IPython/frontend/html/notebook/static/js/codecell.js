@@ -123,6 +123,10 @@ var IPython = (function (IPython) {
                 return false;
             } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && tooltip_on_tab ) {
                 that.request_tooltip_after_time(pre_cursor,0);
+                // Prevent the event from bubbling up.
+                event.stop();
+                // Prevent CodeMirror from handling the tab.
+                return true;
             } else {
                 pre_cursor.trim();
                 // Autocomplete the current line.
