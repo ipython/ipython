@@ -149,8 +149,10 @@ var CodeMirror = (function() {
         else if (option == "theme") themeChanged();
         else if (option == "lineWrapping" && oldVal != value) operation(wrappingChanged)();
         else if (option == "tabSize") operation(tabsChanged)();
-        if (option == "lineNumbers" || option == "gutter" || option == "firstLineNumber" || option == "theme")
+        if (option == "lineNumbers" || option == "gutter" || option == "firstLineNumber" || option == "theme") {
+          gutterChanged();
           updateDisplay(true);
+        }
       },
       getOption: function(option) {return options[option];},
       undo: operation(undo),
@@ -278,8 +280,8 @@ var CodeMirror = (function() {
         return index;
       },
       scrollTo: function(x, y) {
-        if (x != null) scroller.scrollTop = x;
-        if (y != null) scroller.scrollLeft = y;
+        if (x != null) scroller.scrollLeft = x;
+        if (y != null) scroller.scrollTop = y;
         updateDisplay([]);
       },
 
@@ -440,10 +442,10 @@ var CodeMirror = (function() {
         try {
           var text = e.dataTransfer.getData("Text");
           if (text) {
-	    var end = replaceRange(text, pos, pos);
-	    var curFrom = sel.from, curTo = sel.to;
-	    setSelectionUser(pos, end);
+            var curFrom = sel.from, curTo = sel.to;
+            setSelectionUser(pos, pos);
             if (draggingText) replaceRange("", curFrom, curTo);
+            replaceSelection(text);
 	    focusInput();
 	  }
         }
@@ -511,9 +513,9 @@ var CodeMirror = (function() {
       }
     }
     function onKeyPress(e) {
+      if (options.onKeyEvent && options.onKeyEvent(instance, addStop(e))) return;
       var keyCode = e_prop(e, "keyCode"), charCode = e_prop(e, "charCode");
       if (window.opera && keyCode == lastStoppedKey) {lastStoppedKey = null; e_preventDefault(e); return;}
-      if (options.onKeyEvent && options.onKeyEvent(instance, addStop(e))) return;
       if (window.opera && !e.which && handleKeyBinding(e)) return;
       if (options.electricChars && mode.electricChars && options.smartIndent && !options.readOnly) {
         var ch = String.fromCharCode(charCode == null ? keyCode : charCode);
@@ -565,20 +567,22 @@ var CodeMirror = (function() {
       }
       updateLinesNoUndo(from, to, newText, selFrom, selTo);
     }
-    function unredoHelper(from, to) {
-      var change = from.pop();
-      if (change) {
+    function unredoHelper(from, to, dir) {
+      var set = from.pop(), len = set ? set.length : 0, out = [];
+      for (var i = dir > 0 ? 0 : len - 1, e = dir > 0 ? len : -1; i != e; i += dir) {
+        var change = set[i];
         var replaced = [], end = change.start + change.added;
         doc.iter(change.start, end, function(line) { replaced.push(line.text); });
-        to.push({start: change.start, added: change.old.length, old: replaced});
+        out.push({start: change.start, added: change.old.length, old: replaced});
         var pos = clipPos({line: change.start + change.old.length - 1,
                            ch: editEnd(replaced[replaced.length-1], change.old[change.old.length-1])});
         updateLinesNoUndo({line: change.start, ch: 0}, {line: end - 1, ch: getLine(end-1).text.length}, change.old, pos, pos);
-        updateInput = true;
       }
+      updateInput = true;
+      to.push(out);
     }
-    function undo() {unredoHelper(history.done, history.undone);}
-    function redo() {unredoHelper(history.undone, history.done);}
+    function undo() {unredoHelper(history.done, history.undone, -1);}
+    function redo() {unredoHelper(history.undone, history.done, 1);}
 
     function updateLinesNoUndo(from, to, newText, selFrom, selTo) {
       if (suppressEdits) return;
@@ -780,7 +784,7 @@ var CodeMirror = (function() {
       if (!posEq(sel.from, sel.to)) {
         prevInput = "";
         input.value = getSelection();
-        input.select();
+        selectInput(input);
       } else if (user) prevInput = input.value = "";
     }
 
@@ -1537,7 +1541,7 @@ var CodeMirror = (function() {
       leaveInputAlone = true;
       var val = input.value = getSelection();
       focusInput();
-      input.select();
+      selectInput(input);
       function rehide() {
         var newVal = splitLines(input.value).join("\n");
         if (newVal != val) operation(replaceSelection)(newVal, "end");
@@ -2551,11 +2555,13 @@ var CodeMirror = (function() {
   History.prototype = {
     addChange: function(start, added, old) {
       this.undone.length = 0;
-      var time = +new Date, last = this.done[this.done.length - 1];
-      if (time - this.time > 400 || !last ||
-          last.start > start + added || last.start + last.added < start - last.added + last.old.length)
-        this.done.push({start: start, added: added, old: old});
-      else {
+      var time = +new Date, cur = this.done[this.done.length - 1], last = cur && cur[cur.length - 1];
+      var dtime = time - this.time;
+      if (dtime > 400 || !last) {
+        this.done.push([{start: start, added: added, old: old}]);
+      } else if (last.start > start + added || last.start + last.added < start - last.added + last.old.length) {
+        cur.push({start: start, added: added, old: old});
+      } else {
         var oldoff = 0;
         if (start < last.start) {
           for (var i = last.start - start - 1; i >= 0; --i)
