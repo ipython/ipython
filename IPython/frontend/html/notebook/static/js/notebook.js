@@ -95,7 +95,7 @@ var IPython = (function (IPython) {
             } else if (event.which === 13 && event.ctrlKey) {
                 that.execute_selected_cell({terminal:true});
                 return false;
-            } else if (event.which === 77 && event.ctrlKey) {
+            } else if (event.which === 77 && event.ctrlKey && that.control_key_active == false) {
                 that.control_key_active = true;
                 return false;
             } else if (event.which === 88 && that.control_key_active) {
