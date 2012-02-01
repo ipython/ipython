@@ -29,6 +29,7 @@ var IPython = (function (IPython) {
         this.notebook_id = null;
         this.notebook_name = null;
         this.notebook_name_blacklist_re = /[\/\\]/;
+        this.nbformat = 3 // Increment this when changing the nbformat
         this.style();
         this.create_elements();
         this.bind_events();
@@ -1222,7 +1223,7 @@ var IPython = (function (IPython) {
         // We may want to move the name/id/nbformat logic inside toJSON?
         var data = this.toJSON();
         data.metadata.name = this.notebook_name;
-        data.nbformat = 3;
+        data.nbformat = this.nbformat;
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1230,8 +1231,8 @@ var IPython = (function (IPython) {
             type : "PUT",
             data : JSON.stringify(data),
             headers : {'Content-Type': 'application/json'},
-            success : $.proxy(this.notebook_save_success,this),
-            error : $.proxy(this.notebook_save_failed,this)
+            success : $.proxy(this.save_notebook_success,this),
+            error : $.proxy(this.save_notebook_error,this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
         var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
@@ -1239,13 +1240,13 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.notebook_save_success = function (data, status, xhr) {
+    Notebook.prototype.save_notebook_success = function (data, status, xhr) {
         this.dirty = false;
         $([IPython.events]).trigger('notebook_saved.Notebook');
     };
 
 
-    Notebook.prototype.notebook_save_failed = function (xhr, status, error_msg) {
+    Notebook.prototype.save_notebook_error = function (xhr, status, error_msg) {
         $([IPython.events]).trigger('notebook_save_failed.Notebook');
     };
 
@@ -1259,9 +1260,8 @@ var IPython = (function (IPython) {
             cache : false,
             type : "GET",
             dataType : "json",
-            success : function (data, status, xhr) {
-                that.load_notebook_success(data, status, xhr);
-            }
+            success : $.proxy(this.load_notebook_success,this),
+            error : $.proxy(this.load_notebook_error,this),
         };
         $([IPython.events]).trigger('notebook_loading.Notebook');
         var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
@@ -1280,9 +1280,59 @@ var IPython = (function (IPython) {
         }
         this.select(0);
         this.scroll_to_top();
+        if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
+            msg = "This notebook has been converted from an older " +
+            "notebook format (v"+data.orig_nbformat+") to the current notebook " +
+            "format (v"+data.nbformat+"). The next time you save this notebook, the " +
+            "newer notebook format will be used and older verions of IPython " +
+            "may not be able to read it. To keep the older version, close the " +
+            "notebook without saving it.";
+            var dialog = $('<div/>');
+            dialog.html(msg);
+            this.element.append(dialog);
+            dialog.dialog({
+                resizable: false,
+                modal: true,
+                title: "Notebook converted",
+                closeText: "",
+                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                buttons : {
+                    "OK": function () {
+                        $(this).dialog('close');
+                    }
+                },
+                width: 400
+            });
+        }
         $([IPython.events]).trigger('notebook_loaded.Notebook');
     };
 
+
+    Notebook.prototype.load_notebook_error = function (xhr, textStatus, errorThrow) {
+        if (xhr.status === 500) {
+            msg = "An error occurred while loading this notebook. Most likely " +
+            "this notebook is in a newer format than is supported by this " +
+            "version of IPython. This version can load notebook formats " +
+            "v"+this.nbformat+" or earlier.";
+            var dialog = $('<div/>');
+            dialog.html(msg);
+            this.element.append(dialog);
+            dialog.dialog({
+                resizable: false,
+                modal: true,
+                title: "Error loading notebook",
+                closeText: "",
+                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                buttons : {
+                    "OK": function () {
+                        $(this).dialog('close');
+                    }
+                },
+                width: 400
+            });
+        }
+    }
+    
     IPython.Notebook = Notebook;
 
 

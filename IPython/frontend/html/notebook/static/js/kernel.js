@@ -106,8 +106,10 @@ var IPython = (function (IPython) {
             resizable: false,
             modal: true,
             title: "Websocket closed",
+            closeText: "",
+            close: function(event, ui) {$(this).dialog('destroy').remove();},
             buttons : {
-                "Okay": function () {
+                "OK": function () {
                     $(this).dialog('close');
                 }
             }

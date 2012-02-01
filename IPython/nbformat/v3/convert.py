@@ -40,6 +40,9 @@ def convert_to_this_nbformat(nb, orig_version=2):
         nb = v2.convert_to_this_nbformat(nb)
         orig_version = 2
     if orig_version == 2:
+        # Mark the original nbformat so consumers know it has been converted.
+        nb.nbformat = 3
+        nb.orig_nbformat = 2
         return nb
     elif orig_version == 3:
         return nb
