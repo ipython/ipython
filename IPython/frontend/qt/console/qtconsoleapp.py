@@ -190,6 +190,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         kernel_manager.start_channels()
         widget = self.widget_factory(config=self.config,
                                    local_kernel=True)
+        self.init_colors(widget)
         widget.kernel_manager = kernel_manager
         widget._existing = False
         widget._may_close = True
@@ -212,6 +213,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         kernel_manager.start_channels()
         widget = self.widget_factory(config=self.config,
                                 local_kernel=False)
+        self.init_colors(widget)
         widget._existing = True
         widget._may_close = False
         widget._confirm_exit = False
@@ -230,6 +232,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         local_kernel = (not self.existing) or self.ip in LOCAL_IPS
         self.widget = self.widget_factory(config=self.config,
                                         local_kernel=local_kernel)
+        self.init_colors(self.widget)
         self.widget._existing = self.existing
         self.widget._may_close = not self.existing
         self.widget._confirm_exit = self.confirm_exit
@@ -246,7 +249,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
         self.window.setWindowTitle('Python' if self.pure else 'IPython')
 
-    def init_colors(self):
+    def init_colors(self, widget):
         """Configure the coloring of the widget"""
         # Note: This will be dramatically simplified when colors
         # are removed from the backend.
@@ -264,6 +267,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
             style = self.config.IPythonWidget.syntax_style
         except AttributeError:
             style = None
+        try:
+            sheet = self.config.IPythonWidget.style_sheet
+        except AttributeError:
+            sheet = None
 
         # find the value for colors:
         if colors:
@@ -284,30 +291,27 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         else:
             colors=None
 
-        # Configure the style.
-        widget = self.widget
+        # Configure the style
         if style:
             widget.style_sheet = styles.sheet_from_template(style, colors)
             widget.syntax_style = style
             widget._syntax_style_changed()
             widget._style_sheet_changed()
         elif colors:
-            # use a default style
+            # use a default dark/light/bw style
             widget.set_default_style(colors=colors)
-        else:
-            # this is redundant for now, but allows the widget's
-            # defaults to change
-            widget.set_default_style()
 
         if self.stylesheet:
-            # we got an expicit stylesheet
+            # we got an explicit stylesheet
             if os.path.isfile(self.stylesheet):
                 with open(self.stylesheet) as f:
                     sheet = f.read()
-                widget.style_sheet = sheet
-                widget._style_sheet_changed()
             else:
-                raise IOError("Stylesheet %r not found."%self.stylesheet)
+                raise IOError("Stylesheet %r not found." % self.stylesheet)
+        if sheet:
+            widget.style_sheet = sheet
+            widget._style_sheet_changed()
+            
 
     def init_signal(self):
         """allow clean shutdown on sigint"""
@@ -327,7 +331,6 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         super(IPythonQtConsoleApp, self).initialize(argv)
         IPythonConsoleApp.initialize(self,argv)
         self.init_qt_elements()
-        self.init_colors()
         self.init_signal()
 
     def start(self):
