@@ -26,6 +26,9 @@ var IPython = (function (IPython) {
         this.msg_cell_map = {};
         this.metadata = {};
         this.control_key_active = false;
+        this.notebook_id = null;
+        this.notebook_name = null;
+        this.notebook_name_blacklist_re = /[\/\\]/;
         this.style();
         this.create_elements();
         this.bind_events();
@@ -66,7 +69,7 @@ var IPython = (function (IPython) {
             // Save (CTRL+S) or (AppleKey+S) 
             //metaKey = applekey on mac
             if ((event.ctrlKey || event.metaKey) && event.keyCode==83) { 
-                IPython.save_widget.save_notebook();
+                that.save_notebook();
                 event.preventDefault();
                 return false;
             } else if (event.which === 27) {
@@ -177,7 +180,7 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 83 && that.control_key_active) {
                 // Save notebook = s
-                IPython.save_widget.save_notebook();
+                that.save_notebook();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 74 && that.control_key_active) {
@@ -207,12 +210,12 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 73 && that.control_key_active) {
                 // Interrupt kernel = i
-                IPython.notebook.kernel.interrupt();
+                that.kernel.interrupt();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 190 && that.control_key_active) {
                 // Restart kernel = .  # matches qt console
-                IPython.notebook.restart_kernel();
+                that.restart_kernel();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 72 && that.control_key_active) {
@@ -402,10 +405,14 @@ var IPython = (function (IPython) {
             var cell = this.get_cell(index)
             cell.select();
             if (cell.cell_type === 'heading') {
-                IPython.toolbar.set_cell_type(cell.cell_type+cell.level);
+                $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
+                    {'cell_type':cell.cell_type,level:cell.level}
+                );
             } else {
-                IPython.toolbar.set_cell_type(cell.cell_type)
-            }
+                $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
+                    {'cell_type':cell.cell_type}
+                );
+            };
         };
         return this;
     };
@@ -676,7 +683,9 @@ var IPython = (function (IPython) {
                 source_element.remove();
                 this.dirty = true;
             };
-            IPython.toolbar.set_cell_type("heading"+level);
+            $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
+                {'cell_type':'heading',level:level}
+            );
         };
     };
 
@@ -880,15 +889,12 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.start_kernel = function () {
         this.kernel = new IPython.Kernel();
-        var notebook_id = IPython.save_widget.get_notebook_id();
-        this.kernel.start(notebook_id, $.proxy(this.kernel_started, this));
+        this.kernel.start(this.notebook_id, $.proxy(this.kernel_started, this));
     };
 
 
     Notebook.prototype.restart_kernel = function () {
         var that = this;
-        var notebook_id = IPython.save_widget.get_notebook_id();
-
         var dialog = $('<div/>');
         dialog.html('Do you want to restart the current kernel?  You will lose all variables defined in it.');
         $(document).append(dialog);
@@ -976,8 +982,8 @@ var IPython = (function (IPython) {
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type !== 'status' && !cell){
             // message not from this notebook, but should be attached to a cell
-            console.log("Received IOPub message not caused by one of my cells");
-            console.log(reply);
+            // console.log("Received IOPub message not caused by one of my cells");
+            // console.log(reply);
             return;
         }
         var output_types = ['stream','display_data','pyout','pyerr'];
@@ -985,9 +991,10 @@ var IPython = (function (IPython) {
             this.handle_output(cell, msg_type, content);
         } else if (msg_type === 'status') {
             if (content.execution_state === 'busy') {
+                $([IPython.events]).trigger('status_busy.Kernel');
                 IPython.kernel_status_widget.status_busy();
             } else if (content.execution_state === 'idle') {
-                IPython.kernel_status_widget.status_idle();
+                $([IPython.events]).trigger('status_idle.Kernel');
             } else if (content.execution_state === 'dead') {
                 this.handle_status_dead();
             };
@@ -1142,7 +1149,32 @@ var IPython = (function (IPython) {
         this.msg_cell_map[msg_id] = cell.cell_id;
     };
 
+
     // Persistance and loading
+
+    Notebook.prototype.get_notebook_id = function () {
+        return this.notebook_id;
+    };
+
+
+    Notebook.prototype.get_notebook_name = function () {
+        return this.notebook_name;
+    };
+
+
+    Notebook.prototype.set_notebook_name = function (name) {
+        this.notebook_name = name;
+    };
+
+
+    Notebook.prototype.test_notebook_name = function (nbname) {
+        nbname = nbname || '';
+        if (this.notebook_name_blacklist_re.test(nbname) == false && nbname.length>0) {
+            return true;
+        } else {
+            return false;
+        };
+    };
 
 
     Notebook.prototype.fromJSON = function (data) {
@@ -1152,8 +1184,9 @@ var IPython = (function (IPython) {
             // Always delete cell 0 as they get renumbered as they are deleted.
             this.delete_cell(0);
         };
-        // Save the metadata
+        // Save the metadata and name.
         this.metadata = data.metadata;
+        this.notebook_name = data.metadata.name;
         // Only handle 1 worksheet for now.
         var worksheet = data.worksheets[0];
         if (worksheet !== undefined) {
@@ -1186,11 +1219,9 @@ var IPython = (function (IPython) {
     };
 
     Notebook.prototype.save_notebook = function () {
-        var notebook_id = IPython.save_widget.get_notebook_id();
-        var nbname = IPython.save_widget.get_notebook_name();
         // We may want to move the name/id/nbformat logic inside toJSON?
         var data = this.toJSON();
-        data.metadata.name = nbname;
+        data.metadata.name = this.notebook_name;
         data.nbformat = 3;
         // We do the call with settings so we can set cache to false.
         var settings = {
@@ -1199,30 +1230,29 @@ var IPython = (function (IPython) {
             type : "PUT",
             data : JSON.stringify(data),
             headers : {'Content-Type': 'application/json'},
-            success : $.proxy(this.notebook_saved,this),
+            success : $.proxy(this.notebook_save_success,this),
             error : $.proxy(this.notebook_save_failed,this)
         };
-        IPython.save_widget.status_saving();
-        var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
+        $([IPython.events]).trigger('notebook_saving.Notebook');
+        var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
         $.ajax(url, settings);
     };
 
 
-    Notebook.prototype.notebook_saved = function (data, status, xhr) {
+    Notebook.prototype.notebook_save_success = function (data, status, xhr) {
         this.dirty = false;
-        IPython.save_widget.notebook_saved();
-        IPython.save_widget.status_last_saved();
+        $([IPython.events]).trigger('notebook_saved.Notebook');
     };
 
 
     Notebook.prototype.notebook_save_failed = function (xhr, status, error_msg) {
-        IPython.save_widget.status_save_failed();
+        $([IPython.events]).trigger('notebook_save_failed.Notebook');
     };
 
 
-    Notebook.prototype.load_notebook = function () {
+    Notebook.prototype.load_notebook = function (notebook_id) {
         var that = this;
-        var notebook_id = IPython.save_widget.get_notebook_id();
+        this.notebook_id = notebook_id;
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1230,30 +1260,27 @@ var IPython = (function (IPython) {
             type : "GET",
             dataType : "json",
             success : function (data, status, xhr) {
-                that.notebook_loaded(data, status, xhr);
+                that.load_notebook_success(data, status, xhr);
             }
         };
-        IPython.save_widget.status_loading();
-        var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
+        $([IPython.events]).trigger('notebook_loading.Notebook');
+        var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
         $.ajax(url, settings);
     };
 
 
-    Notebook.prototype.notebook_loaded = function (data, status, xhr) {
+    Notebook.prototype.load_notebook_success = function (data, status, xhr) {
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
         };
-        IPython.save_widget.status_last_saved();
-        IPython.save_widget.set_notebook_name(data.metadata.name);
         this.dirty = false;
         if (! this.read_only) {
             this.start_kernel();
         }
         this.select(0);
         this.scroll_to_top();
-        IPython.save_widget.update_url();
-        IPython.layout_manager.do_resize();
+        $([IPython.events]).trigger('notebook_loaded.Notebook');
     };
 
     IPython.Notebook = Notebook;

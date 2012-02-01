@@ -62,7 +62,7 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype.restart = function (callback) {
-        IPython.kernel_status_widget.status_restarting();
+        $([IPython.events]).trigger('status_restarting.Kernel');
         var url = this.kernel_url + "/restart";
         var that = this;
         if (this.running) {
@@ -84,20 +84,19 @@ var IPython = (function (IPython) {
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this.start_channels();
         callback();
-        IPython.kernel_status_widget.status_idle();
     };
 
     Kernel.prototype._websocket_closed = function(ws_url, early){
         var msg;
         var parent_item = $('body');
         if (early) {
-            msg = "Websocket connection to " + ws_url + " could not be established.<br/>" +
-            " You will NOT be able to run code.<br/>" +
+            msg = "Websocket connection to " + ws_url + " could not be established." +
+            " You will NOT be able to run code." +
             " Your browser may not be compatible with the websocket version in the server," +
             " or if the url does not look right, there could be an error in the" +
             " server's configuration.";
         } else {
-            msg = "Websocket connection closed unexpectedly.<br/>" +
+            msg = "Websocket connection closed unexpectedly." +
             " The kernel will no longer be responsive.";
         }
         var dialog = $('<div/>');
@@ -211,6 +210,7 @@ var IPython = (function (IPython) {
 
     Kernel.prototype.interrupt = function () {
         if (this.running) {
+            $([IPython.events]).trigger('status_interrupting.Kernel');
             $.post(this.kernel_url + "/interrupt");
         };
     };

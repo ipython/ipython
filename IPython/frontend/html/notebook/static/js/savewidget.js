@@ -15,8 +15,6 @@ var IPython = (function (IPython) {
 
     var SaveWidget = function (selector) {
         this.selector = selector;
-        this.notebook_name_blacklist_re = /[\/\\]/;
-        this.last_saved_name = '';
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
@@ -43,11 +41,19 @@ var IPython = (function (IPython) {
         }, function () {
             $(this).removeClass("ui-state-hover");
         });
-    };
-
-
-    SaveWidget.prototype.save_notebook = function () {
-        IPython.notebook.save_notebook();
+        $([IPython.events]).on('notebook_loaded.Notebook', function () {
+            that.set_last_saved();
+            that.update_notebook_name();
+            that.update_document_title();
+        });
+        $([IPython.events]).on('notebook_saved.Notebook', function () {
+            that.set_last_saved();
+            that.update_notebook_name();
+            that.update_document_title();
+        });
+        $([IPython.events]).on('notebook_save_failed.Notebook', function () {
+            that.set_save_status('');
+        });
     };
 
 
@@ -61,7 +67,7 @@ var IPython = (function (IPython) {
         dialog.append(
             $('<input/>').attr('type','text').attr('size','25')
             .addClass('ui-widget ui-widget-content')
-            .attr('value',that.get_notebook_name())
+            .attr('value',IPython.notebook.get_notebook_name())
         );
         // $(document).append(dialog);
         dialog.dialog({
@@ -73,15 +79,15 @@ var IPython = (function (IPython) {
             buttons : {
                 "OK": function () {
                     var new_name = $(this).find('input').attr('value');
-                    if (!that.test_notebook_name(new_name)) {
+                    if (!IPython.notebook.test_notebook_name(new_name)) {
                         $(this).find('h3').html(
                             "Invalid notebook name. Notebook names must "+
                             "have 1 or more characters and can contain any characters " +
                             "except / and \\. Please enter a new notebook name:"
                         );
                     } else {
-                        that.set_notebook_name(new_name);
-                        that.save_notebook();
+                        IPython.notebook.set_notebook_name(new_name);
+                        IPython.notebook.save_notebook();
                         $(this).dialog('close');
                     }
                 },
@@ -92,82 +98,36 @@ var IPython = (function (IPython) {
         });
     }
 
-    SaveWidget.prototype.notebook_saved = function () {
-        this.set_document_title();
-        this.last_saved_name = this.get_notebook_name();
-    };
 
-
-    SaveWidget.prototype.get_notebook_name = function () {
-        return this.element.find('span#notebook_name').html();
-    };
-
-
-    SaveWidget.prototype.set_notebook_name = function (nbname) {
+    SaveWidget.prototype.update_notebook_name = function () {
+        var nbname = IPython.notebook.get_notebook_name();
         this.element.find('span#notebook_name').html(nbname);
-        this.set_document_title();
-        this.last_saved_name = nbname;
     };
 
 
-    SaveWidget.prototype.set_document_title = function () {
-        nbname = this.get_notebook_name();
+    SaveWidget.prototype.update_document_title = function () {
+        var nbname = IPython.notebook.get_notebook_name();
         document.title = nbname;
-    };
-        
-
-    SaveWidget.prototype.get_notebook_id = function () {
-        return $('body').data('notebookId');
     };
 
 
     SaveWidget.prototype.update_url = function () {
-        var notebook_id = this.get_notebook_id();
-        if (notebook_id !== '') {
+        var notebook_id = IPython.notebook.get_notebook_id();
+        if (notebook_id !== null) {
             var new_url = $('body').data('baseProjectUrl') + notebook_id;
             window.history.replaceState({}, '', new_url);
         };
     };
 
 
-    SaveWidget.prototype.test_notebook_name = function (nbname) {
-        nbname = nbname || '';
-        if (this.notebook_name_blacklist_re.test(nbname) == false && nbname.length>0) {
-            return true;
-        } else {
-            return false;
-        };
-    };
+    SaveWidget.prototype.set_save_status = function (msg) {
+        this.element.find('span#save_status').html(msg);
+    }
 
 
     SaveWidget.prototype.set_last_saved = function () {
         var d = new Date();
-        $('#save_status').html('Last saved: '+d.format('mmm dd h:MM TT'));
-        
-    };
-
-    SaveWidget.prototype.reset_status = function () {
-        this.element.find('span#save_status').html('');
-    };
-
-
-    SaveWidget.prototype.status_last_saved = function () {
-        this.set_last_saved();
-    };
-
-
-    SaveWidget.prototype.status_saving = function () {
-        this.element.find('span#save_status').html('Saving...');
-    };
-
-
-    SaveWidget.prototype.status_save_failed = function () {
-        this.element.find('span#save_status').html('Save failed');
-    };
-
-
-    SaveWidget.prototype.status_loading = function () {
-        this.element.find('span#save_status').html('Loading...');
+        this.set_save_status('Last saved: '+d.format('mmm dd h:MM TT'));
     };
 
 
