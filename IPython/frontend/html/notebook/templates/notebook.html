@@ -1,5 +1,4 @@
 {% extends page.html %}
-
 {% block stylesheet %}
 
 {% if mathjax_url %}
@@ -220,6 +219,7 @@ data-notebook-id={{notebook_id}}
 <script src="{{ static_url("js/initmathjax.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/completer.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/textcell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/savewidget.js") }}" type="text/javascript" charset="utf-8"></script>
@@ -230,6 +230,9 @@ data-notebook-id={{notebook_id}}
 <script src="{{ static_url("js/notebook.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notificationwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
+
+<script src="{{ static_url("js/context-hint.js") }} charset="utf-8"></script>
+<script src="{{ static_url("codemirror/lib/util/simple-hint.js") }} charset="utf-8"></script>
 
 {% end %}
 

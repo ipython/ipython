@@ -10,7 +10,6 @@
 //============================================================================
 
 var IPython = (function (IPython) {
-
     var utils = IPython.utils;
 
     var CodeCell = function (notebook) {
@@ -23,6 +22,8 @@ var IPython = (function (IPython) {
         this.tooltip_timeout = null;
         this.clear_out_timeout = null;
         IPython.Cell.apply(this, arguments);
+        var that = this;
+        this.ccc = new IPython.Completer(function(ed, callback){that.requestCompletion(ed, callback)});
     };
 
 
@@ -40,8 +41,11 @@ var IPython = (function (IPython) {
             mode: 'python',
             theme: 'ipython',
             readOnly: this.read_only,
-            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
+            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this),
         });
+        var that = this;
+        ccm = this.code_mirror;
+        ccc = this.ccc;
         input.append(input_area);
         var output = $('<div></div>').addClass('output vbox');
         cell.append(input).append(output);
@@ -129,13 +133,9 @@ var IPython = (function (IPython) {
                 // Prevent CodeMirror from handling the tab.
                 return true;
             } else {
-                pre_cursor.trim();
-                // Autocomplete the current line.
                 event.stop();
-                var line = editor.getLine(cur.line);
-                this.is_completing = true;
-                this.completion_cursor = cur;
-                IPython.notebook.complete_cell(this, line, cur.ch);
+                this.ccc.startCompletionFor(this.code_mirror);
+
                 return true;
             };
         } else if (event.keyCode === 8 && event.type == 'keydown') {
@@ -263,285 +263,39 @@ var IPython = (function (IPython) {
     };
 
     // As you type completer
+    CodeCell.prototype.requestCompletion= function(ed,callback)
+    {
+        this._compcallback = callback;
+        this._editor = ed;
+        var cur = ed.getCursor();
+        var pre_cursor = this.code_mirror.getRange({line:cur.line,ch:0},cur);
+        pre_cursor.trim();
+        // Autocomplete the current line.
+        var line = this.code_mirror.getLine(cur.line);
+        this.is_completing = true;
+        this.completion_cursor = cur;
+        IPython.notebook.complete_cell(this, line, cur.ch);
+    }
+
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
-        if(matched_text[0]=='%'){
-            completing_from_magic = true;
-            completing_to_magic = false;
-        } else {
-            completing_from_magic = false;
-            completing_to_magic = false;
-        }
-        //return if not completing or nothing to complete
-        if (!this.is_completing || matches.length === 0) {return;}
-
-        // for later readability
-        var key = { tab:9,
-                    esc:27,
-                    backspace:8,
-                    space:32,
-                    shift:16,
-                    enter:13,
-                    // _ is 95
-                    isCompSymbol : function (code)
-                        {
-                        return (code > 64 && code <= 90)
-                            || (code >= 97 && code <= 122)
-                            || (code == 95)
-                        },
-                    dismissAndAppend : function (code)
-                        {
-                        chararr = '()[]+-/\\. ,=*'.split("");
-                        codearr = chararr.map(function(x){return x.charCodeAt(0)});
-                        return jQuery.inArray(code, codearr) != -1;
-                        }
-
-                    }
-
-        // smart completion, sort kwarg ending with '='
-        var newm = new Array();
-        if(this.notebook.smart_completer)
+        // let's build a function that wrap all that stuff into what is needed for the
+        // new completer:
+        //
+        var cur = this._editor.getCursor();
+        res = CodeMirror.contextHint(this._editor);
+        for( i=0; i< matches.length ; i++)
         {
-            kwargs = new Array();
-            other = new Array();
-            for(var i = 0 ; i<matches.length ; ++i){
-                if(matches[i].substr(-1) === '='){
-                    kwargs.push(matches[i]);
-                }else{other.push(matches[i]);}
-            }
-            newm = kwargs.concat(other);
-            matches = newm;
-        }
-        // end sort kwargs
-
-        // give common prefix of a array of string
-        function sharedStart(A){
-            shared='';
-            if(A.length == 1){shared=A[0]}
-            if(A.length > 1 ){
-                var tem1, tem2, s, A = A.slice(0).sort();
-                tem1 = A[0];
-                s = tem1.length;
-                tem2 = A.pop();
-                while(s && tem2.indexOf(tem1) == -1){
-                    tem1 = tem1.substring(0, --s);
-                }
-                shared = tem1;
-            }
-            if (shared[0] == '%' && !completing_from_magic)
-            {
-                shared = shared.substr(1);
-                return [shared, true];
-            } else {
-                return [shared, false];
-            }
-        }
-
-
-        //try to check if the user is typing tab at least twice after a word
-        // and completion is "done"
-        fallback_on_tooltip_after = 2
-        if(matches.length == 1 && matched_text === matches[0])
-        {
-            if(this.npressed >fallback_on_tooltip_after  && this.prevmatch==matched_text)
-            {
-                this.request_tooltip_after_time(matched_text+'(',0);
-                return;
-            }
-            this.prevmatch = matched_text
-            this.npressed = this.npressed+1;
-        }
-        else
-        {
-            this.prevmatch = "";
-            this.npressed = 0;
-        }
-        // end fallback on tooltip
-        //==================================
-        // Real completion logic start here
-        var that = this;
-        var cur = this.completion_cursor;
-        var done = false;
-
-        // call to dismmiss the completer
-        var close = function () {
-            if (done) return;
-            done = true;
-            if (complete != undefined)
-            {complete.remove();}
-            that.is_completing = false;
-            that.completion_cursor = null;
-        };
-
-        // update codemirror with the typed text
-        prev = matched_text
-        var update = function (inserted_text, event) {
-            that.code_mirror.replaceRange(
-                inserted_text,
-                {line: cur.line, ch: (cur.ch-matched_text.length)},
-                {line: cur.line, ch: (cur.ch+prev.length-matched_text.length)}
-            );
-            prev = inserted_text
-            if(event != null){
-                event.stopPropagation();
-                event.preventDefault();
-            }
-        };
-        // insert the given text and exit the completer
-        var insert = function (selected_text, event) {
-            update(selected_text)
-            close();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
-        };
-
-        // insert the curent highlited selection and exit
-        var pick = function () {
-            insert(select.val()[0],null);
-        };
-
-
-        // Define function to clear the completer, refill it with the new
-        // matches, update the pseuso typing field. autopick insert match if
-        // only one left, in no matches (anymore) dismiss itself by pasting
-        // what the user have typed until then
-        var complete_with = function(matches,typed_text,autopick,event)
-        {
-            // If autopick an only one match, past.
-            // Used to 'pick' when pressing tab
-            var prefix = '';
-            if(completing_to_magic && !completing_from_magic)
-            {
-                prefix='%';
-            }
-            if (matches.length < 1) {
-                insert(prefix+typed_text,event);
-                if(event != null){
-                event.stopPropagation();
-                event.preventDefault();
-                }
-            } else if (autopick && matches.length == 1) {
-                insert(matches[0],event);
-                if(event != null){
-                event.stopPropagation();
-                event.preventDefault();
-                }
-                return;
-            }
-            //clear the previous completion if any
-            update(prefix+typed_text,event);
-            complete.children().children().remove();
-            $('#asyoutype').html("<b>"+prefix+matched_text+"</b>"+typed_text.substr(matched_text.length));
-            select = $('#asyoutypeselect');
-            for (var i = 0; i<matches.length; ++i) {
-                    select.append($('<option/>').html(matches[i]));
-            }
-            select.children().first().attr('selected','true');
-        }
-
-        // create html for completer
-        var complete = $('<div/>').addClass('completions');
-            complete.attr('id','complete');
-        complete.append($('<p/>').attr('id', 'asyoutype').html('<b>fixed part</b>user part'));//pseudo input field
-
-        var select = $('<select/>').attr('multiple','true');
-            select.attr('id', 'asyoutypeselect')
-            select.attr('size',Math.min(10,matches.length));
-        var pos = this.code_mirror.cursorCoords();
-
-        // TODO: I propose to remove enough horizontal pixel
-        // to align the text later
-        complete.css('left',pos.x+'px');
-        complete.css('top',pos.yBot+'px');
-        complete.append(select);
-
-        $('body').append(complete);
-
-        // So a first actual completion.  see if all the completion start wit
-        // the same letter and complete if necessary
-        ff = sharedStart(matches)
-        fastForward = ff[0];
-        completing_to_magic = ff[1];
-        typed_characters = fastForward.substr(matched_text.length);
-        complete_with(matches,matched_text+typed_characters,true,null);
-        filterd = matches;
-        // Give focus to select, and make it filter the match as the user type
-        // by filtering the previous matches. Called by .keypress and .keydown
-        var downandpress = function (event,press_or_down) {
-            var code = event.which;
-            var autopick = false; // auto 'pick' if only one match
-            if (press_or_down === 0){
-                press = true; down = false; //Are we called from keypress or keydown
-            } else if (press_or_down == 1){
-                press = false; down = true;
-            }
-            if (code === key.shift) {
-                // nothing on Shift
-                return;
-            }
-            if (key.dismissAndAppend(code) && press) {
-                var newchar = String.fromCharCode(code);
-                typed_characters = typed_characters+newchar;
-                insert(matched_text+typed_characters,event);
-                return
-            }
-            if (code === key.enter) {
-                // Pressing ENTER will cause a pick
-                event.stopPropagation();
-                event.preventDefault();
-                pick();
-            } else if (code === 38 || code === 40) {
-                // We don't want the document keydown handler to handle UP/DOWN,
-                // but we want the default action.
-                event.stopPropagation();
-            } else if ( (code == key.backspace)||(code == key.tab && down) || press  || key.isCompSymbol(code)){
-                if( key.isCompSymbol(code) && press)
+            res.push(
                 {
-                    var newchar = String.fromCharCode(code);
-                    typed_characters = typed_characters+newchar;
-                } else if (code == key.tab) {
-                    ff = sharedStart(matches)
-                    fastForward = ff[0];
-                    completing_to_magic = ff[1];
-                    ffsub = fastForward.substr(matched_text.length+typed_characters.length);
-                    typed_characters = typed_characters+ffsub;
-                    autopick = true;
-                } else if (code == key.backspace && down) {
-                    // cancel if user have erase everything, otherwise decrease
-                    // what we filter with
-                    event.preventDefault();
-                    if (typed_characters.length <= 0)
-                    {
-                        insert(matched_text,event)
-                        return
-                    }
-                    typed_characters = typed_characters.substr(0,typed_characters.length-1);
-                } else if (press && code != key.backspace && code != key.tab && code != 0){
-                    insert(matched_text+typed_characters,event);
-                    return
-                } else {
-                    return
+                    str  : matches[i],
+                    type : "introspection",
+                    from : {line: cur.line, ch: cur.ch-matched_text.length},
+                    to   : {line: cur.line, ch: cur.ch}
                 }
-                re = new RegExp("^"+"\%?"+matched_text+typed_characters,"");
-                filterd = matches.filter(function(x){return re.test(x)});
-                ff = sharedStart(filterd);
-                completing_to_magic = ff[1];
-                complete_with(filterd,matched_text+typed_characters,autopick,event);
-            } else if (code == key.esc) {
-                // dismiss the completer and go back to before invoking it
-                insert(matched_text,event);
-            } else if (press) { // abort only on .keypress or esc
-            }
+            )
         }
-        select.keydown(function (event) {
-            downandpress(event,1)
-        });
-        select.keypress(function (event) {
-            downandpress(event,0)
-        });
-        // Double click also causes a pick.
-        // and bind the last actions.
-        select.dblclick(pick);
-        select.blur(close);
-        select.focus();
+        this._compcallback(res);
+
     };
 
 
