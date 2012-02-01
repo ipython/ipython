@@ -137,7 +137,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     font_changed = QtCore.Signal(QtGui.QFont)
 
     #------ Protected class variables ------------------------------------------
-
+    
+    # control handles
+    _control = None
+    _page_control = None
+    _splitter = None
+    
     # When the control key is down, these keys are mapped.
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
                          QtCore.Qt.Key_F : QtCore.Qt.Key_Right,
@@ -182,8 +187,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         layout = QtGui.QStackedLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self._control = self._create_control()
-        self._page_control = None
-        self._splitter = None
         if self.paging in ('hsplit', 'vsplit'):
             self._splitter = QtGui.QSplitter()
             if self.paging == 'hsplit':
