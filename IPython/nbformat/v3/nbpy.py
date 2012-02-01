@@ -20,7 +20,7 @@ import re
 from .rwbase import NotebookReader, NotebookWriter
 from .nbbase import (
     new_code_cell, new_text_cell, new_worksheet,
-    new_notebook, new_heading_cell
+    new_notebook, new_heading_cell, nbformat
 )
 
 #-----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ class PyWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
         lines = [u'# -*- coding: utf-8 -*-']
-        lines.extend([u'# <nbformat>2</nbformat>',''])
+        lines.extend([u'# <nbformat>%i</nbformat>' % nbformat,''])
         for ws in nb.worksheets:
             for cell in ws.cells:
                 if cell.cell_type == u'code':

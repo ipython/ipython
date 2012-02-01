@@ -27,7 +27,7 @@ from IPython.nbformat import v2
 #-----------------------------------------------------------------------------
 
 def convert_to_this_nbformat(nb, orig_version=2):
-    """Convert a notebook to the v2 format.
+    """Convert a notebook to the v3 format.
 
     Parameters
     ----------
