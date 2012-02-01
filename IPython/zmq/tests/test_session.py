@@ -59,7 +59,7 @@ class TestSession(SessionTestCase):
         self.assertEquals(msg['msg_type'], 'execute')
 
     def test_serialize(self):
-        msg = self.session.msg('execute',content=dict(a=10))
+        msg = self.session.msg('execute', content=dict(a=10, b=1.1))
         msg_list = self.session.serialize(msg, ident=b'foo')
         ident, msg_list = self.session.feed_identities(msg_list)
         new_msg = self.session.unserialize(msg_list)
@@ -69,6 +69,8 @@ class TestSession(SessionTestCase):
         self.assertEquals(new_msg['header'],msg['header'])
         self.assertEquals(new_msg['content'],msg['content'])
         self.assertEquals(new_msg['parent_header'],msg['parent_header'])
+        # ensure floats don't come out as Decimal:
+        self.assertEquals(type(new_msg['content']['b']),type(new_msg['content']['b']))
 
     def test_send(self):
         socket = MockSocket(zmq.Context.instance(),zmq.PAIR)
