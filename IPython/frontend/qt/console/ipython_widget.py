@@ -179,7 +179,6 @@ class IPythonWidget(FrontendWidget):
         """ Implemented to handle history tail replies, which are only supported
             by the IPython kernel.
         """
-        self.log.debug("history: %s", msg.get('content', ''))
         content = msg['content']
         if 'history' not in content:
             self.log.error("History request failed: %r"%content)
@@ -199,6 +198,7 @@ class IPythonWidget(FrontendWidget):
         # reset retry flag
         self._retrying_history_request = False
         history_items = content['history']
+        self.log.debug("Received history reply with %i entries", len(history_items))
         items = []
         last_cell = u""
         for _, _, cell in history_items:

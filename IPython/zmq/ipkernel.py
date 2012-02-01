@@ -391,11 +391,12 @@ class Kernel(Configurable):
 
         else:
             hist = []
-        content = {'history' : list(hist)}
+        hist = list(hist)
+        content = {'history' : hist}
         content = json_clean(content)
         msg = self.session.send(self.shell_socket, 'history_reply',
                                 content, parent, ident)
-        self.log.debug(str(msg))
+        self.log.debug("Sending history reply with %i entries", len(hist))
 
     def connect_request(self, ident, parent):
         if self._recorded_ports is not None:
