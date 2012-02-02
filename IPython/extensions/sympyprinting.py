@@ -60,6 +60,7 @@ def print_latex(o):
     """A function to generate the latex representation of sympy expressions."""
     s = latex(o, mode='plain')
     s = s.replace('\\dag','\\dagger')
+    s = s.strip('$')
     return '$$%s$$' % s
 
 
