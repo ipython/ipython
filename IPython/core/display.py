@@ -298,6 +298,13 @@ class HTML(DisplayObject):
 class Math(DisplayObject):
 
     def _repr_latex_(self):
+        s = self.data.strip('$')
+        return "$$%s$$" % s
+
+
+class Latex(DisplayObject):
+
+    def _repr_latex_(self):
         return self.data
 
 

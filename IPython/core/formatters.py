@@ -524,7 +524,8 @@ class LatexFormatter(BaseFormatter):
     this.
 
     The return value of this formatter should be a valid LaTeX equation,
-    enclosed in either ```$``` or ```$$```.
+    enclosed in either ```$```, ```$$``` or another LaTeX equation
+    environment.
     """
     format_type = Unicode('text/latex')
 
