@@ -79,16 +79,15 @@ $(document).ready(function () {
     $('div#main_app').addClass('border-box-sizing ui-widget ui-widget-content');
     $('div#notebook_panel').addClass('border-box-sizing ui-widget');
 
-    IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.notebook = new IPython.Notebook('div#notebook');
+    IPython.save_widget = new IPython.SaveWidget('span#save_widget');
 
     // These have display: none in the css file and are made visible here to prevent FLOUC.
     $('div#header').css('display','block');
     $('div#main_app').css('display','block');
 
-    // Perform these actions after the notebook has been loaded.
-    IPython.notebook.load_notebook(function () {});
+    IPython.notebook.load_notebook($('body').data('notebookId'));
 
 });
 

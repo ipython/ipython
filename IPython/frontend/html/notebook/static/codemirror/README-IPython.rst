@@ -5,7 +5,7 @@
 We carry a mostly unmodified copy of CodeMirror.  The current version we use
 is (*please update this information when updating versions*)::
 
-  CodeMirror 7f93a5c
+  CodeMirror c813c94
 
 The only changes we've applied so far are these::
 

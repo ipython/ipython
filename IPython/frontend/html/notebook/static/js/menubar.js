@@ -45,21 +45,21 @@ var IPython = (function (IPython) {
             IPython.save_widget.rename_notebook();
         });
         this.element.find('#copy_notebook').click(function () {
-            var notebook_id = IPython.save_widget.get_notebook_id();
+            var notebook_id = IPython.notebook.get_notebook_id();
             var url = $('body').data('baseProjectUrl') + notebook_id + '/copy';
             window.open(url,'_newtab');
         });
         this.element.find('#save_notebook').click(function () {
-            IPython.save_widget.save_notebook();
+            IPython.notebook.save_notebook();
         });
         this.element.find('#download_ipynb').click(function () {
-            var notebook_id = IPython.save_widget.get_notebook_id();
+            var notebook_id = IPython.notebook.get_notebook_id();
             var url = $('body').data('baseProjectUrl') + 'notebooks/' +
                       notebook_id + '?format=json';
             window.open(url,'_newtab');
         });
         this.element.find('#download_py').click(function () {
-            var notebook_id = IPython.save_widget.get_notebook_id();
+            var notebook_id = IPython.notebook.get_notebook_id();
             var url = $('body').data('baseProjectUrl') + 'notebooks/' +
                       notebook_id + '?format=py';
             window.open(url,'_newtab');

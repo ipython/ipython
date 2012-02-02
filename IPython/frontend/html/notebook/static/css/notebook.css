@@ -55,6 +55,19 @@ span#notebook_name {
     margin: 0.3em 0;
 }
 
+#menubar_container {
+    position: relative;
+}
+
+#notification {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    height: 25px;
+    padding: 3px 6px;
+    z-index: 10;
+}
+
 #toolbar {
     /* Initially hidden to prevent FLOUC */
     display: none;
@@ -69,31 +82,6 @@ span#quick_help_area {
     position: static;
     padding: 5px 0px;
     margin: 0px 0px 0px 0px;
-}
-
-span#kernel_status {
-    position: absolute;
-    padding: 8px 5px 5px 5px;
-    right: 10px;
-    font-weight: bold;
-}
-
-
-.status_idle {
-    color: gray;
-    visibility: hidden;
-}
-
-.status_busy {
-    color: red;
-}
-
-.status_restarting {
-    color: black;
-}
-
-#kernel_persist {
-    float: right;
 }
 
 .help_string {

@@ -3,7 +3,7 @@ from unittest import TestCase
 from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
-    new_author, new_metadata, new_heading_cell
+    new_author, new_metadata, new_heading_cell, nbformat
 )
 
 class TestCell(TestCase):
@@ -102,7 +102,7 @@ class TestNotebook(TestCase):
         nb = new_notebook()
         self.assertEquals(nb.worksheets, [])
         self.assertEquals(nb.metadata, NotebookNode())
-        self.assertEquals(nb.nbformat,2)
+        self.assertEquals(nb.nbformat,nbformat)
 
     def test_notebook(self):
         worksheets = [new_worksheet(),new_worksheet()]
@@ -110,7 +110,7 @@ class TestNotebook(TestCase):
         nb = new_notebook(metadata=metadata,worksheets=worksheets)
         self.assertEquals(nb.metadata.name,u'foo')
         self.assertEquals(nb.worksheets,worksheets)
-        self.assertEquals(nb.nbformat,2)
+        self.assertEquals(nb.nbformat,nbformat)
 
 class TestMetadata(TestCase):
 

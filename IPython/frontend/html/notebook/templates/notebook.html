@@ -54,10 +54,9 @@
         <button id="login">Login</button>
       {% end %}
     </span>
-
-    <span id="kernel_status">Idle</span>
 </div>
 
+<div id="menubar_container">
 <div id="menubar">
     <ul id="menus">
         <li><a href="#">File</a>
@@ -153,6 +152,9 @@
     </ul>
 
 </div>
+<div id="notification"></div>
+</div>
+
 
 <div id="toolbar">
 
@@ -220,12 +222,12 @@
 <script src="{{ static_url("dateformat/date.format.js") }}" charset="utf-8"></script>
 
 <script src="{{ static_url("js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/events.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/textcell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/kernelstatus.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/layout.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/savewidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/quickhelp.js") }}" type="text/javascript" charset="utf-8"></script>
@@ -234,6 +236,7 @@
 <script src="{{ static_url("js/menubar.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/toolbar.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebook.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/notificationwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
 </body>
