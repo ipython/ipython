@@ -4,7 +4,7 @@ from base64 import encodestring
 from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
-    new_metadata, new_author, new_heading_cell
+    new_metadata, new_author, new_heading_cell, nbformat
 )
 
 # some random base64-encoded *bytes*
@@ -92,7 +92,7 @@ nb0 = new_notebook(
 )
 
 nb0_py = """# -*- coding: utf-8 -*-
-# <nbformat>2</nbformat>
+# <nbformat>%i</nbformat>
 
 # <htmlcell>
 
@@ -122,6 +122,6 @@ a = numpy.random.rand(100)
 
 print a
 
-"""
+""" % nbformat
 
 

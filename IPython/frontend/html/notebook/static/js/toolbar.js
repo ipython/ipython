@@ -72,8 +72,9 @@ var IPython = (function (IPython) {
 
 
     ToolBar.prototype.bind_events = function () {
+        var that = this;
         this.element.find('#save_b').click(function () {
-            IPython.save_widget.save_notebook();
+            IPython.notebook.save_notebook();
         });
         this.element.find('#cut_b').click(function () {
             IPython.notebook.cut_cell();
@@ -124,12 +125,13 @@ var IPython = (function (IPython) {
                 IPython.notebook.to_heading(undefined, 6);
             };
         });
-
-    };
-
-
-    ToolBar.prototype.set_cell_type = function (cell_type) {
-        this.element.find('#cell_type').val(cell_type);
+        $([IPython.events]).on('selected_cell_type_changed', function (event, data) {
+            if (data.cell_type === 'heading') {
+                that.element.find('#cell_type').val(data.cell_type+data.level);
+            } else {
+                that.element.find('#cell_type').val(data.cell_type);
+            }
+        });
     };
 
 

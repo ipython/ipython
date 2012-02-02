@@ -15,7 +15,7 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
   var hrRE = /^[*-=_]/
   ,   ulRE = /^[*-+]\s+/
-  ,   olRE = /^[0-9]\.\s+/
+  ,   olRE = /^[0-9]+\.\s+/
   ,   headerRE = /^(?:\={3,}|-{3,})$/
   ,   codeRE = /^(k:\t|\s{4,})/
   ,   textRE = /^[^\[*_\\<>`]+/;
@@ -213,6 +213,10 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
     token: function(stream, state) {
       if (stream.sol()) {
+        // Reset EM state
+        state.em = false;
+        // Reset STRONG state
+        state.strong = false;
         state.f = state.block;
         var previousIndentation = state.indentation
         ,   currentIndentation = 0;

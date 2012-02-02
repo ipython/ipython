@@ -49,7 +49,7 @@ var IPython = (function (IPython) {
         IPython.Cell.prototype.bind_events.apply(this);
         var that = this;
         this.element.keydown(function (event) {
-            if (event.which === 13) {
+            if (event.which === 13 && !event.shiftKey) {
                 if (that.rendered) {
                     that.edit();
                     return false;

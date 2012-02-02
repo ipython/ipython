@@ -28,14 +28,14 @@ from IPython.nbformat import v1
 from IPython.nbformat.v3 import (
     NotebookNode,
     new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet,
-    parse_filename, new_metadata, new_author, new_heading_cell
+    parse_filename, new_metadata, new_author, new_heading_cell, nbformat
 )
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
-current_nbformat = 3
+current_nbformat = nbformat
 
 
 class NBFormatError(Exception):
@@ -45,8 +45,8 @@ class NBFormatError(Exception):
 def parse_json(s, **kwargs):
     """Parse a string into a (nbformat, dict) tuple."""
     d = json.loads(s, **kwargs)
-    nbformat = d.get('nbformat',1)
-    return nbformat, d
+    nbf = d.get('nbformat',1)
+    return nbf, d
 
 
 def parse_py(s, **kwargs):
@@ -54,25 +54,25 @@ def parse_py(s, **kwargs):
     pattern = r'# <nbformat>(?P<nbformat>\d+)</nbformat>'
     m = re.search(pattern,s)
     if m is not None:
-        nbformat = int(m.group('nbformat'))
+        nbf = int(m.group('nbformat'))
     else:
-        nbformat = 3
-    return nbformat, s
+        nbf = current_nbformat
+    return nbf, s
 
 
 def reads_json(s, **kwargs):
     """Read a JSON notebook from a string and return the NotebookNode object."""
-    nbformat, d = parse_json(s, **kwargs)
-    if nbformat == 1:
+    nbf, d = parse_json(s, **kwargs)
+    if nbf == 1:
         nb = v1.to_notebook_json(d, **kwargs)
         nb = v3.convert_to_this_nbformat(nb, orig_version=1)
-    elif nbformat == 2:
+    elif nbf == 2:
         nb = v2.to_notebook_json(d, **kwargs)
         nb = v3.convert_to_this_nbformat(nb, orig_version=2)
-    elif nbformat == 3:
+    elif nbf == 3:
         nb = v3.to_notebook_json(d, **kwargs)
     else:
-        raise NBFormatError('Unsupported JSON nbformat version: %i' % nbformat)
+        raise NBFormatError('Unsupported JSON nbformat version: %i' % nbf)
     return nb
 
 
@@ -82,13 +82,13 @@ def writes_json(nb, **kwargs):
 
 def reads_py(s, **kwargs):
     """Read a .py notebook from a string and return the NotebookNode object."""
-    nbformat, s = parse_py(s, **kwargs)
-    if nbformat == 2:
+    nbf, s = parse_py(s, **kwargs)
+    if nbf == 2:
         nb = v2.to_notebook_py(s, **kwargs)
-    elif nbformat == 3:
+    elif nbf == 3:
         nb = v3.to_notebook_py(s, **kwargs)
     else:
-        raise NBFormatError('Unsupported PY nbformat version: %i' % nbformat)
+        raise NBFormatError('Unsupported PY nbformat version: %i' % nbf)
     return nb
 
 

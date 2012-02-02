@@ -82,14 +82,13 @@ $(document).ready(function () {
 
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
-    IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.notebook = new IPython.Notebook('div#notebook');
-    IPython.kernel_status_widget = new IPython.KernelStatusWidget('#kernel_status');
+    IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.menubar = new IPython.MenuBar('#menubar')
     IPython.toolbar = new IPython.ToolBar('#toolbar')
-    IPython.kernel_status_widget.status_idle();
+    IPython.notification_widget = new IPython.NotificationWidget('#notification')
 
     IPython.layout_manager.do_resize();
 
@@ -111,7 +110,11 @@ $(document).ready(function () {
     $('div#main_app').css('display','block');
 
     IPython.layout_manager.do_resize();
-    IPython.notebook.load_notebook();
+    $([IPython.events]).on('notebook_loaded.Notebook', function () {
+        IPython.layout_manager.do_resize();
+        IPython.save_widget.update_url();
+    })
+    IPython.notebook.load_notebook($('body').data('notebookId'));
 
 });
 

@@ -142,6 +142,16 @@ var IPython = (function (IPython) {
     };
 
 
+    Cell.prototype.toggle_line_numbers = function () {
+        if (this.code_mirror.getOption('lineNumbers') == false) {
+            this.code_mirror.setOption('lineNumbers', true);
+        } else {
+            this.code_mirror.setOption('lineNumbers', false);
+        }
+        this.code_mirror.refresh();
+    };
+
+
     IPython.Cell = Cell;
 
     return IPython;

@@ -1,4 +1,4 @@
-"""The main API for the v2 notebook format.
+"""The main API for the v3 notebook format.
 
 Authors:
 
@@ -19,7 +19,7 @@ Authors:
 from .nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet,
-    new_metadata, new_author, new_heading_cell
+    new_metadata, new_author, new_heading_cell, nbformat
 )
 
 from .nbjson import reads as reads_json, writes as writes_json
