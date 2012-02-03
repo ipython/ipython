@@ -401,12 +401,15 @@ class DirectView(View):
         return self.sync_imports(True)
 
     @contextmanager
-    def sync_imports(self, local=True):
+    def sync_imports(self, local=True, quiet=False):
         """Context Manager for performing simultaneous local and remote imports.
 
         'import x as y' will *not* work.  The 'as y' part will simply be ignored.
         
         If `local=True`, then the package will also be imported locally.
+        
+        If `quiet=True`, then no message concerning the success of import will be
+        reported.
         
         Note that remote-only (`local=False`) imports have not been implemented.
         
@@ -456,10 +459,11 @@ class DirectView(View):
             key = name+':'+','.join(fromlist or [])
             if level == -1 and key not in modules:
                 modules.add(key)
-                if fromlist:
-                    print "importing %s from %s on engine(s)"%(','.join(fromlist), name)
-                else:
-                    print "importing %s on engine(s)"%name
+                if not quiet:
+                    if fromlist:
+                        print "importing %s from %s on engine(s)"%(','.join(fromlist), name)
+                    else:
+                        print "importing %s on engine(s)"%name
                 results.append(self.apply_async(remote_import, name, fromlist, level))
             # restore override
             __builtin__.__import__ = save_import
