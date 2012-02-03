@@ -268,6 +268,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if new and not self.force_interact:
                 self.interact = False
     _code_to_run_changed = _file_to_run_changed
+    _module_to_run_changed = _file_to_run_changed
 
     # internal, not-configurable
     interact=Bool(True)
