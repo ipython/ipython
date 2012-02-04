@@ -7,6 +7,7 @@
 
 # stdlib
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -51,6 +52,14 @@ def test_history():
             # Check whether specifying a range beyond the end of the current
             # session results in an error (gh-804)
             ip.magic('%hist 2-500')
+            
+            # Check that we can write non-ascii characters to a file
+            tmpdir = tempfile.mkdtemp()
+            try:
+                ip.magic("%%hist -f %s" % os.path.join(tmpdir, "test1"))
+                ip.magic("%%save %s 1-10" % os.path.join(tmpdir, "test2"))
+            finally:
+                shutil.rmtree(tmpdir)
 
             # New session
             ip.history_manager.reset()
