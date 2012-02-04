@@ -32,7 +32,7 @@ def test_history():
         hist_file = os.path.join(tmpdir, 'history.sqlite')
         try:
             ip.history_manager = HistoryManager(shell=ip, hist_file=hist_file)
-            hist = ['a=1', 'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
+            hist = [u'a=1', u'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
             for i, h in enumerate(hist, start=1):
                 ip.history_manager.store_inputs(i, h)
 
@@ -54,12 +54,10 @@ def test_history():
             ip.magic('%hist 2-500')
             
             # Check that we can write non-ascii characters to a file
-            tmpdir = tempfile.mkdtemp()
-            try:
-                ip.magic("%%hist -f %s" % os.path.join(tmpdir, "test1"))
-                ip.magic("%%save %s 1-10" % os.path.join(tmpdir, "test2"))
-            finally:
-                shutil.rmtree(tmpdir)
+            ip.magic("%%hist -f %s" % os.path.join(tmpdir, "test1"))
+            ip.magic("%%hist -pf %s" % os.path.join(tmpdir, "test2"))
+            ip.magic("%%hist -nf %s" % os.path.join(tmpdir, "test3"))
+            ip.magic("%%save %s 1-10" % os.path.join(tmpdir, "test4"))
 
             # New session
             ip.history_manager.reset()
