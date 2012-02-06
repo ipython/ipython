@@ -1,30 +1,14 @@
 #!/usr/bin/env python
 """
-WARNING: This example is currently broken, see
-https://github.com/ipython/ipython/issues/645 for details on our progress on
-this issue.
-
 A Simple wx example to test IPython's event loop integration.
 
 To run this do:
 
-In [5]: %gui wx
+In [5]: %gui wx  # or start IPython with '--gui wx' or '--pylab wx'
 
 In [6]: %run gui-wx.py
 
 Ref: Modified from wxPython source code wxPython/samples/simple/simple.py
-
-This example can only be run once in a given IPython session because when
-the frame is closed, wx goes through its shutdown sequence, killing further
-attempts.  I am sure someone who knows wx can fix this issue.
-
-Furthermore, once this example is run, the Wx event loop is mostly dead, so
-even other new uses of Wx may not work correctly.  If you know how to better
-handle this, please contact the ipython developers and let us know.
-
-Note however that we will work with the Matplotlib and Enthought developers so
-that the main interactive uses of Wx we are aware of, namely these tools, will
-continue to work well with IPython interactively.
 """
 
 import wx
@@ -105,17 +89,18 @@ class MyApp(wx.App):
 
 
 if __name__ == '__main__':
-    raise NotImplementedError(
-        'Standalone WX GUI support is currently broken. '
-        'See https://github.com/ipython/ipython/issues/645 for details')
 
     app = wx.GetApp()
     if app is None:
         app = MyApp(redirect=False, clearSigInt=False)
+    else:
+        frame = MyFrame(None, "Simple wxPython App")
+        app.SetTopWindow(frame)
+        print "Print statements go to this stdout window by default."
+        frame.Show(True)
 
     try:
         from IPython.lib.inputhook import enable_wx
         enable_wx(app)
     except ImportError:
         app.MainLoop()
-
