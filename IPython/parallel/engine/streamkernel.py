@@ -402,7 +402,6 @@ class Kernel(SessionFactory):
         #### stream mode:
         if self.control_stream:
             self.control_stream.on_recv(self.dispatch_control, copy=False)
-            self.control_stream.on_err(printer)
 
         def make_dispatcher(stream):
             def dispatcher(msg):
@@ -411,29 +410,5 @@ class Kernel(SessionFactory):
 
         for s in self.shell_streams:
             s.on_recv(make_dispatcher(s), copy=False)
-            s.on_err(printer)
 
-        if self.iopub_stream:
-            self.iopub_stream.on_err(printer)
-
-        #### while True mode:
-        # while True:
-        #     idle = True
-        #     try:
-        #         msg = self.shell_stream.socket.recv_multipart(
-        #                     zmq.NOBLOCK, copy=False)
-        #     except zmq.ZMQError, e:
-        #         if e.errno != zmq.EAGAIN:
-        #             raise e
-        #     else:
-        #         idle=False
-        #         self.dispatch_queue(self.shell_stream, msg)
-        #
-        #     if not self.task_stream.empty():
-        #         idle=False
-        #         msg = self.task_stream.recv_multipart()
-        #         self.dispatch_queue(self.task_stream, msg)
-        #     if idle:
-        #         # don't busywait
-        #         time.sleep(1e-3)
 
