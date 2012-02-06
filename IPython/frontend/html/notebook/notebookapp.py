@@ -49,9 +49,11 @@ from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
-    RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler
+    RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler,
+    MainClusterHandler, ClusterProfileHandler, ClusterActionHandler
 )
 from .notebookmanager import NotebookManager
+from .clustermanager import ClusterManager
 
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
@@ -74,6 +76,9 @@ from IPython.utils import py3compat
 _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
 _notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
+_profile_regex = r"(?P<profile>[a-zA-Z0-9]+)"
+_cluster_action_regex = r"(?P<action>start|stop)"
+
 
 LOCALHOST = '127.0.0.1'
 
@@ -101,7 +106,8 @@ def url_path_join(a,b):
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, ipython_app, kernel_manager, notebook_manager, log,
+    def __init__(self, ipython_app, kernel_manager, notebook_manager, 
+                 cluster_manager, log,
                  base_project_url, settings_overrides):
         handlers = [
             (r"/", ProjectDashboardHandler),
@@ -120,6 +126,9 @@ class NotebookWebApplication(web.Application):
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
             (r"/rstservice/render", RSTHandler),
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
+            (r"/clusters", MainClusterHandler),
+            (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
+            (r"/clusters/%s" % _profile_regex, ClusterProfileHandler),
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
@@ -151,10 +160,11 @@ class NotebookWebApplication(web.Application):
         super(NotebookWebApplication, self).__init__(new_handlers, **settings)
 
         self.kernel_manager = kernel_manager
-        self.log = log
         self.notebook_manager = notebook_manager
+        self.cluster_manager = cluster_manager
         self.ipython_app = ipython_app
         self.read_only = self.ipython_app.read_only
+        self.log = log
 
 
 #-----------------------------------------------------------------------------
@@ -395,6 +405,7 @@ class NotebookApp(BaseIPythonApplication):
         )
         self.notebook_manager = NotebookManager(config=self.config, log=self.log)
         self.notebook_manager.list_notebooks()
+        self.cluster_manager = ClusterManager(config=self.config, log=self.log)
 
     def init_logging(self):
         super(NotebookApp, self).init_logging()
@@ -406,7 +417,8 @@ class NotebookApp(BaseIPythonApplication):
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
         self.web_app = NotebookWebApplication(
-            self, self.kernel_manager, self.notebook_manager, self.log,
+            self, self.kernel_manager, self.notebook_manager, 
+            self.cluster_manager, self.log,
             self.base_project_url, self.webapp_settings
         )
         if self.certfile:

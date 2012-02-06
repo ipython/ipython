@@ -587,7 +587,6 @@ class NotebookRootHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
     def get(self):
-        
         nbm = self.application.notebook_manager
         files = nbm.list_notebooks()
         self.finish(jsonapi.dumps(files))
@@ -660,6 +659,41 @@ class NotebookCopyHandler(AuthenticatedHandler):
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
         )
+
+
+#-----------------------------------------------------------------------------
+# Cluster handlers
+#-----------------------------------------------------------------------------
+
+
+class MainClusterHandler(AuthenticatedHandler):
+
+    @web.authenticated
+    def get(self):
+        cm = self.application.cluster_manager
+        self.finish(jsonapi.dumps(cm.list_profiles()))
+
+
+class ClusterProfileHandler(AuthenticatedHandler):
+
+    @web.authenticated
+    def get(self, profile):
+        cm = self.application.cluster_manager
+        self.finish(jsonapi.dumps(cm.profile_info(profile)))
+
+
+class ClusterActionHandler(AuthenticatedHandler):
+
+    @web.authenticated
+    def post(self, profile, action):
+        cm = self.application.cluster_manager
+        if action == 'start':
+            n = int(self.get_argument('n', default=4))
+            cm.start_cluster(profile, n)
+        if action == 'stop':
+            cm.stop_cluster(profile)
+        self.finish()
+
 
 #-----------------------------------------------------------------------------
 # RST web service handlers
