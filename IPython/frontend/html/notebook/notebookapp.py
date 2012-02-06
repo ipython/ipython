@@ -1,10 +1,10 @@
+# coding: utf-8
 """A tornado based IPython notebook server.
 
 Authors:
 
 * Brian Granger
 """
-
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
@@ -65,6 +65,7 @@ from IPython.zmq.ipkernel import (
     IPKernelApp
 )
 from IPython.utils.traitlets import Dict, Unicode, Integer, List, Enum, Bool
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Module globals
@@ -130,6 +131,16 @@ class NotebookWebApplication(web.Application):
         # allow custom overrides for the tornado web app.
         settings.update(settings_overrides)
 
+        # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
+        # base_project_url will always be unicode, which will in turn
+        # make the patterns unicode, and ultimately result in unicode
+        # keys in kwargs to handler._execute(**kwargs) in tornado.
+        # This enforces that base_project_url be ascii in that situation.
+        # 
+        # Note that the URLs these patterns check against are escaped,
+        # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
+        base_project_url = py3compat.unicode_to_str(base_project_url, 'ascii')
+        
         # prepend base_project_url onto the patterns that we match
         new_handlers = []
         for handler in handlers:
