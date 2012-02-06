@@ -722,5 +722,5 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,
         try:
             loop.start()
         except KeyboardInterrupt:
-            print ("interrupted, exiting...", file=sys.__stderr__)
+            scheduler.log.critical("Interrupted, exiting...")
 
