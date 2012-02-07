@@ -265,6 +265,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.interact = True
 
     def _file_to_run_changed(self, name, old, new):
+        if new:
+            self.something_to_run = True
         if new and not self.force_interact:
                 self.interact = False
     _code_to_run_changed = _file_to_run_changed
@@ -272,7 +274,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
 
     # internal, not-configurable
     interact=Bool(True)
-
+    something_to_run=Bool(False)
 
     def parse_command_line(self, argv=None):
         """override to allow old '-pylab' flag with deprecation warning"""
@@ -307,7 +309,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if not self.ignore_old_config:
             check_for_old_config(self.ipython_dir)
         # print self.extra_args
-        if self.extra_args and not self.module_to_run:
+        if self.extra_args and not self.something_to_run:
             self.file_to_run = self.extra_args[0]
         # create the shell
         self.init_shell()
