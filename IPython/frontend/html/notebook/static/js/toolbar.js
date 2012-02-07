@@ -125,7 +125,7 @@ var IPython = (function (IPython) {
                 IPython.notebook.to_heading(undefined, 6);
             };
         });
-        $([IPython.events]).on('selected_cell_type_changed', function (event, data) {
+        $([IPython.events]).on('selected_cell_type_changed.Notebook', function (event, data) {
             if (data.cell_type === 'heading') {
                 that.element.find('#cell_type').val(data.cell_type+data.level);
             } else {
