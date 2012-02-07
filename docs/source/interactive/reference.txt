@@ -870,14 +870,6 @@ Since the details vary slightly between toolkits, we point you to the various
 examples in our source directory :file:`docs/examples/lib` that demonstrate
 these capabilities.
 
-.. warning::
-
-   The WX version of this is currently broken.  While ``--pylab=wx`` works
-   fine, standalone WX apps do not.  See
-   https://github.com/ipython/ipython/issues/645 for details of our progress on
-   this issue.
-
-
 Third, unlike previous versions of IPython, we no longer "hijack" (replace
 them with no-ops) the event loops. This is done to allow applications that
 actually need to run the real event loops to do so. This is often needed to
@@ -938,9 +930,11 @@ Matlab program.
 
 To start IPython with matplotlib support, use the ``--pylab`` switch.  If no
 arguments are given, IPython will automatically detect your choice of
-matplotlib backend.  You can also request a specific backend with
-``--pylab=backend``, where ``backend`` must be one of: 'tk', 'qt', 'wx', 'gtk',
-'osx'.
+matplotlib backend.  You can also request a specific backend with ``--pylab
+backend``, where ``backend`` must be one of: 'tk', 'qt', 'wx', 'gtk', 'osx'.
+In the web notebook and Qt console, 'inline' is also a valid backend value,
+which produces static figures inlined inside the application window instead of
+matplotlib's interactive figures that live in separate windows.
 
 .. _Matplotlib: http://matplotlib.sourceforge.net
 
