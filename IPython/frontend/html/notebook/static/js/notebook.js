@@ -993,7 +993,6 @@ var IPython = (function (IPython) {
         } else if (msg_type === 'status') {
             if (content.execution_state === 'busy') {
                 $([IPython.events]).trigger('status_busy.Kernel');
-                IPython.kernel_status_widget.status_busy();
             } else if (content.execution_state === 'idle') {
                 $([IPython.events]).trigger('status_idle.Kernel');
             } else if (content.execution_state === 'dead') {

@@ -655,6 +655,8 @@ var IPython = (function (IPython) {
     CodeCell.prototype.append_mime_type = function (json, element) {
         if (json.html !== undefined) {
             this.append_html(json.html, element);
+        } else if (json.javascript !== undefined) {
+            this.append_javascript(json.javascript, element);
         } else if (json.latex !== undefined) {
             this.append_latex(json.latex, element);
         } else if (json.svg !== undefined) {
@@ -674,6 +676,12 @@ var IPython = (function (IPython) {
         toinsert.append(html);
         element.append(toinsert);
     };
+
+
+    CodeCell.prototype.append_javascript = function (js, element) {
+        // We just eval the JS code, element appears in the local scope.
+        eval(js);
+    }
 
 
     CodeCell.prototype.append_text = function (data, element, extra_class) {
