@@ -1043,7 +1043,8 @@ var IPython = (function (IPython) {
             json.evalue = content.evalue;
             json.traceback = content.traceback;
         };
-        cell.append_output(json);
+        // append with dynamic=true
+        cell.append_output(json, true);
         this.dirty = true;
     };
 
