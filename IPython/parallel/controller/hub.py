@@ -1271,17 +1271,17 @@ class Hub(SessionFactory):
                 buffer_lens = [] if 'buffers' in keys else None
                 result_buffer_lens = [] if 'result_buffers' in keys else None
             else:
-                buffer_lens = []
-                result_buffer_lens = []
+                buffer_lens = None
+                result_buffer_lens = None
 
             for rec in records:
                 # buffers may be None, so double check
+                b = rec.pop('buffers', empty) or empty
                 if buffer_lens is not None:
-                    b = rec.pop('buffers', empty) or empty
                     buffer_lens.append(len(b))
                     buffers.extend(b)
+                rb = rec.pop('result_buffers', empty) or empty
                 if result_buffer_lens is not None:
-                    rb = rec.pop('result_buffers', empty) or empty
                     result_buffer_lens.append(len(rb))
                     buffers.extend(rb)
             content = dict(status='ok', records=records, buffer_lens=buffer_lens,
