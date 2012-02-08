@@ -17,6 +17,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import datetime
+import io
 import os
 import uuid
 import glob
@@ -212,7 +213,7 @@ class NotebookManager(LoggingConfigurable):
         if self.save_script:
             pypath = os.path.splitext(path)[0] + '.py'
             try:
-                with open(pypath,'w') as f:
+                with io.open(pypath,'w', encoding='utf-8') as f:
                     current.write(nb, f, u'py')
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
