@@ -533,12 +533,14 @@ class IPythonWidget(FrontendWidget):
         """ Set the style sheets of the underlying widgets.
         """
         self.setStyleSheet(self.style_sheet)
-        self._control.document().setDefaultStyleSheet(self.style_sheet)
-        if self._page_control:
+        if self._control is not None:
+            self._control.document().setDefaultStyleSheet(self.style_sheet)
+            bg_color = self._control.palette().window().color()
+            self._ansi_processor.set_background_color(bg_color)
+        
+        if self._page_control is not None:
             self._page_control.document().setDefaultStyleSheet(self.style_sheet)
 
-        bg_color = self._control.palette().window().color()
-        self._ansi_processor.set_background_color(bg_color)
 
 
     def _syntax_style_changed(self):
